@@ -8,7 +8,7 @@ irnames = "LT    GE    LE    GT    ULT   UGE   ULE   UGT   EQ    NE    ABC   RET
 
 irfpm = { [0]="floor", "ceil", "trunc", "sqrt", "log", "log2", "other", },
 
-irfield = { [0]="str.len", "func.env", "func.pc", "func.ffid", "thread.env", "tab.meta", "tab.array", "tab.node", "tab.asize", "tab.hmask", "tab.nomm", "udata.meta", "udata.udtype", "udata.file", "cdata.ctypeid", "cdata.ptr", "cdata.int", "cdata.int64", "cdata.int64_4", },
+irfield = { [0]="str.len", "func.env", "func.pc", "func.ffid", "thread.env", "tab.meta", "tab.array", "tab.node", "tab.asize", "tab.hmask", "tab.nomm", "udata.meta", "udata.udtype", "udata.file", "udata.buf_r", "cdata.ctypeid", "cdata.ptr", "cdata.int", "cdata.int64", "cdata.int64_4", },
 
 ircall = {
 [0]="lj_str_cmp",
@@ -362,6 +362,23 @@ ffnames = {
 "ffi.metatype",
 "ffi.gc",
 "ffi.load",
+"buffer.method.free",
+"buffer.method.reset",
+"buffer.method.skip",
+"buffer.method.set",
+"buffer.method.put",
+"buffer.method.putf",
+"buffer.method.get",
+"buffer.method.putcdata",
+"buffer.method.reserve",
+"buffer.method.commit",
+"buffer.method.ref",
+"buffer.method.encode",
+"buffer.method.decode",
+"buffer.method.__gc",
+"buffer.method.__tostring",
+"buffer.method.__len",
+"buffer.new",
 "buffer.encode",
 "buffer.decode",
 },

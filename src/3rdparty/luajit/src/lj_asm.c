@@ -11,6 +11,7 @@
 #if LJ_HASJIT
 
 #include "lj_gc.h"
+#include "lj_buf.h"
 #include "lj_str.h"
 #include "lj_tab.h"
 #include "lj_frame.h"
@@ -1163,7 +1164,7 @@ static void asm_bufhdr(ASMState *as, IRIns *ir)
   } else {
     Reg tmp = ra_scratch(as, rset_exclude(RSET_GPR, sb));
     /* Passing ir isn't strictly correct, but it's an IRT_PGC, too. */
-    emit_storeofs(as, ir, tmp, sb, offsetof(SBuf, p));
+    emit_storeofs(as, ir, tmp, sb, offsetof(SBuf, w));
     emit_loadofs(as, ir, tmp, sb, offsetof(SBuf, b));
   }
 #if LJ_TARGET_X86ORX64

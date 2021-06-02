@@ -28,13 +28,13 @@
 #define MAKE_VERSION_STR(a, b, c, d, sep)  (TO_STR(a)TEXT(" ")TO_STR(b) sep TO_STR(c) sep TO_STR(d))
 
 // 定义版本信息
-#define __EU_INFO_VERSION 1
+#define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 9
+#define __EU_INFO_VERSION_PATCHLEVEL 0
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
-#if !__EU_INFO_VERSION_PATCHLEVEL
-#define __LIFE_CYCLE TEXT("-GA")
+#if 1
+#define __LIFE_CYCLE TEXT("-DEV")
 #else
 #define __LIFE_CYCLE
 #endif
