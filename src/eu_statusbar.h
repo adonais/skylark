@@ -1,0 +1,54 @@
+/*******************************************************************************
+ * This file is part of Skylark project
+ * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * at your option any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
+#ifndef _EU_STATUSBAR_H_
+#define _EU_STATUSBAR_H_
+
+#define EDITNUMBS    11
+#define IMAGEWIDTH   16
+#define IMAGEHEIGHT  15
+#define WM_BTN_PRESS (WM_USER + 201)
+
+// c++ compiler
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern HWND g_statusbar;
+extern char iconv_undo_str[ACNAME_LEN];
+
+bool __stdcall on_statusbar_init(HWND hwnd);
+void __stdcall on_statusbar_size(HWND hwnd);
+void __stdcall on_statusbar_btn_case(void);
+int  __stdcall on_statusbar_height(void);
+void __stdcall on_statusbar_update(void);
+void __stdcall on_statusbar_adjust_box(void);
+void __stdcall on_statusbar_update_eol(eu_tabpage *pnode);
+void __stdcall on_statusbar_update_line(eu_tabpage *pnode);
+void __stdcall on_statusbar_update_filesize(eu_tabpage *pnode);
+void __stdcall on_statusbar_update_coding(eu_tabpage *pnode, const int res_id);
+void __stdcall on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str);
+void __stdcall on_statusbar_dark_mode(void);
+void __stdcall on_statusbar_dark_release(bool off);
+LRESULT __stdcall on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // _EU_STATUSBAR_H_

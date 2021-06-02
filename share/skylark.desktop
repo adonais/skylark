@@ -1,0 +1,19 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Skylark Edit
+Exec=wine64 /home/adonais/works/skylark_x64/skylark.exe Z:%F
+Type=Application
+MimeType=text/plain;
+Icon=/home/adonais/works/skylark_x64/share/skylark.png
+StartupNotify=false
+MimeType=text/plain;text/html;text/x-php;text/x-c;text/x-shellscript;
+Categories=Development;Utility;TextEditor;
+Actions=Window;Document;
+
+[Desktop Action Document]
+Name=Open a New Document
+Name[zh_CN]=打开新文档
+Name[zh_HK]=開啟新的文件
+Name[zh_TW]=開啟新的文件
+Exec=wine64 /home/adonais/works/skylark_x64/skylark.exe Z:%F
+OnlyShowIn=Unity;

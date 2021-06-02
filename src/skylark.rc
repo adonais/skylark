@@ -1,0 +1,230 @@
+/******************************************************************************
+ * This file is part of Skylark project
+ * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * at your option any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
+#pragma code_page(65001)
+
+#include "resource.h"
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
+#include <tchar.h>
+
+#ifndef MANIFEST_PATH
+#define MANIFEST_PATH "skylark.exe.manifest"
+#endif
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+
+//
+// RT_MANIFEST
+//
+
+1                       RT_MANIFEST             MANIFEST_PATH
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_SKYLARK             ICON                    "..\\resources\\skylark48.ico"
+IDI_SMALL               ICON                    "..\\resources\\skylark32.ico"
+IDI_TXT_48              ICON                    "..\\resources\\txt48.ico"
+IDB_CLSDFOLD            ICON                    "..\\resources\\folder-closed.ico"
+IDB_DOC                 ICON                    "..\\resources\\txt.ico"
+IDB_DRIVE               ICON                    "..\\resources\\drive.ico"
+IDB_EXE                 ICON                    "..\\resources\\exe.ico"
+IDB_OPENFOLD            ICON                    "..\\resources\\folder.ico"
+IDB_TXT                 ICON                    "..\\resources\\doc.ico"
+IDB_COPY                ICON                    "..\\resources\\copy.ico"
+IDB_COPY_DARK           ICON                    "..\\resources\\copy_dark.ico"
+IDC_STATIC_MYICON       ICON                    "..\\resources\\up16x16.ico"
+IDC_STATIC_MYICON_DARK  ICON                    "..\\resources\\up_dark16x16.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//
+IDB_TOOLBAR16           BITMAP                  "..\\resources\\toolbar_16.bmp"
+IDB_TOOLBAR1            BITMAP                  "..\\resources\\toolbar_1.bmp"
+IDB_TOOLBAR_DARK1       BITMAP                  "..\\resources\\toolbar_dark_1.bmp"
+IDB_TOOLBAR_DARK16      BITMAP                  "..\\resources\\toolbar_dark_16.bmp"
+IDB_BUTTON_BG_BMP       BITMAP                  "..\\resources\\bg.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+// Version
+#ifndef _MAC
+
+1 VERSIONINFO
+FILEVERSION     __EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL
+PRODUCTVERSION  __EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080404B0"
+    BEGIN
+      VALUE "CompanyName", "zh-CN NetWork\0"
+      VALUE "FileDescription", "Skylark is a text editor for Windows with built-in sftp capabilities\0"
+      VALUE "FileVersion", __EU_INFO_RELEASE_VERSION
+      VALUE "InternalName", "Skylark\0"
+      VALUE "LegalCopyright", "License: GNU GPL v3\0"
+      VALUE "OriginalFilename", __ORIGINAL_NAME
+      VALUE "ProductName", "Skylark"
+      VALUE "ProductVersion", __EU_INFO_RELEASE_VERSION
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x804, 1200
+  END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDC_SKYLARK ACCELERATORS
+BEGIN
+    "\\",           IDM_SOURCE_BLOCKFOLD_TOGGLE, ASCII, ALT, NOINVERT
+    "]",            IDM_SOURCE_BLOCKFOLD_CONTRACT, ASCII, ALT, NOINVERT
+    "[",            IDM_SOURCE_BLOCKFOLD_EXPAND, ASCII, ALT, NOINVERT
+    "0",            IDM_VIEW_ZOOMRESET, VIRTKEY, CONTROL, NOINVERT    
+    "A",            IDM_SEARCH_SELECTALL,   VIRTKEY, CONTROL, NOINVERT
+    "B",            IDM_ONLINE_SEARCH_BAIDU, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    "C",            IDM_EDIT_COPYLINE,      VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "C",            IDM_EDIT_COPYLINE_AND_PASTELINE, VIRTKEY, SHIFT, CONTROL, ALT, NOINVERT
+    "C",            IDM_SELECTION_RECTANGLE, VIRTKEY, ALT, NOINVERT
+    "D",            IDM_FILE_WORKSPACE,  VIRTKEY, CONTROL, ALT, NOINVERT
+    "D",            IDM_OPEN_CONTAINING_FOLDER,  VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "E",            IDM_EDIT_DELETELINE, VIRTKEY, CONTROL, NOINVERT
+    "F",            IDM_SEARCH_FIND,     VIRTKEY, CONTROL, NOINVERT
+    "F",            IDM_SEARCH_FILES, VIRTKEY, ALT, CONTROL, NOINVERT
+    "F",            IDM_OPEN_FILE_PATH, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "G",            IDM_SEARCH_GOTOLINE,    VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_ONLINE_SEARCH_GOOGLE, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "H",            IDM_VIEW_HEXEDIT_MODE,  VIRTKEY, CONTROL, NOINVERT
+    "H",            IDM_DELETE_SPACE_LINEHEAD,  VIRTKEY, ALT, NOINVERT
+    "I",            IDM_ONLINE_SEARCH_BING, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "J",            IDM_EDIT_JOINLINE,      VIRTKEY, ALT, NOINVERT
+    "J",            IDM_SEARCH_MOVEBOTTOM_FIRSTLINE, VIRTKEY, CONTROL, NOINVERT
+    "K",            IDM_SEARCH_MOVETOP_FIRSTLINE, VIRTKEY, CONTROL, NOINVERT
+    "L",            IDM_SEARCH_SELECTLINE,  VIRTKEY, CONTROL, NOINVERT
+    "L",            IDM_VIEW_WRAPLINE_MODE,  VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
+    "N",            IDM_VIEW_LINENUMBER_VISIABLE, VIRTKEY, SHIFT,CONTROL, NOINVERT
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
+    "P",            IDM_FILE_PRINT,       VIRTKEY, CONTROL, NOINVERT
+    "P",            IDM_DONATION, VIRTKEY, SHIFT, NOINVERT
+    "Q",            IDM_EDIT_BIG5_GB,  VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "Q",            IDM_EDIT_QRCODE,  VIRTKEY, CONTROL, NOINVERT
+    "Q",            IDM_UPDATE_SELECTION,  VIRTKEY, CONTROL, ALT, NOINVERT
+    "R",            IDM_EDIT_DELETEBLANKLINE, VIRTKEY, ALT, NOINVERT
+    "R",            IDM_DELETE_ALL_SPACE_LINE, VIRTKEY, CONTROL, ALT, NOINVERT
+    "R",            IDM_SEARCH_REPLACE,     VIRTKEY, CONTROL,NOINVERT
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
+    "T",            IDM_DELETE_SPACE_LINETAIL, VIRTKEY, ALT, NOINVERT   
+    "U",            IDM_EDIT_LOWERCASE,     VIRTKEY, CONTROL, NOINVERT
+    "U",            IDM_EDIT_UPPERCASE,     VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
+    "V",            IDM_EDIT_PASTELINE,     VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "V",            IDM_EDIT_PASTELINE_UPSTAIRS, VIRTKEY, SHIFT, CONTROL, ALT, NOINVERT
+    "W",            IDM_SEARCH_SELECTWORD,  VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_EDIT_GB_BIG5,  VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
+    "X",            IDM_EDIT_CUTLINE,       VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "X",            IDM_EDIT_CUTLINE_AND_PASTELINE, VIRTKEY, SHIFT, CONTROL, ALT, NOINVERT
+    "Y",            IDM_EDIT_REDO,          VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
+    VK_SUBTRACT,    IDM_VIEW_ZOOMIN, VIRTKEY, CONTROL, NOINVERT
+    VK_ADD,         IDM_VIEW_ZOOMOUT, VIRTKEY,CONTROL, NOINVERT    
+    VK_OEM_MINUS,   IDM_VIEW_ZOOMIN, VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_PLUS,    IDM_VIEW_ZOOMOUT, VIRTKEY,CONTROL, NOINVERT   
+    VK_OEM_2,       IDM_EDIT_LINECOMMENT, VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_5,       IDM_EDIT_STREAMCOMMENT,     VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      IDM_EDIT_DELETELINE,    VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_DELETE,      IDM_EDIT_DELETE,        VIRTKEY, NOINVERT
+    VK_BACK,        IDM_SEARCH_NAVIGATE_PREV_THIS, VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        IDM_SEARCH_NAVIGATE_PREV_INALL, VIRTKEY, SHIFT, CONTROL, NOINVERT      
+    VK_LEFT,        IDM_SEARCH_SELECTGROUP_LEFT, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_LEFT,        IDM_SEARCH_ADDSELECT_LEFT_WORD, VIRTKEY, SHIFT, CONTROL, ALT, NOINVERT
+    VK_LEFT,        IDM_SEARCH_MOVE_LEFT_CHARGROUP, VIRTKEY, CONTROL, NOINVERT
+    VK_LEFT,        IDM_SEARCH_MOVE_LEFT_WORD, VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_RIGHT,       IDM_SEARCH_SELECTGROUP_RIGHT, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_RIGHT,       IDM_SEARCH_ADDSELECT_RIGHT_WORD, VIRTKEY, SHIFT, CONTROL, ALT, NOINVERT
+    VK_RIGHT,       IDM_SEARCH_MOVE_RIGHT_CHARGROUP, VIRTKEY, CONTROL, NOINVERT
+    VK_RIGHT,       IDM_SEARCH_MOVE_RIGHT_WORD, VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_HOME,        IDM_SEARCH_GOTOHOME,    VIRTKEY, CONTROL, NOINVERT
+    VK_END,         IDM_SEARCH_GOTOEND,     VIRTKEY, CONTROL, NOINVERT
+    VK_F2,          IDM_SEARCH_GOTO_NEXT_BOOKMARK, VIRTKEY, NOINVERT
+    VK_F2,          IDM_SEARCH_GOTO_PREV_BOOKMARK, VIRTKEY, CONTROL, NOINVERT
+    VK_F2,          IDM_SEARCH_BOOKMARK_INALL, VIRTKEY, SHIFT, NOINVERT
+    VK_F2,          IDM_SEARCHPRE_BOOKMARK_INALL, VIRTKEY, SHIFT, CONTROL, NOINVERT    
+    VK_F3,          IDM_SEARCH_FINDPREV,    VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          IDM_SEARCH_FINDNEXT,    VIRTKEY, NOINVERT
+    VK_F4,          IDM_FILE_CLOSE,         VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_EXIT,               VIRTKEY, ALT, NOINVERT
+    VK_F4,          IDM_FILE_CLOSEALL,      VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_F5,          IDM_DATABASE_EXECUTE_SQL, VIRTKEY, NOINVERT
+    VK_F5,          IDM_PROGRAM_EXECUTE_ACTION,VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_FORMAT_REFORMAT,  VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_FORMAT_COMPRESS,  VIRTKEY, ALT,CONTROL, NOINVERT
+    VK_F7,          IDM_FORMAT_WHOLE_FILE,  VIRTKEY, CONTROL, NOINVERT
+    VK_F7,          IDM_FORMAT_RANGLE_STR,  VIRTKEY, ALT,CONTROL, NOINVERT    
+    VK_F8,          IDM_FORMAT_RUN_SCRIPT,  VIRTKEY, CONTROL, NOINVERT
+    VK_F8,          IDM_FORMAT_BYTE_CODE,   VIRTKEY, ALT,CONTROL, NOINVERT
+    VK_F9,          IDM_SEARCH_TOGGLE_BOOKMARK, VIRTKEY, NOINVERT
+    VK_F9,          IDM_SEARCH_ADD_BOOKMARK, VIRTKEY, ALT, NOINVERT
+    VK_F9,          IDM_SEARCH_REMOVE_BOOKMARK, VIRTKEY, CONTROL, NOINVERT
+    VK_F9,          IDM_SEARCH_REMOVE_ALL_BOOKMARKS, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_F11,         IDM_VIEW_FULLSCREEN, VIRTKEY, NOINVERT
+    VK_F11,         IDM_VIEW_TOOLBAR, VIRTKEY, CONTROL, NOINVERT
+    VK_F11,         IDM_VIEW_STATUSBAR, VIRTKEY, SHIFT, NOINVERT
+    VK_F12,         IDM_SOURCECODE_GOTODEF, VIRTKEY, NOINVERT
+END
+                                              
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "Skylark"
+    IDC_MSG_NEW_FILE        "No Title %d"
+    IDS_ABOUT_DESCRIPTION   EU_DESCRIPTION
+END
+
+// DS_SHELLFONT | 
+IDD_QRBOX DIALOG 0, 0, 170, 157
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP
+EXSTYLE WS_EX_CONTROLPARENT
+FONT 8, "Ms Shell Dlg"
+{
+    CONTROL "",IDC_IMG_QR,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE|SS_BITMAP,0,0,170,157
+}

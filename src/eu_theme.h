@@ -1,0 +1,56 @@
+/******************************************************************************
+ * This file is part of Skylark project
+ * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * at your option any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
+#ifndef _H_SKYLARK_STYLETHEME_
+#define _H_SKYLARK_STYLETHEME_
+
+#define THEME_MENU 6
+#define THEME_MENU_SUB 7
+
+typedef struct _theme_desc
+{
+    TCHAR desc[ACNAME_LEN];
+    TCHAR name[ACNAME_LEN];
+}theme_desc;
+
+typedef struct _theme_query
+{
+    uint16_t res_id;
+    TCHAR desc[ACNAME_LEN];
+    TCHAR name[ACNAME_LEN];
+}theme_query;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+TCHAR* on_theme_query_name(TCHAR *str);
+HFONT  on_theme_font_hwnd(void);
+
+int  on_theme_copy_style(TCHAR *ac_theme);
+int  on_theme_load_script(const TCHAR *name);
+void on_theme_update_menu(HWND hwnd);
+bool on_theme_setup_font(HWND hwnd);
+bool on_theme_set_classic(HMODULE *pmod);
+bool on_theme_create_dlg(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

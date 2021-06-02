@@ -1,0 +1,1192 @@
+#pragma code_page(65001)
+
+#include "resource.h"
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Menu
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+IDC_SKYLARK MENUEX
+BEGIN
+    POPUP "文件(&F)"
+    BEGIN
+        MENUITEM "新建(&N)\tCtrl+N",                IDM_FILE_NEW
+        MENUITEM "打开(&O)...\tCtrl+O",             IDM_FILE_OPEN
+        POPUP "打开最近"
+        BEGIN
+            MENUITEM "...",                         IDM_HISTORY_BASE
+        END
+        MENUITEM "清理打开文件历史",                IDM_HISTORY_CLEAN
+        MENUITEM "保存(&S)\tCtrl+S",                IDM_FILE_SAVE
+        MENUITEM "另存为...\tCtrl+Shift+S",         IDM_FILE_SAVEAS
+        MENUITEM "全部保存\tCtrl+Alt+S",            IDM_FILE_SAVEALL
+        MENUITEM "关闭(&C)\tCtrl+F4",               IDM_FILE_CLOSE
+        MENUITEM "关闭所有文件\tCtrl+Shift+F4",     IDM_FILE_CLOSEALL
+        MENUITEM "关闭除当前外所有文件",            IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "保存最后一次对话",                IDM_FILE_SESSION
+        MENUITEM MF_SEPARATOR
+		MENUITEM "打印设置",					    IDM_FILE_PAGESETUP
+		MENUITEM "打印...(&P)\tCtrl+P",			    IDM_FILE_PRINT       
+        MENUITEM MF_SEPARATOR
+        MENUITEM "远程文件管理器...(&R)",           IDM_FILE_REMOTE_FILESERVERS
+        MENUITEM MF_SEPARATOR
+        POPUP "新建文件换行符"
+        BEGIN
+            MENUITEM "WINDOWS风格换行符(CR+LF)",    IDM_FILE_NEWFILE_WINDOWS_EOLS
+            MENUITEM "MAC风格换行符(CR)",           IDM_FILE_NEWFILE_MAC_EOLS
+            MENUITEM "UNIX/Linux风格换行符(LF)",    IDM_FILE_NEWFILE_UNIX_EOLS
+        END
+        POPUP "新建文件字符编码"
+        BEGIN
+            MENUITEM "UTF8",                        IDM_FILE_NEWFILE_ENCODING_UTF8
+            MENUITEM "UTF8(BOM)",                   IDM_FILE_NEWFILE_ENCODING_UTF8B
+            MENUITEM "UTF-16LE",                    IDM_FILE_NEWFILE_ENCODING_UTF16LE
+            MENUITEM "UTF-16BE",                    IDM_FILE_NEWFILE_ENCODING_UTF16BE
+            MENUITEM "ANSI(本地编码)",              IDM_FILE_NEWFILE_ENCODING_ANSI
+        END
+        MENUITEM MF_SEPARATOR
+        MENUITEM "退出(&X)\tAlt+F4",                IDM_EXIT
+    END
+    POPUP "编辑(&E)"
+    BEGIN
+        MENUITEM "撤销(&U)\tCtrl+Z",                IDM_EDIT_UNDO
+        MENUITEM "重做(&R)\tCtrl+Y",                IDM_EDIT_REDO
+        MENUITEM MF_SEPARATOR
+        MENUITEM "剪切\tCtrl+X",                    IDM_EDIT_CUT
+        MENUITEM "复制\tCtrl+C",                    IDM_EDIT_COPY
+        MENUITEM "粘贴\tCtrl+V",                    IDM_EDIT_PASTE
+        MENUITEM "删除\tDel",                       IDM_EDIT_DELETE
+        MENUITEM MF_SEPARATOR
+        POPUP "高级剪切",                           IDM_EDIT_PLACEHOLDE1
+        BEGIN
+            MENUITEM "剪切行\tCtrl+Shift+X",        IDM_EDIT_CUTLINE
+            MENUITEM "剪切粘贴行\tCtrl+Shift+Alt+X",IDM_EDIT_CUTLINE_AND_PASTELINE
+        END
+        POPUP "高级复制",                           IDM_EDIT_PLACEHOLDE2
+        BEGIN
+            MENUITEM "复制行\tCtrl+Shift+C",        IDM_EDIT_COPYLINE
+            MENUITEM "复制粘贴行\tCtrl+Shift+Alt+C",IDM_EDIT_COPYLINE_AND_PASTELINE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "复制文件名",                  IDM_EDIT_COPY_FILENAME
+            MENUITEM "复制路径名",                  IDM_EDIT_COPY_PATHNAME
+            MENUITEM "复制路径文件名",              IDM_EDIT_COPY_PATHFILENAME
+        END
+        POPUP "高级粘贴",                           IDM_EDIT_PLACEHOLDE3
+        BEGIN
+            MENUITEM "粘贴行\tCtrl+Shift+V",        IDM_EDIT_PASTELINE
+            MENUITEM "往上粘贴行\tCtrl+Shift+Alt+V",IDM_EDIT_PASTELINE_UPSTAIRS
+        END
+        POPUP "高级删除",                           IDM_EDIT_PLACEHOLDE4
+        BEGIN
+            MENUITEM "删除行\tCtrl+Shift+Delete,Ctrl+E", IDM_EDIT_DELETELINE
+            MENUITEM "移除行首空白\tAlt+H",              IDM_DELETE_SPACE_LINEHEAD
+            MENUITEM "移除行尾空白\tAlt+T",              IDM_DELETE_SPACE_LINETAIL
+            MENUITEM "删除空行\tAlt+R",                  IDM_EDIT_DELETEBLANKLINE
+            MENUITEM "删除带有白字符的空行\tCtrl+Alt+R", IDM_DELETE_ALL_SPACE_LINE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "高级行操作",                              IDM_EDIT_PLACEHOLDE5
+        BEGIN
+        	MENUITEM "合并行\tAlt+J",                    IDM_EDIT_JOINLINE
+        	MENUITEM "行注释\tCtrl+/",                   IDM_EDIT_LINECOMMENT
+        	MENUITEM "块注释\tCtrl+\\",                  IDM_EDIT_STREAMCOMMENT
+        END	
+        MENUITEM MF_SEPARATOR
+        POPUP "大小写转换",                              IDM_EDIT_PLACEHOLDE6
+        BEGIN
+            MENUITEM "转小写\tCtrl+U",                   IDM_EDIT_LOWERCASE
+            MENUITEM "转大写\tCtrl+Shift+U",             IDM_EDIT_UPPERCASE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "选区操作(&O)"
+        BEGIN
+            MENUITEM "打开文件(&O)\tCtrl+Shift+F",       IDM_OPEN_FILE_PATH
+            MENUITEM "打开所在文件夹(&F)\tCtrl+Shift+D", IDM_OPEN_CONTAINING_FOLDER
+            MENUITEM MF_SEPARATOR
+			MENUITEM "在谷歌中搜索(&G)\tCtrl+Shift+G",   IDM_ONLINE_SEARCH_GOOGLE
+			MENUITEM "在百度中搜索(&B)\tCtrl+Shift+B",   IDM_ONLINE_SEARCH_BAIDU
+			MENUITEM "在必应中搜索(&I)\tCtrl+Shift+I",	 IDM_ONLINE_SEARCH_BING
+        END        
+        POPUP "BASE64编解/解码",                         IDM_EDIT_PLACEHOLDE7
+        BEGIN
+            MENUITEM "BASE64编码",                       IDM_EDIT_BASE64_ENCODING
+            MENUITEM "BASE64解码",                       IDM_EDIT_BASE64_DECODING
+        END
+        POPUP "散列/消息摘要",                           IDM_EDIT_PLACEHOLDE8
+        BEGIN
+            MENUITEM "MD5",                              IDM_EDIT_MD5
+            MENUITEM "SHA1",                             IDM_EDIT_SHA1
+            MENUITEM "SHA256",                           IDM_EDIT_SHA256
+        END
+        POPUP "3DES加密/解密",                           IDM_EDIT_PLACEHOLDE9
+        BEGIN
+            MENUITEM "3DES(CBC)加密...",                 IDM_EDIT_3DES_CBC_ENCRYPTO
+            MENUITEM "3DES(CBC)解密...",                 IDM_EDIT_3DES_CBC_DECRYPTO
+        END
+    END
+    POPUP "搜索(&S)"
+    BEGIN
+        MENUITEM "查找(&F)...\tCtrl+F",                  IDM_SEARCH_FIND
+        MENUITEM "查找上一个\tCtrl+F3",                  IDM_SEARCH_FINDPREV
+        MENUITEM "查找下一个\tF3",                       IDM_SEARCH_FINDNEXT
+        MENUITEM "替换(&R)...\tCtrl+R",                  IDM_SEARCH_REPLACE
+        MENUITEM "文件搜索...\tCtrl+Alt+F",              IDM_SEARCH_FILES
+        MENUITEM MF_SEPARATOR
+        MENUITEM "开始/结束 选择\tCtrl+Alt+Q",           IDM_UPDATE_SELECTION
+        MENUITEM "多重选择 (说明)",                      IDM_SEARCH_MULTISELECT_README
+        MENUITEM "列选择模式\tAlt+C,Alt+Shift+←↑→↓",     IDM_SELECTION_RECTANGLE
+        POPUP "快速选择",                                IDM_EDIT_PLACEHOLDE10
+        BEGIN
+            MENUITEM "全选(&A)\tCtrl+A",                 IDM_SEARCH_SELECTALL
+            MENUITEM "选择单词组(&W)\tCtrl+W",           IDM_SEARCH_SELECTWORD
+            MENUITEM "选择行(&L)\tCtrl+L",               IDM_SEARCH_SELECTLINE
+        END
+        POPUP "高级选择",                                IDM_EDIT_PLACEHOLDE11
+        BEGIN
+            MENUITEM "向左累积选择单词\tCtrl+Shift+Left",        IDM_SEARCH_SELECTGROUP_LEFT
+            MENUITEM "向右累积选择单词\tCtrl+Shift+Right",       IDM_SEARCH_SELECTGROUP_RIGHT
+            MENUITEM "向左累积选择单词组\tCtrl+Shift+Alt+Left",  IDM_SEARCH_ADDSELECT_LEFT_WORD
+            MENUITEM "向右累积选择单词组\tCtrl+Shift+Alt+Right", IDM_SEARCH_ADDSELECT_RIGHT_WORD
+            MENUITEM "累积选择到上一个语句块首行\tCtrl+Shift+[", IDM_SEARCH_SELECTTOP_FIRSTLINE
+            MENUITEM "累积选择到下一个语句块首行\tCtrl+Shift+]", IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "高级移动光标",                               IDM_EDIT_PLACEHOLDE12
+        BEGIN
+            MENUITEM "向左移动光标单词\tCtrl+Left",          IDM_SEARCH_MOVE_LEFT_CHARGROUP
+            MENUITEM "向右移动光标单词\tCtrl+Right",         IDM_SEARCH_MOVE_RIGHT_CHARGROUP
+            MENUITEM "向左移动光标单词组\tCtrl+Alt+Left",    IDM_SEARCH_MOVE_LEFT_WORD
+            MENUITEM "向右移动光标单词组\tCtrl+Alt+Right",   IDM_SEARCH_MOVE_RIGHT_WORD
+            MENUITEM "移动到上一个语句块首行\tCtrl+K",       IDM_SEARCH_MOVETOP_FIRSTLINE
+            MENUITEM "移动到下一个语句块首行\tCtrl+J",       IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "行定位(&G)..."
+        BEGIN
+            MENUITEM "跳到首行\tCtrl+Home",                IDM_SEARCH_GOTOHOME
+            MENUITEM "跳到末行\tCtrl+End",                 IDM_SEARCH_GOTOEND
+            MENUITEM "跳到行号\tCtrl+G",                   IDM_SEARCH_GOTOLINE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "书签",                                     IDM_EDIT_PLACEHOLDE13
+        BEGIN
+            MENUITEM "切换书签\tF9",                      IDM_SEARCH_TOGGLE_BOOKMARK
+            MENUITEM "增加书签\tAlt+F9",                  IDM_SEARCH_ADD_BOOKMARK
+            MENUITEM "删除书签\tCtrl+F9",                 IDM_SEARCH_REMOVE_BOOKMARK
+            MENUITEM "删除所有书签\tCtrl+Shift+F9",       IDM_SEARCH_REMOVE_ALL_BOOKMARKS
+            MENUITEM "跳到上一个书签 (当前文件)\tCtrl+F2",      IDM_SEARCH_GOTO_PREV_BOOKMARK
+            MENUITEM "跳到下一个书签 (当前文件)\tF2",           IDM_SEARCH_GOTO_NEXT_BOOKMARK
+            MENUITEM "跳上一个书签 (所有打开的文件)\tCtrl+Shift+F2", IDM_SEARCHPRE_BOOKMARK_INALL
+            MENUITEM "跳到下一个书签 (所有打开的文件)\tShift+F2",    IDM_SEARCH_BOOKMARK_INALL
+        END
+        POPUP "导航",                                                      IDM_EDIT_PLACEHOLDE14
+        BEGIN
+            MENUITEM "退回到上一个位置 (当前文件)\tCtrl+Back",             IDM_SEARCH_NAVIGATE_PREV_THIS
+            MENUITEM "退回到上一个位置 (所有打开的文件)\tCtrl+Shift+Back", IDM_SEARCH_NAVIGATE_PREV_INALL
+        END
+    END
+    POPUP "视图(&V)"
+    BEGIN
+        MENUITEM "文件管理器(&F)",                   IDM_VIEW_FILETREE
+        MENUITEM "符号链接窗口",                     IDM_VIEW_SYMTREE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "全屏模式(&U)\tF11",                IDM_VIEW_FULLSCREEN
+        MENUITEM "显示菜单栏\tAlt",                  IDM_VIEW_MENUBAR
+		MENUITEM "显示工具栏\tCtrl+F11",             IDM_VIEW_TOOLBAR
+		MENUITEM "显示状态栏\tShift+F11",	         IDM_VIEW_STATUSBAR     
+        MENUITEM MF_SEPARATOR
+        MENUITEM "制表符TAB宽度[N]个空格...",        IDM_VIEW_TAB_WIDTH
+        MENUITEM "键入制表符TAB时转换为空格集合",    IDM_TAB_CONVERT_SPACES
+        MENUITEM MF_SEPARATOR
+        MENUITEM "十六进制视图(&H)\tCtrl+H",         IDM_VIEW_HEXEDIT_MODE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "高亮显示匹配的字符串\tShift+MouseLClick", IDM_VIEW_HIGHLIGHT_STR
+        MENUITEM "高亮当前代码块",                          IDM_VIEW_HIGHLIGHT_FOLD
+        MENUITEM "自动缩进",                                IDM_EDIT_AUTO_INDENTATION
+        MENUITEM MF_SEPARATOR
+        MENUITEM "显示行号\tCtrl+Shift+N",           IDM_VIEW_LINENUMBER_VISIABLE
+        MENUITEM "显示书签",                         IDM_VIEW_BOOKMARK_VISIABLE
+        MENUITEM "显示折叠线",                       IDM_SOURCE_BLOCKFOLD_VISIABLE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "显示白字符",                       IDM_VIEW_WHITESPACE_VISIABLE
+        MENUITEM "显示换行符",                       IDM_VIEW_NEWLINE_VISIABLE
+        MENUITEM "显示缩进线",                       IDM_VIEW_INDENTGUIDES_VISIABLE
+        MENUITEM MF_SEPARATOR
+        POPUP "缩放",                                IDM_EDIT_PLACEHOLDE15
+        BEGIN
+            MENUITEM "放大\tCtrl+(+)",               IDM_VIEW_ZOOMOUT
+            MENUITEM "缩小\tCtrl+(-)",               IDM_VIEW_ZOOMIN
+            MENUITEM "重置缩放\tCtrl+(0 num)",       IDM_VIEW_ZOOMRESET
+        END
+    END
+    POPUP "格式(&M)"
+    BEGIN
+        POPUP "Json 文件",                           IDM_EDIT_PLACEHOLDE16
+        BEGIN
+            MENUITEM "格式化 Json\tCtrl+F6",      	 IDM_FORMAT_REFORMAT
+            MENUITEM "压缩 Json\tCtrl+Alt+F6",    	 IDM_FORMAT_COMPRESS
+        END
+        POPUP "Clang-format",                        IDM_EDIT_PLACEHOLDE17
+        BEGIN
+            MENUITEM "格式化当前文档\tCtrl+F7",      IDM_FORMAT_WHOLE_FILE
+            MENUITEM "格式化选中文本\tCtrl+Alt+F7",  IDM_FORMAT_RANGLE_STR
+        END
+        POPUP "Lua 脚本",                            IDM_EDIT_PLACEHOLDE18
+        BEGIN
+            MENUITEM "运行当前脚本\tCtrl+F8",        IDM_FORMAT_RUN_SCRIPT
+            MENUITEM "转换为字节码\tCtrl+Alt+F8",    IDM_FORMAT_BYTE_CODE
+        END
+        POPUP "简繁内码转换",                        IDM_EDIT_PLACEHOLDE19
+        BEGIN
+            MENUITEM "简体转繁体\tCtrl+Shift+W",     IDM_EDIT_GB_BIG5
+            MENUITEM "繁体转简体\tCtrl+Shift+Q",     IDM_EDIT_BIG5_GB
+        END                 
+        MENUITEM MF_SEPARATOR
+        MENUITEM "自动换行(&L)\tCtrl+Shift+L",       IDM_VIEW_WRAPLINE_MODE
+        MENUITEM "生成二维码\tCtrl+Q",               IDM_EDIT_QRCODE
+    END
+    POPUP "编程(&P)",                                      IDM_EDIT_PLACEHOLDE20
+    BEGIN
+        MENUITEM "语句块折叠切换\tAlt+|",                  IDM_SOURCE_BLOCKFOLD_TOGGLE
+        MENUITEM "语句块合拢\tAlt+}",                      IDM_SOURCE_BLOCKFOLD_CONTRACT
+        MENUITEM "语句块展开\tAlt+{",                      IDM_SOURCE_BLOCKFOLD_EXPAND
+        MENUITEM "全部语句块合拢",                         IDM_SOURCE_BLOCKFOLD_CONTRACTALL
+        MENUITEM "全部语句块展开",                         IDM_SOURCE_BLOCKFOLD_EXPANDALL
+        MENUITEM MF_SEPARATOR
+        MENUITEM "跳到符号定义\tF12",                      IDM_SOURCECODE_GOTODEF
+        MENUITEM MF_SEPARATOR
+        MENUITEM "启用自动完成框",                         IDM_SOURCEE_ENABLE_ACSHOW
+        MENUITEM "输入[N]个字符后弹出自动完成框...",       IDM_SOURCEE_ACSHOW_CHARS
+        MENUITEM "启用原型提示框",                         IDM_SOURCE_ENABLE_CTSHOW
+        MENUITEM MF_SEPARATOR
+        MENUITEM "插入数据库自动连接配置头",               IDM_DATABASE_INSERT_CONFIG
+        MENUITEM "执行选定的SQL语句\tF5",                  IDM_DATABASE_EXECUTE_SQL
+        MENUITEM MF_SEPARATOR
+        MENUITEM "插入REDIS自动连接配置头",                IDM_REDIS_INSERT_CONFIG
+        MENUITEM "执行选定REDIS命令\tF5",                  IDM_REDIS_EXECUTE_COMMAND
+        MENUITEM MF_SEPARATOR
+        MENUITEM "使用预设动作执行当前文件\tCtrl+F5",      IDM_PROGRAM_EXECUTE_ACTION
+    END
+    POPUP "设置(&T)"
+    BEGIN
+        MENUITEM "WINDOWS文件右键弹出菜单",             IDM_ENV_FILE_POPUPMENU
+        MENUITEM "WINDOWS目录右键弹出菜单",             IDM_ENV_DIRECTORY_POPUPMENU
+        MENUITEM MF_SEPARATOR
+        MENUITEM "配置Skylark编辑器的文件关联",         IDM_ENV_SET_ASSOCIATED_WITH
+        MENUITEM MF_SEPARATOR
+        POPUP "选择界面语言"
+        BEGIN
+            MENUITEM "...",                             IDM_LOCALES_BASE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "选择主题方案"
+        BEGIN
+            MENUITEM "...",                             IDM_STYLETHEME_BASE
+        END
+        MENUITEM "修改主题方案...",                     IDM_VIEW_MODIFY_STYLETHEME
+        MENUITEM "复制创建主题...",                     IDM_VIEW_COPYNEW_STYLETHEME           
+        MENUITEM MF_SEPARATOR
+		POPUP "字体质量(&Q)"
+		BEGIN
+			MENUITEM "无",					            IDM_VIEW_FONTQUALITY_NONE
+			MENUITEM "标准抗锯齿",				        IDM_VIEW_FONTQUALITY_STANDARD
+			MENUITEM "ClearType",				        IDM_VIEW_FONTQUALITY_CLEARTYPE
+		END                                         
+		POPUP "渲染技术(&D)"                
+		BEGIN                                       
+			MENUITEM "传统 GDI",			            IDM_SET_RENDER_TECH_GDI
+			MENUITEM "DirectWrite",				        IDM_SET_RENDER_TECH_D2D
+			MENUITEM "DirectWrite Retain",		        IDM_SET_RENDER_TECH_D2DRETAIN
+		END
+    END
+    POPUP "帮助(&H)"
+    BEGIN
+    	MENUITEM "捐赠我们\tShift+P",                   IDM_DONATION
+        MENUITEM "功能简介(&O) ...",                    IDM_INTRODUTION
+        MENUITEM "更新历史(&H) ...",                    IDM_CHANGELOG
+        MENUITEM "关于(&A) ...",                        IDM_ABOUT
+    END    
+END
+
+IDR_TABPAGE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "关闭(&C)\tCtrl+F4",             IDM_FILE_CLOSE
+        MENUITEM "关闭所有文件\tCtrl+Shift+F4",   IDM_FILE_CLOSEALL
+        MENUITEM "关闭除当前文件外所有文件",      IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM SEPARATOR
+        MENUITEM "复制文件名",                    IDM_EDIT_COPY_FILENAME
+        MENUITEM "复制路径名",                    IDM_EDIT_COPY_PATHNAME
+        MENUITEM "复制文件名(包含路径)",          IDM_EDIT_COPY_PATHFILENAME
+        MENUITEM SEPARATOR
+        MENUITEM "保存(&S)\tCtrl+S",              IDM_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "打开文件夹工作区\tCtrl+ALT+W",  IDM_FILE_WORKSPACE
+    END
+END
+
+IDR_EDITOR_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "剪切(&T)",           IDM_EDIT_CUT
+        MENUITEM "复制(&C)",           IDM_EDIT_COPY
+        MENUITEM "粘贴(&P)",           IDM_EDIT_PASTE  
+        MENUITEM SEPARATOR    
+        MENUITEM "剪切行",             IDM_EDIT_CUTLINE
+        MENUITEM "复制行",             IDM_EDIT_COPYLINE
+        MENUITEM "粘贴行",             IDM_EDIT_PASTELINE
+        MENUITEM "删除行",             IDM_EDIT_DELETELINE
+        MENUITEM "合并行",             IDM_EDIT_JOINLINE
+        MENUITEM SEPARATOR
+        MENUITEM "转小写",             IDM_EDIT_LOWERCASE
+        MENUITEM "转大写",             IDM_EDIT_UPPERCASE
+   END
+END
+
+IDR_FILETREE_DIRECTORY_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "创建文件",                        IDM_CREATE_FILE
+        MENUITEM "创建子目录",                      IDM_CREATE_SUB_DIRECTORY
+        MENUITEM SEPARATOR
+        MENUITEM "改名目录",                        IDM_RENAME_DIRECTORY
+        MENUITEM "删除目录",                        IDM_DELETE_DIRECTORY
+    END
+END
+
+IDR_FILETREE_FILE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "复制文件",                        IDM_COPY_FILE
+        MENUITEM "改名文件",                        IDM_RENAME_FILE
+        MENUITEM "删除文件",                        IDM_DELETE_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "生成MD5到剪贴板",                 IDM_FILE_MD5_CLIP
+        MENUITEM "生成SHA1到到剪贴板",              IDM_FILE_SHA1_CLIP
+        MENUITEM "生成SHA256到到剪贴板",            IDM_FILE_SHA256_CLIP
+    END
+END
+
+IDR_FILETREE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "刷新",                            IDM_RELOAD_FILETREE
+        MENUITEM "搜索",                            IDM_RELOAD_FILESEARCH
+    END
+END
+
+IDR_SYMBOLLIST_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "刷新列表",                        IDM_RELOAD_SYMBOLLIST
+    END
+END
+
+IDR_SYMBOLTREE_REFRESH_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "刷新树",                         IDM_RELOAD_SYMBOLTREE
+    END
+END
+
+IDR_SYMBOLTREE_TABLE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "查询表",                         IDM_SELECT_TABLE_SYMBOLTREE
+    END
+END
+
+IDR_SYMBOLTREE_ROW_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "查询字段",                       IDM_SELECT_ROW_SYMBOLTREE
+    END
+END
+
+IDR_TOOLBAR_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "显示菜单栏(&E)\tAlt",           IDM_VIEW_MENUBAR
+		MENUITEM "显示工具栏(&T)\tCtrl+F11",      IDM_VIEW_TOOLBAR
+		MENUITEM "显示状态栏(&S)\tShift+F11",	  IDM_VIEW_STATUSBAR
+    END
+END
+
+IDD_REMOTE_FILESERVERS_DIALOG DIALOGEX 0, 0, 407, 263
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "远程文件管理器"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+{
+    LISTBOX         IDC_REMOTE_FILESERVERS_LISTBOX, 7, 7, 136, 222, WS_TABSTOP | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_SORT | LBS_NOTIFY, WS_EX_LEFT
+    PUSHBUTTON      "删除远程文件服务器连接", IDC_REMOVE_SERVER_BUTTON, 7, 237, 144, 14, 0, WS_EX_LEFT
+    EDITTEXT        IDC_FILESERVER_NAME_EDIT, 215, 7, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    COMBOBOX        IDC_COMMPROTOCOL_COMBOBOX, 215, 28, 135, 27, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_SORT, WS_EX_LEFT
+    EDITTEXT        IDC_NETWORK_ADDRESS_EDIT, 215, 48, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_NETWORK_PORT_EDIT, 215, 68, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    COMBOBOX        IDC_ACCESS_AREA_COMBOBOX, 215, 91, 136, 66, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_USER_EDIT, 215, 113, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_PASS_EDIT, 215, 135, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_PASSPHRASE_EDIT, 215, 135, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_PRIVATE_EDIT, 215, 157, 136, 14, ES_AUTOHSCROLL, WS_EX_ACCEPTFILES
+    PUSHBUTTON      "测试远程文件服务器连接", IDC_TEST_SERVER_BUTTON, 171, 182, 181, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "新建远程文件服务器连接", IDC_ADD_SERVER_BUTTON, 170, 209, 181, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "确定", IDOK, 242, 239, 50, 14, 0, WS_EX_LEFT
+    DEFPUSHBUTTON   "应用", IDM_APPLY_NOW, 302, 239, 50, 14, 0, WS_EX_LEFT
+    LTEXT           "连接名称：", IDC_STATIC, 154, 8, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "通讯协议：", IDC_STATIC, 154, 30, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "网络地址：", IDC_STATIC, 154, 49, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "网络端口：", IDC_STATIC, 154, 70, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "访问目录范围：", IDC_STATIC, 155, 91, 58, 13, SS_LEFT, WS_EX_LEFT    
+    LTEXT           "用户名：", IDC_STATIC, 154, 114, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "密码：", IDC_REMOTE_PASS, 154, 137, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "私钥口令：", IDC_PRIVATE_KEY, 154, 137, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "私钥文件：", IDC_PRIVATE_FILE, 154, 159, 41, 13, SS_LEFT, WS_EX_LEFT
+    AUTOCHECKBOX    "使用私钥", IDC_USE_PRIVATE, 354, 135, 48, 13, 0, WS_EX_LEFT
+    PUSHBUTTON      "...", IDC_PRIVATE_KEY_BUTTON, 353, 157, 18, 13, 0, WS_EX_LEFT
+}
+
+IDD_STYLETHEME_DIALOG DIALOGEX 0, 0, 541, 310
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "风格主题"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL "确定",IDOK,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_DEFPUSHBUTTON,484,7,50,14
+    CONTROL "取消",IDCANCEL,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,484,25,50,14
+    CONTROL "keyword",IDC_KEYWORDS_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,21,95,10
+    CONTROL "function/method",IDC_KEYWORDS2_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,39,96,10
+    CONTROL """string""",IDC_STRING_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,57,95,10
+    CONTROL "'char'",IDC_CHARACTER_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,75,95,10
+    CONTROL "#define #if",IDC_PREPROCESSOR_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,129,95,10
+    CONTROL "123.456",IDC_NUMBER_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,93,95,10
+    CONTROL "/* ... remark ... */",IDC_COMMENT_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,147,94,10
+    CONTROL "/* remark ...\\n ... /*",IDC_COMMENTDOC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,183,94,10
+    CONTROL "//",IDC_COMMENTLINE_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,165,94,10
+    CONTROL "字体",IDC_SETFONT_KEYWORDS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,19,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_KEYWORDS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,19,50,14
+    CONTROL "字体",IDC_SETFONT_KEYWORDS2_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,37,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,37,50,14
+    CONTROL "字体",IDC_SETFONT_STRING_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,55,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_STRING_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,55,50,14
+    CONTROL "字体",IDC_SETFONT_CHARACTER_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,73,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_CHARACTER_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,73,50,14
+    CONTROL "字体",IDC_SETFONT_NUMBER_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,91,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_NUMBER_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,91,50,14
+    CONTROL "字体",IDC_SETFONT_PREPROCESSOR_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,127,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,127,50,14
+    CONTROL "字体",IDC_SETFONT_COMMENT_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,145,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_COMMENT_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,145,50,14
+    CONTROL "字体",IDC_SETFONT_COMMENTLINE_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,163,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,163,50,14
+    CONTROL "字体",IDC_SETFONT_COMMENTDOC_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,181,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,181,50,14
+    CONTROL "文本",IDC_TEXT_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,254,230,95,10
+    CONTROL "所有字体",IDC_SETFONT_TEXT_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,350,228,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_TEXT_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,404,228,50,14
+    CONTROL "{}+-*/=",IDC_OPERATOR_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,17,111,96,10
+    CONTROL "字体",IDC_SETFONT_OPERATOR_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,113,109,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_OPERATOR_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,109,50,14
+    CONTROL "编程语言",IDC_THEME_LANGUAGE_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,7,5,227,202
+    CONTROL "unknow_tag",IDC_UNKNOWTAGS_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,40,95,10
+    CONTROL "property",IDC_ATTRIBUTES_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,57,95,10
+    CONTROL "unknow_property",IDC_UNKNOWATTRIBUTES_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,76,95,10
+    CONTROL "entity",IDC_ENTITIES_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,94,95,10
+    CONTROL "<? ... ?>",IDC_PHPSECTION_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,148,96,10
+    CONTROL "close_tag",IDC_TAGENDS_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,112,95,10
+    CONTROL "<% ... %>",IDC_ASPSECTION_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,165,95,10
+    CONTROL "字体",IDC_SETFONT_UNKNOWTAGS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,38,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,38,50,14
+    CONTROL "字体",IDC_SETFONT_ATTRIBUTES_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,56,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,56,50,14
+    CONTROL "字体",IDC_SETFONT_UNKNOWATTRIBUTES_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,73,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,73,50,14
+    CONTROL "字体",IDC_SETFONT_ENTITIES_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,92,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_ENTITIES_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,92,50,14
+    CONTROL "字体",IDC_SETFONT_TAGENDS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,110,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_TAGENDS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,110,50,14
+    CONTROL "字体",IDC_SETFONT_PHPSECTION_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,145,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_PHPSECTION_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,145,50,14
+    CONTROL "字体",IDC_SETFONT_ASPSECTION_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,163,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_ASPSECTION_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,163,50,14
+    CONTROL "tag",IDC_TAGS_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,22,94,10
+    CONTROL "字体",IDC_SETFONT_TAGS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,20,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_TAGS_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,20,50,14
+    CONTROL "CData",IDC_CDATA_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,255,129,95,10
+    CONTROL "字体",IDC_SETFONT_CDATA_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,128,50,14
+    CONTROL "颜色",IDC_SETTEXTCOLOR_CDATA_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,128,50,14
+    CONTROL "标记语言",IDC_THEME_MARKUP_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,244,5,227,201
+    CONTROL "编辑区",IDC_THEME_EDIT_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,244,211,281,82
+    CONTROL "活动行边框",IDC_CARETLINE_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,254,249,95,10
+    CONTROL "背景色",IDC_SETBGCOLOR_CARETLINE_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,459,246,50,14
+    CONTROL "背景色",IDC_SETBGCOLOR_TEXT_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,459,228,50,14
+    CONTROL "选中文本",IDC_INDICATOR_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,254,268,96,10
+    CONTROL "背景色",IDC_SETBGCOLOR_INDICATOR_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,459,265,50,14
+    CONTROL "行号",IDC_LINENUMBER_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,18,231,93,10
+    CONTROL "颜色",IDC_SETTEXTCOLOR_LINENUMBER_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,112,229,50,14
+    CONTROL "背景色",IDC_SETBGCOLOR_LINENUMBER_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,229,50,14
+    CONTROL "页边区",IDC_THEME_MARGIN_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,7,211,228,82
+    CONTROL "语句块折叠",IDC_FOLDMARGIN_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,18,248,93,10
+    CONTROL "背景色",IDC_SETBGCOLOR_FOLDMARGIN_BUTTON,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,246,50,14
+    CONTROL "",IDC_THEME_CARTETLINE_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,246,33,12,WS_EX_CLIENTEDGE
+    CONTROL "",IDC_THEME_CARTETLINE_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,246,12,13
+    CONTROL "",IDC_THEME_INDICATOR_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,265,33,12,WS_EX_CLIENTEDGE
+    CONTROL "",IDC_THEME_INDICATOR_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,264,12,13
+END
+
+IDR_LBREAK_MENU  MENUEX DISCARDABLE
+BEGIN
+    POPUP ""
+    {
+        MENUITEM "DOS换行符 (\\r\\n)", IDM_LBREAK_1
+        MENUITEM "MAC换行符 (\\r)",    IDM_LBREAK_2
+        MENUITEM "Unix换行符 (\\n)",   IDM_LBREAK_3
+        MENUITEM "无换行符",           IDM_LBREAK_4,,0x00000003
+    }
+END
+
+IDR_CODEING_MENU MENUEX DISCARDABLE
+BEGIN
+    POPUP "", -1, MFT_STRING, MFS_ENABLED, 0
+    {
+        POPUP "Unicode"
+        BEGIN
+            MENUITEM "UTF-8",                        IDM_UNI_UTF8
+            MENUITEM "UTF-8(BOM)",                   IDM_UNI_UTF8B
+            MENUITEM "UTF-16LE",                     IDM_UNI_UTF16LEB
+            MENUITEM "UTF-16BE",                     IDM_UNI_UTF16BEB
+            MENUITEM "UTF-32LE",                     IDM_UNI_UTF32LE
+            MENUITEM "UTF-32BE",                     IDM_UNI_UTF32BE
+            MENUITEM "ASCII Escaped Unicode",        IDM_UNI_ASCII
+        END
+        POPUP "ANSI"
+        BEGIN
+        	MENUITEM "windows-1250 (中欧)",          IDM_ANSI_1
+            MENUITEM "windows-1251 (西里尔文)",      IDM_ANSI_2
+            MENUITEM "windows-1252 (拉丁语)",        IDM_ANSI_3
+            MENUITEM "windows-1253 (希腊语)",        IDM_ANSI_4
+            MENUITEM "windows-1254 (土耳其语)",      IDM_ANSI_5
+            MENUITEM "windows-1255 (希伯来语)",      IDM_ANSI_6
+        	MENUITEM "windows-1256 (阿拉伯语)",      IDM_ANSI_7
+            MENUITEM "windows-1257 (波罗的海)",      IDM_ANSI_8
+            MENUITEM "windows-1258 (越南)",          IDM_ANSI_9
+            MENUITEM "cp874 (泰语)",                 IDM_ANSI_10
+            MENUITEM "cp932 (日语)",                 IDM_ANSI_11
+            MENUITEM "cp936 (简体中文)",             IDM_ANSI_12
+            MENUITEM "cp949 (朝鲜语)",               IDM_ANSI_13
+            MENUITEM "cp950 (繁体中文 Big5)",        IDM_ANSI_14                           	
+        END         
+        POPUP "ISO"
+        BEGIN
+        	MENUITEM "28591 (ISO-8859-1 拉丁语)",     IDM_ISO_1
+        	MENUITEM "28592 (ISO-8859-2 中欧)",       IDM_ISO_2
+        	MENUITEM "28593 (ISO-8859-3 拉丁语3)",    IDM_ISO_3
+        	MENUITEM "28594 (ISO-8859-4 波罗的语)",   IDM_ISO_4
+        	MENUITEM "28595 (ISO-8859-5 西里尔文)",   IDM_ISO_5
+        	MENUITEM "28596 (ISO-8859-6 阿拉伯语)",   IDM_ISO_6
+        	MENUITEM "28597 (ISO-8859-7 希腊语)",     IDM_ISO_7
+        	MENUITEM "28598 (ISO-8859-8 希伯来语)",   IDM_ISO_8
+        	MENUITEM "28599 (ISO-8859-9 拉丁语5)",    IDM_ISO_9
+        	MENUITEM "28600 (ISO-8859-10 北日耳曼语)",IDM_ISO_10
+        	MENUITEM "28601 (ISO-8859-11 拉丁/泰语)", IDM_ISO_11
+        	MENUITEM "28603 (ISO-8859-13 拉丁语7)",   IDM_ISO_13
+        	MENUITEM "28605 (ISO-8859-15 拉丁语9)",   IDM_ISO_15
+        	MENUITEM "28606 (ISO-8859-16 东南欧语)",  IDM_ISO_16
+        	MENUITEM "50222 (ISO-2022 日语)",         IDM_ISO_JP
+        	MENUITEM "50225 (ISO-2022 朝鲜语)",       IDM_ISO_KR
+        	MENUITEM "50227 (ISO-2022 简体中文)",     IDM_ISO_CN
+        END
+        POPUP "IBM"
+        BEGIN
+        	MENUITEM "852 (DOS - 中欧)",         	 IDM_IBM_1
+            MENUITEM "855 (OEM - 西里尔文)",         IDM_IBM_2
+            MENUITEM "866 (DOS - 西里尔文)",         IDM_IBM_3
+        END    
+        POPUP "EUC"
+        BEGIN
+        	MENUITEM "EUC-JP (日语)",                IDM_EUC_1
+        	MENUITEM "EUC-TW (繁体中文)",            IDM_EUC_2
+        END        
+        POPUP "Other"
+        BEGIN
+        	MENUITEM "koi8-r",                       IDM_OTHER_1
+        	MENUITEM "mac-cyrillic",                 IDM_OTHER_2
+        	MENUITEM "mac-centraleurope",            IDM_OTHER_3
+        	MENUITEM "本地编码",                     IDM_OTHER_ANSI
+        	MENUITEM "二进制编码",                   IDM_OTHER_BIN,,0x00000003
+        	MENUITEM "未知编码",                     IDM_UNKNOWN,,0x00000003
+        END        
+	}
+END
+
+IDR_TYPES_MENU  MENUEX DISCARDABLE
+BEGIN
+    POPUP ""
+    {
+        MENUITEM "不支持高亮",        IDM_TYPES_0                            
+    }
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Clipboard
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//
+
+IDD_DIALOG_CLIP DIALOGEX 10,10,184,199
+CAPTION "用户剪贴板"
+FONT 8,"MS Shell Dlg",0,0,0
+STYLE WS_DISABLED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|DS_CENTER|DS_SHELLFONT|WS_SYSMENU
+EXSTYLE WS_EX_TRANSPARENT
+BEGIN
+    CONTROL      "",IDC_BUTTON0,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,19,16,12
+    CONTROL      "",IDC_BUTTON1,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,35,16,12
+    CONTROL      "",IDC_BUTTON2,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,51,16,12
+    CONTROL      "",IDC_BUTTON3,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,67,16,12
+    CONTROL      "",IDC_BUTTON4,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,83,16,12
+    CONTROL      "",IDC_BUTTON5,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,99,16,12
+    CONTROL      "",IDC_BUTTON6,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,115,16,12
+    CONTROL      "",IDC_BUTTON7,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,131,16,12
+    CONTROL      "",IDC_BUTTON8,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,147,16,12
+    CONTROL      "",IDC_BUTTON9,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,163,16,12
+    CONTROL      "",IDC_BUTTON10,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,179,16,12
+    EDITTEXT     IDC_EDIT0,32,19,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT1,32,35,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT2,32,51,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT3,32,67,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT4,32,83,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT5,32,99,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT6,32,115,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT7,32,131,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT8,32,147,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT9,32,163,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT10,32,179,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    CONTROL      "",IDC_CHECK0,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,19,12,12
+    CONTROL      "",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,35,12,12
+    CONTROL      "",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,51,12,12
+    CONTROL      "",IDC_CHECK3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,67,12,12
+    CONTROL      "",IDC_CHECK4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,83,12,12
+    CONTROL      "",IDC_CHECK5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,99,12,12
+    CONTROL      "",IDC_CHECK6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,115,12,12
+    CONTROL      "",IDC_CHECK7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,131,12,12
+    CONTROL      "",IDC_CHECK8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,147,12,12
+    CONTROL      "",IDC_CHECK9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,163,12,12
+    CONTROL      "",IDC_CHECK10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,179,12,12                      
+    LTEXT        "复制",IDC_STATIC,7,4,17,13
+    LTEXT        "内容",IDC_BUFFERS_LABEL,81,4,23,13
+    LTEXT        "锁定",IDC_LOCK_LABEL,163,4,17,13
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// For File association
+//
+#define REGEXT_STR "Windows8.x以上系统, 注册文件关联后可能需要用户在文件类型面板手动指定默认应用\n\n或者在鼠标点击文件打开时, 选择Skylark为默认编辑器."
+                                      
+IDD_REGEXT_BOX DIALOGEX 0, 0, 340, 180
+CAPTION "选择需要注册的文件类型"
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           REGEXT_STR,IDC_WIN10_STATIC,20,0,300,28
+    LTEXT           "支持的扩展名:",IDC_SUPPORTEDEXTS_STATIC,20,30,80,8
+    LISTBOX         IDC_REGEXT_LANG_LIST,20,42,100,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    LISTBOX         IDC_REGEXT_LANGEXT_LIST,125,42,80,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_CUSTOMEXT_EDIT,125,87,80,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    PUSHBUTTON      "->",IDC_ADDFROMLANGEXT_BUTTON,215,88,25,14
+    PUSHBUTTON      "<-",IDC_REMOVEEXT_BUTTON,215,108,25,14
+    LTEXT           "注册的扩展名:",IDC_REGISTEREDEXTS_STATIC,250,30,80,8
+    LISTBOX         IDC_REGEXT_REGISTEREDEXTS_LIST,250,42,80,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+END
+
+/////////////////////////////////////////////////////////////////////////////
+#define	__EU_COPYRIGHT_TRANSLATION	"Copyright © 2021 by ualy123"
+/////////////////////////////////////////////////////////////////////////////
+// ico
+IDI_TXT_32              ICON                    "..\\resources\\txt32.ico"
+
+//
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 245, 228
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "版本信息"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    ICON            IDI_TXT_32, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
+    EDITTEXT        IDC_EDIT_VER, 33, 6, 204, 30, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
+    LTEXT           "开发者: adonais", IDC_STATIC, 33, 38, 125, 9, NOT WS_GROUP
+    LTEXT           "许可证: GPL v3", IDC_STATIC, 33, 52, 125, 9, NOT WS_GROUP
+    LTEXT           "翻译: ",IDC_STATIC,33,66,33,9
+    LTEXT           __EU_COPYRIGHT_TRANSLATION,IDC_STATIC,71,66,165,9,SS_NOPREFIX | NOT WS_GROUP
+    LTEXT           "项目地址:", IDC_STATIC_URL_CAPTION, 33, 79, 36, 9, NOT WS_GROUP
+    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 79, 159, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
+    DEFPUSHBUTTON   "确定(&O)", IDOK, 97, 203, 50, 14
+    PUSHBUTTON      "复制信息(&C)", IDC_BUTTON_COPY, 178, 203, 60, 14
+END
+
+/////////////////////////////////////////////////////////////////////////////
+
+IDD_DONATION_BOX DIALOGEX 0,0,417,245
+CAPTION "捐赠我们"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_SHELLFONT|DS_3DLOOK
+EXSTYLE WS_EX_STATICEDGE|WS_EX_TRANSPARENT
+BEGIN
+  CONTROL "",IDC_DONA_STATIC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,2,5,409,29
+  CONTROL "微信",IDC_DONA_STATIC2,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE|SS_CENTER,76,34,50,9
+  CONTROL "支付宝",IDC_DONA_STATIC3,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE|SS_CENTER,280,34,50,9
+  CONTROL "",IDC_DONA_STATIC4,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE|SS_BITMAP,2,45,200,200
+  CONTROL "",IDC_DONA_STATIC5,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE|SS_BITMAP,213,45,200,200
+END
+
+/////////////////////////////////////////////////////////////////////////////
+
+// adonais fc_dialog
+IDD_DIALOG_FC DIALOGEX 0,0,300,129
+CAPTION "文件已更改, 需要重新加载文件吗?"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+BEGIN
+  CONTROL "%s\n\n已被其他应用程序更改\n\n希望重新加载吗?",IDC_FC_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTER,9,6,282,57
+  CONTROL "是",IDC_FC_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,27,78,39,18
+  CONTROL "否",IDC_FC_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,90,78,39,18
+  CONTROL "全部是",IDC_FC_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,150,78,49,18
+  CONTROL "全部否",IDC_FC_BTN4,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,219,78,49,18
+  CONTROL "本次会话中不再显示该对话框",IDC_FC_CHK1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,105,189,15
+END
+
+IDD_DIALOG_NOEXIST DIALOGEX 0,0,297,75
+CAPTION "文件已不可用, 保持窗口打开?"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+BEGIN
+  CONTROL "%s\n\n此文件已被删除或改名.你要在编辑中保持打开该文件?",IDC_NOEXIST_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTER,9,6,282,39
+  CONTROL "全部是(&E)",IDC_NOEXIST_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,45,51,42,18
+  CONTROL "全部否(&O)",IDC_NOEXIST_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,102,51,42,18
+  CONTROL "是(&Y)",IDC_NOEXIST_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,162,51,36,18
+  CONTROL "否(&N)",IDC_NOEXIST_BTN4,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,216,51,36,18
+END
+
+IDD_DLG_INPUT DIALOGEX 10,10,357,45
+CAPTION "输入窗口:"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_VISIBLE|WS_CAPTION|WS_THICKFRAME|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+BEGIN
+  CONTROL "请输入名称:",IDC_INPUT_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE,5,6,83,18
+  CONTROL "",IDC_INPUT_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,91,9,255,12,WS_EX_CLIENTEDGE
+  CONTROL "确定",IDC_INPUT_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,219,27,54,15
+  CONTROL "取消",IDC_INPUT_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,294,27,54,15
+END
+
+IDR_RESULT_MENU MENU DISCARDABLE
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "复制(&C)",        IDM_RESULT_1
+        MENUITEM "粘贴(&P)",        IDM_RESULT_2
+        MENUITEM "全选(&S)",        IDM_RESULT_3
+        MENUITEM "取消选择(&D)",    IDM_RESULT_4
+        MENUITEM SEPARATOR
+        MENUITEM "清除结果(&R)",    IDM_RESULT_5
+        MENUITEM "关闭此窗口(&W)",  IDM_RESULT_CLOSE
+    END
+END
+
+IDR_HEXVIEW_MENU MENU DISCARDABLE
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "复制(&C)",             IDM_HEXVIEW_1
+        MENUITEM "粘贴(&P)",             IDM_HEXVIEW_2
+        MENUITEM "剪切(&T)",             IDM_HEXVIEW_3
+        MENUITEM "删除(&D)",             IDM_HEXVIEW_4
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// stings for toolbar
+//
+STRINGTABLE DISCARDABLE
+{
+    IDS_TOOLBAR_0                    "新建文件"
+    IDS_TOOLBAR_1                    "打开文件"
+    IDS_TOOLBAR_2                    "保存文件"
+    IDS_TOOLBAR_3                    "文件另存为..."
+    IDS_TOOLBAR_4                    "关闭文件"
+    IDS_TOOLBAR_5                    "打印"
+    IDS_TOOLBAR_6                    "配置SFTP服务器"
+    IDS_TOOLBAR_7                    "剪切"
+    IDS_TOOLBAR_8                    "复制"
+    IDS_TOOLBAR_9                    "粘贴"
+    IDS_TOOLBAR_10                   "打开剪贴板"
+    IDS_TOOLBAR_11                   "查找"  
+    IDS_TOOLBAR_12                   "查找上一个"
+    IDS_TOOLBAR_13                   "查找下一个"
+    IDS_TOOLBAR_14                   "撤销操作"
+    IDS_TOOLBAR_15                   "恢复上一次操作"    
+    IDS_TOOLBAR_16                   "切换书签"
+    IDS_TOOLBAR_17                   "跳到上一个书签"
+    IDS_TOOLBAR_18                   "跳到下一个书签"  
+    IDS_TOOLBAR_19                   "十六进制模式"  
+    IDS_TOOLBAR_20                   "打开/关闭文件管理器"
+    IDS_TOOLBAR_21                   "打开/关闭软链接窗口"
+    IDS_TOOLBAR_22                   "设置主题"
+    IDS_TOOLBAR_23                   "放大文本"
+    IDS_TOOLBAR_24                   "缩小文本"
+    IDS_TOOLBAR_25                   "打开/退出全屏"
+    IDS_TOOLBAR_26                   "运行sql或lua脚本"  
+    IDS_TOOLBAR_27                   "打开终端"
+}
+
+STRINGTABLE DISCARDABLE
+{
+    IDS_BUTTON_CAP                   "大写"     
+    IDS_BUTTON_R                     "只读" 
+    IDS_BUTTON_W                     "读写"
+    IDS_STATUS_F1                    "正在处理 %d 个文件, 当前文件时间戳: %s"
+    IDS_STATUS_XY                    "光标 (行 %I64u, 列 %I64u)"
+    IDS_STATUS_LC                    "文件尺寸: %I64d/%I64u (字节/行)"
+    IDS_STATUS_LD                    "选择: %I64d/%I64u (字节/行)"
+    IDS_STATUS_HXY                   "光标 (0x%016I64X)"
+}
+
+STRINGTABLE DISCARDABLE
+{
+    IDC_COMPILER    "编译信息"
+}
+
+STRINGTABLE DISCARDABLE
+{
+    IDC_MSG_ERROR           "错误:"
+    IDC_MSG_WARN            "警告:"
+    IDC_MSG_TIPS            "提示:"
+    IDC_MSG_PASS            "请输入用户密码:"
+    IDC_MSG_DO_READONLY     "试图在只读文件上进行此操作"
+    IDC_MSG_ATTACH_FAIL     "连接远程文件服务器失败"
+    IDC_MSG_ATTACH_FAIL1    "连接远程文件服务器失败, 无效的私钥或者私钥口令错误"
+    IDC_MSG_ATTACH_FAIL2    "连接远程文件服务器失败, 用户名或密码错误"
+    IDC_MSG_ATTACH_FAIL3    "初始化libcurl错误, 可能没找到函数入口"
+    IDC_MSG_OPENSSL_FAIL    "初始化libopenssl错误, 可能没找到函数入口"
+    IDC_MSG_ATTACH_SUCCESS  "连接远程文件服务器成功"
+    IDC_MSG_DIR_HOME        "/HOME(用户目录)"
+    IDC_MSG_DIR_ROOT        "/(根目录)"
+    IDC_MSG_DIR_SUB         "请输入子目录名:"
+    IDC_MSG_DIR_FAIL        "创建目录失败"
+    IDC_MSG_MK_FILE         "请输入文件名:"
+    IDC_MSG_EXIST_FILE      "文件已存在"
+    IDC_MSG_OPEN_FAIL       "打开文件失败, 原因: %s"
+    IDC_MSG_FILE_FAIL       "创建文件失败"
+    IDC_MSG_COPY_FAIL       "复制文件失败"
+    IDC_MSG_WRITE_FAIL      "写文件失败"
+    IDC_MSG_SFTP_FAIL       "SFTP协议不支持远程间复制文件"
+    IDC_MSG_EXPLORER        "文件资源管理器"
+    IDC_MSG_THEME_NAME      "新主题方案名:"
+    IDC_MSG_THEME_ERR1      "主题方案名不能为空"
+    IDC_MSG_THEME_ERR2      "主题方案名不能和复制源相同"
+    IDC_MSG_THEME_ERR3      "主题方案名不能含有空白字符"
+    IDC_MSG_THEME_ERR4      "主题方案配置文件已存在"
+    IDC_MSG_JSON_ERR1       "内部错误: 文件过大, 可能会导致内存提前耗尽"
+    IDC_MSG_JSON_ERR2       "内部错误: 转换出来的数据的长度与估算值不一致"
+    IDC_MSG_TAB_LEN         "请输入制表符宽度:"
+    IDC_MSG_SCINTILLA_ERR1  "创建Scintilla控件失败"
+    IDC_MSG_ICONV_FAIL1     "文件编码转换失败"
+    IDC_MSG_ICONV_FAIL2     "文本编码识别错误, 导致文件没有打开, 请联系开发者"
+    IDC_MSG_TABCONTROL_FAIL "创建TabControl控件失败"
+    IDC_MSG_CONV_TIPS       "多字节编码转换时, 可能存在内容丢失的风险. 需要继续吗?\n注意, 新编码的应用在文件保存后才真正生效."
+    IDC_MSG_CONV_FAIL1      "测试编码转换失败, 我们回退到原编码."
+    IDC_MSG_CONV_FAIL2      "测试编码转换时, 有内容丢失, 我们回退到原编码."
+    IDC_MSG_DIR_WRITE_FAIL  "编辑器所在目录不可写, 移动编辑器安装目录位置试试."
+    IDC_MSG_MEM_NOT_ENOUGH  "内存不够, 编辑器退出."
+    IDC_MSG_MEM_NOT_AVAIL   "文件太大, 内存可能不够."
+    IDC_MSG_SYMLIST_FAIL    "创建符号列表控件失败"
+    IDC_MSG_PCRE_FAIL       "不能解析符号正则表达式"
+    IDC_MSG_HISTORY_ZERO    " (空) "
+    IDC_MSG_OPEN_FILE_EDIT	"用 Skylark 打开文件"
+    IDC_MSG_DIRECTORYFILES  "用 Skylark 打开目录中所有文件"
+    IDC_MSG_LOC_DIRECTORY   "用 Skylark 定位目录"
+    IDC_MSG_REGIST_ERR1     "不能在注册表创建项 *\\shell\\skylark "
+    IDC_MSG_REGIST_ERR2     "不能在注册表设置键 *\\shell\\skylark:(default) "
+    IDC_MSG_REGIST_ERR3     "不能在注册表设置键 *\\shell\\skylark:Icon "
+    IDC_MSG_REGIST_ERR4     "不能在注册表创建项 *\\shell\\skylark\\command "
+    IDC_MSG_REGIST_ERR5     "不能在注册表设置键 *\\shell\\skylark:(default) "
+    IDC_MSG_REGIST_ERR6     "不能在注册表删除项 *\\shell\\skylark "
+    IDC_MSG_REGIST_ERR7     "不能在注册表删除项 *\\shell\\skylark "
+    IDC_MSG_REGIST_ERR8     "在资源管理器卸载右键弹出菜单成功"
+    IDC_MSG_REGIST_ERR9     "不能在注册表创建项 Directory\\shell\\skylark "
+    IDC_MSG_REGIST_ERR10    "不能在注册表设置键 Directory\\shell\\skylark:(default) "
+    IDC_MSG_REGIST_ERR11    "不能在注册表设置键 Directory\\shell\\skylark:Icon "
+    IDC_MSG_REGIST_ERR12    "不能在注册表创建项 Directory\\shell\\skylark\\command "
+    IDC_MSG_REGIST_ERR13    "不能在注册表设置键 Directory\\shell\\skylark:(default) "
+    IDC_MSG_REGIST_ERR14    "不能在注册表创建项 Directory\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR15    "不能在注册表设置键 Directory\\shell\\skylark2:(default) "
+    IDC_MSG_REGIST_ERR16    "不能在注册表设置键 Directory\\shell\\skylark2:Icon "
+    IDC_MSG_REGIST_ERR17    "不能在注册表创建项 Directory\\shell\\skylark2\\command "
+    IDC_MSG_REGIST_ERR18    "不能在注册表设置键 Directory\\shell\\skylark2:(default) "
+    IDC_MSG_REGIST_ERR19    "不能在注册表创建项 Drive\\shell\\skylark "
+    IDC_MSG_REGIST_ERR20    "不能在注册表设置键 Drive\\shell\\skylark:(default) "
+    IDC_MSG_REGIST_ERR21    "不能在注册表设置键 Drive\\shell\\skylark:Icon "
+    IDC_MSG_REGIST_ERR22    "不能在注册表创建项 Drive\\shell\\skylark\\command "
+    IDC_MSG_REGIST_ERR23    "不能在注册表设置键 Drive\\shell\\skylark:(default) "
+    IDC_MSG_REGIST_ERR24    "不能在注册表创建项 Drive\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR25    "不能在注册表设置键 Drive\\shell\\skylark2:(default) "
+    IDC_MSG_REGIST_ERR26    "不能在注册表设置键 Drive\\shell\\skylark2:Icon "
+    IDC_MSG_REGIST_ERR27    "不能在注册表创建项 Drive\\shell\\skylark2\\command "
+    IDC_MSG_REGIST_ERR28    "不能在注册表设置键 Drive\\shell\\skylark2:(default) "
+    IDC_MSG_REGIST_ERR29    "不能在注册表删除项 Directory\\shell\\skylark "
+    IDC_MSG_REGIST_ERR30    "不能在注册表删除项 Directory\\shell\\skylark "
+    IDC_MSG_REGIST_ERR31    "不能在注册表删除项 Directory\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR32    "不能在注册表删除项 Directory\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR33    "不能在注册表删除项 Drive\\shell\\skylark "
+    IDC_MSG_REGIST_ERR34    "不能在注册表删除项 Drive\\shell\\skylark "
+    IDC_MSG_REGIST_ERR35    "不能在注册表删除项 Drive\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR36    "不能在注册表删除项 Drive\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR37    "在资源管理器卸载右键弹出菜单成功"
+    IDC_MSG_JUST_HELP       "即时帮助"
+    IDC_MSG_HELP_INF1       "使用快捷键 'Ctrl+鼠标点选' 进行多个位置选择, 支持多行的输入,删除,复制等操作"
+    IDC_MSG_EXEC_ERR1       "进程启动失败, 请检测进程路径是否正确!"
+    IDC_MSG_EDIT_ERR1       "创建EDIT消息控件错误"
+    IDC_MSG_SYMTREE_ERR1    "创建符号树控件错误"
+    IDC_MSG_SYMTREE_ERR2    "获取数据库表名列表失败"
+    IDC_MSG_SYMTREE_ERR3    "获取数据库字段名列表失败"
+    IDC_MSG_SYMTREE_ERR4    "构造查询用户表列表失败[%d][%s]"
+    IDC_MSG_SYMTREE_ERR5    "构造查询用户表字段列表失败[%d][%s]"
+    IDC_MSG_SYMTREE_ERR6    "执行查询用户表字段列表失败[%d][%s]"
+    IDC_MSG_SYMTREE_ERR7    "获取数据库表名列表失败[%s]"
+    IDC_MSG_SYMTREE_ERR8    "获取数据库字段名列表失败[%s]"
+    IDC_MSG_SYMTREE_ERR9    "解析失败"
+    IDC_MSG_SYMTREE_ERR10   "不能装载hiredis.dll, 请检查是否已安装hiredis以及PATH环境变量"
+    IDC_MSG_SYMTREE_ERR11   "不能定位函数符号在hiredis.dll"
+    IDC_MSG_SYMTREE_ERR12   "不能连接Redis服务器"
+    IDC_MSG_SYMTREE_ERR13   "向Redis服务器认证失败, 请确认密码正确性"
+    IDC_MSG_SYMTREE_ERR14   "切换Redis服务器数据桶失败, 请确认数据桶配置值正确性"
+    IDC_MSG_SYMTREE_ERR15   "向Redis服务器发送PING失败"
+    IDC_MSG_AC_STR          "自动完成需要的字符数:"
+    IDC_MSG_SCI_ERR1        "加载scilexer.dll失败"
+    IDC_MSG_ENC_ERR1        "BASE64编码失败"
+    IDC_MSG_ENC_ERR2        "BASE64解码失败"
+    IDC_MSG_ENC_STR         "请输入加密密钥: "
+    IDC_MSG_DEC_STR         "请输入解密密钥: "
+    IDC_MSG_SAVE_STR1       "文件保存为(*.*) ?"
+    IDC_MSG_SAVE_STR2       "保存到[%s] ?"
+    IDC_MSG_OPEN_ERR1       "文件不存在"
+    IDC_MSG_QUERY_ERR1      "不能创建结果表格控件"
+    IDC_MSG_QUERY_ERR2      "获得Oracle错误详细消息失败"
+    IDC_MSG_QUERY_ERR3      "断开链接失败, 不支持的数据库类型"
+    IDC_MSG_QUERY_ERR4      "不能装载libmysql.dll, 请检查是否已安装MySQL以及PATH环境变量"
+    IDC_MSG_QUERY_ERR5      "不能定位函数符号在libmysql.dll"
+    IDC_MSG_QUERY_ERR6      "不能创建MySQL对象"
+    IDC_MSG_QUERY_ERR7      "数据库用户密码: "
+    IDC_MSG_QUERY_ERR8      "未输入密码"
+    IDC_MSG_QUERY_ERR9      "连接MySQL服务器[%s:%d]失败，用户名[%s]，数据库[%s]"
+    IDC_MSG_QUERY_ERR10     "连接MySQL服务器[%s:%d]成功，用户名[%s]，数据库[%s]"
+    IDC_MSG_QUERY_ERR11     "不能设置MySQL客户端编码"
+    IDC_MSG_QUERY_ERR12     "不能装载oci.dll，请检查是否已安装Oracle以及PATH环境变量"
+    IDC_MSG_QUERY_ERR13     "不能定位函数符号在oci.dll"
+    IDC_MSG_QUERY_ERR14     "不能创建Oracle对象"
+    IDC_MSG_QUERY_ERR15     "连接Oracle服务器[%s]失败[%d][%s]"
+    IDC_MSG_QUERY_ERR16     "连接Oracle服务器[%s]成功"
+    IDC_MSG_QUERY_ERR17     "创建Oracle用户会话失败[%d][%s]，用户名[%s]"
+    IDC_MSG_QUERY_ERR18     "创建Oracle用户会话成功，用户名[%s]"
+    IDC_MSG_QUERY_ERR19     "不能创建Sqlite3对象"
+    IDC_MSG_QUERY_ERR20     "创建Sqlite3对象[%s]成功"
+    IDC_MSG_QUERY_ERR21     "不能装载libpq.dll，请检查是否已安装PostgreSQL以及PATH环境变量"
+    IDC_MSG_QUERY_ERR22     "不能定位函数符号在libpq.dll"
+    IDC_MSG_QUERY_ERR23     "不能创建PostgreSQL对象"
+    IDC_MSG_QUERY_ERR24     "设置PostgreSQL客户端字符编码失败"
+    IDC_MSG_QUERY_ERR25     "创建PostgreSQL对象[%s:%d][%s][%s]成功"
+    IDC_MSG_QUERY_ERR26     "自动连接时，数据库类型[%s]暂不支持"
+    IDC_MSG_QUERY_STR1      "执行SQL[%s] ..."
+    IDC_MSG_QUERY_STR2      "执行SQL失败[%d]"
+    IDC_MSG_QUERY_STR3      "执行SQL成功，受影响记录数量[%d]"
+    IDC_MSG_QUERY_STR4      "不能插入列表视图的头部列名"
+    IDC_MSG_QUERY_STR5      "不能插入列表视图的记录"
+    IDC_MSG_QUERY_STR6      "构造SQL失败[%d][%s]"
+    IDC_MSG_QUERY_STR7      "执行SQL失败[%d][%s]"
+    IDC_MSG_QUERY_STR8      "回滚数据库事务"
+    IDC_MSG_QUERY_STR9      "提交数据库事务"
+    IDC_MSG_QUERY_STR10     "执行SQL成功"
+    IDC_MSG_QUERY_STR11     "不能分配内存以存放所有字段宽度"
+    IDC_MSG_QUERY_STR12     "不能分配内存以存放所有字段值缓冲区"
+    IDC_MSG_QUERY_STR13     "获得字段[%d]名失败[%d][%s]"
+    IDC_MSG_QUERY_STR14     "执行SQL成功，返回查询记录数[%d]"
+    IDC_MSG_SEARCH_TIT1     "搜索"
+    IDC_MSG_SEARCH_TIT2     "替换"
+    IDC_MSG_SEARCH_TIT3     "搜索文件"
+    IDC_MSG_SEARCH_ERR1     "该功能不支持在远程文件目录中搜索"
+    IDC_MSG_SEARCH_ERR2     "请输入行号: "
+    IDC_MSG_SEARCH_ERR3     "没有匹配的行"
+    IDC_MSG_SEARCH_ERR4     "只支持处理当前文件"
+    IDC_MSG_SEARCH_ERR5     "搜到底了, 在 %d 个文件中, 共获得 %d 条结果"
+    IDC_MSG_SEARCH_ERR6     "搜到顶了, 在 %d 个文件中, 共获得 %d 条结果"
+    IDC_MSG_SEARCH_ERR7     "搜索完成, 共 %d 个文件匹配, 共获得 %d 条结果"
+    IDC_MSG_SEARCH_ERR8     "搜索完成, 在 %d 个文件中, %d 条结果, 没有匹配的字符串"
+    IDC_MSG_SEARCH_ERR9     "到底了, 在 %d 个文件中, 本次替换 %d 条字符串"
+    IDC_MSG_SEARCH_ERR10    "%d 个文件匹配, 共获得 %d 条结果, 但在指定范围内没有替换字符串"
+    IDC_MSG_SEARCH_ERR11    "在 %d 个文件中, %d 条结果, 没找到需要替换的字符串"
+    IDC_MSG_SEARCH_ERR12    "替换完成, %d 个文件匹配, 替换了 %d 条字符串"
+    IDC_MSG_SEARCH_ERR13    "不支持在远程目录搜索"
+    IDC_MSG_SEARCH_ERR14    "搜索完成, 在 %d 个文件的当前范围内, 共获得 %d 条结果"
+    IDC_MSG_SEARCH_ERR15    "要搜索的16进制子串不能是单数"
+    IDC_MSG_SEARCH_STR1     "提示: 正则表达式请使用perl正则语法"
+    IDC_MSG_SEARCH_STR2     "%s|%s|(%d 次匹配)"
+    IDC_MSG_SEARCH_STR3     "正在初始化引擎,不要关闭窗口......"
+    IDC_MSG_SEARCH_STR4     "搜索完成, %I64u 个文件匹配, 共 %I64u 条结果"
+    IDC_MSG_SEARCH_STR5     "输入地址偏移量:"
+    IDC_SEARCH_BTN_ON       "查找全部"
+    IDC_SEARCH_BTN_OFF      "停止搜索"
+    IDS_PRINT_HEADER        "文件名，当前日期和时间|文件名，当前日期|文件名|留空"
+    IDS_PRINT_FOOTER        "页码|留空"
+    IDS_PRINT_COLOR         "标准|反色（暗色背景）|白底黑字|白底彩字|白底彩字（除行号以外）|和屏幕颜色相同"
+    IDS_PRINT_PAGENUM       "第 %i 页"
+    IDS_PRINT_EMPTY         "此文档不包含任何要打印的文本."
+    IDS_PRINT_ERROR         "%s 文件打印错误"
+    IDS_SELRECT             "不能在列编辑模式下进行此操作."
+    IDS_LUA_CONV_SUCCESS    "转换字节码成功, 文件保存在 [%s]"
+    IDS_LUA_CONV_FAIL       "转换字节码失败."
+    IDS_THEME_DESC_DEFAULT  "默认主题"
+    IDS_THEME_DESC_BLOCK    "暗黑主题"
+    IDS_THEME_DESC_WHITE    "白色经典(需重启)"
+    IDS_SEARCH_HEX_TIPS     "十六进制数据应该是每两个字符为一个字节, 并且\n\n每个字节间可以用空格分开, 忽略大小写, 例如: \n\nFF FE FD 或 fffefd"
+    IDS_THEME_EDIT_TIPS     "透明度, 0(完全透明) - 255(不透明)"
+    IDS_STATUSBAR_TIPS1     "换行符之间的相互转换"
+    IDS_STATUSBAR_TIPS2     "编码之间的相互转换"
+    IDS_STATUSBAR_TIPS3     "手动切换文档高亮显示效果"
+    IDS_USERTAB_TIPS1       "使用脚本设置, 请编辑对应的lua脚本文件"
+    IDS_THEMEM_WHITE_TO     "从经典主题切换, 需要重启编辑器"
+    IDS_SKYLARK_DONATION    "如果您支持本项目, 请用手机扫描二维码通过支付宝或者微信向我们捐赠.\n\n款项将用软件的改进或者您指明的定制, 在此非常感谢!"
+    IDS_USER32_ERROR        "错误"
+    IDS_USER32_UNFINISHED   "编辑器还未完全关闭, 请稍后重新打开"
+    IDS_EXTRA_PATH          "外部程序路径: "
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// adonais search_dialog
+IDD_SEARCH_TAB_DLG DIALOGEX 36,44,384,216
+CAPTION "查找"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_CAPTION|WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+BEGIN
+  CONTROL "查找目标: ",IDC_WHAT_STATIC_FIFOLDER,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,12,20,42,12
+  CONTROL "",IDC_WHAT_FOLDER_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,20,207,13
+  CONTROL "替换为: ",IDC_SEARCH_RP_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,12,36,42,12
+  CONTROL "",IDC_SEARCH_RP_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,36,207,12
+  CONTROL "文件类型: ",IDC_SEARCH_FY_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,12,36,42,12
+  CONTROL "",IDC_SEARCH_FY_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,36,207,12
+  CONTROL "目录: ",IDC_SEARCH_DIR_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,12,54,42,12
+  CONTROL "",IDC_SEARCH_DIR_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,54,207,13
+  CONTROL "...",IDC_FILES_BROWSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,54,15,13
+  CONTROL "在所有打开的文件中",IDC_MATCH_ALL_FILE,"Button",WS_VISIBLE|WS_TABSTOP|BS_MULTILINE|BS_AUTOCHECKBOX,12,69,100,15
+  CONTROL "循环查找",IDC_MATCH_LOOP,"Button",WS_VISIBLE|WS_TABSTOP|BS_MULTILINE|BS_AUTOCHECKBOX,12,84,100,15
+  CONTROL "匹配单词开始",IDC_MATCH_WDSTART,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,99,100,15
+  CONTROL "整词匹配",IDC_MATCH_WORD,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,114,100,15
+  CONTROL "区分大小写",IDC_MATCH_CASE,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,129,100,15
+  CONTROL "模式",IDC_MODE_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,12,147,100,48
+  CONTROL "正常模式(&N)",IDC_MODE_NORMAL,"Button",WS_VISIBLE|WS_GROUP|BS_AUTORADIOBUTTON,12,159,97,9
+  CONTROL "正则表达式(&G)",IDC_MODE_REGEXP,"Button",WS_VISIBLE|BS_AUTORADIOBUTTON,12,177,97,9
+  CONTROL "▲",IDC_SEARCH_PRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,20,15,13  
+  CONTROL "▼ 查找下一个",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
+  CONTROL "显示详情",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
+  CONTROL "关闭",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "替换",IDC_SEARCH_RE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
+  CONTROL "全部替换",IDC_SEARCH_REALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,90,90,13
+  CONTROL "查找全部",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
+  CONTROL "当前文件夹",IDC_SEARCH_CD_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,129,90,15
+  CONTROL "包含子目录",IDC_SEARCH_SUB_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,144,90,15
+  CONTROL "包含隐藏目录",IDC_SEARCH_HIDE_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,159,90,15
+  CONTROL "UTF-8 编码",IDC_SEARCH_UTF8_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,174,90,15
+  CONTROL "",IDC_PGB_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE,126,171,246,15
+  CONTROL "",IDC_PGB1,"msctls_progress32",WS_CHILDWINDOW|WS_VISIBLE|PBS_SMOOTH,126,186,246,9
+  CONTROL "",IDC_SEARCH_FOUNDLIST,"ListBox",WS_CHILDWINDOW|LBS_NOINTEGRALHEIGHT|WS_VSCROLL|WS_HSCROLL|WS_TABSTOP|LBS_NOTIFY|LBS_USETABSTOPS|LBS_HASSTRINGS,120,69,252,132,WS_EX_CLIENTEDGE
+  CONTROL "搜索字符串",IDC_SEARCH_HEX_STRINGS,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,108,100,15
+  CONTROL "",IDC_SEARCH_HEX_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,40,248,44
+  CONTROL "",IDC_SEARCH_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,201,372,12
+END
+
+
+IDD_PAGESETUP DIALOGEX 5,5,356,260
+CAPTION "页面设置"
+FONT 8,"MS Shell Dlg",400,0,1
+STYLE WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_MODALFRAME|DS_SHELLFONT|0xC0000000
+BEGIN
+  CONTROL "纸张",IDC_PAGESETUP_PAGER_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,8,224,56
+  CONTROL "大小(&Z):",IDC_PAGESETUP_SIZE,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,24,36,8
+  CONTROL "",IDC_PAGESETUP_SOURCE_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_SORT|CBS_DROPDOWNLIST,64,23,160,160
+  CONTROL "源(&S):",IDC_PAGESETUP_SOURCE_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,45,36,8
+  CONTROL "",IDC_PAGESETUP_ORIENTATION_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_SORT|CBS_DROPDOWNLIST,64,42,160,160
+  CONTROL "方向",IDC_PAGESETUP_ORIENTATION_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,69,64,56
+  CONTROL "纵向(&O)",IDC_PAGESETUP_PORTRAIT,"Button",WS_VISIBLE|WS_GROUP|WS_TABSTOP|BS_AUTORADIOBUTTON,16,82,52,12
+  CONTROL "横向(&A)",IDC_PAGESETUP_LANDSCAPE,"Button",WS_VISIBLE|BS_AUTORADIOBUTTON,16,103,52,12
+  CONTROL "边距",IDC_PAGESETUP_MARGIN_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,80,69,152,56
+  CONTROL "左边(&L):",IDC_PAGESETUP_MARGIN_LEFT_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,88,85,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_LEFT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,120,82,28,12,WS_EX_CLIENTEDGE
+  CONTROL "顶部(&T):",IDC_PAGESETUP_MARGIN_TOP_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,88,104,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_RIGHT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,120,103,28,12,WS_EX_CLIENTEDGE
+  CONTROL "右边(&R):",IDC_PAGESETUP_MARGIN_RIGHT_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,164,85,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_TOP,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,196,82,28,12,WS_EX_CLIENTEDGE
+  CONTROL "底部(&B):",IDC_PAGESETUP_MARGIN_BOTTOM_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,164,104,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_BOOTOM,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,196,103,28,12,WS_EX_CLIENTEDGE
+  CONTROL "页眉和页脚",IDC_PAGESETUP_HEADER_FOOTER_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,130,224,56
+  CONTROL "页眉(&H):",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,146,36,8
+  CONTROL "",IDC_PAGESETUP_HEADER_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_DROPDOWNLIST,64,145,160,160
+  CONTROL "页脚(&F):",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,167,36,8
+  CONTROL "",IDC_PAGESETUP_FOOTER_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_DROPDOWNLIST,64,164,160,160
+  CONTROL "颜色",IDC_PAGESETUP_PRINT_COLOR_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,191,224,37
+  CONTROL "模式(&D):",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,207,36,8
+  CONTROL "",IDC_PAGESETUP_COLOR_MODE_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_DROPDOWNLIST,64,206,160,160
+  CONTROL "缩放",IDC_ZOOM_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,240,170,108,58
+  CONTROL "打印缩放 (-10 to +20)(&M):",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,248,188,92,8
+  CONTROL "",IDC_PAGESETUP_ZOOMLEVEL_EDIT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,298,206,42,12,WS_EX_CLIENTEDGE
+  CONTROL "",IDC_PAGESETUP_ZOOMLEVEL_CTLS,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,282,205,11,14
+  CONTROL "确定",IDOK,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP|BS_DEFPUSHBUTTON,190,237,50,14
+  CONTROL "取消",IDCANCEL,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,244,237,50,14
+  CONTROL "打印机(&P)...",IDC_PAGESETUP_PRINTER,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,298,237,50,14
+  CONTROL "预览",IDC_PREVIEW_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,240,8,108,157
+  CONTROL "",IDC_PAGESETUP_PREVIEW_WHITE_RECT,"Static",WS_VISIBLE|SS_WHITERECT,254,47,80,80
+  CONTROL "",IDC_PAGESETUP_PREVIEW_VERT_RECT,"Static",WS_VISIBLE|SS_GRAYRECT,334,51,4,80
+  CONTROL "",IDC_PAGESETUP_PREVIEW_HOR_RECT,"Static",WS_VISIBLE|SS_GRAYRECT,262,123,80,4
+END
+
+MSGBOX DIALOGEX 100,80,216,168
+FONT 11,"Ms Shell Dlg",0,0,0
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+BEGIN
+    ICON "", MSGBOX_IDICON, 8, 20, 16, 16, WS_CHILD | WS_VISIBLE
+    PUSHBUTTON "是(&Y)", IDYES, 16, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "否(&N)", IDNO, 74, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "终止(&A)", IDABORT, 132, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "重试(&R)", IDRETRY, 190, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "确定", IDOK, 248, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "取消", IDCANCEL, 306, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "忽略(&I)", IDIGNORE, 364, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "再试一次(&T)", IDTRYAGAIN, 422, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "继续(&C)", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "帮助(&H)", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
+END

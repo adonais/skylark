@@ -1,0 +1,1194 @@
+#pragma code_page(65001)
+
+#include "resource.h"
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Menu
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+IDC_SKYLARK MENUEX
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                    IDM_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",                IDM_FILE_OPEN
+        POPUP "Open Recent History"
+        BEGIN
+            MENUITEM "...",                         IDM_HISTORY_BASE
+        END
+        MENUITEM "Clear Recent History",            IDM_HISTORY_CLEAN
+        MENUITEM "&Save\tCtrl+S",                   IDM_FILE_SAVE
+        MENUITEM "Save As...\tCtrl+Shift+S",        IDM_FILE_SAVEAS
+        MENUITEM "Save All\tCtrl+Alt+S",            IDM_FILE_SAVEALL
+        MENUITEM "&Close\tCtrl+F4",                 IDM_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+F4",        IDM_FILE_CLOSEALL
+        MENUITEM "Close All But Active Document",   IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Save Last Session",               IDM_FILE_SESSION
+        MENUITEM MF_SEPARATOR
+		MENUITEM "Print Setup",					    IDM_FILE_PAGESETUP
+		MENUITEM "Print...\tCtrl+P",			    IDM_FILE_PRINT
+        MENUITEM MF_SEPARATOR
+        MENUITEM "&Remote File Manager...",         IDM_FILE_REMOTE_FILESERVERS
+        MENUITEM MF_SEPARATOR
+        POPUP "New File Newline"
+        BEGIN
+            MENUITEM "Windows(CR+LF)",              IDM_FILE_NEWFILE_WINDOWS_EOLS
+            MENUITEM "Classic Mac OS(CR)",          IDM_FILE_NEWFILE_MAC_EOLS
+            MENUITEM "Unix/Linux(LF)",              IDM_FILE_NEWFILE_UNIX_EOLS
+        END
+        POPUP "New File Encoding"
+        BEGIN
+            MENUITEM "UTF8",                        IDM_FILE_NEWFILE_ENCODING_UTF8
+            MENUITEM "UTF8(BOM)",                   IDM_FILE_NEWFILE_ENCODING_UTF8B
+            MENUITEM "UTF-16LE",                    IDM_FILE_NEWFILE_ENCODING_UTF16LE
+            MENUITEM "UTF-16BE",                    IDM_FILE_NEWFILE_ENCODING_UTF16BE
+            MENUITEM "ANSI(Native Codepage)",       IDM_FILE_NEWFILE_ENCODING_ANSI
+        END
+        MENUITEM MF_SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",                   IDM_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",                   IDM_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",                   IDM_EDIT_REDO
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                    IDM_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",                   IDM_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",                  IDM_EDIT_PASTE
+        MENUITEM "&Delete\tDel",                    IDM_EDIT_DELETE
+        MENUITEM MF_SEPARATOR
+        POPUP "Advanced Cut",                                IDM_EDIT_PLACEHOLDE1
+        BEGIN
+            MENUITEM "Cut Line\tCtrl+Shift+X",               IDM_EDIT_CUTLINE
+            MENUITEM "Cut And Paste Line\tCtrl+Shift+Alt+X", IDM_EDIT_CUTLINE_AND_PASTELINE
+        END
+        POPUP "Advanced Copy",                               IDM_EDIT_PLACEHOLDE2
+        BEGIN
+            MENUITEM "Copy Line\tCtrl+Shift+C",              IDM_EDIT_COPYLINE
+            MENUITEM "Copy And Paste Line\tCtrl+Shift+Alt+C",IDM_EDIT_COPYLINE_AND_PASTELINE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Copy File Name",                       IDM_EDIT_COPY_FILENAME
+            MENUITEM "Copy File Path",                       IDM_EDIT_COPY_PATHNAME
+            MENUITEM "Copy File Path And Name",              IDM_EDIT_COPY_PATHFILENAME
+        END
+        POPUP "Advanced Paste",                              IDM_EDIT_PLACEHOLDE3
+        BEGIN
+            MENUITEM "Paste Line\tCtrl+Shift+V",        IDM_EDIT_PASTELINE
+            MENUITEM "Paste Line Up\tCtrl+Shift+Alt+V", IDM_EDIT_PASTELINE_UPSTAIRS
+        END
+        POPUP "Advanced Delete",                         IDM_EDIT_PLACEHOLDE4
+        BEGIN
+            MENUITEM "Delete Line\tCtrl+Shift+Delete,Ctrl+E",                      IDM_EDIT_DELETELINE
+            MENUITEM "Strip Leading Blan&ks\tAlt+H",                               IDM_DELETE_SPACE_LINEHEAD
+            MENUITEM "Strip &Trailing Blanks\tAlt+T",                              IDM_DELETE_SPACE_LINETAIL
+            MENUITEM "&Remove Empty Lines\tAlt+R",                                 IDM_EDIT_DELETEBLANKLINE
+            MENUITEM "Remove All Empty Lines(Containing Blank Chars)\tCtrl+Alt+R", IDM_DELETE_ALL_SPACE_LINE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "Advanced Line Operations",              IDM_EDIT_PLACEHOLDE5
+        BEGIN
+        	MENUITEM "&Join Lines\tAlt+J",             IDM_EDIT_JOINLINE
+        	MENUITEM "Toggle Line Comment\tCtrl+/",    IDM_EDIT_LINECOMMENT
+        	MENUITEM "Block Comment\tCtrl+\\",         IDM_EDIT_STREAMCOMMENT
+        END	
+        MENUITEM MF_SEPARATOR
+        POPUP "Toggle Case",                           IDM_EDIT_PLACEHOLDE6
+        BEGIN
+            MENUITEM "Lower Case\tCtrl+U",             IDM_EDIT_LOWERCASE
+            MENUITEM "Upper Case\tCtrl+Shift+U",       IDM_EDIT_UPPERCASE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "Action &On Selection"
+        BEGIN
+            MENUITEM "&Open File\tCtrl+Shift+F",             IDM_OPEN_FILE_PATH
+            MENUITEM "Open Containing &Folder\tCtrl+Shift+D",IDM_OPEN_CONTAINING_FOLDER
+            MENUITEM MF_SEPARATOR
+			MENUITEM "Search With &Google\tCtrl+Shift+G",	 IDM_ONLINE_SEARCH_GOOGLE
+			MENUITEM "Search With &Baidu\tCtrl+Shift+B",	 IDM_ONLINE_SEARCH_BAIDU
+			MENUITEM "Search With B&ing\tCtrl+Shift+I",	     IDM_ONLINE_SEARCH_BING
+        END        
+        POPUP "BASE64 Encoding/Decoding",            IDM_EDIT_PLACEHOLDE7
+        BEGIN
+            MENUITEM "BASE64 Encoding",              IDM_EDIT_BASE64_ENCODING
+            MENUITEM "BASE64 Decoding",              IDM_EDIT_BASE64_DECODING
+        END
+        POPUP "Hash/Message Digest",                 IDM_EDIT_PLACEHOLDE8
+        BEGIN
+            MENUITEM "MD5",                          IDM_EDIT_MD5
+            MENUITEM "SHA1",                         IDM_EDIT_SHA1
+            MENUITEM "SHA256",                       IDM_EDIT_SHA256
+        END
+        POPUP "3DES Encryption/Decryption",          IDM_EDIT_PLACEHOLDE9
+        BEGIN
+            MENUITEM "3DES(CBC) Encryption...",      IDM_EDIT_3DES_CBC_ENCRYPTO
+            MENUITEM "3DES(CBC) Decryption...",      IDM_EDIT_3DES_CBC_DECRYPTO
+        END
+    END
+    POPUP "&Search"
+    BEGIN
+        MENUITEM "&Find...\tCtrl+F",                       IDM_SEARCH_FIND
+        MENUITEM "Find Previous\tCtrl+F3",                 IDM_SEARCH_FINDPREV
+        MENUITEM "Find Next\tF3",                          IDM_SEARCH_FINDNEXT
+        MENUITEM "&Replace...\tCtrl+R",                    IDM_SEARCH_REPLACE
+        MENUITEM "File Search...\tCtrl+Alt+F",             IDM_SEARCH_FILES
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Begin/End Select\tCtrl+Alt+Q",           IDM_UPDATE_SELECTION
+        MENUITEM "Multiple Selection (Explain)",           IDM_SEARCH_MULTISELECT_README
+        MENUITEM "Column Selection\tAlt+C,Alt+Shift+←↑→↓", IDM_SELECTION_RECTANGLE
+        POPUP "Quick Select",                              IDM_EDIT_PLACEHOLDE10
+        BEGIN
+            MENUITEM "Select &All\tCtrl+A",                IDM_SEARCH_SELECTALL
+            MENUITEM "Select &Word Group\tCtrl+W",         IDM_SEARCH_SELECTWORD
+            MENUITEM "Select &Line\tCtrl+L",               IDM_SEARCH_SELECTLINE
+        END                                                
+        POPUP "Advanced Select",                           IDM_EDIT_PLACEHOLDE11
+        BEGIN
+            MENUITEM "Select Words To The Left\tCtrl+Shift+Left",            IDM_SEARCH_SELECTGROUP_LEFT
+            MENUITEM "Select Words To The Right\tCtrl+Shift+Right",          IDM_SEARCH_SELECTGROUP_RIGHT
+            MENUITEM "Select Word Group To The Left\tCtrl+Shift+Alt+Left",   IDM_SEARCH_ADDSELECT_LEFT_WORD
+            MENUITEM "Select Word Group To The Right\tCtrl+Shift+Alt+Right", IDM_SEARCH_ADDSELECT_RIGHT_WORD
+            MENUITEM "Select Block To Previous Line\tCtrl+Shift+[",          IDM_SEARCH_SELECTTOP_FIRSTLINE
+            MENUITEM "Select Block To Next Line\tCtrl+Shift+]",              IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "Advanced Move Cursor",                                        IDM_EDIT_PLACEHOLDE12
+        BEGIN
+            MENUITEM "Moves Left (Word For Step)\tCtrl+Left",                IDM_SEARCH_MOVE_LEFT_CHARGROUP
+            MENUITEM "Moves Right (Word For Step)\tCtrl+Right",              IDM_SEARCH_MOVE_RIGHT_CHARGROUP
+            MENUITEM "Moves Left (Word Group For step)\tCtrl+Alt+Left",      IDM_SEARCH_MOVE_LEFT_WORD
+            MENUITEM "Moves Right (Word Group For step)\tCtrl+Alt+Right",    IDM_SEARCH_MOVE_RIGHT_WORD
+            MENUITEM "Moves To The Previous Block\tCtrl+K",                  IDM_SEARCH_MOVETOP_FIRSTLINE
+            MENUITEM "Moves To The Next Block\tCtrl+J",                      IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "&Go To..."
+        BEGIN
+            MENUITEM "Jump To First Line\tCtrl+Home",       IDM_SEARCH_GOTOHOME
+            MENUITEM "Jump To Last Line\tCtrl+End",         IDM_SEARCH_GOTOEND
+            MENUITEM "Jump To Line...\tCtrl+G",             IDM_SEARCH_GOTOLINE
+        END        
+        MENUITEM MF_SEPARATOR
+        POPUP "Bookmark",                                   IDM_EDIT_PLACEHOLDE13
+        BEGIN
+            MENUITEM "Toggle Bookmark \tF9",                IDM_SEARCH_TOGGLE_BOOKMARK
+            MENUITEM "Add Bookmark\tAlt+F9",                IDM_SEARCH_ADD_BOOKMARK
+            MENUITEM "Delete Bookmark\tCtrl+F9",            IDM_SEARCH_REMOVE_BOOKMARK
+            MENUITEM "Delete All Bookmark\tCtrl+Shift+F9",  IDM_SEARCH_REMOVE_ALL_BOOKMARKS
+            MENUITEM "Jump Previous Bookmark (Current File)\tCtrl+F2",         IDM_SEARCH_GOTO_PREV_BOOKMARK
+            MENUITEM "Jump Next Bookmark (Current File)\tF2",                  IDM_SEARCH_GOTO_NEXT_BOOKMARK
+            MENUITEM "Jump Previous Bookmark (All Open Files)\tCtrl+Shift+F2", IDM_SEARCHPRE_BOOKMARK_INALL
+            MENUITEM "Jump Next Bookmark (All Open Files)\tShift+F2",          IDM_SEARCH_BOOKMARK_INALL
+        END
+        POPUP "Navigation",                                                    IDM_EDIT_PLACEHOLDE14
+        BEGIN
+            MENUITEM "Back to the previous (Current File)\tCtrl+Back",         IDM_SEARCH_NAVIGATE_PREV_THIS
+            MENUITEM "Back to the previous (All Open Files)\tCtrl+Shift+Back", IDM_SEARCH_NAVIGATE_PREV_INALL
+        END
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&File Manager",                    IDM_VIEW_FILETREE
+        MENUITEM "Symbolic Window",                  IDM_VIEW_SYMTREE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "F&ull Screen Mode\tF11",           IDM_VIEW_FULLSCREEN
+        MENUITEM "Show M&enubar\tAlt",		         IDM_VIEW_MENUBAR
+		MENUITEM "S&how Toolbar\tCtrl+F11",		     IDM_VIEW_TOOLBAR
+		MENUITEM "Show Stat&usbar\tShift+F11",		 IDM_VIEW_STATUSBAR        
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Tab Width [N] Spaces...",          IDM_VIEW_TAB_WIDTH
+        MENUITEM "Tabs As Spaces",                   IDM_TAB_CONVERT_SPACES
+        MENUITEM MF_SEPARATOR
+        MENUITEM "&Hex Edit View\tCtrl+H",           IDM_VIEW_HEXEDIT_MODE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Highlight The Matching String\tShift+MouseLClick",    IDM_VIEW_HIGHLIGHT_STR
+        MENUITEM "Highlight Current &Block",                            IDM_VIEW_HIGHLIGHT_FOLD
+        MENUITEM "Auto Indent",                                         IDM_EDIT_AUTO_INDENTATION
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Line &Numbers\tCtrl+Shift+N",      IDM_VIEW_LINENUMBER_VISIABLE
+        MENUITEM "Show Bookmark",                    IDM_VIEW_BOOKMARK_VISIABLE
+        MENUITEM "Show Fold Lines",                  IDM_SOURCE_BLOCKFOLD_VISIABLE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Show White Space",                 IDM_VIEW_WHITESPACE_VISIABLE
+        MENUITEM "Show Wrap Symbol",                 IDM_VIEW_NEWLINE_VISIABLE
+        MENUITEM "Show Indent Guide",                IDM_VIEW_INDENTGUIDES_VISIABLE
+        MENUITEM MF_SEPARATOR
+        POPUP "Zoom",                                IDM_EDIT_PLACEHOLDE15
+        BEGIN
+            MENUITEM "Zoom Out\tCtrl+(+)",           IDM_VIEW_ZOOMOUT
+            MENUITEM "Zoom In\tCtrl+(-)",            IDM_VIEW_ZOOMIN
+            MENUITEM "Reset Zoom\tCtrl+(0 num)",     IDM_VIEW_ZOOMRESET
+        END
+    END
+    POPUP "For&mat"
+    BEGIN
+        POPUP "Json File",                                   IDM_EDIT_PLACEHOLDE16
+        BEGIN
+            MENUITEM "Reformat Json\tCtrl+F6",      	     IDM_FORMAT_REFORMAT
+            MENUITEM "Compress Json\tCtrl+Alt+F6",    	     IDM_FORMAT_COMPRESS
+        END
+        POPUP "Clang-format",                                IDM_EDIT_PLACEHOLDE17
+        BEGIN
+            MENUITEM "Format Current Document\tCtrl+F7",     IDM_FORMAT_WHOLE_FILE
+            MENUITEM "Format Selected Text\tCtrl+Alt+F7",    IDM_FORMAT_RANGLE_STR
+        END
+        POPUP "Lua Scripts",                                 IDM_EDIT_PLACEHOLDE18
+        BEGIN
+            MENUITEM "Run This Script\tCtrl+F8",             IDM_FORMAT_RUN_SCRIPT
+            MENUITEM "Convert To Bytecode\tCtrl+Alt+F8",     IDM_FORMAT_BYTE_CODE
+        END
+        POPUP "Chinese Internal Code Conversion",            IDM_EDIT_PLACEHOLDE19
+        BEGIN
+            MENUITEM "Simplified To Traditional\tCtrl+Shift+W", IDM_EDIT_GB_BIG5
+            MENUITEM "Traditional To Simplified\tCtrl+Shift+Q", IDM_EDIT_BIG5_GB
+        END                
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Word Wrap\tCtrl+Shift+L",                  IDM_VIEW_WRAPLINE_MODE
+        MENUITEM "QR Code Generator\tCtrl+Q",                IDM_EDIT_QRCODE
+    END    
+    POPUP "&Programming",                                    IDM_EDIT_PLACEHOLDE20
+    BEGIN
+        MENUITEM "Block Collapse Switch\tAlt+|",           IDM_SOURCE_BLOCKFOLD_TOGGLE
+        MENUITEM "Fold Block\tAlt+}",                      IDM_SOURCE_BLOCKFOLD_CONTRACT
+        MENUITEM "Unfold Block\tAlt+{",                    IDM_SOURCE_BLOCKFOLD_EXPAND
+        MENUITEM "Fold All",                               IDM_SOURCE_BLOCKFOLD_CONTRACTALL
+        MENUITEM "Unfold All",                             IDM_SOURCE_BLOCKFOLD_EXPANDALL
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Jump To Symbol Definition\tF12",         IDM_SOURCECODE_GOTODEF
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Enable Autocomplete Box",                IDM_SOURCEE_ENABLE_ACSHOW
+        MENUITEM "Input [N] Chars Complete Box Popup...",  IDM_SOURCEE_ACSHOW_CHARS
+        MENUITEM "Enable Prototype Prompt",                IDM_SOURCE_ENABLE_CTSHOW
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Insert Database Automatic Header",         IDM_DATABASE_INSERT_CONFIG
+        MENUITEM "Executes Selected SQL Statement\tF5",      IDM_DATABASE_EXECUTE_SQL
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Insert REDIS Automatic Header",            IDM_REDIS_INSERT_CONFIG
+        MENUITEM "Executes Selected REDIS Command\tF5",      IDM_REDIS_EXECUTE_COMMAND
+        MENUITEM MF_SEPARATOR
+        MENUITEM "Execute File With Preset Actions\tCtrl+F5",IDM_PROGRAM_EXECUTE_ACTION
+    END
+    POPUP "Se&ttings"
+    BEGIN
+        MENUITEM "Popup Menu On WINDOWS File Right-Click",     IDM_ENV_FILE_POPUPMENU
+        MENUITEM "Popup Menu On WINDOWS Directory Right-Click",IDM_ENV_DIRECTORY_POPUPMENU
+        MENUITEM MF_SEPARATOR
+        MENUITEM "File Association For Skylark Editor",        IDM_ENV_SET_ASSOCIATED_WITH
+        MENUITEM MF_SEPARATOR
+        POPUP "UI Language"
+        BEGIN
+            MENUITEM "...",                                    IDM_LOCALES_BASE
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "Select Theme Plan"
+        BEGIN
+            MENUITEM "...",                                    IDM_STYLETHEME_BASE
+        END
+        MENUITEM "Customize Theme...",                         IDM_VIEW_MODIFY_STYLETHEME
+        MENUITEM "Copy Create Theme...",                       IDM_VIEW_COPYNEW_STYLETHEME               
+        MENUITEM MF_SEPARATOR
+		POPUP "Font &Quality"
+		BEGIN
+			MENUITEM "&None",				    IDM_VIEW_FONTQUALITY_NONE
+			MENUITEM "&Standard",				IDM_VIEW_FONTQUALITY_STANDARD
+			MENUITEM "&ClearType",				IDM_VIEW_FONTQUALITY_CLEARTYPE
+		END
+		POPUP "Ren&dering Technology"
+		BEGIN
+			MENUITEM "&Legacy GDI",			    IDM_SET_RENDER_TECH_GDI
+			MENUITEM "&DirectWrite",		    IDM_SET_RENDER_TECH_D2D
+			MENUITEM "DirectWrite &Retain",		IDM_SET_RENDER_TECH_D2DRETAIN
+		END
+    END
+    POPUP "&Help"
+    BEGIN
+    	MENUITEM "Donate Now\tShift+P",         IDM_DONATION
+        MENUITEM "Introduction &Of Eidt ...",   IDM_INTRODUTION
+        MENUITEM "Update &history ...",         IDM_CHANGELOG
+        MENUITEM "&About ...",                  IDM_ABOUT
+    END
+END
+
+IDR_TABPAGE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Close\tCtrl+F4",                   IDM_FILE_CLOSE
+        MENUITEM "Close All\tCtrl+Shift+F4",          IDM_FILE_CLOSEALL
+        MENUITEM "Close All But Active Document",     IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM SEPARATOR                            
+        MENUITEM "Copy File Name",                    IDM_EDIT_COPY_FILENAME
+        MENUITEM "Copy File Path",                    IDM_EDIT_COPY_PATHNAME
+        MENUITEM "Copy File Path And Nam",            IDM_EDIT_COPY_PATHFILENAME
+        MENUITEM SEPARATOR                            
+        MENUITEM "&Save\tCtrl+S",                     IDM_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "Open Folder Workspace\tCtrl+ALT+W", IDM_FILE_WORKSPACE  
+    END
+END
+
+IDR_EDITOR_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Cu&t",                    IDM_EDIT_CUT
+        MENUITEM "&Copy",                   IDM_EDIT_COPY
+        MENUITEM "&Paste",                  IDM_EDIT_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "Cut Line",                IDM_EDIT_CUTLINE
+        MENUITEM "Copy Line",               IDM_EDIT_COPYLINE
+        MENUITEM "Paste Line",              IDM_EDIT_PASTELINE
+        MENUITEM "Delete Line",             IDM_EDIT_DELETELINE
+        MENUITEM "Join Lines",              IDM_EDIT_JOINLINE
+        MENUITEM SEPARATOR
+        MENUITEM "Lower Case",              IDM_EDIT_LOWERCASE
+        MENUITEM "Upper Case",              IDM_EDIT_UPPERCASE
+   END
+END
+
+IDR_FILETREE_DIRECTORY_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Create File",                        IDM_CREATE_FILE
+        MENUITEM "Create Subdirectory",                IDM_CREATE_SUB_DIRECTORY
+        MENUITEM SEPARATOR
+        MENUITEM "Rename Directory",                   IDM_RENAME_DIRECTORY
+        MENUITEM "Delete Directory",                   IDM_DELETE_DIRECTORY
+    END
+END
+
+IDR_FILETREE_FILE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Copy File",                        IDM_COPY_FILE
+        MENUITEM "Rename File",                      IDM_RENAME_FILE
+        MENUITEM "Delete File",                      IDM_DELETE_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "Generate MD5 Into Clipboard",      IDM_FILE_MD5_CLIP
+        MENUITEM "Generate SHA1 Into Clipboard",     IDM_FILE_SHA1_CLIP
+        MENUITEM "Generate SHA256 Into Clipboard",   IDM_FILE_SHA256_CLIP        
+    END
+END
+
+IDR_FILETREE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Refresh",                           IDM_RELOAD_FILETREE
+        MENUITEM "Search",                            IDM_RELOAD_FILESEARCH
+    END
+END
+
+IDR_SYMBOLLIST_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Refresh List",                      IDM_RELOAD_SYMBOLLIST
+    END
+END
+
+IDR_SYMBOLTREE_REFRESH_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Refresh Tree",                      IDM_RELOAD_SYMBOLTREE
+    END
+END
+
+IDR_SYMBOLTREE_TABLE_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Select Table",                      IDM_SELECT_TABLE_SYMBOLTREE
+    END
+END
+
+IDR_SYMBOLTREE_ROW_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Select Row",                        IDM_SELECT_ROW_SYMBOLTREE
+    END
+END
+
+IDR_TOOLBAR_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+    	MENUITEM "Show M&enubar\tAlt",		          IDM_VIEW_MENUBAR
+		MENUITEM "S&how Toolbar\tCtrl+F11",		      IDM_VIEW_TOOLBAR
+		MENUITEM "Show Stat&usbar\tShift+F11",		  IDM_VIEW_STATUSBAR
+    END
+END
+
+IDD_REMOTE_FILESERVERS_DIALOG DIALOGEX 0, 0, 407, 263
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Remote File Manager"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+{
+    LISTBOX         IDC_REMOTE_FILESERVERS_LISTBOX, 7, 7, 136, 222, WS_TABSTOP | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_SORT | LBS_NOTIFY, WS_EX_LEFT
+    PUSHBUTTON      "Remove Remote File Server", IDC_REMOVE_SERVER_BUTTON, 7, 237, 144, 14, 0, WS_EX_LEFT
+    EDITTEXT        IDC_FILESERVER_NAME_EDIT, 215, 7, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    COMBOBOX        IDC_COMMPROTOCOL_COMBOBOX, 215, 28, 135, 27, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_SORT, WS_EX_LEFT
+    EDITTEXT        IDC_NETWORK_ADDRESS_EDIT, 215, 48, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_NETWORK_PORT_EDIT, 215, 68, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    COMBOBOX        IDC_ACCESS_AREA_COMBOBOX, 215, 91, 136, 66, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_USER_EDIT, 215, 113, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_PASS_EDIT, 215, 135, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_PASSPHRASE_EDIT, 215, 135, 136, 14, ES_AUTOHSCROLL, WS_EX_LEFT
+    EDITTEXT        IDC_LOGIN_PRIVATE_EDIT, 215, 157, 136, 14, ES_AUTOHSCROLL, WS_EX_ACCEPTFILES
+    PUSHBUTTON      "Test Remote File Server Connection", IDC_TEST_SERVER_BUTTON, 171, 182, 181, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "New Remote File Server", IDC_ADD_SERVER_BUTTON, 170, 209, 181, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "OK", IDOK, 242, 239, 50, 14, 0, WS_EX_LEFT
+    DEFPUSHBUTTON   "Apply", IDM_APPLY_NOW, 302, 239, 50, 14, 0, WS_EX_LEFT
+    LTEXT           "Name:", IDC_STATIC, 154, 8, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "Protocol:", IDC_STATIC, 154, 30, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "IP Address:", IDC_STATIC, 154, 49, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "Port:", IDC_STATIC, 154, 70, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "Access Directory:", IDC_STATIC, 155, 91, 58, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "User:", IDC_STATIC, 154, 114, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "Password:", IDC_REMOTE_PASS, 154, 137, 45, 13, SS_LEFT, WS_EX_LEFT
+    LTEXT           "Key Passphrase:", IDC_PRIVATE_KEY, 154, 137, 58, 13, SS_LEFT, WS_EX_LEFT    
+    LTEXT           "Private Key File:", IDC_PRIVATE_FILE, 154, 159, 58, 13, SS_LEFT, WS_EX_LEFT
+    AUTOCHECKBOX    "Use Key", IDC_USE_PRIVATE, 354, 135, 48, 13, 0, WS_EX_LEFT
+    PUSHBUTTON      "...", IDC_PRIVATE_KEY_BUTTON, 353, 157, 18, 13, 0, WS_EX_LEFT
+}
+
+IDD_STYLETHEME_DIALOG DIALOGEX 0, 0, 541, 310
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Style theme"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,484,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,484,25,50,14
+    CTEXT           "keyword",IDC_KEYWORDS_STATIC,17,21,95,10
+    CTEXT           "function/method",IDC_KEYWORDS2_STATIC,17,39,96,10
+    CTEXT           """string""",IDC_STRING_STATIC,17,57,95,10
+    CTEXT           "'char'",IDC_CHARACTER_STATIC,17,75,95,10
+    CTEXT           "#define #if",IDC_PREPROCESSOR_STATIC,17,129,95,10
+    CTEXT           "123.456",IDC_NUMBER_STATIC,17,93,95,10
+    CTEXT           "/* ... remark ... */",IDC_COMMENT_STATIC,17,147,94,10
+    CTEXT           "/* remark ...\\n ... /*",IDC_COMMENTDOC_STATIC,17,183,94,10
+    CTEXT           "//",IDC_COMMENTLINE_STATIC,17,165,94,10
+    PUSHBUTTON      "Font",IDC_SETFONT_KEYWORDS_BUTTON,113,19,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_KEYWORDS_BUTTON,167,19,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_KEYWORDS2_BUTTON,113,37,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON,167,37,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_STRING_BUTTON,113,55,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_STRING_BUTTON,167,55,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_CHARACTER_BUTTON,113,73,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_CHARACTER_BUTTON,167,73,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_NUMBER_BUTTON,113,91,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_NUMBER_BUTTON,167,91,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_PREPROCESSOR_BUTTON,113,127,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON,167,127,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_COMMENT_BUTTON,113,145,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_COMMENT_BUTTON,167,145,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_COMMENTLINE_BUTTON,113,163,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON,167,163,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_COMMENTDOC_BUTTON,113,181,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON,167,181,50,14
+    CTEXT           "Text",IDC_TEXT_STATIC,254,230,95,10
+    PUSHBUTTON      "All Fonts",IDC_SETFONT_TEXT_BUTTON,350,228,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_TEXT_BUTTON,404,228,50,14
+    CTEXT           "{}+-*/=",IDC_OPERATOR_STATIC,17,111,96,10
+    PUSHBUTTON      "Font",IDC_SETFONT_OPERATOR_BUTTON,113,109,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_OPERATOR_BUTTON,167,109,50,14
+    GROUPBOX        "Programing Language",IDC_THEME_LANGUAGE_STATIC,7,5,227,202
+    CTEXT           "unknow_tag",IDC_UNKNOWTAGS_STATIC,255,40,95,10
+    CTEXT           "property",IDC_ATTRIBUTES_STATIC,255,57,95,10
+    CTEXT           "unknow_property",IDC_UNKNOWATTRIBUTES_STATIC,255,76,95,10
+    CTEXT           "entity",IDC_ENTITIES_STATIC,255,94,95,10
+    CTEXT           "<? ... ?>",IDC_PHPSECTION_STATIC,255,148,96,10
+    CTEXT           "close_tag",IDC_TAGENDS_STATIC,255,112,95,10
+    CTEXT           "<% ... %>",IDC_ASPSECTION_STATIC,255,165,95,10
+    PUSHBUTTON      "Font",IDC_SETFONT_UNKNOWTAGS_BUTTON,351,38,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON,405,38,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_ATTRIBUTES_BUTTON,351,56,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON,405,56,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_UNKNOWATTRIBUTES_BUTTON,351,73,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON,405,73,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_ENTITIES_BUTTON,351,92,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_ENTITIES_BUTTON,405,92,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_TAGENDS_BUTTON,351,110,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_TAGENDS_BUTTON,405,110,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_PHPSECTION_BUTTON,351,145,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_PHPSECTION_BUTTON,405,145,50,14
+    PUSHBUTTON      "Font",IDC_SETFONT_ASPSECTION_BUTTON,351,163,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_ASPSECTION_BUTTON,405,163,50,14
+    CTEXT           "tag",IDC_TAGS_STATIC,255,22,94,10
+    PUSHBUTTON      "Font",IDC_SETFONT_TAGS_BUTTON,351,20,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_TAGS_BUTTON,405,20,50,14
+    CTEXT           "CData",IDC_CDATA_STATIC,255,129,95,10
+    PUSHBUTTON      "Font",IDC_SETFONT_CDATA_BUTTON,351,128,50,14
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_CDATA_BUTTON,405,128,50,14
+    GROUPBOX        "Mark Language",IDC_THEME_MARKUP_STATIC,244,5,227,201
+    GROUPBOX        "Edit Area",IDC_THEME_EDIT_STATIC,244,211,281,82
+    CTEXT           "Active Border",IDC_CARETLINE_STATIC,254,249,95,10
+    PUSHBUTTON      "Background Color",IDC_SETBGCOLOR_CARETLINE_BUTTON,459,246,62,14
+    PUSHBUTTON      "Background Color",IDC_SETBGCOLOR_TEXT_BUTTON,459,228,62,14
+    CTEXT           "Select text",IDC_INDICATOR_STATIC,254,268,96,10
+    PUSHBUTTON      "Background Color",IDC_SETBGCOLOR_INDICATOR_BUTTON,459,265,62,14
+    CTEXT           "Line number",IDC_LINENUMBER_STATIC,18,231,93,10
+    PUSHBUTTON      "Colour",IDC_SETTEXTCOLOR_LINENUMBER_BUTTON,112,229,50,14
+    PUSHBUTTON      "Background Color",IDC_SETBGCOLOR_LINENUMBER_BUTTON,167,229,62,14
+    GROUPBOX        "Margins",IDC_THEME_MARGIN_STATIC,7,211,228,82
+    CTEXT           "Block Collapse",IDC_FOLDMARGIN_STATIC,18,248,93,10
+    PUSHBUTTON      "Background Color",IDC_SETBGCOLOR_FOLDMARGIN_BUTTON,167,246,62,14
+    CONTROL "",IDC_THEME_CARTETLINE_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,246,33,12,WS_EX_CLIENTEDGE
+    CONTROL "",IDC_THEME_CARTETLINE_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,246,12,13
+    CONTROL "",IDC_THEME_INDICATOR_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,265,33,12,WS_EX_CLIENTEDGE
+    CONTROL "",IDC_THEME_INDICATOR_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,264,12,13    
+END
+
+IDR_LBREAK_MENU  MENUEX DISCARDABLE
+BEGIN
+    POPUP ""
+    {
+        MENUITEM "Dos/Windows (\\r\\n)",    IDM_LBREAK_1
+        MENUITEM "Classic Mac OS (\\r)",    IDM_LBREAK_2
+        MENUITEM "Unix/Linux (\\n)",        IDM_LBREAK_3
+        MENUITEM "No newline",              IDM_LBREAK_4,,0x00000003
+    }
+END
+
+IDR_CODEING_MENU MENUEX DISCARDABLE
+BEGIN
+    POPUP "", -1, MFT_STRING, MFS_ENABLED, 0
+    {
+        POPUP "Unicode"
+        BEGIN
+            MENUITEM "UTF-8",                        IDM_UNI_UTF8
+            MENUITEM "UTF-8(BOM)",                   IDM_UNI_UTF8B
+            MENUITEM "UTF-16LE",                     IDM_UNI_UTF16LEB
+            MENUITEM "UTF-16BE",                     IDM_UNI_UTF16BEB
+            MENUITEM "UTF-32LE",                     IDM_UNI_UTF32LE
+            MENUITEM "UTF-32BE",                     IDM_UNI_UTF32BE     
+            MENUITEM "ASCII Escaped Unicode",        IDM_UNI_ASCII
+        END
+        POPUP "ANSI"
+        BEGIN
+        	MENUITEM "windows-1250 (Central Euro)",  IDM_ANSI_1
+            MENUITEM "windows-1251 (Cyril)",         IDM_ANSI_2
+            MENUITEM "windows-1252 (Latin)",         IDM_ANSI_3
+            MENUITEM "windows-1253 (Greek)",         IDM_ANSI_4
+            MENUITEM "windows-1254 (Turkish)",       IDM_ANSI_5
+            MENUITEM "windows-1255 (Hebrew)",        IDM_ANSI_6
+        	MENUITEM "windows-1256 (Arabic)",        IDM_ANSI_7
+            MENUITEM "windows-1257 (Baltic)",        IDM_ANSI_8
+            MENUITEM "windows-1258 (Vietnam)",       IDM_ANSI_9
+            MENUITEM "cp874 (Thai)",                 IDM_ANSI_10
+            MENUITEM "cp932 (Japanese)",             IDM_ANSI_11
+            MENUITEM "cp936 (Simplified Chinese)",   IDM_ANSI_12
+            MENUITEM "cp949 (Korean)",               IDM_ANSI_13
+            MENUITEM "cp950 (Traditional Chinese)",  IDM_ANSI_14                           	
+        END         
+        POPUP "ISO"
+        BEGIN
+        	MENUITEM "28591 (ISO-8859-1 Latin)",            IDM_ISO_1
+        	MENUITEM "28592 (ISO-8859-2 Central Euro)",     IDM_ISO_2
+        	MENUITEM "28593 (ISO-8859-3 Latin 3)",          IDM_ISO_3
+        	MENUITEM "28594 (ISO-8859-4 Baltic)",           IDM_ISO_4
+        	MENUITEM "28595 (ISO-8859-5 Cyril)",            IDM_ISO_5
+        	MENUITEM "28596 (ISO-8859-6 Arabic)",           IDM_ISO_6
+        	MENUITEM "28597 (ISO-8859-7 Greek)",            IDM_ISO_7
+        	MENUITEM "28598 (ISO-8859-8 Hebrew)",           IDM_ISO_8
+        	MENUITEM "28599 (ISO-8859-9 Latin 5)",          IDM_ISO_9
+        	MENUITEM "28600 (ISO-8859-10 north germanic)",  IDM_ISO_10
+        	MENUITEM "28601 (ISO-8859-11 Latin/Thai)",      IDM_ISO_11
+        	MENUITEM "28603 (ISO-8859-13 Latin 7)",         IDM_ISO_13
+        	MENUITEM "28605 (ISO-8859-15 Latin 9)",         IDM_ISO_15
+        	MENUITEM "28606 (ISO-8859-16 Southeast Euro)",  IDM_ISO_16
+        	MENUITEM "50222 (ISO-2022 Japanese)",           IDM_ISO_JP
+        	MENUITEM "50225 (ISO-2022 Korean)",             IDM_ISO_KR
+        	MENUITEM "50227 (ISO-2022 Simplified Chinese)", IDM_ISO_CN
+        END
+        POPUP "IBM"
+        BEGIN
+        	MENUITEM "852 (DOS - Central Euro)",  IDM_IBM_1
+            MENUITEM "855 (OEM - Cyril)",         IDM_IBM_2
+            MENUITEM "866 (DOS - Cyril)",         IDM_IBM_3
+        END    
+        POPUP "EUC"
+        BEGIN
+        	MENUITEM "EUC-JP (Japanese)",            IDM_EUC_1
+        	MENUITEM "EUC-TW (Traditional Chinese)", IDM_EUC_2
+        END        
+        POPUP "Other"
+        BEGIN
+        	MENUITEM "koi8-r",                       IDM_OTHER_1
+        	MENUITEM "mac-cyrillic",                 IDM_OTHER_2
+        	MENUITEM "mac-centraleurope",            IDM_OTHER_3
+        	MENUITEM "Native Codepage",              IDM_OTHER_ANSI
+        	MENUITEM "Binary code",                  IDM_OTHER_BIN,,0x00000003
+        	MENUITEM "Unknown code",                 IDM_UNKNOWN,,0x00000003
+        END        
+	}
+END
+
+IDR_TYPES_MENU  MENUEX DISCARDABLE
+BEGIN
+    POPUP ""
+    {
+        MENUITEM "Unsupported",        IDM_TYPES_0                            
+    }
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Clipboard
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//
+
+IDD_DIALOG_CLIP DIALOGEX 10,10,184,199
+CAPTION "User Clipboard"
+FONT 8,"MS Shell Dlg",0,0,0
+STYLE WS_DISABLED|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|DS_CENTER|DS_SHELLFONT|WS_SYSMENU
+EXSTYLE WS_EX_TRANSPARENT
+BEGIN
+    CONTROL      "",IDC_BUTTON0,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,19,16,12
+    CONTROL      "",IDC_BUTTON1,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,35,16,12
+    CONTROL      "",IDC_BUTTON2,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,51,16,12
+    CONTROL      "",IDC_BUTTON3,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,67,16,12
+    CONTROL      "",IDC_BUTTON4,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,83,16,12
+    CONTROL      "",IDC_BUTTON5,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,99,16,12
+    CONTROL      "",IDC_BUTTON6,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,115,16,12
+    CONTROL      "",IDC_BUTTON7,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,131,16,12
+    CONTROL      "",IDC_BUTTON8,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,147,16,12
+    CONTROL      "",IDC_BUTTON9,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,163,16,12
+    CONTROL      "",IDC_BUTTON10,"Static",WS_CHILD|SS_NOTIFY|SS_ICON|SS_CENTERIMAGE,7,179,16,12
+    EDITTEXT     IDC_EDIT0,32,19,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT1,32,35,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT2,32,51,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT3,32,67,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT4,32,83,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT5,32,99,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT6,32,115,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT7,32,131,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT8,32,147,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT9,32,163,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    EDITTEXT     IDC_EDIT10,32,179,128,12,WS_CHILD|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
+    CONTROL      "",IDC_CHECK0,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,19,12,12
+    CONTROL      "",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,35,12,12
+    CONTROL      "",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,51,12,12
+    CONTROL      "",IDC_CHECK3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,67,12,12
+    CONTROL      "",IDC_CHECK4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,83,12,12
+    CONTROL      "",IDC_CHECK5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,99,12,12
+    CONTROL      "",IDC_CHECK6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,115,12,12
+    CONTROL      "",IDC_CHECK7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,131,12,12
+    CONTROL      "",IDC_CHECK8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,147,12,12
+    CONTROL      "",IDC_CHECK9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,163,12,12
+    CONTROL      "",IDC_CHECK10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,179,12,12                      
+    LTEXT        "Copy",IDC_STATIC,7,4,17,13
+    LTEXT        "Content",IDC_BUFFERS_LABEL,81,4,32,13
+    LTEXT        "Lock",IDC_LOCK_LABEL,162,4,18,13
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// For File association
+//
+#define REGEXT_STR "For systems above Windows8.x, May need to manually specify the default application in Windows Control Panel, \
+                   \nOr select Skylark as the default editor when you click the file to open it."
+                   
+IDD_REGEXT_BOX DIALOGEX 0, 0, 340, 180
+CAPTION "Select The File Type To Register"
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           REGEXT_STR,IDC_WIN10_STATIC,20,0,300,28
+    LTEXT           "Supported extensions:",IDC_SUPPORTEDEXTS_STATIC,20,30,80,8
+    LISTBOX         IDC_REGEXT_LANG_LIST,20,42,100,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    LISTBOX         IDC_REGEXT_LANGEXT_LIST,125,42,80,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_CUSTOMEXT_EDIT,125,87,80,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    PUSHBUTTON      "->",IDC_ADDFROMLANGEXT_BUTTON,215,88,25,14
+    PUSHBUTTON      "<-",IDC_REMOVEEXT_BUTTON,215,108,25,14
+    LTEXT           "Registered extension:",IDC_REGISTEREDEXTS_STATIC,250,30,80,8
+    LISTBOX         IDC_REGEXT_REGISTEREDEXTS_LIST,250,42,80,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+END
+
+/////////////////////////////////////////////////////////////////////////////
+#define	__EU_COPYRIGHT_TRANSLATION	"Copyright © 2021 by ualy123"
+/////////////////////////////////////////////////////////////////////////////
+// ico
+IDI_TXT_32              ICON                    "..\\resources\\txt32.ico"
+
+//
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 245, 228
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Version Information"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    ICON            IDI_TXT_32, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
+    EDITTEXT        IDC_EDIT_VER, 33, 6, 204, 30, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
+    LTEXT           "Developer: adonais", IDC_STATIC, 33, 38, 125, 9, NOT WS_GROUP
+    LTEXT           "Licence:   GPL v3", IDC_STATIC, 33, 52, 125, 9, NOT WS_GROUP
+    LTEXT           "Translate:",IDC_STATIC,33,66,33,9
+    LTEXT           __EU_COPYRIGHT_TRANSLATION,IDC_STATIC,71,66,165,9,SS_NOPREFIX | NOT WS_GROUP
+    LTEXT           "Project Url:", IDC_STATIC_URL_CAPTION, 33, 79, 36, 9, NOT WS_GROUP
+    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 79, 159, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
+    DEFPUSHBUTTON   "&OK", IDOK, 97, 203, 50, 14
+    PUSHBUTTON      "&Copy", IDC_BUTTON_COPY, 178, 203, 60, 14
+END
+
+/////////////////////////////////////////////////////////////////////////////
+
+IDD_DONATION_BOX DIALOGEX 0,0,417,245
+CAPTION "Donate To Us"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_SHELLFONT|DS_3DLOOK
+EXSTYLE WS_EX_STATICEDGE|WS_EX_TRANSPARENT
+BEGIN
+  CONTROL "",IDC_DONA_STATIC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,2,5,409,29
+  CONTROL "WeChat",IDC_DONA_STATIC2,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE|SS_CENTER,76,34,50,9
+  CONTROL "Alipay",IDC_DONA_STATIC3,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE|SS_CENTER,280,34,50,9
+  CONTROL "",IDC_DONA_STATIC4,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE|SS_BITMAP,2,45,200,200
+  CONTROL "",IDC_DONA_STATIC5,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE|SS_BITMAP,213,45,200,200
+END
+
+/////////////////////////////////////////////////////////////////////////////
+
+// adonais fc_dialog
+IDD_DIALOG_FC DIALOGEX 0,0,300,129
+CAPTION "The File Has Changed, Do You Need To Reload The File?"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+BEGIN
+  CONTROL "%s\n\nHas been changed by another application\n\nDo you want to reload?",IDC_FC_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTER,9,6,282,57
+  CONTROL "&YES",IDC_FC_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,27,78,39,18
+  CONTROL "&NO",IDC_FC_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,90,78,39,18
+  CONTROL "YES &ALL",IDC_FC_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,150,78,49,18
+  CONTROL "N&O ALL",IDC_FC_BTN4,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,219,78,49,18
+  CONTROL "Will not be displayed in this session",IDC_FC_CHK1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,105,189,15
+END
+
+IDD_DIALOG_NOEXIST DIALOGEX 0,0,297,75
+CAPTION "The File Is No Longer Available, Keep The Window Open?"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+BEGIN
+  CONTROL "%s\nThis file has been deleted or renamed. \nDo you want to keep it open while editing?",IDC_NOEXIST_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTER,9,6,282,39
+  CONTROL "YES &ALL",IDC_NOEXIST_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,45,51,42,18
+  CONTROL "N&O ALL",IDC_NOEXIST_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,102,51,42,18
+  CONTROL "&YES",IDC_NOEXIST_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,162,51,36,18
+  CONTROL "&NO",IDC_NOEXIST_BTN4,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,216,51,36,18
+END
+
+IDD_DLG_INPUT DIALOGEX 10,10,357,45
+CAPTION "Input Window:"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_VISIBLE|WS_CAPTION|WS_THICKFRAME|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
+BEGIN
+  CONTROL "Enter Name:",IDC_INPUT_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE,5,6,120,18
+  CONTROL "",IDC_INPUT_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,125,9,222,12,WS_EX_CLIENTEDGE
+  CONTROL "OK",IDC_INPUT_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,219,27,54,15
+  CONTROL "Cancel",IDC_INPUT_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,294,27,54,15
+END
+
+IDR_RESULT_MENU MENU DISCARDABLE
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Copy",               IDM_RESULT_1
+        MENUITEM "&Paste",              IDM_RESULT_2
+        MENUITEM "&Select All",         IDM_RESULT_3
+        MENUITEM "&Deselect",           IDM_RESULT_4
+        MENUITEM SEPARATOR
+        MENUITEM "Clear &Results",      IDM_RESULT_5
+        MENUITEM "Close &This Window",  IDM_RESULT_CLOSE
+    END
+END
+
+IDR_HEXVIEW_MENU MENU DISCARDABLE
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "&Copy",               IDM_HEXVIEW_1
+        MENUITEM "&Paste",              IDM_HEXVIEW_2
+        MENUITEM "Cu&t",                IDM_HEXVIEW_3
+        MENUITEM "&Delete",             IDM_HEXVIEW_4
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// stings for toolbar
+//
+STRINGTABLE DISCARDABLE
+{
+    IDS_TOOLBAR_0                    "New File"
+    IDS_TOOLBAR_1                    "Open File"
+    IDS_TOOLBAR_2                    "Save File"
+    IDS_TOOLBAR_3                    "Save File As..."
+    IDS_TOOLBAR_4                    "Close File"
+    IDS_TOOLBAR_5                    "Print"
+    IDS_TOOLBAR_6                    "SFTP Server"
+    IDS_TOOLBAR_7                    "Cut"
+    IDS_TOOLBAR_8                    "Copy"
+    IDS_TOOLBAR_9                    "Paste"
+    IDS_TOOLBAR_10                   "Open The Clipboard"
+    IDS_TOOLBAR_11                   "Find"  
+    IDS_TOOLBAR_12                   "Find Previous"
+    IDS_TOOLBAR_13                   "Find Next"
+    IDS_TOOLBAR_14                   "Undo Operation"
+    IDS_TOOLBAR_15                   "Redo Last Operation"    
+    IDS_TOOLBAR_16                   "Toggle Bookmark "
+    IDS_TOOLBAR_17                   "Jump to previous bookmark"
+    IDS_TOOLBAR_18                   "Jump to the next bookmark"  
+    IDS_TOOLBAR_19                   "Hex mode"  
+    IDS_TOOLBAR_20                   "Open/Close file manager"
+    IDS_TOOLBAR_21                   "Open/Close symbol window"
+    IDS_TOOLBAR_22                   "Setup Themes"
+    IDS_TOOLBAR_23                   "Zoom Out Text"
+    IDS_TOOLBAR_24                   "Zoom In Text"
+    IDS_TOOLBAR_25                   "Open/Quit Full Screen"
+    IDS_TOOLBAR_26                   "Run SQL Or Lua Script"  
+    IDS_TOOLBAR_27                   "Open The Terminal"
+}
+
+STRINGTABLE DISCARDABLE
+{
+    IDS_BUTTON_CAP                   "CAP"
+    IDS_BUTTON_R                     "R/0"
+    IDS_BUTTON_W                     "R/W"
+    IDS_STATUS_F1                    "Editing %d File(s), current file timestamp: %s"
+    IDS_STATUS_XY                    "Cursor (Line %I64u, Column %I64u)"
+    IDS_STATUS_LC                    "File size: %I64d/%I64u (Byte/Line)"
+    IDS_STATUS_LD                    "Select: %I64d/%I64u (Byte/Line)"
+    IDS_STATUS_HXY                   "Cursor (0x%016I64X)"
+}
+
+STRINGTABLE DISCARDABLE
+{
+    IDC_COMPILER    "Compiler Info"
+}
+
+STRINGTABLE DISCARDABLE
+{
+    IDC_MSG_ERROR           "Error:"
+    IDC_MSG_WARN            "Warning:"
+    IDC_MSG_TIPS            "Tips:"
+    IDC_MSG_PASS            "Enter password:"
+    IDC_MSG_DO_READONLY     "This operation was attempted on a read-only file"
+    IDC_MSG_ATTACH_FAIL     "Failed to connect to remote file server"
+    IDC_MSG_ATTACH_FAIL1    "Failed to connect to remote file server, wrong passphrase or invalid private file"
+    IDC_MSG_ATTACH_FAIL2    "Failed to connect to remote file server, wrong user name or password"
+    IDC_MSG_ATTACH_FAIL3    "Error initializing libcurl, function entry may not be found"
+    IDC_MSG_ATTACH_SUCCESS  "Successful connection to remote file server"
+    IDC_MSG_OPENSSL_FAIL    "Error initializing libopenssl, function entry may not be found"
+    IDC_MSG_DIR_HOME        "/HOME(user folder)"
+    IDC_MSG_DIR_ROOT        "/(root folder)"
+    IDC_MSG_DIR_SUB         "Enter subdirectory name:"
+    IDC_MSG_DIR_FAIL        "Failed to create directory"
+    IDC_MSG_MK_FILE         "Enter file name:"
+    IDC_MSG_EXIST_FILE      "File already exist"
+    IDC_MSG_OPEN_FAIL       "Fail to open file, cause: %s"
+    IDC_MSG_FILE_FAIL       "Failed to create file"
+    IDC_MSG_COPY_FAIL       "Failed to copy file"
+    IDC_MSG_WRITE_FAIL      "Failed to write file"
+    IDC_MSG_SFTP_FAIL       "SFTP protocol does not support remote file replication"
+    IDC_MSG_EXPLORER        "File explorer"
+    IDC_MSG_THEME_NAME      "New theme name:"
+    IDC_MSG_THEME_ERR1      "Theme scheme name cannot be empty"
+    IDC_MSG_THEME_ERR2      "Theme scheme name cannot be the same as the copy source"
+    IDC_MSG_THEME_ERR3      "Theme scheme name cannot contain white space characters"
+    IDC_MSG_THEME_ERR4      "Theme scheme profile already exists"
+    IDC_MSG_JSON_ERR1       "Internal error: ff the file is too large, the memory may be exhausted ahead of time"
+    IDC_MSG_JSON_ERR2       "Internal error: the length of the converted data is inconsistent with the estimated value"
+    IDC_MSG_TAB_LEN         "Enter tab width:"
+    IDC_MSG_SCINTILLA_ERR1  "Failed to create scintilla control"
+    IDC_MSG_ICONV_FAIL1     "File encoding conversion failed"
+    IDC_MSG_ICONV_FAIL2     "Text encoding error, cause the file is not open, please contact the developer"
+    IDC_MSG_TABCONTROL_FAIL "Failed to create TabControl control"
+    IDC_MSG_CONV_TIPS       "There may be a risk of content loss during multi byte encoding conversion, Do you want to continue? \
+                            \nnote that the application of new encoding will not take effect until the file is saved."
+    IDC_MSG_CONV_FAIL1      "The test code conversion failed. We go back to the original code."
+    IDC_MSG_CONV_FAIL2      "When testing code conversion, some content is lost, so we go back to the original code."
+    IDC_MSG_DIR_WRITE_FAIL  "The directory where the editor is located is not writable. Try moving the directory where the editor is installed."
+    IDC_MSG_MEM_NOT_ENOUGH  "There is not enough memory. The Editor quit."
+    IDC_MSG_MEM_NOT_AVAIL   "The file is too large. There may not be enough memory."
+    IDC_MSG_SYMLIST_FAIL    "Failed to create symbol list control"
+    IDC_MSG_PCRE_FAIL       "Regular expressions cannot be resolved"
+    IDC_MSG_HISTORY_ZERO    " (NULL) "
+    IDC_MSG_OPEN_FILE_EDIT	"Open files with Skylark"
+    IDC_MSG_DIRECTORYFILES  "Open all the files in the directory with Skylark"
+    IDC_MSG_LOC_DIRECTORY   "Using Skylark to locate the directory"
+    IDC_MSG_REGIST_ERR1     "Cannot create key in registry [*\\shell\\skylark]"
+    IDC_MSG_REGIST_ERR2     "The key cannot be set in the registry [*\\shell\\skylark:(default)]"
+    IDC_MSG_REGIST_ERR3     "The key cannot be set in the registry [*\\shell\\skylark:Icon]"
+    IDC_MSG_REGIST_ERR4     "Cannot create key in registry [*\\shell\\skylark\\command]"
+    IDC_MSG_REGIST_ERR5     "The key cannot be set in the registry [*\\shell\\skylark:(default)]"
+    IDC_MSG_REGIST_ERR6     "Cannot delete key in registry [*\\shell\\skylark]"
+    IDC_MSG_REGIST_ERR7     "Cannot delete key in registry [*\\shell\\skylark]"
+    IDC_MSG_REGIST_ERR8     "Uninstall the right-click popup menu successfully."
+    IDC_MSG_REGIST_ERR9     "Cannot create key in registry [Directory\\shell\\skylark]"
+    IDC_MSG_REGIST_ERR10    "The key cannot be set in the registry [Directory\\shell\\skylark:(default)]"
+    IDC_MSG_REGIST_ERR11    "The key cannot be set in the registry [Directory\\shell\\skylark:Icon]"
+    IDC_MSG_REGIST_ERR12    "Cannot create key in registry [Directory\\shell\\skylark\\command]"
+    IDC_MSG_REGIST_ERR13    "The key cannot be set in the registry [Directory\\shell\\skylark:(default)]"
+    IDC_MSG_REGIST_ERR14    "Cannot create key in registry [Directory\\shell\\skylark2]"
+    IDC_MSG_REGIST_ERR15    "The key cannot be set in the registry [Directory\\shell\\skylark2:(default)]"
+    IDC_MSG_REGIST_ERR16    "The key cannot be set in the registry [Directory\\shell\\skylark2:Icon]"
+    IDC_MSG_REGIST_ERR17    "Cannot create key in registry [Directory\\shell\\skylark2\\command]"
+    IDC_MSG_REGIST_ERR18    "The key cannot be set in the registry [Directory\\shell\\skylark2:(default)]"
+    IDC_MSG_REGIST_ERR19    "Cannot create key in registry [Drive\\shell\\skylark]"
+    IDC_MSG_REGIST_ERR20    "The key cannot be set in the registry [Drive\\shell\\skylark:(default)]"
+    IDC_MSG_REGIST_ERR21    "The key cannot be set in the registry [Drive\\shell\\skylark:Icon]"
+    IDC_MSG_REGIST_ERR22    "Cannot create key in registry [Drive\\shell\\skylark\\command]"
+    IDC_MSG_REGIST_ERR23    "The key cannot be set in the registry [Drive\\shell\\skylark:(default)]"
+    IDC_MSG_REGIST_ERR24    "Cannot create key in registry [Drive\\shell\\skylark2]"
+    IDC_MSG_REGIST_ERR25    "The key cannot be set in the registry [Drive\\shell\\skylark2:(default)]"
+    IDC_MSG_REGIST_ERR26    "The key cannot be set in the registry [Drive\\shell\\skylark2:Icon]"
+    IDC_MSG_REGIST_ERR27    "Cannot create key in registry Drive\\shell\\skylark2\\command "
+    IDC_MSG_REGIST_ERR28    "The key cannot be set in the registry Drive\\shell\\skylark2:(default) "
+    IDC_MSG_REGIST_ERR29    "Cannot delete key in registry Directory\\shell\\skylark "
+    IDC_MSG_REGIST_ERR30    "Cannot delete key in registry Directory\\shell\\skylark "
+    IDC_MSG_REGIST_ERR31    "Cannot delete key in registry Directory\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR32    "Cannot delete key in registry Directory\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR33    "Cannot delete key in registry Drive\\shell\\skylark "
+    IDC_MSG_REGIST_ERR34    "Cannot delete key in registry Drive\\shell\\skylark "
+    IDC_MSG_REGIST_ERR35    "Cannot delete key in registry Drive\\shell\\skylark2 "
+    IDC_MSG_REGIST_ERR36    "Cannot delete key in registry Drive\\shell\\skylark2 "
+    IDC_MSG_JUST_HELP       "Immediate help"
+    IDC_MSG_HELP_INF1       "Use the shortcut Ctrl+MouseLButtonClick to select multiple locations, support multi line input, delete, copy and other operations"
+    IDC_MSG_EXEC_ERR1       "The process failed to start. Please check whether the process path is correct!"
+    IDC_MSG_EDIT_ERR1       "Error creating edit control"
+    IDC_MSG_SYMTREE_ERR1    "Error creating symbol tree control"
+    IDC_MSG_SYMTREE_ERR2    "Failed to get the list of database table names"
+    IDC_MSG_SYMTREE_ERR3    "Failed to get database field name list"
+    IDC_MSG_SYMTREE_ERR4    "Failed to construct query user table list, cause:[%d], [%s]"
+    IDC_MSG_SYMTREE_ERR5    "Failed to construct query user table field list, cause: [%d], [%s]"
+    IDC_MSG_SYMTREE_ERR6    "Failed to query user table field list, caue:[%d], [%s]"
+    IDC_MSG_SYMTREE_ERR7    "Failed to get the list of database table names, cause:[%s]"
+    IDC_MSG_SYMTREE_ERR8    "Failed to get database field name list, cause:[%s]"
+    IDC_MSG_SYMTREE_ERR9    "Parsing failed"
+    IDC_MSG_SYMTREE_ERR10   "Cannot load hiredis.dll , please check that hirredis and the PATH environment variable are installed"
+    IDC_MSG_SYMTREE_ERR11   "Cannot locate function symbol in hiredis.dll"
+    IDC_MSG_SYMTREE_ERR12   "Could not connect to REDIS server"
+    IDC_MSG_SYMTREE_ERR13   "Failed to authenticate to REDIS server. Please confirm the password is correct"
+    IDC_MSG_SYMTREE_ERR14   "Failed to switch REDIS server data bucket. Please confirm the correctness of data bucket configuration value"
+    IDC_MSG_SYMTREE_ERR15   "Failed to send Ping message to redis server"
+    IDC_MSG_AC_STR          "Number of chars for autocomplete:"
+    IDC_MSG_SCI_ERR1        "load scilexer.dll fail"
+    IDC_MSG_ENC_ERR1        "BASE64 encoding failed"
+    IDC_MSG_ENC_ERR2        "BASE64 decoding failed"
+    IDC_MSG_ENC_STR         "Enter Enc Key: "
+    IDC_MSG_DEC_STR         "Enter Dec Key: "
+    IDC_MSG_SAVE_STR1       "Save file as (*.*) ?"
+    IDC_MSG_SAVE_STR2       "Save as [%s] ?"
+    IDC_MSG_OPEN_ERR1       "File does not exist"
+    IDC_MSG_QUERY_ERR1      "Cannot create result table control"
+    IDC_MSG_QUERY_ERR2      "Failed to get Oracle error details"
+    IDC_MSG_QUERY_ERR3      "Failed to unlink, unsupported database type"
+    IDC_MSG_QUERY_ERR4      "Cannot load libmysql.dll , please check whether MySQL and PATH environment variable are installed"
+    IDC_MSG_QUERY_ERR5      "Cannot locate function symbol in libmysql.dll"
+    IDC_MSG_QUERY_ERR6      "Unable to create MySQL object"
+    IDC_MSG_QUERY_ERR7      "Database password: "
+    IDC_MSG_QUERY_ERR8      "No password entered"
+    IDC_MSG_QUERY_ERR9      "Failed to connect to MySQL server [%s:%d]，user:[%s]，db:[%s]"
+    IDC_MSG_QUERY_ERR10     "Successful connection to MySQL server [%s:%d]，user:[%s]，db:[%s]"
+    IDC_MSG_QUERY_ERR11     "MySQL client encoding cannot be set"
+    IDC_MSG_QUERY_ERR12     "Cannot load oci.dll , please check if Oracle and PATH environment variable are installed"
+    IDC_MSG_QUERY_ERR13     "Cannot locate function symbol in oci.dll"
+    IDC_MSG_QUERY_ERR14     "Cannot create Oracle object"
+    IDC_MSG_QUERY_ERR15     "Failed to connect to Oracle server:[%s], cause:[%d], [%s]"
+    IDC_MSG_QUERY_ERR16     "Successfully connected to Oracle server: [%s]"
+    IDC_MSG_QUERY_ERR17     "Failed to create Oracle user session, cause:[%d], [%s]，username[%s]"
+    IDC_MSG_QUERY_ERR18     "Oracle user session created successfully, username[%s]"
+    IDC_MSG_QUERY_ERR19     "Cannot create SQLite3 object"
+    IDC_MSG_QUERY_ERR20     "Creation of SQLite3 object: [%s] succeeded"
+    IDC_MSG_QUERY_ERR21     "Cannot load libpq.dll , please check whether PostgreSQL and PATH environment variable are installed"
+    IDC_MSG_QUERY_ERR22     "Cannot locate function symbol in libpq.dll"
+    IDC_MSG_QUERY_ERR23     "Cannot create PostgreSQL object"
+    IDC_MSG_QUERY_ERR24     "Failed to set character encoding of PostgreSQL client"
+    IDC_MSG_QUERY_ERR25     "PostgreSQL object created successfully, [%s:%d][%s][%s]"
+    IDC_MSG_QUERY_ERR26     "Automatic connection, database type: [%s] is not supported"
+    IDC_MSG_QUERY_STR1      "Execute SQL [%s] ..."
+    IDC_MSG_QUERY_STR2      "Failed to execute SQL, cause:[%d]"
+    IDC_MSG_QUERY_STR3      "SQL successfully executed, [%d] records affected"
+    IDC_MSG_QUERY_STR4      "Cannot insert the header column name of a list view"
+    IDC_MSG_QUERY_STR5      "Cannot insert record for list view"
+    IDC_MSG_QUERY_STR6      "Failed to construct SQL, cause:[%d], [%s]"
+    IDC_MSG_QUERY_STR7      "Failed to execute SQL, cause:[%d], [%s]"
+    IDC_MSG_QUERY_STR8      "Rolling back database transactions"
+    IDC_MSG_QUERY_STR9      "Commit database transaction"
+    IDC_MSG_QUERY_STR10     "Execute SQL successfully"
+    IDC_MSG_QUERY_STR11     "Memory cannot be allocated to hold all field widths"
+    IDC_MSG_QUERY_STR12     "Memory cannot be allocated to hold all field value buffers"
+    IDC_MSG_QUERY_STR13     "Failed to get field [%d], cause:[%d], [%s]"
+    IDC_MSG_QUERY_STR14     "Execute SQL successfully, return query record number: [%d]"
+    IDC_MSG_SEARCH_TIT1     "Find"
+    IDC_MSG_SEARCH_TIT2     "Replace"
+    IDC_MSG_SEARCH_TIT3     "Search Files"
+    IDC_MSG_SEARCH_ERR1     "This feature does not support searching in the remote file directory"
+    IDC_MSG_SEARCH_ERR2     "Enter line number: "
+    IDC_MSG_SEARCH_ERR3     "There are no matching lines"
+    IDC_MSG_SEARCH_ERR4     "Only the current file is supported"
+    IDC_MSG_SEARCH_ERR5     "To the end, In %d file(s), Total %d results"
+    IDC_MSG_SEARCH_ERR6     "To the top, In %d file(s), Total %d results"
+    IDC_MSG_SEARCH_ERR7     "Search finished, %d file(s) matching, Total %d results"
+    IDC_MSG_SEARCH_ERR8     "Search finished, %d file(s), %d results, no matching string"
+    IDC_MSG_SEARCH_ERR9     "In the end, Total %d file(s), Replace %d strings this time"
+    IDC_MSG_SEARCH_ERR10    "%d file(s) matching, Total %d results, But no replacement string in the specified range"
+    IDC_MSG_SEARCH_ERR11    "In %d file(s), %d results, and no strings need to be replaced"
+    IDC_MSG_SEARCH_ERR12    "Search finished, %d file(s) matching, Replaced %d strings"
+    IDC_MSG_SEARCH_ERR13    "Searching in remote directory is not supported"
+    IDC_MSG_SEARCH_ERR14    "Search finished, In %d file(s) range, Total %d results"
+    IDC_MSG_SEARCH_ERR15    "There is an odd number of hexadecimal substring"
+    IDC_MSG_SEARCH_STR1     "Tips: Use Perl syntax for regular expressions"
+    IDC_MSG_SEARCH_STR2     "%s|%s|(%d matching)"
+    IDC_MSG_SEARCH_STR3     "Initializing engine, do not close window..."
+    IDC_MSG_SEARCH_STR4     "Search finished, %I64u file(s) matching, Total %i64u results"
+    IDC_MSG_SEARCH_STR5     "Input Address Offset:"
+    IDC_SEARCH_BTN_ON       "Find All"
+    IDC_SEARCH_BTN_OFF      "Stop Searching"
+    IDS_PRINT_HEADER        "Filename, Current Date and Time|Filename, Current Date|Filename|Leave blank"
+    IDS_PRINT_FOOTER        "Page Number|Leave blank"
+    IDS_PRINT_COLOR         "Normal|Invert light (dark background)|Black on white|Color on white|Color on white (except line numbers)|Current screen color (WYSIWYG)"
+    IDS_PRINT_PAGENUM       "Page %i"
+    IDS_PRINT_EMPTY         "This document doesn't contain any text to be printed."
+    IDS_PRINT_ERROR         "%s File printing error"
+    IDS_SELRECT             "This operation cannot be performed in column edit mode."
+    IDS_LUA_CONV_SUCCESS    "Conversion of bytecode succeeded, file saved [%s]"
+    IDS_LUA_CONV_FAIL       "Conversion of bytecode failed."
+    IDS_THEME_DESC_DEFAULT  "Default Theme"
+    IDS_THEME_DESC_BLOCK    "Dark Theme"
+    IDS_THEME_DESC_WHITE    "White Classic Theme(Requires Restart)"
+    IDS_SEARCH_HEX_TIPS     "Hex datas should have two characters per byte and each byte \n\nmay be separated with a space, ignore case, Example: \n\nFF FE FD or fffefd"
+    IDS_THEME_EDIT_TIPS     "alpha value, 0(completely transparent) - 255(no transparency)"
+    IDS_STATUSBAR_TIPS1     "Conversion between line breaks"
+    IDS_STATUSBAR_TIPS2     "Implementation of coding conversion"
+    IDS_STATUSBAR_TIPS3     "Manually toggle document highlighting"
+    IDS_USERTAB_TIPS1       "To use script settings, edit the corresponding Lua script file"
+    IDS_THEMEM_WHITE_TO     "To switch from a classic theme, you need to restart the editor"
+    IDS_SKYLARK_DONATION    "If you support this project, please scan the QR code with your phone, and donate to us through Alipay or WeChat. \
+                            \n\npayment will be improved by software or customized by you. Thank you very much!"
+    IDS_USER32_ERROR        "Error"
+    IDS_USER32_UNFINISHED   "The editor has not been completely closed. Please open it again later"
+    IDS_EXTRA_PATH          "External program path: "
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// adonais search_dialog
+IDD_SEARCH_TAB_DLG DIALOGEX 36,44,384,216
+CAPTION "Find"
+FONT 8,"Ms Shell Dlg",0,0,0
+STYLE WS_CAPTION|WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+BEGIN
+  CONTROL "Find what: ",IDC_WHAT_STATIC_FIFOLDER,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,12,20,42,12
+  CONTROL "",IDC_WHAT_FOLDER_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,20,207,13
+  CONTROL "Replace with: ",IDC_SEARCH_RP_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,2,36,48,12
+  CONTROL "",IDC_SEARCH_RP_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,36,207,12
+  CONTROL "Filters: ",IDC_SEARCH_FY_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,12,36,42,12
+  CONTROL "",IDC_SEARCH_FY_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,36,207,12
+  CONTROL "Directory: ",IDC_SEARCH_DIR_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE,12,54,42,12
+  CONTROL "",IDC_SEARCH_DIR_CBO,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|CBS_AUTOHSCROLL|CBS_DROPDOWN,54,54,207,13
+  CONTROL "...",IDC_FILES_BROWSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,54,15,13
+  CONTROL "In all open files",IDC_MATCH_ALL_FILE,"Button",WS_VISIBLE|WS_TABSTOP|BS_MULTILINE|BS_AUTOCHECKBOX,12,69,100,15
+  CONTROL "Wrap around",IDC_MATCH_LOOP,"Button",WS_VISIBLE|WS_TABSTOP|BS_MULTILINE|BS_AUTOCHECKBOX,12,84,100,15
+  CONTROL "Match word start",IDC_MATCH_WDSTART,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,99,100,15
+  CONTROL "Match whole word only",IDC_MATCH_WORD,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,114,100,15
+  CONTROL "Match case",IDC_MATCH_CASE,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,129,100,15
+  CONTROL "Search Mode",IDC_MODE_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,12,147,100,48
+  CONTROL "&Normal",IDC_MODE_NORMAL,"Button",WS_VISIBLE|WS_GROUP|BS_AUTORADIOBUTTON,12,159,97,9
+  CONTROL "Re&gular expression",IDC_MODE_REGEXP,"Button",WS_VISIBLE|BS_AUTORADIOBUTTON,12,177,97,9
+  CONTROL "▲",IDC_SEARCH_PRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,20,15,13  
+  CONTROL "▼ Find Next",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
+  CONTROL "Show Details",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
+  CONTROL "Close",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "Replace",IDC_SEARCH_RE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
+  CONTROL "Replace &All",IDC_SEARCH_REALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,90,90,13
+  CONTROL "Find All",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
+  CONTROL "Follow current doc",IDC_SEARCH_CD_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,129,90,15
+  CONTROL "In all sub-folders",IDC_SEARCH_SUB_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,144,90,15
+  CONTROL "In hidden folders",IDC_SEARCH_HIDE_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,159,90,15
+  CONTROL "UTF-8 coding",IDC_SEARCH_UTF8_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,174,90,15
+  CONTROL "",IDC_PGB_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE,126,171,246,15
+  CONTROL "",IDC_PGB1,"msctls_progress32",WS_CHILDWINDOW|WS_VISIBLE|PBS_SMOOTH,126,186,246,9
+  CONTROL "",IDC_SEARCH_FOUNDLIST,"ListBox",WS_CHILDWINDOW|LBS_NOINTEGRALHEIGHT|WS_VSCROLL|WS_HSCROLL|WS_TABSTOP|LBS_NOTIFY|LBS_USETABSTOPS|LBS_HASSTRINGS,120,69,252,132,WS_EX_CLIENTEDGE
+  CONTROL "Search string",IDC_SEARCH_HEX_STRINGS,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,108,100,15
+  CONTROL "",IDC_SEARCH_HEX_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,40,248,44
+  CONTROL "",IDC_SEARCH_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,201,372,12
+END
+
+
+IDD_PAGESETUP DIALOGEX 5,5,356,260
+CAPTION "Page Setup"
+FONT 8,"MS Shell Dlg",400,0,1
+STYLE WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_MODALFRAME|DS_SHELLFONT|0xC0000000
+BEGIN
+  CONTROL "Paper",IDC_PAGESETUP_PAGER_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,8,224,56
+  CONTROL "Si&ze:",IDC_PAGESETUP_SIZE,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,24,36,8
+  CONTROL "",IDC_PAGESETUP_SOURCE_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_SORT|CBS_DROPDOWNLIST,64,23,160,160
+  CONTROL "&Source:",IDC_PAGESETUP_SOURCE_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,45,36,8
+  CONTROL "",IDC_PAGESETUP_ORIENTATION_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_SORT|CBS_DROPDOWNLIST,64,42,160,160
+  CONTROL "Orientation",IDC_PAGESETUP_ORIENTATION_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,69,64,56
+  CONTROL "P&ortrait",IDC_PAGESETUP_PORTRAIT,"Button",WS_VISIBLE|WS_GROUP|WS_TABSTOP|BS_AUTORADIOBUTTON,16,82,52,12
+  CONTROL "L&andscape",IDC_PAGESETUP_LANDSCAPE,"Button",WS_VISIBLE|BS_AUTORADIOBUTTON,16,103,52,12
+  CONTROL "Margins",IDC_PAGESETUP_MARGIN_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,80,69,152,56
+  CONTROL "&Left:",IDC_PAGESETUP_MARGIN_LEFT_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,88,85,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_LEFT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,120,82,28,12,WS_EX_CLIENTEDGE
+  CONTROL "&Top:",IDC_PAGESETUP_MARGIN_TOP_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,88,104,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_RIGHT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,120,103,28,12,WS_EX_CLIENTEDGE
+  CONTROL "&Right:",IDC_PAGESETUP_MARGIN_RIGHT_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,164,85,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_TOP,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,196,82,28,12,WS_EX_CLIENTEDGE
+  CONTROL "&Bottom:",IDC_PAGESETUP_MARGIN_BOTTOM_LABEL,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,164,104,32,8
+  CONTROL "",IDC_PAGESETUP_MARGIN_BOOTOM,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,196,103,28,12,WS_EX_CLIENTEDGE
+  CONTROL "Headers and Footers",IDC_PAGESETUP_HEADER_FOOTER_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,130,224,56
+  CONTROL "&Header:",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,146,36,8
+  CONTROL "",IDC_PAGESETUP_HEADER_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_DROPDOWNLIST,64,145,160,160
+  CONTROL "&Footer:",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,167,36,8
+  CONTROL "",IDC_PAGESETUP_FOOTER_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_DROPDOWNLIST,64,164,160,160
+  CONTROL "Print Colors",IDC_PAGESETUP_PRINT_COLOR_BOX,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,8,191,224,37
+  CONTROL "Mo&de:",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,16,207,36,8
+  CONTROL "",IDC_PAGESETUP_COLOR_MODE_LIST,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_GROUP|WS_TABSTOP|CBS_DROPDOWNLIST,64,206,160,160
+  CONTROL "Zoom",IDC_ZOOM_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|BS_GROUPBOX,240,170,108,58
+  CONTROL "Print zoo&m (-10 to +20)(&M):",IDC_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,248,188,92,8
+  CONTROL "",IDC_PAGESETUP_ZOOMLEVEL_EDIT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,298,206,42,12,WS_EX_CLIENTEDGE
+  CONTROL "",IDC_PAGESETUP_ZOOMLEVEL_CTLS,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,282,205,11,14
+  CONTROL "OK",IDOK,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP|BS_DEFPUSHBUTTON,190,237,50,14
+  CONTROL "Cancel",IDCANCEL,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,244,237,50,14
+  CONTROL "&Printer...",IDC_PAGESETUP_PRINTER,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,298,237,50,14
+  CONTROL "Preview",IDC_PREVIEW_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,240,8,108,157
+  CONTROL "",IDC_PAGESETUP_PREVIEW_WHITE_RECT,"Static",WS_VISIBLE|SS_WHITERECT,254,47,80,80
+  CONTROL "",IDC_PAGESETUP_PREVIEW_VERT_RECT,"Static",WS_VISIBLE|SS_GRAYRECT,334,51,4,80
+  CONTROL "",IDC_PAGESETUP_PREVIEW_HOR_RECT,"Static",WS_VISIBLE|SS_GRAYRECT,262,123,80,4
+END
+
+MSGBOX DIALOGEX 100, 80, 216, 168
+FONT 11,"Ms Shell Dlg",0,0,0
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+BEGIN
+    ICON "", MSGBOX_IDICON, 8, 20, 16, 16, WS_CHILD | WS_VISIBLE
+    PUSHBUTTON "&Yes", IDYES, 16, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "&No", IDNO, 74, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "&Abort", IDABORT, 132, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "&Retry", IDRETRY, 190, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "OK", IDOK, 248, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "Cancel", IDCANCEL, 306, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "&Ignore", IDIGNORE, 364, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "&Try Again", IDTRYAGAIN, 422, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "&Continue", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "Help", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
+END
