@@ -522,7 +522,7 @@ eu_before_proc(MSG *p_msg)
             return 1;
         }
     }
-    if(p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc && (pnode = on_tabpage_focus_at()) && !pnode->hex_mode && pnode->doc_ptr)
+    if((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && pnode->doc_ptr && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_key = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_SHIFT) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT);
         if (main_key && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
