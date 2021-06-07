@@ -24,6 +24,7 @@ extern "C"
 {
 #endif
 
+int eu_dpi_scale(void);
 void eu_window_resize(HWND hwnd);
 void eu_clear_undo_off(void);
 void eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi);

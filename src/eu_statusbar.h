@@ -19,10 +19,18 @@
 #ifndef _EU_STATUSBAR_H_
 #define _EU_STATUSBAR_H_
 
-#define EDITNUMBS    11
-#define IMAGEWIDTH   16
-#define IMAGEHEIGHT  15
-#define WM_BTN_PRESS (WM_USER + 201)
+#define STATUSBAR_DOC_INFO 0
+#define STATUSBAR_DOC_POS  1
+#define STATUSBAR_DOC_EOLS 2
+#define STATUSBAR_DOC_ENC  3
+#define STATUSBAR_DOC_TYPE 4
+#define STATUSBAR_DOC_SIZE 5
+#define STATUSBAR_DOC_BTN  6
+#define STATUSBAR_PART     7
+#define EDITNUMBS          11
+#define IMAGEWIDTH         16
+#define IMAGEHEIGHT        15
+#define WM_BTN_PRESS       (WM_USER + 201)
 
 // c++ compiler
 #ifdef __cplusplus
@@ -45,6 +53,7 @@ void __stdcall on_statusbar_update_coding(eu_tabpage *pnode, const int res_id);
 void __stdcall on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str);
 void __stdcall on_statusbar_dark_mode(void);
 void __stdcall on_statusbar_dark_release(bool off);
+void __stdcall on_statusbar_pop_menu(int parts, LPPOINT pt);
 LRESULT __stdcall on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus

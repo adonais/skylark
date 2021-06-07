@@ -375,11 +375,11 @@ check_system_build_number(uint32_t build_number)
 static bool
 on_dark_create_brush(void)
 {
-    if (!g_dark_bkgnd)
+    if (g_dark_bkgnd)
     {
-        g_dark_bkgnd = CreateSolidBrush(rgb_dark_bk_color);
+        DeleteObject(g_dark_bkgnd);
     }
-    return (g_dark_bkgnd != NULL);
+    return ((g_dark_bkgnd = CreateSolidBrush(rgb_dark_bk_color)) != NULL);
 }
 
 static void
@@ -395,6 +395,10 @@ on_dark_delete_brush(void)
 int64_t
 on_dark_get_brush(void)
 {
+    if (!g_dark_bkgnd)
+    {   // not dark mode
+        g_dark_bkgnd = GetSysColorBrush(COLOR_MENU);
+    }
     return (int64_t)g_dark_bkgnd;
 }
 

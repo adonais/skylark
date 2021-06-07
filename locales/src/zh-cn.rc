@@ -38,6 +38,7 @@ BEGIN
         MENUITEM "关闭所有文件\tCtrl+Shift+F4",     IDM_FILE_CLOSEALL
         MENUITEM "关闭除当前外所有文件",            IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
+        MENUITEM "文件写入时备份",                  IDM_FILE_WRITE_COPY
         MENUITEM "保存最后一次对话",                IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
 		MENUITEM "打印设置",					    IDM_FILE_PAGESETUP
@@ -853,7 +854,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_16                   "切换书签"
     IDS_TOOLBAR_17                   "跳到上一个书签"
     IDS_TOOLBAR_18                   "跳到下一个书签"  
-    IDS_TOOLBAR_19                   "十六进制模式"  
+    IDS_TOOLBAR_19                   "文本⇔十六进制"
     IDS_TOOLBAR_20                   "打开/关闭文件管理器"
     IDS_TOOLBAR_21                   "打开/关闭软链接窗口"
     IDS_TOOLBAR_22                   "设置主题"

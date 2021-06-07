@@ -268,7 +268,6 @@ _tmain(int argc, TCHAR *argv[])
             SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
         }
     }
-    
     while (GetMessage(&msg, NULL, 0, 0) > 0)
     {
         if (!IsDialogMessage(eu_get_search_hwnd(), &msg))

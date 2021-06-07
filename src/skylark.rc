@@ -58,8 +58,6 @@ IDB_OPENFOLD            ICON                    "..\\resources\\folder.ico"
 IDB_TXT                 ICON                    "..\\resources\\doc.ico"
 IDB_COPY                ICON                    "..\\resources\\copy.ico"
 IDB_COPY_DARK           ICON                    "..\\resources\\copy_dark.ico"
-IDC_STATIC_MYICON       ICON                    "..\\resources\\up16x16.ico"
-IDC_STATIC_MYICON_DARK  ICON                    "..\\resources\\up_dark16x16.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -73,6 +71,9 @@ IDB_TOOLBAR1            BITMAP                  "..\\resources\\toolbar_1.bmp"
 IDB_TOOLBAR_DARK1       BITMAP                  "..\\resources\\toolbar_dark_1.bmp"
 IDB_TOOLBAR_DARK16      BITMAP                  "..\\resources\\toolbar_dark_16.bmp"
 IDB_BUTTON_BG_BMP       BITMAP                  "..\\resources\\bg.bmp"
+IDB_DARK_CLOSE_BMP      BITMAP                  "..\\resources\\at-dark-close.bmp"
+IDB_AC_CLOSE_BMP        BITMAP                  "..\\resources\\at-active-close.bmp"
+IDB_UN_CLOSE_BMP        BITMAP                  "..\\resources\\at-unactive-close.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 // Version

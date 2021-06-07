@@ -18,6 +18,12 @@
 
 #include "framework.h"
 
+#define TAB_MIN_TOP 4
+#define TAB_MIN_LEFT 40
+#define TAB_MIN_WIDTH 140
+#define CLOSEBUTTON_WIDTH 11
+#define CLOSEBUTTON_HEIGHT 11
+
 HWND g_tabpages = NULL;
 HMENU pop_editor_menu = NULL;
 HMENU pop_symlist_menu = NULL;
@@ -26,13 +32,8 @@ HMENU pop_symtree_refresh_menu = NULL;
 HMENU pop_symtree_table_menu = NULL;
 HMENU pop_symtree_row_menu = NULL;
 
-#define TAB_MIN_TOP 4
-#define TAB_MIN_LEFT 40
-#define TAB_MIN_WIDTH 140
- 
 static bool is_moving;
 static int move_from;
-static HWND hwnd_close;
 static POINT pt_down;
 static WNDPROC old_tabproc;
 
@@ -40,18 +41,18 @@ static int
 on_tabpage_get_height(void)
 {
     EU_VERIFY(g_tabpages != NULL);
-    RECT rectTabPage = { 0 };
+    RECT rect_tabbar = { 0 };
     int tab_height = TABS_HEIGHT_DEFAULT;
     int count = TabCtrl_GetItemCount(g_tabpages);
     if (count <= 0)
     {
         return tab_height;
     }
-    TabCtrl_GetItemRect(g_tabpages, 0, &rectTabPage);
-    if (rectTabPage.top > 0 && rectTabPage.bottom > 0)
+    TabCtrl_GetItemRect(g_tabpages, 0, &rect_tabbar);
+    if (rect_tabbar.top > 0 && rect_tabbar.bottom > 0)
     {
         int row = TabCtrl_GetRowCount(g_tabpages);
-        return (rectTabPage.bottom - rectTabPage.top + 1) * row;
+        return (rect_tabbar.bottom - rect_tabbar.top) * row;
     }
     return tab_height;
 }
@@ -97,11 +98,6 @@ static void
 on_tabpage_destroy_tabbar(void)
 {
     on_tabpage_destroy_rclick();
-    if (hwnd_close)
-    {
-        DestroyWindow(hwnd_close);
-        hwnd_close = NULL;
-    }
     if (g_tabpages)
     {
         g_tabpages = NULL;
@@ -109,85 +105,82 @@ on_tabpage_destroy_tabbar(void)
     printf("tabbar WM_DESTROY\n");
 }
 
-static void
-on_tabpage_update_close(bool hover)
-{
-    POINT point;
-    RECT rect = {0};
-    int count = -1;
-    GetCursorPos(&point);
-    ScreenToClient(g_tabpages, &point);
-    if ((count = TabCtrl_GetItemCount(g_tabpages)) <= 0)
-    {
-        eu_setpos_window(hwnd_close, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW | SWP_NOCOPYBITS);
-        return;
-    }
-    if (!hover)
-    {
-        eu_setpos_window(hwnd_close, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW | SWP_NOCOPYBITS);
-        return;
-    }
-    for (int index = 0; index < count; ++index)
-    {
-        TabCtrl_GetItemRect(g_tabpages, index, &rect);
-        if (PtInRect(&rect, point))
-        {
-            eu_setpos_window(hwnd_close,
-                          HWND_TOP,
-                          rect.right - TABCLOSEBUTTON_WIDTH - 2,
-                          rect.top + 4,
-                          TABCLOSEBUTTON_WIDTH,
-                          TABCLOSEBUTTON_HEIGHT,
-                          SWP_SHOWWINDOW | SWP_NOCOPYBITS);
-            break;
-        }
-        else
-        {
-            eu_setpos_window(hwnd_close, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW | SWP_NOCOPYBITS);
-        }
-    }    
-}
-
 LRESULT 
 on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(hwnd);
-    if (on_dark_enable())
-    {  
-        return 1;
-    }
-    return 0;
+    UNREFERENCED_PARAMETER(wParam);
+    UNREFERENCED_PARAMETER(lParam);
+    return 1;
 }
 
 static void
+on_tabpage_draw_close(HDC hdc, const LPRECT lprect, bool sel)
+{
+	int nclose = on_dark_supports() ? IDB_DARK_CLOSE_BMP : (sel ? IDB_AC_CLOSE_BMP : IDB_UN_CLOSE_BMP);
+	HDC hdc_mem  = CreateCompatibleDC(hdc);
+	HBITMAP hbmp = LoadBitmap(eu_module_handle(), MAKEINTRESOURCE(nclose));
+	int border = (lprect->bottom - lprect->top - CLOSEBUTTON_HEIGHT + 1) / 2;
+    int left = lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP;
+    int top = lprect->top + border;
+	SelectObject(hdc_mem, hbmp);
+	StretchBlt(hdc, left, top, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, hdc_mem, 0, 0, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, SRCCOPY);
+	DeleteDC(hdc_mem);
+	DeleteObject(hbmp);
+}
+
+static void
+on_tabpage_undraw_close(HWND hwnd, const LPRECT lprect)
+{
+    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
+               lprect->top + TAB_MIN_TOP,
+               lprect->right - TAB_MIN_TOP,
+               lprect->top + TAB_MIN_TOP + CLOSEBUTTON_HEIGHT + 1
+              };
+    InvalidateRect(hwnd, &rc, true);
+    UpdateWindow(hwnd);
+}
+
+static bool
+on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
+{
+    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
+               lprect->top + TAB_MIN_TOP,
+               lprect->right - TAB_MIN_TOP,
+               lprect->top + TAB_MIN_TOP + CLOSEBUTTON_HEIGHT
+              };
+    return PtInRect(&rc, *pt); 
+}
+	
+static void
 on_tabpage_paint_draw(HWND hwnd, HDC hdc)
 {
-    HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_brush();
+    bool dark_mode = on_dark_enable();
     HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
     if (old_font)
     {
-        set_text_color(hdc, true);
-        int count = TabCtrl_GetItemCount(g_tabpages);
-        int sel_tab = TabCtrl_GetCurSel(hwnd);
+        set_text_color(hdc, dark_mode);
+        int count = TabCtrl_GetItemCount(hwnd);
+        int nsel = TabCtrl_GetCurSel(hwnd);
         for (int index = 0; index < count; ++index)
         {
             TCITEM tci = {TCIF_PARAM};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
+            TabCtrl_GetItem(hwnd, index, &tci);
             eu_tabpage *p = (eu_tabpage *) (tci.lParam);
             if (p)
             {
                 RECT rc;
                 TabCtrl_GetItemRect(hwnd, index, &rc);
-                FrameRect(hdc, &rc, GetSysColorBrush(COLOR_3DDKSHADOW));
-                if (sel_tab == index)
+                FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
+                if (nsel == index)
                 {   // example: cr = 0xFF8000;
-                    colour cr = on_dark_light_color(rgb_dark_bk_color, 1.5f);
+                    colour cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : GetSysColor(COLOR_HIGHLIGHT);
                     SetBkColor(hdc, cr);
                     ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
                 }
                 else
                 {
-                    set_btnface_color(hdc, true);
+                    set_btnface_color(hdc, dark_mode);
                 }
                 if (STR_NOT_NUL(p->filename))
                 {
@@ -212,53 +205,20 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_ERASEBKGND:
-            if (!on_dark_enable())
-            {
-                break;
-            }
-            RECT rc = { 0 };
+            RECT rc = {0};
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
         case WM_PAINT:
         {
-            if (GetWindowLongPtr(hwnd, GWL_STYLE) & TCS_OWNERDRAWFIXED)
-            {
-                PAINTSTRUCT    ps;
-                HDC hdc = BeginPaint(hwnd, & ps);
-                 on_tabpage_paint_draw(hwnd, hdc);
-                EndPaint(hwnd, &ps);
-            }
-            else
-            {
-                on_tabpage_update_close(true);
-            }
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+            on_tabpage_paint_draw(hwnd, hdc);
+            EndPaint(hwnd, &ps);
             break;
         }
         case WM_THEMECHANGED:
         {
-            uintptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
-            if (on_dark_enable())
-            {
-                SetWindowLongPtr(hwnd, GWL_STYLE, style | TCS_OWNERDRAWFIXED);
-            }
-            else
-            {
-                SetWindowLongPtr(hwnd, GWL_STYLE, style & ~TCS_OWNERDRAWFIXED);
-            }
-            break;
-        }
-        case WM_DRAWITEM:
-        {
-            RECT rect = ((DRAWITEMSTRUCT *) lParam)->rcItem;
-            HDC hdc = ((DRAWITEMSTRUCT *) lParam)->hDC;
-            SetBkMode(hdc, TRANSPARENT);
-            colour close_colour = RGB(250, 170, 60);
-            HBRUSH brush = CreateSolidBrush(close_colour);
-            FillRect(hdc, &rect, brush);
-            DeleteObject((HGDIOBJ) brush);
-            SetTextColor(hdc, GetSysColor(COLOR_BTNFACE));
-            DrawText(hdc, _T("X"), 1, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
             break;
         }
         case WM_COMMAND:
@@ -267,9 +227,9 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 POINT pt;
                 GetCursorPos(&pt);
-                ScreenToClient(g_tabpages, &pt);
+                ScreenToClient(hwnd, &pt);
                 LPARAM lparam = MAKELONG(pt.x, pt.y);
-                PostMessage(g_tabpages, WM_MBUTTONUP, 0, lparam);
+                PostMessage(hwnd, WM_MBUTTONUP, 0, lparam);
             }
             break;
         }
@@ -277,6 +237,24 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             TRACKMOUSEEVENT MouseEvent = { sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwnd, HOVER_DEFAULT };
             TrackMouseEvent(&MouseEvent);
+            RECT rect;
+            POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            HDC hdc = GetDC(hwnd);
+            int nsel = TabCtrl_GetCurSel(hwnd);
+            count = TabCtrl_GetItemCount(hwnd);
+            for (index = 0; index < count; ++index)
+            {
+                TabCtrl_GetItemRect(hwnd, index, &rect);
+                if (PtInRect(&rect, point))
+                {
+                    on_tabpage_draw_close(hdc, &rect, index == nsel);
+                }
+                else
+                {
+                    on_tabpage_undraw_close(hwnd, &rect);
+                }
+            }
+            ReleaseDC(hwnd, hdc);
             break;
         }
         case WM_MOUSEHOVER:
@@ -285,22 +263,32 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSELEAVE:
         {
-            on_tabpage_update_close(false);
+            RECT rect = {0};
+            count = TabCtrl_GetItemCount(hwnd);
+            for (index = 0; index < count; ++index)
+            {
+                TabCtrl_GetItemRect(hwnd, index, &rect);
+                on_tabpage_undraw_close(hwnd, &rect);
+            }
             break;
         }
         case WM_LBUTTONDOWN:
+        {
             if (!is_moving)
             {
-                int x = GET_X_LPARAM(lParam);
-                int y = GET_Y_LPARAM(lParam);
-
-                int count = TabCtrl_GetItemCount(g_tabpages);
-                RECT rectTabPage;
+                RECT rect_tabbar;
+                POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                count = TabCtrl_GetItemCount(hwnd);
                 move_from = -1;
                 for (index = 0; index < count; ++index)
                 {
-                    TabCtrl_GetItemRect(g_tabpages, index, &rectTabPage);
-                    if (rectTabPage.left < x && x < rectTabPage.right && rectTabPage.top < y && y < rectTabPage.bottom)
+                    TabCtrl_GetItemRect(hwnd, index, &rect_tabbar);
+                    if (on_tabpage_hit_button(&rect_tabbar, &pt))
+                    {
+                        PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
+                        break;
+                    }
+                    if (rect_tabbar.left < pt.x && pt.x < rect_tabbar.right && rect_tabbar.top < pt.y && pt.y < rect_tabbar.bottom)
                     {
                         move_from = index;
                         break;
@@ -309,27 +297,27 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (move_from >= 0)
                 {
                     is_moving = true;
-                    pt_down.x = x;
-                    pt_down.y = y;
+                    pt_down.x = pt.x;
+                    pt_down.y = pt.y;
                 }
             }
             break;
+        }
         case WM_LBUTTONUP:
         {
             if (is_moving)
             {
                 int x = GET_X_LPARAM(lParam);
                 int y = GET_Y_LPARAM(lParam);
-
                 if (abs(x - pt_down.x) > MOVE_SPLITE_LINE || abs(y - pt_down.y) > MOVE_SPLITE_LINE)
                 {
-                    int count = TabCtrl_GetItemCount(g_tabpages);
-                    RECT rectTabPage;
+                    int count = TabCtrl_GetItemCount(hwnd);
+                    RECT rect_tabbar;
                     int m_to = -1;
                     for (index = 0; index < count; ++index)
                     {
-                        TabCtrl_GetItemRect(g_tabpages, index, &rectTabPage);
-                        if (rectTabPage.left < x && x < rectTabPage.right && rectTabPage.top < y && y < rectTabPage.bottom)
+                        TabCtrl_GetItemRect(hwnd, index, &rect_tabbar);
+                        if (rect_tabbar.left < x && x < rect_tabbar.right && rect_tabbar.top < y && y < rect_tabbar.bottom)
                         {
                             m_to = index;
                             break;
@@ -343,11 +331,11 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         {
                             break;
                         }
-                        TabCtrl_DeleteItem(g_tabpages, move_from);
+                        TabCtrl_DeleteItem(hwnd, move_from);
                         tci.mask = TCIF_TEXT | TCIF_PARAM;
                         tci.pszText = pnode->filename;
                         tci.lParam = (LPARAM) pnode;
-                        if (TabCtrl_InsertItem(g_tabpages, m_to, &tci) != -1)
+                        if (TabCtrl_InsertItem(hwnd, m_to, &tci) != -1)
                         {
                             on_tabpage_select_index(m_to);
                         }
@@ -359,50 +347,52 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_RBUTTONDOWN:
-            if (hwnd == g_tabpages)
+        {
+            RECT rect = { 0 };
+            POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            int nsel = TabCtrl_GetCurSel(hwnd);
+            count = TabCtrl_GetItemCount(hwnd);
+            for (index = 0; index < count; ++index)
             {
-                POINT point;
-                RECT rect = { 0 };
-                point.x = GET_X_LPARAM(lParam);
-                point.y = GET_Y_LPARAM(lParam);
-                count = TabCtrl_GetItemCount(g_tabpages);
-                for (index = 0; index < count; ++index)
+                if (nsel == index)
                 {
-                    TabCtrl_GetItemRect(g_tabpages, index, &rect);
-                    if (PtInRect(&rect, point))
-                    {
-                        on_tabpage_select_index(index);
-                        break;
-                    }
+                    continue;
+                }
+                TabCtrl_GetItemRect(hwnd, index, &rect);
+                if (PtInRect(&rect, point))
+                {
+                    on_tabpage_select_index(index);
+                    break;
                 }
             }
-            break;
+            return 1;
+        }
         case WM_RBUTTONUP:
         {
-            POINT pt;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
+            POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            eu_tabpage *pnode = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd));
+            if (pnode)
+            {
+                util_enable_menu_item((HWND)pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
+            }
             ClientToScreen(hwnd, &pt);
-            TrackPopupMenu(pop_tab_menu, 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
-            break;
+            TrackPopupMenu(GetSubMenu(pop_tab_menu, 0), 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
+            return 1;
         }
         case WM_MBUTTONUP:
         {
-            POINT point;
             RECT rect = { 0 };
-            point.x = GET_X_LPARAM(lParam);
-            point.y = GET_Y_LPARAM(lParam);
-            count = TabCtrl_GetItemCount(g_tabpages);
+            POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            count = TabCtrl_GetItemCount(hwnd);
             for (index = 0; index < count; ++index)
             {
-                TabCtrl_GetItemRect(g_tabpages, index, &rect);
+                TabCtrl_GetItemRect(hwnd, index, &rect);
                 if (PtInRect(&rect, point))
                 {
                     eu_tabpage *tmp = on_tabpage_get_ptr(index);
                     if (tmp)
                     {
                         on_file_close(tmp, FILE_ONLY_CLOSE);
-                        eu_setpos_window(hwnd_close, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                     }
                     break;
                 }
@@ -430,7 +420,6 @@ on_tabpage_create_rclick(void)
         {
             break;
         }
-        pop_tab_menu = GetSubMenu(pop_tab_menu, 0);
         if ((pop_editor_menu = i18n_load_menu(IDR_EDITOR_POPUPMENU)) == NULL)
         {
             break;
@@ -469,7 +458,7 @@ int
 on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
-    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS;
+    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_OWNERDRAWFIXED;
 #ifdef _M_X64    
     if (!util_under_wine())
     {
@@ -496,29 +485,15 @@ on_tabpage_create_dlg(HWND hwnd)
         {
             break;
         }
-        hwnd_close =
-            CreateWindowEx(0, _T("BUTTON"), _T("X"), WS_CHILD | BS_FLAT | BS_OWNERDRAW, 0, 0, 0, 0, g_tabpages, (HMENU) IDM_TAB_CLOSE, eu_module_handle(), NULL);
-        if (hwnd_close == NULL)
-        {
-            err = 1;
-            break;
-        }
         if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) tabs_proc)))
         {
             err = 1;
             break;
         }
-        ShowWindow(hwnd_close, SW_HIDE);
-        UpdateWindow(hwnd_close);
     } while(0);
     if (err)
     {
         on_tabpage_destroy_rclick();
-        if (hwnd_close)
-        {
-            DestroyWindow(hwnd_close);
-            hwnd_close = NULL;
-        }
         if (g_tabpages)
         {
             DestroyWindow(g_tabpages);
@@ -887,24 +862,6 @@ on_tabpage_focus_at(void)
     return p;
 }
 
-static void
-on_tabpage_set_light(const int m_index)
-{
-    EU_VERIFY(g_tabpages != NULL);
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
-    {
-        if (index == m_index)
-        {
-            TabCtrl_HighlightItem(g_tabpages, index, 1.00);
-        }
-        else
-        {
-            TabCtrl_HighlightItem(g_tabpages, index, 0.00);
-        }
-    }
-}
-
 void
 on_tabpage_selection(eu_tabpage *pnode, int index)
 {
@@ -930,7 +887,6 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         util_set_title(pnode->pathfile);
         // 切换工作目录
         util_set_working_dir(pnode->pathname);
-        on_tabpage_set_light(index);
         menu_update_all(hwnd, pnode);
         eu_window_resize(hwnd);
         if (pnode->hwnd_sc)

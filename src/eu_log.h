@@ -23,10 +23,6 @@
 #define MAXLEN_FILENAME 256
 #endif
 
-#ifndef MAX_BUFFER
-#define MAX_BUFFER 1024
-#endif
-
 #ifndef MAX_OUTPUT_BUF
 #define MAX_OUTPUT_BUF 1024*64
 #endif
