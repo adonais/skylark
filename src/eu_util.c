@@ -955,13 +955,21 @@ util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
 void
 util_enable_menu_item(HWND hwnd, int m_id, bool enable)
 {
-    if (enable)
+    HMENU hmenu = GetMenu(hwnd);
+    if (!hmenu)
     {
-        EnableMenuItem(GetMenu(hwnd), m_id, MF_ENABLED | MF_BYCOMMAND);
+        hmenu = (HMENU)hwnd;
     }
-    else
+    if (hmenu)
     {
-        EnableMenuItem(GetMenu(hwnd), m_id, MF_DISABLED | MF_GRAYED | MF_BYCOMMAND);
+        if (enable)
+        {
+            EnableMenuItem(hmenu, m_id, MF_ENABLED | MF_BYCOMMAND);
+        }
+        else
+        {
+            EnableMenuItem(hmenu, m_id, MF_DISABLED | MF_GRAYED | MF_BYCOMMAND);
+        }
     }
 }
 

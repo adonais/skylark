@@ -1388,8 +1388,7 @@ static bool
 on_search_add_page(HWND htab, LPTSTR str_lable, int iid)
 {
 
-    TCITEM ti = { 0 };
-    ti.mask = TCIF_TEXT;
+    TCITEM ti = {TCIF_TEXT};
     ti.pszText = str_lable;
     ti.cchTextMax = (int)_tcslen(str_lable);
     return (bool) SendMessage(htab, TCM_INSERTITEM, iid, (LPARAM) &ti);
@@ -3094,7 +3093,10 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            on_search_dark_mode_init(hdlg);
+            if (on_dark_supports())
+            {
+                on_search_dark_mode_init(hdlg);
+            }
             break;
         }
         case WM_DESTROY:

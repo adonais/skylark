@@ -38,6 +38,7 @@ BEGIN
         MENUITEM "Close All\tCtrl+Shift+F4",        IDM_FILE_CLOSEALL
         MENUITEM "Close All But Active Document",   IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
+        MENUITEM "Backup On File Write",            IDM_FILE_WRITE_COPY
         MENUITEM "Save Last Session",               IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
 		MENUITEM "Print Setup",					    IDM_FILE_PAGESETUP
@@ -854,14 +855,14 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_16                   "Toggle Bookmark "
     IDS_TOOLBAR_17                   "Jump to previous bookmark"
     IDS_TOOLBAR_18                   "Jump to the next bookmark"  
-    IDS_TOOLBAR_19                   "Hex mode"  
+    IDS_TOOLBAR_19                   "Text⇔Hex mode"
     IDS_TOOLBAR_20                   "Open/Close file manager"
     IDS_TOOLBAR_21                   "Open/Close symbol window"
     IDS_TOOLBAR_22                   "Setup Themes"
     IDS_TOOLBAR_23                   "Zoom Out Text"
     IDS_TOOLBAR_24                   "Zoom In Text"
     IDS_TOOLBAR_25                   "Open/Quit Full Screen"
-    IDS_TOOLBAR_26                   "Run SQL Or Lua Script"  
+    IDS_TOOLBAR_26                   "Run SQL Or Lua Script"
     IDS_TOOLBAR_27                   "Open The Terminal"
 }
 

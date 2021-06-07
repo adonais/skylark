@@ -155,8 +155,11 @@ static eue_code eue_coding[] =
         {0               , NULL} 
     };
 
-static LPTSTR
-rand_str(TCHAR *str, const int len)
+/** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * 产生一个长度为len的伪随机数字符串
+ */
+LPTSTR WINAPI
+eu_rand_str(TCHAR *str, const int len)
 {
     for (int i = 0; i < len; ++i)
     {
@@ -283,8 +286,8 @@ eu_try_path(LPCTSTR dir)
     TCHAR temp[LEN_NAME + 1] =  {0};
     if (eu_exist_dir(dir) || eu_mk_dir(dir))
     {
-        _sntprintf(dist_path,MAX_PATH, _T("%s\\%s"), dir, rand_str(temp, LEN_NAME));  
-        pfile = CreateFile(dist_path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, 
+        _sntprintf(dist_path,MAX_PATH, _T("%s\\%s"), dir, eu_rand_str(temp, LEN_NAME));
+        pfile = CreateFile(dist_path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS,
                            FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
         if (pfile == INVALID_HANDLE_VALUE)
         {
@@ -1458,6 +1461,7 @@ eu_save_config(void)
         "edit_rendering_technology = %d\n"
         "update_file_mask = %d\n"
         "light_all_find_str = %s\n"
+        "backup_on_file_write = %s\n"
         "save_last_session = %s\n"
         "save_last_placement = \"%s\"\n"
         "ui_language = \"%s\"\n"
@@ -1529,6 +1533,7 @@ eu_save_config(void)
               g_config->m_render,
               0,
               g_config->m_light_str?"true":"false",
+              g_config->m_write_copy?"true":"false",
               g_config->m_session?"true":"false",
               g_config->m_placement,
               g_config->m_language[0]?g_config->m_language:"auto",
@@ -2189,7 +2194,7 @@ eu_curl_init_global(long flags)
     return result;
 }
 
- CURL * 
+CURL * 
 eu_curl_easy_init(void)
 {
     if (!fn_curl_easy_init)
@@ -2224,7 +2229,6 @@ eu_curl_global_release(void)
             eu_curl_slist_append = NULL;
             eu_curl_slist_free_all = NULL;  
             eu_curl_easy_cleanup = NULL;
-            
         }
         _InterlockedExchange(&eu_curl_initialized, 0);
     }

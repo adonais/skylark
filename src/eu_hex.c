@@ -171,7 +171,7 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
             }
             else if (hexview->hex_ascii)
             {
-                _tcscpy_s(buffer, _countof(buffer), _T("."));
+                _tcsncpy(buffer, _T("."), _countof(buffer));
                 num = 1;
             }
             else if (num > 1)
@@ -450,6 +450,10 @@ hexview_update_theme(eu_tabpage *p)
             SendMessage(p->hwnd_sc, HVM_SETSELBKCOLOR, 0, (LPARAM) eu_get_theme()->item.indicator.bgcolor);
             return 0;
         }
+        else
+        {
+            SendMessage(p->hwnd_sc, WM_DPICHANGED, 0, (LPARAM) p);
+        }
         if (p->hwnd_symlist)
         {
             SendMessage(p->hwnd_symlist, WM_DPICHANGED, 0, 0);
@@ -550,7 +554,7 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     logfont.lfQuality = quality;
     logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
     logfont.lfCharSet = ANSI_CHARSET;
-    _tcscpy_s(logfont.lfFaceName, _countof(logfont.lfFaceName), font);
+    _tcsncpy(logfont.lfFaceName, font, _countof(logfont.lfFaceName));
     hexview->hfont = CreateFontIndirect(&logfont);
     if (hexview->hfont)
     {

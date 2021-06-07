@@ -35,13 +35,13 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
 
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_LINENUMBER_INDEX, SC_MARGIN_NUMBER);
+    eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
+    eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
+    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);  
     if (eu_get_config()->m_linenumber)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, MARGIN_LINENUMBER_WIDTH);
-        eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
-        eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);
     }
     else
     {
@@ -407,22 +407,20 @@ on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify)
     return 0;
 }
 
-int
+void
 on_sci_update_margin(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL);
     sptr_t m_width = eu_sci_call(pnode, SCI_GETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
     sptr_t m_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-    char marg_width[20 + 1] = { 0 };
+    char marg_width[FT_LEN] = { 0 };
     int m_zoom = (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
-    snprintf(marg_width, _countof(marg_width) - 1, "_%d", m_line);
+    snprintf(marg_width, FT_LEN - 1, "__%d", m_line);
     sptr_t cur_width = eu_sci_call(pnode, SCI_TEXTWIDTH, STYLE_LINENUMBER, (sptr_t) marg_width);
     if (cur_width != m_width)
     {
-        eu_sci_call(pnode,SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? cur_width + m_zoom : 0));
-        return 0;
+        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? cur_width + m_zoom : 0));
     }
-    return 1;
 }
 
 static void
@@ -494,6 +492,23 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             printf("scintilla WM_THEMECHANGED\n");
             break;
         }
+        case WM_DPICHANGED:
+        {
+            if ((pnode = (eu_tabpage *) lParam) != NULL)
+            {
+                printf("scintilla WM_DPICHANGED\n");
+            }
+            break;
+        }
+        case WM_DPICHANGED_AFTERPARENT:
+        {
+            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
+            {
+                printf("scintilla WM_DPICHANGED_AFTERPARENT\n");
+                on_sci_update_margin(pnode);
+            }
+            break;
+        }        
         case WM_SETFOCUS:
         {
             NMHDR nm = {0};

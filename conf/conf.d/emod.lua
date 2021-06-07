@@ -89,6 +89,7 @@ struct eu_config
     int m_render;
     int  m_upfile;
     bool m_light_str;
+    bool m_write_copy;
     bool m_session;
     char m_placement[1024];
     char m_language[64];

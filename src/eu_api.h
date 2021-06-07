@@ -44,6 +44,10 @@
 #define DET_EPSILON 0.000001
 #endif
 
+#ifndef WM_DPICHANGED_AFTERPARENT
+#define WM_DPICHANGED_AFTERPARENT 0x02E3
+#endif
+
 #define CHECK_1ST   0.500000
 #define CHECK_2ND   0.925000
 #define CHECK_LEN   (32*1024)
@@ -52,6 +56,9 @@
 #define ACNAME_LEN  64
 #define FT_LEN      32
 #define OVECCOUNT   30   // pcre, should be multiple of 3
+#ifndef MAX_BUFFER
+#define MAX_BUFFER  1024
+#endif
 
 #ifdef _DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
@@ -198,8 +205,9 @@ struct eu_config
     int m_render;
     int  m_upfile;
     bool m_light_str;
+    bool m_write_copy;
     bool m_session;
-    char m_placement[1024];
+    char m_placement[MAX_BUFFER];
     char m_language[ACNAME_LEN];
     print_set eu_print;
     int m_limit;
@@ -340,6 +348,7 @@ EU_EXT_CLASS bool __stdcall eu_try_path(LPCTSTR dir);
 EU_EXT_CLASS bool __stdcall eu_exist_dir(LPCTSTR path);
 EU_EXT_CLASS bool __stdcall eu_exist_file(LPCTSTR path);
 EU_EXT_CLASS LPTSTR __stdcall eu_suffix_strip(TCHAR *path);
+EU_EXT_CLASS LPTSTR __stdcall eu_rand_str(TCHAR *str, const int len);
 EU_EXT_CLASS LPTSTR __stdcall eu_wstr_replace(TCHAR *in, size_t in_size, LPCTSTR pattern, LPCTSTR by);
 
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);

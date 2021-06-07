@@ -19,6 +19,8 @@
 #include <fcntl.h>
 #include "framework.h"
 
+#define MINIMUM_MEM 0x12c00000
+
 static volatile long push_thread_id;
 static volatile long file_close_id;
 static HANDLE file_event_final = NULL;
@@ -149,14 +151,14 @@ push_file_thread(void *lp)
     if (!result)
     {
         char *pfile = NULL;
-        char sql[MAX_PATH+1] = {0};
+        char sql[MAX_BUFFER] = {0};
         if ((pfile = eu_utf16_utf8(pathfile, NULL)) != NULL)
         {
-            _snprintf(sql, MAX_PATH, "insert or ignore into file_recent(szName,szDate) values('%s', %I64u);", pfile, buf.st_mtime);
+            _snprintf(sql, MAX_BUFFER-1, "insert or ignore into file_recent(szName,szDate) values('%s', %I64u);", pfile, buf.st_mtime);
         }
         if (*sql && eu_sqlite3_send(sql, NULL, NULL) != 0)
         {
-            printf("eu_sqlite3_send failed\n");
+            printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
         }
         if (pfile)
         {
@@ -489,7 +491,7 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
         safe_close_handle(hfile);
         return EUE_FILE_SIZE_ERR;
     }
-    if (on_file_get_avail_phys() - pnode->raw_size < (uint64_t) 0x12c00000)
+    if (on_file_get_avail_phys() - pnode->raw_size < MINIMUM_MEM)
     {
         // phymem < 300MB, Skylark exit
         safe_close_handle(hfile);
@@ -1114,7 +1116,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak)
     }
     eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, read_remote_file);
     eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, pnode);
-#if defined(APP_DEBUG) && (APP_DEBUG > 0)
+#if APP_DEBUG
     eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
     eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
@@ -1285,6 +1287,26 @@ write_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
     return len;
 }
 
+static int
+on_file_write_backup(eu_tabpage *pnode)
+{
+    if (pnode && !util_availed_char(pnode->fs_server.networkaddr[0]))
+    {
+        size_t len = _tcslen(pnode->pathfile);
+        TCHAR *pbakup = len > 0 ? (TCHAR *)calloc(sizeof(TCHAR), len + 2) : NULL;
+        if (pbakup)
+        {
+            _sntprintf(pbakup, len+1, _T("%s~"), pnode->pathfile);
+            if (!CopyFile(pnode->pathfile, pbakup, false))
+            {
+                MSG_BOX(IDC_MSG_COPY_FAIL, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+                return EUE_COPY_FILE_ERR;
+            }
+        }
+    }
+    return 0;
+}
+
 int
 on_file_save(eu_tabpage *pnode, bool save_as)
 {
@@ -1425,28 +1447,21 @@ on_file_save(eu_tabpage *pnode, bool save_as)
     }    
     else
     {
+        if (eu_get_config()->m_write_copy && on_file_write_backup(pnode))
+        {
+            err = EUE_WRITE_FILE_ERR;
+            goto SAVE_FINAL;
+        }
         if (do_write_file(pnode, pnode->pathfile, false, false))
         {
             err = EUE_WRITE_FILE_ERR;
         }
     }
 SAVE_FINAL:
-    if (ptext)
-    {
-        free(ptext);
-    }
-    if (pdst)
-    {
-        free(pdst);
-    }
-    if (cnv)
-    {
-        free(cnv);
-    }   
-    if (pnode->write_buffer)
-    {
-        eu_safe_free(pnode->write_buffer);
-    }          
+    eu_safe_free(ptext);
+    eu_safe_free(pdst);
+    eu_safe_free(cnv);
+    eu_safe_free(pnode->write_buffer);
     if (!err)
     {
         // 发送SCI_SETSAVEPOINT消息
@@ -1495,27 +1510,33 @@ static void
 create_guid(TCHAR *buf, int len)
 {
     GUID  guid;
-    CoCreateGuid(&guid);
-    _sntprintf(buf,
-                64,
-                _T("%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x"),
-                guid.Data1, guid.Data2, guid.Data3,
-                guid.Data4[0], guid.Data4[1],
-                guid.Data4[2], guid.Data4[3],
-                guid.Data4[4], guid.Data4[5],
-                guid.Data4[6], guid.Data4[7]);
+    if (S_OK == CoCreateGuid(&guid))
+    {
+        _sntprintf(buf,
+                   len,
+                   _T("%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x"),
+                   guid.Data1, guid.Data2, guid.Data3,
+                   guid.Data4[0], guid.Data4[1],
+                   guid.Data4[2], guid.Data4[3],
+                   guid.Data4[4], guid.Data4[5],
+                   guid.Data4[6], guid.Data4[7]);
+    }
+    else
+    {
+        eu_rand_str(buf, 32);
+    }
 }
 
 static void
 save_file_backup(eu_tabpage *pnode)
 {
-    TCHAR buf[32+1] = {0};
+    TCHAR buf[ACNAME_LEN] = {0};
     file_backup filebak = {0};
     filebak.cp = pnode->codepage;
     filebak.bakcp = pnode->codepage == IDM_OTHER_BIN ? IDM_OTHER_BIN : IDM_UNI_UTF8;
     if (on_sci_doc_modified(pnode))
     {
-        create_guid(buf, 32);
+        create_guid(buf, ACNAME_LEN - 1);
         _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
         do_write_file(pnode, filebak.bak_path, true, false);
         filebak.status = 1;
@@ -1743,8 +1764,22 @@ on_file_edit_restart(HWND hwnd)
     }
 }
 
-int
-on_file_session(void)
+void
+on_file_backup_menu(void)
+{
+    if (!eu_get_config()->m_write_copy)
+    {
+        eu_get_config()->m_write_copy = true;
+    }
+    else
+    {
+        eu_get_config()->m_write_copy = false;
+    }
+    menu_update_all(eu_module_hwnd(), NULL);
+}
+
+void
+on_file_session_menu(void)
 {
     if (!eu_get_config()->m_session)
     {
@@ -1755,21 +1790,18 @@ on_file_session(void)
         eu_get_config()->m_session = false;
     }
     menu_update_all(eu_module_hwnd(), NULL);
-    return SKYLARK_OK;
 }
 
-int
+void
 on_file_new_eols(eu_tabpage *pnode, int eol_mode)
 {
     eu_get_config()->new_file_eol = eol_mode;
     menu_update_all(eu_module_hwnd(), NULL);
-    return SKYLARK_OK;
 }
 
-int
+void
 on_file_new_encoding(eu_tabpage *pnode, int new_enc)
 {
     eu_get_config()->new_file_enc = new_enc;
     menu_update_all(eu_module_hwnd(), NULL);
-    return SKYLARK_OK;
 }

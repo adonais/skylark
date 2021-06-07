@@ -145,7 +145,7 @@ clean:
 	-del /q $(STATICLIB) 2>nul 1>nul
 	-del /q $(OBJS) 2>nul 1>nul
 	-del /q $(SRC)\host\buildvm_arch.h  $(SRC)\lj_vm.obj $(SRC)\lj_bcdef.h $(SRC)\lj_ffdef.h $(SRC)\lj_libdef.h \
-	        $(SRC)\lj_recdef.h $(SRC)\lj_recdef.h $(SRC)\vmdef.lua $(SRC)\lj_folddef.h
+	        $(SRC)\lj_recdef.h $(SRC)\lj_recdef.h $(SRC)\jit\vmdef.lua $(SRC)\lj_folddef.h
 	-rd /s/q $(DIR_O)  2>nul 1>nul
 	-rd /s/q $(BIN_O)  2>nul 1>nul
 

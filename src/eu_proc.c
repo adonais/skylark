@@ -247,6 +247,12 @@ eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
     RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_ERASE | RDW_INTERNALPAINT | RDW_ALLCHILDREN | RDW_UPDATENOW);
 }
 
+int
+eu_dpi_scale(void)
+{
+    return eu_get_dpi(eu_hwndmain) > 96 ? 0 : -11;
+}
+
 bool
 eu_create_toolbar(HWND hwnd)
 {
@@ -488,7 +494,7 @@ eu_window_resize(HWND hwnd)
         on_toolbar_size(hwnd);
         on_statusbar_size(hwnd);
     }
-    if (g_tabpages && on_dark_enable())
+    if (g_tabpages)
     {
         InvalidateRect(g_tabpages, NULL, true);
         UpdateWindow(g_tabpages);
@@ -648,7 +654,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             on_theme_setup_font(hwnd);
             on_tabpage_foreach(hexview_update_theme);
-            SendMessage(g_statusbar, WM_DPICHANGED, 0, 0);
+            on_statusbar_init(hwnd);
             SendMessage(g_filetree, WM_DPICHANGED, 0, 0);
             break;
         }
@@ -677,10 +683,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         return on_statusbar_draw_item(hwnd, wParam, lParam);
                     }
                 case IDM_TREE_BAR:
-                    if (g_treebar)
-                    {
-                        return on_tabpage_draw_item(hwnd, wParam, lParam);
-                    }
                 case IDM_TABPAGE_BAR:
                     if (g_tabpages)
                     {
@@ -791,8 +793,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_CLOSEALL_EXCLUDE:
                     on_file_exclude_close(pnode);
                     break;
+                case IDM_FILE_WRITE_COPY:
+                    on_file_backup_menu();
+                    break;                    
                 case IDM_FILE_SESSION:
-                    on_file_session();
+                    on_file_session_menu();
                     break;
                 case IDM_FILE_PAGESETUP:
                     on_print_setup(eu_hwndmain);
@@ -1465,6 +1470,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             switch (lpnmhdr->code)
             {
+                case NM_CLICK:
+                    if (g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
+                    {
+                        POINT pt;
+                        LPNMMOUSE lpnmm = (LPNMMOUSE)lParam;
+                        GetCursorPos(&pt);
+                        on_statusbar_pop_menu((int)lpnmm->dwItemSpec, &pt);
+                    }
+                    break;
                 case NM_CUSTOMDRAW:
                 {
                     if (on_dark_enable())
@@ -1501,50 +1515,50 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 // 编辑器区输入时的消息响应, 其他消息见eu_scintill.c
                 case HVN_GETDISPINFO:
+                {
+                    PNMHVDISPINFO dispinfo = (PNMHVDISPINFO)lParam;
+                    if (!(pnode->phex && pnode->phex->pbase))
                     {
-                        PNMHVDISPINFO dispinfo = (PNMHVDISPINFO)lParam;
-                        if (!(pnode->phex && pnode->phex->pbase))
-                        {
-                            break;
-                        }
-                        if (dispinfo->item.mask & HVIF_ADDRESS) 
-                        {
-                            dispinfo->item.address = dispinfo->item.number_items;
-                        }
-                        else if (dispinfo->item.mask & HVIF_BYTE) 
-                        {
-                            uint8_t *base = (uint8_t *)(pnode->phex->pbase + dispinfo->item.number_items);
-                            dispinfo->item.value = *base;
-                            // Set state of the item.
-                            if (dispinfo->item.number_items >= 0 && dispinfo->item.number_items <= 255)
-                            {
-                                dispinfo->item.state = HVIS_MODIFIED;
-                            }
-                        }
                         break;
                     }
+                    if (dispinfo->item.mask & HVIF_ADDRESS) 
+                    {
+                        dispinfo->item.address = dispinfo->item.number_items;
+                    }
+                    else if (dispinfo->item.mask & HVIF_BYTE) 
+                    {
+                        uint8_t *base = (uint8_t *)(pnode->phex->pbase + dispinfo->item.number_items);
+                        dispinfo->item.value = *base;
+                        // Set state of the item.
+                        if (dispinfo->item.number_items >= 0 && dispinfo->item.number_items <= 255)
+                        {
+                            dispinfo->item.state = HVIS_MODIFIED;
+                        }
+                    }
+                    break;
+                }
                 case HVN_ITEMCHANGING:
+                {
+                    uint8_t *base = NULL;
+                    PNMHEXVIEW phexview = (PNMHEXVIEW)lParam;
+                    if (!(pnode->phex && pnode->phex->pbase))
                     {
-                        uint8_t *base = NULL;
-                        PNMHEXVIEW phexview = (PNMHEXVIEW)lParam;
-                        if (!(pnode->phex && pnode->phex->pbase))
-                        {
-                            break;
-                        }
-                        base = (uint8_t *)(pnode->phex->pbase + phexview->item.number_items);
-                        *base = phexview->item.value;
-                        if (pnode->phex->hex_point)
-                        {
-                            hexview_updata(pnode->phex->hex_point, phexview->item.number_items);
-                        }
-                        on_sci_point_left(pnode);
                         break;
                     }
+                    base = (uint8_t *)(pnode->phex->pbase + phexview->item.number_items);
+                    *base = phexview->item.value;
+                    if (pnode->phex->hex_point)
+                    {
+                        hexview_updata(pnode->phex->hex_point, phexview->item.number_items);
+                    }
+                    on_sci_point_left(pnode);
+                    break;
+                }
                 case NM_SETFOCUS:
-                    {
-                        DrawMenuBar(hwnd);
-                        break;
-                    }
+                {
+                    DrawMenuBar(hwnd);
+                    break;
+                }
                 case SCN_CHARADDED:
                     on_sci_character(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
                     break;

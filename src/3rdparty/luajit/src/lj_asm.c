@@ -1163,9 +1163,10 @@ static void asm_bufhdr(ASMState *as, IRIns *ir)
     }
   } else {
     Reg tmp = ra_scratch(as, rset_exclude(RSET_GPR, sb));
-    /* Passing ir isn't strictly correct, but it's an IRT_PGC, too. */
-    emit_storeofs(as, ir, tmp, sb, offsetof(SBuf, w));
-    emit_loadofs(as, ir, tmp, sb, offsetof(SBuf, b));
+    IRIns irbp;
+    irbp.ot = IRT(0, IRT_PTR);  /* Buffer data pointer type. */
+    emit_storeofs(as, &irbp, tmp, sb, offsetof(SBuf, w));
+    emit_loadofs(as, &irbp, tmp, sb, offsetof(SBuf, b));
   }
 #if LJ_TARGET_X86ORX64
   ra_left(as, sb, ir->op1);
@@ -2117,6 +2118,9 @@ static void asm_setup_regsp(ASMState *as)
 #endif
 
   ra_setup(as);
+#if LJ_TARGET_ARM64
+  ra_setkref(as, RID_GL, (intptr_t)J2G(as->J));
+#endif
 
   /* Clear reg/sp for constants. */
   for (ir = IR(T->nk), lastir = IR(REF_BASE); ir < lastir; ir++) {

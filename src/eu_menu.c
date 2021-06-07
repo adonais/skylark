@@ -159,6 +159,7 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
         if (hwnd)
         {
             on_file_update_recent();
+            util_set_menu_item(hwnd, IDM_FILE_WRITE_COPY, eu_get_config()->m_write_copy);
             util_set_menu_item(hwnd, IDM_FILE_SESSION, eu_get_config()->m_session);
             util_set_menu_item(hwnd, IDM_FILE_NEWFILE_WINDOWS_EOLS, (eu_get_config()->new_file_eol == 0));
             util_set_menu_item(hwnd, IDM_FILE_NEWFILE_MAC_EOLS, (eu_get_config()->new_file_eol == 1));
