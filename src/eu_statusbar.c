@@ -190,37 +190,37 @@ on_statusbar_adjust_btn(void)
 }
 
 void WINAPI
-on_statusbar_size(HWND hwnd)
+on_statusbar_size(void)
 {
-    if (!g_statusbar)
+    if (g_statusbar)
     {
-        return;
-    }
-    if (!eu_get_config()->m_statusbar)
-    {
-        if ((GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
+        if (!eu_get_config()->m_statusbar)
         {
-            ShowWindow(g_statusbar, SW_HIDE);
-        } 
-        g_status_height = 0;
-    }
-    else
-    {
-        RECT rc_main = {0};
-        GetWindowRect(hwnd, &rc_main);
-        int cx = rc_main.right - rc_main.left;
-        int n_half = cx / 8;
-        int parts[] = { n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, n_half*7+70, -1 };
-        SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
-        if (!(GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
-        {
-            ShowWindow(g_statusbar, SW_SHOW);
+            if ((GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
+            {
+                ShowWindow(g_statusbar, SW_HIDE);
+            } 
+            g_status_height = 0;
         }
-        SendMessage(g_statusbar, WM_SIZE, 0, 0);
-        on_statusbar_adjust_btn();
-        on_statusbar_update();
+        else
+        {
+            HWND hwnd = eu_module_hwnd();
+            RECT rc_main = {0};
+            GetWindowRect(hwnd, &rc_main);
+            int cx = rc_main.right - rc_main.left;
+            int n_half = cx / 8;
+            int parts[] = { n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, n_half*7+70, -1 };
+            SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
+            if (!(GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
+            {
+                ShowWindow(g_statusbar, SW_SHOW);
+            }
+            SendMessage(g_statusbar, WM_SIZE, 0, 0);
+            on_statusbar_adjust_btn();
+            on_statusbar_update();
+            UpdateWindow(hwnd);
+        }
     }
-    UpdateWindow(hwnd);
 }
 
 LRESULT WINAPI
@@ -288,7 +288,6 @@ create_button(HWND hstatus)
             printf("CreateWindowEx g_bt_1 failed\n");
             break;
         }
-        //SendMessage(h_bt_1, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
         Button_Enable(h_bt_1, 0);
         ShowWindow(h_bt_1, SW_HIDE);
         h_bt_2 = CreateWindowEx(0, _T("button"), wstr, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_2, eu_module_handle(), NULL);
@@ -297,7 +296,6 @@ create_button(HWND hstatus)
             printf("CreateWindowEx g_bt_2 failed\n");
             break;
         }
-        //SendMessage(h_bt_2, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
         ShowWindow(h_bt_2, SW_HIDE);
     } while(0);
     return (h_bt_1 && h_bt_2);
@@ -406,14 +404,14 @@ on_statusbar_update_btn(HWND hwnd)
 {
     if (!hfont_btn)
     {
-        LOGFONT logfont = {eu_dpi_scale()};
+        LOGFONT logfont = {eu_dpi_scale_font()};
         logfont.lfWeight = FW_NORMAL;
         logfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
         logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
         logfont.lfQuality = CLEARTYPE_QUALITY;
         logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
         logfont.lfCharSet = ANSI_CHARSET;
-        _tcsncpy(logfont.lfFaceName, _T("MS Shell Dlg"), _countof(logfont.lfFaceName));
+        _tcsncpy(logfont.lfFaceName, _T("MS Shell Dlg"), _countof(logfont.lfFaceName)-1);
         if (!(hfont_btn = CreateFontIndirect(&logfont)))
         {
             return;

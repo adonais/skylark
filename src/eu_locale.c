@@ -307,7 +307,7 @@ i18n_update_menu(HWND hwnd)
             }
             select = true;
         }
-        util_set_menu_item(hwnd, IDM_LOCALES_BASE + index, select);
+        util_set_menu_item((HWND)lang_menu, IDM_LOCALES_BASE + index, select);
     }
 }
 

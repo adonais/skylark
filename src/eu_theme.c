@@ -407,6 +407,8 @@ choose_color_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM unnamedParam4)
     return 0;
 }
 
+#define FONT_SIZE_CONVERT(fontsize) (-MulDiv((fontsize), eu_get_dpi(NULL), 72))
+
 static int
 choose_style_font(char *font, int *fontsize, int *bold)
 {
@@ -419,9 +421,9 @@ choose_style_font(char *font, int *fontsize, int *bold)
     }
     CHOOSEFONT cf= {sizeof(CHOOSEFONT)};
     hdc = GetDC(hwnd);
-    _tcscpy(lf.lfFaceName, u16_font(font));
+    _tcsncpy(lf.lfFaceName, u16_font(font), _countof(lf.lfFaceName)-1);
     lf.lfWeight = (*bold) ? FW_BOLD : FW_NORMAL;
-    lf.lfHeight = -MulDiv((*fontsize), GetDeviceCaps(hdc, LOGPIXELSY), 72);
+    lf.lfHeight = FONT_SIZE_CONVERT(*fontsize);
     cf.hwndOwner = hwnd;
     cf.hInstance = eu_module_handle();
     cf.lpLogFont = &lf;
@@ -474,8 +476,6 @@ choose_text_color(HWND hwnd, uint32_t *color)
     }
     return SKYLARK_OK;
 }
-
-#define FONT_SIZE_CONVERT(fontsize) (-MulDiv((fontsize), eu_get_dpi(eu_module_hwnd()), 72))
 
 // 建立示例字体
 #define CREATE_STYLETHEME_FONT(_st_memb_, _idc_static_, _hwnd_handle_name_, _font_handle_name_)   \
@@ -596,29 +596,16 @@ theme_release_handle(void)
 static void 
 theme_show_balloon_tip(HWND hdlg, int res_id)
 {
-    EDITBALLOONTIP tip = {0};
-    LOAD_I18N_RESSTR(IDS_THEME_EDIT_TIPS, ptxt);
-    tip.cbStruct = sizeof(EDITBALLOONTIP);
-    tip.pszTitle = _T("");
-    tip.pszText = ptxt;
-    tip.ttiIcon = TTI_INFO;
-    Edit_ShowBalloonTip(GetDlgItem(hdlg, res_id), &tip);
-}
-
-static HIMAGELIST
-create_button_img(INT res_id)
-{
-    HIMAGELIST himg = NULL;
-    HBITMAP hbmp = NULL;
-    BITMAP bm = { 0 };
-    hbmp = (HBITMAP) LoadImage(eu_module_handle(), MAKEINTRESOURCE(res_id), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_DEFAULTCOLOR);
-    GetObject(hbmp, sizeof(BITMAP), &bm);
-    himg = ImageList_Create(IMAGEWIDTH, IMAGEHEIGHT, bm.bmBitsPixel, bm.bmWidth / IMAGEWIDTH, 1);
-    if (hbmp != NULL)
+    HWND hwnd_edit = GetDlgItem(hdlg, res_id);
+    if (hwnd_edit)
     {
-        DeleteObject((HGDIOBJ) hbmp);
+        LOAD_I18N_RESSTR(IDS_THEME_EDIT_TIPS, ptxt);
+        EDITBALLOONTIP tip = {sizeof(EDITBALLOONTIP)};
+        tip.pszTitle = _T("");
+        tip.pszText = ptxt;
+        tip.ttiIcon = TTI_INFO;
+        Edit_ShowBalloonTip(hwnd_edit, &tip);
     }
-    return himg;
 }
 
 static intptr_t CALLBACK

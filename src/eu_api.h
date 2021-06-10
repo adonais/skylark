@@ -435,7 +435,7 @@ EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);
 EU_EXT_CLASS bool eu_create_search_dlg(void);
 EU_EXT_CLASS void eu_create_fullscreen(HWND hwnd);
 EU_EXT_CLASS int eu_before_proc(MSG *p_msg);
-EU_EXT_CLASS uint32_t eu_get_dpi(HWND);
+EU_EXT_CLASS uint32_t eu_get_dpi(HWND hwnd);
 
 // for eu_registry.c
 EU_EXT_CLASS int eu_create_registry_dlg(void);

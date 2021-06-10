@@ -136,31 +136,31 @@ on_toolbar_adjust_box(void)
 }
 
 void WINAPI
-on_toolbar_size(HWND hwnd)
+on_toolbar_size(void)
 {
-    HWND h_tool = GetDlgItem(hwnd, IDC_TOOLBAR);
-    if (!h_tool)
+    HWND hwnd = eu_module_hwnd();
+    HWND h_tool = hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
+    if (h_tool)
     {
-        return;
-    }
-    if (!eu_get_config()->m_toolbar)
-    {
-        if ((GetWindowLongPtr(h_tool, GWL_STYLE) & WS_VISIBLE))
+        if (!eu_get_config()->m_toolbar)
         {
-            ShowWindow(h_tool, SW_HIDE);
-        } 
-        g_toolbar_height = 0;
+            if ((GetWindowLongPtr(h_tool, GWL_STYLE) & WS_VISIBLE))
+            {
+                ShowWindow(h_tool, SW_HIDE);
+            } 
+            g_toolbar_height = 0;
+        }
+        else
+        {
+            RECT rc = {0};
+            RECT rect = {0};
+            GetWindowRect(hwnd, &rc);
+            GetWindowRect(h_tool, &rect);
+            g_toolbar_height = rect.bottom - rect.top;
+            eu_setpos_window(h_tool, HWND_TOP, 0, 0, rc.right - rc.left, g_toolbar_height , SWP_NOZORDER|SWP_SHOWWINDOW);
+        }
+        UpdateWindow(hwnd);
     }
-    else
-    {
-        RECT rc = {0};
-        RECT rect = {0};
-        GetWindowRect(hwnd, &rc);
-        GetWindowRect(h_tool, &rect);
-        g_toolbar_height = rect.bottom - rect.top;
-        eu_setpos_window(h_tool, HWND_TOP, 0, 0, rc.right - rc.left, g_toolbar_height , SWP_NOZORDER|SWP_SHOWWINDOW);
-    }
-    UpdateWindow(hwnd);
 }
 
 bool WINAPI
@@ -774,9 +774,9 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             pt.x = GET_X_LPARAM(lParam);
             pt.y = GET_Y_LPARAM(lParam);
             ClientToScreen(hwnd, &pt);
-            CheckMenuItem(pop_toolbar_menu, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar?MF_CHECKED:MF_UNCHECKED);
-            CheckMenuItem(pop_toolbar_menu, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar?MF_CHECKED:MF_UNCHECKED);
-            CheckMenuItem(pop_toolbar_menu, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar?MF_CHECKED:MF_UNCHECKED);
+            util_set_menu_item((HWND)pop_toolbar_menu, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
+            util_set_menu_item((HWND)pop_toolbar_menu, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
+            util_set_menu_item((HWND)pop_toolbar_menu, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
             TrackPopupMenu(pop_toolbar_menu, 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
             break;
         }
@@ -823,6 +823,19 @@ is_exec_file(eu_tabpage *pnode)
             pnode->doc_ptr->doc_type == DOCTYPE_REDIS);
 }
 
+static void
+on_toolbar_dark_tips(HWND hwnd)
+{
+    if (on_dark_enable())
+    {
+        HWND htips = (HWND) SendMessage(hwnd, TB_GETTOOLTIPS, 0, 0);
+        if (NULL != htips)
+        {
+            on_dark_set_theme(htips, L"DarkMode_Explorer", NULL);
+        }
+    }
+}
+
 int WINAPI
 on_toolbar_height(void)
 {
@@ -839,9 +852,9 @@ on_toolbar_update_button(void)
         set_tbotton_status(IDM_FILE_SAVEAS, 2);
         set_tbotton_status(IDM_FILE_CLOSE, 2);
         set_tbotton_status(IDM_FILE_PRINT, 2);
-        set_tbotton_status(IDM_EDIT_CUT, 2);
-        set_tbotton_status(IDM_EDIT_COPY, 2);
-        set_tbotton_status(IDM_EDIT_PASTE, 2);
+        set_tbotton_status(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
+        set_tbotton_status(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
+        set_tbotton_status(IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0)?2:1);
         set_tbotton_status(IDM_SEARCH_FIND, 2);
         set_tbotton_status(IDM_SEARCH_FINDPREV, 2);
         set_tbotton_status(IDM_SEARCH_FINDNEXT, 2);
@@ -999,6 +1012,7 @@ on_toolbar_create(HWND parent)
     SendMessage(htool, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
     SendMessage(htool, TB_SETMAXTEXTROWS, 0, 0);
     SendMessage(htool, TB_AUTOSIZE, 0, 0);
+    on_toolbar_dark_tips(htool);
     // 剪贴板窗口
     return !create_clipbox();
 }

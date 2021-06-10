@@ -188,6 +188,11 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case WM_LBUTTONUP:
+        {
+            eu_reset_drag_line();
+            break;
+        }        
         case WM_LBUTTONDBLCLK:
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);

@@ -40,7 +40,7 @@ extern "C" {
 
 bool __stdcall on_toolbar_get_clipboard(char **ppstr);
 bool __stdcall on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
-void __stdcall on_toolbar_size(HWND hwnd);
+void __stdcall on_toolbar_size(void);
 void __stdcall on_toolbar_adjust_box(void);
 void __stdcall on_toolbar_update_button(void);
 void __stdcall on_toolbar_execute_script(void);

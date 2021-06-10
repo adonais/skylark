@@ -43,7 +43,7 @@ struct _tabpage
     HWND hwnd_sc;               // 编辑器句柄
     SciFnDirect ptr_scintilla;  // scintilla句柄重定向
     sptr_t eusc;                
-    RECT rect_sc;               // 编辑器矩形大小
+    RECT rect_sc;               // 编辑器矩形区域
     int match_count;            // 查找时匹配计数
     HWND hwnd_symlist;          // tab关联的子窗口句柄
     RECT rect_symlist;
@@ -69,6 +69,7 @@ struct _tabpage
     time_t st_mtime;            // 文件修改时间
     uint32_t file_attr;         // 文件属性,只读/可写...
     bool is_blank;              // 新建文件,空白标签
+    bool at_close;              // 是否绘制了关闭按钮
     doctype_t *doc_ptr;         // 文件类型指针
     int codepage;               // 文件编码
     char pre_context[4+1];      // 保存bom

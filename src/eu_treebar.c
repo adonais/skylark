@@ -1423,6 +1423,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONDOWN:
             break;
         case WM_LBUTTONUP:
+            eu_reset_drag_line();
             break;
         case WM_RBUTTONDOWN:
         {
@@ -1458,7 +1459,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 return 1;
             }
             break;
-        }
+        }        
         case WM_DESTROY:
         {
             HIMAGELIST img_list = (HIMAGELIST)GetWindowLongPtr(hwnd, GWLP_USERDATA);
@@ -1575,6 +1576,12 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;            
         }
+        case WM_DPICHANGED:
+        {
+            printf("g_treebar WM_DPICHANGED\n");
+            on_treebar_update_theme();
+            break;
+        }        
         case WM_THEMECHANGED:
         {
             printf("g_treebar WM_THEMECHANGED\n");

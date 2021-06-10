@@ -25,7 +25,7 @@
 #define MAYBE100MS 100
 #define APP_CLASS _T("__eu_skylark__")
 
-typedef UINT (WINAPI* GetDpiForWindowFunc)(HWND hwnd);
+typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
 static bool filebar_hover_resize;
@@ -41,16 +41,6 @@ static bool is_result_resize;
 static HBRUSH g_control_brush;
 static HWND eu_hwndmain;  // 主窗口句柄
 static volatile long undo_off;
-
-static void
-reset_move_option(void)
-{
-    is_filebar_resize = false;
-    is_function_resize = false;
-    is_view_resize = false;
-    is_sql_resize = false;
-    is_result_resize = false;
-}
 
 static int
 on_create_window(HWND hwnd)
@@ -126,6 +116,112 @@ adjust_window_rect_dpi(LPRECT lpRect, DWORD dwStyle, DWORD dwExStyle, UINT dpi)
 }
 
 /*****************************************************************************
+ * 在admin模式下启用拖放
+ ****************************************************************************/
+static void
+do_drop_fix(void)
+{
+    typedef BOOL(WINAPI *ChangeWindowMessageFilterPtr)(UINT message, DWORD flag);
+    ChangeWindowMessageFilterPtr fnChangeWindowMessageFilter = NULL;
+    HMODULE usr32 = LoadLibrary(_T("user32.dll"));
+    if (usr32)
+    {
+        fnChangeWindowMessageFilter = (ChangeWindowMessageFilterPtr) GetProcAddress(usr32, "ChangeWindowMessageFilter");
+        if (fnChangeWindowMessageFilter)
+        {
+            fnChangeWindowMessageFilter(WM_DROPFILES, MSGFLT_ADD);
+            fnChangeWindowMessageFilter(WM_COPYDATA, MSGFLT_ADD);
+            fnChangeWindowMessageFilter(WM_COPYGLOBALDATA, MSGFLT_ADD);
+        }
+        FreeLibrary(usr32);
+    }
+}
+
+void
+eu_reset_drag_line(void)
+{
+    is_filebar_resize = false;
+    is_function_resize = false;
+    is_view_resize = false;
+    is_sql_resize = false;
+    is_result_resize = false;
+}
+
+void
+eu_clear_undo_off(void)
+{
+    _InterlockedExchange(&undo_off, 0);
+}
+
+HWND
+eu_module_hwnd(void)
+{
+    return eu_hwndmain;
+}
+
+uint32_t
+eu_get_dpi(HWND hwnd)
+{
+    uint32_t dpi = 0;
+    GetDpiForWindowPtr fnGetDpiForWindow = NULL;
+    HMODULE user32 = GetModuleHandle(_T("user32.dll"));
+    if (user32)
+    {   // PMv2, 使用GetDpiForWindow获取dpi
+        fnGetDpiForWindow = (GetDpiForWindowPtr)GetProcAddress(user32, "GetDpiForWindow");
+        if (fnGetDpiForWindow && (dpi = fnGetDpiForWindow(hwnd ? hwnd : eu_hwndmain)) > 0)
+        {
+            return dpi;
+        }
+    }
+    if (!dpi)
+    {   // PMv1或Win7系统, 使用GetDeviceCaps获取dpi
+        HDC screen = GetDC(hwnd ? hwnd : eu_hwndmain);
+        int x = GetDeviceCaps(screen,LOGPIXELSX);
+        int y = GetDeviceCaps(screen,LOGPIXELSY);
+        ReleaseDC(hwnd ? hwnd : eu_hwndmain, screen);
+        dpi = (uint32_t)((x + y)/2);
+    }
+    return dpi;
+}
+
+void 
+eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
+{
+    const uint32_t flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED;
+    if (pnew_rect) 
+    {
+        SetWindowPos(hwnd, NULL, pnew_rect->left, pnew_rect->top,
+                    (pnew_rect->right - pnew_rect->left), (pnew_rect->bottom - pnew_rect->top), flags);
+    } 
+    else 
+    {
+        RECT rc = { 0 };
+        GetWindowRect(hwnd, &rc);
+        const uint32_t dpi = adpi ? adpi : eu_get_dpi(hwnd);
+        adjust_window_rect_dpi((LPRECT)&rc, flags, 0, dpi);
+        SetWindowPos(hwnd, NULL, rc.left, rc.top, (rc.right - rc.left), (rc.bottom - rc.top), flags);
+    }
+    RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_ERASE | RDW_INTERNALPAINT | RDW_ALLCHILDREN | RDW_UPDATENOW);
+}
+
+int
+eu_dpi_scale_font(void)
+{
+    return eu_get_dpi(NULL) > 96 ? 0 : -11;
+}
+
+int
+eu_dpi_scale_xy(int adpi, int m)
+{
+    int dpx = adpi ? adpi : eu_get_dpi(NULL);
+    if (dpx)
+    {
+        return MulDiv(m, dpx, 96);
+    }
+    return m;
+}
+
+/*****************************************************************************
  * 菜单栏下面 1px 分割线位置
  ****************************************************************************/
 static void
@@ -152,7 +248,8 @@ get_treebar_border_rect(HWND hwnd, LPRECT r)
     RECT rc_client = {0};
     POINT client_top = {0};
     on_treebar_adjust_box(&rc_tree);
-    if (rc_tree.right - rc_tree.left < 0)
+    int scale = eu_dpi_scale_xy(0, SPLIT_WIDTH);
+    if (rc_tree.right - rc_tree.left < scale)
     {
         return false;
     }
@@ -161,96 +258,11 @@ get_treebar_border_rect(HWND hwnd, LPRECT r)
     ClientToScreen(hwnd, &client_top);
     int toolbar_height = on_toolbar_height();
     int tree_hight = rc_client.bottom - rc_client.top - toolbar_height - on_statusbar_height();
-    r->left = rc_tree.right - rc_tree.left + SPLIT_WIDTH + SPLIT_WIDTH;
-    r->right = r->left + SPLIT_WIDTH;
+    r->left = rc_tree.right - rc_tree.left + SPLIT_WIDTH + scale;
+    r->right = r->left + scale;
     r->top = client_top.y - rc_main.top + toolbar_height;
     r->bottom = r->top + tree_hight;
     return true;
-}
-
-/*****************************************************************************
- * 在admin模式下启用拖放
- ****************************************************************************/
-static void
-do_drop_fix(void)
-{
-    typedef BOOL(WINAPI *ChangeWindowMessageFilterPtr)(UINT message, DWORD flag);
-    ChangeWindowMessageFilterPtr fnChangeWindowMessageFilter = NULL;
-    HMODULE usr32 = LoadLibrary(_T("user32.dll"));
-    if (usr32)
-    {
-        fnChangeWindowMessageFilter = (ChangeWindowMessageFilterPtr) GetProcAddress(usr32, "ChangeWindowMessageFilter");
-        if (fnChangeWindowMessageFilter)
-        {
-            fnChangeWindowMessageFilter(WM_DROPFILES, MSGFLT_ADD);
-            fnChangeWindowMessageFilter(WM_COPYDATA, MSGFLT_ADD);
-            fnChangeWindowMessageFilter(WM_COPYGLOBALDATA, MSGFLT_ADD);
-        }
-        FreeLibrary(usr32);
-    }
-}
-
-void
-eu_clear_undo_off(void)
-{
-    _InterlockedExchange(&undo_off, 0);
-}
-
-HWND
-eu_module_hwnd(void)
-{
-    return eu_hwndmain;
-}
-
-uint32_t
-eu_get_dpi(HWND hwnd)
-{
-    uint32_t dpi = 0;
-    GetDpiForWindowFunc fnGetDpiForWindow = NULL;
-    HMODULE user32 = GetModuleHandle(_T("user32.dll"));
-    if (user32)
-    {
-        fnGetDpiForWindow = (GetDpiForWindowFunc)GetProcAddress(user32, "GetDpiForWindow");
-        if (fnGetDpiForWindow && (dpi = fnGetDpiForWindow(hwnd)) > 0)
-        {
-            return dpi;
-        }
-    }
-    if (!dpi)
-    {
-        HDC screen = GetDC(hwnd);
-        int x = GetDeviceCaps(screen,LOGPIXELSX);
-        int y = GetDeviceCaps(screen,LOGPIXELSY);
-        ReleaseDC(hwnd, screen);
-        dpi = (uint32_t)((x + y)/2);
-    }
-    return dpi;
-}
-
-void 
-eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
-{
-    const uint32_t flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED;
-    if (pnew_rect) 
-    {
-        SetWindowPos(hwnd, NULL, pnew_rect->left, pnew_rect->top, 
-                    (pnew_rect->right - pnew_rect->left), (pnew_rect->bottom - pnew_rect->top), flags);
-    } 
-    else 
-    {
-        RECT rc = { 0 };
-        GetWindowRect(hwnd, &rc);
-        const uint32_t dpi = adpi ? adpi : eu_get_dpi(hwnd);
-        adjust_window_rect_dpi((LPRECT)&rc, flags, 0, dpi);
-        SetWindowPos(hwnd, NULL, rc.left, rc.top, (rc.right - rc.left), (rc.bottom - rc.top), flags);
-    }
-    RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_ERASE | RDW_INTERNALPAINT | RDW_ALLCHILDREN | RDW_UPDATENOW);
-}
-
-int
-eu_dpi_scale(void)
-{
-    return eu_get_dpi(eu_hwndmain) > 96 ? 0 : -11;
 }
 
 bool
@@ -406,8 +418,7 @@ eu_window_resize(HWND hwnd)
                                  pnode->rect_symlist.right - pnode->rect_symlist.left,
                                  pnode->rect_symlist.bottom - pnode->rect_symlist.top,
                                  SWP_SHOWWINDOW);
-                    InvalidateRect(pnode->hwnd_symlist, NULL, true);
-                    UpdateWindow(pnode->hwnd_symlist);                
+                    UpdateWindowEx(pnode->hwnd_symlist);
                 }
                 else
                 {
@@ -426,8 +437,7 @@ eu_window_resize(HWND hwnd)
                                  pnode->rect_symtree.right - pnode->rect_symtree.left,
                                  pnode->rect_symtree.bottom - pnode->rect_symtree.top,
                                  SWP_SHOWWINDOW);
-                    InvalidateRect(pnode->hwnd_symtree, NULL, true);
-                    UpdateWindow(pnode->hwnd_symtree);
+                    UpdateWindowEx(pnode->hwnd_symtree);
                 }
                 else
                 {
@@ -460,8 +470,7 @@ eu_window_resize(HWND hwnd)
                              pnode->rect_qredit.right - pnode->rect_qredit.left,
                              pnode->rect_qredit.bottom - pnode->rect_qredit.top,
                              SWP_SHOWWINDOW);
-                InvalidateRect(pnode->hwnd_qredit, NULL, true);
-                UpdateWindow(pnode->hwnd_qredit);
+                UpdateWindowEx(pnode->hwnd_qredit);
             }
             if (pnode->hwnd_qrtable)
             {
@@ -472,8 +481,7 @@ eu_window_resize(HWND hwnd)
                              pnode->rect_qrtable.right - pnode->rect_qrtable.left,
                              pnode->rect_qrtable.bottom - pnode->rect_qrtable.top,
                              SWP_SHOWWINDOW);
-                InvalidateRect(pnode->hwnd_qrtable, NULL, true);
-                UpdateWindow(pnode->hwnd_qrtable);
+                UpdateWindowEx(pnode->hwnd_qrtable);
             }
         }
         if (pnode->hwnd_sc)
@@ -485,15 +493,11 @@ eu_window_resize(HWND hwnd)
                          pnode->rect_sc.right - pnode->rect_sc.left,
                          pnode->rect_sc.bottom - pnode->rect_sc.top,
                          SWP_SHOWWINDOW);
-            UpdateWindowEx(pnode->hwnd_sc);
             
         }
     }
-    if (hwnd)
-    {
-        on_toolbar_size(hwnd);
-        on_statusbar_size(hwnd);
-    }
+    on_toolbar_size();
+    on_statusbar_size();
     if (g_tabpages)
     {
         InvalidateRect(g_tabpages, NULL, true);
@@ -502,8 +506,8 @@ eu_window_resize(HWND hwnd)
     if (pnode && pnode->hwnd_sc)
     {
         SetFocus(pnode->hwnd_sc);
+        UpdateWindowEx(pnode->hwnd_sc);
     }
- 
 }
 
 int
@@ -576,12 +580,17 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NCHITTEST:
         case WM_NCCALCSIZE:
         case WM_PAINT:
-        case WM_ERASEBKGND:
         case WM_NCMOUSEMOVE:
         case WM_NCLBUTTONDOWN:
         case WM_WINDOWPOSCHANGING:
         case WM_WINDOWPOSCHANGED:
             return DefWindowProc(hwnd, message, wParam, lParam);
+        case WM_ERASEBKGND:
+            if (!on_dark_enable())
+            {
+                return DefWindowProc(hwnd, message, wParam, lParam);
+            }
+            return 1;    
         case WM_CREATE:
             if (on_create_window(hwnd))
             {
@@ -609,18 +618,20 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_on_dark_release(false);
                     eu_window_resize(hwnd);
                 }
-                return result;
             }
-            HDC hdc = GetWindowDC(hwnd);
-            RECT r = {0};
-            RECT rect_tree = {0};
-            get_menu_border_rect(hwnd, &r);
-            FillRect(hdc, &r, (HBRUSH)on_dark_get_brush());
-            if (get_treebar_border_rect(hwnd, &rect_tree))
-            {   // 重新绘制分割线
-                FillRect(hdc, &rect_tree, (HBRUSH)on_dark_get_brush());
+            else
+            {
+                HDC hdc = GetWindowDC(hwnd);
+                RECT r = {0};
+                RECT rect_tree = {0};
+                get_menu_border_rect(hwnd, &r);
+                FillRect(hdc, &r, (HBRUSH)on_dark_get_brush());
+                if (get_treebar_border_rect(hwnd, &rect_tree))
+                {   // 重新绘制分割线
+                    FillRect(hdc, &rect_tree, (HBRUSH)on_dark_get_brush());
+                }
+                ReleaseDC(hwnd, hdc);                
             }
-            ReleaseDC(hwnd, hdc);
             return result;
         }
         case WM_NCACTIVATE:
@@ -637,10 +648,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 EndDialog(on_qrgen_hwnd(), 0);
             }
-            if (KEY_UP(VK_LBUTTON))
-            {
-                reset_move_option();
-            }
             if (true)
             {   // 是否按下大写键
                 on_statusbar_btn_case();
@@ -655,7 +662,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             on_theme_setup_font(hwnd);
             on_tabpage_foreach(hexview_update_theme);
             on_statusbar_init(hwnd);
-            SendMessage(g_filetree, WM_DPICHANGED, 0, 0);
+            SendMessage(g_treebar, WM_DPICHANGED, 0, 0);
             break;
         }
         case WM_CTLCOLORLISTBOX:
@@ -701,11 +708,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_tabpage_foreach(on_tabpage_theme_changed);
                 if (g_statusbar && on_statusbar_init(hwnd))
                 {
-                    on_statusbar_size(hwnd);
+                    on_statusbar_size();
                 }
                 if (on_toolbar_refresh(hwnd))
                 {
-                    on_toolbar_size(hwnd);
+                    on_toolbar_size();
                 }
                 on_dark_set_theme(g_treebar, L"Explorer", NULL);
                 on_dark_set_theme(g_tabpages, L"Explorer", NULL);
@@ -1403,7 +1410,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 eu_get_config()->result_edit_height = SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN;
                             }
-                            eu_window_resize(NULL);
+                            eu_window_resize(eu_hwndmain);
                         }
                         else if (pnode->rect_qredit.left <= x && x <= pnode->rect_qredit.right && pnode->rect_sc.bottom < y &&
                                  y < pnode->rect_qredit.top)
@@ -1432,7 +1439,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 eu_get_config()->result_list_height = nListViewHeight;
                             }
-                            eu_window_resize(NULL);
+                            eu_window_resize(eu_hwndmain);
                         }
                         else if (pnode->rect_qrtable.left <= x && x <= pnode->rect_qrtable.right &&
                                  pnode->rect_qredit.bottom < y && y < pnode->rect_qrtable.top)
@@ -1630,9 +1637,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         {
                             break;
                         }
-                        if ((lpnotify->updated & SC_UPDATE_SELECTION) && eu_get_config()->m_light_str)
+                        if (lpnotify->updated & SC_UPDATE_SELECTION)
                         {
-                            on_view_editor_selection(pnode);
+                            if (eu_get_config()->m_light_str)
+                            {
+                                on_view_editor_selection(pnode);
+                            }
+                            menu_update_all(hwnd, pnode);
                         }
                         on_statusbar_update_filesize(pnode);
                     }
@@ -1719,31 +1730,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_LBUTTONUP:
-            if (is_filebar_resize)
-            {
-                is_filebar_resize = false;
-                eu_window_resize(eu_hwndmain);
-            }
-            if (is_function_resize)
-            {
-                is_function_resize = false;
-                eu_window_resize(eu_hwndmain);
-            }
-            if (is_view_resize)
-            {
-                is_view_resize = false;
-                eu_window_resize(eu_hwndmain);
-            }
-            if (sql_hover_resize)
-            {
-                is_sql_resize = false;
-                eu_window_resize(eu_hwndmain);
-            }
-            if (result_hover_resize)
-            {
-                is_result_resize = false;
-                eu_window_resize(eu_hwndmain);
-            }
+            eu_reset_drag_line();
             break;
         case WM_DROPFILES:
             if (wParam)

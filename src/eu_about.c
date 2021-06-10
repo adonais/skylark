@@ -3445,6 +3445,37 @@ on_about_build_bmp(const uint8_t *text)
     return hpay; 
 }
 
+static void
+on_about_scale_layout(HWND hdlg, HBITMAP h_wcpay, HBITMAP h_alipay)
+{
+    RECT rc_wnd;
+    const int default_xy = 300;
+    HWND hwnd_dona1 = GetDlgItem(hdlg, IDC_DONA_STATIC4);
+    HWND hwnd_dona2 = GetDlgItem(hdlg, IDC_DONA_STATIC5);
+    if (hwnd_dona1 && hwnd_dona2)
+    {
+        RECT rc_wc;
+        RECT rc_ali;
+        RECT rc_stc1;
+        RECT rc_stc2;
+        GetWindowRect(hdlg, &rc_wnd);
+        GetWindowRect(hwnd_dona1, &rc_wc);
+        GetWindowRect(hwnd_dona2, &rc_ali);
+        GetClientRect(GetDlgItem(hdlg, IDC_DONA_STATIC1), &rc_stc1);
+        GetClientRect(GetDlgItem(hdlg, IDC_DONA_STATIC2), &rc_stc2);
+        int my_top = (rc_stc1.bottom - rc_stc1.top) + (rc_stc2.bottom - rc_stc2.top) + eu_dpi_scale_xy(eu_get_dpi(hdlg), 10);
+        int x = rc_wnd.right - rc_wnd.left;
+        int y = (rc_wnd.bottom - rc_wnd.top) - (rc_wc.bottom - rc_wc.top) + default_xy;
+        MapWindowPoints(NULL, hdlg, (LPPOINT)&rc_wc, 2);
+        MoveWindow(hwnd_dona1, rc_wc.left, my_top, rc_wc.right - rc_wc.left, default_xy, TRUE);
+        MapWindowPoints(NULL, hdlg, (LPPOINT)&rc_ali, 2);
+        MoveWindow(hwnd_dona2, rc_ali.left, my_top, rc_ali.right - rc_ali.left, default_xy, TRUE);
+        MoveWindow(hdlg, rc_wnd.left, rc_wnd.top, x, y, true);
+        SendMessage(hwnd_dona1, STM_SETIMAGE,(WPARAM)IMAGE_BITMAP, (LPARAM)h_wcpay);
+        SendMessage(hwnd_dona2, STM_SETIMAGE,(WPARAM)IMAGE_BITMAP, (LPARAM)h_alipay);
+    }
+}
+
 static INT_PTR CALLBACK 
 func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -3460,12 +3491,20 @@ func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 SetWindowText(GetDlgItem(hdlg, IDC_DONA_STATIC1), dona_tips);
             }
-            if ((h_wcpay = on_about_build_bmp(wc_buffer)) != NULL)
+            h_wcpay = on_about_build_bmp(wc_buffer);
+            h_alipay = on_about_build_bmp(ali_buffer);
+            if (!(h_wcpay && h_alipay))
+            {
+                EndDialog(hdlg, 0);
+                break;
+            }
+            if (eu_get_dpi(hdlg) > 96)
+            {
+                on_about_scale_layout(hdlg, h_wcpay, h_alipay);
+            }
+            else
             {
                 SendDlgItemMessage(hdlg, IDC_DONA_STATIC4, STM_SETIMAGE,(WPARAM)IMAGE_BITMAP, (LPARAM)h_wcpay);
-            }
-            if ((h_alipay = on_about_build_bmp(ali_buffer)) != NULL)
-            {
                 SendDlgItemMessage(hdlg, IDC_DONA_STATIC5, STM_SETIMAGE,(WPARAM)IMAGE_BITMAP, (LPARAM)h_alipay);
             }
             if (on_dark_enable())
@@ -3485,7 +3524,7 @@ func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 SendMessage(hdlg, WM_THEMECHANGED, 0, 0);
             }
             break;
-        }
+        }        
         case WM_THEMECHANGED:
         {
             if (on_dark_enable())
@@ -3495,6 +3534,11 @@ func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 UpdateWindow(hdlg);
             }
             break;
+        }
+        case WM_DPICHANGED:
+        {
+            on_about_scale_layout(hdlg, h_wcpay, h_alipay);
+            return 1;
         }
         case WM_CLOSE:
         {

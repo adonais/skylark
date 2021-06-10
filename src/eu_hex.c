@@ -526,9 +526,9 @@ static bool
 hexview_create_font(HWND hwnd, PHEXVIEW hexview)
 {
     LOGFONT logfont;   
-    TCHAR font[ACNAME_LEN+1] = {0};
+    TCHAR font[LF_FACESIZE] = {0};
     uint8_t quality = CLEARTYPE_QUALITY;
-    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->item.text.font, -1, font, ACNAME_LEN))
+    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->item.text.font, -1, font, LF_FACESIZE-1))
     {
         return false;
     }
@@ -541,7 +541,7 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
         quality = NONANTIALIASED_QUALITY;
     }
     int font_size = eu_get_theme()->item.text.fontsize + hex_zoom + 1;
-    logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(hwnd), 72);
+    logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(NULL), 72);
     logfont.lfWidth = 0;
     logfont.lfEscapement = 0;
     logfont.lfOrientation = 0;
@@ -554,7 +554,7 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     logfont.lfQuality = quality;
     logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
     logfont.lfCharSet = ANSI_CHARSET;
-    _tcsncpy(logfont.lfFaceName, font, _countof(logfont.lfFaceName));
+    _tcsncpy(logfont.lfFaceName, font, _countof(logfont.lfFaceName)-1);
     hexview->hfont = CreateFontIndirect(&logfont);
     if (hexview->hfont)
     {
@@ -1186,7 +1186,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             sptr_t skip_line = (wParam / 16) - (hexview->select_start / 16);
             offset = ((wParam - hexview->select_start) - (sptr_t)(skip_line * 16)) * 2;
             if (offset && hexview->hl_position)
-            { // 如果光标在下半字节
+            {   // 如果光标在下半字节
                 --offset;
             }
             if (hexview->total_items / 16 * 16 <= wParam)
@@ -1250,6 +1250,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 hexview_caret(hwnd, hexview);
                 ShowCaret(hwnd);
                 hexview_send_notify(hwnd, NM_SETFOCUS, &nmhdr);
+            }
+            else
+            {   // caret invisible, show it!
+                hexview_caret(hwnd, hexview);
             }
             break;
         }
@@ -1484,6 +1488,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         case WM_THEMECHANGED:
         {
             printf("hex recv WM_THEMECHANGED\n");
+            if (eu_get_config()->m_toolbar)
+            {
+                on_toolbar_update_button();
+            }            
             break;
         }
         // 兼容scintilla控件
@@ -1652,7 +1660,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 static HWND
 hexview_create_dlg(HWND parent, LPVOID lparam)
 {
-    return CreateWindowEx(0, _T("__eu_hexview"), NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, parent, 0, GetModuleHandle(NULL), lparam);
+    return CreateWindowEx(0, _T("__eu_hexview"), NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, parent, 0, eu_module_handle(), lparam);
 }
 
 static void

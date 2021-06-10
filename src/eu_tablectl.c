@@ -43,6 +43,11 @@ listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR uIdSubClass, D
 {
     switch (msg)
     {
+        case WM_LBUTTONUP:
+        {
+            eu_reset_drag_line();
+            break;
+        }        
         case WM_THEMECHANGED:
         {
             printf("qrtable recv WM_THEMECHANGED\n");

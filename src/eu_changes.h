@@ -31,7 +31,6 @@ extern "C" {
 #endif
 
 void __stdcall on_changes_window(HWND hwnd);
-int __stdcall wrap_msgbox(HWND hwnd, LPCTSTR lptext, LPCTSTR lpcaption, UINT type);
 
 #ifdef __cplusplus
 }
