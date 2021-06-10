@@ -12,10 +12,11 @@
 #define UpdateWindowEx(hwnd)                                                               \
   RedrawWindow((hwnd), NULL, NULL, RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_INTERNALPAINT)   \
 
-#define rgb_dark_bk_color  (0x383838)
-#define rgb_dark_btn_color (0x333333)
-#define rgb_dark_txt_color (0xFFFFFF)
-#define rgb_dark_hot_color (0x404040)
+#define rgb_dark_bk_color    (0x383838)
+#define rgb_dark_btn_color   (0x333333)
+#define rgb_dark_txt_color   (0xFFFFFF)
+#define rgb_dark_hot_color   (0x404040)
+#define rgb_high_light_color (0xd77800)
 
 typedef uint32_t colour;
   

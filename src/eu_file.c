@@ -1290,6 +1290,7 @@ write_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
 static int
 on_file_write_backup(eu_tabpage *pnode)
 {
+    int ret = 0;
     if (pnode && !util_availed_char(pnode->fs_server.networkaddr[0]))
     {
         size_t len = _tcslen(pnode->pathfile);
@@ -1300,11 +1301,12 @@ on_file_write_backup(eu_tabpage *pnode)
             if (!CopyFile(pnode->pathfile, pbakup, false))
             {
                 MSG_BOX(IDC_MSG_COPY_FAIL, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
-                return EUE_COPY_FILE_ERR;
+                ret = EUE_COPY_FILE_ERR;
             }
+            free(pbakup);
         }
     }
-    return 0;
+    return ret;
 }
 
 int

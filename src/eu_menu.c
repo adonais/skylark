@@ -208,6 +208,9 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
                 util_enable_menu_item(hwnd, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
                 util_enable_menu_item(hwnd, IDM_FILE_SAVEAS, pnode->filename[0]);
                 util_enable_menu_item(hwnd, IDM_FILE_PRINT, true);
+                util_enable_menu_item(hwnd, IDM_EDIT_CUT, util_can_selections(pnode));
+                util_enable_menu_item(hwnd, IDM_EDIT_COPY, util_can_selections(pnode));
+                util_enable_menu_item(hwnd, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
                 util_enable_menu_item(hwnd, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN);
                 menu_update_hexview(hwnd, pnode->hex_mode);
                 menu_update_rside(hwnd, pnode);

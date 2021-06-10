@@ -817,9 +817,9 @@ on_view_font_quality(HWND hwnd, int res_id)
                 on_sci_after_file(p);
             }
         }
-        CheckMenuItem(GetMenu(hwnd), IDM_VIEW_FONTQUALITY_NONE, IDM_VIEW_FONTQUALITY_NONE == res_id ? MF_CHECKED : MF_UNCHECKED);
-        CheckMenuItem(GetMenu(hwnd), IDM_VIEW_FONTQUALITY_STANDARD, IDM_VIEW_FONTQUALITY_STANDARD == res_id ? MF_CHECKED : MF_UNCHECKED);
-        CheckMenuItem(GetMenu(hwnd), IDM_VIEW_FONTQUALITY_CLEARTYPE, IDM_VIEW_FONTQUALITY_CLEARTYPE == res_id ? MF_CHECKED : MF_UNCHECKED); 
+        util_set_menu_item(hwnd, IDM_VIEW_FONTQUALITY_NONE, IDM_VIEW_FONTQUALITY_NONE == res_id);
+        util_set_menu_item(hwnd, IDM_VIEW_FONTQUALITY_STANDARD, IDM_VIEW_FONTQUALITY_STANDARD == res_id);
+        util_set_menu_item(hwnd, IDM_VIEW_FONTQUALITY_CLEARTYPE, IDM_VIEW_FONTQUALITY_CLEARTYPE == res_id);
         eu_window_resize(hwnd);
     }
 }
@@ -843,9 +843,9 @@ on_view_enable_rendering(HWND hwnd, int res_id)
                 on_sci_after_file(p);
             }
         }
-        CheckMenuItem(GetMenu(hwnd), IDM_SET_RENDER_TECH_GDI, IDM_SET_RENDER_TECH_GDI == res_id ? MF_CHECKED : MF_UNCHECKED);
-        CheckMenuItem(GetMenu(hwnd), IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == res_id ? MF_CHECKED : MF_UNCHECKED);
-        CheckMenuItem(GetMenu(hwnd), IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == res_id ? MF_CHECKED : MF_UNCHECKED);    
+        util_set_menu_item(hwnd, IDM_SET_RENDER_TECH_GDI, IDM_SET_RENDER_TECH_GDI == res_id);
+        util_set_menu_item(hwnd, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == res_id);
+        util_set_menu_item(hwnd, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == res_id);    
         eu_window_resize(hwnd);
     }
 }

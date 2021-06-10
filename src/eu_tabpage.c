@@ -115,9 +115,10 @@ on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
 }
 
 static void
-on_tabpage_draw_close(HDC hdc, const LPRECT lprect, bool sel)
+on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 {
 	int nclose = on_dark_supports() ? IDB_DARK_CLOSE_BMP : (sel ? IDB_AC_CLOSE_BMP : IDB_UN_CLOSE_BMP);
+	HDC hdc = GetDC(hwnd);    
 	HDC hdc_mem  = CreateCompatibleDC(hdc);
 	HBITMAP hbmp = LoadBitmap(eu_module_handle(), MAKEINTRESOURCE(nclose));
 	int border = (lprect->bottom - lprect->top - CLOSEBUTTON_HEIGHT + 1) / 2;
@@ -127,6 +128,7 @@ on_tabpage_draw_close(HDC hdc, const LPRECT lprect, bool sel)
 	StretchBlt(hdc, left, top, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, hdc_mem, 0, 0, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, SRCCOPY);
 	DeleteDC(hdc_mem);
 	DeleteObject(hbmp);
+	ReleaseDC(hwnd, hdc);
 }
 
 static void
@@ -135,7 +137,7 @@ on_tabpage_undraw_close(HWND hwnd, const LPRECT lprect)
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
                lprect->top + TAB_MIN_TOP,
                lprect->right - TAB_MIN_TOP,
-               lprect->top + TAB_MIN_TOP + CLOSEBUTTON_HEIGHT + 1
+               lprect->bottom - 1
               };
     InvalidateRect(hwnd, &rc, true);
     UpdateWindow(hwnd);
@@ -151,7 +153,7 @@ on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
               };
     return PtInRect(&rc, *pt); 
 }
-	
+
 static void
 on_tabpage_paint_draw(HWND hwnd, HDC hdc)
 {
@@ -173,8 +175,8 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
                 TabCtrl_GetItemRect(hwnd, index, &rc);
                 FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
                 if (nsel == index)
-                {   // example: cr = 0xFF8000;
-                    colour cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : GetSysColor(COLOR_HIGHLIGHT);
+                {   // 这里使用固定值, 因为在某些系统上, COLOR_HIGHLIGHT值不一样
+                    colour cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : rgb_high_light_color;
                     SetBkColor(hdc, cr);
                     ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
                 }
@@ -239,22 +241,28 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             TrackMouseEvent(&MouseEvent);
             RECT rect;
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-            HDC hdc = GetDC(hwnd);
             int nsel = TabCtrl_GetCurSel(hwnd);
             count = TabCtrl_GetItemCount(hwnd);
             for (index = 0; index < count; ++index)
             {
+                TCITEM tci = {TCIF_PARAM};
+                TabCtrl_GetItem(hwnd, index, &tci);
+                if (!(p = (eu_tabpage *) (tci.lParam)))
+                {
+                    break;
+                }
                 TabCtrl_GetItemRect(hwnd, index, &rect);
                 if (PtInRect(&rect, point))
                 {
-                    on_tabpage_draw_close(hdc, &rect, index == nsel);
+                    on_tabpage_draw_close(hwnd, &rect, index == nsel);
+                    p->at_close = true;
                 }
-                else
+                else if (p->at_close)
                 {
                     on_tabpage_undraw_close(hwnd, &rect);
+                    p->at_close = false;
                 }
             }
-            ReleaseDC(hwnd, hdc);
             break;
         }
         case WM_MOUSEHOVER:
@@ -267,8 +275,17 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             count = TabCtrl_GetItemCount(hwnd);
             for (index = 0; index < count; ++index)
             {
+                TCITEM tci = {TCIF_PARAM};
+                TabCtrl_GetItem(hwnd, index, &tci);
+                if (!(p = (eu_tabpage *) (tci.lParam)))
+                {
+                    break;
+                }                
                 TabCtrl_GetItemRect(hwnd, index, &rect);
-                on_tabpage_undraw_close(hwnd, &rect);
+                if (p->at_close)
+                {
+                    on_tabpage_undraw_close(hwnd, &rect);
+                }
             }
             break;
         }
@@ -325,14 +342,13 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     if (m_to >= 0)
                     {
-                        TCITEM tci = {0};
                         eu_tabpage *pnode = on_tabpage_focus_at();
                         if (!pnode)
                         {
                             break;
                         }
                         TabCtrl_DeleteItem(hwnd, move_from);
-                        tci.mask = TCIF_TEXT | TCIF_PARAM;
+                        TCITEM tci = {TCIF_TEXT | TCIF_PARAM};
                         tci.pszText = pnode->filename;
                         tci.lParam = (LPARAM) pnode;
                         if (TabCtrl_InsertItem(hwnd, m_to, &tci) != -1)
@@ -424,7 +440,6 @@ on_tabpage_create_rclick(void)
         {
             break;
         }
-        pop_editor_menu = GetSubMenu(pop_editor_menu, 0);
         if ((pop_symlist_menu = i18n_load_menu(IDR_SYMBOLLIST_POPUPMENU)) == NULL)
         {
             break;

@@ -976,13 +976,21 @@ util_enable_menu_item(HWND hwnd, int m_id, bool enable)
 void
 util_set_menu_item(HWND hwnd, int m_id, bool checked)
 {
-    if (checked)
+    HMENU hmenu = GetMenu(hwnd);
+    if (!hmenu)
     {
-        CheckMenuItem(GetMenu(hwnd), m_id, MF_CHECKED);
+        hmenu = (HMENU)hwnd;
     }
-    else
+    if (hmenu)
     {
-        CheckMenuItem(GetMenu(hwnd), m_id, MF_UNCHECKED);
+        if (checked)
+        {
+            CheckMenuItem(hmenu, m_id, MF_CHECKED);
+        }
+        else
+        {
+            CheckMenuItem(hmenu, m_id, MF_UNCHECKED);
+        }
     }
 }
 
@@ -1302,4 +1310,12 @@ util_to_abs(const char *path)
     }
     SetCurrentDirectory(old_folder);
     return pret;
+}
+
+bool
+util_can_selections(eu_tabpage *pnode)
+{
+    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    return sel_start != sel_end;
 }

@@ -68,6 +68,7 @@ void   util_trim_right_star(TCHAR *str);
 char*  util_struct_to_string(void *buf, size_t bufsize);
 bool   util_string_to_struct(const char *buffer, void *buf, size_t bufsize);
 bool   util_creater_window(HWND hwnd, HWND hparent);
+bool   util_can_selections(eu_tabpage *pnode);
 time_t util_last_time(const TCHAR *path);
 WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *, TCHAR *, int);

@@ -462,6 +462,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_KEYUP:
         case WM_LBUTTONUP:
         {
+            eu_reset_drag_line();
             if ((pnode = on_tabpage_focus_at()) != NULL)
             {
                 if (pnode->doc_ptr && pnode->doc_ptr->fn_keyup)
@@ -475,11 +476,20 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONDOWN:
         {
-            POINT pt;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            ClientToScreen(hwnd, &pt);
-            TrackPopupMenu(pop_editor_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+            eu_tabpage *pnode = on_tabpage_get_handle(hwnd);
+            if (pnode)
+            {
+                util_enable_menu_item((HWND)pop_editor_menu, IDM_EDIT_CUT, util_can_selections(pnode));
+                util_enable_menu_item((HWND)pop_editor_menu, IDM_EDIT_COPY, util_can_selections(pnode));
+                util_enable_menu_item((HWND)pop_editor_menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
+            }            
+            HMENU pop_menu = GetSubMenu(pop_editor_menu, 0);
+            if (pop_menu)
+            {
+                POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                ClientToScreen(hwnd, &pt);
+                TrackPopupMenu(pop_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+            }
             break;
         }
         case WM_COMMAND:
@@ -490,6 +500,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_THEMECHANGED:
         {
             printf("scintilla WM_THEMECHANGED\n");
+            if (eu_get_config()->m_toolbar)
+            {
+                on_toolbar_update_button();
+            }            
             break;
         }
         case WM_DPICHANGED:

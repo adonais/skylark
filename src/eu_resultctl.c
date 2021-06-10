@@ -27,7 +27,10 @@ ptr_result_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_SIZE:
-            break; 
+            break;
+        case WM_LBUTTONUP:
+            eu_reset_drag_line();
+            break;
         case WM_RBUTTONUP:
         {
             POINT pt; 
