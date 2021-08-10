@@ -176,6 +176,7 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
             i18n_update_multi_lang(hwnd);
             menu_switch_theme(hwnd);
             i18n_update_menu(hwnd);
+            on_reg_update_menu(hwnd);
             
             util_set_menu_item(hwnd, IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
             util_set_menu_item(hwnd, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
@@ -202,7 +203,7 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
             util_enable_menu_item(hwnd, IDM_SOURCE_BLOCKFOLD_EXPAND, eu_get_config()->block_fold);
             util_enable_menu_item(hwnd, IDM_SOURCE_BLOCKFOLD_CONTRACTALL, eu_get_config()->block_fold);
             util_enable_menu_item(hwnd, IDM_SOURCE_BLOCKFOLD_EXPANDALL, eu_get_config()->block_fold);
-            CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_reg_update_menu, hwnd, 0, NULL));
+
             if (pnode)
             {
                 util_enable_menu_item(hwnd, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
