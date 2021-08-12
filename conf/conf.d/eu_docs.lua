@@ -122,9 +122,27 @@ function lua_init_after_fortran(p)
   return res;
 end
 
+function lua_init_after_julia(p)
+  local pnode = ffi.cast("void *", p)
+  local res = euapi.on_doc_enable_scilexer(pnode, 133)               -- 133, SCLEX_JULIA
+  if (res ~= 1) then
+    -- euapi.on_doc_default_light(pnode, 0, 0)
+    euapi.on_doc_keyword_light(pnode, 3, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0
+    euapi.on_doc_keyword_light(pnode, 4, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1
+    euapi.on_doc_keyword_light(pnode, 5, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2
+    euapi.on_doc_keyword_light(pnode, 20, 3, 0)                      -- 20, SCE_JULIA_KEYWORD4, keywords3
+    euapi.on_doc_marcro_light(pnode, 12, 4, 0xFF8000)                -- 12, SCE_JULIA_MACRO, keywords4
+    
+    euapi.on_doc_comment_light(pnode, 1, 0)                          -- 1, SCE_JULIA_COMMENT
+    euapi.on_doc_string_light(pnode, 14, 0x008080)                   -- 14, SCE_JULIA_DOCSTRING
+    euapi.on_doc_string_light(pnode, 10, 0x008000)                   -- 10, SCE_JULIA_STRING
+  end
+  return res
+end
+
 function fill_my_docs()
   local ffi_null = ffi.cast("void *", nil)
-  local my_doc_config = ffi.new ("doctype_t [32]",
+  local my_doc_config = ffi.new ("doctype_t [33]",
     {
       {
           1,
@@ -683,7 +701,25 @@ function fill_my_docs()
           euapi.on_doc_click_list_jmp,
           ffi_null,
           ffi_null,
-      },            
+      },
+      {
+          32,
+          "julia",
+          ";*.jl;",
+          "Julia Script",
+          0,
+          -1,
+          euapi.on_doc_init_list,
+          lua_init_after_julia,
+          ffi_null,
+          ffi_null,
+          euapi.on_doc_keyup_general,
+          euapi.on_doc_cpp_like,
+          euapi.on_doc_reload_list_reqular,
+          euapi.on_doc_click_list_jmp,
+          ffi_null,
+          ffi_null,
+      },                 
       {
           0,
       }

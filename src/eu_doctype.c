@@ -401,21 +401,7 @@ on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 void
 on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
-    if (pnode)
-    {
-        on_doc_set_keyword(pnode, index);
-        if (!rgb)
-        {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.preprocessor.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.preprocessor.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.preprocessor.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.preprocessor.bold));
-        }
-        else
-        {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
-        }
-    }
+    on_doc_marcro_light(pnode, lex, index, rgb);
 }
 
 void 

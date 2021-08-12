@@ -203,7 +203,8 @@ enum dctype
     DOCTYPE_PROPERTIES = 28,
     DOCTYPE_NIM = 29,
     DOCTYPE_AU3 = 30,
-    DOCTYPE_FORTRAN = 31
+    DOCTYPE_FORTRAN = 31,
+    DOCTYPE_JULIA = 32
 } ;
 
 typedef struct _doc_data
