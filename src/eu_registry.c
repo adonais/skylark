@@ -208,28 +208,27 @@ check_reg_str(HKEY key, LPCTSTR txt)
     return exist;
 }
 
-unsigned __stdcall
+void
 on_reg_update_menu(void *lp)
 {
-    HWND hwnd = (HWND)lp;
     if (check_reg_str(HKEY_CLASSES_ROOT, _T("*\\shell\\skylark\\command")))
     {
-        util_set_menu_item(hwnd, IDM_ENV_FILE_POPUPMENU, true);
+        util_set_menu_item(NULL, IDM_ENV_FILE_POPUPMENU, true);
     }
     else
     {
-        util_set_menu_item(hwnd, IDM_ENV_FILE_POPUPMENU, false);
+        util_set_menu_item(NULL, IDM_ENV_FILE_POPUPMENU, false);
     }
     if (check_reg_str(HKEY_CLASSES_ROOT, _T("Directory\\shell\\skylark2\\command")))
     {
-        util_set_menu_item(hwnd, IDM_ENV_DIRECTORY_POPUPMENU, true);
+        util_set_menu_item(NULL, IDM_ENV_DIRECTORY_POPUPMENU, true);
     }
     else
     {
-        util_set_menu_item(hwnd, IDM_ENV_DIRECTORY_POPUPMENU, false);
+        util_set_menu_item(NULL, IDM_ENV_DIRECTORY_POPUPMENU, false);
     }
-    return 0;
 }
+
 
 int
 eu_undo_file_popup(void)

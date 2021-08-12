@@ -297,7 +297,6 @@ eu_window_resize(HWND hwnd)
 {
     int count = 0;
     eu_tabpage *pnode = NULL;
-    RECT rect_adjust = {0};
     RECT rect_treebar = {0};
     if (hwnd)
     {
@@ -309,6 +308,8 @@ eu_window_resize(HWND hwnd)
     HDWP hdwp = BeginDeferWindowPos(3);
     if (eu_get_config()->m_ftree_show)
     {
+        RECT rect_filetree = { 0 };
+        on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
         DeferWindowPos(hdwp,
                        g_treebar,
                        HWND_TOP,
@@ -317,19 +318,6 @@ eu_window_resize(HWND hwnd)
                        rect_treebar.right - rect_treebar.left,
                        rect_treebar.bottom - rect_treebar.top,
                        SWP_SHOWWINDOW);
-        ShowWindow(g_treebar, SW_SHOW);
-        UpdateWindow(g_treebar);
-        memcpy(&rect_adjust, &rect_treebar, sizeof(RECT));
-        TabCtrl_AdjustRect(g_treebar, FALSE, &rect_adjust);
-    }
-    else
-    {
-        DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-    }
-    if (eu_get_config()->m_ftree_show)
-    {
-        RECT rect_filetree = { 0 };
-        on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
         DeferWindowPos(hdwp,
                        g_filetree,
                        HWND_TOP,
@@ -337,32 +325,30 @@ eu_window_resize(HWND hwnd)
                        rect_filetree.top,
                        rect_filetree.right - rect_filetree.left,
                        rect_filetree.bottom - rect_filetree.top,
-                       SWP_SHOWWINDOW);
+                       SWP_SHOWWINDOW);                       
+        ShowWindow(g_treebar, SW_SHOW);
         ShowWindow(g_filetree, SW_SHOW);
+        UpdateWindow(g_treebar);
         // on wine, we use RedrawWindow refresh client area
         RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
     }
     else
     {
+        DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
         DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
     }
     if (true)
     {
         RECT rect_tabbar = { 0 };
         on_tabpage_adjust_box(&rect_tabbar);
-        DeferWindowPos(hdwp,
-                       g_tabpages,
-                       HWND_TOP,
-                       rect_tabbar.left,
-                       rect_tabbar.top,
-                       rect_tabbar.right - rect_tabbar.left,
-                       rect_tabbar.bottom - rect_tabbar.top,
-                       SWP_SHOWWINDOW);
-        ShowWindow(g_tabpages, SW_SHOW);
-        UpdateWindow(g_tabpages);
         EndDeferWindowPos(hdwp);
-        memcpy(&rect_adjust, &rect_tabbar, sizeof(RECT));
-        TabCtrl_AdjustRect(g_tabpages, FALSE, &rect_adjust);
+        eu_setpos_window(g_tabpages,
+                         HWND_TOP,
+                         rect_tabbar.left,
+                         rect_tabbar.top,
+                         rect_tabbar.right - rect_tabbar.left,
+                         rect_tabbar.bottom - rect_tabbar.top,
+                         SWP_SHOWWINDOW);
     }
     if ((pnode = on_tabpage_focus_at()) != NULL)
     {
