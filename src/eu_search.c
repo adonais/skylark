@@ -2264,11 +2264,13 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
     }
     if (on_search_first(pnode, find_str, opt))
     {
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         do
         {
             result = on_search_replace_target(pnode, replace_str);
             next_result = on_search_next(pnode, find_str, opt);
         } while (!(opt & ON_REPLACE_THIS) && result && next_result);
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
     if (*replace_str != 0)
     {
@@ -2348,7 +2350,7 @@ on_search_replace_all_button(void)
     if (!on_search_report_result(0, IDC_SEARCH_REALL_BTN))
     {
         return;
-    }      
+    }
     if (!DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_ALL_FILE))
     {
         on_search_at_replace_page(pnode, opt);

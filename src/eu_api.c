@@ -1306,9 +1306,7 @@ eu_utf8_mbcs(int codepage, const char *utf8, size_t *out_len)
 void WINAPI
 eu_setpos_window(HWND hwnd, HWND affer, int x, int y, int cx, int cy, uint32_t flags)
 {
-    HDWP hdwp = BeginDeferWindowPos(1);
-    DeferWindowPos(hdwp, hwnd, affer, x, y, cx, cy, flags);
-    EndDeferWindowPos(hdwp);
+    SetWindowPos(hwnd, affer, x, y, cx, cy, flags);
 }
 
 bool WINAPI

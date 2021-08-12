@@ -544,8 +544,8 @@ int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL);
-    pnode->hwnd_sc =
-        CreateWindow(TEXT("Scintilla"), TEXT(""), WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
+    const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+    pnode->hwnd_sc = CreateWindow(TEXT("Scintilla"), TEXT(""), flags, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
     if (pnode->hwnd_sc == NULL)
     {
         MSG_BOX(IDC_MSG_SCINTILLA_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -559,6 +559,5 @@ on_sci_init_dlg(eu_tabpage *pnode)
     pnode->ptr_scintilla = (SciFnDirect) SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0);
     pnode->eusc = (sptr_t) SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
     eu_sci_call(pnode, SCI_USEPOPUP, 0, 0);
-    ShowWindow(pnode->hwnd_sc, SW_HIDE);
     return 0;
 }
