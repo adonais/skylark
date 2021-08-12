@@ -13,6 +13,9 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -33,7 +36,7 @@ inline int issmlf(int c) {return isalpha(c) || c == '_';}
 inline int issmld(int c) {return isdigit(c) || c == '_';}
 
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 static void ColouriseSMLDoc(
 	Sci_PositionU startPos, Sci_Position length,

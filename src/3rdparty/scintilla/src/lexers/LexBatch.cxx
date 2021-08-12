@@ -12,6 +12,9 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -23,7 +26,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 static bool Is0To9(char ch) {
 	return (ch >= '0') && (ch <= '9');
@@ -398,14 +401,54 @@ static void ColouriseBatchDoc(
 						// Reset Offset to re-process remainder of word
 						offset -= (wbl - 2);
 					// Check for Expanded Argument (%~...) / Variable (%%~...)
+					// Expanded Argument: %~[<path-operators>]<single digit>
+					// Expanded Variable: %%~[<path-operators>]<single identifier character>
+					// Path operators are exclusively alphabetic.
+					// Expanded arguments have a single digit at the end.
+					// Expanded variables have a single identifier character as variable name.
 					} else if (((wbl > 1) && (wordBuffer[1] == '~')) ||
 						((wbl > 2) && (wordBuffer[1] == '%') && (wordBuffer[2] == '~'))) {
 						// Check for External Command / Program
 						if (cmdLoc == offset - wbl) {
 							cmdLoc = offset - (wbl - wbo);
 						}
-						// Colorize Expanded Argument / Variable
-						styler.ColourTo(startLine + offset - 1 - (wbl - wbo), SCE_BAT_IDENTIFIER);
+						bool isArgument = (wordBuffer[1] == '~');
+						if (isArgument) {
+							Sci_PositionU expansionStopOffset = 2;
+							bool isValid = false;
+							for (; expansionStopOffset < wbl; expansionStopOffset++) {
+								if (isArgument && Is0To9(wordBuffer[expansionStopOffset])) {
+									expansionStopOffset++;
+									isValid = true;
+									wbo = expansionStopOffset;
+									// Colorize Expanded Argument
+									styler.ColourTo(startLine + offset - 1 - (wbl - wbo), SCE_BAT_IDENTIFIER);
+									break;
+								}
+							}
+							if (!isValid) {
+								// not a valid expanded argument or variable
+								styler.ColourTo(startLine + offset - 1 - (wbl - wbo), SCE_BAT_DEFAULT);
+							}
+						// Expanded Variable
+						} else {
+							// start after ~
+							wbo = 3;
+							// Search to end of word for another % (can be a long path)
+							while ((wbo < wbl) &&
+								(wordBuffer[wbo] != '%') &&
+								(!IsBOperator(wordBuffer[wbo])) &&
+								(!IsBSeparator(wordBuffer[wbo]))) {
+								wbo++;
+							}
+							if (wbo > 3) {
+								// Colorize Expanded Variable
+								styler.ColourTo(startLine + offset - 1 - (wbl - wbo), SCE_BAT_IDENTIFIER);
+							} else {
+								// not a valid expanded argument or variable
+								styler.ColourTo(startLine + offset - 1 - (wbl - wbo), SCE_BAT_DEFAULT);
+							}
+						}
 						// Reset Offset to re-process remainder of word
 						offset -= (wbl - wbo);
 					// Check for Environment Variable (%x...%)
@@ -435,6 +478,14 @@ static void ColouriseBatchDoc(
 						styler.ColourTo(startLine + offset - 1 - (wbl - 3), SCE_BAT_IDENTIFIER);
 						// Reset Offset to re-process remainder of word
 						offset -= (wbl - 3);
+					// escaped %
+					} else if (
+						(wbl > 1) &&
+						(wordBuffer[1] == '%')) {
+
+						// Reset Offset to re-process remainder of word
+						styler.ColourTo(startLine + offset - 1 - (wbl - 2), SCE_BAT_DEFAULT);
+						offset -= (wbl - 2);
 					}
 				// Check for Environment Variable (!x...!)
 				} else if (wordBuffer[0] == '!') {

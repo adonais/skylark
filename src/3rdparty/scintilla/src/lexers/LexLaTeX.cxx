@@ -13,6 +13,9 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <ctype.h>
+
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "ILexer.h"
@@ -30,6 +33,7 @@
 #include "LexerBase.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 using namespace std;
 

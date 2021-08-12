@@ -14,9 +14,11 @@
 #include <ctype.h>
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <functional>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -34,6 +36,7 @@
 #include "DefaultLexer.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 namespace {
 	// Use an unnamed namespace to protect the functions and classes from name conflicts

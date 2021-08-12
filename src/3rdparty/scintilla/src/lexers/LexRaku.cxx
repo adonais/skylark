@@ -43,8 +43,10 @@
 #include <ctype.h>
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <map>
+#include <functional>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -60,6 +62,7 @@
 #include "DefaultLexer.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 namespace { // anonymous namespace to isolate any name clashes
 /*----------------------------------------------------------------------------*
@@ -213,6 +216,21 @@ bool IsCommentLine(Sci_Position line, LexAccessor &styler, int type = SCE_RAKU_C
 		}
 	}
 	return false;
+}
+
+/*
+ * ContainsQTo
+ * - returns true if this range contains ":to" in style SCE_RAKU_ADVERB indicating the start
+ * of a SCE_RAKU_HEREDOC_Q or SCE_RAKU_HEREDOC_QQ.
+ */
+bool ContainsQTo(Sci_Position start, Sci_Position end, LexAccessor &styler) {
+	std::string adverb;
+	for (Sci_Position i = start; i < end; i++) {
+		if (styler.StyleAt(i) == SCE_RAKU_ADVERB) {
+			adverb.push_back(styler[i]);
+		}
+	}
+	return adverb.find(":to") != std::string::npos;
 }
 
 /*
@@ -1026,24 +1044,33 @@ void SCI_METHOD LexerRaku::Lex(Sci_PositionU startPos, Sci_Position length, int 
 	int typeDetect;					// temp type detected (for regex and Q lang)
 	Sci_Position lengthToEnd;		// length until the end of range
 
-	// Backtrack to last SCE_RAKU_DEFAULT or 0
+	// Backtrack to safe start position before complex quoted elements
+
 	Sci_PositionU newStartPos = startPos;
 	if (initStyle != SCE_RAKU_DEFAULT) {
+		// Backtrack to last SCE_RAKU_DEFAULT or 0
 		while (newStartPos > 0) {
 			newStartPos--;
 			if (styler.StyleAt(newStartPos) == SCE_RAKU_DEFAULT)
 				break;
 		}
-	}
-
-	// Backtrack to start of line before SCE_RAKU_HEREDOC_Q?
-	if (initStyle == SCE_RAKU_HEREDOC_Q || initStyle == SCE_RAKU_HEREDOC_QQ) {
-		while (newStartPos > 0) {
-			if (IsANewLine(styler.SafeGetCharAt(newStartPos - 1)))
-				break; // Stop if previous char is a new line
-			newStartPos--;
+		// Backtrack to start of line before SCE_RAKU_HEREDOC_Q?
+		if (initStyle == SCE_RAKU_HEREDOC_Q || initStyle == SCE_RAKU_HEREDOC_QQ) {
+			if (newStartPos > 0) {
+				newStartPos = styler.LineStart(styler.GetLine(newStartPos));
+			}
+		}
+	} else {
+		const Sci_Position line = styler.GetLine(newStartPos);
+		if (line > 0) {
+			// If the previous line is a start of a q or qq heredoc, backtrack to start of line
+			const Sci_Position startPreviousLine = styler.LineStart(line-1);
+			if (ContainsQTo(startPreviousLine, newStartPos, styler)) {
+				newStartPos = startPreviousLine;
+			}
 		}
 	}
+
 
 	// Re-calculate (any) changed startPos, length and initStyle state
 	if (newStartPos < startPos) {

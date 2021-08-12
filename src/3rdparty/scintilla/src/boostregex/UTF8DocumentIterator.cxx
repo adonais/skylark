@@ -1,31 +1,37 @@
 ﻿#include "UTF8DocumentIterator.h"
 
-
-
 #include "ILoader.h"
 #include "ILexer.h"
 #include "Scintilla.h"
 
+#include "CharacterCategoryMap.h"
 
-
-#include "CharacterCategory.h"
 #include "Position.h"
+#include "UniqueString.h"
 #include "SplitVector.h"
 #include "Partitioning.h"
 #include "RunStyles.h"
+#include "ContractionState.h"
 #include "CellBuffer.h"
+#include "CallTip.h"
+#include "KeyMap.h"
+#include "Indicator.h"
+#include "LineMarker.h"
+#include "Style.h"
+#include "ViewStyle.h"
 #include "CharClassify.h"
 #include "Decoration.h"
 #include "CaseFolder.h"
 #include "Document.h"
 
 using namespace Scintilla;
+using namespace Scintilla::Internal;
 
-UTF8DocumentIterator::UTF8DocumentIterator(Document* doc, Sci::Position pos, Sci::Position end) : 
-                m_doc(doc),
-                m_pos(pos),
-                m_end(end),
-				m_characterIndex(0)
+UTF8DocumentIterator::UTF8DocumentIterator(Scintilla::Internal::Document* doc, Sci::Position pos, Sci::Position end) :
+				m_pos(pos),
+				m_end(end),
+				m_characterIndex(0),
+				m_doc(doc)
 {
 		// Check for debug builds
 		PLATFORM_ASSERT(m_pos <= m_end);
@@ -39,12 +45,12 @@ UTF8DocumentIterator::UTF8DocumentIterator(Document* doc, Sci::Position pos, Sci
 }
 
 UTF8DocumentIterator::UTF8DocumentIterator(const UTF8DocumentIterator& copy) :
-		m_doc(copy.m_doc),
 		m_pos(copy.m_pos),
 		m_end(copy.m_end),
 		m_characterIndex(copy.m_characterIndex),
 		m_utf8Length(copy.m_utf8Length),
-		m_utf16Length(copy.m_utf16Length)
+		m_utf16Length(copy.m_utf16Length),
+		m_doc(copy.m_doc)
 {
 		// Check for debug builds
 		PLATFORM_ASSERT(m_pos <= m_end);
@@ -87,8 +93,8 @@ void UTF8DocumentIterator::readCharacter()
 	{
 		int mask = 0x40;
 		int nBytes = 1;
-			
-		do 
+
+		do
 		{
 			mask >>= 1;
 			++nBytes;
@@ -98,8 +104,8 @@ void UTF8DocumentIterator::readCharacter()
 		Sci::Position pos = m_pos;
 		m_utf8Length = 1;
 		// work out the unicode point, and count the actual bytes.
-		// If a byte does not start with 10xxxxxx then it's not part of the 
-		// the code. Therefore invalid UTF-8 encodings are dealt with, simply by stopping when 
+		// If a byte does not start with 10xxxxxx then it's not part of the
+		// the code. Therefore invalid UTF-8 encodings are dealt with, simply by stopping when
 		// the UTF8 extension bytes are no longer valid.
 		while ((--nBytes) && (pos < m_end) && (0x80 == ((currentChar = m_doc->CharAt(++pos)) & 0xC0)))
 		{
@@ -114,7 +120,7 @@ void UTF8DocumentIterator::readCharacter()
 			// UTF-16 Pair
 			m_character[0] = static_cast<wchar_t>(0xD800 + (result >> 10));
 			m_character[1] = static_cast<wchar_t>(0xDC00 + (result & 0x3FF));
-				
+
 		}
 		else
 		{
@@ -130,7 +136,6 @@ void UTF8DocumentIterator::readCharacter()
 		m_character[0] = static_cast<wchar_t>(currentChar);
 	}
 }
-		
-		
+
+
 const unsigned char UTF8DocumentIterator::m_firstByteMask[7] = { 0x7F, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01 };
-		

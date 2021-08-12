@@ -13,6 +13,9 @@
 #include <cstring>
 #include <cctype>
 
+#include <string>
+#include <string_view>
+
 #include <vector>
 #include <algorithm>
 
@@ -23,6 +26,7 @@
 #include "DefaultLexer.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 class LexerX12 : public DefaultLexer
 {

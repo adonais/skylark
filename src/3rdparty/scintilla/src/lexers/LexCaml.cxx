@@ -25,11 +25,13 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
 
-#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -50,138 +52,9 @@ static const int baseT[24] = {
 	0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0,16	/* M - X */
 };
 
-using namespace Scintilla;
-
-#ifdef BUILD_AS_EXTERNAL_LEXER
-/*
-	(actually seems to work!)
-*/
-#include <string>
-#include "WindowAccessor.h"
-#include "ExternalLexer.h"
-
-#undef EXT_LEXER_DECL
-#define EXT_LEXER_DECL __declspec( dllexport ) __stdcall
-
-#if PLAT_WIN
-#include <windows.h>
-#endif
+using namespace Lexilla;
 
 static void ColouriseCamlDoc(
-	Sci_PositionU startPos, Sci_Position length,
-	int initStyle,
-	WordList *keywordlists[],
-	Accessor &styler);
-
-static void FoldCamlDoc(
-	Sci_PositionU startPos, Sci_Position length,
-	int initStyle,
-	WordList *keywordlists[],
-	Accessor &styler);
-
-static void InternalLexOrFold(int lexOrFold, Sci_PositionU startPos, Sci_Position length,
-	int initStyle, char *words[], WindowID window, char *props);
-
-static const char* LexerName = "caml";
-
-#ifdef TRACE
-void Platform::DebugPrintf(const char *format, ...) {
-	char buffer[2000];
-	va_list pArguments;
-	va_start(pArguments, format);
-	vsprintf(buffer,format,pArguments);
-	va_end(pArguments);
-	Platform::DebugDisplay(buffer);
-}
-#else
-void Platform::DebugPrintf(const char *, ...) {
-}
-#endif
-
-bool Platform::IsDBCSLeadByte(int codePage, char ch) {
-	return ::IsDBCSLeadByteEx(codePage, ch) != 0;
-}
-
-long Platform::SendScintilla(WindowID w, unsigned int msg, unsigned long wParam, long lParam) {
-	return ::SendMessage(reinterpret_cast<HWND>(w), msg, wParam, lParam);
-}
-
-long Platform::SendScintillaPointer(WindowID w, unsigned int msg, unsigned long wParam, void *lParam) {
-	return ::SendMessage(reinterpret_cast<HWND>(w), msg, wParam,
-		reinterpret_cast<LPARAM>(lParam));
-}
-
-void EXT_LEXER_DECL Fold(unsigned int lexer, Sci_PositionU startPos, Sci_Position length,
-	int initStyle, char *words[], WindowID window, char *props)
-{
-	// below useless evaluation(s) to supress "not used" warnings
-	lexer;
-	// build expected data structures and do the Fold
-	InternalLexOrFold(1, startPos, length, initStyle, words, window, props);
-
-}
-
-int EXT_LEXER_DECL GetLexerCount()
-{
-	return 1;	// just us [Objective] Caml lexers here!
-}
-
-void EXT_LEXER_DECL GetLexerName(unsigned int Index, char *name, int buflength)
-{
-	// below useless evaluation(s) to supress "not used" warnings
-	Index;
-	// return as much of our lexer name as will fit (what's up with Index?)
-	if (buflength > 0) {
-		buflength--;
-		int n = strlen(LexerName);
-		if (n > buflength)
-			n = buflength;
-		memcpy(name, LexerName, n), name[n] = '\0';
-	}
-}
-
-void EXT_LEXER_DECL Lex(unsigned int lexer, Sci_PositionU startPos, Sci_Position length,
-	int initStyle, char *words[], WindowID window, char *props)
-{
-	// below useless evaluation(s) to supress "not used" warnings
-	lexer;
-	// build expected data structures and do the Lex
-	InternalLexOrFold(0, startPos, length, initStyle, words, window, props);
-}
-
-static void InternalLexOrFold(int foldOrLex, Sci_PositionU startPos, Sci_Position length,
-	int initStyle, char *words[], WindowID window, char *props)
-{
-	// create and initialize a WindowAccessor (including contained PropSet)
-	PropSetSimple ps;
-	ps.SetMultiple(props);
-	WindowAccessor wa(window, ps);
-	// create and initialize WordList(s)
-	int nWL = 0;
-	for (; words[nWL]; nWL++) ;	// count # of WordList PTRs needed
-	WordList** wl = new WordList* [nWL + 1];// alloc WordList PTRs
-	int i = 0;
-	for (; i < nWL; i++) {
-		wl[i] = new WordList();	// (works or THROWS bad_alloc EXCEPTION)
-		wl[i]->Set(words[i]);
-	}
-	wl[i] = 0;
-	// call our "internal" folder/lexer (... then do Flush!)
-	if (foldOrLex)
-		FoldCamlDoc(startPos, length, initStyle, wl, wa);
-	else
-		ColouriseCamlDoc(startPos, length, initStyle, wl, wa);
-	wa.Flush();
-	// clean up before leaving
-	for (i = nWL - 1; i >= 0; i--)
-		delete wl[i];
-	delete [] wl;
-}
-
-static
-#endif	/* BUILD_AS_EXTERNAL_LEXER */
-
-void ColouriseCamlDoc(
 	Sci_PositionU startPos, Sci_Position length,
 	int initStyle,
 	WordList *keywordlists[],
@@ -437,9 +310,7 @@ void ColouriseCamlDoc(
 	sc.Complete();
 }
 
-#ifdef BUILD_AS_EXTERNAL_LEXER
 static
-#endif	/* BUILD_AS_EXTERNAL_LEXER */
 void FoldCamlDoc(
 	Sci_PositionU, Sci_Position,
 	int,
@@ -455,6 +326,4 @@ static const char * const camlWordListDesc[] = {
 	0
 };
 
-#ifndef BUILD_AS_EXTERNAL_LEXER
 LexerModule lmCaml(SCLEX_CAML, ColouriseCamlDoc, "caml", FoldCamlDoc, camlWordListDesc);
-#endif	/* BUILD_AS_EXTERNAL_LEXER */

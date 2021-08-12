@@ -3,17 +3,17 @@
 
 #include "Position.h"
 
-namespace Scintilla {
+namespace Scintilla::Internal {
 
 class AnsiDocumentIterator : public std::iterator<std::bidirectional_iterator_tag, char>
 {
 public:
 	AnsiDocumentIterator() {};
 
-	AnsiDocumentIterator(Document* doc, Sci::Position pos, Sci::Position end) : 
-		m_doc(doc),
+	AnsiDocumentIterator(Document* doc, Sci::Position pos, Sci::Position end) :
 		m_pos(pos),
-		m_end(end)
+		m_end(end),
+		m_doc(doc)
 	{
 		// Check for debug builds
 		PLATFORM_ASSERT(m_pos <= m_end);
@@ -26,9 +26,10 @@ public:
 	}
 
 	AnsiDocumentIterator(const AnsiDocumentIterator& copy) :
-		m_doc(copy.m_doc),
 		m_pos(copy.m_pos),
-		m_end(copy.m_end)
+		m_end(copy.m_end),
+		m_doc(copy.m_doc)
+
 	{
 		// Check for debug builds
 		PLATFORM_ASSERT(m_pos <= m_end);
@@ -84,9 +85,10 @@ private:
 	{
 		return m_pos == m_end;
 	}
-    Document* m_doc = nullptr;
+
 	Sci::Position m_pos = 0;
 	Sci::Position m_end = 0;
+	Document* m_doc = nullptr;
 };
 }
 

@@ -259,6 +259,14 @@ TRef lj_record_constify(jit_State *J, cTValue *o)
     return 0;  /* Can't represent lightuserdata (pointless). */
 }
 
+/* Emit a VLOAD with the correct type. */
+TRef lj_record_vload(jit_State *J, TRef ref, IRType t)
+{
+  TRef tr = emitir(IRTG(IR_VLOAD, t), ref, 0);
+  if (irtype_ispri(t)) tr = TREF_PRI(t);  /* Canonicalize primitives. */
+  return tr;
+}
+
 /* -- Record loop ops ----------------------------------------------------- */
 
 /* Loop event. */
@@ -1437,6 +1445,16 @@ TRef lj_record_idx(jit_State *J, RecordIndex *ix)
 	return 0;  /* No result yet. */
       }
     }
+#if LJ_HASBUFFER
+    /* The index table of buffer objects is treated as immutable. */
+    if (ix->mt == TREF_NIL && !ix->val &&
+	tref_isudata(ix->tab) && udataV(&ix->tabv)->udtype == UDTYPE_BUFFER &&
+	tref_istab(ix->mobj) && tref_isstr(ix->key) && tref_isk(ix->key)) {
+      cTValue *val = lj_tab_getstr(tabV(&ix->mobjv), strV(&ix->keyv));
+      TRef tr = lj_record_constify(J, val);
+      if (tr) return tr;  /* Specialize to the value, i.e. a method. */
+    }
+#endif
     /* Otherwise retry lookup with metaobject. */
     ix->tab = ix->mobj;
     copyTV(J->L, &ix->tabv, &ix->mobjv);
@@ -1832,9 +1850,7 @@ static void rec_varg(jit_State *J, BCReg dst, ptrdiff_t nresults)
 	  IRType t = itype2irt(&J->L->base[i-1-LJ_FR2-nvararg]);
 	  TRef aref = emitir(IRT(IR_AREF, IRT_PGC),
 			     vbase, lj_ir_kint(J, (int32_t)i));
-	  TRef tr = emitir(IRTG(IR_VLOAD, t), aref, 0);
-	  if (irtype_ispri(t)) tr = TREF_PRI(t);  /* Canonicalize primitives. */
-	  J->base[dst+i] = tr;
+	  J->base[dst+i] = lj_record_vload(J, aref, t);
 	}
       } else {
 	emitir(IRTGI(IR_LE), fr, lj_ir_kint(J, frofs));
@@ -1881,8 +1897,7 @@ static void rec_varg(jit_State *J, BCReg dst, ptrdiff_t nresults)
 		       lj_ir_kint(J, frofs-(8<<LJ_FR2)));
 	t = itype2irt(&J->L->base[idx-2-LJ_FR2-nvararg]);
 	aref = emitir(IRT(IR_AREF, IRT_PGC), vbase, tridx);
-	tr = emitir(IRTG(IR_VLOAD, t), aref, 0);
-	if (irtype_ispri(t)) tr = TREF_PRI(t);  /* Canonicalize primitives. */
+	tr = lj_record_vload(J, aref, t);
       }
       J->base[dst-2-LJ_FR2] = tr;
       J->maxslot = dst-1-LJ_FR2;

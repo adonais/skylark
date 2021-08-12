@@ -13,6 +13,9 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -24,7 +27,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 static void ClassifySTTXTWord(WordList *keywordlists[], StyleContext &sc)
 {
@@ -67,14 +70,15 @@ static void ColouriseSTTXTDoc (Sci_PositionU startPos, Sci_Position length, int 
 	CharacterSet setWordStart(CharacterSet::setAlpha, "_", 0x80, true);
 	CharacterSet setNumber(CharacterSet::setDigits, "_.eE");
 	CharacterSet setHexNumber(CharacterSet::setDigits, "_abcdefABCDEF");
-	//CharacterSet setOperator(CharacterSet::setNone,",.+-*/:;<=>[]()%&");
+	// CharacterSet setOperator(CharacterSet::setNone,",.+-*/:;<=>[]()%&");
 	CharacterSet setOperator(CharacterSet::setNone,"*");
 	CharacterSet setDataTime(CharacterSet::setDigits,"_.-:dmshDMSHGARC");
-        
+
  	for ( ; sc.More() ; sc.Forward())
  	{
 		if(sc.atLineStart && sc.state != SCE_STTXT_COMMENT)
 			sc.SetState(SCE_STTXT_DEFAULT);
+
 		switch(sc.state)
 		{
 			case SCE_STTXT_NUMBER: {
@@ -87,7 +91,7 @@ static void ColouriseSTTXTDoc (Sci_PositionU startPos, Sci_Position length, int 
 				else if(!setNumber.Contains(sc.ch))
 					sc.SetState(SCE_STTXT_DEFAULT);
 				break;
-			}			
+			}
 			case SCE_STTXT_HEXNUMBER: {
 				if (setHexNumber.Contains(sc.ch))
 					continue;

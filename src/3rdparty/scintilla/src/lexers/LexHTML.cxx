@@ -11,9 +11,12 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <ctype.h>
+
 #include <string>
+#include <string_view>
 #include <map>
 #include <set>
+#include <functional>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -28,6 +31,7 @@
 #include "DefaultLexer.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 namespace {
 
@@ -520,6 +524,119 @@ bool isDjangoBlockEnd(const int ch, const int chNext, const std::string &blockTy
 	}
 }
 
+class PhpNumberState {
+	enum NumberBase { BASE_10 = 0, BASE_2, BASE_8, BASE_16 };
+	static constexpr const char *const digitList[] = { "_0123456789", "_01", "_01234567", "_0123456789abcdefABCDEF" };
+
+	NumberBase base = BASE_10;
+	bool decimalPart = false;
+	bool exponentPart = false;
+	bool invalid = false;
+	bool finished = false;
+
+	bool leadingZero = false;
+	bool invalidBase8 = false;
+
+	bool betweenDigits = false;
+	bool decimalChar = false;
+	bool exponentChar = false;
+
+public:
+	inline bool isInvalid() { return invalid; }
+	inline bool isFinished() { return finished; }
+
+	bool init(int ch, int chPlus1, int chPlus2) {
+		base = BASE_10;
+		decimalPart = false;
+		exponentPart = false;
+		invalid = false;
+		finished = false;
+
+		leadingZero = false;
+		invalidBase8 = false;
+
+		betweenDigits = false;
+		decimalChar = false;
+		exponentChar = false;
+
+		if (ch == '.' && strchr(digitList[BASE_10] + !betweenDigits, chPlus1) != nullptr) {
+			decimalPart = true;
+			betweenDigits = true;
+		} else if (ch == '0' && (chPlus1 == 'b' || chPlus1 == 'B')) {
+			base = BASE_2;
+		} else if (ch == '0' && (chPlus1 == 'o' || chPlus1 == 'O')) {
+			base = BASE_8;
+		} else if (ch == '0' && (chPlus1 == 'x' || chPlus1 == 'X')) {
+			base = BASE_16;
+		} else if (strchr(digitList[BASE_10] + !betweenDigits, ch) != nullptr) {
+			leadingZero = ch == '0';
+			betweenDigits = true;
+			check(chPlus1, chPlus2);
+			if (finished && leadingZero) {
+				// single zero should be base 10
+				base = BASE_10;
+			}
+		} else {
+			return false;
+		}
+		return true;
+	}
+
+	bool check(int ch, int chPlus1) {
+		if (strchr(digitList[base] + !betweenDigits, ch) != nullptr) {
+			if (leadingZero) {
+				invalidBase8 = invalidBase8 || strchr(digitList[BASE_8] + !betweenDigits, ch) == nullptr;
+			}
+
+			betweenDigits = ch != '_';
+			decimalChar = false;
+			exponentChar = false;
+		} else if (ch == '_') {
+			invalid = true;
+
+			betweenDigits = false;
+			decimalChar = false;
+			// exponentChar is unchanged
+		} else if (base == BASE_10 && ch == '.' && (
+					!(decimalPart || exponentPart) || strchr(digitList[BASE_10] + !betweenDigits, chPlus1) != nullptr)
+			  ) {
+			invalid = invalid || !betweenDigits || decimalPart || exponentPart;
+			decimalPart = true;
+
+			betweenDigits = false;
+			decimalChar = true;
+			exponentChar = false;
+		} else if (base == BASE_10 && (ch == 'e' || ch == 'E')) {
+			invalid = invalid || !(betweenDigits || decimalChar) || exponentPart;
+			exponentPart = true;
+
+			betweenDigits = false;
+			decimalChar = false;
+			exponentChar = true;
+		} else if (base == BASE_10 && (ch == '-' || ch == '+') && exponentChar) {
+			invalid = invalid || strchr(digitList[BASE_10] + !betweenDigits, chPlus1) == nullptr;
+
+			betweenDigits = false;
+			decimalChar = false;
+			// exponentChar is unchanged
+		} else if (IsPhpWordChar(ch)) {
+			invalid = true;
+
+			betweenDigits = false;
+			decimalChar = false;
+			exponentChar = false;
+		} else {
+			invalid = invalid || !(betweenDigits || decimalChar);
+			finished = true;
+			if (base == BASE_10 && leadingZero && !decimalPart && !exponentPart) {
+				base = BASE_8;
+				invalid = invalid || invalidBase8;
+			}
+		}
+		return finished;
+	}
+};
+
 bool isPHPStringState(int state) {
 	return
 	    (state == SCE_HPHP_HSTRING) ||
@@ -531,7 +648,7 @@ bool isPHPStringState(int state) {
 Sci_Position FindPhpStringDelimiter(std::string &phpStringDelimiter, Sci_Position i, const Sci_Position lengthDoc, Accessor &styler, bool &isSimpleString) {
 	Sci_Position j;
 	const Sci_Position beginning = i - 1;
-	bool isValidSimpleString = false;
+	bool isQuoted = false;
 
 	while (i < lengthDoc && (styler[i] == ' ' || styler[i] == '\t'))
 		i++;
@@ -539,10 +656,11 @@ Sci_Position FindPhpStringDelimiter(std::string &phpStringDelimiter, Sci_Positio
 	const char chNext = styler.SafeGetCharAt(i + 1);
 	phpStringDelimiter.clear();
 	if (!IsPhpWordStart(ch)) {
-		if (ch == '\'' && IsPhpWordStart(chNext)) {
+		if ((ch == '\'' || ch == '\"') && IsPhpWordStart(chNext)) {
+			isSimpleString = ch == '\'';
+			isQuoted = true;
 			i++;
 			ch = chNext;
-			isSimpleString = true;
 		} else {
 			return beginning;
 		}
@@ -550,9 +668,9 @@ Sci_Position FindPhpStringDelimiter(std::string &phpStringDelimiter, Sci_Positio
 	phpStringDelimiter.push_back(ch);
 	i++;
 	for (j = i; j < lengthDoc && !isLineEnd(styler[j]); j++) {
-		if (!IsPhpWordChar(styler[j])) {
-			if (isSimpleString && (styler[j] == '\'') && isLineEnd(styler.SafeGetCharAt(j + 1))) {
-				isValidSimpleString = true;
+		if (!IsPhpWordChar(styler[j]) && isQuoted) {
+			if (((isSimpleString && styler[j] == '\'') || (!isSimpleString && styler[j] == '\"')) && isLineEnd(styler.SafeGetCharAt(j + 1))) {
+				isQuoted = false;
 				j++;
 				break;
 			} else {
@@ -562,7 +680,7 @@ Sci_Position FindPhpStringDelimiter(std::string &phpStringDelimiter, Sci_Positio
 		}
 		phpStringDelimiter.push_back(styler[j]);
 	}
-	if (isSimpleString && !isValidSimpleString) {
+	if (isQuoted) {
 		phpStringDelimiter.clear();
 		return beginning;
 	}
@@ -864,8 +982,8 @@ public:
 		DefaultLexer(
 			isXml_ ? "xml" : (isPHPScript_ ? "phpscript" : "hypertext"),
 			isXml_ ? SCLEX_XML : (isPHPScript_ ? SCLEX_PHPSCRIPT : SCLEX_HTML),
-			isXml_ ? lexicalClassesHTML : lexicalClassesXML,
-			isXml_ ? std::size(lexicalClassesHTML) : std::size(lexicalClassesXML)),
+			isXml_ ?  lexicalClassesXML : lexicalClassesHTML,
+			isXml_ ?  std::size(lexicalClassesXML) : std::size(lexicalClassesHTML)),
 		isXml(isXml_),
 		isPHPScript(isPHPScript_),
 		osHTML(isPHPScript_),
@@ -955,6 +1073,7 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 	}
 	styler.StartAt(startPos);
 	std::string prevWord;
+	PhpNumberState phpNumber;
 	std::string phpStringDelimiter;
 	int StateToPrint = initStyle;
 	int state = stateForPrintState(StateToPrint);
@@ -1028,9 +1147,9 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 	const bool allowScripts = options.allowScripts;
 	const bool isMako = options.isMako;
 	const bool isDjango = options.isDjango;
-	const CharacterSet setHTMLWord(CharacterSet::setAlphaNum, ".-_:!#", 0x80, true);
-	const CharacterSet setTagContinue(CharacterSet::setAlphaNum, ".-_:!#[", 0x80, true);
-	const CharacterSet setAttributeContinue(CharacterSet::setAlphaNum, ".-_:!#/", 0x80, true);
+	const CharacterSet setHTMLWord(CharacterSet::setAlphaNum, ".-_:!#", true);
+	const CharacterSet setTagContinue(CharacterSet::setAlphaNum, ".-_:!#[", true);
+	const CharacterSet setAttributeContinue(CharacterSet::setAlphaNum, ".-_:!#/", true);
 	// TODO: also handle + and - (except if they're part of ++ or --) and return keywords
 	const CharacterSet setOKBeforeJSRE(CharacterSet::setNone, "([{=,:;!%^&*|?~");
 
@@ -1392,6 +1511,7 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 				i += 2; // place as if it was the second next char treated
 				visibleChars += 2;
 				state = SCE_H_ASPAT;
+				scriptLanguage = eScriptVBS;
 			} else if ((chNext2 == '-') && (styler.SafeGetCharAt(i + 3) == '-')) {
 				styler.ColourTo(i + 3, SCE_H_ASP);
 				state = SCE_H_XCCOMMENT;
@@ -1407,8 +1527,8 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 				}
 
 				state = StateForScript(aspScript);
+				scriptLanguage = aspScript;
 			}
-			scriptLanguage = eScriptVBS;
 			styler.ColourTo(i, SCE_H_ASP);
 			// fold whole script
 			if (foldHTMLPreprocessor)
@@ -2033,10 +2153,6 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 			} else if (ch == '\"') {
 				styler.ColourTo(i, statePrintForState(SCE_HJ_DOUBLESTRING, inScriptType));
 				state = SCE_HJ_DEFAULT;
-			} else if ((inScriptType == eNonHtmlScript) && (ch == '-') && (chNext == '-') && (chNext2 == '>')) {
-				styler.ColourTo(i - 1, StateToPrint);
-				state = SCE_HJ_COMMENTLINE;
-				i += 2;
 			} else if (isLineEnd(ch)) {
 				styler.ColourTo(i - 1, StateToPrint);
 				state = SCE_HJ_STRINGEOL;
@@ -2050,10 +2166,6 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 			} else if (ch == '\'') {
 				styler.ColourTo(i, statePrintForState(SCE_HJ_SINGLESTRING, inScriptType));
 				state = SCE_HJ_DEFAULT;
-			} else if ((inScriptType == eNonHtmlScript) && (ch == '-') && (chNext == '-') && (chNext2 == '>')) {
-				styler.ColourTo(i - 1, StateToPrint);
-				state = SCE_HJ_COMMENTLINE;
-				i += 2;
 			} else if (isLineEnd(ch)) {
 				styler.ColourTo(i - 1, StateToPrint);
 				if (chPrev != '\\' && (chPrev2 != '\\' || chPrev != '\r' || ch != '\n')) {
@@ -2275,8 +2387,7 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 			break;
 			///////////// start - PHP state handling
 		case SCE_HPHP_WORD:
-		    // https://sourceforge.net/p/scintilla/bugs/2225/
-			if (ch == '.' || !IsAWordChar(ch)) {
+			if (!IsPhpWordChar(ch)) {
 				classifyWordHTPHP(styler.GetStartSegment(), i - 1, keywords5, styler);
 				if (ch == '/' && chNext == '*') {
 					i++;
@@ -2284,7 +2395,7 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 				} else if (ch == '/' && chNext == '/') {
 					i++;
 					state = SCE_HPHP_COMMENTLINE;
-				} else if (ch == '#') {
+				} else if (ch == '#' && chNext != '[') {
 					state = SCE_HPHP_COMMENTLINE;
 				} else if (ch == '\"') {
 					state = SCE_HPHP_HSTRING;
@@ -2309,15 +2420,9 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 			}
 			break;
 		case SCE_HPHP_NUMBER:
-			// recognize bases 8,10 or 16 integers OR floating-point numbers
-			if (!IsADigit(ch)
-				&& strchr(".xXabcdefABCDEF", ch) == NULL
-				&& ((ch != '-' && ch != '+') || (chPrev != 'e' && chPrev != 'E'))) {
-				styler.ColourTo(i - 1, SCE_HPHP_NUMBER);
-				if (IsOperator(ch))
-					state = SCE_HPHP_OPERATOR;
-				else
-					state = SCE_HPHP_DEFAULT;
+			if (phpNumber.check(chNext, chNext2)) {
+				styler.ColourTo(i, phpNumber.isInvalid() ? SCE_HPHP_DEFAULT : SCE_HPHP_NUMBER);
+				state = SCE_HPHP_DEFAULT;
 			}
 			break;
 		case SCE_HPHP_VARIABLE:
@@ -2353,13 +2458,10 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 				if (phpStringDelimiter == "\"") {
 					styler.ColourTo(i, StateToPrint);
 					state = SCE_HPHP_DEFAULT;
-				} else if (isLineEnd(chPrev)) {
+				} else if (lineStartVisibleChars == 1) {
 					const int psdLength = static_cast<int>(phpStringDelimiter.length());
-					const char chAfterPsd = styler.SafeGetCharAt(i + psdLength);
-					const char chAfterPsd2 = styler.SafeGetCharAt(i + psdLength + 1);
-					if (isLineEnd(chAfterPsd) ||
-						(chAfterPsd == ';' && isLineEnd(chAfterPsd2))) {
-							i += (((i + psdLength) < lengthDoc) ? psdLength : lengthDoc) - 1;
+					if (!IsPhpWordChar(styler.SafeGetCharAt(i + psdLength))) {
+						i += (((i + psdLength) < lengthDoc) ? psdLength : lengthDoc) - 1;
 						styler.ColourTo(i, StateToPrint);
 						state = SCE_HPHP_DEFAULT;
 						if (foldHeredoc) levelCurrent--;
@@ -2376,12 +2478,9 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 					styler.ColourTo(i, StateToPrint);
 					state = SCE_HPHP_DEFAULT;
 				}
-			} else if (isLineEnd(chPrev) && styler.Match(i, phpStringDelimiter.c_str())) {
+			} else if (lineStartVisibleChars == 1 && styler.Match(i, phpStringDelimiter.c_str())) {
 				const int psdLength = static_cast<int>(phpStringDelimiter.length());
-				const char chAfterPsd = styler.SafeGetCharAt(i + psdLength);
-				const char chAfterPsd2 = styler.SafeGetCharAt(i + psdLength + 1);
-				if (isLineEnd(chAfterPsd) ||
-				(chAfterPsd == ';' && isLineEnd(chAfterPsd2))) {
+				if (!IsPhpWordChar(styler.SafeGetCharAt(i + psdLength))) {
 					i += (((i + psdLength) < lengthDoc) ? psdLength : lengthDoc) - 1;
 					styler.ColourTo(i, StateToPrint);
 					state = SCE_HPHP_DEFAULT;
@@ -2404,8 +2503,13 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 		case SCE_HPHP_OPERATOR:
 		case SCE_HPHP_DEFAULT:
 			styler.ColourTo(i - 1, StateToPrint);
-			if (IsADigit(ch) || (ch == '.' && IsADigit(chNext))) {
-				state = SCE_HPHP_NUMBER;
+			if (phpNumber.init(ch, chNext, chNext2)) {
+				if (phpNumber.isFinished()) {
+					styler.ColourTo(i, phpNumber.isInvalid() ? SCE_HPHP_DEFAULT : SCE_HPHP_NUMBER);
+					state = SCE_HPHP_DEFAULT;
+				} else {
+					state = SCE_HPHP_NUMBER;
+				}
 			} else if (IsAWordStart(ch)) {
 				state = SCE_HPHP_WORD;
 			} else if (ch == '/' && chNext == '*') {
@@ -2414,7 +2518,7 @@ void SCI_METHOD LexerHTML::Lex(Sci_PositionU startPos, Sci_Position length, int 
 			} else if (ch == '/' && chNext == '/') {
 				i++;
 				state = SCE_HPHP_COMMENTLINE;
-			} else if (ch == '#') {
+			} else if (ch == '#' && chNext != '[') {
 				state = SCE_HPHP_COMMENTLINE;
 			} else if (ch == '\"') {
 				state = SCE_HPHP_HSTRING;

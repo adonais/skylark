@@ -12,6 +12,9 @@
 #include <cstring>
 #include <cctype>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -23,7 +26,7 @@
 #include "LexerModule.h"
 #include "DefaultLexer.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 
 static const char *const DMISWordListDesc[] = {
@@ -56,7 +59,7 @@ class LexerDMIS : public DefaultLexer
 		virtual ~LexerDMIS(void);
 
 		int SCI_METHOD Version() const override {
-			return lvRelease5;
+			return Scintilla::lvRelease5;
 		}
 
 		void SCI_METHOD Release() override {
@@ -94,8 +97,8 @@ class LexerDMIS : public DefaultLexer
 		}
 
 		const char * SCI_METHOD DescribeWordListSets() override;
-		void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, IDocument *pAccess) override;
-		void SCI_METHOD Fold(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, IDocument *pAccess) override;
+		void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess) override;
+		void SCI_METHOD Fold(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess) override;
 };
 
 
@@ -188,7 +191,7 @@ const char * SCI_METHOD LexerDMIS::DescribeWordListSets()
 	return this->m_wordListSets;
 }
 
-void SCI_METHOD LexerDMIS::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, IDocument *pAccess)
+void SCI_METHOD LexerDMIS::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess)
 {
 	const Sci_PositionU MAX_STR_LEN = 100;
 
@@ -284,7 +287,7 @@ void SCI_METHOD LexerDMIS::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, i
 	scCTX.Complete();
 }
 
-void SCI_METHOD LexerDMIS::Fold(Sci_PositionU startPos, Sci_Position lengthDoc, int, IDocument *pAccess)
+void SCI_METHOD LexerDMIS::Fold(Sci_PositionU startPos, Sci_Position lengthDoc, int, Scintilla::IDocument *pAccess)
 {
 	const int MAX_STR_LEN = 100;
 

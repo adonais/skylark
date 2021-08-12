@@ -15,7 +15,9 @@
 #include <ctype.h>
 
 #include <string>
+#include <string_view>
 #include <map>
+#include <functional>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -30,6 +32,7 @@
 #include "DefaultLexer.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 // Info for HERE document handling from perldata.pod (reformatted):
 // ----------------------------------------------------------------

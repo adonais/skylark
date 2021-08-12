@@ -13,6 +13,7 @@
 #include <ctype.h>
 
 #include <string>
+#include <string_view>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -25,7 +26,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 namespace {
 
@@ -143,9 +144,14 @@ int RecogniseErrorListLine(const char *lineBuffer, Sci_PositionU lengthLine, Sci
 	           strstart(lineBuffer, "                 from ")) {
 		// GCC showing include path to following error
 		return SCE_ERR_GCC_INCLUDED_FROM;
-	} else if (strstr(lineBuffer, "warning LNK")) {
+	} else if (strstart(lineBuffer, "NMAKE : fatal error")) {
+		// Microsoft nmake fatal error:
+		// NMAKE : fatal error <code>: <program> : return code <return>
+		return SCE_ERR_MS;
+	} else if (strstr(lineBuffer, "warning LNK") ||
+		strstr(lineBuffer, "error LNK")) {
 		// Microsoft linker warning:
-		// {<object> : } warning LNK9999
+		// {<object> : } (warning|error) LNK9999
 		return SCE_ERR_MS;
 	} else if (IsGccExcerpt(lineBuffer)) {
 		// GCC code excerpt and pointer to issue
