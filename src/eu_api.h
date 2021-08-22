@@ -349,6 +349,7 @@ EU_EXT_CLASS bool __stdcall eu_exist_dir(LPCTSTR path);
 EU_EXT_CLASS bool __stdcall eu_exist_file(LPCTSTR path);
 EU_EXT_CLASS LPTSTR __stdcall eu_suffix_strip(TCHAR *path);
 EU_EXT_CLASS LPTSTR __stdcall eu_rand_str(TCHAR *str, const int len);
+EU_EXT_CLASS char* __stdcall eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by);
 EU_EXT_CLASS LPTSTR __stdcall eu_wstr_replace(TCHAR *in, size_t in_size, LPCTSTR pattern, LPCTSTR by);
 
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);

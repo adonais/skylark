@@ -192,6 +192,26 @@ eu_wstr_replace(TCHAR *in, size_t in_size, LPCTSTR pattern, LPCTSTR by)
     return in_ptr;
 }
 
+char *WINAPI
+eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by)
+{
+    char *in_ptr = in;
+    char res[MAX_PATH + 1] = { 0 };
+    size_t resoffset = 0;
+    char *needle;
+    while ((needle = strstr(in, pattern)) && resoffset < in_size)
+    {
+        strncpy(res + resoffset, in, needle - in);
+        resoffset += needle - in;
+        in = needle + (int) strlen(pattern);
+        strncpy(res + resoffset, by, strlen(by));
+        resoffset += (int) strlen(by);
+    }
+    strcpy(res + resoffset, in);
+    _snprintf(in_ptr, (int) in_size, "%s", res);
+    return in_ptr;
+}
+
 TCHAR *WINAPI
 eu_suffix_strip(TCHAR *path)
 {
