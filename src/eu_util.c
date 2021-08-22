@@ -1005,26 +1005,6 @@ util_replace_newline(char *str)
     }
 }
 
-char *
-util_str_replace(char *in, const size_t in_size, const char *pattern, const char *by)
-{
-    char *in_ptr = in;
-    char res[MAX_PATH + 1] = { 0 };
-    size_t resoffset = 0;
-    char *needle;
-    while ((needle = strstr(in, pattern)) && resoffset < in_size)
-    {
-        strncpy(res + resoffset, in, needle - in);
-        resoffset += needle - in;
-        in = needle + (int) strlen(pattern);
-        strncpy(res + resoffset, by, strlen(by));
-        resoffset += (int) strlen(by);
-    }
-    strcpy(res + resoffset, in);
-    _snprintf(in_ptr, (int) in_size, "%s", res);
-    return in_ptr;
-}
-
 TCHAR *
 util_wchr_replace(TCHAR *path)
 {

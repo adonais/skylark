@@ -150,19 +150,17 @@ push_file_thread(void *lp)
     int result = _tstat (pathfile, &buf); 
     if (!result)
     {
-        char *pfile = NULL;
+        char pfile[MAX_PATH+1] = {0};
         char sql[MAX_BUFFER] = {0};
-        if ((pfile = eu_utf16_utf8(pathfile, NULL)) != NULL)
+        WideCharToMultiByte(CP_UTF8, 0, pathfile, -1, pfile, MAX_PATH, NULL, NULL);
+        if (*pfile)
         {
+            eu_str_replace(pfile, MAX_PATH, "'", "''");
             _snprintf(sql, MAX_BUFFER-1, "insert or ignore into file_recent(szName,szDate) values('%s', %I64u);", pfile, buf.st_mtime);
         }
         if (*sql && eu_sqlite3_send(sql, NULL, NULL) != 0)
         {
             printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
-        }
-        if (pfile)
-        {
-            free(pfile);
         }
     }
     return 0;
