@@ -5198,7 +5198,7 @@ int Editor::SupportsFeature(Supports feature) {
 	return surface->SupportsFeature(feature);
 }
 
-bool Editor::PaintContains(PRectangle rc) {
+bool Editor::PaintContains(PRectangle rc) const noexcept {
 	if (rc.Empty()) {
 		return true;
 	} else {

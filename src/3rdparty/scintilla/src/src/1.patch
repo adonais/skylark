@@ -1,0 +1,41 @@
+--- Editor2.cxx	2021-08-12 14:29:48.210491000 +0800
++++ Editor.cxx	2021-08-23 10:14:00.487270900 +0800
+@@ -4535,7 +4535,8 @@
+ 	ptMouseLast = pt;
+ 	const bool ctrl = FlagSet(modifiers, KeyMod::Ctrl);
+ 	const bool shift = FlagSet(modifiers, KeyMod::Shift);
+-	const bool alt = FlagSet(modifiers, KeyMod::Alt);
++	// const bool alt = FlagSet(modifiers, KeyMod::Alt);
++	const bool alt = sel.selType == Selection::SelTypes::thin;
+ 	SelectionPosition newPos = SPositionFromLocation(pt, false, false, AllowVirtualSpace(virtualSpaceOptions, alt));
+ 	newPos = MovePositionOutsideChar(newPos, sel.MainCaret() - newPos.Position());
+ 	SelectionPosition newCharPos = SPositionFromLocation(pt, false, true, false);
+@@ -5197,7 +5198,7 @@
+ 	return surface->SupportsFeature(feature);
+ }
+ 
+-bool Editor::PaintContains(PRectangle rc) {
++bool Editor::PaintContains(PRectangle rc) const noexcept {
+ 	if (rc.Empty()) {
+ 		return true;
+ 	} else {
+--- Editor2.h	2021-06-10 19:53:29.775773700 +0800
++++ Editor.h	2021-08-23 10:14:50.567946300 +0800
+@@ -441,7 +441,7 @@
+ 	virtual void NotifyChange() = 0;
+ 	virtual void NotifyFocus(bool focus);
+ 	virtual void SetCtrlID(int identifier);
+-	virtual int GetCtrlID() { return ctrlID; }
++	virtual int GetCtrlID() const noexcept { return ctrlID; }
+ 	virtual void NotifyParent(Scintilla::NotificationData scn) = 0;
+ 	virtual void NotifyStyleToNeeded(Sci::Position endStyleNeeded);
+ 	void NotifyChar(int ch, Scintilla::CharacterSource charSource);
+@@ -554,7 +554,7 @@
+ 	virtual void QueueIdleWork(WorkItems items, Sci::Position upTo=0);
+ 
+ 	virtual int SupportsFeature(Scintilla::Supports feature);
+-	virtual bool PaintContains(PRectangle rc);
++	virtual bool PaintContains(PRectangle rc) const noexcept;
+ 	bool PaintContainsMargin();
+ 	void CheckForChangeOutsidePaint(Range r);
+ 	void SetBraceHighlight(Sci::Position pos0, Sci::Position pos1, int matchStyle);

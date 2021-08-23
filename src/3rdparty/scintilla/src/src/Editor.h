@@ -441,7 +441,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void NotifyChange() = 0;
 	virtual void NotifyFocus(bool focus);
 	virtual void SetCtrlID(int identifier);
-	virtual int GetCtrlID() { return ctrlID; }
+	virtual int GetCtrlID() const noexcept { return ctrlID; }
 	virtual void NotifyParent(Scintilla::NotificationData scn) = 0;
 	virtual void NotifyStyleToNeeded(Sci::Position endStyleNeeded);
 	void NotifyChar(int ch, Scintilla::CharacterSource charSource);
@@ -554,7 +554,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void QueueIdleWork(WorkItems items, Sci::Position upTo=0);
 
 	virtual int SupportsFeature(Scintilla::Supports feature);
-	virtual bool PaintContains(PRectangle rc);
+	virtual bool PaintContains(PRectangle rc) const noexcept;
 	bool PaintContainsMargin();
 	void CheckForChangeOutsidePaint(Range r);
 	void SetBraceHighlight(Sci::Position pos0, Sci::Position pos1, int matchStyle);
