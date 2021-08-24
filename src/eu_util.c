@@ -702,7 +702,7 @@ util_last_time(const TCHAR *path)
         _tstat(path, &buf);
         return buf.st_mtime;
     }
-    return 0;
+    return SKYLARK_OK;
 }
 
 int
@@ -719,7 +719,7 @@ util_set_title(const TCHAR *filename)
         _sntprintf(title, _countof(title) - 1, _T("%s"), app_title);
     }
     SetWindowText(eu_module_hwnd(), title);
-    return 0;
+    return SKYLARK_OK;
 }
 
 int
@@ -738,7 +738,7 @@ util_set_working_dir(const TCHAR *path)
             SetCurrentDirectory(home_path);
         }
     }
-    return 0;
+    return SKYLARK_OK;
 }
 
 bool
@@ -1051,7 +1051,7 @@ util_unix_newline(const char *in, const size_t in_size)
             resoffset += needle - in_ptr;
             in_ptr = needle + (int) strlen(pattern);
             strncpy(res + resoffset, by, strlen(by));
-            resoffset += (int) strlen(by);           
+            resoffset += (int) strlen(by);
         }
     }
     strcpy(res + resoffset, in_ptr);
@@ -1062,10 +1062,12 @@ void
 util_upper_string(char *str)
 {
     char *p = NULL;
-
     for (p = str; *(p); p++)
     {
-        if (islower(*p)) (*p) = toupper(*p);
+        if (islower(*p))
+        {
+        	(*p) = toupper(*p);
+        }
     }
 }
 
@@ -1077,18 +1079,14 @@ util_query_hostname(char *hostname, char *ip, int len)
     struct in_addr s = {0};
     struct hostent *remote_host = NULL;
     char **ip_addr = NULL;
-    if (!hostname)
+    if (STR_IS_NUL(hostname))
     {
-        return 0;
-    }
-    if (!hostname[0])
-    {
-        return 0;
+        return SKYLARK_OK;
     }
     if (inet_pton(AF_INET, hostname, (void *) &s) == 1)
     {   // 正常的ip地址
         strncpy(ip, hostname, len - 1);
-        return 0;
+        return SKYLARK_OK;
     }
     if ((err = WSAStartup(MAKEWORD(2, 2), &wsa)))
     {
@@ -1112,7 +1110,7 @@ util_query_hostname(char *hostname, char *ip, int len)
             break;
     }
     WSACleanup();
-    return 0;
+    return SKYLARK_OK;
 }
 
 int
@@ -1178,6 +1176,7 @@ util_compress_bound(unsigned long source_len)
 int
 util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level)
 {
+	int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
     _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
@@ -1186,16 +1185,17 @@ util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, uns
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(curl_symbol,"zlib_compress2");
         if (fn_compress)
         {
-            return fn_compress(dest, dest_len, source, source_len, level);
+            ret = fn_compress(dest, dest_len, source, source_len, level);
         }
         FreeLibrary(curl_symbol);
     }
-    return -2;  // STREAM_ERROR
+    return ret;
 }
 
 int
 util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len)
 {
+	int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
     _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
@@ -1204,11 +1204,11 @@ util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, u
         ptr_uncompress fn_uncompress = (ptr_uncompress)GetProcAddress(curl_symbol,"zlib_uncompress2");
         if (fn_uncompress)
         {
-            return fn_uncompress(dest, dest_len, source, source_len);
+            ret = fn_uncompress(dest, dest_len, source, source_len);
         }
         FreeLibrary(curl_symbol);
     }
-    return -2;
+    return ret;
 }
 
 HANDLE
