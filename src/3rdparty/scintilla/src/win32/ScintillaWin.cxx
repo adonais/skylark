@@ -1495,7 +1495,9 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 		// i.e. if datazoomed out only class structures are visible, when datazooming in the control
 		// structures appear, then eventually the individual statements...)
 		if (wParam & MK_SHIFT) {
-			return ::DefWindowProc(MainHWND(), iMessage, wParam, lParam);
+		    if (vs.wrapState != WrapMode::none || charsPerScroll == 0) {
+			    return ::DefWindowProc(MainHWND(), iMessage, wParam, lParam);
+		    }
 		}
 		// Either SCROLL or ZOOM. We handle the wheel steppings calculation
 		wheelDelta -= GET_WHEEL_DELTA_WPARAM(wParam);
@@ -1539,7 +1541,7 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 			else {
 				wheelDelta = -(-wheelDelta % WHEEL_DELTA);
 			}
-            /*
+			/*
 			if (wParam & MK_CONTROL) {
 				// Zoom! We play with the font sizes in the styles.
 				// Number of steps/line is ignored, we just care if sizing up or down
@@ -1583,8 +1585,8 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 		}
 		else {
 			int charsToScroll = charsPerScroll;
+			const PRectangle rcText = GetTextRectangle();
 			if (charsPerScroll == WHEEL_PAGESCROLL) {
-				const PRectangle rcText = GetTextRectangle();
 				const int pageWidth = static_cast<int>(rcText.Width() * 2 / 3);
 				charsToScroll = pageWidth;
 			}
@@ -1598,7 +1600,8 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 			else {
 				wheelDeltaH = -(-wheelDeltaH % WHEEL_DELTA);
 			}
-			HorizontalScrollTo(xOffset + charsToScroll);
+			int const xPos = std::min(xOffset + charsToScroll, scrollWidth - static_cast<int>(rcText.Width()) + 1);
+			HorizontalScrollTo(xPos);
 		}
 		return 0;
 		// <<<<<<<<<<<<<<<   END PATCH   <<<<<<<<<<<<<<<		

@@ -3438,11 +3438,8 @@ on_about_build_bmp(const uint8_t *text)
             SetDIBits(NULL, hpay, 0, bih.biHeight, pixels, &bi, DIB_RGB_COLORS);
         }
     }
-    if (dbuf)
-    {
-        free(dbuf);
-    }
-    return hpay; 
+    free(dbuf);
+    return hpay;
 }
 
 static void
