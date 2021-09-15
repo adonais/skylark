@@ -24,7 +24,8 @@ typedef unsigned long (*ptr_compress_bound)(unsigned long source_len);
 typedef int (*ptr_compress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long, int);
 typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long *);
 
-#define OPEN_BUFSIZE 1024*64
+#define BUFF_64K 0x10000
+#define BUFF_200M 0xc800000
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
 
@@ -497,7 +498,7 @@ static void
 do_fp_md5(FILE *f, TCHAR *out, int out_len)
 {
     MD5_CTX c;
-    uint8_t buf[OPEN_BUFSIZE];
+    uint8_t buf[BUFF_64K];
     uint8_t md[MD5_DIGEST_LENGTH+1] = {0};
     char text[MD5_DIGEST_LENGTH * 2 + 1] = {0};
     char *fn_name[3] = {"MD5_Init", "MD5_Update", "MD5_Final"};
@@ -508,7 +509,7 @@ do_fp_md5(FILE *f, TCHAR *out, int out_len)
         ((eu_md5_init)pfunc[0])(&c);
         for (;;)
         {
-            size_t i = fread(buf, 1, OPEN_BUFSIZE, f);
+            size_t i = fread(buf, 1, BUFF_64K, f);
             if (i <= 0)
             {
                 break;
@@ -526,7 +527,7 @@ static void
 do_fp_sha1(FILE *f, TCHAR *out, int out_len)
 {
     SHA_CTX c;
-    uint8_t buf[OPEN_BUFSIZE];
+    uint8_t buf[BUFF_64K];
     uint8_t md[SHA_DIGEST_LENGTH+1] = {0};
     char text[SHA_DIGEST_LENGTH * 2 + 1] = {0};
     char *fn_name[3] = {"SHA1_Init", "SHA1_Update", "SHA1_Final"};
@@ -537,7 +538,7 @@ do_fp_sha1(FILE *f, TCHAR *out, int out_len)
         ((eu_sha1_init)pfunc[0])(&c);
         for (;;)
         {
-            size_t i = fread(buf, 1, OPEN_BUFSIZE, f);
+            size_t i = fread(buf, 1, BUFF_64K, f);
             if (i <= 0)
             {
                 break;
@@ -555,7 +556,7 @@ static void
 do_fp_sha256(FILE *f, TCHAR *out, int out_len)
 {
     SHA256_CTX c;
-    uint8_t buf[OPEN_BUFSIZE];
+    uint8_t buf[BUFF_64K];
     uint8_t md[SHA256_DIGEST_LENGTH+1] = {0};
     char text[SHA256_DIGEST_LENGTH * 2 + 1] = {0};
     char *fn_name[3] = {"SHA256_Init", "SHA256_Update", "SHA256_Final"};
@@ -566,7 +567,7 @@ do_fp_sha256(FILE *f, TCHAR *out, int out_len)
         ((eu_sha256_init)pfunc[0])(&c);
         for (;;)
         {
-            size_t i = fread(buf, 1, OPEN_BUFSIZE, f);
+            size_t i = fread(buf, 1, BUFF_64K, f);
             if (i <= 0)
             {
                 break;
@@ -1066,7 +1067,7 @@ util_upper_string(char *str)
     {
         if (islower(*p))
         {
-        	(*p) = toupper(*p);
+            (*p) = toupper(*p);
         }
     }
 }
@@ -1176,7 +1177,7 @@ util_compress_bound(unsigned long source_len)
 int
 util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level)
 {
-	int ret = -2;      // STREAM_ERROR
+    int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
     _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
@@ -1195,7 +1196,7 @@ util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, uns
 int
 util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len)
 {
-	int ret = -2;      // STREAM_ERROR
+    int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
     _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
@@ -1252,6 +1253,7 @@ util_to_abs(const char *path)
         return NULL;
     }
     util_wchr_replace(lpfile);
+    // 进程当前目录为基准, 得到绝对路径
     SetCurrentDirectory(eu_module_path);
     if (lpfile[0] == _T('%'))
     {
@@ -1279,7 +1281,7 @@ util_to_abs(const char *path)
             wcsncat(env, &lpfile[n], MAX_PATH);
             pret = _wfullpath(NULL, env, MAX_PATH);
         }
-    }
+    }  // 使用unix路径.代表当前目录
     else if (lpfile[0] == _T('.'))
     {
         pret = _wfullpath(NULL, lpfile, MAX_PATH);
@@ -1298,4 +1300,64 @@ util_can_selections(eu_tabpage *pnode)
     sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
     sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     return sel_start != sel_end;
+}
+
+static void
+util_close_stream_by_free(pt_stream pstream)
+{
+    if (pstream && pstream->base)
+    {
+        free((void *)pstream->base);
+        pstream->base = 0;
+        pstream->size = 0;
+    }
+}
+
+static void
+util_close_stream_by_munmap(pt_stream pstream)
+{
+    if (pstream && pstream->base)
+    {
+        UnmapViewOfFile((LPCVOID)pstream->base);
+        pstream->base = 0;
+        pstream->size = 0;
+    }
+}
+
+bool
+util_open_file(LPCTSTR path, pt_stream pstream)
+{
+    bool ret = false;
+    HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if (INVALID_HANDLE_VALUE != hfile)
+    {
+        if (pstream->size > BUFF_200M)
+        {
+            HANDLE hmap = NULL;
+            if ((hmap = CreateFileMapping(hfile, NULL, PAGE_READONLY, 0, 0, NULL)) != NULL)
+            {
+                pstream->base = (uintptr_t)MapViewOfFile(hmap, FILE_MAP_READ, 0, 0, 0);
+                CloseHandle(hmap);
+                if (pstream->base)
+                {
+                    pstream->close = util_close_stream_by_munmap;
+                    ret = true;
+                    printf("we open file use MapViewOfFile API\n");
+                }
+            }
+        }
+        else if ((pstream->base = (uintptr_t)calloc(1, pstream->size)) != 0)
+        {
+            uint32_t bytesread = 0;
+            if (ReadFile(hfile, (LPVOID)pstream->base, (uint32_t)pstream->size, &bytesread, NULL))
+            {
+                pstream->close = util_close_stream_by_free;
+                pstream->size = (size_t)bytesread;
+                ret = true;
+                printf("we open file use ReadFile API\n");
+            }
+        }
+        CloseHandle(hfile);
+    }
+    return ret;
 }

@@ -26,7 +26,16 @@
 #ifndef MIN
 #define MIN(_a_, _b_) ((_a_) < (_b_) ? (_a_) : (_b_))
 #endif
-    
+
+typedef struct UTIL_STREAM_DESC_* pt_stream;
+typedef void (*ptr_stream_close)(pt_stream pstream);
+typedef struct  UTIL_STREAM_DESC_
+{
+    size_t               size;
+    uintptr_t            base;
+    ptr_stream_close     close;
+} util_stream;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -69,6 +78,7 @@ char*  util_struct_to_string(void *buf, size_t bufsize);
 bool   util_string_to_struct(const char *buffer, void *buf, size_t bufsize);
 bool   util_creater_window(HWND hwnd, HWND hparent);
 bool   util_can_selections(eu_tabpage *pnode);
+bool   util_open_file(LPCTSTR path, pt_stream pstream);
 time_t util_last_time(const TCHAR *path);
 WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *, TCHAR *, int);

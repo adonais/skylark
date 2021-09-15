@@ -73,15 +73,14 @@ init_conv_handle(euconv_t *icv)
 static void
 close_conv_handle(euconv_t *icv)
 {
-    if (!icv)
+    if (icv)
     {
-        return;
+        if (icv->cd)
+        {
+            eu_iconv_close(icv->cd);
+        }
+        memset(icv, 0, sizeof(euconv_t));
     }
-    if (icv->cd)
-    {
-        eu_iconv_close(icv->cd);
-    }
-    memset(icv, 0, sizeof(euconv_t));
 }
 
 int
@@ -211,7 +210,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     size_t lsrc = *src_len;
     char *psrc = src;
     char *pdst = NULL;
-    size_t dst_len = lsrc * 4;
+    size_t ldst = lsrc * 4;
     int msg = IDOK;
     int argument = 0;
     strerror(0);
@@ -241,14 +240,14 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
             return 0;
         }
     }
-    *plen = dst_len;
+    *plen = ldst;
     if (eu_iconvctl(icv->cd, ICONV_SET_DISCARD_ILSEQ, &argument) != 0)
     {
         printf("can't enable illegal feature!\n");
         close_conv_handle(icv);
         return (size_t) -1;
     }
-    *dst = (char *) malloc(dst_len + 1);
+    *dst = (char *) malloc(ldst + 1);
     if (*dst == NULL)
     {
         close_conv_handle(icv);
@@ -258,18 +257,19 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     {
         pdst = *dst;
     }
-    ret = eu_iconv(icv->cd, &psrc, &lsrc, &pdst, &dst_len);
-    close_conv_handle(icv);
+    printf("lsrc = %llu, ldst = %llu\n", lsrc, ldst);
+    ret = eu_iconv(icv->cd, &psrc, &lsrc, &pdst, &ldst);
     if (ret != (size_t) -1)
     {
         // 成功, 写入转换后的长度
-        *plen -= dst_len;
+        *plen -= ldst;
     }
     else
     {
         eu_safe_free(*dst);
-        printf("eu_iconv convert failed!\n");
+        printf("eu_iconv convert[%s->%s] failed! lsrc = %llu, ldst = %llu\n", icv->src_from, icv->dst_to, lsrc, ldst);
     }
+    close_conv_handle(icv);
     return ret;
 }
 
