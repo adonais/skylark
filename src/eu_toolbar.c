@@ -648,7 +648,7 @@ do_extra_actions(void *lp)
                 CloseHandle(pfile);
                 _sntprintf(cmd_exec, MAX_BUFFER - 1, _T("%s %s"), abs_path, pname);
                 free(abs_path);
-                HANDLE handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL);
+                HANDLE handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL); 
                 if (handle)
                 {
                     WaitForSingleObject(handle, INFINITE);
@@ -687,7 +687,7 @@ on_toolbar_execute_script(void)
         else
         {   // 预设动作
             LOAD_I18N_RESSTR(IDS_EXTRA_PATH, m_input);
-            TCHAR process[MAX_PATH] = _T("../share/example_build.bat");
+            TCHAR process[MAX_PATH] = _T("./share/example_build.bat");
             if (!eu_input(m_input, process, MAX_PATH - 1))
             {
                 return;

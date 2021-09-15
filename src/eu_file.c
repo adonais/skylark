@@ -567,11 +567,7 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak)
 {
     size_t len = 0;
     size_t buf_len = 0;
-    size_t pre_offset = 0;
     size_t err = SKYLARK_OK;
-    FILE *fp = NULL;
-    uint8_t *data = NULL;
-    bool bin_file = false;
     bool is_utf8 = false;
     TCHAR *pfull = NULL;
     if (!pnode)
@@ -592,76 +588,46 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak)
     {
         return EUE_PATH_NULL;
     }
-    if (!is_utf8)
+    util_stream uf_stream = {pnode->raw_size};
+    if (!util_open_file(pfull, &uf_stream))
     {
-        pre_offset = pnode->pre_len;
+        MSG_BOX_ERR(IDC_MSG_OPEN_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+        return EUE_OPEN_FILE_ERR;
     }
-    if (true)
-    {   // io读取
-        buf_len = BUFF_SIZE;
-        if (buf_len > pnode->raw_size)
-        {
-            buf_len = pnode->raw_size;
-        }
-        if ((fp = _tfopen(pfull, _T("rb"))) == NULL)
-        {
-            MSG_BOX_ERR(IDC_MSG_OPEN_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return EUE_OPEN_FILE_ERR;
-        }
-        if ((data = (uint8_t *) calloc(1, buf_len)) == NULL)
-        {
-            fclose(fp);
-            return EUE_OUT_OF_MEMORY;
-        }
-        else
-        {
-            fseek(fp, pre_offset, SEEK_SET);
-        }
-    }
-    while (true)
+    len = uf_stream.size - pnode->pre_len;
+    if (!is_utf8 && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
     {
-        if ((len = fread((char *) data, 1, buf_len, fp)) <= 0)
+        char *pdst = NULL;
+        size_t dst_len = 0;
+        euconv_t evd = { 0 };
+        evd.src_from = eu_query_encoding_name(pnode->codepage);
+        evd.dst_to = "utf-8";
+        err = on_encoding_do_iconv(&evd, (char *) (uf_stream.base+pnode->pre_len), &len, &pdst, &dst_len);
+        if (err == (size_t) -1)
         {
-            break;
+            printf("on_encoding_do_iconv error in %s\n", __FUNCTION__);
+            err = EUE_ICONV_FAIL;
+            MSG_BOX(IDC_MSG_ICONV_FAIL2, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         }
-        if (!is_utf8 && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
+        if (pdst)
         {
-            char *pdst = NULL;
-            size_t dst_len = 0;
-            euconv_t evd = { 0 };
-            evd.src_from = eu_query_encoding_name(pnode->codepage);
-            evd.dst_to = "utf-8";
-            err = on_encoding_do_iconv(&evd, (char *) (data), &len, &pdst, &dst_len);
-            if (err == (size_t) -1)
+            if (pnode->eol < 0)
             {
-                printf("on_encoding_do_iconv error in %s\n", __FUNCTION__);
-                err = EUE_ICONV_FAIL;
-                MSG_BOX(IDC_MSG_ICONV_FAIL2, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                break;
-            }
-            if (pdst)
-            {
+                pnode->eol = on_encoding_line_mode(pdst, dst_len);
                 if (pnode->eol < 0)
                 {
-                    pnode->eol = on_encoding_line_mode(pdst, dst_len);
-                    if (pnode->eol < 0)
-                    {
-                        pnode->eol = eu_get_config()->new_file_eol;
-                    }
+                    pnode->eol = eu_get_config()->new_file_eol;
                 }
-                eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
-                eu_safe_free(pdst);
             }
-        }
-        else
-        {
-            eu_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(data));
+            eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
+            eu_safe_free(pdst);
         }
     }
-    if (fp)
+    else
     {
-        fclose(fp);
+        eu_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base+pnode->pre_len));
     }
+    uf_stream.close(&uf_stream);
     return (int)err;
 }
 
