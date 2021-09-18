@@ -12,7 +12,11 @@
 #include <initializer_list>
 
 #if _WIN32
+#if defined(DLL_EXPORT)
 #define EXPORT_FUNCTION __declspec(dllexport)
+#else
+#define EXPORT_FUNCTION
+#endif
 #define CALLING_CONVENTION __stdcall
 #else
 #define EXPORT_FUNCTION __attribute__((visibility("default")))
