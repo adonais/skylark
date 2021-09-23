@@ -818,11 +818,11 @@ static void ra_leftov(ASMState *as, Reg dest, IRRef lref)
 }
 #endif
 
-#if !LJ_64
 /* Force a RID_RETLO/RID_RETHI destination register pair (marked as free). */
 static void ra_destpair(ASMState *as, IRIns *ir)
 {
   Reg destlo = ir->r, desthi = (ir+1)->r;
+  IRIns *irx = (LJ_64 && !irt_is64(ir->t)) ? ir+1 : ir;
   /* First spill unrelated refs blocking the destination registers. */
   if (!rset_test(as->freeset, RID_RETLO) &&
       destlo != RID_RETLO && desthi != RID_RETLO)
@@ -846,29 +846,28 @@ static void ra_destpair(ASMState *as, IRIns *ir)
   /* Check for conflicts and shuffle the registers as needed. */
   if (destlo == RID_RETHI) {
     if (desthi == RID_RETLO) {
-#if LJ_TARGET_X86
-      *--as->mcp = XI_XCHGa + RID_RETHI;
+#if LJ_TARGET_X86ORX64
+      *--as->mcp = REX_64IR(irx, XI_XCHGa + RID_RETHI);
 #else
-      emit_movrr(as, ir, RID_RETHI, RID_TMP);
-      emit_movrr(as, ir, RID_RETLO, RID_RETHI);
-      emit_movrr(as, ir, RID_TMP, RID_RETLO);
+      emit_movrr(as, irx, RID_RETHI, RID_TMP);
+      emit_movrr(as, irx, RID_RETLO, RID_RETHI);
+      emit_movrr(as, irx, RID_TMP, RID_RETLO);
 #endif
     } else {
-      emit_movrr(as, ir, RID_RETHI, RID_RETLO);
-      if (desthi != RID_RETHI) emit_movrr(as, ir, desthi, RID_RETHI);
+      emit_movrr(as, irx, RID_RETHI, RID_RETLO);
+      if (desthi != RID_RETHI) emit_movrr(as, irx, desthi, RID_RETHI);
     }
   } else if (desthi == RID_RETLO) {
-    emit_movrr(as, ir, RID_RETLO, RID_RETHI);
-    if (destlo != RID_RETLO) emit_movrr(as, ir, destlo, RID_RETLO);
+    emit_movrr(as, irx, RID_RETLO, RID_RETHI);
+    if (destlo != RID_RETLO) emit_movrr(as, irx, destlo, RID_RETLO);
   } else {
-    if (desthi != RID_RETHI) emit_movrr(as, ir, desthi, RID_RETHI);
-    if (destlo != RID_RETLO) emit_movrr(as, ir, destlo, RID_RETLO);
+    if (desthi != RID_RETHI) emit_movrr(as, irx, desthi, RID_RETHI);
+    if (destlo != RID_RETLO) emit_movrr(as, irx, destlo, RID_RETLO);
   }
   /* Restore spill slots (if any). */
   if (ra_hasspill((ir+1)->s)) ra_save(as, ir+1, RID_RETHI);
   if (ra_hasspill(ir->s)) ra_save(as, ir, RID_RETLO);
 }
-#endif
 
 /* -- Snapshot handling --------- ----------------------------------------- */
 
@@ -2226,7 +2225,17 @@ static void asm_setup_regsp(ASMState *as)
 	as->modset |= RSET_SCRATCH;
       continue;
       }
-    case IR_CALLN: case IR_CALLA: case IR_CALLL: case IR_CALLS: {
+    case IR_CALLL:
+      /* lj_vm_next needs two TValues on the stack. */
+#if LJ_TARGET_X64 && LJ_ABI_WIN
+      if (ir->op2 == IRCALL_lj_vm_next && as->evenspill < SPS_FIRST + 4)
+	as->evenspill = SPS_FIRST + 4;
+#else
+      if (SPS_FIRST < 4 && ir->op2 == IRCALL_lj_vm_next && as->evenspill < 4)
+	as->evenspill = 4;
+#endif
+      /* fallthrough */
+    case IR_CALLN: case IR_CALLA: case IR_CALLS: {
       const CCallInfo *ci = &lj_ir_callinfo[ir->op2];
       ir->prev = asm_setup_call_slots(as, ir, ci);
       if (inloop)
@@ -2234,7 +2243,6 @@ static void asm_setup_regsp(ASMState *as)
 		      (RSET_SCRATCH & ~RSET_FPR) : RSET_SCRATCH;
       continue;
       }
-#if LJ_SOFTFP || (LJ_32 && LJ_HASFFI)
     case IR_HIOP:
       switch ((ir-1)->o) {
 #if LJ_SOFTFP && LJ_TARGET_ARM
@@ -2245,7 +2253,7 @@ static void asm_setup_regsp(ASMState *as)
 	}
 	break;
 #endif
-#if !LJ_SOFTFP && LJ_NEED_FP64
+#if !LJ_SOFTFP && LJ_NEED_FP64 && LJ_32 && LJ_HASFFI
       case IR_CONV:
 	if (irt_isfp((ir-1)->t)) {
 	  ir->prev = REGSP_HINT(RID_FPRET);
@@ -2253,7 +2261,7 @@ static void asm_setup_regsp(ASMState *as)
 	}
 #endif
       /* fallthrough */
-      case IR_CALLN: case IR_CALLXS:
+      case IR_CALLN: case IR_CALLL: case IR_CALLS: case IR_CALLXS:
 #if LJ_SOFTFP
       case IR_MIN: case IR_MAX:
 #endif
@@ -2264,7 +2272,6 @@ static void asm_setup_regsp(ASMState *as)
 	break;
       }
       break;
-#endif
 #if LJ_SOFTFP
     case IR_MIN: case IR_MAX:
       if ((ir+1)->o != IR_HIOP) break;
@@ -2550,7 +2557,9 @@ void lj_asm_trace(jit_State *J, GCtrace *T)
   /* Set trace entry point before fixing up tail to allow link to self. */
   T->mcode = as->mcp;
   T->mcloop = as->mcloop ? (MSize)((char *)as->mcloop - (char *)as->mcp) : 0;
-  if (!as->loopref)
+  if (as->loopref)
+    asm_loop_tail_fixup(as);
+  else
     asm_tail_fixup(as, T->link);  /* Note: this may change as->mctop! */
   T->szmcode = (MSize)((char *)as->mctop - (char *)as->mcp);
   asm_snap_fixup_mcofs(as);

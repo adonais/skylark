@@ -479,12 +479,17 @@ void Editor::DiscardOverdraw() {
 }
 
 void Editor::Redraw() {
+	if (redrawPendingText) {
+		return;
+	}
 	//Platform::DebugPrintf("Redraw all\n");
 	const PRectangle rcClient = GetClientRectangle();
 	wMain.InvalidateRectangle(rcClient);
-	if (wMargin.GetID())
+	if (wMargin.GetID()) {
 		wMargin.InvalidateAll();
-	//wMain.InvalidateAll();
+	} else if (paintState == PaintState::notPainting) {
+		redrawPendingText = true;
+	}
 }
 
 void Editor::RedrawSelMargin(Sci::Line line, bool allAfter) {
@@ -498,11 +503,15 @@ void Editor::RedrawSelMargin(Sci::Line line, bool allAfter) {
 		Redraw();
 		return;
 	}
+	if (redrawPendingMargin) {
+		return;
+	}
 	PRectangle rcMarkers = GetClientRectangle();
 	if (!markersInText) {
 		// Normal case: just draw the margin
 		rcMarkers.right = rcMarkers.left + vs.fixedColumnWidth;
 	}
+	const PRectangle rcMarkersFull = rcMarkers;
 	if (line != -1) {
 		PRectangle rcLine = RectangleFromRange(Range(pdoc->LineStart(line)), 0);
 
@@ -529,6 +538,9 @@ void Editor::RedrawSelMargin(Sci::Line line, bool allAfter) {
 		wMargin.InvalidateRectangle(rcMarkers);
 	} else {
 		wMain.InvalidateRectangle(rcMarkers);
+		if (rcMarkers == rcMarkersFull) {
+			redrawPendingMargin = true;
+		}
 	}
 }
 
@@ -552,6 +564,9 @@ PRectangle Editor::RectangleFromRange(Range r, int overlap) {
 }
 
 void Editor::InvalidateRange(Sci::Position start, Sci::Position end) {
+	if (redrawPendingText) {
+		return;
+	}
 	RedrawRect(RectangleFromRange(Range(start, end), view.LinesOverlap() ? vs.lineOverlap : 0));
 }
 
@@ -1717,6 +1732,9 @@ void Editor::RefreshPixMaps(Surface *surfaceWindow) {
 }
 
 void Editor::Paint(Surface *surfaceWindow, PRectangle rcArea) {
+	redrawPendingText = false;
+	redrawPendingMargin = false;
+
 	//Platform::DebugPrintf("Paint:%1d (%3d,%3d) ... (%3d,%3d)\n",
 	//	paintingAllText, rcArea.left, rcArea.top, rcArea.right, rcArea.bottom);
 
@@ -4781,10 +4799,6 @@ void Editor::SetHotSpotRange(const Point *pt) {
 	}
 }
 
-Range Editor::GetHotSpotRange() const noexcept {
-	return hotspot;
-}
-
 void Editor::ButtonMoveWithModifiers(Point pt, unsigned int, KeyMod modifiers) {
 	if (ptMouseLast != pt) {
 		DwellEnd(true);
@@ -7308,6 +7322,13 @@ sptr_t Editor::WndProc(Message iMessage, uptr_t wParam, sptr_t lParam) {
 		InvalidateStyleRedraw();
 		break;
 
+	case Message::GetCaretLineHighlightSubLine:
+		return vs.caretLine.subLine;
+	case Message::SetCaretLineHighlightSubLine:
+		vs.caretLine.subLine = wParam != 0;
+		InvalidateStyleRedraw();
+		break;
+
 	case Message::GetCaretLineFrame:
 		return vs.caretLine.frame;
 	case Message::SetCaretLineFrame:
@@ -7385,8 +7406,7 @@ sptr_t Editor::WndProc(Message iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case Message::HideLines:
-		if (wParam > 0)
-			pcs->SetVisible(LineFromUPtr(wParam), lParam, false);
+		pcs->SetVisible(LineFromUPtr(wParam), lParam, false);
 		SetScrollBars();
 		Redraw();
 		break;
@@ -7911,7 +7931,7 @@ sptr_t Editor::WndProc(Message iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case Message::MultiEdgeAddLine:
-		vs.AddMultiEdge(wParam, lParam);
+		vs.AddMultiEdge(static_cast<int>(wParam), ColourRGBA::FromIpRGB(lParam));
 		InvalidateStyleRedraw();
 		break;
 

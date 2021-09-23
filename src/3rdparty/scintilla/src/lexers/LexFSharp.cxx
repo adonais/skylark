@@ -280,6 +280,11 @@ inline bool IsFloat(const StyleContext &cxt) {
 		((cxt.ch == '+' || cxt.ch == '-' ) && IsADigit(cxt.chNext));
 }
 
+inline bool IsLineEnd(StyleContext &cxt, const Sci_Position offset) {
+	const int ch = cxt.GetRelative(offset, '\n');
+	return (ch == '\r' || ch == '\n');
+}
+
 class LexerFSharp : public DefaultLexer {
 	WordList keywords[WORDLIST_SIZE];
 	OptionsFSharp options;
@@ -496,9 +501,21 @@ void SCI_METHOD LexerFSharp::Lex(Sci_PositionU start, Sci_Position length, int i
 							break;
 						}
 					}
-				} else if (sc.ch == '%' && !(fsStr.startChar == '`' || fsStr.startChar == '$') &&
+				} else if (sc.ch == '%' &&
+					   !(fsStr.startChar == '`' || sc.MatchIgnoreCase("%  ") || sc.MatchIgnoreCase("% \"")) &&
 					   (setFormatSpecs.Contains(sc.chNext) || setFormatFlags.Contains(sc.chNext))) {
-					state = SCE_FSHARP_FORMAT_SPEC;
+					if (fsStr.CanInterpolate() && sc.chNext != '%') {
+						for (Sci_Position i = 2; i < length && !IsLineEnd(sc, i); i++) {
+							if (sc.GetRelative(i) == '{') {
+								state = setFormatSpecs.Contains(sc.GetRelative(i - 1))
+									    ? SCE_FSHARP_FORMAT_SPEC
+									    : state;
+								break;
+							}
+						}
+					} else {
+						state = SCE_FSHARP_FORMAT_SPEC;
+					}
 				}
 				break;
 			case SCE_FSHARP_IDENTIFIER:

@@ -79,9 +79,6 @@ public:
 
 	std::unique_ptr<BidiData> bidiData;
 
-	// Hotspot support
-	Range hotspot;
-
 	// Wrapped line support
 	int widthLine;
 	int lines;

@@ -211,7 +211,7 @@ void AutoComplete::Show(bool show) {
 		lb->Select(0);
 }
 
-void AutoComplete::Cancel() {
+void AutoComplete::Cancel() noexcept {
 	if (lb->Created()) {
 		lb->Clear();
 		lb->Destroy();
