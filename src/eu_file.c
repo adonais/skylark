@@ -936,12 +936,12 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
     if (IsIconic(hwnd))
     {
         ShowWindow(hwnd, SW_RESTORE);
+        ShowWindow(hwnd, SW_SHOW);
     }
     else if (hwnd != GetForegroundWindow())
     {
         set_window_top(hwnd);
     }
-    ShowWindow(hwnd, SW_SHOW);
     return err;
 }
 

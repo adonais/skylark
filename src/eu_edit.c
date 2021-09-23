@@ -39,6 +39,8 @@ on_edit_undo(eu_tabpage *pnode)
     {
         eu_clear_undo_off();
         eu_sci_call(pnode, SCI_UNDO, 0, 0);
+        util_setforce_eol(pnode);
+        on_statusbar_update_eol(pnode);
     }
 }
 
@@ -49,6 +51,8 @@ on_edit_redo(eu_tabpage *pnode)
     {
         eu_clear_undo_off();
         eu_sci_call(pnode, SCI_REDO, 0, 0);
+        util_setforce_eol(pnode);
+        on_statusbar_update_eol(pnode);
     }
 }
 

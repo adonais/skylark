@@ -71,6 +71,7 @@ void   util_upper_string(char *str);
 void   util_kill_thread(uint32_t pid);
 void   util_wait_cursor(eu_tabpage *pnode);
 void   util_restore_cursor(eu_tabpage *pnode);
+void   util_setforce_eol(eu_tabpage *pnode);
 bool   util_availed_char(int ch);
 bool   util_under_wine(void);
 void   util_trim_right_star(TCHAR *str);
