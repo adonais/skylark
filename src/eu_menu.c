@@ -213,16 +213,25 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
                 util_enable_menu_item(hwnd, IDM_EDIT_COPY, util_can_selections(pnode));
                 util_enable_menu_item(hwnd, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
                 util_enable_menu_item(hwnd, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN);
-                menu_update_hexview(hwnd, pnode->hex_mode);
-                menu_update_rside(hwnd, pnode);
                 util_set_menu_item(hwnd, IDM_VIEW_HEXEDIT_MODE, pnode->hex_mode);
                 util_set_menu_item(hwnd, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
                 util_set_menu_item(hwnd, IDM_SELECTION_RECTANGLE, eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);
-                util_enable_menu_item(hwnd, IDM_DATABASE_INSERT_CONFIG, (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
-                util_enable_menu_item(hwnd, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
-                util_enable_menu_item(hwnd, IDM_REDIS_INSERT_CONFIG, (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
-                util_enable_menu_item(hwnd, IDM_REDIS_EXECUTE_COMMAND, (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
-                util_enable_menu_item(hwnd, IDM_PROGRAM_EXECUTE_ACTION, pnode->doc_ptr);
+                menu_update_hexview(hwnd, pnode->hex_mode);
+                menu_update_rside(hwnd, pnode);                
+                util_enable_menu_item(hwnd, IDM_DATABASE_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
+                util_enable_menu_item(hwnd, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
+                util_enable_menu_item(hwnd, IDM_REDIS_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
+                util_enable_menu_item(hwnd, IDM_REDIS_EXECUTE_COMMAND, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
+                util_enable_menu_item(hwnd, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON));
+                util_enable_menu_item(hwnd, IDM_EDIT_PLACEHOLDE17, 
+                                     (pnode->doc_ptr && !pnode->hex_mode && 
+                                     (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                                     pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                                     pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                                     pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                                     pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
+                util_enable_menu_item(hwnd, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
+                util_enable_menu_item(hwnd, IDM_PROGRAM_EXECUTE_ACTION, pnode->doc_ptr && !pnode->hex_mode);
                 if (pnode->doc_ptr)
                 {
                     menu_update_input(IDM_VIEW_TAB_WIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width);
@@ -232,7 +241,7 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
                 {
                     menu_update_input(IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
                     util_set_menu_item(hwnd, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces); 
-                }
+                }              
                 if (pnode->hwnd_sc)
                 {
                     SwitchToThisWindow(hwnd, true);

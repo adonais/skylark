@@ -81,13 +81,13 @@ on_view_symtree(eu_tabpage *pnode)
         util_set_menu_item(hwnd, IDM_VIEW_SYMTREE, false);
         eu_get_config()->m_sym_show = false;
     }
-    else
+    else if (m_check)
     {
         util_set_menu_item(hwnd, IDM_VIEW_SYMTREE, true);
         eu_get_config()->m_sym_show = true;
     }
     eu_window_resize(hwnd);
-    return 0;
+    return SKYLARK_OK;
 }
 
 void

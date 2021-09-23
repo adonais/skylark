@@ -70,7 +70,8 @@ enum dctype
     DOCTYPE_PROPERTIES,
     DOCTYPE_NIM,
     DOCTYPE_AU3,
-    DOCTYPE_FORTRAN
+    DOCTYPE_FORTRAN,
+    DOCTYPE_JULIA
 };
 
 typedef struct _doc_data

@@ -547,12 +547,8 @@ eu_before_proc(MSG *p_msg)
 LRESULT CALLBACK
 eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    int width, height;
-    int wm_id, wm_nc;
-    HWND wm_hwnd;
     NMHDR *lpnmhdr = NULL;
     SCNotification *lpnotify = NULL;
-    NMTREEVIEW *lpnmtv = NULL;
     TOOLTIPTEXT *p_tips = NULL;
     eu_tabpage *pnode = NULL;
     LRESULT result = 0;
@@ -711,9 +707,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_COMMAND:
         {
-            wm_id = LOWORD(wParam);
-            wm_nc = HIWORD(wParam);
-            wm_hwnd = (HWND) lParam;
+            int wm_id = LOWORD(wParam);
             pnode = on_tabpage_focus_at();
             if (IDM_HISTORY_BASE <= wm_id && wm_id <= IDM_HISTORY_BASE + PATH_MAX_RECENTLY - 1)
             {
@@ -750,12 +744,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 i18n_switch_locale(eu_hwndmain, wm_id);
                 break;
-            }
-            // analysis menu
-            if (wm_nc == LBN_DBLCLK)
-            {
-                width = 0;
-                height = 0;
             }
             switch (wm_id)
             {
@@ -1115,14 +1103,20 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FORMAT_REFORMAT:
                     format_do_json_file(pnode, format_do_json_string);
                     on_symtree_json(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_COMPRESS:
                     format_do_json_file(pnode, format_undo_json_string);
                     on_symtree_json(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
                     break; 
                 case IDM_FORMAT_WHOLE_FILE:
                     format_file_with_clang(pnode);
                     on_symlist_reqular(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
                     format_str_with_clang(pnode);
@@ -1450,7 +1444,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NOTIFY:
             lpnmhdr = (NMHDR *) lParam;
             lpnotify = (SCNotification *) lParam;
-            lpnmtv = (NMTREEVIEW *) lParam;
             p_tips = (TOOLTIPTEXT *) lParam;
             if (lpnmhdr->hwndFrom == g_filetree)
             {

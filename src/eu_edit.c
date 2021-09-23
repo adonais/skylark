@@ -39,6 +39,8 @@ on_edit_undo(eu_tabpage *pnode)
     {
         eu_clear_undo_off();
         eu_sci_call(pnode, SCI_UNDO, 0, 0);
+        util_setforce_eol(pnode);
+        on_statusbar_update_eol(pnode);
     }
 }
 
@@ -49,6 +51,8 @@ on_edit_redo(eu_tabpage *pnode)
     {
         eu_clear_undo_off();
         eu_sci_call(pnode, SCI_REDO, 0, 0);
+        util_setforce_eol(pnode);
+        on_statusbar_update_eol(pnode);
     }
 }
 
@@ -1249,6 +1253,9 @@ on_edit_comment_line(eu_tabpage *pnode)
         case DOCTYPE_COBOL:
             eu_toggle_comment(pnode, "* ", false);
             break;
+        case DOCTYPE_JULIA:
+            eu_toggle_comment(pnode, "# ", false);
+            break;            
         case DOCTYPE_SH:
         {
             TCHAR *sp = on_doc_get_ext(pnode);
@@ -1328,6 +1335,9 @@ on_edit_comment_stream(eu_tabpage *pnode)
         case DOCTYPE_NIM:
             on_close_selection(pnode, "#[ ", "]#");
             break;
+        case DOCTYPE_JULIA:
+            on_comment_newline(pnode, "#=", "=#");
+            break;            
         case DOCTYPE_SH:
         {
             TCHAR *sp = on_doc_get_ext(pnode);

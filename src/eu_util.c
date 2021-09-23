@@ -1361,3 +1361,16 @@ util_open_file(LPCTSTR path, pt_stream pstream)
     }
     return ret;
 }
+
+void
+util_setforce_eol(eu_tabpage *pnode)
+{
+	size_t len = 0;
+	char *pdata = util_strdup_content(pnode, &len);
+	if (pdata)
+	{
+		pnode->eol = on_encoding_line_mode(pdata, len);
+		eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+		free(pdata);
+	}
+}
