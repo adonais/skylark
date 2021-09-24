@@ -174,21 +174,14 @@ share_send_msg(void *param)
         memory = (HWND *) share_map(m_map, sizeof(HANDLE), FILE_MAP_READ);
         if (memory)
         {
-            if (!pbak)
-            {
-                ShowWindow(*memory, SW_SHOW);
-                if (IsIconic(*memory))
-                {
-                    ShowWindow(*memory, SW_RESTORE);
-                }
-            }
-            else
+            if (pbak)
             {
                 COPYDATASTRUCT cpd = { 0 };
                 cpd.lpData = (PVOID) pbak;
                 cpd.cbData = (DWORD) sizeof(file_backup);
                 SendMessageW(*memory, WM_COPYDATA, 0, (LPARAM) &cpd);
             }
+            SwitchToThisWindow(*memory, true);         
             share_unmap(memory);
         }
         share_close(m_map);

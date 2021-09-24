@@ -487,7 +487,7 @@ EU_EXT_CLASS void eu_remote_list_release(void);
 EU_EXT_CLASS bool eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
 
 // for eu_util.c
-EU_EXT_CLASS bool eu_string_to_struct(const char *buffer, void *buf, size_t len);
+EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 
 // for eu_doctype.c
 EU_EXT_CLASS void eu_doc_config_release(void);

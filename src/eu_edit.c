@@ -424,7 +424,7 @@ on_edit_close_char(eu_tabpage *pnode)
         eu_get_config()->auto_close_chars = false;
     }
     menu_update_all(eu_module_hwnd(), pnode);
-    return 0;
+    return SKYLARK_OK;
 }
 
 int
@@ -439,7 +439,7 @@ on_edit_identation(eu_tabpage *pnode)
         eu_get_config()->m_ident = false;
     }
     menu_update_all(eu_module_hwnd(), pnode);
-    return 0;
+    return SKYLARK_OK;
 }
 
 void

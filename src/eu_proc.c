@@ -55,26 +55,14 @@ on_create_window(HWND hwnd)
         printf("on_tabpage_create_dlg return false\n");
         return 1;
     }
-    return 0;
+    return SKYLARK_OK;
 }
 
 static void
 on_destory_window(HWND hwnd)
 {
     // 保存主窗口位置
-    WINDOWPLACEMENT wp;
-    if (GetWindowPlacement(hwnd, &wp))
-    {
-        char *placement = util_struct_to_string(&wp, sizeof(wp));
-        if (placement)
-        {
-            if (strlen(placement) < MAX_BUFFER)
-            {
-                sprintf(eu_get_config()->m_placement, "%s", placement);
-            }
-            free(placement);
-        }
-    }
+    util_save_placement(hwnd);
     // 销毁定时器
     KillTimer(hwnd, EU_TIMER_ID);
     // 等待搜索完成

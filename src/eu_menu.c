@@ -241,10 +241,9 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
                 {
                     menu_update_input(IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
                     util_set_menu_item(hwnd, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces); 
-                }              
+                }           
                 if (pnode->hwnd_sc)
                 {
-                    SwitchToThisWindow(hwnd, true);
                     SetFocus(pnode->hwnd_sc);
                 }
             }

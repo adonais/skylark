@@ -902,8 +902,8 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         util_set_title(pnode->pathfile);
         // 切换工作目录
         util_set_working_dir(pnode->pathname);
-        menu_update_all(hwnd, pnode);
         eu_window_resize(hwnd);
+        menu_update_all(hwnd, pnode);
         if (pnode->hwnd_sc)
         {
             SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);

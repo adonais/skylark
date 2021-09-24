@@ -50,15 +50,7 @@ init_instance(HINSTANCE instance)
         }
         else
         {
-            WINDOWPLACEMENT wp;
-            if (eu_string_to_struct(eu_get_config()->m_placement, &wp, sizeof(wp)))
-            {
-                if (wp.showCmd == SW_HIDE || wp.showCmd == SW_MINIMIZE || wp.showCmd == SW_SHOWMINIMIZED)
-                {
-                    wp.showCmd = SW_SHOWNORMAL;
-                }
-                SetWindowPlacement(hwnd, &wp);
-            }
+            eu_restore_placement(hwnd);
         }
     }
     return hwnd;
