@@ -1374,3 +1374,35 @@ util_setforce_eol(eu_tabpage *pnode)
 		free(pdata);
 	}
 }
+
+void
+util_save_placement(HWND hwnd)
+{
+    WINDOWPLACEMENT wp = {sizeof(WINDOWPLACEMENT)};
+    if (GetWindowPlacement(hwnd, &wp))
+    {
+        char *placement = util_struct_to_string(&wp, sizeof(wp));
+        if (placement)
+        {
+            if (strlen(placement) < MAX_BUFFER)
+            {
+                sprintf(eu_get_config()->m_placement, "%s", placement);
+            }
+            free(placement);
+        }
+    }
+}
+
+void
+util_restore_placement(HWND hwnd)
+{
+    WINDOWPLACEMENT wp = {0};
+    if (util_string_to_struct(eu_get_config()->m_placement, &wp, sizeof(wp)))
+    {
+        if (wp.showCmd == SW_HIDE || wp.showCmd == SW_MINIMIZE || wp.showCmd == SW_SHOWMINIMIZED)
+        {
+            wp.showCmd = SW_SHOWNORMAL;
+        }
+        SetWindowPlacement(hwnd, &wp);
+    }
+}

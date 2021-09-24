@@ -209,7 +209,6 @@
 #define SCE_USER_STYLE_IDENTIFIER           24
 #define SCE_USER_STYLE_TOTAL_STYLES         SCE_USER_STYLE_IDENTIFIER
 #define SCE_USER_STYLE_MAPPER_TOTAL         17
-#define SCE_STYLE_ARRAY_SIZE                30     // must cover sizes of NppParameters::_lexerStyler and NppParameters::_widgetStyle
 
 #define SCE_USER_MASK_NESTING_NONE                          0
 #define SCE_USER_MASK_NESTING_DELIMITER1                    0x1
@@ -315,8 +314,6 @@
 #define SCE_SEARCHRESULT_FILE_HEADER 2
 #define SCE_SEARCHRESULT_LINE_NUMBER 3
 #define SCE_SEARCHRESULT_WORD2SEARCH 4
-#define SCE_SEARCHRESULT_HIGHLIGHT_LINE 5
-#define SCE_SEARCHRESULT_CURRENT_LINE 6
 #define SCE_TCL_DEFAULT 0
 #define SCE_TCL_COMMENT 1
 #define SCE_TCL_COMMENTLINE 2

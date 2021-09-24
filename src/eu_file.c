@@ -393,7 +393,6 @@ on_file_new(void)
         util_set_title(pnode->pathfile);
         on_sci_after_file(pnode);
         on_tabpage_selection(pnode, -1);
-        eu_window_resize(eu_module_hwnd());
     }
     return SKYLARK_OK;
 }
@@ -900,26 +899,10 @@ mem_clean:
     return err;
 }
 
-static BOOL
-set_window_top(HWND hwnd)
-{
-    HWND hwnd_force = GetForegroundWindow();
-    DWORD dwForeID = GetWindowThreadProcessId(hwnd_force, NULL);
-    DWORD dwCurID = GetCurrentThreadId();
-    AttachThreadInput(dwCurID, dwForeID, TRUE);
-    ShowWindow(hwnd, SW_SHOWNORMAL);
-    SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-    SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-    SetForegroundWindow(hwnd);
-    AttachThreadInput(dwCurID, dwForeID, FALSE);
-    return TRUE;
-}
-
 int
 on_file_redirect(HWND hwnd, file_backup *pbak)
 {
     int err = SKYLARK_OK;
-    printf("on_file_redirect runing\n");
     if (pbak->status || _tcsnicmp(pbak->rel_path, _T("sftp://"), 7) != 0)
     {
         err = open_files(pbak);
@@ -932,15 +915,6 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
     if (err != 0 && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败与标签小于1,则建立一个空白标签页
         return on_file_new();
-    }
-    if (IsIconic(hwnd))
-    {
-        ShowWindow(hwnd, SW_RESTORE);
-        ShowWindow(hwnd, SW_SHOW);
-    }
-    else if (hwnd != GetForegroundWindow())
-    {
-        set_window_top(hwnd);
     }
     return err;
 }

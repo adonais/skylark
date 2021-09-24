@@ -1678,7 +1678,8 @@ hexview_register_class(void)
 bool
 hexview_init(eu_tabpage *pnode)
 {
-    if (!pnode)
+    HWND hwnd = eu_module_hwnd();
+    if (!(pnode && hwnd))
     {
         return false;
     }
@@ -1705,7 +1706,7 @@ hexview_init(eu_tabpage *pnode)
     }
     pnode->begin_pos = -1;
     hexview_register_class(); 
-    pnode->hwnd_sc = hexview_create_dlg(eu_module_hwnd(), pnode);
+    pnode->hwnd_sc = hexview_create_dlg(hwnd, pnode);
     if (!pnode->hwnd_sc)
     {
         printf("hexview_create_dlg failed on %s:%d\n", __FILE__, __LINE__);

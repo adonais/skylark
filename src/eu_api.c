@@ -2297,8 +2297,8 @@ eu_module_handle(void)
     return eu_instance;
 }
 
-bool
-eu_string_to_struct(const char *buffer, void *buf, size_t len)
+void
+eu_restore_placement(HWND hwnd)
 {
-    return util_string_to_struct(buffer, buf, len);
+    return util_restore_placement(hwnd);
 }
