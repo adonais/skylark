@@ -213,7 +213,6 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     size_t ldst = lsrc * 4;
     int msg = IDOK;
     int argument = 0;
-    strerror(0);
     if (!init_conv_handle(icv))
     {
         return (size_t) -1;

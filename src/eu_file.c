@@ -1090,7 +1090,6 @@ do_write_file(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
 {
     int ret = SKYLARK_OK;
     FILE *fp = NULL;
-    _set_errno(0);
     if (!pnode->hex_mode)
     {
         pnode->bytes_remaining = (size_t) eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
