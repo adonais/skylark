@@ -163,39 +163,53 @@ rcs_length(rcstring *rcs)
 char *
 format_undo_json_string(const char *text)
 {
-    rcstring *output;
     size_t i;
+    size_t in = 0;
+    size_t out = 0;
     size_t length;
+    int state = 0;
+    char *output = NULL;
     /* check if pre-conditions are met */
     EU_VERIFY(text != NULL);
-    /* defining the temporary variables */
     length = strlen(text);
-    if ((output = rcs_create(length)) == NULL)
+    output = length > 0 ? (char *) malloc(length) : NULL;
+    if (output == NULL)
     {
         return NULL;
     }
-    for (i = 0; i < length; i++)
+    while (in < length)
     {
-        if (isspace(text[i]))
+        switch (text[in])
         {
-            continue;
+            case '\x20': /* space */
+            case '\x09': /* horizontal tab */
+            case '\x0A': /* line feed or new line */
+            case '\x0D': /* Carriage return */
+                if (state == 1)
+                {
+                    output[out++] = text[in];
+                }
+                break;
+
+            case '\"':
+                if (!state)
+                {
+                    state = 1;
+                }
+                else if (text[in - 1] != '\\')
+                {
+                    state = 0;
+                }
+                output[out++] = text[in];
+                break;
+
+            default:
+                output[out++] = text[in];
         }
-        else if (text[i] == '/' && text[i+1] == '/')
-        {
-            // 删除单行注释
-            char *p = strchr(&text[i+1], '\n');
-            if (p)
-            {
-                i += (p - &text[i+1]);
-                continue;
-            }
-        }
-        else
-        {
-            DO_RCS_CATC(output, text[i]);
-        }
+        ++in;
     }
-    return rcs_unwrap(output);
+    output[out] = '\0';
+    return output;
 }
 
 char *
@@ -203,7 +217,7 @@ format_do_json_string(const char *text)
 {
     size_t pos = 0;
     size_t text_length;
-    unsigned int indentation = 0; /* the current indentation level */
+    int indentation = 0;          /* the current indentation level */
     unsigned int i;               /* loop iterator variable */
     char loop;
 
@@ -237,6 +251,11 @@ format_do_json_string(const char *text)
             case '}':
                 indentation--;
                 DO_RCS_CATC(output, '\n');
+                if (indentation < 0)
+                {
+                    pos++;
+                    break;
+                }
                 for (i = 0; i < indentation; i++)
                 {
                     DO_RCS_CATC(output, '\t');
@@ -252,13 +271,17 @@ format_do_json_string(const char *text)
 
             case ',':
                 DO_RCS_CATCS(output, ",\n", 2);
+                if (indentation < 0)
+                {
+                    pos++;
+                    break;
+                }                
                 for (i = 0; i < indentation; i++)
                 {
                     DO_RCS_CATC(output, '\t');
                 }
                 pos++;
                 break;
-
             case '\"': /* open string */
                 DO_RCS_CATC(output, text[pos]);
                 pos++;
@@ -288,17 +311,9 @@ format_do_json_string(const char *text)
                 }
                 break;
             case '/':
-                if (text[pos+1] == '/')
-                {   // 保留单行注释
-                    while (text[pos] != '\n')
-                    {
-                        DO_RCS_CATC(output, text[pos++]);
-                    }
-                    DO_RCS_CATC(output, '\n');
-                    for (i = 0; i < indentation; i++)
-                    {
-                        DO_RCS_CATC(output, '\t');
-                    }
+                if (indentation < 0)
+                {
+                    ;
                 }
                 else if (text[pos+1] == '*')
                 {   // 保留块注释

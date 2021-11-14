@@ -152,6 +152,21 @@ menu_update_hexview(HWND hwnd, bool hex_mode)
 }
 
 void
+menu_update_text_status(HWND hwnd, eu_tabpage *pnode)
+{
+    if (eu_get_config()->m_menubar)
+    {
+        util_enable_menu_item(hwnd, IDM_EDIT_CUT, util_can_selections(pnode));
+        util_enable_menu_item(hwnd, IDM_EDIT_COPY, util_can_selections(pnode));
+    }
+    if (eu_get_config()->m_toolbar)
+    {
+        on_toolbar_setup_button(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
+        on_toolbar_setup_button(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
+    }
+}
+
+void
 menu_update_all(HWND hwnd, eu_tabpage *pnode)
 {
     if (eu_get_config()->m_menubar)
@@ -176,7 +191,6 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
             i18n_update_multi_lang(hwnd);
             menu_switch_theme(hwnd);
             i18n_update_menu(hwnd);
-            on_reg_update_menu(hwnd);
             
             util_set_menu_item(hwnd, IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
             util_set_menu_item(hwnd, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
@@ -209,8 +223,6 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
                 util_enable_menu_item(hwnd, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
                 util_enable_menu_item(hwnd, IDM_FILE_SAVEAS, pnode->filename[0]);
                 util_enable_menu_item(hwnd, IDM_FILE_PRINT, true);
-                util_enable_menu_item(hwnd, IDM_EDIT_CUT, util_can_selections(pnode));
-                util_enable_menu_item(hwnd, IDM_EDIT_COPY, util_can_selections(pnode));
                 util_enable_menu_item(hwnd, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
                 util_enable_menu_item(hwnd, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN);
                 util_set_menu_item(hwnd, IDM_VIEW_HEXEDIT_MODE, pnode->hex_mode);

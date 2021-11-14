@@ -208,10 +208,14 @@ check_reg_str(HKEY key, LPCTSTR txt)
     return exist;
 }
 
-void
+unsigned __stdcall
 on_reg_update_menu(void *lp)
 {
     HWND hwnd = (HWND)lp;
+    if (!hwnd)
+    {
+        hwnd = eu_module_hwnd();
+    }
     if (check_reg_str(HKEY_CLASSES_ROOT, _T("*\\shell\\skylark\\command")))
     {
         util_set_menu_item(hwnd, IDM_ENV_FILE_POPUPMENU, true);
@@ -228,6 +232,7 @@ on_reg_update_menu(void *lp)
     {
         util_set_menu_item(hwnd, IDM_ENV_DIRECTORY_POPUPMENU, false);
     }
+    return 0;
 }
 
 

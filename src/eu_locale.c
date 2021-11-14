@@ -172,9 +172,7 @@ i18n_load_menu(int res_id)
 HWND
 i18n_create_dialog(HWND hwnd, int res_id, DLGPROC fn)
 {
-    HWND dlg = NULL;
     HRSRC hr = NULL;
-    HGLOBAL hg = NULL;
     if (g_skylark_lang == NULL)
     {
         printf("g_skylark_lang is null\n");
@@ -185,14 +183,7 @@ i18n_create_dialog(HWND hwnd, int res_id, DLGPROC fn)
         printf("FindResource failed\n");
         return NULL;
     }
-    if ((hg = LoadResource(g_skylark_lang, hr)) == NULL)
-    {
-        printf("LoadResource failed\n");
-        return NULL;
-    }
-    dlg = CreateDialog(g_skylark_lang, MAKEINTRESOURCE(res_id), hwnd, fn);
-    FreeResource(hg);
-    return dlg;
+    return CreateDialog(g_skylark_lang, MAKEINTRESOURCE(res_id), hwnd, fn);
 }
 
 bool
@@ -229,35 +220,21 @@ i18n_reload_lang(void)
     return (NULL != g_skylark_lang);
 }
 
+
 intptr_t
 i18n_dlgbox(HWND hwnd, int res_id, DLGPROC fn, LPARAM param)
 {
-    intptr_t ret = -1;
     HRSRC hr = NULL;
-    HGLOBAL hg = NULL;
-    do
+    if (!(g_skylark_lang || i18n_reload_lang()))
     {
-        if (!(g_skylark_lang || i18n_reload_lang()))
-        {
-            break;
-        }
-        if ((hr = FindResource(g_skylark_lang, MAKEINTRESOURCE(res_id), RT_DIALOG)) == NULL)
-        {
-            printf("FindResource failed, cause: %lu\n", GetLastError());
-            break;
-        }
-        if ((hg = LoadResource(g_skylark_lang, hr)) == NULL)
-        {
-            printf("LoadResource failed, cause: %lu\n", GetLastError());
-            break;
-        }  
-        ret = DialogBoxParam(g_skylark_lang, MAKEINTRESOURCE(res_id), hwnd, fn, param); 
-    }while(0);
-    if (hg)
-    {
-        FreeResource(hg);
+        return 0;
     }
-    return ret;
+    if ((hr = FindResource(g_skylark_lang, MAKEINTRESOURCE(res_id), RT_DIALOG)) == NULL)
+    {
+        printf("FindResource failed, cause: %lu\n", GetLastError());
+        return 0;
+    }
+    return (intptr_t)DialogBoxParam(g_skylark_lang, MAKEINTRESOURCE(res_id), hwnd, fn, param);
 }
 
 void
@@ -266,15 +243,17 @@ i18n_update_menu(HWND hwnd)
     int index;
     TCHAR lang_name[ACNAME_LEN] = {0};
     TCHAR current_lang[ACNAME_LEN] = {0};
+    HMENU root_menu = NULL;
     HMENU env_menu = NULL;
     HMENU lang_menu = NULL;
     if (!hwnd)
     {
         return;
     }
-    env_menu = GetSubMenu(GetMenu(hwnd), ENV_MENU);
-    lang_menu = GetSubMenu(env_menu, LOCALE_SUB_MENU);
-    if (!(env_menu && lang_menu))
+    root_menu = GetMenu(hwnd);
+    env_menu = root_menu ? GetSubMenu(root_menu, ENV_MENU) : NULL;
+    lang_menu = env_menu ? GetSubMenu(env_menu, LOCALE_SUB_MENU) : NULL;
+    if (!(root_menu && env_menu && lang_menu))
     {
         return;
     }
@@ -296,7 +275,7 @@ i18n_update_menu(HWND hwnd)
     {
         bool select = false;
         TCHAR buf[ACNAME_LEN] = { 0 };
-        int len = GetMenuString(GetMenu(hwnd), IDM_LOCALES_BASE + index, buf, ACNAME_LEN, MF_BYCOMMAND);
+        int len = GetMenuString(root_menu, IDM_LOCALES_BASE + index, buf, ACNAME_LEN - 1, MF_BYCOMMAND);
         if (len > 0 && _tcscmp(buf, current_lang) == 0)
         {
             char *u8_lang = eu_utf16_utf8(lang_name, NULL);

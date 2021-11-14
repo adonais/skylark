@@ -173,7 +173,7 @@ eu_rand_str(TCHAR *str, const int len)
  * c风格的字符串替换函数
  */
 LPTSTR WINAPI
-eu_wstr_replace(TCHAR *in, size_t in_size, LPCTSTR pattern, LPCTSTR by)
+eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
 {
     TCHAR *in_ptr = in;
     TCHAR res[MAX_PATH + 1] = { 0 };

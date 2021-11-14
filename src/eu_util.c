@@ -963,13 +963,23 @@ util_enable_menu_item(HWND hwnd, int m_id, bool enable)
     }
     if (hmenu)
     {
+        MENUITEMINFO pmii = {sizeof(MENUITEMINFO), MIIM_STATE,};
+        if (!GetMenuItemInfo(hmenu, m_id, false, &pmii))
+        {
+            return;
+        }
         if (enable)
         {
-            EnableMenuItem(hmenu, m_id, MF_ENABLED | MF_BYCOMMAND);
+            if (pmii.fState == MFS_DISABLED)
+            {
+                pmii.fState = MFS_ENABLED;
+                SetMenuItemInfo(hmenu, m_id, false, &pmii);
+            }
         }
-        else
+        else if (pmii.fState == MFS_ENABLED)
         {
-            EnableMenuItem(hmenu, m_id, MF_DISABLED | MF_GRAYED | MF_BYCOMMAND);
+            pmii.fState = MFS_DISABLED;
+            SetMenuItemInfo(hmenu, m_id, false, &pmii);
         }
     }
 }
