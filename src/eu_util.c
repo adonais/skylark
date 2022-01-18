@@ -996,13 +996,18 @@ util_enable_menu_item(HWND hwnd, int m_id, bool enable)
         {
             if (enable)
             {
-                if (pmii.fState == MFS_DISABLED)
+                bool checked = pmii.fState & MFS_CHECKED;
+                if (pmii.fState != MFS_ENABLED)
                 {
                     pmii.fState = MFS_ENABLED;
+                    if (checked)
+                    {
+                        pmii.fState |= MFS_CHECKED;
+                    }
                     SetMenuItemInfo(hmenu, m_id, false, &pmii);
                 }
             }
-            else if (pmii.fState == MFS_ENABLED)
+            else if (pmii.fState != MFS_DISABLED)
             {
                 pmii.fState = MFS_DISABLED;
                 SetMenuItemInfo(hmenu, m_id, false, &pmii);
