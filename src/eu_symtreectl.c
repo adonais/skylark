@@ -1204,7 +1204,6 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
 unsigned WINAPI
 cjson_thread(void *lp)
 {
-    char *text = NULL;
     eu_tabpage *pnode = (eu_tabpage *) lp;
     if (!pnode)
     {
@@ -1220,11 +1219,8 @@ cjson_thread(void *lp)
             {
                 printf("json parser failed\n");
             }
+            free(text);
         }
-    }
-    if (text)
-    {
-        free(text);
     }
     _InterlockedExchange(&pnode->json_id, 0);
     return 0;

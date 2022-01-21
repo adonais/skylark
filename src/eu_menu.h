@@ -25,6 +25,7 @@ extern "C" {
 
 void menu_switch_theme(HWND hwnd);
 void menu_update_all(HWND hwnd, eu_tabpage *pnode);
+void menu_update_text_status(HWND hwnd, eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

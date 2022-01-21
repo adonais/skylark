@@ -189,6 +189,30 @@ on_statusbar_adjust_btn(void)
     }
 }
 
+bool check_read_access(void* paddr, size_t nsize)
+{
+    bool ret = false;
+    if (!paddr || !nsize)
+    {
+        return ret;
+    }
+    const uint32_t dw_forbidden = PAGE_GUARD | PAGE_NOACCESS;
+    const uint32_t dw_read = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+    MEMORY_BASIC_INFORMATION mbi;
+    uintptr_t pcur = (uintptr_t)paddr;
+    uintptr_t pend = (uintptr_t)(pcur + (nsize - 1));
+    do
+    {
+        ZeroMemory(&mbi, sizeof(mbi));
+        VirtualQuery((LPCVOID)pcur, &mbi, sizeof(mbi));
+        ret = (mbi.State & MEM_COMMIT)           // memory allocated and
+            && !(mbi.Protect & dw_forbidden)    // access to page allowed and
+            && (mbi.Protect & dw_read);        // the required rights
+        pcur = ((uintptr_t)(mbi.BaseAddress) + mbi.RegionSize);
+    } while (ret && pcur <= pend);
+    return ret;
+}
+
 void WINAPI
 on_statusbar_size(void)
 {
@@ -216,6 +240,7 @@ on_statusbar_size(void)
                 ShowWindow(g_statusbar, SW_SHOW);
             }
             SendMessage(g_statusbar, WM_SIZE, 0, 0);
+            InvalidateRect(g_statusbar, NULL, false);
             on_statusbar_adjust_btn();
             on_statusbar_update();
             UpdateWindow(hwnd);
@@ -254,7 +279,8 @@ on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
         }
         ReleaseDC(hwnd_item, hdc_from);
         TCHAR *text = (TCHAR *)(pdis->itemData);
-        if (STR_NOT_NUL(text))
+        // Judge the memory permission, because the memory address may be modified under multithreading
+        if (text && check_read_access(text, 2))
         {
             ExtTextOut(hdc, rc.left + 1, rc.top + 1, ETO_OPAQUE | ETO_NUMERICSLOCAL, &rc, text, (UINT)_tcslen(text), NULL);
         }

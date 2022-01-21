@@ -1,8 +1,8 @@
 
 /* vim: set et ts=3 sw=3 sts=3 ft=c:
  *
- * Copyright (C) 2012, 2013, 2014 James McLaughlin et al.  All rights reserved.
- * https://github.com/udp/json-parser
+ * Copyright (C) 2012-2021 the json-parser authors  All rights reserved.
+ * https://github.com/json-parser/json-parser
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,17 +47,14 @@
 #include <stdlib.h>
 
 #ifdef __cplusplus
-
 #include <string.h>
-
 extern "C"
 {
-
 #endif
 
     typedef struct
     {
-        unsigned long max_memory;
+        size_t max_memory;
         int settings;
 
         /* Custom allocator support (leave null to use malloc/free)
@@ -72,7 +69,7 @@ extern "C"
 
     } json_settings;
 
-#define json_enable_comments 0x01
+    #define json_enable_comments 0x01
 
     typedef enum
     {
@@ -120,13 +117,12 @@ extern "C"
             struct
             {
                 unsigned int length;
-
                 json_object_entry *values;
 
-#if defined(__cplusplus) && __cplusplus >= 201103L
-                decltype(values) begin() const { return values; }
-                decltype(values) end() const { return values + length; }
-#endif
+            #if defined(__cplusplus)
+                json_object_entry *begin() const { return values; }
+                json_object_entry *end() const { return values + length; }
+            #endif
 
             } object;
 
@@ -135,10 +131,10 @@ extern "C"
                 unsigned int length;
                 struct _json_value **values;
 
-#if defined(__cplusplus) && __cplusplus >= 201103L
-                decltype(values) begin() const { return values; }
-                decltype(values) end() const { return values + length; }
-#endif
+            #if defined(__cplusplus)
+                _json_value **begin() const { return values; }
+                _json_value **end() const { return values + length; }
+            #endif
 
             } array;
 
@@ -151,17 +147,17 @@ extern "C"
 
         } _reserved;
 
-#ifdef JSON_TRACK_SOURCE
+    #ifdef JSON_TRACK_SOURCE
 
         /* Location of the value in the source JSON
          */
         unsigned int line, col;
 
-#endif
+    #endif
 
         /* Some C++ operator sugar */
 
-#ifdef __cplusplus
+    #ifdef __cplusplus
 
       public:
         inline _json_value() { memset(this, 0, sizeof(_json_value)); }
@@ -178,10 +174,12 @@ extern "C"
 
         inline const struct _json_value &operator[](const char *index) const
         {
-            if (type != json_object) return json_value_none;
+            if (type != json_object)
+                return json_value_none;
 
             for (unsigned int i = 0; i < u.object.length; ++i)
-                if (!strcmp(u.object.values[i].name, index)) return *u.object.values[i].value;
+                if (!strcmp(u.object.values[i].name, index))
+                    return *u.object.values[i].value;
 
             return json_value_none;
         }
@@ -215,7 +213,8 @@ extern "C"
 
         inline operator bool() const
         {
-            if (type != json_boolean) return false;
+            if (type != json_boolean)
+                return false;
 
             return u.jbool != 0;
         }
@@ -235,13 +234,12 @@ extern "C"
             };
         }
 
-#endif
-
+    #endif
     } json_value;
 
     json_value *json_parse(const json_char *json, size_t length);
 
-#define json_error_max 128
+    #define json_error_max 128
     json_value *json_parse_ex(json_settings *settings, const json_char *json, size_t length, char *error);
 
     void json_value_free(json_value *);

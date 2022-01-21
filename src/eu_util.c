@@ -30,6 +30,33 @@ typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsig
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
 
 static pwine_get_version fn_wine_get_version;
+static volatile long gth_locked = 0;
+
+static void 
+util_thread_lock(void)
+{
+    size_t spin_count = 0;
+    // Wait until the flag is false.
+    while (_InterlockedCompareExchange(&gth_locked, 1, 0) != 0)
+    {
+        // Prevent the loop from being too busy.
+        if (spin_count < 32)
+        {
+            Sleep(0);
+        }
+        else
+        {
+            Sleep(1);
+        }
+        ++spin_count;
+    }
+}
+
+static inline void 
+util_thread_unlock(void)
+{
+    _InterlockedExchange(&gth_locked, 0);
+}
 
 bool
 util_under_wine(void)
@@ -956,29 +983,46 @@ util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
 void
 util_enable_menu_item(HWND hwnd, int m_id, bool enable)
 {
-    HMENU hmenu = GetMenu(hwnd);
-    if (!hmenu)
+    HMENU hmenu = NULL;
+    util_thread_lock();
+    if (!(hmenu = GetMenu(hwnd)))
     {
         hmenu = (HMENU)hwnd;
     }
     if (hmenu)
     {
-        if (enable)
+        MENUITEMINFO pmii = {sizeof(MENUITEMINFO), MIIM_STATE,};
+        if (GetMenuItemInfo(hmenu, m_id, false, &pmii))
         {
-            EnableMenuItem(hmenu, m_id, MF_ENABLED | MF_BYCOMMAND);
-        }
-        else
-        {
-            EnableMenuItem(hmenu, m_id, MF_DISABLED | MF_GRAYED | MF_BYCOMMAND);
+            if (enable)
+            {
+                bool checked = pmii.fState & MFS_CHECKED;
+                if (pmii.fState != MFS_ENABLED)
+                {
+                    pmii.fState = MFS_ENABLED;
+                    if (checked)
+                    {
+                        pmii.fState |= MFS_CHECKED;
+                    }
+                    SetMenuItemInfo(hmenu, m_id, false, &pmii);
+                }
+            }
+            else if (pmii.fState != MFS_DISABLED)
+            {
+                pmii.fState = MFS_DISABLED;
+                SetMenuItemInfo(hmenu, m_id, false, &pmii);
+            }
         }
     }
+    util_thread_unlock();
 }
 
 void
 util_set_menu_item(HWND hwnd, int m_id, bool checked)
 {
-    HMENU hmenu = GetMenu(hwnd);
-    if (!hmenu)
+    HMENU hmenu = NULL;
+    util_thread_lock();
+    if (!(hmenu = GetMenu(hwnd)))
     {
         hmenu = (HMENU)hwnd;
     }
@@ -992,6 +1036,48 @@ util_set_menu_item(HWND hwnd, int m_id, bool checked)
         {
             CheckMenuItem(hmenu, m_id, MF_UNCHECKED);
         }
+    }
+    util_thread_unlock();
+}
+
+void
+util_update_menu_chars(HWND hwnd, int m_id, int width)
+{
+    if (hwnd)
+    {
+        TCHAR *pstart = NULL;
+        TCHAR *pend = NULL;
+        TCHAR m_text[MAX_PATH] = {0};
+        TCHAR new_text[MAX_PATH] = {0};
+        MENUITEMINFO mii = {sizeof(MENUITEMINFO)};
+        util_thread_lock();
+        mii.fMask = MIIM_STRING;
+        mii.dwTypeData = m_text;
+        mii.cch = _countof(m_text) - 1;
+        GetMenuItemInfo(GetMenu(hwnd), m_id, 0, &mii);
+        pstart = _tcschr(m_text, _T('['));
+        if (pstart)
+        {
+            pend = _tcschr(pstart + 1, _T(']'));
+            if (pend)
+            {
+                sntprintf(new_text,
+                          _countof(new_text) - 1,
+                          _T("%.*s%d%.*s"),
+                          pstart - m_text + 1,
+                          m_text,
+                          width,
+                          _tcslen(pend) + 1,
+                          pend);
+            }
+            if (_tcslen(new_text) > 0)
+            {
+                mii.cch = (uint32_t) _tcslen(new_text);
+                mii.dwTypeData = new_text;
+                SetMenuItemInfo(GetMenu(hwnd), m_id, 0, &mii);
+            }
+        }
+        util_thread_unlock();
     }
 }
 

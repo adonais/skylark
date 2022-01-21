@@ -467,7 +467,8 @@ EU_EXT_CLASS HANDLE __stdcall share_envent_open_file_sem(void);
 EU_EXT_CLASS HWND eu_get_search_hwnd(void);
 
 // for eu_config.c
-EU_EXT_CLASS int eu_load_config(HMODULE *pmod);
+EU_EXT_CLASS int __stdcall eu_load_config(HMODULE *pmod);
+EU_EXT_CLASS void __stdcall eu_load_file(void);
 
 // for eu_script.c
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);

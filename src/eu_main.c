@@ -51,6 +51,7 @@ init_instance(HINSTANCE instance)
         else
         {
             eu_restore_placement(hwnd);
+            ShowWindow(hwnd, SW_SHOW);
         }
     }
     return hwnd;
@@ -214,7 +215,7 @@ _tmain(int argc, TCHAR *argv[])
             msg.wParam = -1;
             goto all_clean;
         }
-    }   // 加载其他类配置文件
+    }   // 加载分类配置文件
     if (eu_load_config(&pux) != 0)
     {
         msg.wParam = -1;
@@ -251,8 +252,9 @@ _tmain(int argc, TCHAR *argv[])
             share_unmap(phandle);
             // 主窗口初始化完成, 可以发送消息了
             share_envent_set(true);
+            eu_load_file();
         }
-    }
+    }   
     if (strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         if (eu_on_dark_init(true, true))

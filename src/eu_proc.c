@@ -651,11 +651,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DRAWITEM:
         {
-            uint16_t wp = LOWORD(wParam);
-            switch (wp)
+            switch (((LPDRAWITEMSTRUCT)lParam)->CtlID)
             {
                 case IDC_STATUSBAR:
-                    if (g_statusbar)
+                    if (g_statusbar && ((LPDRAWITEMSTRUCT) lParam)->itemID < 6)
                     {
                         return on_statusbar_draw_item(hwnd, wParam, lParam);
                     }
@@ -719,6 +718,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
                     }
+                    if (_tcsrchr(bak.rel_path, _T('&')))
+                    {
+                        eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&&"), _T("&"));
+                    }
                     on_file_only_open(&bak);
                 }
                 break;
@@ -731,6 +734,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (IDM_LOCALES_BASE <= wm_id && wm_id <= IDM_LOCALES_BASE + MAX_MULTI_LANG - 1)
             {
                 i18n_switch_locale(eu_hwndmain, wm_id);
+                on_reg_update_menu(eu_hwndmain);
                 break;
             }
             switch (wm_id)
@@ -1102,7 +1106,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break; 
                 case IDM_FORMAT_WHOLE_FILE:
                     format_file_with_clang(pnode);
-                    on_symlist_reqular(pnode);
+                    if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    {
+                        on_symtree_json(pnode);
+                    }
+                    else
+                    {
+                        on_symlist_reqular(pnode);
+                    }
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
                     break;
@@ -1205,9 +1216,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_ENV_FILE_POPUPMENU:
                     on_reg_file_popup_menu();
+                    on_reg_update_menu(hwnd);
                     break;
                 case IDM_ENV_DIRECTORY_POPUPMENU:
                     on_reg_dir_popup_menu();
+                    on_reg_update_menu(hwnd);
                     break;
                 case IDM_ENV_SET_ASSOCIATED_WITH:
                     on_reg_files_association();
@@ -1610,7 +1623,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 on_view_editor_selection(pnode);
                             }
-                            menu_update_all(hwnd, pnode);
+                            menu_update_text_status(hwnd, pnode);
                         }
                         on_statusbar_update_filesize(pnode);
                     }

@@ -38,57 +38,49 @@ static HIMAGELIST img_list1;
 static HIMAGELIST img_list2;
 
 /**********************************************
- * 设置工具栏按钮的状态,返回设置后的状态.0,错误
+ * 设置工具栏按钮的状态,
  * id 为 资源id号
  * flags == 0, 自动翻转
  * flags == 1, 设为禁止状态
  * flags == 2. 设为启用状态
  **********************************************/
-static int
-set_tbotton_status(int id, int flags)
+void WINAPI
+on_toolbar_setup_button(int id, int flags)
 {
     LRESULT status = 0;
     HWND h_tool = GetDlgItem(eu_module_hwnd(), IDC_TOOLBAR);
-    if (!h_tool)
+    if (h_tool)
     {
-        return 0;
+        status = SendMessage(h_tool, TB_GETSTATE, id, 0);
+        switch (flags)
+        {
+            case 0:
+                switch (status)
+                {
+                    case TBSTATE_INDETERMINATE:
+                        SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_ENABLED);
+                        break;
+                    case TBSTATE_ENABLED:
+                        SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_INDETERMINATE);
+                        break;
+                }
+                break;
+            case 1:
+                if (status == TBSTATE_ENABLED)
+                {
+                    SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_INDETERMINATE);
+                }
+                break;
+            case 2:
+                if (status == TBSTATE_INDETERMINATE)
+                {
+                    SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_ENABLED);
+                }
+                break;
+            default:
+                break;
+        }
     }
-    switch (flags)
-    {
-        case 0:
-            status = SendMessage(h_tool, TB_GETSTATE, id, 0);
-            switch (status)
-            {
-                case TBSTATE_INDETERMINATE:
-                    if (SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_ENABLED))
-                    {
-                        return 2;
-                    }
-                    break;
-                case TBSTATE_ENABLED:
-                    if (SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_INDETERMINATE))
-                    {
-                        return 1;
-                    }
-                    break;
-            }
-            break;
-        case 1:
-            if (SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_INDETERMINATE))
-            {
-                return 1;
-            }
-            break;
-        case 2:
-            if (SendMessage(h_tool, TB_SETSTATE, id, TBSTATE_ENABLED))
-            {
-                return 2;
-            }
-            break;
-        default:
-            break;
-    }
-    return 0;
 }
 
 /***********************************************************
@@ -848,25 +840,23 @@ on_toolbar_update_button(void)
     eu_tabpage *pnode = on_tabpage_focus_at();
     if (pnode && pnode->hwnd_sc)
     {
-        set_tbotton_status(IDM_FILE_SAVE, on_sci_doc_modified(pnode) && !eu_sci_call(pnode, SCI_GETREADONLY, 0, 0)?2:1);
-        set_tbotton_status(IDM_FILE_SAVEAS, 2);
-        set_tbotton_status(IDM_FILE_CLOSE, 2);
-        set_tbotton_status(IDM_FILE_PRINT, 2);
-        set_tbotton_status(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
-        set_tbotton_status(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
-        set_tbotton_status(IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0)?2:1);
-        set_tbotton_status(IDM_SEARCH_FIND, 2);
-        set_tbotton_status(IDM_SEARCH_FINDPREV, 2);
-        set_tbotton_status(IDM_SEARCH_FINDNEXT, 2);
-        set_tbotton_status(IDM_EDIT_UNDO, eu_sci_call(pnode,SCI_CANUNDO, 0, 0)?2:1);
-        set_tbotton_status(IDM_EDIT_REDO, eu_sci_call(pnode,SCI_CANREDO, 0, 0)?2:1);
-        set_tbotton_status(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->hex_mode?2:1);
-        set_tbotton_status(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->hex_mode?2:1);
-        set_tbotton_status(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->hex_mode?2:1);
-        set_tbotton_status(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage != IDM_OTHER_BIN)?2:1);
-        set_tbotton_status(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
-        set_tbotton_status(IDM_VIEW_FULLSCREEN, 2);              
-        set_tbotton_status(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);
+        on_toolbar_setup_button(IDM_FILE_SAVE, on_sci_doc_modified(pnode) && !eu_sci_call(pnode, SCI_GETREADONLY, 0, 0)?2:1);
+        on_toolbar_setup_button(IDM_FILE_SAVEAS, 2);
+        on_toolbar_setup_button(IDM_FILE_CLOSE, 2);
+        on_toolbar_setup_button(IDM_FILE_PRINT, 2);
+        on_toolbar_setup_button(IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0)?2:1);
+        on_toolbar_setup_button(IDM_SEARCH_FIND, 2);
+        on_toolbar_setup_button(IDM_SEARCH_FINDPREV, 2);
+        on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, 2);
+        on_toolbar_setup_button(IDM_EDIT_UNDO, eu_sci_call(pnode,SCI_CANUNDO, 0, 0)?2:1);
+        on_toolbar_setup_button(IDM_EDIT_REDO, eu_sci_call(pnode,SCI_CANREDO, 0, 0)?2:1);
+        on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->hex_mode?2:1);
+        on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->hex_mode?2:1);
+        on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->hex_mode?2:1);
+        on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage != IDM_OTHER_BIN)?2:1);
+        on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
+        on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);              
+        on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);
     }
 }
 

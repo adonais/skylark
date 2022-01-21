@@ -53,47 +53,6 @@ menu_switch_theme(HWND hwnd)
 }
 
 static void
-menu_update_input(int nid, int width)
-{
-    TCHAR *pstart = NULL;
-    TCHAR *pend = NULL;
-    TCHAR m_text[256] = {0};
-    TCHAR new_text[256] = {0};
-    MENUITEMINFO mii = {0};
-    HWND hwnd = eu_module_hwnd();
-    if (hwnd)
-    {
-        mii.cbSize = sizeof(MENUITEMINFO);
-        mii.fMask = MIIM_STRING;
-        mii.dwTypeData = m_text;
-        mii.cch = _countof(m_text) - 1;
-        GetMenuItemInfo(GetMenu(hwnd), nid, 0, &mii);
-        pstart = _tcschr(m_text, _T('['));
-        if (pstart)
-        {
-            pend = _tcschr(pstart + 1, _T(']'));
-            if (pend)
-            {
-                sntprintf(new_text,
-                          _countof(new_text) - 1,
-                          _T("%.*s%d%.*s"),
-                          pstart - m_text + 1,
-                          m_text,
-                          width,
-                          _tcslen(pend) + 1,
-                          pend);
-            }
-            if (_tcslen(new_text) > 0)
-            {
-                mii.cch = (uint32_t) _tcslen(new_text);
-                mii.dwTypeData = new_text;
-                SetMenuItemInfo(GetMenu(hwnd), nid, 0, &mii);
-            }
-        }
-    }
-}
-
-static void
 menu_update_rside(HWND hwnd, eu_tabpage *p)
 {
     bool m_show = false;
@@ -152,6 +111,21 @@ menu_update_hexview(HWND hwnd, bool hex_mode)
 }
 
 void
+menu_update_text_status(HWND hwnd, eu_tabpage *pnode)
+{
+    if (eu_get_config()->m_menubar)
+    {
+        util_enable_menu_item(hwnd, IDM_EDIT_CUT, util_can_selections(pnode));
+        util_enable_menu_item(hwnd, IDM_EDIT_COPY, util_can_selections(pnode));
+    }
+    if (eu_get_config()->m_toolbar)
+    {
+        on_toolbar_setup_button(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
+        on_toolbar_setup_button(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
+    }
+}
+
+void
 menu_update_all(HWND hwnd, eu_tabpage *pnode)
 {
     if (eu_get_config()->m_menubar)
@@ -176,7 +150,6 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
             i18n_update_multi_lang(hwnd);
             menu_switch_theme(hwnd);
             i18n_update_menu(hwnd);
-            on_reg_update_menu(hwnd);
             
             util_set_menu_item(hwnd, IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
             util_set_menu_item(hwnd, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
@@ -192,7 +165,7 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
             util_set_menu_item(hwnd, IDM_VIEW_NEWLINE_VISIABLE, eu_get_config()->newline_visialbe);
             util_set_menu_item(hwnd, IDM_VIEW_INDENTGUIDES_VISIABLE, eu_get_config()->m_indentation);
             util_set_menu_item(hwnd, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->m_acshow);
-            menu_update_input(IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
+            util_update_menu_chars(hwnd, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
             util_set_menu_item(hwnd, eu_get_config()->m_quality, true);
             util_set_menu_item(hwnd, eu_get_config()->m_render, true);
             util_set_menu_item(hwnd, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->m_ctshow);
@@ -209,22 +182,20 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
                 util_enable_menu_item(hwnd, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
                 util_enable_menu_item(hwnd, IDM_FILE_SAVEAS, pnode->filename[0]);
                 util_enable_menu_item(hwnd, IDM_FILE_PRINT, true);
-                util_enable_menu_item(hwnd, IDM_EDIT_CUT, util_can_selections(pnode));
-                util_enable_menu_item(hwnd, IDM_EDIT_COPY, util_can_selections(pnode));
                 util_enable_menu_item(hwnd, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
                 util_enable_menu_item(hwnd, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN);
                 util_set_menu_item(hwnd, IDM_VIEW_HEXEDIT_MODE, pnode->hex_mode);
                 util_set_menu_item(hwnd, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
                 util_set_menu_item(hwnd, IDM_SELECTION_RECTANGLE, eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);
                 menu_update_hexview(hwnd, pnode->hex_mode);
-                menu_update_rside(hwnd, pnode);                
+                menu_update_rside(hwnd, pnode);
                 util_enable_menu_item(hwnd, IDM_DATABASE_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
                 util_enable_menu_item(hwnd, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
                 util_enable_menu_item(hwnd, IDM_REDIS_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
                 util_enable_menu_item(hwnd, IDM_REDIS_EXECUTE_COMMAND, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
                 util_enable_menu_item(hwnd, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON));
-                util_enable_menu_item(hwnd, IDM_EDIT_PLACEHOLDE17, 
-                                     (pnode->doc_ptr && !pnode->hex_mode && 
+                util_enable_menu_item(hwnd, IDM_EDIT_PLACEHOLDE17,
+                                     (pnode->doc_ptr && !pnode->hex_mode &&
                                      (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                                      pnode->doc_ptr->doc_type == DOCTYPE_CS ||
                                      pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
@@ -234,12 +205,12 @@ menu_update_all(HWND hwnd, eu_tabpage *pnode)
                 util_enable_menu_item(hwnd, IDM_PROGRAM_EXECUTE_ACTION, pnode->doc_ptr && !pnode->hex_mode);
                 if (pnode->doc_ptr)
                 {
-                    menu_update_input(IDM_VIEW_TAB_WIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width);
+                    util_update_menu_chars(hwnd, IDM_VIEW_TAB_WIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width);
                     util_set_menu_item(hwnd, IDM_TAB_CONVERT_SPACES, pnode->doc_ptr->tab_convert_spaces >= 0 ? pnode->doc_ptr->tab_convert_spaces : eu_get_config()->tab2spaces);   
                 }
                 else
                 {
-                    menu_update_input(IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
+                    util_update_menu_chars(hwnd, IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
                     util_set_menu_item(hwnd, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces); 
                 }           
                 if (pnode->hwnd_sc)

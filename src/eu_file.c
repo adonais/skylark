@@ -131,11 +131,14 @@ sqlite_callback(void *data, int count, char **column, char **names)
     {
         if (column[i][0] != 0)
         {
-            TCHAR *ptr_row = eu_utf8_utf16(column[i], NULL);
-            if (ptr_row != NULL)
+            TCHAR ptr_row[MAX_PATH + 1] = {0};
+            if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, ptr_row, MAX_PATH))
             {
-                AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE + index, ptr_row);
-                free(ptr_row); 
+               if (_tcsrchr(ptr_row, _T('&')))
+               {
+                   eu_wstr_replace(ptr_row, MAX_PATH, _T("&"), _T("&&"));
+               }
+               AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE + index, ptr_row);
             }
         }
     }
@@ -1090,7 +1093,6 @@ do_write_file(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
 {
     int ret = SKYLARK_OK;
     FILE *fp = NULL;
-    _set_errno(0);
     if (!pnode->hex_mode)
     {
         pnode->bytes_remaining = (size_t) eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);

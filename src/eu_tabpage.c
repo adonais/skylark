@@ -186,7 +186,7 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
                 }
                 if (STR_NOT_NUL(p->filename))
                 {
-                    DrawText(hdc, p->filename, (int)_tcslen(p->filename), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                    DrawText(hdc, p->filename, (int)_tcslen(p->filename), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
                 }
             }
         }
