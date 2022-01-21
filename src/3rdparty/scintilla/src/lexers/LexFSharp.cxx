@@ -93,7 +93,8 @@ struct OptionSetFSharp : public OptionSet<OptionsFSharp> {
 
 const CharacterSet setOperators = CharacterSet(CharacterSet::setNone, "~^'-+*/%=@|&<>()[]{};,:!?");
 const CharacterSet setClosingTokens = CharacterSet(CharacterSet::setNone, ")}]");
-const CharacterSet setFormatSpecs = CharacterSet(CharacterSet::setNone, ".%aAbcdeEfFgGiMoOstuxX0123456789");
+const CharacterSet setFormatSpecs = CharacterSet(CharacterSet::setNone, ".%aAbBcdeEfFgGiMoOstuxX0123456789");
+const CharacterSet setDotNetFormatSpecs = CharacterSet(CharacterSet::setNone, "cCdDeEfFgGnNpPxX");
 const CharacterSet setFormatFlags = CharacterSet(CharacterSet::setNone, ".-+0 ");
 const CharacterSet numericMetaChars1 = CharacterSet(CharacterSet::setNone, "_IbeEflmnosuxy");
 const CharacterSet numericMetaChars2 = CharacterSet(CharacterSet::setNone, "lnsy");
@@ -233,6 +234,13 @@ inline bool MatchStringStart(const StyleContext &cxt) {
 	return (cxt.ch == '"' || cxt.Match('@', '"') || cxt.Match('$', '"') || cxt.Match('`', '`'));
 }
 
+inline bool FollowsEscapedBackslash(StyleContext &cxt) {
+	int count = 0;
+	for (Sci_Position offset = 1; cxt.GetRelative(-offset) == '\\'; offset++)
+		count++;
+	return count % 2 != 0;
+}
+
 inline bool MatchStringEnd(StyleContext &cxt, const FSharpString &fsStr) {
 	return (fsStr.HasLength() &&
 		// end of quoted identifier?
@@ -250,7 +258,7 @@ inline bool MatchStringEnd(StyleContext &cxt, const FSharpString &fsStr) {
 				// pair of quotes at end of string?
 				(cxt.GetRelative(-2) == '"' && cxt.GetRelative(-3) != '@'))))))) ||
 		(!fsStr.HasLength() && cxt.ch == '"' &&
-			(cxt.chPrev != '\\' ||
+			((cxt.chPrev != '\\' || (cxt.GetRelative(-2) == '\\' && !FollowsEscapedBackslash(cxt))) ||
 			// treat backslashes as char literals in verbatim strings
 			(fsStr.startChar == '@' && cxt.chPrev == '\\')));
 }
@@ -370,6 +378,7 @@ void SCI_METHOD LexerFSharp::Lex(Sci_PositionU start, Sci_Position length, int i
 	constexpr Sci_Position MAX_WORD_LEN = 64;
 	constexpr int SPACE = ' ';
 	int currentBase = 10;
+	bool isInterpolated = false;
 
 	while (sc.More()) {
 		Sci_PositionU colorSpan = sc.currentPos - 1;
@@ -516,6 +525,24 @@ void SCI_METHOD LexerFSharp::Lex(Sci_PositionU start, Sci_Position length, int i
 					} else {
 						state = SCE_FSHARP_FORMAT_SPEC;
 					}
+				} else if (isInterpolated) {
+					if (sc.ch == ',') {
+						// .NET alignment specifier?
+						state = (sc.chNext == '+' || sc.chNext == '-' || IsADigit(sc.chNext))
+							    ? SCE_FSHARP_FORMAT_SPEC
+							    : state;
+					} else if (sc.ch == ':') {
+						// .NET format specifier?
+						state = setDotNetFormatSpecs.Contains(sc.chNext)
+							    ? SCE_FSHARP_FORMAT_SPEC
+							    : state;
+					} else if (sc.chNext == '}') {
+						isInterpolated = false;
+						sc.Forward();
+						state = SCE_FSHARP_STRING;
+					}
+				} else if (fsStr.CanInterpolate() && sc.ch == '{') {
+					isInterpolated = true;
 				}
 				break;
 			case SCE_FSHARP_IDENTIFIER:
@@ -561,9 +588,10 @@ void SCI_METHOD LexerFSharp::Lex(Sci_PositionU start, Sci_Position length, int i
 				currentBase = (state == SCE_FSHARP_NUMBER) ? currentBase : 10;
 				break;
 			case SCE_FSHARP_FORMAT_SPEC:
-				if (!setFormatSpecs.Contains(sc.chNext) ||
+				if (!(isInterpolated && IsADigit(sc.chNext)) &&
+					(!setFormatSpecs.Contains(sc.chNext) ||
 				    !(setFormatFlags.Contains(sc.ch) || IsADigit(sc.ch)) ||
-				    (setFormatFlags.Contains(sc.ch) && sc.ch == sc.chNext)) {
+				    (setFormatFlags.Contains(sc.ch) && sc.ch == sc.chNext))) {
 					colorSpan++;
 					state = (fsStr.startChar == '@') ? SCE_FSHARP_VERBATIM : SCE_FSHARP_STRING;
 				}

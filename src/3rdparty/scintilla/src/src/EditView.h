@@ -81,7 +81,7 @@ public:
 	std::unique_ptr<Surface> pixmapIndentGuideHighlight;
 
 	LineLayoutCache llc;
-	PositionCache posCache;
+	std::unique_ptr<IPositionCache> posCache;
 
 	int tabArrowHeight; // draw arrow heads this many pixels above/below line midpoint
 	/** Some platforms, notably PLAT_CURSES, do not support Scintilla's native

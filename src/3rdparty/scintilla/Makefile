@@ -83,6 +83,7 @@ LEX_OBJS=\
 	$(DIR_O)\LexAbaqus.obj \
 	$(DIR_O)\LexAda.obj \
 	$(DIR_O)\LexAPDL.obj \
+	$(DIR_O)\LexAsciidoc.obj \
 	$(DIR_O)\LexAsm.obj \
 	$(DIR_O)\LexAsn1.obj \
 	$(DIR_O)\LexASY.obj \
@@ -122,6 +123,7 @@ LEX_OBJS=\
 	$(DIR_O)\LexFortran.obj \
 	$(DIR_O)\LexFSharp.obj \
 	$(DIR_O)\LexGAP.obj \
+	$(DIR_O)\LexGDScript.obj \
 	$(DIR_O)\LexGui4Cli.obj \
 	$(DIR_O)\LexHaskell.obj \
 	$(DIR_O)\LexHex.obj \
@@ -207,6 +209,7 @@ LEXLIB_OBJS= \
 	$(DIR_O)\LexerBase.obj \
 	$(DIR_O)\LexAccessor.obj \
 	$(DIR_O)\LexerModule.obj \
+	$(DIR_O)\LexerNoExceptions.obj \
 	$(DIR_O)\LexerSimple.obj \
 	$(DIR_O)\PropSetSimple.obj \
 	$(DIR_O)\StyleContext.obj \

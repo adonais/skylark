@@ -1,7 +1,7 @@
 # Created by DepGen.py. To recreate, run DepGen.py.
 $(DIR_O)/HanjaDic.obj: \
 	src/win32/HanjaDic.cxx \
-	$(SRC)/UniConversion.h \
+	src/win32/WinTypes.h \
 	src/win32/HanjaDic.h
 $(DIR_O)/PlatWin.obj: \
 	src/win32/PlatWin.cxx \
@@ -12,6 +12,7 @@ $(DIR_O)/PlatWin.obj: \
 	$(SRC)/XPM.h \
 	$(SRC)/UniConversion.h \
 	$(SRC)/DBCS.h \
+	src/win32/WinTypes.h \
 	src/win32/PlatWin.h
 $(DIR_O)/ScintillaDLL.obj: \
 	src/win32/ScintillaDLL.cxx \
@@ -57,6 +58,7 @@ $(DIR_O)/ScintillaWin.obj: \
 	$(SRC)/ElapsedPeriod.h \
 	$(SRC)/AutoComplete.h \
 	$(SRC)/ScintillaBase.h \
+	src/win32/WinTypes.h \
 	src/win32/PlatWin.h \
 	src/win32/HanjaDic.h \
 	src/win32/ScintillaWin.h
@@ -210,6 +212,7 @@ $(DIR_O)/Editor.obj: \
 	$(SRC)/CaseFolder.h \
 	$(SRC)/Document.h \
 	$(SRC)/UniConversion.h \
+	$(SRC)/DBCS.h \
 	$(SRC)/Selection.h \
 	$(SRC)/PositionCache.h \
 	$(SRC)/EditModel.h \
@@ -335,6 +338,7 @@ $(DIR_O)/PositionCache.obj: \
 	$(SRC)/Debugging.h \
 	$(SRC)/Geometry.h \
 	$(SRC)/Platform.h \
+	$(SRC)/CharacterType.h \
 	$(SRC)/CharacterCategoryMap.h \
 	$(SRC)/Position.h \
 	$(SRC)/UniqueString.h \
