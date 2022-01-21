@@ -2,7 +2,7 @@
 ** FOLD: Constant Folding, Algebraic Simplifications and Reassociation.
 ** ABCelim: Array Bounds Check Elimination.
 ** CSE: Common-Subexpression Elimination.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_opt_fold_c
@@ -597,14 +597,15 @@ LJFOLDF(bufput_bufstr)
     /* New buffer, no other buffer op inbetween and same buffer? */
     if (fleft->o == IR_BUFHDR && fleft->op2 == IRBUFHDR_RESET &&
 	fleft->prev == hdr &&
-	fleft->op1 == IR(hdr)->op1) {
+	fleft->op1 == IR(hdr)->op1 &&
+	!(irt_isphi(fright->t) && IR(hdr)->prev)) {
       IRRef ref = fins->op1;
       IR(ref)->op2 = IRBUFHDR_APPEND;  /* Modify BUFHDR. */
       IR(ref)->op1 = fright->op1;
       return ref;
     }
     /* Replay puts to global temporary buffer. */
-    if (IR(hdr)->op2 == IRBUFHDR_RESET) {
+    if (IR(hdr)->op2 == IRBUFHDR_RESET && !irt_isphi(fright->t)) {
       IRIns *ir = IR(fright->op1);
       /* For now only handle single string.reverse .lower .upper .rep. */
       if (ir->o == IR_CALLL &&
@@ -1037,8 +1038,7 @@ LJFOLDF(simplify_numadd_xneg)
 LJFOLD(SUB any KNUM)
 LJFOLDF(simplify_numsub_k)
 {
-  lua_Number n = knumright;
-  if (n == 0.0)  /* x - (+-0) ==> x */
+  if (ir_knum(fright)->u64 == 0)  /* x - (+0) ==> x */
     return LEFTFOLD;
   return NEXTFOLD;
 }
@@ -1959,14 +1959,15 @@ LJFOLDF(abc_fwd)
 LJFOLD(ABC any KINT)
 LJFOLDF(abc_k)
 {
+  PHIBARRIER(fleft);
   if (LJ_LIKELY(J->flags & JIT_F_OPT_ABC)) {
     IRRef ref = J->chain[IR_ABC];
     IRRef asize = fins->op1;
     while (ref > asize) {
       IRIns *ir = IR(ref);
       if (ir->op1 == asize && irref_isk(ir->op2)) {
-	int32_t k = IR(ir->op2)->i;
-	if (fright->i > k)
+	uint32_t k = (uint32_t)IR(ir->op2)->i;
+	if ((uint32_t)fright->i > k)
 	  ir->op2 = fins->op2;
 	return DROPFOLD;
       }
@@ -2411,6 +2412,17 @@ LJFOLDF(xload_kptr)
 
 LJFOLD(XLOAD any any)
 LJFOLDX(lj_opt_fwd_xload)
+
+/* -- Frame handling ------------------------------------------------------ */
+
+/* Prevent CSE of a REF_BASE operand across IR_RETF. */
+LJFOLD(SUB any BASE)
+LJFOLD(SUB BASE any)
+LJFOLD(EQ any BASE)
+LJFOLDF(fold_base)
+{
+  return lj_opt_cselim(J, J->chain[IR_RETF]);
+}
 
 /* -- Write barriers ------------------------------------------------------ */
 
