@@ -326,14 +326,14 @@ eu_undo_file_popup(void)
 }
 
 int
-on_reg_file_popup_menu(void)
+eu_reg_file_popup_menu(void)
 {
     int ret = 1;
     if (on_reg_admin())
     {
         eu_undo_file_popup();
     }
-    else if (strcmp(eu_get_config()->window_theme, "black") == 0)
+    else if (eu_get_config() && strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg1=1")};
         ret = !run_as_admin(2, argv);
@@ -585,14 +585,14 @@ eu_undo_dir_popup(void)
 }
 
 int
-on_reg_dir_popup_menu(void)
+eu_reg_dir_popup_menu(void)
 {
     int ret = 1;
     if (on_reg_admin())
     {
         eu_undo_dir_popup();
     }
-    else if (strcmp(eu_get_config()->window_theme, "black") == 0)
+    else if (eu_get_config() && strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg2=1")};
         ret = !run_as_admin(2, argv);

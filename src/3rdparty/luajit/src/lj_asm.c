@@ -1670,7 +1670,6 @@ static void asm_loop(ASMState *as)
 #if !LJ_SOFTFP32
 #if !LJ_TARGET_X86ORX64
 #define asm_ldexp(as, ir)	asm_callid(as, ir, IRCALL_ldexp)
-#define asm_fppowi(as, ir)	asm_callid(as, ir, IRCALL_lj_vm_powi)
 #endif
 
 static void asm_pow(ASMState *as, IRIns *ir)
@@ -1681,10 +1680,7 @@ static void asm_pow(ASMState *as, IRIns *ir)
 					  IRCALL_lj_carith_powu64);
   else
 #endif
-  if (irt_isnum(IR(ir->op2)->t))
-    asm_callid(as, ir, IRCALL_pow);
-  else
-    asm_fppowi(as, ir);
+  asm_callid(as, ir, IRCALL_pow);
 }
 
 static void asm_div(ASMState *as, IRIns *ir)

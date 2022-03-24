@@ -23,8 +23,6 @@
 extern "C" {
 #endif
 
-int on_reg_file_popup_menu(void);
-int on_reg_dir_popup_menu(void);
 int on_reg_files_association(void);
 bool on_reg_admin(void);
 unsigned __stdcall on_reg_update_menu(void* lp);

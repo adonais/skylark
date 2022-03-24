@@ -442,6 +442,8 @@ EU_EXT_CLASS uint32_t eu_get_dpi(HWND hwnd);
 EU_EXT_CLASS int eu_create_registry_dlg(void);
 EU_EXT_CLASS int eu_undo_file_popup(void);
 EU_EXT_CLASS int eu_undo_dir_popup(void);
+EU_EXT_CLASS int eu_reg_file_popup_menu(void);
+EU_EXT_CLASS int eu_reg_dir_popup_menu(void);
 
 // for eu_hook.c
 EU_EXT_CLASS bool __stdcall on_hook_exception(void);

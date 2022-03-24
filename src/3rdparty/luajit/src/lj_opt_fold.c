@@ -236,14 +236,10 @@ LJFOLDF(kfold_fpcall2)
   return NEXTFOLD;
 }
 
-LJFOLD(POW KNUM KINT)
 LJFOLD(POW KNUM KNUM)
 LJFOLDF(kfold_numpow)
 {
-  lua_Number a = knumleft;
-  lua_Number b = fright->o == IR_KINT ? (lua_Number)fright->i : knumright;
-  lua_Number y = lj_vm_foldarith(a, b, IR_POW - IR_ADD);
-  return lj_ir_knum(J, y);
+  return lj_ir_knum(J, lj_vm_foldarith(knumleft, knumright, IR_POW - IR_ADD));
 }
 
 /* Must not use kfold_kref for numbers (could be NaN). */
@@ -598,7 +594,8 @@ LJFOLDF(bufput_bufstr)
     if (fleft->o == IR_BUFHDR && fleft->op2 == IRBUFHDR_RESET &&
 	fleft->prev == hdr &&
 	fleft->op1 == IR(hdr)->op1 &&
-	!(irt_isphi(fright->t) && IR(hdr)->prev)) {
+	!(irt_isphi(fright->t) && IR(hdr)->prev) &&
+	(!LJ_HASBUFFER || J->chain[IR_CALLA] < hdr)) {
       IRRef ref = fins->op1;
       IR(ref)->op2 = IRBUFHDR_APPEND;  /* Modify BUFHDR. */
       IR(ref)->op1 = fright->op1;
@@ -1112,61 +1109,17 @@ LJFOLDF(simplify_nummuldiv_negneg)
   return RETRYFOLD;
 }
 
-LJFOLD(POW any KINT)
-LJFOLDF(simplify_numpow_xkint)
-{
-  int32_t k = fright->i;
-  TRef ref = fins->op1;
-  if (k == 0)  /* x ^ 0 ==> 1 */
-    return lj_ir_knum_one(J);  /* Result must be a number, not an int. */
-  if (k == 1)  /* x ^ 1 ==> x */
-    return LEFTFOLD;
-  if ((uint32_t)(k+65536) > 2*65536u)  /* Limit code explosion. */
-    return NEXTFOLD;
-  if (k < 0) {  /* x ^ (-k) ==> (1/x) ^ k. */
-    ref = emitir(IRTN(IR_DIV), lj_ir_knum_one(J), ref);
-    k = -k;
-  }
-  /* Unroll x^k for 1 <= k <= 65536. */
-  for (; (k & 1) == 0; k >>= 1)  /* Handle leading zeros. */
-    ref = emitir(IRTN(IR_MUL), ref, ref);
-  if ((k >>= 1) != 0) {  /* Handle trailing bits. */
-    TRef tmp = emitir(IRTN(IR_MUL), ref, ref);
-    for (; k != 1; k >>= 1) {
-      if (k & 1)
-	ref = emitir(IRTN(IR_MUL), ref, tmp);
-      tmp = emitir(IRTN(IR_MUL), tmp, tmp);
-    }
-    ref = emitir(IRTN(IR_MUL), ref, tmp);
-  }
-  return ref;
-}
-
 LJFOLD(POW any KNUM)
-LJFOLDF(simplify_numpow_xknum)
+LJFOLDF(simplify_numpow_k)
 {
-  if (knumright == 0.5)  /* x ^ 0.5 ==> sqrt(x) */
-    return emitir(IRTN(IR_FPMATH), fins->op1, IRFPM_SQRT);
-  return NEXTFOLD;
-}
-
-LJFOLD(POW KNUM any)
-LJFOLDF(simplify_numpow_kx)
-{
-  lua_Number n = knumleft;
-  if (n == 2.0 && irt_isint(fright->t)) {  /* 2.0 ^ i ==> ldexp(1.0, i) */
-#if LJ_TARGET_X86ORX64
-    /* Different IR_LDEXP calling convention on x86/x64 requires conversion. */
-    fins->o = IR_CONV;
-    fins->op1 = fins->op2;
-    fins->op2 = IRCONV_NUM_INT;
-    fins->op2 = (IRRef1)lj_opt_fold(J);
-#endif
-    fins->op1 = (IRRef1)lj_ir_knum_one(J);
-    fins->o = IR_LDEXP;
-    return RETRYFOLD;
-  }
-  return NEXTFOLD;
+  if (knumright == 0.0)  /* x ^ 0 ==> 1 */
+    return lj_ir_knum_one(J);  /* Result must be a number, not an int. */
+  else if (knumright == 1.0)  /* x ^ 1 ==> x */
+    return LEFTFOLD;
+  else if (knumright == 2.0)  /* x ^ 2 ==> x * x */
+    return emitir(IRTN(IR_MUL), fins->op1, fins->op1);
+  else
+    return NEXTFOLD;
 }
 
 /* -- Simplify conversions ------------------------------------------------ */

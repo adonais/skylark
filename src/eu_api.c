@@ -1381,14 +1381,12 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
 
 struct eu_config *eu_get_config(void)
 {
-    EU_VERIFY(g_config != NULL);
     return g_config;
 }
 
 
 struct eu_theme *eu_get_theme(void)
 {
-    EU_VERIFY(g_theme != NULL);
     return g_theme;
 }
 

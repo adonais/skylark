@@ -1215,11 +1215,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_toolbar_execute_script();
                     break;
                 case IDM_ENV_FILE_POPUPMENU:
-                    on_reg_file_popup_menu();
+                    eu_reg_file_popup_menu();
                     on_reg_update_menu(hwnd);
                     break;
                 case IDM_ENV_DIRECTORY_POPUPMENU:
-                    on_reg_dir_popup_menu();
+                    eu_reg_dir_popup_menu();
                     on_reg_update_menu(hwnd);
                     break;
                 case IDM_ENV_SET_ASSOCIATED_WITH:

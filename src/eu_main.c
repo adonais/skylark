@@ -89,7 +89,7 @@ _tmain(int argc, TCHAR *argv[])
     HINSTANCE instance = eu_module_handle();
     if (argc > 1 && _tcscmp(argv[1], _T("-restart")) == 0)
     {
-        eu_wait_process(_wtoi(argv[2]));
+    	eu_wait_process(_wtoi(argv[2]));
     }
     if ((hsem = share_envent_open_file_sem()) != NULL)
     {   // 编辑器还未完全关闭
@@ -226,7 +226,20 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         printf("loadex_lang_config failed\n");
         goto all_clean;
-    }   // 注册scintilla
+    }
+    if (argc > 1 && _tcscmp(argv[1], _T("-reg1")) == 0)
+    {
+    	eu_reg_file_popup_menu();
+    	msg.wParam = 0;
+    	goto all_clean;
+    }
+    if (argc > 1 && _tcscmp(argv[1], _T("-reg2")) == 0)
+    {
+    	eu_reg_dir_popup_menu();
+    	msg.wParam = 0;
+    	goto all_clean;
+    }    
+    // 注册scintilla
     if (!eu_sci_register(instance))
     {
         MSG_BOX(IDC_MSG_SCI_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
