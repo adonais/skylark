@@ -69,6 +69,10 @@ on_print_file_info(LPCTSTR path, DWORD attr, SHFILEINFO *psfi, uint32_t cb_info,
             _tcsncat(psfi->szDisplayName, extname, _countof(psfi->szDisplayName));
         }
     }
+    else
+    {
+        _sntprintf(psfi->szDisplayName, MAX_PATH - 1, _T("%s"), path);
+    }
     CoUninitialize();
     return dw;
 }
@@ -841,19 +845,18 @@ on_print_file(eu_tabpage *pnode)
     SHFILEINFO shfi;
     TCHAR *title = NULL;
     TCHAR page_fmt[32];
-    LOAD_APP_RESSTR(IDC_MSG_NEW_FILE, untitled);
-    if (!(pnode && untitled[0]))
+    if (!pnode)
     {
         return 1;
     }
-    if (_tcslen(pnode->pathfile))
+    if (_tcslen(pnode->pathfile) > 0)
     {
         on_print_file_info(pnode->pathfile, 0, &shfi, sizeof(SHFILEINFO), SHGFI_DISPLAYNAME);
         title = shfi.szDisplayName;
     }
     else
     {
-        title = untitled;
+        return 1;
     }
     eu_i18n_load_str(IDS_PRINT_PAGENUM, page_fmt, _countof(page_fmt));
     if (!on_print_layout(pnode, title, page_fmt))

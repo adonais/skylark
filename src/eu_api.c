@@ -2298,5 +2298,5 @@ eu_module_handle(void)
 void
 eu_restore_placement(HWND hwnd)
 {
-    return util_restore_placement(hwnd);
+    util_restore_placement(hwnd);
 }
