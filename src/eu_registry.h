@@ -25,7 +25,7 @@ extern "C" {
 
 int on_reg_files_association(void);
 bool on_reg_admin(void);
-unsigned __stdcall on_reg_update_menu(void* lp);
+void on_reg_update_menu(void);
 
 #ifdef __cplusplus
 }

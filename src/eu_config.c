@@ -165,6 +165,5 @@ eu_load_file(void)
 {
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_reg_update_menu, NULL, 0, NULL));    
 }
 

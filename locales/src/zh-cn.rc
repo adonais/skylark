@@ -42,7 +42,7 @@ BEGIN
         MENUITEM "保存最后一次对话",                IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
 		MENUITEM "打印设置",					    IDM_FILE_PAGESETUP
-		MENUITEM "打印...(&P)\tCtrl+P",			    IDM_FILE_PRINT       
+		MENUITEM "打印...(&P)\tCtrl+P",			    IDM_FILE_PRINT
         MENUITEM MF_SEPARATOR
         MENUITEM "远程文件管理器...(&R)",           IDM_FILE_REMOTE_FILESERVERS
         MENUITEM MF_SEPARATOR
@@ -302,13 +302,13 @@ BEGIN
         MENUITEM "修改主题方案...",                     IDM_VIEW_MODIFY_STYLETHEME
         MENUITEM "复制创建主题...",                     IDM_VIEW_COPYNEW_STYLETHEME           
         MENUITEM MF_SEPARATOR
-		POPUP "字体质量(&Q)"
+		POPUP "字体质量(&Q)",                           IDM_SETTING_FONTQUALITY
 		BEGIN
 			MENUITEM "无",					            IDM_VIEW_FONTQUALITY_NONE
 			MENUITEM "标准抗锯齿",				        IDM_VIEW_FONTQUALITY_STANDARD
 			MENUITEM "ClearType",				        IDM_VIEW_FONTQUALITY_CLEARTYPE
 		END                                         
-		POPUP "渲染技术(&D)"                
+		POPUP "渲染技术(&D)",                           IDM_SETTING_RENDER
 		BEGIN                                       
 			MENUITEM "传统 GDI",			            IDM_SET_RENDER_TECH_GDI
 			MENUITEM "DirectWrite",				        IDM_SET_RENDER_TECH_D2D

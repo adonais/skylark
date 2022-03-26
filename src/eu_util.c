@@ -980,6 +980,7 @@ util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
     }
 }
 
+/*
 void
 util_enable_menu_item(HWND hwnd, int m_id, bool enable)
 {
@@ -1039,22 +1040,69 @@ util_set_menu_item(HWND hwnd, int m_id, bool checked)
     }
     util_thread_unlock();
 }
+*/
 
 void
-util_update_menu_chars(HWND hwnd, int m_id, int width)
+util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable)
 {
-    if (hwnd)
+    if (hmenu)
+    {
+        MENUITEMINFO pmii = {sizeof(MENUITEMINFO), MIIM_STATE,};
+        if (GetMenuItemInfo(hmenu, m_id, false, &pmii))
+        {
+            if (enable)
+            {
+                bool checked = pmii.fState & MFS_CHECKED;
+                if (pmii.fState != MFS_ENABLED)
+                {
+                    pmii.fState = MFS_ENABLED;
+                    if (checked)
+                    {
+                        pmii.fState |= MFS_CHECKED;
+                    }
+                    SetMenuItemInfo(hmenu, m_id, false, &pmii);
+                }
+            }
+            else if (pmii.fState != MFS_DISABLED)
+            {
+                pmii.fState = MFS_DISABLED;
+                SetMenuItemInfo(hmenu, m_id, false, &pmii);
+            }
+        }
+    }
+}
+
+void
+util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked)
+{
+    if (hmenu)
+    {
+        if (checked)
+        {
+            CheckMenuItem(hmenu, m_id, MF_CHECKED);
+        }
+        else
+        {
+            CheckMenuItem(hmenu, m_id, MF_UNCHECKED);
+        }
+    }
+}
+
+
+void
+util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
+{
+    if (hmenu)
     {
         TCHAR *pstart = NULL;
         TCHAR *pend = NULL;
         TCHAR m_text[MAX_PATH] = {0};
         TCHAR new_text[MAX_PATH] = {0};
         MENUITEMINFO mii = {sizeof(MENUITEMINFO)};
-        util_thread_lock();
         mii.fMask = MIIM_STRING;
         mii.dwTypeData = m_text;
-        mii.cch = _countof(m_text) - 1;
-        GetMenuItemInfo(GetMenu(hwnd), m_id, 0, &mii);
+        mii.cch = MAX_PATH - 1;
+        GetMenuItemInfo(hmenu, m_id, 0, &mii);
         pstart = _tcschr(m_text, _T('['));
         if (pstart)
         {
@@ -1074,10 +1122,9 @@ util_update_menu_chars(HWND hwnd, int m_id, int width)
             {
                 mii.cch = (uint32_t) _tcslen(new_text);
                 mii.dwTypeData = new_text;
-                SetMenuItemInfo(GetMenu(hwnd), m_id, 0, &mii);
+                SetMenuItemInfo(hmenu, m_id, 0, &mii);
             }
         }
-        util_thread_unlock();
     }
 }
 

@@ -58,8 +58,8 @@ void on_edit_delete_line_header_white(eu_tabpage *pnode);
 void on_edit_delete_line_tail_white(eu_tabpage *pnode);
 bool on_edit_push_clipboard(const TCHAR *buf);
 
-int on_edit_close_char(eu_tabpage *pnode);
-int on_edit_identation(eu_tabpage *pnode);
+void on_edit_close_char(void);
+void on_edit_identation(void);
 void on_edit_join_line(eu_tabpage *pnode);
 void on_edit_lower(eu_tabpage *pnode);
 void on_edit_upper(eu_tabpage *pnode);

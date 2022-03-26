@@ -558,7 +558,6 @@ on_search_set_selection(eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_SETANCHOR, pnode->begin_pos, 0);
             pnode->begin_pos = -1;
         }
-        menu_update_all(eu_module_hwnd(), pnode);
     }
 }
 
@@ -581,7 +580,6 @@ on_search_set_rectangle(eu_tabpage *pnode)
         {
             SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
         }
-        menu_update_all(eu_module_hwnd(), pnode);
     }
 }
 

@@ -44,7 +44,7 @@ HFONT  on_theme_font_hwnd(void);
 
 int  on_theme_copy_style(TCHAR *ac_theme);
 int  on_theme_load_script(const TCHAR *name);
-void on_theme_update_menu(HWND hwnd);
+void on_theme_update_item(void);
 bool on_theme_setup_font(HWND hwnd);
 bool on_theme_set_classic(HMODULE *pmod);
 bool on_theme_create_dlg(void);

@@ -78,6 +78,8 @@
 #elif (__GNUC__)
 #define GCC_VER_STR (MAKE_VERSION_STR(gcc,__GNUC__,__GNUC_MINOR__,__GNUC_PATCHLEVEL__,"."))
 #define VC_BUILDER GCC_VER_STR
+#elif _MSC_VER >= 1930
+#define VC_BUILDER TEXT("VC17")
 #elif _MSC_VER >= 1920
 #define VC_BUILDER TEXT("VC16")
 #elif _MSC_VER >= 1910
@@ -816,6 +818,8 @@
 #define IDM_SET_RENDER_TECH_GDI             42560
 #define IDM_SET_RENDER_TECH_D2D             42561
 #define IDM_SET_RENDER_TECH_D2DRETAIN       42562
+#define IDM_SETTING_FONTQUALITY             42563
+#define IDM_SETTING_RENDER                  42564
 
 #define IDR_TOOLBAR_POPUPMENU               42600
 #define IDM_VIEW_MENUBAR                    42601

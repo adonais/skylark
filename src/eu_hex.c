@@ -1730,6 +1730,7 @@ hexview_init(eu_tabpage *pnode)
         --pnode->tab_id;
     }
     on_tabpage_selection(pnode, pnode->tab_id);
+    PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
     return true;
 }
 
@@ -2020,6 +2021,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         }
         pnew->hex_mode = false;
         on_tabpage_selection(pnew, pnew->tab_id);
+        PostMessage(pnew->hwnd_sc, WM_SETFOCUS, 0, 0);
     }
 HEX_ERROR:
     eu_safe_free(pdst);

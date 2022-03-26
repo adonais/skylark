@@ -389,7 +389,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             eu_tabpage *pnode = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd));
             if (pnode)
             {
-                util_enable_menu_item((HWND)pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
+                util_enable_menu_item(pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
             }
             ClientToScreen(hwnd, &pt);
             TrackPopupMenu(GetSubMenu(pop_tab_menu, 0), 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
@@ -903,11 +903,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         // 切换工作目录
         util_set_working_dir(pnode->pathname);
         eu_window_resize(hwnd);
-        menu_update_all(hwnd, pnode);
-        if (pnode->hwnd_sc)
-        {
-            SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
-        }
+        on_toolbar_update_button();
     }
 }
 
@@ -977,8 +973,12 @@ void
 on_tabpage_changing(void)
 {
     EU_VERIFY(g_tabpages != NULL);
-    int pageno = TabCtrl_GetCurSel(g_tabpages);
-    on_tabpage_select_index(pageno);
+    int m_page = TabCtrl_GetCurSel(g_tabpages);
+    eu_tabpage *p = on_tabpage_select_index(m_page);
+    if (p && p->hwnd_sc)
+    {
+        PostMessage(p->hwnd_sc, WM_SETFOCUS, 0, 0);
+    }
 }
 
 void

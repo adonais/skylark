@@ -238,22 +238,39 @@ i18n_dlgbox(HWND hwnd, int res_id, DLGPROC fn, LPARAM param)
 }
 
 void
-i18n_update_menu(HWND hwnd)
+i18n_update_multi_lang(HMENU root_menu)
+{
+    if (root_menu)
+    {
+        int index;
+        HMENU menu_lang = NULL;
+        if (!(menu_lang = GetSubMenu(root_menu, LOCALE_SUB_MENU)))
+        {
+            printf("menu_lang is null\n");
+            return;
+        }
+        int count = GetMenuItemCount(menu_lang);
+        for (index = 0; index < count; ++index)
+        {
+            DeleteMenu(menu_lang, 0, MF_BYPOSITION);
+        }
+        for (index = 0; index < MAX_MULTI_LANG && sz_localization[index].desc[0]; ++index)
+        {
+            AppendMenu(menu_lang, MF_POPUP | MF_STRING, IDM_LOCALES_BASE + index, sz_localization[index].desc);
+            printf("do AppendMenu\n");
+        }
+    }
+}
+
+void
+i18n_update_menu(HMENU root_menu)
 {
     int index;
     TCHAR lang_name[ACNAME_LEN] = {0};
     TCHAR current_lang[ACNAME_LEN] = {0};
-    HMENU root_menu = NULL;
-    HMENU env_menu = NULL;
     HMENU lang_menu = NULL;
-    if (!hwnd)
-    {
-        return;
-    }
-    root_menu = GetMenu(hwnd);
-    env_menu = root_menu ? GetSubMenu(root_menu, ENV_MENU) : NULL;
-    lang_menu = env_menu ? GetSubMenu(env_menu, LOCALE_SUB_MENU) : NULL;
-    if (!(root_menu && env_menu && lang_menu))
+    lang_menu = root_menu ? GetSubMenu(root_menu, LOCALE_SUB_MENU) : NULL;
+    if (!(root_menu && lang_menu))
     {
         return;
     }
@@ -286,36 +303,7 @@ i18n_update_menu(HWND hwnd)
             }
             select = true;
         }
-        util_set_menu_item((HWND)lang_menu, IDM_LOCALES_BASE + index, select);
-    }
-}
-
-void
-i18n_update_multi_lang(HWND hwnd)
-{
-    HMENU root_menu = GetMenu(hwnd);
-    if (root_menu)
-    {
-        int index;
-        HMENU menu_lang;
-        HMENU menu_env = GetSubMenu(root_menu, ENV_MENU);
-        if (!menu_env)
-        {
-            return;
-        }
-        if (!(menu_lang = GetSubMenu(menu_env, LOCALE_SUB_MENU)))
-        {
-            return;
-        }
-        int count = GetMenuItemCount(menu_lang);
-        for (index = 0; index < count; ++index)
-        {
-            DeleteMenu(menu_lang, 0, MF_BYPOSITION);
-        }
-        for (index = 0; index < MAX_MULTI_LANG && sz_localization[index].desc[0]; ++index)
-        {
-            AppendMenu(menu_lang, MF_POPUP | MF_STRING, IDM_LOCALES_BASE + index, sz_localization[index].desc);
-        }
+        util_set_menu_item(lang_menu, IDM_LOCALES_BASE + index, select);
     }
 }
 
@@ -445,7 +433,6 @@ i18n_switch_locale(HWND hwnd, int id)
     if (eu_refresh_interface(new_lang, lang_path) == 0)
     {
         eu_window_resize(hwnd);
-        menu_update_all(hwnd, NULL);
     }
     return 0;
 }

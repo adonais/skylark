@@ -21,7 +21,6 @@
 
 #define MINIMUM_MEM 0x12c00000
 
-static volatile long push_thread_id;
 static volatile long file_close_id;
 static HANDLE file_event_final = NULL;
 
@@ -172,7 +171,8 @@ push_file_thread(void *lp)
 static unsigned __stdcall
 update_menu_thread(void *lp)
 {
-    HMENU hroot = GetMenu(eu_module_hwnd());
+    HWND hwnd = eu_module_hwnd();
+    HMENU hroot = GetMenu(hwnd);
     if (hroot)
     {
         HMENU hre = NULL;
@@ -194,12 +194,11 @@ update_menu_thread(void *lp)
                 LOAD_I18N_RESSTR(IDC_MSG_HISTORY_ZERO, m_str);
                 if (AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE, m_str))
                 {
-                    util_enable_menu_item(eu_module_hwnd(), IDM_HISTORY_BASE, false);
+                    util_enable_menu_item(hroot, IDM_HISTORY_BASE, false);
                 }
             }
         }
     }
-    _InterlockedExchange(&push_thread_id, 0);
     return 0;
 }
 
@@ -217,11 +216,8 @@ on_file_push_recent(const TCHAR *path)
 
 void
 on_file_update_recent(void)
-{   // 防止多个线程同时刷新menu菜单
-    if (!push_thread_id)
-    {
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, update_menu_thread, NULL, 0, (unsigned *)&push_thread_id));
-    }
+{
+    update_menu_thread(NULL);
 }
 
 void
@@ -249,7 +245,7 @@ on_file_clear_recent(void)
                 LOAD_I18N_RESSTR(IDC_MSG_HISTORY_ZERO, m_str);
                 if (AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE, m_str))
                 {
-                    util_enable_menu_item(eu_module_hwnd(), IDM_HISTORY_BASE, false);
+                    util_enable_menu_item(hroot, IDM_HISTORY_BASE, false);
                 }
             }
         }
@@ -1415,7 +1411,7 @@ SAVE_FINAL:
                 pnode->doc_ptr->fn_reload_symlist(pnode);
             }
         }
-        menu_update_all(eu_module_hwnd(), pnode);
+        on_toolbar_update_button();
         eu_window_resize(NULL);
     }
     return err;
@@ -1717,7 +1713,6 @@ on_file_backup_menu(void)
     {
         eu_get_config()->m_write_copy = false;
     }
-    menu_update_all(eu_module_hwnd(), NULL);
 }
 
 void
@@ -1731,19 +1726,16 @@ on_file_session_menu(void)
     {
         eu_get_config()->m_session = false;
     }
-    menu_update_all(eu_module_hwnd(), NULL);
 }
 
 void
 on_file_new_eols(eu_tabpage *pnode, int eol_mode)
 {
     eu_get_config()->new_file_eol = eol_mode;
-    menu_update_all(eu_module_hwnd(), NULL);
 }
 
 void
 on_file_new_encoding(eu_tabpage *pnode, int new_enc)
 {
     eu_get_config()->new_file_enc = new_enc;
-    menu_update_all(eu_module_hwnd(), NULL);
 }
