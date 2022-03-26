@@ -257,7 +257,6 @@ i18n_update_multi_lang(HMENU root_menu)
         for (index = 0; index < MAX_MULTI_LANG && sz_localization[index].desc[0]; ++index)
         {
             AppendMenu(menu_lang, MF_POPUP | MF_STRING, IDM_LOCALES_BASE + index, sz_localization[index].desc);
-            printf("do AppendMenu\n");
         }
     }
 }
@@ -432,7 +431,12 @@ i18n_switch_locale(HWND hwnd, int id)
     }
     if (eu_refresh_interface(new_lang, lang_path) == 0)
     {
+        HMENU root_menu = GetMenu(hwnd);
+        HMENU menu_env = root_menu ? GetSubMenu(root_menu, ENV_MENU) : NULL;
+        on_tabpage_newdoc_reload();    
         eu_window_resize(hwnd);
+        i18n_update_multi_lang(menu_env);
+        i18n_update_menu(menu_env);
     }
     return 0;
 }

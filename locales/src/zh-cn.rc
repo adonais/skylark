@@ -888,6 +888,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_WARN            "警告:"
     IDC_MSG_TIPS            "提示:"
     IDC_MSG_PASS            "请输入用户密码:"
+    IDC_MSG_NEW_FILE        "无标题 %d"
     IDC_MSG_DO_READONLY     "试图在只读文件上进行此操作"
     IDC_MSG_ATTACH_FAIL     "连接远程文件服务器失败"
     IDC_MSG_ATTACH_FAIL1    "连接远程文件服务器失败, 无效的私钥或者私钥口令错误"

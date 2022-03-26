@@ -690,11 +690,14 @@ TCHAR *
 on_tabpage_newdoc_name(TCHAR *filename, int len)
 {
     EU_VERIFY(g_tabpages != NULL);
-    LOAD_APP_RESSTR(IDC_MSG_NEW_FILE, m_file);
-    if (_stscanf(m_file, _T("%100s"), filename) == 1)
+    LOAD_I18N_RESSTR(IDC_MSG_NEW_FILE, m_file);
+    const TCHAR ch = _T(' ');
+    const TCHAR *pstr = NULL;
+    if ((pstr = _tcsrchr(m_file, ch)) != NULL && (pstr - m_file) > 0)
     {
         int ret = 1;
         int count = TabCtrl_GetItemCount(g_tabpages);
+        _tcsncpy(filename, m_file, pstr - m_file);
         for (int index = 0; index < count; ++index)
         {
             TCITEM tci = {TCIF_PARAM,};
@@ -711,6 +714,48 @@ on_tabpage_newdoc_name(TCHAR *filename, int len)
         _sntprintf(filename, len, m_file, ret);
     }
     return filename;
+}
+
+void
+on_tabpage_newdoc_reload(void)
+{
+    EU_VERIFY(g_tabpages != NULL);
+    LOAD_I18N_RESSTR(IDC_MSG_NEW_FILE, m_file);
+    const TCHAR ch = _T(' ');
+    const TCHAR *pstr = NULL;
+    TCHAR filename[MAX_PATH] = {0};
+    if ((pstr = _tcsrchr(m_file, ch)) != NULL && (pstr - m_file) > 0)
+    {
+        int count = TabCtrl_GetItemCount(g_tabpages);
+        _tcsncpy(filename, m_file, pstr - m_file);
+        pstr = NULL;
+        for (int index = 0; index < count; ++index)
+        {
+            TCITEM tci = {TCIF_PARAM,};
+            TabCtrl_GetItem(g_tabpages, index, &tci);
+            eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+            if (p && p->is_blank)
+            {
+                TCHAR old[MAX_PATH] = {0};
+                if ((pstr = _tcsrchr(p->pathfile, ch)) != NULL && (pstr - p->pathfile) > 0 && _tcslen(pstr) > 0 && 
+                    _tcsspn(pstr + 1, _T("0123456789")) == _tcslen(pstr + 1))
+                {
+                    _tcsncpy(old, p->pathfile, pstr - p->pathfile);
+                    if (_tcscmp(filename, old) != 0)
+                    {
+                        _sntprintf(filename, MAX_PATH-1, m_file, _tstoi(pstr + 1));
+                        _tcscpy(p->pathfile, filename);
+                        _tcscpy(p->filename, filename);
+                        if (p->be_modify)
+                        {
+                            _tcsncat(p->filename, _T("*"), MAX_PATH);
+                        }
+                        util_set_title(p->pathfile);
+                    }
+                }
+            }
+        }
+    }
 }
 
 int

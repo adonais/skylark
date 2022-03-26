@@ -889,6 +889,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_WARN            "Warning:"
     IDC_MSG_TIPS            "Tips:"
     IDC_MSG_PASS            "Enter password:"
+    IDC_MSG_NEW_FILE        "No Title %d"
     IDC_MSG_DO_READONLY     "This operation was attempted on a read-only file"
     IDC_MSG_ATTACH_FAIL     "Failed to connect to remote file server"
     IDC_MSG_ATTACH_FAIL1    "Failed to connect to remote file server, wrong passphrase or invalid private file"
