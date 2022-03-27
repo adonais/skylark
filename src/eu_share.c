@@ -199,36 +199,6 @@ share_send_msg(void *param)
     }
     return 0;
 }
- 
-/*
-unsigned WINAPI
-share_send_msg(void *param)
-{
-    HANDLE m_map = NULL;
-    HWND *memory = NULL;
-    // 等待主窗口初始化
-    share_envent_wait(INFINITE);
-    if ((m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_NAME)))
-    {   // 共享内存里放着主窗口句柄
-        file_backup *pbak = (file_backup *)param;
-        memory = (HWND *) share_map(m_map, sizeof(HANDLE), FILE_MAP_READ);
-        if (memory)
-        {
-            if (pbak)
-            {
-                COPYDATASTRUCT cpd = { 0 };
-                cpd.lpData = (PVOID) pbak;
-                cpd.cbData = (DWORD) sizeof(file_backup);
-                SendMessageW(*memory, WM_COPYDATA, 0, (LPARAM) &cpd);
-            }
-            SwitchToThisWindow(*memory, true);         
-            share_unmap(memory);
-        }
-        share_close(m_map);
-    }
-    return 0;
-}
-*/
 
 /*****************************************************************************
  * 根据当前区域加载多国语言文件
