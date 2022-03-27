@@ -807,7 +807,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
     {
         return NULL;
     }
-    text_len = eu_sci_call(pnode, SCI_GETSELTEXT, 0, 0) - 1;
+    text_len = eu_sci_call(pnode, SCI_GETSELTEXT, 0, 0);
     if (text_len > 0)
     {
         if (multiple > 1)
@@ -818,7 +818,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
         {
             buf_len = text_len;
         }
-        if ((ptext = (char *) calloc(1, buf_len + 1)) == NULL)
+        if ((ptext = (char *) calloc(1, buf_len + 1 + multiple)) == NULL)
         {
             if (plen)
             {
@@ -979,68 +979,6 @@ util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
         free(uni_text);
     }
 }
-
-/*
-void
-util_enable_menu_item(HWND hwnd, int m_id, bool enable)
-{
-    HMENU hmenu = NULL;
-    util_thread_lock();
-    if (!(hmenu = GetMenu(hwnd)))
-    {
-        hmenu = (HMENU)hwnd;
-    }
-    if (hmenu)
-    {
-        MENUITEMINFO pmii = {sizeof(MENUITEMINFO), MIIM_STATE,};
-        if (GetMenuItemInfo(hmenu, m_id, false, &pmii))
-        {
-            if (enable)
-            {
-                bool checked = pmii.fState & MFS_CHECKED;
-                if (pmii.fState != MFS_ENABLED)
-                {
-                    pmii.fState = MFS_ENABLED;
-                    if (checked)
-                    {
-                        pmii.fState |= MFS_CHECKED;
-                    }
-                    SetMenuItemInfo(hmenu, m_id, false, &pmii);
-                }
-            }
-            else if (pmii.fState != MFS_DISABLED)
-            {
-                pmii.fState = MFS_DISABLED;
-                SetMenuItemInfo(hmenu, m_id, false, &pmii);
-            }
-        }
-    }
-    util_thread_unlock();
-}
-
-void
-util_set_menu_item(HWND hwnd, int m_id, bool checked)
-{
-    HMENU hmenu = NULL;
-    util_thread_lock();
-    if (!(hmenu = GetMenu(hwnd)))
-    {
-        hmenu = (HMENU)hwnd;
-    }
-    if (hmenu)
-    {
-        if (checked)
-        {
-            CheckMenuItem(hmenu, m_id, MF_CHECKED);
-        }
-        else
-        {
-            CheckMenuItem(hmenu, m_id, MF_UNCHECKED);
-        }
-    }
-    util_thread_unlock();
-}
-*/
 
 void
 util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable)
