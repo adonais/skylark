@@ -40,6 +40,7 @@ bool __stdcall share_open_file(LPCTSTR, bool, uint32_t, HANDLE *);
 bool __stdcall share_envent_create_close_sem(HANDLE *phandle);
 uint32_t __stdcall share_envent_wait(uint32_t milliseconds);
 uint8_t* __stdcall share_map_section(HANDLE, uint64_t, size_t, bool read_only);
+HWND __stdcall share_get_hwnd(void);
 
 #ifdef __cplusplus
 }

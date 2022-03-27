@@ -144,7 +144,7 @@ eu_clear_undo_off(void)
 HWND
 eu_module_hwnd(void)
 {
-    return eu_hwndmain;
+    return (eu_hwndmain ? eu_hwndmain : share_get_hwnd());
 }
 
 uint32_t
@@ -183,7 +183,7 @@ eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
     } 
     else 
     {
-        RECT rc = { 0 };
+        RECT rc = {0};
         GetWindowRect(hwnd, &rc);
         const uint32_t dpi = adpi ? adpi : eu_get_dpi(hwnd);
         adjust_window_rect_dpi((LPRECT)&rc, flags, 0, dpi);
@@ -293,10 +293,10 @@ eu_window_resize(HWND hwnd)
     on_toolbar_adjust_box();
     on_statusbar_adjust_box();
     on_treebar_adjust_box(&rect_treebar);
-    HDWP hdwp = BeginDeferWindowPos(3);
+    HDWP hdwp = BeginDeferWindowPos(2);
     if (eu_get_config()->m_ftree_show)
     {
-        RECT rect_filetree = { 0 };
+        RECT rect_filetree = {0};
         on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
         DeferWindowPos(hdwp,
                        g_treebar,
@@ -325,11 +325,11 @@ eu_window_resize(HWND hwnd)
         DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
         DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
     }
+    EndDeferWindowPos(hdwp);
     if (true)
     {
-        RECT rect_tabbar = { 0 };
+        RECT rect_tabbar = {0};
         on_tabpage_adjust_box(&rect_tabbar);
-        EndDeferWindowPos(hdwp);
         eu_setpos_window(g_tabpages,
                          HWND_TOP,
                          rect_tabbar.left,
@@ -1265,8 +1265,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_MOUSEMOVE:
                     if (eu_get_config()->m_ftree_show)
                     {
-                        RECT rect_treebar = { 0 };
-                        RECT rect_tabbar = { 0 };
+                        RECT rect_treebar = {0};
+                        RECT rect_tabbar = {0};
                         int x = GET_X_LPARAM(lParam);
                         int y = GET_Y_LPARAM(lParam);
                         on_treebar_adjust_box(&rect_treebar);

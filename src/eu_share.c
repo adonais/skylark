@@ -158,9 +158,49 @@ share_envent_open_file_sem(void)
     return OpenEvent(EVENT_ALL_ACCESS, false, FILE_CLOSE_EVENT);
 }
 
+HWND WINAPI
+share_get_hwnd(void)
+{
+    HWND hwnd = NULL;
+    HANDLE hmap = share_open(FILE_MAP_READ, SKYLARK_LOCK_NAME);
+    if (hmap)
+    {
+        HWND *pmemory = (HWND *) share_map(hmap, sizeof(HWND), FILE_MAP_READ);
+        if (pmemory)
+        {
+            hwnd = *pmemory;
+            share_unmap(pmemory);
+        }
+        share_close(hmap);
+    }
+    return hwnd;
+}
+
 /*****************************************************************************
  * 多进程共享,  以消息模式放送而不是共享内存
  ****************************************************************************/
+unsigned WINAPI
+share_send_msg(void *param)
+{
+    HWND hwnd = NULL;
+    // 等待主窗口初始化
+    share_envent_wait(INFINITE);
+    if ((hwnd = share_get_hwnd()) != NULL)
+    {
+        file_backup *pbak = (file_backup *)param;
+        if (pbak)
+        {
+            COPYDATASTRUCT cpd = { 0 };
+            cpd.lpData = (PVOID) pbak;
+            cpd.cbData = (DWORD) sizeof(file_backup);
+            SendMessageW(hwnd, WM_COPYDATA, 0, (LPARAM) &cpd);
+        }
+        SwitchToThisWindow(hwnd, true);
+    }
+    return 0;
+}
+ 
+/*
 unsigned WINAPI
 share_send_msg(void *param)
 {
@@ -188,6 +228,7 @@ share_send_msg(void *param)
     }
     return 0;
 }
+*/
 
 /*****************************************************************************
  * 根据当前区域加载多国语言文件

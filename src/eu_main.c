@@ -89,7 +89,7 @@ _tmain(int argc, TCHAR *argv[])
     HINSTANCE instance = eu_module_handle();
     if (argc > 1 && _tcscmp(argv[1], _T("-restart")) == 0)
     {
-    	eu_wait_process(_wtoi(argv[2]));
+        eu_wait_process(_wtoi(argv[2]));
     }
     if ((hsem = share_envent_open_file_sem()) != NULL)
     {   // 编辑器还未完全关闭
@@ -106,7 +106,7 @@ _tmain(int argc, TCHAR *argv[])
         return -1;
     }
     SetLastError(0);   // 建立共享内存, 里面保存第一个进程的主窗口句柄
-    h_mapped = share_create(NULL, PAGE_READWRITE, sizeof(HANDLE), SKYLARK_LOCK_NAME);
+    h_mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME);
     if (ERROR_ALREADY_EXISTS == GetLastError())
     {
         muti = true;
@@ -258,10 +258,10 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (h_mapped)
     {
-        LPVOID phandle = share_map(h_mapped, sizeof(HANDLE), FILE_MAP_WRITE | FILE_MAP_READ);
+        LPVOID phandle = share_map(h_mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
         if (phandle)
         {
-            memcpy(phandle, &hwnd, sizeof(HANDLE));
+            memcpy(phandle, &hwnd, sizeof(HWND));
             share_unmap(phandle);
             // 主窗口初始化完成, 可以发送消息了
             share_envent_set(true);

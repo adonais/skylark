@@ -437,7 +437,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     eu_tabpage *pnode = NULL;
     switch (message)
-    {
+    {     
         case WM_KEYDOWN:
         {
             pnode = on_tabpage_focus_at();
