@@ -52,11 +52,12 @@ on_view_result_show(eu_tabpage *pnode, int key)
 {
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
     {
-        if (pnode->doc_ptr->fn_keydown(pnode, VK_F5, key) == 0)
+        if (!pnode->edit_show)
         {
             pnode->edit_show = true;
-            eu_window_resize(eu_module_hwnd());
+            eu_window_resize(NULL);
         }
+        pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);
     }
 }
 
