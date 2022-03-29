@@ -396,17 +396,6 @@ on_file_new(void)
     return SKYLARK_OK;
 }
 
-static bool
-get_file_size(HANDLE hfile, uint64_t *psize)
-{
-    if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
-    {
-        *psize = 0;
-        return false;
-    }
-    return true;
-}
-
 uint64_t WINAPI
 on_file_get_avail_phys(void)
 {
@@ -482,7 +471,7 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
     {
         return EUE_API_OPEN_FILE_ERR;
     }
-    if (!get_file_size(hfile, &pnode->raw_size))
+    if (!util_file_size(hfile, &pnode->raw_size))
     {
         safe_close_handle(hfile);
         return EUE_FILE_SIZE_ERR;
@@ -561,13 +550,14 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
 }
 
 int
-on_file_to_tab(eu_tabpage *pnode, file_backup *pbak)
+on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
 {
     size_t len = 0;
     size_t buf_len = 0;
     size_t err = SKYLARK_OK;
     bool is_utf8 = false;
     TCHAR *pfull = NULL;
+    util_stream uf_stream = {0};
     if (!pnode)
     {
         return EUE_TAB_NULL;
@@ -586,11 +576,19 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak)
     {
         return EUE_PATH_NULL;
     }
-    util_stream uf_stream = {pnode->raw_size};
+    if (!force)
+    {
+    	uf_stream.size = pnode->raw_size;
+    }
     if (!util_open_file(pfull, &uf_stream))
     {
         MSG_BOX_ERR(IDC_MSG_OPEN_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return EUE_OPEN_FILE_ERR;
+    }
+    if (force)
+    {
+    	// reassign variables
+    	pnode->raw_size = uf_stream.size;
     }
     len = uf_stream.size - pnode->pre_len;
     if (!is_utf8 && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
@@ -769,7 +767,7 @@ on_file_only_open(file_backup *pbak)
     {
         on_sci_before_file(pnode);
         eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        if (on_file_to_tab(pnode, pbak))
+        if (on_file_to_tab(pnode, pbak, false))
         {
             int index = on_tabpage_remove(&pnode);
             active_other_tab(index);

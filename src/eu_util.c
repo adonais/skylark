@@ -1373,6 +1373,17 @@ util_can_selections(eu_tabpage *pnode)
     return sel_start != sel_end;
 }
 
+bool
+util_file_size(HANDLE hfile, uint64_t *psize)
+{
+    if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
+    {
+        *psize = 0;
+        return false;
+    }
+    return true;
+}
+
 static void
 util_close_stream_by_free(pt_stream pstream)
 {
@@ -1402,6 +1413,14 @@ util_open_file(LPCTSTR path, pt_stream pstream)
     HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (INVALID_HANDLE_VALUE != hfile)
     {
+    	if (!pstream->size)
+    	{
+    		if (!util_file_size(hfile, &pstream->size))
+    		{
+    			CloseHandle(hfile);
+    			return false;
+    		}
+    	}
         if (pstream->size > BUFF_200M)
         {
             HANDLE hmap = NULL;

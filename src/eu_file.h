@@ -65,7 +65,7 @@ typedef struct _file_backup
 extern HANDLE hwnd_backup;
 
 int on_file_new(void);
-int on_file_to_tab(eu_tabpage *pnode, file_backup *pbak);
+int on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force);
 int on_file_only_open(file_backup *pbak);
 int on_file_open(void);
 int on_file_drop(HDROP hdrop);

@@ -836,7 +836,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-            if (on_file_to_tab(pnode, NULL))
+            if (on_file_to_tab(pnode, NULL, true))
             {
                 return 1;
             }

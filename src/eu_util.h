@@ -82,6 +82,7 @@ char*  util_struct_to_string(void *buf, size_t bufsize);
 bool   util_string_to_struct(const char *buffer, void *buf, size_t bufsize);
 bool   util_creater_window(HWND hwnd, HWND hparent);
 bool   util_can_selections(eu_tabpage *pnode);
+bool   util_file_size(HANDLE hfile, uint64_t *psize);
 bool   util_open_file(LPCTSTR path, pt_stream pstream);
 time_t util_last_time(const TCHAR *path);
 WCHAR* util_to_abs(const char *path);
