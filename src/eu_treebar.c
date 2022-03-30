@@ -1192,7 +1192,7 @@ on_search_tree(HWND hwnd)
 }
 
 void
-on_remote_update_node(remotefs *pserver)
+on_treebar_update_addr(remotefs *pserver)
 {
     HTREEITEM hti_root = NULL;
     tree_data *tvd = NULL;

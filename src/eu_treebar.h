@@ -62,6 +62,7 @@ int  on_treebar_create_dlg(HWND hwnd);
 
 bool on_treebar_variable_initialized(HWND *pd);
 void on_treebar_wait_hwnd(void);
+void on_treebar_update_addr(remotefs *pserver);
 
 #ifdef __cplusplus
 }

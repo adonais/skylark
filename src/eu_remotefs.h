@@ -32,8 +32,8 @@ typedef struct _remotefs
     char        servername[100+1];
     char        protocol[20+1];
     char        networkaddr[64+1];
-    int            port;
-    int            accesss ;
+    int         port;
+    int         accesss;
     char        user[20+1];
     char        pwd[32+1];
     char        key_path[MAX_PATH+1];
@@ -46,7 +46,6 @@ typedef struct _remotefs
 extern struct list_head    list_server ;
 
 void on_remote_manager(void);
-void on_remote_update_node(remotefs *pserver);
 remotefs *on_remote_list_find(const TCHAR *url);
 unsigned __stdcall on_remote_load_config(void *);
 CURL* __stdcall on_remote_init_socket(const char *, remotefs *pserver);
