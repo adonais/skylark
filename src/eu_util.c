@@ -1410,7 +1410,7 @@ bool
 util_open_file(LPCTSTR path, pt_stream pstream)
 {
     bool ret = false;
-    HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (INVALID_HANDLE_VALUE != hfile)
     {
     	if (!pstream->size)
