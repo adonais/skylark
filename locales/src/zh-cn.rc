@@ -726,7 +726,7 @@ BEGIN
 END
 
 /////////////////////////////////////////////////////////////////////////////
-#define	__EU_COPYRIGHT_TRANSLATION	"Copyright © 2021 by ualy123"
+#define	__EU_COPYRIGHT_TRANSLATION	"Copyright © 2022 by ualy123"
 /////////////////////////////////////////////////////////////////////////////
 // ico
 IDI_TXT_32              ICON                    "..\\resources\\txt32.ico"

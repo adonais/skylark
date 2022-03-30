@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@
 
 #define __EU_INFO_RELEASE_VERSION MAKE_VERSION_NUM(__EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL,".")
 
-#define EU_DESCRIPTION TEXT("Copyright © 2020-2021, Skylark project authors. All rights reserved. \r\n\r\n") \
+#define EU_DESCRIPTION TEXT("Copyright © 2020-2022, Skylark project authors. All rights reserved. \r\n\r\n") \
                        TEXT("Note that the GPL places important restrictions on 'derived works', \r\n") \
                        TEXT("yet it does not provide a detailed definition of that term. ") \
                        TEXT("To avoid misunderstandings, we consider an application to constitute a 'derivative work' for ") \
