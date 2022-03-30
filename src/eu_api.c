@@ -430,6 +430,8 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     size_t size = len;
     int le_control_chars = 0;
     int be_control_chars = 0;
+    int result_le = IS_TEXT_UNICODE_STATISTICS | IS_TEXT_UNICODE_REVERSE_STATISTICS;
+    int result_be = IS_TEXT_UNICODE_UNICODE_MASK;
     uint8_t ch1, ch2;
      // 避免数组跨越边界问题
     while (pos < size - 1)
@@ -479,6 +481,19 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
         {
             return EN_CODEING_NONE;
         }
+    }   // 如果通过utf-16le静态分析, 测试一下编码转换, 因为可能为二进制文件
+    if (IsTextUnicode(pbuffer, (int)len, &result_le) && (result_le & IS_TEXT_UNICODE_STATISTICS))
+    {
+        printf("result_le = %d\n", result_le);
+        if (eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16LE", "GBK"))
+        {
+            return UTF16_LE_NOBOM;
+        }
+    }   // 如果通过utf-16be静态分析, 测试一下编码转换, 因为可能为二进制文件
+    else if (IsTextUnicode(pbuffer, (int)len, &result_be) && eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16BE", "GBK"))
+    {
+        printf("result_be = %d\n", result_be);
+        return UTF16_BE_NOBOM;
     }
     return EN_CODEING_NONE;
 }
@@ -577,7 +592,7 @@ eu_memstr(const uint8_t *haystack, const char *needle, size_t size)
             if (i>=needlesize) 
                 break;
         } 
-        else 
+        else
         {
             break;
         }
