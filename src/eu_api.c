@@ -188,7 +188,7 @@ eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
         resoffset += (int) wcslen(by);
     }
     _tcscpy(res + resoffset, in);
-    _sntprintf(in_ptr, (int) in_size, _T("%s"), res);
+    _sntprintf(in_ptr, eu_int_cast(in_size), _T("%s"), res);
     return in_ptr;
 }
 
@@ -208,7 +208,7 @@ eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *
         resoffset += (int) strlen(by);
     }
     strcpy(res + resoffset, in);
-    _snprintf(in_ptr, (int) in_size, "%s", res);
+    _snprintf(in_ptr, eu_int_cast(in_size), "%s", res);
     return in_ptr;
 }
 
@@ -482,7 +482,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
             return EN_CODEING_NONE;
         }
     }   // 如果通过utf-16le静态分析, 测试一下编码转换, 因为可能为二进制文件
-    if (IsTextUnicode(pbuffer, (int)len, &result_le) && (result_le & IS_TEXT_UNICODE_STATISTICS))
+    if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_le) && (result_le & IS_TEXT_UNICODE_STATISTICS))
     {
         printf("result_le = %d\n", result_le);
         if (eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16LE", "GBK"))
@@ -490,7 +490,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
             return UTF16_LE_NOBOM;
         }
     }   // 如果通过utf-16be静态分析, 测试一下编码转换, 因为可能为二进制文件
-    else if (IsTextUnicode(pbuffer, (int)len, &result_be) && eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16BE", "GBK"))
+    else if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_be) && eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16BE", "GBK"))
     {
         printf("result_be = %d\n", result_be);
         return UTF16_BE_NOBOM;
@@ -944,7 +944,7 @@ eu_ascii_escaped(const char *checkstr)
         {
             end = 6;
         }
-        for (int i = 2; i < (int)end; ++i)
+        for (int i = 2; i < eu_int_cast(end); ++i)
         {
             if (!isxdigit(p[i]))
             {

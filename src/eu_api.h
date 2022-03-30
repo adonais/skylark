@@ -74,6 +74,7 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 }
 #define EU_VERIFY(x) (void)((x) || (assert_in_release("failed assert(%s): %s:%d", #x, __FILE__, __LINE__), 0))
 #endif
+#define eu_int_cast(n) ((int)((size_t)n > INT_MAX ? INT_MAX : n))
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
 #define ONCE_RUN(code)                                      \
 {                                                           \
