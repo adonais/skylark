@@ -302,13 +302,13 @@ BEGIN
         MENUITEM "Customize Theme...",                         IDM_VIEW_MODIFY_STYLETHEME
         MENUITEM "Copy Create Theme...",                       IDM_VIEW_COPYNEW_STYLETHEME               
         MENUITEM MF_SEPARATOR
-		POPUP "Font &Quality"
+		POPUP "Font &Quality",                  IDM_SETTING_FONTQUALITY
 		BEGIN
 			MENUITEM "&None",				    IDM_VIEW_FONTQUALITY_NONE
 			MENUITEM "&Standard",				IDM_VIEW_FONTQUALITY_STANDARD
 			MENUITEM "&ClearType",				IDM_VIEW_FONTQUALITY_CLEARTYPE
 		END
-		POPUP "Ren&dering Technology"
+		POPUP "Ren&dering Technology",          IDM_SETTING_RENDER
 		BEGIN
 			MENUITEM "&Legacy GDI",			    IDM_SET_RENDER_TECH_GDI
 			MENUITEM "&DirectWrite",		    IDM_SET_RENDER_TECH_D2D
@@ -727,7 +727,7 @@ BEGIN
 END
 
 /////////////////////////////////////////////////////////////////////////////
-#define	__EU_COPYRIGHT_TRANSLATION	"Copyright © 2021 by ualy123"
+#define	__EU_COPYRIGHT_TRANSLATION	"Copyright © 2022 by ualy123"
 /////////////////////////////////////////////////////////////////////////////
 // ico
 IDI_TXT_32              ICON                    "..\\resources\\txt32.ico"
@@ -889,6 +889,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_WARN            "Warning:"
     IDC_MSG_TIPS            "Tips:"
     IDC_MSG_PASS            "Enter password:"
+    IDC_MSG_NEW_FILE        "No Title %d"
     IDC_MSG_DO_READONLY     "This operation was attempted on a read-only file"
     IDC_MSG_ATTACH_FAIL     "Failed to connect to remote file server"
     IDC_MSG_ATTACH_FAIL1    "Failed to connect to remote file server, wrong passphrase or invalid private file"

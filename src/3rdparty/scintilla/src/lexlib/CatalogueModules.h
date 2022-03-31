@@ -10,7 +10,7 @@
 #ifndef CATALOGUEMODULES_H
 #define CATALOGUEMODULES_H
 
-namespace Scintilla {
+namespace Lexilla {
 
 class CatalogueModules {
 	std::vector<LexerModule *> lexerCatalogue;
@@ -39,6 +39,10 @@ public:
 		lexerCatalogue.push_back(plm);
 	}
 
+	void AddLexerModules(std::initializer_list<LexerModule *> modules) {
+		lexerCatalogue.insert(lexerCatalogue.end(), modules);
+	}
+
 	unsigned int Count() const noexcept {
 		return static_cast<unsigned int>(lexerCatalogue.size());
 	}
@@ -56,7 +60,7 @@ public:
 		return lexerCatalogue[index]->fnFactory;
 	}
 
-	ILexer5 *Create(unsigned int index) const {
+	Scintilla::ILexer5 *Create(unsigned int index) const {
 		const LexerModule *plm = lexerCatalogue[index];
 		if (!plm) {
 			return nullptr;

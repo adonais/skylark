@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -217,7 +217,6 @@ END
 STRINGTABLE
 BEGIN
     IDS_APP_TITLE           "Skylark"
-    IDC_MSG_NEW_FILE        "No Title %d"
     IDS_ABOUT_DESCRIPTION   EU_DESCRIPTION
 END
 

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ eu_clear_undo_off(void)
 HWND
 eu_module_hwnd(void)
 {
-    return eu_hwndmain;
+    return (eu_hwndmain ? eu_hwndmain : share_get_hwnd());
 }
 
 uint32_t
@@ -183,7 +183,7 @@ eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
     } 
     else 
     {
-        RECT rc = { 0 };
+        RECT rc = {0};
         GetWindowRect(hwnd, &rc);
         const uint32_t dpi = adpi ? adpi : eu_get_dpi(hwnd);
         adjust_window_rect_dpi((LPRECT)&rc, flags, 0, dpi);
@@ -293,10 +293,10 @@ eu_window_resize(HWND hwnd)
     on_toolbar_adjust_box();
     on_statusbar_adjust_box();
     on_treebar_adjust_box(&rect_treebar);
-    HDWP hdwp = BeginDeferWindowPos(3);
+    HDWP hdwp = BeginDeferWindowPos(2);
     if (eu_get_config()->m_ftree_show)
     {
-        RECT rect_filetree = { 0 };
+        RECT rect_filetree = {0};
         on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
         DeferWindowPos(hdwp,
                        g_treebar,
@@ -325,11 +325,11 @@ eu_window_resize(HWND hwnd)
         DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
         DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
     }
+    EndDeferWindowPos(hdwp);
     if (true)
     {
-        RECT rect_tabbar = { 0 };
+        RECT rect_tabbar = {0};
         on_tabpage_adjust_box(&rect_tabbar);
-        EndDeferWindowPos(hdwp);
         eu_setpos_window(g_tabpages,
                          HWND_TOP,
                          rect_tabbar.left,
@@ -397,7 +397,6 @@ eu_window_resize(HWND hwnd)
                 else
                 {
                     ShowWindow(pnode->hwnd_symlist, SW_HIDE);
-                    util_set_menu_item(hwnd, IDM_VIEW_SYMTREE, false);
                 }
             }
             else if (pnode->hwnd_symtree)
@@ -416,7 +415,6 @@ eu_window_resize(HWND hwnd)
                 else
                 {
                     ShowWindow(pnode->hwnd_symtree, SW_HIDE);
-                    util_set_menu_item(hwnd, IDM_VIEW_SYMTREE, false);
                 }
             }
         }
@@ -495,7 +493,6 @@ eu_before_proc(MSG *p_msg)
         {  // only left alt press
             eu_get_config()->m_menubar = !eu_get_config()->m_menubar;
             eu_window_resize(eu_hwndmain);
-            menu_update_all(eu_hwndmain, NULL);
             return 1;
         }
     } 
@@ -627,6 +624,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ONCE_RUN(on_changes_window(hwnd));
             }
             return 0;
+        case WM_INITMENU:
+            return 0;
+        case WM_INITMENUPOPUP:
+            printf("recv WM_INITMENUPOPUP\n");
+            menu_update_item((HMENU)wParam);
+            return 0;   
         case WM_DPICHANGED:
         {
             on_theme_setup_font(hwnd);
@@ -734,7 +737,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (IDM_LOCALES_BASE <= wm_id && wm_id <= IDM_LOCALES_BASE + MAX_MULTI_LANG - 1)
             {
                 i18n_switch_locale(eu_hwndmain, wm_id);
-                on_reg_update_menu(eu_hwndmain);
                 break;
             }
             switch (wm_id)
@@ -912,10 +914,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_encoding_convert_internal_code(pnode, on_encoding_big5_gb);
                     break;
                 case IDM_EDIT_AUTO_CLOSECHAR:
-                    on_edit_close_char(pnode);
+                    on_edit_close_char();
                     break;
                 case IDM_EDIT_AUTO_INDENTATION:
-                    on_edit_identation(pnode);
+                    on_edit_identation();
                     break;
                 case IDM_OPEN_FILE_PATH:
                 {
@@ -1075,7 +1077,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_filetree();
                     break;
                 case IDM_VIEW_SYMTREE:
-                    on_view_symtree(pnode);
+                    on_view_symtree();
                     break;
                 case IDM_VIEW_MODIFY_STYLETHEME:
                     on_view_modify_theme();
@@ -1215,12 +1217,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_toolbar_execute_script();
                     break;
                 case IDM_ENV_FILE_POPUPMENU:
-                    on_reg_file_popup_menu();
-                    on_reg_update_menu(hwnd);
+                    eu_reg_file_popup_menu();
                     break;
                 case IDM_ENV_DIRECTORY_POPUPMENU:
-                    on_reg_dir_popup_menu();
-                    on_reg_update_menu(hwnd);
+                    eu_reg_dir_popup_menu();
                     break;
                 case IDM_ENV_SET_ASSOCIATED_WITH:
                     on_reg_files_association();
@@ -1249,17 +1249,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_VIEW_MENUBAR:
                     eu_get_config()->m_menubar = !eu_get_config()->m_menubar;
-                    menu_update_all(hwnd, NULL);
                     eu_window_resize(hwnd);
                     break;
                 case IDM_VIEW_TOOLBAR:
                     eu_get_config()->m_toolbar = !eu_get_config()->m_toolbar;
-                    menu_update_all(hwnd, NULL);
                     eu_window_resize(hwnd);
                     break;
                 case IDM_VIEW_STATUSBAR:
                     eu_get_config()->m_statusbar = !eu_get_config()->m_statusbar;
-                    menu_update_all(hwnd, NULL);
                     eu_window_resize(hwnd);
                     break;
                 case IDM_ABOUT:
@@ -1268,8 +1265,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_MOUSEMOVE:
                     if (eu_get_config()->m_ftree_show)
                     {
-                        RECT rect_treebar = { 0 };
-                        RECT rect_tabbar = { 0 };
+                        RECT rect_treebar = {0};
+                        RECT rect_tabbar = {0};
                         int x = GET_X_LPARAM(lParam);
                         int y = GET_Y_LPARAM(lParam);
                         on_treebar_adjust_box(&rect_treebar);
@@ -1623,7 +1620,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 on_view_editor_selection(pnode);
                             }
-                            menu_update_text_status(hwnd, pnode);
+                            if (eu_get_config()->m_toolbar)
+                            {
+                                on_toolbar_setup_button(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
+                                on_toolbar_setup_button(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
+                            }                            
                         }
                         on_statusbar_update_filesize(pnode);
                     }
@@ -1667,7 +1668,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             rel_len = _tcslen(pm->rel_path);
             if (_tcsncmp(pm->rel_path, _T("-reg"), 4) == 0)
             {
-                on_reg_update_menu(hwnd);
+                ;
             }
             else if (rel_len > 0 && pm->rel_path[rel_len - 1] == _T('\\'))
             {

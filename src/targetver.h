@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,20 +28,20 @@
 #define MAKE_VERSION_STR(a, b, c, d, sep)  (TO_STR(a)TEXT(" ")TO_STR(b) sep TO_STR(c) sep TO_STR(d))
 
 // 定义版本信息
-#define __EU_INFO_VERSION 1
-#define __EU_INFO_VERSION_MINOR 1
-#define __EU_INFO_VERSION_PATCHLEVEL 9
+#define __EU_INFO_VERSION 2
+#define __EU_INFO_VERSION_MINOR 0
+#define __EU_INFO_VERSION_PATCHLEVEL 0
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
-#if !__EU_INFO_VERSION_PATCHLEVEL
-#define __LIFE_CYCLE TEXT("-GA")
+#if 1
+#define __LIFE_CYCLE TEXT("-DEV")
 #else
 #define __LIFE_CYCLE
 #endif
 
 #define __EU_INFO_RELEASE_VERSION MAKE_VERSION_NUM(__EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL,".")
 
-#define EU_DESCRIPTION TEXT("Copyright © 2020-2021, Skylark project authors. All rights reserved. \r\n\r\n") \
+#define EU_DESCRIPTION TEXT("Copyright © 2020-2022, Skylark project authors. All rights reserved. \r\n\r\n") \
                        TEXT("Note that the GPL places important restrictions on 'derived works', \r\n") \
                        TEXT("yet it does not provide a detailed definition of that term. ") \
                        TEXT("To avoid misunderstandings, we consider an application to constitute a 'derivative work' for ") \
@@ -78,6 +78,8 @@
 #elif (__GNUC__)
 #define GCC_VER_STR (MAKE_VERSION_STR(gcc,__GNUC__,__GNUC_MINOR__,__GNUC_PATCHLEVEL__,"."))
 #define VC_BUILDER GCC_VER_STR
+#elif _MSC_VER >= 1930
+#define VC_BUILDER TEXT("VC17")
 #elif _MSC_VER >= 1920
 #define VC_BUILDER TEXT("VC16")
 #elif _MSC_VER >= 1910
@@ -816,6 +818,8 @@
 #define IDM_SET_RENDER_TECH_GDI             42560
 #define IDM_SET_RENDER_TECH_D2D             42561
 #define IDM_SET_RENDER_TECH_D2DRETAIN       42562
+#define IDM_SETTING_FONTQUALITY             42563
+#define IDM_SETTING_RENDER                  42564
 
 #define IDR_TOOLBAR_POPUPMENU               42600
 #define IDM_VIEW_MENUBAR                    42601

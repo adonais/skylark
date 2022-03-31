@@ -8,7 +8,7 @@
 #ifndef WORDLIST_H
 #define WORDLIST_H
 
-namespace Scintilla {
+namespace Lexilla {
 
 /**
  */
@@ -16,11 +16,16 @@ class WordList {
 	// Each word contains at least one character - a empty word acts as sentinel at the end.
 	char **words;
 	char *list;
-	int len;
+	size_t len;
 	bool onlyLineEnds;	///< Delimited by any white space or only line ends
 	int starts[256];
 public:
-	explicit WordList(bool onlyLineEnds_ = false);
+	explicit WordList(bool onlyLineEnds_ = false) noexcept;
+	// Deleted so WordList objects can not be copied.
+	WordList(const WordList &) = delete;
+	WordList(WordList &&) = delete;
+	WordList &operator=(const WordList &) = delete;
+	WordList &operator=(WordList &&) = delete;
 	~WordList();
 	operator bool() const noexcept;
 	bool operator!=(const WordList &other) const noexcept;
@@ -31,12 +36,6 @@ public:
 	bool InListAbbreviated(const char *s, const char marker) const noexcept;
 	bool InListAbridged(const char *s, const char marker) const noexcept;
 	const char *WordAt(int n) const noexcept;
-	void SetWordAt(int n, const char *word2Set) {
-		words[n] = (char *)word2Set;
-	};
-	int StartAt(int n) const {
-		return starts[n];
-	};
 };
 
 }

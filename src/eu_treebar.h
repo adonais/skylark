@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@ int  on_treebar_create_dlg(HWND hwnd);
 
 bool on_treebar_variable_initialized(HWND *pd);
 void on_treebar_wait_hwnd(void);
+void on_treebar_update_addr(remotefs *pserver);
 
 #ifdef __cplusplus
 }

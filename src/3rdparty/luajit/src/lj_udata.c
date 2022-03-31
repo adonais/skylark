@@ -1,6 +1,6 @@
 /*
 ** Userdata handling.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_udata_c
@@ -47,9 +47,10 @@ void *lj_lightud_intern(lua_State *L, void *p)
       if (segmap[seg] == up)  /* Fast path. */
 	return (void *)(((uint64_t)seg << LJ_LIGHTUD_BITS_LO) | lightudlo(u));
     segnum++;
+    /* Leave last segment unused to avoid clash with ITERN key. */
+    if (segnum >= (1 << LJ_LIGHTUD_BITS_SEG)-1) lj_err_msg(L, LJ_ERR_BADLU);
   }
   if (!((segnum-1) & segnum) && segnum != 1) {
-    if (segnum >= (1 << LJ_LIGHTUD_BITS_SEG)) lj_err_msg(L, LJ_ERR_BADLU);
     lj_mem_reallocvec(L, segmap, segnum, segnum ? 2*segnum : 2u, uint32_t);
     setmref(g->gc.lightudseg, segmap);
   }

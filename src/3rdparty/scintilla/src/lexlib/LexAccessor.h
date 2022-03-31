@@ -8,13 +8,13 @@
 #ifndef LEXACCESSOR_H
 #define LEXACCESSOR_H
 
-namespace Scintilla {
+namespace Lexilla {
 
 enum class EncodingType { eightBit, unicode, dbcs };
 
 class LexAccessor {
 private:
-	IDocument *pAccess;
+	Scintilla::IDocument *pAccess;
 	enum {extremePosition=0x7FFFFFFF};
 	/** @a bufferSize is a trade off between time taken to copy the characters
 	 * and retrieval overhead.
@@ -48,7 +48,7 @@ private:
 	}
 
 public:
-	explicit LexAccessor(IDocument *pAccess_) :
+	explicit LexAccessor(Scintilla::IDocument *pAccess_) :
 		pAccess(pAccess_), startPos(extremePosition), endPos(0),
 		codePage(pAccess->CodePage()),
 		encodingType(EncodingType::eightBit),
@@ -77,7 +77,7 @@ public:
 		}
 		return buf[position - startPos];
 	}
-	IDocument *MultiByteAccess() const noexcept {
+	Scintilla::IDocument *MultiByteAccess() const noexcept {
 		return pAccess;
 	}
 	/** Safe version of operator[], returning a defined value for invalid position. */
@@ -92,7 +92,10 @@ public:
 		return buf[position - startPos];
 	}
 	bool IsLeadByte(char ch) const {
-		return pAccess->IsDBCSLeadByte(ch);
+		return
+			(static_cast<unsigned char>(ch) >= 0x80) &&	// non-ASCII
+			(encodingType == EncodingType::dbcs) &&		// IsDBCSLeadByte only for DBCS
+			pAccess->IsDBCSLeadByte(ch);
 	}
 	EncodingType Encoding() const noexcept {
 		return encodingType;
@@ -105,6 +108,15 @@ public:
 		}
 		return true;
 	}
+	bool MatchIgnoreCase(Sci_Position pos, const char *s);
+
+	// Get first len - 1 characters in range [startPos_, endPos_).
+	void GetRange(Sci_PositionU startPos_, Sci_PositionU endPos_, char *s, Sci_PositionU len);
+	void GetRangeLowered(Sci_PositionU startPos_, Sci_PositionU endPos_, char *s, Sci_PositionU len);
+	// Get all characters in range [startPos_, endPos_).
+	std::string GetRange(Sci_PositionU startPos_, Sci_PositionU endPos_);
+	std::string GetRangeLowered(Sci_PositionU startPos_, Sci_PositionU endPos_);
+
 	char StyleAt(Sci_Position position) const {
 		return pAccess->StyleAt(position);
 	}

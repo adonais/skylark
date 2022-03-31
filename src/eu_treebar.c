@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1192,7 +1192,7 @@ on_search_tree(HWND hwnd)
 }
 
 void
-on_remote_update_node(remotefs *pserver)
+on_treebar_update_addr(remotefs *pserver)
 {
     HTREEITEM hti_root = NULL;
     tree_data *tvd = NULL;

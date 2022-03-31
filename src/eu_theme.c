@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -215,9 +215,10 @@ search_theme_files(theme_desc *lptheme, int m)
 }
 
 void
-on_theme_update_menu(HWND hwnd)
+on_theme_update_item(void)
 {
-    HMENU root_menu = GetMenu(hwnd);
+    HWND hwnd = eu_module_hwnd();
+    HMENU root_menu = hwnd ? GetMenu(hwnd) : NULL;
     if (root_menu)
     {
         int index;
@@ -305,9 +306,8 @@ on_theme_copy_style(TCHAR *ac_theme)
         return EUE_LOAD_SCRIPT_ERR;
     }
     strncpy(eu_get_config()->window_theme, eu_get_theme()->name, ACNAME_LEN - 1);
-    HWND hwnd = eu_module_hwnd();
-    on_theme_update_menu(hwnd);
-    menu_switch_theme(hwnd);
+    on_theme_update_item();
+    menu_switch_theme();
     on_view_modify_theme();
     return SKYLARK_OK;
 }

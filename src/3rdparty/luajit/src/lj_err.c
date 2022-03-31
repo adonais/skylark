@@ -1,6 +1,6 @@
 /*
 ** Error handling.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_err_c
@@ -480,9 +480,14 @@ extern const void *_Unwind_Find_FDE(void *pc, struct dwarf_eh_bases *bases);
 /* Verify that external error handling actually has a chance to work. */
 void lj_err_verify(void)
 {
+#if !LJ_TARGET_OSX
+  /* Check disabled on MacOS due to brilliant software engineering at Apple. */
   struct dwarf_eh_bases ehb;
   lj_assertX(_Unwind_Find_FDE((void *)lj_err_throw, &ehb), "broken build: external frame unwinding enabled, but missing -funwind-tables");
+#endif
+  /* Check disabled, because of broken Fedora/ARM64. See #722.
   lj_assertX(_Unwind_Find_FDE((void *)_Unwind_RaiseException, &ehb), "broken build: external frame unwinding enabled, but system libraries have no unwind tables");
+  */
 }
 #endif
 
@@ -939,25 +944,27 @@ LJ_NOINLINE void lj_err_optype_call(lua_State *L, TValue *o)
 /* Error in context of caller. */
 LJ_NOINLINE void lj_err_callermsg(lua_State *L, const char *msg)
 {
-  TValue *frame = L->base-1;
-  TValue *pframe = NULL;
-  if (frame_islua(frame)) {
-    pframe = frame_prevl(frame);
-  } else if (frame_iscont(frame)) {
-    if (frame_iscont_fficb(frame)) {
-      pframe = frame;
-      frame = NULL;
-    } else {
-      pframe = frame_prevd(frame);
+  TValue *frame = NULL, *pframe = NULL;
+  if (!(LJ_HASJIT && tvref(G(L)->jit_base))) {
+    frame = L->base-1;
+    if (frame_islua(frame)) {
+      pframe = frame_prevl(frame);
+    } else if (frame_iscont(frame)) {
+      if (frame_iscont_fficb(frame)) {
+	pframe = frame;
+	frame = NULL;
+      } else {
+	pframe = frame_prevd(frame);
 #if LJ_HASFFI
-      /* Remove frame for FFI metamethods. */
-      if (frame_func(frame)->c.ffid >= FF_ffi_meta___index &&
-	  frame_func(frame)->c.ffid <= FF_ffi_meta___tostring) {
-	L->base = pframe+1;
-	L->top = frame;
-	setcframe_pc(cframe_raw(L->cframe), frame_contpc(frame));
-      }
+	/* Remove frame for FFI metamethods. */
+	if (frame_func(frame)->c.ffid >= FF_ffi_meta___index &&
+	    frame_func(frame)->c.ffid <= FF_ffi_meta___tostring) {
+	  L->base = pframe+1;
+	  L->top = frame;
+	  setcframe_pc(cframe_raw(L->cframe), frame_contpc(frame));
+	}
 #endif
+      }
     }
   }
   lj_debug_addloc(L, msg, pframe, frame);

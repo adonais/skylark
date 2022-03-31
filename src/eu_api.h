@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 }
 #define EU_VERIFY(x) (void)((x) || (assert_in_release("failed assert(%s): %s:%d", #x, __FILE__, __LINE__), 0))
 #endif
+#define eu_int_cast(n) ((int)((size_t)n > INT_MAX ? INT_MAX : n))
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
 #define ONCE_RUN(code)                                      \
 {                                                           \
@@ -442,6 +443,8 @@ EU_EXT_CLASS uint32_t eu_get_dpi(HWND hwnd);
 EU_EXT_CLASS int eu_create_registry_dlg(void);
 EU_EXT_CLASS int eu_undo_file_popup(void);
 EU_EXT_CLASS int eu_undo_dir_popup(void);
+EU_EXT_CLASS int eu_reg_file_popup_menu(void);
+EU_EXT_CLASS int eu_reg_dir_popup_menu(void);
 
 // for eu_hook.c
 EU_EXT_CLASS bool __stdcall on_hook_exception(void);
@@ -530,6 +533,7 @@ EU_EXT_CLASS int on_doc_init_after_log(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_nim(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_shell_sh(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_properties(eu_tabpage *pnode);
+EU_EXT_CLASS int on_doc_init_after_diff(eu_tabpage *pnode);
 
 /* 默认的 key_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
@@ -548,7 +552,6 @@ EU_EXT_CLASS int on_doc_html_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_xml_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_css_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_yaml_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_cmake_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_markdown_like(eu_tabpage *pnode, SCNotification *lpnotify);

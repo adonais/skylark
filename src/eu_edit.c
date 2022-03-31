@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -412,8 +412,8 @@ on_edit_upper(eu_tabpage *pnode)
     }
 }
 
-int
-on_edit_close_char(eu_tabpage *pnode)
+void
+on_edit_close_char(void)
 {
     if (!eu_get_config()->auto_close_chars)
     {
@@ -423,12 +423,11 @@ on_edit_close_char(eu_tabpage *pnode)
     {
         eu_get_config()->auto_close_chars = false;
     }
-    menu_update_all(eu_module_hwnd(), pnode);
-    return SKYLARK_OK;
+    on_toolbar_update_button();
 }
 
-int
-on_edit_identation(eu_tabpage *pnode)
+void
+on_edit_identation(void)
 {
     if (!eu_get_config()->m_ident)
     {
@@ -438,8 +437,7 @@ on_edit_identation(eu_tabpage *pnode)
     {
         eu_get_config()->m_ident = false;
     }
-    menu_update_all(eu_module_hwnd(), pnode);
-    return SKYLARK_OK;
+    on_toolbar_update_button();
 }
 
 void
@@ -1374,7 +1372,6 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
         eu_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
         _snprintf(eols_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_eol/?@#$%^&*()`/~", pnode->eol, eol_mode);
         pnode->eol = eol_mode;
-        menu_update_all(eu_module_hwnd(), pnode);
         eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) eols_undo_str);
         eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(eols_undo_str));
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);

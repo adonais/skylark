@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +163,6 @@ rcs_length(rcstring *rcs)
 char *
 format_undo_json_string(const char *text)
 {
-    size_t i;
     size_t in = 0;
     size_t out = 0;
     size_t length;
@@ -217,8 +216,7 @@ format_do_json_string(const char *text)
 {
     size_t pos = 0;
     size_t text_length;
-    int indentation = 0;          /* the current indentation level */
-    unsigned int i;               /* loop iterator variable */
+    int i, indentation = 0;          /* the current indentation level */
     char loop;
 
     rcstring *output;

@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,9 +64,9 @@ char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
 char*  util_strdup_line(eu_tabpage *pnode, size_t *plen);
 char*  util_strdup_content(eu_tabpage *pnode, size_t *plen);
 void   util_push_text_dlg(eu_tabpage *pnode, HWND hwnd);
-void   util_enable_menu_item(HWND hwnd, int m_id, bool enable);
-void   util_set_menu_item(HWND hwnd, int m_id, bool checked);
-void   util_update_menu_chars(HWND hwnd, int m_id, int width);
+void   util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable);
+void   util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked);
+void   util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width);
 void   util_replace_newline(char *str);
 void   util_upper_string(char *str);
 void   util_kill_thread(uint32_t pid);
@@ -82,6 +82,7 @@ char*  util_struct_to_string(void *buf, size_t bufsize);
 bool   util_string_to_struct(const char *buffer, void *buf, size_t bufsize);
 bool   util_creater_window(HWND hwnd, HWND hparent);
 bool   util_can_selections(eu_tabpage *pnode);
+bool   util_file_size(HANDLE hfile, uint64_t *psize);
 bool   util_open_file(LPCTSTR path, pt_stream pstream);
 time_t util_last_time(const TCHAR *path);
 WCHAR* util_to_abs(const char *path);

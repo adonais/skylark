@@ -25,6 +25,19 @@ BUILDVM_OBJS =                      \
     $(DIR_O)\host\buildvm_lib.obj   \
     $(DIR_O)\host\buildvm_peobj.obj \
 
+ALL_LIB = $(SRC)\lib_base.c         \
+          $(SRC)\lib_math.c         \
+          $(SRC)\lib_bit.c          \
+          $(SRC)\lib_string.c       \
+          $(SRC)\lib_table.c        \
+	      $(SRC)\lib_io.c           \
+	      $(SRC)\lib_os.c           \
+	      $(SRC)\lib_package.c      \
+	      $(SRC)\lib_debug.c        \
+	      $(SRC)\lib_jit.c          \
+	      $(SRC)\lib_ffi.c          \
+	      $(SRC)\lib_buffer.c       \
+	          
 OBJS =                            \
     $(DIR_O)\lj_alloc.obj         \
     $(DIR_O)\lj_api.obj           \
@@ -121,16 +134,11 @@ $(MINILUA): $(MIN_OBJS)
 $(BUILDVM): $(BUILDVM_OBJS) $(MINILUA)
 	$(LD) $(LDFLAGS) -out:$@ $(BUILDVM_OBJS)
 	$(BUILDVM) -m peobj -o $(DIR_O)\lj_vm.obj
-	$(BUILDVM) -m bcdef -o $(SRC)\lj_bcdef.h $(SRC)\lib_base.c $(SRC)\lib_math.c $(SRC)\lib_bit.c $(SRC)\lib_string.c $(SRC)\lib_table.c \
-	          $(SRC)\lib_io.c $(SRC)\lib_os.c $(SRC)\lib_package.c $(SRC)\lib_debug.c $(SRC)\lib_jit.c $(SRC)\lib_ffi.c $(SRC)\lib_buffer.c
-	$(BUILDVM) -m ffdef -o $(SRC)\lj_ffdef.h $(SRC)\lib_base.c $(SRC)\lib_math.c $(SRC)\lib_bit.c $(SRC)\lib_string.c $(SRC)\lib_table.c \
-	          $(SRC)\lib_io.c $(SRC)\lib_os.c $(SRC)\lib_package.c $(SRC)\lib_debug.c $(SRC)\lib_jit.c $(SRC)\lib_ffi.c $(SRC)\lib_buffer.c
-	$(BUILDVM) -m libdef -o $(SRC)\lj_libdef.h $(SRC)\lib_base.c $(SRC)\lib_math.c $(SRC)\lib_bit.c $(SRC)\lib_string.c $(SRC)\lib_table.c \
-	          $(SRC)\lib_io.c $(SRC)\lib_os.c $(SRC)\lib_package.c $(SRC)\lib_debug.c $(SRC)\lib_jit.c $(SRC)\lib_ffi.c $(SRC)\lib_buffer.c
-	$(BUILDVM) -m recdef -o $(SRC)\lj_recdef.h $(SRC)\lib_base.c $(SRC)\lib_math.c $(SRC)\lib_bit.c $(SRC)\lib_string.c $(SRC)\lib_table.c \
-	          $(SRC)\lib_io.c $(SRC)\lib_os.c $(SRC)\lib_package.c $(SRC)\lib_debug.c $(SRC)\lib_jit.c $(SRC)\lib_ffi.c $(SRC)\lib_buffer.c
-	$(BUILDVM) -m vmdef -o $(SRC)\jit\vmdef.lua $(SRC)\lib_base.c $(SRC)\lib_math.c $(SRC)\lib_bit.c $(SRC)\lib_string.c $(SRC)\lib_table.c \
-	          $(SRC)\lib_io.c $(SRC)\lib_os.c $(SRC)\lib_package.c $(SRC)\lib_debug.c $(SRC)\lib_jit.c $(SRC)\lib_ffi.c $(SRC)\lib_buffer.c
+	$(BUILDVM) -m bcdef -o $(SRC)\lj_bcdef.h $(ALL_LIB)
+	$(BUILDVM) -m ffdef -o $(SRC)\lj_ffdef.h $(ALL_LIB)
+	$(BUILDVM) -m libdef -o $(SRC)\lj_libdef.h $(ALL_LIB)
+	$(BUILDVM) -m recdef -o $(SRC)\lj_recdef.h $(ALL_LIB)
+	$(BUILDVM) -m vmdef -o $(SRC)\jit\vmdef.lua $(ALL_LIB)
 	$(BUILDVM) -m folddef -o $(SRC)\lj_folddef.h $(SRC)\lj_opt_fold.c
 	
 $(STATICLIB): $(OBJS) $(BUILDVM)

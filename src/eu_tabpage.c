@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -389,7 +389,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             eu_tabpage *pnode = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd));
             if (pnode)
             {
-                util_enable_menu_item((HWND)pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
+                util_enable_menu_item(pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
             }
             ClientToScreen(hwnd, &pt);
             TrackPopupMenu(GetSubMenu(pop_tab_menu, 0), 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
@@ -690,11 +690,14 @@ TCHAR *
 on_tabpage_newdoc_name(TCHAR *filename, int len)
 {
     EU_VERIFY(g_tabpages != NULL);
-    LOAD_APP_RESSTR(IDC_MSG_NEW_FILE, m_file);
-    if (_stscanf(m_file, _T("%100s"), filename) == 1)
+    LOAD_I18N_RESSTR(IDC_MSG_NEW_FILE, m_file);
+    const TCHAR ch = _T(' ');
+    const TCHAR *pstr = NULL;
+    if ((pstr = _tcsrchr(m_file, ch)) != NULL && (pstr - m_file) > 0)
     {
         int ret = 1;
         int count = TabCtrl_GetItemCount(g_tabpages);
+        _tcsncpy(filename, m_file, pstr - m_file);
         for (int index = 0; index < count; ++index)
         {
             TCITEM tci = {TCIF_PARAM,};
@@ -711,6 +714,48 @@ on_tabpage_newdoc_name(TCHAR *filename, int len)
         _sntprintf(filename, len, m_file, ret);
     }
     return filename;
+}
+
+void
+on_tabpage_newdoc_reload(void)
+{
+    EU_VERIFY(g_tabpages != NULL);
+    LOAD_I18N_RESSTR(IDC_MSG_NEW_FILE, m_file);
+    const TCHAR ch = _T(' ');
+    const TCHAR *pstr = NULL;
+    TCHAR filename[MAX_PATH] = {0};
+    if ((pstr = _tcsrchr(m_file, ch)) != NULL && (pstr - m_file) > 0)
+    {
+        int count = TabCtrl_GetItemCount(g_tabpages);
+        _tcsncpy(filename, m_file, pstr - m_file);
+        pstr = NULL;
+        for (int index = 0; index < count; ++index)
+        {
+            TCITEM tci = {TCIF_PARAM,};
+            TabCtrl_GetItem(g_tabpages, index, &tci);
+            eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+            if (p && p->is_blank)
+            {
+                TCHAR old[MAX_PATH] = {0};
+                if ((pstr = _tcsrchr(p->pathfile, ch)) != NULL && (pstr - p->pathfile) > 0 && _tcslen(pstr) > 0 && 
+                    _tcsspn(pstr + 1, _T("0123456789")) == _tcslen(pstr + 1))
+                {
+                    _tcsncpy(old, p->pathfile, pstr - p->pathfile);
+                    if (_tcscmp(filename, old) != 0)
+                    {
+                        _sntprintf(filename, MAX_PATH-1, m_file, _tstoi(pstr + 1));
+                        _tcscpy(p->pathfile, filename);
+                        _tcscpy(p->filename, filename);
+                        if (p->be_modify)
+                        {
+                            _tcsncat(p->filename, _T("*"), MAX_PATH);
+                        }
+                        util_set_title(p->pathfile);
+                    }
+                }
+            }
+        }
+    }
 }
 
 int
@@ -791,7 +836,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-            if (on_file_to_tab(pnode, NULL))
+            if (on_file_to_tab(pnode, NULL, true))
             {
                 return 1;
             }
@@ -903,11 +948,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         // 切换工作目录
         util_set_working_dir(pnode->pathname);
         eu_window_resize(hwnd);
-        menu_update_all(hwnd, pnode);
-        if (pnode->hwnd_sc)
-        {
-            SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
-        }
+        on_toolbar_update_button();
     }
 }
 
@@ -977,8 +1018,12 @@ void
 on_tabpage_changing(void)
 {
     EU_VERIFY(g_tabpages != NULL);
-    int pageno = TabCtrl_GetCurSel(g_tabpages);
-    on_tabpage_select_index(pageno);
+    int m_page = TabCtrl_GetCurSel(g_tabpages);
+    eu_tabpage *p = on_tabpage_select_index(m_page);
+    if (p && p->hwnd_sc)
+    {
+        PostMessage(p->hwnd_sc, WM_SETFOCUS, 0, 0);
+    }
 }
 
 void

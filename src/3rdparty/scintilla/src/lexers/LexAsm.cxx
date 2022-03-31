@@ -17,8 +17,10 @@
 #include <ctype.h>
 
 #include <string>
+#include <string_view>
 #include <map>
 #include <set>
+#include <functional>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -33,6 +35,7 @@
 #include "DefaultLexer.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 static inline bool IsAWordChar(const int ch) {
 	return (ch < 0x80) && (isalnum(ch) || ch == '.' ||

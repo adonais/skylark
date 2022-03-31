@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,9 +91,9 @@ do                                                                              
     Edit_SetText(GetDlgItem(hdlg, IDC_LOGIN_PASS_EDIT), pwd);                                     \
     Edit_SetText(GetDlgItem(hdlg, IDC_LOGIN_PASSPHRASE_EDIT), passphrase);                        \
     Edit_SetText(GetDlgItem(hdlg, IDC_LOGIN_PRIVATE_EDIT), key_path);                             \
-    _sntprintf(numbuf, _countof(numbuf) - 1, _T("%d"), pserver->port);                            \
+    _sntprintf(numbuf, _countof(numbuf) - 1, _T("%d"), psrv->port);                               \
     Edit_SetText(GetDlgItem(hdlg, IDC_NETWORK_PORT_EDIT), numbuf);                                \
-    ComboBox_SetCurSel(box_access, pserver->accesss);                                             \
+    ComboBox_SetCurSel(box_access, psrv->accesss);                                                \
 }                                                                                                 \
 while(0)
 
@@ -575,11 +575,8 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         {
                             break;
                         }
-                        else
-                        {
-                            // 更新文件管理器上的sftp配置
-                            on_remote_update_node(pserver);
-                        }
+                        // 更新文件管理器上的sftp配置
+                        on_treebar_update_addr(pserver);
                         if (new_server)
                         {
                             printf("we add pserver to list\n");
@@ -637,7 +634,7 @@ on_remote_parser_callback(void *data, int count, char **column, char **names)
         {
             pserver->port = atoi(column[i]);
         }
-        else if (!strcmp(names[i], "szArea") && strlen(column[i]) > 1)
+        else if (!strcmp(names[i], "szArea") && strlen(column[i]) > 0)
         {
             pserver->accesss = atoi(column[i]);
         }

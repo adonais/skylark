@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,9 @@
 extern "C" {
 #endif
 
-int on_reg_file_popup_menu(void);
-int on_reg_dir_popup_menu(void);
 int on_reg_files_association(void);
 bool on_reg_admin(void);
-unsigned __stdcall on_reg_update_menu(void* lp);
+void on_reg_update_menu(void);
 
 #ifdef __cplusplus
 }

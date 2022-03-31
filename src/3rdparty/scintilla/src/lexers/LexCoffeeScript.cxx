@@ -14,6 +14,9 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include <algorithm>
 
 #include "ILexer.h"
@@ -27,7 +30,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 static bool IsSpaceEquiv(int state) {
 	return (state == SCE_COFFEESCRIPT_DEFAULT

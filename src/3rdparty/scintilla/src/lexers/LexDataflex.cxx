@@ -54,6 +54,9 @@ The list of keywords that can be used in dataflex.properties file (up to DataFle
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -65,7 +68,7 @@ The list of keywords that can be used in dataflex.properties file (up to DataFle
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 
 static void GetRangeLowered(Sci_PositionU start,

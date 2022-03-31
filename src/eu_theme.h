@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ HFONT  on_theme_font_hwnd(void);
 
 int  on_theme_copy_style(TCHAR *ac_theme);
 int  on_theme_load_script(const TCHAR *name);
-void on_theme_update_menu(HWND hwnd);
+void on_theme_update_item(void);
 bool on_theme_setup_font(HWND hwnd);
 bool on_theme_set_classic(HMODULE *pmod);
 bool on_theme_create_dlg(void);

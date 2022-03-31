@@ -21,6 +21,9 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -32,7 +35,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 
 static inline bool IsAWordChar(const unsigned int ch) {
@@ -206,7 +209,7 @@ static void ColouriseCssDoc(Sci_PositionU startPos, Sci_Position length, int ini
 			case '{':
 				nestingLevel++;
 				switch (lastState) {
-				case SCE_CSS_MEDIA:
+				case SCE_CSS_GROUP_RULE:
 					sc.SetState(SCE_CSS_DEFAULT);
 					break;
 				case SCE_CSS_TAG:
@@ -455,8 +458,8 @@ static void ColouriseCssDoc(Sci_PositionU startPos, Sci_Position length, int ini
 					sc.ChangeState(SCE_CSS_VALUE);
 				break;
 			case SCE_CSS_DIRECTIVE:
-				if (op == '@' && strcmp(s2, "media") == 0)
-					sc.ChangeState(SCE_CSS_MEDIA);
+				if (op == '@' && (strcmp(s2, "media") == 0 || strcmp(s2, "supports") == 0 || strcmp(s2, "document") == 0 || strcmp(s2, "-moz-document") == 0))
+					sc.ChangeState(SCE_CSS_GROUP_RULE);
 				break;
 			}
 		}
@@ -489,7 +492,7 @@ static void ColouriseCssDoc(Sci_PositionU startPos, Sci_Position length, int ini
 		} else if (IsCssOperator(sc.ch)
 			&& (sc.state != SCE_CSS_ATTRIBUTE || sc.ch == ']')
 			&& (sc.state != SCE_CSS_VALUE || sc.ch == ';' || sc.ch == '}' || sc.ch == '!')
-			&& ((sc.state != SCE_CSS_DIRECTIVE && sc.state != SCE_CSS_MEDIA) || sc.ch == ';' || sc.ch == '{')
+			&& ((sc.state != SCE_CSS_DIRECTIVE && sc.state != SCE_CSS_GROUP_RULE) || sc.ch == ';' || sc.ch == '{')
 		) {
 			if (sc.state != SCE_CSS_OPERATOR)
 				lastState = sc.state;

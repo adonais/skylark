@@ -3,49 +3,55 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <cassert>
 #include <cstring>
-#include <cstdio>
-#include <cstdarg>
-#include <ctime>
-#include <cmath>
-#include <climits>
 
+#include <stdexcept>
+#include <string>
 #include <string_view>
 #include <vector>
 #include <map>
+#include <set>
+#include <optional>
 #include <algorithm>
-#include <iterator>
 #include <memory>
-#include <mutex>
+#include "ScintillaTypes.h"
+#include "ScintillaMessages.h"
+#include "ScintillaStructures.h"
+#include "ILoader.h"
+#include "ILexer.h"
+
+#include "Debugging.h"
+#include "Geometry.h"
 #include "Platform.h"
 #include "Position.h"
 
-namespace Scintilla {
+namespace Scintilla::Internal {
 
 class Document;
 
 class UTF8DocumentIterator : public std::iterator<std::bidirectional_iterator_tag, wchar_t>
 {
 public:
-        UTF8DocumentIterator() {};
+		UTF8DocumentIterator() {};
 
-        UTF8DocumentIterator(Document* doc, Sci::Position pos, Sci::Position end);
-        UTF8DocumentIterator(const UTF8DocumentIterator& copy);
+		UTF8DocumentIterator(Document* doc, Sci::Position pos, Sci::Position end);
+		UTF8DocumentIterator(const UTF8DocumentIterator& copy);
 
-        bool operator == (const UTF8DocumentIterator& other) const
-        {
-                return (ended() == other.ended()) && (m_doc == other.m_doc) && (m_pos == other.m_pos);
-        }
+		bool operator == (const UTF8DocumentIterator& other) const
+		{
+				return (ended() == other.ended()) && (m_doc == other.m_doc) && (m_pos == other.m_pos);
+		}
 
-        bool operator != (const UTF8DocumentIterator& other) const
-        {
-                return !(*this == other);
-        }
+		bool operator != (const UTF8DocumentIterator& other) const
+		{
+				return !(*this == other);
+		}
 
-        wchar_t operator * () const
-        {
+		wchar_t operator * () const
+		{
 			return m_character[m_characterIndex];
-        }
+		}
 
 		UTF8DocumentIterator& operator = (Sci::Position other)
 		{
@@ -53,9 +59,9 @@ public:
 			return *this;
 		}
 
-        UTF8DocumentIterator& operator ++ ()
-        {
-                PLATFORM_ASSERT(m_pos < m_end);
+		UTF8DocumentIterator& operator ++ ()
+		{
+				PLATFORM_ASSERT(m_pos < m_end);
 				if (m_utf16Length == 2 && m_characterIndex == 0)
 				{
 					m_characterIndex = 1;
@@ -63,39 +69,40 @@ public:
 				else
 				{
 					m_pos += m_utf8Length;
-					
+
 					if (m_pos > m_end)
 					{
 						m_pos = m_end;
 					}
 					m_characterIndex = 0;
-					readCharacter();		
+					readCharacter();
 				}
-                return *this;
-        }
+				return *this;
+		}
 
-        UTF8DocumentIterator& operator -- ();
+		UTF8DocumentIterator& operator -- ();
 
-        Sci::Position pos() const
-        {
-                return m_pos;
-        }
+		Sci::Position pos() const
+		{
+				return m_pos;
+		}
 
 private:
 		void readCharacter();
 
 
-        bool ended() const
-        {
-                return m_pos >= m_end;
-        }
-        Document* m_doc = nullptr;
-        Sci::Position m_pos = 0;
+		bool ended() const
+		{
+				return m_pos >= m_end;
+		}
+
+		Sci::Position m_pos = 0;
 		wchar_t m_character[2];
-        Sci::Position m_end = 0;
-        int m_characterIndex = 0;    
+		Sci::Position m_end = 0;
+		int m_characterIndex = 0;
 		int m_utf8Length = 0;
 		int m_utf16Length = 0;
+		Document* m_doc = nullptr;
 		static const unsigned char m_firstByteMask[];
 };
 

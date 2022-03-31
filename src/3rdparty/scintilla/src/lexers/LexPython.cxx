@@ -10,9 +10,11 @@
 #include <cstring>
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <functional>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -31,6 +33,7 @@
 #include "DefaultLexer.h"
 
 using namespace Scintilla;
+using namespace Lexilla;
 
 namespace {
 // Use an unnamed namespace to protect the functions and classes from name conflicts
@@ -68,7 +71,7 @@ bool IsPyComment(Accessor &styler, Sci_Position pos, Sci_Position len) {
 	return len > 0 && styler[pos] == '#';
 }
 
-bool IsPyStringTypeChar(int ch, literalsAllowed allowed) noexcept {
+constexpr bool IsPyStringTypeChar(int ch, literalsAllowed allowed) noexcept {
 	return
 		((allowed & litB) && (ch == 'b' || ch == 'B')) ||
 		((allowed & litU) && (ch == 'u' || ch == 'U')) ||
@@ -90,17 +93,17 @@ bool IsPyStringStart(int ch, int chNext, int chNext2, literalsAllowed allowed) n
 	return false;
 }
 
-bool IsPyFStringState(int st) noexcept {
+constexpr bool IsPyFStringState(int st) noexcept {
 	return ((st == SCE_P_FCHARACTER) || (st == SCE_P_FSTRING) ||
 		(st == SCE_P_FTRIPLE) || (st == SCE_P_FTRIPLEDOUBLE));
 }
 
-bool IsPySingleQuoteStringState(int st) noexcept {
+constexpr bool IsPySingleQuoteStringState(int st) noexcept {
 	return ((st == SCE_P_CHARACTER) || (st == SCE_P_STRING) ||
 		(st == SCE_P_FCHARACTER) || (st == SCE_P_FSTRING));
 }
 
-bool IsPyTripleQuoteStringState(int st) noexcept {
+constexpr bool IsPyTripleQuoteStringState(int st) noexcept {
 	return ((st == SCE_P_TRIPLE) || (st == SCE_P_TRIPLEDOUBLE) ||
 		(st == SCE_P_FTRIPLE) || (st == SCE_P_FTRIPLEDOUBLE));
 }
@@ -228,8 +231,10 @@ struct OptionsPython {
 	bool foldQuotes;
 	bool foldCompact;
 	bool unicodeIdentifiers;
+	int identifierAttributes;
+	int decoratorAttributes;
 
-	OptionsPython() {
+	OptionsPython() noexcept {
 		whingeLevel = 0;
 		base2or8Literals = true;
 		stringsU = true;
@@ -241,6 +246,8 @@ struct OptionsPython {
 		foldQuotes = false;
 		foldCompact = false;
 		unicodeIdentifiers = true;
+		identifierAttributes = 0;
+		decoratorAttributes = 0;
 	}
 
 	literalsAllowed AllowedLiterals() const noexcept {
@@ -299,6 +306,12 @@ struct OptionSetPython : public OptionSet<OptionsPython> {
 		DefineProperty("lexer.python.unicode.identifiers", &OptionsPython::unicodeIdentifiers,
 			       "Set to 0 to not recognise Python 3 Unicode identifiers.");
 
+		DefineProperty("lexer.python.identifier.attributes", &OptionsPython::identifierAttributes,
+			       "Set to 1 to recognise Python identifier attributes.");
+
+		DefineProperty("lexer.python.decorator.attributes", &OptionsPython::decoratorAttributes,
+			       "Set to 1 to recognise Python decorator attributes.");
+
 		DefineWordListSets(pythonWordListDesc);
 	}
 };
@@ -327,6 +340,7 @@ LexicalClass lexicalClasses[] = {
 	17, "SCE_P_FCHARACTER", "literal string interpolated", "Single quoted f-string",
 	18, "SCE_P_FTRIPLE", "literal string interpolated", "Triple quoted f-string",
 	19, "SCE_P_FTRIPLEDOUBLE", "literal string interpolated", "Triple double quoted f-string",
+	20, "SCE_P_ATTRIBUTE", "identifier", "Attribute of identifier",
 };
 
 }
@@ -432,6 +446,8 @@ Sci_Position SCI_METHOD LexerPython::WordListSet(int n, const char *wl) {
 		break;
 	case 1:
 		wordListN = &keywords2;
+		break;
+	default:
 		break;
 	}
 	Sci_Position firstModification = -1;
@@ -632,9 +648,46 @@ void SCI_METHOD LexerPython::Lex(Sci_PositionU startPos, Sci_Position length, in
 						style = SCE_P_WORD2;
 					}
 				} else {
-					int subStyle = classifierIdentifiers.ValueFor(s);
+					const int subStyle = classifierIdentifiers.ValueFor(s);
 					if (subStyle >= 0) {
 						style = subStyle;
+					}
+					if (options.identifierAttributes > 0 || options.decoratorAttributes > 0) {
+						// Does the user even want attributes styled?
+						Sci_Position pos = styler.GetStartSegment() - 1;
+						unsigned char ch = styler.SafeGetCharAt(pos, '\0');
+						while (ch != '\0' && (ch == '.' || ch == ' ' || ch == '\\' || ch == '\t' || ch == '\n' || ch == '\r')) {
+							// Backwards search for a . while only allowing certain valid characters
+							if (IsAWordChar(ch, options.unicodeIdentifiers)) {
+								break;
+							}
+							pos--;
+							ch = styler.SafeGetCharAt(pos, '\0');
+						}
+						if (pos < 0 || ch == '.') {
+							// Is this an attribute we could style? if it is, do as asked
+							bool isComment = false;
+							bool isDecoratorAttribute = false;
+							const Sci_Position attrLine = styler.GetLine(pos);
+							for (Sci_Position i = styler.LineStart(attrLine); i < pos; i++) {
+								const char attrCh = styler[i];
+								if (attrCh == '@')
+									isDecoratorAttribute = true;
+								if (attrCh == '#')
+									isComment = true;
+								// Detect if this attribute belongs to a decorator
+								if (!(ch == ' ' || ch == '\t'))
+									break;
+							}
+							if (((isDecoratorAttribute) && (!isComment)) && (((options.decoratorAttributes == 1)  && (style == SCE_P_IDENTIFIER)) || (options.decoratorAttributes == 2))){
+								// Style decorator attributes as decorators but respect already styled identifiers (unless requested to ignore already styled identifiers)
+								style = SCE_P_DECORATOR;
+							}
+							if (((!isDecoratorAttribute) && (!isComment)) && (((options.identifierAttributes == 1) && (style == SCE_P_IDENTIFIER)) || (options.identifierAttributes == 2))){
+								// Style attributes and ignore decorator attributes but respect already styled identifiers (unless requested to ignore already styled identifiers)
+								style = SCE_P_ATTRIBUTE;
+							}
+						}
 					}
 				}
 				sc.ChangeState(style);
@@ -892,8 +945,8 @@ void SCI_METHOD LexerPython::Fold(Sci_PositionU startPos, Sci_Position length, i
 			const int style = styler.StyleAt(lookAtPos) & 31;
 			quote = options.foldQuotes && IsPyTripleQuoteStringState(style);
 		}
-		const int quote_start = (quote && !prevQuote);
-		const int quote_continue = (quote && prevQuote);
+		const bool quote_start = (quote && !prevQuote);
+		const bool quote_continue = (quote && prevQuote);
 		if (!quote || !prevQuote)
 			indentCurrentLevel = indentCurrent & SC_FOLDLEVELNUMBERMASK;
 		if (quote)
@@ -918,8 +971,7 @@ void SCI_METHOD LexerPython::Fold(Sci_PositionU startPos, Sci_Position length, i
 		int minCommentLevel = indentCurrentLevel;
 		while (!quote &&
 				(lineNext < docLines) &&
-				((indentNext & SC_FOLDLEVELWHITEFLAG) ||
-				 (lineNext <= docLines && IsCommentLine(lineNext, styler)))) {
+				((indentNext & SC_FOLDLEVELWHITEFLAG) || (IsCommentLine(lineNext, styler)))) {
 
 			if (IsCommentLine(lineNext, styler) && indentNext < minCommentLevel) {
 				minCommentLevel = indentNext;

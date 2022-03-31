@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ _tmain(int argc, TCHAR *argv[])
         return -1;
     }
     SetLastError(0);   // 建立共享内存, 里面保存第一个进程的主窗口句柄
-    h_mapped = share_create(NULL, PAGE_READWRITE, sizeof(HANDLE), SKYLARK_LOCK_NAME);
+    h_mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME);
     if (ERROR_ALREADY_EXISTS == GetLastError())
     {
         muti = true;
@@ -226,7 +226,20 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         printf("loadex_lang_config failed\n");
         goto all_clean;
-    }   // 注册scintilla
+    }
+    if (argc > 1 && _tcscmp(argv[1], _T("-reg1")) == 0)
+    {
+    	eu_reg_file_popup_menu();
+    	msg.wParam = 0;
+    	goto all_clean;
+    }
+    if (argc > 1 && _tcscmp(argv[1], _T("-reg2")) == 0)
+    {
+    	eu_reg_dir_popup_menu();
+    	msg.wParam = 0;
+    	goto all_clean;
+    }    
+    // 注册scintilla
     if (!eu_sci_register(instance))
     {
         MSG_BOX(IDC_MSG_SCI_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -245,10 +258,10 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (h_mapped)
     {
-        LPVOID phandle = share_map(h_mapped, sizeof(HANDLE), FILE_MAP_WRITE | FILE_MAP_READ);
+        LPVOID phandle = share_map(h_mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
         if (phandle)
         {
-            memcpy(phandle, &hwnd, sizeof(HANDLE));
+            memcpy(phandle, &hwnd, sizeof(HWND));
             share_unmap(phandle);
             // 主窗口初始化完成, 可以发送消息了
             share_envent_set(true);

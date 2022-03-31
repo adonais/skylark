@@ -21,6 +21,7 @@ LIBRARY sqlite3 ;-
 EXPORTS ;-
 sqlite3_aggregate_context;
 sqlite3_auto_extension;
+sqlite3_autovacuum_pages;
 sqlite3_bind_blob;
 sqlite3_bind_double;
 sqlite3_bind_int;
@@ -35,6 +36,7 @@ sqlite3_bind_value;
 sqlite3_busy_handler;
 sqlite3_busy_timeout;
 sqlite3_changes;
+sqlite3_changes64;
 sqlite3_clear_bindings;
 sqlite3_close;
 sqlite3_close_v2;
@@ -119,6 +121,7 @@ sqlite3_snprintf;
 sqlite3_step;
 ;;sqlite3_temp_directory DATA ;
 sqlite3_total_changes;
+sqlite3_total_changes64;
 sqlite3_update_hook;
 sqlite3_user_data;
 sqlite3_value_blob;

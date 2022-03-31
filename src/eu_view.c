@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,76 +18,33 @@
 
 #include "framework.h"
     
-int
+void
 on_view_filetree(void)
 {
-    HWND hwnd = eu_module_hwnd();
-    if (!hwnd)
+    if (eu_get_config()->m_ftree_show)
     {
-        return 1;
-    }     
-    if (!(g_treebar && g_filetree))
-    {
-        return 1;
-    }   
-    uint32_t state = GetMenuState(GetMenu(hwnd), IDM_VIEW_FILETREE, MF_BYCOMMAND);
-    if (state == -1)
-    {
-        return 1;
-    }
-    else if (state == MF_CHECKED)
-    {
-        util_set_menu_item(hwnd, IDM_VIEW_FILETREE, false);
+        
         eu_get_config()->m_ftree_show = false;
     }
     else
     {
-        util_set_menu_item(hwnd, IDM_VIEW_FILETREE, true);
         eu_get_config()->m_ftree_show = true;
     }
-    eu_window_resize(hwnd);
-    return 0;
+    eu_window_resize(NULL);
 }
 
-int
-on_view_symtree(eu_tabpage *pnode)
+void
+on_view_symtree(void)
 {
-    bool m_check = false;
-    HWND hwnd = eu_module_hwnd();
-    if (!hwnd)
+    if (eu_get_config()->m_sym_show)
     {
-        return 1;
-    }
-    uint32_t state = GetMenuState(GetMenu(hwnd), IDM_VIEW_SYMTREE, MF_BYCOMMAND);
-    if (state == -1)
-    {
-        return 1;
-    }
-    if (pnode->hwnd_symlist && ListBox_GetCount(pnode->hwnd_symlist) > 0)
-    {
-        m_check = true;
-    }
-    else if (pnode->hwnd_symtree && TreeView_GetCount(pnode->hwnd_symtree) > 0)
-    {
-        m_check = true;
+        eu_get_config()->m_sym_show = false;
     }
     else
     {
-        return 1;
-    }  
-    if (state == MF_CHECKED)
-    {
-
-        util_set_menu_item(hwnd, IDM_VIEW_SYMTREE, false);
-        eu_get_config()->m_sym_show = false;
-    }
-    else if (m_check)
-    {
-        util_set_menu_item(hwnd, IDM_VIEW_SYMTREE, true);
         eu_get_config()->m_sym_show = true;
     }
-    eu_window_resize(hwnd);
-    return SKYLARK_OK;
+    eu_window_resize(NULL);
 }
 
 void
@@ -95,11 +52,12 @@ on_view_result_show(eu_tabpage *pnode, int key)
 {
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
     {
-        if (pnode->doc_ptr->fn_keydown(pnode, VK_F5, key) == 0)
+        if (!pnode->edit_show)
         {
             pnode->edit_show = true;
-            eu_window_resize(eu_module_hwnd());
+            eu_window_resize(NULL);
         }
+        pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);
     }
 }
 
@@ -125,7 +83,6 @@ on_view_switch_type(int m_type)
         {
             on_tabpage_editor_modify(pnode, "X");
         }
-        menu_update_all(hwnd, pnode);
         eu_window_resize(hwnd);
         return 0;
     }
@@ -184,7 +141,6 @@ set_theme_dynamic(HWND hwnd)
             on_tabpage_editor_modify(p, "X");
         }        
     }
-    menu_update_all(hwnd, on_tabpage_focus_at());
     eu_window_resize(hwnd);
     return SKYLARK_OK;
 }
@@ -333,7 +289,6 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
         {
             eu_tabpage *p = NULL;
             eu_get_config()->tab_width = _tstoi(tab_width);
-            menu_update_all(hwnd, pnode);
             int count = TabCtrl_GetItemCount(g_tabpages);
             for (int index = 0; index < count; ++index)
             {
@@ -372,7 +327,6 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
     {
         eu_get_config()->tab2spaces = false;
     }
-    menu_update_all(hwnd, pnode);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -404,7 +358,6 @@ on_view_light_str(HWND hwnd)
     {
         eu_get_config()->m_light_str = false;
     }
-    menu_update_all(hwnd, NULL);
 }
 
 void
@@ -418,7 +371,6 @@ on_view_light_fold(HWND hwnd)
     {
         eu_get_config()->light_fold = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -443,7 +395,6 @@ on_view_wrap_line(HWND hwnd)
     {
         eu_get_config()->line_mode = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -468,7 +419,6 @@ on_view_line_num(HWND hwnd)
     {
         eu_get_config()->m_linenumber = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -493,7 +443,6 @@ on_view_bookmark(HWND hwnd)
     {
         eu_get_config()->bookmark_visable = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -518,7 +467,6 @@ on_view_show_fold_lines(HWND hwnd)
     {
         eu_get_config()->block_fold = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -543,7 +491,6 @@ on_view_white_space(HWND hwnd)
     {
         eu_get_config()->ws_visiable = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -570,7 +517,6 @@ on_view_line_visiable(HWND hwnd)
     {
         eu_get_config()->newline_visialbe = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -595,7 +541,6 @@ on_view_indent_visiable(HWND hwnd)
     {
         eu_get_config()->m_indentation = false;
     }
-    menu_update_all(hwnd, NULL);
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
@@ -788,7 +733,6 @@ on_view_full_sreen(HWND hwnd)
     }
     on_view_setfullscreenimpl(hwnd);
     eu_window_resize(hwnd);
-    menu_update_all(hwnd, NULL);
 }
 
 void 
@@ -817,9 +761,6 @@ on_view_font_quality(HWND hwnd, int res_id)
                 on_sci_after_file(p);
             }
         }
-        util_set_menu_item(hwnd, IDM_VIEW_FONTQUALITY_NONE, IDM_VIEW_FONTQUALITY_NONE == res_id);
-        util_set_menu_item(hwnd, IDM_VIEW_FONTQUALITY_STANDARD, IDM_VIEW_FONTQUALITY_STANDARD == res_id);
-        util_set_menu_item(hwnd, IDM_VIEW_FONTQUALITY_CLEARTYPE, IDM_VIEW_FONTQUALITY_CLEARTYPE == res_id);
         eu_window_resize(hwnd);
     }
 }
@@ -843,9 +784,6 @@ on_view_enable_rendering(HWND hwnd, int res_id)
                 on_sci_after_file(p);
             }
         }
-        util_set_menu_item(hwnd, IDM_SET_RENDER_TECH_GDI, IDM_SET_RENDER_TECH_GDI == res_id);
-        util_set_menu_item(hwnd, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == res_id);
-        util_set_menu_item(hwnd, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == res_id);    
         eu_window_resize(hwnd);
     }
 }

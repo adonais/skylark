@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,8 @@
 extern "C" {
 #endif
 
-void menu_switch_theme(HWND hwnd);
-void menu_update_all(HWND hwnd, eu_tabpage *pnode);
-void menu_update_text_status(HWND hwnd, eu_tabpage *pnode);
+void menu_switch_theme(void);
+void menu_update_item(HMENU menu);
 
 #ifdef __cplusplus
 }

@@ -9,6 +9,7 @@
 #include <cassert>
 
 #include <string>
+#include <string_view>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -22,7 +23,7 @@
 #include "LexerBase.h"
 #include "LexerSimple.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 LexerModule::LexerModule(int language_,
 	LexerFunction fnLexer_,
@@ -90,7 +91,7 @@ size_t LexerModule::NamedStyles() const noexcept {
 	return nClasses;
 }
 
-ILexer5 *LexerModule::Create() const {
+Scintilla::ILexer5 *LexerModule::Create() const {
 	if (fnFactory)
 		return fnFactory();
 	else

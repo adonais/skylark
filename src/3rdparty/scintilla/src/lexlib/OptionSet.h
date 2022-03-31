@@ -10,7 +10,7 @@
 #ifndef OPTIONSET_H
 #define OPTIONSET_H
 
-namespace Scintilla {
+namespace Lexilla {
 
 template <typename T>
 class OptionSet {
@@ -72,7 +72,7 @@ class OptionSet {
 			return value.c_str();
 		}
 	};
-	typedef std::map<std::string, Option> OptionMap;
+	typedef std::map<std::string, Option, std::less<>> OptionMap;
 	OptionMap nameToDef;
 	std::string names;
 	std::string wordLists;

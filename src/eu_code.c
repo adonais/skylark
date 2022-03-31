@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,20 +152,26 @@ on_code_block_expand_all(eu_tabpage *pnode)
 void
 on_code_block_complete(void)
 {
-    uint32_t state = GetMenuState(GetMenu(eu_module_hwnd()), IDM_SOURCEE_ENABLE_ACSHOW, MF_BYCOMMAND);
-    if (state == -1)
+    HMENU hmenu = NULL;
+    HWND hwnd = eu_module_hwnd();
+    hmenu = hwnd ? GetMenu(hwnd) : NULL;
+    if (hmenu)
     {
-        return;
-    }
-    else if (state == MF_CHECKED)
-    {
-        util_set_menu_item(eu_module_hwnd(), IDM_SOURCEE_ENABLE_ACSHOW, false);
-        eu_get_config()->m_acshow = false;
-    }
-    else
-    {
-        util_set_menu_item(eu_module_hwnd(), IDM_SOURCEE_ENABLE_ACSHOW, true);
-        eu_get_config()->m_acshow = true;
+        uint32_t state = GetMenuState(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, MF_BYCOMMAND);
+        if (state == -1)
+        {
+            return;
+        }
+        else if (state == MF_CHECKED)
+        {
+            util_set_menu_item(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, false);
+            eu_get_config()->m_acshow = false;
+        }
+        else
+        {
+            util_set_menu_item(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, true);
+            eu_get_config()->m_acshow = true;
+        }        
     }
 }
 
@@ -180,7 +186,7 @@ on_code_set_complete_chars(eu_tabpage *pnode)
         if (input_chars[0])
         {
             eu_get_config()->acshow_chars = _tstoi(input_chars);
-            menu_update_all(eu_module_hwnd(), pnode);
+            on_toolbar_update_button();
         }
     }
 }
@@ -188,20 +194,26 @@ on_code_set_complete_chars(eu_tabpage *pnode)
 void
 on_code_block_calltip(void)
 {
-    uint32_t state = GetMenuState(GetMenu(eu_module_hwnd()), IDM_SOURCE_ENABLE_CTSHOW, MF_BYCOMMAND);
-    if (state == -1)
+    HMENU hmenu = NULL;
+    HWND hwnd = eu_module_hwnd();
+    hmenu = hwnd ? GetMenu(hwnd) : NULL;
+    if (hmenu)
     {
-        return;
-    }
-    else if (state == MF_CHECKED)
-    {
-        util_set_menu_item(eu_module_hwnd(), IDM_SOURCE_ENABLE_CTSHOW, false);
-        eu_get_config()->m_ctshow = false;
-    }
-    else
-    {
-        util_set_menu_item(eu_module_hwnd(), IDM_SOURCE_ENABLE_CTSHOW, true);
-        eu_get_config()->m_ctshow = true;
+        uint32_t state = GetMenuState(hmenu, IDM_SOURCE_ENABLE_CTSHOW, MF_BYCOMMAND);
+        if (state == -1)
+        {
+            return;
+        }
+        else if (state == MF_CHECKED)
+        {
+            util_set_menu_item(hmenu, IDM_SOURCE_ENABLE_CTSHOW, false);
+            eu_get_config()->m_ctshow = false;
+        }
+        else
+        {
+            util_set_menu_item(hmenu, IDM_SOURCE_ENABLE_CTSHOW, true);
+            eu_get_config()->m_ctshow = true;
+        }        
     }
 }
 

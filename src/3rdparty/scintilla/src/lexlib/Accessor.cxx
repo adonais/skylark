@@ -8,6 +8,9 @@
 #include <cstdlib>
 #include <cassert>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -17,12 +20,12 @@
 #include "LexAccessor.h"
 #include "Accessor.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
-Accessor::Accessor(IDocument *pAccess_, PropSetSimple *pprops_) : LexAccessor(pAccess_), pprops(pprops_) {
+Accessor::Accessor(Scintilla::IDocument *pAccess_, PropSetSimple *pprops_) : LexAccessor(pAccess_), pprops(pprops_) {
 }
 
-int Accessor::GetPropertyInt(const char *key, int defaultValue) const {
+int Accessor::GetPropertyInt(std::string_view key, int defaultValue) const {
 	return pprops->GetInt(key, defaultValue);
 }
 

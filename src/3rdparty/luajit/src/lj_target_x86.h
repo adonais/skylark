@@ -1,6 +1,6 @@
 /*
 ** Definitions for x86 and x64 CPUs.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #ifndef _LJ_TARGET_X86_H
@@ -38,10 +38,9 @@ enum {
   RID_RET = RID_EAX,
 #if LJ_64
   RID_FPRET = RID_XMM0,
-#else
+#endif
   RID_RETLO = RID_EAX,
   RID_RETHI = RID_EDX,
-#endif
 
   /* These definitions must match with the *.dasc file(s): */
   RID_BASE = RID_EDX,		/* Interpreter BASE. */

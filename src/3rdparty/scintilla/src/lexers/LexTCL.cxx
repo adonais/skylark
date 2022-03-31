@@ -12,6 +12,9 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -23,7 +26,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 // Extended to accept accented characters
 static inline bool IsAWordChar(int ch) {
@@ -146,8 +149,8 @@ next:
 		} else if (!IsAWordChar(sc.ch)) {
 			if ((sc.state == SCE_TCL_IDENTIFIER && expected) ||  sc.state == SCE_TCL_MODIFIER) {
 				char w[100];
-				char *s=w;
 				sc.GetCurrent(w, sizeof(w));
+				char *s=w;
 				if (w[strlen(w)-1]=='\r')
 					w[strlen(w)-1]=0;
 				while (*s == ':') // ignore leading : like in ::set a 10
@@ -162,7 +165,7 @@ next:
 						sc.ChangeState(quote ? SCE_TCL_WORD_IN_QUOTE : SCE_TCL_WORD3);
 					} else if (keywords4.InList(s)) {
 						sc.ChangeState(quote ? SCE_TCL_WORD_IN_QUOTE : SCE_TCL_WORD4);
-					} else if (sc.GetRelative(-static_cast<int>(strlen(s))-1) == '{' &&
+					} else if (sc.GetRelative(-static_cast<Sci_Position>(strlen(s))-1) == '{' &&
 					           keywords5.InList(s) && sc.ch == '}') { // {keyword} exactly no spaces
 						sc.ChangeState(SCE_TCL_EXPAND);
 					}
@@ -227,6 +230,7 @@ next:
 				sc.ForwardSetState(SCE_TCL_DEFAULT);
 			prevSlash = false;
 			previousLevel = currentLevel;
+			visibleChars = false;
 			goto next;
 		}
 
@@ -315,7 +319,7 @@ next:
 					break;
 				case '[':
 					expected = true;
-					// Falls through.
+					[[fallthrough]];
 				case ']':
 				case '(':
 				case ')':

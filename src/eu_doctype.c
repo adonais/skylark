@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1474,6 +1474,24 @@ on_doc_init_after_makefile(eu_tabpage *pnode)
 }
 
 int
+on_doc_init_after_diff(eu_tabpage *pnode)
+{
+    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_DIFF, 0);
+    on_doc_comment_light(pnode, SCE_DIFF_COMMENT, 0);
+    on_doc_operator_light(pnode, SCE_DIFF_PATCH_ADD, 0);
+    on_doc_operator_light(pnode, SCE_DIFF_PATCH_DELETE, 0);
+    on_doc_preprocessor_light(pnode, SCE_DIFF_POSITION, -1, 0);
+    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.font));
+    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_DIFF_COMMAND, eu_get_theme()->item.attributes.fontsize);
+    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.color));
+    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.bold));
+
+    // 折叠
+    init_sc_fold(pnode);
+    return 0;
+}
+
+int
 on_doc_init_after_cmake(eu_tabpage *pnode)
 {
     eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CMAKE, 0);
@@ -2125,16 +2143,6 @@ on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify)
 }
 
 int
-on_doc_yaml_like(eu_tabpage *pnode, SCNotification *lpnotify)
-{
-    if (pnode)
-    {
-        on_doc_identation(pnode, lpnotify);
-    }
-    return 0;
-}
-
-int
 on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     if (pnode)
@@ -2489,10 +2497,14 @@ eu_doc_set_ptr(doctype_t *ptr)
 void
 eu_doc_config_release(void)
 {
-    for (doctype_t *mapper = g_doc_config; mapper && mapper->filetypename; ++mapper)
+    for (doctype_t *mapper = g_doc_config; mapper && mapper->doc_type > 0; ++mapper)
     {
-        eu_destory_completed_tree(&mapper->acshow_tree);
-        eu_destory_completed_tree(&mapper->ctshow_tree);
+        if (mapper->filetypename)
+        {
+            eu_destory_calltip_tree(&mapper->ctshow_tree);
+            eu_destory_completed_tree(&mapper->acshow_tree);
+        }
     }
     do_lua_parser_release();
+    printf("we destroy hash table and Lua runtime\n");
 }

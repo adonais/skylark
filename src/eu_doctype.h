@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,38 +40,39 @@ typedef int (*click_tree_ptr)(eu_tabpage *pnode);
 enum dctype
 {
     DOCTYPE_END = 0,
-    DOCTYPE_TXT,
-    DOCTYPE_CPP,
-    DOCTYPE_CS,
-    DOCTYPE_JAVA,
-    DOCTYPE_JAVASCRIPT,
-    DOCTYPE_GO,
-    DOCTYPE_SWIFT,
-    DOCTYPE_SQL,
-    DOCTYPE_REDIS,
-    DOCTYPE_PYTHON,
-    DOCTYPE_LUA,
-    DOCTYPE_PERL,
-    DOCTYPE_SH,
-    DOCTYPE_RUST,
-    DOCTYPE_RUBY,
-    DOCTYPE_LISP,
-    DOCTYPE_ASM,
-    DOCTYPE_COBOL,
-    DOCTYPE_HTML,
-    DOCTYPE_XML,
-    DOCTYPE_CSS,
-    DOCTYPE_JSON,
-    DOCTYPE_YAML,
-    DOCTYPE_MAKEFILE,
-    DOCTYPE_CMAKE,
-    DOCTYPE_MARKDOWN,
-    DOCTYPE_LOG,
-    DOCTYPE_PROPERTIES,
-    DOCTYPE_NIM,
-    DOCTYPE_AU3,
-    DOCTYPE_FORTRAN,
-    DOCTYPE_JULIA
+    DOCTYPE_ASM = 1,
+    DOCTYPE_AU3 = 2,
+    DOCTYPE_CS = 3,
+    DOCTYPE_CPP = 4,
+    DOCTYPE_CMAKE = 5,
+    DOCTYPE_CSS = 6,
+    DOCTYPE_COBOL = 7,
+    DOCTYPE_DIFF = 8,
+    DOCTYPE_FORTRAN = 9,
+    DOCTYPE_GO = 10,
+    DOCTYPE_HTML = 11,
+    DOCTYPE_JSON = 12,
+    DOCTYPE_JAVA = 13,
+    DOCTYPE_JAVASCRIPT = 14,
+    DOCTYPE_JULIA = 15,
+    DOCTYPE_LISP = 16,
+    DOCTYPE_LOG = 17,
+    DOCTYPE_LUA = 18,
+    DOCTYPE_MAKEFILE = 19,
+    DOCTYPE_MARKDOWN = 20,
+    DOCTYPE_NIM = 21,
+    DOCTYPE_PERL = 22,
+    DOCTYPE_PROPERTIES = 23,
+    DOCTYPE_PYTHON = 24,
+    DOCTYPE_REDIS = 25,
+    DOCTYPE_RUBY = 26,
+    DOCTYPE_RUST = 27,
+    DOCTYPE_SQL = 28,
+    DOCTYPE_SH = 29,
+    DOCTYPE_SWIFT = 30,
+    DOCTYPE_TXT = 31,
+    DOCTYPE_XML = 32,
+    DOCTYPE_YAML = 33
 };
 
 typedef struct _doc_data

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -705,7 +705,7 @@ msgbox_dlg_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 }
                 SendMessage(hwnd, WM_THEMECHANGED, 0, 0);
             }
-            return (INT_PTR) util_creater_window(hwnd, eu_module_hwnd());
+            return (LONG_PTR)util_creater_window(hwnd, mbp->hwndOwner);
         }
         CASE_WM_CTLCOLOR_SET:
         {
@@ -811,7 +811,7 @@ on_changes_msgbox(LPMSGBOXPARAMSW msgbox)
         thread_wins.handles = HeapAlloc(GetProcessHeap(), 0, 10 * sizeof(HWND));
         EnumThreadWindows(GetCurrentThreadId(), msgbox_enum_proc, (LPARAM) &thread_wins);
     }
-    ret = (int) DialogBoxIndirectParamW(msgbox->hInstance, tmplate, msgbox->hwndOwner, msgbox_dlg_proc, (LPARAM) msgbox);
+    ret = (int) DialogBoxIndirectParamW(g_skylark_lang, tmplate, msgbox->hwndOwner, msgbox_dlg_proc, (LPARAM) msgbox);
     if ((msgbox->dwStyle & MB_TASKMODAL) && (msgbox->hwndOwner == NULL))
     {
         for (i = 0; i < thread_wins.numHandles; i++)
@@ -832,7 +832,7 @@ eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type)
     MSGBOXPARAMSW msgbox;
     msgbox.cbSize = sizeof(msgbox);
     msgbox.hwndOwner = hwnd;
-    msgbox.hInstance = eu_module_handle();
+    msgbox.hInstance = NULL;
     msgbox.lpszText = text;
     msgbox.lpszCaption = title;
     msgbox.dwStyle = type;
@@ -840,5 +840,10 @@ eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type)
     msgbox.dwContextHelpId = 0;
     msgbox.lpfnMsgBoxCallback = NULL;
     msgbox.dwLanguageId = LANG_NEUTRAL;
+    if (IsWindow(hwnd) && IsIconic(hwnd))
+    {
+        eu_restore_placement(hwnd);
+        ShowWindow(hwnd, SW_SHOW);
+    }    
     return on_changes_msgbox(&msgbox);
 }

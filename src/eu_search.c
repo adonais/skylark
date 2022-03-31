@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -558,7 +558,6 @@ on_search_set_selection(eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_SETANCHOR, pnode->begin_pos, 0);
             pnode->begin_pos = -1;
         }
-        menu_update_all(eu_module_hwnd(), pnode);
     }
 }
 
@@ -581,7 +580,6 @@ on_search_set_rectangle(eu_tabpage *pnode)
         {
             SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
         }
-        menu_update_all(eu_module_hwnd(), pnode);
     }
 }
 
@@ -1344,9 +1342,11 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     SendMessage(hwnd_search_dlg, DM_SETDEFID, IDC_SEARCH_NEXT_BTN, 0);
                     break;
                 case 1:
+                    eu_get_replace_history(on_search_combo_callback);
                     SendMessage(hwnd_search_dlg, DM_SETDEFID, IDC_SEARCH_RE_BTN, 0);
                     break;
                 case 2:
+                    eu_get_folder_history(on_search_combo_callback);
                     SendMessage(hwnd_search_dlg, DM_SETDEFID, IDC_SEARCH_ALL_BTN, 0);
                     break;
                 default:

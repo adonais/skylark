@@ -172,38 +172,40 @@ typedef int (*click_tree_ptr)(void *pnode);
 
 enum dctype
 {
-	DOCTYPE_END = 0,
-	DOCTYPE_TXT = 1,
-	DOCTYPE_CPP = 2,
-	DOCTYPE_CS = 3,
-	DOCTYPE_JAVA = 4,
-	DOCTYPE_JAVASCRIPT = 5,
-	DOCTYPE_GO = 6,
-	DOCTYPE_SWIFT = 7,
-	DOCTYPE_SQL = 8,
-	DOCTYPE_REDIS = 9,
-	DOCTYPE_PYTHON = 10,
-	DOCTYPE_LUA = 11,
-	DOCTYPE_PERL = 12,
-	DOCTYPE_SH = 13,
-	DOCTYPE_RUST = 14,
-	DOCTYPE_RUBY = 15,
-	DOCTYPE_LISP = 16,
-	DOCTYPE_ASM = 17,
-	DOCTYPE_COBOL = 18,
-	DOCTYPE_HTML = 19,
-	DOCTYPE_XML = 20,
-	DOCTYPE_CSS = 21,
-	DOCTYPE_JSON = 22,
-	DOCTYPE_YAML = 23,
-	DOCTYPE_MAKEFILE = 24,
-	DOCTYPE_CMAKE = 25,
-	DOCTYPE_MARKDOWN = 26,
-	DOCTYPE_LOG = 27,
-    DOCTYPE_PROPERTIES = 28,
-    DOCTYPE_NIM = 29,
-    DOCTYPE_AU3 = 30,
-    DOCTYPE_FORTRAN = 31
+    DOCTYPE_END = 0,
+    DOCTYPE_ASM = 1,
+    DOCTYPE_AU3 = 2,
+    DOCTYPE_CS = 3,
+    DOCTYPE_CPP = 4,
+    DOCTYPE_CMAKE = 5,
+    DOCTYPE_CSS = 6,
+    DOCTYPE_COBOL = 7,
+    DOCTYPE_DIFF = 8,
+    DOCTYPE_FORTRAN = 9,
+    DOCTYPE_GO = 10,
+    DOCTYPE_HTML = 11,
+    DOCTYPE_JSON = 12,
+    DOCTYPE_JAVA = 13,
+    DOCTYPE_JAVASCRIPT = 14,
+    DOCTYPE_JULIA = 15,
+    DOCTYPE_LISP = 16,
+    DOCTYPE_LOG = 17,
+    DOCTYPE_LUA = 18,
+    DOCTYPE_MAKEFILE = 19,
+    DOCTYPE_MARKDOWN = 20,
+    DOCTYPE_NIM = 21,
+    DOCTYPE_PERL = 22,
+    DOCTYPE_PROPERTIES = 23,
+    DOCTYPE_PYTHON = 24,
+    DOCTYPE_REDIS = 25,
+    DOCTYPE_RUBY = 26,
+    DOCTYPE_RUST = 27,
+    DOCTYPE_SQL = 28,
+    DOCTYPE_SH = 29,
+    DOCTYPE_SWIFT = 30,
+    DOCTYPE_TXT = 31,
+    DOCTYPE_XML = 32,
+    DOCTYPE_YAML = 33
 } ;
 
 typedef struct _doc_data
@@ -280,6 +282,7 @@ int on_doc_init_after_log(void *pnode);
 int on_doc_init_after_nim(void *pnode);
 int on_doc_init_after_shell_sh(void *pnode);
 int on_doc_init_after_properties(void *pnode);
+int on_doc_init_after_diff(void *pnode);
 
 /* 默认的 key_ptr 回调函数入口 */
 int on_doc_keydown_jmp(void *pnode, intptr_t wParam, intptr_t lParam);
@@ -298,7 +301,6 @@ int on_doc_html_like(void *pnode, void *lpnotify);
 int on_doc_xml_like(void *pnode, void *lpnotify);
 int on_doc_css_like(void *pnode, void *lpnotify);
 int on_doc_json_like(void *pnode, void *lpnotify);
-int on_doc_yaml_like(void *pnode, void *lpnotify);
 int on_doc_makefile_like(void *pnode, void *lpnotify);
 int on_doc_cmake_like(void *pnode, void *lpnotify);
 int on_doc_markdown_like(void *pnode, void *lpnotify);

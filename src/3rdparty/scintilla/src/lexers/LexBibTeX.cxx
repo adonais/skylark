@@ -15,6 +15,7 @@
 #include <cctype>
 
 #include <string>
+#include <string_view>
 #include <algorithm>
 #include <functional>
 
@@ -30,7 +31,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 namespace {
 	bool IsAlphabetic(unsigned int ch)

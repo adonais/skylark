@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,7 +188,7 @@ eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
         resoffset += (int) wcslen(by);
     }
     _tcscpy(res + resoffset, in);
-    _sntprintf(in_ptr, (int) in_size, _T("%s"), res);
+    _sntprintf(in_ptr, eu_int_cast(in_size), _T("%s"), res);
     return in_ptr;
 }
 
@@ -208,7 +208,7 @@ eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *
         resoffset += (int) strlen(by);
     }
     strcpy(res + resoffset, in);
-    _snprintf(in_ptr, (int) in_size, "%s", res);
+    _snprintf(in_ptr, eu_int_cast(in_size), "%s", res);
     return in_ptr;
 }
 
@@ -430,6 +430,8 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     size_t size = len;
     int le_control_chars = 0;
     int be_control_chars = 0;
+    int result_le = IS_TEXT_UNICODE_STATISTICS | IS_TEXT_UNICODE_REVERSE_STATISTICS;
+    int result_be = IS_TEXT_UNICODE_UNICODE_MASK;
     uint8_t ch1, ch2;
      // 避免数组跨越边界问题
     while (pos < size - 1)
@@ -479,6 +481,19 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
         {
             return EN_CODEING_NONE;
         }
+    }   // 如果通过utf-16le静态分析, 测试一下编码转换, 因为可能为二进制文件
+    if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_le) && (result_le & IS_TEXT_UNICODE_STATISTICS))
+    {
+        printf("result_le = %d\n", result_le);
+        if (eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16LE", "GBK"))
+        {
+            return UTF16_LE_NOBOM;
+        }
+    }   // 如果通过utf-16be静态分析, 测试一下编码转换, 因为可能为二进制文件
+    else if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_be) && eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16BE", "GBK"))
+    {
+        printf("result_be = %d\n", result_be);
+        return UTF16_BE_NOBOM;
     }
     return EN_CODEING_NONE;
 }
@@ -577,7 +592,7 @@ eu_memstr(const uint8_t *haystack, const char *needle, size_t size)
             if (i>=needlesize) 
                 break;
         } 
-        else 
+        else
         {
             break;
         }
@@ -929,7 +944,7 @@ eu_ascii_escaped(const char *checkstr)
         {
             end = 6;
         }
-        for (int i = 2; i < (int)end; ++i)
+        for (int i = 2; i < eu_int_cast(end); ++i)
         {
             if (!isxdigit(p[i]))
             {
@@ -1381,14 +1396,12 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
 
 struct eu_config *eu_get_config(void)
 {
-    EU_VERIFY(g_config != NULL);
     return g_config;
 }
 
 
 struct eu_theme *eu_get_theme(void)
 {
-    EU_VERIFY(g_theme != NULL);
     return g_theme;
 }
 
@@ -2300,5 +2313,5 @@ eu_module_handle(void)
 void
 eu_restore_placement(HWND hwnd)
 {
-    return util_restore_placement(hwnd);
+    util_restore_placement(hwnd);
 }

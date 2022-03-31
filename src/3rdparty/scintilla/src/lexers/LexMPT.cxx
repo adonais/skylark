@@ -15,6 +15,7 @@
 #include <ctype.h>
 
 #include <string>
+#include <string_view>
 
 #include "ILexer.h"
 #include "Scintilla.h"
@@ -27,7 +28,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 static int GetLotLineState(std::string &line) {
 	if (line.length()) {

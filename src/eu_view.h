@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,12 @@
 extern "C" {
 #endif
 
-int on_view_filetree(void);
-int on_view_symtree(eu_tabpage *pnode);
 int on_view_switch_type(int type);
 int on_view_switch_theme(HWND hwnd, int id);
 int on_view_modify_theme(void);
 int on_view_editor_selection(eu_tabpage *pnode);
+void on_view_filetree(void);
+void on_view_symtree(void);
 void on_view_show_fold_lines(HWND hwnd);
 void on_view_wrap_line(HWND hwnd);
 void on_view_line_num(HWND hwnd);

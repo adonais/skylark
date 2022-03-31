@@ -9,6 +9,9 @@
 #include <cassert>
 #include <cstring>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -20,7 +23,7 @@
 #include "LexerModule.h"
 #include "LexerBase.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 static const char styleSubable[] = { 0 };
 
@@ -28,15 +31,15 @@ LexerBase::LexerBase(const LexicalClass *lexClasses_, size_t nClasses_) :
 	lexClasses(lexClasses_), nClasses(nClasses_) {
 	for (int wl = 0; wl < numWordLists; wl++)
 		keyWordLists[wl] = new WordList;
-	keyWordLists[numWordLists] = 0;
+	keyWordLists[numWordLists] = nullptr;
 }
 
 LexerBase::~LexerBase() {
 	for (int wl = 0; wl < numWordLists; wl++) {
 		delete keyWordLists[wl];
-		keyWordLists[wl] = 0;
+		keyWordLists[wl] = nullptr;
 	}
-	keyWordLists[numWordLists] = 0;
+	keyWordLists[numWordLists] = nullptr;
 }
 
 void SCI_METHOD LexerBase::Release() {
@@ -44,7 +47,7 @@ void SCI_METHOD LexerBase::Release() {
 }
 
 int SCI_METHOD LexerBase::Version() const {
-	return lvRelease5;
+	return Scintilla::lvRelease5;
 }
 
 const char * SCI_METHOD LexerBase::PropertyNames() {
@@ -60,9 +63,7 @@ const char * SCI_METHOD LexerBase::DescribeProperty(const char *) {
 }
 
 Sci_Position SCI_METHOD LexerBase::PropertySet(const char *key, const char *val) {
-	const char *valOld = props.Get(key);
-	if (strcmp(val, valOld) != 0) {
-		props.Set(key, val, strlen(key), strlen(val));
+	if (props.Set(key, val)) {
 		return 0;
 	} else {
 		return -1;

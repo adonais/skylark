@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -807,7 +807,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
     {
         return NULL;
     }
-    text_len = eu_sci_call(pnode, SCI_GETSELTEXT, 0, 0) - 1;
+    text_len = eu_sci_call(pnode, SCI_GETSELTEXT, 0, 0);
     if (text_len > 0)
     {
         if (multiple > 1)
@@ -818,7 +818,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
         {
             buf_len = text_len;
         }
-        if ((ptext = (char *) calloc(1, buf_len + 1)) == NULL)
+        if ((ptext = (char *) calloc(1, buf_len + 1 + multiple)) == NULL)
         {
             if (plen)
             {
@@ -981,14 +981,8 @@ util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
 }
 
 void
-util_enable_menu_item(HWND hwnd, int m_id, bool enable)
+util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable)
 {
-    HMENU hmenu = NULL;
-    util_thread_lock();
-    if (!(hmenu = GetMenu(hwnd)))
-    {
-        hmenu = (HMENU)hwnd;
-    }
     if (hmenu)
     {
         MENUITEMINFO pmii = {sizeof(MENUITEMINFO), MIIM_STATE,};
@@ -1014,18 +1008,11 @@ util_enable_menu_item(HWND hwnd, int m_id, bool enable)
             }
         }
     }
-    util_thread_unlock();
 }
 
 void
-util_set_menu_item(HWND hwnd, int m_id, bool checked)
+util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked)
 {
-    HMENU hmenu = NULL;
-    util_thread_lock();
-    if (!(hmenu = GetMenu(hwnd)))
-    {
-        hmenu = (HMENU)hwnd;
-    }
     if (hmenu)
     {
         if (checked)
@@ -1037,24 +1024,23 @@ util_set_menu_item(HWND hwnd, int m_id, bool checked)
             CheckMenuItem(hmenu, m_id, MF_UNCHECKED);
         }
     }
-    util_thread_unlock();
 }
 
+
 void
-util_update_menu_chars(HWND hwnd, int m_id, int width)
+util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
 {
-    if (hwnd)
+    if (hmenu)
     {
         TCHAR *pstart = NULL;
         TCHAR *pend = NULL;
         TCHAR m_text[MAX_PATH] = {0};
         TCHAR new_text[MAX_PATH] = {0};
         MENUITEMINFO mii = {sizeof(MENUITEMINFO)};
-        util_thread_lock();
         mii.fMask = MIIM_STRING;
         mii.dwTypeData = m_text;
-        mii.cch = _countof(m_text) - 1;
-        GetMenuItemInfo(GetMenu(hwnd), m_id, 0, &mii);
+        mii.cch = MAX_PATH - 1;
+        GetMenuItemInfo(hmenu, m_id, 0, &mii);
         pstart = _tcschr(m_text, _T('['));
         if (pstart)
         {
@@ -1074,10 +1060,9 @@ util_update_menu_chars(HWND hwnd, int m_id, int width)
             {
                 mii.cch = (uint32_t) _tcslen(new_text);
                 mii.dwTypeData = new_text;
-                SetMenuItemInfo(GetMenu(hwnd), m_id, 0, &mii);
+                SetMenuItemInfo(hmenu, m_id, 0, &mii);
             }
         }
-        util_thread_unlock();
     }
 }
 
@@ -1388,6 +1373,17 @@ util_can_selections(eu_tabpage *pnode)
     return sel_start != sel_end;
 }
 
+bool
+util_file_size(HANDLE hfile, uint64_t *psize)
+{
+    if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
+    {
+        *psize = 0;
+        return false;
+    }
+    return true;
+}
+
 static void
 util_close_stream_by_free(pt_stream pstream)
 {
@@ -1414,9 +1410,17 @@ bool
 util_open_file(LPCTSTR path, pt_stream pstream)
 {
     bool ret = false;
-    HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (INVALID_HANDLE_VALUE != hfile)
     {
+    	if (!pstream->size)
+    	{
+    		if (!util_file_size(hfile, &pstream->size))
+    		{
+    			CloseHandle(hfile);
+    			return false;
+    		}
+    	}
         if (pstream->size > BUFF_200M)
         {
             HANDLE hmap = NULL;

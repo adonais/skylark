@@ -16,6 +16,9 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <string>
+#include <string_view>
+
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -27,7 +30,7 @@
 #include "CharacterSet.h"
 #include "LexerModule.h"
 
-using namespace Scintilla;
+using namespace Lexilla;
 
 static int is_radix(int radix, int ch) {
 	int digit;
@@ -142,7 +145,7 @@ static void ColouriseErlangDoc(Sci_PositionU startPos, Sci_Position length, int 
 					}
 
 					// All comments types fall here.
-					if (sc.atLineEnd) {
+					if (sc.MatchLineEnd()) {
 						to_late_to_comment = false;
 						sc.SetState(SCE_ERLANG_DEFAULT);
 						parse_state = STATE_NULL;
@@ -173,7 +176,7 @@ static void ColouriseErlangDoc(Sci_PositionU startPos, Sci_Position length, int 
 						parse_state = old_parse_state;
 					}
 
-					if (sc.atLineEnd) {
+					if (sc.MatchLineEnd()) {
 						to_late_to_comment = false;
 						sc.ChangeState(old_style);
 						sc.SetState(SCE_ERLANG_DEFAULT);
@@ -194,11 +197,15 @@ static void ColouriseErlangDoc(Sci_PositionU startPos, Sci_Position length, int 
 							parse_state = STATE_NULL;
 						} else {
 							sc.Forward();
-							if (isalnum(sc.ch))  {
+							if (isalnum(sc.ch) || (sc.ch == '\''))  {
 								sc.GetCurrent(cur, sizeof(cur));
 								sc.ChangeState(SCE_ERLANG_MODULES);
 								sc.SetState(SCE_ERLANG_MODULES);
 							}
+							if (sc.ch == '\'') {
+								parse_state = ATOM_QUOTED;
+							}
+
 						}
 					} else if (!IsAWordChar(sc.ch)) {
 
@@ -225,7 +232,7 @@ static void ColouriseErlangDoc(Sci_PositionU startPos, Sci_Position length, int 
 					if ( '@' == sc.ch ){
 						parse_state = NODE_NAME_QUOTED;
 					} else if ('\'' == sc.ch && '\\' != sc.chPrev) {
-						sc.ChangeState(SCE_ERLANG_ATOM);
+						sc.ChangeState(SCE_ERLANG_ATOM_QUOTED);
 						sc.ForwardSetState(SCE_ERLANG_DEFAULT);
 						parse_state = STATE_NULL;
 					}

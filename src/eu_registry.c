@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2021 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -208,31 +208,31 @@ check_reg_str(HKEY key, LPCTSTR txt)
     return exist;
 }
 
-unsigned __stdcall
-on_reg_update_menu(void *lp)
+void
+on_reg_update_menu(void)
 {
-    HWND hwnd = (HWND)lp;
-    if (!hwnd)
+    HMENU hmenu = NULL;
+    HWND hwnd = eu_module_hwnd();
+    hmenu = hwnd ? GetMenu(hwnd) : NULL;
+    if (hmenu)
     {
-        hwnd = eu_module_hwnd();
+        if (check_reg_str(HKEY_CLASSES_ROOT, _T("*\\shell\\skylark\\command")))
+        {
+            util_set_menu_item(hmenu, IDM_ENV_FILE_POPUPMENU, true);
+        }
+        else
+        {
+            util_set_menu_item(hmenu, IDM_ENV_FILE_POPUPMENU, false);
+        }
+        if (check_reg_str(HKEY_CLASSES_ROOT, _T("Directory\\shell\\skylark2\\command")))
+        {
+            util_set_menu_item(hmenu, IDM_ENV_DIRECTORY_POPUPMENU, true);
+        }
+        else
+        {
+            util_set_menu_item(hmenu, IDM_ENV_DIRECTORY_POPUPMENU, false);
+        }        
     }
-    if (check_reg_str(HKEY_CLASSES_ROOT, _T("*\\shell\\skylark\\command")))
-    {
-        util_set_menu_item(hwnd, IDM_ENV_FILE_POPUPMENU, true);
-    }
-    else
-    {
-        util_set_menu_item(hwnd, IDM_ENV_FILE_POPUPMENU, false);
-    }
-    if (check_reg_str(HKEY_CLASSES_ROOT, _T("Directory\\shell\\skylark2\\command")))
-    {
-        util_set_menu_item(hwnd, IDM_ENV_DIRECTORY_POPUPMENU, true);
-    }
-    else
-    {
-        util_set_menu_item(hwnd, IDM_ENV_DIRECTORY_POPUPMENU, false);
-    }
-    return 0;
 }
 
 
@@ -291,7 +291,6 @@ eu_undo_file_popup(void)
                 MSG_BOX(IDC_MSG_REGIST_ERR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                 break;
             }
-            util_set_menu_item(eu_module_hwnd(), IDM_ENV_FILE_POPUPMENU, true);
         } while (0);
         if (regkey_edit)
         {
@@ -320,20 +319,19 @@ eu_undo_file_popup(void)
         {   /* 完成 */
             MSG_BOX(IDC_MSG_REGIST_ERR8, IDC_MSG_TIPS, MB_OK);
         }
-        util_set_menu_item(eu_module_hwnd(), IDM_ENV_FILE_POPUPMENU, false);
     }
     return lsret;
 }
 
 int
-on_reg_file_popup_menu(void)
+eu_reg_file_popup_menu(void)
 {
     int ret = 1;
     if (on_reg_admin())
     {
         eu_undo_file_popup();
     }
-    else if (strcmp(eu_get_config()->window_theme, "black") == 0)
+    else if (eu_get_config() && strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg1=1")};
         ret = !run_as_admin(2, argv);
@@ -510,7 +508,6 @@ eu_undo_dir_popup(void)
                 MSG_BOX(IDC_MSG_REGIST_ERR28, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                 break;
             }
-            util_set_menu_item(eu_module_hwnd(), IDM_ENV_DIRECTORY_POPUPMENU, true);
         } while (0);
         if (regkey_edit)
         {
@@ -579,20 +576,19 @@ eu_undo_dir_popup(void)
         {   /* 完成 */
             MSG_BOX(IDC_MSG_REGIST_ERR8, IDC_MSG_TIPS, MB_OK);
         }
-        util_set_menu_item(eu_module_hwnd(), IDM_ENV_DIRECTORY_POPUPMENU, false);
     }
     return lsret;
 }
 
 int
-on_reg_dir_popup_menu(void)
+eu_reg_dir_popup_menu(void)
 {
     int ret = 1;
     if (on_reg_admin())
     {
         eu_undo_dir_popup();
     }
-    else if (strcmp(eu_get_config()->window_theme, "black") == 0)
+    else if (eu_get_config() && strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg2=1")};
         ret = !run_as_admin(2, argv);
