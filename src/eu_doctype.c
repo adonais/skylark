@@ -1474,6 +1474,24 @@ on_doc_init_after_makefile(eu_tabpage *pnode)
 }
 
 int
+on_doc_init_after_diff(eu_tabpage *pnode)
+{
+    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_DIFF, 0);
+    on_doc_comment_light(pnode, SCE_DIFF_COMMENT, 0);
+    on_doc_operator_light(pnode, SCE_DIFF_PATCH_ADD, 0);
+    on_doc_operator_light(pnode, SCE_DIFF_PATCH_DELETE, 0);
+    on_doc_preprocessor_light(pnode, SCE_DIFF_POSITION, -1, 0);
+    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.font));
+    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_DIFF_COMMAND, eu_get_theme()->item.attributes.fontsize);
+    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.color));
+    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.bold));
+
+    // 折叠
+    init_sc_fold(pnode);
+    return 0;
+}
+
+int
 on_doc_init_after_cmake(eu_tabpage *pnode)
 {
     eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CMAKE, 0);
@@ -2120,16 +2138,6 @@ on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify)
     {
         on_doc_identation(pnode, lpnotify);
         add_autoclose_char(pnode, lpnotify);
-    }
-    return 0;
-}
-
-int
-on_doc_yaml_like(eu_tabpage *pnode, SCNotification *lpnotify)
-{
-    if (pnode)
-    {
-        on_doc_identation(pnode, lpnotify);
     }
     return 0;
 }

@@ -142,7 +142,7 @@ end
 
 function fill_my_docs()
   local ffi_null = ffi.cast("void *", nil)
-  local my_doc_config = ffi.new ("doctype_t [33]",
+  local my_doc_config = ffi.new ("doctype_t [34]",
     {
       {
           1,
@@ -272,6 +272,24 @@ function fill_my_docs()
       },
       {
           8,
+          ffi_null,
+          ";*.diff;*.patch;",
+          "Diff File",
+          0,
+          -1,
+          ffi_null,
+          euapi.on_doc_init_after_diff,
+          ffi_null,
+          ffi_null,
+          euapi.on_doc_keyup_general,
+          euapi.on_doc_identation,
+          ffi_null,
+          ffi_null,
+          ffi_null,
+          ffi_null,
+      },
+      {
+          9,
           "fortran",
           ";*.f;*.for;*.ftn;*.fpp;*.f90;*.f95;*.f03;*.f08;*.f2k;*.hf;",
           "Fortran Source",
@@ -289,7 +307,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          9,
+          10,
           "golang",
           ";*.go;",
           "Golang",
@@ -307,7 +325,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          10,
+          11,
           "html",
           ";*.html;*.htm;*.shtml;*.xhtml;*.phtml;*.htt;*.htd;*.hta;*.asp;*.php;",
           "HTML",
@@ -325,7 +343,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          11,
+          12,
           "json",
           ";*.json;*.eslintrc;*.jshintrc;*.jsonld;*.ipynb;*.babelrc;*.prettierrc;*.stylelintrc;*.jsonc;*jscop;",
           "JSON",
@@ -343,7 +361,7 @@ function fill_my_docs()
           euapi.on_doc_click_tree_json,
       },
       {
-          12,
+          13,
           "java",
           ";*.java;*.jad;*.pde;",
           "Java",
@@ -361,7 +379,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          13,
+          14,
           "javascript",
           ";*.js;*.es;*.ts;*.jse;*.jsm;*.mjs;*.qs;",
           "JavaScript",
@@ -379,7 +397,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          14,
+          15,
           "julia",
           ";*.jl;",
           "Julia Script",
@@ -397,7 +415,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          15,
+          16,
           "lisp",
           ";*.lsp;",
           "Lisp",
@@ -415,7 +433,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          16,
+          17,
           "log",
           ";*.log;changelog;",
           "Log File",
@@ -433,7 +451,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          17,
+          18,
           "luascript",
           ";*.lua;",
           "Lua",
@@ -451,7 +469,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          18,
+          19,
           "makefile",
           ";*.gcc;*.msvc;*.msc;*.mk;*.mak;*.configure;*.mozbuild;*.build;Makefile;configure;",
           "Makefile",
@@ -469,7 +487,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          19,
+          20,
           ffi_null,
           ";*.md;*.markdown;readme;",
           "Markdown",
@@ -487,7 +505,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          20,
+          21,
           "nim",
           ";*.nim;",
           "Nim File",
@@ -505,7 +523,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          21,
+          22,
           "perl",
           ";*.pl;*.perl;",
           "Perl",
@@ -523,7 +541,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          22,
+          23,
           ffi_null,
           ";*.properties;*.ini;*.inf;*.cfg;*.cnf;*.conf;",
           "Properties File",
@@ -541,7 +559,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          23,
+          24,
           "python",
           ";*.py;*.pyw;*.pyx;*.pxd;*.pxi;",
           "Python",
@@ -559,7 +577,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          24,
+          25,
           "redis",
           ";*.redis;",
           "Redis",
@@ -577,7 +595,7 @@ function fill_my_docs()
           euapi.on_doc_click_tree_redis,
       },
       {
-          25,
+          26,
           "ruby",
           ";*.rb;",
           "Ruby",
@@ -595,7 +613,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          26,
+          27,
           "rust",
           ";*.rs;",
           "Rust",
@@ -613,7 +631,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          27,
+          28,
           "sql",
           ";*.sql;*.prc;",
           "SQL",
@@ -631,7 +649,7 @@ function fill_my_docs()
           euapi.on_doc_click_tree_sql,
       },
       {
-          28,
+          29,
           "shell",
           ";*.bat;*.cmd;*.nt;*.ps1;*.psc1;*.psd1;*.psm1;*.sh;*.mozconfig;",
           "Shell",
@@ -649,7 +667,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          29,
+          30,
           "swift",
           ";*.swift;",
           "Swift",
@@ -667,7 +685,7 @@ function fill_my_docs()
           ffi_null,
       },                                                                                          
       {
-          30,
+          31,
           ffi_null,
           ";*.txt;",
           "Text",
@@ -685,7 +703,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          31,
+          32,
           ffi_null,
           ";*.xml;*.xsl;*.svg;*.xul;*.xsd;*.dtd;*.xslt;*.axl;*.xrc;*.rdf;*.manifest;",
           "XML",
@@ -703,7 +721,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          32,
+          33,
           ffi_null,
           ";*.yaml;*.yml;*.clang-tidy;*.mir;*.apinotes;*.ifs;*.clang-format;_clang-format;",
           "YAML",
@@ -714,7 +732,7 @@ function fill_my_docs()
           ffi_null,
           ffi_null,
           euapi.on_doc_keyup_general,
-          euapi.on_doc_yaml_like,
+          euapi.on_doc_identation,
           ffi_null,
           ffi_null,
           ffi_null,

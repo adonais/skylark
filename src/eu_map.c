@@ -71,7 +71,6 @@ map_put(root_t *root, const char *key, const char *val)
         return 1;
     }
     strcpy(data->val, val);
-
     rb_node_t **new_node = &(root->rb_node), *parent = NULL;
     while (*new_node)
     {
@@ -96,10 +95,8 @@ map_put(root_t *root, const char *key, const char *val)
             return 0;
         }
     }
-
     rb_link_node(&data->node, parent, new_node);
     rb_insert_color(&data->node, root);
-
     return 0;
 }
 
@@ -169,7 +166,7 @@ void
 map_destory(root_t *root)
 {
     rb_node_t *free_node = NULL, *tmp_node = NULL;
-    map_t *nodeFree = NULL;
+    map_t *m_free = NULL;
 
     for (free_node = rb_first(root); free_node;)
     {
@@ -178,13 +175,13 @@ map_destory(root_t *root)
         {
             break;
         }
-        nodeFree = rb_entry(free_node, map_t, node);
-        if (!nodeFree)
+        m_free = rb_entry(free_node, map_t, node);
+        if (!m_free)
         {
             break;
         }        
         rb_erase(free_node, root);
-        map_free(nodeFree);
+        map_free(m_free);
         free_node = tmp_node;
     }
 }
@@ -253,10 +250,8 @@ int ac_put(root_t *root, const char *str)
             return 1;
         }
     }
-
     rb_link_node(&data->node, parent, new_node);
     rb_insert_color(&data->node, root);
-
     return 0;
 }
 
@@ -323,7 +318,7 @@ void
 ac_destory(root_t *root)
 {
     rb_node_t *free_node = NULL, *tmp_node = NULL;
-    acshow_t *nodeFree = NULL;
+    acshow_t *m_free = NULL;
 
     for (free_node = rb_first(root); free_node;)
     {
@@ -332,13 +327,13 @@ ac_destory(root_t *root)
         {
             break;
         }
-        nodeFree = rb_entry(free_node, acshow_t, node);
-        if (!nodeFree)
+        m_free = rb_entry(free_node, acshow_t, node);
+        if (!m_free)
         {
             break;
         }        
         rb_erase(free_node, root);
-        ac_free(nodeFree);
+        ac_free(m_free);
         free_node = tmp_node;
     }    
 }

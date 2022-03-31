@@ -533,6 +533,7 @@ EU_EXT_CLASS int on_doc_init_after_log(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_nim(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_shell_sh(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_properties(eu_tabpage *pnode);
+EU_EXT_CLASS int on_doc_init_after_diff(eu_tabpage *pnode);
 
 /* 默认的 key_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
@@ -551,7 +552,6 @@ EU_EXT_CLASS int on_doc_html_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_xml_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_css_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_yaml_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_cmake_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_markdown_like(eu_tabpage *pnode, SCNotification *lpnotify);
