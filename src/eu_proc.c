@@ -627,7 +627,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_INITMENU:
             return 0;
         case WM_INITMENUPOPUP:
-            printf("recv WM_INITMENUPOPUP\n");
             menu_update_item((HMENU)wParam);
             return 0;   
         case WM_DPICHANGED:

@@ -84,6 +84,7 @@ bool   util_creater_window(HWND hwnd, HWND hparent);
 bool   util_can_selections(eu_tabpage *pnode);
 bool   util_file_size(HANDLE hfile, uint64_t *psize);
 bool   util_open_file(LPCTSTR path, pt_stream pstream);
+bool   util_exist_libcurl(void);
 time_t util_last_time(const TCHAR *path);
 WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *, TCHAR *, int);

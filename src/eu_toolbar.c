@@ -832,6 +832,7 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);              
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);
+            on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl()?2:1);
         }
     }
 }
