@@ -20,7 +20,7 @@ jobs:
       id: threeparty_dll
       shell: cmake -P {0}
       run: |
-        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Tools/skylark edit/three_party_dll.7z/download")
+        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Tools/skylark%20edit/three_party_dll.7z/download")
         file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/three_party_dll.7z SHOW_PROGRESS)
         execute_process(COMMAND 7z x ./three_party_dll.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)
     
