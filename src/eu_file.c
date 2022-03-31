@@ -40,9 +40,9 @@ set_ext_filter(const TCHAR *ext, TCHAR **pfilter)
         char u8_exts[ACNAME_LEN+1] = {0};
         _sntprintf(exts, ACNAME_LEN, _T("*%s;"), ext);
         WideCharToMultiByte(CP_UTF8, 0, exts, -1, u8_exts, ACNAME_LEN, NULL, NULL);
-        for (doctype_t *mapper = eu_doc_get_ptr(); mapper && mapper->extname; ++mapper)
+        for (doctype_t *mapper = eu_doc_get_ptr(); mapper && mapper->doc_type; ++mapper)
         {
-            if (strstr(mapper->extname, u8_exts) != NULL)
+            if (mapper->extname && strstr(mapper->extname, u8_exts) != NULL)
             {
                 pext = eu_utf8_utf16(&mapper->extname[1], NULL);
                 pdesc = eu_utf8_utf16(mapper->filedesc, NULL);

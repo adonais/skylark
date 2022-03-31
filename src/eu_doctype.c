@@ -2489,10 +2489,14 @@ eu_doc_set_ptr(doctype_t *ptr)
 void
 eu_doc_config_release(void)
 {
-    for (doctype_t *mapper = g_doc_config; mapper && mapper->filetypename; ++mapper)
+    for (doctype_t *mapper = g_doc_config; mapper && mapper->doc_type > 0; ++mapper)
     {
-        eu_destory_completed_tree(&mapper->acshow_tree);
-        eu_destory_completed_tree(&mapper->ctshow_tree);
+        if (mapper->filetypename)
+        {
+            eu_destory_calltip_tree(&mapper->ctshow_tree);
+            eu_destory_completed_tree(&mapper->acshow_tree);
+        }
     }
     do_lua_parser_release();
+    printf("we destroy hash table and Lua runtime\n");
 }
