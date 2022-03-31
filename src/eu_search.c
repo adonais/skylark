@@ -1342,9 +1342,11 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     SendMessage(hwnd_search_dlg, DM_SETDEFID, IDC_SEARCH_NEXT_BTN, 0);
                     break;
                 case 1:
+                    eu_get_replace_history(on_search_combo_callback);
                     SendMessage(hwnd_search_dlg, DM_SETDEFID, IDC_SEARCH_RE_BTN, 0);
                     break;
                 case 2:
+                    eu_get_folder_history(on_search_combo_callback);
                     SendMessage(hwnd_search_dlg, DM_SETDEFID, IDC_SEARCH_ALL_BTN, 0);
                     break;
                 default:
