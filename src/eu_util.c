@@ -1239,6 +1239,25 @@ util_kill_thread(uint32_t pid)
     }
 }
 
+bool
+util_exist_libcurl(void)
+{
+    bool ret = false;
+    HMODULE lib_symbol = NULL;
+    TCHAR curl_path[MAX_PATH+1] = {0};
+    _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
+    if ((lib_symbol = LoadLibrary(curl_path)) != NULL)
+    {
+        ptr_compress fn_compress = (ptr_compress)GetProcAddress(lib_symbol,"zlib_compress2");
+        if (fn_compress)
+        {
+            ret = true;
+        }
+        FreeLibrary(lib_symbol);
+    }
+    return ret;
+}
+
 unsigned long 
 util_compress_bound(unsigned long source_len)
 {

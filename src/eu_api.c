@@ -267,12 +267,44 @@ eu_exist_dir(LPCTSTR path)
 bool WINAPI
 eu_exist_file(LPCTSTR path)
 {
-    DWORD fileattr = GetFileAttributes(path);
+    DWORD fileattr = INVALID_FILE_ATTRIBUTES;
+    if (STR_IS_NUL(path))
+    {
+    	return false;
+    }
+    if (_tcslen(path) > 1 && path[1] == L':')
+    {
+    	fileattr = GetFileAttributes(path);
+    }
+    else
+    {
+    	TCHAR file_path[MAX_PATH+1] = {0};
+    	_sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, path);
+    	fileattr = GetFileAttributes(file_path);
+    }
     if (fileattr != INVALID_FILE_ATTRIBUTES)
     {
         return (fileattr & FILE_ATTRIBUTE_DIRECTORY) == 0;
     }
     return false;
+}
+
+bool WINAPI
+eu_exist_libssl(void)
+{
+    TCHAR ssl_path[MAX_PATH+1] = {0};
+#ifdef _WIN64
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
+#else
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
+#endif
+    return eu_exist_file(ssl_path);
+}
+
+bool WINAPI
+eu_exist_libcurl(void)
+{
+    return util_exist_libcurl();
 }
 
 bool WINAPI

@@ -84,9 +84,9 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE4, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE5, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE6, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE7, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE8, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE9, !hex_mode);
+        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE7, !hex_mode && eu_exist_libssl());
+        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE8, !hex_mode && eu_exist_libssl());
+        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE9, !hex_mode && eu_exist_libssl());
         util_enable_menu_item(root_menu, IDM_UPDATE_SELECTION, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE10, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE11, !hex_mode);
@@ -150,6 +150,7 @@ menu_update_item(HMENU menu)
                     case IDM_FILE_SAVE:          /* File menu */
                         util_enable_menu_item(menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
                         util_enable_menu_item(menu, IDM_FILE_SAVEAS, pnode->filename[0]);
+                        util_enable_menu_item(menu, IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl());
                         util_set_menu_item(menu, IDM_FILE_WRITE_COPY, eu_get_config()->m_write_copy);
                         util_set_menu_item(menu, IDM_FILE_SESSION, eu_get_config()->m_session);
                         break;
@@ -207,7 +208,7 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE17,
-                                             (pnode->doc_ptr && !pnode->hex_mode &&
+                                             (pnode->doc_ptr && !pnode->hex_mode && eu_exist_file(_T("clang-format.dll")) && 
                                              (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_CS ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
@@ -240,7 +241,10 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_GDI, IDM_SET_RENDER_TECH_GDI == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
-                        break;                        
+                        break;
+                    case IDM_DONATION:
+                        util_enable_menu_item(menu, IDM_DONATION, util_exist_libcurl());
+                        break;
                     default:
                         break;
                 }
