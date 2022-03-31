@@ -33,8 +33,8 @@
 #define __EU_INFO_VERSION_PATCHLEVEL 0
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
-#if 1
-#define __LIFE_CYCLE TEXT("-DEV")
+#if !__EU_INFO_VERSION_PATCHLEVEL
+#define __LIFE_CYCLE TEXT("-GA")
 #else
 #define __LIFE_CYCLE
 #endif
