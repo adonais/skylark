@@ -1114,7 +1114,7 @@ on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos)
         struct navigate_trace *first = list_first_entry(&list_trace, struct navigate_trace, ng_node);
         list_del(&(first->ng_node));
         free(first);
-        max_nav_count--;
+        --max_nav_count;
     }
     curr = (struct navigate_trace *) calloc(1, sizeof(struct navigate_trace));
     if (curr == NULL)
@@ -1126,7 +1126,7 @@ on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos)
     curr->hwnd_sc = pnode->hwnd_sc;
     curr->last_pos = pos;
     list_add_tail(&(curr->ng_node), &list_trace);
-    max_nav_count++;
+    ++max_nav_count;
     return SKYLARK_OK;
 }
 
@@ -1165,21 +1165,13 @@ on_search_back_navigate_this(void)
         }
         list_del(&(curr->ng_node));
         free(curr);
-        max_nav_count--;
+        --max_nav_count;
         if (&(prev->ng_node) != &list_trace)
         {
             if (prev->hwnd_sc == pnode->hwnd_sc)
             {
                 sptr_t text_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                sptr_t go_pos;
-                if (prev->last_pos > text_len - 1)
-                {
-                    go_pos = text_len - 1;
-                }
-                else
-                {
-                    go_pos = prev->last_pos;
-                }
+                sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : prev->last_pos;
                 eu_sci_call(pnode, SCI_GOTOPOS, go_pos, 0);
             }
         }
@@ -1207,25 +1199,15 @@ on_search_back_navigate_all(void)
         }
         list_del(&(curr->ng_node));
         free(curr);
-        max_nav_count--;
-
+        --max_nav_count;
         if (&(prev->ng_node) != &list_trace)
         {
             if (prev->pnode != pnode)
             {
                 on_tabpage_selection(prev->pnode, -1);
             }
-
             sptr_t text_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-            sptr_t go_pos;
-            if (prev->last_pos > text_len - 1)
-            {
-                go_pos = text_len - 1;
-            }
-            else
-            {
-                go_pos = prev->last_pos;
-            }
+            sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : prev->last_pos;
             eu_sci_call(pnode, SCI_GOTOPOS, go_pos, 0);
         }
         return SKYLARK_OK;
@@ -1248,7 +1230,7 @@ on_search_clean_navigate_this(eu_tabpage *pnode)
         {
             list_del(&(curr->ng_node));
             free(curr);
-            max_nav_count--;
+            --max_nav_count;
         }
     }
 }
