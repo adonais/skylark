@@ -462,16 +462,26 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_KEYUP:
         case WM_LBUTTONUP:
         {
+            int64_t pos = 0;
             eu_reset_drag_line();
-            if ((pnode = on_tabpage_focus_at()) != NULL)
+            if ((pnode = on_tabpage_focus_at()) == NULL)
             {
-                if (pnode->doc_ptr && pnode->doc_ptr->fn_keyup)
-                {
-                    pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
-                }
-                on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
-                on_statusbar_update_line(pnode);
+                break;
             }
+            pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            if (pnode->doc_ptr && pnode->doc_ptr->fn_keyup)
+            {
+                pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
+            }
+            if(message == WM_KEYUP)
+            {
+                on_search_update_navigate_list(pnode, pos);
+            }
+            else
+            {
+                on_search_add_navigate_list(pnode, pos);
+            }
+            on_statusbar_update_line(pnode);
             break; 
         }
         case WM_RBUTTONDOWN:

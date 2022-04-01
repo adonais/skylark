@@ -774,7 +774,6 @@ on_file_only_open(file_backup *pbak)
             return EUE_WRITE_TAB_FAIL;
         }
         on_sci_after_file(pnode);
-        on_search_add_navigate_list(pnode, 0);
         int count = TabCtrl_GetItemCount(g_tabpages);
         {
             // 选中右边的标签
@@ -788,6 +787,7 @@ on_file_only_open(file_backup *pbak)
         {
             eu_sci_call(pnode, SCI_GOTOPOS, 0, 0);
         }
+        on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
         if (strlen(pbak->mark_id) > 0)
         {   // 恢复书签
             on_search_update_mark(pnode, pbak->mark_id);
