@@ -142,7 +142,7 @@ end
 
 function fill_my_docs()
   local ffi_null = ffi.cast("void *", nil)
-  local my_doc_config = ffi.new ("doctype_t [34]",
+  local my_doc_config = ffi.new ("doctype_t [35]",
     {
       {
           1,
@@ -416,6 +416,24 @@ function fill_my_docs()
       },
       {
           16,
+          "kotlin",
+          ";*.kt;*.kts;",
+          "Kotlin",
+          0,
+          -1,
+          euapi.on_doc_init_list,
+          euapi.on_doc_init_after_java,
+          ffi_null,
+          euapi.on_doc_keydown_jmp,
+          euapi.on_doc_keyup_general,
+          euapi.on_doc_cpp_like,
+          euapi.on_doc_reload_list_reqular,
+          euapi.on_doc_click_list_jmp,
+          ffi_null,
+          ffi_null,
+      },      
+      {
+          17,
           "lisp",
           ";*.lsp;",
           "Lisp",
@@ -433,7 +451,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          17,
+          18,
           "log",
           ";*.log;changelog;",
           "Log File",
@@ -451,7 +469,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          18,
+          19,
           "luascript",
           ";*.lua;",
           "Lua",
@@ -469,7 +487,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          19,
+          20,
           "makefile",
           ";*.gcc;*.msvc;*.msc;*.mk;*.mak;*.configure;*.mozbuild;*.build;Makefile;configure;",
           "Makefile",
@@ -487,7 +505,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          20,
+          21,
           ffi_null,
           ";*.md;*.markdown;readme;",
           "Markdown",
@@ -505,7 +523,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          21,
+          22,
           "nim",
           ";*.nim;",
           "Nim File",
@@ -523,7 +541,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          22,
+          23,
           "perl",
           ";*.pl;*.perl;",
           "Perl",
@@ -541,7 +559,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          23,
+          24,
           ffi_null,
           ";*.properties;*.ini;*.inf;*.cfg;*.cnf;*.conf;",
           "Properties File",
@@ -559,7 +577,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          24,
+          25,
           "python",
           ";*.py;*.pyw;*.pyx;*.pxd;*.pxi;",
           "Python",
@@ -577,7 +595,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          25,
+          26,
           "redis",
           ";*.redis;",
           "Redis",
@@ -595,7 +613,7 @@ function fill_my_docs()
           euapi.on_doc_click_tree_redis,
       },
       {
-          26,
+          27,
           "ruby",
           ";*.rb;",
           "Ruby",
@@ -613,7 +631,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          27,
+          28,
           "rust",
           ";*.rs;",
           "Rust",
@@ -631,7 +649,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          28,
+          29,
           "sql",
           ";*.sql;*.prc;",
           "SQL",
@@ -649,7 +667,7 @@ function fill_my_docs()
           euapi.on_doc_click_tree_sql,
       },
       {
-          29,
+          30,
           "shell",
           ";*.bat;*.cmd;*.nt;*.ps1;*.psc1;*.psd1;*.psm1;*.sh;*.mozconfig;",
           "Shell",
@@ -667,7 +685,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          30,
+          31,
           "swift",
           ";*.swift;",
           "Swift",
@@ -685,7 +703,7 @@ function fill_my_docs()
           ffi_null,
       },                                                                                          
       {
-          31,
+          32,
           ffi_null,
           ";*.txt;",
           "Text",
@@ -703,7 +721,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          32,
+          33,
           ffi_null,
           ";*.xml;*.xsl;*.svg;*.xul;*.xsd;*.dtd;*.xslt;*.axl;*.xrc;*.rdf;*.manifest;",
           "XML",
@@ -721,7 +739,7 @@ function fill_my_docs()
           ffi_null,
       },
       {
-          33,
+          34,
           ffi_null,
           ";*.yaml;*.yml;*.clang-tidy;*.mir;*.apinotes;*.ifs;*.clang-format;_clang-format;",
           "YAML",
