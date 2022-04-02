@@ -95,17 +95,17 @@ BEGIN
         POPUP "高级删除",                           IDM_EDIT_PLACEHOLDE4
         BEGIN
             MENUITEM "删除行\tCtrl+Shift+Delete,Ctrl+E", IDM_EDIT_DELETELINE
-            MENUITEM "移除行首空白\tAlt+H",              IDM_DELETE_SPACE_LINEHEAD
-            MENUITEM "移除行尾空白\tAlt+T",              IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "删除空行\tAlt+R",                  IDM_EDIT_DELETEBLANKLINE
+            MENUITEM "移除行首空白\tCtrl+Shift+H",       IDM_DELETE_SPACE_LINEHEAD
+            MENUITEM "移除行尾空白\tCtrl+Shift+T",       IDM_DELETE_SPACE_LINETAIL
+            MENUITEM "删除空行\tCtrl+Shift+R",           IDM_EDIT_DELETEBLANKLINE
             MENUITEM "删除带有白字符的空行\tCtrl+Alt+R", IDM_DELETE_ALL_SPACE_LINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "高级行操作",                              IDM_EDIT_PLACEHOLDE5
         BEGIN
-        	MENUITEM "合并行\tAlt+J",                    IDM_EDIT_JOINLINE
-        	MENUITEM "行注释\tCtrl+/",                   IDM_EDIT_LINECOMMENT
-        	MENUITEM "块注释\tCtrl+\\",                  IDM_EDIT_STREAMCOMMENT
+        	MENUITEM "合并行\tAlt+J",                IDM_EDIT_JOINLINE
+        	MENUITEM "行注释\tCtrl+/",               IDM_EDIT_LINECOMMENT
+        	MENUITEM "块注释\tCtrl+\\",              IDM_EDIT_STREAMCOMMENT
         END	
         MENUITEM MF_SEPARATOR
         POPUP "大小写转换",                              IDM_EDIT_PLACEHOLDE6
@@ -208,8 +208,8 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "全屏模式(&U)\tF11",                IDM_VIEW_FULLSCREEN
         MENUITEM "显示菜单栏\tAlt",                  IDM_VIEW_MENUBAR
-		MENUITEM "显示工具栏\tCtrl+F11",             IDM_VIEW_TOOLBAR
-		MENUITEM "显示状态栏\tShift+F11",	         IDM_VIEW_STATUSBAR     
+		MENUITEM "显示工具栏\tCtrl+F11",     IDM_VIEW_TOOLBAR
+		MENUITEM "显示状态栏\tShift+F11",    IDM_VIEW_STATUSBAR     
         MENUITEM MF_SEPARATOR
         MENUITEM "制表符TAB宽度[N]个空格...",        IDM_VIEW_TAB_WIDTH
         MENUITEM "键入制表符TAB时转换为空格集合",    IDM_TAB_CONVERT_SPACES
@@ -304,15 +304,15 @@ BEGIN
         MENUITEM MF_SEPARATOR
 		POPUP "字体质量(&Q)",                           IDM_SETTING_FONTQUALITY
 		BEGIN
-			MENUITEM "无",					            IDM_VIEW_FONTQUALITY_NONE
-			MENUITEM "标准抗锯齿",				        IDM_VIEW_FONTQUALITY_STANDARD
-			MENUITEM "ClearType",				        IDM_VIEW_FONTQUALITY_CLEARTYPE
+			MENUITEM "无",                          IDM_VIEW_FONTQUALITY_NONE
+			MENUITEM "标准抗锯齿",                  IDM_VIEW_FONTQUALITY_STANDARD
+			MENUITEM "ClearType",                   IDM_VIEW_FONTQUALITY_CLEARTYPE
 		END                                         
 		POPUP "渲染技术(&D)",                           IDM_SETTING_RENDER
 		BEGIN                                       
-			MENUITEM "传统 GDI",			            IDM_SET_RENDER_TECH_GDI
-			MENUITEM "DirectWrite",				        IDM_SET_RENDER_TECH_D2D
-			MENUITEM "DirectWrite Retain",		        IDM_SET_RENDER_TECH_D2DRETAIN
+			MENUITEM "传统 GDI",                    IDM_SET_RENDER_TECH_GDI
+			MENUITEM "DirectWrite",                 IDM_SET_RENDER_TECH_D2D
+			MENUITEM "DirectWrite Retain",          IDM_SET_RENDER_TECH_D2DRETAIN
 		END
     END
     POPUP "帮助(&H)"
@@ -348,8 +348,8 @@ BEGIN
     BEGIN
         MENUITEM "剪切(&T)",           IDM_EDIT_CUT
         MENUITEM "复制(&C)",           IDM_EDIT_COPY
-        MENUITEM "粘贴(&P)",           IDM_EDIT_PASTE  
-        MENUITEM SEPARATOR    
+        MENUITEM "粘贴(&P)",           IDM_EDIT_PASTE
+        MENUITEM SEPARATOR
         MENUITEM "剪切行",             IDM_EDIT_CUTLINE
         MENUITEM "复制行",             IDM_EDIT_COPYLINE
         MENUITEM "粘贴行",             IDM_EDIT_PASTELINE
@@ -1189,6 +1189,6 @@ BEGIN
     PUSHBUTTON "忽略(&I)", IDIGNORE, 364, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "再试一次(&T)", IDTRYAGAIN, 422, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "继续(&C)", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
-    PUSHBUTTON "帮助(&H)", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "帮助", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
 END
