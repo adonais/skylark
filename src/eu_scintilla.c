@@ -439,22 +439,18 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {     
         case WM_KEYDOWN:
-        {
-            pnode = on_tabpage_focus_at();
-            if (pnode)
+        {   // 按下ESC键时
+            if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)) && (pnode = on_tabpage_focus_at()))
             {
-                if(wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE))
-                {   // 按下ESC键时
-                    sptr_t total_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                    sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                    eu_sci_call(pnode, SCI_CANCEL, 0, 0);
-                    eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
-                    eu_sci_call(pnode, SCI_SETEMPTYSELECTION, cur_pos, 0);
-                    if (pnode->zoom_level == SELECTION_ZOOM_LEVEEL)
-                    {
-                        on_view_zoom_reset(pnode);
-                        pnode->zoom_level = 0;
-                    }
+                sptr_t total_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+                sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
+                eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
+                eu_sci_call(pnode, SCI_SETEMPTYSELECTION, cur_pos, 0);
+                if (pnode->zoom_level == SELECTION_ZOOM_LEVEEL)
+                {
+                    on_view_zoom_reset(pnode);
+                    pnode->zoom_level = 0;
                 }
             }
             break;

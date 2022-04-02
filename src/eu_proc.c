@@ -495,7 +495,7 @@ eu_before_proc(MSG *p_msg)
             eu_window_resize(eu_hwndmain);
             return 1;
         }
-    } 
+    }
     if (p_msg->message == WM_SYSKEYDOWN && 49 <= p_msg->wParam && p_msg->wParam <= 57 && (p_msg->lParam & (1 << 29)))
     {
         if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 49)))

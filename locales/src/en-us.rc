@@ -95,9 +95,9 @@ BEGIN
         POPUP "Advanced Delete",                         IDM_EDIT_PLACEHOLDE4
         BEGIN
             MENUITEM "Delete Line\tCtrl+Shift+Delete,Ctrl+E",                      IDM_EDIT_DELETELINE
-            MENUITEM "Strip Leading Blan&ks\tAlt+H",                               IDM_DELETE_SPACE_LINEHEAD
-            MENUITEM "Strip &Trailing Blanks\tAlt+T",                              IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "&Remove Empty Lines\tAlt+R",                                 IDM_EDIT_DELETEBLANKLINE
+            MENUITEM "Strip Leading Blan&ks\tCtrl+Shift+H",                        IDM_DELETE_SPACE_LINEHEAD
+            MENUITEM "Strip &Trailing Blanks\tCtrl+Shift+T",                       IDM_DELETE_SPACE_LINETAIL
+            MENUITEM "&Remove Empty Lines\tCtrl+Shift+R",                          IDM_EDIT_DELETEBLANKLINE
             MENUITEM "Remove All Empty Lines(Containing Blank Chars)\tCtrl+Alt+R", IDM_DELETE_ALL_SPACE_LINE
         END
         MENUITEM MF_SEPARATOR
