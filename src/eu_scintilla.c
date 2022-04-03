@@ -123,6 +123,8 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
     // 设置undo掩码, 接受SCN_MODIFIED消息
     eu_sci_call(pnode, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT|SC_PERFORMED_UNDO|SC_PERFORMED_REDO, 0);
+    // 支持多列粘贴
+    eu_sci_call(pnode, SCI_SETMULTIPASTE, SC_MULTIPASTE_EACH, 0);
     return 0;
 }
 

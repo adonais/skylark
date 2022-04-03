@@ -994,16 +994,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_SELECTLINE:
                     on_search_select_line(pnode);
                     break;
-                case IDM_SEARCH_SELECTGROUP_LEFT:
+                case IDM_SEARCH_ADDSELECT_LEFT_WORD:
                     on_search_left_group(pnode);
                     break;
-                case IDM_SEARCH_SELECTGROUP_RIGHT:
+                case IDM_SEARCH_ADDSELECT_RIGHT_WORD:
                     on_search_right_group(pnode);
                     break;
-                case IDM_SEARCH_ADDSELECT_LEFT_WORD:
+                case IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP:
                     on_search_left_word(pnode);
                     break;
-                case IDM_SEARCH_ADDSELECT_RIGHT_WORD:
+                case IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP:
                     on_search_right_word(pnode);
                     break;
                 case IDM_SEARCH_SELECTTOP_FIRSTLINE:
@@ -1012,16 +1012,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_SELECTBOTTOM_FIRSTLINE:
                     on_search_cumulative_next_block(pnode);
                     break;
-                case IDM_SEARCH_MOVE_LEFT_CHARGROUP:
+                case IDM_SEARCH_MOVE_LEFT_WORD:
                     on_search_move_to_lgroup(pnode);
                     break;
-                case IDM_SEARCH_MOVE_RIGHT_CHARGROUP:
+                case IDM_SEARCH_MOVE_RIGHT_WORD:
                     on_search_move_to_rgroup(pnode);
                     break;
-                case IDM_SEARCH_MOVE_LEFT_WORD:
+                case IDM_SEARCH_MOVE_LEFT_WORDGROUP:
                     on_search_move_to_lword(pnode);
                     break;
-                case IDM_SEARCH_MOVE_RIGHT_WORD:
+                case IDM_SEARCH_MOVE_RIGHT_WORDGROUP:
                     on_search_move_to_rword(pnode);
                     break;
                 case IDM_SEARCH_MOVETOP_FIRSTLINE:
@@ -1048,10 +1048,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_GOTO_NEXT_BOOKMARK:
                     on_search_jmp_next_mark_this(pnode);
                     break;
-                case IDM_SEARCHPRE_BOOKMARK_INALL:
+                case IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL:
                     on_search_jmp_premark_all(pnode);
                     break;
-                case IDM_SEARCH_BOOKMARK_INALL:
+                case IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL:
                     on_search_jmp_next_mark_all(pnode);
                     break;
                 case IDM_SEARCH_GOTOHOME:

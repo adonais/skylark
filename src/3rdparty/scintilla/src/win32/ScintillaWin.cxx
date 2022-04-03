@@ -1596,7 +1596,6 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 			else {
 				wheelDelta = -(-wheelDelta % WHEEL_DELTA);
 			}
-			/*
 			if (wParam & MK_CONTROL) {
 				// Zoom! We play with the font sizes in the styles.
 				// Number of steps/line is ignored, we just care if sizing up or down
@@ -1606,11 +1605,6 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 					KeyCommand(Message::ZoomOut);
 				}
 			} else {
-				// Scroll
-				ScrollTo(topLine + linesToScroll);
-			}
-			*/
-			if (!(wParam & MK_CONTROL)) {
 				// Scroll
 				ScrollTo(topLine + linesToScroll);
 			}

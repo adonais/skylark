@@ -159,20 +159,20 @@ BEGIN
         END                                                
         POPUP "Advanced Select",                           IDM_EDIT_PLACEHOLDE11
         BEGIN
-            MENUITEM "Select Words To The Left\tCtrl+Shift+Left",            IDM_SEARCH_SELECTGROUP_LEFT
-            MENUITEM "Select Words To The Right\tCtrl+Shift+Right",          IDM_SEARCH_SELECTGROUP_RIGHT
-            MENUITEM "Select Word Group To The Left\tCtrl+Shift+Alt+Left",   IDM_SEARCH_ADDSELECT_LEFT_WORD
-            MENUITEM "Select Word Group To The Right\tCtrl+Shift+Alt+Right", IDM_SEARCH_ADDSELECT_RIGHT_WORD
+            MENUITEM "Select Words To The Left\tCtrl+Shift+Left",            IDM_SEARCH_ADDSELECT_LEFT_WORD
+            MENUITEM "Select Words To The Right\tCtrl+Shift+Right",          IDM_SEARCH_ADDSELECT_RIGHT_WORD
+            MENUITEM "Select Word Group To The Left\tCtrl+Shift+Alt+Left",   IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP
+            MENUITEM "Select Word Group To The Right\tCtrl+Shift+Alt+Right", IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP
             MENUITEM "Select Block To Previous Line\tCtrl+Shift+[",          IDM_SEARCH_SELECTTOP_FIRSTLINE
             MENUITEM "Select Block To Next Line\tCtrl+Shift+]",              IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "Advanced Move Cursor",                                        IDM_EDIT_PLACEHOLDE12
         BEGIN
-            MENUITEM "Moves Left (Word For Step)\tCtrl+Left",                IDM_SEARCH_MOVE_LEFT_CHARGROUP
-            MENUITEM "Moves Right (Word For Step)\tCtrl+Right",              IDM_SEARCH_MOVE_RIGHT_CHARGROUP
-            MENUITEM "Moves Left (Word Group For step)\tCtrl+Alt+Left",      IDM_SEARCH_MOVE_LEFT_WORD
-            MENUITEM "Moves Right (Word Group For step)\tCtrl+Alt+Right",    IDM_SEARCH_MOVE_RIGHT_WORD
+            MENUITEM "Moves Left (Word For Step)\tCtrl+Left",                IDM_SEARCH_MOVE_LEFT_WORD
+            MENUITEM "Moves Right (Word For Step)\tCtrl+Right",              IDM_SEARCH_MOVE_RIGHT_WORD
+            MENUITEM "Moves Left (Word Group For step)\tCtrl+Alt+Left",      IDM_SEARCH_MOVE_LEFT_WORDGROUP
+            MENUITEM "Moves Right (Word Group For step)\tCtrl+Alt+Right",    IDM_SEARCH_MOVE_RIGHT_WORDGROUP
             MENUITEM "Moves To The Previous Block\tCtrl+K",                  IDM_SEARCH_MOVETOP_FIRSTLINE
             MENUITEM "Moves To The Next Block\tCtrl+J",                      IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
         END
@@ -192,8 +192,8 @@ BEGIN
             MENUITEM "Delete All Bookmark\tCtrl+Shift+F9",  IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "Jump Previous Bookmark (Current File)\tCtrl+F2",         IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "Jump Next Bookmark (Current File)\tF2",                  IDM_SEARCH_GOTO_NEXT_BOOKMARK
-            MENUITEM "Jump Previous Bookmark (All Open Files)\tCtrl+Shift+F2", IDM_SEARCHPRE_BOOKMARK_INALL
-            MENUITEM "Jump Next Bookmark (All Open Files)\tShift+F2",          IDM_SEARCH_BOOKMARK_INALL
+            MENUITEM "Jump Previous Bookmark (All Open Files)\tCtrl+Shift+F2", IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
+            MENUITEM "Jump Next Bookmark (All Open Files)\tShift+F2",          IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
         END
         POPUP "Navigation",                                                    IDM_EDIT_PLACEHOLDE14
         BEGIN
@@ -230,9 +230,9 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "Zoom",                                IDM_EDIT_PLACEHOLDE15
         BEGIN
-            MENUITEM "Zoom Out\tCtrl+(+)",           IDM_VIEW_ZOOMOUT
-            MENUITEM "Zoom In\tCtrl+(-)",            IDM_VIEW_ZOOMIN
-            MENUITEM "Reset Zoom\tCtrl+(0 num)",     IDM_VIEW_ZOOMRESET
+            MENUITEM "Zoom Out\tCtrl+,Ctrl+MouseWheelUp",    IDM_VIEW_ZOOMOUT
+            MENUITEM "Zoom In\tCtrl-,Ctrl+MouseWheelDown",   IDM_VIEW_ZOOMIN
+            MENUITEM "Reset Zoom\tCtrl+(0 num)",             IDM_VIEW_ZOOMRESET
         END
     END
     POPUP "For&mat"
@@ -317,7 +317,7 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-    	MENUITEM "Donate Now\tShift+P",         IDM_DONATION
+    	MENUITEM "Donate Now\tCtrl+F1",         IDM_DONATION
         MENUITEM "Introduction &Of Eidt ...",   IDM_INTRODUTION
         MENUITEM "Update &history ...",         IDM_CHANGELOG
         MENUITEM "&About ...",                  IDM_ABOUT

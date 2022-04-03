@@ -4560,8 +4560,7 @@ void Editor::ButtonDownWithModifiers(Point pt, unsigned int curTime, KeyMod modi
 	ptMouseLast = pt;
 	const bool ctrl = FlagSet(modifiers, KeyMod::Ctrl);
 	const bool shift = FlagSet(modifiers, KeyMod::Shift);
-	// const bool alt = FlagSet(modifiers, KeyMod::Alt);
-	const bool alt = sel.selType == Selection::SelTypes::thin;
+	const bool alt = FlagSet(modifiers, KeyMod::Alt);
 	SelectionPosition newPos = SPositionFromLocation(pt, false, false, AllowVirtualSpace(virtualSpaceOptions, alt));
 	newPos = MovePositionOutsideChar(newPos, sel.MainCaret() - newPos.Position());
 	SelectionPosition newCharPos = SPositionFromLocation(pt, false, true, false);

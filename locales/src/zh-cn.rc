@@ -159,20 +159,20 @@ BEGIN
         END
         POPUP "高级选择",                                IDM_EDIT_PLACEHOLDE11
         BEGIN
-            MENUITEM "向左累积选择单词\tCtrl+Shift+Left",        IDM_SEARCH_SELECTGROUP_LEFT
-            MENUITEM "向右累积选择单词\tCtrl+Shift+Right",       IDM_SEARCH_SELECTGROUP_RIGHT
-            MENUITEM "向左累积选择单词组\tCtrl+Shift+Alt+Left",  IDM_SEARCH_ADDSELECT_LEFT_WORD
-            MENUITEM "向右累积选择单词组\tCtrl+Shift+Alt+Right", IDM_SEARCH_ADDSELECT_RIGHT_WORD
+            MENUITEM "向左累积选择单词\tCtrl+Shift+Left",        IDM_SEARCH_ADDSELECT_LEFT_WORD
+            MENUITEM "向右累积选择单词\tCtrl+Shift+Right",       IDM_SEARCH_ADDSELECT_RIGHT_WORD
+            MENUITEM "向左累积选择单词组\tCtrl+Shift+Alt+Left",  IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP
+            MENUITEM "向右累积选择单词组\tCtrl+Shift+Alt+Right", IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP
             MENUITEM "累积选择到上一个语句块首行\tCtrl+Shift+[", IDM_SEARCH_SELECTTOP_FIRSTLINE
             MENUITEM "累积选择到下一个语句块首行\tCtrl+Shift+]", IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "高级移动光标",                               IDM_EDIT_PLACEHOLDE12
         BEGIN
-            MENUITEM "向左移动光标单词\tCtrl+Left",          IDM_SEARCH_MOVE_LEFT_CHARGROUP
-            MENUITEM "向右移动光标单词\tCtrl+Right",         IDM_SEARCH_MOVE_RIGHT_CHARGROUP
-            MENUITEM "向左移动光标单词组\tCtrl+Alt+Left",    IDM_SEARCH_MOVE_LEFT_WORD
-            MENUITEM "向右移动光标单词组\tCtrl+Alt+Right",   IDM_SEARCH_MOVE_RIGHT_WORD
+            MENUITEM "向左移动光标单词\tCtrl+Left",          IDM_SEARCH_MOVE_LEFT_WORD
+            MENUITEM "向右移动光标单词\tCtrl+Right",         IDM_SEARCH_MOVE_RIGHT_WORD
+            MENUITEM "向左移动光标单词组\tCtrl+Alt+Left",    IDM_SEARCH_MOVE_LEFT_WORDGROUP
+            MENUITEM "向右移动光标单词组\tCtrl+Alt+Right",   IDM_SEARCH_MOVE_RIGHT_WORDGROUP
             MENUITEM "移动到上一个语句块首行\tCtrl+K",       IDM_SEARCH_MOVETOP_FIRSTLINE
             MENUITEM "移动到下一个语句块首行\tCtrl+J",       IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
         END
@@ -192,8 +192,8 @@ BEGIN
             MENUITEM "删除所有书签\tCtrl+Shift+F9",       IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "跳到上一个书签 (当前文件)\tCtrl+F2",      IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "跳到下一个书签 (当前文件)\tF2",           IDM_SEARCH_GOTO_NEXT_BOOKMARK
-            MENUITEM "跳上一个书签 (所有打开的文件)\tCtrl+Shift+F2", IDM_SEARCHPRE_BOOKMARK_INALL
-            MENUITEM "跳到下一个书签 (所有打开的文件)\tShift+F2",    IDM_SEARCH_BOOKMARK_INALL
+            MENUITEM "跳上一个书签 (所有打开的文件)\tCtrl+Shift+F2", IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
+            MENUITEM "跳到下一个书签 (所有打开的文件)\tShift+F2",    IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
         END
         POPUP "导航",                                                      IDM_EDIT_PLACEHOLDE14
         BEGIN
@@ -230,9 +230,9 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "缩放",                                IDM_EDIT_PLACEHOLDE15
         BEGIN
-            MENUITEM "放大\tCtrl+(+)",               IDM_VIEW_ZOOMOUT
-            MENUITEM "缩小\tCtrl+(-)",               IDM_VIEW_ZOOMIN
-            MENUITEM "重置缩放\tCtrl+(0 num)",       IDM_VIEW_ZOOMRESET
+            MENUITEM "放大\tCtrl+,Ctrl+MouseWheelUp",   IDM_VIEW_ZOOMOUT
+            MENUITEM "缩小\tCtrl-,Ctrl+MouseWheelDown", IDM_VIEW_ZOOMIN
+            MENUITEM "重置缩放\tCtrl+(0 num)",          IDM_VIEW_ZOOMRESET
         END
     END
     POPUP "格式(&M)"
@@ -317,7 +317,7 @@ BEGIN
     END
     POPUP "帮助(&H)"
     BEGIN
-    	MENUITEM "捐赠我们\tShift+P",                   IDM_DONATION
+    	MENUITEM "捐赠我们\tCtrl+F1",                   IDM_DONATION
         MENUITEM "功能简介(&O) ...",                    IDM_INTRODUTION
         MENUITEM "更新历史(&H) ...",                    IDM_CHANGELOG
         MENUITEM "关于(&A) ...",                        IDM_ABOUT
