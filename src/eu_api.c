@@ -99,6 +99,7 @@ static CRITICAL_SECTION eu_lua_cs = { &critsect_debug1, -1, 0, 0, 0, 0 };
 static CRITICAL_SECTION eu_curl_cs = { &critsect_debug2, -1, 0, 0, 0, 0 };
 static struct eu_config *g_config;
 static struct eu_theme  *g_theme;
+static eue_accel *g_accel;
 static eue_code eue_coding[] = 
     {
         {IDM_UNI_UTF8    , "UTF-8"}            ,
@@ -1425,16 +1426,68 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
     return g_theme != NULL;
 }
 
+bool WINAPI 
+eu_accel_ptr(ACCEL *accel)
+{
+    if (g_accel)
+    {
+        return true;
+    }
+    if (!accel)
+    {
+        return false;
+    }
+    ;
+    if (!(g_accel = (eue_accel *)calloc(sizeof(eue_accel), 1)))
+    {
+        return false;
+    }
+    for (int i = 0; accel && (i < MAX_ACCELS); ++i, ++accel)
+    {
+        if (!accel->cmd)
+        {
+            break;
+        }
+        memcpy(&g_accel->accel_ptr[i], accel, sizeof(ACCEL));
+        g_accel->accel_num++;
+    }
+    return (g_accel->accel_num>0);
+}
 
 struct eu_config *eu_get_config(void)
 {
     return g_config;
 }
 
-
 struct eu_theme *eu_get_theme(void)
 {
     return g_theme;
+}
+
+eue_accel *eu_get_accel(void)
+{
+    return g_accel;
+}
+
+void
+eu_free_theme(void)
+{
+    eu_safe_free(g_theme);
+}
+
+void
+eu_free_accel(void)
+{
+    if (g_accel)
+    {
+        if (g_accel->haccel)
+        {
+            DestroyAcceleratorTable(g_accel->haccel);
+            g_accel->haccel = NULL;
+        }
+        free(g_accel);
+        g_accel = NULL;
+    }
 }
 
 TCHAR *
@@ -1792,12 +1845,6 @@ eu_save_theme(void)
         fclose(fp);
     }
     free(save); 
-}
-
-void
-eu_free_theme(void)
-{
-    eu_safe_free(g_theme);
 }
 
 bool

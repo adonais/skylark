@@ -551,11 +551,11 @@ do_jit_proc(const TCHAR *pname, const TCHAR *psave)
 int WINAPI
 do_byte_code(eu_tabpage *pnode)
 {
-    DWORD written;
     HANDLE pfile = NULL;
     char *pbuffer = NULL;
     int status = 1;
-    uint32_t buf_len = 0;
+    uint32_t written = 0;
+    size_t buf_len = 0;
     TCHAR filename[FILESIZE+1]= {0};
     TCHAR pname[MAX_PATH+1] = {0};
     TCHAR psave[MAX_PATH+1] = {0};
@@ -566,24 +566,26 @@ do_byte_code(eu_tabpage *pnode)
     if ((pfile = util_mk_temp(pname, NULL)) == INVALID_HANDLE_VALUE)
     {
         printf("util_mk_temp return failed, cause:%lu\n", GetLastError());
-        return 1;
+        goto allclean;
     }
-    if (!(pbuffer = util_strdup_content(pnode, (size_t *)&buf_len)))
+    if (!(pbuffer = util_strdup_content(pnode, &buf_len)))
     {
         printf("util_strdup_content failed\n");
-        CloseHandle(pfile);
-        return 1;
+        goto allclean;
     }
+    if (!WriteFile(pfile, pbuffer, eu_uint_cast(buf_len), &written, NULL))
     {
-        WriteFile(pfile, pbuffer, buf_len, &written, NULL);
-        CloseHandle(pfile);
-        _sntprintf(filename, FILESIZE, _T("%s"), pnode->filename);
-        if (filename[_tcslen(filename)-1] == _T('*'))
-        {
-            filename[_tcslen(filename)-1] = 0;
-        } 
-    }        
-    if (pnode->pathname[0])
+        printf("WriteFile failed\n");
+        goto allclean;
+    }
+    FlushFileBuffers(pfile);
+    safe_close_handle(pfile);
+    _sntprintf(filename, FILESIZE, _T("%s"), pnode->filename);
+    if (filename[_tcslen(filename)-1] == _T('*'))
+    {
+        filename[_tcslen(filename)-1] = 0;
+    }
+    if (pnode->pathname[1] == L':')
     {
         _sntprintf(psave, MAX_PATH, _T("%s%s.bin"), pnode->pathname, filename);
     }
@@ -593,7 +595,6 @@ do_byte_code(eu_tabpage *pnode)
         _tcsncat(psave, filename, MAX_PATH);
         _tcsncat(psave, _T(".bin"), MAX_PATH);
     }
-    free(pbuffer);
     if (psave[0])
     {
         status = do_jit_proc(pname, psave);
@@ -608,8 +609,56 @@ do_byte_code(eu_tabpage *pnode)
         LOAD_I18N_RESSTR(IDS_LUA_CONV_FAIL, m_format);
         on_result_append_text(pnode->hwnd_qredit, m_format);
     }
-    DeleteFile(pname);
     pnode->edit_show = true;
     eu_window_resize(NULL); 
+allclean:
+    if (pfile)
+    {
+        CloseHandle(pfile);
+    }
+    if (pbuffer)
+    {
+        free(pbuffer);
+    }
+    DeleteFile(pname);
     return status;
+}
+
+static int
+utf8_filename(lua_State *L, const wchar_t *winfilename, int wsz, char *utf8buffer, int sz)
+{
+    sz = WideCharToMultiByte(CP_UTF8, 0, winfilename, wsz, utf8buffer, sz, NULL, NULL);
+    if (sz == 0)
+    {
+        return luaL_error(L, "convert to utf-8 filename fail");
+    }
+    return sz;
+}
+
+static int
+lprocessdir(lua_State *L)
+{
+    wchar_t path[MAX_PATH + 1] = { 0 };
+    char utf8path[MAX_PATH * 3] = { 0 };
+    eu_process_path(path, MAX_PATH);
+    if (STR_IS_NUL(path))
+    {
+        printf("lua lprocessdir error\n");
+        lua_pushnil(L);
+        return 1;
+    }
+    int wsz = eu_int_cast(wcsnlen(path, MAX_PATH));
+    int usz = utf8_filename(L, path, wsz, utf8path, MAX_PATH * 3);
+    lua_pushlstring(L, utf8path, usz);
+    return 1;
+}
+
+static const struct 
+luaL_Reg cb[] = { { "lprocessdir", lprocessdir }, { NULL, NULL } };
+
+__declspec(dllexport) int 
+luaopen_euapi(lua_State *L)
+{
+    luaL_register(L, "euapi", cb);
+    return 0;
 }

@@ -24,303 +24,303 @@ IDC_SKYLARK MENUEX
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                    IDM_FILE_NEW
-        MENUITEM "&Open...\tCtrl+O",                IDM_FILE_OPEN
+        MENUITEM "&New",                                               IDM_FILE_NEW
+        MENUITEM "&Open...",                                           IDM_FILE_OPEN
         POPUP "Open Recent History"
         BEGIN
-            MENUITEM "...",                         IDM_HISTORY_BASE
+            MENUITEM "...",                                            IDM_HISTORY_BASE
         END
-        MENUITEM "Clear Recent History",            IDM_HISTORY_CLEAN
-        MENUITEM "&Save\tCtrl+S",                   IDM_FILE_SAVE
-        MENUITEM "Save As...\tCtrl+Shift+S",        IDM_FILE_SAVEAS
-        MENUITEM "Save All\tCtrl+Alt+S",            IDM_FILE_SAVEALL
-        MENUITEM "&Close\tCtrl+F4",                 IDM_FILE_CLOSE
-        MENUITEM "Close All\tCtrl+Shift+F4",        IDM_FILE_CLOSEALL
-        MENUITEM "Close All But Active Document",   IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Clear Recent History",                               IDM_HISTORY_CLEAN
+        MENUITEM "&Save",                                              IDM_FILE_SAVE
+        MENUITEM "Save As...",                                         IDM_FILE_SAVEAS
+        MENUITEM "Save All",                                           IDM_FILE_SAVEALL
+        MENUITEM "&Close",                                             IDM_FILE_CLOSE
+        MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
+        MENUITEM "Close All But Active Document",                      IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
-        MENUITEM "Backup On File Write",            IDM_FILE_WRITE_COPY
-        MENUITEM "Save Last Session",               IDM_FILE_SESSION
+        MENUITEM "Backup On File Write",                               IDM_FILE_WRITE_COPY
+        MENUITEM "Save Last Session",                                  IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
-		MENUITEM "Print Setup",					    IDM_FILE_PAGESETUP
-		MENUITEM "Print...\tCtrl+P",			    IDM_FILE_PRINT
+        MENUITEM "Print Setup",                                        IDM_FILE_PAGESETUP
+        MENUITEM "Print...",                                           IDM_FILE_PRINT
         MENUITEM MF_SEPARATOR
-        MENUITEM "&Remote File Manager...",         IDM_FILE_REMOTE_FILESERVERS
+        MENUITEM "&Remote File Manager...",                            IDM_FILE_REMOTE_FILESERVERS
         MENUITEM MF_SEPARATOR
         POPUP "New File Newline"
         BEGIN
-            MENUITEM "Windows(CR+LF)",              IDM_FILE_NEWFILE_WINDOWS_EOLS
-            MENUITEM "Classic Mac OS(CR)",          IDM_FILE_NEWFILE_MAC_EOLS
-            MENUITEM "Unix/Linux(LF)",              IDM_FILE_NEWFILE_UNIX_EOLS
+            MENUITEM "Windows(CR+LF)",                                 IDM_FILE_NEWFILE_WINDOWS_EOLS
+            MENUITEM "Classic Mac OS(CR)",                             IDM_FILE_NEWFILE_MAC_EOLS
+            MENUITEM "Unix/Linux(LF)",                                 IDM_FILE_NEWFILE_UNIX_EOLS
         END
         POPUP "New File Encoding"
         BEGIN
-            MENUITEM "UTF8",                        IDM_FILE_NEWFILE_ENCODING_UTF8
-            MENUITEM "UTF8(BOM)",                   IDM_FILE_NEWFILE_ENCODING_UTF8B
-            MENUITEM "UTF-16LE",                    IDM_FILE_NEWFILE_ENCODING_UTF16LE
-            MENUITEM "UTF-16BE",                    IDM_FILE_NEWFILE_ENCODING_UTF16BE
-            MENUITEM "ANSI(Native Codepage)",       IDM_FILE_NEWFILE_ENCODING_ANSI
+            MENUITEM "UTF8",                                           IDM_FILE_NEWFILE_ENCODING_UTF8
+            MENUITEM "UTF8(BOM)",                                      IDM_FILE_NEWFILE_ENCODING_UTF8B
+            MENUITEM "UTF-16LE",                                       IDM_FILE_NEWFILE_ENCODING_UTF16LE
+            MENUITEM "UTF-16BE",                                       IDM_FILE_NEWFILE_ENCODING_UTF16BE
+            MENUITEM "ANSI(Native Codepage)",                          IDM_FILE_NEWFILE_ENCODING_ANSI
         END
         MENUITEM MF_SEPARATOR
-        MENUITEM "E&xit\tAlt+F4",                   IDM_EXIT
+        MENUITEM "E&xit",                                              IDM_EXIT
     END
     POPUP "&Edit"
     BEGIN
-        MENUITEM "&Undo\tCtrl+Z",                   IDM_EDIT_UNDO
-        MENUITEM "&Redo\tCtrl+Y",                   IDM_EDIT_REDO
+        MENUITEM "&Undo",                                              IDM_EDIT_UNDO
+        MENUITEM "&Redo",                                              IDM_EDIT_REDO
         MENUITEM MF_SEPARATOR
-        MENUITEM "Cu&t\tCtrl+X",                    IDM_EDIT_CUT
-        MENUITEM "&Copy\tCtrl+C",                   IDM_EDIT_COPY
-        MENUITEM "&Paste\tCtrl+V",                  IDM_EDIT_PASTE
-        MENUITEM "&Delete\tDel",                    IDM_EDIT_DELETE
+        MENUITEM "Cu&t",                                               IDM_EDIT_CUT
+        MENUITEM "&Copy",                                              IDM_EDIT_COPY
+        MENUITEM "&Paste",                                             IDM_EDIT_PASTE
+        MENUITEM "&Delete",                                            IDM_EDIT_DELETE
         MENUITEM MF_SEPARATOR
-        POPUP "Advanced Cut",                                IDM_EDIT_PLACEHOLDE1
+        POPUP "Advanced Cut",                                          IDM_EDIT_PLACEHOLDE1
         BEGIN
-            MENUITEM "Cut Line\tCtrl+Shift+X",               IDM_EDIT_CUTLINE
-            MENUITEM "Cut And Paste Line\tCtrl+Shift+Alt+X", IDM_EDIT_CUTLINE_AND_PASTELINE
+            MENUITEM "Cut Line",                                       IDM_EDIT_CUTLINE
+            MENUITEM "Cut And Paste Line",                             IDM_EDIT_CUTLINE_AND_PASTELINE
         END
-        POPUP "Advanced Copy",                               IDM_EDIT_PLACEHOLDE2
+        POPUP "Advanced Copy",                                         IDM_EDIT_PLACEHOLDE2
         BEGIN
-            MENUITEM "Copy Line\tCtrl+Shift+C",              IDM_EDIT_COPYLINE
-            MENUITEM "Copy And Paste Line\tCtrl+Shift+Alt+C",IDM_EDIT_COPYLINE_AND_PASTELINE
+            MENUITEM "Copy Line",                                      IDM_EDIT_COPYLINE
+            MENUITEM "Copy And Paste Line",                            IDM_EDIT_COPYLINE_AND_PASTELINE
             MENUITEM MF_SEPARATOR
-            MENUITEM "Copy File Name",                       IDM_EDIT_COPY_FILENAME
-            MENUITEM "Copy File Path",                       IDM_EDIT_COPY_PATHNAME
-            MENUITEM "Copy File Path And Name",              IDM_EDIT_COPY_PATHFILENAME
+            MENUITEM "Copy File Name",                                 IDM_EDIT_COPY_FILENAME
+            MENUITEM "Copy File Path",                                 IDM_EDIT_COPY_PATHNAME
+            MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
         END
-        POPUP "Advanced Paste",                              IDM_EDIT_PLACEHOLDE3
+        POPUP "Advanced Paste",                                        IDM_EDIT_PLACEHOLDE3
         BEGIN
-            MENUITEM "Paste Line\tCtrl+Shift+V",        IDM_EDIT_PASTELINE
-            MENUITEM "Paste Line Up\tCtrl+Shift+Alt+V", IDM_EDIT_PASTELINE_UPSTAIRS
+            MENUITEM "Paste Line",                                     IDM_EDIT_PASTELINE
+            MENUITEM "Paste Line Up",                                  IDM_EDIT_PASTELINE_UPSTAIRS
         END
-        POPUP "Advanced Delete",                         IDM_EDIT_PLACEHOLDE4
+        POPUP "Advanced Delete",                                       IDM_EDIT_PLACEHOLDE4
         BEGIN
-            MENUITEM "Delete Line\tCtrl+Shift+Delete,Ctrl+E",                      IDM_EDIT_DELETELINE
-            MENUITEM "Strip Leading Blan&ks\tCtrl+Shift+H",                        IDM_DELETE_SPACE_LINEHEAD
-            MENUITEM "Strip &Trailing Blanks\tCtrl+Shift+T",                       IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "&Remove Empty Lines\tCtrl+Shift+R",                          IDM_EDIT_DELETEBLANKLINE
-            MENUITEM "Remove All Empty Lines(Containing Blank Chars)\tCtrl+Alt+R", IDM_DELETE_ALL_SPACE_LINE
+            MENUITEM "Delete Line",                                    IDM_EDIT_DELETELINE
+            MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD
+            MENUITEM "Strip &Trailing Blanks",                         IDM_DELETE_SPACE_LINETAIL
+            MENUITEM "&Remove Empty Lines",                            IDM_EDIT_DELETEBLANKLINE
+            MENUITEM "Remove All Empty Lines(Containing Blank Chars)", IDM_DELETE_ALL_SPACE_LINE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Advanced Line Operations",              IDM_EDIT_PLACEHOLDE5
+        POPUP "Advanced Line Operations",                              IDM_EDIT_PLACEHOLDE5
         BEGIN
-        	MENUITEM "&Join Lines\tAlt+J",             IDM_EDIT_JOINLINE
-        	MENUITEM "Toggle Line Comment\tCtrl+/",    IDM_EDIT_LINECOMMENT
-        	MENUITEM "Block Comment\tCtrl+\\",         IDM_EDIT_STREAMCOMMENT
-        END	
+            MENUITEM "&Join Lines",                                    IDM_EDIT_JOINLINE
+            MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
+            MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
+        END
         MENUITEM MF_SEPARATOR
-        POPUP "Toggle Case",                           IDM_EDIT_PLACEHOLDE6
+        POPUP "Toggle Case",                                           IDM_EDIT_PLACEHOLDE6
         BEGIN
-            MENUITEM "Lower Case\tCtrl+U",             IDM_EDIT_LOWERCASE
-            MENUITEM "Upper Case\tCtrl+Shift+U",       IDM_EDIT_UPPERCASE
+            MENUITEM "Lower Case",                                     IDM_EDIT_LOWERCASE
+            MENUITEM "Upper Case",                                     IDM_EDIT_UPPERCASE
         END
         MENUITEM MF_SEPARATOR
         POPUP "Action &On Selection"
         BEGIN
-            MENUITEM "&Open File\tCtrl+Shift+F",             IDM_OPEN_FILE_PATH
-            MENUITEM "Open Containing &Folder\tCtrl+Shift+D",IDM_OPEN_CONTAINING_FOLDER
+            MENUITEM "&Open File",                                     IDM_OPEN_FILE_PATH
+            MENUITEM "Open Containing &Folder",                        IDM_OPEN_CONTAINING_FOLDER
             MENUITEM MF_SEPARATOR
-			MENUITEM "Search With &Google\tCtrl+Shift+G",	 IDM_ONLINE_SEARCH_GOOGLE
-			MENUITEM "Search With &Baidu\tCtrl+Shift+B",	 IDM_ONLINE_SEARCH_BAIDU
-			MENUITEM "Search With B&ing\tCtrl+Shift+I",	     IDM_ONLINE_SEARCH_BING
-        END        
-        POPUP "BASE64 Encoding/Decoding",            IDM_EDIT_PLACEHOLDE7
-        BEGIN
-            MENUITEM "BASE64 Encoding",              IDM_EDIT_BASE64_ENCODING
-            MENUITEM "BASE64 Decoding",              IDM_EDIT_BASE64_DECODING
+            MENUITEM "Search With &Google",                            IDM_ONLINE_SEARCH_GOOGLE
+            MENUITEM "Search With &Baidu",                             IDM_ONLINE_SEARCH_BAIDU
+            MENUITEM "Search With B&ing",                              IDM_ONLINE_SEARCH_BING
         END
-        POPUP "Hash/Message Digest",                 IDM_EDIT_PLACEHOLDE8
+        POPUP "BASE64 Encoding/Decoding",                              IDM_EDIT_PLACEHOLDE7
         BEGIN
-            MENUITEM "MD5",                          IDM_EDIT_MD5
-            MENUITEM "SHA1",                         IDM_EDIT_SHA1
-            MENUITEM "SHA256",                       IDM_EDIT_SHA256
+            MENUITEM "BASE64 Encoding",                                IDM_EDIT_BASE64_ENCODING
+            MENUITEM "BASE64 Decoding",                                IDM_EDIT_BASE64_DECODING
         END
-        POPUP "3DES Encryption/Decryption",          IDM_EDIT_PLACEHOLDE9
+        POPUP "Hash/Message Digest",                                   IDM_EDIT_PLACEHOLDE8
         BEGIN
-            MENUITEM "3DES(CBC) Encryption...",      IDM_EDIT_3DES_CBC_ENCRYPTO
-            MENUITEM "3DES(CBC) Decryption...",      IDM_EDIT_3DES_CBC_DECRYPTO
+            MENUITEM "MD5",                                            IDM_EDIT_MD5
+            MENUITEM "SHA1",                                           IDM_EDIT_SHA1
+            MENUITEM "SHA256",                                         IDM_EDIT_SHA256
+        END
+        POPUP "3DES Encryption/Decryption",                            IDM_EDIT_PLACEHOLDE9
+        BEGIN
+            MENUITEM "3DES(CBC) Encryption...",                        IDM_EDIT_3DES_CBC_ENCRYPTO
+            MENUITEM "3DES(CBC) Decryption...",                        IDM_EDIT_3DES_CBC_DECRYPTO
         END
     END
     POPUP "&Search"
     BEGIN
-        MENUITEM "&Find...\tCtrl+F",                       IDM_SEARCH_FIND
-        MENUITEM "Find Previous\tCtrl+F3",                 IDM_SEARCH_FINDPREV
-        MENUITEM "Find Next\tF3",                          IDM_SEARCH_FINDNEXT
-        MENUITEM "&Replace...\tCtrl+R",                    IDM_SEARCH_REPLACE
-        MENUITEM "File Search...\tCtrl+Alt+F",             IDM_SEARCH_FILES
+        MENUITEM "&Find...",                                           IDM_SEARCH_FIND
+        MENUITEM "Find Previous",                                      IDM_SEARCH_FINDPREV
+        MENUITEM "Find Next",                                          IDM_SEARCH_FINDNEXT
+        MENUITEM "&Replace...",                                        IDM_SEARCH_REPLACE
+        MENUITEM "File Search...",                                     IDM_SEARCH_FILES
         MENUITEM MF_SEPARATOR
-        MENUITEM "Begin/End Select\tCtrl+Alt+Q",           IDM_UPDATE_SELECTION
-        MENUITEM "Multiple Selection (Explain)",           IDM_SEARCH_MULTISELECT_README
-        MENUITEM "Column Selection\tAlt+C,Alt+Shift+←↑→↓", IDM_SELECTION_RECTANGLE
-        POPUP "Quick Select",                              IDM_EDIT_PLACEHOLDE10
+        MENUITEM "Begin/End Select",                                   IDM_UPDATE_SELECTION
+        MENUITEM "Multiple Selection (Explain)",                       IDM_SEARCH_MULTISELECT_README
+        MENUITEM "Column Selection",                                   IDM_SELECTION_RECTANGLE
+        POPUP "Quick Select",                                          IDM_EDIT_PLACEHOLDE10
         BEGIN
-            MENUITEM "Select &All\tCtrl+A",                IDM_SEARCH_SELECTALL
-            MENUITEM "Select &Word Group\tCtrl+W",         IDM_SEARCH_SELECTWORD
-            MENUITEM "Select &Line\tCtrl+L",               IDM_SEARCH_SELECTLINE
-        END                                                
-        POPUP "Advanced Select",                           IDM_EDIT_PLACEHOLDE11
+            MENUITEM "Select &All",                                    IDM_SEARCH_SELECTALL
+            MENUITEM "Select &Word Group",                             IDM_SEARCH_SELECTWORD
+            MENUITEM "Select &Line",                                   IDM_SEARCH_SELECTLINE
+        END
+        POPUP "Advanced Select",                                       IDM_EDIT_PLACEHOLDE11
         BEGIN
-            MENUITEM "Select Words To The Left\tCtrl+Shift+Left",            IDM_SEARCH_ADDSELECT_LEFT_WORD
-            MENUITEM "Select Words To The Right\tCtrl+Shift+Right",          IDM_SEARCH_ADDSELECT_RIGHT_WORD
-            MENUITEM "Select Word Group To The Left\tCtrl+Shift+Alt+Left",   IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP
-            MENUITEM "Select Word Group To The Right\tCtrl+Shift+Alt+Right", IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP
-            MENUITEM "Select Block To Previous Line\tCtrl+Shift+[",          IDM_SEARCH_SELECTTOP_FIRSTLINE
-            MENUITEM "Select Block To Next Line\tCtrl+Shift+]",              IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
+            MENUITEM "Select Words To The Left",                       IDM_SEARCH_ADDSELECT_LEFT_WORD
+            MENUITEM "Select Words To The Right",                      IDM_SEARCH_ADDSELECT_RIGHT_WORD
+            MENUITEM "Select Word Group To The Left",                  IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP
+            MENUITEM "Select Word Group To The Right",                 IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP
+            MENUITEM "Select Block To Previous Line",                  IDM_SEARCH_SELECTTOP_FIRSTLINE
+            MENUITEM "Select Block To Next Line",                      IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Advanced Move Cursor",                                        IDM_EDIT_PLACEHOLDE12
+        POPUP "Advanced Move Cursor",                                  IDM_EDIT_PLACEHOLDE12
         BEGIN
-            MENUITEM "Moves Left (Word For Step)\tCtrl+Left",                IDM_SEARCH_MOVE_LEFT_WORD
-            MENUITEM "Moves Right (Word For Step)\tCtrl+Right",              IDM_SEARCH_MOVE_RIGHT_WORD
-            MENUITEM "Moves Left (Word Group For step)\tCtrl+Alt+Left",      IDM_SEARCH_MOVE_LEFT_WORDGROUP
-            MENUITEM "Moves Right (Word Group For step)\tCtrl+Alt+Right",    IDM_SEARCH_MOVE_RIGHT_WORDGROUP
-            MENUITEM "Moves To The Previous Block\tCtrl+K",                  IDM_SEARCH_MOVETOP_FIRSTLINE
-            MENUITEM "Moves To The Next Block\tCtrl+J",                      IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
+            MENUITEM "Moves Left (Word For Step)",                     IDM_SEARCH_MOVE_LEFT_WORD
+            MENUITEM "Moves Right (Word For Step)",                    IDM_SEARCH_MOVE_RIGHT_WORD
+            MENUITEM "Moves Left (Word Group For step)",               IDM_SEARCH_MOVE_LEFT_WORDGROUP
+            MENUITEM "Moves Right (Word Group For step)",              IDM_SEARCH_MOVE_RIGHT_WORDGROUP
+            MENUITEM "Moves To The Previous Block",                    IDM_SEARCH_MOVETOP_FIRSTLINE
+            MENUITEM "Moves To The Next Block",                        IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "&Go To..."
         BEGIN
-            MENUITEM "Jump To First Line\tCtrl+Home",       IDM_SEARCH_GOTOHOME
-            MENUITEM "Jump To Last Line\tCtrl+End",         IDM_SEARCH_GOTOEND
-            MENUITEM "Jump To Line...\tCtrl+G",             IDM_SEARCH_GOTOLINE
-        END        
-        MENUITEM MF_SEPARATOR
-        POPUP "Bookmark",                                   IDM_EDIT_PLACEHOLDE13
-        BEGIN
-            MENUITEM "Toggle Bookmark \tF9",                IDM_SEARCH_TOGGLE_BOOKMARK
-            MENUITEM "Add Bookmark\tAlt+F9",                IDM_SEARCH_ADD_BOOKMARK
-            MENUITEM "Delete Bookmark\tCtrl+F9",            IDM_SEARCH_REMOVE_BOOKMARK
-            MENUITEM "Delete All Bookmark\tCtrl+Shift+F9",  IDM_SEARCH_REMOVE_ALL_BOOKMARKS
-            MENUITEM "Jump Previous Bookmark (Current File)\tCtrl+F2",         IDM_SEARCH_GOTO_PREV_BOOKMARK
-            MENUITEM "Jump Next Bookmark (Current File)\tF2",                  IDM_SEARCH_GOTO_NEXT_BOOKMARK
-            MENUITEM "Jump Previous Bookmark (All Open Files)\tCtrl+Shift+F2", IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
-            MENUITEM "Jump Next Bookmark (All Open Files)\tShift+F2",          IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
+            MENUITEM "Jump To First Line",                             IDM_SEARCH_GOTOHOME
+            MENUITEM "Jump To Last Line",                              IDM_SEARCH_GOTOEND
+            MENUITEM "Jump To Line...",                                IDM_SEARCH_GOTOLINE
         END
-        POPUP "Navigation",                                                    IDM_EDIT_PLACEHOLDE14
+        MENUITEM MF_SEPARATOR
+        POPUP "Bookmark",                                              IDM_EDIT_PLACEHOLDE13
         BEGIN
-            MENUITEM "Back to the previous (Current File)\tCtrl+Back",         IDM_SEARCH_NAVIGATE_PREV_THIS
-            MENUITEM "Back to the previous (All Open Files)\tCtrl+Shift+Back", IDM_SEARCH_NAVIGATE_PREV_INALL
+            MENUITEM "Toggle Bookmark ",                               IDM_SEARCH_TOGGLE_BOOKMARK
+            MENUITEM "Add Bookmark",                                   IDM_SEARCH_ADD_BOOKMARK
+            MENUITEM "Delete Bookmark",                                IDM_SEARCH_REMOVE_BOOKMARK
+            MENUITEM "Delete All Bookmark",                            IDM_SEARCH_REMOVE_ALL_BOOKMARKS
+            MENUITEM "Jump Previous Bookmark (Current File)",          IDM_SEARCH_GOTO_PREV_BOOKMARK
+            MENUITEM "Jump Next Bookmark (Current File)",              IDM_SEARCH_GOTO_NEXT_BOOKMARK
+            MENUITEM "Jump Previous Bookmark (All Open Files)",        IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
+            MENUITEM "Jump Next Bookmark (All Open Files)",            IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
+        END
+        POPUP "Navigation",                                            IDM_EDIT_PLACEHOLDE14
+        BEGIN
+            MENUITEM "Back to the previous (Current File)",            IDM_SEARCH_NAVIGATE_PREV_THIS
+            MENUITEM "Back to the previous (All Open Files)",          IDM_SEARCH_NAVIGATE_PREV_INALL
         END
     END
     POPUP "&View"
     BEGIN
-        MENUITEM "&File Manager",                    IDM_VIEW_FILETREE
-        MENUITEM "Symbolic Window",                  IDM_VIEW_SYMTREE
+        MENUITEM "&File Manager",                                      IDM_VIEW_FILETREE
+        MENUITEM "Symbolic Window",                                    IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
-        MENUITEM "F&ull Screen Mode\tF11",           IDM_VIEW_FULLSCREEN
-        MENUITEM "Show M&enubar\tAlt",		         IDM_VIEW_MENUBAR
-		MENUITEM "S&how Toolbar\tCtrl+F11",		     IDM_VIEW_TOOLBAR
-		MENUITEM "Show Stat&usbar\tShift+F11",		 IDM_VIEW_STATUSBAR        
+        MENUITEM "F&ull Screen Mode",                                  IDM_VIEW_FULLSCREEN
+        MENUITEM "Show M&enubar",                                      IDM_VIEW_MENUBAR
+        MENUITEM "S&how Toolbar",                                      IDM_VIEW_TOOLBAR
+        MENUITEM "Show Stat&usbar",                                    IDM_VIEW_STATUSBAR
         MENUITEM MF_SEPARATOR
-        MENUITEM "Tab Width [N] Spaces...",          IDM_VIEW_TAB_WIDTH
-        MENUITEM "Tabs As Spaces",                   IDM_TAB_CONVERT_SPACES
+        MENUITEM "Tab Width [N] Spaces...",                            IDM_VIEW_TAB_WIDTH
+        MENUITEM "Tabs As Spaces",                                     IDM_TAB_CONVERT_SPACES
         MENUITEM MF_SEPARATOR
-        MENUITEM "&Hex Edit View\tCtrl+H",           IDM_VIEW_HEXEDIT_MODE
+        MENUITEM "&Hex Edit View",                                     IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
-        MENUITEM "Highlight The Matching String\tShift+MouseLClick",    IDM_VIEW_HIGHLIGHT_STR
-        MENUITEM "Highlight Current &Block",                            IDM_VIEW_HIGHLIGHT_FOLD
-        MENUITEM "Auto Indent",                                         IDM_EDIT_AUTO_INDENTATION
+        MENUITEM "Highlight The Matching String",                      IDM_VIEW_HIGHLIGHT_STR
+        MENUITEM "Highlight Current &Block",                           IDM_VIEW_HIGHLIGHT_FOLD
+        MENUITEM "Auto Indent",                                        IDM_EDIT_AUTO_INDENTATION
         MENUITEM MF_SEPARATOR
-        MENUITEM "Line &Numbers\tCtrl+Shift+N",      IDM_VIEW_LINENUMBER_VISIABLE
-        MENUITEM "Show Bookmark",                    IDM_VIEW_BOOKMARK_VISIABLE
-        MENUITEM "Show Fold Lines",                  IDM_SOURCE_BLOCKFOLD_VISIABLE
+        MENUITEM "Line &Numbers",                                      IDM_VIEW_LINENUMBER_VISIABLE
+        MENUITEM "Show Bookmark",                                      IDM_VIEW_BOOKMARK_VISIABLE
+        MENUITEM "Show Fold Lines",                                    IDM_SOURCE_BLOCKFOLD_VISIABLE
         MENUITEM MF_SEPARATOR
-        MENUITEM "Show White Space",                 IDM_VIEW_WHITESPACE_VISIABLE
-        MENUITEM "Show Wrap Symbol",                 IDM_VIEW_NEWLINE_VISIABLE
-        MENUITEM "Show Indent Guide",                IDM_VIEW_INDENTGUIDES_VISIABLE
+        MENUITEM "Show White Space",                                   IDM_VIEW_WHITESPACE_VISIABLE
+        MENUITEM "Show Wrap Symbol",                                   IDM_VIEW_NEWLINE_VISIABLE
+        MENUITEM "Show Indent Guide",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
         MENUITEM MF_SEPARATOR
-        POPUP "Zoom",                                IDM_EDIT_PLACEHOLDE15
+        POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
         BEGIN
-            MENUITEM "Zoom Out\tCtrl+,Ctrl+MouseWheelUp",    IDM_VIEW_ZOOMOUT
-            MENUITEM "Zoom In\tCtrl-,Ctrl+MouseWheelDown",   IDM_VIEW_ZOOMIN
-            MENUITEM "Reset Zoom\tCtrl+(0 num)",             IDM_VIEW_ZOOMRESET
+            MENUITEM "Zoom Out",                                       IDM_VIEW_ZOOMOUT
+            MENUITEM "Zoom In",                                        IDM_VIEW_ZOOMIN
+            MENUITEM "Reset Zoom",                                     IDM_VIEW_ZOOMRESET
         END
     END
     POPUP "For&mat"
     BEGIN
-        POPUP "Json File",                                   IDM_EDIT_PLACEHOLDE16
+        POPUP "Json File",                                             IDM_EDIT_PLACEHOLDE16
         BEGIN
-            MENUITEM "Reformat Json\tCtrl+F6",      	     IDM_FORMAT_REFORMAT
-            MENUITEM "Compress Json\tCtrl+Alt+F6",    	     IDM_FORMAT_COMPRESS
+            MENUITEM "Reformat Json",                                  IDM_FORMAT_REFORMAT
+            MENUITEM "Compress Json",                                  IDM_FORMAT_COMPRESS
         END
-        POPUP "Clang-format",                                IDM_EDIT_PLACEHOLDE17
+        POPUP "Clang-format",                                          IDM_EDIT_PLACEHOLDE17
         BEGIN
-            MENUITEM "Format Current Document\tCtrl+F7",     IDM_FORMAT_WHOLE_FILE
-            MENUITEM "Format Selected Text\tCtrl+Alt+F7",    IDM_FORMAT_RANGLE_STR
+            MENUITEM "Format Current Document",                        IDM_FORMAT_WHOLE_FILE
+            MENUITEM "Format Selected Text",                           IDM_FORMAT_RANGLE_STR
         END
-        POPUP "Lua Scripts",                                 IDM_EDIT_PLACEHOLDE18
+        POPUP "Lua Scripts",                                           IDM_EDIT_PLACEHOLDE18
         BEGIN
-            MENUITEM "Run This Script\tCtrl+F8",             IDM_FORMAT_RUN_SCRIPT
-            MENUITEM "Convert To Bytecode\tCtrl+Alt+F8",     IDM_FORMAT_BYTE_CODE
+            MENUITEM "Run This Script",                                IDM_FORMAT_RUN_SCRIPT
+            MENUITEM "Convert To Bytecode",                            IDM_FORMAT_BYTE_CODE
         END
-        POPUP "Chinese Internal Code Conversion",            IDM_EDIT_PLACEHOLDE19
+        POPUP "Chinese Internal Code Conversion",                      IDM_EDIT_PLACEHOLDE19
         BEGIN
-            MENUITEM "Simplified To Traditional\tCtrl+Shift+W", IDM_EDIT_GB_BIG5
-            MENUITEM "Traditional To Simplified\tCtrl+Shift+Q", IDM_EDIT_BIG5_GB
-        END                
+            MENUITEM "Simplified To Traditional",                      IDM_EDIT_GB_BIG5
+            MENUITEM "Traditional To Simplified",                      IDM_EDIT_BIG5_GB
+        END
         MENUITEM MF_SEPARATOR
-        MENUITEM "Word Wrap\tCtrl+Shift+L",                  IDM_VIEW_WRAPLINE_MODE
-        MENUITEM "QR Code Generator\tCtrl+Q",                IDM_EDIT_QRCODE
-    END    
-    POPUP "&Programming",                                    IDM_EDIT_PLACEHOLDE20
+        MENUITEM "Word Wrap",                                          IDM_VIEW_WRAPLINE_MODE
+        MENUITEM "QR Code Generator",                                  IDM_EDIT_QRCODE
+    END
+    POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE20
     BEGIN
-        MENUITEM "Block Collapse Switch\tAlt+|",           IDM_SOURCE_BLOCKFOLD_TOGGLE
-        MENUITEM "Fold Block\tAlt+}",                      IDM_SOURCE_BLOCKFOLD_CONTRACT
-        MENUITEM "Unfold Block\tAlt+{",                    IDM_SOURCE_BLOCKFOLD_EXPAND
-        MENUITEM "Fold All",                               IDM_SOURCE_BLOCKFOLD_CONTRACTALL
-        MENUITEM "Unfold All",                             IDM_SOURCE_BLOCKFOLD_EXPANDALL
+        MENUITEM "Block Collapse Switch",                              IDM_SOURCE_BLOCKFOLD_TOGGLE
+        MENUITEM "Fold Block",                                         IDM_SOURCE_BLOCKFOLD_CONTRACT
+        MENUITEM "Unfold Block",                                       IDM_SOURCE_BLOCKFOLD_EXPAND
+        MENUITEM "Fold All",                                           IDM_SOURCE_BLOCKFOLD_CONTRACTALL
+        MENUITEM "Unfold All",                                         IDM_SOURCE_BLOCKFOLD_EXPANDALL
         MENUITEM MF_SEPARATOR
-        MENUITEM "Jump To Symbol Definition\tF12",         IDM_SOURCECODE_GOTODEF
+        MENUITEM "Jump To Symbol Definition",                          IDM_SOURCECODE_GOTODEF
         MENUITEM MF_SEPARATOR
-        MENUITEM "Enable Autocomplete Box",                IDM_SOURCEE_ENABLE_ACSHOW
-        MENUITEM "Input [N] Chars Complete Box Popup...",  IDM_SOURCEE_ACSHOW_CHARS
-        MENUITEM "Enable Prototype Prompt",                IDM_SOURCE_ENABLE_CTSHOW
+        MENUITEM "Enable Autocomplete Box",                            IDM_SOURCEE_ENABLE_ACSHOW
+        MENUITEM "Input [N] Chars Complete Box Popup...",              IDM_SOURCEE_ACSHOW_CHARS
+        MENUITEM "Enable Prototype Prompt",                            IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR
-        MENUITEM "Insert Database Automatic Header",         IDM_DATABASE_INSERT_CONFIG
-        MENUITEM "Executes Selected SQL Statement\tF5",      IDM_DATABASE_EXECUTE_SQL
+        MENUITEM "Insert Database Automatic Header",                   IDM_DATABASE_INSERT_CONFIG
+        MENUITEM "Executes Selected SQL Statement",                    IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
-        MENUITEM "Insert REDIS Automatic Header",            IDM_REDIS_INSERT_CONFIG
-        MENUITEM "Executes Selected REDIS Command\tF5",      IDM_REDIS_EXECUTE_COMMAND
+        MENUITEM "Insert REDIS Automatic Header",                      IDM_REDIS_INSERT_CONFIG
+        MENUITEM "Executes Selected REDIS Command",                    IDM_REDIS_EXECUTE_COMMAND
         MENUITEM MF_SEPARATOR
-        MENUITEM "Execute File With Preset Actions\tCtrl+F5",IDM_PROGRAM_EXECUTE_ACTION
+        MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END
     POPUP "Se&ttings"
     BEGIN
-        MENUITEM "Popup Menu On WINDOWS File Right-Click",     IDM_ENV_FILE_POPUPMENU
-        MENUITEM "Popup Menu On WINDOWS Directory Right-Click",IDM_ENV_DIRECTORY_POPUPMENU
+        MENUITEM "Popup Menu On WINDOWS File Right-Click",             IDM_ENV_FILE_POPUPMENU
+        MENUITEM "Popup Menu On WINDOWS Directory Right-Click",        IDM_ENV_DIRECTORY_POPUPMENU
         MENUITEM MF_SEPARATOR
-        MENUITEM "File Association For Skylark Editor",        IDM_ENV_SET_ASSOCIATED_WITH
+        MENUITEM "File Association For Skylark Editor",                IDM_ENV_SET_ASSOCIATED_WITH
         MENUITEM MF_SEPARATOR
         POPUP "UI Language"
         BEGIN
-            MENUITEM "...",                                    IDM_LOCALES_BASE
+            MENUITEM "...",                                            IDM_LOCALES_BASE
         END
         MENUITEM MF_SEPARATOR
         POPUP "Select Theme Plan"
         BEGIN
-            MENUITEM "...",                                    IDM_STYLETHEME_BASE
+            MENUITEM "...",                                            IDM_STYLETHEME_BASE
         END
-        MENUITEM "Customize Theme...",                         IDM_VIEW_MODIFY_STYLETHEME
-        MENUITEM "Copy Create Theme...",                       IDM_VIEW_COPYNEW_STYLETHEME               
+        MENUITEM "Customize Theme...",                                 IDM_VIEW_MODIFY_STYLETHEME
+        MENUITEM "Copy Create Theme...",                               IDM_VIEW_COPYNEW_STYLETHEME
         MENUITEM MF_SEPARATOR
-		POPUP "Font &Quality",                  IDM_SETTING_FONTQUALITY
-		BEGIN
-			MENUITEM "&None",				    IDM_VIEW_FONTQUALITY_NONE
-			MENUITEM "&Standard",				IDM_VIEW_FONTQUALITY_STANDARD
-			MENUITEM "&ClearType",				IDM_VIEW_FONTQUALITY_CLEARTYPE
-		END
-		POPUP "Ren&dering Technology",          IDM_SETTING_RENDER
-		BEGIN
-			MENUITEM "&Legacy GDI",			    IDM_SET_RENDER_TECH_GDI
-			MENUITEM "&DirectWrite",		    IDM_SET_RENDER_TECH_D2D
-			MENUITEM "DirectWrite &Retain",		IDM_SET_RENDER_TECH_D2DRETAIN
-		END
+        POPUP "Font &Quality",                                         IDM_SETTING_FONTQUALITY
+        BEGIN
+            MENUITEM "&None",                                          IDM_VIEW_FONTQUALITY_NONE
+            MENUITEM "&Standard",                                      IDM_VIEW_FONTQUALITY_STANDARD
+            MENUITEM "&ClearType",                                     IDM_VIEW_FONTQUALITY_CLEARTYPE
+        END
+        POPUP "Ren&dering Technology",                                 IDM_SETTING_RENDER
+        BEGIN
+            MENUITEM "&Legacy GDI",                                    IDM_SET_RENDER_TECH_GDI
+            MENUITEM "&DirectWrite",                                   IDM_SET_RENDER_TECH_D2D
+            MENUITEM "DirectWrite &Retain",                            IDM_SET_RENDER_TECH_D2DRETAIN
+        END
     END
     POPUP "&Help"
     BEGIN
-    	MENUITEM "Donate Now\tCtrl+F1",         IDM_DONATION
-        MENUITEM "Introduction &Of Eidt ...",   IDM_INTRODUTION
-        MENUITEM "Update &history ...",         IDM_CHANGELOG
-        MENUITEM "&About ...",                  IDM_ABOUT
+        MENUITEM "Donate Now",                                         IDM_DONATION
+        MENUITEM "Introduction &Of Eidt ...",                          IDM_INTRODUTION
+        MENUITEM "Update &history ...",                                IDM_CHANGELOG
+        MENUITEM "&About ...",                                         IDM_ABOUT
     END
 END
 
@@ -328,17 +328,17 @@ IDR_TABPAGE_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "&Close\tCtrl+F4",                   IDM_FILE_CLOSE
-        MENUITEM "Close All\tCtrl+Shift+F4",          IDM_FILE_CLOSEALL
-        MENUITEM "Close All But Active Document",     IDM_FILE_CLOSEALL_EXCLUDE
-        MENUITEM SEPARATOR                            
-        MENUITEM "Copy File Name",                    IDM_EDIT_COPY_FILENAME
-        MENUITEM "Copy File Path",                    IDM_EDIT_COPY_PATHNAME
-        MENUITEM "Copy File Path And Nam",            IDM_EDIT_COPY_PATHFILENAME
-        MENUITEM SEPARATOR                            
-        MENUITEM "&Save\tCtrl+S",                     IDM_FILE_SAVE
+        MENUITEM "&Close",                                             IDM_FILE_CLOSE
+        MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
+        MENUITEM "Close All But Active Document",                      IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM SEPARATOR
-        MENUITEM "Open Folder Workspace\tCtrl+ALT+W", IDM_FILE_WORKSPACE  
+        MENUITEM "Copy File Name",                                     IDM_EDIT_COPY_FILENAME
+        MENUITEM "Copy File Path",                                     IDM_EDIT_COPY_PATHNAME
+        MENUITEM "Copy File Path And Nam",                             IDM_EDIT_COPY_PATHFILENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Save",                                              IDM_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "Open Folder Workspace",                              IDM_FILE_WORKSPACE
     END
 END
 
@@ -346,18 +346,18 @@ IDR_EDITOR_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Cu&t",                    IDM_EDIT_CUT
-        MENUITEM "&Copy",                   IDM_EDIT_COPY
-        MENUITEM "&Paste",                  IDM_EDIT_PASTE
+        MENUITEM "Cu&t",                                               IDM_EDIT_CUT
+        MENUITEM "&Copy",                                              IDM_EDIT_COPY
+        MENUITEM "&Paste",                                             IDM_EDIT_PASTE
         MENUITEM SEPARATOR
-        MENUITEM "Cut Line",                IDM_EDIT_CUTLINE
-        MENUITEM "Copy Line",               IDM_EDIT_COPYLINE
-        MENUITEM "Paste Line",              IDM_EDIT_PASTELINE
-        MENUITEM "Delete Line",             IDM_EDIT_DELETELINE
-        MENUITEM "Join Lines",              IDM_EDIT_JOINLINE
+        MENUITEM "Cut Line",                                           IDM_EDIT_CUTLINE
+        MENUITEM "Copy Line",                                          IDM_EDIT_COPYLINE
+        MENUITEM "Paste Line",                                         IDM_EDIT_PASTELINE
+        MENUITEM "Delete Line",                                        IDM_EDIT_DELETELINE
+        MENUITEM "Join Lines",                                         IDM_EDIT_JOINLINE
         MENUITEM SEPARATOR
-        MENUITEM "Lower Case",              IDM_EDIT_LOWERCASE
-        MENUITEM "Upper Case",              IDM_EDIT_UPPERCASE
+        MENUITEM "Lower Case",                                         IDM_EDIT_LOWERCASE
+        MENUITEM "Upper Case",                                         IDM_EDIT_UPPERCASE
    END
 END
 
@@ -365,11 +365,11 @@ IDR_FILETREE_DIRECTORY_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Create File",                        IDM_CREATE_FILE
-        MENUITEM "Create Subdirectory",                IDM_CREATE_SUB_DIRECTORY
+        MENUITEM "Create File",                                        IDM_CREATE_FILE
+        MENUITEM "Create Subdirectory",                                IDM_CREATE_SUB_DIRECTORY
         MENUITEM SEPARATOR
-        MENUITEM "Rename Directory",                   IDM_RENAME_DIRECTORY
-        MENUITEM "Delete Directory",                   IDM_DELETE_DIRECTORY
+        MENUITEM "Rename Directory",                                   IDM_RENAME_DIRECTORY
+        MENUITEM "Delete Directory",                                   IDM_DELETE_DIRECTORY
     END
 END
 
@@ -377,13 +377,13 @@ IDR_FILETREE_FILE_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Copy File",                        IDM_COPY_FILE
-        MENUITEM "Rename File",                      IDM_RENAME_FILE
-        MENUITEM "Delete File",                      IDM_DELETE_FILE
+        MENUITEM "Copy File",                                          IDM_COPY_FILE
+        MENUITEM "Rename File",                                        IDM_RENAME_FILE
+        MENUITEM "Delete File",                                        IDM_DELETE_FILE
         MENUITEM SEPARATOR
-        MENUITEM "Generate MD5 Into Clipboard",      IDM_FILE_MD5_CLIP
-        MENUITEM "Generate SHA1 Into Clipboard",     IDM_FILE_SHA1_CLIP
-        MENUITEM "Generate SHA256 Into Clipboard",   IDM_FILE_SHA256_CLIP        
+        MENUITEM "Generate MD5 Into Clipboard",                        IDM_FILE_MD5_CLIP
+        MENUITEM "Generate SHA1 Into Clipboard",                       IDM_FILE_SHA1_CLIP
+        MENUITEM "Generate SHA256 Into Clipboard",                     IDM_FILE_SHA256_CLIP
     END
 END
 
@@ -391,8 +391,8 @@ IDR_FILETREE_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Refresh",                           IDM_RELOAD_FILETREE
-        MENUITEM "Search",                            IDM_RELOAD_FILESEARCH
+        MENUITEM "Refresh",                                            IDM_RELOAD_FILETREE
+        MENUITEM "Search",                                             IDM_RELOAD_FILESEARCH
     END
 END
 
@@ -400,7 +400,7 @@ IDR_SYMBOLLIST_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Refresh List",                      IDM_RELOAD_SYMBOLLIST
+        MENUITEM "Refresh List",                                       IDM_RELOAD_SYMBOLLIST
     END
 END
 
@@ -408,7 +408,7 @@ IDR_SYMBOLTREE_REFRESH_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Refresh Tree",                      IDM_RELOAD_SYMBOLTREE
+        MENUITEM "Refresh Tree",                                       IDM_RELOAD_SYMBOLTREE
     END
 END
 
@@ -416,7 +416,7 @@ IDR_SYMBOLTREE_TABLE_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Select Table",                      IDM_SELECT_TABLE_SYMBOLTREE
+        MENUITEM "Select Table",                                       IDM_SELECT_TABLE_SYMBOLTREE
     END
 END
 
@@ -424,7 +424,7 @@ IDR_SYMBOLTREE_ROW_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Select Row",                        IDM_SELECT_ROW_SYMBOLTREE
+        MENUITEM "Select Row",                                         IDM_SELECT_ROW_SYMBOLTREE
     END
 END
 
@@ -432,9 +432,9 @@ IDR_TOOLBAR_POPUPMENU MENU
 BEGIN
     POPUP "0"
     BEGIN
-    	MENUITEM "Show M&enubar\tAlt",		          IDM_VIEW_MENUBAR
-		MENUITEM "S&how Toolbar\tCtrl+F11",		      IDM_VIEW_TOOLBAR
-		MENUITEM "Show Stat&usbar\tShift+F11",		  IDM_VIEW_STATUSBAR
+        MENUITEM "Show M&enubar",                                      IDM_VIEW_MENUBAR
+        MENUITEM "S&how Toolbar",                                      IDM_VIEW_TOOLBAR
+        MENUITEM "Show Stat&usbar",                                    IDM_VIEW_STATUSBAR
     END
 END
 
@@ -465,7 +465,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
     LTEXT           "Access Directory:", IDC_STATIC, 155, 91, 58, 13, SS_LEFT, WS_EX_LEFT
     LTEXT           "User:", IDC_STATIC, 154, 114, 45, 13, SS_LEFT, WS_EX_LEFT
     LTEXT           "Password:", IDC_REMOTE_PASS, 154, 137, 45, 13, SS_LEFT, WS_EX_LEFT
-    LTEXT           "Key Passphrase:", IDC_PRIVATE_KEY, 154, 137, 58, 13, SS_LEFT, WS_EX_LEFT    
+    LTEXT           "Key Passphrase:", IDC_PRIVATE_KEY, 154, 137, 58, 13, SS_LEFT, WS_EX_LEFT
     LTEXT           "Private Key File:", IDC_PRIVATE_FILE, 154, 159, 58, 13, SS_LEFT, WS_EX_LEFT
     AUTOCHECKBOX    "Use Key", IDC_USE_PRIVATE, 354, 135, 48, 13, 0, WS_EX_LEFT
     PUSHBUTTON      "...", IDC_PRIVATE_KEY_BUTTON, 353, 157, 18, 13, 0, WS_EX_LEFT
@@ -555,17 +555,17 @@ BEGIN
     CONTROL "",IDC_THEME_CARTETLINE_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,246,33,12,WS_EX_CLIENTEDGE
     CONTROL "",IDC_THEME_CARTETLINE_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,246,12,13
     CONTROL "",IDC_THEME_INDICATOR_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,265,33,12,WS_EX_CLIENTEDGE
-    CONTROL "",IDC_THEME_INDICATOR_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,264,12,13    
+    CONTROL "",IDC_THEME_INDICATOR_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,264,12,13
 END
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
 BEGIN
     POPUP ""
     {
-        MENUITEM "Dos/Windows (\\r\\n)",    IDM_LBREAK_1
-        MENUITEM "Classic Mac OS (\\r)",    IDM_LBREAK_2
-        MENUITEM "Unix/Linux (\\n)",        IDM_LBREAK_3
-        MENUITEM "No newline",              IDM_LBREAK_4,,0x00000003
+        MENUITEM "Dos/Windows (\\r\\n)",                    IDM_LBREAK_1
+        MENUITEM "Classic Mac OS (\\r)",                    IDM_LBREAK_2
+        MENUITEM "Unix/Linux (\\n)",                        IDM_LBREAK_3
+        MENUITEM "No newline",                              IDM_LBREAK_4,,0x00000003
     }
 END
 
@@ -575,79 +575,79 @@ BEGIN
     {
         POPUP "Unicode"
         BEGIN
-            MENUITEM "UTF-8",                        IDM_UNI_UTF8
-            MENUITEM "UTF-8(BOM)",                   IDM_UNI_UTF8B
-            MENUITEM "UTF-16LE",                     IDM_UNI_UTF16LEB
-            MENUITEM "UTF-16BE",                     IDM_UNI_UTF16BEB
-            MENUITEM "UTF-32LE",                     IDM_UNI_UTF32LE
-            MENUITEM "UTF-32BE",                     IDM_UNI_UTF32BE     
-            MENUITEM "ASCII Escaped Unicode",        IDM_UNI_ASCII
+            MENUITEM "UTF-8",                               IDM_UNI_UTF8
+            MENUITEM "UTF-8(BOM)",                          IDM_UNI_UTF8B
+            MENUITEM "UTF-16LE",                            IDM_UNI_UTF16LEB
+            MENUITEM "UTF-16BE",                            IDM_UNI_UTF16BEB
+            MENUITEM "UTF-32LE",                            IDM_UNI_UTF32LE
+            MENUITEM "UTF-32BE",                            IDM_UNI_UTF32BE
+            MENUITEM "ASCII Escaped Unicode",               IDM_UNI_ASCII
         END
         POPUP "ANSI"
         BEGIN
-        	MENUITEM "windows-1250 (Central Euro)",  IDM_ANSI_1
-            MENUITEM "windows-1251 (Cyril)",         IDM_ANSI_2
-            MENUITEM "windows-1252 (Latin)",         IDM_ANSI_3
-            MENUITEM "windows-1253 (Greek)",         IDM_ANSI_4
-            MENUITEM "windows-1254 (Turkish)",       IDM_ANSI_5
-            MENUITEM "windows-1255 (Hebrew)",        IDM_ANSI_6
-        	MENUITEM "windows-1256 (Arabic)",        IDM_ANSI_7
-            MENUITEM "windows-1257 (Baltic)",        IDM_ANSI_8
-            MENUITEM "windows-1258 (Vietnam)",       IDM_ANSI_9
-            MENUITEM "cp874 (Thai)",                 IDM_ANSI_10
-            MENUITEM "cp932 (Japanese)",             IDM_ANSI_11
-            MENUITEM "cp936 (Simplified Chinese)",   IDM_ANSI_12
-            MENUITEM "cp949 (Korean)",               IDM_ANSI_13
-            MENUITEM "cp950 (Traditional Chinese)",  IDM_ANSI_14                           	
-        END         
+            MENUITEM "windows-1250 (Central Euro)",         IDM_ANSI_1
+            MENUITEM "windows-1251 (Cyril)",                IDM_ANSI_2
+            MENUITEM "windows-1252 (Latin)",                IDM_ANSI_3
+            MENUITEM "windows-1253 (Greek)",                IDM_ANSI_4
+            MENUITEM "windows-1254 (Turkish)",              IDM_ANSI_5
+            MENUITEM "windows-1255 (Hebrew)",               IDM_ANSI_6
+            MENUITEM "windows-1256 (Arabic)",               IDM_ANSI_7
+            MENUITEM "windows-1257 (Baltic)",               IDM_ANSI_8
+            MENUITEM "windows-1258 (Vietnam)",              IDM_ANSI_9
+            MENUITEM "cp874 (Thai)",                        IDM_ANSI_10
+            MENUITEM "cp932 (Japanese)",                    IDM_ANSI_11
+            MENUITEM "cp936 (Simplified Chinese)",          IDM_ANSI_12
+            MENUITEM "cp949 (Korean)",                      IDM_ANSI_13
+            MENUITEM "cp950 (Traditional Chinese)",         IDM_ANSI_14
+        END
         POPUP "ISO"
         BEGIN
-        	MENUITEM "28591 (ISO-8859-1 Latin)",            IDM_ISO_1
-        	MENUITEM "28592 (ISO-8859-2 Central Euro)",     IDM_ISO_2
-        	MENUITEM "28593 (ISO-8859-3 Latin 3)",          IDM_ISO_3
-        	MENUITEM "28594 (ISO-8859-4 Baltic)",           IDM_ISO_4
-        	MENUITEM "28595 (ISO-8859-5 Cyril)",            IDM_ISO_5
-        	MENUITEM "28596 (ISO-8859-6 Arabic)",           IDM_ISO_6
-        	MENUITEM "28597 (ISO-8859-7 Greek)",            IDM_ISO_7
-        	MENUITEM "28598 (ISO-8859-8 Hebrew)",           IDM_ISO_8
-        	MENUITEM "28599 (ISO-8859-9 Latin 5)",          IDM_ISO_9
-        	MENUITEM "28600 (ISO-8859-10 north germanic)",  IDM_ISO_10
-        	MENUITEM "28601 (ISO-8859-11 Latin/Thai)",      IDM_ISO_11
-        	MENUITEM "28603 (ISO-8859-13 Latin 7)",         IDM_ISO_13
-        	MENUITEM "28605 (ISO-8859-15 Latin 9)",         IDM_ISO_15
-        	MENUITEM "28606 (ISO-8859-16 Southeast Euro)",  IDM_ISO_16
-        	MENUITEM "50222 (ISO-2022 Japanese)",           IDM_ISO_JP
-        	MENUITEM "50225 (ISO-2022 Korean)",             IDM_ISO_KR
-        	MENUITEM "50227 (ISO-2022 Simplified Chinese)", IDM_ISO_CN
+            MENUITEM "28591 (ISO-8859-1 Latin)",            IDM_ISO_1
+            MENUITEM "28592 (ISO-8859-2 Central Euro)",     IDM_ISO_2
+            MENUITEM "28593 (ISO-8859-3 Latin 3)",          IDM_ISO_3
+            MENUITEM "28594 (ISO-8859-4 Baltic)",           IDM_ISO_4
+            MENUITEM "28595 (ISO-8859-5 Cyril)",            IDM_ISO_5
+            MENUITEM "28596 (ISO-8859-6 Arabic)",           IDM_ISO_6
+            MENUITEM "28597 (ISO-8859-7 Greek)",            IDM_ISO_7
+            MENUITEM "28598 (ISO-8859-8 Hebrew)",           IDM_ISO_8
+            MENUITEM "28599 (ISO-8859-9 Latin 5)",          IDM_ISO_9
+            MENUITEM "28600 (ISO-8859-10 north germanic)",  IDM_ISO_10
+            MENUITEM "28601 (ISO-8859-11 Latin/Thai)",      IDM_ISO_11
+            MENUITEM "28603 (ISO-8859-13 Latin 7)",         IDM_ISO_13
+            MENUITEM "28605 (ISO-8859-15 Latin 9)",         IDM_ISO_15
+            MENUITEM "28606 (ISO-8859-16 Southeast Euro)",  IDM_ISO_16
+            MENUITEM "50222 (ISO-2022 Japanese)",           IDM_ISO_JP
+            MENUITEM "50225 (ISO-2022 Korean)",             IDM_ISO_KR
+            MENUITEM "50227 (ISO-2022 Simplified Chinese)", IDM_ISO_CN
         END
         POPUP "IBM"
         BEGIN
-        	MENUITEM "852 (DOS - Central Euro)",  IDM_IBM_1
-            MENUITEM "855 (OEM - Cyril)",         IDM_IBM_2
-            MENUITEM "866 (DOS - Cyril)",         IDM_IBM_3
-        END    
+            MENUITEM "852 (DOS - Central Euro)",            IDM_IBM_1
+            MENUITEM "855 (OEM - Cyril)",                   IDM_IBM_2
+            MENUITEM "866 (DOS - Cyril)",                   IDM_IBM_3
+        END
         POPUP "EUC"
         BEGIN
-        	MENUITEM "EUC-JP (Japanese)",            IDM_EUC_1
-        	MENUITEM "EUC-TW (Traditional Chinese)", IDM_EUC_2
-        END        
+            MENUITEM "EUC-JP (Japanese)",                   IDM_EUC_1
+            MENUITEM "EUC-TW (Traditional Chinese)",        IDM_EUC_2
+        END
         POPUP "Other"
         BEGIN
-        	MENUITEM "koi8-r",                       IDM_OTHER_1
-        	MENUITEM "mac-cyrillic",                 IDM_OTHER_2
-        	MENUITEM "mac-centraleurope",            IDM_OTHER_3
-        	MENUITEM "Native Codepage",              IDM_OTHER_ANSI
-        	MENUITEM "Binary code",                  IDM_OTHER_BIN,,0x00000003
-        	MENUITEM "Unknown code",                 IDM_UNKNOWN,,0x00000003
-        END        
-	}
+            MENUITEM "koi8-r",                              IDM_OTHER_1
+            MENUITEM "mac-cyrillic",                        IDM_OTHER_2
+            MENUITEM "mac-centraleurope",                   IDM_OTHER_3
+            MENUITEM "Native Codepage",                     IDM_OTHER_ANSI
+            MENUITEM "Binary code",                         IDM_OTHER_BIN,,0x00000003
+            MENUITEM "Unknown code",                        IDM_UNKNOWN,,0x00000003
+        END
+    }
 END
 
 IDR_TYPES_MENU  MENUEX DISCARDABLE
 BEGIN
     POPUP ""
     {
-        MENUITEM "Unsupported",        IDM_TYPES_0                            
+        MENUITEM "Unsupported",        IDM_TYPES_0
     }
 END
 
@@ -697,7 +697,7 @@ BEGIN
     CONTROL      "",IDC_CHECK7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,131,12,12
     CONTROL      "",IDC_CHECK8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,147,12,12
     CONTROL      "",IDC_CHECK9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,163,12,12
-    CONTROL      "",IDC_CHECK10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,179,12,12                      
+    CONTROL      "",IDC_CHECK10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,179,12,12
     LTEXT        "Copy",IDC_STATIC,7,4,17,13
     LTEXT        "Content",IDC_BUFFERS_LABEL,81,4,32,13
     LTEXT        "Lock",IDC_LOCK_LABEL,162,4,18,13
@@ -709,7 +709,7 @@ END
 //
 #define REGEXT_STR "For systems above Windows8.x, May need to manually specify the default application in Windows Control Panel, \
                    \nOr select Skylark as the default editor when you click the file to open it."
-                   
+
 IDD_REGEXT_BOX DIALOGEX 0, 0, 340, 180
 CAPTION "Select The File Type To Register"
 STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
@@ -727,7 +727,7 @@ BEGIN
 END
 
 /////////////////////////////////////////////////////////////////////////////
-#define	__EU_COPYRIGHT_TRANSLATION	"Copyright © 2022 by ualy123"
+#define    __EU_COPYRIGHT_TRANSLATION    "Copyright © 2022 by ualy123"
 /////////////////////////////////////////////////////////////////////////////
 // ico
 IDI_TXT_32              ICON                    "..\\resources\\txt32.ico"
@@ -847,14 +847,14 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_8                    "Copy"
     IDS_TOOLBAR_9                    "Paste"
     IDS_TOOLBAR_10                   "Open The Clipboard"
-    IDS_TOOLBAR_11                   "Find"  
+    IDS_TOOLBAR_11                   "Find"
     IDS_TOOLBAR_12                   "Find Previous"
     IDS_TOOLBAR_13                   "Find Next"
     IDS_TOOLBAR_14                   "Undo Operation"
-    IDS_TOOLBAR_15                   "Redo Last Operation"    
+    IDS_TOOLBAR_15                   "Redo Last Operation"
     IDS_TOOLBAR_16                   "Toggle Bookmark "
     IDS_TOOLBAR_17                   "Jump to previous bookmark"
-    IDS_TOOLBAR_18                   "Jump to the next bookmark"  
+    IDS_TOOLBAR_18                   "Jump to the next bookmark"
     IDS_TOOLBAR_19                   "Text⇔Hex mode"
     IDS_TOOLBAR_20                   "Open/Close file manager"
     IDS_TOOLBAR_21                   "Open/Close symbol window"
@@ -931,7 +931,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SYMLIST_FAIL    "Failed to create symbol list control"
     IDC_MSG_PCRE_FAIL       "Regular expressions cannot be resolved"
     IDC_MSG_HISTORY_ZERO    " (NULL) "
-    IDC_MSG_OPEN_FILE_EDIT	"Open files with Skylark"
+    IDC_MSG_OPEN_FILE_EDIT    "Open files with Skylark"
     IDC_MSG_DIRECTORYFILES  "Open all the files in the directory with Skylark"
     IDC_MSG_LOC_DIRECTORY   "Using Skylark to locate the directory"
     IDC_MSG_REGIST_ERR1     "Cannot create key in registry [*\\shell\\skylark]"
@@ -1114,7 +1114,7 @@ BEGIN
   CONTROL "Search Mode",IDC_MODE_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,12,147,100,48
   CONTROL "&Normal",IDC_MODE_NORMAL,"Button",WS_VISIBLE|WS_GROUP|BS_AUTORADIOBUTTON,12,159,97,9
   CONTROL "Re&gular expression",IDC_MODE_REGEXP,"Button",WS_VISIBLE|BS_AUTORADIOBUTTON,12,177,97,9
-  CONTROL "▲",IDC_SEARCH_PRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,20,15,13  
+  CONTROL "▲",IDC_SEARCH_PRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,20,15,13
   CONTROL "▼ Find Next",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
   CONTROL "Show Details",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
   CONTROL "Close",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13

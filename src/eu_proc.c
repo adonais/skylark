@@ -1615,7 +1615,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         if (lpnotify->updated & SC_UPDATE_SELECTION)
                         {
-                            if (eu_get_config()->m_light_str)
+                            if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))
                             {
                                 on_view_editor_selection(pnode);
                             }

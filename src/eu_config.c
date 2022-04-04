@@ -138,6 +138,20 @@ on_config_load_file(void *lp)
     return 0;
 }
 
+static void
+on_config_create_accel(void)
+{
+    eue_accel *p = eu_get_accel();
+    if (p && p->accel_num > 0)
+    {
+        p->haccel = CreateAcceleratorTable(p->accel_ptr, p->accel_num);
+        if (!p->haccel)
+        {
+            printf("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
+        }
+    }
+}
+
 int WINAPI
 eu_load_config(HMODULE *pmod)
 {
@@ -165,5 +179,6 @@ eu_load_file(void)
 {
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
+    on_config_create_accel();
 }
 

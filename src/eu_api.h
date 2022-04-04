@@ -59,6 +59,7 @@
 #ifndef MAX_BUFFER
 #define MAX_BUFFER  1024
 #endif
+#define MAX_ACCELS 200
 
 #ifdef _DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
@@ -75,6 +76,7 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 #define EU_VERIFY(x) (void)((x) || (assert_in_release("failed assert(%s): %s:%d", #x, __FILE__, __LINE__), 0))
 #endif
 #define eu_int_cast(n) ((int)((size_t)n > INT_MAX ? INT_MAX : n))
+#define eu_uint_cast(n) ((uint32_t)((size_t)n > UINT_MAX ? UINT_MAX : n))
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
 #define ONCE_RUN(code)                                      \
 {                                                           \
@@ -141,6 +143,13 @@ extern "C"
 typedef struct _doc_data doctype_t;
 typedef struct _tabpage eu_tabpage;
 typedef struct _file_backup file_backup;
+
+typedef struct _eue_accel
+{
+    ACCEL  accel_ptr[MAX_ACCELS];
+    int    accel_num;
+    HACCEL haccel;
+}eue_accel;
 
 typedef struct _eue_code
 {
@@ -371,14 +380,17 @@ EU_EXT_CLASS char *__stdcall eu_utf8_mbcs(int codepage, const char *utf8, size_t
 EU_EXT_CLASS void __stdcall eu_setpos_window(HWND, HWND, int,int, int, int, uint32_t);
 EU_EXT_CLASS bool __stdcall eu_config_ptr(struct eu_config *pconfig);
 EU_EXT_CLASS bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
+EU_EXT_CLASS bool __stdcall eu_accel_ptr(ACCEL *accel);
 EU_EXT_CLASS HANDLE __stdcall eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o);
 
 EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
 EU_EXT_CLASS struct eu_config *eu_get_config(void);
+EU_EXT_CLASS eue_accel *eu_get_accel(void);
 EU_EXT_CLASS TCHAR *eu_process_path(TCHAR *path, const int len);
 EU_EXT_CLASS void eu_save_config(void);
 EU_EXT_CLASS void eu_save_theme(void);
 EU_EXT_CLASS void eu_free_theme(void);
+EU_EXT_CLASS void eu_free_accel(void);
 EU_EXT_CLASS bool eu_init_calltip_tree(doctype_t *root, const char *key, const char *val);
 EU_EXT_CLASS const char *eu_query_calltip_tree(root_t *root, const char *key);
 EU_EXT_CLASS void eu_print_calltip_tree(root_t *root);

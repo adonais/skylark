@@ -37,6 +37,13 @@ typedef struct tagRECT
     long bottom;
 }RECT;
 
+typedef struct tagACCEL 
+{
+    unsigned short fVirt;
+    unsigned short key;
+    unsigned short cmd;
+}ACCEL;
+
 typedef struct _print_set
 {
     int header;
@@ -240,6 +247,7 @@ typedef struct _doc_data
 
 bool __stdcall eu_config_ptr(struct eu_config *pconfig);
 bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
+bool __stdcall eu_accel_ptr(ACCEL *paccel);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
 // all doctype callbacks
@@ -358,122 +366,122 @@ function emod.load_theme(name)
 	if (not emod.file_exists(file)) then
 	  file = (path .. "\\..\\styletheme.conf")
 	  local theme = -- 默认主题配置文件
-	    "linenumber_font = \"Courier New\"\n" ..
+	    "linenumber_font = \"Consolas\"\n" ..
 	    "linenumber_fontsize = 9\n" ..
 	    "linenumber_color = 0x00FFFFFF\n" ..
-	    "linenumber_bgcolor = 0x00888888\n" ..
+	    "linenumber_bgcolor = 0x00444444\n" ..
 	    "linenumber_bold = 0\n" ..
-	    "foldmargin_font = \"Courier New\"\n" ..
+	    "foldmargin_font = \"Consolas\"\n" ..
 	    "foldmargin_fontsize = 9\n" ..
-	    "foldmargin_color = 0x00666666\n" ..
-	    "foldmargin_bgcolor = 0x00666666\n" ..
+	    "foldmargin_color = 0x00000000\n" ..
+	    "foldmargin_bgcolor = 0x004E4C4C\n" ..
 	    "foldmargin_bold = 0\n" ..
-	    "text_font = \"Courier New\"\n" ..
+	    "text_font = \"Consolas\"\n" ..
 	    "text_fontsize = 11\n" ..
 	    "text_color = 0x00FFFFFF\n" ..
 	    "text_bgcolor = 0x00444444\n" ..
 	    "text_bold = 0\n" ..
-	    "caretline_font = \"Courier New\"\n" ..
+	    "caretline_font = \"Consolas\"\n" ..
 	    "caretline_fontsize = 11\n" ..
 	    "caretline_color = 0x00000000\n" ..
-	    "caretline_bgcolor = 0x00696969\n" ..
+	    "caretline_bgcolor = 0x5A696969\n" ..
 	    "caretline_bold = 0\n" ..
-	    "indicator_font = \"Courier New\"\n" ..
+	    "indicator_font = \"Consolas\"\n" ..
 	    "indicator_fontsize = 11\n" ..
 	    "indicator_color = 0x00FFFFFF\n" ..
-	    "indicator_bgcolor = 0x00EEEEEE\n" ..
+	    "indicator_bgcolor = 0x5A808000\n" ..
 	    "indicator_bold = 0\n" ..
-	    "keywords_font = \"Courier New\"\n" ..
+	    "keywords_font = \"Consolas\"\n" ..
 	    "keywords_fontsize = 11\n" ..
 	    "keywords_color = 0x0000B050\n" ..
 	    "keywords_bgcolor = 0x00000000\n" ..
 	    "keywords_bold = 1\n" ..
-	    "keywords2_font = \"Courier New\"\n" ..
+	    "keywords2_font = \"Consolas\"\n" ..
 	    "keywords2_fontsize = 11\n" ..
 	    "keywords2_color = 0x0000B050\n" ..
 	    "keywords2_bgcolor = 0x00000000\n" ..
 	    "keywords2_bold = 1\n" ..
-	    "string_font = \"Courier New\"\n" ..
+	    "string_font = \"Consolas\"\n" ..
 	    "string_fontsize = 11\n" ..
 	    "string_color = 0x00C080FF\n" ..
 	    "string_bgcolor = 0x00000000\n" ..
 	    "string_bold = 0\n" ..
-	    "character_font = \"Courier New\"\n" ..
+	    "character_font = \"Consolas\"\n" ..
 	    "character_fontsize = 11\n" ..
 	    "character_color = 0x00C080FF\n" ..
 	    "character_bgcolor = 0x00000000\n" ..
 	    "character_bold = 0\n" ..
-	    "number_font = \"Courier New\"\n" ..
+	    "number_font = \"Consolas\"\n" ..
 	    "number_fontsize = 11\n" ..
 	    "number_color = 0x00C080FF\n" ..
 	    "number_bgcolor = 0x00000000\n" ..
 	    "number_bold = 0\n" ..
-	    "operator_font = \"Courier New\"\n" ..
+	    "operator_font = \"Consolas\"\n" ..
 	    "operator_fontsize = 11\n" ..
 	    "operator_color = 0x00FFFFFF\n" ..
 	    "operator_bgcolor = 0x00000000\n" ..
 	    "operator_bold = 0\n" ..
-	    "preprocessor_font = \"Courier New\"\n" ..
+	    "preprocessor_font = \"Consolas\"\n" ..
 	    "preprocessor_fontsize = 11\n" ..
-	    "preprocessor_color = 0x00A349A4\n" ..
+	    "preprocessor_color = 0x0000B050\n" ..
 	    "preprocessor_bgcolor = 0x00000000\n" ..
 	    "preprocessor_bold = 0\n" ..
-	    "comment_font = \"Courier New\"\n" ..
+	    "comment_font = \"Consolas\"\n" ..
 	    "comment_fontsize = 11\n" ..
 	    "comment_color = 0x00C0C0C0\n" ..
 	    "comment_bgcolor = 0x00000000\n" ..
 	    "comment_bold = 0\n" ..
-	    "commentline_font = \"Courier New\"\n" ..
+	    "commentline_font = \"Consolas\"\n" ..
 	    "commentline_fontsize = 11\n" ..
 	    "commentline_color = 0x00C0C0C0\n" ..
 	    "commentline_bgcolor = 0x00000000\n" ..
 	    "commentline_bold = 0\n" ..
-	    "commentdoc_font = \"Courier New\"\n" ..
+	    "commentdoc_font = \"Consolas\"\n" ..
 	    "commentdoc_fontsize = 11\n" ..
-	    "commentdoc_color = 0x0000C800\n" ..
+	    "commentdoc_color = 0x00C0C0C0\n" ..
 	    "commentdoc_bgcolor = 0x00000000\n" ..
 	    "commentdoc_bold = 0\n" ..
-	    "tags_font = \"Courier New\"\n" ..
+	    "tags_font = \"Consolas\"\n" ..
 	    "tags_fontsize = 11\n" ..
 	    "tags_color = 0x00FF8000\n" ..
 	    "tags_bgcolor = 0x00000000\n" ..
 	    "tags_bold = 0\n" ..
-	    "unknowtags_font = \"Courier New\"\n" ..
+	    "unknowtags_font = \"Consolas\"\n" ..
 	    "unknowtags_fontsize = 11\n" ..
-	    "unknowtags_color = 0x00804000\n" ..
+	    "unknowtags_color = 0x00FF00FF\n" ..
 	    "unknowtags_bgcolor = 0x00000000\n" ..
 	    "unknowtags_bold = 0\n" ..
-	    "attributes_font = \"Courier New\"\n" ..
+	    "attributes_font = \"Consolas\"\n" ..
 	    "attributes_fontsize = 11\n" ..
 	    "attributes_color = 0x0080FF80\n" ..
 	    "attributes_bgcolor = 0x00000000\n" ..
 	    "attributes_bold = 0\n" ..
-	    "unknowattributes_font = \"Courier New\"\n" ..
+	    "unknowattributes_font = \"Consolas\"\n" ..
 	    "unknowattributes_fontsize = 11\n" ..
 	    "unknowattributes_color = 0x00808040\n" ..
 	    "unknowattributes_bgcolor = 0x00000000\n" ..
 	    "unknowattributes_bold = 0\n" ..
-	    "entities_font = \"Courier New\"\n" ..
+	    "entities_font = \"Consolas\"\n" ..
 	    "entities_fontsize = 11\n" ..
 	    "entities_color = 0x00800080\n" ..
 	    "entities_bgcolor = 0x00000000\n" ..
 	    "entities_bold = 0\n" ..
-	    "tagends_font = \"Courier New\"\n" ..
+	    "tagends_font = \"Consolas\"\n" ..
 	    "tagends_fontsize = 11\n" ..
-	    "tagends_color = 0x00000080\n" ..
+	    "tagends_color = 0x000080FF\n" ..
 	    "tagends_bgcolor = 0x00000000\n" ..
 	    "tagends_bold = 0\n" ..
-	    "cdata_font = \"Courier New\"\n" ..
+	    "cdata_font = \"Consolas\"\n" ..
 	    "cdata_fontsize = 11\n" ..
 	    "cdata_color = 0x00008000\n" ..
 	    "cdata_bgcolor = 0x00000000\n" ..
 	    "cdata_bold = 0\n" ..
-	    "phpsection_font = \"Courier New\"\n" ..
+	    "phpsection_font = \"Consolas\"\n" ..
 	    "phpsection_fontsize = 11\n" ..
-	    "phpsection_color = 0x00FFFFFF\n" ..
+	    "phpsection_color = 0x000080FF\n" ..
 	    "phpsection_bgcolor = 0x00000000\n" ..
 	    "phpsection_bold = 0\n" ..
-	    "aspsection_font = \"Courier New\"\n" ..
+	    "aspsection_font = \"Consolas\"\n" ..
 	    "aspsection_fontsize = 11\n" ..
 	    "aspsection_color = 0x00808080\n" ..
 	    "aspsection_bgcolor = 0x00000000\n" ..

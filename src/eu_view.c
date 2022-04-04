@@ -596,10 +596,6 @@ on_view_editor_selection(eu_tabpage *pnode)
     {
         return SKYLARK_OK;
     }
-    if (!KEY_DOWN(VK_SHIFT))
-    {
-        return SKYLARK_OK;
-    }    
     if (KEY_UP(VK_LBUTTON))
     {
         return SKYLARK_OK;

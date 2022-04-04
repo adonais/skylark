@@ -84,7 +84,6 @@ _tmain(int argc, TCHAR *argv[])
     HANDLE h_mapped = NULL;
     HANDLE lang_map = NULL;
     TCHAR sc_path[MAX_PATH + 1] = { 0 };
-    HACCEL htable = NULL;
     HANDLE hsem = NULL;
     HINSTANCE instance = eu_module_handle();
     if (argc > 1 && _tcscmp(argv[1], _T("-restart")) == 0)
@@ -142,7 +141,7 @@ _tmain(int argc, TCHAR *argv[])
                 share_send_msg(&bak);
             }
             else if (_tcsncmp(argv[1], _T("-reg3"), 5) == 0)
-            {   // 注册文件关联 
+            {   // 注册文件关联
                 if (_tcschr(argv[1], _T('=')))
                 {
                     dark_mode = eu_on_dark_init(true, true);
@@ -215,6 +214,14 @@ _tmain(int argc, TCHAR *argv[])
             msg.wParam = -1;
             goto all_clean;
         }
+    }   // 加载快捷键配置文件
+    if (_sntprintf(sc_path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_accelerator.lua"), eu_module_path) > 0)
+    {
+        if (eu_lua_script_exec(sc_path) != 0)
+        {
+            msg.wParam = -1;
+            goto all_clean;
+        }
     }   // 加载分类配置文件
     if (eu_load_config(&pux) != 0)
     {
@@ -238,7 +245,7 @@ _tmain(int argc, TCHAR *argv[])
     	eu_reg_dir_popup_menu();
     	msg.wParam = 0;
     	goto all_clean;
-    }    
+    }
     // 注册scintilla
     if (!eu_sci_register(instance))
     {
@@ -247,11 +254,6 @@ _tmain(int argc, TCHAR *argv[])
         goto all_clean;
     }
     if (!(hwnd = init_instance(instance)))
-    {
-        msg.wParam = -1;
-        goto all_clean;
-    }
-    if ((htable = LoadAccelerators(instance, MAKEINTRESOURCE(IDC_SKYLARK))) == NULL)
     {
         msg.wParam = -1;
         goto all_clean;
@@ -267,7 +269,7 @@ _tmain(int argc, TCHAR *argv[])
             share_envent_set(true);
             eu_load_file();
         }
-    }   
+    }
     if (strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         if (eu_on_dark_init(true, true))
@@ -283,7 +285,7 @@ _tmain(int argc, TCHAR *argv[])
             {
                 continue;
             }
-            if (!TranslateAccelerator(hwnd, htable, &msg))
+            if (!TranslateAccelerator(hwnd, eu_get_accel()->haccel, &msg))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
@@ -295,6 +297,7 @@ _tmain(int argc, TCHAR *argv[])
         eu_save_theme();
         eu_free_theme();
         eu_save_config();
+        eu_free_accel();
     }
 all_clean:
     share_close(h_mapped);
