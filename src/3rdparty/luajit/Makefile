@@ -143,8 +143,8 @@ $(BUILDVM): $(BUILDVM_OBJS) $(MINILUA)
 	
 $(STATICLIB): $(OBJS) $(BUILDVM)
 	$(AR) -out:$@ $(OBJS)
-    @if not exist "$(BIND)\\jit" mkdir "$(BIND)\\jit" && echo. Created $(BIND)\\jit
-    xcopy "$(SRC)\\jit" "$(BIND)\\jit" /s /e /q /y 2>&1>NUL
+    @if not exist "$(BIND)\\lua\\jit" mkdir "$(BIND)\\lua\\jit" && echo. Created $(BIND)\\lua\\jit
+    xcopy "$(SRC)\\jit" "$(BIND)\\lua\\jit" /s /e /q /y 2>&1>NUL
 
 # cleanup
 clean:
