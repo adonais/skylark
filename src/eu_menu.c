@@ -201,7 +201,10 @@ menu_update_string(HMENU hmenu, int pos)
                     {
                         _tcsncat(mdata, _T("Alt+"), FILESIZE);
                     }
-                    if (p->accel_ptr[i].key > 0x2f && p->accel_ptr[i].key < 0x5b)
+                    if ((p->accel_ptr[i].key > 0x2f && p->accel_ptr[i].key < 0x5b)||
+                        (((p->accel_ptr[i].key > 0x20 && p->accel_ptr[i].key < 0x30)||
+                        (p->accel_ptr[i].key > 0x5a && p->accel_ptr[i].key < 0x7f))&&
+                        !(p->accel_ptr[i].fVirt & FVIRTKEY)))
                     {
                         int len = eu_int_cast(_tcslen(mdata));
                         _sntprintf(mdata+len, FILESIZE - len, _T("%c"), p->accel_ptr[i].key);
@@ -238,7 +241,11 @@ menu_update_string(HMENU hmenu, int pos)
                             case VK_OEM_PERIOD: _tcsncat(mdata, _T("."),       FILESIZE); break;
                             case VK_SUBTRACT:   _tcsncat(mdata, _T("-"),       FILESIZE); break;
                             case VK_ADD:        _tcsncat(mdata, _T("+"),       FILESIZE); break;
+                            case VK_DIVIDE:     _tcsncat(mdata, _T("/"),       FILESIZE); break;
+                            case VK_MULTIPLY:   _tcsncat(mdata, _T("*"),       FILESIZE); break;
+                            case VK_INSERT:     _tcsncat(mdata, _T("Ins"),     FILESIZE); break;
                             case VK_DELETE:     _tcsncat(mdata, _T("Del"),     FILESIZE); break;
+                            case VK_TAB:        _tcsncat(mdata, _T("Tab"),     FILESIZE); break;
                             case VK_DOWN:       _tcsncat(mdata, _T("↓"),       FILESIZE); break;
                             case VK_RIGHT:      _tcsncat(mdata, _T("→"),       FILESIZE); break;
                             case VK_UP:         _tcsncat(mdata, _T("↑"),       FILESIZE); break;
@@ -251,30 +258,7 @@ menu_update_string(HMENU hmenu, int pos)
                             case VK_SPACE:      _tcsncat(mdata, _T("Space"),   FILESIZE); break;
                             case VK_RETURN:     _tcsncat(mdata, _T("Return"),  FILESIZE); break;
                             case VK_ESCAPE:     _tcsncat(mdata, _T("Esc"),     FILESIZE); break;
-                            case VK_OEM_1:
-                                (p->accel_ptr[i].fVirt & FSHIFT) ? _tcsncat(mdata, _T(":"), FILESIZE) : _tcsncat(mdata, _T(";"), FILESIZE);
-                                break;
-                            case VK_OEM_2:
-                                (p->accel_ptr[i].fVirt & FSHIFT) ? _tcsncat(mdata, _T("?"), FILESIZE) : _tcsncat(mdata, _T("/"), FILESIZE);
-                                break;
-                            case VK_OEM_3:
-                                _tcsncat(mdata, _T("~"), FILESIZE);
-                                break;
-                            case VK_OEM_4:
-                                (p->accel_ptr[i].fVirt & FSHIFT) ? _tcsncat(mdata, _T("["), FILESIZE) : _tcsncat(mdata, _T("{"), FILESIZE);
-                                break;
-                            case VK_OEM_5:
-                                (p->accel_ptr[i].fVirt & FSHIFT) ? _tcsncat(mdata, _T("\\"), FILESIZE) : _tcsncat(mdata, _T("|"), FILESIZE);
-                                break;
-                            case VK_OEM_6:
-                                (p->accel_ptr[i].fVirt & FSHIFT) ? _tcsncat(mdata, _T("]"), FILESIZE) : _tcsncat(mdata, _T("}"), FILESIZE);
-                                break;
-                            case VK_OEM_7:
-                                (p->accel_ptr[i].fVirt & FSHIFT) ? _tcsncat(mdata, _T("\'"), FILESIZE) : _tcsncat(mdata, _T("\""), FILESIZE);
-                                break;
-                            default:
-                                _tcsncat(mdata, _T("Unkown"), FILESIZE);
-                                break;
+                            default:            _tcsncat(mdata, _T("Unkown"),  FILESIZE); break;
                         }
                     }
                     ModifyMenu(hmenu, pos, MF_BYPOSITION|MF_STRING, id, mdata);

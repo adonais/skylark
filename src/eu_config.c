@@ -144,8 +144,36 @@ on_config_create_accel(void)
     eue_accel *p = eu_get_accel();
     if (p && p->accel_num > 0)
     {
+        int i = 0;
+        uint16_t old[MAX_ACCELS] = {0};
+        for (; i < p->accel_num; ++i)
+        {
+            if (((p->accel_ptr[i].key > 0x20 && p->accel_ptr[i].key < 0x30)||
+                (p->accel_ptr[i].key > 0x5a && p->accel_ptr[i].key < 0x7f))&& 
+                !(p->accel_ptr[i].fVirt & FVIRTKEY))
+            {
+                int16_t key = VkKeyScanEx(p->accel_ptr[i].key, GetKeyboardLayout(0));
+                if ((key &= 0xff) != -1)
+                {
+                    old[i] = p->accel_ptr[i].key;
+                    p->accel_ptr[i].key = key;
+                    p->accel_ptr[i].fVirt |= FVIRTKEY;
+                }
+            }
+        }
         p->haccel = CreateAcceleratorTable(p->accel_ptr, p->accel_num);
-        if (!p->haccel)
+        if (p->haccel)
+        {   // 恢复原数据
+            for (i = 0; i < p->accel_num; ++i )
+            {
+                if (old[i] > 0)
+                {
+                    p->accel_ptr[i].key = old[i];
+                    p->accel_ptr[i].fVirt &= ~FVIRTKEY;
+                }
+            }
+        }
+        else
         {
             printf("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
         }
