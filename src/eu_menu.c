@@ -130,7 +130,7 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
 }
 
 static void
-menu_zoom_default(HMENU hmenu, int id, int pos)
+menu_default_keys(HMENU hmenu, int id, int pos)
 {
     wchar_t mdata[FILESIZE+1] = {0};
     if (GetMenuString(hmenu, id, mdata, FILESIZE, MF_BYCOMMAND) > 0)
@@ -150,6 +150,10 @@ menu_zoom_default(HMENU hmenu, int id, int pos)
         else if (id == IDM_VIEW_ZOOMIN)
         {
             _tcsncat(mdata, _T("Ctrl+MouseWheelDown"), FILESIZE);
+        }
+        else if (id == IDM_SELECTION_RECTANGLE)
+        {
+            _tcsncat(mdata, _T("Alt+MouseLdown"), FILESIZE);
         }
         ModifyMenu(hmenu, pos, MF_BYPOSITION|MF_STRING, id, mdata);
     }
@@ -266,11 +270,15 @@ menu_update_string(HMENU hmenu, int pos)
             }
             if (id == IDM_VIEW_ZOOMOUT)
             {
-                menu_zoom_default(hmenu, IDM_VIEW_ZOOMOUT, pos);
+                menu_default_keys(hmenu, IDM_VIEW_ZOOMOUT, pos);
             }
             if (id == IDM_VIEW_ZOOMIN)
             {
-                menu_zoom_default(hmenu, IDM_VIEW_ZOOMIN, pos);
+                menu_default_keys(hmenu, IDM_VIEW_ZOOMIN, pos);
+            }
+            if (id == IDM_SELECTION_RECTANGLE)
+            {
+                menu_default_keys(hmenu, IDM_SELECTION_RECTANGLE, pos);
             }
         }
     }

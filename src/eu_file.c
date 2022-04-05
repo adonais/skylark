@@ -590,7 +590,14 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
     	// reassign variables
     	pnode->raw_size = uf_stream.size;
     }
-    len = uf_stream.size - pnode->pre_len;
+    if (is_utf8)
+    {
+        len = uf_stream.size;
+    }
+    else
+    {
+        len = uf_stream.size - pnode->pre_len;
+    }
     if (!is_utf8 && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
     {
         char *pdst = NULL;
@@ -618,6 +625,10 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
             eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
             eu_safe_free(pdst);
         }
+    }
+    else if (is_utf8)
+    {
+        eu_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base));
     }
     else
     {

@@ -486,16 +486,6 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
-    if (p_msg->message == WM_SYSKEYUP && p_msg->wParam == VK_MENU)
-    {
-        bool extended = KEY_DOWN(VK_CONTROL) || KEY_DOWN(VK_SHIFT) || KEY_DOWN(VK_LWIN) || KEY_DOWN(VK_TAB) || KEY_DOWN(VK_LBUTTON);
-        if (!extended && !(p_msg->lParam & 0xff00))
-        {  // only left alt press
-            eu_get_config()->m_menubar = !eu_get_config()->m_menubar;
-            eu_window_resize(eu_hwndmain);
-            return 1;
-        }
-    }
     if (p_msg->message == WM_SYSKEYDOWN && 49 <= p_msg->wParam && p_msg->wParam <= 57 && (p_msg->lParam & (1 << 29)))
     {
         if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 49)))
