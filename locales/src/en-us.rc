@@ -276,10 +276,7 @@ BEGIN
         MENUITEM "Enable Prototype Prompt",                            IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR
         MENUITEM "Insert Database Automatic Header",                   IDM_DATABASE_INSERT_CONFIG
-        MENUITEM "Executes Selected SQL Statement",                    IDM_DATABASE_EXECUTE_SQL
-        MENUITEM MF_SEPARATOR
-        MENUITEM "Insert REDIS Automatic Header",                      IDM_REDIS_INSERT_CONFIG
-        MENUITEM "Executes Selected REDIS Command",                    IDM_REDIS_EXECUTE_COMMAND
+        MENUITEM "Executes Selected SQL Or REDIS Command",             IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END

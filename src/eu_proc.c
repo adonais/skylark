@@ -1195,11 +1195,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_enable_rendering(hwnd, wm_id);
                     break;
                 case IDM_DATABASE_INSERT_CONFIG:  // 插入sql头
-                case IDM_REDIS_INSERT_CONFIG:
                     on_code_insert_config(pnode);
                     break;                  
-                case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql
-                case IDM_REDIS_EXECUTE_COMMAND:
+                case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql,redis
                     on_view_result_show(pnode, 0);
                     break;
                 case IDM_PROGRAM_EXECUTE_ACTION:  // 执行预置动作

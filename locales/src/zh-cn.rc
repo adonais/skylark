@@ -276,10 +276,7 @@ BEGIN
         MENUITEM "启用原型提示框",                              IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR
         MENUITEM "插入数据库自动连接配置头",                    IDM_DATABASE_INSERT_CONFIG
-        MENUITEM "执行选定的SQL语句",                           IDM_DATABASE_EXECUTE_SQL
-        MENUITEM MF_SEPARATOR
-        MENUITEM "插入REDIS自动连接配置头",                     IDM_REDIS_INSERT_CONFIG
-        MENUITEM "执行选定REDIS命令",                           IDM_REDIS_EXECUTE_COMMAND
+        MENUITEM "执行选定的SQL语句或REDIS命令",                IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
         MENUITEM "使用预设动作执行当前文件",                    IDM_PROGRAM_EXECUTE_ACTION
     END

@@ -17,6 +17,9 @@
  *******************************************************************************/
 #include "framework.h"
 
+#define ascii_special_symbol(ch) \
+        ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
+
 static volatile long last_focus = -1;
 
 static int
@@ -36,7 +39,7 @@ on_config_file_args(void)
         share_send_msg(&bak);
         ret = 0;
     }
-    LocalFree(args); 
+    LocalFree(args);
     return ret;
 }
 
@@ -108,7 +111,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
     {
         share_send_msg(&filebak);
     }
-    return 0; 
+    return 0;
 }
 
 static unsigned __stdcall
@@ -148,9 +151,7 @@ on_config_create_accel(void)
         uint16_t old[MAX_ACCELS] = {0};
         for (; i < p->accel_num; ++i)
         {
-            if (((p->accel_ptr[i].key > 0x20 && p->accel_ptr[i].key < 0x30)||
-                (p->accel_ptr[i].key > 0x5a && p->accel_ptr[i].key < 0x7f))&& 
-                !(p->accel_ptr[i].fVirt & FVIRTKEY))
+            if (ascii_special_symbol(p->accel_ptr[i].key) && !(p->accel_ptr[i].fVirt & FVIRTKEY))
             {
                 int16_t key = VkKeyScanEx(p->accel_ptr[i].key, GetKeyboardLayout(0));
                 if ((key &= 0xff) != -1)
@@ -197,7 +198,7 @@ eu_load_config(HMODULE *pmod)
     if (_stricmp(eu_get_config()->window_theme, "white") == 0)
     {
         on_theme_set_classic(pmod);
-    }    
+    }
     free(lua_path);
     return 0;
 }

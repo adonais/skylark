@@ -122,8 +122,6 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_SOURCE_ENABLE_CTSHOW, !hex_mode);
         util_enable_menu_item(root_menu, IDM_DATABASE_INSERT_CONFIG, !hex_mode);
         util_enable_menu_item(root_menu, IDM_DATABASE_EXECUTE_SQL, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_REDIS_INSERT_CONFIG, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_REDIS_EXECUTE_COMMAND, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_FONTQUALITY, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_RENDER, !hex_mode);
     }
@@ -376,10 +374,10 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->m_acshow);
                         util_update_menu_chars(menu, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
                         util_set_menu_item(menu, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->m_ctshow);
-                        util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
-                        util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
-                        util_enable_menu_item(menu, IDM_REDIS_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
-                        util_enable_menu_item(menu, IDM_REDIS_EXECUTE_COMMAND, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
+                        util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode &&
+                                             (pnode->doc_ptr->doc_type == DOCTYPE_SQL||pnode->doc_ptr->doc_type == DOCTYPE_REDIS)));
+                        util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && !pnode->hex_mode &&
+                                             (pnode->doc_ptr->doc_type == DOCTYPE_SQL||pnode->doc_ptr->doc_type == DOCTYPE_REDIS)));
                         break;
                     case IDM_ENV_FILE_POPUPMENU:      /* Settings menu */
                         on_reg_update_menu();
