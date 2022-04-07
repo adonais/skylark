@@ -1,6 +1,6 @@
 require("emod")
 
-local file = (emod.script_path() .. "\\..\\skylark.conf")
+local file = (emod.script_path() .. "\\skylark.conf")
 
 if (not emod.file_exists(file)) then
   local code = -- 默认配置文件

@@ -497,6 +497,15 @@ eu_lua_script_exec(const TCHAR *fname)
     return status;
 }
 
+bool WINAPI
+eu_lua_path_setting(void)
+{
+    TCHAR lua_path[ENV_LEN + 1] = {0};
+    _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua"), 
+               eu_module_path, eu_module_path, eu_module_path);
+    return (_tputenv(lua_path) == 0);
+}
+
 int WINAPI 
 do_lua_code(const char *s)
 {
@@ -625,36 +634,41 @@ allclean:
 }
 
 static int
-utf8_filename(lua_State *L, const wchar_t *winfilename, int wsz, char *utf8buffer, int sz)
+script_process_dir(lua_State *L)
 {
-    sz = WideCharToMultiByte(CP_UTF8, 0, winfilename, wsz, utf8buffer, sz, NULL, NULL);
-    if (sz == 0)
-    {
-        return luaL_error(L, "convert to utf-8 filename fail");
-    }
-    return sz;
-}
-
-static int
-lprocessdir(lua_State *L)
-{
-    wchar_t path[MAX_PATH + 1] = { 0 };
-    char utf8path[MAX_PATH * 3] = { 0 };
-    eu_process_path(path, MAX_PATH);
-    if (STR_IS_NUL(path))
+    int usz = 0;
+    char *utf8path = NULL;
+    if (!(utf8path = eu_utf16_utf8(eu_module_path, (size_t *)&usz)))
     {
         printf("lua lprocessdir error\n");
         lua_pushnil(L);
         return 1;
     }
-    int wsz = eu_int_cast(wcsnlen(path, MAX_PATH));
-    int usz = utf8_filename(L, path, wsz, utf8path, MAX_PATH * 3);
-    lua_pushlstring(L, utf8path, usz);
+    lua_pushlstring(L, utf8path, usz-1);
+    free(utf8path);
+    return 1;
+}
+
+static int
+script_config_dir(lua_State *L)
+{
+    int usz = 0;
+    wchar_t path[MAX_PATH + 1] = {0};
+    char *utf8path = NULL;
+    _snwprintf(path, MAX_PATH, L"%s\\conf", eu_module_path);
+    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
+    {
+        printf("lua lconfdir error\n");
+        lua_pushnil(L);
+        return 1;
+    }
+    lua_pushlstring(L, utf8path, usz-1);
+    free(utf8path);
     return 1;
 }
 
 static const struct 
-luaL_Reg cb[] = { { "lprocessdir", lprocessdir }, { NULL, NULL } };
+luaL_Reg cb[] = { { "lprocessdir", script_process_dir }, { "lconfdir", script_config_dir }, { NULL, NULL } };
 
 __declspec(dllexport) int 
 luaopen_euapi(lua_State *L)

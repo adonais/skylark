@@ -1227,7 +1227,7 @@ eu_utf16_utf8(const wchar_t *utf16, size_t *out_len)
     char *utf8 = NULL;
 
     size = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, NULL, 0, NULL, NULL);
-    utf8 = size > 0 ? (char*) malloc(size+ 1) : 0;
+    utf8 = size > 0 ? (char*) malloc(size+1) : 0;
     if (NULL == utf8 )
     {
         return NULL;
@@ -1680,7 +1680,8 @@ eu_save_theme(void)
 {
     int  len = 0;
     FILE *fp = NULL;
-    char *save = NULL;    
+    char *save = NULL;
+    wchar_t *path = NULL;
     const char *pconfig = 
         "linenumber_font = \"%s\"\n"
         "linenumber_fontsize = %d\n"
@@ -1838,11 +1839,15 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(tagends),
         EXPAND_STYLETHEME(cdata),
         EXPAND_STYLETHEME(phpsection),
-        EXPAND_STYLETHEME(aspsection));    
-    if ((fp = fopen(g_theme->pathfile , "wb")) != NULL)
+        EXPAND_STYLETHEME(aspsection));
+    if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
-        fwrite(save, strlen(save), 1, fp);
-        fclose(fp);
+        if ((fp = _wfopen(path , L"wb")) != NULL)
+        {
+            fwrite(save, strlen(save), 1, fp);
+            fclose(fp);
+        }
+        free(path);
     }
     free(save); 
 }

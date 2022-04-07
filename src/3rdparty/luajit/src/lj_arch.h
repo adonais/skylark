@@ -626,12 +626,11 @@
 #if LJ_TARGET_UWP
 #define LJ_WIN_VALLOC	VirtualAllocFromApp
 #define LJ_WIN_VPROTECT	VirtualProtectFromApp
-extern void *LJ_WIN_LOADLIBA(const char *path);
 #else
 #define LJ_WIN_VALLOC	VirtualAlloc
 #define LJ_WIN_VPROTECT	VirtualProtect
-#define LJ_WIN_LOADLIBA(path)	LoadLibraryExA((path), NULL, 0)
 #endif
+extern void *LJ_WIN_LOADLIBA(const char *path);
 #endif
 
 #if defined(LUAJIT_NO_UNWIND) || __GNU_COMPACT_EH__ || defined(__symbian__) || LJ_TARGET_IOS || LJ_TARGET_PS3 || LJ_TARGET_PS4

@@ -81,9 +81,9 @@ _tmain(int argc, TCHAR *argv[])
     MSG msg = {0};
     HMODULE pux = NULL;   // 如果使用经典风格, 它是uxtheme的句柄
     HWND hwnd = NULL;
-    HANDLE h_mapped = NULL;
+    HANDLE mapped = NULL;
     HANDLE lang_map = NULL;
-    TCHAR sc_path[MAX_PATH + 1] = { 0 };
+    TCHAR cache_path[MAX_PATH + 1] = {0};
     HANDLE hsem = NULL;
     HINSTANCE instance = eu_module_handle();
     if (argc > 1 && _tcscmp(argv[1], _T("-restart")) == 0)
@@ -105,12 +105,12 @@ _tmain(int argc, TCHAR *argv[])
         return -1;
     }
     SetLastError(0);   // 建立共享内存, 里面保存第一个进程的主窗口句柄
-    h_mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME);
+    mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME);
     if (ERROR_ALREADY_EXISTS == GetLastError())
     {
         muti = true;
     }
-    else if (!h_mapped)
+    else if (!mapped)
     {
         return -1;
     }
@@ -159,7 +159,7 @@ _tmain(int argc, TCHAR *argv[])
         {   // 没有参数, 则恢复窗口
             share_send_msg(NULL);
         }
-        share_close(h_mapped);
+        share_close(mapped);
         share_envent_close();
         if (dark_mode)
         {
@@ -188,43 +188,23 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (true)
+    if (_sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path) > 0)
     {
-        TCHAR lua_path[ENV_LEN + 1];
-        TCHAR cache_path[MAX_PATH] = {0};
-        _sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path);
         if (!(cache_path[0] && eu_try_path(cache_path)))
         {
             MSG_BOX(IDC_MSG_DIR_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             return -1;
-        } // 设置lua脚本搜索路径
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua"), eu_module_path, eu_module_path);
-        if (_tputenv(lua_path) != 0)
-        {
+        }
+        if (!eu_lua_path_setting())
+        {   // 设置lua脚本搜索路径
             msg.wParam = -1;
             goto all_clean;
         }
         on_hook_do();
         eu_init_logs();
-    }   // 加载主配置文件
-    if (_sntprintf(sc_path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path) > 0)
-    {
-        if (eu_lua_script_exec(sc_path) != 0)
-        {
-            msg.wParam = -1;
-            goto all_clean;
-        }
-    }   // 加载快捷键配置文件
-    if (_sntprintf(sc_path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_accelerator.lua"), eu_module_path) > 0)
-    {
-        if (eu_lua_script_exec(sc_path) != 0)
-        {
-            msg.wParam = -1;
-            goto all_clean;
-        }
-    }   // 加载分类配置文件
-    if (eu_load_config(&pux) != 0)
-    {
+    }
+    if (!eu_load_config(&pux))
+    {   // 加载配置文件
         msg.wParam = -1;
         goto all_clean;
     }
@@ -258,9 +238,9 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (h_mapped)
+    if (mapped)
     {
-        LPVOID phandle = share_map(h_mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
+        LPVOID phandle = share_map(mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
         if (phandle)
         {
             memcpy(phandle, &hwnd, sizeof(HWND));
@@ -292,15 +272,12 @@ _tmain(int argc, TCHAR *argv[])
             }
         }
     }
-    if (true)
-    {
-        eu_save_theme();
-        eu_free_theme();
-        eu_save_config();
-        eu_free_accel();
-    }
+    eu_save_theme();
+    eu_save_config();
 all_clean:
-    share_close(h_mapped);
+    eu_free_theme();
+    eu_free_accel();
+    share_close(mapped);
     share_close(lang_map);
     share_close_lang();
     safe_close_dll(pux);

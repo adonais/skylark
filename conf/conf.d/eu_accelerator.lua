@@ -4,7 +4,7 @@ local euapi = emod.euapi
 
 function load_accels()
   local my_code = nil
-  local acc_file = (emod.script_path() .. "\\..\\skylark_input.conf")
+  local acc_file = (emod.script_path() .. "\\skylark_input.conf")
   if (not emod.file_exists(acc_file)) then
     local code = {
 	  "local bit = require(\"bit\")\n",

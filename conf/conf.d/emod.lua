@@ -1,20 +1,10 @@
 emod = {}
-emod.ffi = require('ffi')
+emod.ffi = require("ffi")
+emod.eulib = require("euapi")
 emod.euapi = emod.ffi.load(emod.ffi.os == "Windows" and "euapi.dll")
 
 function emod.script_path()
-    local function sum(a, b)
-            return a + b
-    end
-    local info = debug.getinfo(sum)
-    --解析出来当前目录
-    local path = info.source
-    -- 去掉开头的"@"
-    path = string.sub(path, 2, -1)
-    -- 捕获最后一个 "/" 之前的部分 就是我们最终要的目录部分
-    path = string.match(path, "^(.*)\\")
-    if path == nil then return "." end
-    return path
+    return emod.eulib.lconfdir()
 end
 
 function emod.file_exists(cpath)
@@ -358,13 +348,13 @@ function emod.load_theme(name)
 	local tname = "default"
 	local path = emod.script_path()
 	if (name == tname) then
-	  file = (path .. "\\..\\styletheme.conf")
+	  file = (path .. "\\styletheme.conf")
 	else
-	  file = (path .. "\\..\\styletheme_" .. name .. ".conf")
+	  file = (path .. "\\styletheme_" .. name .. ".conf")
 	end
 
 	if (not emod.file_exists(file)) then
-	  file = (path .. "\\..\\styletheme.conf")
+	  file = (path .. "\\styletheme.conf")
 	  local theme = -- 默认主题配置文件
 	    "linenumber_font = \"Consolas\"\n" ..
 	    "linenumber_fontsize = 9\n" ..
@@ -486,8 +476,7 @@ function emod.load_theme(name)
 	    "aspsection_color = 0x00808080\n" ..
 	    "aspsection_bgcolor = 0x00000000\n" ..
 	    "aspsection_bold = 0"
-	  eu_code = loadstring(theme)
-	  eu_code()
+	  eu_code = loadstring(theme)()
 	else
 	  dofile(file)
 	  tname = name
