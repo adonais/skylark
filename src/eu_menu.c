@@ -18,6 +18,42 @@
 
 #include "framework.h"
 
+static HMENU
+menu_load(uint16_t mid)
+{
+    HMENU hpop = NULL;
+    HMENU hmenu = i18n_load_menu(mid);
+    if(hmenu)
+    {
+        hpop = GetSubMenu(hmenu, 0);
+        RemoveMenu(hmenu, 0, MF_BYPOSITION);
+        DestroyMenu(hmenu);
+    }
+    return hpop;
+}
+
+int 
+menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam)
+{
+    HMENU hpop = menu_load(mid);
+    if(hpop)
+    {
+        POINT pt;
+        if (!lparam)
+        {
+            GetCursorPos(&pt);
+        }
+        else
+        {
+            pt.x = GET_X_LPARAM(lparam);
+            pt.y = GET_Y_LPARAM(lparam);
+        }
+        TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
+        DestroyMenu(hpop);
+    }
+    return 1;
+}
+
 void
 menu_switch_theme(void)
 {

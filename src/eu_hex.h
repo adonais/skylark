@@ -149,10 +149,8 @@ extern "C"
 int hexview_switch_mode(eu_tabpage *pnode);
 int hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile);
 int hexview_update_theme(eu_tabpage *pnode);
-int hexview_create_pop_menu(void);
 void hexview_updata(intptr_t *p, intptr_t m);
 void hexview_destoy(eu_tabpage *pnode);
-void hexview_destroy_pop_menu(void);
 void hexview_send_notify(HWND hwnd, uint32_t code, LPNMHDR nmhdr);
 uint8_t *hexview_strdup_data(eu_tabpage *, size_t *);
 bool hexview_init(eu_tabpage *pnode);

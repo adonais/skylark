@@ -197,12 +197,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONDOWN:
         {
-            POINT pt;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            ClientToScreen(hwnd, &pt);
-            TrackPopupMenu(pop_symlist_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
-            break;
+            return menu_pop_track(hwnd, IDR_SYMBOLLIST_POPUPMENU, 0);
         }
         case WM_DPICHANGED:
         {

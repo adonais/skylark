@@ -26,7 +26,6 @@
 #define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \n")
 #define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\n")
 
-static HMENU pop_hex_menu;
 static volatile long hex_zoom;
 
 /*******************************************
@@ -567,30 +566,6 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     return (hexview->hfont != NULL); 
 }
 
-int
-hexview_create_pop_menu(void)
-{
-    if (pop_hex_menu == NULL)
-    {
-        pop_hex_menu = i18n_load_menu(IDR_HEXVIEW_MENU);
-        if (pop_hex_menu)
-        {
-            pop_hex_menu = GetSubMenu(pop_hex_menu, 0);
-        }
-    }
-    return 0;
-}
-
-void
-hexview_destroy_pop_menu(void)
-{
-    if (pop_hex_menu)
-    {
-        DestroyMenu(pop_hex_menu);
-        pop_hex_menu = NULL;
-    }
-}
-
 static LRESULT CALLBACK
 hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
@@ -659,17 +634,12 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            if (pop_hex_menu)
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+            // 限制右键显示区域
+            if (x < hexview->longest_line*hexview->width_char && (y > 2*hexview->height_char &&  y < hexview->totallines*hexview->height_char))
             {
-                POINT pt;
-                pt.x = GET_X_LPARAM(lParam);
-                pt.y = GET_Y_LPARAM(lParam);
-                // 限制右键显示区域
-                if (pt.x < hexview->longest_line*hexview->width_char && (pt.y > 2*hexview->height_char &&  pt.y < hexview->totallines*hexview->height_char))
-                {
-                    ClientToScreen(hwnd, &pt);
-                    TrackPopupMenu(pop_hex_menu, TPM_LEFTALIGN | TPM_TOPALIGN, pt.x, pt.y, 0, hwnd, NULL);
-                }
+                return menu_pop_track(hwnd, IDR_HEXVIEW_MENU, 0);
             }
             return 1;
         }

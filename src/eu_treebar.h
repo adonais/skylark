@@ -53,8 +53,6 @@ tree_data *on_treebar_get_treeview(HTREEITEM hti);
 void on_treebar_update_theme(void);
 void on_treebar_adjust_box(RECT *ptf);
 void on_treebar_adjust_filetree(RECT *treebar, RECT *rect);
-void on_treebar_destroy_pop_menu(void);
-bool on_treebar_create_pop_menu(void);
 int  on_treebar_load_remote(HWND hwnd, remotefs *pserver);
 int  on_treebar_locate_path(TCHAR *pathname);
 int  on_treebar_create_box(HWND hwnd);

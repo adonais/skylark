@@ -26,11 +26,7 @@
 
 HWND g_tabpages = NULL;
 HMENU pop_editor_menu = NULL;
-HMENU pop_symlist_menu = NULL;
 HMENU pop_tab_menu = NULL;
-HMENU pop_symtree_refresh_menu = NULL;
-HMENU pop_symtree_table_menu = NULL;
-HMENU pop_symtree_row_menu = NULL;
 
 static bool is_moving;
 static int move_from;
@@ -70,28 +66,6 @@ on_tabpage_destroy_rclick(void)
         DestroyMenu(pop_editor_menu);
         pop_editor_menu = NULL;
     }
-    if (pop_symlist_menu)
-    {
-        DestroyMenu(pop_symlist_menu);
-        pop_symlist_menu = NULL;
-    }
-    if (pop_symtree_refresh_menu)
-    {
-        DestroyMenu(pop_symtree_refresh_menu);
-        pop_symtree_refresh_menu = NULL;
-    }
-    if (pop_symtree_table_menu)
-    {
-        DestroyMenu(pop_symtree_table_menu);
-        pop_symtree_table_menu = NULL;
-    }
-    if (pop_symtree_row_menu)
-    {
-        DestroyMenu(pop_symtree_row_menu);
-        pop_symtree_row_menu = NULL;
-    }
-    on_treebar_destroy_pop_menu();
-    hexview_destroy_pop_menu();      
 }
 
 static void
@@ -392,7 +366,11 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 util_enable_menu_item(pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
             }
             ClientToScreen(hwnd, &pt);
-            TrackPopupMenu(GetSubMenu(pop_tab_menu, 0), 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
+            HMENU hpop = GetSubMenu(pop_tab_menu, 0);
+            if (hpop)
+            {
+                TrackPopupMenu(hpop, 0, pt.x, pt.y, 0, hwnd, NULL);
+            }
             return 1;
         }
         case WM_MBUTTONUP:
@@ -429,44 +407,15 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 int
 on_tabpage_create_rclick(void)
 {
-    int err = 1;
-    do
+    if ((pop_tab_menu = i18n_load_menu(IDR_TABPAGE_POPUPMENU)) == NULL)
     {
-        if ((pop_tab_menu = i18n_load_menu(IDR_TABPAGE_POPUPMENU)) == NULL)
-        {
-            break;
-        }
-        if ((pop_editor_menu = i18n_load_menu(IDR_EDITOR_POPUPMENU)) == NULL)
-        {
-            break;
-        }
-        if ((pop_symlist_menu = i18n_load_menu(IDR_SYMBOLLIST_POPUPMENU)) == NULL)
-        {
-            break;
-        }
-        pop_symlist_menu = GetSubMenu(pop_symlist_menu, 0);
-        if ((pop_symtree_refresh_menu = i18n_load_menu(IDR_SYMBOLTREE_REFRESH_POPUPMENU)) == NULL)
-        {
-            break;
-        }
-        pop_symtree_refresh_menu = GetSubMenu(pop_symtree_refresh_menu, 0);
-        if ((pop_symtree_table_menu = i18n_load_menu(IDR_SYMBOLTREE_TABLE_POPUPMENU)) == NULL)
-        {
-            break;
-        }
-        pop_symtree_table_menu = GetSubMenu(pop_symtree_table_menu, 0);
-        if ((pop_symtree_row_menu = i18n_load_menu(IDR_SYMBOLTREE_ROW_POPUPMENU)) == NULL)
-        {
-            break;
-        }
-        pop_symtree_row_menu = GetSubMenu(pop_symtree_row_menu, 0);
-        if (!on_treebar_create_pop_menu())
-        {
-            break;
-        }
-        err = hexview_create_pop_menu();
-    } while(0);
-    return err;
+        return 1;
+    }
+    if ((pop_editor_menu = i18n_load_menu(IDR_EDITOR_POPUPMENU)) == NULL)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 int
