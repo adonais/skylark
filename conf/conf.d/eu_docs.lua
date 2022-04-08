@@ -1,7 +1,7 @@
-require("emod")
+require("eu_core")
 
-local ffi = emod.ffi
-local euapi = emod.euapi
+local ffi = eu_core.ffi
+local euapi = eu_core.euapi
 
 function string:split(delimiter)
   local result = {}

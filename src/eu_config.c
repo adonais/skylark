@@ -189,23 +189,16 @@ eu_load_config(HMODULE *pmod)
     char *lua_path = NULL;
     TCHAR path[MAX_PATH+1] = {0};
     m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
-    if (!(m > 0 && m < MAX_PATH))
+    if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
     {
         return false;
     }
-    if (eu_lua_script_exec(path) != 0)
+    if (do_lua_func(lua_path, "run", "") != 0)
     {
-        return false;
+    	printf("eu_main.lua exec failed\n");
+        goto load_fail;
     }
-    m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_accelerator.lua"), eu_module_path);
-    if (!(m > 0 && m < MAX_PATH))
-    {
-        return false;
-    }
-    if (eu_lua_script_exec(path) != 0)
-    {
-        return false;
-    }    
+    eu_safe_free(lua_path);
     m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
     if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
     {
@@ -213,7 +206,7 @@ eu_load_config(HMODULE *pmod)
     }
     if (do_lua_parser_doctype(lua_path, "fill_my_docs"))
     {
-        printf("lua exec failed\n");
+        printf("eu_docs exec failed\n");
         goto load_fail;
     }
     if (_stricmp(eu_get_config()->window_theme, "white") == 0)

@@ -1,23 +1,9 @@
-emod = {}
-emod.ffi = require("ffi")
-emod.eulib = require("euapi")
-emod.euapi = emod.ffi.load(emod.ffi.os == "Windows" and "euapi.dll")
+eu_core = {}
+eu_core.ffi = require("ffi")
+eu_core.eulib = require("euapi")
+eu_core.euapi = eu_core.ffi.load(eu_core.ffi.os == "Windows" and "euapi.dll")
 
-function emod.script_path()
-    return emod.eulib.lconfdir()
-end
-
-function emod.file_exists(cpath)
-   local f=io.open(cpath,"r")
-   if f~=nil then io.close(f) return true else return false end
-end
-
-function emod.table_is_empty(t)
-  if t == nil then return true end
-  return _G.next(t) == nil
-end
-
-emod.ffi.cdef[[
+eu_core.ffi.cdef[[
 
 typedef struct tagRECT 
 {
@@ -339,179 +325,29 @@ void on_doc_commentdoc_light(void *, int lex, int64_t rgb);
 
 ]]
 
-function emod.strncat(dest, src, num)
-	return emod.ffi.C.strncat(dest, src, num)
+function eu_core.script_path()
+    return eu_core.eulib.lconfdir()
 end
 
-function emod.load_theme(name)
-	local file = " "
-	local tname = "default"
-	local path = emod.script_path()
-	if (name == tname) then
-	  file = (path .. "\\styletheme.conf")
-	else
-	  file = (path .. "\\styletheme_" .. name .. ".conf")
-	end
-
-	if (not emod.file_exists(file)) then
-	  file = (path .. "\\styletheme.conf")
-	  local theme = -- 默认主题配置文件
-	    "linenumber_font = \"Consolas\"\n" ..
-	    "linenumber_fontsize = 9\n" ..
-	    "linenumber_color = 0x00FFFFFF\n" ..
-	    "linenumber_bgcolor = 0x00444444\n" ..
-	    "linenumber_bold = 0\n" ..
-	    "foldmargin_font = \"Consolas\"\n" ..
-	    "foldmargin_fontsize = 9\n" ..
-	    "foldmargin_color = 0x00000000\n" ..
-	    "foldmargin_bgcolor = 0x004E4C4C\n" ..
-	    "foldmargin_bold = 0\n" ..
-	    "text_font = \"Consolas\"\n" ..
-	    "text_fontsize = 11\n" ..
-	    "text_color = 0x00FFFFFF\n" ..
-	    "text_bgcolor = 0x00444444\n" ..
-	    "text_bold = 0\n" ..
-	    "caretline_font = \"Consolas\"\n" ..
-	    "caretline_fontsize = 11\n" ..
-	    "caretline_color = 0x00000000\n" ..
-	    "caretline_bgcolor = 0x5A696969\n" ..
-	    "caretline_bold = 0\n" ..
-	    "indicator_font = \"Consolas\"\n" ..
-	    "indicator_fontsize = 11\n" ..
-	    "indicator_color = 0x00FFFFFF\n" ..
-	    "indicator_bgcolor = 0x5A808000\n" ..
-	    "indicator_bold = 0\n" ..
-	    "keywords_font = \"Consolas\"\n" ..
-	    "keywords_fontsize = 11\n" ..
-	    "keywords_color = 0x0000B050\n" ..
-	    "keywords_bgcolor = 0x00000000\n" ..
-	    "keywords_bold = 1\n" ..
-	    "keywords2_font = \"Consolas\"\n" ..
-	    "keywords2_fontsize = 11\n" ..
-	    "keywords2_color = 0x0000B050\n" ..
-	    "keywords2_bgcolor = 0x00000000\n" ..
-	    "keywords2_bold = 1\n" ..
-	    "string_font = \"Consolas\"\n" ..
-	    "string_fontsize = 11\n" ..
-	    "string_color = 0x00C080FF\n" ..
-	    "string_bgcolor = 0x00000000\n" ..
-	    "string_bold = 0\n" ..
-	    "character_font = \"Consolas\"\n" ..
-	    "character_fontsize = 11\n" ..
-	    "character_color = 0x00C080FF\n" ..
-	    "character_bgcolor = 0x00000000\n" ..
-	    "character_bold = 0\n" ..
-	    "number_font = \"Consolas\"\n" ..
-	    "number_fontsize = 11\n" ..
-	    "number_color = 0x00C080FF\n" ..
-	    "number_bgcolor = 0x00000000\n" ..
-	    "number_bold = 0\n" ..
-	    "operator_font = \"Consolas\"\n" ..
-	    "operator_fontsize = 11\n" ..
-	    "operator_color = 0x00FFFFFF\n" ..
-	    "operator_bgcolor = 0x00000000\n" ..
-	    "operator_bold = 0\n" ..
-	    "preprocessor_font = \"Consolas\"\n" ..
-	    "preprocessor_fontsize = 11\n" ..
-	    "preprocessor_color = 0x0000B050\n" ..
-	    "preprocessor_bgcolor = 0x00000000\n" ..
-	    "preprocessor_bold = 0\n" ..
-	    "comment_font = \"Consolas\"\n" ..
-	    "comment_fontsize = 11\n" ..
-	    "comment_color = 0x00C0C0C0\n" ..
-	    "comment_bgcolor = 0x00000000\n" ..
-	    "comment_bold = 0\n" ..
-	    "commentline_font = \"Consolas\"\n" ..
-	    "commentline_fontsize = 11\n" ..
-	    "commentline_color = 0x00C0C0C0\n" ..
-	    "commentline_bgcolor = 0x00000000\n" ..
-	    "commentline_bold = 0\n" ..
-	    "commentdoc_font = \"Consolas\"\n" ..
-	    "commentdoc_fontsize = 11\n" ..
-	    "commentdoc_color = 0x00C0C0C0\n" ..
-	    "commentdoc_bgcolor = 0x00000000\n" ..
-	    "commentdoc_bold = 0\n" ..
-	    "tags_font = \"Consolas\"\n" ..
-	    "tags_fontsize = 11\n" ..
-	    "tags_color = 0x00FF8000\n" ..
-	    "tags_bgcolor = 0x00000000\n" ..
-	    "tags_bold = 0\n" ..
-	    "unknowtags_font = \"Consolas\"\n" ..
-	    "unknowtags_fontsize = 11\n" ..
-	    "unknowtags_color = 0x00FF00FF\n" ..
-	    "unknowtags_bgcolor = 0x00000000\n" ..
-	    "unknowtags_bold = 0\n" ..
-	    "attributes_font = \"Consolas\"\n" ..
-	    "attributes_fontsize = 11\n" ..
-	    "attributes_color = 0x0080FF80\n" ..
-	    "attributes_bgcolor = 0x00000000\n" ..
-	    "attributes_bold = 0\n" ..
-	    "unknowattributes_font = \"Consolas\"\n" ..
-	    "unknowattributes_fontsize = 11\n" ..
-	    "unknowattributes_color = 0x00808040\n" ..
-	    "unknowattributes_bgcolor = 0x00000000\n" ..
-	    "unknowattributes_bold = 0\n" ..
-	    "entities_font = \"Consolas\"\n" ..
-	    "entities_fontsize = 11\n" ..
-	    "entities_color = 0x00800080\n" ..
-	    "entities_bgcolor = 0x00000000\n" ..
-	    "entities_bold = 0\n" ..
-	    "tagends_font = \"Consolas\"\n" ..
-	    "tagends_fontsize = 11\n" ..
-	    "tagends_color = 0x000080FF\n" ..
-	    "tagends_bgcolor = 0x00000000\n" ..
-	    "tagends_bold = 0\n" ..
-	    "cdata_font = \"Consolas\"\n" ..
-	    "cdata_fontsize = 11\n" ..
-	    "cdata_color = 0x00008000\n" ..
-	    "cdata_bgcolor = 0x00000000\n" ..
-	    "cdata_bold = 0\n" ..
-	    "phpsection_font = \"Consolas\"\n" ..
-	    "phpsection_fontsize = 11\n" ..
-	    "phpsection_color = 0x000080FF\n" ..
-	    "phpsection_bgcolor = 0x00000000\n" ..
-	    "phpsection_bold = 0\n" ..
-	    "aspsection_font = \"Consolas\"\n" ..
-	    "aspsection_fontsize = 11\n" ..
-	    "aspsection_color = 0x00808080\n" ..
-	    "aspsection_bgcolor = 0x00000000\n" ..
-	    "aspsection_bold = 0"
-	  eu_code = loadstring(theme)()
-	else
-	  dofile(file)
-	  tname = name
-	end
-	local m_file = emod.ffi.new('char[260]')
-	emod.ffi.C._fullpath(m_file, file, 260)
-	local m_theme = emod.ffi.new("struct eu_theme", {m_file, tname, 
-	  {
-		{linenumber_font,linenumber_fontsize,linenumber_color,linenumber_bgcolor,linenumber_bold},
-		{foldmargin_font,foldmargin_fontsize,foldmargin_color,foldmargin_bgcolor,foldmargin_bold},
-		{text_font,text_fontsize,text_color,text_bgcolor,text_bold},
-		{caretline_font,caretline_fontsize,caretline_color,caretline_bgcolor,caretline_bold},
-		{indicator_font,indicator_fontsize,indicator_color,indicator_bgcolor,indicator_bold},
-		{keywords_font,keywords_fontsize,keywords_color,keywords_bgcolor,keywords_bold},
-		{keywords2_font,keywords2_fontsize,keywords2_color,keywords2_bgcolor,keywords2_bold},
-		{string_font,string_fontsize,string_color,string_bgcolor,string_bold},
-		{character_font,character_fontsize,character_color,character_bgcolor,character_bold},
-		{number_font,number_fontsize,number_color,number_bgcolor,number_bold},
-		{operator_font,operator_fontsize,operator_color,operator_bgcolor,operator_bold},
-		{preprocessor_font,preprocessor_fontsize,preprocessor_color,preprocessor_bgcolor,preprocessor_bold},
-		{comment_font,comment_fontsize,comment_color,comment_bgcolor,comment_bold},
-		{commentline_font,commentline_fontsize,commentline_color,commentline_bgcolor,commentline_bold},
-		{commentdoc_font,commentdoc_fontsize,commentdoc_color,commentdoc_bgcolor,commentdoc_bold},
-		{tags_font,tags_fontsize,tags_color,tags_bgcolor,tags_bold},
-		{unknowtags_font,unknowtags_fontsize,unknowtags_color,unknowtags_bgcolor,unknowtags_bold},
-		{attributes_font,attributes_fontsize,attributes_color,attributes_bgcolor,attributes_bold},
-		{unknowattributes_font,unknowattributes_fontsize,unknowattributes_color,unknowattributes_bgcolor,unknowattributes_bold},
-		{entities_font,entities_fontsize,entities_color,entities_bgcolor,entities_bold},
-		{tagends_font,tagends_fontsize,tagends_color,tagends_bgcolor,tagends_bold},
-		{cdata_font,cdata_fontsize,cdata_color,cdata_bgcolor,cdata_bold},
-		{phpsection_font,phpsection_fontsize,phpsection_color,phpsection_bgcolor,phpsection_bold},
-		{aspsection_font,aspsection_fontsize,aspsection_color,aspsection_bgcolor,aspsection_bold}
-	  }
-	})
-	return emod.euapi.eu_theme_ptr(m_theme, true)
+function eu_core.file_exists(path)
+   local f=io.open(path,"r")
+   if f~=nil then io.close(f) return true else return false end
 end
 
-return emod
+function eu_core.table_is_empty(t)
+    if t == nil then return true end
+    return _G.next(t) == nil
+end
+
+function eu_core.save_file(filename, buffer)
+    local f = assert(io.open(filename, 'wb+'))
+    io.output(f)
+    io.write(buffer)
+    io.close(f)
+end
+
+function eu_core.strncat(dest, src, num)
+	return eu_core.ffi.C.strncat(dest, src, num)
+end
+
+return eu_core

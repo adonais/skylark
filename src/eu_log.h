@@ -136,7 +136,7 @@ c99_snwprintf(wchar_t* str, size_t size, const wchar_t* format, ...)
 extern "C" {
 #endif
 
-#ifdef _DEBUG
+#if APP_DEBUG
 __declspec(dllexport) void __stdcall eu_init_logs(void);
 __declspec(dllexport) void __cdecl eu_logmsg(const char *format, ...);
 //#define printf eu_logmsg

@@ -134,7 +134,7 @@ on_theme_load_script(const TCHAR *ac_name)
     TCHAR script[MAX_PATH];
     char script_name[MAX_PATH] = {0};
     char name[ACNAME_LEN+1] = {0};
-    _sntprintf(script, MAX_PATH - 1, _T("%s\\conf\\conf.d\\eu_theme.lua"), eu_module_path);
+    _sntprintf(script, MAX_PATH - 1, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
     if (!WideCharToMultiByte(CP_UTF8, 0, script, -1, script_name, MAX_PATH-1, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;

@@ -1,11 +1,11 @@
-require("emod")
-local ffi = emod.ffi
-local euapi = emod.euapi
+eu_accel = {}
 
-function load_accels()
+require("eu_core")
+
+function eu_accel.loadaccel()
   local my_code = nil
-  local acc_file = (emod.script_path() .. "\\skylark_input.conf")
-  if (not emod.file_exists(acc_file)) then
+  local acc_file = (eu_core.script_path() .. "\\skylark_input.conf")
+  if (not eu_core.file_exists(acc_file)) then
     local code = {
 	  "local bit = require(\"bit\")\n",
       "-- File\n",
@@ -338,28 +338,24 @@ function load_accels()
 	}
 	local mystring = table.concat(code)
 	my_code = assert(loadstring(mystring))()
-    local f = assert(io.open(acc_file, 'wb+'))
-    io.output(f)
-    io.write(mystring)
-    io.close(f)
+    eu_core.save_file(acc_file, mystring)
   else
     my_code = assert(dofile(acc_file))
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    local m_accel = ffi.new("ACCEL[200]", {})
+    local m_accel = eu_core.ffi.new("ACCEL[200]", {})
     for i = 0, m_len - 1 do
-      local m_ptr = ffi.cast('ACCEL *', m_accel[i])
+      local m_ptr = eu_core.ffi.cast('ACCEL *', m_accel[i])
       m_ptr.fVirt = tonumber(my_code[i+1][1])
       m_ptr.key = tonumber(my_code[i+1][2])
       m_ptr.cmd = tonumber(my_code[i+1][3])
     end
-	if (not euapi.eu_accel_ptr(m_accel)) then
+	if (not eu_core.euapi.eu_accel_ptr(m_accel)) then
 	  do return 1 end
 	end
   end
   return 0
 end
-if (not load_accels()) then
-  do return 1 end
-end
+
+return eu_accel

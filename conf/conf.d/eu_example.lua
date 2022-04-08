@@ -17,5 +17,5 @@ local function U16(input)
 	end))
     return wstr
 end
-ffi.C.MessageBoxW(nil, U16("你好, eidtultra!"), U16("测试:"), 0)
+ffi.C.MessageBoxW(nil, U16("你好, Skylark Edit!"), U16("测试:"), 0)
 ]=]

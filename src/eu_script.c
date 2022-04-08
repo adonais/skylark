@@ -633,6 +633,11 @@ allclean:
     return status;
 }
 
+// when clang compiles, lua_pcall fails
+#ifdef __clang__
+#pragma clang optimize off
+#endif
+
 static int
 script_process_dir(lua_State *L)
 {
@@ -655,10 +660,15 @@ script_config_dir(lua_State *L)
     int usz = 0;
     wchar_t path[MAX_PATH + 1] = {0};
     char *utf8path = NULL;
-    _snwprintf(path, MAX_PATH, L"%s\\conf", eu_module_path);
-    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
+    if (STR_IS_NUL(eu_process_path(path, MAX_PATH)))
     {
         printf("lua lconfdir error\n");
+        lua_pushnil(L);
+        return 1;
+    }
+    wcsncat(path, L"\\conf", MAX_PATH);    
+    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
+    {
         lua_pushnil(L);
         return 1;
     }
@@ -670,9 +680,13 @@ script_config_dir(lua_State *L)
 static const struct 
 luaL_Reg cb[] = { { "lprocessdir", script_process_dir }, { "lconfdir", script_config_dir }, { NULL, NULL } };
 
-__declspec(dllexport) int 
-luaopen_euapi(lua_State *L)
+int 
+luaopen_euapi(void *L)
 {
     luaL_register(L, "euapi", cb);
     return 0;
 }
+
+#ifdef __clang__
+#pragma clang optimize on
+#endif

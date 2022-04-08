@@ -61,7 +61,7 @@
 #endif
 #define MAX_ACCELS 200
 
-#ifdef _DEBUG
+#if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
 #define EU_VERIFY(x) (void)((x) || (EU_ABORT("failed assert(%s): %s:%d\n", #x, __FILE__, __LINE__), 0))
 #else
@@ -491,6 +491,7 @@ EU_EXT_CLASS void __stdcall eu_load_file(void);
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
 EU_EXT_CLASS int __stdcall eu_lua_script_exec(const TCHAR *fname);
 EU_EXT_CLASS bool __stdcall eu_lua_path_setting(void);
+EU_EXT_CLASS int luaopen_euapi(void *L);
 
 // for eu_theme.c
 EU_EXT_CLASS void eu_font_release(void);

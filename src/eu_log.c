@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifdef _DEBUG
+#if APP_DEBUG
 
 #include "framework.h"
 
