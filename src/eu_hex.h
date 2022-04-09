@@ -154,6 +154,7 @@ void hexview_destoy(eu_tabpage *pnode);
 void hexview_send_notify(HWND hwnd, uint32_t code, LPNMHDR nmhdr);
 uint8_t *hexview_strdup_data(eu_tabpage *, size_t *);
 bool hexview_init(eu_tabpage *pnode);
+void hexview_set_area(int value);
 
 #ifdef __cplusplus
 }

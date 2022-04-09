@@ -78,7 +78,7 @@ util_under_wine(void)
     return false;
 }
 
-static int
+int
 util_get_hex_byte(const char *p)
 {
     int val;
@@ -677,12 +677,13 @@ util_hex_expand(char *hex_buf, int hex_len, char *asc_buf)
 int
 util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
 {
-    int i, j = 0, k = 1, r = 0;
     char c;
-    char uc;
-    if (((int) strlen(asc_buf) < asc_len) || (strlen(asc_buf) == 0))
+    char uc;    
+    int i, j = 0, k = 1, r = 0;
+    int txt_len = eu_int_cast(strlen(asc_buf));
+    if (txt_len < asc_len || txt_len <= 0)
     {
-        return -1;
+        return 1;
     }
     uc = 0;
     for (i = 0; i < asc_len; i++)
@@ -699,9 +700,13 @@ util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
         {
             c = (asc_buf[i] - 'a' + 10) & 0x0f;
         }
+        else if (asc_buf[i] == ' ')
+        {
+            continue;
+        }
         else
         {
-            r = -1;
+            r = 1;
             break;
         }
         uc |= (unsigned char) (c << (k * 4));

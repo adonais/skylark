@@ -359,8 +359,15 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_DRAWCLIPBOARD:
+        {
             draw_clipboard();
+            HWND hwnd = GetClipboardOwner();
+            if (!(hwnd && (hwnd == eu_module_hwnd())))
+            {   // 不是16进制编辑器写剪贴板
+                hexview_set_area(0);
+            }
             break;
+        }
         case WM_CHANGECBCHAIN:
             if ((HWND) wParam == m_chain)
             {

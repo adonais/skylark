@@ -58,6 +58,7 @@ int util_set_title(const TCHAR *filename);
 int util_set_working_dir(const TCHAR *path);
 int util_query_hostname(char *hostname, char *ip, int bufsize);
 int util_effect_line(eu_tabpage *pnode, sptr_t *, sptr_t *);
+int util_get_hex_byte(const char *p);
 
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
