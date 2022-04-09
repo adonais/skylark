@@ -7,7 +7,7 @@ function eu_accel.loadaccel()
   local acc_file = (eu_core.script_path() .. "\\skylark_input.conf")
   if (not eu_core.file_exists(acc_file)) then
     local code = {
-	  "local bit = require(\"bit\")\n",
+      "local bit = require(\"bit\")\n",
       "-- File\n",
       "local IDM_FILE_NEW = 30000\n",
       "local IDM_FILE_OPEN = 30001\n",
@@ -333,27 +333,27 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F1, IDM_DONATION},\n",
       "                 {0, 0, IDM_INTRODUTION},\n",
       "                 {0, 0, IDM_CHANGELOG}\n",
-	  "                }\n",
-      "return accel_t\n",
-	}
-	local mystring = table.concat(code)
-	my_code = assert(loadstring(mystring))()
+      "                }\n",
+      "return accel_t",
+    }
+    local mystring = table.concat(code)
+    my_code = assert(loadstring(mystring))()
     eu_core.save_file(acc_file, mystring)
   else
     my_code = assert(dofile(acc_file))
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    local m_accel = eu_core.ffi.new("ACCEL[200]", {})
+    local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})
     for i = 0, m_len - 1 do
       local m_ptr = eu_core.ffi.cast('ACCEL *', m_accel[i])
       m_ptr.fVirt = tonumber(my_code[i+1][1])
       m_ptr.key = tonumber(my_code[i+1][2])
       m_ptr.cmd = tonumber(my_code[i+1][3])
     end
-	if (not eu_core.euapi.eu_accel_ptr(m_accel)) then
-	  do return 1 end
-	end
+    if (not eu_core.euapi.eu_accel_ptr(m_accel)) then
+      do return 1 end
+    end
   end
   return 0
 end

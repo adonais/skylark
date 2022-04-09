@@ -647,7 +647,7 @@ script_process_dir(lua_State *L)
     {
         printf("lua lprocessdir error\n");
         lua_pushnil(L);
-        return 1;
+        return 2;
     }
     lua_pushlstring(L, utf8path, usz-1);
     free(utf8path);
@@ -664,21 +664,37 @@ script_config_dir(lua_State *L)
     {
         printf("lua lconfdir error\n");
         lua_pushnil(L);
-        return 1;
+        return 2;
     }
     wcsncat(path, L"\\conf", MAX_PATH);    
     if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
         lua_pushnil(L);
-        return 1;
+        return 2;
     }
     lua_pushlstring(L, utf8path, usz-1);
     free(utf8path);
     return 1;
 }
 
+static int
+script_mkdir(lua_State *L) {
+	size_t sz;
+	const char * utf8path = luaL_checklstring(L, 1, &sz);
+	wchar_t *path = eu_utf8_utf16(utf8path, &sz);
+	if (!CreateDirectoryW(path, NULL))
+	{
+	    printf("lua CreateDirectoryW error\n");
+	    free(path);
+		return 2;
+	}
+	lua_pushboolean(L, 1);
+	free(path);
+	return 1;
+}
+
 static const struct 
-luaL_Reg cb[] = { { "lprocessdir", script_process_dir }, { "lconfdir", script_config_dir }, { NULL, NULL } };
+luaL_Reg cb[] = {{"lprocessdir", script_process_dir}, {"lconfdir", script_config_dir}, {"lmkdir", script_mkdir}, {NULL, NULL}};
 
 int 
 luaopen_euapi(void *L)

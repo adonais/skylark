@@ -3,19 +3,19 @@ eu_conf = {}
 require("eu_core")
 
 function eu_conf.fill_actions(s)
-	local pconfig = eu_core.ffi.cast('struct eu_config *', s)
-	if (eu_core.table_is_empty(process_actions)) then
-	    eu_core.ffi.fill(pconfig.m_actions, 100 * 260)
-	else
-	    local actions_size = eu_core.ffi.sizeof(pconfig.m_actions)/260;
-		for i=0,actions_size-1 do
-		  if (process_actions[i]) then
-		      eu_core.ffi.copy(pconfig.m_actions[i], process_actions[i], 259)
-		  else
-		      eu_core.ffi.fill(pconfig.m_actions[i], 260)
-		  end
-		end
-	end
+    local pconfig = eu_core.ffi.cast('struct eu_config *', s)
+    if (eu_core.table_is_empty(process_actions)) then
+        eu_core.ffi.fill(pconfig.m_actions, 100 * 260)
+    else
+        local actions_size = eu_core.ffi.sizeof(pconfig.m_actions)/260;
+        for i=0,actions_size-1 do
+          if (process_actions[i]) then
+              eu_core.ffi.copy(pconfig.m_actions[i], process_actions[i], 259)
+          else
+              eu_core.ffi.fill(pconfig.m_actions[i], 260)
+          end
+        end
+    end
 end
 
 function eu_conf.loadconf()
@@ -28,10 +28,10 @@ function eu_conf.loadconf()
         "enable_auto_add_close_char = true\n" ..
         "enable_auto_identation = true\n" ..
         "window_theme = \"default\"\n" ..
-    	"window_full_screen = false\n" ..
-    	"window_menubar_visiable = true\n" ..
-    	"window_toolbar_visiable = true\n" ..
-    	"window_statusbar_visiable = true\n" ..
+        "window_full_screen = false\n" ..
+        "window_menubar_visiable = true\n" ..
+        "window_toolbar_visiable = true\n" ..
+        "window_statusbar_visiable = true\n" ..
         "line_number_visiable = true\n" ..
         "bookmark_visiable = true\n" ..
         "white_space_visiable = false\n" ..
@@ -62,20 +62,20 @@ function eu_conf.loadconf()
         "save_last_placement = \"\"\n" ..
         "ui_language = \"auto\"\n" ..
         "-- printer default setting\n" ..
-    	"printer = {\n" ..
-    	"    header = 1,\n" ..
-    	"    footer = 0,\n" ..
-    	"    color_mode = 3,\n" ..
-    	"    zoom = 0,\n" ..
-    	"    margin_left = 2000,\n" ..
-    	"    margin_top = 2000,\n" ..
-    	"    margin_right = 2000,\n" ..
-    	"    margin_bottom = 2000\n" ..
-    	"}\n" ..
-    	"-- automatically cached file (size < 200MB)\n" ..
-    	"cache_limit_size = 200\n" ..
-    	"app_build_id = 0\n" ..
-    	"-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
+        "printer = {\n" ..
+        "    header = 1,\n" ..
+        "    footer = 0,\n" ..
+        "    color_mode = 3,\n" ..
+        "    zoom = 0,\n" ..
+        "    margin_left = 2000,\n" ..
+        "    margin_top = 2000,\n" ..
+        "    margin_right = 2000,\n" ..
+        "    margin_bottom = 2000\n" ..
+        "}\n" ..
+        "-- automatically cached file (size < 200MB)\n" ..
+        "cache_limit_size = 200\n" ..
+        "app_build_id = 0\n" ..
+        "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"d:/msys2/msys2_shell.cmd -mingw64 -here\"\n" ..
         "process_actions = {}\n"
         eu_code = assert(loadstring(code))()
@@ -83,48 +83,48 @@ function eu_conf.loadconf()
         eu_code = dofile(file)
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
-    	newfile_eols,
-    	newfile_encoding,
-    	enable_auto_add_close_char,
-    	enable_auto_identation,
-    	window_theme,
+        newfile_eols,
+        newfile_encoding,
+        enable_auto_add_close_char,
+        enable_auto_identation,
+        window_theme,
         window_full_screen,
         window_menubar_visiable,
         window_toolbar_visiable,
         window_statusbar_visiable,
-    	line_number_visiable,
-    	bookmark_visiable,
-    	white_space_visiable,
-    	white_space_size,
-    	newline_visiable,
-    	indentation_guides_visiable,
-    	tab_width,
-    	onkeydown_tab_convert_spaces,
-    	light_fold,
-    	wrapline_mode,
-    	enable_filetree_show,
-    	enable_symbol_show,
-    	file_treebar_width,
-    	symbol_list_width,
-    	symbol_tree_width,
-    	sqlquery_result_edit_height,
-    	sqlquery_result_listview_height,
-    	block_fold_visiable,
-    	auto_completed_show_enable,
-    	auto_completed_show_after_input_characters,
-    	call_tip_show_enable,
-    	edit_font_quality,
-    	edit_rendering_technology,
-    	update_file_mask,
-    	light_all_find_str,
-    	backup_on_file_write,
-    	save_last_session,
-    	save_last_placement,
-    	ui_language,
-    	{printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
-    	cache_limit_size,
-    	app_build_id,
-    	process_path
+        line_number_visiable,
+        bookmark_visiable,
+        white_space_visiable,
+        white_space_size,
+        newline_visiable,
+        indentation_guides_visiable,
+        tab_width,
+        onkeydown_tab_convert_spaces,
+        light_fold,
+        wrapline_mode,
+        enable_filetree_show,
+        enable_symbol_show,
+        file_treebar_width,
+        symbol_list_width,
+        symbol_tree_width,
+        sqlquery_result_edit_height,
+        sqlquery_result_listview_height,
+        block_fold_visiable,
+        auto_completed_show_enable,
+        auto_completed_show_after_input_characters,
+        call_tip_show_enable,
+        edit_font_quality,
+        edit_rendering_technology,
+        update_file_mask,
+        light_all_find_str,
+        backup_on_file_write,
+        save_last_session,
+        save_last_placement,
+        ui_language,
+        {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
+        cache_limit_size,
+        app_build_id,
+        process_path
     })
     eu_conf.fill_actions(m_config)
     if (not eu_core.euapi.eu_config_ptr(m_config)) then

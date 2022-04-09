@@ -82,7 +82,7 @@ struct eu_config
     char m_path[260];
     char m_actions[100][260];
 };
-	
+    
 struct styleclass
 {
     char font[32];
@@ -139,7 +139,7 @@ struct rb_node
 
 struct rb_root
 {
-	struct rb_node *rb_node;
+    struct rb_node *rb_node;
 };
 
 typedef struct rb_root eutype_t;
@@ -152,45 +152,6 @@ typedef int (*reload_list_ptr)(void *pnode);
 typedef int (*click_list_ptr)(void *pnode);
 typedef int (*reload_tree_ptr)(void *pnode);
 typedef int (*click_tree_ptr)(void *pnode);
-
-enum dctype
-{
-    DOCTYPE_END = 0,
-    DOCTYPE_ASM = 1,
-    DOCTYPE_AU3 = 2,
-    DOCTYPE_CS = 3,
-    DOCTYPE_CPP = 4,
-    DOCTYPE_CMAKE = 5,
-    DOCTYPE_CSS = 6,
-    DOCTYPE_COBOL = 7,
-    DOCTYPE_DIFF = 8,
-    DOCTYPE_FORTRAN = 9,
-    DOCTYPE_GO = 10,
-    DOCTYPE_HTML = 11,
-    DOCTYPE_JSON = 12,
-    DOCTYPE_JAVA = 13,
-    DOCTYPE_JAVASCRIPT = 14,
-    DOCTYPE_JULIA = 15,
-    DOCTYPE_KOTLIN = 16,
-    DOCTYPE_LISP = 17,
-    DOCTYPE_LOG = 18,
-    DOCTYPE_LUA = 19,
-    DOCTYPE_MAKEFILE = 20,
-    DOCTYPE_MARKDOWN = 21,
-    DOCTYPE_NIM = 22,
-    DOCTYPE_PERL = 23,
-    DOCTYPE_PROPERTIES = 24,
-    DOCTYPE_PYTHON = 25,
-    DOCTYPE_REDIS = 26,
-    DOCTYPE_RUBY = 27,
-    DOCTYPE_RUST = 28,
-    DOCTYPE_SQL = 29,
-    DOCTYPE_SH = 30,
-    DOCTYPE_SWIFT = 31,
-    DOCTYPE_TXT = 32,
-    DOCTYPE_XML = 33,
-    DOCTYPE_YAML = 34
-} ;
 
 typedef struct _doc_data
 {
@@ -224,6 +185,7 @@ typedef struct _doc_data
 bool __stdcall eu_config_ptr(struct eu_config *pconfig);
 bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
 bool __stdcall eu_accel_ptr(ACCEL *paccel);
+bool __stdcall eu_exist_path(const char *path);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
 // all doctype callbacks
@@ -329,6 +291,10 @@ function eu_core.script_path()
     return eu_core.eulib.lconfdir()
 end
 
+function eu_core.mkdir(path)
+    return eu_core.eulib.lmkdir(path)
+end
+
 function eu_core.file_exists(path)
    local f=io.open(path,"r")
    if f~=nil then io.close(f) return true else return false end
@@ -339,6 +305,20 @@ function eu_core.table_is_empty(t)
     return _G.next(t) == nil
 end
 
+function eu_core.enum(tbl)
+    local i = 0
+    if tbl == nil or type(tbl) ~= "table" then 
+        return nil
+    end 
+    tbl.__index = tbl 
+    tbl.__newindex = function() 
+        print("can not modify enum")
+    end
+    for key,value in pairs(tbl) do i=i+1 end
+    if (i >= 2) then i=i-2 end
+    return setmetatable({}, tbl),i
+end
+
 function eu_core.save_file(filename, buffer)
     local f = assert(io.open(filename, 'wb+'))
     io.output(f)
@@ -347,7 +327,7 @@ function eu_core.save_file(filename, buffer)
 end
 
 function eu_core.strncat(dest, src, num)
-	return eu_core.ffi.C.strncat(dest, src, num)
+    return eu_core.ffi.C.strncat(dest, src, num)
 end
 
 return eu_core

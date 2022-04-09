@@ -11,10 +11,10 @@ int MessageBoxW(void *w, const wchar_t *txt, const wchar_t *cap, int type);
 -- UTF-8 to UTF-16
 local function U16(input)
     local wstr = euapi.utf8_to_utf16(input, nil)
-	ffi.gc(wstr,(function(self)
-	    if wstr ~= nil then ffi.C.free(wstr) end
-	    print("call gc, goodbye!")
-	end))
+    ffi.gc(wstr,(function(self)
+        if wstr ~= nil then ffi.C.free(wstr) end
+        print("call gc, goodbye!")
+    end))
     return wstr
 end
 ffi.C.MessageBoxW(nil, U16("你好, Skylark Edit!"), U16("测试:"), 0)

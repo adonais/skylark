@@ -863,7 +863,7 @@ on_toolbar_create(HWND parent)
     pop_toolbar_menu = i18n_load_menu(IDR_TOOLBAR_POPUPMENU);
     if (pop_toolbar_menu == NULL)
     {
-        printf("i18n_load_menu(IDR_TABPAGE_POPUPMENU) failed\n");
+        printf("i18n_load_menu(IDR_TOOLBAR_POPUPMENU) failed\n");
         return 1;
     }
     pop_toolbar_menu = GetSubMenu(pop_toolbar_menu, 0);

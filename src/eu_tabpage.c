@@ -369,7 +369,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             HMENU hpop = GetSubMenu(pop_tab_menu, 0);
             if (hpop)
             {
-                TrackPopupMenu(hpop, 0, pt.x, pt.y, 0, hwnd, NULL);
+                TrackPopupMenu(hpop, 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
             }
             return 1;
         }
