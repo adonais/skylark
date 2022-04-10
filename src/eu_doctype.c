@@ -893,6 +893,7 @@ on_doc_init_after_rust(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETLEXER, SCLEX_RUST, 0);
     on_doc_keyword_light(pnode, SCE_RUST_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_RUST_WORD2, 1, 0);
+    on_doc_function_light(pnode, SCE_RUST_MACRO, 2, 0);
     on_doc_string_light(pnode, SCE_RUST_STRING, 0);
     on_doc_char_light(pnode, SCE_RUST_CHARACTER, 0);
     on_doc_number_light(pnode, SCE_RUST_NUMBER, 0);
@@ -1762,6 +1763,11 @@ on_doc_match_parenthesis(eu_tabpage *pnode, SCNotification *lpnotify)
             {   // 函数名称后面跟了一个空格
                 start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
                 end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 2, true);
+            }
+            else if (ch > 0x20 && ch < 0x7f)
+            {
+                start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
+                end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             }
             else
             {
