@@ -10,7 +10,7 @@ STATICLIB = $(BIND)\iconv.lib
 
 CFLAGS  = -Zi -Oy -utf-8 -I$(SRC) -Iinclude -I$(SRC)\lib -I$(SRC)\libcharset -D_WIN32_WINNT=_WIN32_WINNT_WIN7 -DENABLE_RELOCATABLE=1 \
           -DIN_LIBRARY -DNO_XMALLOC -Dset_relocation_prefix=libiconv_set_relocation_prefix -Drelocate=libiconv_relocate \
-          -Drelocate2=libiconv_relocate2 -DHAVE_CONFIG_H $(RELEASE) $(CFLAGS)
+          -DENABLE_EXTRA=1 -Drelocate2=libiconv_relocate2 -DHAVE_CONFIG_H $(RELEASE) $(CFLAGS)
 
 
 OBJS = $(OBJD)\iconv.obj         \

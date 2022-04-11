@@ -578,7 +578,6 @@ BEGIN
             MENUITEM "UTF-16BE",                     IDM_UNI_UTF16BEB
             MENUITEM "UTF-32LE",                     IDM_UNI_UTF32LE
             MENUITEM "UTF-32BE",                     IDM_UNI_UTF32BE
-            MENUITEM "ASCII Escaped Unicode",        IDM_UNI_ASCII
         END
         POPUP "ANSI"
         BEGIN
@@ -592,7 +591,7 @@ BEGIN
             MENUITEM "windows-1257 (波罗的海)",      IDM_ANSI_8
             MENUITEM "windows-1258 (越南)",          IDM_ANSI_9
             MENUITEM "cp874 (泰语)",                 IDM_ANSI_10
-            MENUITEM "cp932 (日语)",                 IDM_ANSI_11
+            MENUITEM "cp932 (日语 Shift_JIS)",       IDM_ANSI_11
             MENUITEM "cp936 (简体中文)",             IDM_ANSI_12
             MENUITEM "cp949 (朝鲜语)",               IDM_ANSI_13
             MENUITEM "cp950 (繁体中文 Big5)",        IDM_ANSI_14
@@ -613,9 +612,11 @@ BEGIN
             MENUITEM "28603 (ISO-8859-13 拉丁语7)",   IDM_ISO_13
             MENUITEM "28605 (ISO-8859-15 拉丁语9)",   IDM_ISO_15
             MENUITEM "28606 (ISO-8859-16 东南欧语)",  IDM_ISO_16
-            MENUITEM "50222 (ISO-2022 日语)",         IDM_ISO_JP
             MENUITEM "50225 (ISO-2022 朝鲜语)",       IDM_ISO_KR
             MENUITEM "50227 (ISO-2022 简体中文)",     IDM_ISO_CN
+            MENUITEM "ISO-2022-JP-2 (日语)",          IDM_ISO_JP_2
+            MENUITEM "ISO-2022-JP-2004 (日语)",       IDM_ISO_JP_2004
+            MENUITEM "ISO-2022-JP-MS (日语)",         IDM_ISO_JP_MS
         END
         POPUP "IBM"
         BEGIN
@@ -630,6 +631,7 @@ BEGIN
         END
         POPUP "Other"
         BEGIN
+            MENUITEM "hz-gb-2312",                    IDM_OTHER_HZ
             MENUITEM "koi8-r",                        IDM_OTHER_1
             MENUITEM "mac-cyrillic",                  IDM_OTHER_2
             MENUITEM "mac-centraleurope",             IDM_OTHER_3

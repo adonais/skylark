@@ -50,7 +50,6 @@
 
 #define CHECK_1ST   0.500000
 #define CHECK_2ND   0.925000
-#define CHECK_LEN   (32*1024)
 #define ENV_LEN     512
 #define FILESIZE    128
 #define ACNAME_LEN  64
@@ -370,7 +369,7 @@ EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needl
 EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
 EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reverse, intptr_t *pret);
 
-EU_EXT_CLASS int __stdcall eu_try_encoding(const char *, size_t, bool is_file, const TCHAR *);
+EU_EXT_CLASS int __stdcall eu_try_encoding(uint8_t *, size_t, bool is_file, const TCHAR *);
 EU_EXT_CLASS char *__stdcall eu_utf16_utf8(const wchar_t *utf16, size_t *out_len);
 EU_EXT_CLASS char *__stdcall eu_utf16_mbcs(int codepage, const wchar_t *utf16, size_t *out_len);
 EU_EXT_CLASS wchar_t *__stdcall eu_mbcs_utf16(int codepage, const char *ansi, size_t *out_len);

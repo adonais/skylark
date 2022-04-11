@@ -56,7 +56,7 @@ if (hc)                                     \
 static void
 on_search_fill_combo(void)
 {
-    HWND hwnd_type = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_FY_CBO); 
+    HWND hwnd_type = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_FY_CBO);
     if (hwnd_type)
     {
         const TCHAR *index_str[] =
@@ -108,7 +108,7 @@ on_search_tab_ui(int index)
         CONTROL_HANDLE(hc, IDC_SEARCH_FOUNDLIST, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_PGB_STC, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_PGB1, SW_HIDE)
-        hc = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO); 
+        hc = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO);
         EnableWindow(hc, true);
         hc = GetDlgItem(hwnd_search_dlg, IDC_MATCH_CASE);
         if (!pnode->hex_mode)
@@ -126,13 +126,13 @@ on_search_tab_ui(int index)
             MoveWindow(hc, rc.left, rc.bottom + 3, rc.right - rc.left, rc.bottom - rc.top, TRUE);
             CONTROL_HANDLE(hc, IDC_SEARCH_CLOSE_BTN, SW_SHOW)
             MoveWindow(hc, rc.left, rc.bottom + (rc.bottom - rc.top) + 6, rc.right - rc.left, rc.bottom - rc.top, TRUE);
-            CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STRINGS, SW_HIDE) 
+            CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STRINGS, SW_HIDE)
             CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STC, SW_HIDE)
             hc = GetDlgItem(hwnd_search_dlg, IDC_MODE_REGEXP);
             EnableWindow(hc, true);
         }
         else
-        {   
+        {
             if (!DLG_BTN_CHECK(hwnd_search_dlg, IDC_SEARCH_HEX_STRINGS))
             {
                 EnableWindow(hc, false);
@@ -234,7 +234,7 @@ on_search_tab_ui(int index)
         MapWindowPoints(NULL, hwnd_search_dlg, (LPPOINT)&rc, 2);
         EnableWindow(hc, true);
         hc = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO);
-        EnableWindow(hc, true);        
+        EnableWindow(hc, true);
         CONTROL_HANDLE(hc, IDC_MATCH_ALL_FILE, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_MATCH_LOOP, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_MATCH_WDSTART, SW_HIDE)
@@ -245,7 +245,7 @@ on_search_tab_ui(int index)
         hc = GetDlgItem(hwnd_search_dlg, IDC_MODE_REGEXP);
         EnableWindow(hc, true);
         hc = GetDlgItem(hwnd_search_dlg, IDC_MATCH_CASE);
-        EnableWindow(hc, true);                
+        EnableWindow(hc, true);
         CONTROL_HANDLE(hc, IDC_MATCH_WORD, SW_SHOW)
         CONTROL_HANDLE(hc, IDC_SEARCH_ALL_BTN, SW_SHOW)
         MoveWindow(hc, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
@@ -253,11 +253,11 @@ on_search_tab_ui(int index)
         MoveWindow(hc, rc.left, rc.bottom + 4, rc.right - rc.left, rc.bottom - rc.top, TRUE);
         CONTROL_HANDLE(hc, IDC_SEARCH_CD_CHK, SW_SHOW)
         MoveWindow(hc, rc.left, rc.bottom + (rc.bottom - rc.top) + 12, rc.right - rc.left, rc.bottom - rc.top, TRUE);
-        CONTROL_HANDLE(hc, IDC_SEARCH_SUB_CHK, SW_SHOW)  
+        CONTROL_HANDLE(hc, IDC_SEARCH_SUB_CHK, SW_SHOW)
         MoveWindow(hc, rc.left, rc.bottom + (rc.bottom - rc.top) * 2 + 15, rc.right - rc.left, rc.bottom - rc.top, TRUE);
-        CONTROL_HANDLE(hc, IDC_SEARCH_HIDE_CHK, SW_SHOW)  
+        CONTROL_HANDLE(hc, IDC_SEARCH_HIDE_CHK, SW_SHOW)
         MoveWindow(hc, rc.left, rc.bottom + (rc.bottom - rc.top) * 3 + 18, rc.right - rc.left, rc.bottom - rc.top, TRUE);
-        CONTROL_HANDLE(hc, IDC_SEARCH_UTF8_CHK, SW_SHOW)  
+        CONTROL_HANDLE(hc, IDC_SEARCH_UTF8_CHK, SW_SHOW)
         MoveWindow(hc, rc.left, rc.bottom + (rc.bottom - rc.top) * 4 + 21, rc.right - rc.left, rc.bottom - rc.top, TRUE);
         LOAD_I18N_RESSTR(IDC_MSG_SEARCH_TIT3, tit_str);
         SetWindowText(hwnd_search_dlg, tit_str);
@@ -782,7 +782,7 @@ on_search_jmp_end(eu_tabpage *pnode)
     {
         SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
         return 0;
-    }    
+    }
     sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
     sptr_t max_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
@@ -819,7 +819,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
             {
                 SendMessage(pnode->hwnd_sc, HVM_SETLINE, line, 0);
             }
-            
+
         }
         else
         {
@@ -1263,14 +1263,14 @@ on_search_tab_draw(HWND hwnd, HDC hdc, int tab)
         if (*m_text)
         {
             DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-        }        
+        }
     }
     else
     {
         colour hh = on_dark_light_color(rgb_dark_bk_color, 1.5f);
         SetBkColor(hdc, hh);
         ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
-        DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);     
+        DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
     }
 }
 
@@ -1313,7 +1313,7 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 EndPaint(hwnd, &ps);
             }
             break;
-        }        
+        }
         case WM_LBUTTONUP:
         {
             int ntab = TabCtrl_GetCurSel(hwnd);
@@ -1338,7 +1338,7 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (hwnd_what)
             {
                 on_search_set_focus(on_tabpage_focus_at(), hwnd_what);
-            }            
+            }
             break;
         }
         case WM_THEMECHANGED:
@@ -1354,7 +1354,7 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 SetWindowLongPtr(hwnd, GWL_STYLE, style & ~TCS_OWNERDRAWFIXED);
             }
             break;
-        }        
+        }
         case WM_DESTROY:
         {
             printf("search tabs WM_DESTROY\n");
@@ -1403,7 +1403,7 @@ on_search_set_tips(int resid, int num, int count)
     }
 }
 
-static void 
+static void
 on_search_delete_lword(HWND hedit)
 {
     WORD cursor;
@@ -1412,7 +1412,7 @@ on_search_delete_lword(HWND hedit)
     SendMessage(hedit, WM_GETTEXT, MAX_PATH, (LPARAM)str);
     SendMessage(hedit, EM_GETSEL, (WPARAM)&cursor, 0);
     wordstart = cursor;
-    while (wordstart > 0) 
+    while (wordstart > 0)
     {
         TCHAR c = str[wordstart - 1];
         if (c != ' ' && c != '\t')
@@ -1421,7 +1421,7 @@ on_search_delete_lword(HWND hedit)
         }
         --wordstart;
     }
-    while (wordstart > 0) 
+    while (wordstart > 0)
     {
         TCHAR c = str[wordstart - 1];
         if (c == ' ' || c == '\t')
@@ -1430,7 +1430,7 @@ on_search_delete_lword(HWND hedit)
         }
         --wordstart;
     }
-    if (wordstart < cursor) 
+    if (wordstart < cursor)
     {
         SendMessage(hedit, EM_SETSEL, (WPARAM)wordstart, (LPARAM)cursor);
         SendMessage(hedit, EM_REPLACESEL, (WPARAM)TRUE, (LPARAM)(_T("")));
@@ -1496,7 +1496,7 @@ on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR 
             if(!(style & (CBS_DROPDOWN | WS_VISIBLE)))
             {
                 break;
-            }         
+            }
             RECT rc;
             GetClientRect(hwnd, &rc);
             PAINTSTRUCT ps;
@@ -1639,7 +1639,7 @@ on_search_report_result(int err, int resid)
     if (!(key = on_search_get_combo_str(IDC_WHAT_FOLDER_CBO)))
     {
         return 0;
-    }    
+    }
     if ((all_file = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_ALL_FILE)))
     {   // 如果在多个打开的文件中搜索, 重新计数
         file_count = 0;
@@ -1781,7 +1781,7 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
         {
             start_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         }
-    }     
+    }
     DO_SEARCH_LOOP:
     {
         found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags);
@@ -1805,7 +1805,7 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
                 end_pos = pos;
             }
             goto DO_SEARCH_LOOP;
-        }        
+        }
     }
     eu_push_find_history(key);
     return (found_pos>=0);
@@ -1816,10 +1816,10 @@ on_search_hexview_string(eu_tabpage *pnode, const char *pattern, bool reverse)
 {
     int match = 0;
     BYTERANGE lpos = {0};
-    bool m_loop = false;    
+    bool m_loop = false;
     bool m_case = false;
     sptr_t pos = -1;
-    sptr_t found_pos = -1; 
+    sptr_t found_pos = -1;
     size_t sub_len = strlen(pattern);
     m_loop = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_LOOP);
     m_case = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_CASE);
@@ -1848,7 +1848,7 @@ DO_STR_LOOP:
             lpos.min = reverse ? found_pos : pos + found_pos;
             lpos.max = lpos.min + sub_len;
             eu_sci_call(pnode, HVM_SETSEL, 0, (sptr_t)&lpos);
-        }        
+        }
         else if (m_loop)
         {
             m_loop = false;
@@ -1869,7 +1869,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
     sptr_t pos = -1;
     sptr_t found_pos = -1;
     size_t len = strlen(pattern);
-    char *pmark = NULL; 
+    char *pmark = NULL;
     m_str = DLG_BTN_CHECK(hwnd_search_dlg, IDC_SEARCH_HEX_STRINGS);
     if (m_str)
     {
@@ -1929,7 +1929,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
                 lpos.min = reverse ? found_pos : pos + found_pos;
                 lpos.max = lpos.min + strlen(pmark)/2;
                 eu_sci_call(pnode, HVM_SETSEL, 0, (sptr_t)&lpos);
-            }        
+            }
             else if (m_loop)
             {
                 m_loop = false;
@@ -1951,7 +1951,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
     on_search_set_tips(IDC_MSG_SEARCH_ERR14, 1, match);
     return match;
 }
-               
+
 static int
 on_search_find_button(bool reverse)
 {
@@ -2036,7 +2036,7 @@ on_search_detail_button(void)
     {
         HWND hsub = NULL;
         HWND hwnd_tab = GetDlgItem(hwnd_search_dlg, IDD_SEARCH_TAB_1);
-        index = TabCtrl_GetCurSel(hwnd_tab);     
+        index = TabCtrl_GetCurSel(hwnd_tab);
         if ((GetWindowLongPtr(hc, GWL_STYLE) & WS_VISIBLE))
         {
             if (index == 2)
@@ -2275,7 +2275,7 @@ on_search_replace_button(void)
     if (!(pnode = on_tabpage_focus_at()))
     {
         return;
-    }   
+    }
     if (!on_search_report_result(0, IDC_SEARCH_RE_BTN))
     {
         return;
@@ -2317,7 +2317,7 @@ on_search_replace_button(void)
                 on_tabpage_select_index(index);
                 break;
             }
-        } 
+        }
     }
 }
 
@@ -2329,7 +2329,7 @@ on_search_replace_all_button(void)
     if (!(pnode = on_tabpage_focus_at()))
     {
         return;
-    } 
+    }
     if (!on_search_report_result(0, IDC_SEARCH_REALL_BTN))
     {
         return;
@@ -2337,7 +2337,7 @@ on_search_replace_all_button(void)
     if (!DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_ALL_FILE))
     {
         on_search_at_replace_page(pnode, opt);
-    }   
+    }
     else
     {
         // replaces on all page
@@ -2359,7 +2359,7 @@ on_search_replace_all_button(void)
     }
 }
 
-static int __stdcall 
+static int __stdcall
 on_search_browse_folder_proc(HWND hwnd, UINT msg, LPARAM lParam, LPARAM pdata)
 {   // 选择目录对话框初始化时 选中指定目录
     if (msg == BFFM_INITIALIZED && pdata != 0)
@@ -2400,12 +2400,12 @@ on_search_folder_browser(void)
         bi.lpfn = on_search_browse_folder_proc;
         bi.lParam = (LPARAM)(&pnode->pathname);  //选择目录对话框弹出时的默认目录
     }
-    if((pidl = SHBrowseForFolder(&bi)) && SHGetPathFromIDList(pidl, path))  
-    {  
+    if((pidl = SHBrowseForFolder(&bi)) && SHGetPathFromIDList(pidl, path))
+    {
         on_search_set_folder_path(path);
-    }  
-    else 
-    {  
+    }
+    else
+    {
         on_search_set_folder_path(pnode->pathname);
     }
     if (pidl)
@@ -2480,7 +2480,7 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
     folder_trace *folderlast = NULL;
     folder_trace *folderstart = NULL;
     WIN32_FIND_DATA fd = {0};
-    HANDLE hfile = INVALID_HANDLE_VALUE;    
+    HANDLE hfile = INVALID_HANDLE_VALUE;
     if (!(hwnd_stc = GetDlgItem(hwnd_search_dlg, IDC_PGB_STC)))
     {
         return index;
@@ -2504,7 +2504,7 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
             goto search_err;
         }
         do
-        {    
+        {
             PeekMessage(&msg, NULL,  0, 0, PM_REMOVE);
             if (msg.message == WM_QUIT)
             {
@@ -2520,7 +2520,7 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
                 if (fd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN && !(opt & INCLUDE_FOLDER_HIDDEN))
                 {
                     continue;
-                }  
+                }
                 // 包含子目录时, 子目录加入链表
                 if ((opt & INCLUDE_FOLDER_SUB))
                 {
@@ -2530,7 +2530,7 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
                     if (p)
                     {
                         *p = 0;
-                    }                    
+                    }
                     folderstart = (folder_trace *)calloc(1, sizeof(folder_trace));
                     if (!folderstart)
                     {
@@ -2557,11 +2557,11 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
                     ++index;
                 }
             }
-            
+
         } while (FindNextFile(hfile, &fd));
         safe_close_handle(hfile);
     }
-search_err: 
+search_err:
     safe_close_handle(hfile);
     on_search_clean_folder_list();
     return index;
@@ -2602,11 +2602,11 @@ on_search_find_all_button(void* lp)
     int new_pos = 0;
     float pos = 0.0;
     float s_progress = 0.0;
-    MSG msg = {0}; 
+    MSG msg = {0};
     HWND hwnd_stc = NULL;
-    HWND hwnd_pgb = NULL;   
-    HWND hwnd_cb = NULL; 
-    file_trace *pfile = NULL; 
+    HWND hwnd_pgb = NULL;
+    HWND hwnd_cb = NULL;
+    file_trace *pfile = NULL;
     uint8_t *data = NULL;
     TCHAR filetype[FT_LEN+1] = {0};
     TCHAR text[MAX_PATH+1] = {0};
@@ -2624,11 +2624,11 @@ on_search_find_all_button(void* lp)
         goto res_clean;
     }
     hwnd_cb = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_DIR_CBO);
-    ComboBox_GetText(hwnd_cb, text, MAX_PATH);   
+    ComboBox_GetText(hwnd_cb, text, MAX_PATH);
     if (!text[0])
     {
         goto res_clean;
-    }  
+    }
     flags = on_search_folder_flags(hwnd_search_dlg);
     if (!(u8_key = on_search_get_combo_str(IDC_WHAT_FOLDER_CBO)))
     {
@@ -2680,7 +2680,7 @@ on_search_find_all_button(void* lp)
         if ((fp = _tfopen(pfile->path, _T("rb"))) == NULL)
         {
             continue;
-        }        
+        }
         while ((readlen = fread((char *) data, 1, BUFF_SIZE, fp)) > 0)
         {
             if (inpcre)
@@ -2704,7 +2704,7 @@ on_search_find_all_button(void* lp)
                 if (pfile->count > 0)
                 {
                     on_search_push_string_listbox(pfile->path, u8_key, pfile->count);
-                }        
+                }
             }
         }
         if (pfile->count > 0)
@@ -2785,14 +2785,14 @@ on_search_dark_mode_init(HWND hdlg)
         {
             SetWindowSubclass(btn, on_search_combo_wnd, 0, 0);
         }
-    }    
-    const int bs_buttons[] = { IDC_MATCH_ALL_FILE, 
-                               IDC_MATCH_LOOP, 
+    }
+    const int bs_buttons[] = { IDC_MATCH_ALL_FILE,
+                               IDC_MATCH_LOOP,
                                IDC_MATCH_WDSTART,
-                               IDC_MATCH_WORD, 
-                               IDC_MATCH_CASE, 
-                               IDC_SEARCH_CD_CHK, 
-                               IDC_SEARCH_SUB_CHK, 
+                               IDC_MATCH_WORD,
+                               IDC_MATCH_CASE,
+                               IDC_SEARCH_CD_CHK,
+                               IDC_SEARCH_SUB_CHK,
                                IDC_SEARCH_HIDE_CHK,
                                IDC_SEARCH_UTF8_CHK,
                                IDC_SEARCH_HEX_STRINGS,
@@ -2808,13 +2808,13 @@ on_search_dark_mode_init(HWND hdlg)
             SendMessage(btn, WM_THEMECHANGED, 0, 0);
         }
     }
-    const int buttons[] = { IDC_FILES_BROWSE_BTN, 
-                            IDC_SEARCH_PRE_BTN, 
-                            IDC_SEARCH_NEXT_BTN, 
-                            IDC_SEARCH_CLOSE_BTN, 
-                            IDC_SEARCH_RE_BTN, 
-                            IDC_SEARCH_REALL_BTN, 
-                            IDC_SEARCH_ALL_BTN, 
+    const int buttons[] = { IDC_FILES_BROWSE_BTN,
+                            IDC_SEARCH_PRE_BTN,
+                            IDC_SEARCH_NEXT_BTN,
+                            IDC_SEARCH_CLOSE_BTN,
+                            IDC_SEARCH_RE_BTN,
+                            IDC_SEARCH_REALL_BTN,
+                            IDC_SEARCH_ALL_BTN,
                             IDC_SEARCH_COUNT_BTN,
                             IDC_SEARCH_FOUNDLIST,
                             IDD_SEARCH_TAB_1
@@ -2835,20 +2835,20 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
     switch (message)
-    {         
+    {
         case WM_INITDIALOG:
         {
             RECT rc;
             GetClientRect(hdlg, &rc);
-            HWND htab = CreateWindowEx(0, 
-                                       WC_TABCONTROL, 
-                                       0, 
-                                       TCS_FIXEDWIDTH | WS_CHILD | WS_VISIBLE, 
-                                       rc.left + 2, 
-                                       rc.top + 2, 
+            HWND htab = CreateWindowEx(0,
+                                       WC_TABCONTROL,
+                                       0,
+                                       TCS_FIXEDWIDTH | WS_CHILD | WS_VISIBLE,
+                                       rc.left + 2,
+                                       rc.top + 2,
                                        rc.right - 4,
                                        rc.top + 24,
-                                       hdlg, 
+                                       hdlg,
                                        (HMENU)IDD_SEARCH_TAB_1,
                                        eu_module_handle(),
                                        0);
@@ -2882,7 +2882,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             return 1;
         }
         case WM_COMMAND:
-            {              
+            {
                 switch (LOWORD(wParam))
                 {
                     case IDCANCEL:
@@ -2891,18 +2891,18 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         ShowWindow(hdlg, SW_HIDE);
                         break;
                     }
-                    case IDC_SEARCH_NEXT_BTN: 
+                    case IDC_SEARCH_NEXT_BTN:
                     {
                         ListBox_ResetContent(hwnd_found_box);
                         on_search_find_next_button();
                         break;
                     }
-                    case IDC_SEARCH_PRE_BTN: 
+                    case IDC_SEARCH_PRE_BTN:
                     {
                         ListBox_ResetContent(hwnd_found_box);
                         on_search_find_pre_button();
                         break;
-                    } 
+                    }
                     case IDC_SEARCH_RE_BTN:
                     {
                         on_search_replace_button();
@@ -2933,7 +2933,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STC, SW_SHOW)
                         }
                         break;
-                    }                    
+                    }
                     case IDC_MODE_NORMAL:
                     {
                         HWND hwnd_normal = GetDlgItem(hdlg, IDC_MODE_NORMAL);
@@ -2958,16 +2958,16 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             HWND hwnd_case = GetDlgItem(hdlg, IDC_MATCH_CASE);
                             EnableWindow(hwnd_word, false);
                             EnableWindow(hwnd_wdst, false);
-                            EnableWindow(hwnd_case, false); 
+                            EnableWindow(hwnd_case, false);
                         }
                         break;
                     }
-                    case IDC_SEARCH_COUNT_BTN: 
+                    case IDC_SEARCH_COUNT_BTN:
                     {
                         on_search_detail_button();
                         break;
                     }
-                    case IDC_SEARCH_FOUNDLIST: 
+                    case IDC_SEARCH_FOUNDLIST:
                     {
                         if (HIWORD(wParam) == LBN_DBLCLK)
                         {
@@ -3020,7 +3020,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     case IDC_WHAT_FOLDER_CBO:
                     {
                         if (orig_combo_proc)
-                        {     
+                        {
                             SetWindowLongPtr(hdlg, GWLP_USERDATA, (LONG_PTR)IDC_WHAT_FOLDER_CBO);
                             eu_get_find_history(on_search_combo_callback);
                         }
@@ -3065,7 +3065,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             if (on_dark_enable())
             {
                 return on_dark_set_contorl_color(wParam);
-            }       
+            }
             else if ((HWND)lParam == GetDlgItem(hdlg, IDC_SEARCH_TIPS_STC) || (HWND)lParam == GetDlgItem(hdlg, IDC_SEARCH_HEX_STC))
             {
                     // 绘制静态控件上的文本颜色

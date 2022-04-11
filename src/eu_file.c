@@ -259,7 +259,7 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TC
     const TCHAR *p2 = NULL;
     const TCHAR *path_base = NULL;
     const TCHAR *name_base = NULL;
-    TCHAR dri[8] = { 0 };
+    TCHAR dri[8] = {0};
     p1 = _tcschr(full_path, _T(':'));
     if (p1)
     {
@@ -444,12 +444,11 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
 {
     int err = SKYLARK_OK;
     int bytesread = 0;
-    uint8_t *pdata = NULL;
+    int check_len = 0;
     HANDLE hfile = NULL;
-    HANDLE hmap = NULL;
     FILE *fp = NULL;
     uint64_t block = 0;
-    char buf[CHECK_LEN] = { 0 };
+    uint8_t *buf = NULL;
     TCHAR *pfull = pbak->rel_path;
     if (!pnode)
     {
@@ -473,15 +472,15 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
     }
     if (!util_file_size(hfile, &pnode->raw_size))
     {
-        safe_close_handle(hfile);
-        return EUE_FILE_SIZE_ERR;
+        err = EUE_FILE_SIZE_ERR;
+        goto pre_clean;
     }
     if (on_file_get_avail_phys() - pnode->raw_size < MINIMUM_MEM)
     {
         // phymem < 300MB, Skylark exit
-        safe_close_handle(hfile);
         MSG_BOX(IDC_MSG_MEM_NOT_AVAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        return EUE_NOT_ENOUGH_MEMORY;
+        err = EUE_NOT_ENOUGH_MEMORY;
+        goto pre_clean;
     }
     if (pbak->cp)
     {   // 存在备份,不再测试编码
@@ -493,6 +492,7 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
             if (!map_hex_file(pnode, hfile, 0))
             {
                 err = EUE_MAP_HEX_ERR;
+                goto pre_clean;
             }
         }
         else if (pnode->hex_mode)
@@ -514,14 +514,19 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
         {
             on_encoding_set_bom_from_cp(pnode);
         }
-        safe_close_handle(hfile);
-        return err;
+        goto pre_clean;
     }
-    if (!ReadFile(hfile, buf, sizeof(buf), &bytesread, NULL))
+    check_len = eu_int_cast(pnode->raw_size > BUFF_SIZE ? BUFF_SIZE : pnode->raw_size);
+    if (!(buf = (uint8_t *)calloc(1, check_len)))
     {
-        safe_close_handle(hfile);
+        err = EUE_NOT_ENOUGH_MEMORY;
+        goto pre_clean;
+    }
+    if (!ReadFile(hfile, buf, check_len-1, &bytesread, NULL))
+    {
         MSG_BOX_ERR(IDC_MSG_OPEN_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        return EUE_API_READ_FILE_ERR;
+        err = EUE_API_READ_FILE_ERR;
+        goto pre_clean;
     }
     if (bytesread < 1)
     {
@@ -531,10 +536,10 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
     }
     else // 如果是utf8编码, 获取换行符, 否则, 等编码转换后再获取换行符
     {
-        pnode->codepage = eu_try_encoding(buf, bytesread, false, pfull);
+        pnode->codepage = eu_try_encoding(buf, bytesread, false, NULL);
         if (pnode->codepage < IDM_UNI_UTF16LEB)
         {
-            pnode->eol = on_encoding_line_mode(buf, bytesread);
+            pnode->eol = on_encoding_line_mode((const char *)buf, bytesread);
         }
         on_encoding_set_bom((const uint8_t *) buf, pnode);
     }
@@ -545,7 +550,9 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
             err = EUE_MAP_HEX_ERR;
         }
     }
+pre_clean:
     safe_close_handle(hfile);
+    eu_safe_free(buf);
     return err;
 }
 
@@ -602,7 +609,7 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
     {
         char *pdst = NULL;
         size_t dst_len = 0;
-        euconv_t evd = { 0 };
+        euconv_t evd = {0};
         evd.src_from = eu_query_encoding_name(pnode->codepage);
         evd.dst_to = "utf-8";
         err = on_encoding_do_iconv(&evd, (char *) (uf_stream.base+pnode->pre_len), &len, &pdst, &dst_len);
@@ -963,7 +970,7 @@ read_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
     if (!pnode->bytes_remaining)
     {
         on_encoding_set_bom((const uint8_t *) buffer, pnode);
-        pnode->codepage = eu_try_encoding((const char *) buffer, len, false, NULL);
+        pnode->codepage = eu_try_encoding(buffer, len, false, NULL);
         if (pnode->codepage < IDM_UNI_UTF16LEB)
         {
             pnode->eol = on_encoding_line_mode(buffer, len);
@@ -980,7 +987,7 @@ read_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
         char *psrc = data + offset;
         size_t src_len = len - offset;
         size_t dst_len = 0;
-        euconv_t evd = { 0 };
+        euconv_t evd = {0};
         evd.src_from = eu_query_encoding_name(pnode->codepage);
         evd.dst_to = "utf-8";
         size_t res = on_encoding_do_iconv(&evd, psrc, &src_len, &pdst, &dst_len);
@@ -1152,7 +1159,7 @@ do_write_file(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
         char *pbuf = (char *)pnode->write_buffer;
         size_t dst_len = 0;
         size_t src_len = pnode->bytes_remaining;
-        euconv_t evd = { 0 };
+        euconv_t evd = {0};
         evd.src_from = "utf-8";
         evd.dst_to = eu_query_encoding_name(pnode->codepage);
         printf("convert(%s) to (%s)\n", evd.src_from, evd.dst_to);

@@ -53,6 +53,7 @@
 nsUniversalDetector::nsUniversalDetector(uint32_t aLanguageFilter)
 {
   mNbspFound = false;
+  mEscFound = false;
   mDone = false;
   mBestGuess = -1;   //illegal value as signal
   mInTag = false;
@@ -84,6 +85,7 @@ void
 nsUniversalDetector::Reset()
 {
   mNbspFound = false;
+  mEscFound = false;
   mDone = false;
   mBestGuess = -1;   //illegal value as signal
   mInTag = false;
@@ -296,6 +298,7 @@ nsresult nsUniversalDetector::HandleData(const char *aBuf, uint32_t aLen)
       {
         //found escape character or HZ "~{"
         mInputState = eEscAscii;
+        mEscFound = true;
       }
       mLastChar = aBuf[i];
     }
@@ -317,6 +320,7 @@ nsresult nsUniversalDetector::HandleData(const char *aBuf, uint32_t aLen)
       mDone = true;
       mDetectedCharset = mEscCharSetProber->GetCharSetName();
       mDetectedConfidence = mEscCharSetProber->GetConfidence();
+      mEscFound = false;
 
     }
     break;
@@ -373,7 +377,14 @@ void nsUniversalDetector::DataEnd()
           /* ASCII with the ESC character (or the sequence "~{") is still
            * ASCII until proven otherwise. */
           mDetectedCharset = "ASCII";
-		  mDetectedConfidence = 1.0;
+          if (mEscFound)
+          {
+            mDetectedConfidence = 0.49;
+          }
+          else
+          {
+            mDetectedConfidence = 1.0;
+          }
       }
     default:
       break;

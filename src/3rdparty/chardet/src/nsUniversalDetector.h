@@ -78,6 +78,7 @@ protected:
    virtual void Reset();
    nsInputState  mInputState;
    bool  mNbspFound;
+   bool  mEscFound;
    bool  mDone;
    bool  mInTag;
    bool  mStart;

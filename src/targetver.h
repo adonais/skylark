@@ -151,28 +151,30 @@
 #define IDM_ISO_11       10050
 #define IDM_ISO_13       10051
 #define IDM_ISO_15       10052
-#define IDM_ISO_16       10053
-#define IDM_ISO_JP       10054  
-#define IDM_ISO_KR       10055
-#define IDM_ISO_CN       10056
-         
-#define IDM_EUC_1        10057
-#define IDM_EUC_2        10058
+#define IDM_ISO_16       10053 
+#define IDM_ISO_KR       10054
+#define IDM_ISO_CN       10055
+#define IDM_ISO_JP_2     10056
+#define IDM_ISO_JP_2004  10057
+#define IDM_ISO_JP_MS    10058
 
-#define IDM_OTHER_1      10059
-#define IDM_OTHER_2      10060
-#define IDM_OTHER_3      10061
-#define IDM_OTHER_ANSI   10062
-#define IDM_OTHER_BIN    10063
-#define IDM_UNKNOWN      10064
+#define IDM_EUC_1        10059
+#define IDM_EUC_2        10060
 
-#define IDM_LBREAK_1     10065
-#define IDM_LBREAK_2     10066
-#define IDM_LBREAK_3     10067
-#define IDM_LBREAK_4     10068
+#define IDM_OTHER_HZ     10061
+#define IDM_OTHER_1      10062
+#define IDM_OTHER_2      10063
+#define IDM_OTHER_3      10064
+#define IDM_OTHER_ANSI   10065
+#define IDM_OTHER_BIN    10066
+#define IDM_UNKNOWN      10067
 
-#define IDM_BTN_1        10070
-#define IDM_BTN_2        10071
+#define IDM_LBREAK_1     10080
+#define IDM_LBREAK_2     10081
+#define IDM_LBREAK_3     10082
+#define IDM_LBREAK_4     10083
+#define IDM_BTN_1        10084
+#define IDM_BTN_2        10085
 
 #define IDD_DIALOG_CLIP         10090
 #define IDC_CLIPBORAD           10091

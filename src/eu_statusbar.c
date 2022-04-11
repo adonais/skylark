@@ -518,7 +518,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     _snprintf(iconv_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8);
                     pnode->codepage = IDM_UNI_UTF8;
                     on_tabpage_editor_modify(pnode, iconv_undo_str);
-                    set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_ASCII, id_menu, STATUSBAR_DOC_ENC);
+                    set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF8B:
                     pnode->pre_len = 3;
@@ -527,16 +527,15 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     _snprintf(iconv_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8B);
                     pnode->codepage = IDM_UNI_UTF8B;
                     on_tabpage_editor_modify(pnode, iconv_undo_str);
-                    set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_ASCII, id_menu, STATUSBAR_DOC_ENC);
+                    set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF16LEB:
                 case IDM_UNI_UTF16BEB:
                 case IDM_UNI_UTF32LE:
                 case IDM_UNI_UTF32BE:
-                case IDM_UNI_ASCII:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_ASCII, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_ANSI_1:
@@ -572,12 +571,14 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_ISO_13:
                 case IDM_ISO_15:
                 case IDM_ISO_16:
-                case IDM_ISO_JP:
                 case IDM_ISO_KR:
                 case IDM_ISO_CN:
+                case IDM_ISO_JP_2:
+                case IDM_ISO_JP_2004:
+                case IDM_ISO_JP_MS:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_ISO_1, IDM_ISO_CN, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_2, IDM_ISO_1, IDM_ISO_JP_MS, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_IBM_1:
@@ -595,6 +596,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         set_menu_check(g_menu_2, IDM_EUC_1, IDM_EUC_2, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
+                case IDM_OTHER_HZ:
                 case IDM_OTHER_1:
                 case IDM_OTHER_2:
                 case IDM_OTHER_3:
@@ -603,7 +605,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_UNKNOWN:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_OTHER_1, IDM_UNKNOWN, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_2, IDM_OTHER_HZ, IDM_UNKNOWN, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 default:
@@ -918,8 +920,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_UNI_UTF16BEB:
         case IDM_UNI_UTF32LE:
         case IDM_UNI_UTF32BE:
-        case IDM_UNI_ASCII:
-            set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_ASCII, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, type, STATUSBAR_DOC_ENC);
             break;
         case IDM_ANSI_1:
         case IDM_ANSI_2:
@@ -951,10 +952,12 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_ISO_13:
         case IDM_ISO_15:
         case IDM_ISO_16:
-        case IDM_ISO_JP:
         case IDM_ISO_KR:
         case IDM_ISO_CN:
-            set_menu_check(g_menu_2, IDM_ISO_1, IDM_ISO_CN, type, STATUSBAR_DOC_ENC);
+        case IDM_ISO_JP_2:
+        case IDM_ISO_JP_2004:
+        case IDM_ISO_JP_MS:
+            set_menu_check(g_menu_2, IDM_ISO_1, IDM_ISO_JP_MS, type, STATUSBAR_DOC_ENC);
             break;
         case IDM_IBM_1:
         case IDM_IBM_2:
@@ -965,13 +968,14 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_EUC_2:
             set_menu_check(g_menu_2, IDM_EUC_1, IDM_EUC_2, type, STATUSBAR_DOC_ENC);
             break;
+        case IDM_OTHER_HZ:
         case IDM_OTHER_1:
         case IDM_OTHER_2:
         case IDM_OTHER_3:
         case IDM_OTHER_ANSI:
         case IDM_OTHER_BIN:
         case IDM_UNKNOWN:
-            set_menu_check(g_menu_2, IDM_OTHER_1, IDM_UNKNOWN, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_2, IDM_OTHER_HZ, IDM_UNKNOWN, type, STATUSBAR_DOC_ENC);
             break;
         default:
             break;

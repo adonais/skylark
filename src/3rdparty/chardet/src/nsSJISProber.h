@@ -59,7 +59,7 @@ public:
     Reset();}
   virtual ~nsSJISProber(void){delete mCodingSM;};
   nsProbingState HandleData(const char* aBuf, uint32_t aLen);
-  const char* GetCharSetName() {return "Shift_JIS";};
+  const char* GetCharSetName() {return "cp932";};
   nsProbingState GetState(void) {return mState;};
   void      Reset(void);
   float     GetConfidence(void);

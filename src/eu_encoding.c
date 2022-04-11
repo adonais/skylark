@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
- 
+
 #include "framework.h"
 
 #define LANG_CHT MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL)
@@ -26,11 +26,11 @@ is_cjk_converter(const char *encoding)
 {
     return (0
             /* Legacy Japanese encodings */
-            || STRICMP(encoding, ==, "euc-jp") 
-            || STRICMP(encoding, ==, "shift_jis")
+            || STRICMP(encoding, ==, "euc-jp")
+            || STRICMP(encoding, ==, "cp932")
             /* Legacy Chinese encodings */
-            || STRICMP(encoding, ==, "gb18030") 
-            || STRICMP(encoding, ==, "euc-tw") 
+            || STRICMP(encoding, ==, "gb18030")
+            || STRICMP(encoding, ==, "euc-tw")
             || STRICMP(encoding, ==, "big5")
             /* Legacy Korean encodings */
             || STRICMP(encoding, ==, "euc-kr")
@@ -120,7 +120,7 @@ on_encoding_set_bom(const uint8_t *buf, eu_tabpage *pnode)
 {
     const bom_type file_bom[] = { { 3, "\xEF\xBB\xBF" },     // BOM_UTF8
                                   { 4, "\xFF\xFE\x00\x00" }, // BOM_UTF32_LE
-                                  { 4, "\x00\x00\xFE\xFF" }, // BOM_UTF32_BE        
+                                  { 4, "\x00\x00\xFE\xFF" }, // BOM_UTF32_BE
                                   { 2, "\xFF\xFE" },         // BOM_UTF16_LE
                                   { 2, "\xFE\xFF" },         // BOM_UTF16_BE
                                   { 0, { 0 } } };
@@ -266,7 +266,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     else
     {
         eu_safe_free(*dst);
-        printf("eu_iconv convert[%s->%s] failed! lsrc = %llu, ldst = %llu\n", icv->src_from, icv->dst_to, lsrc, ldst);
+        printf("eu_iconv convert[%s->%s] failed! lsrc = %llu, ldst = %llu, ret = %d\n", icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
     }
     close_conv_handle(icv);
     return ret;
