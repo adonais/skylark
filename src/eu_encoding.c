@@ -102,7 +102,7 @@ on_encoding_line_mode(const char *str, size_t len)
     {
         return 1;
     }
-    return -1;
+    return eu_get_config()->new_file_eol;
 }
 
 const char *
@@ -110,6 +110,13 @@ on_encoding_get_eol(eu_tabpage *pnode)
 {
     const int eol_mode = (int) eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
     return (eol_mode == SC_EOL_LF) ? "\n" : ((eol_mode == SC_EOL_CR) ? "\r" : "\r\n");
+}
+
+const int
+on_encoding_eol_char(eu_tabpage *pnode)
+{
+    const int eol_mode = (int) eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
+    return (eol_mode == SC_EOL_CR ? 0x0D : 0x0A);
 }
 
 /****************************************************************************

@@ -274,17 +274,17 @@ eu_exist_file(LPCTSTR path)
     DWORD fileattr = INVALID_FILE_ATTRIBUTES;
     if (STR_IS_NUL(path))
     {
-    	return false;
+        return false;
     }
     if (_tcslen(path) > 1 && path[1] == L':')
     {
-    	fileattr = GetFileAttributes(path);
+        fileattr = GetFileAttributes(path);
     }
     else
     {
-    	TCHAR file_path[MAX_PATH+1] = {0};
-    	_sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, path);
-    	fileattr = GetFileAttributes(file_path);
+        TCHAR file_path[MAX_PATH+1] = {0};
+        _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, path);
+        fileattr = GetFileAttributes(file_path);
     }
     if (fileattr != INVALID_FILE_ATTRIBUTES)
     {

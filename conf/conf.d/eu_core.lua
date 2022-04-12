@@ -233,7 +233,6 @@ int on_doc_init_after_diff(void *pnode);
 
 /* 默认的 key_ptr 回调函数入口 */
 int on_doc_keydown_jmp(void *pnode, intptr_t wParam, intptr_t lParam);
-int on_doc_keydown_light(void *pnode);
 int on_doc_keydown_sql(void *pnode, intptr_t wParam, intptr_t lParam);
 int on_doc_keydown_redis(void *pnode, intptr_t wParam, intptr_t lParam);
 int on_doc_keyup_general(void *pnode, intptr_t wParam, intptr_t lParam);

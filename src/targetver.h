@@ -319,14 +319,14 @@
 #define IDM_SEARCH_TOGGLE_BOOKMARK      30016
 #define IDM_SEARCH_GOTO_PREV_BOOKMARK   30017
 #define IDM_SEARCH_GOTO_NEXT_BOOKMARK   30018
-#define IDM_VIEW_HEXEDIT_MODE		    30019
+#define IDM_VIEW_HEXEDIT_MODE           30019
 #define IDM_VIEW_FILETREE               30020
 #define IDM_VIEW_SYMTREE                30021
 #define IDM_VIEW_MODIFY_STYLETHEME      30022
 #define IDM_VIEW_ZOOMOUT                30023
 #define IDM_VIEW_ZOOMIN                 30024
 #define IDM_SCRIPT_EXEC                 30025
-#define IDM_CMD_TAB	                    30026
+#define IDM_CMD_TAB                     30026
 #define IDB_TOOLBAR1                    30030
 #define IDB_TOOLBAR16                   30031
 #define IDC_TOOLBAR                     30032
@@ -382,13 +382,13 @@
 #define IDM_SEARCH_FILES                30319
 
 #define IDM_TAB_CONVERT_SPACES          30400
-#define IDM_DELETE_SPACE_LINEHEAD	    30401
-#define IDM_DELETE_SPACE_LINETAIL	    30402
-#define IDM_EDIT_DELETEBLANKLINE	    30403
-#define IDM_DELETE_ALL_SPACE_LINE	    30404
-#define IDM_EDIT_COPY_FILENAME		    30405
-#define IDM_EDIT_COPY_PATHNAME		    30406
-#define IDM_EDIT_COPY_PATHFILENAME	    30407
+#define IDM_DELETE_SPACE_LINEHEAD       30401
+#define IDM_DELETE_SPACE_LINETAIL       30402
+#define IDM_EDIT_DELETEBLANKLINE        30403
+#define IDM_DELETE_ALL_SPACE_LINE       30404
+#define IDM_EDIT_COPY_FILENAME          30405
+#define IDM_EDIT_COPY_PATHNAME          30406
+#define IDM_EDIT_COPY_PATHFILENAME      30407
 #define IDM_MOUSEMOVE                   30408
 #define IDM_TAB_CLOSE                   30410
 #define IDR_FILETREE_POPUPMENU          30411
@@ -444,14 +444,14 @@
 #define IDM_SEARCH_SELECTTOP_FIRSTLINE    30513
 #define IDM_SEARCH_SELECTBOTTOM_FIRSTLINE 30514
 #define IDM_ENV_SET_ASSOCIATED_WITH       30515
-#define IDM_CHANGELOG			          30516
-#define IDM_INTRODUTION			          30517
+#define IDM_CHANGELOG                     30516
+#define IDM_INTRODUTION                   30517
 
 #define IDM_HISTORY_BASE                30600
 #define IDM_STYLETHEME_BASE             30700
 #define IDM_VIEW_COPYNEW_STYLETHEME     30800
 
-#define	IDD_REGEXT_BOX                   31000
+#define    IDD_REGEXT_BOX                31000
 #define IDC_REGEXT_LANG_LIST             (IDD_REGEXT_BOX + 1)
 #define IDC_REGEXT_LANGEXT_LIST          (IDD_REGEXT_BOX + 2)
 #define IDC_REGEXT_REGISTEREDEXTS_LIST   (IDD_REGEXT_BOX + 3)
@@ -477,7 +477,7 @@
 #define IDM_RESULT_2                    31110
 #define IDM_RESULT_3                    31111
 #define IDM_RESULT_4                    31112
-#define IDM_RESULT_5                    31113 
+#define IDM_RESULT_5                    31113
 #define IDM_RESULT_CLOSE                31114
 #define IDR_RESULT_MENU                 31115
 
@@ -508,7 +508,7 @@
 #define IDC_MSG_THEME_ERR4     40023
 #define IDC_MSG_JSON_ERR1      40024
 #define IDC_MSG_JSON_ERR2      40025
-#define IDC_MSG_TAB_LEN        40026  
+#define IDC_MSG_TAB_LEN        40026
 #define IDC_MSG_SCINTILLA_ERR1 40027
 #define IDC_MSG_OPEN_FAIL      40028
 #define IDC_MSG_NEW_FILE       40029
@@ -718,13 +718,13 @@
 #define IDC_SEARCH_HEX_STRINGS              41136
 
 // additional controls
-#define IDD_PAGESETUP					    42000
+#define IDD_PAGESETUP                        42000
 
-#define IDC_PAGESETUP_HEADER_FOOTER_BOX		42006
-#define IDC_PAGESETUP_PRINT_COLOR_BOX		42007
-#define IDC_PAGESETUP_PRINTER				42008
-#define IDC_ZOOM_STATIC      				42009
-#define IDC_PREVIEW_STATIC   				42010
+#define IDC_PAGESETUP_HEADER_FOOTER_BOX      42006
+#define IDC_PAGESETUP_PRINT_COLOR_BOX        42007
+#define IDC_PAGESETUP_PRINTER                42008
+#define IDC_ZOOM_STATIC                      42009
+#define IDC_PREVIEW_STATIC                   42010
 
 #define IDM_FILE_PAGESETUP                  42040
 #define IDM_VIEW_HIGHLIGHT_STR              42041
@@ -734,40 +734,40 @@
 
 // Page Setup
 // based on prnsetup.dlg from Windows SDK
-#define IDC_PAGESETUP_ZOOMLEVEL_EDIT		0x001e
-#define IDC_PAGESETUP_ZOOMLEVEL_CTLS		0x001f
-#define IDC_PAGESETUP_HEADER_LIST		    0x0020
-#define IDC_PAGESETUP_FOOTER_LIST		    0x0021
-#define IDC_PAGESETUP_COLOR_MODE_LIST	    0x0022
-#define IDC_PAGESETUP_PAGER_BOX				0x0431
-#define IDC_PAGESETUP_SIZE					0x0441
-#define IDC_PAGESETUP_SOURCE_LIST			0x0471
-#define IDC_PAGESETUP_SOURCE_LABEL			0x0442
-#define IDC_PAGESETUP_ORIENTATION_LIST		0x0472
-#define IDC_PAGESETUP_ORIENTATION_BOX		0x0430
-#define IDC_PAGESETUP_PORTRAIT				0x0420
-#define IDC_PAGESETUP_LANDSCAPE				0x0421
-#define IDC_PAGESETUP_MARGIN_BOX			0x0433
-#define IDC_PAGESETUP_MARGIN_LEFT_LABEL		0x044e
-#define IDC_PAGESETUP_MARGIN_RIGHT_LABEL	0x044f
-#define IDC_PAGESETUP_MARGIN_TOP_LABEL		0x0450
-#define IDC_PAGESETUP_MARGIN_BOTTOM_LABEL	0x0451
-#define IDC_PAGESETUP_MARGIN_LEFT			0x0483
-#define IDC_PAGESETUP_MARGIN_RIGHT			0x0484
-#define IDC_PAGESETUP_MARGIN_TOP			0x0485
-#define IDC_PAGESETUP_MARGIN_BOOTOM			0x0486
-#define IDC_PAGESETUP_PREVIEW_WHITE_RECT	0x0438
-#define IDC_PAGESETUP_PREVIEW_VERT_RECT		0x0439
-#define IDC_PAGESETUP_PREVIEW_HOR_RECT		0x043a
+#define IDC_PAGESETUP_ZOOMLEVEL_EDIT         0x001e
+#define IDC_PAGESETUP_ZOOMLEVEL_CTLS         0x001f
+#define IDC_PAGESETUP_HEADER_LIST            0x0020
+#define IDC_PAGESETUP_FOOTER_LIST            0x0021
+#define IDC_PAGESETUP_COLOR_MODE_LIST        0x0022
+#define IDC_PAGESETUP_PAGER_BOX              0x0431
+#define IDC_PAGESETUP_SIZE                   0x0441
+#define IDC_PAGESETUP_SOURCE_LIST            0x0471
+#define IDC_PAGESETUP_SOURCE_LABEL           0x0442
+#define IDC_PAGESETUP_ORIENTATION_LIST       0x0472
+#define IDC_PAGESETUP_ORIENTATION_BOX        0x0430
+#define IDC_PAGESETUP_PORTRAIT               0x0420
+#define IDC_PAGESETUP_LANDSCAPE              0x0421
+#define IDC_PAGESETUP_MARGIN_BOX             0x0433
+#define IDC_PAGESETUP_MARGIN_LEFT_LABEL      0x044e
+#define IDC_PAGESETUP_MARGIN_RIGHT_LABEL     0x044f
+#define IDC_PAGESETUP_MARGIN_TOP_LABEL       0x0450
+#define IDC_PAGESETUP_MARGIN_BOTTOM_LABEL    0x0451
+#define IDC_PAGESETUP_MARGIN_LEFT            0x0483
+#define IDC_PAGESETUP_MARGIN_RIGHT           0x0484
+#define IDC_PAGESETUP_MARGIN_TOP             0x0485
+#define IDC_PAGESETUP_MARGIN_BOOTOM          0x0486
+#define IDC_PAGESETUP_PREVIEW_WHITE_RECT     0x0438
+#define IDC_PAGESETUP_PREVIEW_VERT_RECT      0x0439
+#define IDC_PAGESETUP_PREVIEW_HOR_RECT       0x043a
 
 // ids for print
-#define IDS_PRINT_HEADER				    42100
-#define IDS_PRINT_FOOTER				    42101
-#define IDS_PRINT_COLOR					    42102
-#define IDS_PRINT_PAGENUM				    42103
-#define IDS_PRINT_EMPTY  				    42104
-#define IDS_PRINT_ERROR					    42105
-#define IDS_SELRECT					        42106
+#define IDS_PRINT_HEADER                    42100
+#define IDS_PRINT_FOOTER                    42101
+#define IDS_PRINT_COLOR                     42102
+#define IDS_PRINT_PAGENUM                   42103
+#define IDS_PRINT_EMPTY                     42104
+#define IDS_PRINT_ERROR                     42105
+#define IDS_SELRECT                         42106
 
 #define IDM_THEME_CANCEL                    42200
 

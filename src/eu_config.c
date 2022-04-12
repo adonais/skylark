@@ -195,7 +195,7 @@ eu_load_config(HMODULE *pmod)
     }
     if (do_lua_func(lua_path, "run", "") != 0)
     {
-    	printf("eu_main.lua exec failed\n");
+        printf("eu_main.lua exec failed\n");
         goto load_fail;
     }
     eu_safe_free(lua_path);

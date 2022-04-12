@@ -552,7 +552,6 @@ EU_EXT_CLASS int on_doc_init_after_diff(eu_tabpage *pnode);
 
 /* 默认的 key_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
-EU_EXT_CLASS int on_doc_keydown_light(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_keydown_sql(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 EU_EXT_CLASS int on_doc_keydown_redis(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 EU_EXT_CLASS int on_doc_keyup_general(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);

@@ -22,7 +22,7 @@
 #endif
 
 /* XPM */
-static const char *minus_xpm[] = 
+static const char *minus_xpm[] =
 {
     /* width height num_colors chars_per_pixel */
     "     9     9       16            1",
@@ -55,7 +55,7 @@ static const char *minus_xpm[] =
     "hemgdgc#h"
 };
 
-static const char *plus_xpm[] = 
+static const char *plus_xpm[] =
 {
     /* width height num_colors chars_per_pixel */
     "     9     9       16            1",
@@ -139,7 +139,7 @@ init_sc_fold(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERSUB, 0xa0a0a0);
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERMIDTAIL, 0xa0a0a0);
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERTAIL, 0xa0a0a0);
-    
+
     // 折叠时不要在下面画折叠线
     eu_sci_call(pnode, SCI_SETFOLDFLAGS, 0, 0);
     eu_sci_call(pnode, SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_BOXED, 0);
@@ -149,7 +149,7 @@ init_sc_fold(eu_tabpage *pnode)
     // 指示出不匹配的大括号
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
     // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
-    eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);    
+    eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
     return 0;
 }
 
@@ -298,7 +298,7 @@ on_doc_enable_scilexer(eu_tabpage *pnode, int lex)
         if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
         {
             res = pnode->doc_ptr->fn_reload_symlist(pnode);
-        }        
+        }
         init_sc_fold(pnode);
     }
     return res;
@@ -319,12 +319,12 @@ on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb)
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.text.fontsize));
             eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.text.color));
             eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.text.bold));
-        }    
+        }
     }
 }
 
 void
-on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb) 
+on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
     if (pnode)
     {
@@ -340,7 +340,7 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
                 eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords0.font));
                 eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords0.fontsize));
                 eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords0.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords0.bold)); 
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords0.bold));
                 break;
             case 1:
             case 2:
@@ -350,7 +350,7 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
                 eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords1.font));
                 eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords1.fontsize));
                 eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords1.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords1.bold)); 
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords1.bold));
                 break;
             default:
                 break;
@@ -359,7 +359,7 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 }
 
 void
-on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb) 
+on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
     if (pnode)
     {
@@ -404,14 +404,14 @@ on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
     on_doc_marcro_light(pnode, lex, index, rgb);
 }
 
-void 
+void
 on_doc_send_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
     if (pnode && rgb)
     {
         on_doc_set_keyword(pnode, index);
         eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
-    }    
+    }
 }
 
 void
@@ -728,9 +728,9 @@ on_doc_init_after_python(eu_tabpage *pnode)
     on_doc_number_light(pnode, SCE_P_NUMBER, 0);
     on_doc_comment_light(pnode, SCE_P_COMMENTLINE, 0);
     on_doc_commentblock_light(pnode, SCE_P_COMMENTBLOCK, 0);
-    on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);  
+    on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_operator_light(pnode, SCE_P_OPERATOR, 0);
-    
+
     on_doc_string_light(pnode, SCE_P_TRIPLE, 0);
     on_doc_string_light(pnode, SCE_P_TRIPLEDOUBLE, 0);
     init_sc_fold(pnode);
@@ -751,7 +751,7 @@ on_doc_init_after_lua(eu_tabpage *pnode)
     on_doc_char_light(pnode, SCE_LUA_CHARACTER, 0);
     on_doc_number_light(pnode, SCE_LUA_NUMBER, 0);
     on_doc_comment_light(pnode, SCE_LUA_COMMENTLINE, 0);
-    on_doc_commentdoc_light(pnode, SCE_LUA_COMMENTDOC, 0);  
+    on_doc_commentdoc_light(pnode, SCE_LUA_COMMENTDOC, 0);
     on_doc_operator_light(pnode, SCE_LUA_OPERATOR, 0);
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
@@ -871,7 +871,7 @@ on_doc_init_after_shell_sh(eu_tabpage *pnode)
         eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_BAT_HIDE, eu_get_theme()->item.unknowtags.fontsize);
         eu_sci_call(pnode, SCI_STYLESETFORE, SCE_BAT_HIDE, (sptr_t)(eu_get_theme()->item.unknowtags.color));
         eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_BAT_HIDE, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-                
+
         if (pnode->doc_ptr->keywords2)
         {
             eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords2));
@@ -986,7 +986,7 @@ on_doc_init_after_asm(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_ASM_COMMENT, 0);
     on_doc_comment_light(pnode, SCE_ASM_COMMENTDIRECTIVE, 0);
     on_doc_operator_light(pnode, SCE_ASM_OPERATOR, 0);
-    
+
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
@@ -999,7 +999,7 @@ int
 on_doc_init_after_nim(eu_tabpage *pnode)
 {
     eu_sci_call(pnode, SCI_SETLEXER, SCLEX_NIM, 0);
-    
+
     on_doc_default_light(pnode, SCE_NIM_DEFAULT, 0);
     on_doc_keyword_light(pnode, SCE_NIM_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_NIM_STRING, 0);
@@ -1015,7 +1015,7 @@ on_doc_init_after_nim(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_NIM_TRIPLEDOUBLE, 0);
     on_doc_string_light(pnode, SCE_NIM_STRINGEOL, 0);
     on_doc_tags_light(pnode, SCE_NIM_FUNCNAME, 0);
-    
+
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_NIM_NUMERROR, (sptr_t)(eu_get_theme()->item.unknowtags.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_NIM_NUMERROR, eu_get_theme()->item.unknowtags.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_NIM_NUMERROR, (sptr_t)(eu_get_theme()->item.unknowtags.color));
@@ -1039,7 +1039,7 @@ on_doc_init_after_cobol(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_C_UUID, eu_get_theme()->item.keywords0.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_C_UUID, (sptr_t)(eu_get_theme()->item.keywords0.color));
     eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_UUID, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-    
+
     on_doc_function_light(pnode, SCE_C_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_STRING, 0);
@@ -1065,7 +1065,7 @@ on_doc_init_after_html(eu_tabpage *pnode)
     if (pnode->doc_ptr->keywords0)
     {
         eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
-       
+
         on_doc_tags_light(pnode, SCE_H_TAG, 0);
         eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.font));
         eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_TAGUNKNOWN, eu_get_theme()->item.unknowtags.fontsize);
@@ -1284,7 +1284,7 @@ on_doc_init_after_css(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
     }
-    
+
     on_doc_string_light(pnode, SCE_CSS_DOUBLESTRING, 0);
     on_doc_char_light(pnode, SCE_CSS_SINGLESTRING, 0);
     on_doc_operator_light(pnode, SCE_CSS_OPERATOR, 0);
@@ -1328,7 +1328,7 @@ on_doc_init_after_js(eu_tabpage *pnode)
     {
         on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     }
-    
+
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
     on_doc_number_light(pnode, SCE_C_NUMBER, 0);
@@ -1439,8 +1439,8 @@ on_doc_init_after_yaml(eu_tabpage *pnode)
     on_doc_keyword_light(pnode, SCE_YAML_KEYWORD, 0, 0);
     on_doc_string_light(pnode, SCE_YAML_TEXT, 0);
     on_doc_number_light(pnode, SCE_YAML_NUMBER, 0);
-    on_doc_operator_light(pnode, SCE_YAML_OPERATOR, 0);   
-    on_doc_commentblock_light(pnode, SCE_YAML_COMMENT, 0); 
+    on_doc_operator_light(pnode, SCE_YAML_OPERATOR, 0);
+    on_doc_commentblock_light(pnode, SCE_YAML_COMMENT, 0);
 
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_YAML_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_YAML_IDENTIFIER, eu_get_theme()->item.attributes.fontsize);
@@ -1498,7 +1498,7 @@ on_doc_init_after_cmake(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CMAKE, 0);
     on_doc_keyword_light(pnode, SCE_CMAKE_COMMANDS, 0, 0);
     on_doc_function_light(pnode, SCE_CMAKE_PARAMETERS, 1, 0);
-    
+
     on_doc_string_light(pnode, SCE_CMAKE_STRINGDQ, 0);
     on_doc_string_light(pnode, SCE_CMAKE_STRINGLQ, 0);
     on_doc_string_light(pnode, SCE_CMAKE_STRINGRQ, 0);
@@ -1545,17 +1545,17 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_STRONG2, (sptr_t)(eu_get_theme()->item.tags.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_STRONG2, eu_get_theme()->item.tags.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_STRONG2, (sptr_t)(eu_get_theme()->item.tags.color));
-    
+
     for (int i = SCE_MARKDOWN_EM1; i < SCE_MARKDOWN_CODE; ++i)
     {
-        on_doc_tags_light(pnode, i, 0);       
+        on_doc_tags_light(pnode, i, 0);
     }
     eu_sci_call(pnode, SCI_STYLESETITALIC, SCE_MARKDOWN_EM1, true);
     eu_sci_call(pnode, SCI_STYLESETITALIC, SCE_MARKDOWN_EM2, true);
     eu_sci_call(pnode, SCI_STYLESETWEIGHT, SCE_MARKDOWN_STRIKEOUT, 1);
     eu_sci_call(pnode, SCI_STYLESETWEIGHT, SCE_MARKDOWN_HRULE, 999);
     eu_sci_call(pnode, SCI_STYLESETWEIGHT, SCE_MARKDOWN_LINK, 99);
-    
+
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_CODE, (sptr_t)(eu_get_theme()->item.string.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_CODE, eu_get_theme()->item.string.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_CODE, (sptr_t)(eu_get_theme()->item.string.color));
@@ -1568,7 +1568,7 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_CODEBK, eu_get_theme()->item.cdata.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_CODEBK, (sptr_t)(eu_get_theme()->item.cdata.color));
     eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_CODEBK, (sptr_t)(eu_get_theme()->item.cdata.bold));
-    
+
     init_sc_fold(pnode);
     return 0;
 }
@@ -1588,7 +1588,7 @@ on_doc_init_after_log(eu_tabpage *pnode)
         eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_STTXT_TYPE, eu_get_theme()->item.unknowtags.fontsize);
         eu_sci_call(pnode, SCI_STYLESETFORE, SCE_STTXT_TYPE, (sptr_t)(eu_get_theme()->item.unknowtags.color));
         eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_STTXT_TYPE, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-    }   
+    }
     on_doc_number_light(pnode, SCE_STTXT_DATETIME, 0);
     on_doc_operator_light(pnode, SCE_STTXT_OPERATOR, 0xff);
     on_doc_comment_light(pnode, SCE_STTXT_COMMENT, 0);
@@ -1695,23 +1695,33 @@ add_autoclose_bracket(eu_tabpage *pnode, SCNotification *lpnotify)
 int
 on_doc_identation(eu_tabpage *pnode, SCNotification *lpnotify)
 {
-    /* 自动缩进 */
-    if (lpnotify->ch == '\n' && eu_get_config()->m_ident)
+    if (!(pnode && eu_get_config()->m_ident))
     {
-        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+        return 1;
+    }
+    const int m_eol = on_encoding_eol_char(pnode);
+    const int m_width = (const int)eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
+    if (m_width > ACNAME_LEN || m_width < 0)
+    {
+        return 1;
+    }
+    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+    if (lpnotify->ch == m_eol)
+    {   // 自动缩进
         sptr_t pre_lpos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line - 1, 0);
-        char pre_indent[64] = {0};
+        char pre_indent[ACNAME_LEN+1] = {0};
+        char str_indent[ACNAME_LEN+1] = {'\t',};
         int indent_len = 0;
         sptr_t n_pos = pre_lpos;
         bool collect_indent = true;
         int line_tail_char = 0;
         int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
-        for (; ch > 0 && ch != '\n'; n_pos++, ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
+        for (; ch > 0 && ch != m_eol; n_pos++, ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
         {
             if (collect_indent)
             {
-                if (strchr(" \t", ch) && indent_len <= sizeof(pre_indent) - 1)
+                if (strchr(" \t", ch) && indent_len < ACNAME_LEN)
                 {
                     pre_indent[indent_len] = ch;
                     indent_len++;
@@ -1728,11 +1738,17 @@ on_doc_identation(eu_tabpage *pnode, SCNotification *lpnotify)
             }
         }
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) pre_indent);
+        if (!eu_sci_call(pnode, SCI_GETUSETABS, 0, 0))
+        {
+            memset(str_indent, 0x20, m_width);
+            str_indent[m_width] = 0;
+        }
         if (line_tail_char && strchr("([{<", line_tail_char))
         {
-            eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "\t");
+            eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) str_indent);
             current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            if (strchr(")]}>", (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0)))
+            int current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
+            if (strchr(")]}>", current_char))
             {
                 eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) on_encoding_get_eol(pnode));
                 eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) pre_indent);
@@ -1747,9 +1763,9 @@ static int
 on_doc_match_parenthesis(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     char word_buffer[ACNAME_LEN+1] = {0};
-    if (!eu_get_config()->m_ctshow)
+    if (!(pnode && eu_get_config()->m_ctshow))
     {
-        return 0;
+        return 1;
     }
     if (lpnotify->ch == '(')
     {   /* 类c风格的函数原型提示 */
@@ -1795,15 +1811,13 @@ on_doc_match_parenthesis(eu_tabpage *pnode, SCNotification *lpnotify)
         }
     }
     else if (lpnotify->ch == ',')
-    {   /* 函数原型提示 */
+    {   /* 函数参数输入后继续提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
-            int ch;
             int current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) - 1;
             int n_pos = current_pos;
-            for (ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0); 
-                 n_pos >= 0 && ch != '('; 
-                 n_pos--, ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
+            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
+            for (; n_pos >= 0 && ch != '('; n_pos--, ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
             {
                 ;
             }
@@ -1811,7 +1825,7 @@ on_doc_match_parenthesis(eu_tabpage *pnode, SCNotification *lpnotify)
             {
                 int start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, n_pos - 1, true);
                 int end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, n_pos - 1, true);
-                if (end_pos - start_pos >= ACNAME_LEN) 
+                if (end_pos - start_pos >= ACNAME_LEN)
                 {
                     end_pos = start_pos + ACNAME_LEN;
                 }
@@ -1896,7 +1910,7 @@ add_ctinput_char(eu_tabpage *pnode, SCNotification *lpnotify, char ch_from, bool
             if (end_pos - start_pos >= ACNAME_LEN)
             {
                 end_pos = start_pos + ACNAME_LEN;
-            }            
+            }
             Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
             eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (upper_case)
@@ -2182,21 +2196,40 @@ on_doc_markdown_like(eu_tabpage *pnode, SCNotification *lpnotify)
     return 0;
 }
 
-int
-on_doc_keydown_light(eu_tabpage *pnode)
+static int
+on_doc_keyup_light(eu_tabpage *pnode)
 {
-    if (!pnode)
-    {
-        return 0;
-    }
+    sptr_t match_pos = -1;
+    bool current_match = false;
+    bool pre_match = false;
     sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     int current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
     int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
-    bool current_match = current_char > 0 && strchr("()[]{}<>", current_char);
-    bool pre_match = ch > 0 && strchr("()[]{}<>", ch);
+    if (strchr(")]}>", ch))
+    {   // 使右括号与左括号对齐
+        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+        sptr_t line_startpos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, false);
+        sptr_t linepos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+        if (line_startpos == linepos && ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))
+        {
+            sptr_t match_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
+            int m_indent = (int)eu_sci_call(pnode, SCI_GETLINEINDENTATION, match_line, 0);
+            char *str_space = (char *)calloc(1, m_indent+1);
+            memset(str_space, 0x20, m_indent);
+            eu_sci_call(pnode, SCI_SETTARGETSTART, line_startpos, 0);
+            eu_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
+            eu_sci_call(pnode, SCI_REPLACETARGET, m_indent, (sptr_t)str_space);
+            eu_safe_free(str_space);
+        }
+    }
+    current_match = current_char > 0 && strchr("()[]{}<>", current_char);
+    pre_match = ch > 0 && strchr("()[]{}<>", ch);
     if (current_match || pre_match)
-    {
-        sptr_t match_pos = -1;
+    {   // 匹配的括号高亮显示
+        if (match_pos >= 0)
+        {
+            current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        }
         if (current_match)
         {
             match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0);
@@ -2229,7 +2262,7 @@ on_doc_keydown_light(eu_tabpage *pnode)
         }
     }
     else
-    {
+    {   // 光标位置移动后取消高亮显示
         eu_sci_call(pnode, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
     }
     return 0;
@@ -2330,7 +2363,7 @@ on_doc_keydown_redis(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 int
 on_doc_keyup_general(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
-    return on_doc_keydown_light(pnode);
+    return on_doc_keyup_light(pnode);
 }
 
 int
@@ -2341,7 +2374,7 @@ on_doc_keyup_general_sh(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     {
         return 0;
     }
-    return on_doc_keydown_light(pnode);
+    return on_doc_keyup_light(pnode);
 }
 
 int
@@ -2399,7 +2432,7 @@ on_doc_reload_tree_redis(eu_tabpage *pnode)
     if (!pnode)
     {
         return 1;
-    }    
+    }
     if (pnode->redis_is_connect)
     {
         // 关闭redis数据库链接
@@ -2468,11 +2501,11 @@ on_doc_get_type(const TCHAR *pfile)
     if (_strnicmp(filename, EXTRA_EXT, strlen(EXTRA_EXT)) == 0)
     {
         _snprintf(extname, _MAX_EXT, ";%s;", filename);
-    }    
+    }
     else if ((split = strrchr(filename, '.')) == NULL)
     {
         _snprintf(extname, _MAX_EXT, ";%s;", filename);
-    }  
+    }
     else
     {
         _snprintf(extname, _MAX_EXT, ";*%s;", split);

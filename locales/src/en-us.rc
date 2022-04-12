@@ -562,7 +562,6 @@ BEGIN
         MENUITEM "Dos/Windows (\\r\\n)",                    IDM_LBREAK_1
         MENUITEM "Classic Mac OS (\\r)",                    IDM_LBREAK_2
         MENUITEM "Unix/Linux (\\n)",                        IDM_LBREAK_3
-        MENUITEM "No newline",                              IDM_LBREAK_4,,0x00000003
     }
 END
 

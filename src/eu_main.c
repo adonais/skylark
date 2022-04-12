@@ -216,15 +216,15 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-reg1")) == 0)
     {
-    	eu_reg_file_popup_menu();
-    	msg.wParam = 0;
-    	goto all_clean;
+        eu_reg_file_popup_menu();
+        msg.wParam = 0;
+        goto all_clean;
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-reg2")) == 0)
     {
-    	eu_reg_dir_popup_menu();
-    	msg.wParam = 0;
-    	goto all_clean;
+        eu_reg_dir_popup_menu();
+        msg.wParam = 0;
+        goto all_clean;
     }
     // 注册scintilla
     if (!eu_sci_register(instance))

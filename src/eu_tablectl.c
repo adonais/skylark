@@ -32,13 +32,13 @@ on_table_update_theme(eu_tabpage *pnode)
         SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
         SendMessage(pnode->hwnd_qrtable, LVM_SETOUTLINECOLOR, 0, eu_get_theme()->item.text.color);
         SendMessage(pnode->hwnd_qrtable, LVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
-        SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTBKCOLOR, 0, eu_get_theme()->item.text.bgcolor); 
+        SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
         return 0;
     }
     return 1;
 }
 
-static LRESULT CALLBACK 
+static LRESULT CALLBACK
 listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
 {
     switch (msg)
@@ -47,7 +47,7 @@ listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR uIdSubClass, D
         {
             eu_reset_drag_line();
             break;
-        }        
+        }
         case WM_THEMECHANGED:
         {
             printf("qrtable recv WM_THEMECHANGED\n");
@@ -65,9 +65,9 @@ listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR uIdSubClass, D
         }
         case WM_DPICHANGED:
         {
-            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);   
+            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
             break;
-        }        
+        }
         case WM_DESTROY:
         {
             RemoveWindowSubclass(hwnd, listview_proc, uIdSubClass);
@@ -99,7 +99,7 @@ on_table_create_query_box(eu_tabpage *pnode)
     if (on_dark_supports())
     {
         on_dark_set_theme(pnode->hwnd_qrtable, L"Explorer", NULL);
-    }    
+    }
     return on_table_update_theme(pnode);
 }
 
@@ -231,7 +231,7 @@ on_table_disconnect_database(eu_tabpage *pnode)
     if (pnode->db_is_connect)
     {
         pnode->db_is_connect = false;
-    }    
+    }
     return 0;
 }
 
@@ -243,7 +243,7 @@ on_table_connect_database(eu_tabpage *pnode)
     TCHAR user[ACNAME_LEN+1] = {0};
     TCHAR name[ACNAME_LEN+1] = {0};
     TCHAR dll_path[MAX_PATH+1] = {0};
-    EU_VERIFY(pnode != NULL);  
+    EU_VERIFY(pnode != NULL);
     if (pnode->db_is_connect)
     {
         return 0;
@@ -282,16 +282,16 @@ on_table_connect_database(eu_tabpage *pnode)
             mysql_sub->fn_mysql_fetch_row = (p_mysql_fetch_row *) GetProcAddress(mysql_sub->mysql_dll, "mysql_fetch_row");
             mysql_sub->fn_mysql_free_result = (p_mysql_free_result *) GetProcAddress(mysql_sub->mysql_dll, "mysql_free_result");
             mysql_sub->fn_mysql_close = (p_mysql_close *) GetProcAddress(mysql_sub->mysql_dll, "mysql_close");
-            if (mysql_sub->fn_mysql_init == NULL || 
+            if (mysql_sub->fn_mysql_init == NULL ||
                 mysql_sub->fn_mysql_real_connect == NULL ||
-                mysql_sub->fn_mysql_set_character_set == NULL || 
+                mysql_sub->fn_mysql_set_character_set == NULL ||
                 mysql_sub->fn_mysql_query == NULL ||
-                mysql_sub->fn_mysql_affected_rows == NULL || 
+                mysql_sub->fn_mysql_affected_rows == NULL ||
                 mysql_sub->fn_mysql_store_result == NULL ||
-                mysql_sub->fn_mysql_num_fields == NULL || 
+                mysql_sub->fn_mysql_num_fields == NULL ||
                 mysql_sub->fn_mysql_fetch_field == NULL ||
-                mysql_sub->fn_mysql_fetch_row == NULL || 
-                mysql_sub->fn_mysql_free_result == NULL || 
+                mysql_sub->fn_mysql_fetch_row == NULL ||
+                mysql_sub->fn_mysql_free_result == NULL ||
                 mysql_sub->fn_mysql_close == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -414,29 +414,29 @@ on_table_connect_database(eu_tabpage *pnode)
             oci_sub->fnOCITransCommit = (pOCITransCommit *) GetProcAddress(oci_sub->oci_dll, "OCITransCommit");
             oci_sub->fnOCITransRollback = (pOCITransRollback *) GetProcAddress(oci_sub->oci_dll, "OCITransRollback");
             oci_sub->fnOCITransDetach = (pOCITransDetach *) GetProcAddress(oci_sub->oci_dll, "OCITransDetach");
-            if (oci_sub->fnOCIEnvCreate == NULL || 
-                oci_sub->fnOCIEnvCreate == NULL || 
+            if (oci_sub->fnOCIEnvCreate == NULL ||
+                oci_sub->fnOCIEnvCreate == NULL ||
                 oci_sub->fnOCIHandleAlloc == NULL ||
-                oci_sub->fnOCIHandleFree == NULL || 
-                oci_sub->fnOCIServerAttach == NULL || 
+                oci_sub->fnOCIHandleFree == NULL ||
+                oci_sub->fnOCIServerAttach == NULL ||
                 oci_sub->fnOCIServerDetach == NULL ||
-                oci_sub->fnOCISessionBegin == NULL || 
-                oci_sub->fnOCISessionEnd == NULL || 
+                oci_sub->fnOCISessionBegin == NULL ||
+                oci_sub->fnOCISessionEnd == NULL ||
                 oci_sub->fnOCIAttrGet == NULL ||
-                oci_sub->fnOCIAttrSet == NULL || 
-                oci_sub->fnOCIParamGet == NULL || 
+                oci_sub->fnOCIAttrSet == NULL ||
+                oci_sub->fnOCIParamGet == NULL ||
                 oci_sub->fnOCIParamSet == NULL ||
-                oci_sub->fnOCIStmtPrepare == NULL || 
-                oci_sub->fnOCIStmtPrepare2 == NULL || 
+                oci_sub->fnOCIStmtPrepare == NULL ||
+                oci_sub->fnOCIStmtPrepare2 == NULL ||
                 oci_sub->fnOCIDefineByPos == NULL ||
-                oci_sub->fnOCIDefineByPos2 == NULL || 
-                oci_sub->fnOCIStmtExecute == NULL || 
+                oci_sub->fnOCIDefineByPos2 == NULL ||
+                oci_sub->fnOCIStmtExecute == NULL ||
                 oci_sub->fnOCIStmtFetch == NULL ||
-                oci_sub->fnOCIStmtFetch2 == NULL || 
-                oci_sub->fnOCIErrorGet == NULL || 
+                oci_sub->fnOCIStmtFetch2 == NULL ||
+                oci_sub->fnOCIErrorGet == NULL ||
                 oci_sub->fnOCITransStart == NULL ||
-                oci_sub->fnOCITransCommit == NULL || 
-                oci_sub->fnOCITransRollback == NULL || 
+                oci_sub->fnOCITransCommit == NULL ||
+                oci_sub->fnOCITransRollback == NULL ||
                 oci_sub->fnOCITransDetach == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR13, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -483,10 +483,10 @@ on_table_connect_database(eu_tabpage *pnode)
                 char err_desc[512] = { 0 };
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR15, err_msg);
                 on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                on_result_append_text(pnode->hwnd_qredit, 
-                                 err_msg, 
-                                 util_make_u16(ip, utf_str, ACNAME_LEN), 
-                                 err_code, 
+                on_result_append_text(pnode->hwnd_qredit,
+                                 err_msg,
+                                 util_make_u16(ip, utf_str, ACNAME_LEN),
+                                 err_code,
                                  util_make_u16(err_desc, user, ACNAME_LEN));
                 oci_sub->fnOCIHandleFree((dvoid *) (this_oci->servhpp), OCI_HTYPE_SERVER);
                 this_oci->servhpp = NULL;
@@ -599,18 +599,18 @@ on_table_connect_database(eu_tabpage *pnode)
             pq_sub->fnPQresultStatus = (pPQresultStatus *) GetProcAddress(pq_sub->libpq_dll, "PQresultStatus");
             pq_sub->fnPQresultErrorMessage = (pPQresultErrorMessage *) GetProcAddress(pq_sub->libpq_dll, "PQresultErrorMessage");
             pq_sub->fnPQsetClientEncoding = (pPQsetClientEncoding *) GetProcAddress(pq_sub->libpq_dll, "PQsetClientEncoding");
-            if (pq_sub->fnPQsetdbLogin == NULL || 
-                pq_sub->fnPQfinish == NULL || 
+            if (pq_sub->fnPQsetdbLogin == NULL ||
+                pq_sub->fnPQfinish == NULL ||
                 pq_sub->fnPQexec == NULL ||
-                pq_sub->fnPQcmdTuples == NULL || 
-                pq_sub->fnPQntuples == NULL || 
+                pq_sub->fnPQcmdTuples == NULL ||
+                pq_sub->fnPQntuples == NULL ||
                 pq_sub->fnPQnfields == NULL ||
-                pq_sub->fnPQfname == NULL || 
-                pq_sub->fnPQgetvalue == NULL || 
-                pq_sub->fnPQgetisnull == NULL || 
+                pq_sub->fnPQfname == NULL ||
+                pq_sub->fnPQgetvalue == NULL ||
+                pq_sub->fnPQgetisnull == NULL ||
                 pq_sub->fnPQclear == NULL ||
-                pq_sub->fnPQresultStatus == NULL || 
-                pq_sub->fnPQresultErrorMessage == NULL || 
+                pq_sub->fnPQresultStatus == NULL ||
+                pq_sub->fnPQresultErrorMessage == NULL ||
                 pq_sub->fnPQsetClientEncoding == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR22, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -645,11 +645,11 @@ on_table_connect_database(eu_tabpage *pnode)
                 return -1;
             }
             LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR25, err_msg);
-            on_result_append_text(pnode->hwnd_qredit, 
-                             err_msg, 
-                             util_make_u16(ip, utf_str, ACNAME_LEN), 
-                             atoi(src_port), 
-                             util_make_u16(pnode->db_config.dbname, user, ACNAME_LEN), 
+            on_result_append_text(pnode->hwnd_qredit,
+                             err_msg,
+                             util_make_u16(ip, utf_str, ACNAME_LEN),
+                             atoi(src_port),
+                             util_make_u16(pnode->db_config.dbname, user, ACNAME_LEN),
                              util_make_u16(pnode->db_config.dbuser, name, ACNAME_LEN));
             pnode->db_is_connect = true;
         }
@@ -755,7 +755,7 @@ on_table_sql_header(eu_tabpage *pnode)
     return (on_table_connect_database(pnode) == 0);
 }
 
-static int 
+static int
 strnspace(const char *s1, const char *s2)
 {
     if (!(s1 && s2))
@@ -784,12 +784,13 @@ strnspace(const char *s1, const char *s2)
     return 1;
 }
 
-bool
-skip_sql_comment(const char *sql, char *out)
+static bool
+skip_sql_comment(eu_tabpage *pnode, const char *sql, char *out)
 {
     bool ret = false;
     const char *s = NULL;
-    int s_len = (int)strlen(sql);
+    int s_len = eu_int_cast(strlen(sql));
+    const int m_eol = on_encoding_eol_char(pnode);
     if (!(sql && *sql))
     {
         return false;
@@ -800,9 +801,9 @@ skip_sql_comment(const char *sql, char *out)
     }
     for (s = sql; *s; ++s)
     {
-        if (*s == '\n' && s - sql < s_len && strnspace(&s[1], "--"))
+        if (*s == m_eol && s - sql < s_len && strnspace(&s[1], "--"))
         {
-            if (s[1] != '\r' && s[1] != '\n')
+            if (s[1] != m_eol)
             {
                 ret = (sscanf(&s[1], "%s", out) == 1);
             }
@@ -871,7 +872,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
         char first_word[256] = {0};
         while ((*psel))
         {
-            if ((*psel) == '\r' || (*psel) == '\n')
+            if ((*psel) == on_encoding_eol_char(pnode))
             {
                 psel++;
             }
@@ -884,7 +885,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
         {
             break;
         }
-        skip_sql_comment(psel, first_word);
+        skip_sql_comment(pnode, psel, first_word);
         printf("psel = %s\nfirst_word = %s\n", psel, first_word);
         if (_stricmp(pnode->db_config.dbtype, "MySQL") == 0)
         {
@@ -894,7 +895,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
             if (strncmp(psel, "--", strlen("--")))
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR1, msg_str);
-                on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));                
+                on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));
             }
             nret = mysql_sub->fn_mysql_query(this_mysql->mysql, psel);
             if (nret)
@@ -909,8 +910,8 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 if (_strnicmp(psel, "select", strlen("select")))
                 {
                     LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR3, msg_str);
-                    on_result_append_text(pnode->hwnd_qredit, 
-                                     msg_str, 
+                    on_result_append_text(pnode->hwnd_qredit,
+                                     msg_str,
                                      (int)(mysql_sub->fn_mysql_affected_rows(this_mysql->mysql)));
                 }
             }
@@ -1229,7 +1230,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 {
                     LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR10, msg_str);
                     on_result_append_text(pnode->hwnd_qredit, msg_str);
-                    
+
                 }
             }
             else
@@ -1377,7 +1378,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                     if (afield_width[field_index] < nfield_width)
                     {
                         afield_width[field_index] = nfield_width;
-                    }                   
+                    }
                 }
                 for (row_index = 0; row_index < row_conut; row_index++)
                 {
@@ -1399,7 +1400,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                             {
                                 afield_width[field_index] = nfield_width;
                             }
-                        }                      
+                        }
                     }
                 }
                 for (field_index = 0; field_index < field_count; field_index++)

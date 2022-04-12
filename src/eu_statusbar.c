@@ -491,7 +491,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            if (id_menu > IDM_UNI_UTF8 && id_menu < IDM_LBREAK_4)
+            if (id_menu > IDM_UNI_UTF8 && id_menu < IDM_LBREAK_3)
             {
                 if (eu_sci_call(pnode, SCI_GETREADONLY, 0, 0))
                 {
@@ -851,22 +851,21 @@ on_statusbar_update_eol(eu_tabpage *pnode)
 {
     if(!pnode || pnode->hex_mode)
     {
-        set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_4, IDM_LBREAK_4, STATUSBAR_DOC_EOLS);
+        set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
         return;
     }
     switch (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0))
     {
         case 0:
-            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_4, IDM_LBREAK_1, STATUSBAR_DOC_EOLS);
+            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_1, STATUSBAR_DOC_EOLS);
             break;
         case 1:
-            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_4, IDM_LBREAK_2, STATUSBAR_DOC_EOLS);
+            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_2, STATUSBAR_DOC_EOLS);
             break;
         case 2:
-            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_4, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
+            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
             break;
         default:
-            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_4, IDM_LBREAK_4, STATUSBAR_DOC_EOLS);
             break;
     }
 }

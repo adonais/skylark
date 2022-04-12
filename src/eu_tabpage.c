@@ -53,7 +53,7 @@ on_tabpage_get_height(void)
     return tab_height;
 }
 
-void 
+void
 on_tabpage_destroy_rclick(void)
 {
     if (pop_tab_menu)
@@ -79,7 +79,7 @@ on_tabpage_destroy_tabbar(void)
     printf("tabbar WM_DESTROY\n");
 }
 
-LRESULT 
+LRESULT
 on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(hwnd);
@@ -91,18 +91,18 @@ on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
 static void
 on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 {
-	int nclose = on_dark_supports() ? IDB_DARK_CLOSE_BMP : (sel ? IDB_AC_CLOSE_BMP : IDB_UN_CLOSE_BMP);
-	HDC hdc = GetDC(hwnd);    
-	HDC hdc_mem  = CreateCompatibleDC(hdc);
-	HBITMAP hbmp = LoadBitmap(eu_module_handle(), MAKEINTRESOURCE(nclose));
-	int border = (lprect->bottom - lprect->top - CLOSEBUTTON_HEIGHT + 1) / 2;
+    int nclose = on_dark_supports() ? IDB_DARK_CLOSE_BMP : (sel ? IDB_AC_CLOSE_BMP : IDB_UN_CLOSE_BMP);
+    HDC hdc = GetDC(hwnd);
+    HDC hdc_mem  = CreateCompatibleDC(hdc);
+    HBITMAP hbmp = LoadBitmap(eu_module_handle(), MAKEINTRESOURCE(nclose));
+    int border = (lprect->bottom - lprect->top - CLOSEBUTTON_HEIGHT + 1) / 2;
     int left = lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP;
     int top = lprect->top + border;
-	SelectObject(hdc_mem, hbmp);
-	StretchBlt(hdc, left, top, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, hdc_mem, 0, 0, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, SRCCOPY);
-	DeleteDC(hdc_mem);
-	DeleteObject(hbmp);
-	ReleaseDC(hwnd, hdc);
+    SelectObject(hdc_mem, hbmp);
+    StretchBlt(hdc, left, top, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, hdc_mem, 0, 0, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, SRCCOPY);
+    DeleteDC(hdc_mem);
+    DeleteObject(hbmp);
+    ReleaseDC(hwnd, hdc);
 }
 
 static void
@@ -125,7 +125,7 @@ on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
                lprect->right - TAB_MIN_TOP,
                lprect->top + TAB_MIN_TOP + CLOSEBUTTON_HEIGHT
               };
-    return PtInRect(&rc, *pt); 
+    return PtInRect(&rc, *pt);
 }
 
 static void
@@ -254,7 +254,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (!(p = (eu_tabpage *) (tci.lParam)))
                 {
                     break;
-                }                
+                }
                 TabCtrl_GetItemRect(hwnd, index, &rect);
                 if (p->at_close)
                 {
@@ -423,13 +423,13 @@ on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
     uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_OWNERDRAWFIXED;
-#ifdef _M_X64    
+#ifdef _M_X64
     if (!util_under_wine())
     {
         flags &= ~TCS_SINGLELINE;
         flags |= TCS_MULTILINE;
     }
-#endif    
+#endif
     g_tabpages =
         CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)IDM_TABPAGE_BAR, eu_module_handle(), NULL);
     do
@@ -439,7 +439,7 @@ on_tabpage_create_dlg(HWND hwnd)
             MSG_BOX(IDC_MSG_TABCONTROL_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             err = 1;
             break;
-        } 
+        }
         SendMessage(g_tabpages, WM_SETFONT, (WPARAM) GetStockObject(DEFAULT_GUI_FONT), 0);
         TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, TAB_MIN_TOP);
         TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
@@ -514,7 +514,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
         pnode->rect_symtree.right = rect_tabpages.right;
         pnode->rect_symtree.top = rect_tabpages.top + tab_height;
         pnode->rect_symtree.bottom = rect_tabpages.bottom;
-    }    
+    }
     if (eu_get_config()->m_sym_show)
     {
         if (pnode->hwnd_symlist && ListBox_GetCount(pnode->hwnd_symlist) > 0)
@@ -529,7 +529,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             pnode->rect_symlist.right = rect_tabpages.right - SYMBOLLIST_MARGIN_RIGHT;
             pnode->rect_symlist.top = rect_tabpages.top + tab_height + SYMBOLTREE_MARGIN_TOP;
             pnode->rect_symlist.bottom = rect_tabpages.bottom;
-            
+
             pnode->rect_symtree.left = rect_tabpages.right;
             pnode->rect_symtree.right = rect_tabpages.right;
             pnode->rect_symtree.top = rect_tabpages.top + tab_height;
@@ -686,7 +686,7 @@ on_tabpage_newdoc_reload(void)
             if (p && p->is_blank)
             {
                 TCHAR old[MAX_PATH] = {0};
-                if ((pstr = _tcsrchr(p->pathfile, ch)) != NULL && (pstr - p->pathfile) > 0 && _tcslen(pstr) > 0 && 
+                if ((pstr = _tcsrchr(p->pathfile, ch)) != NULL && (pstr - p->pathfile) > 0 && _tcslen(pstr) > 0 &&
                     _tcsspn(pstr + 1, _T("0123456789")) == _tcslen(pstr + 1))
                 {
                     _tcsncpy(old, p->pathfile, pstr - p->pathfile);
@@ -807,7 +807,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
     return 0;
 }
 
-int 
+int
 on_tabpage_theme_changed(eu_tabpage *p)
 {
     if (p && p->hwnd_sc)
@@ -835,7 +835,7 @@ on_tabpage_theme_changed(eu_tabpage *p)
         {
             SendMessage(p->hwnd_qrtable, WM_THEMECHANGED, 0, 0);
         }
-    } 
+    }
     return 0;
 }
 
@@ -910,7 +910,7 @@ on_tabpage_get_handle(void *hwnd_sc)
     for (int index = 0; index < count; ++index)
     {
         p = on_tabpage_get_ptr(index);
-        if (p->hwnd_sc == hwnd_sc) 
+        if (p->hwnd_sc == hwnd_sc)
         {
             return p;
         }
@@ -924,7 +924,7 @@ on_tabpage_get_ptr(int index)
     EU_VERIFY(g_tabpages != NULL);
     TCITEM tci = {TCIF_PARAM};
     int count = TabCtrl_GetItemCount(g_tabpages);
-    if (index < 0 || index >= count) 
+    if (index < 0 || index >= count)
     {
         return NULL;
     }
@@ -943,7 +943,7 @@ on_tabpage_get_index(eu_tabpage *pnode)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         p = (eu_tabpage *) (tci.lParam);
-        if (p == pnode) 
+        if (p == pnode)
         {
             return index;
         }

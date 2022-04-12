@@ -351,19 +351,19 @@ format_do_json_file(eu_tabpage *pnode, format_back fn)
     }
     if (!pnode->hwnd_symtree)
     {
-    	MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-    	return;
+        MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+        return;
     }
     do
     {
         if (!(text = util_strdup_content(pnode, &txt_len)))
         {
             break;
-        }    	
+        }
         if (txt_len > FORMAT_MAX_LEN)
         {
-        	MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        	break;
+            MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            break;
         }
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         if ((fjson = fn(text)))
@@ -431,11 +431,11 @@ format_file_with_clang(eu_tabpage *pnode)
         if (!(text = util_strdup_content(pnode, (size_t *)&text_len)))
         {
             break;
-        }    	
+        }
         if (text_len > FORMAT_MAX_LEN)
         {
-        	MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        	break;
+            MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            break;
         }
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         if (filename[strlen(filename) - 1] == '*')
@@ -473,12 +473,12 @@ format_str_with_clang(eu_tabpage *pnode)
     {
         if (!(text = util_strdup_select(pnode, &len, 0)))
         {
-        	break;
+            break;
         }
         if (len > FORMAT_MAX_LEN)
         {
-        	MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        	break;
+            MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            break;
         }
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         if (filename[strlen(filename) - 1] == '*')

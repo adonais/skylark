@@ -38,7 +38,7 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);  
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);
     if (eu_get_config()->m_linenumber)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, MARGIN_LINENUMBER_WIDTH);
@@ -61,13 +61,13 @@ on_sci_init_style(eu_tabpage *pnode)
     // 设置边框透明度
     eu_sci_call(pnode, SCI_SETCARETLINEBACKALPHA, eu_get_theme()->item.caretline.bgcolor >> 24, 0);
     eu_sci_call(pnode, SCI_SETCARETLINEFRAME, 2, 0);
-    
+
     eu_sci_call(pnode, SCI_SETCARETSTYLE, 1, 0);
     eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.text.color, 0);
     // 选中行背景色
     eu_sci_call(pnode, SCI_SETSELBACK, true, eu_get_theme()->item.indicator.bgcolor);
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
-    // 设置换行符    
+    // 设置换行符
     eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
 
     if (pnode->doc_ptr)
@@ -78,12 +78,13 @@ on_sci_init_style(eu_tabpage *pnode)
     else
     {
         eu_sci_call(pnode, SCI_SETTABWIDTH, eu_get_config()->tab_width, 0);
-        eu_sci_call(pnode, SCI_SETUSETABS,!eu_get_config()->tab2spaces, 0); 
+        eu_sci_call(pnode, SCI_SETUSETABS,!eu_get_config()->tab2spaces, 0);
     }
     eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_config()->ws_visiable ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
     eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_config()->ws_size, 0);
     eu_sci_call(pnode, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
     eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
+    // 是否显示对齐线
     eu_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
 
     eu_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
@@ -93,7 +94,7 @@ on_sci_init_style(eu_tabpage *pnode)
     if (eu_get_config()->m_quality ==  IDM_VIEW_FONTQUALITY_STANDARD)
     {
         eu_sci_call(pnode, SCI_SETFONTQUALITY,  SC_EFF_QUALITY_ANTIALIASED, 0);
-    }    
+    }
     else if (eu_get_config()->m_quality == IDM_VIEW_FONTQUALITY_NONE)
     {
         eu_sci_call(pnode, SCI_SETFONTQUALITY,  SC_EFF_QUALITY_NON_ANTIALIASED, 0);
@@ -118,7 +119,7 @@ on_sci_init_style(eu_tabpage *pnode)
     else
     {
         eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
-    }       
+    }
     eu_sci_call(pnode, SCI_SETSCROLLWIDTH, 1, 0);
     eu_sci_call(pnode, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
     // 设置undo掩码, 接受SCN_MODIFIED消息
@@ -256,7 +257,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
         if ((*ppnode)->hwnd_sc)
         {
             SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
-        }     
+        }
         // 清理上一次的备份
         if ((*ppnode)->bakpath[0] && (_taccess((*ppnode)->bakpath, 0 ) != -1))
         {
@@ -401,7 +402,7 @@ on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     if (!pnode->hex_mode)
     {
-        if (pnode->doc_ptr && pnode->doc_ptr->fn_on_char) 
+        if (pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
         {
             return pnode->doc_ptr->fn_on_char(pnode, lpnotify);
         }
@@ -439,7 +440,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     eu_tabpage *pnode = NULL;
     switch (message)
-    {     
+    {
         case WM_KEYDOWN:
         {   // 按下ESC键时
             if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)) && (pnode = on_tabpage_focus_at()))
@@ -480,10 +481,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_search_add_navigate_list(pnode, pos);
             }
             on_statusbar_update_line(pnode);
-            break; 
+            break;
         }
         case WM_RBUTTONDOWN:
-        {           
+        {
             eu_tabpage *pnode = on_tabpage_get_handle(hwnd);
             if (pnode)
             {
@@ -511,7 +512,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (eu_get_config()->m_toolbar)
             {
                 on_toolbar_update_button();
-            }            
+            }
             break;
         }
         case WM_DPICHANGED:
@@ -530,7 +531,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_sci_update_margin(pnode);
             }
             break;
-        }        
+        }
         case WM_SETFOCUS:
         {
             NMHDR nm = {0};

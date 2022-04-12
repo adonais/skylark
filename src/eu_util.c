@@ -678,7 +678,7 @@ int
 util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
 {
     char c;
-    char uc;    
+    char uc;
     int i, j = 0, k = 1, r = 0;
     int txt_len = eu_int_cast(strlen(asc_buf));
     if (txt_len < asc_len || txt_len <= 0)
@@ -1403,6 +1403,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
     if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
     {
         *psize = 0;
+        printf("GetFileSizeEx fail, case: %u\n", GetLastError());
         return false;
     }
     return true;
@@ -1437,14 +1438,14 @@ util_open_file(LPCTSTR path, pt_stream pstream)
     HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (INVALID_HANDLE_VALUE != hfile)
     {
-    	if (!pstream->size)
-    	{
-    		if (!util_file_size(hfile, &pstream->size))
-    		{
-    			CloseHandle(hfile);
-    			return false;
-    		}
-    	}
+        if (!pstream->size)
+        {
+            if (!util_file_size(hfile, &pstream->size))
+            {
+                CloseHandle(hfile);
+                return false;
+            }
+        }
         if (pstream->size > BUFF_200M)
         {
             HANDLE hmap = NULL;
@@ -1460,7 +1461,7 @@ util_open_file(LPCTSTR path, pt_stream pstream)
                 }
             }
         }
-        else if ((pstream->base = (uintptr_t)calloc(1, pstream->size)) != 0)
+        else if ((pstream->base = (uintptr_t)calloc(1, pstream->size > 0 ? pstream->size : 1)) != 0)
         {
             uint32_t bytesread = 0;
             if (ReadFile(hfile, (LPVOID)pstream->base, (uint32_t)pstream->size, &bytesread, NULL))
@@ -1468,7 +1469,7 @@ util_open_file(LPCTSTR path, pt_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                printf("we open file use ReadFile API\n");
+                printf("we open file use ReadFile API, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -1479,14 +1480,14 @@ util_open_file(LPCTSTR path, pt_stream pstream)
 void
 util_setforce_eol(eu_tabpage *pnode)
 {
-	size_t len = 0;
-	char *pdata = util_strdup_content(pnode, &len);
-	if (pdata)
-	{
-		pnode->eol = on_encoding_line_mode(pdata, len);
-		eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
-		free(pdata);
-	}
+    size_t len = 0;
+    char *pdata = util_strdup_content(pnode, &len);
+    if (pdata)
+    {
+        pnode->eol = on_encoding_line_mode(pdata, len);
+        eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+        free(pdata);
+    }
 }
 
 void

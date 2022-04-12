@@ -112,8 +112,8 @@
 #define IDB_NAVIGATEBACK_D              182
 #define IDB_FILETREE_C                  183
 #define IDB_FILETREE_D                  184
-#define IDB_HEXEDITMODE_C		        185
-#define IDB_HEXEDITMODE_D		        186
+#define IDB_HEXEDITMODE_C               185
+#define IDB_HEXEDITMODE_D               186
 #define IDC_SEARCH_TEXT                 1000
 #define IDC_SEARCH_TEXT2                1001
 #define IDC_TEXTTYPE_GENERAL            1002

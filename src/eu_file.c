@@ -517,12 +517,12 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
         goto pre_clean;
     }
     check_len = eu_int_cast(pnode->raw_size > BUFF_SIZE ? BUFF_SIZE : pnode->raw_size);
-    if (!(buf = (uint8_t *)calloc(1, check_len)))
+    if (!(buf = (uint8_t *)calloc(1, check_len+1)))
     {
         err = EUE_NOT_ENOUGH_MEMORY;
         goto pre_clean;
     }
-    if (!ReadFile(hfile, buf, check_len-1, &bytesread, NULL))
+    if (!ReadFile(hfile, buf, check_len, &bytesread, NULL))
     {
         MSG_BOX_ERR(IDC_MSG_OPEN_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         err = EUE_API_READ_FILE_ERR;
@@ -585,7 +585,7 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
     }
     if (!force)
     {
-    	uf_stream.size = pnode->raw_size;
+        uf_stream.size = pnode->raw_size;
     }
     if (!util_open_file(pfull, &uf_stream))
     {
@@ -594,8 +594,8 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
     }
     if (force)
     {
-    	// reassign variables
-    	pnode->raw_size = uf_stream.size;
+        // reassign variables
+        pnode->raw_size = uf_stream.size;
     }
     if (is_utf8)
     {
@@ -624,10 +624,6 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
             if (pnode->eol < 0)
             {
                 pnode->eol = on_encoding_line_mode(pdst, dst_len);
-                if (pnode->eol < 0)
-                {
-                    pnode->eol = eu_get_config()->new_file_eol;
-                }
             }
             eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
             eu_safe_free(pdst);
@@ -998,10 +994,6 @@ read_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
         if (pnode->eol < 0)
         {
             pnode->eol = on_encoding_line_mode(pdst, dst_len);
-            if (pnode->eol < 0)
-            {
-                pnode->eol = eu_get_config()->new_file_eol;
-            }
         }
         eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
         free(pdst);
