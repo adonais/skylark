@@ -99,13 +99,13 @@ static HFONT font_phpsection_static;
 
 static HWND hwnd_aspsection_static;
 static HFONT font_aspsection_static;
-static theme_query pm_query[] = 
-    {
-        {IDS_THEME_DESC_DEFAULT, {0}, _T("default")} ,
-        {IDS_THEME_DESC_BLOCK  , {0}, _T("black")}   ,
-        {IDS_THEME_DESC_WHITE  , {0}, _T("white")}   ,
-        {0, {0}, {0}}
-    };
+static theme_query pm_query[] =
+{
+    {IDS_THEME_DESC_DEFAULT, {0}, _T("default")} ,
+    {IDS_THEME_DESC_BLOCK  , {0}, _T("black")}   ,
+    {IDS_THEME_DESC_WHITE  , {0}, _T("white")}   ,
+    {0, {0}, {0}}
+};
 
 TCHAR *
 on_theme_query_name(TCHAR *str)
@@ -142,7 +142,7 @@ on_theme_load_script(const TCHAR *ac_name)
     if (!WideCharToMultiByte(CP_UTF8, 0, ac_name, -1, name, ACNAME_LEN, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
-    }        
+    }
     return do_lua_func(script_name, "switch_theme", name);
 }
 
@@ -162,7 +162,7 @@ on_theme_set_classic(HMODULE *pmod)
         }
         return true;
     }
-    return false;  
+    return false;
 }
 
 static bool
@@ -249,7 +249,7 @@ on_theme_update_item(void)
     }
 }
 
-HFONT 
+HFONT
 on_theme_font_hwnd(void)
 {
     return g_hfont;
@@ -275,7 +275,7 @@ on_theme_setup_font(HWND hwnd)
     return (g_hfont != NULL);
 }
 
-void 
+void
 eu_font_release(void)
 {
     if (g_hfont)
@@ -312,7 +312,7 @@ on_theme_copy_style(TCHAR *ac_theme)
     return SKYLARK_OK;
 }
 
-static inline 
+static inline
 TCHAR *u16_font(char *font)
 {
     MultiByteToWideChar(CP_UTF8, 0, font, -1, uni_font, FT_LEN);
@@ -322,9 +322,9 @@ TCHAR *u16_font(char *font)
 static UINT_PTR WINAPI
 choose_font_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM unnamedParam4)
 {
-    switch (msg) 
+    switch (msg)
     {
-        case WM_INITDIALOG: 
+        case WM_INITDIALOG:
         {
             if (on_dark_enable())
             {
@@ -347,7 +347,7 @@ choose_font_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM unnamedParam4)
                 on_dark_allow_window(hwnd, true);
                 on_dark_refresh_titlebar(hwnd);
                 const int buttons[] = { IDOK, IDCANCEL };
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hwnd, buttons[id]);
                     on_dark_allow_window(btn, true);
@@ -365,9 +365,9 @@ choose_font_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM unnamedParam4)
 static UINT_PTR WINAPI
 choose_color_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM unnamedParam4)
 {
-    switch (msg) 
+    switch (msg)
     {
-        case WM_INITDIALOG: 
+        case WM_INITDIALOG:
         {
             if (on_dark_enable())
             {
@@ -392,7 +392,7 @@ choose_color_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM unnamedParam4)
                 on_dark_allow_window(hwnd, true);
                 on_dark_refresh_titlebar(hwnd);
                 const int buttons[] = { IDOK, IDCANCEL, 0x2c8, 0x2cf };
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hwnd, buttons[id]);
                     on_dark_allow_window(btn, true);
@@ -446,7 +446,7 @@ choose_style_font(char *font, int *fontsize, int *bold)
     if (!WideCharToMultiByte(CP_UTF8, 0, lf.lfFaceName, -1, font, FT_LEN, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
-    }    
+    }
     (*fontsize) = cf.iPointSize / 10;
     (*bold) = (lf.lfWeight == FW_BOLD);
     return SKYLARK_OK;
@@ -469,7 +469,7 @@ choose_text_color(HWND hwnd, uint32_t *color)
     {
         cc.Flags |= CC_ENABLEHOOK;
         cc.lpfnHook = choose_color_proc;
-    }    
+    }
     if (ChooseColor(&cc))
     {
         (*color) = cc.rgbResult;
@@ -580,7 +580,7 @@ theme_release_handle(void)
     DeleteObject(font_cdata_static);
     DeleteObject(font_phpsection_static);
     DeleteObject(font_aspsection_static);
-    
+
     DeleteObject(brush_linenumber);
     brush_linenumber = NULL;
     DeleteObject(brush_foldmargin);
@@ -593,7 +593,7 @@ theme_release_handle(void)
     brush_indicator = NULL;
 }
 
-static void 
+static void
 theme_show_balloon_tip(HWND hdlg, int res_id)
 {
     HWND hwnd_edit = GetDlgItem(hdlg, res_id);
@@ -645,7 +645,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(aspsection, IDC_ASPSECTION_STATIC, hwnd_aspsection_static, font_aspsection_static)
             HWND hwnd_caretline_edt = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
             HWND hwnd_caretline_udn = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_UDN);
-            HWND hwnd_indicator_edt = GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT);    
+            HWND hwnd_indicator_edt = GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT);
             HWND hwnd_indicator_udn = GetDlgItem(hdlg, IDC_THEME_INDICATOR_UDN);
             if (hwnd_caretline_edt)
             {
@@ -667,53 +667,53 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (on_dark_enable())
             {
-                const int buttons[] = {IDOK, 
-                                       IDCANCEL, 
-                                       IDC_SETFONT_KEYWORDS_BUTTON, 
-                                       IDC_SETTEXTCOLOR_KEYWORDS_BUTTON, 
-                                       IDC_SETFONT_KEYWORDS2_BUTTON, 
-                                       IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON, 
+                const int buttons[] = {IDOK,
+                                       IDCANCEL,
+                                       IDC_SETFONT_KEYWORDS_BUTTON,
+                                       IDC_SETTEXTCOLOR_KEYWORDS_BUTTON,
+                                       IDC_SETFONT_KEYWORDS2_BUTTON,
+                                       IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON,
                                        IDC_SETFONT_STRING_BUTTON,
-                                       IDC_SETTEXTCOLOR_STRING_BUTTON, 
-                                       IDC_SETFONT_CHARACTER_BUTTON, 
-                                       IDC_SETTEXTCOLOR_CHARACTER_BUTTON, 
-                                       IDC_SETFONT_NUMBER_BUTTON, 
-                                       IDC_SETTEXTCOLOR_NUMBER_BUTTON, 
+                                       IDC_SETTEXTCOLOR_STRING_BUTTON,
+                                       IDC_SETFONT_CHARACTER_BUTTON,
+                                       IDC_SETTEXTCOLOR_CHARACTER_BUTTON,
+                                       IDC_SETFONT_NUMBER_BUTTON,
+                                       IDC_SETTEXTCOLOR_NUMBER_BUTTON,
                                        IDC_SETFONT_PREPROCESSOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON, 
-                                       IDC_SETFONT_COMMENT_BUTTON, 
-                                       IDC_SETTEXTCOLOR_COMMENT_BUTTON, 
-                                       IDC_SETFONT_COMMENTLINE_BUTTON, 
-                                       IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON, 
+                                       IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON,
+                                       IDC_SETFONT_COMMENT_BUTTON,
+                                       IDC_SETTEXTCOLOR_COMMENT_BUTTON,
+                                       IDC_SETFONT_COMMENTLINE_BUTTON,
+                                       IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON,
                                        IDC_SETFONT_COMMENTDOC_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON, 
-                                       IDC_SETFONT_TEXT_BUTTON, 
-                                       IDC_SETTEXTCOLOR_TEXT_BUTTON, 
-                                       IDC_SETFONT_OPERATOR_BUTTON, 
-                                       IDC_SETTEXTCOLOR_OPERATOR_BUTTON, 
+                                       IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON,
+                                       IDC_SETFONT_TEXT_BUTTON,
+                                       IDC_SETTEXTCOLOR_TEXT_BUTTON,
+                                       IDC_SETFONT_OPERATOR_BUTTON,
+                                       IDC_SETTEXTCOLOR_OPERATOR_BUTTON,
                                        IDC_SETFONT_UNKNOWTAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON, 
-                                       IDC_SETFONT_ATTRIBUTES_BUTTON, 
-                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON, 
+                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON,
+                                       IDC_SETFONT_ATTRIBUTES_BUTTON,
+                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON,
                                        IDC_SETFONT_UNKNOWATTRIBUTES_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON, 
-                                       IDC_SETFONT_ENTITIES_BUTTON, 
-                                       IDC_SETTEXTCOLOR_ENTITIES_BUTTON, 
-                                       IDC_SETFONT_TAGENDS_BUTTON, 
-                                       IDC_SETTEXTCOLOR_TAGENDS_BUTTON, 
+                                       IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON,
+                                       IDC_SETFONT_ENTITIES_BUTTON,
+                                       IDC_SETTEXTCOLOR_ENTITIES_BUTTON,
+                                       IDC_SETFONT_TAGENDS_BUTTON,
+                                       IDC_SETTEXTCOLOR_TAGENDS_BUTTON,
                                        IDC_SETFONT_PHPSECTION_BUTTON,
-                                       IDC_SETTEXTCOLOR_PHPSECTION_BUTTON, 
-                                       IDC_SETFONT_ASPSECTION_BUTTON, 
-                                       IDC_SETTEXTCOLOR_ASPSECTION_BUTTON, 
+                                       IDC_SETTEXTCOLOR_PHPSECTION_BUTTON,
+                                       IDC_SETFONT_ASPSECTION_BUTTON,
+                                       IDC_SETTEXTCOLOR_ASPSECTION_BUTTON,
                                        IDC_SETFONT_TAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_TAGS_BUTTON, 
-                                       IDC_SETFONT_CDATA_BUTTON, 
-                                       IDC_SETTEXTCOLOR_CDATA_BUTTON, 
-                                       IDC_SETBGCOLOR_CARETLINE_BUTTON, 
-                                       IDC_SETBGCOLOR_TEXT_BUTTON, 
+                                       IDC_SETTEXTCOLOR_TAGS_BUTTON,
+                                       IDC_SETFONT_CDATA_BUTTON,
+                                       IDC_SETTEXTCOLOR_CDATA_BUTTON,
+                                       IDC_SETBGCOLOR_CARETLINE_BUTTON,
+                                       IDC_SETBGCOLOR_TEXT_BUTTON,
                                        IDC_SETBGCOLOR_INDICATOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_LINENUMBER_BUTTON, 
-                                       IDC_SETBGCOLOR_LINENUMBER_BUTTON, 
+                                       IDC_SETTEXTCOLOR_LINENUMBER_BUTTON,
+                                       IDC_SETBGCOLOR_LINENUMBER_BUTTON,
                                        IDC_SETBGCOLOR_FOLDMARGIN_BUTTON
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
@@ -735,56 +735,56 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_dark_allow_window(hdlg, true);
                 on_dark_refresh_titlebar(hdlg);
-                const int buttons[] = {IDOK, 
-                                       IDCANCEL, 
-                                       IDC_SETFONT_KEYWORDS_BUTTON, 
-                                       IDC_SETTEXTCOLOR_KEYWORDS_BUTTON, 
-                                       IDC_SETFONT_KEYWORDS2_BUTTON, 
-                                       IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON, 
+                const int buttons[] = {IDOK,
+                                       IDCANCEL,
+                                       IDC_SETFONT_KEYWORDS_BUTTON,
+                                       IDC_SETTEXTCOLOR_KEYWORDS_BUTTON,
+                                       IDC_SETFONT_KEYWORDS2_BUTTON,
+                                       IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON,
                                        IDC_SETFONT_STRING_BUTTON,
-                                       IDC_SETTEXTCOLOR_STRING_BUTTON, 
-                                       IDC_SETFONT_CHARACTER_BUTTON, 
-                                       IDC_SETTEXTCOLOR_CHARACTER_BUTTON, 
-                                       IDC_SETFONT_NUMBER_BUTTON, 
-                                       IDC_SETTEXTCOLOR_NUMBER_BUTTON, 
+                                       IDC_SETTEXTCOLOR_STRING_BUTTON,
+                                       IDC_SETFONT_CHARACTER_BUTTON,
+                                       IDC_SETTEXTCOLOR_CHARACTER_BUTTON,
+                                       IDC_SETFONT_NUMBER_BUTTON,
+                                       IDC_SETTEXTCOLOR_NUMBER_BUTTON,
                                        IDC_SETFONT_PREPROCESSOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON, 
-                                       IDC_SETFONT_COMMENT_BUTTON, 
-                                       IDC_SETTEXTCOLOR_COMMENT_BUTTON, 
-                                       IDC_SETFONT_COMMENTLINE_BUTTON, 
-                                       IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON, 
+                                       IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON,
+                                       IDC_SETFONT_COMMENT_BUTTON,
+                                       IDC_SETTEXTCOLOR_COMMENT_BUTTON,
+                                       IDC_SETFONT_COMMENTLINE_BUTTON,
+                                       IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON,
                                        IDC_SETFONT_COMMENTDOC_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON, 
-                                       IDC_SETFONT_TEXT_BUTTON, 
-                                       IDC_SETTEXTCOLOR_TEXT_BUTTON, 
-                                       IDC_SETFONT_OPERATOR_BUTTON, 
-                                       IDC_SETTEXTCOLOR_OPERATOR_BUTTON, 
+                                       IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON,
+                                       IDC_SETFONT_TEXT_BUTTON,
+                                       IDC_SETTEXTCOLOR_TEXT_BUTTON,
+                                       IDC_SETFONT_OPERATOR_BUTTON,
+                                       IDC_SETTEXTCOLOR_OPERATOR_BUTTON,
                                        IDC_SETFONT_UNKNOWTAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON, 
-                                       IDC_SETFONT_ATTRIBUTES_BUTTON, 
-                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON, 
+                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON,
+                                       IDC_SETFONT_ATTRIBUTES_BUTTON,
+                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON,
                                        IDC_SETFONT_UNKNOWATTRIBUTES_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON, 
-                                       IDC_SETFONT_ENTITIES_BUTTON, 
-                                       IDC_SETTEXTCOLOR_ENTITIES_BUTTON, 
-                                       IDC_SETFONT_TAGENDS_BUTTON, 
-                                       IDC_SETTEXTCOLOR_TAGENDS_BUTTON, 
+                                       IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON,
+                                       IDC_SETFONT_ENTITIES_BUTTON,
+                                       IDC_SETTEXTCOLOR_ENTITIES_BUTTON,
+                                       IDC_SETFONT_TAGENDS_BUTTON,
+                                       IDC_SETTEXTCOLOR_TAGENDS_BUTTON,
                                        IDC_SETFONT_PHPSECTION_BUTTON,
-                                       IDC_SETTEXTCOLOR_PHPSECTION_BUTTON, 
-                                       IDC_SETFONT_ASPSECTION_BUTTON, 
-                                       IDC_SETTEXTCOLOR_ASPSECTION_BUTTON, 
+                                       IDC_SETTEXTCOLOR_PHPSECTION_BUTTON,
+                                       IDC_SETFONT_ASPSECTION_BUTTON,
+                                       IDC_SETTEXTCOLOR_ASPSECTION_BUTTON,
                                        IDC_SETFONT_TAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_TAGS_BUTTON, 
-                                       IDC_SETFONT_CDATA_BUTTON, 
-                                       IDC_SETTEXTCOLOR_CDATA_BUTTON, 
-                                       IDC_SETBGCOLOR_CARETLINE_BUTTON, 
-                                       IDC_SETBGCOLOR_TEXT_BUTTON, 
+                                       IDC_SETTEXTCOLOR_TAGS_BUTTON,
+                                       IDC_SETFONT_CDATA_BUTTON,
+                                       IDC_SETTEXTCOLOR_CDATA_BUTTON,
+                                       IDC_SETBGCOLOR_CARETLINE_BUTTON,
+                                       IDC_SETBGCOLOR_TEXT_BUTTON,
                                        IDC_SETBGCOLOR_INDICATOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_LINENUMBER_BUTTON, 
-                                       IDC_SETBGCOLOR_LINENUMBER_BUTTON, 
+                                       IDC_SETTEXTCOLOR_LINENUMBER_BUTTON,
+                                       IDC_SETBGCOLOR_LINENUMBER_BUTTON,
                                        IDC_SETBGCOLOR_FOLDMARGIN_BUTTON
                                        };
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
                     on_dark_allow_window(btn, true);
@@ -793,12 +793,12 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 UpdateWindow(hdlg);
             }
             break;
-        } 
+        }
         case WM_CTLCOLORDLG:
         case WM_CTLCOLOREDIT:
         {
             return on_dark_set_contorl_color(wParam);
-        }           
+        }
         case WM_CTLCOLORSTATIC:
         {
             uint32_t resid = (uint32_t)GetWindowLongPtr((HWND) lParam, GWL_ID);
@@ -819,7 +819,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 if (brush_linenumber)
                 {
                     DeleteObject(brush_linenumber);
-                }                
+                }
                 brush_linenumber = CreateSolidBrush(dlg_style.linenumber.bgcolor);
                 return (INT_PTR) brush_linenumber;
             }
@@ -830,7 +830,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 if (brush_foldmargin)
                 {
                     DeleteObject(brush_foldmargin);
-                }                
+                }
                 brush_foldmargin = CreateSolidBrush(dlg_style.foldmargin.bgcolor);
                 return (INT_PTR) brush_foldmargin;
             }
@@ -841,7 +841,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 if (brush_text)
                 {
                     DeleteObject(brush_text);
-                }                
+                }
                 brush_text = CreateSolidBrush(dlg_style.text.bgcolor);
                 return (INT_PTR) brush_text;
             }
@@ -853,7 +853,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 if (brush_caretline)
                 {
                     DeleteObject(brush_caretline);
-                }                
+                }
                 brush_caretline = CreateSolidBrush(dlg_style.caretline.bgcolor);
                 return (INT_PTR) brush_caretline;
             }
@@ -917,7 +917,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         Edit_GetText(hwnd_indicator, alpha, 4);
                         value = _tstoi(alpha) << 24 & 0xff000000;
                         dlg_style.indicator.bgcolor |= value;
-                    }                     
+                    }
                     memcpy(&(eu_get_theme()->item), &dlg_style, sizeof(struct styletheme));
                     EndDialog(hdlg, LOWORD(wParam));
                     break;
@@ -937,10 +937,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDC_SETTEXTCOLOR_LINENUMBER_BUTTON:
                     choose_text_color(hdlg, &(dlg_style.linenumber.color));
                     InvalidateRect(hwnd_linenumber_static, NULL, TRUE);
-                    break; 
+                    break;
                 case IDC_SETBGCOLOR_LINENUMBER_BUTTON:
                     choose_text_color(hdlg, &(dlg_style.linenumber.bgcolor));
-                    InvalidateRect(hwnd_linenumber_static, NULL, TRUE); 
+                    InvalidateRect(hwnd_linenumber_static, NULL, TRUE);
                     break;
                 case IDC_SETBGCOLOR_FOLDMARGIN_BUTTON:
                     choose_text_color(hdlg, &(dlg_style.foldmargin.bgcolor));

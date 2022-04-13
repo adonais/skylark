@@ -1760,7 +1760,7 @@ on_doc_identation(eu_tabpage *pnode, SCNotification *lpnotify)
 }
 
 static int
-on_doc_match_parenthesis(eu_tabpage *pnode, SCNotification *lpnotify)
+on_doc_function_tips(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     char word_buffer[ACNAME_LEN+1] = {0};
     if (!(pnode && eu_get_config()->m_ctshow))
@@ -2083,7 +2083,7 @@ on_doc_cpp_like(eu_tabpage *pnode, SCNotification *lpnotify)
         on_doc_identation(pnode, lpnotify);
         add_autoclose_char(pnode, lpnotify);
         add_acshow_char(pnode, lpnotify);
-        on_doc_match_parenthesis(pnode, lpnotify);
+        on_doc_function_tips(pnode, lpnotify);
     }
     return 0;
 }
@@ -2196,58 +2196,33 @@ on_doc_markdown_like(eu_tabpage *pnode, SCNotification *lpnotify)
     return 0;
 }
 
-static int
-on_doc_keyup_light(eu_tabpage *pnode)
+int
+on_doc_brace_light(eu_tabpage *pnode, bool keyup)
 {
     sptr_t match_pos = -1;
-    bool current_match = false;
-    bool pre_match = false;
+    bool matching = false;
     sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    int current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
     int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
-    if (strchr(")]}>", ch))
-    {   // 使右括号与左括号对齐
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
-        sptr_t line_startpos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, false);
-        sptr_t linepos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-        if (line_startpos == linepos && ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))
+    matching = ch > 0 && strchr("()[]{}<>", ch);
+    if (matching)  // 匹配的括号高亮显示
+    {
+        if (current_pos > 0)
         {
-            sptr_t match_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
-            int m_indent = (int)eu_sci_call(pnode, SCI_GETLINEINDENTATION, match_line, 0);
-            char *str_space = (char *)calloc(1, m_indent+1);
-            memset(str_space, 0x20, m_indent);
-            eu_sci_call(pnode, SCI_SETTARGETSTART, line_startpos, 0);
-            eu_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
-            eu_sci_call(pnode, SCI_REPLACETARGET, m_indent, (sptr_t)str_space);
-            eu_safe_free(str_space);
-        }
-    }
-    current_match = current_char > 0 && strchr("()[]{}<>", current_char);
-    pre_match = ch > 0 && strchr("()[]{}<>", ch);
-    if (current_match || pre_match)
-    {   // 匹配的括号高亮显示
-        if (match_pos >= 0)
-        {
-            current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        }
-        if (current_match)
-        {
-            match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0);
-        }
-        else if (pre_match)
-        {
-            match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0);
             --current_pos;
         }
-        if (match_pos != -1)
+        if ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0)) != -1)
         {
-            sptr_t m_style = eu_sci_call(pnode, SCI_GETSTYLEAT, current_pos, 0);
-            sptr_t m_forecolor = eu_sci_call(pnode, SCI_STYLEGETFORE, m_style, 0);
-            sptr_t m_backcolor = eu_sci_call(pnode, SCI_STYLEGETBACK, m_style, 0);
-            eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, m_backcolor);
-            eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, m_forecolor);
-            eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
-            eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
+            // 当键盘输入时, 相邻的括号不要高亮
+            if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
+            {
+                sptr_t m_style = eu_sci_call(pnode, SCI_GETSTYLEAT, current_pos, 0);
+                sptr_t m_forecolor = eu_sci_call(pnode, SCI_STYLEGETFORE, m_style, 0);
+                sptr_t m_backcolor = eu_sci_call(pnode, SCI_STYLEGETBACK, m_style, 0);
+                eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, m_backcolor);
+                eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, m_forecolor);
+                eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
+                eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
+            }
         }
         else
         {
@@ -2266,6 +2241,32 @@ on_doc_keyup_light(eu_tabpage *pnode)
         eu_sci_call(pnode, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
     }
     return 0;
+}
+
+static int
+on_doc_brace_handling(eu_tabpage *pnode)
+{
+    sptr_t match_pos = -1;
+    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
+    if (strchr(")]}>", ch))
+    {   // 使右括号与左括号对齐
+        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+        sptr_t line_startpos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, false);
+        sptr_t linepos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+        if (line_startpos == linepos && ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))
+        {
+            sptr_t match_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
+            int m_indent = (int)eu_sci_call(pnode, SCI_GETLINEINDENTATION, match_line, 0);
+            char *str_space = (char *)calloc(1, m_indent+1);
+            memset(str_space, 0x20, m_indent);
+            eu_sci_call(pnode, SCI_SETTARGETSTART, line_startpos, 0);
+            eu_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
+            eu_sci_call(pnode, SCI_REPLACETARGET, m_indent, (sptr_t)str_space);
+            eu_safe_free(str_space);
+        }
+    }
+    return on_doc_brace_light(pnode, true);
 }
 
 int
@@ -2363,7 +2364,8 @@ on_doc_keydown_redis(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 int
 on_doc_keyup_general(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
-    return on_doc_keyup_light(pnode);
+    printf("wParam = 0x%02x, 29bit = %I64d\n", (int)wParam, lParam & (1 << 24));
+    return on_doc_brace_handling(pnode);
 }
 
 int
@@ -2374,7 +2376,7 @@ on_doc_keyup_general_sh(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     {
         return 0;
     }
-    return on_doc_keyup_light(pnode);
+    return on_doc_brace_handling(pnode);
 }
 
 int
@@ -2434,8 +2436,7 @@ on_doc_reload_tree_redis(eu_tabpage *pnode)
         return 1;
     }
     if (pnode->redis_is_connect)
-    {
-        // 关闭redis数据库链接
+    {   // 关闭redis数据库链接
         on_symtree_disconnect_redis(pnode);
         err = on_symtree_connect_redis(pnode);
     }

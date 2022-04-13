@@ -459,39 +459,43 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_KEYUP:
+        {
+            if ((pnode = on_tabpage_focus_at()) == NULL)
+            {
+                break;
+            }
+            if (pnode->doc_ptr && pnode->doc_ptr->fn_keyup)
+            {
+                pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
+            }
+            on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+            on_statusbar_update_line(pnode);
+            break;
+        }
         case WM_LBUTTONUP:
         {
-            int64_t pos = 0;
             eu_reset_drag_line();
             if ((pnode = on_tabpage_focus_at()) == NULL)
             {
                 break;
             }
-            pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            if (pnode->doc_ptr && pnode->doc_ptr->fn_keyup)
+            if (!(wParam & 0xff))
             {
-                pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
+                on_doc_brace_light(pnode, false);
             }
-            if(message == WM_KEYUP)
-            {
-                on_search_update_navigate_list(pnode, pos);
-            }
-            else
-            {
-                on_search_add_navigate_list(pnode, pos);
-            }
+            on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);
             break;
         }
         case WM_RBUTTONDOWN:
         {
-            eu_tabpage *pnode = on_tabpage_get_handle(hwnd);
-            if (pnode)
+            if ((pnode = on_tabpage_get_handle(hwnd)) == NULL || pop_editor_menu == NULL)
             {
-                util_enable_menu_item(pop_editor_menu, IDM_EDIT_CUT, util_can_selections(pnode));
-                util_enable_menu_item(pop_editor_menu, IDM_EDIT_COPY, util_can_selections(pnode));
-                util_enable_menu_item(pop_editor_menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
+                break;
             }
+            util_enable_menu_item(pop_editor_menu, IDM_EDIT_CUT, util_can_selections(pnode));
+            util_enable_menu_item(pop_editor_menu, IDM_EDIT_COPY, util_can_selections(pnode));
+            util_enable_menu_item(pop_editor_menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
             HMENU pop_menu = GetSubMenu(pop_editor_menu, 0);
             if (pop_menu)
             {
