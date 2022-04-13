@@ -2364,7 +2364,6 @@ on_doc_keydown_redis(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 int
 on_doc_keyup_general(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
-    printf("wParam = 0x%02x, 29bit = %I64d\n", (int)wParam, lParam & (1 << 24));
     return on_doc_brace_handling(pnode);
 }
 
