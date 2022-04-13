@@ -288,9 +288,18 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
         if (tab_width[0])
         {
             eu_tabpage *p = NULL;
-            eu_get_config()->tab_width = _tstoi(tab_width);
-            int count = TabCtrl_GetItemCount(g_tabpages);
-            for (int index = 0; index < count; ++index)
+            int m_width = _tstoi(tab_width);
+            if (m_width > ACNAME_LEN)
+            {
+                _sntprintf(tab_width, _countof(tab_width)-1, _T("%d"), ACNAME_LEN);
+                eu_get_config()->tab_width = ACNAME_LEN;
+            }
+            else
+            {
+                eu_get_config()->tab_width = m_width;
+            }
+            
+            for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
                 TCITEM tci = {TCIF_PARAM};
                 TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -596,10 +605,6 @@ on_view_editor_selection(eu_tabpage *pnode)
     {
         return SKYLARK_OK;
     }
-    if (!KEY_DOWN(VK_SHIFT))
-    {
-        return SKYLARK_OK;
-    }    
     if (KEY_UP(VK_LBUTTON))
     {
         return SKYLARK_OK;

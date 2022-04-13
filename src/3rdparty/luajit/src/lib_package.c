@@ -76,32 +76,36 @@ static const char *ll_bcsym(void *lib, const char *sym)
 BOOL WINAPI GetModuleHandleExA(DWORD, LPCSTR, HMODULE*);
 #endif
 
-#if LJ_TARGET_UWP
 void *LJ_WIN_LOADLIBA(const char *path)
 {
   DWORD err = GetLastError();
-  wchar_t wpath[256];
+  wchar_t wpath[260+1] = {0};
   HANDLE lib = NULL;
-  if (MultiByteToWideChar(CP_ACP, 0, path, -1, wpath, 256) > 0) {
+  if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 260) > 0) {
+  #if LJ_TARGET_UWP  
     lib = LoadPackagedLibrary(wpath, 0);
+  #else
+    lib = LoadLibraryW(wpath);
+  #endif
   }
   SetLastError(err);
   return lib;
 }
-#endif
 
 #undef setprogdir
 
 static void setprogdir(lua_State *L)
 {
-  char buff[MAX_PATH + 1];
-  char *lb;
-  DWORD nsize = sizeof(buff);
-  DWORD n = GetModuleFileNameA(NULL, buff, nsize);
-  if (n == 0 || n == nsize || (lb = strrchr(buff, '\\')) == NULL) {
+  wchar_t *lb;  
+  wchar_t wpath[MAX_PATH + 1];  
+  char buff[MAX_PATH + 1] = {0};
+  DWORD nsize = MAX_PATH;
+  DWORD n = GetModuleFileNameW(NULL, wpath, nsize);
+  if (n == 0 || n == nsize || (lb = wcsrchr(wpath, L'\\')) == NULL) {
     luaL_error(L, "unable to get ModuleFileName");
   } else {
     *lb = '\0';
+    WideCharToMultiByte(CP_UTF8, 0, wpath, -1, buff, nsize, NULL, NULL);
     luaL_gsub(L, lua_tostring(L, -1), LUA_EXECDIR, buff);
     lua_remove(L, -2);  /* remove original string */
   }
@@ -557,7 +561,7 @@ static int lj_cf_package_seeall(lua_State *L)
 static void setpath(lua_State *L, const char *fieldname, const char *envname,
 		    const char *def, int noenv)
 {
-  char path[1024+1] = {0};    
+  char path[2048+1] = {0};    
 #if LJ_TARGET_CONSOLE
   UNUSED(envname);
 #else
@@ -565,7 +569,7 @@ static void setpath(lua_State *L, const char *fieldname, const char *envname,
   MultiByteToWideChar(CP_UTF8, 0, envname, -1, w_env, 128);
   const wchar_t *wpath = _wgetenv(w_env);
   if (wpath)
-    WideCharToMultiByte(CP_UTF8, 0, wpath, -1, path, 1024, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, wpath, -1, path, 2048, NULL, NULL);
 #endif
   if (*path == 0 || noenv) {
     lua_pushstring(L, def);

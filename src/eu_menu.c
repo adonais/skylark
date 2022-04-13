@@ -18,6 +18,42 @@
 
 #include "framework.h"
 
+static HMENU
+menu_load(uint16_t mid)
+{
+    HMENU hpop = NULL;
+    HMENU hmenu = i18n_load_menu(mid);
+    if(hmenu)
+    {
+        hpop = GetSubMenu(hmenu, 0);
+        RemoveMenu(hmenu, 0, MF_BYPOSITION);
+        DestroyMenu(hmenu);
+    }
+    return hpop;
+}
+
+int 
+menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam)
+{
+    HMENU hpop = menu_load(mid);
+    if(hpop)
+    {
+        POINT pt;
+        if (!lparam)
+        {
+            GetCursorPos(&pt);
+        }
+        else
+        {
+            pt.x = GET_X_LPARAM(lparam);
+            pt.y = GET_Y_LPARAM(lparam);
+        }
+        TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
+        DestroyMenu(hpop);
+    }
+    return 1;
+}
+
 void
 menu_switch_theme(void)
 {
@@ -122,11 +158,165 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_SOURCE_ENABLE_CTSHOW, !hex_mode);
         util_enable_menu_item(root_menu, IDM_DATABASE_INSERT_CONFIG, !hex_mode);
         util_enable_menu_item(root_menu, IDM_DATABASE_EXECUTE_SQL, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_REDIS_INSERT_CONFIG, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_REDIS_EXECUTE_COMMAND, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_FONTQUALITY, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_RENDER, !hex_mode);
     }
+}
+
+static void
+menu_default_keys(HMENU hmenu, int id, int pos)
+{
+    wchar_t mdata[FILESIZE+1] = {0};
+    if (GetMenuString(hmenu, id, mdata, FILESIZE, MF_BYCOMMAND) > 0)
+    {
+        if (_tcschr(mdata, _T('\t')))
+        {
+            _tcsncat(mdata, _T(","), FILESIZE);
+        }
+        else
+        {
+            _tcsncat(mdata, _T("\t"), FILESIZE);
+        }
+        if (id == IDM_VIEW_ZOOMOUT)
+        {
+            _tcsncat(mdata, _T("Ctrl+MouseWheelUP"), FILESIZE);
+        }
+        else if (id == IDM_VIEW_ZOOMIN)
+        {
+            _tcsncat(mdata, _T("Ctrl+MouseWheelDown"), FILESIZE);
+        }
+        else if (id == IDM_SELECTION_RECTANGLE)
+        {
+            _tcsncat(mdata, _T("Alt+MouseLdown"), FILESIZE);
+        }
+        ModifyMenu(hmenu, pos, MF_BYPOSITION|MF_STRING, id, mdata);
+    }
+}
+
+static uint32_t
+menu_update_string(HMENU hmenu, int pos)
+{
+    uint32_t id = 0;
+    if ((id = GetMenuItemID(hmenu, pos)) > 0)
+    {
+        bool redraw = true;
+        eue_accel *p = NULL;
+        wchar_t mdata[FILESIZE+1] = {0};
+        if (GetMenuString(hmenu, id, mdata, FILESIZE, MF_BYCOMMAND) > 0)
+        {
+            if (_tcschr(mdata, _T('\t')))
+            {
+                redraw = false;
+            }
+        }
+        if (redraw && (p = eu_get_accel()) != NULL && p->accel_num > 0)
+        {
+            for (int i = 0; i < p->accel_num; ++i)
+            {
+                if (!(p->accel_ptr[i].fVirt && p->accel_ptr[i].key && p->accel_ptr[i].cmd))
+                {
+                    continue;
+                }
+                if (p->accel_ptr[i].cmd == id)
+                {
+                    if (!_tcschr(mdata, _T('\t')))
+                    {
+                        _tcsncat(mdata, _T("\t"), FILESIZE);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    if (p->accel_ptr[i].fVirt & FCONTROL)
+                    {
+                        _tcsncat(mdata, _T("Ctrl+"), FILESIZE);
+                    }
+                    if (p->accel_ptr[i].fVirt & FSHIFT)
+                    {
+                        _tcsncat(mdata, _T("Shift+"), FILESIZE);
+                    }
+                    if (p->accel_ptr[i].fVirt & FALT)
+                    {
+                        _tcsncat(mdata, _T("Alt+"), FILESIZE);
+                    }
+                    if ((p->accel_ptr[i].key > 0x2f && p->accel_ptr[i].key < 0x5b)||
+                        (((p->accel_ptr[i].key > 0x20 && p->accel_ptr[i].key < 0x30)||
+                        (p->accel_ptr[i].key > 0x5a && p->accel_ptr[i].key < 0x7f))&&
+                        !(p->accel_ptr[i].fVirt & FVIRTKEY)))
+                    {
+                        int len = eu_int_cast(_tcslen(mdata));
+                        _sntprintf(mdata+len, FILESIZE - len, _T("%c"), p->accel_ptr[i].key);
+                    }
+                    else
+                    {
+                        switch (p->accel_ptr[i].key)
+                        {
+                            case VK_F1:         _tcsncat(mdata, _T("F1"),      FILESIZE); break;
+                            case VK_F2:         _tcsncat(mdata, _T("F2"),      FILESIZE); break;
+                            case VK_F3:         _tcsncat(mdata, _T("F3"),      FILESIZE); break;
+                            case VK_F4:         _tcsncat(mdata, _T("F4"),      FILESIZE); break;
+                            case VK_F5:         _tcsncat(mdata, _T("F5"),      FILESIZE); break;
+                            case VK_F6:         _tcsncat(mdata, _T("F6"),      FILESIZE); break;
+                            case VK_F7:         _tcsncat(mdata, _T("F7"),      FILESIZE); break;
+                            case VK_F8:         _tcsncat(mdata, _T("F8"),      FILESIZE); break;
+                            case VK_F9:         _tcsncat(mdata, _T("F9"),      FILESIZE); break;
+                            case VK_F10:        _tcsncat(mdata, _T("F10"),     FILESIZE); break;
+                            case VK_F11:        _tcsncat(mdata, _T("F11"),     FILESIZE); break;
+                            case VK_F12:        _tcsncat(mdata, _T("F12"),     FILESIZE); break;
+                            case VK_NUMPAD0:    _tcsncat(mdata, _T("0"),       FILESIZE); break;
+                            case VK_NUMPAD1:    _tcsncat(mdata, _T("1"),       FILESIZE); break;
+                            case VK_NUMPAD2:    _tcsncat(mdata, _T("2"),       FILESIZE); break;
+                            case VK_NUMPAD3:    _tcsncat(mdata, _T("3"),       FILESIZE); break;
+                            case VK_NUMPAD4:    _tcsncat(mdata, _T("4"),       FILESIZE); break;
+                            case VK_NUMPAD5:    _tcsncat(mdata, _T("5"),       FILESIZE); break;
+                            case VK_NUMPAD6:    _tcsncat(mdata, _T("6"),       FILESIZE); break;
+                            case VK_NUMPAD7:    _tcsncat(mdata, _T("7"),       FILESIZE); break;
+                            case VK_NUMPAD8:    _tcsncat(mdata, _T("8"),       FILESIZE); break;
+                            case VK_NUMPAD9:    _tcsncat(mdata, _T("9"),       FILESIZE); break;
+                            case VK_OEM_PLUS:   _tcsncat(mdata, _T("+"),       FILESIZE); break;
+                            case VK_OEM_COMMA:  _tcsncat(mdata, _T(","),       FILESIZE); break;
+                            case VK_OEM_MINUS:  _tcsncat(mdata, _T("-"),       FILESIZE); break;
+                            case VK_OEM_PERIOD: _tcsncat(mdata, _T("."),       FILESIZE); break;
+                            case VK_SUBTRACT:   _tcsncat(mdata, _T("-"),       FILESIZE); break;
+                            case VK_ADD:        _tcsncat(mdata, _T("+"),       FILESIZE); break;
+                            case VK_DIVIDE:     _tcsncat(mdata, _T("/"),       FILESIZE); break;
+                            case VK_MULTIPLY:   _tcsncat(mdata, _T("*"),       FILESIZE); break;
+                            case VK_INSERT:     _tcsncat(mdata, _T("Ins"),     FILESIZE); break;
+                            case VK_DELETE:     _tcsncat(mdata, _T("Del"),     FILESIZE); break;
+                            case VK_TAB:        _tcsncat(mdata, _T("Tab"),     FILESIZE); break;
+                            case VK_DOWN:       _tcsncat(mdata, _T("↓"),       FILESIZE); break;
+                            case VK_RIGHT:      _tcsncat(mdata, _T("→"),       FILESIZE); break;
+                            case VK_UP:         _tcsncat(mdata, _T("↑"),       FILESIZE); break;
+                            case VK_LEFT:       _tcsncat(mdata, _T("←"),       FILESIZE); break;
+                            case VK_HOME:       _tcsncat(mdata, _T("Home"),    FILESIZE); break;
+                            case VK_NEXT:       _tcsncat(mdata, _T("PageDown"),FILESIZE); break;
+                            case VK_PRIOR:      _tcsncat(mdata, _T("PageUp"),  FILESIZE); break;
+                            case VK_END:        _tcsncat(mdata, _T("End"),     FILESIZE); break;
+                            case VK_BACK:       _tcsncat(mdata, _T("Back"),    FILESIZE); break;
+                            case VK_SPACE:      _tcsncat(mdata, _T("Space"),   FILESIZE); break;
+                            case VK_RETURN:     _tcsncat(mdata, _T("Return"),  FILESIZE); break;
+                            case VK_ESCAPE:     _tcsncat(mdata, _T("Esc"),     FILESIZE); break;
+                            default:            _tcsncat(mdata, _T("Unkown"),  FILESIZE); break;
+                        }
+                    }
+                    ModifyMenu(hmenu, pos, MF_BYPOSITION|MF_STRING, id, mdata);
+                }
+            }
+            if (id == IDM_VIEW_ZOOMOUT)
+            {
+                menu_default_keys(hmenu, IDM_VIEW_ZOOMOUT, pos);
+            }
+            if (id == IDM_VIEW_ZOOMIN)
+            {
+                menu_default_keys(hmenu, IDM_VIEW_ZOOMIN, pos);
+            }
+            if (id == IDM_SELECTION_RECTANGLE)
+            {
+                menu_default_keys(hmenu, IDM_SELECTION_RECTANGLE, pos);
+            }
+        }
+    }
+    return id;
 }
 
 void
@@ -141,7 +331,7 @@ menu_update_item(HMENU menu)
             menu_update_hexview(menu, pnode->hex_mode);
             for (int i = 0; i < count; ++i)
             {
-                uint32_t m_id = GetMenuItemID(menu, i);
+                uint32_t m_id = menu_update_string(menu, i);
                 switch (m_id)
                 {
                     case IDM_HISTORY_BASE:
@@ -196,19 +386,19 @@ menu_update_item(HMENU menu)
                         if (pnode->doc_ptr)
                         {
                             util_update_menu_chars(menu, IDM_VIEW_TAB_WIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width);
-                            util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, pnode->doc_ptr->tab_convert_spaces >= 0 ? pnode->doc_ptr->tab_convert_spaces : eu_get_config()->tab2spaces);   
+                            util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, pnode->doc_ptr->tab_convert_spaces >= 0 ? pnode->doc_ptr->tab_convert_spaces : eu_get_config()->tab2spaces);
                         }
                         else
                         {
                             util_update_menu_chars(menu, IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
-                            util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces); 
+                            util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces);
                         }
-                        break; 
+                        break;
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE17,
-                                             (pnode->doc_ptr && !pnode->hex_mode && eu_exist_file(_T("clang-format.dll")) && 
+                                             (pnode->doc_ptr && !pnode->hex_mode && eu_exist_file(_T("clang-format.dll")) &&
                                              (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_CS ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
@@ -220,10 +410,10 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->m_acshow);
                         util_update_menu_chars(menu, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
                         util_set_menu_item(menu, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->m_ctshow);
-                        util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
-                        util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_SQL));
-                        util_enable_menu_item(menu, IDM_REDIS_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
-                        util_enable_menu_item(menu, IDM_REDIS_EXECUTE_COMMAND, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_REDIS));
+                        util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, (pnode->doc_ptr && !pnode->hex_mode &&
+                                             (pnode->doc_ptr->doc_type == DOCTYPE_SQL||pnode->doc_ptr->doc_type == DOCTYPE_REDIS)));
+                        util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && !pnode->hex_mode &&
+                                             (pnode->doc_ptr->doc_type == DOCTYPE_SQL||pnode->doc_ptr->doc_type == DOCTYPE_REDIS)));
                         break;
                     case IDM_ENV_FILE_POPUPMENU:      /* Settings menu */
                         on_reg_update_menu();

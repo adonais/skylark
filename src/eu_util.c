@@ -32,7 +32,7 @@ typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsig
 static pwine_get_version fn_wine_get_version;
 static volatile long gth_locked = 0;
 
-static void 
+static void
 util_thread_lock(void)
 {
     size_t spin_count = 0;
@@ -52,7 +52,7 @@ util_thread_lock(void)
     }
 }
 
-static inline void 
+static inline void
 util_thread_unlock(void)
 {
     _InterlockedExchange(&gth_locked, 0);
@@ -78,11 +78,11 @@ util_under_wine(void)
     return false;
 }
 
-static int 
+int
 util_get_hex_byte(const char *p)
 {
     int val;
-    if (*p >= '0' && *p <= '9') 
+    if (*p >= '0' && *p <= '9')
     {
         val = *p - '0';
     }
@@ -129,7 +129,7 @@ util_struct_to_string(void *buf, size_t bufsize)
     /* allocate string buffer for hex chars + checksum hex char + '\0' */
     outstring = (char *)calloc(1, (bufsize*2 + 2 + 1));
     p = outstring;
-    for (binbuf = (uint8_t *)buf; binbuf < (uint8_t *)buf+bufsize; binbuf++) 
+    for (binbuf = (uint8_t *)buf; binbuf < (uint8_t *)buf+bufsize; binbuf++)
     {
         *p++ = hex[*binbuf >> 4];
         *p++ = hex[*binbuf & 0xf];
@@ -200,12 +200,12 @@ util_genarate_key(unsigned char *aes_key, unsigned char *aes_iv)
         memcpy(aes_key, sha224 + (SHA224_DIGEST_LENGTH - AES_BLOCK_SIZE), AES_BLOCK_SIZE);
         memset(sha224, 0, sizeof(sha224));
         ((eu_crypto_sha224)pfunc[0])((unsigned char *) AES_IV_MATERIAL, sizeof(AES_IV_MATERIAL) - 2, sha224);
-        memcpy(aes_iv, sha224 + (SHA224_DIGEST_LENGTH - AES_BLOCK_SIZE), AES_BLOCK_SIZE);     
+        memcpy(aes_iv, sha224 + (SHA224_DIGEST_LENGTH - AES_BLOCK_SIZE), AES_BLOCK_SIZE);
         eu_ssl_close_symbol(&hssl);
         res = true;
     }
     return res;
-}              
+}
 
 int
 util_aes_enc(unsigned char *dec, unsigned char *enc, int len)
@@ -253,7 +253,7 @@ util_aes_dec(unsigned char *enc, unsigned char *dec, int len)
     unsigned char aes_iv[AES_BLOCK_SIZE] = {0};
     char *fn_name[2] = {"AES_set_decrypt_key", "AES_cbc_encrypt"};
     uintptr_t pfunc[2] = {0};
-    HMODULE hssl = NULL;        
+    HMODULE hssl = NULL;
     if (!util_genarate_key(aes_key, aes_iv))
     {
         return EUE_OPENSSL_DEC_ERR;
@@ -261,7 +261,7 @@ util_aes_dec(unsigned char *enc, unsigned char *dec, int len)
     if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_DEC_ERR;
-    }        
+    }
     if (((eu_aes_set_encrypt_key)pfunc[0])((const unsigned char *) aes_key, 128, &k) < 0)
     {
         return EUE_OPENSSL_DEC_ERR;
@@ -277,7 +277,7 @@ util_aes_dec(unsigned char *enc, unsigned char *dec, int len)
     }
     eu_ssl_close_symbol(&hssl);
     return SKYLARK_OK;
-}                                  
+}
 
 int
 util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long decrypt_len, unsigned char *encrypt, long *encrypt_len)
@@ -294,7 +294,7 @@ util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     unsigned char out[8 + 1];
     char *fn_name[2] = {"DES_set_key_unchecked", "DES_ecb3_encrypt"};
     uintptr_t pfunc[2] = {0};
-    HMODULE hssl = NULL;  
+    HMODULE hssl = NULL;
     if (decrypt_len <= 0 || !encrypt_len)
     {
         return EUE_OPENSSL_ENC_ERR;
@@ -302,7 +302,7 @@ util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_ENC_ERR;
-    }    
+    }
     memcpy(key, key_192bits, 8);
     ((eu_des_set_key_unchecked)pfunc[0])((const_DES_cblock *) key, &ks1);
     memcpy(key, key_192bits + 8, 8);
@@ -360,7 +360,7 @@ util_dec_des_ecb_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     unsigned char out[8 + 1];
     char *fn_name[2] = {"DES_set_key_unchecked", "DES_ecb3_encrypt"};
     uintptr_t pfunc[2] = {0};
-    HMODULE hssl = NULL;  
+    HMODULE hssl = NULL;
     if (encrypt_len <= 0 || !decrypt_len)
     {
         return EUE_OPENSSL_DEC_ERR;
@@ -368,7 +368,7 @@ util_dec_des_ecb_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_DEC_ERR;
-    } 
+    }
     memcpy(key, key_192bits, 8);
     ((eu_des_set_key_unchecked)pfunc[0])((const_DES_cblock *) key, &ks1);
     memcpy(key, key_192bits + 8, 8);
@@ -421,7 +421,7 @@ util_enc_des_cbc_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     unsigned char ivec[24 + 1];
     char *fn_name[2] = {"DES_set_key_unchecked", "DES_ede3_cbc_encrypt"};
     uintptr_t pfunc[2] = {0};
-    HMODULE hssl = NULL;  
+    HMODULE hssl = NULL;
     if (decrypt_len <= 0 || !encrypt_len)
     {
         return EUE_OPENSSL_ENC_ERR;
@@ -476,7 +476,7 @@ util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     unsigned char ivec[24 + 1];
     char *fn_name[2] = {"DES_set_key_unchecked", "DES_ede3_cbc_encrypt"};
     uintptr_t pfunc[2] = {0};
-    HMODULE hssl = NULL;  
+    HMODULE hssl = NULL;
     if (encrypt_len <= 0 || !decrypt_len)
     {
         return EUE_OPENSSL_DEC_ERR;
@@ -484,7 +484,7 @@ util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_DEC_ERR;
-    } 
+    }
     memcpy(key, key_192bits, 8);
     ((eu_des_set_key_unchecked)pfunc[0])((const_DES_cblock *) key, &ks1);
     memcpy(key, key_192bits + 8, 8);
@@ -521,7 +521,7 @@ util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     return SKYLARK_OK;
 }
 
-static void 
+static void
 do_fp_md5(FILE *f, TCHAR *out, int out_len)
 {
     MD5_CTX c;
@@ -550,7 +550,7 @@ do_fp_md5(FILE *f, TCHAR *out, int out_len)
     }
 }
 
-static void 
+static void
 do_fp_sha1(FILE *f, TCHAR *out, int out_len)
 {
     SHA_CTX c;
@@ -579,7 +579,7 @@ do_fp_sha1(FILE *f, TCHAR *out, int out_len)
     }
 }
 
-static void 
+static void
 do_fp_sha256(FILE *f, TCHAR *out, int out_len)
 {
     SHA256_CTX c;
@@ -652,7 +652,7 @@ util_hex_expand(char *hex_buf, int hex_len, char *asc_buf)
     for (i = 0; i < hex_len; i++)
     {
         c = (hex_buf[i] >> 4) & 0x0f;
-        if (c <= 9) 
+        if (c <= 9)
         {
             asc_buf[j++] = c + '0';
         }
@@ -677,12 +677,13 @@ util_hex_expand(char *hex_buf, int hex_len, char *asc_buf)
 int
 util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
 {
-    int i, j = 0, k = 1, r = 0;
     char c;
     char uc;
-    if (((int) strlen(asc_buf) < asc_len) || (strlen(asc_buf) == 0))
+    int i, j = 0, k = 1, r = 0;
+    int txt_len = eu_int_cast(strlen(asc_buf));
+    if (txt_len < asc_len || txt_len <= 0)
     {
-        return -1;
+        return 1;
     }
     uc = 0;
     for (i = 0; i < asc_len; i++)
@@ -699,9 +700,13 @@ util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
         {
             c = (asc_buf[i] - 'a' + 10) & 0x0f;
         }
+        else if (asc_buf[i] == ' ')
+        {
+            continue;
+        }
         else
         {
-            r = -1;
+            r = 1;
             break;
         }
         uc |= (unsigned char) (c << (k * 4));
@@ -721,7 +726,7 @@ util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
     return (r);
 }
 
-time_t 
+time_t
 util_last_time(const TCHAR *path)
 {
     if (path[0])
@@ -884,7 +889,7 @@ util_strdup_content(eu_tabpage *pnode, size_t *plen)
     if (!pnode)
     {
         return NULL;
-    }    
+    }
     total_len = (size_t)eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
     if (total_len > on_file_get_avail_phys())
     {
@@ -1168,7 +1173,7 @@ util_query_hostname(char *hostname, char *ip, int len)
     {
         WSACleanup();
         return EUE_CURL_NETWORK_ERR;
-        
+
     }
     switch (remote_host->h_addrtype)
     {
@@ -1258,7 +1263,7 @@ util_exist_libcurl(void)
     return ret;
 }
 
-unsigned long 
+unsigned long
 util_compress_bound(unsigned long source_len)
 {
     return source_len + (source_len >> 12) + (source_len >> 14) + (source_len >> 25) + 13;
@@ -1398,6 +1403,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
     if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
     {
         *psize = 0;
+        printf("GetFileSizeEx fail, case: %u\n", GetLastError());
         return false;
     }
     return true;
@@ -1432,14 +1438,14 @@ util_open_file(LPCTSTR path, pt_stream pstream)
     HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (INVALID_HANDLE_VALUE != hfile)
     {
-    	if (!pstream->size)
-    	{
-    		if (!util_file_size(hfile, &pstream->size))
-    		{
-    			CloseHandle(hfile);
-    			return false;
-    		}
-    	}
+        if (!pstream->size)
+        {
+            if (!util_file_size(hfile, &pstream->size))
+            {
+                CloseHandle(hfile);
+                return false;
+            }
+        }
         if (pstream->size > BUFF_200M)
         {
             HANDLE hmap = NULL;
@@ -1455,7 +1461,7 @@ util_open_file(LPCTSTR path, pt_stream pstream)
                 }
             }
         }
-        else if ((pstream->base = (uintptr_t)calloc(1, pstream->size)) != 0)
+        else if ((pstream->base = (uintptr_t)calloc(1, pstream->size > 0 ? pstream->size : 1)) != 0)
         {
             uint32_t bytesread = 0;
             if (ReadFile(hfile, (LPVOID)pstream->base, (uint32_t)pstream->size, &bytesread, NULL))
@@ -1463,7 +1469,7 @@ util_open_file(LPCTSTR path, pt_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                printf("we open file use ReadFile API\n");
+                printf("we open file use ReadFile API, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -1474,14 +1480,14 @@ util_open_file(LPCTSTR path, pt_stream pstream)
 void
 util_setforce_eol(eu_tabpage *pnode)
 {
-	size_t len = 0;
-	char *pdata = util_strdup_content(pnode, &len);
-	if (pdata)
-	{
-		pnode->eol = on_encoding_line_mode(pdata, len);
-		eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
-		free(pdata);
-	}
+    size_t len = 0;
+    char *pdata = util_strdup_content(pnode, &len);
+    if (pdata)
+    {
+        pnode->eol = on_encoding_line_mode(pdata, len);
+        eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+        free(pdata);
+    }
 }
 
 void

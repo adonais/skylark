@@ -486,16 +486,6 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
-    if (p_msg->message == WM_SYSKEYUP && p_msg->wParam == VK_MENU)
-    {
-        bool extended = KEY_DOWN(VK_CONTROL) || KEY_DOWN(VK_SHIFT) || KEY_DOWN(VK_LWIN) || KEY_DOWN(VK_TAB) || KEY_DOWN(VK_LBUTTON);
-        if (!extended && !(p_msg->lParam & 0xff00))
-        {  // only left alt press
-            eu_get_config()->m_menubar = !eu_get_config()->m_menubar;
-            eu_window_resize(eu_hwndmain);
-            return 1;
-        }
-    }
     if (p_msg->message == WM_SYSKEYDOWN && 49 <= p_msg->wParam && p_msg->wParam <= 57 && (p_msg->lParam & (1 << 29)))
     {
         if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 49)))
@@ -994,16 +984,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_SELECTLINE:
                     on_search_select_line(pnode);
                     break;
-                case IDM_SEARCH_SELECTGROUP_LEFT:
+                case IDM_SEARCH_ADDSELECT_LEFT_WORD:
                     on_search_left_group(pnode);
                     break;
-                case IDM_SEARCH_SELECTGROUP_RIGHT:
+                case IDM_SEARCH_ADDSELECT_RIGHT_WORD:
                     on_search_right_group(pnode);
                     break;
-                case IDM_SEARCH_ADDSELECT_LEFT_WORD:
+                case IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP:
                     on_search_left_word(pnode);
                     break;
-                case IDM_SEARCH_ADDSELECT_RIGHT_WORD:
+                case IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP:
                     on_search_right_word(pnode);
                     break;
                 case IDM_SEARCH_SELECTTOP_FIRSTLINE:
@@ -1012,16 +1002,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_SELECTBOTTOM_FIRSTLINE:
                     on_search_cumulative_next_block(pnode);
                     break;
-                case IDM_SEARCH_MOVE_LEFT_CHARGROUP:
+                case IDM_SEARCH_MOVE_LEFT_WORD:
                     on_search_move_to_lgroup(pnode);
                     break;
-                case IDM_SEARCH_MOVE_RIGHT_CHARGROUP:
+                case IDM_SEARCH_MOVE_RIGHT_WORD:
                     on_search_move_to_rgroup(pnode);
                     break;
-                case IDM_SEARCH_MOVE_LEFT_WORD:
+                case IDM_SEARCH_MOVE_LEFT_WORDGROUP:
                     on_search_move_to_lword(pnode);
                     break;
-                case IDM_SEARCH_MOVE_RIGHT_WORD:
+                case IDM_SEARCH_MOVE_RIGHT_WORDGROUP:
                     on_search_move_to_rword(pnode);
                     break;
                 case IDM_SEARCH_MOVETOP_FIRSTLINE:
@@ -1048,10 +1038,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_GOTO_NEXT_BOOKMARK:
                     on_search_jmp_next_mark_this(pnode);
                     break;
-                case IDM_SEARCHPRE_BOOKMARK_INALL:
+                case IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL:
                     on_search_jmp_premark_all(pnode);
                     break;
-                case IDM_SEARCH_BOOKMARK_INALL:
+                case IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL:
                     on_search_jmp_next_mark_all(pnode);
                     break;
                 case IDM_SEARCH_GOTOHOME:
@@ -1205,11 +1195,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_enable_rendering(hwnd, wm_id);
                     break;
                 case IDM_DATABASE_INSERT_CONFIG:  // 插入sql头
-                case IDM_REDIS_INSERT_CONFIG:
                     on_code_insert_config(pnode);
                     break;                  
-                case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql
-                case IDM_REDIS_EXECUTE_COMMAND:
+                case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql,redis
                     on_view_result_show(pnode, 0);
                     break;
                 case IDM_PROGRAM_EXECUTE_ACTION:  // 执行预置动作
@@ -1615,7 +1603,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         if (lpnotify->updated & SC_UPDATE_SELECTION)
                         {
-                            if (eu_get_config()->m_light_str)
+                            if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))
                             {
                                 on_view_editor_selection(pnode);
                             }

@@ -7,13 +7,13 @@ CDEP    =  -I3rdparty\libcurl\include -I3rdparty\libopenssl\include -I3rdparty\l
            -I3rdparty\libiconv\include -I3rdparty\luajit\src \
            -I3rdparty\pcre\src -I3rdparty\sqlite3\src -I3rdparty\chardet\src \
            -I3rdparty\qrencode\src -I3rdparty\scintilla\src\include
- 
+
 CFLAGS  = -W3 -WX- -wd4996 -wd4819 -Zi -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" \
           -utf-8 -D "JSON_TRACK_SOURCE" -D "PCRE_STATIC" $(CFLAGS) $(CDEP)
-           
+
 API_CLFGAS = $(CFLAGS) -D "EUAPI_BUILDDING"
-               
-      
+
+
 CXXFLAGS = $(CFLAGS) /TP /EHsc
 
 RFLAGS  = -nologo -D "_UNICODE" -D "UNICODE"
@@ -28,7 +28,7 @@ LDFLAGS = $(LDFLAGS) $(HIDE)
 !ENDIF
 
 LDEP = $(BIND)\euapi.lib
-       
+
 WINLIBS = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib \
           ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib comctl32.lib dbghelp.lib \
           ws2_32.lib imm32.lib msimg32.lib
@@ -36,8 +36,8 @@ WINLIBS = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.l
 LIBS = $(LDEP) $(WINLIBS)
 
 API_LIBS = $(BIND)\libchardet.lib $(BIND)\qrencode.lib $(BIND)\sqlite3.lib $(BIND)\pcre.lib $(BIND)\luajit.lib $(BIND)\iconv.lib $(BIND)\scilexer.lib
-           
-           
+
+
 API_DEPS = $(API_LIBS) -LIBPATH:$(BIND) $(WINLIBS)
 
 !IF "$(APP_DEBUG)"=="1"
@@ -49,7 +49,7 @@ CFLAGS = $(CFLAGS) $(RELEASE)
 OBJS = \
     $(OBJD)\eu_main.obj                        \
     $(OBJD)\resource.res                       \
-    
+
 EUAPI_OBJS = \
     $(OBJD)\eu_map.obj                         \
     $(OBJD)\eu_rbtree.obj                      \
@@ -94,22 +94,22 @@ EUAPI_OBJS = \
     $(OBJD)\eu_print.obj                       \
     $(OBJD)\eu_locale.obj                      \
     $(OBJD)\eu_format.obj                      \
-    
+
 SHARED_LIB = $(BIND)\euapi.dll
-                                             
+
 ##############################################################################
 
 .SUFFIXES: .cpp .cc .c .h .obj
 
 .c{$(OBJD)}.obj:
-    $(CC) $(API_CLFGAS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
+	$(CC) $(API_CLFGAS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
 
 .cpp{$(OBJD)}.obj:
-    $(CC) $(API_CLFGAS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
-    
+	$(CC) $(API_CLFGAS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
+
 .rc{$(OBJD)}.res:
-    $(RC) $(RFLAGS) /Fo$@ $<
-    
+	$(RC) $(RFLAGS) /Fo$@ $<
+
 ##############################################################################
 
 all: dirs $(SHARED_LIB) $(BIND)\skylark.exe
@@ -118,27 +118,27 @@ all: dirs $(SHARED_LIB) $(BIND)\skylark.exe
 ##############################################################################
 
 clean:
-    -rmdir /q /s $(OBJD) $(BIND) 2>nul
+	-rmdir /q /s $(OBJD) $(BIND) 2>nul
 
 ##############################################################################
 
 dirs:
-    @if not exist "$(BIND)" mkdir "$(BIND)" && echo.   Created $(BIND)
-    @if not exist "$(BIND)\\conf" mkdir "$(BIND)\\conf" && echo.   Created $(BIND)\\conf
-    @if not exist "$(BIND)\share" mkdir "$(BIND)\share"
-    @if exist "$(ROOT)\\conf" xcopy "$(ROOT)\\conf" "$(BIND)\\conf" /s /e /q /y 2>&1>NUL
-    @if exist "$(ROOT)\share" xcopy "$(ROOT)\share" "$(BIND)\share" /s /e /q /y 2>&1>NUL
-    @if exist "$(ROOT)\\README_CN.MD" copy /y "$(ROOT)\\README_CN.MD" "$(BIND)\\README_CN.MD" 2>&1>NUL
-!IF "$(BITS)" == "64"    
-    @if exist "$(MAKEDIR)\\3rdparty\\bin" xcopy "$(MAKEDIR)\\3rdparty\\bin" "$(BIND)" /s /e /q /y 2>&1>NUL
-!endif    
-    @if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
+	@if not exist "$(BIND)" mkdir "$(BIND)" && echo.   Created $(BIND)
+	@if not exist "$(BIND)\\conf" mkdir "$(BIND)\\conf" && echo.   Created $(BIND)\\conf
+	@if not exist "$(BIND)\share" mkdir "$(BIND)\share"
+	@if exist "$(ROOT)\\conf" xcopy "$(ROOT)\\conf" "$(BIND)\\conf" /s /e /q /y 2>&1>NUL
+	@if exist "$(ROOT)\share" xcopy "$(ROOT)\share" "$(BIND)\share" /s /e /q /y 2>&1>NUL
+	@if exist "$(ROOT)\\README_CN.MD" copy /y "$(ROOT)\\README_CN.MD" "$(BIND)\\README_CN.MD" 2>&1>NUL
+!IF "$(BITS)" == "64"
+	@if exist "$(MAKEDIR)\\3rdparty\\bin" xcopy "$(MAKEDIR)\\3rdparty\\bin" "$(BIND)" /s /e /q /y 2>&1>NUL
+!endif
+	@if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
 
 $(SHARED_LIB): $(EUAPI_OBJS) $(API_LIBS)
 	$(LD) $(DLLFLAGS) -out:$@ $(EUAPI_OBJS) $(API_DEPS)
-	
+
 $(BIND)\skylark.exe : $(OBJS) $(SHARED_LIB)
-    $(LD) -out:$@ $(OBJS) $(LDFLAGS) $(LIBS)
+	$(LD) -out:$@ $(OBJS) $(LDFLAGS) $(LIBS)
 
 $(OBJD)\eu_main.obj                        : eu_main.c framework.h
 	$(CC) $(CFLAGS) /Fd$(BIND)\skylark.pdb /Fo$(OBJD)\ /c eu_main.c
@@ -173,7 +173,7 @@ $(OBJD)\eu_hook.obj                        : eu_hook.c eu_hook.h
 $(OBJD)\eu_script.obj                      : eu_script.c eu_script.h framework.h
 $(OBJD)\eu_sql.obj                         : eu_sql.c eu_sql.h framework.h
 $(OBJD)\eu_api.obj                         : eu_api.c eu_api.h framework.h
-$(OBJD)\eu_map.obj                         : eu_map.c eu_map.h 
+$(OBJD)\eu_map.obj                         : eu_map.c eu_map.h
 $(OBJD)\eu_changes.obj                     : eu_changes.c eu_changes.h framework.h
 $(OBJD)\eu_toolbar.obj                     : eu_toolbar.c eu_toolbar.h framework.h
 $(OBJD)\eu_statusbar.obj                   : eu_statusbar.c eu_statusbar.h framework.h
@@ -187,5 +187,4 @@ $(OBJD)\eu_rbtree.obj                      : eu_rbtree.c eu_rbtree.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
-    $(RC) $(RFLAGS) -Fo$@ skylark.rc
-        
+	$(RC) $(RFLAGS) -Fo$@ skylark.rc

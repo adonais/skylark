@@ -31,7 +31,7 @@ set_ext_filter(const TCHAR *ext, TCHAR **pfilter)
     if (!(*pfilter = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH+1)))
     {
         return false;
-    }    
+    }
     if (ext)
     {
         TCHAR *pext = NULL;
@@ -146,10 +146,10 @@ sqlite_callback(void *data, int count, char **column, char **names)
 
 static unsigned __stdcall
 push_file_thread(void *lp)
-{  
+{
     struct _stat buf = {0};
     const TCHAR *pathfile = (const TCHAR *)lp;
-    int result = _tstat (pathfile, &buf); 
+    int result = _tstat (pathfile, &buf);
     if (!result)
     {
         char pfile[MAX_PATH+1] = {0};
@@ -259,7 +259,7 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TC
     const TCHAR *p2 = NULL;
     const TCHAR *path_base = NULL;
     const TCHAR *name_base = NULL;
-    TCHAR dri[8] = { 0 };
+    TCHAR dri[8] = {0};
     p1 = _tcschr(full_path, _T(':'));
     if (p1)
     {
@@ -270,7 +270,7 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TC
     {
         path_base = full_path;
     }
-    if (dri_name && dri[0]) 
+    if (dri_name && dri[0])
     {
         _tcscpy(dri_name, dri);
     }
@@ -303,22 +303,22 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TC
         }
     }
     name_base = p1;
-    if (pathname) 
+    if (pathname)
     {
         _stprintf(pathname, _T("%s%.*s"), dri, (int) (name_base - path_base), path_base);
     }
-    if (filename) 
+    if (filename)
     {
         _tcscpy(filename, name_base);
     }
     p1 = _tcsrchr(name_base, _T('.'));
     if (p1)
     {
-        if (mainname) 
+        if (mainname)
         {
             _stprintf(mainname, _T("%.*s"), (int) (p1 - name_base), name_base);
         }
-        if (extname) 
+        if (extname)
         {
             _tcscpy(extname, p1);
         }
@@ -329,7 +329,7 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TC
         {
             _tcscpy(mainname, name_base);
         }
-        if (extname) 
+        if (extname)
         {
             extname[0] = _T('\0');
         }
@@ -355,7 +355,7 @@ on_file_new(void)
     {
         _tcscpy(pnode->pathfile, filename);
         _tcscpy(pnode->filename, filename);
-        
+
     }
     if (on_tabpage_add(pnode))
     {
@@ -444,12 +444,11 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
 {
     int err = SKYLARK_OK;
     int bytesread = 0;
-    uint8_t *pdata = NULL;
+    int check_len = 0;
     HANDLE hfile = NULL;
-    HANDLE hmap = NULL;
     FILE *fp = NULL;
     uint64_t block = 0;
-    char buf[CHECK_LEN] = { 0 };
+    uint8_t *buf = NULL;
     TCHAR *pfull = pbak->rel_path;
     if (!pnode)
     {
@@ -473,15 +472,15 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
     }
     if (!util_file_size(hfile, &pnode->raw_size))
     {
-        safe_close_handle(hfile);
-        return EUE_FILE_SIZE_ERR;
+        err = EUE_FILE_SIZE_ERR;
+        goto pre_clean;
     }
     if (on_file_get_avail_phys() - pnode->raw_size < MINIMUM_MEM)
     {
         // phymem < 300MB, Skylark exit
-        safe_close_handle(hfile);
         MSG_BOX(IDC_MSG_MEM_NOT_AVAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        return EUE_NOT_ENOUGH_MEMORY;
+        err = EUE_NOT_ENOUGH_MEMORY;
+        goto pre_clean;
     }
     if (pbak->cp)
     {   // 存在备份,不再测试编码
@@ -493,6 +492,7 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
             if (!map_hex_file(pnode, hfile, 0))
             {
                 err = EUE_MAP_HEX_ERR;
+                goto pre_clean;
             }
         }
         else if (pnode->hex_mode)
@@ -513,15 +513,20 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
         else
         {
             on_encoding_set_bom_from_cp(pnode);
-        }        
-        safe_close_handle(hfile);
-        return err;
+        }
+        goto pre_clean;
     }
-    if (!ReadFile(hfile, buf, sizeof(buf), &bytesread, NULL))
+    check_len = eu_int_cast(pnode->raw_size > BUFF_SIZE ? BUFF_SIZE : pnode->raw_size);
+    if (!(buf = (uint8_t *)calloc(1, check_len+1)))
     {
-        safe_close_handle(hfile);
+        err = EUE_NOT_ENOUGH_MEMORY;
+        goto pre_clean;
+    }
+    if (!ReadFile(hfile, buf, check_len, &bytesread, NULL))
+    {
         MSG_BOX_ERR(IDC_MSG_OPEN_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        return EUE_API_READ_FILE_ERR;
+        err = EUE_API_READ_FILE_ERR;
+        goto pre_clean;
     }
     if (bytesread < 1)
     {
@@ -531,10 +536,10 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
     }
     else // 如果是utf8编码, 获取换行符, 否则, 等编码转换后再获取换行符
     {
-        pnode->codepage = eu_try_encoding(buf, bytesread, false, pfull);
+        pnode->codepage = eu_try_encoding(buf, bytesread, false, NULL);
         if (pnode->codepage < IDM_UNI_UTF16LEB)
         {
-            pnode->eol = on_encoding_line_mode(buf, bytesread);
+            pnode->eol = on_encoding_line_mode((const char *)buf, bytesread);
         }
         on_encoding_set_bom((const uint8_t *) buf, pnode);
     }
@@ -545,7 +550,9 @@ load_file_pre(eu_tabpage *pnode, file_backup *pbak)
             err = EUE_MAP_HEX_ERR;
         }
     }
+pre_clean:
     safe_close_handle(hfile);
+    eu_safe_free(buf);
     return err;
 }
 
@@ -578,7 +585,7 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
     }
     if (!force)
     {
-    	uf_stream.size = pnode->raw_size;
+        uf_stream.size = pnode->raw_size;
     }
     if (!util_open_file(pfull, &uf_stream))
     {
@@ -587,15 +594,22 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
     }
     if (force)
     {
-    	// reassign variables
-    	pnode->raw_size = uf_stream.size;
+        // reassign variables
+        pnode->raw_size = uf_stream.size;
     }
-    len = uf_stream.size - pnode->pre_len;
+    if (is_utf8)
+    {
+        len = uf_stream.size;
+    }
+    else
+    {
+        len = uf_stream.size - pnode->pre_len;
+    }
     if (!is_utf8 && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
     {
         char *pdst = NULL;
         size_t dst_len = 0;
-        euconv_t evd = { 0 };
+        euconv_t evd = {0};
         evd.src_from = eu_query_encoding_name(pnode->codepage);
         evd.dst_to = "utf-8";
         err = on_encoding_do_iconv(&evd, (char *) (uf_stream.base+pnode->pre_len), &len, &pdst, &dst_len);
@@ -610,14 +624,14 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
             if (pnode->eol < 0)
             {
                 pnode->eol = on_encoding_line_mode(pdst, dst_len);
-                if (pnode->eol < 0)
-                {
-                    pnode->eol = eu_get_config()->new_file_eol;
-                }
             }
             eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
             eu_safe_free(pdst);
         }
+    }
+    else if (is_utf8)
+    {
+        eu_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base));
     }
     else
     {
@@ -828,7 +842,7 @@ open_files(file_backup *pbak)
         }
         do
         {
-            if (_tcscmp(st_file.cFileName, _T(".")) == 0 || _tcscmp(st_file.cFileName, _T("..")) == 0) 
+            if (_tcscmp(st_file.cFileName, _T(".")) == 0 || _tcscmp(st_file.cFileName, _T("..")) == 0)
             {
                 continue;
             }
@@ -952,7 +966,7 @@ read_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
     if (!pnode->bytes_remaining)
     {
         on_encoding_set_bom((const uint8_t *) buffer, pnode);
-        pnode->codepage = eu_try_encoding((const char *) buffer, len, false, NULL);
+        pnode->codepage = eu_try_encoding(buffer, len, false, NULL);
         if (pnode->codepage < IDM_UNI_UTF16LEB)
         {
             pnode->eol = on_encoding_line_mode(buffer, len);
@@ -969,7 +983,7 @@ read_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
         char *psrc = data + offset;
         size_t src_len = len - offset;
         size_t dst_len = 0;
-        euconv_t evd = { 0 };
+        euconv_t evd = {0};
         evd.src_from = eu_query_encoding_name(pnode->codepage);
         evd.dst_to = "utf-8";
         size_t res = on_encoding_do_iconv(&evd, psrc, &src_len, &pdst, &dst_len);
@@ -980,10 +994,6 @@ read_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
         if (pnode->eol < 0)
         {
             pnode->eol = on_encoding_line_mode(pdst, dst_len);
-            if (pnode->eol < 0)
-            {
-                pnode->eol = eu_get_config()->new_file_eol;
-            }
         }
         eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
         free(pdst);
@@ -1090,7 +1100,7 @@ do_write_file(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
     if (!pnode->hex_mode)
     {
         pnode->bytes_remaining = (size_t) eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-        if ((pnode->write_buffer = (uint8_t *)(on_sci_range_text(pnode, 0, pnode->bytes_remaining))) == NULL) 
+        if ((pnode->write_buffer = (uint8_t *)(on_sci_range_text(pnode, 0, pnode->bytes_remaining))) == NULL)
         {
             ret = EUE_POINT_NULL;
             goto FILE_FINAL;
@@ -1119,7 +1129,7 @@ do_write_file(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
             printf("do not convert this code\n");
             //isbak = true;
             ret = hexview_save_data(pnode, save_as || is_cache ? pathfilename : NULL);
-            goto FILE_FINAL;    
+            goto FILE_FINAL;
         }
         // 转码utf8后生成的二进制编码, 保存时需要转换回去
         pnode->write_buffer = hexview_strdup_data(pnode, &pnode->bytes_remaining);
@@ -1127,7 +1137,7 @@ do_write_file(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
         {   // 文件过大,没有足够内存
             ret = EUE_POINT_NULL;
             goto FILE_FINAL;
-        }        
+        }
         if (!is_cache)
         {
             printf("convert this code\n");
@@ -1141,7 +1151,7 @@ do_write_file(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
         char *pbuf = (char *)pnode->write_buffer;
         size_t dst_len = 0;
         size_t src_len = pnode->bytes_remaining;
-        euconv_t evd = { 0 };
+        euconv_t evd = {0};
         evd.src_from = "utf-8";
         evd.dst_to = eu_query_encoding_name(pnode->codepage);
         printf("convert(%s) to (%s)\n", evd.src_from, evd.dst_to);
@@ -1200,7 +1210,7 @@ write_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
 {
     size_t len;
     eu_tabpage *pnode = (eu_tabpage *) stream;
-    if (pnode->bytes_written >= pnode->bytes_remaining) 
+    if (pnode->bytes_written >= pnode->bytes_remaining)
     {
         return 0;
     }
@@ -1365,9 +1375,9 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         eu_curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
         eu_curl_easy_setopt(curl, CURLOPT_READFUNCTION, write_remote_file);
         eu_curl_easy_setopt(curl, CURLOPT_READDATA, pnode);
-    #if defined(APP_DEBUG) && (APP_DEBUG > 0) 
+    #if defined(APP_DEBUG) && (APP_DEBUG > 0)
         eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    #endif    
+    #endif
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
         eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
         res = eu_curl_easy_perform(curl);
@@ -1380,7 +1390,7 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         }
         // 刷新状态栏时间
         pnode->st_mtime = 0;
-    }    
+    }
     else
     {
         if (eu_get_config()->m_write_copy && on_file_write_backup(pnode))
@@ -1442,7 +1452,7 @@ on_file_all_save(void)
     return SKYLARK_OK;
 }
 
-static void 
+static void
 create_guid(TCHAR *buf, int len)
 {
     GUID  guid;
@@ -1636,7 +1646,7 @@ check_files_save(void *lp)
     return err;
 }
 
-static void 
+static void
 all_windows_shutdown(void)
 {
     if (!file_close_id)

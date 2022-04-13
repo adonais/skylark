@@ -1376,16 +1376,16 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 TreeView_SelectItem(hwnd, tvhti.hItem);
                 if (TreeView_GetChild(hwnd, tvhti.hItem))
                 {
-                    TrackPopupMenu(pop_symtree_table_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                    menu_pop_track(hwnd, IDR_SYMBOLTREE_TABLE_POPUPMENU, 0);
                 }
                 else
                 {
-                    TrackPopupMenu(pop_symtree_row_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                    menu_pop_track(hwnd, IDR_SYMBOLTREE_ROW_POPUPMENU, 0);
                 }
             }
             else if (!(tvhti.flags & TVHT_ONITEM) && tvhti.flags > 0x1 && tvhti.flags < 0x41)
             {
-                TrackPopupMenu(pop_symtree_refresh_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                menu_pop_track(hwnd, IDR_SYMBOLTREE_REFRESH_POPUPMENU, 0);
             }
             break;
         }

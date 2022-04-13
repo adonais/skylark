@@ -45,7 +45,7 @@ l_message(const char *msg)
     {
         fputs(pname, stderr);
         fputc(':', stderr);
-        fputc(' ', stderr); 
+        fputc(' ', stderr);
         free(pname);
     }
     fputs(msg, stderr);
@@ -59,7 +59,7 @@ report(lua_State *L, int status)
     if (status && !lua_isnil(L, -1))
     {
         const char *msg = lua_tostring(L, -1);
-        if (msg == NULL) 
+        if (msg == NULL)
         {
             msg = "(error object is not a string)";
         }
@@ -77,7 +77,7 @@ report_gui(lua_State *L, int status)
         char *gui_msg = NULL;
         TCHAR *cnv = NULL;
         const char *msg = lua_tostring(L, -1);
-        if (msg == NULL) 
+        if (msg == NULL)
         {
             msg = "(error object is not a string)";
         }
@@ -85,7 +85,7 @@ report_gui(lua_State *L, int status)
         {
             if ((cnv = eu_utf8_utf16(gui_msg, NULL)) != NULL)
             {
-                
+
                 on_result_append_text(NULL, _T("%s: %s"), __ORIGINAL_NAME, cnv);
                 free(cnv);
             }
@@ -133,7 +133,7 @@ print_jit_status(lua_State *L)
     lua_settop(L, 0); /* clear stack */
 }
 
-static void 
+static void
 print_version(void)
 {
   fputs(LUAJIT_VERSION ">\n", stdout);
@@ -179,7 +179,10 @@ pushline(lua_State *L, int firstline)
     if (fgets(buf, LUA_MAXINPUT, stdin))
     {
         size_t len = strlen(buf);
-        if (len > 0 && buf[len - 1] == '\n') buf[len - 1] = '\0';
+        if (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r'))
+        {
+            buf[len - 1] = '\0';
+        }
         if (firstline && buf[0] == '=')
         {
             lua_pushfstring(L, "return %s", buf + 1);
@@ -317,23 +320,23 @@ eu_lua_script_convert(const TCHAR *fname, const TCHAR *save)
     }
 #else
     filepath = fname;
-#endif     
+#endif
     if (!save)
     {
         status = dofile(L, filepath);
     }
     else
     {
-    #ifdef _UNICODE    
+    #ifdef _UNICODE
         if ((savepath = eu_utf16_utf8(save, NULL)) == NULL)
         {
             printf("eu_utf16_utf8 convert failed\n");
             lua_close(L);
             return -1;
         }
-    #else 
+    #else
         savepath = save;
-    #endif                   
+    #endif
         status = dobyte(L, filepath, savepath);
     }
     lua_close(L);
@@ -460,7 +463,7 @@ do_lua_parser_doctype(const char *fname, const char *func)
     return status;
 }
 
-void 
+void
 do_lua_parser_release(void)
 {
     if (pstate)
@@ -480,7 +483,7 @@ eu_lua_script_exec(const TCHAR *fname)
     {
         printf("cannot create state: not enough memory\n");
         return -1;
-    }  
+    }
     if ((path = eu_utf16_utf8(fname, NULL)) == NULL)
     {
         printf("eu_utf16_utf8 convert failed\n");
@@ -497,7 +500,16 @@ eu_lua_script_exec(const TCHAR *fname)
     return status;
 }
 
-int WINAPI 
+bool WINAPI
+eu_lua_path_setting(void)
+{
+    TCHAR lua_path[ENV_LEN + 1] = {0};
+    _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua"),
+               eu_module_path, eu_module_path, eu_module_path);
+    return (_tputenv(lua_path) == 0);
+}
+
+int WINAPI
 do_lua_code(const char *s)
 {
     int status;
@@ -525,7 +537,7 @@ do_lua_code(const char *s)
     return status;
 }
 
-static int 
+static int
 do_jit_proc(const TCHAR *pname, const TCHAR *psave)
 {
     int status = 1;
@@ -551,11 +563,11 @@ do_jit_proc(const TCHAR *pname, const TCHAR *psave)
 int WINAPI
 do_byte_code(eu_tabpage *pnode)
 {
-    DWORD written;
     HANDLE pfile = NULL;
     char *pbuffer = NULL;
     int status = 1;
-    uint32_t buf_len = 0;
+    uint32_t written = 0;
+    size_t buf_len = 0;
     TCHAR filename[FILESIZE+1]= {0};
     TCHAR pname[MAX_PATH+1] = {0};
     TCHAR psave[MAX_PATH+1] = {0};
@@ -566,24 +578,26 @@ do_byte_code(eu_tabpage *pnode)
     if ((pfile = util_mk_temp(pname, NULL)) == INVALID_HANDLE_VALUE)
     {
         printf("util_mk_temp return failed, cause:%lu\n", GetLastError());
-        return 1;
+        goto allclean;
     }
-    if (!(pbuffer = util_strdup_content(pnode, (size_t *)&buf_len)))
+    if (!(pbuffer = util_strdup_content(pnode, &buf_len)))
     {
         printf("util_strdup_content failed\n");
-        CloseHandle(pfile);
-        return 1;
+        goto allclean;
     }
+    if (!WriteFile(pfile, pbuffer, eu_uint_cast(buf_len), &written, NULL))
     {
-        WriteFile(pfile, pbuffer, buf_len, &written, NULL);
-        CloseHandle(pfile);
-        _sntprintf(filename, FILESIZE, _T("%s"), pnode->filename);
-        if (filename[_tcslen(filename)-1] == _T('*'))
-        {
-            filename[_tcslen(filename)-1] = 0;
-        } 
-    }        
-    if (pnode->pathname[0])
+        printf("WriteFile failed\n");
+        goto allclean;
+    }
+    FlushFileBuffers(pfile);
+    safe_close_handle(pfile);
+    _sntprintf(filename, FILESIZE, _T("%s"), pnode->filename);
+    if (filename[_tcslen(filename)-1] == _T('*'))
+    {
+        filename[_tcslen(filename)-1] = 0;
+    }
+    if (pnode->pathname[1] == L':')
     {
         _sntprintf(psave, MAX_PATH, _T("%s%s.bin"), pnode->pathname, filename);
     }
@@ -593,7 +607,6 @@ do_byte_code(eu_tabpage *pnode)
         _tcsncat(psave, filename, MAX_PATH);
         _tcsncat(psave, _T(".bin"), MAX_PATH);
     }
-    free(pbuffer);
     if (psave[0])
     {
         status = do_jit_proc(pname, psave);
@@ -608,8 +621,91 @@ do_byte_code(eu_tabpage *pnode)
         LOAD_I18N_RESSTR(IDS_LUA_CONV_FAIL, m_format);
         on_result_append_text(pnode->hwnd_qredit, m_format);
     }
-    DeleteFile(pname);
     pnode->edit_show = true;
-    eu_window_resize(NULL); 
+    eu_window_resize(NULL);
+allclean:
+    if (pfile)
+    {
+        CloseHandle(pfile);
+    }
+    if (pbuffer)
+    {
+        free(pbuffer);
+    }
+    DeleteFile(pname);
     return status;
 }
+
+// when clang compiles, lua_pcall fails
+#ifdef __clang__
+#pragma clang optimize off
+#endif
+
+static int
+script_process_dir(lua_State *L)
+{
+    int usz = 0;
+    char *utf8path = NULL;
+    if (!(utf8path = eu_utf16_utf8(eu_module_path, (size_t *)&usz)))
+    {
+        printf("lua lprocessdir error\n");
+        lua_pushnil(L);
+        return 2;
+    }
+    lua_pushlstring(L, utf8path, usz-1);
+    free(utf8path);
+    return 1;
+}
+
+static int
+script_config_dir(lua_State *L)
+{
+    int usz = 0;
+    wchar_t path[MAX_PATH + 1] = {0};
+    char *utf8path = NULL;
+    if (STR_IS_NUL(eu_process_path(path, MAX_PATH)))
+    {
+        printf("lua lconfdir error\n");
+        lua_pushnil(L);
+        return 2;
+    }
+    wcsncat(path, L"\\conf", MAX_PATH);
+    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
+    {
+        lua_pushnil(L);
+        return 2;
+    }
+    lua_pushlstring(L, utf8path, usz-1);
+    free(utf8path);
+    return 1;
+}
+
+static int
+script_mkdir(lua_State *L) {
+    size_t sz;
+    const char * utf8path = luaL_checklstring(L, 1, &sz);
+    wchar_t *path = eu_utf8_utf16(utf8path, &sz);
+    if (!CreateDirectoryW(path, NULL))
+    {
+        printf("lua CreateDirectoryW error\n");
+        free(path);
+        return 2;
+    }
+    lua_pushboolean(L, 1);
+    free(path);
+    return 1;
+}
+
+static const struct
+luaL_Reg cb[] = {{"lprocessdir", script_process_dir}, {"lconfdir", script_config_dir}, {"lmkdir", script_mkdir}, {NULL, NULL}};
+
+int
+luaopen_euapi(void *L)
+{
+    luaL_register(L, "euapi", cb);
+    return 0;
+}
+
+#ifdef __clang__
+#pragma clang optimize on
+#endif

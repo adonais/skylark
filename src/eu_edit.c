@@ -1071,7 +1071,7 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
                     comment_pos = indent_pos;
                     // 包括注释的空白行 [space/tab/comment]
                     ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, indent_pos + cch_comment, 0);
-                    if (ch == '\n' || ch == '\r')
+                    if (ch == on_encoding_eol_char(pnode))
                     {
                         comment_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, lc, 0);
                     }
@@ -1105,7 +1105,7 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
                     {
                         char psz_comment[MAX_BUFFER] = { 0 };
                         sptr_t tab = 0;
-                        bool tab_as_spaces = eu_get_config()->tab2spaces;
+                        bool tab_as_spaces = !eu_sci_call(pnode, SCI_GETUSETABS, 0, 0);
                         int tab_width = (int)eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
                         sptr_t count = comment_col;
                         if (!tab_as_spaces && tab_width > 0)
@@ -1204,6 +1204,7 @@ on_edit_comment_line(eu_tabpage *pnode)
         case DOCTYPE_JSON:
         case DOCTYPE_JAVA:
         case DOCTYPE_JAVASCRIPT:
+        case DOCTYPE_KOTLIN:
             eu_toggle_comment(pnode, "// ", false);
             break;
         case DOCTYPE_CMAKE:
@@ -1296,6 +1297,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
         case DOCTYPE_JAVA:
         case DOCTYPE_JAVASCRIPT:
         case DOCTYPE_SQL:
+        case DOCTYPE_KOTLIN:
             on_close_selection(pnode, "/*", "*/");
             break;
         case DOCTYPE_CMAKE:

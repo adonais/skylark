@@ -81,10 +81,9 @@ _tmain(int argc, TCHAR *argv[])
     MSG msg = {0};
     HMODULE pux = NULL;   // 如果使用经典风格, 它是uxtheme的句柄
     HWND hwnd = NULL;
-    HANDLE h_mapped = NULL;
+    HANDLE mapped = NULL;
     HANDLE lang_map = NULL;
-    TCHAR sc_path[MAX_PATH + 1] = { 0 };
-    HACCEL htable = NULL;
+    TCHAR cache_path[MAX_PATH + 1] = {0};
     HANDLE hsem = NULL;
     HINSTANCE instance = eu_module_handle();
     if (argc > 1 && _tcscmp(argv[1], _T("-restart")) == 0)
@@ -106,12 +105,12 @@ _tmain(int argc, TCHAR *argv[])
         return -1;
     }
     SetLastError(0);   // 建立共享内存, 里面保存第一个进程的主窗口句柄
-    h_mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME);
+    mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME);
     if (ERROR_ALREADY_EXISTS == GetLastError())
     {
         muti = true;
     }
-    else if (!h_mapped)
+    else if (!mapped)
     {
         return -1;
     }
@@ -142,7 +141,7 @@ _tmain(int argc, TCHAR *argv[])
                 share_send_msg(&bak);
             }
             else if (_tcsncmp(argv[1], _T("-reg3"), 5) == 0)
-            {   // 注册文件关联 
+            {   // 注册文件关联
                 if (_tcschr(argv[1], _T('=')))
                 {
                     dark_mode = eu_on_dark_init(true, true);
@@ -160,7 +159,7 @@ _tmain(int argc, TCHAR *argv[])
         {   // 没有参数, 则恢复窗口
             share_send_msg(NULL);
         }
-        share_close(h_mapped);
+        share_close(mapped);
         share_envent_close();
         if (dark_mode)
         {
@@ -189,35 +188,23 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (true)
+    if (_sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path) > 0)
     {
-        TCHAR lua_path[ENV_LEN + 1];
-        TCHAR cache_path[MAX_PATH] = {0};
-        _sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path);
         if (!(cache_path[0] && eu_try_path(cache_path)))
         {
             MSG_BOX(IDC_MSG_DIR_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             return -1;
-        } // 设置lua脚本搜索路径
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua"), eu_module_path, eu_module_path);
-        if (_tputenv(lua_path) != 0)
-        {
+        }
+        if (!eu_lua_path_setting())
+        {   // 设置lua脚本搜索路径
             msg.wParam = -1;
             goto all_clean;
         }
         on_hook_do();
         eu_init_logs();
-    }   // 加载主配置文件
-    if (_sntprintf(sc_path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path) > 0)
-    {
-        if (eu_lua_script_exec(sc_path) != 0)
-        {
-            msg.wParam = -1;
-            goto all_clean;
-        }
-    }   // 加载分类配置文件
-    if (eu_load_config(&pux) != 0)
-    {
+    }
+    if (!eu_load_config(&pux))
+    {   // 加载配置文件
         msg.wParam = -1;
         goto all_clean;
     }
@@ -229,16 +216,16 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-reg1")) == 0)
     {
-    	eu_reg_file_popup_menu();
-    	msg.wParam = 0;
-    	goto all_clean;
+        eu_reg_file_popup_menu();
+        msg.wParam = 0;
+        goto all_clean;
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-reg2")) == 0)
     {
-    	eu_reg_dir_popup_menu();
-    	msg.wParam = 0;
-    	goto all_clean;
-    }    
+        eu_reg_dir_popup_menu();
+        msg.wParam = 0;
+        goto all_clean;
+    }
     // 注册scintilla
     if (!eu_sci_register(instance))
     {
@@ -251,14 +238,9 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if ((htable = LoadAccelerators(instance, MAKEINTRESOURCE(IDC_SKYLARK))) == NULL)
+    if (mapped)
     {
-        msg.wParam = -1;
-        goto all_clean;
-    }
-    if (h_mapped)
-    {
-        LPVOID phandle = share_map(h_mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
+        LPVOID phandle = share_map(mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
         if (phandle)
         {
             memcpy(phandle, &hwnd, sizeof(HWND));
@@ -267,7 +249,7 @@ _tmain(int argc, TCHAR *argv[])
             share_envent_set(true);
             eu_load_file();
         }
-    }   
+    }
     if (strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         if (eu_on_dark_init(true, true))
@@ -283,21 +265,19 @@ _tmain(int argc, TCHAR *argv[])
             {
                 continue;
             }
-            if (!TranslateAccelerator(hwnd, htable, &msg))
+            if (!TranslateAccelerator(hwnd, eu_get_accel()->haccel, &msg))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
         }
     }
-    if (true)
-    {
-        eu_save_theme();
-        eu_free_theme();
-        eu_save_config();
-    }
+    eu_save_theme();
+    eu_save_config();
 all_clean:
-    share_close(h_mapped);
+    eu_free_theme();
+    eu_free_accel();
+    share_close(mapped);
     share_close(lang_map);
     share_close_lang();
     safe_close_dll(pux);

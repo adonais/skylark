@@ -1,33 +1,9 @@
-emod = {}
-emod.ffi = require('ffi')
-emod.euapi = emod.ffi.load(emod.ffi.os == "Windows" and "euapi.dll")
+eu_core = {}
+eu_core.ffi = require("ffi")
+eu_core.eulib = require("euapi")
+eu_core.euapi = eu_core.ffi.load(eu_core.ffi.os == "Windows" and "euapi.dll")
 
-function emod.script_path()
-    local function sum(a, b)
-            return a + b
-    end
-    local info = debug.getinfo(sum)
-    --解析出来当前目录
-    local path = info.source
-    -- 去掉开头的"@"
-    path = string.sub(path, 2, -1)
-    -- 捕获最后一个 "/" 之前的部分 就是我们最终要的目录部分
-    path = string.match(path, "^(.*)\\")
-    if path == nil then return "." end
-    return path
-end
-
-function emod.file_exists(cpath)
-   local f=io.open(cpath,"r")
-   if f~=nil then io.close(f) return true else return false end
-end
-
-function emod.table_is_empty(t)
-  if t == nil then return true end
-  return _G.next(t) == nil
-end
-
-emod.ffi.cdef[[
+eu_core.ffi.cdef[[
 
 typedef struct tagRECT 
 {
@@ -36,6 +12,13 @@ typedef struct tagRECT
     long right;
     long bottom;
 }RECT;
+
+typedef struct tagACCEL 
+{
+    unsigned short fVirt;
+    unsigned short key;
+    unsigned short cmd;
+}ACCEL;
 
 typedef struct _print_set
 {
@@ -99,7 +82,7 @@ struct eu_config
     char m_path[260];
     char m_actions[100][260];
 };
-	
+    
 struct styleclass
 {
     char font[32];
@@ -156,7 +139,7 @@ struct rb_node
 
 struct rb_root
 {
-	struct rb_node *rb_node;
+    struct rb_node *rb_node;
 };
 
 typedef struct rb_root eutype_t;
@@ -169,44 +152,6 @@ typedef int (*reload_list_ptr)(void *pnode);
 typedef int (*click_list_ptr)(void *pnode);
 typedef int (*reload_tree_ptr)(void *pnode);
 typedef int (*click_tree_ptr)(void *pnode);
-
-enum dctype
-{
-    DOCTYPE_END = 0,
-    DOCTYPE_ASM = 1,
-    DOCTYPE_AU3 = 2,
-    DOCTYPE_CS = 3,
-    DOCTYPE_CPP = 4,
-    DOCTYPE_CMAKE = 5,
-    DOCTYPE_CSS = 6,
-    DOCTYPE_COBOL = 7,
-    DOCTYPE_DIFF = 8,
-    DOCTYPE_FORTRAN = 9,
-    DOCTYPE_GO = 10,
-    DOCTYPE_HTML = 11,
-    DOCTYPE_JSON = 12,
-    DOCTYPE_JAVA = 13,
-    DOCTYPE_JAVASCRIPT = 14,
-    DOCTYPE_JULIA = 15,
-    DOCTYPE_LISP = 16,
-    DOCTYPE_LOG = 17,
-    DOCTYPE_LUA = 18,
-    DOCTYPE_MAKEFILE = 19,
-    DOCTYPE_MARKDOWN = 20,
-    DOCTYPE_NIM = 21,
-    DOCTYPE_PERL = 22,
-    DOCTYPE_PROPERTIES = 23,
-    DOCTYPE_PYTHON = 24,
-    DOCTYPE_REDIS = 25,
-    DOCTYPE_RUBY = 26,
-    DOCTYPE_RUST = 27,
-    DOCTYPE_SQL = 28,
-    DOCTYPE_SH = 29,
-    DOCTYPE_SWIFT = 30,
-    DOCTYPE_TXT = 31,
-    DOCTYPE_XML = 32,
-    DOCTYPE_YAML = 33
-} ;
 
 typedef struct _doc_data
 {
@@ -239,6 +184,8 @@ typedef struct _doc_data
 
 bool __stdcall eu_config_ptr(struct eu_config *pconfig);
 bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
+bool __stdcall eu_accel_ptr(ACCEL *paccel);
+bool __stdcall eu_exist_path(const char *path);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
 // all doctype callbacks
@@ -286,7 +233,6 @@ int on_doc_init_after_diff(void *pnode);
 
 /* 默认的 key_ptr 回调函数入口 */
 int on_doc_keydown_jmp(void *pnode, intptr_t wParam, intptr_t lParam);
-int on_doc_keydown_light(void *pnode);
 int on_doc_keydown_sql(void *pnode, intptr_t wParam, intptr_t lParam);
 int on_doc_keydown_redis(void *pnode, intptr_t wParam, intptr_t lParam);
 int on_doc_keyup_general(void *pnode, intptr_t wParam, intptr_t lParam);
@@ -340,180 +286,47 @@ void on_doc_commentdoc_light(void *, int lex, int64_t rgb);
 
 ]]
 
-function emod.strncat(dest, src, num)
-	return emod.ffi.C.strncat(dest, src, num)
+function eu_core.script_path()
+    return eu_core.eulib.lconfdir()
 end
 
-function emod.load_theme(name)
-	local file = " "
-	local tname = "default"
-	local path = emod.script_path()
-	if (name == tname) then
-	  file = (path .. "\\..\\styletheme.conf")
-	else
-	  file = (path .. "\\..\\styletheme_" .. name .. ".conf")
-	end
-
-	if (not emod.file_exists(file)) then
-	  file = (path .. "\\..\\styletheme.conf")
-	  local theme = -- 默认主题配置文件
-	    "linenumber_font = \"Courier New\"\n" ..
-	    "linenumber_fontsize = 9\n" ..
-	    "linenumber_color = 0x00FFFFFF\n" ..
-	    "linenumber_bgcolor = 0x00888888\n" ..
-	    "linenumber_bold = 0\n" ..
-	    "foldmargin_font = \"Courier New\"\n" ..
-	    "foldmargin_fontsize = 9\n" ..
-	    "foldmargin_color = 0x00666666\n" ..
-	    "foldmargin_bgcolor = 0x00666666\n" ..
-	    "foldmargin_bold = 0\n" ..
-	    "text_font = \"Courier New\"\n" ..
-	    "text_fontsize = 11\n" ..
-	    "text_color = 0x00FFFFFF\n" ..
-	    "text_bgcolor = 0x00444444\n" ..
-	    "text_bold = 0\n" ..
-	    "caretline_font = \"Courier New\"\n" ..
-	    "caretline_fontsize = 11\n" ..
-	    "caretline_color = 0x00000000\n" ..
-	    "caretline_bgcolor = 0x00696969\n" ..
-	    "caretline_bold = 0\n" ..
-	    "indicator_font = \"Courier New\"\n" ..
-	    "indicator_fontsize = 11\n" ..
-	    "indicator_color = 0x00FFFFFF\n" ..
-	    "indicator_bgcolor = 0x00EEEEEE\n" ..
-	    "indicator_bold = 0\n" ..
-	    "keywords_font = \"Courier New\"\n" ..
-	    "keywords_fontsize = 11\n" ..
-	    "keywords_color = 0x0000B050\n" ..
-	    "keywords_bgcolor = 0x00000000\n" ..
-	    "keywords_bold = 1\n" ..
-	    "keywords2_font = \"Courier New\"\n" ..
-	    "keywords2_fontsize = 11\n" ..
-	    "keywords2_color = 0x0000B050\n" ..
-	    "keywords2_bgcolor = 0x00000000\n" ..
-	    "keywords2_bold = 1\n" ..
-	    "string_font = \"Courier New\"\n" ..
-	    "string_fontsize = 11\n" ..
-	    "string_color = 0x00C080FF\n" ..
-	    "string_bgcolor = 0x00000000\n" ..
-	    "string_bold = 0\n" ..
-	    "character_font = \"Courier New\"\n" ..
-	    "character_fontsize = 11\n" ..
-	    "character_color = 0x00C080FF\n" ..
-	    "character_bgcolor = 0x00000000\n" ..
-	    "character_bold = 0\n" ..
-	    "number_font = \"Courier New\"\n" ..
-	    "number_fontsize = 11\n" ..
-	    "number_color = 0x00C080FF\n" ..
-	    "number_bgcolor = 0x00000000\n" ..
-	    "number_bold = 0\n" ..
-	    "operator_font = \"Courier New\"\n" ..
-	    "operator_fontsize = 11\n" ..
-	    "operator_color = 0x00FFFFFF\n" ..
-	    "operator_bgcolor = 0x00000000\n" ..
-	    "operator_bold = 0\n" ..
-	    "preprocessor_font = \"Courier New\"\n" ..
-	    "preprocessor_fontsize = 11\n" ..
-	    "preprocessor_color = 0x00A349A4\n" ..
-	    "preprocessor_bgcolor = 0x00000000\n" ..
-	    "preprocessor_bold = 0\n" ..
-	    "comment_font = \"Courier New\"\n" ..
-	    "comment_fontsize = 11\n" ..
-	    "comment_color = 0x00C0C0C0\n" ..
-	    "comment_bgcolor = 0x00000000\n" ..
-	    "comment_bold = 0\n" ..
-	    "commentline_font = \"Courier New\"\n" ..
-	    "commentline_fontsize = 11\n" ..
-	    "commentline_color = 0x00C0C0C0\n" ..
-	    "commentline_bgcolor = 0x00000000\n" ..
-	    "commentline_bold = 0\n" ..
-	    "commentdoc_font = \"Courier New\"\n" ..
-	    "commentdoc_fontsize = 11\n" ..
-	    "commentdoc_color = 0x0000C800\n" ..
-	    "commentdoc_bgcolor = 0x00000000\n" ..
-	    "commentdoc_bold = 0\n" ..
-	    "tags_font = \"Courier New\"\n" ..
-	    "tags_fontsize = 11\n" ..
-	    "tags_color = 0x00FF8000\n" ..
-	    "tags_bgcolor = 0x00000000\n" ..
-	    "tags_bold = 0\n" ..
-	    "unknowtags_font = \"Courier New\"\n" ..
-	    "unknowtags_fontsize = 11\n" ..
-	    "unknowtags_color = 0x00804000\n" ..
-	    "unknowtags_bgcolor = 0x00000000\n" ..
-	    "unknowtags_bold = 0\n" ..
-	    "attributes_font = \"Courier New\"\n" ..
-	    "attributes_fontsize = 11\n" ..
-	    "attributes_color = 0x0080FF80\n" ..
-	    "attributes_bgcolor = 0x00000000\n" ..
-	    "attributes_bold = 0\n" ..
-	    "unknowattributes_font = \"Courier New\"\n" ..
-	    "unknowattributes_fontsize = 11\n" ..
-	    "unknowattributes_color = 0x00808040\n" ..
-	    "unknowattributes_bgcolor = 0x00000000\n" ..
-	    "unknowattributes_bold = 0\n" ..
-	    "entities_font = \"Courier New\"\n" ..
-	    "entities_fontsize = 11\n" ..
-	    "entities_color = 0x00800080\n" ..
-	    "entities_bgcolor = 0x00000000\n" ..
-	    "entities_bold = 0\n" ..
-	    "tagends_font = \"Courier New\"\n" ..
-	    "tagends_fontsize = 11\n" ..
-	    "tagends_color = 0x00000080\n" ..
-	    "tagends_bgcolor = 0x00000000\n" ..
-	    "tagends_bold = 0\n" ..
-	    "cdata_font = \"Courier New\"\n" ..
-	    "cdata_fontsize = 11\n" ..
-	    "cdata_color = 0x00008000\n" ..
-	    "cdata_bgcolor = 0x00000000\n" ..
-	    "cdata_bold = 0\n" ..
-	    "phpsection_font = \"Courier New\"\n" ..
-	    "phpsection_fontsize = 11\n" ..
-	    "phpsection_color = 0x00FFFFFF\n" ..
-	    "phpsection_bgcolor = 0x00000000\n" ..
-	    "phpsection_bold = 0\n" ..
-	    "aspsection_font = \"Courier New\"\n" ..
-	    "aspsection_fontsize = 11\n" ..
-	    "aspsection_color = 0x00808080\n" ..
-	    "aspsection_bgcolor = 0x00000000\n" ..
-	    "aspsection_bold = 0"
-	  eu_code = loadstring(theme)
-	  eu_code()
-	else
-	  dofile(file)
-	  tname = name
-	end
-	local m_file = emod.ffi.new('char[260]')
-	emod.ffi.C._fullpath(m_file, file, 260)
-	local m_theme = emod.ffi.new("struct eu_theme", {m_file, tname, 
-	  {
-		{linenumber_font,linenumber_fontsize,linenumber_color,linenumber_bgcolor,linenumber_bold},
-		{foldmargin_font,foldmargin_fontsize,foldmargin_color,foldmargin_bgcolor,foldmargin_bold},
-		{text_font,text_fontsize,text_color,text_bgcolor,text_bold},
-		{caretline_font,caretline_fontsize,caretline_color,caretline_bgcolor,caretline_bold},
-		{indicator_font,indicator_fontsize,indicator_color,indicator_bgcolor,indicator_bold},
-		{keywords_font,keywords_fontsize,keywords_color,keywords_bgcolor,keywords_bold},
-		{keywords2_font,keywords2_fontsize,keywords2_color,keywords2_bgcolor,keywords2_bold},
-		{string_font,string_fontsize,string_color,string_bgcolor,string_bold},
-		{character_font,character_fontsize,character_color,character_bgcolor,character_bold},
-		{number_font,number_fontsize,number_color,number_bgcolor,number_bold},
-		{operator_font,operator_fontsize,operator_color,operator_bgcolor,operator_bold},
-		{preprocessor_font,preprocessor_fontsize,preprocessor_color,preprocessor_bgcolor,preprocessor_bold},
-		{comment_font,comment_fontsize,comment_color,comment_bgcolor,comment_bold},
-		{commentline_font,commentline_fontsize,commentline_color,commentline_bgcolor,commentline_bold},
-		{commentdoc_font,commentdoc_fontsize,commentdoc_color,commentdoc_bgcolor,commentdoc_bold},
-		{tags_font,tags_fontsize,tags_color,tags_bgcolor,tags_bold},
-		{unknowtags_font,unknowtags_fontsize,unknowtags_color,unknowtags_bgcolor,unknowtags_bold},
-		{attributes_font,attributes_fontsize,attributes_color,attributes_bgcolor,attributes_bold},
-		{unknowattributes_font,unknowattributes_fontsize,unknowattributes_color,unknowattributes_bgcolor,unknowattributes_bold},
-		{entities_font,entities_fontsize,entities_color,entities_bgcolor,entities_bold},
-		{tagends_font,tagends_fontsize,tagends_color,tagends_bgcolor,tagends_bold},
-		{cdata_font,cdata_fontsize,cdata_color,cdata_bgcolor,cdata_bold},
-		{phpsection_font,phpsection_fontsize,phpsection_color,phpsection_bgcolor,phpsection_bold},
-		{aspsection_font,aspsection_fontsize,aspsection_color,aspsection_bgcolor,aspsection_bold}
-	  }
-	})
-	return emod.euapi.eu_theme_ptr(m_theme, true)
+function eu_core.mkdir(path)
+    return eu_core.eulib.lmkdir(path)
 end
 
-return emod
+function eu_core.file_exists(path)
+   local f=io.open(path,"r")
+   if f~=nil then io.close(f) return true else return false end
+end
+
+function eu_core.table_is_empty(t)
+    if t == nil then return true end
+    return _G.next(t) == nil
+end
+
+function eu_core.enum(tbl)
+    local i = 0
+    if tbl == nil or type(tbl) ~= "table" then 
+        return nil
+    end 
+    tbl.__index = tbl 
+    tbl.__newindex = function() 
+        print("can not modify enum")
+    end
+    for key,value in pairs(tbl) do i=i+1 end
+    if (i >= 2) then i=i-2 end
+    return setmetatable({}, tbl),i
+end
+
+function eu_core.save_file(filename, buffer)
+    local f = assert(io.open(filename, 'wb+'))
+    io.output(f)
+    io.write(buffer)
+    io.close(f)
+end
+
+function eu_core.strncat(dest, src, num)
+    return eu_core.ffi.C.strncat(dest, src, num)
+end
+
+return eu_core

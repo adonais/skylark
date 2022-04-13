@@ -148,7 +148,7 @@ SMModel ISO2022CNSMModel = {
   9,
   {eIdxSft4bits, eSftMsk4bits, eBitSft4bits, eUnitMsk4bits, ISO2022CN_st },
   ISO2022CNCharLenTable,
-  "ISO-2022-CN",
+  "ISO-2022-CN-EXT",
 };
 
 static uint32_t ISO2022JP_cls [ 256 / 8 ] = {

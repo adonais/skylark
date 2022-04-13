@@ -47,6 +47,7 @@ int on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn);
 void on_encoding_set_bom_from_cp(eu_tabpage *pnode);
 size_t on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size_t *plen);
 const char *on_encoding_get_eol(eu_tabpage *pnode);
+const int on_encoding_eol_char(eu_tabpage *pnode);
 char* __stdcall on_encoding_gb_big5(const char *gb2, size_t *out_len);
 char*__stdcall on_encoding_big5_gb(const char *bg5, size_t *out_len);
 

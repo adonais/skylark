@@ -26,8 +26,8 @@
 #define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \n")
 #define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\n")
 
-static HMENU pop_hex_menu;
 static volatile long hex_zoom;
+static int hex_area;
 
 /*******************************************
  * 计算utf8编码字节数 
@@ -62,6 +62,12 @@ hexview_is_utf8(const uint8_t *ptext, int pos)
         return 0;
     }
     return num;
+}
+
+void
+hexview_set_area(int value)
+{
+    hex_area = value;
 }
 
 void
@@ -567,28 +573,59 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     return (hexview->hfont != NULL); 
 }
 
-int
-hexview_create_pop_menu(void)
+static void
+hexview_bin_paste(char *ptext, PHEXVIEW hexview)
 {
-    if (pop_hex_menu == NULL)
+    char *p = NULL;
+    char *str = ptext;
+    size_t i = hexview->number_items;
+    const char *seps = " ";
+    if (hexview->select_end - hexview->select_start > 0)
     {
-        pop_hex_menu = i18n_load_menu(IDR_HEXVIEW_MENU);
-        if (pop_hex_menu)
-        {
-            pop_hex_menu = GetSubMenu(pop_hex_menu, 0);
-        }
+        i = hexview->select_start;
     }
-    return 0;
+    p = strtok(str, seps);
+    while (p)
+    {
+        hexview->pbase[i++] = util_get_hex_byte(p);
+        p = strtok(NULL, seps);
+    }
 }
 
-void
-hexview_destroy_pop_menu(void)
+static bool
+hexview_data_final(char *ptext, size_t len)
 {
-    if (pop_hex_menu)
+    bool ret = true;
+    char *p = NULL;
+    const char *seps = " ";
+    char *str = _strdup(ptext);
+    if (!str)
     {
-        DestroyMenu(pop_hex_menu);
-        pop_hex_menu = NULL;
+        return false;
     }
+    if (len < 2)
+    {
+        ret = false;
+        goto do_clean;
+    }
+    p = strtok(str, seps);
+    while (p)
+    {
+        if (strlen(p) != 2)
+        {
+            ret = false;
+            break;
+        }
+        if (!(isxdigit(p[0]) && isxdigit(p[1])))
+        {
+            ret = false;
+            break;
+        }
+        p = strtok(NULL, " ");
+    }
+do_clean:
+    eu_safe_free(str);
+    return ret;
 }
 
 static LRESULT CALLBACK
@@ -659,17 +696,12 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            if (pop_hex_menu)
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+            // 限制右键显示区域
+            if (x < hexview->longest_line*hexview->width_char && (y > 2*hexview->height_char &&  y < hexview->totallines*hexview->height_char))
             {
-                POINT pt;
-                pt.x = GET_X_LPARAM(lParam);
-                pt.y = GET_Y_LPARAM(lParam);
-                // 限制右键显示区域
-                if (pt.x < hexview->longest_line*hexview->width_char && (pt.y > 2*hexview->height_char &&  pt.y < hexview->totallines*hexview->height_char))
-                {
-                    ClientToScreen(hwnd, &pt);
-                    TrackPopupMenu(pop_hex_menu, TPM_LEFTALIGN | TPM_TOPALIGN, pt.x, pt.y, 0, hwnd, NULL);
-                }
+                return menu_pop_track(hwnd, IDR_HEXVIEW_MENU, 0);
             }
             return 1;
         }
@@ -710,6 +742,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 if (u16_text)
                 {
                     on_edit_push_clipboard(u16_text);
+                    hex_area = hexview->active_column;
                     free(u16_text);
                 }
                 free(ptext);
@@ -720,22 +753,81 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             if (hexview->total_items > 0 && !(hexview->ex_style & HVS_READONLY))
             {
+                int txt_len = 0;
                 char *ptext = NULL;
                 if (!on_toolbar_get_clipboard(&ptext))
                 {
                     break;
                 }
-                size_t len = strlen(ptext);
-                if (hexview->number_items + len < hexview->total_items)
+                txt_len = eu_int_cast(strlen(ptext));
+                if (hexview->active_column == COLUMN_DATA)
                 {
-                    memcpy(&hexview->pbase[hexview->number_items], ptext, len);
-                    InvalidateRect(hwnd, NULL, true);
-                    on_sci_point_left(pnode);
+                    if (hex_area == COLUMN_DATA || hexview_data_final(ptext, txt_len))
+                    {
+                        if ((hexview->number_items + txt_len < hexview->total_items))
+                        {
+                            hexview_bin_paste(ptext, hexview);
+                            on_sci_point_left(pnode);
+                        }
+                    }
+                    else
+                    {
+                        int i = 0;
+                        int asc_len = txt_len * 3 + 1;
+                        char *asc_buf = (char *)calloc(asc_len, 1);
+                        char *hex_buf = (char *)calloc(asc_len, 1);
+                        util_hex_expand(ptext, txt_len, asc_buf);
+                        txt_len = eu_int_cast(strlen(asc_buf));
+                        for( int idx = 0; idx < txt_len; idx += 2, i+=2)
+                        {
+                            strncpy(&hex_buf[i], asc_buf + idx, 2);
+                            if (idx != txt_len-2)
+                            {
+                                ++i;
+                                strcat(hex_buf, " ");
+                            }
+                        }
+                        txt_len = eu_int_cast(strlen(hex_buf));
+                        if (STR_NOT_NUL(hex_buf) && (hexview->number_items + txt_len < hexview->total_items))
+                        {
+                            hexview_bin_paste(hex_buf, hexview);
+                            on_sci_point_left(pnode);
+                            free(hex_buf);
+                            free(asc_buf);
+                        }
+                    }
                 }
-                if (ptext)
+                else
                 {
-                    free(ptext);
+                    if (hex_area == COLUMN_DATA)
+                    {
+                        char *pstr = (char *)calloc(txt_len+1, 1);
+                        if (pstr)
+                        {
+                            if (!util_hex_fold(ptext, txt_len, pstr))
+                            {
+                                printf("pstr = %s\n", pstr);
+                                txt_len = eu_int_cast(strlen(pstr));
+                                if (hexview->number_items + txt_len < hexview->total_items)
+                                {
+                                    memcpy(&hexview->pbase[hexview->number_items], pstr, txt_len);
+                                    on_sci_point_left(pnode);
+                                }
+                            }
+                            free(pstr);
+                        }
+                    }
+                    else
+                    {
+                        if (hexview->number_items + txt_len < hexview->total_items)
+                        {
+                            memcpy(&hexview->pbase[hexview->number_items], ptext, txt_len);
+                            on_sci_point_left(pnode);
+                        }
+                    }
                 }
+                InvalidateRect(hwnd, NULL, true);
+                eu_safe_free(ptext);
             }
             break;
         }
@@ -1592,14 +1684,18 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 if (hexview->active_column == COLUMN_DATA)
                 {
                     char *buf = (char *)lParam;
-                    for (size_t i = select_start; i < select_end + 1; ++i)
+                    for (size_t i = select_start; i < select_end+1; ++i)
                     {
-                        int m = sprintf(buf, "%02X ", pnode->phex->pbase[i]);
+                        int m = 0;
+                        if (i == select_end)
+                        {
+                            m = sprintf(buf, "%02X", pnode->phex->pbase[i]);
+                        }
+                        else
+                        {
+                            m = sprintf(buf, "%02X ", pnode->phex->pbase[i]);
+                        }
                         buf += m;
-                    }
-                    if (strlen(buf) > 0)
-                    {
-                        buf[strlen(buf) - 1] = 0;
                     }
                 }
                 else

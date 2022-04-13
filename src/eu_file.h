@@ -19,9 +19,9 @@
 #ifndef _H_SKYLARK_FILE_
 #define _H_SKYLARK_FILE_
 
-#define BUFF_SIZE (1024 * 8000)
-#define BUFF_32K (32 * 1024)
-#define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)
+#define BUFF_SIZE (8 * 1024 * 1024)                // 8M
+#define BUFF_32K (32 * 1024)                       // 32K
+#define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
 
 #ifdef __cplusplus
 extern "C"

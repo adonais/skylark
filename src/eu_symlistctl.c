@@ -40,7 +40,7 @@ pcre_match_callback(pcre_conainer *pcre_info, void *para)
         {
             TCHAR *uni_str = eu_utf8_utf16(buf, NULL);
             if (uni_str)
-            {               
+            {
                 int index = ListBox_AddString(pnode->hwnd_symlist, uni_str);
                 free(uni_str);
                 ListBox_SetItemData(pnode->hwnd_symlist, index, (LPARAM) line_num);
@@ -116,10 +116,6 @@ on_symlist_jump_word(eu_tabpage *pnode)
     pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
     end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
-    if (end_pos - start_pos > sizeof(current_text) - 1)
-    {
-        end_pos = start_pos + sizeof(current_text) - 1;
-    }
     current_text = on_sci_range_text(pnode, start_pos, end_pos);
     if (!current_text)
     {
@@ -192,27 +188,22 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             eu_reset_drag_line();
             break;
-        }        
+        }
         case WM_LBUTTONDBLCLK:
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
             on_tabpage_symlist_click(pnode);
-            return 1;        
-        }        
+            return 1;
+        }
         case WM_RBUTTONDOWN:
         {
-            POINT pt;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            ClientToScreen(hwnd, &pt);
-            TrackPopupMenu(pop_symlist_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
-            break;
+            return menu_pop_track(hwnd, IDR_SYMBOLLIST_POPUPMENU, 0);
         }
         case WM_DPICHANGED:
         {
-            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);   
+            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
             break;
-        }        
+        }
         case WM_DESTROY:
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);

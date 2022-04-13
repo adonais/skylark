@@ -27,9 +27,6 @@ static int img_close;
 static int img_text;
 static int img_general;
 static int img_exe;
-static HMENU pop_flush_menu;
-static HMENU pop_file_menu;
-static HMENU pop_dir_menu;
 static WNDPROC filetree_wnd;
 static WNDPROC treebar_wnd;
 
@@ -109,7 +106,7 @@ read_remote_buffer(void *buffer, size_t size, size_t nmemb, void *stream)
     size_t bytes_read;
 
     bytes_read = transfer_len = size * nmemb;
-    if (bytes_read > rfb->remain_len) 
+    if (bytes_read > rfb->remain_len)
     {
         bytes_read = rfb->remain_len;
     }
@@ -140,7 +137,7 @@ static tree_data *
 add_tree_node(HWND hwnd, HTREEITEM parent, int img_index, remotefs *server, TCHAR *pathname, TCHAR *filepath, TCHAR *filename, bool is_load)
 {
     tree_data *tvd = alloc_view_data(server, pathname, filepath, filename, is_load, img_index);
-    if (tvd != NULL) 
+    if (tvd != NULL)
     {
         TVITEM tvi = {TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_DI_SETITEM | TVIF_PARAM};
         tvi.iImage = tvi.iSelectedImage = img_index;
@@ -160,7 +157,7 @@ set_curl_opt(CURL *curl)
     eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, read_remote_buffer);
 #if APP_DEBUG
     eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif    
+#endif
 }
 
 static bool
@@ -303,9 +300,9 @@ on_node_delete(void)
         bool is_file = false;
         char postquote[MAX_PATH + 1];
         struct curl_slist *headerlist = NULL;
-        char pathname[MAX_PATH] = {0};                                                              
-        char filepath[MAX_PATH] = {0};                                                            
-        WideCharToMultiByte(CP_UTF8, 0, tvd->pathname, -1, pathname, MAX_PATH-1, NULL, NULL); 
+        char pathname[MAX_PATH] = {0};
+        char filepath[MAX_PATH] = {0};
+        WideCharToMultiByte(CP_UTF8, 0, tvd->pathname, -1, pathname, MAX_PATH-1, NULL, NULL);
         WideCharToMultiByte(CP_UTF8, 0, tvd->filepath, -1, filepath, MAX_PATH-1, NULL, NULL);
         if (!(curl = on_remote_init_socket(pathname, tvd->server)))
         {
@@ -394,7 +391,7 @@ on_new_directory(void)
     else
     {
         _sntprintf(full_dir_path, MAX_PATH - 1, _T("%s/%s"), tvd->filepath, dir_name);
-    }    
+    }
     if (tvd->server == NULL)
     {
         if (!CreateDirectory(full_dir_path, NULL))
@@ -409,9 +406,9 @@ on_new_directory(void)
         CURL *curl = NULL;
         char postquote[MAX_PATH];
         struct curl_slist *headerlist = NULL;
-        char u8_dir[MAX_PATH] = {0};                                   
+        char u8_dir[MAX_PATH] = {0};
         char filepath[MAX_PATH] = {0};
-        WideCharToMultiByte(CP_UTF8, 0, dir_name, -1, u8_dir, MAX_PATH-1, NULL, NULL); 
+        WideCharToMultiByte(CP_UTF8, 0, dir_name, -1, u8_dir, MAX_PATH-1, NULL, NULL);
         WideCharToMultiByte(CP_UTF8, 0, tvd->filepath, -1, filepath, MAX_PATH-1, NULL, NULL);
         if (!(curl = on_remote_init_socket(filepath, tvd->server)))
         {
@@ -505,9 +502,9 @@ create_new_file(void)
     {
         CURL *curl = NULL;
         char url[MAX_PATH] = { 0 };
-        char u8_file[MAX_PATH] = {0};                                   
+        char u8_file[MAX_PATH] = {0};
         char u8_filepath[MAX_PATH] = {0};
-        WideCharToMultiByte(CP_UTF8, 0, ac_file, -1, u8_file, MAX_PATH-1, NULL, NULL); 
+        WideCharToMultiByte(CP_UTF8, 0, ac_file, -1, u8_file, MAX_PATH-1, NULL, NULL);
         WideCharToMultiByte(CP_UTF8, 0, tvd->filepath, -1, u8_filepath, MAX_PATH-1, NULL, NULL);
         snprintf(url, sizeof(url) - 1, "%s%s", u8_filepath, u8_file);
         if (!(curl = on_remote_init_socket(url, tvd->server)))
@@ -518,9 +515,9 @@ create_new_file(void)
         eu_curl_easy_setopt(curl, CURLOPT_READFUNCTION, write_remote_buffer);
         eu_curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
         eu_curl_easy_setopt(curl, CURLOPT_READDATA, NULL);
-    #if defined(APP_DEBUG) && (APP_DEBUG > 0)  
+    #if defined(APP_DEBUG) && (APP_DEBUG > 0)
         eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    #endif    
+    #endif
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
         CURLcode res = eu_curl_easy_perform(curl);
         eu_curl_easy_cleanup(curl);
@@ -597,14 +594,14 @@ append_file_child(HWND hwnd, tree_data *tpnode)
     tree_data *tvd = NULL;
     _stprintf(find_path, _T("%s/*"), tpnode->filepath);
     hfile = FindFirstFile(find_path, &st_file);
-    if (hfile == INVALID_HANDLE_VALUE) 
+    if (hfile == INVALID_HANDLE_VALUE)
     {
         // we can skip some questions
         return 0;
     }
     do
     {
-        if (_tcscmp(st_file.cFileName, _T(".")) == 0 || _tcscmp(st_file.cFileName, _T("..")) == 0) 
+        if (_tcscmp(st_file.cFileName, _T(".")) == 0 || _tcscmp(st_file.cFileName, _T("..")) == 0)
         {
             continue;
         }
@@ -686,7 +683,7 @@ append_remote_child(tree_data *tpnode)
         printf("malloc error\n");
         return EUE_OUT_OF_MEMORY;
     }
-    WideCharToMultiByte(CP_UTF8, 0, tpnode->filepath, -1, u8_filepath, MAX_PATH-1, NULL, NULL); 
+    WideCharToMultiByte(CP_UTF8, 0, tpnode->filepath, -1, u8_filepath, MAX_PATH-1, NULL, NULL);
     WideCharToMultiByte(CP_UTF8, 0, tpnode->filename, -1, u8_filename, MAX_PATH-1, NULL, NULL);
     printf("tpnode->server->networkaddr = %s, u8_filepath = %s, u8_filename = %s\n", tpnode->server->networkaddr, u8_filepath, u8_filename);
     if (!(curl = on_remote_init_socket(u8_filepath, tpnode->server)))
@@ -749,7 +746,7 @@ append_remote_child(tree_data *tpnode)
                     break;
                 }
             }
-            if ((*p1) == '\0') 
+            if ((*p1) == '\0')
             {
                 break;
             }
@@ -811,7 +808,7 @@ static int
 load_fslist_tree(HWND hwnd)
 {
     remotefs *pserver = NULL;
-    list_for_each_entry(pserver, &list_server, remotefs, node_server) 
+    list_for_each_entry(pserver, &list_server, remotefs, node_server)
     {
         on_treebar_load_remote(hwnd, pserver);
     }
@@ -911,12 +908,12 @@ on_node_dbclick(void)
     {   // 建立一个空白标签页
         err = on_file_new();
     }
-    return err;  
+    return err;
 }
 
-static size_t 
+static size_t
 write_file_back(void *buffer, size_t size, size_t nmemb, void *userdata)
-{    
+{
     DWORD written = 0;
     if (!WriteFile((HANDLE)userdata, buffer, (DWORD)(size*nmemb), &written, NULL))
     {
@@ -954,7 +951,7 @@ on_treebar_download_file(const TCHAR *path, remotefs *pserver, TCHAR *out_path)
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
         eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 90);
         res = eu_curl_easy_perform(curl);
-        eu_curl_easy_cleanup(curl);          
+        eu_curl_easy_cleanup(curl);
     } while(0);
     if (cnv)
     {
@@ -968,7 +965,7 @@ on_treebar_download_file(const TCHAR *path, remotefs *pserver, TCHAR *out_path)
             safe_close_handle(pfile);
             DeleteFile(out_path);
         }
-    }  
+    }
     return pfile;
 }
 
@@ -997,7 +994,7 @@ on_node_generate_md5(void)
         if (err)
         {
             return EUE_OPENSSL_ENC_ERR;
-        }        
+        }
     }
     else if (util_file_md5(tvd->filepath, md, MD5_DIGEST_LENGTH * 2 + 1))
     {
@@ -1011,7 +1008,7 @@ static int
 on_node_generate_sha1(void)
 {
     HTREEITEM hti;
-    tree_data *tvd = NULL;    
+    tree_data *tvd = NULL;
     TCHAR md[SHA_DIGEST_LENGTH * 2 + 1] = {0};
     if ((hti = on_treebar_get_path(&tvd)) == NULL)
     {
@@ -1032,8 +1029,8 @@ on_node_generate_sha1(void)
         if (err)
         {
             return EUE_OPENSSL_ENC_ERR;
-        }        
-    }    
+        }
+    }
     else if (util_file_sha1(tvd->filepath, md, SHA_DIGEST_LENGTH * 2 + 1))
     {
         return EUE_OPENSSL_ENC_ERR;
@@ -1046,7 +1043,7 @@ static int
 on_node_generate_sha256(void)
 {
     HTREEITEM hti;
-    tree_data *tvd = NULL;    
+    tree_data *tvd = NULL;
     TCHAR md[SHA256_DIGEST_LENGTH * 2 + 1] = {0};
     if ((hti = on_treebar_get_path(&tvd)) == NULL)
     {
@@ -1067,7 +1064,7 @@ on_node_generate_sha256(void)
         if (err)
         {
             return EUE_OPENSSL_ENC_ERR;
-        }        
+        }
     }
     else if (util_file_sha256(tvd->filepath, md, SHA256_DIGEST_LENGTH * 2 + 1))
     {
@@ -1223,7 +1220,7 @@ on_treebar_update_addr(remotefs *pserver)
                 break;
             }
         }
-    }     
+    }
 }
 
 bool
@@ -1252,58 +1249,6 @@ on_treebar_wait_hwnd(void)
         WaitForSingleObject(thread, INFINITE);
         CloseHandle(thread);
     }
-}
-
-void
-on_treebar_destroy_pop_menu(void)
-{
-   if (pop_dir_menu != NULL)
-   {
-        DestroyMenu(pop_dir_menu);
-        pop_dir_menu = NULL;
-   } 
-   if (pop_file_menu != NULL)
-   {
-        DestroyMenu(pop_file_menu);
-        pop_file_menu = NULL;
-   } 
-   if (pop_flush_menu != NULL)
-   {
-        DestroyMenu(pop_flush_menu);
-        pop_flush_menu = NULL;
-   }                  
-}
-
-bool 
-on_treebar_create_pop_menu(void)
-{
-    bool ret = false;
-    do
-    {
-        pop_dir_menu = i18n_load_menu(IDR_FILETREE_DIRECTORY_POPUPMENU);
-        if (pop_dir_menu == NULL)
-        {
-            printf("i18n_load_menu(IDR_FILETREE_DIRECTORY_POPUPMENU) failed\n");
-            break;
-        }
-        pop_dir_menu = GetSubMenu(pop_dir_menu, 0);
-        pop_file_menu = i18n_load_menu(IDR_FILETREE_FILE_POPUPMENU);
-        if (pop_file_menu == NULL)
-        {
-            printf("i18n_load_menu(IDR_FILETREE_FILE_POPUPMENU) failed\n");
-            break;
-        }
-        pop_file_menu = GetSubMenu(pop_file_menu, 0);
-        pop_flush_menu = i18n_load_menu(IDR_FILETREE_POPUPMENU);
-        if (pop_flush_menu == NULL)
-        {
-            printf("i18n_load_menu(IDR_FILETREE_POPUPMENU) failed\n");
-            break;
-        }
-        pop_flush_menu = GetSubMenu(pop_flush_menu, 0);   
-        ret = (pop_flush_menu != NULL);  
-    } while (0);
-    return ret;   
 }
 
 LRESULT CALLBACK
@@ -1341,7 +1286,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     else if (lpnmtv->action == TVE_EXPAND)
                     {
                         item.iSelectedImage = img_fold;
-                    }                        
+                    }
                     TreeView_SetItem(hwnd, &item);
                 }
                 break;
@@ -1372,12 +1317,12 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
             }
             break;
-        }       
+        }
         case TVI_LOADREMOTE:
         {
             load_fslist_tree(hwnd);
             break;
-        }         
+        }
         case WM_COMMAND:
         {
             uint16_t wid = LOWORD(wParam);
@@ -1388,7 +1333,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_RELOAD_FILESEARCH:
                     on_search_tree(hwnd);
-                    break;                    
+                    break;
                 case IDM_CREATE_SUB_DIRECTORY:
                     on_new_directory();
                     break;
@@ -1411,10 +1356,10 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_SHA1_CLIP:
                     on_node_generate_sha1();
-                    break;                
+                    break;
                 case IDM_FILE_SHA256_CLIP:
                     on_node_generate_sha256();
-                    break;                  
+                    break;
                 default:
                     break;
             }
@@ -1446,20 +1391,22 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 if (tvd->img_index == img_drive || tvd->img_index == img_fold || tvd->img_index == img_close)
                 {
-                    TrackPopupMenu(pop_dir_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                    //TrackPopupMenu(pop_dir_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                    menu_pop_track(hwnd, IDR_FILETREE_DIRECTORY_POPUPMENU, 0);
                 }
                 else
                 {
-                    TrackPopupMenu(pop_file_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                    //TrackPopupMenu(pop_file_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                    menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0);
                 }
             }
             else if (tvhti.flags > 0x1 && tvhti.flags < 0x41)
             {
-                TrackPopupMenu(pop_flush_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
-                return 1;
+                // TrackPopupMenu(pop_flush_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
+                return menu_pop_track(hwnd, IDR_FILETREE_POPUPMENU, 0);
             }
             break;
-        }        
+        }
         case WM_DESTROY:
         {
             HIMAGELIST img_list = (HIMAGELIST)GetWindowLongPtr(hwnd, GWLP_USERDATA);
@@ -1467,7 +1414,6 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 ImageList_Destroy(img_list);
             }
-            on_treebar_destroy_pop_menu();
             destroy_filetree();
             printf("filetree WM_DESTROY\n");
             break;
@@ -1544,7 +1490,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             RECT rc = { 0 };
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
-            return 1;            
+            return 1;
         case WM_PAINT:
         {
             if (GetWindowLongPtr(hwnd, GWL_STYLE) & TCS_OWNERDRAWFIXED)
@@ -1574,14 +1520,14 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 EndPaint(hwnd, &ps);
             }
-            break;            
+            break;
         }
         case WM_DPICHANGED:
         {
             printf("g_treebar WM_DPICHANGED\n");
             on_treebar_update_theme();
             break;
-        }        
+        }
         case WM_THEMECHANGED:
         {
             printf("g_treebar WM_THEMECHANGED\n");
@@ -1638,7 +1584,7 @@ on_treebar_create_box(HWND hwnd)
     }
     SendMessage(g_treebar, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), 0);
     SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
-    return SKYLARK_OK;    
+    return SKYLARK_OK;
 }
 
 int
@@ -1687,8 +1633,8 @@ on_treebar_create_dlg(HWND hwnd)
         {
             SetWindowLongPtr(g_filetree, GWLP_USERDATA, (LONG_PTR)img_list);
         }
-        on_treebar_update_theme();        
-    }while(0);                       
+        on_treebar_update_theme();
+    }while(0);
     if (err)
     {
         if (g_treebar)
@@ -1700,7 +1646,7 @@ on_treebar_create_dlg(HWND hwnd)
         {
             DestroyWindow(g_filetree);
             g_filetree = NULL;
-        }            
+        }
     }
     return err;
 }
@@ -1789,7 +1735,7 @@ locate_remote_path(TCHAR *pathname)
     TCHAR *m_dup = NULL;
     TCHAR *pdir = NULL;
     tree_data *tvd = NULL;
-    HTREEITEM hti_child = NULL;   
+    HTREEITEM hti_child = NULL;
     HTREEITEM hti = NULL;
     if ((m_dup = _tcsdup(pathname)) == NULL)
     {
@@ -1836,7 +1782,7 @@ locate_remote_path(TCHAR *pathname)
         if (pdir && _tcsicmp(pdir, _T("~")) == 0)
         {
             pdir = _tcstok(NULL, _T("/"));
-        }        
+        }
     }
     while (hti_child && pdir)
     {
@@ -1868,7 +1814,7 @@ locate_remote_path(TCHAR *pathname)
         eu_window_resize(eu_module_hwnd());
     }
     free(m_dup);
-    return SKYLARK_OK;    
+    return SKYLARK_OK;
 }
 
 int

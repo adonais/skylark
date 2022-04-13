@@ -19,7 +19,6 @@
 #include "framework.h"
 
 static WNDPROC orig_result_proc;
-static HMENU   rt_menu;
 
 LRESULT CALLBACK
 ptr_result_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -33,14 +32,7 @@ ptr_result_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_RBUTTONUP:
         {
-            POINT pt; 
-            HMENU hpop = GetSubMenu(rt_menu, 0);
-            GetCursorPos(&pt);
-            if (hpop)
-            {
-                TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN, pt.x, pt.y, 0, hwnd, NULL);
-            }
-            return 1;
+            return menu_pop_track(hwnd, IDR_RESULT_MENU, 0);
         }
         case WM_COMMAND:
         {
@@ -73,13 +65,6 @@ ptr_result_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_tabpage *p = on_tabpage_focus_at();
                     if (p)
                     {
-                        eu_setpos_window(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                        ShowWindow(hwnd, SW_HIDE);
-                        if (p->hwnd_qrtable)
-                        {
-                            eu_setpos_window(p->hwnd_qrtable, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                            ShowWindow(p->hwnd_qrtable, SW_HIDE);
-                        }
                         p->edit_show = false;
                         eu_window_resize(NULL);
                     }
@@ -97,11 +82,6 @@ ptr_result_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }        
         case WM_DESTROY:
         {
-            if (rt_menu)
-            {
-                DestroyMenu(rt_menu);
-                rt_menu = NULL;
-            }
             printf("result_edit WM_DESTROY\n");
             break;
         }
@@ -136,12 +116,6 @@ on_result_create_dlg(eu_tabpage *pnode)
         MSG_BOX(IDC_MSG_EDIT_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return 1;
     }
-    rt_menu = i18n_load_menu(IDR_RESULT_MENU);
-    if (!rt_menu)
-    {
-        printf("i18n_load_menu failed in %s\n", __FUNCTION__);
-        return 1;
-    } 
     if (!(orig_result_proc = (WNDPROC) SetWindowLongPtr(pnode->hwnd_qredit, GWLP_WNDPROC, (LONG_PTR) ptr_result_proc)))
     {
         printf("SetWindowLongPtr failed\n");

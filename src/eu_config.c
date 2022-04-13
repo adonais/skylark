@@ -17,6 +17,9 @@
  *******************************************************************************/
 #include "framework.h"
 
+#define ascii_special_symbol(ch) \
+        ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
+
 static volatile long last_focus = -1;
 
 static int
@@ -36,7 +39,7 @@ on_config_file_args(void)
         share_send_msg(&bak);
         ret = 0;
     }
-    LocalFree(args); 
+    LocalFree(args);
     return ret;
 }
 
@@ -108,7 +111,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
     {
         share_send_msg(&filebak);
     }
-    return 0; 
+    return 0;
 }
 
 static unsigned __stdcall
@@ -138,26 +141,85 @@ on_config_load_file(void *lp)
     return 0;
 }
 
-int WINAPI
+static void
+on_config_create_accel(void)
+{
+    eue_accel *p = eu_get_accel();
+    if (p && p->accel_num > 0)
+    {
+        int i = 0;
+        uint16_t old[MAX_ACCELS] = {0};
+        for (; i < p->accel_num; ++i)
+        {
+            if (ascii_special_symbol(p->accel_ptr[i].key) && !(p->accel_ptr[i].fVirt & FVIRTKEY))
+            {
+                int16_t key = VkKeyScanEx(p->accel_ptr[i].key, GetKeyboardLayout(0));
+                if ((key &= 0xff) != -1)
+                {
+                    old[i] = p->accel_ptr[i].key;
+                    p->accel_ptr[i].key = key;
+                    p->accel_ptr[i].fVirt |= FVIRTKEY;
+                }
+            }
+        }
+        p->haccel = CreateAcceleratorTable(p->accel_ptr, p->accel_num);
+        if (p->haccel)
+        {   // 恢复原数据
+            for (i = 0; i < p->accel_num; ++i )
+            {
+                if (old[i] > 0)
+                {
+                    p->accel_ptr[i].key = old[i];
+                    p->accel_ptr[i].fVirt &= ~FVIRTKEY;
+                }
+            }
+        }
+        else
+        {
+            printf("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
+        }
+    }
+}
+
+bool WINAPI
 eu_load_config(HMODULE *pmod)
 {
+    int  m = 0;
+    bool ret = false;
     char *lua_path = NULL;
-    TCHAR path[MAX_PATH] = { 0 };
-    _sntprintf(path, MAX_PATH - 1, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
-    if ((lua_path = eu_utf16_utf8(path, NULL)) == NULL)
+    TCHAR path[MAX_PATH+1] = {0};
+    m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
+    if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
     {
-        return 1;
+        return false;
+    }
+    if (do_lua_func(lua_path, "run", "") != 0)
+    {
+        printf("eu_main.lua exec failed\n");
+        goto load_fail;
+    }
+    eu_safe_free(lua_path);
+    m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
+    if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
+    {
+        goto load_fail;
     }
     if (do_lua_parser_doctype(lua_path, "fill_my_docs"))
     {
-        printf("lua failed\n");
+        printf("eu_docs exec failed\n");
+        goto load_fail;
     }
     if (_stricmp(eu_get_config()->window_theme, "white") == 0)
     {
-        on_theme_set_classic(pmod);
-    }    
-    free(lua_path);
-    return 0;
+        ret = on_theme_set_classic(pmod);
+    }
+    else
+    {
+        ret = true;
+    }
+load_fail:
+    eu_safe_free(lua_path);
+    return ret;
 }
 
 void WINAPI
@@ -165,5 +227,6 @@ eu_load_file(void)
 {
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
+    on_config_create_accel();
 }
 

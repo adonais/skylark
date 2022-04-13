@@ -359,8 +359,15 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_DRAWCLIPBOARD:
+        {
             draw_clipboard();
+            HWND hwnd = GetClipboardOwner();
+            if (!(hwnd && (hwnd == eu_module_hwnd())))
+            {   // 不是16进制编辑器写剪贴板
+                hexview_set_area(0);
+            }
             break;
+        }
         case WM_CHANGECBCHAIN:
             if ((HWND) wParam == m_chain)
             {
@@ -863,7 +870,7 @@ on_toolbar_create(HWND parent)
     pop_toolbar_menu = i18n_load_menu(IDR_TOOLBAR_POPUPMENU);
     if (pop_toolbar_menu == NULL)
     {
-        printf("i18n_load_menu(IDR_TABPAGE_POPUPMENU) failed\n");
+        printf("i18n_load_menu(IDR_TOOLBAR_POPUPMENU) failed\n");
         return 1;
     }
     pop_toolbar_menu = GetSubMenu(pop_toolbar_menu, 0);
