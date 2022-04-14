@@ -21,10 +21,10 @@
 #include "framework.h"
 
 #define CHECK_IF(a) if ((a)!= 0) return false
-   
+
 enum {READ_FD, WRITE_FD};
 static int g_toolbar_height;
-static int fd_stdout;    
+static int fd_stdout;
 static int fd_pipe[2];
 static int m_index;
 static int m_locked;
@@ -139,7 +139,7 @@ on_toolbar_size(void)
             if ((GetWindowLongPtr(h_tool, GWL_STYLE) & WS_VISIBLE))
             {
                 ShowWindow(h_tool, SW_HIDE);
-            } 
+            }
             g_toolbar_height = 0;
         }
         else
@@ -161,7 +161,7 @@ on_toolbar_setpos_clipdlg(HWND hwnd, HWND hparent)
     RECT rc, rcparent;
     int width;
     int height;
-    if (!IsWindow(hwnd) || !IsWindow(hparent)) 
+    if (!IsWindow(hwnd) || !IsWindow(hparent))
     {
         return false;
     }
@@ -189,7 +189,7 @@ init_clip_dlg(HWND dialog)
     if (!(hicon = (HICON) LoadImage(eu_module_handle(), name, IMAGE_ICON, 16, 16, 0)))
     {
         return false;
-    }    
+    }
     // 在静态控件上加载图标.
     for (int i = 0; i < _countof(m_edit); ++i)
     {
@@ -257,31 +257,31 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             if (m_icon)
             {
                 SetClassLongPtr(hdlg, GCLP_HICONSM, (LONG_PTR)m_icon);
-            }            
+            }
             if (!init_clip_dlg(hdlg))
             {
                 return EndDialog(hdlg, 0);
             }
             if (on_dark_enable())
             {
-                const int buttons[] = {IDC_BUTTON0, 
-                                       IDC_BUTTON1, 
-                                       IDC_BUTTON2, 
-                                       IDC_BUTTON3, 
-                                       IDC_BUTTON4, 
-                                       IDC_BUTTON5, 
-                                       IDC_BUTTON6, 
-                                       IDC_BUTTON7, 
-                                       IDC_BUTTON8, 
-                                       IDC_BUTTON9, 
+                const int buttons[] = {IDC_BUTTON0,
+                                       IDC_BUTTON1,
+                                       IDC_BUTTON2,
+                                       IDC_BUTTON3,
+                                       IDC_BUTTON4,
+                                       IDC_BUTTON5,
+                                       IDC_BUTTON6,
+                                       IDC_BUTTON7,
+                                       IDC_BUTTON8,
+                                       IDC_BUTTON9,
                                        IDC_BUTTON10};
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
                     on_dark_set_theme(btn, L"Explorer", NULL);
                 }
                 on_dark_set_theme(hdlg, L"Explorer", NULL);
-            }          
+            }
             return 1;
         }
         case WM_THEMECHANGED:
@@ -290,18 +290,18 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_dark_allow_window(hdlg, true);
                 on_dark_refresh_titlebar(hdlg);
-                const int buttons[] = {IDC_BUTTON0, 
-                                       IDC_BUTTON1, 
-                                       IDC_BUTTON2, 
-                                       IDC_BUTTON3, 
-                                       IDC_BUTTON4, 
-                                       IDC_BUTTON5, 
-                                       IDC_BUTTON6, 
-                                       IDC_BUTTON7, 
-                                       IDC_BUTTON8, 
-                                       IDC_BUTTON9, 
+                const int buttons[] = {IDC_BUTTON0,
+                                       IDC_BUTTON1,
+                                       IDC_BUTTON2,
+                                       IDC_BUTTON3,
+                                       IDC_BUTTON4,
+                                       IDC_BUTTON5,
+                                       IDC_BUTTON6,
+                                       IDC_BUTTON7,
+                                       IDC_BUTTON8,
+                                       IDC_BUTTON9,
                                        IDC_BUTTON10};
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
                     on_dark_allow_window(btn, true);
@@ -314,7 +314,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     CASE_WM_CTLCOLOR_SET:
         {
             return on_dark_set_contorl_color(wParam);
-        }        
+        }
         case WM_COMMAND:
         {
             uint16_t wmid = LOWORD(wParam);
@@ -381,13 +381,13 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NOTIFY:
             break;
         case WM_SHOWWINDOW:
-        {    
+        {
             if (!IsWindowVisible(hdlg))
             {
                 printf("we get WM_SHOWWINDOW\n");
             }
             break;
-        }   
+        }
         case WM_CLOSE:
         {
             ShowWindow(hdlg, SW_HIDE);
@@ -443,7 +443,7 @@ create_img_list(INT res_id, UINT mask)
     return himg;
 }
 
-static uint32_t 
+static uint32_t
 where_mouse(HWND hwnd, POINT *lpt)
 {
     RECT rect;
@@ -453,7 +453,7 @@ where_mouse(HWND hwnd, POINT *lpt)
         if (!SendMessage(hwnd, TB_GETRECT, (WPARAM)i, (LPARAM)&rect))
         {
             break;
-        } 
+        }
         if (PtInRect(&rect, *lpt))
         {
             ret = i;
@@ -481,7 +481,7 @@ on_cmd_start(void)
     else
     {
         MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
-    } 
+    }
 }
 
 static bool
@@ -529,7 +529,7 @@ init_stdout_redirect(int size, FILE **pconsole)
     return ret;
 }
 
-static int 
+static int
 get_output_buffer(char *buffer, int size)
 {
     int read_len = _read(fd_pipe[READ_FD], buffer, size);
@@ -584,7 +584,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 }
                 free(std_buffer);
                 pnode->edit_show = true;
-                eu_window_resize(NULL);                
+                eu_window_resize(NULL);
             }
             free(buffer);
         }
@@ -625,7 +625,7 @@ do_extra_actions(void *lp)
                 CloseHandle(pfile);
                 _sntprintf(cmd_exec, MAX_BUFFER - 1, _T("%s %s"), abs_path, pname);
                 free(abs_path);
-                HANDLE handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL); 
+                HANDLE handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL);
                 if (handle)
                 {
                     WaitForSingleObject(handle, INFINITE);
@@ -636,9 +636,9 @@ do_extra_actions(void *lp)
                     *pactions = 0;
                     MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
                 }
-                DeleteFile(pname);  
-            }            
-        }         
+                DeleteFile(pname);
+            }
+        }
     }
     return 0;
 }
@@ -674,7 +674,7 @@ on_toolbar_execute_script(void)
             {
                 WideCharToMultiByte(CP_UTF8, 0, process, -1, eu_get_config()->m_actions[p->doc_ptr->doc_type], MAX_PATH-1, NULL, NULL);
                 CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, NULL, 0, NULL));
-            }        
+            }
         }
     }
 }
@@ -682,7 +682,7 @@ on_toolbar_execute_script(void)
 /*****************************************************************
  * 工具栏回调函数, 接受工具栏点击消息, 以及销毁自身资源
  *****************************************************************/
- 
+
 LRESULT CALLBACK
 toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -729,12 +729,12 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 {
                     on_toolbar_execute_script();
                     break;
-                }            
+                }
                 case IDM_CMD_TAB:
                 {   // 当前目录打开shell
                     on_cmd_start();
-                    break; 
-                }          
+                    break;
+                }
                 default:
                     break;
             }
@@ -772,7 +772,7 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (pop_toolbar_menu)
             {
                 DestroyMenu(pop_toolbar_menu);
-                pop_toolbar_menu = NULL;        
+                pop_toolbar_menu = NULL;
             }
             printf("toolbar WM_DESTROY\n");
             break;
@@ -837,14 +837,14 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->hex_mode?2:1);
             on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage != IDM_OTHER_BIN)?2:1);
             on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
-            on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);              
+            on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl()?2:1);
         }
     }
 }
 
-bool WINAPI 
+bool WINAPI
 on_toolbar_refresh(HWND hwnd)
 {
     HWND h_tool = NULL;
@@ -857,7 +857,7 @@ on_toolbar_refresh(HWND hwnd)
         DestroyWindow(h_tool);
         return on_toolbar_create(hwnd);
     }
-    return false;    
+    return false;
 }
 
 int WINAPI
@@ -913,7 +913,7 @@ on_toolbar_create(HWND parent)
         { 20, IDM_VIEW_FILETREE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 21, IDM_VIEW_SYMTREE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 22, IDM_VIEW_MODIFY_STYLETHEME, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
-        { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },           
+        { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
         { 23, IDM_VIEW_ZOOMOUT, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 24, IDM_VIEW_ZOOMIN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 25, IDM_VIEW_FULLSCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
@@ -931,7 +931,7 @@ on_toolbar_create(HWND parent)
         if ((img_list2 = create_img_list(IDB_TOOLBAR1, RGB(0xF0, 0xF0, 0xF0))) == NULL)
         {
             return 1;
-        }        
+        }
     }
     else
     {
@@ -942,7 +942,7 @@ on_toolbar_create(HWND parent)
         if ((img_list2 = create_img_list(IDB_TOOLBAR_DARK1, RGB(0xF0, 0xF0, 0xF0))) == NULL)
         {
             return 1;
-        }         
+        }
     }
     tb_size = sizeof(tb_cmd) / sizeof(TBBUTTON);
     for (int i = 0, j = 0; i < tb_size; ++i)
@@ -977,7 +977,7 @@ on_toolbar_create(HWND parent)
     if (!(tool_proc = (intptr_t)SetWindowLongPtr(htool, GWLP_WNDPROC, (intptr_t)toolbar_proc)))
     {
         printf("SetWindowLongPtr(htool) failed\n");
-        return 1;   
+        return 1;
     }
     SetWindowLongPtr(htool, GWLP_USERDATA, tool_proc);
     SendMessage(htool, TB_BUTTONSTRUCTSIZE, (WPARAM) sizeof(TBBUTTON), 0);

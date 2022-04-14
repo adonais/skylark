@@ -90,7 +90,7 @@ static const char *plus_xpm[] =
 
 static doctype_t* g_doc_config;
 
-static int
+static void
 init_sc_fold(eu_tabpage *pnode)
 {
     // 启用折叠
@@ -146,11 +146,6 @@ init_sc_fold(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, (LPARAM)"\xC2\xB7\xC2\xB7\xC2\xB7");
     // 高亮显示当前折叠块
     eu_sci_call(pnode, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
-    // 指示出不匹配的大括号
-    eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
-    // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
-    eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
-    return 0;
 }
 
 // (*init_before_ptr)
@@ -288,20 +283,18 @@ on_doc_set_keyword(eu_tabpage *pnode, int index)
 }
 
 // (*init_after_ptr)
-int
-on_doc_enable_scilexer(eu_tabpage *pnode, int lex)
+void
+on_doc_init_after_scilexer(eu_tabpage *pnode, int lex)
 {
-    int res = 0;
     if (pnode)
     {
         eu_sci_call(pnode, SCI_SETLEXER, lex, 0);
         if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
         {
-            res = pnode->doc_ptr->fn_reload_symlist(pnode);
+            pnode->doc_ptr->fn_reload_symlist(pnode);
         }
         init_sc_fold(pnode);
     }
-    return res;
 }
 
 void
