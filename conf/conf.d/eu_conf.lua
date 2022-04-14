@@ -34,6 +34,8 @@ function eu_conf.loadconf()
         "window_statusbar_visiable = true\n" ..
         "line_number_visiable = true\n" ..
         "bookmark_visiable = true\n" ..
+        "bookmark_shape = 32\n" ..
+        "bookmark_argb = 0x28408040\n" ..
         "white_space_visiable = false\n" ..
         "white_space_size = 3\n" ..
         "newline_visiable = false\n" ..
@@ -82,6 +84,14 @@ function eu_conf.loadconf()
     else
         eu_code = dofile(file)
     end
+    local m_bookmark_shape = 32
+    local m_bookmark_argb = 0x2408040
+    if (bookmark_shape ~= nil and bookmark_shape >=0) then
+        m_bookmark_shape = bookmark_shape
+    end
+    if (bookmark_argb ~= nil and bookmark_argb >=0) then
+        m_bookmark_argb = bookmark_argb
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -94,6 +104,8 @@ function eu_conf.loadconf()
         window_statusbar_visiable,
         line_number_visiable,
         bookmark_visiable,
+        bookmark_shape,
+        bookmark_argb,
         white_space_visiable,
         white_space_size,
         newline_visiable,

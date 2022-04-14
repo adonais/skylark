@@ -59,7 +59,7 @@
 
 #define MARGIN_BOOKMARK_INDEX        1
 #define MARGIN_BOOKMARK_WIDTH        16
-#define MARGIN_BOOKMARK_MASKN        SC_MARK_BOOKMARK
+#define MARGIN_BOOKMARK_MASKN        1
 #define MARGIN_BOOKMARK_VALUE        0
 
 #define MARGIN_FOLD_INDEX            2

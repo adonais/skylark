@@ -30,15 +30,13 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
     eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, eu_get_theme()->item.text.bgcolor);
     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
-
     eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
-
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_LINENUMBER_INDEX, SC_MARGIN_NUMBER);
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor); 
     if (eu_get_config()->m_linenumber)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, MARGIN_LINENUMBER_WIDTH);
@@ -47,11 +45,13 @@ on_sci_init_style(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
     }
-    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_BOOKMARK_INDEX, SC_MARGIN_SYMBOL);
-    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_BOOKMARK_INDEX, MARGIN_BOOKMARK_MASKN);
-    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->bookmark_visable ? MARGIN_BOOKMARK_WIDTH : 0));
+    // 书签栏样式
     eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_BOOKMARK_INDEX, TRUE);
-
+    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->bookmark_visable ? MARGIN_BOOKMARK_WIDTH : 0));
+    eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_shape);
+    eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
+    eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
+    // 代码折叠栏颜色与亮量颜色
     eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     // 当前行背景色
@@ -69,7 +69,6 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
     // 设置换行符
     eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
-
     if (pnode->doc_ptr)
     {
         eu_sci_call(pnode, SCI_SETTABWIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width, 0);
@@ -86,7 +85,6 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
     // 是否显示对齐线
     eu_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
-
     eu_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
     eu_sci_call(pnode, SCI_SETADDITIONALSELECTIONTYPING, true, 0);
     eu_sci_call(pnode, SCI_SETVIRTUALSPACEOPTIONS, 1, 0);

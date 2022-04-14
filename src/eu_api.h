@@ -186,6 +186,8 @@ struct eu_config
     bool m_linenumber;
     
     bool bookmark_visable;
+    int  bookmark_shape;
+    uint32_t bookmark_argb;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;

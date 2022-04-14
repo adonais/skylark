@@ -1568,6 +1568,8 @@ eu_save_config(void)
         "window_statusbar_visiable = %s\n"
         "line_number_visiable = %s\n"
         "bookmark_visiable = %s\n"
+        "bookmark_shape = %d\n"
+        "bookmark_argb = 0x%08X\n"
         "white_space_visiable = %s\n"
         "white_space_size = %d\n"
         "newline_visiable = %s\n"
@@ -1640,6 +1642,8 @@ eu_save_config(void)
               g_config->m_statusbar?"true":"false",
               g_config->m_linenumber?"true":"false",
               g_config->bookmark_visable?"true":"false",
+              g_config->bookmark_shape,
+              g_config->bookmark_argb,
               g_config->ws_visiable?"true":"false",
               g_config->ws_size,
               g_config->newline_visialbe?"true":"false",
