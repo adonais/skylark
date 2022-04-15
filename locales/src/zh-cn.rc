@@ -106,12 +106,20 @@ BEGIN
             MENUITEM "合并行",                                  IDM_EDIT_JOINLINE
             MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
             MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
+            MENUITEM MF_SEPARATOR
+            MENUITEM "升序排列文本行(字典顺序)",                IDM_EDIT_ASCENDING_SORT
+            MENUITEM "升序排列文本行(忽略大小写)",              IDM_EDIT_ASCENDING_SORT_IGNORECASE
+            MENUITEM "降序排列文本行(字典顺序)",                IDM_EDIT_DESCENDING_SORT
+            MENUITEM "降序排列文本行(忽略大小写)",              IDM_EDIT_DESCENDING_SORT_IGNORECASE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "大小写转换",                                     IDM_EDIT_PLACEHOLDE6
+        POPUP "转换",                                           IDM_EDIT_PLACEHOLDE6
         BEGIN
             MENUITEM "转小写",                                  IDM_EDIT_LOWERCASE
             MENUITEM "转大写",                                  IDM_EDIT_UPPERCASE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "制表符转空格",                            IDM_EDIT_TAB_SPACE
+            MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
         POPUP "选区操作(&O)"

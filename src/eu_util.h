@@ -62,7 +62,7 @@ int util_get_hex_byte(const char *p);
 
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
-char*  util_strdup_line(eu_tabpage *pnode, size_t *plen);
+char*  util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen);
 char*  util_strdup_content(eu_tabpage *pnode, size_t *plen);
 void   util_push_text_dlg(eu_tabpage *pnode, HWND hwnd);
 void   util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable);

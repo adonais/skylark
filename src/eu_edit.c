@@ -555,7 +555,7 @@ on_edit_ssl_enc_base64(unsigned char *base64_pass, unsigned char *enc_str, int e
     bool res = false;
     char *fn_name[1] = {"EVP_EncodeBlock"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);  
+    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         if (((eu_evp_encodeblock)pfunc[0])(base64_pass, enc_str, enc_len) >= 0)
@@ -621,7 +621,7 @@ on_edit_ssl_dec_base64(unsigned char *base64_pass, unsigned char *enc_str, int e
     bool res = false;
     char *fn_name[1] = {"EVP_DecodeBlock"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);  
+    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         if (((eu_evp_decodeblock)pfunc[0])(base64_pass, enc_str, enc_len) >= 0)
@@ -696,7 +696,7 @@ on_edit_md5(eu_tabpage *pnode)
     if (pnode->hex_mode)
     {
         return EUE_UNKOWN_ERR;
-    }    
+    }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
         printf("memory allocation failed\n");
@@ -704,7 +704,7 @@ on_edit_md5(eu_tabpage *pnode)
     }
     char *fn_name[1] = {"MD5"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);  
+    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         ((eu_md5)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
@@ -840,18 +840,9 @@ on_edit_descbc_enc(eu_tabpage *pnode)
         util_hex_expand(out_text, (int) out_len, text_exp);
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
     }while(0);
-    if (sel_text)
-    {
-        free(sel_text);
-    }
-    if (out_text)
-    {
-        free(out_text);
-    }
-    if (text_exp)
-    {
-        free(text_exp);
-    }
+    eu_safe_free(sel_text);
+    eu_safe_free(out_text);
+    eu_safe_free(text_exp);
     return err;
 }
 
@@ -912,18 +903,9 @@ on_edit_descbc_dec(eu_tabpage *pnode)
         util_dec_des_cbc_192((unsigned char *) key, (unsigned char *) input_text, (int) input_len, (unsigned char *) out_text, &out_len, NULL);
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
     } while(0);
-    if (sel_text)
-    {
-        free(sel_text);
-    }
-    if (input_text)
-    {
-        free(input_text);
-    }
-    if (out_text)
-    {
-        free(out_text);
-    }
+    eu_safe_free(sel_text);
+    eu_safe_free(input_text);
+    eu_safe_free(out_text);
     return err;
 }
 
@@ -1024,7 +1006,7 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
     sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     const int cch_comment = (int) strlen(pcomment);
-    util_effect_line(pnode, &line_start, &line_end);    
+    util_effect_line(pnode, &line_start, &line_end);
     sptr_t comment_col = 0;
     if (!at_start)
     {
@@ -1248,20 +1230,20 @@ on_edit_comment_line(eu_tabpage *pnode)
             break;
         case DOCTYPE_FORTRAN:
             eu_toggle_comment(pnode, "! ", false);
-            break;            
+            break;
         case DOCTYPE_COBOL:
             eu_toggle_comment(pnode, "* ", false);
             break;
         case DOCTYPE_JULIA:
             eu_toggle_comment(pnode, "# ", false);
-            break;            
+            break;
         case DOCTYPE_SH:
         {
             TCHAR *sp = on_doc_get_ext(pnode);
             if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
             {
                 eu_toggle_comment(pnode, "@rem ", false);
-            }         
+            }
             else
             {
                 eu_toggle_comment(pnode, "# ", false);
@@ -1337,7 +1319,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
             break;
         case DOCTYPE_JULIA:
             on_comment_newline(pnode, "#=", "=#");
-            break;            
+            break;
         case DOCTYPE_SH:
         {
             TCHAR *sp = on_doc_get_ext(pnode);
@@ -1406,5 +1388,156 @@ on_edit_undo_eol(eu_tabpage *pnode)
         pnode->eol = old_eol;
         eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
         on_statusbar_update_eol(pnode);
+    }
+}
+
+static inline int
+str_ascending_compare(const void *p1, const void *p2)
+{
+    return strcmp(*(char **) p1, *(char **) p2);
+}
+
+static inline int
+str_descending_compare(const void *p1, const void *p2)
+{
+    return -strcmp(*(char **) p1, *(char **) p2);
+}
+
+static inline int
+stri_ascending_compare(const void *p1, const void *p2)
+{
+    return stricmp(*(char **) p1, *(char **) p2);
+}
+
+static inline int
+stri_descending_compare(const void *p1, const void *p2)
+{
+    return -stricmp(*(char **) p1, *(char **) p2);
+}
+
+void
+on_edit_sorting(eu_tabpage *pnode, int wm_id)
+{
+    int i = 0;
+    int count = 0;
+    bool neol = false;
+    bool has_lineselection = false;
+    char **ppline = NULL;
+    sptr_t cur_line = 0;
+    sptr_t cur_line_start =  0;
+    sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t anchor_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+    const char *str_eol = on_encoding_get_eol(pnode);
+    if (cur_pos == anchor_pos)
+    {
+        count = eu_int_cast(eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0));
+    }
+    else
+    {
+        if (!eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+        {   // 行选中状态下的部分排序
+            sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+            sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+            cur_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
+            cur_line_start =  eu_sci_call(pnode, SCI_POSITIONFROMLINE, cur_line, 0);
+            sptr_t eol_line =  eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
+            sptr_t eol_line_end =  eu_sci_call(pnode, SCI_GETLINEENDPOSITION, eol_line, 0);
+            if (!(sel_start != cur_line_start || sel_end != eol_line_end))
+            {   // 正确的选中, 行头--行末
+                count = eu_int_cast(eol_line - cur_line);
+                if (count < 1)
+                {
+                    goto sorting_clean;
+                }
+                ++count;
+                has_lineselection = true;
+            }
+        }
+        else
+        {
+            MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            goto sorting_clean;
+        }
+    }
+    if (count < 2 || count > UINT16_MAX)
+    {   // 最多排序65535行, 因为内存可能不足
+        return;
+    }
+    if (!(ppline = (char**)calloc(1, sizeof(char*) * count)))
+    {
+        return;
+    }
+    for (i = 0; i < count; ++i)
+    {   //分配ppline[]中的数组元素, 指针变量
+        *(ppline + i) = util_strdup_line(pnode, cur_line++, NULL);
+        if (*(ppline + i) == NULL)
+        {
+            goto sorting_clean;
+        }
+    }
+    --i;// 查看最后一行是否存在换行符
+    if (ppline[i][strlen(ppline[i]) - 1] == on_encoding_eol_char(pnode))
+    {
+        !has_lineselection ? neol = true : (void)0;
+    }
+    else
+    {   // util_strdup_line内存分配时多出了3个字节, 所以不存在越界问题
+        strcat(ppline[i], str_eol);
+    }
+    switch (wm_id)
+    {
+        case IDM_EDIT_ASCENDING_SORT:
+            qsort(ppline, count, sizeof(char *), str_ascending_compare);
+            break;
+        case IDM_EDIT_DESCENDING_SORT:
+            qsort(ppline, count, sizeof(char *), str_descending_compare);
+            break;
+        case IDM_EDIT_ASCENDING_SORT_IGNORECASE:
+            qsort(ppline, count, sizeof(char *), stri_ascending_compare);
+            break;
+        case IDM_EDIT_DESCENDING_SORT_IGNORECASE:
+            qsort(ppline, count, sizeof(char *), stri_descending_compare);
+            break;
+        default:
+            goto sorting_clean;
+    }
+    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+    if (!has_lineselection)
+    {
+        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+    }
+    else
+    {
+        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)(""));
+    }
+    for (i = 0; i < count; i++)
+    {
+        if (!neol && i == count -1)
+        {
+            char *p = strstr(ppline[i], str_eol);
+            if (p)
+            {
+                *p = 0;
+            }
+        }
+        if (!has_lineselection)
+        {
+            eu_sci_call(pnode, SCI_APPENDTEXT, strlen(ppline[i]), (LPARAM) (ppline[i]));
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_INSERTTEXT, cur_line_start, (LPARAM) (ppline[i]));
+            cur_line_start += strlen(ppline[i]);
+        }
+    }
+    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+sorting_clean:
+    if (ppline)
+    {
+        for (i = 0; i < count; i++)
+        {
+            eu_safe_free(*(ppline + i));
+        }
+        free(ppline);
     }
 }

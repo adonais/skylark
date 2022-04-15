@@ -846,24 +846,42 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
 }
 
 char *
-util_strdup_line(eu_tabpage *pnode, size_t *plen)
+util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen)
 {
     sptr_t line;
     sptr_t text_len;
-    sptr_t cur_pos;
     sptr_t buf_len = 0;
     char *ptext = NULL;
     if (!pnode)
     {
         return NULL;
     }
-    cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
+    if (line_number < 0)
+    {
+        sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
+    }
+    else
+    {
+        line = line_number;
+    }
+    if (line < 0)
+    {
+        return NULL;
+    }
     text_len = eu_sci_call(pnode, SCI_LINELENGTH, line, 0);
-    ptext = text_len > 0 ? malloc(text_len+1) : NULL;
-    buf_len = eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
+    if (!text_len)
+    {
+        sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        if (row == -1)
+        {
+            text_len = -1;
+        }
+    }
+    ptext = text_len >= 0 ? malloc(text_len+3) : NULL;
     if (ptext)
     {
+        buf_len = eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
         ptext[buf_len] = 0;
         if (plen)
         {

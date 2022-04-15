@@ -858,6 +858,12 @@
 #define IDM_EDIT_PLACEHOLDE18               42818
 #define IDM_EDIT_PLACEHOLDE19               42819
 #define IDM_EDIT_PLACEHOLDE20               42820
+#define IDM_EDIT_ASCENDING_SORT             42821
+#define IDM_EDIT_DESCENDING_SORT            42822
+#define IDM_EDIT_ASCENDING_SORT_IGNORECASE  42823
+#define IDM_EDIT_DESCENDING_SORT_IGNORECASE 42824
+#define IDM_EDIT_TAB_SPACE                  42825
+#define IDM_EDIT_SPACE_TAB                  42826
 
 #define IDR_HEXVIEW_MENU                    42830
 #define IDM_HEXVIEW_1                       42831

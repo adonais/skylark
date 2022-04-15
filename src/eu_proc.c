@@ -887,12 +887,24 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_STREAMCOMMENT:
                     on_edit_comment_stream(pnode);
                     break;
+                case IDM_EDIT_ASCENDING_SORT:
+                case IDM_EDIT_ASCENDING_SORT_IGNORECASE:
+                case IDM_EDIT_DESCENDING_SORT:
+                case IDM_EDIT_DESCENDING_SORT_IGNORECASE:
+                    on_edit_sorting(pnode, wm_id);
+                    break;
                 case IDM_EDIT_LOWERCASE:
                     on_edit_lower(pnode);
                     break;
                 case IDM_EDIT_UPPERCASE:
                     on_edit_upper(pnode);
                     break;
+                case IDM_EDIT_TAB_SPACE:
+                    on_search_tab2space(pnode);
+                    break;
+                case IDM_EDIT_SPACE_TAB:
+                    on_search_space2tab(pnode);
+                    break;                    
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();
                     break;

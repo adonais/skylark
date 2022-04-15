@@ -106,12 +106,20 @@ BEGIN
             MENUITEM "&Join Lines",                                    IDM_EDIT_JOINLINE
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Sort Lines Lexicographically Ascending",         IDM_EDIT_ASCENDING_SORT
+            MENUITEM "Sort Lines Lex. Ascending Ignoring Case",        IDM_EDIT_ASCENDING_SORT_IGNORECASE
+            MENUITEM "Sort Lines Lexicographically Descending",        IDM_EDIT_DESCENDING_SORT
+            MENUITEM "Sort Lines Lex. Descending Ignoring Case",       IDM_EDIT_DESCENDING_SORT_IGNORECASE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Toggle Case",                                           IDM_EDIT_PLACEHOLDE6
+        POPUP "Convert",                                               IDM_EDIT_PLACEHOLDE6
         BEGIN
             MENUITEM "Lower Case",                                     IDM_EDIT_LOWERCASE
             MENUITEM "Upper Case",                                     IDM_EDIT_UPPERCASE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "TAB To Space",                                   IDM_EDIT_TAB_SPACE
+            MENUITEM "Space To TAB",                                   IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
         POPUP "Action &On Selection"

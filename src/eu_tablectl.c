@@ -850,7 +850,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
         sel_len = sel_end - sel_start;
         if (sel_len <= 0)
         {
-            sel_sql = util_strdup_line(pnode, NULL);
+            sel_sql = util_strdup_line(pnode, -1, NULL);
         }
         else
         {

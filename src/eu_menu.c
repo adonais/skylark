@@ -113,6 +113,7 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_EDIT_UNDO, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_REDO, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_DELETE, !hex_mode);
+        util_enable_menu_item(root_menu, IDM_EDIT_PASTE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE1, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE2, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE3, !hex_mode);
@@ -404,7 +405,7 @@ menu_update_item(HMENU menu)
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
                         break;
-                    case IDM_SOURCEE_ENABLE_ACSHOW:   /* Programming menu */
+                    case IDM_PROGRAM_EXECUTE_ACTION:  /* Programming menu */
                         util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->m_acshow);
                         util_update_menu_chars(menu, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
                         util_set_menu_item(menu, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->m_ctshow);
@@ -430,7 +431,7 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
                         break;
-                    case IDM_DONATION:
+                    case IDM_ABOUT:                   /* Settings menu */
                         util_enable_menu_item(menu, IDM_DONATION, util_exist_libcurl());
                         break;
                     default:

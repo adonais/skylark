@@ -3093,6 +3093,100 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+static void
+on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace)
+{
+    sptr_t fpos = -1;
+    sptr_t pos = 0;
+    sptr_t max_pos = 0;
+    const int flags = SCFIND_REGEXP;
+    sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t anchor_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+    if (!(pnode && key && str_replace))
+    {
+        return;
+    }
+    if (cur_pos == anchor_pos)
+    {
+        max_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+    }
+    else if (!eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    {
+        pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        max_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    }
+    else
+    {
+        MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+        return;
+    }
+    if (max_pos - pos < (sptr_t)strlen(str_replace))
+    {
+        return;
+    }
+    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+    while (pos < max_pos && (fpos = on_search_process_find(pnode, key, pos, max_pos, flags)) > 0)
+    {
+        sptr_t target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+        eu_sci_call(pnode, SCI_SETSELECTION, fpos, target_end);
+        int re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str_replace);
+        pos = fpos + re_len;
+        // 替换后, 末尾位置发生了变化, 要减去或加上差值
+        max_pos -= ((int)(target_end - fpos) - re_len);
+    }
+    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    if (pos > 1)
+    {
+        eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+    }
+}
+
+void
+on_search_tab2space(eu_tabpage *pnode)
+{
+    int flags = SCFIND_REGEXP;
+    char str_replace[ACNAME_LEN] = {0};
+    const char *key = "\t";
+    int number = 0;
+    if (!pnode)
+    {
+        return;
+    }
+    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
+    {
+        number = pnode->doc_ptr->tab_width;
+    }
+    else
+    {
+        number = eu_get_config()->tab_width;
+    }
+    memset(str_replace, 0x20, number);
+    on_search_do_space(pnode, key, str_replace);
+}
+
+void
+on_search_space2tab(eu_tabpage *pnode)
+{
+    int flags = SCFIND_REGEXP;
+    char key[ACNAME_LEN] = {0};
+    const char *str_replace = "\t";
+    int number = 0;
+    if (!pnode)
+    {
+        return;
+    }
+    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
+    {
+        number = pnode->doc_ptr->tab_width;
+    }
+    else
+    {
+        number = eu_get_config()->tab_width;
+    }
+    memset(key, 0x20, number);
+    on_search_do_space(pnode, key, str_replace);
+}
+
 bool
 on_search_create_box(void)
 {
