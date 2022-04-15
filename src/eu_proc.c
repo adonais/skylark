@@ -96,7 +96,7 @@ adjust_window_rect_dpi(LPRECT lpRect, DWORD dwStyle, DWORD dwExStyle, UINT dpi)
     AdjustWindowRectExForDpiPtr fnAdjustWindowRectExForDpi = NULL;
     HMODULE user32 = GetModuleHandle(_T("user32.dll"));
     fnAdjustWindowRectExForDpi = user32 ? (AdjustWindowRectExForDpiPtr)GetProcAddress(user32, "AdjustWindowRectExForDpi") : NULL;
-    if (fnAdjustWindowRectExForDpi) 
+    if (fnAdjustWindowRectExForDpi)
     {
         return fnAdjustWindowRectExForDpi(lpRect, dwStyle, FALSE, dwExStyle, dpi);
     }
@@ -172,16 +172,16 @@ eu_get_dpi(HWND hwnd)
     return dpi;
 }
 
-void 
+void
 eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
 {
     const uint32_t flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED;
-    if (pnew_rect) 
+    if (pnew_rect)
     {
         SetWindowPos(hwnd, NULL, pnew_rect->left, pnew_rect->top,
                     (pnew_rect->right - pnew_rect->left), (pnew_rect->bottom - pnew_rect->top), flags);
-    } 
-    else 
+    }
+    else
     {
         RECT rc = {0};
         GetWindowRect(hwnd, &rc);
@@ -313,7 +313,7 @@ eu_window_resize(HWND hwnd)
                        rect_filetree.top,
                        rect_filetree.right - rect_filetree.left,
                        rect_filetree.bottom - rect_filetree.top,
-                       SWP_SHOWWINDOW);                       
+                       SWP_SHOWWINDOW);
         ShowWindow(g_treebar, SW_SHOW);
         ShowWindow(g_filetree, SW_SHOW);
         UpdateWindow(g_treebar);
@@ -465,7 +465,7 @@ eu_window_resize(HWND hwnd)
                          pnode->rect_sc.right - pnode->rect_sc.left,
                          pnode->rect_sc.bottom - pnode->rect_sc.top,
                          SWP_SHOWWINDOW);
-            
+
         }
     }
     on_toolbar_size();
@@ -500,7 +500,7 @@ eu_before_proc(MSG *p_msg)
         {
             on_sci_insert_egg(pnode);
             return 1;
-        } 
+        }
     }
     if (p_msg->message == WM_MOUSEMOVE)
     {
@@ -547,7 +547,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 return DefWindowProc(hwnd, message, wParam, lParam);
             }
-            return 1;    
+            return 1;
         case WM_CREATE:
             if (on_create_window(hwnd))
             {
@@ -587,7 +587,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {   // 重新绘制分割线
                     FillRect(hdc, &rect_tree, (HBRUSH)on_dark_get_brush());
                 }
-                ReleaseDC(hwnd, hdc);                
+                ReleaseDC(hwnd, hdc);
             }
             return result;
         }
@@ -618,7 +618,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 0;
         case WM_INITMENUPOPUP:
             menu_update_item((HMENU)wParam);
-            return 0;   
+            return 0;
         case WM_DPICHANGED:
         {
             on_theme_setup_font(hwnd);
@@ -759,7 +759,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_WRITE_COPY:
                     on_file_backup_menu();
-                    break;                    
+                    break;
                 case IDM_FILE_SESSION:
                     on_file_session_menu();
                     break;
@@ -904,7 +904,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_SPACE_TAB:
                     on_search_space2tab(pnode);
-                    break;                    
+                    break;
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();
                     break;
@@ -1094,7 +1094,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_VIEW_HIGHLIGHT_FOLD:
                     on_view_light_fold(hwnd);
-                    break; 
+                    break;
                 case IDM_FORMAT_REFORMAT:
                     format_do_json_file(pnode, format_do_json_string);
                     on_symtree_json(pnode);
@@ -1106,7 +1106,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_symtree_json(pnode);
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
-                    break; 
+                    break;
                 case IDM_FORMAT_WHOLE_FILE:
                     format_file_with_clang(pnode);
                     if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
@@ -1170,10 +1170,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_code_switch_fold(pnode);
                     break;
                 case IDM_SOURCE_BLOCKFOLD_CONTRACT:
-                    on_code_block_contract(pnode);
+                    on_code_block_contract(pnode, -1);
                     break;
                 case IDM_SOURCE_BLOCKFOLD_EXPAND:
-                    on_code_block_expand(pnode);
+                    on_code_block_expand(pnode, -1);
                     break;
                 case IDM_SOURCE_BLOCKFOLD_CONTRACTALL:
                     on_code_block_contract_all(pnode);
@@ -1208,7 +1208,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_DATABASE_INSERT_CONFIG:  // 插入sql头
                     on_code_insert_config(pnode);
-                    break;                  
+                    break;
                 case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql,redis
                     on_view_result_show(pnode, 0);
                     break;
@@ -1380,7 +1380,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             }
                             else
                             {
-                                eu_get_config()->result_edit_height = 
+                                eu_get_config()->result_edit_height =
                                     pnode->rect_qredit.bottom - y - SPLIT_WIDTH - eu_get_config()->result_list_height;
                             }
                             if (eu_get_config()->result_edit_height < SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
@@ -1478,7 +1478,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         {
                             LPNMLVCUSTOMDRAW lpvcd = (LPNMLVCUSTOMDRAW)lParam;
                             if (lpvcd)
-                            {           
+                            {
                                 if (lpvcd->nmcd.dwDrawStage == CDDS_PREPAINT)
                                 {
                                     return CDRF_NOTIFYITEMDRAW;
@@ -1504,11 +1504,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         break;
                     }
-                    if (dispinfo->item.mask & HVIF_ADDRESS) 
+                    if (dispinfo->item.mask & HVIF_ADDRESS)
                     {
                         dispinfo->item.address = dispinfo->item.number_items;
                     }
-                    else if (dispinfo->item.mask & HVIF_BYTE) 
+                    else if (dispinfo->item.mask & HVIF_BYTE)
                     {
                         uint8_t *base = (uint8_t *)(pnode->phex->pbase + dispinfo->item.number_items);
                         dispinfo->item.value = *base;
@@ -1623,7 +1623,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 on_toolbar_setup_button(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
                                 on_toolbar_setup_button(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
-                            }                            
+                            }
                         }
                         on_statusbar_update_filesize(pnode);
                     }
@@ -1740,7 +1740,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_DESTROY:
-            {   
+            {
                 on_destory_window(hwnd);
                 printf("main window WM_DESTROY\n");
                 break;
@@ -1795,7 +1795,7 @@ eu_create_main_window(HINSTANCE instance)
         icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
         icex.dwICC = ICC_TAB_CLASSES | ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_USEREX_CLASSES;
         if (InitCommonControlsEx(&icex))
-        {            
+        {
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
             eu_hwndmain = hwnd = CreateWindowEx(WS_EX_ACCEPTFILES, APP_CLASS, app_title, ac_flags, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, instance, NULL);
             HMENU menu = hwnd && eu_get_config()->m_menubar ? i18n_load_menu(IDC_SKYLARK) : NULL;

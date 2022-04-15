@@ -95,20 +95,10 @@ init_sc_fold(eu_tabpage *pnode)
 {
     // 启用折叠
     eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold", (sptr_t) "1");
-    // by adonais
-    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.comment", (sptr_t) "1");
-    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.preprocessor", (sptr_t) "1");
-    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.compact", (sptr_t) "0");
     if (pnode->doc_ptr && pnode->doc_ptr->doc_type > 0)
     {
         switch (pnode->doc_ptr->doc_type)
         {
-        case DOCTYPE_HTML:
-        case DOCTYPE_XML:
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.html", (sptr_t) "1");
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.comment", (sptr_t) "1");
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.heredoc", (sptr_t) "1");
-            break;
         case DOCTYPE_CSS:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.scss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".scss")) == 0)? "1" : "0"));
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.less.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".less")) == 0)? "1" : "0"));
@@ -146,6 +136,8 @@ init_sc_fold(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, (LPARAM)"\xC2\xB7\xC2\xB7\xC2\xB7");
     // 高亮显示当前折叠块
     eu_sci_call(pnode, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
+    // 行变更时, 自动展开
+    eu_sci_call(pnode, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE, 0);
 }
 
 // (*init_before_ptr)
@@ -2241,10 +2233,10 @@ on_doc_brace_handling(eu_tabpage *pnode)
 {
     sptr_t match_pos = -1;
     sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
     int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
     if (strchr(")]}>", ch))
     {   // 使右括号与左括号对齐
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
         sptr_t line_startpos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, false);
         sptr_t linepos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
         if (line_startpos == linepos && ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))

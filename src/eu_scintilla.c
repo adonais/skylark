@@ -36,7 +36,7 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor); 
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);
     if (eu_get_config()->m_linenumber)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, MARGIN_LINENUMBER_WIDTH);
@@ -468,7 +468,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (pnode->doc_ptr && pnode->doc_ptr->fn_keyup)
             {
-                pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
+                if (!(lParam & (1 << 24)))
+                {
+                    pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
+                }
             }
             on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);

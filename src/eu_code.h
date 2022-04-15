@@ -29,8 +29,8 @@ extern "C" {
 #endif
 
 void on_code_switch_fold(eu_tabpage *pnode);
-void on_code_block_contract(eu_tabpage *pnode);
-void on_code_block_expand(eu_tabpage *pnode);
+void on_code_block_contract(eu_tabpage *pnode, sptr_t line_number);
+void on_code_block_expand(eu_tabpage *pnode, sptr_t line_number);
 void on_code_block_contract_all(eu_tabpage *pnode);
 void on_code_block_expand_all(eu_tabpage *pnode);
 void on_code_set_complete_chars(eu_tabpage *pnode);
