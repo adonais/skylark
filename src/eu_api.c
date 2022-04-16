@@ -2241,26 +2241,6 @@ eu_sci_register(HINSTANCE hinstance)
 }
 
 int
-eu_sci_release(void)
-{
-    return Scintilla_ReleaseResources();
-}
-
-sptr_t
-eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
-{
-    if (!p)
-    {
-        return 0;
-    }
-    if (!(p->ptr_scintilla && p->eusc))
-    {
-        return SendMessage(p->hwnd_sc, m, w, l);
-    }
-    return p->ptr_scintilla(p->eusc, m, w, l);
-}
-
-int
 eu_iconvctl(iconv_t cd, int request, void* argument)
 {
     return iconvctl(cd, request, argument);

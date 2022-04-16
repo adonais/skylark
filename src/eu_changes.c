@@ -53,18 +53,15 @@ set_box_vaule(HWND hdlg)
 static INT_PTR CALLBACK
 file_exist_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
+    eu_tabpage *p = NULL;
     switch (message)
     {
         case WM_INITDIALOG:
             HWND hdis = NULL;
-            const TCHAR *filename = ((eu_tabpage *) lParam)->pathfile;
+            p = (eu_tabpage *) lParam;
+            const TCHAR *filename = p->pathfile;
             TCHAR txt[LEN_TXT + 1] = { 0 };
-            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SKYLARK));
-            if (m_icon)
-            {
-                SetClassLongPtr(hdlg, GCLP_HICONSM, (LONG_PTR) m_icon);
-                SetWindowLongPtr(hdlg, GWLP_USERDATA, lParam);
-            }
+            SetWindowLongPtr(hdlg, GWLP_USERDATA, lParam);
             hdis = GetDlgItem(hdlg, IDC_NOEXIST_STC1);
             if (hdis != NULL)
             {
@@ -76,6 +73,7 @@ file_exist_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 _sntprintf(stxt, LEN_TXT, txt, filename);
                 Static_SetText(hdis, stxt);
             }
+            SendMessage(hdlg, DM_SETDEFID, IDC_NOEXIST_BTN4, 0);
             if (on_dark_enable())
             {
                 const int buttons[] = { IDC_NOEXIST_BTN1, IDC_NOEXIST_BTN2, IDC_NOEXIST_BTN3, IDC_NOEXIST_BTN4 };
@@ -86,7 +84,7 @@ file_exist_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 }
                 on_dark_set_theme(hdlg, L"Explorer", NULL);
             }
-            return 1;
+            return util_creater_window(hdlg, eu_module_hwnd());
         CASE_WM_CTLCOLOR_SET:
         {
             return on_dark_set_contorl_color(wParam);
@@ -119,37 +117,38 @@ file_exist_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
         case WM_COMMAND:
         {
             WORD mid = LOWORD(wParam);
-            eu_tabpage *p = NULL;
             switch (mid)
             {
                 case IDC_NOEXIST_BTN1:
                     _InterlockedExchange(&keep_mask, FILE_KEEP_ALL_YES);
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    SendMessage(hdlg, WM_CLOSE, 0, 0);
+                    break;
                 case IDC_NOEXIST_BTN2:
                     _InterlockedExchange(&keep_mask, FILE_KEEP_ALL_NO);
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    SendMessage(hdlg, WM_CLOSE, 0, 0);
+                    break;
                 case IDC_NOEXIST_BTN3:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
                         on_tabpage_reload_file(p, 0);
                         p->st_mtime = 0;
                         _InterlockedExchange(&keep_mask, FILE_KEEP_YES);
+                        SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    break;
                 case IDC_NOEXIST_BTN4:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
                         on_tabpage_reload_file(p, 1);
                         _InterlockedExchange(&keep_mask, FILE_KEEP_NO);
+                        SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    break;
                 default:
                     break;
             }
             break;
         }
-        case WM_ACTIVATE:
-            break;
         case WM_CLOSE:
             return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
         default:
@@ -168,12 +167,7 @@ fc_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
             HWND hdis = NULL;
             const TCHAR *filename = ((eu_tabpage *) lParam)->pathfile;
             TCHAR txt[LEN_TXT + 1] = { 0 };
-            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SKYLARK));
-            if (m_icon)
-            {
-                SetClassLongPtr(hdlg, GCLP_HICONSM, (LONG_PTR) m_icon);
-                SetWindowLongPtr(hdlg, GWLP_USERDATA, lParam);
-            }
+            SetWindowLongPtr(hdlg, GWLP_USERDATA, lParam);
             hdis = GetDlgItem(hdlg, IDC_FC_STC1);
             if (hdis != NULL)
             {
@@ -236,15 +230,17 @@ fc_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
                         on_tabpage_reload_file(p, 2);
+                        SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    break;
                 case IDC_FC_BTN2:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
                         on_tabpage_reload_file(p, 0);
                         p->st_mtime = util_last_time(p->pathfile);
+                        SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    break;
                 case IDC_FC_BTN3:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
@@ -253,8 +249,9 @@ fc_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                         {
                             eu_get_config()->m_upfile = FILE_CHANGE_ALL_YES;
                         }
+                        SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    break;
                 case IDC_FC_BTN4:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
@@ -264,8 +261,9 @@ fc_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                         {
                             eu_get_config()->m_upfile = FILE_CHANGE_ALL_NO;
                         }
+                        SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
-                    return (INT_PTR)EndDialog(hdlg, LOWORD(wParam));
+                    break;
                 case IDC_FC_CHK1:
                     set_box_vaule(hdlg);
                     break;
@@ -290,9 +288,13 @@ create_alter_dlg(eu_tabpage *p, bool fc)
     HWND hwnd = eu_module_hwnd();
     if (hwnd)
     {
-        if (IsIconic(hwnd))
-        {
-            ShowWindow(hwnd, SW_RESTORE);
+        if (p && p->hwnd_sc)
+        {   // 防止编辑器内点击时收不到鼠标弹起消息
+            POINT pt;
+            GetCursorPos(&pt);
+            ScreenToClient(p->hwnd_sc, &pt);
+            LPARAM lparam = MAKELONG(pt.x, pt.y);
+            SendMessage(p->hwnd_sc, WM_LBUTTONUP, 0, lparam);
         }
         if (fc)
         {
@@ -377,6 +379,7 @@ on_changes_window(HWND hwnd)
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
         if (p && !p->hex_mode && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
         {
+            on_tabpage_selection(p, index);
             if (_taccess(p->pathfile, 0) == -1)
             {
                 if (!set_delete_event(p))
@@ -446,7 +449,7 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
     {
         uint32_t len = LoadString(lpmb->hInstance, LOWORD(lpmb->lpszCaption), (LPWSTR) &ptr, 0);
         if (!len)
-        { 
+        {
             len = LoadString(g_skylark_lang, IDS_USER32_ERROR, (LPWSTR) &ptr, 0);
         }
         buffer = HeapAlloc(GetProcessHeap(), 0, (len + 1) * sizeof(WCHAR));
@@ -844,6 +847,6 @@ eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type)
     {
         eu_restore_placement(hwnd);
         ShowWindow(hwnd, SW_SHOW);
-    }    
+    }
     return on_changes_msgbox(&msgbox);
 }

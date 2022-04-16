@@ -18,7 +18,8 @@
 
 #include "framework.h"
 
-static WNDPROC sc_edit_wnd;
+static WNDPROC sc_edit_wnd = NULL;
+static volatile sptr_t ptr_scintilla = 0;
 
 int
 on_sci_init_style(eu_tabpage *pnode)
@@ -559,6 +560,26 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 int
+eu_sci_release(void)
+{
+    return Scintilla_ReleaseResources();
+}
+
+sptr_t
+eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
+{
+    if (!p)
+    {
+        return 0;
+    }
+    if (p->hex_mode && p->hwnd_sc)
+    {
+        return SendMessage(p->hwnd_sc, m, w, l);
+    }
+    return ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l);
+}
+
+int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL);
@@ -574,8 +595,12 @@ on_sci_init_dlg(eu_tabpage *pnode)
         printf("SetWindowLongPtr(pnode->hwnd_sc) failed\n");
         return 1;
     }
-    pnode->ptr_scintilla = (SciFnDirect) SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0);
-    pnode->eusc = (sptr_t) SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
+#ifdef _WIN64
+    if (!_InterlockedCompareExchange64(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
+#else
+    if (!_InterlockedCompareExchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
+#endif
+    pnode->eusc = SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
     eu_sci_call(pnode, SCI_USEPOPUP, 0, 0);
     return 0;
 }

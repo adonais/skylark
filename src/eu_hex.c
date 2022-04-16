@@ -1797,7 +1797,7 @@ hexview_init(eu_tabpage *pnode)
             printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
             return false;
         }
-        pnode->ptr_scintilla = NULL;
+        pnode->eusc = 0;
         pnode->hex_mode = true;
     }
     pnode->begin_pos = -1;
