@@ -757,7 +757,6 @@ enum class Message {
 	IndexPositionFromLine = 2714,
 	StartRecord = 3001,
 	StopRecord = 3002,
-	SetIdLexer = 4001,
 	GetLexer = 4002,
 	Colourise = 4003,
 	SetProperty = 4004,

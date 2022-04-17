@@ -267,7 +267,7 @@ int on_doc_click_tree_json(void *pnode);
 int on_doc_click_tree_redis(void *pnode);
 
 /* lua脚本接口支持, 对各类关键字着色 */
-void on_doc_init_after_scilexer(void *p, int lex);
+int on_doc_init_after_scilexer(void *p, const  char *name);
 void on_doc_default_light(void *p, int lex, int64_t rgb);
 void on_doc_keyword_light(void *p, int lex, int index, int64_t rgb);
 void on_doc_function_light(void *p, int lex, int index, int64_t rgb);

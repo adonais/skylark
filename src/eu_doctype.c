@@ -89,6 +89,7 @@ static const char *plus_xpm[] =
 };
 
 static doctype_t* g_doc_config;
+extern sptr_t __stdcall CreateLexer(const char *name);
 
 static void
 init_sc_fold(eu_tabpage *pnode)
@@ -232,40 +233,40 @@ on_doc_set_keyword(eu_tabpage *pnode, int index)
         return;
     }
     switch (index)
-    {
+    {   // See const char *const xxxWordLists at Lex(xxx).cxx
         case 0:
             if (pnode->doc_ptr->keywords0)
-            {   // keyword?
+            {    
                 eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
                 break;
             }
         case 1:
             if (pnode->doc_ptr->keywords1)
-            {   // function?
+            {    
                 eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
                 break;
             }
         case 2:
             if (pnode->doc_ptr->keywords2)
-            {   // macro?
+            {    
                 eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
                 break;
             }
         case 3:
             if (pnode->doc_ptr->keywords3)
-            {   // SENT?
+            {
                 eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
                 break;
             }
         case 4:
             if (pnode->doc_ptr->keywords4)
-            {   // PREPROCESSOR?
+            {
                 eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
                 break;
             }
         case 5:
             if (pnode->doc_ptr->keywords5)
-            {   // SPECIAL?
+            {    
                 eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
                 break;
             }
@@ -274,19 +275,22 @@ on_doc_set_keyword(eu_tabpage *pnode, int index)
     }
 }
 
+
 // (*init_after_ptr)
-void
-on_doc_init_after_scilexer(eu_tabpage *pnode, int lex)
+int
+on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_SETLEXER, lex, 0);
+        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer(name));
         if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
         {
             pnode->doc_ptr->fn_reload_symlist(pnode);
         }
         init_sc_fold(pnode);
+        return 0;
     }
+    return 1;
 }
 
 void
@@ -572,7 +576,7 @@ on_doc_commentdoc_light(eu_tabpage *pnode, int lex, int64_t rgb)
 int
 on_doc_init_after_cpp(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CPP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
     // Disable track preprocessor to avoid incorrect detection.
     // In the most of cases, the symbols are defined outside of file.
     eu_sci_call(pnode, SCI_SETPROPERTY, (WPARAM)("lexer.cpp.track.preprocessor"), (LPARAM)"0");
@@ -599,7 +603,7 @@ on_doc_init_after_cpp(eu_tabpage *pnode)
 int
 on_doc_init_after_cs(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CPP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -619,7 +623,7 @@ on_doc_init_after_cs(eu_tabpage *pnode)
 int
 on_doc_init_after_java(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CPP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -639,7 +643,7 @@ on_doc_init_after_java(eu_tabpage *pnode)
 int
 on_doc_init_after_go(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CPP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -659,7 +663,7 @@ on_doc_init_after_go(eu_tabpage *pnode)
 int
 on_doc_init_after_swift(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CPP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -679,7 +683,7 @@ on_doc_init_after_swift(eu_tabpage *pnode)
 int
 on_doc_init_after_sql(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_SQL, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("sql"));
     on_doc_keyword_light(pnode, SCE_SQL_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -695,7 +699,7 @@ on_doc_init_after_sql(eu_tabpage *pnode)
 int
 on_doc_init_after_redis(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CPP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     init_sc_fold(pnode);
     init_systree_theme(pnode);
@@ -705,7 +709,7 @@ on_doc_init_after_redis(eu_tabpage *pnode)
 int
 on_doc_init_after_python(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_PYTHON, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("python"));
     on_doc_keyword_light(pnode, SCE_P_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_P_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_P_STRING, 0);
@@ -729,7 +733,7 @@ on_doc_init_after_python(eu_tabpage *pnode)
 int
 on_doc_init_after_lua(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_LUA, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("lua"));
     on_doc_keyword_light(pnode, SCE_LUA_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_LUA_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_LUA_STRING, 0);
@@ -749,7 +753,7 @@ on_doc_init_after_lua(eu_tabpage *pnode)
 int
 on_doc_init_after_perl(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_PERL, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("perl"));
     on_doc_keyword_light(pnode, SCE_PL_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_PL_STRING, 0);
     on_doc_char_light(pnode, SCE_PL_CHARACTER, 0);
@@ -770,7 +774,7 @@ on_doc_init_after_shell(eu_tabpage *pnode)
     TCHAR *sp = on_doc_get_ext(pnode);
     if (sp && _tcsstr(_T(";*.ps1;*.psc1;*.psd1;*.psm1;"), sp))
     {
-        eu_sci_call(pnode, SCI_SETLEXER, SCLEX_POWERSHELL, 0);
+        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("powershell"));
         if (pnode->doc_ptr->keywords3)
         {
             eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords3));
@@ -795,7 +799,7 @@ on_doc_init_after_shell(eu_tabpage *pnode)
     }
     else
     {
-        eu_sci_call(pnode, SCI_SETLEXER, SCLEX_BASH, 0);
+        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("bash"));
         on_doc_keyword_light(pnode, SCE_SH_WORD, 0, 0);
         on_doc_string_light(pnode, SCE_SH_STRING, 0);
         on_doc_char_light(pnode, SCE_SH_CHARACTER, 0);
@@ -839,7 +843,7 @@ on_doc_init_after_shell_sh(eu_tabpage *pnode)
     TCHAR *sp = on_doc_get_ext(pnode);
     if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
     {
-        eu_sci_call(pnode, SCI_SETLEXER, SCLEX_BATCH, 0);
+        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("batch"));
         on_doc_default_light(pnode, SCE_BAT_DEFAULT, 0);
         if (pnode->doc_ptr->keywords1)
         {
@@ -875,7 +879,7 @@ on_doc_init_after_shell_sh(eu_tabpage *pnode)
 int
 on_doc_init_after_rust(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_RUST, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("rust"));
     on_doc_keyword_light(pnode, SCE_RUST_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_RUST_WORD2, 1, 0);
     on_doc_function_light(pnode, SCE_RUST_MACRO, 2, 0);
@@ -898,7 +902,7 @@ on_doc_init_after_rust(eu_tabpage *pnode)
 int
 on_doc_init_after_ruby(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_RUBY, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("ruby"));
     on_doc_keyword_light(pnode, SCE_RB_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_RB_WORD_DEMOTED, 1, 0);
     on_doc_string_light(pnode, SCE_RB_STRING, 0);
@@ -917,7 +921,7 @@ on_doc_init_after_ruby(eu_tabpage *pnode)
 int
 on_doc_init_after_lisp(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_LISP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("lisp"));
     on_doc_keyword_light(pnode, SCE_LISP_KEYWORD, 0, 0);
     on_doc_string_light(pnode, SCE_LISP_STRING, 0);
     on_doc_number_light(pnode, SCE_LISP_NUMBER, 0);
@@ -935,8 +939,7 @@ on_doc_init_after_lisp(eu_tabpage *pnode)
 int
 on_doc_init_after_asm(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_ASM, 0);
-
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("asm"));
     if (pnode->doc_ptr->keywords0)
     {
         on_doc_keyword_light(pnode, SCE_ASM_CPUINSTRUCTION, 0, 0);
@@ -983,8 +986,7 @@ on_doc_init_after_asm(eu_tabpage *pnode)
 int
 on_doc_init_after_nim(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_NIM, 0);
-
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("nim"));
     on_doc_default_light(pnode, SCE_NIM_DEFAULT, 0);
     on_doc_keyword_light(pnode, SCE_NIM_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_NIM_STRING, 0);
@@ -1017,7 +1019,7 @@ on_doc_init_after_nim(eu_tabpage *pnode)
 int
 on_doc_init_after_cobol(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_COBOL, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("COBOL"));
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
 
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_C_UUID, (sptr_t)(eu_get_theme()->item.keywords0.font));
@@ -1045,8 +1047,7 @@ on_doc_init_after_cobol(eu_tabpage *pnode)
 int
 on_doc_init_after_html(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_HTML, 0);
-
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("hypertext"));
     if (pnode->doc_ptr->keywords0)
     {
         eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
@@ -1260,7 +1261,7 @@ on_doc_init_after_html(eu_tabpage *pnode)
 int
 on_doc_init_after_css(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CSS, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("css"));
     if (pnode->doc_ptr->keywords0)
     {
         eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
@@ -1308,12 +1309,11 @@ on_doc_init_after_css(eu_tabpage *pnode)
 int
 on_doc_init_after_js(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CPP, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
     if (pnode->doc_ptr->keywords0)
     {
         on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     }
-
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
     on_doc_number_light(pnode, SCE_C_NUMBER, 0);
@@ -1321,7 +1321,6 @@ on_doc_init_after_js(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_C_COMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
-
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
@@ -1333,7 +1332,7 @@ on_doc_init_after_js(eu_tabpage *pnode)
 int
 on_doc_init_after_xml(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_XML, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("xml"));
     on_doc_tags_light(pnode, SCE_H_TAG, 0);
 
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.font));
@@ -1384,9 +1383,8 @@ on_doc_init_after_xml(eu_tabpage *pnode)
 int
 on_doc_init_after_json(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_JSON, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("json"));
     on_doc_keyword_light(pnode, SCE_JSON_KEYWORD, 0, 0);
-
     on_doc_string_light(pnode, SCE_JSON_STRING, 0);
     on_doc_number_light(pnode, SCE_JSON_NUMBER, 0);
     on_doc_operator_light(pnode, SCE_JSON_OPERATOR, 0);
@@ -1420,7 +1418,7 @@ on_doc_init_after_json(eu_tabpage *pnode)
 int
 on_doc_init_after_yaml(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_YAML, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("yaml"));
     on_doc_keyword_light(pnode, SCE_YAML_KEYWORD, 0, 0);
     on_doc_string_light(pnode, SCE_YAML_TEXT, 0);
     on_doc_number_light(pnode, SCE_YAML_NUMBER, 0);
@@ -1444,7 +1442,7 @@ on_doc_init_after_yaml(eu_tabpage *pnode)
 int
 on_doc_init_after_makefile(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_MAKEFILE, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("makefile"));
     on_doc_comment_light(pnode, SCE_MAKE_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_MAKE_OPERATOR, 0);
     on_doc_preprocessor_light(pnode, SCE_MAKE_PREPROCESSOR, -1, 0);
@@ -1462,7 +1460,7 @@ on_doc_init_after_makefile(eu_tabpage *pnode)
 int
 on_doc_init_after_diff(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_DIFF, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("diff"));
     on_doc_comment_light(pnode, SCE_DIFF_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_DIFF_PATCH_ADD, 0);
     on_doc_operator_light(pnode, SCE_DIFF_PATCH_DELETE, 0);
@@ -1480,7 +1478,7 @@ on_doc_init_after_diff(eu_tabpage *pnode)
 int
 on_doc_init_after_cmake(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_CMAKE, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cmake"));
     on_doc_keyword_light(pnode, SCE_CMAKE_COMMANDS, 0, 0);
     on_doc_function_light(pnode, SCE_CMAKE_PARAMETERS, 1, 0);
 
@@ -1522,7 +1520,7 @@ on_doc_init_after_cmake(eu_tabpage *pnode)
 int
 on_doc_init_after_markdown(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_MARKDOWN, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("markdown"));
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_STRONG1, (sptr_t)(eu_get_theme()->item.tags.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_STRONG1, eu_get_theme()->item.tags.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_STRONG1, (sptr_t)(eu_get_theme()->item.tags.color));
@@ -1530,7 +1528,6 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_STRONG2, (sptr_t)(eu_get_theme()->item.tags.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_STRONG2, eu_get_theme()->item.tags.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_STRONG2, (sptr_t)(eu_get_theme()->item.tags.color));
-
     for (int i = SCE_MARKDOWN_EM1; i < SCE_MARKDOWN_CODE; ++i)
     {
         on_doc_tags_light(pnode, i, 0);
@@ -1553,7 +1550,6 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_CODEBK, eu_get_theme()->item.cdata.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_CODEBK, (sptr_t)(eu_get_theme()->item.cdata.color));
     eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_CODEBK, (sptr_t)(eu_get_theme()->item.cdata.bold));
-
     init_sc_fold(pnode);
     return 0;
 }
@@ -1561,7 +1557,7 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
 int
 on_doc_init_after_log(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_STTXT, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("fcST"));
     if (pnode->doc_ptr->keywords0)
     {
         on_doc_keyword_light(pnode, SCE_STTXT_KEYWORD, 0, 0);
@@ -1584,7 +1580,7 @@ on_doc_init_after_log(eu_tabpage *pnode)
 int
 on_doc_init_after_properties(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETLEXER, SCLEX_PROPERTIES, 0);
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("props"));
     on_doc_default_light(pnode, SCE_PROPS_DEFAULT, 0);
     on_doc_keyword_light(pnode, SCE_PROPS_KEY, 0, 0);
     on_doc_commentblock_light(pnode, SCE_PROPS_COMMENT, 0);

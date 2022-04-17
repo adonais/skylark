@@ -1116,7 +1116,6 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_INDEXPOSITIONFROMLINE 2714
 #define SCI_STARTRECORD 3001
 #define SCI_STOPRECORD 3002
-#define SCI_SETLEXER 4001   // Just for 4.x compatibility
 #define SCI_GETLEXER 4002
 #define SCI_COLOURISE 4003
 #define SCI_SETPROPERTY 4004
