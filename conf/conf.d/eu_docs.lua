@@ -13,21 +13,22 @@ if (not eu_core.file_exists(user_file)) then
     "]=]\n",
     "\n",
     "user_docs = {}\n",
+    "require(\"eu_sci\")\n",
     "require(\"eu_core\")\n",
     "function user_docs.lua_init_after_au3(p)\n",
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
     "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"au3\")\n",
     "  if (res ~= 1) then\n",
-    "    eu_core.euapi.on_doc_comment_light(pnode, 1, 0)                          -- 1, SCE_AU3_COMMENT\n",
-    "    eu_core.euapi.on_doc_commentblock_light(pnode, 2, 0)                     -- 2, SCE_AU3_COMMENTBLOCK\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 5, 0, 0)                       -- 5, SCE_AU3_KEYWORD, keywords0\n",
-    "    eu_core.euapi.on_doc_marcro_light(pnode, 6, 2, 0x0080FF)                 -- 6, SCE_AU3_MACRO, keywords2\n",
-    "    eu_core.euapi.on_doc_string_light(pnode, 7, 0x008080)                    -- 7, SCE_AU3_STRING\n",
-    "    -- eu_core.euapi.on_doc_operator_light(pnode, 8, 0xC000C0)               -- 8, SCE_AU3_OPERATOR\n",
-    "    eu_core.euapi.on_doc_variable_light(pnode, 9, 0x808000)                  -- 9, SCE_AU3_VARIABLE\n",
-    "    eu_core.euapi.on_doc_send_light(pnode, 10, 3, 0xFF0000)                  -- 10, SCE_AU3_SENT, keywords3\n",
-    "    eu_core.euapi.on_doc_preprocessor_light(pnode, 11, 4, 0xFF8000)          -- 11, SCE_AU3_PREPROCESSOR, keywords4\n",
-    "    eu_core.euapi.on_doc_special_light(pnode, 10, 0xFF0000)                  -- 12, SCE_AU3_SPECIAL\n",
+    "    eu_core.euapi.on_doc_comment_light(pnode, SCE_AU3_COMMENT, 0)                           -- third parameter(0), uses the theme default color\n",
+    "    eu_core.euapi.on_doc_commentblock_light(pnode, SCE_AU3_COMMENTBLOCK, 0)\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_AU3_KEYWORD, 0, 0)                        -- 5, SCE_AU3_KEYWORD, keywords0\n",
+    "    eu_core.euapi.on_doc_marcro_light(pnode, SCE_AU3_MACRO, 2, 0x0080FF)                    -- 6, SCE_AU3_MACRO, keywords2\n",
+    "    eu_core.euapi.on_doc_string_light(pnode, SCE_AU3_STRING, 0x008080)\n",
+    "    -- eu_core.euapi.on_doc_operator_light(pnode, SCE_AU3_OPERATOR, 0xC000C0)\n",
+    "    eu_core.euapi.on_doc_variable_light(pnode, SCE_AU3_VARIABLE, 0x808000)\n",
+    "    eu_core.euapi.on_doc_send_light(pnode, SCE_AU3_SENT, 3, 0xFF0000)                       -- 10, SCE_AU3_SENT, keywords3\n",
+    "    eu_core.euapi.on_doc_preprocessor_light(pnode, SCE_AU3_PREPROCESSOR, 4, 0xFF8000)       -- 11, SCE_AU3_PREPROCESSOR, keywords4\n",
+    "    eu_core.euapi.on_doc_special_light(pnode, SCE_AU3_SPECIAL, 0xFF0000)\n",
     "  end\n",
     "  return res\n",
     "end\n",
@@ -35,12 +36,12 @@ if (not eu_core.file_exists(user_file)) then
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
     "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"fortran\")\n",
     "  if (res ~= 1) then\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 8, 0, 0)                       -- 8, SCE_F_WORD, keywords0\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 9, 1, 0)                       -- 9, SCE_F_WORD2, keywords1\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 10, 2, 0xB000B0)               -- 10, SCE_F_WORD3, keywords2\n",
-    "    eu_core.euapi.on_doc_commentblock_light(pnode, 1, 0)                     -- 1, SCE_F_COMMENT\n",
-    "    eu_core.euapi.on_doc_number_light(pnode, 2, 0)                           -- 2, SCE_F_NUMBER\n",
-    "    eu_core.euapi.on_doc_preprocessor_light(pnode, 11, -1, 0xB000B0)         -- 11, SCE_F_PREPROCESSOR\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD, 0, 0)                              -- 8, SCE_F_WORD, keywords0\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD2, 1, 0)                             -- 9, SCE_F_WORD2, keywords1\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD3, 2, 0xB000B0)                      -- 10, SCE_F_WORD3, keywords2\n",
+    "    eu_core.euapi.on_doc_commentblock_light(pnode, SCE_F_COMMENT, 0)\n",
+    "    eu_core.euapi.on_doc_number_light(pnode, SCE_F_NUMBER, 0)\n",
+    "    eu_core.euapi.on_doc_preprocessor_light(pnode, SCE_F_PREPROCESSOR, -1, 0xB000B0)\n",
     "  end\n",
     "  return res;\n",
     "end\n",
@@ -48,15 +49,15 @@ if (not eu_core.file_exists(user_file)) then
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
     "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"julia\")\n",
     "  if (res ~= 1) then\n",
-    "    -- eu_core.euapi.on_doc_default_light(pnode, 0, 0)\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 3, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 4, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 5, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 20, 3, 0)                      -- 20, SCE_JULIA_KEYWORD4, keywords3\n",
-    "    eu_core.euapi.on_doc_marcro_light(pnode, 12, 4, 0xFF8000)                -- 12, SCE_JULIA_MACRO, keywords4\n",
-    "    eu_core.euapi.on_doc_comment_light(pnode, 1, 0)                          -- 1, SCE_JULIA_COMMENT\n",
-    "    eu_core.euapi.on_doc_string_light(pnode, 14, 0x008080)                   -- 14, SCE_JULIA_DOCSTRING\n",
-    "    eu_core.euapi.on_doc_string_light(pnode, 10, 0x008000)                   -- 10, SCE_JULIA_STRING\n",
+    "    -- eu_core.euapi.on_doc_default_light(pnode, 0, 0, false)\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD1, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD2, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD3, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD4, 3, 0)                       -- 20, SCE_JULIA_KEYWORD4, keywords3\n",
+    "    eu_core.euapi.on_doc_marcro_light(pnode, SCE_JULIA_MACRO, 4, 0xFF8000)\n",
+    "    eu_core.euapi.on_doc_comment_light(pnode, SCE_JULIA_COMMENT, 0)\n",
+    "    eu_core.euapi.on_doc_string_light(pnode, SCE_JULIA_DOCSTRING, 0x008080)\n",
+    "    eu_core.euapi.on_doc_string_light(pnode, SCE_JULIA_STRING, 0x008000)\n",
     "  end\n",
     "  return res\n",
     "end\n",
@@ -743,11 +744,13 @@ function string:split(delimiter)
   return result
 end
 
+
 function fetch_doctype(s)
   local m_config = eu_core.ffi.cast('doctype_t *', s)
   local m_req = nil
   local m_key0,m_key1,m_key2,m_key3,m_key4,m_key5
   local m_set = nil
+  local m_styles = nil
   local calltip = nil
   local reqular = nil
   local tab_width = nil
@@ -819,6 +822,26 @@ function fetch_doctype(s)
       local dst = string.split(m_set, " +")
       for i = 1, #dst do
         eu_core.euapi.eu_init_completed_tree(m_config, dst[i])
+      end
+    end
+    local count = 0;
+    -- m_config.style.mask = 0
+    if (m_req.get_styles ~= ni) then
+        m_styles = m_req.get_styles()
+        if (m_styles ~= nil) then
+          for k, v in pairs(m_styles) do
+            count = count + 1
+          end
+        end
+    end
+    if (count > 0) then
+      local bit = require("bit")
+      for k, v in pairs(m_styles) do
+        if (k < 32) then
+          m_config.style.type[k] = k
+          m_config.style.color[k] = v
+          m_config.style.mask = bit.bor(m_config.style.mask,bit.lshift(1,k))
+        end
       end
     end
   end

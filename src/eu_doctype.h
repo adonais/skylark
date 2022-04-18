@@ -19,6 +19,7 @@
 #ifndef _H_SKYLARK_DOCTYPE_
 #define _H_SKYLARK_DOCTYPE_
 
+#define SCE_STYLE_MAX 32
 #define CONFIG_KEY_MATERIAL_LEXER "EU_DOCTYP"
 
 #ifdef __cplusplus
@@ -76,6 +77,13 @@ enum dctype
     DOCTYPE_YAML = 34
 };
 
+typedef struct _doc_styles
+{
+    int type[SCE_STYLE_MAX];
+    uint32_t color[SCE_STYLE_MAX];
+    uint32_t mask;
+} doc_styles;
+
 typedef struct _doc_data
 {
     enum dctype doc_type;                     // 文档类型编号
@@ -103,6 +111,7 @@ typedef struct _doc_data
     char *reqular_exp;                        // 根据此正则表达式初始化list控件
     eutype_t acshow_tree;                     // 自动补全hash表
     eutype_t ctshow_tree;                     // 函数提示hash表
+    doc_styles style;                         // 文档关键字类型与高亮颜色, 最多支持32类
 } doctype_t;
 
 doctype_t *eu_doc_get_ptr(void);

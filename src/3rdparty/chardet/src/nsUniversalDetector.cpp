@@ -379,7 +379,7 @@ void nsUniversalDetector::DataEnd()
           mDetectedCharset = "ASCII";
           if (mEscFound)
           {
-            mDetectedConfidence = 0.49;
+            mDetectedConfidence = 0.49f;
           }
           else
           {

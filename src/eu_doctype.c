@@ -226,55 +226,83 @@ init_systree_theme(eu_tabpage *pnode)
 }
 
 static void
-on_doc_set_keyword(eu_tabpage *pnode, int index)
+on_doc_set_keyword(eu_tabpage *pnode)
 {
     if (!(pnode && pnode->doc_ptr))
     {
         return;
     }
-    switch (index)
-    {   // See const char *const xxxWordLists at Lex(xxx).cxx
-        case 0:
-            if (pnode->doc_ptr->keywords0)
-            {    
-                eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
-                break;
-            }
-        case 1:
-            if (pnode->doc_ptr->keywords1)
-            {    
-                eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
-                break;
-            }
-        case 2:
-            if (pnode->doc_ptr->keywords2)
-            {    
-                eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
-                break;
-            }
-        case 3:
-            if (pnode->doc_ptr->keywords3)
-            {
-                eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
-                break;
-            }
-        case 4:
-            if (pnode->doc_ptr->keywords4)
-            {
-                eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
-                break;
-            }
-        case 5:
-            if (pnode->doc_ptr->keywords5)
-            {    
-                eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
-                break;
-            }
-        default:
-            break;
+    // See const char *const xxxWordLists at Lex(xxx).cxx
+    if (pnode->doc_ptr->keywords0)
+    {
+        eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
+    }
+    if (pnode->doc_ptr->keywords1)
+    {
+        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
+    }
+    if (pnode->doc_ptr->keywords2)
+    {
+        eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
+    }
+    if (pnode->doc_ptr->keywords3)
+    {
+        eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
+    }
+    if (pnode->doc_ptr->keywords4)
+    {
+        eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
+    }
+    if (pnode->doc_ptr->keywords5)
+    {
+        eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
     }
 }
 
+static bool
+on_doc_is_customized(eu_tabpage *pnode, int lex)
+{
+    if (pnode && pnode->doc_ptr && pnode->doc_ptr->style.mask > 0)
+    {
+        uint32_t mask = pnode->doc_ptr->style.mask;
+        for (int i = 0; i < SCE_STYLE_MAX; ++i, mask >>= 1)
+        {
+            if ((mask & 0x1) && (i == lex))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+static void
+on_doc_color_customizes(eu_tabpage *pnode)
+{
+    if (pnode && pnode->doc_ptr && pnode->doc_ptr->style.mask > 0)
+    {
+        doc_styles *pstyle = &(pnode->doc_ptr->style);
+        uint32_t mask = pstyle->mask;
+        for (int i = 0; i < SCE_STYLE_MAX; ++i, mask >>= 1)
+        {
+            if (mask & 0x1)
+            {
+                on_doc_default_light(pnode, pstyle->type[i], pstyle->color[i], true);
+            }
+        }
+    }
+}
+
+static void
+on_doc_key_scilexer(eu_tabpage *pnode, const  char *name)
+{
+    // 加载文档解析器
+    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer(name));
+    // 载入配置文件关键字列表
+    on_doc_set_keyword(pnode);
+    // 加载用户分类配置文件关键字渲染
+    on_doc_color_customizes(pnode);
+}
 
 // (*init_after_ptr)
 int
@@ -282,7 +310,7 @@ on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer(name));
+        on_doc_key_scilexer(pnode, name);
         if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
         {
             pnode->doc_ptr->fn_reload_symlist(pnode);
@@ -294,11 +322,15 @@ on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
 }
 
 void
-on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb, bool force)
 {
     if (pnode)
     {
-        if (rgb)
+        if (!force && on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
@@ -317,8 +349,11 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
     if (pnode)
     {
-        on_doc_set_keyword(pnode, index);
-        if (rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
             return;
@@ -332,14 +367,58 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
                 eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords0.bold));
                 break;
             case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
                 eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords1.font));
                 eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords1.fontsize));
                 eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords1.color));
                 eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords1.bold));
+                break;
+            case 2:  // entities color
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.entities.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.entities.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.entities.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.entities.bold));
+                break;
+            case 3:  // phpsection color
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.phpsection.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.phpsection.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.phpsection.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.phpsection.bold));
+                break;
+            case 4:  // attributes color
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.attributes.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.attributes.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.attributes.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.attributes.bold));
+                break;
+            case 5:  // unknowattributes color
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.unknowattributes.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.bold));
+                break;
+            case 6:  // cdata color
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.cdata.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.cdata.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.cdata.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.cdata.bold));
+                break;
+            case 7:  // tagends color
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.tagends.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.tagends.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.tagends.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.tagends.bold));
+                break;
+            case 8:  // unknowtags color
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.unknowtags.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.unknowtags.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowtags.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
+                break;
+            case 9:
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.aspsection.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.aspsection.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETBACK, lex, (sptr_t)(eu_get_theme()->item.aspsection.color));
+                eu_sci_call(pnode, SCI_STYLESETBACK, lex, (sptr_t)(eu_get_theme()->item.aspsection.bold));
                 break;
             default:
                 break;
@@ -352,8 +431,11 @@ on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
     if (pnode)
     {
-        on_doc_set_keyword(pnode, index);
-        if (rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
@@ -372,8 +454,11 @@ on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
     if (pnode)
     {
-        on_doc_set_keyword(pnode, index);
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.preprocessor.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.preprocessor.fontsize));
@@ -396,9 +481,8 @@ on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 void
 on_doc_send_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 {
-    if (pnode && rgb)
+    if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
-        on_doc_set_keyword(pnode, index);
         eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
     }
 }
@@ -406,7 +490,7 @@ on_doc_send_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 void
 on_doc_variable_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
-    if (pnode && rgb)
+    if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
         eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
     }
@@ -417,7 +501,11 @@ on_doc_tags_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.tags.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.tags.fontsize));
@@ -436,7 +524,11 @@ on_doc_string_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {   // set string light
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.string.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.string.fontsize));
@@ -455,7 +547,11 @@ on_doc_operator_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {   // set string light
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.operators.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.operators.fontsize));
@@ -474,7 +570,11 @@ on_doc_char_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.character.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.character.fontsize));
@@ -493,7 +593,11 @@ on_doc_number_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.number.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.number.fontsize));
@@ -510,7 +614,7 @@ on_doc_number_light(eu_tabpage *pnode, int lex, int64_t rgb)
 void
 on_doc_special_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
-    if (pnode && rgb)
+    if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
         eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
     }
@@ -521,7 +625,11 @@ on_doc_comment_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.commentline.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.commentline.fontsize));
@@ -540,7 +648,11 @@ on_doc_commentblock_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.comment.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.comment.fontsize));
@@ -559,7 +671,11 @@ on_doc_commentdoc_light(eu_tabpage *pnode, int lex, int64_t rgb)
 {
     if (pnode)
     {
-        if (!rgb)
+        if (on_doc_is_customized(pnode, lex))
+        {
+            return;
+        }
+        else if (!rgb)
         {
             eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.commentdoc.font));
             eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.commentdoc.fontsize));
@@ -576,10 +692,11 @@ on_doc_commentdoc_light(eu_tabpage *pnode, int lex, int64_t rgb)
 int
 on_doc_init_after_cpp(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
+    on_doc_key_scilexer(pnode, "cpp");
     // Disable track preprocessor to avoid incorrect detection.
     // In the most of cases, the symbols are defined outside of file.
     eu_sci_call(pnode, SCI_SETPROPERTY, (WPARAM)("lexer.cpp.track.preprocessor"), (LPARAM)"0");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_C_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
@@ -595,7 +712,7 @@ on_doc_init_after_cpp(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -603,7 +720,8 @@ on_doc_init_after_cpp(eu_tabpage *pnode)
 int
 on_doc_init_after_cs(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
+    on_doc_key_scilexer(pnode, "cpp");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -615,7 +733,7 @@ on_doc_init_after_cs(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -623,7 +741,8 @@ on_doc_init_after_cs(eu_tabpage *pnode)
 int
 on_doc_init_after_java(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
+    on_doc_key_scilexer(pnode, "cpp");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -635,7 +754,7 @@ on_doc_init_after_java(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -643,7 +762,8 @@ on_doc_init_after_java(eu_tabpage *pnode)
 int
 on_doc_init_after_go(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
+    on_doc_key_scilexer(pnode, "cpp");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -655,7 +775,7 @@ on_doc_init_after_go(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -663,7 +783,8 @@ on_doc_init_after_go(eu_tabpage *pnode)
 int
 on_doc_init_after_swift(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
+    on_doc_key_scilexer(pnode, "cpp");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -675,7 +796,7 @@ on_doc_init_after_swift(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -683,14 +804,16 @@ on_doc_init_after_swift(eu_tabpage *pnode)
 int
 on_doc_init_after_sql(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("sql"));
+    on_doc_key_scilexer(pnode, "sql");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_SQL_WORD, 0, 0);
-    on_doc_string_light(pnode, SCE_C_STRING, 0);
-    on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
-    on_doc_number_light(pnode, SCE_C_NUMBER, 0);
-    on_doc_comment_light(pnode, SCE_C_COMMENTLINE, 0);
-    on_doc_commentblock_light(pnode, SCE_C_COMMENT, 0);
-    on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
+    on_doc_keyword_light(pnode, SCE_SQL_WORD2,1, 0);
+    on_doc_char_light(pnode, SCE_SQL_CHARACTER, 0);
+    on_doc_string_light(pnode, SCE_SQL_STRING, 0);
+    on_doc_number_light(pnode, SCE_SQL_NUMBER, 0);
+    on_doc_comment_light(pnode, SCE_SQL_COMMENTLINE, 0);
+    on_doc_commentblock_light(pnode, SCE_SQL_COMMENT, 0);
+    on_doc_commentdoc_light(pnode, SCE_SQL_COMMENTDOC, 0);
     init_sc_fold(pnode);
     init_systree_theme(pnode);
     return 0;
@@ -699,7 +822,8 @@ on_doc_init_after_sql(eu_tabpage *pnode)
 int
 on_doc_init_after_redis(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
+    on_doc_key_scilexer(pnode, "cpp");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     init_sc_fold(pnode);
     init_systree_theme(pnode);
@@ -709,7 +833,8 @@ on_doc_init_after_redis(eu_tabpage *pnode)
 int
 on_doc_init_after_python(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("python"));
+    on_doc_key_scilexer(pnode, "python");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_P_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_P_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_P_STRING, 0);
@@ -719,13 +844,12 @@ on_doc_init_after_python(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_P_COMMENTBLOCK, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_operator_light(pnode, SCE_P_OPERATOR, 0);
-
     on_doc_string_light(pnode, SCE_P_TRIPLE, 0);
     on_doc_string_light(pnode, SCE_P_TRIPLEDOUBLE, 0);
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -733,7 +857,8 @@ on_doc_init_after_python(eu_tabpage *pnode)
 int
 on_doc_init_after_lua(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("lua"));
+    on_doc_key_scilexer(pnode, "lua");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_LUA_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_LUA_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_LUA_STRING, 0);
@@ -753,7 +878,8 @@ on_doc_init_after_lua(eu_tabpage *pnode)
 int
 on_doc_init_after_perl(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("perl"));
+    on_doc_key_scilexer(pnode, "perl");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_PL_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_PL_STRING, 0);
     on_doc_char_light(pnode, SCE_PL_CHARACTER, 0);
@@ -763,7 +889,7 @@ on_doc_init_after_perl(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -774,23 +900,10 @@ on_doc_init_after_shell(eu_tabpage *pnode)
     TCHAR *sp = on_doc_get_ext(pnode);
     if (sp && _tcsstr(_T(";*.ps1;*.psc1;*.psd1;*.psm1;"), sp))
     {
-        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("powershell"));
-        if (pnode->doc_ptr->keywords3)
-        {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords3));
-            eu_sci_call(pnode, SCI_STYLESETFONT, SCE_POWERSHELL_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_POWERSHELL_KEYWORD, eu_get_theme()->item.keywords0.fontsize);
-            eu_sci_call(pnode, SCI_STYLESETFORE, SCE_POWERSHELL_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_POWERSHELL_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-        }
-        if (pnode->doc_ptr->keywords4)
-        {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords4));
-            eu_sci_call(pnode, SCI_STYLESETFONT, SCE_POWERSHELL_CMDLET, (sptr_t)(eu_get_theme()->item.tagends.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_POWERSHELL_CMDLET, eu_get_theme()->item.tagends.fontsize);
-            eu_sci_call(pnode, SCI_STYLESETFORE, SCE_POWERSHELL_CMDLET, (sptr_t)(eu_get_theme()->item.tagends.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_POWERSHELL_CMDLET, (sptr_t)(eu_get_theme()->item.tagends.bold));
-        }
+        on_doc_key_scilexer(pnode, "powershell");
+        on_doc_color_customizes(pnode);
+        on_doc_keyword_light(pnode, SCE_POWERSHELL_KEYWORD, 0, 0);
+        on_doc_keyword_light(pnode, SCE_POWERSHELL_CMDLET, 7, 0);
         on_doc_operator_light(pnode, SCE_POWERSHELL_OPERATOR, 0);
         on_doc_number_light(pnode, SCE_POWERSHELL_NUMBER, 0);
         on_doc_comment_light(pnode, SCE_POWERSHELL_COMMENT, 0);
@@ -799,7 +912,8 @@ on_doc_init_after_shell(eu_tabpage *pnode)
     }
     else
     {
-        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("bash"));
+        on_doc_key_scilexer(pnode, "bash");
+        on_doc_color_customizes(pnode);
         on_doc_keyword_light(pnode, SCE_SH_WORD, 0, 0);
         on_doc_string_light(pnode, SCE_SH_STRING, 0);
         on_doc_char_light(pnode, SCE_SH_CHARACTER, 0);
@@ -810,7 +924,7 @@ on_doc_init_after_shell(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -843,32 +957,14 @@ on_doc_init_after_shell_sh(eu_tabpage *pnode)
     TCHAR *sp = on_doc_get_ext(pnode);
     if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
     {
-        eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("batch"));
-        on_doc_default_light(pnode, SCE_BAT_DEFAULT, 0);
-        if (pnode->doc_ptr->keywords1)
-        {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords1));
-            eu_sci_call(pnode, SCI_STYLESETFONT, SCE_BAT_WORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_BAT_WORD, eu_get_theme()->item.keywords0.fontsize);
-            eu_sci_call(pnode, SCI_STYLESETFORE, SCE_BAT_WORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_BAT_WORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-        }
+        on_doc_key_scilexer(pnode, "batch");
+        on_doc_color_customizes(pnode);
+        on_doc_default_light(pnode, SCE_BAT_DEFAULT, 0, false);
+        on_doc_keyword_light(pnode, SCE_BAT_WORD, 0, 0);
+        on_doc_keyword_light(pnode, SCE_BAT_COMMAND, 1, 0);
+        on_doc_keyword_light(pnode, SCE_BAT_HIDE, 8, 0);
         on_doc_char_light(pnode, SCE_BAT_LABEL, 0);
         on_doc_comment_light(pnode, SCE_BAT_COMMENT, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_BAT_HIDE, (sptr_t)(eu_get_theme()->item.unknowtags.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_BAT_HIDE, eu_get_theme()->item.unknowtags.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_BAT_HIDE, (sptr_t)(eu_get_theme()->item.unknowtags.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_BAT_HIDE, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-
-        if (pnode->doc_ptr->keywords2)
-        {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords2));
-            eu_sci_call(pnode, SCI_STYLESETFONT, SCE_BAT_COMMAND, (sptr_t)(eu_get_theme()->item.keywords1.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_BAT_COMMAND, eu_get_theme()->item.keywords1.fontsize);
-            eu_sci_call(pnode, SCI_STYLESETFORE, SCE_BAT_COMMAND, (sptr_t)(eu_get_theme()->item.keywords1.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_BAT_COMMAND, (sptr_t)(eu_get_theme()->item.keywords1.bold));
-        }
         on_doc_string_light(pnode, SCE_BAT_IDENTIFIER, 0);
         on_doc_operator_light(pnode, SCE_BAT_OPERATOR, 0);
         return 0;
@@ -879,7 +975,8 @@ on_doc_init_after_shell_sh(eu_tabpage *pnode)
 int
 on_doc_init_after_rust(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("rust"));
+    on_doc_key_scilexer(pnode, "rust");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_RUST_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_RUST_WORD2, 1, 0);
     on_doc_function_light(pnode, SCE_RUST_MACRO, 2, 0);
@@ -894,7 +991,7 @@ on_doc_init_after_rust(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -902,7 +999,8 @@ on_doc_init_after_rust(eu_tabpage *pnode)
 int
 on_doc_init_after_ruby(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("ruby"));
+    on_doc_key_scilexer(pnode, "ruby");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_RB_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_RB_WORD_DEMOTED, 1, 0);
     on_doc_string_light(pnode, SCE_RB_STRING, 0);
@@ -913,7 +1011,7 @@ on_doc_init_after_ruby(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -921,7 +1019,8 @@ on_doc_init_after_ruby(eu_tabpage *pnode)
 int
 on_doc_init_after_lisp(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("lisp"));
+    on_doc_key_scilexer(pnode, "lisp");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_LISP_KEYWORD, 0, 0);
     on_doc_string_light(pnode, SCE_LISP_STRING, 0);
     on_doc_number_light(pnode, SCE_LISP_NUMBER, 0);
@@ -931,7 +1030,7 @@ on_doc_init_after_lisp(eu_tabpage *pnode)
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -939,46 +1038,21 @@ on_doc_init_after_lisp(eu_tabpage *pnode)
 int
 on_doc_init_after_asm(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("asm"));
-    if (pnode->doc_ptr->keywords0)
-    {
-        on_doc_keyword_light(pnode, SCE_ASM_CPUINSTRUCTION, 0, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_ASM_MATHINSTRUCTION, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_ASM_MATHINSTRUCTION, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_ASM_MATHINSTRUCTION, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_ASM_MATHINSTRUCTION, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_ASM_REGISTER, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_ASM_REGISTER, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_ASM_REGISTER, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_ASM_REGISTER, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_ASM_DIRECTIVE, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_ASM_DIRECTIVE, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_ASM_DIRECTIVE, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_ASM_DIRECTIVE, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_ASM_DIRECTIVEOPERAND, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_ASM_DIRECTIVEOPERAND, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_ASM_DIRECTIVEOPERAND, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_ASM_DIRECTIVEOPERAND, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_ASM_EXTINSTRUCTION, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_ASM_EXTINSTRUCTION, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_ASM_EXTINSTRUCTION, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_ASM_EXTINSTRUCTION, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-    }
+    on_doc_key_scilexer(pnode, "asm");
+    on_doc_color_customizes(pnode);
+    on_doc_keyword_light(pnode, SCE_ASM_CPUINSTRUCTION, 0, 0);
+    on_doc_keyword_light(pnode, SCE_ASM_MATHINSTRUCTION, 0, 0);
+    on_doc_keyword_light(pnode, SCE_ASM_REGISTER, 1, 0);
+    on_doc_keyword_light(pnode, SCE_ASM_EXTINSTRUCTION, 1, 0);
     on_doc_string_light(pnode, SCE_ASM_STRING, 0);
     on_doc_number_light(pnode, SCE_ASM_NUMBER, 0);
     on_doc_comment_light(pnode, SCE_ASM_COMMENT, 0);
     on_doc_comment_light(pnode, SCE_ASM_COMMENTDIRECTIVE, 0);
     on_doc_operator_light(pnode, SCE_ASM_OPERATOR, 0);
-
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -986,9 +1060,11 @@ on_doc_init_after_asm(eu_tabpage *pnode)
 int
 on_doc_init_after_nim(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("nim"));
-    on_doc_default_light(pnode, SCE_NIM_DEFAULT, 0);
+    on_doc_key_scilexer(pnode, "nim");
+    on_doc_color_customizes(pnode);
+    on_doc_default_light(pnode, SCE_NIM_DEFAULT, 0, false);
     on_doc_keyword_light(pnode, SCE_NIM_WORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_NIM_NUMERROR, 8, 0);
     on_doc_string_light(pnode, SCE_NIM_STRING, 0);
     on_doc_char_light(pnode, SCE_NIM_STRING, 0);
     on_doc_number_light(pnode, SCE_NIM_NUMBER, 0);
@@ -996,22 +1072,15 @@ on_doc_init_after_nim(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_NIM_COMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_NIM_COMMENTDOC, 0);
     on_doc_operator_light(pnode, SCE_NIM_OPERATOR, 0);
-
     on_doc_commentdoc_light(pnode, SCE_NIM_COMMENTLINEDOC, 0);
     on_doc_string_light(pnode, SCE_NIM_TRIPLE, 0);
     on_doc_string_light(pnode, SCE_NIM_TRIPLEDOUBLE, 0);
     on_doc_string_light(pnode, SCE_NIM_STRINGEOL, 0);
     on_doc_tags_light(pnode, SCE_NIM_FUNCNAME, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_NIM_NUMERROR, (sptr_t)(eu_get_theme()->item.unknowtags.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_NIM_NUMERROR, eu_get_theme()->item.unknowtags.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_NIM_NUMERROR, (sptr_t)(eu_get_theme()->item.unknowtags.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_NIM_NUMERROR, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -1019,14 +1088,10 @@ on_doc_init_after_nim(eu_tabpage *pnode)
 int
 on_doc_init_after_cobol(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("COBOL"));
+    on_doc_key_scilexer(pnode, "COBOL");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_C_UUID, (sptr_t)(eu_get_theme()->item.keywords0.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_C_UUID, eu_get_theme()->item.keywords0.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_C_UUID, (sptr_t)(eu_get_theme()->item.keywords0.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_UUID, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
+    on_doc_keyword_light(pnode, SCE_C_UUID, 0, 0);
     on_doc_function_light(pnode, SCE_C_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_STRING, 0);
@@ -1035,11 +1100,10 @@ on_doc_init_after_cobol(eu_tabpage *pnode)
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_operator_light(pnode, SCE_C_OPERATOR, 0);
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
-
     init_sc_fold(pnode);
     if (pnode->doc_ptr->fn_reload_symlist)
     {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
+        pnode->doc_ptr->fn_reload_symlist(pnode);
     }
     return 0;
 }
@@ -1047,213 +1111,95 @@ on_doc_init_after_cobol(eu_tabpage *pnode)
 int
 on_doc_init_after_html(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("hypertext"));
-    if (pnode->doc_ptr->keywords0)
+    int style = 0;
+    on_doc_key_scilexer(pnode, "hypertext");
+    on_doc_color_customizes(pnode);
+    on_doc_tags_light(pnode, SCE_H_TAG, 0);
+    on_doc_keyword_light(pnode, SCE_H_ENTITY, 2, 0);
+    on_doc_keyword_light(pnode, SCE_H_ATTRIBUTE, 4, 0);
+    on_doc_keyword_light(pnode, SCE_H_ATTRIBUTEUNKNOWN, 5, 0);
+    on_doc_keyword_light(pnode, SCE_H_TAGEND, 7, 0);
+    on_doc_keyword_light(pnode, SCE_H_TAGUNKNOWN, 8, 0);
+    on_doc_string_light(pnode, SCE_H_DOUBLESTRING, 0);
+    on_doc_number_light(pnode, SCE_H_NUMBER, 0);
+    on_doc_char_light(pnode, SCE_H_SINGLESTRING, 0);
+    on_doc_commentblock_light(pnode, SCE_H_COMMENT, 0);
+    on_doc_keyword_light(pnode, SCE_H_QUESTION, 3, 0);
+    on_doc_keyword_light(pnode, SCE_H_SCRIPT, 3, 0);
+    on_doc_keyword_light(pnode, SCE_H_ASP, 9, 0);
+    on_doc_keyword_light(pnode, SCE_H_ASPAT, 9, 0);
+    // JavaScript
+    on_doc_keyword_light(pnode, SCE_HJ_WORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_HJ_KEYWORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_HJA_KEYWORD, 1, 0);
+    on_doc_keyword_light(pnode, SCE_HJ_START, 3, 0);
+    on_doc_keyword_light(pnode, SCE_HJA_START, 3, 0);
+    on_doc_string_light(pnode, SCE_HJ_DOUBLESTRING, 0);
+    on_doc_char_light(pnode, SCE_HJ_SINGLESTRING, 0);
+    on_doc_number_light(pnode, SCE_HJ_NUMBER, 0);
+    on_doc_comment_light(pnode, SCE_HJ_COMMENTLINE, 0);
+    on_doc_commentblock_light(pnode, SCE_HJ_COMMENT, 0);
+    on_doc_commentdoc_light(pnode, SCE_HJ_COMMENTDOC, 0);
+    on_doc_string_light(pnode, SCE_HJA_DOUBLESTRING, 0);
+    on_doc_char_light(pnode, SCE_HJA_SINGLESTRING, 0);
+    on_doc_number_light(pnode, SCE_HJA_NUMBER, 0);
+    on_doc_comment_light(pnode, SCE_HJA_COMMENTLINE, 0);
+    on_doc_commentblock_light(pnode, SCE_HJA_COMMENT, 0);
+    on_doc_commentdoc_light(pnode, SCE_HJA_COMMENTDOC, 0);
+    // VBScript
+    for (style = SCE_HB_START; style <= SCE_HB_STRINGEOL; style++)
     {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
-
-        on_doc_tags_light(pnode, SCE_H_TAG, 0);
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_TAGUNKNOWN, eu_get_theme()->item.unknowtags.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ATTRIBUTE, (sptr_t)(eu_get_theme()->item.attributes.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ATTRIBUTE, eu_get_theme()->item.attributes.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ATTRIBUTE, (sptr_t)(eu_get_theme()->item.attributes.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ATTRIBUTE, (sptr_t)(eu_get_theme()->item.attributes.bold));
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ATTRIBUTEUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowattributes.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ATTRIBUTEUNKNOWN, eu_get_theme()->item.unknowattributes.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ATTRIBUTEUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowattributes.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ATTRIBUTEUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowattributes.bold));
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ENTITY, (sptr_t)(eu_get_theme()->item.entities.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ENTITY, eu_get_theme()->item.entities.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ENTITY, (sptr_t)(eu_get_theme()->item.entities.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ENTITY, (sptr_t)(eu_get_theme()->item.entities.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_TAGEND, (sptr_t)(eu_get_theme()->item.tagends.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_TAGEND, eu_get_theme()->item.tagends.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_TAGEND, (sptr_t)(eu_get_theme()->item.tagends.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_TAGEND, (sptr_t)(eu_get_theme()->item.tagends.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_CDATA, (sptr_t)(eu_get_theme()->item.cdata.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_CDATA, eu_get_theme()->item.cdata.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_CDATA, (sptr_t)(eu_get_theme()->item.cdata.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_CDATA, (sptr_t)(eu_get_theme()->item.cdata.bold));
-
-        on_doc_string_light(pnode, SCE_H_DOUBLESTRING, 0);
-        on_doc_number_light(pnode, SCE_H_NUMBER, 0);
-        on_doc_char_light(pnode, SCE_H_SINGLESTRING, 0);
-        on_doc_commentblock_light(pnode, SCE_H_COMMENT, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_QUESTION, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBACK, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_SCRIPT, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_SCRIPT, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_SCRIPT, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBACK, SCE_H_SCRIPT, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_SCRIPT, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ASP, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ASP, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ASP, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBACK, SCE_H_ASP, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ASP, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ASPAT, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ASPAT, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ASPAT, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBACK, SCE_H_ASPAT, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ASPAT, (sptr_t)(eu_get_theme()->item.phpsection.bold));
+        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
     }
-
-    /* JavaScript */
-    if (pnode->doc_ptr->keywords2)
+    for (style = SCE_HBA_START; style <= SCE_HBA_STRINGEOL; style++)
     {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords2));
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HJ_START, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HJ_START, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HJ_START, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HJ_START, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
-        on_doc_string_light(pnode, SCE_HJ_DOUBLESTRING, 0);
-        on_doc_char_light(pnode, SCE_HJ_SINGLESTRING, 0);
-        on_doc_number_light(pnode, SCE_HJ_NUMBER, 0);
-        on_doc_comment_light(pnode, SCE_HJ_COMMENTLINE, 0);
-        on_doc_commentblock_light(pnode, SCE_HJ_COMMENT, 0);
-        on_doc_commentdoc_light(pnode, SCE_HJ_COMMENTDOC, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HJ_WORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HJ_WORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HJ_WORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HJ_WORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HJ_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HJ_KEYWORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HJ_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HJ_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HJA_START, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HJA_START, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HJA_START, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HJA_START, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
-        on_doc_string_light(pnode, SCE_HJA_DOUBLESTRING, 0);
-        on_doc_char_light(pnode, SCE_HJA_SINGLESTRING, 0);
-        on_doc_number_light(pnode, SCE_HJA_NUMBER, 0);
-        on_doc_comment_light(pnode, SCE_HJA_COMMENTLINE, 0);
-        on_doc_commentblock_light(pnode, SCE_HJA_COMMENT, 0);
-        on_doc_commentdoc_light(pnode, SCE_HJA_COMMENTDOC, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HJA_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HJA_KEYWORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HJA_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HJA_KEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
+        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
     }
-
-    /* VBScript */
-    if (pnode->doc_ptr->keywords3)
+    on_doc_keyword_light(pnode, SCE_HB_WORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_HBA_WORD, 1, 0);
+    on_doc_keyword_light(pnode, SCE_HB_START, 3, 0);
+    on_doc_keyword_light(pnode, SCE_HBA_START, 3, 0);
+    on_doc_string_light(pnode, SCE_HB_STRING, 0);
+    on_doc_number_light(pnode, SCE_HB_NUMBER, 0);
+    on_doc_comment_light(pnode, SCE_HB_COMMENTLINE, 0);
+    on_doc_string_light(pnode, SCE_HBA_STRING, 0);
+    on_doc_number_light(pnode, SCE_HBA_NUMBER, 0);
+    on_doc_comment_light(pnode, SCE_HBA_COMMENTLINE, 0);
+    // Python
+    for (style = SCE_HP_START; style <= SCE_HP_IDENTIFIER; style++)
     {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords3));
-        for (int style = SCE_HB_START; style <= SCE_HB_STRINGEOL; style++)
-        {
-            eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        }
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HB_START, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HB_START, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HB_START, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HB_START, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-        on_doc_string_light(pnode, SCE_HB_STRING, 0);
-        on_doc_number_light(pnode, SCE_HB_NUMBER, 0);
-        on_doc_comment_light(pnode, SCE_HB_COMMENTLINE, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HB_WORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HB_WORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HB_WORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HB_WORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-        for (int style = SCE_HBA_START; style <= SCE_HBA_STRINGEOL; style++)
-        {
-            eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        }
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HBA_START, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HBA_START, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HBA_START, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HBA_START, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-        on_doc_string_light(pnode, SCE_HBA_STRING, 0);
-        on_doc_number_light(pnode, SCE_HBA_NUMBER, 0);
-        on_doc_comment_light(pnode, SCE_HBA_COMMENTLINE, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HBA_WORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HBA_WORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HBA_WORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HBA_WORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
+        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
     }
-
-    /* Python */
-    if (pnode->doc_ptr->keywords4)
+    for (style = SCE_HPHP_COMPLEX_VARIABLE; style <= SCE_HPA_IDENTIFIER; style++)
     {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords4));
-        for (int style = SCE_HP_START; style <= SCE_HP_IDENTIFIER; style++)
-        {
-            eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        }
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HP_START, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HP_START, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HP_START, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HP_START, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-        on_doc_string_light(pnode, SCE_HP_STRING, 0);
-        on_doc_char_light(pnode, SCE_HP_CHARACTER, 0);
-        on_doc_number_light(pnode, SCE_HP_NUMBER, 0);
-        on_doc_operator_light(pnode, SCE_HP_OPERATOR, 0);
-        on_doc_comment_light(pnode, SCE_HP_COMMENTLINE, 0);
-        on_doc_string_light(pnode, SCE_HP_TRIPLE, 0);
-        on_doc_string_light(pnode, SCE_HP_TRIPLEDOUBLE, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HP_WORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HP_WORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HP_WORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HP_WORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-        for (int style = SCE_HPHP_COMPLEX_VARIABLE; style <= SCE_HPA_IDENTIFIER; style++)
-        {
-            eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-        }
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HPA_START, (sptr_t)(eu_get_theme()->item.phpsection.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HPA_START, eu_get_theme()->item.phpsection.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HPA_START, (sptr_t)(eu_get_theme()->item.phpsection.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HPA_START, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-        on_doc_string_light(pnode, SCE_HPA_STRING, 0);
-        on_doc_char_light(pnode, SCE_HPA_CHARACTER, 0);
-        on_doc_number_light(pnode, SCE_HPA_NUMBER, 0);
-        on_doc_operator_light(pnode, SCE_HPA_OPERATOR, 0);
-        on_doc_comment_light(pnode, SCE_HPA_COMMENTLINE, 0);
-        on_doc_string_light(pnode, SCE_HPA_TRIPLE, 0);
-        on_doc_string_light(pnode, SCE_HPA_TRIPLEDOUBLE, 0);
-
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HPA_WORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HPA_WORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HPA_WORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HPA_WORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
+        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
     }
-
-    /* PHP */
-    if (pnode->doc_ptr->keywords5)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords5));
-        on_doc_string_light(pnode, SCE_HPHP_HSTRING, 0);
-        on_doc_number_light(pnode, SCE_HPHP_NUMBER, 0);
-        on_doc_operator_light(pnode, SCE_HPHP_OPERATOR, 0);
-        on_doc_comment_light(pnode, SCE_HPHP_COMMENTLINE, 0);
-        on_doc_commentblock_light(pnode, SCE_HPHP_COMMENT, 0);
-        on_doc_string_light(pnode, SCE_HPHP_SIMPLESTRING, 0);
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_HPHP_WORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_HPHP_WORD, eu_get_theme()->item.keywords0.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_HPHP_WORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_HPHP_WORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-    }
+    on_doc_keyword_light(pnode, SCE_HP_WORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_HPA_WORD, 1, 0);
+    on_doc_keyword_light(pnode, SCE_HP_START, 3, 0);
+    on_doc_keyword_light(pnode, SCE_HPA_START, 3, 0);
+    on_doc_string_light(pnode, SCE_HP_STRING, 0);
+    on_doc_char_light(pnode, SCE_HP_CHARACTER, 0);
+    on_doc_number_light(pnode, SCE_HP_NUMBER, 0);
+    on_doc_operator_light(pnode, SCE_HP_OPERATOR, 0);
+    on_doc_comment_light(pnode, SCE_HP_COMMENTLINE, 0);
+    on_doc_string_light(pnode, SCE_HP_TRIPLE, 0);
+    on_doc_string_light(pnode, SCE_HP_TRIPLEDOUBLE, 0);
+    on_doc_string_light(pnode, SCE_HPA_STRING, 0);
+    on_doc_char_light(pnode, SCE_HPA_CHARACTER, 0);
+    on_doc_number_light(pnode, SCE_HPA_NUMBER, 0);
+    on_doc_operator_light(pnode, SCE_HPA_OPERATOR, 0);
+    on_doc_comment_light(pnode, SCE_HPA_COMMENTLINE, 0);
+    on_doc_string_light(pnode, SCE_HPA_TRIPLE, 0);
+    on_doc_string_light(pnode, SCE_HPA_TRIPLEDOUBLE, 0);
+    // PHP
+    on_doc_keyword_light(pnode, SCE_HPHP_WORD, 0, 0);
+    on_doc_string_light(pnode, SCE_HPHP_HSTRING, 0);
+    on_doc_number_light(pnode, SCE_HPHP_NUMBER, 0);
+    on_doc_operator_light(pnode, SCE_HPHP_OPERATOR, 0);
+    on_doc_comment_light(pnode, SCE_HPHP_COMMENTLINE, 0);
+    on_doc_commentblock_light(pnode, SCE_HPHP_COMMENT, 0);
+    on_doc_string_light(pnode, SCE_HPHP_SIMPLESTRING, 0);
     init_sc_fold(pnode);
     return 0;
 }
@@ -1261,47 +1207,18 @@ on_doc_init_after_html(eu_tabpage *pnode)
 int
 on_doc_init_after_css(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("css"));
-    if (pnode->doc_ptr->keywords0)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
-    }
-    if (pnode->doc_ptr->keywords1)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
-    }
-
+    on_doc_key_scilexer(pnode, "css");
+    on_doc_color_customizes(pnode);
     on_doc_string_light(pnode, SCE_CSS_DOUBLESTRING, 0);
     on_doc_char_light(pnode, SCE_CSS_SINGLESTRING, 0);
     on_doc_operator_light(pnode, SCE_CSS_OPERATOR, 0);
     on_doc_commentblock_light(pnode, SCE_CSS_COMMENT, 0);
     on_doc_tags_light(pnode, SCE_CSS_TAG, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CSS_CLASS, (sptr_t)(eu_get_theme()->item.unknowtags.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CSS_CLASS, eu_get_theme()->item.unknowtags.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CSS_CLASS, (sptr_t)(eu_get_theme()->item.unknowtags.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CSS_CLASS, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CSS_PSEUDOCLASS, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CSS_PSEUDOCLASS, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CSS_PSEUDOCLASS, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CSS_PSEUDOCLASS, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CSS_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CSS_IDENTIFIER, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CSS_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CSS_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CSS_UNKNOWN_IDENTIFIER, (sptr_t)(eu_get_theme()->item.unknowattributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CSS_UNKNOWN_IDENTIFIER, eu_get_theme()->item.unknowattributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CSS_UNKNOWN_IDENTIFIER, (sptr_t)(eu_get_theme()->item.unknowattributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CSS_UNKNOWN_IDENTIFIER, (sptr_t)(eu_get_theme()->item.unknowattributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CSS_VALUE, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CSS_VALUE, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CSS_VALUE, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CSS_VALUE, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
+    on_doc_keyword_light(pnode, SCE_CSS_CLASS, 8, 0);
+    on_doc_keyword_light(pnode, SCE_CSS_PSEUDOCLASS, 4, 0);
+    on_doc_keyword_light(pnode, SCE_CSS_IDENTIFIER, 4, 0);
+    on_doc_keyword_light(pnode, SCE_CSS_UNKNOWN_IDENTIFIER, 4, 0);
+    on_doc_keyword_light(pnode, SCE_CSS_VALUE, 4, 0);
     init_sc_fold(pnode);
     return 0;
 }
@@ -1309,11 +1226,9 @@ on_doc_init_after_css(eu_tabpage *pnode)
 int
 on_doc_init_after_js(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cpp"));
-    if (pnode->doc_ptr->keywords0)
-    {
-        on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
-    }
+    on_doc_key_scilexer(pnode, "cpp");
+    on_doc_color_customizes(pnode);
+    on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
     on_doc_number_light(pnode, SCE_C_NUMBER, 0);
@@ -1332,50 +1247,20 @@ on_doc_init_after_js(eu_tabpage *pnode)
 int
 on_doc_init_after_xml(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("xml"));
+    on_doc_key_scilexer(pnode, "xml");
+    on_doc_color_customizes(pnode);
     on_doc_tags_light(pnode, SCE_H_TAG, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_TAGUNKNOWN, eu_get_theme()->item.unknowtags.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_TAGUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ATTRIBUTE, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ATTRIBUTE, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ATTRIBUTE, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ATTRIBUTE, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ATTRIBUTEUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowattributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ATTRIBUTEUNKNOWN, eu_get_theme()->item.unknowattributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ATTRIBUTEUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowattributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ATTRIBUTEUNKNOWN, (sptr_t)(eu_get_theme()->item.unknowattributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_ENTITY, (sptr_t)(eu_get_theme()->item.entities.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_ENTITY, eu_get_theme()->item.entities.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_ENTITY, (sptr_t)(eu_get_theme()->item.entities.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_ENTITY, (sptr_t)(eu_get_theme()->item.entities.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_TAGEND, (sptr_t)(eu_get_theme()->item.tagends.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_TAGEND, eu_get_theme()->item.tagends.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_TAGEND, (sptr_t)(eu_get_theme()->item.tagends.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_TAGEND, (sptr_t)(eu_get_theme()->item.tagends.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_CDATA, (sptr_t)(eu_get_theme()->item.cdata.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_CDATA, eu_get_theme()->item.cdata.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_CDATA, (sptr_t)(eu_get_theme()->item.cdata.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_CDATA, (sptr_t)(eu_get_theme()->item.cdata.bold));
-
+    on_doc_keyword_light(pnode, SCE_H_TAGUNKNOWN, 8, 0);
+    on_doc_keyword_light(pnode, SCE_H_ATTRIBUTE, 4, 0);
+    on_doc_keyword_light(pnode, SCE_H_ATTRIBUTEUNKNOWN, 5, 0);
+    on_doc_keyword_light(pnode, SCE_H_ENTITY, 2, 0);
+    on_doc_keyword_light(pnode, SCE_H_TAGEND, 7, 0);
+    on_doc_keyword_light(pnode, SCE_H_CDATA, 6, 0);
+    on_doc_keyword_light(pnode, SCE_H_QUESTION, 3, 0);
     on_doc_string_light(pnode, SCE_H_DOUBLESTRING, 0);
     on_doc_char_light(pnode, SCE_H_SINGLESTRING, 0);
     on_doc_number_light(pnode, SCE_H_NUMBER, 0);
     on_doc_commentblock_light(pnode, SCE_H_COMMENT, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.phpsection.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_H_QUESTION, eu_get_theme()->item.phpsection.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.phpsection.color));
-    eu_sci_call(pnode, SCI_STYLESETBACK, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.aspsection.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_H_QUESTION, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
     init_sc_fold(pnode);
     return 0;
 }
@@ -1383,34 +1268,22 @@ on_doc_init_after_xml(eu_tabpage *pnode)
 int
 on_doc_init_after_json(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("json"));
+    on_doc_key_scilexer(pnode, "json");
+    on_doc_color_customizes(pnode);
+    on_doc_keyword_light(pnode, SCE_JSON_PROPERTYNAME, 4, 0);
+    on_doc_keyword_light(pnode, SCE_JSON_LDKEYWORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_JSON_ERROR, 3, 0);
     on_doc_keyword_light(pnode, SCE_JSON_KEYWORD, 0, 0);
     on_doc_string_light(pnode, SCE_JSON_STRING, 0);
     on_doc_number_light(pnode, SCE_JSON_NUMBER, 0);
     on_doc_operator_light(pnode, SCE_JSON_OPERATOR, 0);
     on_doc_comment_light(pnode, SCE_JSON_LINECOMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_JSON_BLOCKCOMMENT, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_JSON_PROPERTYNAME, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_JSON_PROPERTYNAME, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_JSON_PROPERTYNAME, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_JSON_PROPERTYNAME, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_JSON_LDKEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_JSON_LDKEYWORD, eu_get_theme()->item.keywords0.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_JSON_LDKEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_JSON_LDKEYWORD, (sptr_t)(eu_get_theme()->item.keywords0.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_YAML_ERROR, (sptr_t)(eu_get_theme()->item.phpsection.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_YAML_ERROR, eu_get_theme()->item.phpsection.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_YAML_ERROR, (sptr_t)(eu_get_theme()->item.phpsection.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_YAML_ERROR, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
     init_sc_fold(pnode);
     init_systree_theme(pnode);
     if (pnode->doc_ptr->fn_reload_symtree)
     {
-        return pnode->doc_ptr->fn_reload_symtree(pnode);
+        pnode->doc_ptr->fn_reload_symtree(pnode);
     }
     return 0;
 }
@@ -1418,23 +1291,15 @@ on_doc_init_after_json(eu_tabpage *pnode)
 int
 on_doc_init_after_yaml(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("yaml"));
+    on_doc_key_scilexer(pnode, "yaml");
+    on_doc_color_customizes(pnode);
+    on_doc_keyword_light(pnode, SCE_YAML_IDENTIFIER, 4, 0);
+    on_doc_keyword_light(pnode, SCE_YAML_ERROR, 3, 0);
     on_doc_keyword_light(pnode, SCE_YAML_KEYWORD, 0, 0);
     on_doc_string_light(pnode, SCE_YAML_TEXT, 0);
     on_doc_number_light(pnode, SCE_YAML_NUMBER, 0);
     on_doc_operator_light(pnode, SCE_YAML_OPERATOR, 0);
     on_doc_commentblock_light(pnode, SCE_YAML_COMMENT, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_YAML_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_YAML_IDENTIFIER, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_YAML_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_YAML_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_YAML_ERROR, (sptr_t)(eu_get_theme()->item.phpsection.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_YAML_ERROR, eu_get_theme()->item.phpsection.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_YAML_ERROR, (sptr_t)(eu_get_theme()->item.phpsection.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_YAML_ERROR, (sptr_t)(eu_get_theme()->item.phpsection.bold));
-
     init_sc_fold(pnode);
     return 0;
 }
@@ -1442,16 +1307,13 @@ on_doc_init_after_yaml(eu_tabpage *pnode)
 int
 on_doc_init_after_makefile(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("makefile"));
+    on_doc_key_scilexer(pnode, "makefile");
+    on_doc_color_customizes(pnode);
+    on_doc_keyword_light(pnode, SCE_MAKE_IDENTIFIER, 4, 0);
     on_doc_comment_light(pnode, SCE_MAKE_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_MAKE_OPERATOR, 0);
     on_doc_preprocessor_light(pnode, SCE_MAKE_PREPROCESSOR, -1, 0);
     on_doc_tags_light(pnode, SCE_MAKE_TARGET, 0);
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MAKE_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MAKE_IDENTIFIER, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MAKE_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MAKE_IDENTIFIER, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
     // 折叠
     init_sc_fold(pnode);
     return 0;
@@ -1460,16 +1322,13 @@ on_doc_init_after_makefile(eu_tabpage *pnode)
 int
 on_doc_init_after_diff(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("diff"));
+    on_doc_key_scilexer(pnode, "diff");
+    on_doc_color_customizes(pnode);
+    on_doc_keyword_light(pnode, SCE_DIFF_COMMAND, 4, 0);
     on_doc_comment_light(pnode, SCE_DIFF_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_DIFF_PATCH_ADD, 0);
     on_doc_operator_light(pnode, SCE_DIFF_PATCH_DELETE, 0);
     on_doc_preprocessor_light(pnode, SCE_DIFF_POSITION, -1, 0);
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_DIFF_COMMAND, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_DIFF_COMMAND, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
     // 折叠
     init_sc_fold(pnode);
     return 0;
@@ -1478,41 +1337,20 @@ on_doc_init_after_diff(eu_tabpage *pnode)
 int
 on_doc_init_after_cmake(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("cmake"));
+    on_doc_key_scilexer(pnode, "cmake");
+    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_CMAKE_COMMANDS, 0, 0);
+    on_doc_preprocessor_light(pnode, SCE_CMAKE_IFDEFINEDEF, -1, 0);
+    on_doc_preprocessor_light(pnode, SCE_CMAKE_MACRODEF, -1, 0);
+    on_doc_keyword_light(pnode, SCE_CMAKE_VARIABLE, 4, 0);
+    on_doc_keyword_light(pnode, SCE_CMAKE_FOREACHDEF, 7, 0);
+    on_doc_keyword_light(pnode, SCE_CMAKE_STRINGVAR, 5, 0);
     on_doc_function_light(pnode, SCE_CMAKE_PARAMETERS, 1, 0);
-
     on_doc_string_light(pnode, SCE_CMAKE_STRINGDQ, 0);
     on_doc_string_light(pnode, SCE_CMAKE_STRINGLQ, 0);
     on_doc_string_light(pnode, SCE_CMAKE_STRINGRQ, 0);
     on_doc_number_light(pnode, SCE_CMAKE_NUMBER, 0);
     on_doc_commentblock_light(pnode, SCE_CMAKE_COMMENT, 0);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CMAKE_VARIABLE, (sptr_t)(eu_get_theme()->item.attributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CMAKE_VARIABLE, eu_get_theme()->item.attributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CMAKE_VARIABLE, (sptr_t)(eu_get_theme()->item.attributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CMAKE_VARIABLE, (sptr_t)(eu_get_theme()->item.attributes.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CMAKE_IFDEFINEDEF, (sptr_t)(eu_get_theme()->item.tagends.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CMAKE_IFDEFINEDEF, eu_get_theme()->item.tagends.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CMAKE_IFDEFINEDEF, (sptr_t)(eu_get_theme()->item.tagends.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CMAKE_IFDEFINEDEF, (sptr_t)(eu_get_theme()->item.tagends.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CMAKE_MACRODEF, (sptr_t)(eu_get_theme()->item.tagends.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CMAKE_MACRODEF, eu_get_theme()->item.tagends.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CMAKE_MACRODEF, (sptr_t)(eu_get_theme()->item.tagends.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CMAKE_MACRODEF, (sptr_t)(eu_get_theme()->item.tagends.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CMAKE_FOREACHDEF, (sptr_t)(eu_get_theme()->item.tagends.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CMAKE_FOREACHDEF, eu_get_theme()->item.tagends.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CMAKE_FOREACHDEF, (sptr_t)(eu_get_theme()->item.tagends.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CMAKE_FOREACHDEF, (sptr_t)(eu_get_theme()->item.tagends.bold));
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_CMAKE_STRINGVAR, (sptr_t)(eu_get_theme()->item.unknowattributes.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_CMAKE_STRINGVAR, eu_get_theme()->item.unknowattributes.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_CMAKE_STRINGVAR, (sptr_t)(eu_get_theme()->item.unknowattributes.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_CMAKE_STRINGVAR, (sptr_t)(eu_get_theme()->item.unknowattributes.bold));
-
     init_sc_fold(pnode);
     return 0;
 }
@@ -1520,14 +1358,8 @@ on_doc_init_after_cmake(eu_tabpage *pnode)
 int
 on_doc_init_after_markdown(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("markdown"));
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_STRONG1, (sptr_t)(eu_get_theme()->item.tags.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_STRONG1, eu_get_theme()->item.tags.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_STRONG1, (sptr_t)(eu_get_theme()->item.tags.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_STRONG1, true);
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_STRONG2, (sptr_t)(eu_get_theme()->item.tags.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_STRONG2, eu_get_theme()->item.tags.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_STRONG2, (sptr_t)(eu_get_theme()->item.tags.color));
+    on_doc_key_scilexer(pnode, "markdown");
+    on_doc_color_customizes(pnode);
     for (int i = SCE_MARKDOWN_EM1; i < SCE_MARKDOWN_CODE; ++i)
     {
         on_doc_tags_light(pnode, i, 0);
@@ -1537,19 +1369,13 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETWEIGHT, SCE_MARKDOWN_STRIKEOUT, 1);
     eu_sci_call(pnode, SCI_STYLESETWEIGHT, SCE_MARKDOWN_HRULE, 999);
     eu_sci_call(pnode, SCI_STYLESETWEIGHT, SCE_MARKDOWN_LINK, 99);
-
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_CODE, (sptr_t)(eu_get_theme()->item.string.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_CODE, eu_get_theme()->item.string.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_CODE, (sptr_t)(eu_get_theme()->item.string.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_CODE, (sptr_t)(eu_get_theme()->item.string.bold));
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_CODE2, (sptr_t)(eu_get_theme()->item.cdata.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_CODE2, eu_get_theme()->item.cdata.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_CODE2, (sptr_t)(eu_get_theme()->item.cdata.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_CODE2, (sptr_t)(eu_get_theme()->item.cdata.bold));
-    eu_sci_call(pnode, SCI_STYLESETFONT, SCE_MARKDOWN_CODEBK, (sptr_t)(eu_get_theme()->item.cdata.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_MARKDOWN_CODEBK, eu_get_theme()->item.cdata.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_MARKDOWN_CODEBK, (sptr_t)(eu_get_theme()->item.cdata.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_CODEBK, (sptr_t)(eu_get_theme()->item.cdata.bold));
+    on_doc_tags_light(pnode, SCE_MARKDOWN_STRONG1, 0);
+    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_STRONG1, true);
+    on_doc_tags_light(pnode, SCE_MARKDOWN_STRONG2, 0);
+    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_MARKDOWN_STRONG2, true);
+    on_doc_keyword_light(pnode, SCE_MARKDOWN_CODE2, 6, 0);
+    on_doc_keyword_light(pnode, SCE_MARKDOWN_CODEBK, 6, 0);
+    on_doc_string_light(pnode, SCE_MARKDOWN_CODE, 0);
     init_sc_fold(pnode);
     return 0;
 }
@@ -1557,19 +1383,10 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
 int
 on_doc_init_after_log(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("fcST"));
-    if (pnode->doc_ptr->keywords0)
-    {
-        on_doc_keyword_light(pnode, SCE_STTXT_KEYWORD, 0, 0);
-    }
-    if (pnode->doc_ptr->keywords1)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
-        eu_sci_call(pnode, SCI_STYLESETFONT, SCE_STTXT_TYPE, (sptr_t)(eu_get_theme()->item.unknowtags.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, SCE_STTXT_TYPE, eu_get_theme()->item.unknowtags.fontsize);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_STTXT_TYPE, (sptr_t)(eu_get_theme()->item.unknowtags.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_STTXT_TYPE, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
-    }
+    on_doc_key_scilexer(pnode, "fcST");
+    on_doc_color_customizes(pnode);
+    on_doc_keyword_light(pnode, SCE_STTXT_KEYWORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_STTXT_TYPE, 8, 0);
     on_doc_number_light(pnode, SCE_STTXT_DATETIME, 0);
     on_doc_operator_light(pnode, SCE_STTXT_OPERATOR, 0xff);
     on_doc_comment_light(pnode, SCE_STTXT_COMMENT, 0);
@@ -1580,13 +1397,15 @@ on_doc_init_after_log(eu_tabpage *pnode)
 int
 on_doc_init_after_properties(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer("props"));
-    on_doc_default_light(pnode, SCE_PROPS_DEFAULT, 0);
+    on_doc_key_scilexer(pnode, "props");
+    on_doc_color_customizes(pnode);
+    on_doc_default_light(pnode, SCE_PROPS_DEFAULT, 0, false);
     on_doc_keyword_light(pnode, SCE_PROPS_KEY, 0, 0);
     on_doc_commentblock_light(pnode, SCE_PROPS_COMMENT, 0);
     on_doc_string_light(pnode, SCE_PROPS_SECTION, 0);
     on_doc_operator_light(pnode, SCE_PROPS_ASSIGNMENT, 0);
     on_doc_preprocessor_light(pnode, SCE_PROPS_DEFVAL, -1, 0);
+
     return 0;
 }
 

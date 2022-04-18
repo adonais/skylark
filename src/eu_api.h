@@ -588,7 +588,7 @@ EU_EXT_CLASS int on_doc_click_tree_redis(eu_tabpage *pnode);
 
 /* 脚本调用 */
 EU_EXT_CLASS int on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name);
-EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb);
+EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb, bool force);
 EU_EXT_CLASS void on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);

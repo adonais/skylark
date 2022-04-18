@@ -155,9 +155,16 @@ typedef int (*click_list_ptr)(void *pnode);
 typedef int (*reload_tree_ptr)(void *pnode);
 typedef int (*click_tree_ptr)(void *pnode);
 
+typedef struct _doc_styles
+{
+    int type[32];
+    uint32_t color[32];
+    uint32_t mask;
+} doc_styles;
+
 typedef struct _doc_data
 {
-    int doc_type;                             // 文档类型编号,自行添加请从DOCTYPE_FORTRAN开始递增
+    int doc_type;                             // 文档类型编号,自行添加请从末尾数字开始递增
     const char *filetypename;                 // 文档类型名称
     const char *extname;                      // 文档扩展名
     const char *filedesc;                     // 文档类型描述
@@ -182,6 +189,7 @@ typedef struct _doc_data
     char *reqular_exp;                        // 根据此正则表达式初始化list控件
     eutype_t acshow_tree;                     // 自动补全hash表
     eutype_t ctshow_tree;                     // 函数提示hash表
+    doc_styles style;                         // 文档关键字类型与高亮颜色
 } doctype_t;
 
 bool __stdcall eu_config_ptr(struct eu_config *pconfig);
@@ -268,7 +276,7 @@ int on_doc_click_tree_redis(void *pnode);
 
 /* lua脚本接口支持, 对各类关键字着色 */
 int on_doc_init_after_scilexer(void *p, const  char *name);
-void on_doc_default_light(void *p, int lex, int64_t rgb);
+void on_doc_default_light(void *p, int lex, int64_t rgb, bool force);
 void on_doc_keyword_light(void *p, int lex, int index, int64_t rgb);
 void on_doc_function_light(void *p, int lex, int index, int64_t rgb);
 void on_doc_preprocessor_light(void *p, int lex, int index, int64_t rgb);
