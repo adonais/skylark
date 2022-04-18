@@ -259,12 +259,16 @@ on_doc_set_keyword(eu_tabpage *pnode)
     }
 }
 
-static bool
+bool
 on_doc_is_customized(eu_tabpage *pnode, int lex)
 {
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->style.mask > 0)
     {
         uint32_t mask = pnode->doc_ptr->style.mask;
+        if (lex < 0)
+        {
+            return true;
+        }
         for (int i = 0; i < SCE_STYLE_MAX; ++i, mask >>= 1)
         {
             if ((mask & 0x1) && (i == lex))

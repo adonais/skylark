@@ -876,6 +876,8 @@
 #define IDC_THEME_CARTETLINE_UDN            42844
 #define IDC_THEME_INDICATOR_UDN             42845
 #define IDS_THEME_EDIT_TIPS                 42846
+#define IDC_THEME_TIPS_STC                  42847
+#define IDS_THEME_TIPS                      42848
 
 #define IDM_SELECTION_RECTANGLE             42850
 #define IDM_FILE_WORKSPACE                  42851

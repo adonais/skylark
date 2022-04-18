@@ -118,6 +118,7 @@ doctype_t *eu_doc_get_ptr(void);
 int on_doc_count(void);
 int on_doc_brace_light(eu_tabpage *pnode, bool keyup);
 void eu_doc_set_ptr(doctype_t *ptr);
+bool on_doc_is_customized(eu_tabpage *pnode, int lex);
 doctype_t *on_doc_get_type(const TCHAR *pfile);
 TCHAR *on_doc_get_ext(eu_tabpage *pnode);
 

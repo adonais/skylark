@@ -561,6 +561,7 @@ BEGIN
     CONTROL "",IDC_THEME_CARTETLINE_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,246,12,13
     CONTROL "",IDC_THEME_INDICATOR_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,265,33,12,WS_EX_CLIENTEDGE
     CONTROL "",IDC_THEME_INDICATOR_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,264,12,13
+    CONTROL "Tips: More professional syntax highlighting can be completed by user script",IDC_THEME_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,296,441,12
 END
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
@@ -1094,6 +1095,7 @@ STRINGTABLE DISCARDABLE
     IDS_USER32_ERROR        "Error"
     IDS_USER32_UNFINISHED   "The editor has not been completely closed. Please open it again later"
     IDS_EXTRA_PATH          "External program path: "
+    IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
 }
 
 /////////////////////////////////////////////////////////////////////////////
