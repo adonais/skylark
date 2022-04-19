@@ -814,6 +814,9 @@ function fetch_doctype(s)
     end
     if (reqular ~= nil) then
       m_config.reqular_exp = eu_core.ffi.cast('char *', reqular)
+      if (m_config.fn_init_before == nil) then m_config.fn_init_before = eu_core.euapi.on_doc_init_list end
+      if (m_config.fn_reload_symlist == nil) then m_config.fn_reload_symlist = eu_core.euapi.on_doc_reload_list_reqular end
+      if (m_config.fn_click_symlist == nil) then m_config.fn_click_symlist = eu_core.euapi.on_doc_click_list_jmp end
     end
     if (m_req.get_autocomplete ~= nil) then
       m_set = m_req.get_autocomplete()

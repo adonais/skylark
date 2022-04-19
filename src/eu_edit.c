@@ -918,7 +918,7 @@ on_close_selection(eu_tabpage *pnode, const char *open_str, const char *close_st
         MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return;
     }
-    if (STR_IS_NUL(open_str) && STR_IS_NUL(close_str))
+    if (STR_IS_NUL(open_str) || STR_IS_NUL(close_str))
     {
         return;
     }
@@ -926,18 +926,11 @@ on_close_selection(eu_tabpage *pnode, const char *open_str, const char *close_st
     sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
     sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-    if (STR_NOT_NUL(open_str))
-    {
-        len = (int) strlen(open_str);
-        eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_start);
-        eu_sci_call(pnode, SCI_REPLACETARGET, len, (LPARAM) open_str);
-    }
-
-    if (STR_NOT_NUL(close_str))
-    {
-        eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_end + len, sel_end + len);
-        eu_sci_call(pnode, SCI_REPLACETARGET, strlen(close_str), (LPARAM) close_str);
-    }
+    len = eu_int_cast(strlen(open_str));
+    eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_start);
+    eu_sci_call(pnode, SCI_REPLACETARGET, len, (LPARAM) open_str);
+    eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_end + len, sel_end + len);
+    eu_sci_call(pnode, SCI_REPLACETARGET, strlen(close_str), (LPARAM) close_str);
     eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     // fix selection
     if (sel_start == sel_end)
@@ -970,24 +963,47 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     int offset = 0;
     char start[ACNAME_LEN + 1] = { 0 };
     char end[ACNAME_LEN + 1] = { 0 };
-    const char *line_end = on_encoding_get_eol(pnode);
+    sptr_t eline_start = 0;
+    sptr_t eline_end = 0;
+    const char *str_eol = on_encoding_get_eol(pnode);
     sptr_t pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
     sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
     sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+    sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (pos != line_start)
     {
-        strncat(start, line_end, ACNAME_LEN);
+        strncat(start, str_eol, ACNAME_LEN);
     }
     strncat(start, open_str, ACNAME_LEN);
-    strncat(start, line_end, ACNAME_LEN);
+    if (line_start != line_end)
+    {
+        strncat(start, str_eol, ACNAME_LEN);
+        if (line_start > pos)
+        {   // 添加回车符, 还需要添加行首可能存在的空白
+            char word_buffer[ACNAME_LEN + 1] = {0};
+            Sci_TextRange tr = {{line_start, pos}, word_buffer};
+            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            if (*word_buffer)
+            {
+                strncat(start, word_buffer, ACNAME_LEN);
+            }
+        }
+    }
     pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-    if (pos != line_start)
+    eline_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+    eline_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+    if (eline_start != eline_end)
     {
-        strncat(end, line_end, ACNAME_LEN);
+        strncat(end, str_eol, ACNAME_LEN);
     }
     strncat(end, close_str, ACNAME_LEN);
-    strncat(end, line_end, ACNAME_LEN);
+    char *next_buf = util_strdup_line(pnode, line+1, NULL);
+    if (STR_NOT_NUL(next_buf) && strcmp(next_buf, str_eol) != 0)
+    {   // 下一行是空行, 不多添加回车符
+        strncat(end, str_eol, ACNAME_LEN);
+    }
+    eu_safe_free(next_buf);
     on_close_selection(pnode, start, end);
 }
 
@@ -1005,7 +1021,7 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
     sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
     sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    const int cch_comment = (int) strlen(pcomment);
+    const int cch_comment = eu_int_cast(strlen(pcomment));
     util_effect_line(pnode, &line_start, &line_end);
     sptr_t comment_col = 0;
     if (!at_start)
