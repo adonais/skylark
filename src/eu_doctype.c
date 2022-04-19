@@ -1413,23 +1413,12 @@ on_doc_init_after_properties(eu_tabpage *pnode)
     return 0;
 }
 
-static bool
-is_inavailed_char(const uint8_t ch)
-{
-    if (ch > 0x7f)
-    {
-        return false;
-    }
-    return isspace(ch);
-}
-
 static int
-add_autoclose_char(eu_tabpage *pnode, SCNotification *lpnotify)
+add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
 {
-    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    int current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
-    if (current_char > 0 && eu_get_config()->auto_close_chars && is_inavailed_char(current_char))
+    if (eu_get_config()->auto_close_chars)
     {   /* 自动补全关闭符号 */
+        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         switch (lpnotify->ch)
         {
             case '(':
@@ -1444,6 +1433,10 @@ add_autoclose_char(eu_tabpage *pnode, SCNotification *lpnotify)
                 eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "}");
                 eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
                 break;
+            case '<':
+                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ">");
+                eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                break;
             case '\'':
             {
                 int pre_pre_character = 0;
@@ -1451,7 +1444,7 @@ add_autoclose_char(eu_tabpage *pnode, SCNotification *lpnotify)
                 {
                     pre_pre_character = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2, 0);
                 }
-                if (!(pre_pre_character == '\'' || current_char == '\''))
+                if (pre_pre_character != '\'')
                 {
                     eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "'");
                     eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
@@ -1465,7 +1458,7 @@ add_autoclose_char(eu_tabpage *pnode, SCNotification *lpnotify)
                 {
                     pre_pre_character = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2, 0);
                 }
-                if (!(pre_pre_character == '"' || current_char == '"'))
+                if (pre_pre_character != '"')
                 {
                     eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "\"");
                     eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
@@ -1474,23 +1467,6 @@ add_autoclose_char(eu_tabpage *pnode, SCNotification *lpnotify)
             }
             default:
                 break;
-        }
-    }
-    return 0;
-}
-
-static int
-add_autoclose_bracket(eu_tabpage *pnode, SCNotification *lpnotify)
-{
-    /* web脚本自动补全符号 */
-    if (lpnotify->ch == '<' && eu_get_config()->auto_close_chars)
-    {
-        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        int current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
-        if (current_char > 0 && is_inavailed_char(current_char))
-        {
-            eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ">");
-            eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
         }
     }
     return 0;
@@ -1752,7 +1728,6 @@ add_acshow_char(eu_tabpage *pnode, SCNotification *lpnotify)
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)))
         {
             int current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            // SCI_GETCHARAT
             int start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
             int ndo = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2, 0);
             int end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
@@ -1885,7 +1860,7 @@ on_doc_cpp_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
         add_acshow_char(pnode, lpnotify);
         on_doc_function_tips(pnode, lpnotify);
     }
@@ -1898,7 +1873,7 @@ on_doc_sql_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
         add_acshow_char(pnode, lpnotify);
         add_ctinput_char(pnode, lpnotify, ';', true);
     }
@@ -1911,7 +1886,7 @@ on_doc_redis_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
         add_acshow_char(pnode, lpnotify);
         add_ctinput_char(pnode, lpnotify, '\n', true);
     }
@@ -1924,8 +1899,7 @@ on_doc_html_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
-        add_autoclose_bracket(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
         add_acshow_html(pnode, lpnotify);
     }
     return 0;
@@ -1937,8 +1911,7 @@ on_doc_xml_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
-        add_autoclose_bracket(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
     }
     return 0;
 }
@@ -1949,7 +1922,7 @@ on_doc_css_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
         add_acshow_char(pnode, lpnotify);
     }
     return 0;
@@ -1961,7 +1934,7 @@ on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
     }
     return 0;
 }
@@ -1972,7 +1945,7 @@ on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
     }
     return 0;
 }
@@ -1983,7 +1956,7 @@ on_doc_cmake_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
         add_acshow_char(pnode, lpnotify);
     }
     return 0;
@@ -1995,7 +1968,7 @@ on_doc_markdown_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_autoclose_char(pnode, lpnotify);
+        add_close_char(pnode, lpnotify);
     }
     return 0;
 }

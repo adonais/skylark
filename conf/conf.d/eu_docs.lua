@@ -15,6 +15,15 @@ if (not eu_core.file_exists(user_file)) then
     "user_docs = {}\n",
     "require(\"eu_sci\")\n",
     "require(\"eu_core\")\n",
+    "function user_docs.lua_init_after_caml(p)\n",
+    "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
+    "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"caml\")\n",
+    "  if (res ~= 1) then\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_CAML_KEYWORD, 0, 0)\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_CAML_KEYWORD2, 0, 0)\n",
+    "  end\n",
+    "  return res\n",
+    "end\n",
     "function user_docs.lua_init_after_au3(p)\n",
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
     "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"au3\")\n",
@@ -98,6 +107,7 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_TXT = 32,\n",
     "    DOCTYPE_XML = 33,\n",
     "    DOCTYPE_YAML = 34,\n",
+    "    DOCTYPE_CAML = 35,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -129,6 +139,24 @@ if (not eu_core.file_exists(user_file)) then
     "          -1,\n",
     "          ffi_null,\n",
     "          user_docs.lua_init_after_au3,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_cpp_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_CAML,\n",
+    "          \"caml\",\n",
+    "          \";*.ml;*.mli;*.sml;*.thy;\",\n",
+    "          \"Caml Language\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          user_docs.lua_init_after_caml,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          eu_core.euapi.on_doc_keyup_general,\n",
@@ -755,7 +783,7 @@ function fetch_doctype(s)
   local reqular = nil
   local tab_width = nil
   local tab_convert_spaces = nil
-  
+
   if (m_config.filetypename ~= nil) then
     local typename = eu_core.ffi.string(m_config.filetypename)
     local tmp_file = (conf_path .. "\\script-opts\\user_" .. typename .. ".lua")
@@ -777,7 +805,7 @@ function fetch_doctype(s)
       tab_convert_spaces = -1
     end
     m_config.tab_width = tab_width
-    m_config.tab_convert_spaces = tab_convert_spaces    
+    m_config.tab_convert_spaces = tab_convert_spaces
     if (m_req.get_calltip ~= nil) then
       calltip = m_req.get_calltip()
     end
@@ -820,7 +848,7 @@ function fetch_doctype(s)
     end
     if (m_req.get_autocomplete ~= nil) then
       m_set = m_req.get_autocomplete()
-    end        
+    end
     if (m_set ~= nil) then
       local dst = string.split(m_set, " +")
       for i = 1, #dst do
