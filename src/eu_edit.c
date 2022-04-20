@@ -18,6 +18,8 @@
 
 #include "framework.h"
 
+#define COMMENT_LEN 16
+
 enum htmlblock
 {
     HTML_TEXT_BLOCK_TAG = 0,
@@ -925,6 +927,17 @@ on_close_selection(eu_tabpage *pnode, const char *open_str, const char *close_st
     util_wait_cursor(pnode);
     sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
     sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    if (sel_start == sel_end)
+    {
+        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sel_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sel_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        if (sel_end - sel_start == 0)
+        {
+            return;
+        }
+    }
     eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     len = eu_int_cast(strlen(open_str));
     eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_start);
@@ -1179,6 +1192,29 @@ on_html_block(eu_tabpage *pnode)
     return get_html_block(style);
 }
 
+static void
+on_edit_script_line_comment(eu_tabpage *pnode, const char *pcomment)
+{
+    char *p = NULL;
+    const char *split = "&&";
+    char pre_comment[COMMENT_LEN+1] = {0};
+    char suf_comment[COMMENT_LEN+1] = {0};
+    if (!pcomment)
+    {
+        return;
+    }
+    if (((p = strstr(pcomment, "&&")) != NULL) && p - pcomment < COMMENT_LEN)
+    {
+        strncpy(pre_comment, pcomment, p - pcomment);
+        strncpy(suf_comment, p+strlen(split), COMMENT_LEN);
+        on_close_selection(pnode, pre_comment, suf_comment);
+    }
+    else
+    {
+        eu_toggle_comment(pnode, pcomment, false);
+    }
+}
+
 int
 on_edit_comment_line(eu_tabpage *pnode)
 {
@@ -1188,6 +1224,11 @@ on_edit_comment_line(eu_tabpage *pnode)
     }
     if (pnode->hex_mode)
     {
+        return 0;
+    }
+    if (pnode->doc_ptr->comment.initialized)
+    {
+        on_edit_script_line_comment(pnode, pnode->doc_ptr->comment.line);
         return 0;
     }
     switch (pnode->doc_ptr->doc_type)
@@ -1281,6 +1322,11 @@ on_edit_comment_stream(eu_tabpage *pnode)
     }
     if (pnode->hex_mode)
     {
+        return 0;
+    }
+    if (pnode->doc_ptr->comment.initialized)
+    {
+        on_edit_script_line_comment(pnode, pnode->doc_ptr->comment.block);
         return 0;
     }
     switch (pnode->doc_ptr->doc_type)

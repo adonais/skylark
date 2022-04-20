@@ -336,7 +336,11 @@ on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb, bool force)
         }
         else if (rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            if (rgb >> 31)
+            {
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)1);
+            }
+            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb&0xFFFFFF);
         }
         else
         {

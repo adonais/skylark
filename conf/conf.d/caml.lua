@@ -2,13 +2,24 @@ caml = {}
 
 require("eu_sci")
 
+function caml.get_comments()
+  -- 行注释与块注释, 注释头与注释尾用&&分开
+  -- OCaml的行注释有开始与结尾, 其他文档的行注释一般没有尾部
+  local line_t = "(* && *)"
+  local block_t = "(* && *)"
+  return line_t, block_t
+end
+
 function caml.get_styles()
   local style_t = {
     [SCE_CAML_COMMENT] = 0xC0C0C0,
     [SCE_CAML_COMMENT1] = 0xC0C0C0,
     [SCE_CAML_COMMENT2] = 0x008080,
     [SCE_CAML_COMMENT3] = 0x008080,
-    [SCE_CAML_KEYWORD3] = 0x00B050,
+    -- 给关键字加上粗体
+    [SCE_CAML_KEYWORD] = 0x00B050 + SCE_BOLD_FONT,
+    [SCE_CAML_KEYWORD2] = 0x00B050 + SCE_BOLD_FONT,
+    [SCE_CAML_KEYWORD3] = 0xBBBB00 + SCE_BOLD_FONT,
     [SCE_CAML_CHAR] = 0xC080FF,
     [SCE_CAML_STRING] = 0xC080FF,
     [SCE_CAML_WHITE] = 0xB000B0,
@@ -35,13 +46,24 @@ function caml.create_bakup(path)
     "\n",
     "require(\"eu_sci\")\n",
     "\n",
+    "function user_caml.get_comments()\n",
+    "  -- 行注释与块注释, 注释头与注释尾用&&分开\n",
+    "  -- OCaml的行注释有开始与结尾, 其他文档的行注释一般没有尾部\n",
+    "  local line_t = \"(* && *)\"\n",
+    "  local block_t = \"(* && *)\"\n",
+    "  return line_t, block_t\n",
+    "end\n",
+    "\n",
     "function user_caml.get_styles()\n",
     "  local style_t = {\n",
     "    [SCE_CAML_COMMENT] = 0xC0C0C0,\n",
     "    [SCE_CAML_COMMENT1] = 0xC0C0C0,\n",
     "    [SCE_CAML_COMMENT2] = 0x008080,\n",
     "    [SCE_CAML_COMMENT3] = 0x008080,\n",
-    "    [SCE_CAML_KEYWORD3] = 0x00B050,\n",
+    "    -- 给关键字加上粗体\n",
+    "    [SCE_CAML_KEYWORD] = 0x00B050 + SCE_BOLD_FONT,\n",
+    "    [SCE_CAML_KEYWORD2] = 0x00B050 + SCE_BOLD_FONT,\n",
+    "    [SCE_CAML_KEYWORD3] = 0xBBBB00 + SCE_BOLD_FONT,\n",
     "    [SCE_CAML_CHAR] = 0xC080FF,\n",
     "    [SCE_CAML_STRING] = 0xC080FF,\n",
     "    [SCE_CAML_WHITE] = 0xB000B0,\n",

@@ -17,12 +17,7 @@ if (not eu_core.file_exists(user_file)) then
     "require(\"eu_core\")\n",
     "function user_docs.lua_init_after_caml(p)\n",
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
-    "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"caml\")\n",
-    "  if (res ~= 1) then\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_CAML_KEYWORD, 0, 0)\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_CAML_KEYWORD2, 0, 0)\n",
-    "  end\n",
-    "  return res\n",
+    "  return eu_core.euapi.on_doc_init_after_scilexer(pnode, \"caml\")\n",
     "end\n",
     "function user_docs.lua_init_after_au3(p)\n",
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
@@ -779,6 +774,8 @@ function fetch_doctype(s)
   local m_key0,m_key1,m_key2,m_key3,m_key4,m_key5
   local m_set = nil
   local m_styles = nil
+  local m_line_comment = nil
+  local m_block_comment = nil
   local calltip = nil
   local reqular = nil
   local tab_width = nil
@@ -820,28 +817,28 @@ function fetch_doctype(s)
       m_key0,m_key1,m_key2,m_key3,m_key4,m_key5 = m_req.get_keywords()
     end
     if (m_key0 ~= nil) then
-      m_config.keywords0 = eu_core.ffi.cast('char *', m_key0)
+      m_config.keywords0 = eu_core.ffi.cast('const char *', m_key0)
     end
     if (m_key1 ~= nil) then
-      m_config.keywords1 = eu_core.ffi.cast('char *', m_key1)
+      m_config.keywords1 = eu_core.ffi.cast('const char *', m_key1)
     end
     if (m_key2 ~= nil) then
-      m_config.keywords2 = eu_core.ffi.cast('char *', m_key2)
+      m_config.keywords2 = eu_core.ffi.cast('const char *', m_key2)
     end
     if (m_key3 ~= nil) then
-      m_config.keywords3 = eu_core.ffi.cast('char *', m_key3)
+      m_config.keywords3 = eu_core.ffi.cast('const char *', m_key3)
     end
     if (m_key4 ~= nil) then
-      m_config.keywords4 = eu_core.ffi.cast('char *', m_key4)
+      m_config.keywords4 = eu_core.ffi.cast('const char *', m_key4)
     end
     if (m_key5 ~= nil) then
-      m_config.keywords5 = eu_core.ffi.cast('char *', m_key5)
+      m_config.keywords5 = eu_core.ffi.cast('const char *', m_key5)
     end
     if (m_req.get_reqular ~= nil) then
       reqular = m_req.get_reqular()
     end
     if (reqular ~= nil) then
-      m_config.reqular_exp = eu_core.ffi.cast('char *', reqular)
+      m_config.reqular_exp = eu_core.ffi.cast('const char *', reqular)
       if (m_config.fn_init_before == nil) then m_config.fn_init_before = eu_core.euapi.on_doc_init_list end
       if (m_config.fn_reload_symlist == nil) then m_config.fn_reload_symlist = eu_core.euapi.on_doc_reload_list_reqular end
       if (m_config.fn_click_symlist == nil) then m_config.fn_click_symlist = eu_core.euapi.on_doc_click_list_jmp end
@@ -856,7 +853,6 @@ function fetch_doctype(s)
       end
     end
     local count = 0;
-    -- m_config.style.mask = 0
     if (m_req.get_styles ~= ni) then
         m_styles = m_req.get_styles()
         if (m_styles ~= nil) then
@@ -874,6 +870,14 @@ function fetch_doctype(s)
           m_config.style.mask = bit.bor(m_config.style.mask,bit.lshift(1,k))
         end
       end
+    end
+    if (m_req.get_comments ~= ni) then
+        m_line_comment,m_block_comment = m_req.get_comments()
+        if (m_line_comment ~= nil and m_block_comment ~= nil) then
+          m_config.comment.initialized = true
+          m_config.comment.line = eu_core.ffi.cast("const char *", m_line_comment)
+          m_config.comment.block = eu_core.ffi.cast("const char *", m_block_comment)
+        end
     end
   end
 end
