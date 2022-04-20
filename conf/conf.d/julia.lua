@@ -1,5 +1,25 @@
 julia = {}
 
+require("eu_sci")
+require("eu_core")
+
+function julia.init_after_callback(p)
+  local pnode = eu_core.ffi.cast("void *", p)
+  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, "julia")
+  if (res ~= 1) then
+    -- eu_core.euapi.on_doc_default_light(pnode, 0, 0, false)
+    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD1, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0
+    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD2, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1
+    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD3, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2
+    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD4, 3, 0)                       -- 20, SCE_JULIA_KEYWORD4, keywords3
+    eu_core.euapi.on_doc_marcro_light(pnode, SCE_JULIA_MACRO, 4, 0xFF8000)
+    eu_core.euapi.on_doc_comment_light(pnode, SCE_JULIA_COMMENT, 0)
+    eu_core.euapi.on_doc_string_light(pnode, SCE_JULIA_DOCSTRING, 0x008080)
+    eu_core.euapi.on_doc_string_light(pnode, SCE_JULIA_STRING, 0x008000)
+  end
+  return res
+end
+
 function julia.get_keywords()
   -- 1, reserved keywords
   local keywords0_set = "abstract baremodule begin break catch const continue do else elseif end export finally for function global if import in isa let local macro module mutable primitive quote return struct try type using var where while baremodule begin do for function if let macro module quote struct try type while"
@@ -27,6 +47,26 @@ end
 function julia.create_bakup(path)
   local julia_code = {
     "user_julia = {}\n",
+    "\n",
+    "require(\"eu_sci\")\n",
+    "require(\"eu_core\")\n",
+    "\n",
+    "function user_julia.init_after_callback(p)\n",
+    "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
+    "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"julia\")\n",
+    "  if (res ~= 1) then\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD1, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD2, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD3, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD4, 3, 0)                       -- 20, SCE_JULIA_KEYWORD4, keywords3\n",
+    "    eu_core.euapi.on_doc_marcro_light(pnode, SCE_JULIA_MACRO, 4, 0xFF8000)\n",
+    "    eu_core.euapi.on_doc_comment_light(pnode, SCE_JULIA_COMMENT, 0)\n",
+    "    eu_core.euapi.on_doc_string_light(pnode, SCE_JULIA_DOCSTRING, 0x008080)\n",
+    "    eu_core.euapi.on_doc_string_light(pnode, SCE_JULIA_STRING, 0x008000)\n",
+    "  end\n",
+    "  return res\n",
+    "end\n",
+    "\n",
     "function user_julia.get_keywords()\n",
     "  -- 1, reserved keywords\n",
     "  local keywords0_set = \"abstract baremodule begin break catch const continue do else elseif end export finally for function global if import in isa let local macro module mutable primitive quote return struct try type using var where while baremodule begin do for function if let macro module quote struct try type while\"\n",

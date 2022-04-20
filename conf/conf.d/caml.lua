@@ -1,6 +1,12 @@
 caml = {}
 
 require("eu_sci")
+require("eu_core")
+
+function caml.init_after_callback(p)
+  local pnode = eu_core.ffi.cast("void *", p)
+  return eu_core.euapi.on_doc_init_after_scilexer(pnode, "caml")
+end
 
 function caml.get_comments()
   -- 行注释与块注释, 注释头与注释尾用&&分开
@@ -45,6 +51,12 @@ function caml.create_bakup(path)
     "user_caml = {}\n",
     "\n",
     "require(\"eu_sci\")\n",
+    "require(\"eu_core\")\n",
+    "\n",
+    "function user_caml.init_after_callback(p)\n",
+    "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
+    "  return eu_core.euapi.on_doc_init_after_scilexer(pnode, \"caml\")\n",
+    "end\n",
     "\n",
     "function user_caml.get_comments()\n",
     "  -- 行注释与块注释, 注释头与注释尾用&&分开\n",
