@@ -1417,7 +1417,7 @@ on_doc_init_after_properties(eu_tabpage *pnode)
     return 0;
 }
 
-static int
+static void
 add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     if (eu_get_config()->auto_close_chars)
@@ -1435,10 +1435,6 @@ add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
                 break;
             case '{':
                 eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "}");
-                eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
-                break;
-            case '<':
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ">");
                 eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
                 break;
             case '\'':
@@ -1473,7 +1469,18 @@ add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
                 break;
         }
     }
-    return 0;
+}
+
+static void
+add_close_bracket(eu_tabpage *pnode, SCNotification *lpnotify)
+{
+    /* web脚本自动补全符号 */
+    if (lpnotify->ch == '<' && eu_get_config()->auto_close_chars)
+    {
+        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ">");
+        eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+    }
 }
 
 int
@@ -1904,6 +1911,7 @@ on_doc_html_like(eu_tabpage *pnode, SCNotification *lpnotify)
     {
         on_doc_identation(pnode, lpnotify);
         add_close_char(pnode, lpnotify);
+        add_close_bracket(pnode, lpnotify);
         add_acshow_html(pnode, lpnotify);
     }
     return 0;
@@ -1916,6 +1924,7 @@ on_doc_xml_like(eu_tabpage *pnode, SCNotification *lpnotify)
     {
         on_doc_identation(pnode, lpnotify);
         add_close_char(pnode, lpnotify);
+        add_close_bracket(pnode, lpnotify);
     }
     return 0;
 }
