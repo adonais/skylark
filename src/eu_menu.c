@@ -90,22 +90,6 @@ menu_switch_theme(void)
 }
 
 static void
-menu_update_rside(HMENU root_menu, eu_tabpage *p)
-{
-    bool m_show = false;
-    if (p->hwnd_symlist)
-    {
-        m_show = (GetWindowLongPtr(p->hwnd_symlist, GWL_STYLE) & WS_VISIBLE);
-    }
-    else if (p->hwnd_symtree)
-    {
-        m_show = (GetWindowLongPtr(p->hwnd_symtree, GWL_STYLE) & WS_VISIBLE);
-    }
-    util_set_menu_item(root_menu, IDM_VIEW_SYMTREE, m_show);
-    util_enable_menu_item(root_menu, IDM_VIEW_SYMTREE, p->hwnd_symlist || p->hwnd_symtree);
-}
-
-static void
 menu_update_hexview(HMENU root_menu, bool hex_mode)
 {
     if (root_menu)
@@ -363,7 +347,8 @@ menu_update_item(HMENU menu)
                         break;
                     case IDM_VIEW_INDENTGUIDES_VISIABLE:      /* View menu */
                         util_set_menu_item(menu, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
-                        menu_update_rside(menu, pnode);
+                        util_set_menu_item(menu, IDM_VIEW_SYMTREE, pnode->sym_show);
+                        util_enable_menu_item(menu, IDM_VIEW_SYMTREE, pnode->hwnd_symlist || pnode->hwnd_symtree);
                         util_set_menu_item(menu, IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);
                         util_set_menu_item(menu, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
                         util_set_menu_item(menu, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);

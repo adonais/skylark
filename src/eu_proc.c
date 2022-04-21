@@ -349,29 +349,29 @@ eu_window_resize(HWND hwnd)
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
         if (p != pnode)
         {
-            if (p->hwnd_symlist && (GetWindowLongPtr(p->hwnd_symlist, GWL_STYLE) & WS_VISIBLE))
+            if (p->hwnd_symlist && p->sym_show)
             {
-                eu_setpos_window(p->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(p->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_symlist, SW_HIDE);
             }
-            if (p->hwnd_symtree && (GetWindowLongPtr(p->hwnd_symtree, GWL_STYLE) & WS_VISIBLE))
+            else if (p->hwnd_symtree && p->sym_show)
             {
-                eu_setpos_window(p->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(p->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_symtree, SW_HIDE);
             }
-            if (p->hwnd_qredit && (GetWindowLongPtr(p->hwnd_qredit, GWL_STYLE) & WS_VISIBLE))
+            if (p->hwnd_qredit && p->edit_show)
             {
-                eu_setpos_window(pnode->hwnd_qredit, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(pnode->hwnd_qredit, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_qredit, SW_HIDE);
             }
-            if (p->hwnd_qrtable && (GetWindowLongPtr(p->hwnd_qrtable, GWL_STYLE) & WS_VISIBLE))
+            if (p->hwnd_qrtable && p->edit_show)
             {
-                eu_setpos_window(pnode->hwnd_qrtable, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(pnode->hwnd_qrtable, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_qrtable, SW_HIDE);
             }
-            if (p->hwnd_sc && (GetWindowLongPtr(p->hwnd_sc, GWL_STYLE) & WS_VISIBLE))
+            if (p->hwnd_sc)
             {
-                eu_setpos_window(p->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(p->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_sc, SW_HIDE);
             }
         }
@@ -379,55 +379,31 @@ eu_window_resize(HWND hwnd)
     if (pnode)
     {
         on_tabpage_adjust_window(pnode);
-        if (eu_get_config()->m_sym_show)
+        if (pnode->sym_show)
         {
             if (pnode->hwnd_symlist)
             {
-                if (ListBox_GetCount(pnode->hwnd_symlist) > 0)
-                {
-                    SetWindowPos(pnode->hwnd_symlist,
-                                 HWND_TOP,
-                                 pnode->rect_symlist.left,
-                                 pnode->rect_symlist.top,
-                                 pnode->rect_symlist.right - pnode->rect_symlist.left,
-                                 pnode->rect_symlist.bottom - pnode->rect_symlist.top,
-                                 SWP_SHOWWINDOW);
-                    UpdateWindowEx(pnode->hwnd_symlist);
-                }
-                else
-                {
-                    ShowWindow(pnode->hwnd_symlist, SW_HIDE);
-                }
+                eu_setpos_window(pnode->hwnd_symlist, HWND_TOP, pnode->rect_symlist.left, pnode->rect_symlist.top,
+                                 pnode->rect_symlist.right - pnode->rect_symlist.left, pnode->rect_symlist.bottom - pnode->rect_symlist.top, SWP_SHOWWINDOW);
+                UpdateWindowEx(pnode->hwnd_symlist);
             }
             else if (pnode->hwnd_symtree)
             {
-                if (TreeView_GetCount(pnode->hwnd_symtree) > 0)
-                {
-                    SetWindowPos(pnode->hwnd_symtree,
-                                 HWND_TOP,
-                                 pnode->rect_symtree.left,
-                                 pnode->rect_symtree.top,
-                                 pnode->rect_symtree.right - pnode->rect_symtree.left,
-                                 pnode->rect_symtree.bottom - pnode->rect_symtree.top,
-                                 SWP_SHOWWINDOW);
-                    UpdateWindowEx(pnode->hwnd_symtree);
-                }
-                else
-                {
-                    ShowWindow(pnode->hwnd_symtree, SW_HIDE);
-                }
+                eu_setpos_window(pnode->hwnd_symtree, HWND_TOP, pnode->rect_symtree.left, pnode->rect_symtree.top,
+                                 pnode->rect_symtree.right - pnode->rect_symtree.left, pnode->rect_symtree.bottom - pnode->rect_symtree.top, SWP_SHOWWINDOW);
+                UpdateWindowEx(pnode->hwnd_symtree);
             }
         }
         else
         {
             if (pnode->hwnd_symlist)
             {
-                eu_setpos_window(pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(pnode->hwnd_symlist, SW_HIDE);
             }
             if (pnode->hwnd_symtree)
             {
-                eu_setpos_window(pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(pnode->hwnd_symtree, SW_HIDE);
             }
         }
@@ -435,37 +411,16 @@ eu_window_resize(HWND hwnd)
         {
             if (pnode->hwnd_qredit)
             {
-                SetWindowPos(pnode->hwnd_qredit,
-                             HWND_TOP,
-                             pnode->rect_qredit.left,
-                             pnode->rect_qredit.top,
-                             pnode->rect_qredit.right - pnode->rect_qredit.left,
-                             pnode->rect_qredit.bottom - pnode->rect_qredit.top,
-                             SWP_SHOWWINDOW);
+                eu_setpos_window(pnode->hwnd_qredit, HWND_TOP, pnode->rect_qredit.left, pnode->rect_qredit.top,
+                                 pnode->rect_qredit.right - pnode->rect_qredit.left, pnode->rect_qredit.bottom - pnode->rect_qredit.top, SWP_SHOWWINDOW);
                 UpdateWindowEx(pnode->hwnd_qredit);
             }
             if (pnode->hwnd_qrtable)
             {
-                SetWindowPos(pnode->hwnd_qrtable,
-                             HWND_TOP,
-                             pnode->rect_qrtable.left,
-                             pnode->rect_qrtable.top,
-                             pnode->rect_qrtable.right - pnode->rect_qrtable.left,
-                             pnode->rect_qrtable.bottom - pnode->rect_qrtable.top,
-                             SWP_SHOWWINDOW);
+                eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
+                                 pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
                 UpdateWindowEx(pnode->hwnd_qrtable);
             }
-        }
-        if (pnode->hwnd_sc)
-        {
-            SetWindowPos(pnode->hwnd_sc,
-                         HWND_TOP,
-                         pnode->rect_sc.left,
-                         pnode->rect_sc.top,
-                         pnode->rect_sc.right - pnode->rect_sc.left,
-                         pnode->rect_sc.bottom - pnode->rect_sc.top,
-                         SWP_SHOWWINDOW);
-
         }
     }
     on_toolbar_size();
@@ -477,6 +432,8 @@ eu_window_resize(HWND hwnd)
     }
     if (pnode && pnode->hwnd_sc)
     {
+        eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top, 
+                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);        
         SetFocus(pnode->hwnd_sc);
         UpdateWindowEx(pnode->hwnd_sc);
     }
@@ -1078,7 +1035,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_filetree();
                     break;
                 case IDM_VIEW_SYMTREE:
-                    on_view_symtree();
+                    on_view_symtree(pnode);
                     break;
                 case IDM_VIEW_MODIFY_STYLETHEME:
                     on_view_modify_theme();

@@ -31,7 +31,7 @@ int on_view_switch_theme(HWND hwnd, int id);
 int on_view_modify_theme(void);
 int on_view_editor_selection(eu_tabpage *pnode);
 void on_view_filetree(void);
-void on_view_symtree(void);
+void on_view_symtree(eu_tabpage *pnode);
 void on_view_show_fold_lines(HWND hwnd);
 void on_view_wrap_line(HWND hwnd);
 void on_view_line_num(HWND hwnd);

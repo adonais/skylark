@@ -33,10 +33,6 @@ typedef int (*tab_ptr)(eu_tabpage *p);
 extern HWND  g_tabpages;
 extern HMENU pop_tab_menu;
 extern HMENU pop_editor_menu;
-extern HMENU pop_symlist_menu;
-extern HMENU pop_symtree_refresh_menu;
-extern HMENU pop_symtree_table_menu;
-extern HMENU pop_symtree_row_menu;
 
 struct _tabpage
 {
@@ -53,7 +49,8 @@ struct _tabpage
     HWND hwnd_qrtable;
     RECT rect_qrtable;
     int  tab_id;                // tab编号,用于保存会话
-    bool edit_show;             // 是否动态显示右侧边栏
+    bool edit_show;             // 是否显示文件运行窗口
+    bool sym_show;              // 是否显示右侧边栏
     db_conn db_config;          // 数据库配置
     db_handles udb;
     bool db_is_connect;

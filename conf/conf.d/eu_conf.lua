@@ -45,7 +45,6 @@ function eu_conf.loadconf()
         "light_fold = true\n" ..
         "wrapline_mode = false\n" ..
         "enable_filetree_show = false\n" ..
-        "enable_symbol_show = false\n" ..
         "file_treebar_width = 253\n" ..
         "symbol_list_width = 210\n" ..
         "symbol_tree_width = 210\n" ..
@@ -115,7 +114,6 @@ function eu_conf.loadconf()
         light_fold,
         wrapline_mode,
         enable_filetree_show,
-        enable_symbol_show,
         file_treebar_width,
         symbol_list_width,
         symbol_tree_width,

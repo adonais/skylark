@@ -1579,7 +1579,6 @@ eu_save_config(void)
         "light_fold = %s\n"
         "wrapline_mode = %s\n"
         "enable_filetree_show = %s\n"
-        "enable_symbol_show = %s\n"
         "file_treebar_width = %d\n"
         "symbol_list_width = %d\n"
         "symbol_tree_width = %d\n"
@@ -1653,7 +1652,6 @@ eu_save_config(void)
               g_config->light_fold?"true":"false",
               g_config->line_mode?"true":"false",
               g_config->m_ftree_show?"true":"false",
-              g_config->m_sym_show?"true":"false",
               g_config->file_tree_width,
               g_config->sym_list_width,
               g_config->sym_tree_width,

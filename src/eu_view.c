@@ -21,30 +21,18 @@
 void
 on_view_filetree(void)
 {
-    if (eu_get_config()->m_ftree_show)
-    {
-
-        eu_get_config()->m_ftree_show = false;
-    }
-    else
-    {
-        eu_get_config()->m_ftree_show = true;
-    }
+    eu_get_config()->m_ftree_show = !eu_get_config()->m_ftree_show;
     eu_window_resize(NULL);
 }
 
 void
-on_view_symtree(void)
+on_view_symtree(eu_tabpage *pnode)
 {
-    if (eu_get_config()->m_sym_show)
+    if (pnode && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
-        eu_get_config()->m_sym_show = false;
+        pnode->sym_show = !pnode->sym_show;
+        eu_window_resize(NULL);
     }
-    else
-    {
-        eu_get_config()->m_sym_show = true;
-    }
-    eu_window_resize(NULL);
 }
 
 void

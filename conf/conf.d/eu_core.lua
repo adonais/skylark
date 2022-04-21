@@ -57,7 +57,6 @@ struct eu_config
     bool line_mode;
     
     bool m_ftree_show;
-    bool m_sym_show;
 
     int file_tree_width;
     int sym_list_width;
