@@ -1205,9 +1205,25 @@ on_edit_script_line_comment(eu_tabpage *pnode, const char *pcomment)
     }
     if (((p = strstr(pcomment, "&&")) != NULL) && p - pcomment < COMMENT_LEN)
     {
-        strncpy(pre_comment, pcomment, p - pcomment);
-        strncpy(suf_comment, p+strlen(split), COMMENT_LEN);
-        on_close_selection(pnode, pre_comment, suf_comment);
+        if (*pcomment == '\n')
+        {
+            // 注释开头存在换行符, 使用换行注释功能
+            ++pcomment;
+            char *sp = p+strlen(split);
+            strncpy(pre_comment, pcomment, p - pcomment);
+            if ((sp = strchr(p, '\n')) != NULL)
+            {
+                p = ++sp;
+            }
+            strncpy(suf_comment, sp ? sp : p+strlen(split), COMMENT_LEN);
+            on_comment_newline(pnode, pre_comment, suf_comment); 
+        }
+        else
+        {
+            strncpy(pre_comment, pcomment, p - pcomment);
+            strncpy(suf_comment, p+strlen(split), COMMENT_LEN);
+            on_close_selection(pnode, pre_comment, suf_comment);            
+        }
     }
     else
     {
