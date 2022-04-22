@@ -963,13 +963,12 @@ util_trim_right_star(TCHAR *str)
  * 设置length为新的字符串长度
  *************************************************/
 const char *
-util_trim_left_white(const char *s, int32_t *length)
+util_trim_left_white(const char *s, int *length)
 {
-    int32_t start = 0;
-    int32_t limit = 0;
+    int start = 0, limit = 0;
     if (!length)
     {
-        limit = (int32_t)strlen(s);
+        limit = eu_int_cast(strlen(s));
     }
     else
     {
@@ -988,6 +987,39 @@ util_trim_left_white(const char *s, int32_t *length)
         *length = limit-start;
     }
     return s+start;
+}
+
+/**************************************************
+ * 比较两个字符串, s1左侧可能带空白字符
+ * 如果两个字符串相似, 返回0, 否则返回1
+ *************************************************/
+int
+util_strnspace(const char *s1, const char *s2)
+{
+    if (!(s1 && s2))
+    {
+        return 1;
+    }
+    if (s1 == s2)
+    {
+        return 0;
+    }
+    if (strncmp(s1, s2, strlen(s2)) == 0)
+    {
+        return 0;
+    }
+    for (int i = 0; i < eu_int_cast(strlen(s1)); ++i)
+    {
+        if (isspace(s1[i]))
+        {
+            continue;
+        }
+        if (strncmp(&s1[i], s2, strlen(s2)) == 0)
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void
@@ -1086,17 +1118,6 @@ util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
                 SetMenuItemInfo(hmenu, m_id, 0, &mii);
             }
         }
-    }
-}
-
-void
-util_replace_newline(char *str)
-{
-    char *p = NULL;
-    while ((p = strstr(str, "\\n")))
-    {
-        *(p) = '\n';
-        memmove(p + 1, p + 2, strlen(p + 2) + 1);
     }
 }
 

@@ -2073,60 +2073,6 @@ on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-static void
-select_sql_stat(eu_tabpage *pnode)
-{
-    sptr_t current_pos;
-    sptr_t max_pos;
-    sptr_t start_pos;
-    sptr_t end_pos;
-    if (!pnode)
-    {
-        return;
-    }
-    current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    max_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
-    for (start_pos = current_pos; start_pos >= 0; start_pos--)
-    {
-        if (!strchr("\n", (int) eu_sci_call(pnode, SCI_GETCHARAT, start_pos, 0)))
-        {
-            break;
-        }
-    }
-    if ((int) eu_sci_call(pnode, SCI_GETCHARAT, start_pos, 0) == ';')
-    {
-        start_pos--;
-    }
-    end_pos = start_pos;
-    for (; start_pos >= 0; start_pos--)
-    {
-        if ((int) eu_sci_call(pnode, SCI_GETCHARAT, start_pos, 0) == ';')
-        {
-            break;
-        }
-    }
-    if (start_pos < 0)
-    {
-        start_pos = 0;
-    }
-    else
-    {
-        start_pos++;
-    }
-    for (; end_pos < max_pos; end_pos++)
-    {
-        if ((int) eu_sci_call(pnode, SCI_GETCHARAT, start_pos, 0) == ';')
-        {
-            break;
-        }
-    }
-    if (end_pos >= max_pos)
-    {
-        end_pos = max_pos - 1;
-    }
-    eu_sci_call(pnode, SCI_SETSEL, start_pos, end_pos);
-}
-
 int
 on_doc_keydown_sql(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
@@ -2134,7 +2080,7 @@ on_doc_keydown_sql(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     {
         if (lParam == VK_CONTROL)
         {
-            select_sql_stat(pnode);
+            eu_sci_call(pnode, SCI_SETSEL, 0, eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
         }
         return on_table_sql_query(pnode, NULL);
     }
@@ -2148,7 +2094,7 @@ on_doc_keydown_redis(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     {
         if (lParam == VK_CONTROL)
         {
-            select_sql_stat(pnode);
+            eu_sci_call(pnode, SCI_SETSEL, 0, eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
         }
         return on_symtree_query_redis(pnode);
     }
