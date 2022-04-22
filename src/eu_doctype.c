@@ -139,6 +139,8 @@ init_sc_fold(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
     // 行变更时, 自动展开
     eu_sci_call(pnode, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE, 0);
+    // 启用折叠标志
+    pnode->foldline = true;
 }
 
 // (*init_before_ptr)
@@ -1384,7 +1386,6 @@ on_doc_init_after_markdown(eu_tabpage *pnode)
     on_doc_keyword_light(pnode, SCE_MARKDOWN_CODE2, 6, 0);
     on_doc_keyword_light(pnode, SCE_MARKDOWN_CODEBK, 6, 0);
     on_doc_string_light(pnode, SCE_MARKDOWN_CODE, 0);
-    init_sc_fold(pnode);
     return 0;
 }
 
@@ -1413,7 +1414,6 @@ on_doc_init_after_properties(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_PROPS_SECTION, 0);
     on_doc_operator_light(pnode, SCE_PROPS_ASSIGNMENT, 0);
     on_doc_preprocessor_light(pnode, SCE_PROPS_DEFVAL, -1, 0);
-
     return 0;
 }
 

@@ -51,6 +51,7 @@ struct _tabpage
     int  tab_id;                // tab编号,用于保存会话
     bool edit_show;             // 是否显示文件运行窗口
     bool sym_show;              // 是否显示右侧边栏
+    bool foldline;              // 是否存在折叠线
     db_conn db_config;          // 数据库配置
     db_handles udb;
     bool db_is_connect;

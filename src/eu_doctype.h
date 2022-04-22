@@ -64,7 +64,7 @@ enum dctype
     DOCTYPE_MARKDOWN = 21,
     DOCTYPE_NIM = 22,
     DOCTYPE_PERL = 23,
-    DOCTYPE_PROPERTIES = 24,
+    DOCTYPE_INIFILE = 24,
     DOCTYPE_PYTHON = 25,
     DOCTYPE_REDIS = 26,
     DOCTYPE_RUBY = 27,
@@ -74,7 +74,10 @@ enum dctype
     DOCTYPE_SWIFT = 31,
     DOCTYPE_TXT = 32,
     DOCTYPE_XML = 33,
-    DOCTYPE_YAML = 34
+    DOCTYPE_YAML = 34,
+    DOCTYPE_CAML = 35,
+    DOCTYPE_MATLAB = 36,
+    DOCTYPE_CONFIGS = 37
 };
 
 typedef struct _doc_styles

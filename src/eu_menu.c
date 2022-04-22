@@ -361,9 +361,9 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_VIEW_WHITESPACE_VISIABLE, eu_get_config()->ws_visiable);
                         util_set_menu_item(menu, IDM_VIEW_NEWLINE_VISIABLE, eu_get_config()->newline_visialbe);
                         util_set_menu_item(menu, IDM_EDIT_AUTO_INDENTATION, eu_get_config()->m_ident);
-                        bool fold_show = eu_get_config()->block_fold && pnode->doc_ptr && pnode->doc_ptr->fn_init_after;
+                        bool fold_show = eu_get_config()->block_fold && pnode->foldline;
                         util_set_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, fold_show);
-                        util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, !pnode->hex_mode && pnode->doc_ptr && pnode->doc_ptr->fn_init_after);
+                        util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, !pnode->hex_mode && pnode->foldline);
                         util_set_menu_item(menu, IDM_VIEW_INDENTGUIDES_VISIABLE, eu_get_config()->m_indentation);
                         util_enable_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN);
                         util_set_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->hex_mode);
