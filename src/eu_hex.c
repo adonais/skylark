@@ -30,12 +30,12 @@ static volatile long hex_zoom;
 static int hex_area;
 
 /*******************************************
- * 计算utf8编码字节数 
+ * 计算utf8编码字节数
  * 返回1不是有效的utf8首字节
  * 返回0, 是 ascii 编码
  * 返回 2, 3, 4, 5, 6代表utf8字符的字节数
  ******************************************/
-static int 
+static int
 hexview_builtin_clz(uint8_t ch)
 {
     int num = 0;
@@ -160,7 +160,7 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
                 }
                 if (num + i%16 == 16)
                 {
-                    buffer[_tcslen(buffer)-1] = 0; 
+                    buffer[_tcslen(buffer)-1] = 0;
                 }
             }
             else
@@ -480,7 +480,7 @@ hexview_update_theme(eu_tabpage *p)
     return 0;
 }
 
-void 
+void
 hexview_destoy(eu_tabpage *pnode)
 {
     if (pnode && pnode->phex)
@@ -518,7 +518,7 @@ hexview_destoy(eu_tabpage *pnode)
     }
 }
 
-static bool 
+static bool
 hexview_vscroll_visible(HWND hwnd)
 {
     if (!hwnd)
@@ -528,10 +528,10 @@ hexview_vscroll_visible(HWND hwnd)
     return (GetWindowLongPtr(hwnd, GWL_STYLE) & WS_VSCROLL) != 0;
 }
 
-static bool 
+static bool
 hexview_create_font(HWND hwnd, PHEXVIEW hexview)
 {
-    LOGFONT logfont;   
+    LOGFONT logfont;
     TCHAR font[LF_FACESIZE] = {0};
     uint8_t quality = CLEARTYPE_QUALITY;
     if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->item.text.font, -1, font, LF_FACESIZE-1))
@@ -541,7 +541,7 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     if (eu_get_config()->m_quality ==  IDM_VIEW_FONTQUALITY_STANDARD)
     {
         quality = DEFAULT_QUALITY;
-    }    
+    }
     else if (eu_get_config()->m_quality == IDM_VIEW_FONTQUALITY_NONE)
     {
         quality = NONANTIALIASED_QUALITY;
@@ -570,7 +570,7 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     {
         hexview->hfont = (HFONT) GetStockObject(SYSTEM_FIXED_FONT);
     }
-    return (hexview->hfont != NULL); 
+    return (hexview->hfont != NULL);
 }
 
 static void
@@ -1583,7 +1583,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             if (eu_get_config()->m_toolbar)
             {
                 on_toolbar_update_button();
-            }            
+            }
             break;
         }
         // 兼容scintilla控件
@@ -1709,7 +1709,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             return 0;
         }
-        case SCI_GETTEXTRANGE: 
+        case SCI_GETTEXTRANGE:
         {
             if (lParam == 0)
             {
@@ -1733,7 +1733,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             if (p && hwnd == p->hwnd_sc)
             {
                 DestroyWindow(hwnd);
-            }    
+            }
             return 1;
         }
         case WM_DESTROY:
@@ -1801,7 +1801,7 @@ hexview_init(eu_tabpage *pnode)
         pnode->hex_mode = true;
     }
     pnode->begin_pos = -1;
-    hexview_register_class(); 
+    hexview_register_class();
     pnode->hwnd_sc = hexview_create_dlg(hwnd, pnode);
     if (!pnode->hwnd_sc)
     {
@@ -1846,7 +1846,7 @@ hexview_map_read(const TCHAR *filepath, uintptr_t *ppbase)
         if ((hmap = CreateFileMapping(hfile, NULL, PAGE_READWRITE, 0, 0, NULL)))
         {
             *ppbase = (uintptr_t)MapViewOfFile(hmap, FILE_MAP_WRITE, 0, 0, 0);
-            if (!*ppbase) 
+            if (!*ppbase)
             {
                 printf("MapViewOfFile failed, cause %lu\n", GetLastError());
                 CloseHandle(hmap);
@@ -1912,7 +1912,7 @@ hexview_map_write(const uint8_t *pbuf, const size_t buf_len, const TCHAR *dst_pa
     return err;
 }
 
-void 
+void
 hexview_updata(intptr_t *arr, intptr_t m)
 {
     for (int i = 0; i < BUFF_32K; ++i)
@@ -1925,7 +1925,7 @@ hexview_updata(intptr_t *arr, intptr_t m)
     }
 }
 
-int 
+int
 hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile)
 {
     int len = 0;
@@ -2006,6 +2006,7 @@ hexview_switch_mode(eu_tabpage *pnode)
                 eu_safe_free(pnode->phex);
                 goto HEX_ERROR;
             }
+            ShowWindow(eu_get_search_hwnd(), SW_HIDE);
         }
     }
     else
@@ -2026,7 +2027,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnew->st_mtime = pnode->st_mtime;
         pnew->file_attr = pnode->file_attr;
         pnew->raw_size = pnode->raw_size;
-        pnew->tab_id = TabCtrl_GetCurSel(g_tabpages); 
+        pnew->tab_id = TabCtrl_GetCurSel(g_tabpages);
         pnew->doc_ptr = on_doc_get_type(pnew->filename);
         if (pnode->phex && pnode->phex->hex_ascii)
         {
@@ -2050,7 +2051,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             pnew->needpre = true;
             pnew->pre_len = pnode->pre_len;
             strncpy(pnew->pre_context, pnode->pre_context, sizeof(pnew->pre_context) - 1);
-        } 
+        }
         if (is_utf8)
         {
             pdst = hexview_strdup_data(pnode, &dst_len);

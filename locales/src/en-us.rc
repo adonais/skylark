@@ -1096,6 +1096,7 @@ STRINGTABLE DISCARDABLE
     IDS_USER32_UNFINISHED   "The editor has not been completely closed. Please open it again later"
     IDS_EXTRA_PATH          "External program path: "
     IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
+    IDS_RE_ERROR            "Error: invalid regular expression"
 }
 
 /////////////////////////////////////////////////////////////////////////////
