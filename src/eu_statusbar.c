@@ -78,9 +78,9 @@ set_btn_rw(eu_tabpage *pnode, bool m_auto)
     {
         return 0;
     }
-    HWND h_bt_2 = GetDlgItem(g_statusbar, IDM_BTN_2); 
+    HWND h_bt_2 = GetDlgItem(g_statusbar, IDM_BTN_2);
     LOAD_I18N_RESSTR(IDS_BUTTON_R, rstr);
-    LOAD_I18N_RESSTR(IDS_BUTTON_W, wstr);  
+    LOAD_I18N_RESSTR(IDS_BUTTON_W, wstr);
     if (!h_bt_2)
     {
         return 0;
@@ -223,7 +223,7 @@ on_statusbar_size(void)
             if ((GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
             {
                 ShowWindow(g_statusbar, SW_HIDE);
-            } 
+            }
             g_status_height = 0;
         }
         else
@@ -253,10 +253,10 @@ on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(hwnd);
     if (on_dark_enable())
-    { 
+    {
         const DRAWITEMSTRUCT* pdis = (const DRAWITEMSTRUCT*)lParam;
         const int part_id = (const int)pdis->itemID;
-        if (part_id == -1) 
+        if (part_id == -1)
         {
             return 0;
         }
@@ -269,7 +269,7 @@ on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
         const int bdh = GetSystemMetrics(SM_CYFRAME);
         const HDC hdc_from = GetWindowDC(hwnd_item);
         RECT rcf = rc;
-        for (int i = 1; i < bdh; ++i) 
+        for (int i = 1; i < bdh; ++i)
         {
             FrameRect(hdc_from, &rcf, (HBRUSH)on_dark_get_brush());
             rcf.left -= 1;
@@ -349,7 +349,7 @@ set_menu_check(HMENU hmenu, int first_id, int last_id, int id, int parts)
     }
 }
 
-static int 
+static int
 on_convert_coding(eu_tabpage *pnode, int encoding)
 {
     sptr_t file_len = 0;
@@ -366,8 +366,8 @@ on_convert_coding(eu_tabpage *pnode, int encoding)
     }
     if (!(file_buf = util_strdup_content(pnode, (size_t *)&file_len)))
     {
-        return 1;        
-    }  
+        return 1;
+    }
     evd.warning = WANRING_AUTO;
     evd.src_from = "utf-8";
     evd.dst_to = eu_query_encoding_name(encoding);
@@ -391,7 +391,7 @@ on_convert_coding(eu_tabpage *pnode, int encoding)
         free(dst_str);
         MSG_BOX(IDC_MSG_CONV_FAIL2, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
         return 1;
-    }    
+    }
     if (dst_str)
     {
         free(dst_str);
@@ -421,7 +421,7 @@ on_statusbar_pop_menu(int parts, LPPOINT pt)
             break;
         case STATUSBAR_DOC_TYPE:
             TrackPopupMenu(g_menu_3, TPM_LEFTALIGN | TPM_BOTTOMALIGN, pt->x, pt->y, 0, g_statusbar, NULL);
-            break;                        
+            break;
     }
 }
 
@@ -462,7 +462,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
-        }     
+        }
         case WM_COMMAND:
         {
             if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDM_BTN_2)
@@ -500,7 +500,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
             switch (id_menu)
-            {   
+            {
                 case IDM_LBREAK_1:
                 case IDM_LBREAK_2:
                 case IDM_LBREAK_3:
@@ -583,7 +583,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_IBM_1:
                 case IDM_IBM_2:
-                case IDM_IBM_3:    
+                case IDM_IBM_3:
                     if (!on_convert_coding(pnode, id_menu))
                     {
                         set_menu_check(g_menu_2, IDM_IBM_1, IDM_IBM_3, id_menu, STATUSBAR_DOC_ENC);
@@ -618,7 +618,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             //SendMessage((HWND)lParam, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
             on_statusbar_update_btn((HWND)lParam);
             return on_dark_set_contorl_color(wParam);
-        }     
+        }
         case WM_SETTINGCHANGE:
         {
             if (on_dark_enable() && on_dark_color_scheme_change(lParam))
@@ -626,7 +626,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 SendMessage(hwnd, WM_THEMECHANGED, 0, 0);
             }
             break;
-        }        
+        }
         case WM_THEMECHANGED:
         {
             printf("status WM_THEMECHANGED\n");
@@ -651,14 +651,14 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (g_menu_3)
             {
                 DestroyMenu(g_menu_3);
-            } 
+            }
             DestroyWindow(GetDlgItem(hwnd, IDM_BTN_1));
             DestroyWindow(GetDlgItem(hwnd, IDM_BTN_2));
             if (hfont_btn)
             {
                 DeleteObject(hfont_btn);
                 hfont_btn = NULL;
-            }            
+            }
             g_statusbar = NULL;
             printf("statusbar WM_DESTROY\n");
             break;
@@ -681,14 +681,14 @@ set_file_by_info(time_t *ptime)
         struct tm *tm = localtime(ptime);
         if (tm)
         {
-            sntprintf(file_time, 100, _T("%d-%d-%d %02d:%02d:%02d"), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);  
+            sntprintf(file_time, 100, _T("%d-%d-%d %02d:%02d:%02d"), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
         }
         sntprintf(s_hp, MAX_PATH, m_hp, TabCtrl_GetItemCount(g_tabpages), *file_time ? file_time : _T("0"));
         on_statusbar_set_text(g_statusbar, 0, s_hp);
     }
 }
 
-static unsigned WINAPI 
+static unsigned WINAPI
 set_remotefs_fileinfo(void * lp)
 {
     eu_tabpage *pnode = (eu_tabpage *)lp;
@@ -736,7 +736,7 @@ on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
     if (!g_statusbar)
     {
         return;
-    } 
+    }
     if (print_str)
     {
         on_statusbar_set_text(g_statusbar, 0, print_str);
@@ -766,7 +766,7 @@ on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
         if (_tstat(pnode->pathfile, &buf) != 0)
         {
             buf.st_mtime = pnode->st_mtime;
-        }        
+        }
         set_file_by_info(&buf.st_mtime);
     }
 }
@@ -780,7 +780,7 @@ on_statusbar_update_line(eu_tabpage *pnode)
     if (!g_statusbar)
     {
         return;
-    } 
+    }
     if (!pnode)
     {
         eu_i18n_load_str(IDS_STATUS_XY, m_xy, 0);
@@ -813,7 +813,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     if (!g_statusbar)
     {
         return;
-    } 
+    }
     if (pnode)
     {
         nsize = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
@@ -828,7 +828,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
         else if (nsize >= 0)
         {
             line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-        }          
+        }
     }
     if (ns_end - ns_start > 0)
     {
@@ -885,8 +885,8 @@ on_statusbar_update_filetype_menu(eu_tabpage *pnode)
                 set_menu_check(g_menu_3, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0 + index, STATUSBAR_DOC_TYPE);
                 res = true;
             }
-        }    
-    }  
+        }
+    }
     if (!(pnode && res))
     {
         set_menu_check(g_menu_3, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0, STATUSBAR_DOC_TYPE);
@@ -1006,7 +1006,7 @@ on_statusbar_height(void)
     return g_status_height;
 }
 
-void WINAPI 
+void WINAPI
 on_statusbar_update(void)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
@@ -1019,16 +1019,16 @@ on_statusbar_update(void)
         on_statusbar_update_eol(pnode);
         on_statusbar_update_filetype_menu(pnode->hex_mode ? NULL : pnode);
         on_statusbar_update_coding(pnode->hex_mode ? NULL : pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
-    }    
+    }
 }
 
-void WINAPI 
+void WINAPI
 on_statusbar_dark_mode(void)
 {
     if (on_dark_enable())
     {
         const int buttons[] = {IDM_BTN_1, IDM_BTN_2};
-        for (int id = 0; id < _countof(buttons); ++id) 
+        for (int id = 0; id < _countof(buttons); ++id)
         {
             HWND btn = GetDlgItem(g_statusbar, buttons[id]);
             on_dark_set_theme(btn, L"Explorer", NULL);
@@ -1037,11 +1037,11 @@ on_statusbar_dark_mode(void)
     }
 }
 
-void WINAPI 
+void WINAPI
 on_statusbar_dark_release(bool off)
 {
     const int buttons[] = {IDM_BTN_1, IDM_BTN_2};
-    for (int id = 0; id < _countof(buttons); ++id) 
+    for (int id = 0; id < _countof(buttons); ++id)
     {
         HWND btn = GetDlgItem(g_statusbar, buttons[id]);
         on_dark_allow_window(btn, !off);
@@ -1066,7 +1066,7 @@ on_statusbar_init(HWND hwnd)
             break;
         }
         // no simple status bar, to allow owner draw for dark mode
-        if (SendMessage(g_statusbar, SB_ISSIMPLE, 0, 0)) 
+        if (SendMessage(g_statusbar, SB_ISSIMPLE, 0, 0))
         {
             SendMessage(g_statusbar, SB_SIMPLE, 0, 0);
         }

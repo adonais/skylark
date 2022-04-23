@@ -769,7 +769,7 @@ skip_sql_comment(eu_tabpage *pnode, char **psql)
         return false;
     }
     s = *psql;
-    for (; *s++; )
+    for (; *s; ++s)
     {
         if (util_strnspace(s, "--") == 0)
         {

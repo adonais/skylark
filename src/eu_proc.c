@@ -330,13 +330,8 @@ eu_window_resize(HWND hwnd)
     {
         RECT rect_tabbar = {0};
         on_tabpage_adjust_box(&rect_tabbar);
-        eu_setpos_window(g_tabpages,
-                         HWND_TOP,
-                         rect_tabbar.left,
-                         rect_tabbar.top,
-                         rect_tabbar.right - rect_tabbar.left,
-                         rect_tabbar.bottom - rect_tabbar.top,
-                         SWP_SHOWWINDOW);
+        eu_setpos_window(g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
+                         rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
     }
     if ((pnode = on_tabpage_focus_at()) != NULL)
     {
@@ -423,8 +418,6 @@ eu_window_resize(HWND hwnd)
             }
         }
     }
-    on_toolbar_size();
-    on_statusbar_size();
     if (g_tabpages)
     {
         InvalidateRect(g_tabpages, NULL, true);
@@ -432,10 +425,15 @@ eu_window_resize(HWND hwnd)
     }
     if (pnode && pnode->hwnd_sc)
     {
-        eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top, 
-                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);        
+        eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
+                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
         SetFocus(pnode->hwnd_sc);
         UpdateWindowEx(pnode->hwnd_sc);
+    }
+    if (true)
+    {
+        on_toolbar_size();
+        on_statusbar_size();
     }
 }
 
@@ -1501,6 +1499,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case SCN_CHARADDED:
                     on_sci_character(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
+                    break;
+                case SCN_AUTOCCHARDELETED:
+                    on_sci_character(on_tabpage_focus_at(), 0);
                     break;
                 case SCN_MODIFIED:
                     if (lpnotify->modificationType & SC_PERFORMED_UNDO)

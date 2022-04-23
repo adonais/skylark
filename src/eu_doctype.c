@@ -1420,7 +1420,7 @@ on_doc_init_after_properties(eu_tabpage *pnode)
 static void
 add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
 {
-    if (eu_get_config()->auto_close_chars)
+    if (pnode && lpnotify && eu_get_config()->auto_close_chars)
     {   /* 自动补全关闭符号 */
         sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         switch (lpnotify->ch)
@@ -1486,7 +1486,7 @@ add_close_bracket(eu_tabpage *pnode, SCNotification *lpnotify)
 int
 on_doc_identation(eu_tabpage *pnode, SCNotification *lpnotify)
 {
-    if (!(pnode && eu_get_config()->m_ident))
+    if (!(pnode && lpnotify && eu_get_config()->m_ident))
     {
         return 1;
     }
@@ -1554,7 +1554,7 @@ static int
 on_doc_function_tips(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     char word_buffer[ACNAME_LEN+1] = {0};
-    if (!(pnode && eu_get_config()->m_ctshow))
+    if (!(pnode && lpnotify && eu_get_config()->m_ctshow))
     {
         return 1;
     }
@@ -1648,7 +1648,7 @@ static int
 add_ctinput_char(eu_tabpage *pnode, SCNotification *lpnotify, char ch_from, bool upper_case)
 {
     char word_buffer[ACNAME_LEN+1];
-    if (lpnotify->ch == ' ' && eu_get_config()->m_ctshow)
+    if (pnode && lpnotify && lpnotify->ch == ' ' && eu_get_config()->m_ctshow)
     {   /* 函数原型提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
@@ -1719,7 +1719,7 @@ add_ctinput_char(eu_tabpage *pnode, SCNotification *lpnotify, char ch_from, bool
             }
         }
     }
-    else if (lpnotify->ch == '\n' && eu_get_config()->m_ctshow)
+    else if (pnode && lpnotify && lpnotify->ch == '\n' && eu_get_config()->m_ctshow)
     {
         if (eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
         {
@@ -1733,28 +1733,19 @@ static int
 add_acshow_char(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     char word_buffer[ACNAME_LEN+1] = {0};
-    if (-1 <= lpnotify->ch && lpnotify->ch <= 255 && isprint(lpnotify->ch) && lpnotify->ch != ' ' && lpnotify->ch != '\t' && eu_get_config()->m_acshow)
+    if ((!lpnotify || (lpnotify->ch > 0 && lpnotify->ch < 0x80)) && eu_get_config()->m_acshow)
     {
         /* 自动完成提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)))
         {
-            int current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            int start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
-            int ndo = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2, 0);
-            int end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
+            sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             if (end_pos - start_pos >= ACNAME_LEN)
             {
                 end_pos = start_pos + ACNAME_LEN;
             }
-            if (ndo == '#')
-            {
-                --start_pos;
-            }
-            else if (ndo == '.')
-            {
-                return 0;
-            }
-            if (end_pos - start_pos >= eu_get_config()->acshow_chars)
+            if (end_pos - start_pos > eu_get_config()->acshow_chars)
             {
                 Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
                 eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
@@ -1763,6 +1754,7 @@ add_acshow_char(eu_tabpage *pnode, SCNotification *lpnotify)
                     const char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, word_buffer);
                     if (key)
                     {
+                        eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, SC_AUTOCOMPLETE_FIXED_SIZE, 0);
                         eu_sci_call(pnode, SCI_AUTOCSHOW, current_pos - start_pos, (sptr_t) key);
                         free((void *) key);
                     }
@@ -1776,28 +1768,27 @@ add_acshow_char(eu_tabpage *pnode, SCNotification *lpnotify)
 static int
 add_acshow_html(eu_tabpage *pnode, SCNotification *lpnotify)
 {
-    int current_pos = 0;
     int nret = 0;
     int n_pos = 0;
     int ch_pre = 0;
     int ch = 0;
+    int current_pos = 0;
     char word_buffer[ACNAME_LEN+1];
     if (!(pnode && pnode->doc_ptr && lpnotify))
     {
         return 1;
     }
-    if (-1 <= lpnotify->ch && lpnotify->ch <= 255 && isprint(lpnotify->ch) && lpnotify->ch != '\t' && eu_get_config()->m_acshow)
+    if ((lpnotify->ch > 0 && lpnotify->ch < 0x80) && eu_get_config()->m_acshow)
     {
         /* 自动完成提示 */
         if (lpnotify->ch == '<')
         {
             const char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD);
-            if (!key)
+            if (key)
             {
-                return 1;
+                eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
+                free((void *) key);
             }
-            eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
-            free((void *) key);
         }
         else if (lpnotify->ch == ' ')
         {
@@ -1806,17 +1797,19 @@ add_acshow_html(eu_tabpage *pnode, SCNotification *lpnotify)
             {
                 ch_pre = ch;
                 ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
-                if (ch == '<' || ch == '>') break;
+                if (ch == '<' || ch == '>')
+                {
+                    break;
+                }
             }
             if (n_pos >= 0 && ch == '<' && ch_pre != '?' && ch_pre != '%')
             {
                 const char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD);
-                if (!key)
+                if (key)
                 {
-                    return 1;
+                    eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
+                    free((void *) key);
                 }
-                eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
-                free((void *) key);
             }
         }
         else if (isalpha(lpnotify->ch))
