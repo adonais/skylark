@@ -19,6 +19,7 @@
 #ifndef _H_SKYLARK_DOCTYPE_
 #define _H_SKYLARK_DOCTYPE_
 
+#define SCE_STYLE_MAX 32
 #define CONFIG_KEY_MATERIAL_LEXER "EU_DOCTYP"
 
 #ifdef __cplusplus
@@ -63,7 +64,7 @@ enum dctype
     DOCTYPE_MARKDOWN = 21,
     DOCTYPE_NIM = 22,
     DOCTYPE_PERL = 23,
-    DOCTYPE_PROPERTIES = 24,
+    DOCTYPE_INIFILE = 24,
     DOCTYPE_PYTHON = 25,
     DOCTYPE_REDIS = 26,
     DOCTYPE_RUBY = 27,
@@ -73,8 +74,25 @@ enum dctype
     DOCTYPE_SWIFT = 31,
     DOCTYPE_TXT = 32,
     DOCTYPE_XML = 33,
-    DOCTYPE_YAML = 34
+    DOCTYPE_YAML = 34,
+    DOCTYPE_CAML = 35,
+    DOCTYPE_MATLAB = 36,
+    DOCTYPE_CONFIGS = 37
 };
+
+typedef struct _doc_styles
+{
+    int type[SCE_STYLE_MAX];
+    uint32_t color[SCE_STYLE_MAX];
+    uint32_t mask;
+} doc_styles;
+
+typedef struct _doc_comments
+{
+    const char *line;
+    const char *block;
+    bool initialized;
+} doc_comments;
 
 typedef struct _doc_data
 {
@@ -94,21 +112,24 @@ typedef struct _doc_data
     click_list_ptr fn_click_symlist;          // 回调函数, 右侧边栏list控件被点击
     reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件初始化
     click_tree_ptr fn_click_symtree;          // 回调函数, 右侧边栏tree控件被点击
-    char *keywords0;                          // 需要高亮的关键字, 分6类高亮着色
-    char *keywords1;
-    char *keywords2;
-    char *keywords3;
-    char *keywords4;
-    char *keywords5;
-    char *reqular_exp;                        // 根据此正则表达式初始化list控件
+    const char *keywords0;                    // 需要高亮的关键字, 分6类高亮着色
+    const char *keywords1;
+    const char *keywords2;
+    const char *keywords3;
+    const char *keywords4;
+    const char *keywords5;
+    const char *reqular_exp;                  // 根据此正则表达式初始化list控件
     eutype_t acshow_tree;                     // 自动补全hash表
     eutype_t ctshow_tree;                     // 函数提示hash表
+    doc_styles style;                         // 文档关键字类型与高亮颜色, 最多支持32类
+    doc_comments comment;                     // 文档注释
 } doctype_t;
 
 doctype_t *eu_doc_get_ptr(void);
 int on_doc_count(void);
 int on_doc_brace_light(eu_tabpage *pnode, bool keyup);
 void eu_doc_set_ptr(doctype_t *ptr);
+bool on_doc_is_customized(eu_tabpage *pnode, int lex);
 doctype_t *on_doc_get_type(const TCHAR *pfile);
 TCHAR *on_doc_get_ext(eu_tabpage *pnode);
 

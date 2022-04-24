@@ -1568,6 +1568,8 @@ eu_save_config(void)
         "window_statusbar_visiable = %s\n"
         "line_number_visiable = %s\n"
         "bookmark_visiable = %s\n"
+        "bookmark_shape = %d\n"
+        "bookmark_argb = 0x%08X\n"
         "white_space_visiable = %s\n"
         "white_space_size = %d\n"
         "newline_visiable = %s\n"
@@ -1577,7 +1579,6 @@ eu_save_config(void)
         "light_fold = %s\n"
         "wrapline_mode = %s\n"
         "enable_filetree_show = %s\n"
-        "enable_symbol_show = %s\n"
         "file_treebar_width = %d\n"
         "symbol_list_width = %d\n"
         "symbol_tree_width = %d\n"
@@ -1640,6 +1641,8 @@ eu_save_config(void)
               g_config->m_statusbar?"true":"false",
               g_config->m_linenumber?"true":"false",
               g_config->bookmark_visable?"true":"false",
+              g_config->bookmark_shape,
+              g_config->bookmark_argb,
               g_config->ws_visiable?"true":"false",
               g_config->ws_size,
               g_config->newline_visialbe?"true":"false",
@@ -1649,7 +1652,6 @@ eu_save_config(void)
               g_config->light_fold?"true":"false",
               g_config->line_mode?"true":"false",
               g_config->m_ftree_show?"true":"false",
-              g_config->m_sym_show?"true":"false",
               g_config->file_tree_width,
               g_config->sym_list_width,
               g_config->sym_tree_width,
@@ -2234,26 +2236,6 @@ int
 eu_sci_register(HINSTANCE hinstance)
 {
     return Scintilla_RegisterClasses(hinstance);
-}
-
-int
-eu_sci_release(void)
-{
-    return Scintilla_ReleaseResources();
-}
-
-sptr_t
-eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
-{
-    if (!p)
-    {
-        return 0;
-    }
-    if (!(p->ptr_scintilla && p->eusc))
-    {
-        return SendMessage(p->hwnd_sc, m, w, l);
-    }
-    return p->ptr_scintilla(p->eusc, m, w, l);
 }
 
 int

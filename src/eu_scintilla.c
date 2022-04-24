@@ -18,7 +18,8 @@
 
 #include "framework.h"
 
-static WNDPROC sc_edit_wnd;
+static WNDPROC sc_edit_wnd = NULL;
+static volatile sptr_t ptr_scintilla = 0;
 
 int
 on_sci_init_style(eu_tabpage *pnode)
@@ -30,10 +31,8 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
     eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, eu_get_theme()->item.text.bgcolor);
     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
-
     eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
-
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_LINENUMBER_INDEX, SC_MARGIN_NUMBER);
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
@@ -47,11 +46,13 @@ on_sci_init_style(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
     }
-    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_BOOKMARK_INDEX, SC_MARGIN_SYMBOL);
-    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_BOOKMARK_INDEX, MARGIN_BOOKMARK_MASKN);
-    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->bookmark_visable ? MARGIN_BOOKMARK_WIDTH : 0));
+    // 书签栏样式
     eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_BOOKMARK_INDEX, TRUE);
-
+    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->bookmark_visable ? MARGIN_BOOKMARK_WIDTH : 0));
+    eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_shape);
+    eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
+    eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
+    // 代码折叠栏颜色与亮量颜色
     eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     // 当前行背景色
@@ -69,7 +70,6 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
     // 设置换行符
     eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
-
     if (pnode->doc_ptr)
     {
         eu_sci_call(pnode, SCI_SETTABWIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width, 0);
@@ -86,7 +86,6 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
     // 是否显示对齐线
     eu_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
-
     eu_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
     eu_sci_call(pnode, SCI_SETADDITIONALSELECTIONTYPING, true, 0);
     eu_sci_call(pnode, SCI_SETVIRTUALSPACEOPTIONS, 1, 0);
@@ -126,6 +125,10 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT|SC_PERFORMED_UNDO|SC_PERFORMED_REDO, 0);
     // 支持多列粘贴
     eu_sci_call(pnode, SCI_SETMULTIPASTE, SC_MULTIPASTE_EACH, 0);
+    // 指示出不匹配的大括号
+    eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
+    // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
+    eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
     return 0;
 }
 
@@ -466,7 +469,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (pnode->doc_ptr && pnode->doc_ptr->fn_keyup)
             {
-                pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
+                if (!(lParam & (1 << 24)))
+                {
+                    pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
+                }
             }
             on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);
@@ -554,11 +560,31 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 int
+eu_sci_release(void)
+{
+    return Scintilla_ReleaseResources();
+}
+
+sptr_t
+eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
+{
+    if (!p)
+    {
+        return 0;
+    }
+    if (p->hex_mode && p->hwnd_sc)
+    {
+        return SendMessage(p->hwnd_sc, m, w, l);
+    }
+    return ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l);
+}
+
+int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL);
-    const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-    pnode->hwnd_sc = CreateWindow(TEXT("Scintilla"), TEXT(""), flags, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
+    const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
+    pnode->hwnd_sc = CreateWindowEx(0, TEXT("Scintilla"), TEXT(""), flags, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
     if (pnode->hwnd_sc == NULL)
     {
         MSG_BOX(IDC_MSG_SCINTILLA_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -569,8 +595,12 @@ on_sci_init_dlg(eu_tabpage *pnode)
         printf("SetWindowLongPtr(pnode->hwnd_sc) failed\n");
         return 1;
     }
-    pnode->ptr_scintilla = (SciFnDirect) SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0);
-    pnode->eusc = (sptr_t) SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
+#ifdef _WIN64
+    if (!_InterlockedCompareExchange64(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
+#else
+    if (!_InterlockedCompareExchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
+#endif
+    pnode->eusc = SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
     eu_sci_call(pnode, SCI_USEPOPUP, 0, 0);
     return 0;
 }

@@ -608,6 +608,17 @@ theme_show_balloon_tip(HWND hdlg, int res_id)
     }
 }
 
+static void
+on_theme_set_tip(HWND hdlg, int res_id)
+{
+    HWND stc = GetDlgItem(hdlg, res_id);
+    if (on_doc_is_customized(on_tabpage_focus_at(), -1) && stc)
+    {
+        LOAD_I18N_RESSTR(IDS_THEME_TIPS, str);
+        Static_SetText(stc, str);
+    }
+}
+
 static intptr_t CALLBACK
 theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -727,6 +738,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_THEME_MARGIN_STATIC), L"", L"");
                 on_dark_set_theme(hdlg, L"Explorer", NULL);
             }
+            on_theme_set_tip(hdlg, IDC_THEME_TIPS_STC);
             return util_creater_window(hdlg, eu_module_hwnd());
         }
         case WM_THEMECHANGED:
@@ -805,7 +817,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             if (resid == IDC_THEME_LANGUAGE_STATIC ||
                 resid == IDC_THEME_MARKUP_STATIC   ||
                 resid == IDC_THEME_EDIT_STATIC     ||
-                resid == IDC_THEME_MARGIN_STATIC
+                resid == IDC_THEME_MARGIN_STATIC   ||
+                resid == IDC_THEME_TIPS_STC
                )
             {
                 return on_dark_set_contorl_color(wParam);

@@ -44,6 +44,8 @@ struct eu_config
     bool m_linenumber;
     
     bool bookmark_visable;
+    int  bookmark_shape;
+    uint32_t bookmark_argb;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;
@@ -55,7 +57,6 @@ struct eu_config
     bool line_mode;
     
     bool m_ftree_show;
-    bool m_sym_show;
 
     int file_tree_width;
     int sym_list_width;
@@ -153,9 +154,23 @@ typedef int (*click_list_ptr)(void *pnode);
 typedef int (*reload_tree_ptr)(void *pnode);
 typedef int (*click_tree_ptr)(void *pnode);
 
+typedef struct _doc_styles
+{
+    int type[32];
+    uint32_t color[32];
+    uint32_t mask;
+} doc_styles;
+
+typedef struct _doc_comments
+{
+    const char *line;
+    const char *block;
+    bool initialized;
+} doc_comments;
+
 typedef struct _doc_data
 {
-    int doc_type;                             // 文档类型编号,自行添加请从DOCTYPE_FORTRAN开始递增
+    int doc_type;                             // 文档类型编号,自行添加请从末尾数字开始递增
     const char *filetypename;                 // 文档类型名称
     const char *extname;                      // 文档扩展名
     const char *filedesc;                     // 文档类型描述
@@ -171,15 +186,17 @@ typedef struct _doc_data
     click_list_ptr fn_click_symlist;          // 回调函数, 右侧边栏list控件被点击
     reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件初始化
     click_tree_ptr fn_click_symtree;          // 回调函数, 右侧边栏tree控件被点击
-    char *keywords0;                          // 需要高亮的关键字, 分6类高亮着色
-    char *keywords1;
-    char *keywords2;
-    char *keywords3;
-    char *keywords4;
-    char *keywords5;
-    char *reqular_exp;                        // 根据此正则表达式初始化list控件
+    const char *keywords0;                    // 需要高亮的关键字, 分6类高亮着色
+    const char *keywords1;
+    const char *keywords2;
+    const char *keywords3;
+    const char *keywords4;
+    const char *keywords5;
+    const char *reqular_exp;                  // 根据此正则表达式初始化list控件
     eutype_t acshow_tree;                     // 自动补全hash表
     eutype_t ctshow_tree;                     // 函数提示hash表
+    doc_styles style;                         // 文档关键字类型与高亮颜色
+    doc_comments comment;                     // 文档注释
 } doctype_t;
 
 bool __stdcall eu_config_ptr(struct eu_config *pconfig);
@@ -265,9 +282,8 @@ int on_doc_click_tree_json(void *pnode);
 int on_doc_click_tree_redis(void *pnode);
 
 /* lua脚本接口支持, 对各类关键字着色 */
-int on_doc_init_sci_lexer(void *p, int, int, int, int, int, int, int, int);
-int on_doc_enable_scilexer(void *p, int lex);
-void on_doc_default_light(void *p, int lex, int64_t rgb);
+int on_doc_init_after_scilexer(void *p, const  char *name);
+void on_doc_default_light(void *p, int lex, int64_t rgb, bool force);
 void on_doc_keyword_light(void *p, int lex, int index, int64_t rgb);
 void on_doc_function_light(void *p, int lex, int index, int64_t rgb);
 void on_doc_preprocessor_light(void *p, int lex, int index, int64_t rgb);

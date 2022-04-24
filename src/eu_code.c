@@ -79,16 +79,22 @@ on_code_switch_fold(eu_tabpage *pnode)
     }
 }
 
-void
-on_code_block_contract(eu_tabpage *pnode)
+static void
+on_code_do_fold(eu_tabpage *pnode, bool expand, sptr_t line_number)
 {
     if (pnode)
     {
-        sptr_t fold_line;
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t fold_level = eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0);
-        if (fold_level & SC_FOLDLEVELHEADERFLAG)
+        sptr_t fold_line, line = 0;
+        if (line_number >= 0)
+        {
+            line = line_number;
+        }
+        else
+        {
+            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        }
+        if (eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0) & SC_FOLDLEVELHEADERFLAG)
         {
             fold_line = line;
         }
@@ -99,42 +105,33 @@ on_code_block_contract(eu_tabpage *pnode)
         if (fold_line >= 0)
         {
             bool is_expand = (bool) eu_sci_call(pnode, SCI_GETFOLDEXPANDED, fold_line, 0);
-            if (is_expand)
+            if (!expand)
             {
-                eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
-                eu_sci_call(pnode, SCI_FOLDLINE, fold_line, SC_FOLDACTION_CONTRACT);
+                if (is_expand)
+                {
+                    line_number < 0 ? eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0) : (void)0;
+                    eu_sci_call(pnode, SCI_FOLDLINE, fold_line, SC_FOLDACTION_CONTRACT);
+                }
+            }
+            else if (!is_expand)
+            {
+                line_number < 0 ? eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0) : (void)0;
+                eu_sci_call(pnode, SCI_FOLDLINE, fold_line, SC_FOLDACTION_EXPAND);
             }
         }
     }
 }
 
 void
-on_code_block_expand(eu_tabpage *pnode)
+on_code_block_contract(eu_tabpage *pnode, sptr_t line_number)
 {
-    if (pnode)
-    {
-        sptr_t fold_line;
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t fold_level = eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0);
-        if (fold_level & SC_FOLDLEVELHEADERFLAG)
-        {
-            fold_line = line;
-        }
-        else
-        {
-            fold_line = eu_sci_call(pnode, SCI_GETFOLDPARENT, line, 0);
-        }
-        if (fold_line >= 0)
-        {
-            bool is_expand = (bool) eu_sci_call(pnode, SCI_GETFOLDEXPANDED, fold_line, 0);
-            if (!is_expand)
-            {
-                eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
-                eu_sci_call(pnode, SCI_FOLDLINE, fold_line, SC_FOLDACTION_EXPAND);
-            }
-        }
-    }
+    on_code_do_fold(pnode, false, line_number);
+}
+
+void
+on_code_block_expand(eu_tabpage *pnode, sptr_t line_number)
+{
+    on_code_do_fold(pnode, true, line_number);
 }
 
 void
@@ -171,7 +168,7 @@ on_code_block_complete(void)
         {
             util_set_menu_item(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, true);
             eu_get_config()->m_acshow = true;
-        }        
+        }
     }
 }
 
@@ -213,7 +210,7 @@ on_code_block_calltip(void)
         {
             util_set_menu_item(hmenu, IDM_SOURCE_ENABLE_CTSHOW, true);
             eu_get_config()->m_ctshow = true;
-        }        
+        }
     }
 }
 

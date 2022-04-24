@@ -1019,19 +1019,6 @@ sptr_t ScintillaBase::WndProc(Message iMessage, uptr_t wParam, sptr_t lParam) {
 	case Message::GetLexer:
 		return DocumentLexState()->GetIdentifier();
 
-	case Message::SetIdLexer:
-	{
-	    const char *pname = NULL;
-	    if (NULL != (pname = LexerNameFromID(static_cast<int> (wParam))))
-	    {
-	        ILexer5 *plex = CreateLexer(pname);
-	        if (plex)
-	        {
-	            DocumentLexState()->SetInstance(plex);
-	        }
-	    }
-	    return 0;
-	}
 	case Message::SetILexer:
 		DocumentLexState()->SetInstance(static_cast<ILexer5 *>(PtrFromSPtr(lParam)));
 		return 0;

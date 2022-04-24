@@ -920,7 +920,7 @@ on_symtree_query_redis(eu_tabpage *pnode)
     sel_len = end_pos - start_pos;
     if (sel_len <= 0)
     {
-        sel_cmd = util_strdup_line(pnode, NULL);
+        sel_cmd = util_strdup_line(pnode, -1, NULL);
     }
     else
     {

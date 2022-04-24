@@ -186,6 +186,8 @@ struct eu_config
     bool m_linenumber;
     
     bool bookmark_visable;
+    int  bookmark_shape;
+    uint32_t bookmark_argb;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;
@@ -197,7 +199,6 @@ struct eu_config
     bool line_mode;
     
     bool m_ftree_show;
-    bool m_sym_show;
 
     int file_tree_width;
     int sym_list_width;
@@ -585,8 +586,8 @@ EU_EXT_CLASS int on_doc_click_tree_json(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_click_tree_redis(eu_tabpage *pnode);
 
 /* 脚本调用 */
-EU_EXT_CLASS int on_doc_enable_scilexer(eu_tabpage *pnode, int lex);
-EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb);
+EU_EXT_CLASS int on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name);
+EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb, bool force);
 EU_EXT_CLASS void on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);

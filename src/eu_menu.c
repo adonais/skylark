@@ -32,7 +32,7 @@ menu_load(uint16_t mid)
     return hpop;
 }
 
-int 
+int
 menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam)
 {
     HMENU hpop = menu_load(mid);
@@ -65,8 +65,7 @@ menu_switch_theme(void)
         HMENU theme_menu = GetSubMenu(view_menu, THEME_MENU_SUB);
         if (view_menu && theme_menu)
         {
-            int count = GetMenuItemCount(theme_menu);
-            for (int index = 0; index < count; ++index)
+            for (int index = 0, count = GetMenuItemCount(theme_menu); index < count; ++index)
             {
                 bool select = false;
                 TCHAR buf[ACNAME_LEN] = { 0 };
@@ -91,22 +90,6 @@ menu_switch_theme(void)
 }
 
 static void
-menu_update_rside(HMENU root_menu, eu_tabpage *p)
-{
-    bool m_show = false;
-    if (p->hwnd_symlist)
-    {
-        m_show = (GetWindowLongPtr(p->hwnd_symlist, GWL_STYLE) & WS_VISIBLE);
-    }
-    else if (p->hwnd_symtree)
-    {
-        m_show = (GetWindowLongPtr(p->hwnd_symtree, GWL_STYLE) & WS_VISIBLE);
-    }
-    util_set_menu_item(root_menu, IDM_VIEW_SYMTREE, m_show);
-    util_enable_menu_item(root_menu, IDM_VIEW_SYMTREE, p->hwnd_symlist || p->hwnd_symtree);
-}
-
-static void
 menu_update_hexview(HMENU root_menu, bool hex_mode)
 {
     if (root_menu)
@@ -114,6 +97,7 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_EDIT_UNDO, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_REDO, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_DELETE, !hex_mode);
+        util_enable_menu_item(root_menu, IDM_EDIT_PASTE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE1, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE2, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE3, !hex_mode);
@@ -141,7 +125,6 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_VIEW_WHITESPACE_VISIABLE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_NEWLINE_VISIABLE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_INDENTGUIDES_VISIABLE, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE16, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE17, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE18, !hex_mode);
@@ -156,8 +139,6 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_SOURCEE_ENABLE_ACSHOW, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SOURCEE_ACSHOW_CHARS, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SOURCE_ENABLE_CTSHOW, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_DATABASE_INSERT_CONFIG, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_DATABASE_EXECUTE_SQL, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_FONTQUALITY, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_RENDER, !hex_mode);
     }
@@ -337,7 +318,7 @@ menu_update_item(HMENU menu)
                     case IDM_HISTORY_BASE:
                         on_file_update_recent();
                         break;
-                    case IDM_FILE_SAVE:          /* File menu */
+                    case IDM_FILE_SAVE:                       /* File menu */
                         util_enable_menu_item(menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
                         util_enable_menu_item(menu, IDM_FILE_SAVEAS, pnode->filename[0]);
                         util_enable_menu_item(menu, IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl());
@@ -356,17 +337,18 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_UTF16BE, (eu_get_config()->new_file_enc == IDM_UNI_UTF16BEB));
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_ANSI, (eu_get_config()->new_file_enc == IDM_OTHER_ANSI));
                         break;
-                    case IDM_EDIT_UNDO:           /* Edit menu */
+                    case IDM_EDIT_UNDO:                       /* Edit menu */
                         util_enable_menu_item(menu, IDM_EDIT_CUT, util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_COPY, util_can_selections(pnode));
                         break;
-                    case IDM_UPDATE_SELECTION:    /* Search menu */
+                    case IDM_UPDATE_SELECTION:                /* Search menu */
                         util_set_menu_item(menu, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
                         util_set_menu_item(menu, IDM_SELECTION_RECTANGLE, eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);
                         break;
-                    case IDM_VIEW_FILETREE:       /* View menu */
+                    case IDM_VIEW_INDENTGUIDES_VISIABLE:      /* View menu */
                         util_set_menu_item(menu, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
-                        menu_update_rside(menu, pnode);
+                        util_set_menu_item(menu, IDM_VIEW_SYMTREE, pnode->sym_show);
+                        util_enable_menu_item(menu, IDM_VIEW_SYMTREE, pnode->hwnd_symlist || pnode->hwnd_symtree);
                         util_set_menu_item(menu, IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);
                         util_set_menu_item(menu, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
                         util_set_menu_item(menu, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
@@ -379,7 +361,9 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_VIEW_WHITESPACE_VISIABLE, eu_get_config()->ws_visiable);
                         util_set_menu_item(menu, IDM_VIEW_NEWLINE_VISIABLE, eu_get_config()->newline_visialbe);
                         util_set_menu_item(menu, IDM_EDIT_AUTO_INDENTATION, eu_get_config()->m_ident);
-                        util_set_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, eu_get_config()->block_fold);
+                        bool fold_show = eu_get_config()->block_fold && pnode->foldline;
+                        util_set_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, fold_show);
+                        util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, !pnode->hex_mode && pnode->foldline);
                         util_set_menu_item(menu, IDM_VIEW_INDENTGUIDES_VISIABLE, eu_get_config()->m_indentation);
                         util_enable_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN);
                         util_set_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->hex_mode);
@@ -406,7 +390,7 @@ menu_update_item(HMENU menu)
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
                         break;
-                    case IDM_SOURCEE_ENABLE_ACSHOW:   /* Programming menu */
+                    case IDM_PROGRAM_EXECUTE_ACTION:  /* Programming menu */
                         util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->m_acshow);
                         util_update_menu_chars(menu, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
                         util_set_menu_item(menu, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->m_ctshow);
@@ -432,7 +416,7 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
                         break;
-                    case IDM_DONATION:
+                    case IDM_ABOUT:                   /* Settings menu */
                         util_enable_menu_item(menu, IDM_DONATION, util_exist_libcurl());
                         break;
                     default:

@@ -515,9 +515,9 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
         pnode->rect_symtree.top = rect_tabpages.top + tab_height;
         pnode->rect_symtree.bottom = rect_tabpages.bottom;
     }
-    if (eu_get_config()->m_sym_show)
+    if (pnode->sym_show)
     {
-        if (pnode->hwnd_symlist && ListBox_GetCount(pnode->hwnd_symlist) > 0)
+        if (pnode->hwnd_symlist)
         {
             pnode->rect_sc.left = rect_tabpages.left + SCINTILLA_MARGIN_LEFT;
             pnode->rect_sc.right = rect_tabpages.right - SYMBOLLIST_MARGIN_LEFT - eu_get_config()->sym_list_width -
@@ -535,7 +535,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             pnode->rect_symtree.top = rect_tabpages.top + tab_height;
             pnode->rect_symtree.bottom = rect_tabpages.bottom;
         }
-        else if (pnode->hwnd_symtree && TreeView_GetCount(pnode->hwnd_symtree) > 0)
+        else if (pnode->hwnd_symtree)
         {
             pnode->rect_sc.left = rect_tabpages.left + SCINTILLA_MARGIN_LEFT;
             pnode->rect_sc.right = rect_tabpages.right - SYMBOLTREE_MARGIN_LEFT - eu_get_config()->sym_tree_width -
@@ -814,7 +814,7 @@ on_tabpage_theme_changed(eu_tabpage *p)
     {
         PostMessage(p->hwnd_sc, WM_THEMECHANGED, 0, 0);
     }
-    if (eu_get_config()->m_sym_show)
+    if (p->sym_show)
     {
         if (p->hwnd_symlist)
         {

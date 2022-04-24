@@ -106,12 +106,20 @@ BEGIN
             MENUITEM "&Join Lines",                                    IDM_EDIT_JOINLINE
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Sort Lines Lexicographically Ascending",         IDM_EDIT_ASCENDING_SORT
+            MENUITEM "Sort Lines Lex. Ascending Ignoring Case",        IDM_EDIT_ASCENDING_SORT_IGNORECASE
+            MENUITEM "Sort Lines Lexicographically Descending",        IDM_EDIT_DESCENDING_SORT
+            MENUITEM "Sort Lines Lex. Descending Ignoring Case",       IDM_EDIT_DESCENDING_SORT_IGNORECASE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Toggle Case",                                           IDM_EDIT_PLACEHOLDE6
+        POPUP "Convert",                                               IDM_EDIT_PLACEHOLDE6
         BEGIN
             MENUITEM "Lower Case",                                     IDM_EDIT_LOWERCASE
             MENUITEM "Upper Case",                                     IDM_EDIT_UPPERCASE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "TAB To Space",                                   IDM_EDIT_TAB_SPACE
+            MENUITEM "Space To TAB",                                   IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
         POPUP "Action &On Selection"
@@ -553,6 +561,7 @@ BEGIN
     CONTROL "",IDC_THEME_CARTETLINE_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,246,12,13
     CONTROL "",IDC_THEME_INDICATOR_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,265,33,12,WS_EX_CLIENTEDGE
     CONTROL "",IDC_THEME_INDICATOR_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,264,12,13
+    CONTROL "Tips: More professional syntax highlighting can be completed by user script",IDC_THEME_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,296,441,12
 END
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
@@ -786,6 +795,7 @@ FONT 8,"Ms Shell Dlg",0,0,0
 STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
 BEGIN
   CONTROL "%s\nThis file has been deleted or renamed. \nDo you want to keep it open while editing?",IDC_NOEXIST_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTER,9,6,282,39
+  CONTROL "",IDC_INPUT_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,10,0,0,0,WS_EX_CLIENTEDGE
   CONTROL "YES &ALL",IDC_NOEXIST_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,45,51,42,18
   CONTROL "N&O ALL",IDC_NOEXIST_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,102,51,42,18
   CONTROL "&YES",IDC_NOEXIST_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,162,51,36,18
@@ -1085,6 +1095,8 @@ STRINGTABLE DISCARDABLE
     IDS_USER32_ERROR        "Error"
     IDS_USER32_UNFINISHED   "The editor has not been completely closed. Please open it again later"
     IDS_EXTRA_PATH          "External program path: "
+    IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
+    IDS_RE_ERROR            "Error: invalid regular expression"
 }
 
 /////////////////////////////////////////////////////////////////////////////

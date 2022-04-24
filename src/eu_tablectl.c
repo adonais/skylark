@@ -18,6 +18,8 @@
 
 #include "framework.h"
 
+#define SQL_EXECUTE_FAIL(p) free(p); return -1
+
 db_libs db_funcs = {0};
 redis_lib redis_funcs = {0};
 LONG_PTR orgi_hearder_proc = 0;
@@ -755,58 +757,36 @@ on_table_sql_header(eu_tabpage *pnode)
     return (on_table_connect_database(pnode) == 0);
 }
 
-static int
-strnspace(const char *s1, const char *s2)
-{
-    if (!(s1 && s2))
-    {
-        return -1;
-    }
-    if (s1 == s2)
-    {
-        return 0;
-    }
-    if (strncmp(s1, s2, strlen(s2)) == 0)
-    {
-        return 0;
-    }
-    for (int i = 0; i < (int)strlen(s1); ++i)
-    {
-        if (isspace(s1[i]))
-        {
-            continue;
-        }
-        if (strncmp(&s1[i], s2, strlen(s2)) == 0)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
 static bool
-skip_sql_comment(eu_tabpage *pnode, const char *sql, char *out)
+skip_sql_comment(eu_tabpage *pnode, char **psql)
 {
     bool ret = false;
-    const char *s = NULL;
-    int s_len = eu_int_cast(strlen(sql));
+    char *s = NULL;
+    const char *p = NULL;
     const int m_eol = on_encoding_eol_char(pnode);
-    if (!(sql && *sql))
+    if (STR_IS_NUL(psql))
     {
         return false;
     }
-    if (strncmp(sql, "--", strlen("--")))
+    s = *psql;
+    for (; *s; ++s)
     {
-        return (sscanf(sql, "%s", out) == 1);
-    }
-    for (s = sql; *s; ++s)
-    {
-        if (*s == m_eol && s - sql < s_len && strnspace(&s[1], "--"))
+        if (util_strnspace(s, "--") == 0)
         {
-            if (s[1] != m_eol)
+            if ((p = strchr(s, m_eol)) != NULL)
             {
-                ret = (sscanf(&s[1], "%s", out) == 1);
+                s += (p-s+1);
+                
             }
+        }
+        else if (isspace(*s))
+        {
+            ;
+        }
+        else
+        {
+            *psql = s;
+            ret = true;
             break;
         }
     }
@@ -850,7 +830,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
         sel_len = sel_end - sel_start;
         if (sel_len <= 0)
         {
-            sel_sql = util_strdup_line(pnode, NULL);
+            sel_sql = util_strdup_line(pnode, -1, NULL);
         }
         else
         {
@@ -869,51 +849,24 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
     psel = strtok(sel_sql, ";");
     while (psel)
     {
-        char first_word[256] = {0};
-        while ((*psel))
-        {
-            if ((*psel) == on_encoding_eol_char(pnode))
-            {
-                psel++;
-            }
-            else
-            {
-                break;
-            }
-        }
-        if (psel[0] == '\0')
-        {
-            break;
-        }
-        skip_sql_comment(pnode, psel, first_word);
-        printf("psel = %s\nfirst_word = %s\n", psel, first_word);
+        skip_sql_comment(pnode, &psel);
+        bool is_select_word = _strnicmp(psel, "SELECT", strlen("SELECT")) == 0;
         if (_stricmp(pnode->db_config.dbtype, "MySQL") == 0)
         {
             mysql_lib *mysql_sub = &(db_funcs.m_mysql);
             mysql_handle *this_mysql = &(pnode->udb.handles.h_mysql);
             MYSQL_RES *presult = NULL;
-            if (strncmp(psel, "--", strlen("--")))
-            {
-                LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR1, msg_str);
-                on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));
-            }
             nret = mysql_sub->fn_mysql_query(this_mysql->mysql, psel);
             if (nret)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR2, msg_str);
                 on_result_append_text(pnode->hwnd_qredit, msg_str, nret);
-                free(sel_sql);
-                return -1;
+                SQL_EXECUTE_FAIL(sel_sql);
             }
-            else
+            else if (!is_select_word)
             {
-                if (_strnicmp(psel, "select", strlen("select")))
-                {
-                    LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR3, msg_str);
-                    on_result_append_text(pnode->hwnd_qredit,
-                                     msg_str,
-                                     (int)(mysql_sub->fn_mysql_affected_rows(this_mysql->mysql)));
-                }
+                LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR3, msg_str);
+                on_result_append_text(pnode->hwnd_qredit, msg_str, (int)(mysql_sub->fn_mysql_affected_rows(this_mysql->mysql)));
             }
             if ((presult = mysql_sub->fn_mysql_store_result(this_mysql->mysql)))
             {
@@ -932,8 +885,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 {
                     printf("Failed to allocate memory\n");
                     mysql_sub->fn_mysql_free_result(presult);
-                    free(sel_sql);
-                    return -1;
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 for (field_index = 0; field_index < field_count; field_index++)
                 {
@@ -943,8 +895,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                         MSG_BOX(IDC_MSG_QUERY_STR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                         mysql_sub->fn_mysql_free_result(presult);
                         free(afield_width);
-                        free(sel_sql);
-                        return -1;
+                        SQL_EXECUTE_FAIL(sel_sql);
                     }
                     nfield_width = ((int) strlen(mysql_field->name) + 2) * char_width;
                     if (afield_width[field_index] < nfield_width)
@@ -962,8 +913,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                             MSG_BOX(IDC_MSG_QUERY_STR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                             mysql_sub->fn_mysql_free_result(presult);
                             free(afield_width);
-                            free(sel_sql);
-                            return -1;
+                            SQL_EXECUTE_FAIL(sel_sql);
                         }
                         if (mysqlrow[field_index])
                         {
@@ -1003,11 +953,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 ub2 data_len;
                 sb2 data_indicator;
             } *column_data;
-            if (_strnicmp(psel, "-- ", strlen("-- ")))
-            {
-                LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR1, msg_str);
-                on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));
-            }
             oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &stmthpp, OCI_HTYPE_STMT, (size_t) 0, (dvoid **) 0);
             result = oci_sub->fnOCIStmtPrepare(stmthpp,
                                                this_oci->errhpp,
@@ -1022,8 +967,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR6, msg_str);
                 on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, sizeof(err_desc) - 1);
                 on_result_append_text(pnode->hwnd_qredit, msg_str, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
-                free(sel_sql);
-                return -1;
+                SQL_EXECUTE_FAIL(sel_sql);
             }
             oci_sub->fnOCIAttrGet(stmthpp, OCI_HTYPE_STMT, &stmt_type, NULL, OCI_ATTR_STMT_TYPE, this_oci->errhpp);
             if (stmt_type != OCI_STMT_SELECT)
@@ -1054,8 +998,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                     oci_sub->fnOCITransRollback(this_oci->svchpp, this_oci->errhpp, OCI_DEFAULT);
                     on_result_append_text(pnode->hwnd_qredit, msg_str);
                 }
-                free(sel_sql);
-                return -1;
+                SQL_EXECUTE_FAIL(sel_sql);
             }
             else
             {
@@ -1088,8 +1031,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 {
                     MSG_BOX(IDC_MSG_QUERY_STR11, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                     oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
-                    free(sel_sql);
-                    return -1;
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 column_data = (struct ColumnData *) calloc(1, sizeof(struct ColumnData) * field_count);
                 if (column_data == NULL)
@@ -1097,8 +1039,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                     MSG_BOX(IDC_MSG_QUERY_STR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                     oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                     free(afield_width);
-                    free(sel_sql);
-                    return -1;
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 for (field_index = 0; field_index < field_count; field_index++)
                 {
@@ -1114,8 +1055,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                         oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                         free(afield_width);
                         free(column_data);
-                        free(sel_sql);
-                        return -1;
+                        SQL_EXECUTE_FAIL(sel_sql);
                     }
                     oci_sub->fnOCIAttrGet((dvoid *) paramhpp,
                                           OCI_DTYPE_PARAM,
@@ -1129,8 +1069,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                         oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                         free(afield_width);
                         free(column_data);
-                        free(sel_sql);
-                        return -1;
+                        SQL_EXECUTE_FAIL(sel_sql);
                     }
                     oci_sub->fnOCIDefineByPos(stmthpp,
                                               &column_ocid,
@@ -1163,8 +1102,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                         oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                         free(afield_width);
                         free(column_data);
-                        free(sel_sql);
-                        return -1;
+                        SQL_EXECUTE_FAIL(sel_sql);
                     }
                     for (field_index = 0; field_index < field_count; field_index++)
                     {
@@ -1174,8 +1112,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                             oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                             free(afield_width);
                             free(column_data);
-                            free(sel_sql);
-                            return -1;
+                            SQL_EXECUTE_FAIL(sel_sql);
                         }
                         if (column_data[field_index].data_len > 0)
                         {
@@ -1209,7 +1146,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
             char **result = NULL;
             int row_conut;
             int index;
-            if (_strnicmp(first_word, "SELECT", strlen("SELECT")) == 0)
+            if (is_select_word)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR1, msg_str);
                 on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));
@@ -1223,8 +1160,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                         free(errmsg);
                     }
                     eu_sqlite3_free_table(result);
-                    free(sel_sql);
-                    return -1;
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 else
                 {
@@ -1235,11 +1171,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
             }
             else
             {
-                if (_strnicmp(psel, "-- ", strlen("-- ")))
-                {
-                    LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR1, msg_str);
-                    on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));
-                }
                 nret = eu_sqlite3_exec(this_sql3->sqlite3, psel, NULL, NULL, &errmsg);
                 if (nret)
                 {
@@ -1250,8 +1181,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                     {
                         free(errmsg);
                     }
-                    free(sel_sql);
-                    return -1;
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 else
                 {
@@ -1259,7 +1189,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                     on_result_append_text(pnode->hwnd_qredit, msg_str);
                 }
             }
-            if (_strnicmp(first_word, "SELECT", strlen("SELECT")) == 0)
+            if (is_select_word)
             {
                 TCHAR *ptr_index = NULL;
                 ListView_DeleteAllItems(pnode->hwnd_qrtable);
@@ -1274,8 +1204,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 {
                     MSG_BOX(IDC_MSG_QUERY_STR11, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                     eu_sqlite3_free_table(result);
-                    free(sel_sql);
-                    return -1;
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 index = 0;
                 for (field_index = 0; field_index < field_count; field_index++, index++)
@@ -1285,8 +1214,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                         MSG_BOX(IDC_MSG_QUERY_STR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                         eu_sqlite3_free_table(result);
                         free(afield_width);
-                        free(sel_sql);
-                        return -1;
+                        SQL_EXECUTE_FAIL(sel_sql);
                     }
                     nfield_width = ((int) strlen(result[index]) + 2) * char_width;
                     if (afield_width[field_index] < nfield_width)
@@ -1304,8 +1232,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                             MSG_BOX(IDC_MSG_QUERY_STR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                             eu_sqlite3_free_table(result);
                             free(afield_width);
-                            free(sel_sql);
-                            return -1;
+                            SQL_EXECUTE_FAIL(sel_sql);
                         }
                         if (result[index])
                         {
@@ -1331,11 +1258,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
             pq_handle *this_pq = &(pnode->udb.handles.h_pq);
             PGresult *res = NULL;
             int row_conut;
-            if (_strnicmp(psel, "-- ", strlen("-- ")))
-            {
-                LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR1, msg_str);
-                on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));
-            }
             res = pq_sub->fnPQexec(this_pq->postgres, psel);
             if (pq_sub->fnPQresultStatus(res) == PGRES_COMMAND_OK)
             {
@@ -1361,8 +1283,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                 {
                     MSG_BOX(IDC_MSG_QUERY_STR11, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                     pq_sub->fnPQclear(res);
-                    free(sel_sql);
-                    return -1;
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 for (field_index = 0; field_index < field_count; field_index++)
                 {
@@ -1371,8 +1292,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                         MSG_BOX(IDC_MSG_QUERY_STR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                         pq_sub->fnPQclear(res);
                         free(afield_width);
-                        free(sel_sql);
-                        return -1;
+                        SQL_EXECUTE_FAIL(sel_sql);
                     }
                     nfield_width = ((int) strlen(pq_sub->fnPQfname(res, field_index)) + 2) * char_width;
                     if (afield_width[field_index] < nfield_width)
@@ -1390,8 +1310,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
                             MSG_BOX(IDC_MSG_QUERY_STR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                             pq_sub->fnPQclear(res);
                             free(afield_width);
-                            free(sel_sql);
-                            return -1;
+                            SQL_EXECUTE_FAIL(sel_sql);
                         }
                         if (field_value)
                         {
@@ -1414,19 +1333,17 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR7, err_msg);
                 on_result_append_text(pnode->hwnd_qredit, err_msg, -1, util_make_u16(pq_sub->fnPQresultErrorMessage(res), utf_str, MAX_BUFFER));
-                free(sel_sql);
-                return -1;
+                SQL_EXECUTE_FAIL(sel_sql);
             }
         }
         else
         {
             LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR26, err_msg);
             on_result_append_text(pnode->hwnd_qredit, err_msg, util_make_u16(pnode->db_config.dbtype, utf_str, MAX_BUFFER));
-            free(sel_sql);
-            return -1;
+            SQL_EXECUTE_FAIL(sel_sql);
         }
         psel = strtok(NULL, ";");
     }
-    free(sel_sql);
+    eu_safe_free(sel_sql);
     return 0;
 }

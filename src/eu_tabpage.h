@@ -33,16 +33,11 @@ typedef int (*tab_ptr)(eu_tabpage *p);
 extern HWND  g_tabpages;
 extern HMENU pop_tab_menu;
 extern HMENU pop_editor_menu;
-extern HMENU pop_symlist_menu;
-extern HMENU pop_symtree_refresh_menu;
-extern HMENU pop_symtree_table_menu;
-extern HMENU pop_symtree_row_menu;
 
 struct _tabpage
 {
-    HWND hwnd_sc;               // 编辑器句柄
-    SciFnDirect ptr_scintilla;  // scintilla句柄重定向
-    sptr_t eusc;                
+    HWND hwnd_sc;               // 当前编辑器句柄
+    sptr_t eusc;                // 当前编辑器类指针
     RECT rect_sc;               // 编辑器矩形区域
     int match_count;            // 查找时匹配计数
     HWND hwnd_symlist;          // tab关联的子窗口句柄
@@ -51,10 +46,12 @@ struct _tabpage
     RECT rect_symtree;
     HWND hwnd_qredit;
     RECT rect_qredit;
-    HWND hwnd_qrtable;          
+    HWND hwnd_qrtable;
     RECT rect_qrtable;
     int  tab_id;                // tab编号,用于保存会话
-    bool edit_show;             // 是否动态显示右侧边栏
+    bool edit_show;             // 是否显示文件运行窗口
+    bool sym_show;              // 是否显示右侧边栏
+    bool foldline;              // 是否存在折叠线
     db_conn db_config;          // 数据库配置
     db_handles udb;
     bool db_is_connect;

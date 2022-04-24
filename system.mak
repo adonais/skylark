@@ -56,7 +56,7 @@ AR   = llvm-lib -nologo -llvmlibthin
 LD   = lld-link -nologo -guard:cf
 CXX  = clang-cl
 CFLAGS   = -nologo -Gw -flto=thin -guard:cf $(CFLAGS) -Wno-unused-variable -Wno-unused-function -Wno-parentheses-equality \
-           -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-unused-value
+           -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-unused-value -Wno-empty-body
 DLLFLAGS = -nologo -debug -incremental:no -opt:ref -opt:icf -dll -guard:cf
 MAVX2    = -mavx2
 !IF "$(BITS)" == "32"

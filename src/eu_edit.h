@@ -28,8 +28,8 @@
 #else
 #define FALLTHROUGH_ATTR
 #endif
-#define STR_IS_NUL(s) (s == NULL || *s == '\0')
-#define STR_NOT_NUL(s) (s != NULL && *s != '\0')
+#define STR_IS_NUL(s) (s == NULL || *s == 0)
+#define STR_NOT_NUL(s) (s != NULL && *s != 0)
 
 #ifdef __cplusplus
 extern "C"
@@ -66,6 +66,7 @@ void on_edit_upper(eu_tabpage *pnode);
 void on_edit_selection(eu_tabpage *pnode, int type);
 void on_edit_undo_eol(eu_tabpage *pnode);
 void on_edit_undo_iconv(eu_tabpage *pnode);
+void on_edit_sorting(eu_tabpage *pnode, int wm_id);
 
 int on_edit_base64_enc(eu_tabpage *pnode);
 int on_edit_base64_dec(eu_tabpage *pnode);

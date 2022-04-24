@@ -1,5 +1,22 @@
 fortran = {}
 
+require("eu_sci")
+require("eu_core")
+
+function fortran.init_after_callback(p)
+  local pnode = eu_core.ffi.cast("void *", p)
+  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, "fortran")
+  if (res ~= 1) then
+    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD, 0, 0)                              -- 8, SCE_F_WORD, keywords0
+    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD2, 1, 0)                             -- 9, SCE_F_WORD2, keywords1
+    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD3, 2, 0xB000B0)                      -- 10, SCE_F_WORD3, keywords2
+    eu_core.euapi.on_doc_commentblock_light(pnode, SCE_F_COMMENT, 0)
+    eu_core.euapi.on_doc_number_light(pnode, SCE_F_NUMBER, 0)
+    eu_core.euapi.on_doc_preprocessor_light(pnode, SCE_F_PREPROCESSOR, -1, 0xB000B0)
+  end
+  return res;
+end
+
 function fortran.get_keywords()
   local keywords0_set = "access action advance allocatable allocate apostrophe assign assignment associate asynchronous backspace bind blank blockdata call case character class close common complex contains continue critical cycle data deallocate decimal delim default dimension direct do dowhile double doubleprecision else elseif elsewhere encoding end endassociate endblockdata endcritical enddo endenum endfile endforall endfunction endif endinterface endmodule endprocedure endprogram endselect endsubmodule endsubroutine endtype endwhere entry enum eor equivalence err errmsg exist exit external file flush fmt forall form format formatted function go goto id if implicit in include inout integer inquire intent interface intrinsic iomsg iolength iostat kind len logical module name named namelist nextrec nml none nullify number only open opened operator optional out pad parameter pass pause pending pointer pos position precision print private procedure program protected public quote read readwrite real rec recl recursive result return rewind save select selectcase selecttype sequential sign size stat status stop stream submodule subroutine target then to type unformatted unit use value volatile wait where while write"
   local keywords1_set = "abs achar acos acosd adjustl adjustr aimag aimax0 aimin0 aint ajmax0 ajmin0 akmax0 akmin0 all allocated alog alog10 amax0 amax1 amin0 amin1 amod anint any asin asind associated atan atan2 atan2d atand bitest bitl bitlr bitrl bjtest bit_size bktest break btest cabs ccos cdabs cdcos cdexp cdlog cdsin cdsqrt ceiling cexp char clog cmplx conjg cos cosd cosh count cpu_time cshift csin csqrt dabs dacos dacosd dasin dasind datan datan2 datan2d datand date date_and_time dble dcmplx dconjg dcos dcosd dcosh dcotan ddim dexp dfloat dflotk dfloti dflotj digits dim dimag dint dlog dlog10 dmax1 dmin1 dmod dnint dot_product dprod dreal dsign dsin dsind dsinh dsqrt dtan dtand dtanh eoshift epsilon errsns exp exponent float floati floatj floatk floor fraction free huge iabs iachar iand ibclr ibits ibset ichar idate idim idint idnint ieor ifix iiabs iiand iibclr iibits iibset iidim iidint iidnnt iieor iifix iint iior iiqint iiqnnt iishft iishftc iisign ilen imax0 imax1 imin0 imin1 imod index inint inot int int1 int2 int4 int8 iqint iqnint ior ishft ishftc isign isnan izext jiand jibclr jibits jibset jidim jidint jidnnt jieor jifix jint jior jiqint jiqnnt jishft jishftc jisign jmax0 jmax1 jmin0 jmin1 jmod jnint jnot jzext kiabs kiand kibclr kibits kibset kidim kidint kidnnt kieor kifix kind kint kior kishft kishftc kisign kmax0 kmax1 kmin0 kmin1 kmod knint knot kzext lbound leadz len len_trim lenlge lge lgt lle llt log log10 logical lshift malloc matmul max max0 max1 maxexponent maxloc maxval merge min min0 min1 minexponent minloc minval mod modulo mvbits nearest nint not nworkers number_of_processors pack popcnt poppar precision present product radix random random_number random_seed range real repeat reshape rrspacing rshift scale scan secnds selected_int_kind selected_real_kind set_exponent shape sign sin sind sinh size sizeof sngl snglq spacing spread sqrt sum system_clock tan tand tanh tiny transfer transpose trim ubound unpack verify"
@@ -57,6 +74,24 @@ end
 function fortran.create_bakup(path)
   local fortran_code = {
     "user_fortran = {}\n",
+    "\n",
+    "require(\"eu_sci\")\n",
+    "require(\"eu_core\")\n",
+    "\n",
+    "function user_fortran.init_after_callback(p)\n",
+    "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
+    "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"fortran\")\n",
+    "  if (res ~= 1) then\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD, 0, 0)                              -- 8, SCE_F_WORD, keywords0\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD2, 1, 0)                             -- 9, SCE_F_WORD2, keywords1\n",
+    "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD3, 2, 0xB000B0)                      -- 10, SCE_F_WORD3, keywords2\n",
+    "    eu_core.euapi.on_doc_commentblock_light(pnode, SCE_F_COMMENT, 0)\n",
+    "    eu_core.euapi.on_doc_number_light(pnode, SCE_F_NUMBER, 0)\n",
+    "    eu_core.euapi.on_doc_preprocessor_light(pnode, SCE_F_PREPROCESSOR, -1, 0xB000B0)\n",
+    "  end\n",
+    "  return res;\n",
+    "end\n",
+    "\n",
     "function user_fortran.get_keywords()\n",
     "  local keywords0_set = \"access action advance allocatable allocate apostrophe assign assignment associate asynchronous backspace bind blank blockdata call case character class close common complex contains continue critical cycle data deallocate decimal delim default dimension direct do dowhile double doubleprecision else elseif elsewhere encoding end endassociate endblockdata endcritical enddo endenum endfile endforall endfunction endif endinterface endmodule endprocedure endprogram endselect endsubmodule endsubroutine endtype endwhere entry enum eor equivalence err errmsg exist exit external file flush fmt forall form format formatted function go goto id if implicit in include inout integer inquire intent interface intrinsic iomsg iolength iostat kind len logical module name named namelist nextrec nml none nullify number only open opened operator optional out pad parameter pass pause pending pointer pos position precision print private procedure program protected public quote read readwrite real rec recl recursive result return rewind save select selectcase selecttype sequential sign size stat status stop stream submodule subroutine target then to type unformatted unit use value volatile wait where while write\"\n",
     "  local keywords1_set = \"abs achar acos acosd adjustl adjustr aimag aimax0 aimin0 aint ajmax0 ajmin0 akmax0 akmin0 all allocated alog alog10 amax0 amax1 amin0 amin1 amod anint any asin asind associated atan atan2 atan2d atand bitest bitl bitlr bitrl bjtest bit_size bktest break btest cabs ccos cdabs cdcos cdexp cdlog cdsin cdsqrt ceiling cexp char clog cmplx conjg cos cosd cosh count cpu_time cshift csin csqrt dabs dacos dacosd dasin dasind datan datan2 datan2d datand date date_and_time dble dcmplx dconjg dcos dcosd dcosh dcotan ddim dexp dfloat dflotk dfloti dflotj digits dim dimag dint dlog dlog10 dmax1 dmin1 dmod dnint dot_product dprod dreal dsign dsin dsind dsinh dsqrt dtan dtand dtanh eoshift epsilon errsns exp exponent float floati floatj floatk floor fraction free huge iabs iachar iand ibclr ibits ibset ichar idate idim idint idnint ieor ifix iiabs iiand iibclr iibits iibset iidim iidint iidnnt iieor iifix iint iior iiqint iiqnnt iishft iishftc iisign ilen imax0 imax1 imin0 imin1 imod index inint inot int int1 int2 int4 int8 iqint iqnint ior ishft ishftc isign isnan izext jiand jibclr jibits jibset jidim jidint jidnnt jieor jifix jint jior jiqint jiqnnt jishft jishftc jisign jmax0 jmax1 jmin0 jmin1 jmod jnint jnot jzext kiabs kiand kibclr kibits kibset kidim kidint kidnnt kieor kifix kind kint kior kishft kishftc kisign kmax0 kmax1 kmin0 kmin1 kmod knint knot kzext lbound leadz len len_trim lenlge lge lgt lle llt log log10 logical lshift malloc matmul max max0 max1 maxexponent maxloc maxval merge min min0 min1 minexponent minloc minval mod modulo mvbits nearest nint not nworkers number_of_processors pack popcnt poppar precision present product radix random random_number random_seed range real repeat reshape rrspacing rshift scale scan secnds selected_int_kind selected_real_kind set_exponent shape sign sin sind sinh size sizeof sngl snglq spacing spread sqrt sum system_clock tan tand tanh tiny transfer transpose trim ubound unpack verify\"\n",

@@ -14,52 +14,7 @@ if (not eu_core.file_exists(user_file)) then
     "\n",
     "user_docs = {}\n",
     "require(\"eu_core\")\n",
-    "function user_docs.lua_init_after_au3(p)\n",
-    "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
-    "  local res = eu_core.euapi.on_doc_enable_scilexer(pnode, 60)                -- 60, SCLEX_AU3\n",
-    "  if (res ~= 1) then\n",
-    "    eu_core.euapi.on_doc_comment_light(pnode, 1, 0)                          -- 1, SCE_AU3_COMMENT\n",
-    "    eu_core.euapi.on_doc_commentblock_light(pnode, 2, 0)                     -- 2, SCE_AU3_COMMENTBLOCK\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 5, 0, 0)                       -- 5, SCE_AU3_KEYWORD, keywords0\n",
-    "    eu_core.euapi.on_doc_marcro_light(pnode, 6, 2, 0x0080FF)                 -- 6, SCE_AU3_MACRO, keywords2\n",
-    "    eu_core.euapi.on_doc_string_light(pnode, 7, 0x008080)                    -- 7, SCE_AU3_STRING\n",
-    "    -- eu_core.euapi.on_doc_operator_light(pnode, 8, 0xC000C0)               -- 8, SCE_AU3_OPERATOR\n",
-    "    eu_core.euapi.on_doc_variable_light(pnode, 9, 0x808000)                  -- 9, SCE_AU3_VARIABLE\n",
-    "    eu_core.euapi.on_doc_send_light(pnode, 10, 3, 0xFF0000)                  -- 10, SCE_AU3_SENT, keywords3\n",
-    "    eu_core.euapi.on_doc_preprocessor_light(pnode, 11, 4, 0xFF8000)          -- 11, SCE_AU3_PREPROCESSOR, keywords4\n",
-    "    eu_core.euapi.on_doc_special_light(pnode, 10, 0xFF0000)                  -- 12, SCE_AU3_SPECIAL\n",
-    "  end\n",
-    "  return res\n",
-    "end\n",
-    "function user_docs.lua_init_after_fortran(p)\n",
-    "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
-    "  local res = eu_core.euapi.on_doc_enable_scilexer(pnode, 36)                -- 36, SCLEX_FORTRAN\n",
-    "  if (res ~= 1) then\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 8, 0, 0)                       -- 8, SCE_F_WORD, keywords0\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 9, 1, 0)                       -- 9, SCE_F_WORD2, keywords1\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 10, 2, 0xB000B0)               -- 10, SCE_F_WORD3, keywords2\n",
-    "    eu_core.euapi.on_doc_commentblock_light(pnode, 1, 0)                     -- 1, SCE_F_COMMENT\n",
-    "    eu_core.euapi.on_doc_number_light(pnode, 2, 0)                           -- 2, SCE_F_NUMBER\n",
-    "    eu_core.euapi.on_doc_preprocessor_light(pnode, 11, -1, 0xB000B0)         -- 11, SCE_F_PREPROCESSOR\n",
-    "  end\n",
-    "  return res;\n",
-    "end\n",
-    "function user_docs.lua_init_after_julia(p)\n",
-    "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
-    "  local res = eu_core.euapi.on_doc_enable_scilexer(pnode, 133)               -- 133, SCLEX_JULIA\n",
-    "  if (res ~= 1) then\n",
-    "    -- eu_core.euapi.on_doc_default_light(pnode, 0, 0)\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 3, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 4, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 5, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2\n",
-    "    eu_core.euapi.on_doc_keyword_light(pnode, 20, 3, 0)                      -- 20, SCE_JULIA_KEYWORD4, keywords3\n",
-    "    eu_core.euapi.on_doc_marcro_light(pnode, 12, 4, 0xFF8000)                -- 12, SCE_JULIA_MACRO, keywords4\n",
-    "    eu_core.euapi.on_doc_comment_light(pnode, 1, 0)                          -- 1, SCE_JULIA_COMMENT\n",
-    "    eu_core.euapi.on_doc_string_light(pnode, 14, 0x008080)                   -- 14, SCE_JULIA_DOCSTRING\n",
-    "    eu_core.euapi.on_doc_string_light(pnode, 10, 0x008000)                   -- 10, SCE_JULIA_STRING\n",
-    "  end\n",
-    "  return res\n",
-    "end\n",
+    "\n",
     "function user_docs.get_docs()\n",
     "  local e,i = eu_core.enum{\n",
     "    DOCTYPE_END = 0,\n",
@@ -86,7 +41,7 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_MARKDOWN = 21,\n",
     "    DOCTYPE_NIM = 22,\n",
     "    DOCTYPE_PERL = 23,\n",
-    "    DOCTYPE_PROPERTIES = 24,\n",
+    "    DOCTYPE_INIFILE = 24,\n",
     "    DOCTYPE_PYTHON = 25,\n",
     "    DOCTYPE_REDIS = 26,\n",
     "    DOCTYPE_RUBY = 27,\n",
@@ -97,6 +52,9 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_TXT = 32,\n",
     "    DOCTYPE_XML = 33,\n",
     "    DOCTYPE_YAML = 34,\n",
+    "    DOCTYPE_CAML = 35,\n",
+    "    DOCTYPE_MATLAB = 36,\n",
+    "    DOCTYPE_CONFIGS = 37,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -127,7 +85,25 @@ if (not eu_core.file_exists(user_file)) then
     "          0,\n",
     "          -1,\n",
     "          ffi_null,\n",
-    "          user_docs.lua_init_after_au3,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_cpp_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_CAML,\n",
+    "          \"caml\",\n",
+    "          \";*.ml;*.mli;*.sml;*.thy;\",\n",
+    "          \"Caml Language\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          eu_core.euapi.on_doc_keyup_general,\n",
@@ -192,24 +168,6 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "      },\n",
     "      {\n",
-    "          e.DOCTYPE_CSS,\n",
-    "          \"css\",\n",
-    "          \";*.css;*.scss;*.less;*.hss;\",\n",
-    "          \"CSS\",\n",
-    "          0,\n",
-    "          -1,\n",
-    "          ffi_null,\n",
-    "          eu_core.euapi.on_doc_init_after_css,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "          eu_core.euapi.on_doc_keyup_general,\n",
-    "          eu_core.euapi.on_doc_css_like,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "      },\n",
-    "      {\n",
     "          e.DOCTYPE_COBOL,\n",
     "          \"cobol\",\n",
     "          \";*.cobol;*.cob;\",\n",
@@ -224,6 +182,42 @@ if (not eu_core.file_exists(user_file)) then
     "          eu_core.euapi.on_doc_cpp_like,\n",
     "          eu_core.euapi.on_doc_reload_list_reqular,\n",
     "          eu_core.euapi.on_doc_click_list_jmp,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_CONFIGS,\n",
+    "          \"cfg\",\n",
+    "          \";*.cfg;*.cnf;*.conf;*.htaccess;*.po;*.iface;*.properties;*.prefs;*.prop;\",\n",
+    "          \"Config File\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_init_after_properties,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_CSS,\n",
+    "          \"css\",\n",
+    "          \";*.css;*.scss;*.less;*.hss;\",\n",
+    "          \"CSS\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_init_after_css,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_css_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "      },\n",
@@ -253,7 +247,7 @@ if (not eu_core.file_exists(user_file)) then
     "          0,\n",
     "          -1,\n",
     "          eu_core.euapi.on_doc_init_list,\n",
-    "          user_docs.lua_init_after_fortran,\n",
+    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          eu_core.euapi.on_doc_keyup_general,\n",
@@ -299,6 +293,24 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_INIFILE,\n",
+    "          \"ini\",\n",
+    "          \";*.ini;*.inf;*.reg;*.oem;*.sif;*.url;*.sed;*.theme;*.clw;*.abnf;\",\n",
+    "          \"Ini File\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_init_after_properties,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",    
     "      {\n",
     "          e.DOCTYPE_JSON,\n",
     "          \"json\",\n",
@@ -357,11 +369,11 @@ if (not eu_core.file_exists(user_file)) then
     "          e.DOCTYPE_JULIA,\n",
     "          \"julia\",\n",
     "          \";*.jl;\",\n",
-    "          \"Julia Script\",\n",
+    "          \"Julia\",\n",
     "          0,\n",
     "          -1,\n",
     "          eu_core.euapi.on_doc_init_list,\n",
-    "          user_docs.lua_init_after_julia,\n",
+    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          eu_core.euapi.on_doc_keyup_general,\n",
@@ -480,6 +492,24 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "      },\n",
     "      {\n",
+    "          e.DOCTYPE_MATLAB,\n",
+    "          \"matlab\",\n",
+    "          \";*.m;*.sce;*.sci;\",\n",
+    "          \"Matlab Source\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_cpp_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
     "          e.DOCTYPE_NIM,\n",
     "          \"nim\",\n",
     "          \";*.nim;\",\n",
@@ -512,24 +542,6 @@ if (not eu_core.file_exists(user_file)) then
     "          eu_core.euapi.on_doc_cpp_like,\n",
     "          eu_core.euapi.on_doc_reload_list_reqular,\n",
     "          eu_core.euapi.on_doc_click_list_jmp,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "      },\n",
-    "      {\n",
-    "          e.DOCTYPE_PROPERTIES,\n",
-    "          ffi_null,\n",
-    "          \";*.properties;*.ini;*.inf;*.cfg;*.cnf;*.conf;\",\n",
-    "          \"Properties File\",\n",
-    "          0,\n",
-    "          -1,\n",
-    "          ffi_null,\n",
-    "          eu_core.euapi.on_doc_init_after_properties,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
-    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "      },\n",
@@ -743,16 +755,20 @@ function string:split(delimiter)
   return result
 end
 
+
 function fetch_doctype(s)
   local m_config = eu_core.ffi.cast('doctype_t *', s)
   local m_req = nil
   local m_key0,m_key1,m_key2,m_key3,m_key4,m_key5
   local m_set = nil
+  local m_styles = nil
+  local m_line_comment = nil
+  local m_block_comment = nil
   local calltip = nil
   local reqular = nil
   local tab_width = nil
   local tab_convert_spaces = nil
-  
+
   if (m_config.filetypename ~= nil) then
     local typename = eu_core.ffi.string(m_config.filetypename)
     local tmp_file = (conf_path .. "\\script-opts\\user_" .. typename .. ".lua")
@@ -774,7 +790,7 @@ function fetch_doctype(s)
       tab_convert_spaces = -1
     end
     m_config.tab_width = tab_width
-    m_config.tab_convert_spaces = tab_convert_spaces    
+    m_config.tab_convert_spaces = tab_convert_spaces
     if (m_req.get_calltip ~= nil) then
       calltip = m_req.get_calltip()
     end
@@ -789,37 +805,70 @@ function fetch_doctype(s)
       m_key0,m_key1,m_key2,m_key3,m_key4,m_key5 = m_req.get_keywords()
     end
     if (m_key0 ~= nil) then
-      m_config.keywords0 = eu_core.ffi.cast('char *', m_key0)
+      m_config.keywords0 = eu_core.ffi.cast('const char *', m_key0)
     end
     if (m_key1 ~= nil) then
-      m_config.keywords1 = eu_core.ffi.cast('char *', m_key1)
+      m_config.keywords1 = eu_core.ffi.cast('const char *', m_key1)
     end
     if (m_key2 ~= nil) then
-      m_config.keywords2 = eu_core.ffi.cast('char *', m_key2)
+      m_config.keywords2 = eu_core.ffi.cast('const char *', m_key2)
     end
     if (m_key3 ~= nil) then
-      m_config.keywords3 = eu_core.ffi.cast('char *', m_key3)
+      m_config.keywords3 = eu_core.ffi.cast('const char *', m_key3)
     end
     if (m_key4 ~= nil) then
-      m_config.keywords4 = eu_core.ffi.cast('char *', m_key4)
+      m_config.keywords4 = eu_core.ffi.cast('const char *', m_key4)
     end
     if (m_key5 ~= nil) then
-      m_config.keywords5 = eu_core.ffi.cast('char *', m_key5)
+      m_config.keywords5 = eu_core.ffi.cast('const char *', m_key5)
+    end
+    if (m_req.init_after_callback ~= nil) then
+      if (m_config.fn_init_after == nil) then m_config.fn_init_after = eu_core.ffi.cast('init_after_ptr', m_req.init_after_callback) end
     end
     if (m_req.get_reqular ~= nil) then
       reqular = m_req.get_reqular()
     end
     if (reqular ~= nil) then
-      m_config.reqular_exp = eu_core.ffi.cast('char *', reqular)
+      m_config.reqular_exp = eu_core.ffi.cast('const char *', reqular)
+      if (m_config.fn_init_before == nil) then m_config.fn_init_before = eu_core.euapi.on_doc_init_list end
+      if (m_config.fn_reload_symlist == nil) then m_config.fn_reload_symlist = eu_core.euapi.on_doc_reload_list_reqular end
+      if (m_config.fn_click_symlist == nil) then m_config.fn_click_symlist = eu_core.euapi.on_doc_click_list_jmp end
     end
     if (m_req.get_autocomplete ~= nil) then
       m_set = m_req.get_autocomplete()
-    end        
+    end
     if (m_set ~= nil) then
       local dst = string.split(m_set, " +")
       for i = 1, #dst do
         eu_core.euapi.eu_init_completed_tree(m_config, dst[i])
       end
+    end
+    local count = 0;
+    if (m_req.get_styles ~= ni) then
+        m_styles = m_req.get_styles()
+        if (m_styles ~= nil) then
+          for k, v in pairs(m_styles) do
+            count = count + 1
+          end
+        end
+    end
+    if (count > 0) then
+      local bit = require("bit")
+      for k, v in pairs(m_styles) do
+        if (k < 32) then
+          m_config.style.type[k] = k
+          m_config.style.color[k] = v
+          m_config.style.mask = bit.bor(m_config.style.mask,bit.lshift(1,k))
+        end
+      end
+    end
+    if (m_req.get_comments ~= ni) then
+        m_line_comment,m_block_comment = m_req.get_comments()
+        if (m_line_comment ~= nil and m_block_comment ~= nil) then
+          m_config.comment.initialized = true
+          m_config.comment.line = eu_core.ffi.cast("const char *", m_line_comment)
+          m_config.comment.block = eu_core.ffi.cast("const char *", m_block_comment)
+        end
     end
   end
 end

@@ -106,12 +106,20 @@ BEGIN
             MENUITEM "合并行",                                  IDM_EDIT_JOINLINE
             MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
             MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
+            MENUITEM MF_SEPARATOR
+            MENUITEM "升序排列文本行(字典顺序)",                IDM_EDIT_ASCENDING_SORT
+            MENUITEM "升序排列文本行(忽略大小写)",              IDM_EDIT_ASCENDING_SORT_IGNORECASE
+            MENUITEM "降序排列文本行(字典顺序)",                IDM_EDIT_DESCENDING_SORT
+            MENUITEM "降序排列文本行(忽略大小写)",              IDM_EDIT_DESCENDING_SORT_IGNORECASE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "大小写转换",                                     IDM_EDIT_PLACEHOLDE6
+        POPUP "转换",                                           IDM_EDIT_PLACEHOLDE6
         BEGIN
             MENUITEM "转小写",                                  IDM_EDIT_LOWERCASE
             MENUITEM "转大写",                                  IDM_EDIT_UPPERCASE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "制表符转空格",                            IDM_EDIT_TAB_SPACE
+            MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
         POPUP "选区操作(&O)"
@@ -553,6 +561,7 @@ BEGIN
     CONTROL "",IDC_THEME_CARTETLINE_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,246,12,13
     CONTROL "",IDC_THEME_INDICATOR_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,265,33,12,WS_EX_CLIENTEDGE
     CONTROL "",IDC_THEME_INDICATOR_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,264,12,13
+    CONTROL "提示: 更专业的语法高亮设置可由用户脚本完成",IDC_THEME_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,296,441,12
 END
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
@@ -785,6 +794,7 @@ FONT 8,"Ms Shell Dlg",0,0,0
 STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_CENTER|DS_MODALFRAME|DS_SHELLFONT|DS_3DLOOK
 BEGIN
   CONTROL "%s\n\n此文件已被删除或改名.你要在编辑中保持打开该文件?",IDC_NOEXIST_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTER,9,6,282,39
+  CONTROL "",IDC_INPUT_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,10,0,0,0,WS_EX_CLIENTEDGE
   CONTROL "全部是(&E)",IDC_NOEXIST_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,45,51,42,18
   CONTROL "全部否(&O)",IDC_NOEXIST_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,102,51,42,18
   CONTROL "是(&Y)",IDC_NOEXIST_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,162,51,36,18
@@ -1083,6 +1093,8 @@ STRINGTABLE DISCARDABLE
     IDS_USER32_ERROR        "错误"
     IDS_USER32_UNFINISHED   "编辑器还未完全关闭, 请稍后重新打开"
     IDS_EXTRA_PATH          "外部程序路径: "
+    IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
+    IDS_RE_ERROR            "错误: 无效的正则表达式"
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -122,7 +122,7 @@ static HMODULE g_uxtheme;
 static HBRUSH g_dark_bkgnd;
 static HBRUSH g_dark_hot_bkgnd;
 
-bool 
+bool
 on_dark_supports(void)
 {
     return g_dark_supported;
@@ -133,7 +133,7 @@ bool on_dark_apps_use(void)
     return fnShouldAppsUseDarkMode ? fnShouldAppsUseDarkMode() : false;
 }
 
-bool 
+bool
 on_dark_allow_window(HWND hwnd, bool allow)
 {
     return (g_dark_supported && fnAllowDarkModeForWindow) ? fnAllowDarkModeForWindow(hwnd, allow) : false;
@@ -146,7 +146,7 @@ on_dark_high_contrast(void)
     return SystemParametersInfo(SPI_GETHIGHCONTRAST, sizeof(HIGHCONTRASTW), &highContrast, 0) ? (highContrast.dwFlags & HCF_HIGHCONTRASTON) : false;
 }
 
-bool 
+bool
 on_dark_enable(void)
 {
     return g_dark_enabled && on_dark_apps_use() && !on_dark_high_contrast();
@@ -156,9 +156,9 @@ int64_t
 on_dark_open_data(HWND hwnd, LPCWSTR class_list)
 {
     int64_t hth = 0;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32); 
+    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     OpenThemeDataPtr fnOpenThemeData = uxtheme ? (OpenThemeDataPtr)GetProcAddress(uxtheme, "OpenThemeData") : NULL;
-    if (class_list && fnOpenThemeData) 
+    if (class_list && fnOpenThemeData)
     {
         hth = (int64_t)fnOpenThemeData(hwnd, class_list);
     }
@@ -172,7 +172,7 @@ on_dark_close_data(void *hth)
     HRESULT ret = 1;
     HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     CloseThemeDataPtr fnCloseThemeData = uxtheme ? (CloseThemeDataPtr)GetProcAddress(uxtheme, "CloseThemeData") : NULL;
-    if ((HTHEME)hth && fnCloseThemeData) 
+    if ((HTHEME)hth && fnCloseThemeData)
     {
         ret = fnCloseThemeData(hth);
     }
@@ -185,11 +185,11 @@ on_dark_get_sys_colour(HWND hwnd, int colid)
 {
     colour col = 0;
     HTHEME hth = NULL;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32); 
+    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     OpenThemeDataPtr fnOpenThemeData = uxtheme ? (OpenThemeDataPtr)GetProcAddress(uxtheme, "OpenThemeData") : NULL;
     CloseThemeDataPtr fnCloseThemeData = uxtheme ? (CloseThemeDataPtr)GetProcAddress(uxtheme, "CloseThemeData") : NULL;
     GetThemeSysColorPtr fnGetThemeSysColor = uxtheme ? (GetThemeSysColorPtr)GetProcAddress(uxtheme, "GetThemeSysColor") : NULL;
-    if (fnOpenThemeData && fnCloseThemeData && fnGetThemeSysColor) 
+    if (fnOpenThemeData && fnCloseThemeData && fnGetThemeSysColor)
     {
         HTHEME hth = fnOpenThemeData(hwnd, _T("TAB;HEADER;WINDOW"));
         if (hth)
@@ -206,7 +206,7 @@ on_dark_get_sys_colour(HWND hwnd, int colid)
     return col;
 }
 
-void 
+void
 on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
 {
     HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -221,12 +221,12 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
     safe_close_dll(uxtheme);
 }
 
-void 
+void
 on_dark_set_titlebar(HWND hwnd, BOOL dark)
 {
     if (g_build_number < 18362)
     {
-    #if USE_DWMAPI    
+    #if USE_DWMAPI
         HMODULE dwm = LoadLibraryEx(_T("dwmapi.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
         DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
         if (fnDwmSetWindowAttribute)
@@ -268,10 +268,10 @@ on_dark_get_colorization_color(void)
         }
     }
     safe_close_dll(dwm);
-    return theme_color;  
+    return theme_color;
 }
 
-void 
+void
 on_dark_refresh_titlebar(HWND hwnd)
 {
     BOOL dark = FALSE;
@@ -282,7 +282,7 @@ on_dark_refresh_titlebar(HWND hwnd)
     on_dark_set_titlebar(hwnd, dark);
 }
 
-bool 
+bool
 on_dark_color_scheme_change(LPARAM lParam)
 {
     bool is = false;
@@ -295,13 +295,13 @@ on_dark_color_scheme_change(LPARAM lParam)
     return is;
 }
 
-bool 
+bool
 on_dark_color_scheme_change_msg(UINT message, LPARAM lParam)
 {
     return (message == WM_SETTINGCHANGE) ? on_dark_color_scheme_change(lParam) : false;
 }
 
-void 
+void
 on_dark_allow_app(bool allow)
 {
     if (fnAllowDarkModeForApp)
@@ -352,10 +352,10 @@ on_dark_fix_scrollbar(bool fixed)
     }
 }
 
-static bool 
+static bool
 check_system_build_number(uint32_t build_number)
 {
-    switch (build_number) 
+    switch (build_number)
     {
         case 17763: // Win10 v1809
         case 18362: // Win10 v1903
@@ -388,7 +388,7 @@ on_dark_delete_brush(void)
     if (g_dark_bkgnd)
     {
         DeleteObject(g_dark_bkgnd);
-        g_dark_bkgnd = NULL;  
+        g_dark_bkgnd = NULL;
     }
 }
 
@@ -418,7 +418,7 @@ on_dark_delete_hot_brush(void)
     if (g_dark_hot_bkgnd)
     {
         DeleteObject(g_dark_hot_bkgnd);
-        g_dark_hot_bkgnd = NULL;  
+        g_dark_hot_bkgnd = NULL;
     }
 }
 
@@ -428,7 +428,7 @@ on_dark_get_hot_brush(void)
     return (int64_t)g_dark_hot_bkgnd;
 }
 
-int64_t 
+int64_t
 on_dark_set_contorl_color(WPARAM wParam)
 {
     if (on_dark_supports())
@@ -442,7 +442,7 @@ on_dark_set_contorl_color(WPARAM wParam)
 }
 
 colour
-on_dark_light_color(colour cr_base, float factor) 
+on_dark_light_color(colour cr_base, float factor)
 {
     factor = max(factor, 1.0f);
     uint8_t red, blue, green;
@@ -484,11 +484,11 @@ eu_on_dark_release(bool shutdown)
         if (g_filetree)
         {
             SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
-        }        
+        }
         if (g_tabpages)
         {
             SendMessage(g_tabpages, WM_THEMECHANGED, 0, 0);
-        }             
+        }
         on_dark_delete_hot_brush();
         on_dark_delete_brush();
         on_theme_menu_release();
@@ -513,7 +513,7 @@ eu_on_dark_init(bool fix_scroll, bool dark)
     if (!(huser32 = GetModuleHandle(_T("user32.dll"))))
     {
         return false;
-    }    
+    }
     if (!(fnSetWindowCompositionAttribute = (SetWindowCompositionAttributePtr)GetProcAddress(huser32, "SetWindowCompositionAttribute")))
     {
         return false;

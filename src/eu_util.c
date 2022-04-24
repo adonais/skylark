@@ -846,24 +846,42 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
 }
 
 char *
-util_strdup_line(eu_tabpage *pnode, size_t *plen)
+util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen)
 {
     sptr_t line;
     sptr_t text_len;
-    sptr_t cur_pos;
     sptr_t buf_len = 0;
     char *ptext = NULL;
     if (!pnode)
     {
         return NULL;
     }
-    cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
+    if (line_number < 0)
+    {
+        sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
+    }
+    else
+    {
+        line = line_number;
+    }
+    if (line < 0)
+    {
+        return NULL;
+    }
     text_len = eu_sci_call(pnode, SCI_LINELENGTH, line, 0);
-    ptext = text_len > 0 ? malloc(text_len+1) : NULL;
-    buf_len = eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
+    if (!text_len)
+    {
+        sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        if (row == -1)
+        {
+            text_len = -1;
+        }
+    }
+    ptext = text_len >= 0 ? malloc(text_len+3) : NULL;
     if (ptext)
     {
+        buf_len = eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
         ptext[buf_len] = 0;
         if (plen)
         {
@@ -945,13 +963,12 @@ util_trim_right_star(TCHAR *str)
  * 设置length为新的字符串长度
  *************************************************/
 const char *
-util_trim_left_white(const char *s, int32_t *length)
+util_trim_left_white(const char *s, int *length)
 {
-    int32_t start = 0;
-    int32_t limit = 0;
+    int start = 0, limit = 0;
     if (!length)
     {
-        limit = (int32_t)strlen(s);
+        limit = eu_int_cast(strlen(s));
     }
     else
     {
@@ -970,6 +987,39 @@ util_trim_left_white(const char *s, int32_t *length)
         *length = limit-start;
     }
     return s+start;
+}
+
+/**************************************************
+ * 比较两个字符串, s1左侧可能带空白字符
+ * 如果两个字符串相似, 返回0, 否则返回1
+ *************************************************/
+int
+util_strnspace(const char *s1, const char *s2)
+{
+    if (!(s1 && s2))
+    {
+        return 1;
+    }
+    if (s1 == s2)
+    {
+        return 0;
+    }
+    if (strncmp(s1, s2, strlen(s2)) == 0)
+    {
+        return 0;
+    }
+    for (int i = 0; i < eu_int_cast(strlen(s1)); ++i)
+    {
+        if (isspace(s1[i]))
+        {
+            continue;
+        }
+        if (strncmp(&s1[i], s2, strlen(s2)) == 0)
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void
@@ -1068,17 +1118,6 @@ util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
                 SetMenuItemInfo(hmenu, m_id, 0, &mii);
             }
         }
-    }
-}
-
-void
-util_replace_newline(char *str)
-{
-    char *p = NULL;
-    while ((p = strstr(str, "\\n")))
-    {
-        *(p) = '\n';
-        memmove(p + 1, p + 2, strlen(p + 2) + 1);
     }
 }
 

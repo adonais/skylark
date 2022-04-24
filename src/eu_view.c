@@ -17,34 +17,22 @@
  *******************************************************************************/
 
 #include "framework.h"
-    
+
 void
 on_view_filetree(void)
 {
-    if (eu_get_config()->m_ftree_show)
-    {
-        
-        eu_get_config()->m_ftree_show = false;
-    }
-    else
-    {
-        eu_get_config()->m_ftree_show = true;
-    }
+    eu_get_config()->m_ftree_show = !eu_get_config()->m_ftree_show;
     eu_window_resize(NULL);
 }
 
 void
-on_view_symtree(void)
+on_view_symtree(eu_tabpage *pnode)
 {
-    if (eu_get_config()->m_sym_show)
+    if (pnode && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
-        eu_get_config()->m_sym_show = false;
+        pnode->sym_show = !pnode->sym_show;
+        eu_window_resize(NULL);
     }
-    else
-    {
-        eu_get_config()->m_sym_show = true;
-    }
-    eu_window_resize(NULL);
 }
 
 void
@@ -139,7 +127,7 @@ set_theme_dynamic(HWND hwnd)
         if (p->be_modify)
         {
             on_tabpage_editor_modify(p, "X");
-        }        
+        }
     }
     eu_window_resize(hwnd);
     return SKYLARK_OK;
@@ -279,7 +267,7 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
     {   // 由脚本设定
         MSG_BOX(IDS_USERTAB_TIPS1, IDC_MSG_TIPS, MB_OK);
         return;
-    }    
+    }
     TCHAR tab_width[4] = {0};
     _sntprintf(tab_width, _countof(tab_width)-1, _T("%d"), eu_get_config()->tab_width);
     LOAD_I18N_RESSTR(IDC_MSG_TAB_LEN, tab_tips);
@@ -298,7 +286,6 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
             {
                 eu_get_config()->tab_width = m_width;
             }
-            
             for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
                 TCITEM tci = {TCIF_PARAM};
@@ -336,8 +323,7 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
     {
         eu_get_config()->tab2spaces = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = NULL;
         TCITEM tci = {TCIF_PARAM};
@@ -380,8 +366,7 @@ on_view_light_fold(HWND hwnd)
     {
         eu_get_config()->light_fold = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -404,8 +389,7 @@ on_view_wrap_line(HWND hwnd)
     {
         eu_get_config()->line_mode = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -428,8 +412,7 @@ on_view_line_num(HWND hwnd)
     {
         eu_get_config()->m_linenumber = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -452,8 +435,7 @@ on_view_bookmark(HWND hwnd)
     {
         eu_get_config()->bookmark_visable = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -476,15 +458,14 @@ on_view_show_fold_lines(HWND hwnd)
     {
         eu_get_config()->block_fold = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && p->doc_ptr && p->doc_ptr->fn_init_after)
         {
-            eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, (eu_get_config()->block_fold ? 16 : 0));
+            eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0);
         }
     }
 }
@@ -500,8 +481,7 @@ on_view_white_space(HWND hwnd)
     {
         eu_get_config()->ws_visiable = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -526,8 +506,7 @@ on_view_line_visiable(HWND hwnd)
     {
         eu_get_config()->newline_visialbe = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -550,8 +529,7 @@ on_view_indent_visiable(HWND hwnd)
     {
         eu_get_config()->m_indentation = false;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -593,7 +571,7 @@ on_view_zoom_reset(eu_tabpage *pnode)
         pnode->zoom_level = 0;
     }
 }
-    
+
 int
 on_view_editor_selection(eu_tabpage *pnode)
 {
@@ -651,7 +629,7 @@ update_taskbar(bool hide)
 {
     HWND taskbar = FindWindow(_T("Shell_TrayWnd"), NULL);
     HWND start = FindWindow(_T("Button"), NULL);
-    if (taskbar != NULL) 
+    if (taskbar != NULL)
     {
         ShowWindow(taskbar, !hide ? SW_SHOW : SW_HIDE);
         UpdateWindow(taskbar);
@@ -664,7 +642,7 @@ update_taskbar(bool hide)
     }
 }
 
-void 
+void
 on_view_setfullscreenimpl(HWND hwnd)
 {
     static bool saved = false;
@@ -672,11 +650,11 @@ on_view_setfullscreenimpl(HWND hwnd)
     static RECT saved_rect = {0};
     static LONG_PTR saved_style = 0;
     static LONG_PTR saved_exstyle = 0;
-    if (eu_get_config()->m_fullscreen) 
+    if (eu_get_config()->m_fullscreen)
     {
         HMONITOR hmonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
         MONITORINFO mi = {0};
-        if (!saved) 
+        if (!saved)
         {
             saved = true;
             saved_style = GetWindowLongPtr(hwnd, GWL_STYLE);
@@ -693,23 +671,23 @@ on_view_setfullscreenimpl(HWND hwnd)
         const int h = mi.rcMonitor.bottom - y;
         SystemParametersInfo(SPI_SETWORKAREA, 0, NULL, SPIF_SENDCHANGE);
         SetWindowLongPtr(hwnd, GWL_STYLE, saved_style & ~(WS_CAPTION | WS_THICKFRAME));
-        SetWindowLongPtr(hwnd, GWL_EXSTYLE, saved_exstyle & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));            
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, saved_exstyle & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
         SetWindowPos(hwnd, HWND_TOP, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-    } 
-    else 
+    }
+    else
     {
         saved = false;
         SetWindowLongPtr(hwnd, GWL_STYLE, saved_style);
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, saved_exstyle);
-        if (wndpl.length) 
+        if (wndpl.length)
         {
             SystemParametersInfo(SPI_SETWORKAREA, 0, &saved_rect, 0);
-            if (wndpl.showCmd == SW_SHOWMAXIMIZED) 
+            if (wndpl.showCmd == SW_SHOWMAXIMIZED)
             {
                 ShowWindow(hwnd, SW_RESTORE);
                 ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-            } 
-            else 
+            }
+            else
             {
                 SetWindowPlacement(hwnd, &wndpl);
             }
@@ -740,7 +718,7 @@ on_view_full_sreen(HWND hwnd)
     eu_window_resize(hwnd);
 }
 
-void 
+void
 on_view_font_quality(HWND hwnd, int res_id)
 {
     int old_id = eu_get_config()->m_quality;
@@ -754,8 +732,7 @@ on_view_font_quality(HWND hwnd, int res_id)
             return;
         }
         eu_tabpage *p = NULL;
-        int count = TabCtrl_GetItemCount(g_tabpages);
-        for (int index = 0; index < count; ++index)
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             TCITEM tci = {TCIF_PARAM};
             TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -777,8 +754,7 @@ on_view_enable_rendering(HWND hwnd, int res_id)
     {
         eu_get_config()->m_render = res_id;
         eu_tabpage *p = NULL;
-        int count = TabCtrl_GetItemCount(g_tabpages);
-        for (int index = 0; index < count; ++index)
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             TCITEM tci = {TCIF_PARAM};
             TabCtrl_GetItem(g_tabpages, index, &tci);
