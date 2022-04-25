@@ -1409,7 +1409,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (lpnmhdr->code)
             {
                 case NM_CLICK:
-                    if (g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
+                    if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {
                         POINT pt;
                         LPNMMOUSE lpnmm = (LPNMMOUSE)lParam;
