@@ -7,6 +7,7 @@ function fortran.init_after_callback(p)
   local pnode = eu_core.ffi.cast("void *", p)
   local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, "fortran")
   if (res ~= 1) then
+    eu_core.euapi.on_doc_enable_foldline(pnode)                                              -- enable fold line
     eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD, 0, 0)                              -- 8, SCE_F_WORD, keywords0
     eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD2, 1, 0)                             -- 9, SCE_F_WORD2, keywords1
     eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD3, 2, 0xB000B0)                      -- 10, SCE_F_WORD3, keywords2
@@ -82,6 +83,7 @@ function fortran.create_bakup(path)
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
     "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"fortran\")\n",
     "  if (res ~= 1) then\n",
+    "    eu_core.euapi.on_doc_enable_foldline(pnode)                                              -- enable fold line\n",
     "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD, 0, 0)                              -- 8, SCE_F_WORD, keywords0\n",
     "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD2, 1, 0)                             -- 9, SCE_F_WORD2, keywords1\n",
     "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_F_WORD3, 2, 0xB000B0)                      -- 10, SCE_F_WORD3, keywords2\n",

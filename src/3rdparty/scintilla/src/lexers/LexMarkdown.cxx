@@ -176,10 +176,9 @@ static void ColorizeMarkdownDoc(Sci_PositionU startPos, Sci_Position length, int
     // in the default state.
     bool freezeCursor = false;
 
-    // property lexer.markdown.header.eolfill
-    //  Set to 1 to highlight all ATX header text.
-    bool headerEOLFill = styler.GetPropertyInt("lexer.markdown.header.eolfill", 0) == 1;
-
+    // property lexer.markdown.header.eol_not_fill
+    // Set to 1 to not highlight all ATX header text.
+    bool headerEOLFill = !(styler.GetPropertyInt("lexer.markdown.header.eol_not_fill", 0) == 1);
     StyleContext sc(startPos, static_cast<Sci_PositionU>(length), initStyle, styler);
 
     while (sc.More()) {

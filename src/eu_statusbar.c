@@ -30,7 +30,7 @@ static HFONT hfont_btn;
 static LONG_PTR old_proc;
 static int g_status_height;
 
-char iconv_undo_str[64] = {0};
+char iconv_undo_str[ACNAME_LEN] = {0};
 
 void WINAPI
 on_statusbar_btn_case(void)
@@ -615,7 +615,6 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_CTLCOLORBTN:
         {
-            //SendMessage((HWND)lParam, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
             on_statusbar_update_btn((HWND)lParam);
             return on_dark_set_contorl_color(wParam);
         }

@@ -475,17 +475,17 @@ if (not eu_core.file_exists(user_file)) then
     "      },\n",
     "      {\n",
     "          e.DOCTYPE_MARKDOWN,\n",
-    "          ffi_null,\n",
+    "          \"markdown\",\n",
     "          \";*.md;*.markdown;readme;\",\n",
     "          \"Markdown\",\n",
     "          0,\n",
     "          -1,\n",
     "          ffi_null,\n",
-    "          eu_core.euapi.on_doc_init_after_markdown,\n",
+    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          eu_core.euapi.on_doc_keyup_general,\n",
-    "          eu_core.euapi.on_doc_markdown_like,\n",
+    "          eu_core.euapi.on_doc_cmake_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -856,8 +856,24 @@ function fetch_doctype(s)
       local bit = require("bit")
       for k, v in pairs(m_styles) do
         if (k < 32) then
+          local pcolor = nil
+          if (type(v) == "string") then pcolor = string.split(v, "&&") end
+          if (pcolor ~= nil and #pcolor == 2) then
+            local pfgcolor = pcolor[1]
+            local pbkcolor = pcolor[2]
+            local padd = string.find(pfgcolor, "SCE_BOLD_FONT")
+            if (padd ~= nil) then
+              pfgcolor = pcolor[1]:match("^[%s]*(.-)[%s]*%+.*")
+              if (pfgcolor == ni) then print("error, pfgcolor is nil") end
+              pfgcolor = tostring(pfgcolor + SCE_BOLD_FONT)
+            end
+            m_config.style.fgcolor[k] = tonumber(pfgcolor:match("^[%s]*(.-)[%s]*$"))
+            m_config.style.bkcolor[k] = tonumber(pbkcolor:match("^[%s]*(.-)[%s]*$"))
+          else
+            m_config.style.fgcolor[k] = v
+            m_config.style.bkcolor[k] = 0xFFFFFFFF
+          end
           m_config.style.type[k] = k
-          m_config.style.color[k] = v
           m_config.style.mask = bit.bor(m_config.style.mask,bit.lshift(1,k))
         end
       end

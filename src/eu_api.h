@@ -511,6 +511,7 @@ EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 
 // for eu_doctype.c
 EU_EXT_CLASS void eu_doc_config_release(void);
+EU_EXT_CLASS void on_doc_enable_foldline(pnode);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_init_list(eu_tabpage *pnode);
@@ -544,7 +545,6 @@ EU_EXT_CLASS int on_doc_init_after_json(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_yaml(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_makefile(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_cmake(eu_tabpage *pnode);
-EU_EXT_CLASS int on_doc_init_after_markdown(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_log(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_nim(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_shell_sh(eu_tabpage *pnode);
@@ -569,7 +569,6 @@ EU_EXT_CLASS int on_doc_css_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_cmake_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_markdown_like(eu_tabpage *pnode, SCNotification *lpnotify);
 
 /* 默认的 reload_list_ptr,reload_tree_ptr  回调函数入口 */
 EU_EXT_CLASS int on_doc_reload_list_reqular(eu_tabpage *pnode);
@@ -587,7 +586,7 @@ EU_EXT_CLASS int on_doc_click_tree_redis(eu_tabpage *pnode);
 
 /* 脚本调用 */
 EU_EXT_CLASS int on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name);
-EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb, bool force);
+EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t fg_rgb, int64_t bk_rgb, bool force);
 EU_EXT_CLASS void on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);

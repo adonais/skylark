@@ -28,8 +28,8 @@
 #else
 #define FALLTHROUGH_ATTR
 #endif
-#define STR_IS_NUL(s) (s == NULL || *s == '\0')
-#define STR_NOT_NUL(s) (s != NULL && *s != '\0')
+#define STR_IS_NUL(s) (s == NULL || *s == 0)
+#define STR_NOT_NUL(s) (s != NULL && *s != 0)
 
 #ifdef __cplusplus
 extern "C"

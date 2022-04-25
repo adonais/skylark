@@ -5,6 +5,7 @@ require("eu_core")
 
 function matlab.init_after_callback(p)
   local pnode = eu_core.ffi.cast("void *", p)
+  eu_core.euapi.on_doc_enable_foldline(pnode)                         -- enable fold line
   return eu_core.euapi.on_doc_init_after_scilexer(pnode, "matlab")
 end
 
@@ -63,6 +64,7 @@ function matlab.create_bakup(path)
     "\n",
     "function user_matlab.init_after_callback(p)\n",
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
+    "  eu_core.euapi.on_doc_enable_foldline(pnode)                         -- enable fold line\n",
     "  return eu_core.euapi.on_doc_init_after_scilexer(pnode, \"matlab\")\n",
     "end\n",
     "\n",

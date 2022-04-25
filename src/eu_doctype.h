@@ -83,7 +83,8 @@ enum dctype
 typedef struct _doc_styles
 {
     int type[SCE_STYLE_MAX];
-    uint32_t color[SCE_STYLE_MAX];
+    uint32_t fgcolor[SCE_STYLE_MAX];
+    uint32_t bkcolor[SCE_STYLE_MAX];
     uint32_t mask;
 } doc_styles;
 
