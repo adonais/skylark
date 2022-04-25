@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-static HMENU
+HMENU
 menu_load(uint16_t mid)
 {
     HMENU hpop = NULL;

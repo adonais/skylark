@@ -896,8 +896,8 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         util_set_title(pnode->pathfile);
         // 切换工作目录
         util_set_working_dir(pnode->pathname);
-        eu_window_resize(hwnd);
         on_toolbar_update_button();
+        eu_window_resize(hwnd);
     }
 }
 
@@ -966,13 +966,9 @@ on_tabpage_select_index(int index)
 void
 on_tabpage_changing(void)
 {
-    EU_VERIFY(g_tabpages != NULL);
-    int m_page = TabCtrl_GetCurSel(g_tabpages);
-    eu_tabpage *p = on_tabpage_select_index(m_page);
-    if (p && p->hwnd_sc)
-    {
-        PostMessage(p->hwnd_sc, WM_SETFOCUS, 0, 0);
-    }
+    printf("on_tabpage_changing runing\n");
+    on_tabpage_select_index(TabCtrl_GetCurSel(g_tabpages));
+    PostMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 
 void

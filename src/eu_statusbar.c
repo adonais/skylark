@@ -239,7 +239,6 @@ on_statusbar_size(void)
             {
                 ShowWindow(g_statusbar, SW_SHOW);
             }
-            SendMessage(g_statusbar, WM_SIZE, 0, 0);
             InvalidateRect(g_statusbar, NULL, false);
             on_statusbar_adjust_btn();
             on_statusbar_update();
@@ -462,6 +461,11 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
+        }
+        case WM_SIZE:
+        {
+            on_statusbar_size();
+            break;
         }
         case WM_COMMAND:
         {

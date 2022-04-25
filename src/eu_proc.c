@@ -416,24 +416,25 @@ eu_window_resize(HWND hwnd)
                                  pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
                 UpdateWindowEx(pnode->hwnd_qrtable);
             }
+            if (pnode->hwnd_sc)
+            {
+                ;
+            }
         }
     }
     if (g_tabpages)
     {
+        on_toolbar_size();
         InvalidateRect(g_tabpages, NULL, true);
         UpdateWindow(g_tabpages);
     }
     if (pnode && pnode->hwnd_sc)
     {
+        PostMessage(g_statusbar, WM_SIZE, 0, 0);
         eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-        SetFocus(pnode->hwnd_sc);
+                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);        
         UpdateWindowEx(pnode->hwnd_sc);
-    }
-    if (true)
-    {
-        on_toolbar_size();
-        on_statusbar_size();
+        PostMessage(hwnd ? hwnd : eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
     }
 }
 
