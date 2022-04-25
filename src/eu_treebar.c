@@ -896,13 +896,13 @@ on_node_dbclick(void)
     if (tvd->server != NULL)
     {
         _tcscpy(bak.rel_path, tvd->filepath);
-        err = on_file_open_remote(tvd->server, &bak);
+        err = on_file_open_remote(tvd->server, &bak, true);
     }
     else
     {
         _tcscpy(bak.rel_path, tvd->filepath);
         eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
-        err = on_file_only_open(&bak);
+        err = on_file_only_open(&bak, true);
     }
     if (err != 0 && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 建立一个空白标签页
@@ -1207,8 +1207,8 @@ on_treebar_update_addr(remotefs *pserver)
         {
             if (strcmp(tvd->server->servername, pserver->servername) == 0)
             {
-                TCHAR networkaddr[128+1] = {0};
-                MultiByteToWideChar(CP_UTF8, 0, pserver->networkaddr, -1, networkaddr, 128);
+                TCHAR networkaddr[MAX_PATH+1] = {0};
+                MultiByteToWideChar(CP_UTF8, 0, pserver->networkaddr, -1, networkaddr, MAX_PATH);
                 if (pserver->accesss == 0)
                 {
                     _sntprintf(tvd->filepath, MAX_PATH - 1, _T("sftp://%s:%d/~/"), networkaddr, pserver->port);
@@ -1703,7 +1703,7 @@ int
 on_treebar_load_remote(HWND hwnd, remotefs *pserver)
 {
     TCHAR filepath[MAX_PATH] = {0};
-    TCHAR networkaddr[128+1] = {0};
+    TCHAR networkaddr[MAX_PATH+1] = {0};
     TCHAR servername[100+1] = {0};
     if (!(pserver && *pserver->networkaddr))
     {
@@ -1711,7 +1711,7 @@ on_treebar_load_remote(HWND hwnd, remotefs *pserver)
     }
     else
     {
-        MultiByteToWideChar(CP_UTF8, 0, pserver->networkaddr, -1, networkaddr, 128);
+        MultiByteToWideChar(CP_UTF8, 0, pserver->networkaddr, -1, networkaddr, MAX_PATH);
         MultiByteToWideChar(CP_UTF8, 0, pserver->servername, -1, servername, 100);
     }
     if (pserver->accesss == 0)

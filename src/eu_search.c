@@ -2136,7 +2136,7 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
     {
         file_backup bak = {0};
         _tcscpy(bak.rel_path, path);
-        if (on_file_only_open(&bak) == 0)
+        if (on_file_only_open(&bak, true) == SKYLARK_OK)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
             on_search_process_find2(NULL, u8_key);

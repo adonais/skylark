@@ -37,6 +37,7 @@ BEGIN
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭除当前外所有文件",                        IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "恢复最近关闭的文件",                          IDM_FILE_RESTORE_RECENT
         MENUITEM MF_SEPARATOR
         MENUITEM "文件保存时备份",                              IDM_FILE_WRITE_COPY
         MENUITEM "保存最后一次对话",                            IDM_FILE_SESSION

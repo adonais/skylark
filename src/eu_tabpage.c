@@ -595,8 +595,7 @@ on_tabpage_remove(eu_tabpage **ppnode)
         TabCtrl_GetItem(g_tabpages, index, &tci);
         p = (eu_tabpage *) (tci.lParam);
         if (p && p == *ppnode)
-        {
-            /* 删除控件句柄与释放资源 */
+        {   /* 删除控件句柄与释放资源 */
             TabCtrl_DeleteItem(g_tabpages, index);
             on_sci_free_tab(ppnode);
             break;
@@ -966,7 +965,6 @@ on_tabpage_select_index(int index)
 void
 on_tabpage_changing(void)
 {
-    printf("on_tabpage_changing runing\n");
     on_tabpage_select_index(TabCtrl_GetCurSel(g_tabpages));
     PostMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }

@@ -32,6 +32,26 @@ typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsig
 static pwine_get_version fn_wine_get_version;
 static volatile long gth_locked = 0;
 
+uint64_t
+util_gen_tstamp(void)
+{
+#define TEN_MILLION (1E7)
+    LARGE_INTEGER ticks, frequency;
+    //获取cpu频率
+    if (QueryPerformanceFrequency(&frequency))
+    {   //获取一个时间戳
+        QueryPerformanceCounter(&ticks);
+        uint64_t current_time = (double) ticks.QuadPart / (double) frequency.QuadPart * TEN_MILLION;
+        if (current_time == (uint64_t)-1)
+        {
+            current_time = 0;
+        }
+        return current_time;
+    }
+#undef TEN_MILLION
+    return 0;
+}
+
 static void
 util_thread_lock(void)
 {

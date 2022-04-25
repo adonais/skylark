@@ -673,7 +673,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 static void
-set_file_by_info(time_t *ptime)
+set_file_by_info(time_t filetime)
 {
     if (g_statusbar)
     {
@@ -681,7 +681,7 @@ set_file_by_info(time_t *ptime)
         TCHAR m_hp[MAX_PATH+1] = {0};
         TCHAR file_time[100+1] = {0};
         eu_i18n_load_str(IDS_STATUS_F1, m_hp, MAX_PATH);
-        struct tm *tm = localtime(ptime);
+        struct tm *tm = localtime(&filetime);
         if (tm)
         {
             sntprintf(file_time, 100, _T("%d-%d-%d %02d:%02d:%02d"), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
@@ -694,42 +694,36 @@ set_file_by_info(time_t *ptime)
 static unsigned WINAPI
 set_remotefs_fileinfo(void * lp)
 {
-    eu_tabpage *pnode = (eu_tabpage *)lp;
-    if (util_availed_char(pnode->fs_server.networkaddr[0]))
+    curl_off_t filetime = 0;
+    CURL *curl = (CURL *)lp;
+    eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
+    eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+    CURLcode res = eu_curl_easy_perform(curl);
+    if (res == CURLE_OK)
     {
-        CURL *curl = NULL;
-        curl_off_t filetime = 0;
-        char *url = eu_utf16_utf8(pnode->pathfile, NULL);
-        if (!url)
-        {
-            return 1;
-        }
-        if ((curl = on_remote_init_socket(url, &pnode->fs_server)) == NULL)
-        {
-            printf("on_remote_init_socket return false\n");
-            free(url);
-            return 1;
-        }
-        eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-        eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
-        eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-        CURLcode res = eu_curl_easy_perform(curl);
-        if (res == CURLE_OK)
-        {
-            res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &filetime);
-        }
-        if (res == CURLE_OK && filetime > 0)
-        {
-            pnode->st_mtime = (time_t)filetime;
-        }
-        free(url);
-        eu_curl_easy_cleanup(curl);
+        res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &filetime);
     }
-    if (pnode->st_mtime > 0)
+    eu_curl_easy_cleanup(curl);
+    if (filetime > 0)
     {
-        set_file_by_info(&pnode->st_mtime);
+        set_file_by_info((time_t)filetime);
     }
     return 0;
+}
+
+void
+on_statusbar_remotefs_thread(eu_tabpage *pnode)
+{
+    CURL *curl = NULL;
+    char url[MAX_BUFFER+1] = {0};
+    if (pnode && WideCharToMultiByte(CP_UTF8, 0, pnode->pathfile, -1, url, MAX_BUFFER, NULL, NULL) > 0 && *url)
+    {
+        if ((curl = on_remote_init_socket(url, &pnode->fs_server)) != NULL)
+        {
+            CloseHandle((HANDLE)_beginthreadex(NULL, 0, &set_remotefs_fileinfo, (void *)curl, 0, NULL));
+        }
+    }
 }
 
 void __stdcall
@@ -755,9 +749,9 @@ on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
         on_statusbar_set_text(g_statusbar, 0, s_hp);
         return;
     }
-    if (pnode->fs_server.networkaddr[0])
+    if (util_availed_char(pnode->fs_server.networkaddr[0]))
     {
-        CloseHandle((HANDLE)_beginthreadex(NULL,0,&set_remotefs_fileinfo, (void *)pnode, 0, NULL));
+        on_statusbar_remotefs_thread(pnode);
     }
     else
     {
@@ -770,7 +764,7 @@ on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
         {
             buf.st_mtime = pnode->st_mtime;
         }
-        set_file_by_info(&buf.st_mtime);
+        set_file_by_info(buf.st_mtime);
     }
 }
 

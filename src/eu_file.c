@@ -147,24 +147,21 @@ sqlite_callback(void *data, int count, char **column, char **names)
 static unsigned __stdcall
 push_file_thread(void *lp)
 {
-    struct _stat buf = {0};
-    const TCHAR *pathfile = (const TCHAR *)lp;
-    int result = _tstat (pathfile, &buf);
-    if (!result)
+    uint64_t result = util_gen_tstamp();
+    if (result)
     {
         char pfile[MAX_PATH+1] = {0};
         char sql[MAX_BUFFER] = {0};
-        WideCharToMultiByte(CP_UTF8, 0, pathfile, -1, pfile, MAX_PATH, NULL, NULL);
-        if (*pfile)
-        {
-            eu_str_replace(pfile, MAX_PATH, "'", "''");
-            _snprintf(sql, MAX_BUFFER-1, "insert or ignore into file_recent(szName,szDate) values('%s', %I64u);", pfile, buf.st_mtime);
-        }
-        if (*sql && eu_sqlite3_send(sql, NULL, NULL) != 0)
+        _snprintf(pfile, MAX_BUFFER-1, "%s", (const char *)lp);
+        eu_str_replace(pfile, MAX_PATH, "'", "''");
+        const char *exp = "INSERT INTO file_recent(szName,szDate) values('%s', %I64u) ON CONFLICT (szName) DO UPDATE SET szDate=%I64u;";
+        _snprintf(sql, MAX_BUFFER-1, exp, pfile, result, result);
+        if (eu_sqlite3_send(sql, NULL, NULL) != 0)
         {
             printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
         }
     }
+    eu_safe_free(lp);
     return 0;
 }
 
@@ -185,7 +182,7 @@ update_menu_thread(void *lp)
             {
                 DeleteMenu(hre, 0, MF_BYPOSITION);
             }
-            if (eu_sqlite3_send("SELECT szName FROM file_recent;", sqlite_callback, (void *)hre) != 0)
+            if (eu_sqlite3_send("SELECT szName FROM file_recent ORDER BY szDate DESC;", sqlite_callback, (void *)hre) != 0)
             {
                 printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
             }
@@ -204,13 +201,17 @@ update_menu_thread(void *lp)
 
 static void
 on_file_push_recent(const TCHAR *path)
-{
-    HANDLE hthread = (HANDLE) _beginthreadex(NULL, 0, push_file_thread, (void *)path, CREATE_SUSPENDED, NULL);
-    if (hthread)
+{   // 防止标签关闭时内存失效,所以新的堆将在线程中释放
+    char *utf8 = eu_utf16_utf8(path, NULL);
+    if (utf8)
     {
-        SetThreadPriority(hthread, THREAD_PRIORITY_ABOVE_NORMAL);
-        ResumeThread(hthread);
-        CloseHandle(hthread);
+        HANDLE hthread = (HANDLE) _beginthreadex(NULL, 0, push_file_thread, (void *)utf8, CREATE_SUSPENDED, NULL);
+        if (hthread)
+        {
+            SetThreadPriority(hthread, THREAD_PRIORITY_ABOVE_NORMAL);
+            ResumeThread(hthread);
+            CloseHandle(hthread);
+        }
     }
 }
 
@@ -642,7 +643,7 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
 }
 
 static bool
-file_open_if(const TCHAR *pfile)
+file_open_if(const TCHAR *pfile, bool selection)
 {
     bool  res = false;
     eu_tabpage *pnode = NULL;
@@ -659,7 +660,7 @@ file_open_if(const TCHAR *pfile)
         {
             if (_tcscmp(pnode->pathfile, pfile) == 0)
             {
-                on_tabpage_selection(pnode, index);
+                selection ? on_tabpage_selection(pnode, index) : (void)0;
                 res = true;
                 break;
             }
@@ -670,7 +671,7 @@ file_open_if(const TCHAR *pfile)
                 eu_wstr_replace(temp, MAX_PATH, _T("/"), _T("\\"));
                 if (_tcscmp(pnode->pathfile, temp) == 0)
                 {
-                    on_tabpage_selection(pnode, index);
+                    selection ? on_tabpage_selection(pnode, index) : (void)0;
                     res = true;
                     break;
                 }
@@ -713,15 +714,15 @@ active_other_tab(int index)
 }
 
 int
-on_file_only_open(file_backup *pbak)
+on_file_only_open(file_backup *pbak, bool selection)
 {
     TCHAR pathname[MAX_PATH];
     TCHAR filename[MAX_PATH];
     eu_tabpage *pnode = NULL;
     HANDLE hfile = NULL;
-    if (file_open_if(pbak->rel_path))
+    if (file_open_if(pbak->rel_path, selection))
     {
-        return SKYLARK_OK;
+        return (selection ? SKYLARK_OK : SKYLARK_OPENED);
     }
     if ((pnode = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))) == NULL)
     {
@@ -789,8 +790,7 @@ on_file_only_open(file_backup *pbak)
         }
         on_sci_after_file(pnode);
         int count = TabCtrl_GetItemCount(g_tabpages);
-        {
-            // 选中右边的标签
+        {   // 选中右边的标签
             on_tabpage_select_index(count - 1);
         }
         if (pbak->lineno > 0)
@@ -850,7 +850,7 @@ open_files(file_backup *pbak)
             {
                 file_backup bak = {0};
                 _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\%s"), base_path, st_file.cFileName);
-                on_file_only_open(&bak);
+                on_file_only_open(&bak, true);
             }
         } while (FindNextFile(hfile, &st_file));
         FindClose(hfile);
@@ -862,7 +862,7 @@ open_files(file_backup *pbak)
         _tfullpath(path, pbak->rel_path, MAX_PATH);
         _sntprintf(pbak->rel_path, MAX_PATH, _T("%s"), path);
     }
-    return on_file_only_open(pbak);
+    return on_file_only_open(pbak, true);
 }
 
 int
@@ -883,7 +883,7 @@ on_file_open(void)
     {
         file_backup bak = {0};
         _tcsncpy(bak.rel_path, file_list, MAX_PATH);
-        err = on_file_only_open(&bak);
+        err = on_file_only_open(&bak, true);
     }
     else
     {
@@ -895,7 +895,7 @@ on_file_open(void)
         {
             file_backup bak = {0};
             _sntprintf(bak.rel_path, MAX_PATH, _T("%s\\%s"), pathname, p);
-            if ((err = on_file_only_open(&bak)) != SKYLARK_OK)
+            if ((err = on_file_only_open(&bak, true)) != SKYLARK_OK)
             {
                 goto mem_clean;
             }
@@ -921,7 +921,7 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
     else
     {
         printf("exec on_file_open_remote()\n");
-        err = on_file_open_remote(NULL, pbak);
+        err = on_file_open_remote(NULL, pbak, true);
     }
     if (err != 0 && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败与标签小于1,则建立一个空白标签页
@@ -942,7 +942,7 @@ on_file_drop(HDROP hdrop)
         uint32_t attr = GetFileAttributes(bak.rel_path);
         if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
         {
-            on_file_only_open(&bak);
+            on_file_only_open(&bak, true);
         }
         else
         {
@@ -1007,7 +1007,7 @@ read_remote_file(void *buffer, size_t size, size_t nmemb, void *stream)
 }
 
 int
-on_file_open_remote(remotefs *premote, file_backup *pbak)
+on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
 {
     char *cnv = NULL;
     CURL *curl = NULL;
@@ -1017,12 +1017,13 @@ on_file_open_remote(remotefs *premote, file_backup *pbak)
     TCHAR *full_path = pbak->rel_path;
     eu_tabpage *pnode = NULL;
     remotefs *pserver = premote;
-    if (file_open_if(full_path))
+    if (file_open_if(full_path, selection))
     {
-        return SKYLARK_OK;
+        return (selection ? SKYLARK_OK : SKYLARK_OPENED);
     }
     if (!pserver)
     {
+        printf("we run on_remote_list_find\n");
         if ((pserver = on_remote_list_find(pbak->rel_path)) == NULL)
         {
             return EUE_UNKOWN_ERR;
@@ -1295,7 +1296,6 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         pnode->fs_server.networkaddr[0] = 0;
         update_node_time(pnode, 0);
         util_set_title(pnode->pathfile);
-        on_file_push_recent(pnode->pathfile);
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
         on_sci_before_file(pnode);
         on_sci_after_file(pnode);
@@ -1307,7 +1307,6 @@ on_file_save(eu_tabpage *pnode, bool save_as)
     else if (util_availed_char(pnode->fs_server.networkaddr[0]))
     {
         CURL *curl = NULL;
-        CURLcode res;
         size_t buf_len = 0;
         if (pnode->codepage != IDM_OTHER_BIN)
         {
@@ -1380,9 +1379,9 @@ on_file_save(eu_tabpage *pnode, bool save_as)
     #endif
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
         eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
-        res = eu_curl_easy_perform(curl);
+        err = eu_curl_easy_perform(curl);
         eu_curl_easy_cleanup(curl);
-        if (res != CURLE_OK)
+        if (err != CURLE_OK)
         {
             err = EUE_CURL_NETWORK_ERR;
             MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -1404,10 +1403,16 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         }
     }
 SAVE_FINAL:
-    eu_safe_free(ptext);
+    if (ptext)
+    {   // 防止重复释放内存
+        if (ptext != pnode->write_buffer)
+        {
+            eu_safe_free(pnode->write_buffer);
+        }
+        free(ptext);
+    }
     eu_safe_free(pdst);
     eu_safe_free(cnv);
-    eu_safe_free(pnode->write_buffer);
     if (!err)
     {
         // 发送SCI_SETSAVEPOINT消息
@@ -1514,6 +1519,7 @@ save_file_backup(eu_tabpage *pnode)
 int
 on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
 {
+    int index = -1;
     if (!pnode)
     {
         return EUE_TAB_NULL;
@@ -1551,8 +1557,12 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     }
     /* 清理该文件的位置导航信息 */
     on_search_clean_navigate_this(pnode);
-    int index = on_tabpage_remove(&pnode);
-    if (mode == FILE_ONLY_CLOSE)
+    /* 排序最近关闭文件的列表 */
+    if (mode != FILE_SHUTDOWN)
+    {
+        on_file_push_recent(pnode->pathfile);
+    }
+    if ((index = on_tabpage_remove(&pnode)) >= 0 && mode == FILE_ONLY_CLOSE)
     {
         active_other_tab(index);
     }
@@ -1746,4 +1756,41 @@ void
 on_file_new_encoding(eu_tabpage *pnode, int new_enc)
 {
     eu_get_config()->new_file_enc = new_enc;
+}
+
+static int
+on_file_do_restore(void *data, int count, char **column, char **names)
+{
+    for (int i = 0; i < count && column[i]; ++i)
+    {
+        if (column[i][0] != 0)
+        {
+            file_backup bak = {0};
+            if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, bak.rel_path, MAX_PATH))
+            {
+                if (_tcsrchr(bak.rel_path, _T('&')))
+                {
+                    eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&"), _T("&&"));
+                }
+                if (_tcsnicmp(bak.rel_path, _T("sftp://"), 7) == 0)
+                {
+                    if (!on_file_open_remote(NULL, &bak, false))
+                    {
+                        return 1;
+                    }
+                }
+                else if (!on_file_only_open(&bak, false))
+                {   // 文件成功打开, 结束回调
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+void
+on_file_restore_recent(void)
+{
+    eu_sqlite3_send("SELECT szName FROM file_recent ORDER BY szDate DESC;", on_file_do_restore, NULL);
 }

@@ -461,7 +461,7 @@ on_edit_selection(eu_tabpage *pnode, int type)
                 uint32_t attr = GetFileAttributes(file.rel_path);
                 if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
                 {
-                    on_file_only_open(&file);
+                    on_file_only_open(&file, true);
                 }
             }
             break;
@@ -1216,13 +1216,13 @@ on_edit_script_line_comment(eu_tabpage *pnode, const char *pcomment)
                 p = ++sp;
             }
             strncpy(suf_comment, sp ? sp : p+strlen(split), COMMENT_LEN);
-            on_comment_newline(pnode, pre_comment, suf_comment); 
+            on_comment_newline(pnode, pre_comment, suf_comment);
         }
         else
         {
             strncpy(pre_comment, pcomment, p - pcomment);
             strncpy(suf_comment, p+strlen(split), COMMENT_LEN);
-            on_close_selection(pnode, pre_comment, suf_comment);            
+            on_close_selection(pnode, pre_comment, suf_comment);
         }
     }
     else

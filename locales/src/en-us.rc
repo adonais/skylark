@@ -37,6 +37,7 @@ BEGIN
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
         MENUITEM "Close All But Active Document",                      IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Restore Recent Closed File",                         IDM_FILE_RESTORE_RECENT
         MENUITEM MF_SEPARATOR
         MENUITEM "Backup On File Save",                                IDM_FILE_WRITE_COPY
         MENUITEM "Save Last Session",                                  IDM_FILE_SESSION

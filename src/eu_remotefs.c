@@ -41,7 +41,7 @@ do                                                                              
 {                                                                                                 \
     TCHAR servername[100+1];                                                                      \
     TCHAR protocol[20+1];                                                                         \
-    TCHAR networkaddr[64+1];                                                                      \
+    TCHAR networkaddr[MAX_PATH+1];                                                                \
     TCHAR numbuf[20+1];                                                                           \
     TCHAR user[20+1];                                                                             \
     TCHAR pwd[32+1];                                                                              \
@@ -50,7 +50,7 @@ do                                                                              
     GetWindowText(GetDlgItem(hdlg, IDC_FILESERVER_NAME_EDIT), servername,100);                    \
     GetWindowText(GetDlgItem(hdlg, IDC_COMMPROTOCOL_COMBOBOX),protocol,20);                       \
     GetWindowText(GetDlgItem(hdlg, IDC_NETWORK_PORT_EDIT), numbuf, 20);                           \
-    GetWindowText(GetDlgItem(hdlg, IDC_NETWORK_ADDRESS_EDIT),networkaddr,64);                     \
+    GetWindowText(GetDlgItem(hdlg, IDC_NETWORK_ADDRESS_EDIT),networkaddr,MAX_PATH);               \
     GetWindowText(GetDlgItem(hdlg, IDC_LOGIN_USER_EDIT), user,20);                                \
     GetWindowText(GetDlgItem(hdlg, IDC_LOGIN_PASS_EDIT),pwd,32);                                  \
     GetWindowText(GetDlgItem(hdlg, IDC_LOGIN_PASSPHRASE_EDIT),passphrase,32);                     \
@@ -58,7 +58,7 @@ do                                                                              
     psrv->port = _tstoi(numbuf);                                                                  \
     WideCharToMultiByte(CP_UTF8, 0, servername, -1, psrv->servername, 100, NULL, NULL);           \
     WideCharToMultiByte(CP_UTF8, 0, protocol, -1, psrv->protocol, 20, NULL, NULL);                \
-    WideCharToMultiByte(CP_UTF8, 0, networkaddr, -1, psrv->networkaddr, 64, NULL, NULL);          \
+    WideCharToMultiByte(CP_UTF8, 0, networkaddr, -1, psrv->networkaddr, MAX_PATH, NULL, NULL);    \
     WideCharToMultiByte(CP_UTF8, 0, user, -1, psrv->user, 20, NULL, NULL);                        \
     WideCharToMultiByte(CP_UTF8, 0, pwd, -1, psrv->pwd, 32, NULL, NULL);                          \
     WideCharToMultiByte(CP_UTF8, 0, passphrase, -1, psrv->passphrase, 32, NULL, NULL);            \
@@ -71,7 +71,7 @@ do                                                                              
 {                                                                                                 \
     TCHAR servername[100+1];                                                                      \
     TCHAR protocol[20+1];                                                                         \
-    TCHAR networkaddr[64+1];                                                                      \
+    TCHAR networkaddr[MAX_PATH+1];                                                                \
     TCHAR numbuf[20+1];                                                                           \
     TCHAR user[20+1];                                                                             \
     TCHAR pwd[32+1];                                                                              \
@@ -79,7 +79,7 @@ do                                                                              
     TCHAR key_path[MAX_PATH+1];                                                                   \
     MultiByteToWideChar(CP_UTF8, 0, psrv->servername, -1, servername, 100);                       \
     MultiByteToWideChar(CP_UTF8, 0, psrv->protocol, -1, protocol, 20);                            \
-    MultiByteToWideChar(CP_UTF8, 0, psrv->networkaddr, -1, networkaddr, 64);                      \
+    MultiByteToWideChar(CP_UTF8, 0, psrv->networkaddr, -1, networkaddr, MAX_PATH);                \
     MultiByteToWideChar(CP_UTF8, 0, psrv->user, -1, user, 20);                                    \
     MultiByteToWideChar(CP_UTF8, 0, psrv->pwd, -1, pwd, 32);                                      \
     MultiByteToWideChar(CP_UTF8, 0, psrv->passphrase, -1, passphrase, 32);                        \
@@ -138,7 +138,7 @@ on_remote_init_socket(const char *url, remotefs *pserver)
             eu_curl_easy_setopt(curl, CURLOPT_KEYPASSWD, pserver->passphrase);
         }
     }
-    return curl; 
+    return curl;
 }
 
 static int
@@ -156,7 +156,7 @@ on_remote_save_config(remotefs* pserver)
                        "values('%s','%s', '%s', %d, %d, '%s', '%s', '%s', '%s') ON CONFLICT(szName) DO UPDATE SET szProtocol= "
                        "excluded.szProtocol,szAddress=excluded.szAddress,szPort=excluded.szPort,szArea=excluded.szArea,"
                        "szUser=excluded.szUser,szPass=excluded.szPass,szPrivate=excluded.szPrivate,szPassphrase=excluded.szPassphrase;";
-    _snprintf(sql, MAX_BUFFER-1, exec, pserver->servername, pserver->protocol, pserver->networkaddr, 
+    _snprintf(sql, MAX_BUFFER-1, exec, pserver->servername, pserver->protocol, pserver->networkaddr,
               pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase);
     return eu_sqlite3_send(sql, NULL, NULL);
 }
@@ -189,7 +189,7 @@ on_remote_remove_config(remotefs* pserver)
     return 0;
 }
 
-static unsigned WINAPI 
+static unsigned WINAPI
 on_remote_server_testing(void * lp)
 {
     HWND hdlg = (HWND)lp;
@@ -201,18 +201,18 @@ on_remote_server_testing(void * lp)
     GET_DLG_DATA(hdlg, pserver);
     if (pserver->networkaddr[0] && pserver->user[0] && pserver->port > 0)
     {
-        CURL *curl = NULL;  
+        CURL *curl = NULL;
         char url[MAX_BUFFER] = {0};
-        snprintf(url,MAX_BUFFER - 1,"sftp://%s:%d/",pserver->networkaddr, pserver->port);
+        snprintf(url, MAX_BUFFER - 1, "sftp://%s:%d/", pserver->networkaddr, pserver->port);
         if ((curl = on_remote_init_socket(url, pserver)) == NULL)
         {
             MSG_BOX(IDC_MSG_ATTACH_FAIL3, IDC_MSG_ERROR, MB_OK);
             free(pserver);
             return 1;
         }
-    #if defined(APP_DEBUG) && (APP_DEBUG > 0)    
+    #if defined(APP_DEBUG) && (APP_DEBUG > 0)
         eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    #endif    
+    #endif
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
         CURLcode res = eu_curl_easy_perform(curl);
         eu_curl_easy_cleanup(curl);
@@ -238,7 +238,7 @@ on_remote_server_testing(void * lp)
         {
             MSG_BOX(IDC_MSG_ATTACH_SUCCESS, IDC_MSG_TIPS, MB_OK);
         }
-    }  
+    }
     free(pserver);
     return 0;
 }
@@ -251,7 +251,7 @@ on_remote_server_browser(HWND hdlg)
     if (!hwnd_edit)
     {
         return 1;
-    }    
+    }
     if (!(path = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH+1)))
     {
         return 1;
@@ -269,7 +269,7 @@ on_remote_server_browser(HWND hdlg)
     return 0;
 }
 
-static LRESULT CALLBACK 
+static LRESULT CALLBACK
 remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
 {
     switch(msg)
@@ -376,10 +376,10 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             REMOTEFS_HANDLE(hdlg, IDC_PRIVATE_KEY_BUTTON, SW_HIDE);
             if (on_dark_enable())
             {
-                const int buttons[] = {IDC_REMOVE_SERVER_BUTTON, 
-                                       IDC_TEST_SERVER_BUTTON, 
-                                       IDC_ADD_SERVER_BUTTON, 
-                                       IDOK, 
+                const int buttons[] = {IDC_REMOVE_SERVER_BUTTON,
+                                       IDC_TEST_SERVER_BUTTON,
+                                       IDC_ADD_SERVER_BUTTON,
+                                       IDOK,
                                        IDM_APPLY_NOW,
                                        IDC_PRIVATE_KEY_BUTTON};
                 for (int id = 0; id < _countof(buttons); ++id)
@@ -389,7 +389,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_USE_PRIVATE), L"", L"");
                 on_dark_set_theme(hdlg, L"Explorer", NULL);
-            }            
+            }
             return util_creater_window(hdlg, eu_module_hwnd());
         }
         case WM_THEMECHANGED:
@@ -398,14 +398,14 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_dark_allow_window(hdlg, true);
                 on_dark_refresh_titlebar(hdlg);
-                const int buttons[] = {IDC_REMOVE_SERVER_BUTTON, 
-                                       IDC_TEST_SERVER_BUTTON, 
-                                       IDC_ADD_SERVER_BUTTON, 
-                                       IDOK, 
-                                       IDM_APPLY_NOW, 
-                                       IDC_USE_PRIVATE, 
+                const int buttons[] = {IDC_REMOVE_SERVER_BUTTON,
+                                       IDC_TEST_SERVER_BUTTON,
+                                       IDC_ADD_SERVER_BUTTON,
+                                       IDOK,
+                                       IDM_APPLY_NOW,
+                                       IDC_USE_PRIVATE,
                                        IDC_PRIVATE_KEY_BUTTON};
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
                     on_dark_allow_window(btn, true);
@@ -418,7 +418,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         CASE_WM_CTLCOLOR_SET:
         {
             return on_dark_set_contorl_color(wParam);
-        }        
+        }
         case WM_COMMAND:
         {
             uint16_t lid = LOWORD(wParam);
@@ -491,7 +491,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     on_remote_server_browser(hdlg);
                     return 1;
-                }    
+                }
                 case IDC_REMOVE_SERVER_BUTTON:
                     serverindex = ListBox_GetCurSel(server_box);
                     if (serverindex >= 0)
@@ -532,7 +532,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         serverindex = ListBox_GetCurSel(server_box);
                         if (serverindex == LB_ERR)
                         {
-                            new_server = true; 
+                            new_server = true;
                             pserver = (remotefs *) calloc(1, sizeof(remotefs));
                         }
                         else
@@ -542,7 +542,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         if (!pserver)
                         {
                             break;
-                        } 
+                        }
                         GET_DLG_DATA(hdlg, pserver);
                         pserver->accesss = ComboBox_GetCurSel(box_access);
                         if (pserver->pwd[0])
@@ -552,7 +552,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         else
                         {
                             pserver->cfg = false;
-                        } 
+                        }
                         // 检查服务器名, ip地址, 用户名
                         if (!(util_availed_char(pserver->servername[0]) && util_availed_char(pserver->networkaddr[0]) && util_availed_char(pserver->user[0])))
                         {
@@ -585,7 +585,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             if (serv)
                             {
                                 serverindex = ListBox_AddString(server_box, serv);
-                                on_treebar_load_remote(g_filetree , pserver); 
+                                on_treebar_load_remote(g_filetree , pserver);
                                 free(serv);
                             }
                         }
@@ -624,11 +624,11 @@ on_remote_parser_callback(void *data, int count, char **column, char **names)
         }
         else if (!strcmp(names[i], "szProtocol") && strlen(column[i]) > 1)
         {
-            strncpy(pserver->protocol, column[i], 20); 
+            strncpy(pserver->protocol, column[i], 20);
         }
         else if (!strcmp(names[i], "szAddress") && strlen(column[i]) > 1)
         {
-            strncpy(pserver->networkaddr, column[i], 40);
+            strncpy(pserver->networkaddr, column[i], MAX_PATH);
         }
         else if (!strcmp(names[i], "szPort") && strlen(column[i]) > 0)
         {
@@ -651,7 +651,7 @@ on_remote_parser_callback(void *data, int count, char **column, char **names)
         else if (!strcmp(names[i], "szPrivate") && strlen(column[i]) > 1)
         {
             strncpy(pserver->key_path, column[i], MAX_PATH);
-        } 
+        }
         else if (!strcmp(names[i], "szPassphrase") && strlen(column[i]) > 0)
         {
             strncpy(pserver->passphrase, column[i], 32);
@@ -666,25 +666,29 @@ on_remote_list_find(const TCHAR *url)
 {
     char *purl = NULL;
     remotefs *tmp = NULL;
-    char ip[64+1] = {0};
+    char addr[MAX_PATH+1] = {0};
     char port[6+1] = {0};
     struct list_head *pos, *n;
     if (!(purl = eu_utf16_utf8(url, NULL)))
     {
         return NULL;
     }
-    if (sscanf(purl,"%*[^0-9] %[^:] %*[^0-9]%[^/]", ip, port) != 2)
+    if (sscanf(purl,"%*[^0-9] %[^:] %*[^0-9]%[^/]", addr, port) != 2)
     {
-        free(purl);
-        return NULL;
+        if (sscanf(purl,"%*[^:]://%[^:]:%[1-9]", addr, port) != 2)
+        {
+            free(purl);
+            return NULL;
+        }
     }
+    printf("addr = %s, port = %s\n", addr, port);
     on_treebar_wait_hwnd();
     list_for_each_safe(pos, n, &list_server)
     {
         tmp = list_entry(pos, remotefs, node_server);
         if (tmp)
         {
-            if (STRCMP(ip, ==, tmp->networkaddr) && tmp->port == atoi(port))
+            if (STRCMP(addr, ==, tmp->networkaddr) && tmp->port == atoi(port))
             {
                 free(purl);
                 return tmp;

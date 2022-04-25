@@ -87,6 +87,7 @@ bool   util_file_size(HANDLE hfile, uint64_t *psize);
 bool   util_open_file(LPCTSTR path, pt_stream pstream);
 bool   util_exist_libcurl(void);
 time_t util_last_time(const TCHAR *path);
+uint64_t util_gen_tstamp(void);
 WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *, TCHAR *, int);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);

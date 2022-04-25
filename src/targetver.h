@@ -347,6 +347,7 @@
 #define IDM_FILE_NEWFILE_UNIX_EOLS      30111
 #define IDM_FILE_SESSION                30112
 #define IDM_FILE_WRITE_COPY             30113
+#define IDM_FILE_RESTORE_RECENT         30114
 
 #define IDM_EDIT_BASE64_ENCODING        30200
 #define IDM_EDIT_BASE64_DECODING        30201

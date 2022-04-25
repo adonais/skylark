@@ -66,10 +66,10 @@ extern HANDLE hwnd_backup;
 
 int on_file_new(void);
 int on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force);
-int on_file_only_open(file_backup *pbak);
+int on_file_only_open(file_backup *pbak, bool selection);
 int on_file_open(void);
 int on_file_drop(HDROP hdrop);
-int on_file_open_remote(remotefs *pserver, file_backup *pbak);
+int on_file_open_remote(remotefs *pserver, file_backup *pbak, bool selection);
 int on_file_save(eu_tabpage *pnode, bool save_as);
 int on_file_save_as(eu_tabpage *pnode);
 int on_file_all_save(void);
@@ -87,6 +87,7 @@ void on_file_update_recent(void);
 void on_file_clear_recent(void);
 void on_file_edit_exit(HWND hwnd);
 void on_file_edit_restart(HWND hwnd);
+void on_file_restore_recent(void);
 void on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname);
 uint64_t __stdcall on_file_get_avail_phys(void);
 

@@ -90,6 +90,7 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 enum 
 {
     SKYLARK_OK = 0,
+    SKYLARK_OPENED = 1,
     EUE_TAB_NULL,
     EUE_POINT_NULL,
     EUE_PATH_NULL,

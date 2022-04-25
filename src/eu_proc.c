@@ -416,10 +416,6 @@ eu_window_resize(HWND hwnd)
                                  pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
                 UpdateWindowEx(pnode->hwnd_qrtable);
             }
-            if (pnode->hwnd_sc)
-            {
-                ;
-            }
         }
     }
     if (g_tabpages)
@@ -432,7 +428,7 @@ eu_window_resize(HWND hwnd)
     {
         PostMessage(g_statusbar, WM_SIZE, 0, 0);
         eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);        
+                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
         UpdateWindowEx(pnode->hwnd_sc);
         PostMessage(hwnd ? hwnd : eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
     }
@@ -662,15 +658,23 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 if (len > 0)
                 {
-                    if (_tcsnicmp(bak.rel_path, _T("sftp://"), 7) != 0 && _tcsrchr(bak.rel_path, _T('/')))
-                    {
-                        eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
-                    }
+                    bool remote_file = _tcsnicmp(bak.rel_path, _T("sftp://"), 7) == 0;
                     if (_tcsrchr(bak.rel_path, _T('&')))
                     {
                         eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&&"), _T("&"));
                     }
-                    on_file_only_open(&bak);
+                    if (!remote_file)
+                    {
+                        if (_tcsrchr(bak.rel_path, _T('/')))
+                        {
+                            eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
+                        }
+                        on_file_only_open(&bak, true);
+                    }
+                    else
+                    {
+                        on_file_open_remote(NULL, &bak, true);
+                    }
                 }
                 break;
             }
@@ -712,6 +716,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_CLOSEALL_EXCLUDE:
                     on_file_exclude_close(pnode);
+                    break;
+                case IDM_FILE_RESTORE_RECENT:
+                    on_file_restore_recent();
                     break;
                 case IDM_FILE_WRITE_COPY:
                     on_file_backup_menu();
@@ -1187,14 +1194,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     file_backup bak = {0};
                     _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\README_CN.MD"), eu_module_path);
-                    on_file_only_open(&bak);
+                    on_file_only_open(&bak, true);
                     break;
                 }
                 case IDM_CHANGELOG:
                 {
                     file_backup bak = {0};
                     _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\share\\changelog"), eu_module_path);
-                    on_file_only_open(&bak);
+                    on_file_only_open(&bak, true);
                     break;
                 }
                 case IDM_VIEW_FULLSCREEN:
