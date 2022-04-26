@@ -658,12 +658,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 if (len > 0)
                 {
-                    bool remote_file = _tcsnicmp(bak.rel_path, _T("sftp://"), 7) == 0;
                     if (_tcsrchr(bak.rel_path, _T('&')))
                     {
                         eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&&"), _T("&"));
                     }
-                    if (!remote_file)
+                    if (!url_has_remote(bak.rel_path))
                     {
                         if (_tcsrchr(bak.rel_path, _T('/')))
                         {
@@ -725,6 +724,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_SESSION:
                     on_file_session_menu();
+                    break;
+                case IDM_FILE_EXIT_WHEN_LAST_TAB:
+                    on_file_close_last_tab();
                     break;
                 case IDM_FILE_PAGESETUP:
                     on_print_setup(eu_hwndmain);
@@ -1747,6 +1749,12 @@ do_calss_drop(void* lp)
         do_drop_fix();
     }
     return 0;
+}
+
+void
+en_close_edit(void)
+{
+    SendMessage(eu_module_hwnd(), WM_CLOSE, 0, 0);
 }
 
 HWND

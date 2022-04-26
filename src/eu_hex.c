@@ -2038,7 +2038,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             is_utf8 = true;
         }
         // 有可能是远程文件
-        if (_tcsnicmp(pnew->pathfile, _T("sftp://"), 7) == 0)
+        if (url_has_remote(pnew->pathfile))
         {
             memcpy(&(pnew->fs_server), &(pnode->fs_server), sizeof(remotefs));
         }

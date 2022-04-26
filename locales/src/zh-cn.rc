@@ -37,8 +37,8 @@ BEGIN
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭除当前外所有文件",                        IDM_FILE_CLOSEALL_EXCLUDE
-        MENUITEM "恢复最近关闭的文件",                          IDM_FILE_RESTORE_RECENT
         MENUITEM MF_SEPARATOR
+        MENUITEM "恢复最近关闭的文件",                          IDM_FILE_RESTORE_RECENT
         MENUITEM "文件保存时备份",                              IDM_FILE_WRITE_COPY
         MENUITEM "保存最后一次对话",                            IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
@@ -62,6 +62,7 @@ BEGIN
             MENUITEM "ANSI(本地编码)",                          IDM_FILE_NEWFILE_ENCODING_ANSI
         END
         MENUITEM MF_SEPARATOR
+        MENUITEM "关闭最后一个标签时退出",                      IDM_FILE_EXIT_WHEN_LAST_TAB
         MENUITEM "退出(&X)",                                    IDM_EXIT
     END
     POPUP "编辑(&E)"

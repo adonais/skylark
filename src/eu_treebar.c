@@ -1824,7 +1824,7 @@ on_treebar_locate_path(TCHAR *pathname)
     TCHAR *pdir = NULL;
     tree_data *tvd = NULL;
     HTREEITEM hti = NULL, hti_child = NULL;
-    if (_tcsnicmp(pathname, _T("sftp://"), 7) == 0)
+    if (url_has_remote(pathname))
     {
         return locate_remote_path(pathname);
     }

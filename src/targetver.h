@@ -348,6 +348,7 @@
 #define IDM_FILE_SESSION                30112
 #define IDM_FILE_WRITE_COPY             30113
 #define IDM_FILE_RESTORE_RECENT         30114
+#define IDM_FILE_EXIT_WHEN_LAST_TAB     30115
 
 #define IDM_EDIT_BASE64_ENCODING        30200
 #define IDM_EDIT_BASE64_DECODING        30201

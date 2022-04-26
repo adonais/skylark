@@ -90,7 +90,6 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 enum 
 {
     SKYLARK_OK = 0,
-    SKYLARK_OPENED = 1,
     EUE_TAB_NULL,
     EUE_POINT_NULL,
     EUE_PATH_NULL,
@@ -125,6 +124,7 @@ enum
     EUE_OPENSSL_ENC_ERR,
     EUE_OPENSSL_DEC_ERR,
     EUE_UNKOWN_ERR,
+    SKYLARK_OPENED
 };
 
 #include <stdio.h>
@@ -218,6 +218,7 @@ struct eu_config
     bool m_light_str;
     bool m_write_copy;
     bool m_session;
+    bool m_exit;
     char m_placement[MAX_BUFFER];
     char m_language[ACNAME_LEN];
     print_set eu_print;
@@ -446,6 +447,7 @@ EU_EXT_CLASS HINSTANCE eu_module_handle(void);
 
 // for eu_proc.h
 EU_EXT_CLASS HWND eu_module_hwnd(void);
+EU_EXT_CLASS void en_close_edit(void);
 EU_EXT_CLASS HWND eu_create_main_window(HINSTANCE instance);
 EU_EXT_CLASS bool eu_create_toolbar(HWND hwnd);
 EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);

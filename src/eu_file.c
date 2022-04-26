@@ -664,7 +664,7 @@ file_open_if(const TCHAR *pfile, bool selection)
                 res = true;
                 break;
             }
-            else if (_tcsnicmp(pfile, _T("sftp://"), 7) != 0 && _tcsrchr(pfile, _T('/')))
+            else if (!url_has_remote(pfile) && _tcsrchr(pfile, _T('/')))
             {
                 TCHAR temp[MAX_PATH+1] = {0};
                 _sntprintf(temp, MAX_PATH, _T("%s"), pfile);
@@ -697,18 +697,16 @@ update_node_time(eu_tabpage *pnode, time_t m)
 }
 
 static void
-active_other_tab(int index)
+on_file_other_tab(int index)
 {
     int count = TabCtrl_GetItemCount(g_tabpages);
     if (!count)
-    {
-        // 最后一个标签
+    {   // 最后一个标签
         file_backup bak = {0};
         share_send_msg(&bak);
     }
     else
-    {
-        // 激活另一个标签
+    {   // 激活另一个标签
         on_tabpage_select_index(index < count - 1 ? index : count - 1);
     }
 }
@@ -737,7 +735,7 @@ on_file_only_open(file_backup *pbak, bool selection)
         _tcsncpy(pnode->pathname, pathname, MAX_PATH - 1);
         _tcsncpy(pnode->filename, filename, MAX_PATH - 1);
         // 有可能是远程文件
-        if (_tcsnicmp(pbak->rel_path, _T("sftp://"), 7) == 0)
+        if (url_has_remote(pbak->rel_path))
         {
             remotefs *pserver = on_remote_list_find(pbak->rel_path);
             if (pserver)
@@ -785,7 +783,7 @@ on_file_only_open(file_backup *pbak, bool selection)
         if (on_file_to_tab(pnode, pbak, false))
         {
             int index = on_tabpage_remove(&pnode);
-            active_other_tab(index);
+            on_file_other_tab(index);
             return EUE_WRITE_TAB_FAIL;
         }
         on_sci_after_file(pnode);
@@ -856,7 +854,7 @@ open_files(file_backup *pbak)
         FindClose(hfile);
         return SKYLARK_OK;
     }
-    else if (!pbak->blank && _tcsnicmp(pbak->rel_path, _T("sftp://"), 7) != 0 && pbak->rel_path[1] != _T(':'))
+    else if (!pbak->blank && !url_has_remote(pbak->rel_path) && pbak->rel_path[1] != _T(':'))
     {
         TCHAR path[MAX_PATH] = {0};
         _tfullpath(path, pbak->rel_path, MAX_PATH);
@@ -914,17 +912,16 @@ int
 on_file_redirect(HWND hwnd, file_backup *pbak)
 {
     int err = SKYLARK_OK;
-    if (pbak->status || _tcsnicmp(pbak->rel_path, _T("sftp://"), 7) != 0)
+    if (pbak->status || !url_has_remote(pbak->rel_path))
     {
         err = open_files(pbak);
     }
     else
     {
-        printf("exec on_file_open_remote()\n");
         err = on_file_open_remote(NULL, pbak, true);
     }
     if (err != 0 && TabCtrl_GetItemCount(g_tabpages) < 1)
-    {   // 打开文件失败与标签小于1,则建立一个空白标签页
+    {   // 打开文件失败且标签小于1,则建立一个空白标签页
         return on_file_new();
     }
     return err;
@@ -1519,7 +1516,6 @@ save_file_backup(eu_tabpage *pnode)
 int
 on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
 {
-    int index = -1;
     if (!pnode)
     {
         return EUE_TAB_NULL;
@@ -1548,7 +1544,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
         if (decision == IDCANCEL)
         {
             printf("abort closing file\n");
-            return 1;
+            return SKYLARK_OPENED;
         }
         else if (decision == IDYES)
         {
@@ -1558,13 +1554,22 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     /* 清理该文件的位置导航信息 */
     on_search_clean_navigate_this(pnode);
     /* 排序最近关闭文件的列表 */
-    if (mode != FILE_SHUTDOWN)
+    if (mode != FILE_SHUTDOWN && !pnode->is_blank)
     {
         on_file_push_recent(pnode->pathfile);
     }
-    if ((index = on_tabpage_remove(&pnode)) >= 0 && mode == FILE_ONLY_CLOSE)
+    int index = on_tabpage_remove(&pnode);
+    if (index >= 0 && mode == FILE_ONLY_CLOSE)
     {
-        active_other_tab(index);
+        index = TabCtrl_GetItemCount(g_tabpages);
+        if (index > 0 || !eu_get_config()->m_exit)
+        {
+            on_file_other_tab(index);
+        }
+        else
+        {
+            en_close_edit();
+        }
     }
     return SKYLARK_OK;
 }
@@ -1585,10 +1590,16 @@ on_file_all_close(void)
         }
     }
     if (!this_index)
-    {
-        // 最后一个标签
-        file_backup bak = {0};
-        share_send_msg(&bak);
+    {   // 最后一个标签
+        if (!eu_get_config()->m_exit)
+        {
+            file_backup bak = {0};
+            share_send_msg(&bak);
+        }
+        else
+        {
+            en_close_edit();
+        }
     }
     return SKYLARK_OK;
 }
@@ -1723,27 +1734,19 @@ on_file_edit_restart(HWND hwnd)
 void
 on_file_backup_menu(void)
 {
-    if (!eu_get_config()->m_write_copy)
-    {
-        eu_get_config()->m_write_copy = true;
-    }
-    else
-    {
-        eu_get_config()->m_write_copy = false;
-    }
+    eu_get_config()->m_write_copy = !eu_get_config()->m_write_copy;
 }
 
 void
 on_file_session_menu(void)
 {
-    if (!eu_get_config()->m_session)
-    {
-        eu_get_config()->m_session = true;
-    }
-    else
-    {
-        eu_get_config()->m_session = false;
-    }
+    eu_get_config()->m_session = !eu_get_config()->m_session;
+}
+
+void
+on_file_close_last_tab(void)
+{
+    eu_get_config()->m_exit = !eu_get_config()->m_exit;
 }
 
 void
@@ -1772,7 +1775,7 @@ on_file_do_restore(void *data, int count, char **column, char **names)
                 {
                     eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&"), _T("&&"));
                 }
-                if (_tcsnicmp(bak.rel_path, _T("sftp://"), 7) == 0)
+                if (url_has_remote(bak.rel_path))
                 {
                     if (!on_file_open_remote(NULL, &bak, false))
                     {

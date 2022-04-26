@@ -588,8 +588,7 @@ on_tabpage_remove(eu_tabpage **ppnode)
     int index = 0;
     eu_tabpage *p = NULL;
     EU_VERIFY(ppnode != NULL && *ppnode != NULL && g_tabpages != NULL);
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (index = 0; index < count; ++index)
+    for (int count = TabCtrl_GetItemCount(g_tabpages),index = 0; index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);

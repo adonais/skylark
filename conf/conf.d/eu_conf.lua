@@ -60,6 +60,7 @@ function eu_conf.loadconf()
         "light_all_find_str = true\n" ..
         "backup_on_file_write = false\n" ..
         "save_last_session = true\n" ..
+        "exit_when_close_last_tab = false\n" ..
         "save_last_placement = \"\"\n" ..
         "ui_language = \"auto\"\n" ..
         "-- printer default setting\n" ..
@@ -129,6 +130,7 @@ function eu_conf.loadconf()
         light_all_find_str,
         backup_on_file_write,
         save_last_session,
+        exit_when_close_last_tab,
         save_last_placement,
         ui_language,
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
