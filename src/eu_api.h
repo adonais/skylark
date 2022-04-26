@@ -514,7 +514,7 @@ EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 
 // for eu_doctype.c
 EU_EXT_CLASS void eu_doc_config_release(void);
-EU_EXT_CLASS void on_doc_enable_foldline(pnode);
+EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_init_list(eu_tabpage *pnode);

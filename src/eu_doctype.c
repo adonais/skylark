@@ -2184,7 +2184,6 @@ on_doc_get_type(const TCHAR *pfile)
 {
 #define EXTRA_EXT "CMakeLists"
     const char *split = NULL;
-    size_t str_len = 0;
     char filename[MAX_PATH] = { 0 };
     char extname[_MAX_EXT + 1] = { 0 };
     doctype_t *doc_ptr = NULL;
@@ -2195,10 +2194,6 @@ on_doc_get_type(const TCHAR *pfile)
     if (!WideCharToMultiByte(CP_UTF8, 0, pfile, -1, filename, MAX_PATH, NULL, NULL))
     {
         return NULL;
-    }
-    if ((str_len = strlen(filename)) > 0 && filename[str_len - 1] == '*')
-    {
-        filename[str_len - 1]  = 0;
     }
     if (_strnicmp(filename, EXTRA_EXT, strlen(EXTRA_EXT)) == 0)
     {

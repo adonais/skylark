@@ -1272,10 +1272,6 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         TCHAR full_path[MAX_PATH] = {0};
         TCHAR filename[MAX_PATH] = {0};
         _tcsncpy(full_path, pnode->filename, MAX_PATH);
-        if (_tcslen(full_path) > 0 && full_path[_tcslen(full_path) - 1] == _T('*'))
-        {
-            full_path[_tcslen(full_path) - 1] = 0;
-        }
         if (get_savedlg_filename(full_path, _countof(full_path)))
         {
             err = EUE_LOCAL_FILE_ERR;
@@ -1402,7 +1398,7 @@ on_file_save(eu_tabpage *pnode, bool save_as)
 SAVE_FINAL:
     if (ptext)
     {   // 防止重复释放内存
-        if (ptext != pnode->write_buffer)
+        if ((uint8_t *)ptext != pnode->write_buffer)
         {
             eu_safe_free(pnode->write_buffer);
         }

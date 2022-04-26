@@ -797,7 +797,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_COPY_FILENAME:
                     if (pnode && *pnode->filename)
                     {
-                        on_edit_copy_filename(pnode->filename);
+                        on_edit_push_clipboard(pnode->filename);
                     }
                     break;
                 case IDM_EDIT_COPY_PATHNAME:

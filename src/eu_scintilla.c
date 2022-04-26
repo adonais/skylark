@@ -365,7 +365,6 @@ on_sci_point_reached(eu_tabpage *pnode)
     {
         return -2;
     }
-    util_trim_right_star(pnode->filename);
     on_tabpage_set_title(index, pnode->filename);
     util_set_title(pnode->pathfile);
     pnode->be_modify = false;
@@ -377,21 +376,13 @@ int
 on_sci_point_left(eu_tabpage *pnode)
 {
     int index;
-    size_t file_len = 0;
     if (!(pnode && *pnode->filename))
     {
         return -1;
     }
-    index = on_sci_query_tab(pnode);
-    if (index < 0)
+    if ((index = on_sci_query_tab(pnode)) < 0)
     {
         return -2;
-    }
-    file_len = _tcslen(pnode->filename);
-    if (file_len > 0 && file_len < MAX_PATH-1 && pnode->filename[file_len - 1] != _T('*'))
-    {
-        pnode->filename[file_len] = _T('*');
-        pnode->filename[file_len + 1] = _T('\0');
     }
     on_tabpage_set_title(index, pnode->filename);
     util_set_title(pnode->pathfile);

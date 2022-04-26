@@ -162,21 +162,6 @@ on_edit_push_clipboard(const TCHAR *buf)
 }
 
 void
-on_edit_copy_filename(TCHAR *filename)
-{
-    TCHAR *name = _tcsdup(filename);
-    if (name)
-    {
-        if (name[_tcslen(name) - 1] == _T('*'))
-        {
-            name[_tcslen(name) - 1] = 0;
-        }
-        on_edit_push_clipboard(name);
-        free(name);
-    }
-}
-
-void
 on_edit_paste_line(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)

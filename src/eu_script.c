@@ -593,10 +593,6 @@ do_byte_code(eu_tabpage *pnode)
     FlushFileBuffers(pfile);
     safe_close_handle(pfile);
     _sntprintf(filename, FILESIZE, _T("%s"), pnode->filename);
-    if (filename[_tcslen(filename)-1] == _T('*'))
-    {
-        filename[_tcslen(filename)-1] = 0;
-    }
     if (pnode->pathname[1] == L':')
     {
         _sntprintf(psave, MAX_PATH, _T("%s%s.bin"), pnode->pathname, filename);

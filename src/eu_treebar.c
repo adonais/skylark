@@ -373,7 +373,7 @@ on_new_directory(void)
 {
     HTREEITEM hti_select;
     tree_data *tvd = NULL;
-    TCHAR dir_name[MAX_PATH] = { 0 };
+    TCHAR dir_name[MAX_PATH] = {0};
     TCHAR full_dir_path[MAX_PATH];
     if ((hti_select = on_treebar_get_path(&tvd)) == NULL)
     {
@@ -462,7 +462,7 @@ create_new_file(void)
     HTREEITEM hti_select;
     tree_data *tvd = NULL;
     TCHAR filepath[MAX_PATH];
-    TCHAR ac_file[MAX_PATH] = { 0 };
+    TCHAR ac_file[MAX_PATH] = {0};
     tree_data *tvd_new = NULL;
     if ((hti_select = on_treebar_get_path(&tvd)) == NULL)
     {
@@ -501,7 +501,7 @@ create_new_file(void)
     else
     {
         CURL *curl = NULL;
-        char url[MAX_PATH] = { 0 };
+        char url[MAX_PATH] = {0};
         char u8_file[MAX_PATH] = {0};
         char u8_filepath[MAX_PATH] = {0};
         WideCharToMultiByte(CP_UTF8, 0, ac_file, -1, u8_file, MAX_PATH-1, NULL, NULL);
@@ -541,7 +541,7 @@ on_file_copy(void)
 {
     HTREEITEM hti_select;
     tree_data *tvd = NULL;
-    TCHAR new_file_name[MAX_PATH] = { 0 };
+    TCHAR new_file_name[MAX_PATH] = {0};
     TCHAR new_path_name[MAX_PATH];
     if ((hti_select = on_treebar_get_path(&tvd)) == NULL)
     {
@@ -1264,7 +1264,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 case TVN_ITEMEXPANDING:
                 {
-                    POINT pt = { 0 };
+                    POINT pt = {0};
                     TVHITTESTINFO tvhti;
                     TVITEM item = lpnmtv->itemNew;
                     item.stateMask = TVIS_STATEIMAGEMASK;
@@ -1391,25 +1391,22 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 if (tvd->img_index == img_drive || tvd->img_index == img_fold || tvd->img_index == img_close)
                 {
-                    //TrackPopupMenu(pop_dir_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
-                    menu_pop_track(hwnd, IDR_FILETREE_DIRECTORY_POPUPMENU, 0);
+                    menu_pop_track(hwnd, IDR_FILETREE_DIR_POPUPMENU, 0);
                 }
                 else
                 {
-                    //TrackPopupMenu(pop_file_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
                     menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0);
                 }
             }
             else if (tvhti.flags > 0x1 && tvhti.flags < 0x41)
             {
-                // TrackPopupMenu(pop_flush_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
                 return menu_pop_track(hwnd, IDR_FILETREE_POPUPMENU, 0);
             }
             break;
         }
         case WM_DESTROY:
         {
-            HIMAGELIST img_list = (HIMAGELIST)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            HIMAGELIST img_list = TreeView_GetImageList(hwnd, TVSIL_NORMAL);
             if (img_list != NULL)
             {
                 ImageList_Destroy(img_list);
@@ -1429,38 +1426,39 @@ load_tree_imglist(HWND hwnd)
 {
     HIMAGELIST himl; // handle to image list
     HICON hicon;     // handle to icon
-
+    HINSTANCE hinst = eu_module_handle();
     if ((himl = ImageList_Create(16, 16, ILC_COLOR32, 6, 0)) == NULL)
     {
         return NULL;
     }
     // Add the open file, closed file, and document bitmaps.
-    hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_DRIVE));
+    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_DRIVE));
     img_drive = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
 
-    hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_OPENFOLD));
+    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_OPENFOLD));
     img_fold = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
 
-    hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_CLSDFOLD));
+    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_CLSDFOLD));
     img_close = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
 
-    hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_TXT));
+    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_TXT));
     img_general = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
 
-    hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_DOC));
+    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_DOC));
     img_text = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
 
-    hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_EXE));
+    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_EXE));
     img_exe = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
     // Fail if not all of the images were added.
     if (ImageList_GetImageCount(himl) < 6)
     {
+        ImageList_Destroy(himl);
         return NULL;
     }
     // Associate the image list with the tree-view control.
@@ -1487,7 +1485,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            RECT rc = { 0 };
+            RECT rc = {0};
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
@@ -1629,10 +1627,6 @@ on_treebar_create_dlg(HWND hwnd)
             err = EUE_POINT_NULL;
             break;
         }
-        else
-        {
-            SetWindowLongPtr(g_filetree, GWLP_USERDATA, (LONG_PTR)img_list);
-        }
         on_treebar_update_theme();
     }while(0);
     if (err)
@@ -1684,7 +1678,7 @@ on_treebar_adjust_filetree(RECT *rect_filebar, RECT *rect_filetree)
 tree_data *
 on_treebar_get_treeview(HTREEITEM hti)
 {
-    TVITEM tviChild = { 0 };
+    TVITEM tviChild = {0};
     if (!hti)
     {
         return NULL;

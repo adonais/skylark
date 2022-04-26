@@ -681,51 +681,51 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 const int buttons[] = {IDOK,
                                        IDCANCEL,
                                        IDC_SETFONT_KEYWORDS_BUTTON,
-                                       IDC_SETTEXTCOLOR_KEYWORDS_BUTTON,
-                                       IDC_SETFONT_KEYWORDS2_BUTTON,
-                                       IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON,
-                                       IDC_SETFONT_STRING_BUTTON,
-                                       IDC_SETTEXTCOLOR_STRING_BUTTON,
-                                       IDC_SETFONT_CHARACTER_BUTTON,
-                                       IDC_SETTEXTCOLOR_CHARACTER_BUTTON,
-                                       IDC_SETFONT_NUMBER_BUTTON,
-                                       IDC_SETTEXTCOLOR_NUMBER_BUTTON,
-                                       IDC_SETFONT_PREPROCESSOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON,
-                                       IDC_SETFONT_COMMENT_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENT_BUTTON,
-                                       IDC_SETFONT_COMMENTLINE_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON,
-                                       IDC_SETFONT_COMMENTDOC_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON,
-                                       IDC_SETFONT_TEXT_BUTTON,
-                                       IDC_SETTEXTCOLOR_TEXT_BUTTON,
-                                       IDC_SETFONT_OPERATOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_OPERATOR_BUTTON,
-                                       IDC_SETFONT_UNKNOWTAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON,
-                                       IDC_SETFONT_ATTRIBUTES_BUTTON,
-                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON,
-                                       IDC_SETFONT_UNKNOWATTRIBUTES_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON,
-                                       IDC_SETFONT_ENTITIES_BUTTON,
-                                       IDC_SETTEXTCOLOR_ENTITIES_BUTTON,
-                                       IDC_SETFONT_TAGENDS_BUTTON,
-                                       IDC_SETTEXTCOLOR_TAGENDS_BUTTON,
-                                       IDC_SETFONT_PHPSECTION_BUTTON,
-                                       IDC_SETTEXTCOLOR_PHPSECTION_BUTTON,
-                                       IDC_SETFONT_ASPSECTION_BUTTON,
-                                       IDC_SETTEXTCOLOR_ASPSECTION_BUTTON,
-                                       IDC_SETFONT_TAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_TAGS_BUTTON,
-                                       IDC_SETFONT_CDATA_BUTTON,
-                                       IDC_SETTEXTCOLOR_CDATA_BUTTON,
-                                       IDC_SETBGCOLOR_CARETLINE_BUTTON,
-                                       IDC_SETBGCOLOR_TEXT_BUTTON,
-                                       IDC_SETBGCOLOR_INDICATOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_LINENUMBER_BUTTON,
-                                       IDC_SETBGCOLOR_LINENUMBER_BUTTON,
-                                       IDC_SETBGCOLOR_FOLDMARGIN_BUTTON
+                                       IDC_SETTEXTCOLOR_KEYWORDS_BTN,
+                                       IDC_SETFONT_KEYWORDS2_BTN,
+                                       IDC_SETTEXTCOLOR_KEYWORDS2_BTN,
+                                       IDC_SETFONT_STRING_BTN,
+                                       IDC_SETTEXTCOLOR_STRING_BTN,
+                                       IDC_SETFONT_CHARACTER_BTN,
+                                       IDC_SETTEXTCOLOR_CHARACTER_BTN,
+                                       IDC_SETFONT_NUMBER_BTN,
+                                       IDC_SETTEXTCOLOR_NUMBER_BTN,
+                                       IDC_SETFONT_PREPRO_BTN,
+                                       IDC_SETTEXTCOLOR_PREPRO_BTN,
+                                       IDC_SETFONT_COMMENT_BTN,
+                                       IDC_SETTEXTCOLOR_COMMENT_BTN,
+                                       IDC_SETFONT_COMMENTLINE_BTN,
+                                       IDC_SETTEXTCOLOR_COMMENTL_BTN,
+                                       IDC_SETFONT_COMMENTDOC_BTN,
+                                       IDC_SETTEXTCOLOR_COMMENTDOC_BTN,
+                                       IDC_SETFONT_TEXT_BTN,
+                                       IDC_SETTEXTCOLOR_TEXT_BTN,
+                                       IDC_SETFONT_OPERATOR_BTN,
+                                       IDC_SETTEXTCOLOR_OPERATOR_BTN,
+                                       IDC_SETFONT_UNKNOWTAGS_BTN,
+                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BTN,
+                                       IDC_SETFONT_ATTRIBUTES_BTN,
+                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BTN,
+                                       IDC_SETFONT_UNATTRIBUTES_BTN,
+                                       IDC_SETTEXTCOLOR_UNATTRS_BTN,
+                                       IDC_SETFONT_ENTITIES_BTN,
+                                       IDC_SETTEXTCOLOR_ENTITIES_BTN,
+                                       IDC_SETFONT_TAGENDS_BTN,
+                                       IDC_SETTEXTCOLOR_TAGENDS_BTN,
+                                       IDC_SETFONT_PHPSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_PHPSECTION_BTN,
+                                       IDC_SETFONT_ASPSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_ASPSECTION_BTN,
+                                       IDC_SETFONT_TAGS_BTN,
+                                       IDC_SETTEXTCOLOR_TAGS_BTN,
+                                       IDC_SETFONT_CDATA_BTN,
+                                       IDC_SETTEXTCOLOR_CDATA_BTN,
+                                       IDC_SETBGCOLOR_CARETLINE_BTN,
+                                       IDC_SETBGCOLOR_TEXT_BTN,
+                                       IDC_SETBGCOLOR_INDICATOR_BTN,
+                                       IDC_SETTEXTCOLOR_LINENUMBER_BTN,
+                                       IDC_SETBGCOLOR_LINENUMBER_BTN,
+                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -750,51 +750,51 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 const int buttons[] = {IDOK,
                                        IDCANCEL,
                                        IDC_SETFONT_KEYWORDS_BUTTON,
-                                       IDC_SETTEXTCOLOR_KEYWORDS_BUTTON,
-                                       IDC_SETFONT_KEYWORDS2_BUTTON,
-                                       IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON,
-                                       IDC_SETFONT_STRING_BUTTON,
-                                       IDC_SETTEXTCOLOR_STRING_BUTTON,
-                                       IDC_SETFONT_CHARACTER_BUTTON,
-                                       IDC_SETTEXTCOLOR_CHARACTER_BUTTON,
-                                       IDC_SETFONT_NUMBER_BUTTON,
-                                       IDC_SETTEXTCOLOR_NUMBER_BUTTON,
-                                       IDC_SETFONT_PREPROCESSOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON,
-                                       IDC_SETFONT_COMMENT_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENT_BUTTON,
-                                       IDC_SETFONT_COMMENTLINE_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON,
-                                       IDC_SETFONT_COMMENTDOC_BUTTON,
-                                       IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON,
-                                       IDC_SETFONT_TEXT_BUTTON,
-                                       IDC_SETTEXTCOLOR_TEXT_BUTTON,
-                                       IDC_SETFONT_OPERATOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_OPERATOR_BUTTON,
-                                       IDC_SETFONT_UNKNOWTAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON,
-                                       IDC_SETFONT_ATTRIBUTES_BUTTON,
-                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON,
-                                       IDC_SETFONT_UNKNOWATTRIBUTES_BUTTON,
-                                       IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON,
-                                       IDC_SETFONT_ENTITIES_BUTTON,
-                                       IDC_SETTEXTCOLOR_ENTITIES_BUTTON,
-                                       IDC_SETFONT_TAGENDS_BUTTON,
-                                       IDC_SETTEXTCOLOR_TAGENDS_BUTTON,
-                                       IDC_SETFONT_PHPSECTION_BUTTON,
-                                       IDC_SETTEXTCOLOR_PHPSECTION_BUTTON,
-                                       IDC_SETFONT_ASPSECTION_BUTTON,
-                                       IDC_SETTEXTCOLOR_ASPSECTION_BUTTON,
-                                       IDC_SETFONT_TAGS_BUTTON,
-                                       IDC_SETTEXTCOLOR_TAGS_BUTTON,
-                                       IDC_SETFONT_CDATA_BUTTON,
-                                       IDC_SETTEXTCOLOR_CDATA_BUTTON,
-                                       IDC_SETBGCOLOR_CARETLINE_BUTTON,
-                                       IDC_SETBGCOLOR_TEXT_BUTTON,
-                                       IDC_SETBGCOLOR_INDICATOR_BUTTON,
-                                       IDC_SETTEXTCOLOR_LINENUMBER_BUTTON,
-                                       IDC_SETBGCOLOR_LINENUMBER_BUTTON,
-                                       IDC_SETBGCOLOR_FOLDMARGIN_BUTTON
+                                       IDC_SETTEXTCOLOR_KEYWORDS_BTN,
+                                       IDC_SETFONT_KEYWORDS2_BTN,
+                                       IDC_SETTEXTCOLOR_KEYWORDS2_BTN,
+                                       IDC_SETFONT_STRING_BTN,
+                                       IDC_SETTEXTCOLOR_STRING_BTN,
+                                       IDC_SETFONT_CHARACTER_BTN,
+                                       IDC_SETTEXTCOLOR_CHARACTER_BTN,
+                                       IDC_SETFONT_NUMBER_BTN,
+                                       IDC_SETTEXTCOLOR_NUMBER_BTN,
+                                       IDC_SETFONT_PREPRO_BTN,
+                                       IDC_SETTEXTCOLOR_PREPRO_BTN,
+                                       IDC_SETFONT_COMMENT_BTN,
+                                       IDC_SETTEXTCOLOR_COMMENT_BTN,
+                                       IDC_SETFONT_COMMENTLINE_BTN,
+                                       IDC_SETTEXTCOLOR_COMMENTL_BTN,
+                                       IDC_SETFONT_COMMENTDOC_BTN,
+                                       IDC_SETTEXTCOLOR_COMMENTDOC_BTN,
+                                       IDC_SETFONT_TEXT_BTN,
+                                       IDC_SETTEXTCOLOR_TEXT_BTN,
+                                       IDC_SETFONT_OPERATOR_BTN,
+                                       IDC_SETTEXTCOLOR_OPERATOR_BTN,
+                                       IDC_SETFONT_UNKNOWTAGS_BTN,
+                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BTN,
+                                       IDC_SETFONT_ATTRIBUTES_BTN,
+                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BTN,
+                                       IDC_SETFONT_UNATTRIBUTES_BTN,
+                                       IDC_SETTEXTCOLOR_UNATTRS_BTN,
+                                       IDC_SETFONT_ENTITIES_BTN,
+                                       IDC_SETTEXTCOLOR_ENTITIES_BTN,
+                                       IDC_SETFONT_TAGENDS_BTN,
+                                       IDC_SETTEXTCOLOR_TAGENDS_BTN,
+                                       IDC_SETFONT_PHPSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_PHPSECTION_BTN,
+                                       IDC_SETFONT_ASPSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_ASPSECTION_BTN,
+                                       IDC_SETFONT_TAGS_BTN,
+                                       IDC_SETTEXTCOLOR_TAGS_BTN,
+                                       IDC_SETFONT_CDATA_BTN,
+                                       IDC_SETTEXTCOLOR_CDATA_BTN,
+                                       IDC_SETBGCOLOR_CARETLINE_BTN,
+                                       IDC_SETBGCOLOR_TEXT_BTN,
+                                       IDC_SETBGCOLOR_INDICATOR_BTN,
+                                       IDC_SETTEXTCOLOR_LINENUMBER_BTN,
+                                       IDC_SETBGCOLOR_LINENUMBER_BTN,
+                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -947,19 +947,19 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
-                case IDC_SETTEXTCOLOR_LINENUMBER_BUTTON:
+                case IDC_SETTEXTCOLOR_LINENUMBER_BTN:
                     choose_text_color(hdlg, &(dlg_style.linenumber.color));
                     InvalidateRect(hwnd_linenumber_static, NULL, TRUE);
                     break;
-                case IDC_SETBGCOLOR_LINENUMBER_BUTTON:
+                case IDC_SETBGCOLOR_LINENUMBER_BTN:
                     choose_text_color(hdlg, &(dlg_style.linenumber.bgcolor));
                     InvalidateRect(hwnd_linenumber_static, NULL, TRUE);
                     break;
-                case IDC_SETBGCOLOR_FOLDMARGIN_BUTTON:
+                case IDC_SETBGCOLOR_FOLDMARGIN_BTN:
                     choose_text_color(hdlg, &(dlg_style.foldmargin.bgcolor));
                     InvalidateRect(hwnd_foldmargin_static, NULL, TRUE);
                     break;
-                case IDC_SETFONT_TEXT_BUTTON:
+                case IDC_SETFONT_TEXT_BTN:
                 {
                     choose_style_font(dlg_style.text.font, &(dlg_style.text.fontsize), &(dlg_style.text.bold));
 
@@ -989,44 +989,44 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     SYNC_FONT(aspsection, hwnd_aspsection_static, font_aspsection_static)
                     break;
                 }
-                case IDC_SETTEXTCOLOR_TEXT_BUTTON:
+                case IDC_SETTEXTCOLOR_TEXT_BTN:
                     choose_text_color(hdlg, &(dlg_style.text.color));
                     InvalidateRect(hwnd_text_static, NULL, TRUE);
                     break;
-                case IDC_SETBGCOLOR_TEXT_BUTTON:
+                case IDC_SETBGCOLOR_TEXT_BTN:
                     choose_text_color(hdlg, &(dlg_style.text.bgcolor));
                     InvalidateRect(hwnd_text_static, NULL, TRUE);
                     break;
-                case IDC_SETBGCOLOR_CARETLINE_BUTTON:
+                case IDC_SETBGCOLOR_CARETLINE_BTN:
                     choose_text_color(hdlg, &(dlg_style.caretline.bgcolor));
                     InvalidateRect(hwnd_caretline_static, NULL, TRUE);
                     break;
-                case IDC_SETBGCOLOR_INDICATOR_BUTTON:
+                case IDC_SETBGCOLOR_INDICATOR_BTN:
                 {
                     choose_text_color(hdlg, &dlg_style.indicator.bgcolor);
                     InvalidateRect(hwnd_indicator_static, NULL, TRUE);
                     break;
                 }
             }
-            STYLE_MSG(keywords0,hwnd_keyword_static,font_keyword_static,IDC_SETFONT_KEYWORDS_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS_BUTTON)
-            else STYLE_MSG(keywords1,hwnd_keyword2_static,font_keyword2_static,IDC_SETFONT_KEYWORDS2_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS2_BUTTON)
-            else STYLE_MSG(string,hwnd_string_static,font_string_static,IDC_SETFONT_STRING_BUTTON,IDC_SETTEXTCOLOR_STRING_BUTTON)
-            else STYLE_MSG(character,hwnd_character_static,font_character_static,IDC_SETFONT_CHARACTER_BUTTON,IDC_SETTEXTCOLOR_CHARACTER_BUTTON)
-            else STYLE_MSG(number,hwnd_number_static,font_number_static,IDC_SETFONT_NUMBER_BUTTON,IDC_SETTEXTCOLOR_NUMBER_BUTTON)
-            else STYLE_MSG(operators,hwnd_operator_static,font_operator_static,IDC_SETFONT_OPERATOR_BUTTON,IDC_SETTEXTCOLOR_OPERATOR_BUTTON)
-            else STYLE_MSG(preprocessor,hwnd_preprocessor_static,font_preprocessor_static,IDC_SETFONT_PREPROCESSOR_BUTTON,IDC_SETTEXTCOLOR_PREPROCESSOR_BUTTON)
-            else STYLE_MSG(comment,hwnd_comment_static,font_comment_static,IDC_SETFONT_COMMENT_BUTTON,IDC_SETTEXTCOLOR_COMMENT_BUTTON)
-            else STYLE_MSG(commentline,hwnd_commentline_static,font_commentline_static,IDC_SETFONT_COMMENTLINE_BUTTON,IDC_SETTEXTCOLOR_COMMENTLINE_BUTTON)
-            else STYLE_MSG(commentdoc,hwnd_commentDoc_static,font_commentDoc_static,IDC_SETFONT_COMMENTDOC_BUTTON,IDC_SETTEXTCOLOR_COMMENTDOC_BUTTON)
-            else STYLE_MSG(tags,hwnd_tags_static,font_tags_static,IDC_SETFONT_TAGS_BUTTON,IDC_SETTEXTCOLOR_TAGS_BUTTON)
-            else STYLE_MSG(unknowtags,hwnd_unknowtags_static,font_unknowtags_static,IDC_SETFONT_UNKNOWTAGS_BUTTON,IDC_SETTEXTCOLOR_UNKNOWTAGS_BUTTON)
-            else STYLE_MSG(attributes,hwnd_attributes_static,font_attributes_static,IDC_SETFONT_ATTRIBUTES_BUTTON,IDC_SETTEXTCOLOR_ATTRIBUTES_BUTTON)
-            else STYLE_MSG(unknowattributes,hwnd_unknowattr_static,font_unknowattr_static,IDC_SETFONT_UNKNOWATTRIBUTES_BUTTON,IDC_SETTEXTCOLOR_UNKNOWATTRIBUTES_BUTTON)
-            else STYLE_MSG(entities,hwnd_entities_static,font_entities_static,IDC_SETFONT_ENTITIES_BUTTON,IDC_SETTEXTCOLOR_ENTITIES_BUTTON)
-            else STYLE_MSG(tagends,hwnd_tagends_static,font_tagends_static,IDC_SETFONT_TAGENDS_BUTTON,IDC_SETTEXTCOLOR_TAGENDS_BUTTON)
-            else STYLE_MSG(cdata,hwnd_cdata_static,font_cdata_static,IDC_SETFONT_CDATA_BUTTON,IDC_SETTEXTCOLOR_CDATA_BUTTON)
-            else STYLE_MSG(phpsection,hwnd_phpsection_static,font_phpsection_static,IDC_SETFONT_PHPSECTION_BUTTON,IDC_SETTEXTCOLOR_PHPSECTION_BUTTON)
-            else STYLE_MSG(aspsection,hwnd_aspsection_static,font_aspsection_static,IDC_SETFONT_ASPSECTION_BUTTON,IDC_SETTEXTCOLOR_ASPSECTION_BUTTON)
+            STYLE_MSG(keywords0,hwnd_keyword_static,font_keyword_static,IDC_SETFONT_KEYWORDS_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS_BTN)
+            else STYLE_MSG(keywords1,hwnd_keyword2_static,font_keyword2_static,IDC_SETFONT_KEYWORDS2_BTN,IDC_SETTEXTCOLOR_KEYWORDS2_BTN)
+            else STYLE_MSG(string,hwnd_string_static,font_string_static,IDC_SETFONT_STRING_BTN,IDC_SETTEXTCOLOR_STRING_BTN)
+            else STYLE_MSG(character,hwnd_character_static,font_character_static,IDC_SETFONT_CHARACTER_BTN,IDC_SETTEXTCOLOR_CHARACTER_BTN)
+            else STYLE_MSG(number,hwnd_number_static,font_number_static,IDC_SETFONT_NUMBER_BTN,IDC_SETTEXTCOLOR_NUMBER_BTN)
+            else STYLE_MSG(operators,hwnd_operator_static,font_operator_static,IDC_SETFONT_OPERATOR_BTN,IDC_SETTEXTCOLOR_OPERATOR_BTN)
+            else STYLE_MSG(preprocessor,hwnd_preprocessor_static,font_preprocessor_static,IDC_SETFONT_PREPRO_BTN,IDC_SETTEXTCOLOR_PREPRO_BTN)
+            else STYLE_MSG(comment,hwnd_comment_static,font_comment_static,IDC_SETFONT_COMMENT_BTN,IDC_SETTEXTCOLOR_COMMENT_BTN)
+            else STYLE_MSG(commentline,hwnd_commentline_static,font_commentline_static,IDC_SETFONT_COMMENTLINE_BTN,IDC_SETTEXTCOLOR_COMMENTL_BTN)
+            else STYLE_MSG(commentdoc,hwnd_commentDoc_static,font_commentDoc_static,IDC_SETFONT_COMMENTDOC_BTN,IDC_SETTEXTCOLOR_COMMENTDOC_BTN)
+            else STYLE_MSG(tags,hwnd_tags_static,font_tags_static,IDC_SETFONT_TAGS_BTN,IDC_SETTEXTCOLOR_TAGS_BTN)
+            else STYLE_MSG(unknowtags,hwnd_unknowtags_static,font_unknowtags_static,IDC_SETFONT_UNKNOWTAGS_BTN,IDC_SETTEXTCOLOR_UNKNOWTAGS_BTN)
+            else STYLE_MSG(attributes,hwnd_attributes_static,font_attributes_static,IDC_SETFONT_ATTRIBUTES_BTN,IDC_SETTEXTCOLOR_ATTRIBUTES_BTN)
+            else STYLE_MSG(unknowattributes,hwnd_unknowattr_static,font_unknowattr_static,IDC_SETFONT_UNATTRIBUTES_BTN,IDC_SETTEXTCOLOR_UNATTRS_BTN)
+            else STYLE_MSG(entities,hwnd_entities_static,font_entities_static,IDC_SETFONT_ENTITIES_BTN,IDC_SETTEXTCOLOR_ENTITIES_BTN)
+            else STYLE_MSG(tagends,hwnd_tagends_static,font_tagends_static,IDC_SETFONT_TAGENDS_BTN,IDC_SETTEXTCOLOR_TAGENDS_BTN)
+            else STYLE_MSG(cdata,hwnd_cdata_static,font_cdata_static,IDC_SETFONT_CDATA_BTN,IDC_SETTEXTCOLOR_CDATA_BTN)
+            else STYLE_MSG(phpsection,hwnd_phpsection_static,font_phpsection_static,IDC_SETFONT_PHPSECTION_BTN,IDC_SETTEXTCOLOR_PHPSECTION_BTN)
+            else STYLE_MSG(aspsection,hwnd_aspsection_static,font_aspsection_static,IDC_SETFONT_ASPSECTION_BTN,IDC_SETTEXTCOLOR_ASPSECTION_BTN)
             break;
         case WM_DESTROY:
             printf("theme dlg WM_DESTROY\n");
