@@ -691,46 +691,11 @@ set_file_by_info(time_t filetime)
     }
 }
 
-static unsigned WINAPI
-set_remotefs_fileinfo(void * lp)
-{
-    curl_off_t filetime = 0;
-    CURL *curl = (CURL *)lp;
-    eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
-    eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-    CURLcode res = eu_curl_easy_perform(curl);
-    if (res == CURLE_OK)
-    {
-        res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &filetime);
-    }
-    eu_curl_easy_cleanup(curl);
-    if (filetime > 0)
-    {
-        set_file_by_info((time_t)filetime);
-    }
-    return 0;
-}
-
-void
-on_statusbar_remotefs_thread(eu_tabpage *pnode)
-{
-    CURL *curl = NULL;
-    char url[MAX_BUFFER+1] = {0};
-    if (pnode && WideCharToMultiByte(CP_UTF8, 0, pnode->pathfile, -1, url, MAX_BUFFER, NULL, NULL) > 0 && *url)
-    {
-        if ((curl = on_remote_init_socket(url, &pnode->fs_server)) != NULL)
-        {
-            CloseHandle((HANDLE)_beginthreadex(NULL, 0, &set_remotefs_fileinfo, (void *)curl, 0, NULL));
-        }
-    }
-}
-
 void __stdcall
 on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
 {
     int  count = 0;
-    if (!g_statusbar)
+    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
     {
         return;
     }
@@ -741,31 +706,11 @@ on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
         UpdateWindow(g_statusbar);
         return;
     }
-    if (!pnode)
+    if (pnode->is_blank && !pnode->st_mtime)
     {
-        TCHAR s_hp[FILESIZE] = {0};
-        LOAD_I18N_RESSTR(IDS_STATUS_F1, m_hp);
-        _sntprintf(s_hp, FILESIZE-1, m_hp, count, _T("0"));
-        on_statusbar_set_text(g_statusbar, 0, s_hp);
-        return;
+        pnode->st_mtime = time(NULL);
     }
-    if (util_availed_char(pnode->fs_server.networkaddr[0]))
-    {
-        on_statusbar_remotefs_thread(pnode);
-    }
-    else
-    {
-        struct _stat buf = {0};
-        if (pnode->is_blank && !pnode->st_mtime)
-        {
-            pnode->st_mtime = time(NULL);
-        }
-        if (_tstat(pnode->pathfile, &buf) != 0)
-        {
-            buf.st_mtime = pnode->st_mtime;
-        }
-        set_file_by_info(buf.st_mtime);
-    }
+    set_file_by_info(pnode->st_mtime);
 }
 
 void WINAPI
@@ -774,16 +719,11 @@ on_statusbar_update_line(eu_tabpage *pnode)
     int  count = 0;
     TCHAR s_xy[FILESIZE] = {0};
     TCHAR m_xy[MAX_LOADSTRING]  = {0};
-    if (!g_statusbar)
+    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
     {
         return;
     }
-    if (!pnode)
-    {
-        eu_i18n_load_str(IDS_STATUS_XY, m_xy, 0);
-        _sntprintf(s_xy, FILESIZE-1, m_xy, 0, 0);
-    }
-    else if (pnode->hex_mode)
+    if (pnode->hex_mode)
     {
         eu_i18n_load_str(IDS_STATUS_HXY, m_xy, 0);
         _sntprintf(s_xy, FILESIZE-1, m_xy, SendMessage(pnode->hwnd_sc, HVM_GETHEXADDR, 0, 0));
@@ -807,25 +747,22 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     sptr_t ns_start = 0;
     sptr_t ns_end = 0;
     TCHAR file_size[FILESIZE + 1] = {0};
-    if (!g_statusbar)
+    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
     {
         return;
     }
-    if (pnode)
+    nsize = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
+    ns_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    ns_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    if (ns_end - ns_start > 0)
     {
-        nsize = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
-        ns_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        ns_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-        if (ns_end - ns_start > 0)
-        {
-            sptr_t nfirst = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_start, 0);
-            sptr_t nlast = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_end, 0);
-            line = nlast - nfirst + 1;
-        }
-        else if (nsize >= 0)
-        {
-            line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-        }
+        sptr_t nfirst = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_start, 0);
+        sptr_t nlast = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_end, 0);
+        line = nlast - nfirst + 1;
+    }
+    else if (nsize >= 0)
+    {
+        line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
     }
     if (ns_end - ns_start > 0)
     {
@@ -846,7 +783,11 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
 void WINAPI
 on_statusbar_update_eol(eu_tabpage *pnode)
 {
-    if(!pnode || pnode->hex_mode)
+    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
+    {
+        return;
+    }
+    if(pnode->hex_mode)
     {
         set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
         return;
@@ -870,6 +811,10 @@ on_statusbar_update_eol(eu_tabpage *pnode)
 static void
 on_statusbar_update_filetype_menu(eu_tabpage *pnode)
 {
+    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
+    {
+        return;
+    }
     bool res = false;
     if (g_statusbar && pnode && pnode->doc_ptr)
     {
@@ -894,7 +839,7 @@ void WINAPI
 on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
 {
     int type = IDM_UNKNOWN;
-    if (!g_statusbar)
+    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
     {
         return;
     }
@@ -1006,23 +951,26 @@ on_statusbar_height(void)
 void WINAPI
 on_statusbar_update(void)
 {
-    eu_tabpage *pnode = on_tabpage_focus_at();
-    if (pnode && pnode->hwnd_sc)
+    if (g_statusbar && eu_get_config()->m_statusbar)
     {
-        set_btn_rw(pnode, true);
-        on_statusbar_update_fileinfo(pnode, NULL);
-        on_statusbar_update_line(pnode);
-        on_statusbar_update_filesize(pnode);
-        on_statusbar_update_eol(pnode);
-        on_statusbar_update_filetype_menu(pnode->hex_mode ? NULL : pnode);
-        on_statusbar_update_coding(pnode->hex_mode ? NULL : pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
+        eu_tabpage *pnode = on_tabpage_focus_at();
+        if (pnode && pnode->hwnd_sc)
+        {
+            set_btn_rw(pnode, true);
+            on_statusbar_update_fileinfo(pnode, NULL);
+            on_statusbar_update_line(pnode);
+            on_statusbar_update_filesize(pnode);
+            on_statusbar_update_eol(pnode);
+            on_statusbar_update_filetype_menu(pnode->hex_mode ? NULL : pnode);
+            on_statusbar_update_coding(pnode->hex_mode ? NULL : pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
+        }
     }
 }
 
 void WINAPI
 on_statusbar_dark_mode(void)
 {
-    if (on_dark_enable())
+    if (g_statusbar && on_dark_enable())
     {
         const int buttons[] = {IDM_BTN_1, IDM_BTN_2};
         for (int id = 0; id < _countof(buttons); ++id)

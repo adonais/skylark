@@ -1,20 +1,20 @@
 /******************************************************************************
-* This file is part of Skylark project
-* Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * This file is part of Skylark project
+ * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* at your option any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*******************************************************************************/
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * at your option any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *******************************************************************************/
 
 #pragma code_page(65001)
 
@@ -84,33 +84,33 @@ IDT_BIRD                BITMAP                  "..\\resources\\img_tab.bmp"
 FILEVERSION     __EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL
 PRODUCTVERSION  __EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL
 BEGIN
-BLOCK "StringFileInfo"
-BEGIN
-BLOCK "080404B0"
-BEGIN
-VALUE "CompanyName", "zh-CN NetWork\0"
-VALUE "FileDescription", "Skylark is a text editor for Windows with built-in sftp capabilities\0"
-VALUE "FileVersion", __EU_INFO_RELEASE_VERSION
-VALUE "InternalName", "Skylark\0"
-VALUE "LegalCopyright", "License: GNU GPL v3\0"
-VALUE "OriginalFilename", __ORIGINAL_NAME
-VALUE "ProductName", "Skylark"
-VALUE "ProductVersion", __EU_INFO_RELEASE_VERSION
-END
-END
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080404B0"
+    BEGIN
+      VALUE "CompanyName", "zh-CN NetWork\0"
+      VALUE "FileDescription", "Skylark is a text editor for Windows with built-in sftp capabilities\0"
+      VALUE "FileVersion", __EU_INFO_RELEASE_VERSION
+      VALUE "InternalName", "Skylark\0"
+      VALUE "LegalCopyright", "License: GNU GPL v3\0"
+      VALUE "OriginalFilename", __ORIGINAL_NAME
+      VALUE "ProductName", "Skylark"
+      VALUE "ProductVersion", __EU_INFO_RELEASE_VERSION
+    END
+  END
 
-BLOCK "VarFileInfo"
-BEGIN
-VALUE "Translation", 0x804, 1200
-END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x804, 1200
+  END
 END
 
 #endif    // !_MAC
 
 STRINGTABLE
 BEGIN
-IDS_APP_TITLE           "Skylark"
-IDS_ABOUT_DESCRIPTION   EU_DESCRIPTION
+    IDS_APP_TITLE           "Skylark"
+    IDS_ABOUT_DESCRIPTION   EU_DESCRIPTION
 END
 
 IDD_QRBOX DIALOG 0, 0, 170, 157
@@ -118,5 +118,5 @@ STYLE DS_3DLOOK | DS_CENTER | WS_POPUP
 EXSTYLE WS_EX_CONTROLPARENT
 FONT 8, "Ms Shell Dlg"
 {
-CONTROL "",IDC_IMG_QR,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE|SS_BITMAP,0,0,170,157
+    CONTROL "",IDC_IMG_QR,"Static",WS_CHILDWINDOW|WS_VISIBLE|SS_CENTERIMAGE|SS_BITMAP,0,0,170,157
 }

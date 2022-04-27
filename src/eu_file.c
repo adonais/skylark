@@ -1064,7 +1064,9 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
 #endif
     eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
     eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 90);
+    eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
     res = eu_curl_easy_perform(curl);
+    res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &pnode->st_mtime);
     eu_curl_easy_cleanup(curl);
     if (res != CURLE_OK)
     {
@@ -1258,6 +1260,7 @@ on_file_save(eu_tabpage *pnode, bool save_as)
     char *cnv = NULL;
     char *pdst = NULL;
     char *ptext = NULL;
+    CURL *curl = NULL;
     if (!pnode)
     {
         return EUE_TAB_NULL;
@@ -1299,7 +1302,6 @@ on_file_save(eu_tabpage *pnode, bool save_as)
     }
     else if (util_availed_char(pnode->fs_server.networkaddr[0]))
     {
-        CURL *curl = NULL;
         size_t buf_len = 0;
         if (pnode->codepage != IDM_OTHER_BIN)
         {
@@ -1373,15 +1375,32 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
         eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
         err = eu_curl_easy_perform(curl);
-        eu_curl_easy_cleanup(curl);
         if (err != CURLE_OK)
         {
             err = EUE_CURL_NETWORK_ERR;
             MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            pnode->st_mtime = 0;
             goto SAVE_FINAL;
         }
-        // 刷新状态栏时间
-        pnode->st_mtime = 0;
+        else
+        {
+            eu_curl_easy_cleanup(curl);
+            // 重连获取日期
+            if ((curl = on_remote_init_socket(cnv, &pnode->fs_server)) != NULL)
+            {
+                eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+                eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
+                eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+                err = eu_curl_easy_perform(curl);
+                if (err == CURLE_OK)
+                {
+                    err = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &pnode->st_mtime);
+                }
+                eu_curl_easy_cleanup(curl);
+                curl = NULL;
+            }
+            err = SKYLARK_OK;
+        }
     }
     else
     {
@@ -1396,6 +1415,10 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         }
     }
 SAVE_FINAL:
+    if (curl)
+    {
+        eu_curl_easy_cleanup(curl);
+    }
     if (ptext)
     {   // 防止重复释放内存
         if ((uint8_t *)ptext != pnode->write_buffer)
