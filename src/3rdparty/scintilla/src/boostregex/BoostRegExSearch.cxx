@@ -9,55 +9,46 @@
  * 
  */
 
-#include <cstddef>
-#include <cstdlib>
-#include <cassert>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
-
-#include <stdexcept>
-#include <string>
-#include <string_view>
+#include <stdlib.h>
 #include <vector>
-#include <forward_list>
-#include <optional>
-#include <algorithm>
 #include <memory>
-#include <chrono>
+#include <string_view>
+#include <stdexcept>
+#include <optional>
 
 #include "Scintilla.h"
 #include "ScintillaTypes.h"
-#include "ILoader.h"
-#include "ILexer.h"
-
+#include "ScintillaMessages.h"
 #include "Debugging.h"
 #include "Geometry.h"
 #include "Platform.h"
-
-#include "CharacterType.h"
-#include "CharacterCategoryMap.h"
+#include "ILoader.h"
+#include "ILexer.h"
 #include "Position.h"
+#include "UniqueString.h"
 #include "SplitVector.h"
 #include "Partitioning.h"
 #include "RunStyles.h"
+#include "ContractionState.h"
+
 #include "CellBuffer.h"
-#include "PerLine.h"
 #include "CharClassify.h"
 #include "Decoration.h"
+#include "ILexer.h"
 #include "CaseFolder.h"
+#include "CharacterCategoryMap.h"
 #include "Document.h"
-#include "RESearch.h"
 #include "UniConversion.h"
-#include "ElapsedPeriod.h"
 #include "UTF8DocumentIterator.h"
 #include "AnsiDocumentIterator.h"
 #include "BoostRegexSearch.h"
 #include <boost/regex.hpp>
+#include <boost/throw_exception.hpp>
+#define CP_UTF8 65001
+#define SC_CP_UTF8 65001
 
-using namespace boost;
-using namespace Scintilla;
 using namespace Scintilla::Internal;
+using namespace boost;
 
 class BoostRegexSearch : public RegexSearchBase
 {
@@ -70,10 +61,10 @@ public:
 		_substituted = NULL;
 	}
 	
-	virtual Sci::Position FindText(Scintilla::Internal::Document* doc, Sci::Position minPos, Sci::Position maxPos, const char *regex,
-                        bool caseSensitive, bool word, bool wordStart, Scintilla::FindOption sciSearchFlags, Sci::Position *length);                          
+	virtual Sci::Position FindText(Document* doc, Sci::Position minPos, Sci::Position maxPos, const char *regex,
+                        bool caseSensitive, bool word, bool wordStart, Scintilla::FindOption sciSearchFlags, Sci::Position *lengthRet) override;
 	
-	virtual const char *SubstituteByPosition(Scintilla::Internal::Document* doc, const char *text, Sci::Position *length);
+	virtual const char *SubstituteByPosition(Document* doc, const char *text, Sci::Position *length) override;
 
 private:
 	class SearchParameters;
@@ -82,24 +73,24 @@ private:
 	public:
 		Match() : _document(NULL), _documentModified(false), _position(-1), _endPosition(-1), _endPositionForContinuationCheck(-1)  {}
 		~Match() { setDocument(NULL); }
-		Match(Scintilla::Internal::Document* document, Sci::Position position = -1, Sci::Position endPosition = -1) : _document(NULL) { set(document, position, endPosition); }
+		Match(Document* document, Sci::Position position = -1, Sci::Position endPosition = -1) : _document(NULL) { set(document, position, endPosition); }
 		Match& operator=(Match& m) {
 			set(m._document, m.position(), m.endPosition());
 			return *this;
 		}
-		Match& operator=(int /*nullptr*/) {
+		Match& operator=(void* /*nullptr*/) {
 			_position = -1;
 			return *this;
 		}
 		
-		void set(Scintilla::Internal::Document* document = NULL, Sci::Position position = -1, Sci::Position endPosition = -1) {
+		void set(Document* document = NULL, Sci::Position position = -1, Sci::Position endPosition = -1) {
 			setDocument(document);
 			_position = position;
 			_endPositionForContinuationCheck = _endPosition = endPosition;
 			_documentModified = false;
 		}
 		
-		bool isContinuationSearch(Scintilla::Internal::Document* document, Sci::Position startPosition, int direction) {
+		bool isContinuationSearch(Document* document, Sci::Position startPosition, int direction) {
 			if (hasDocumentChanged(document))
 				return false;
 			if (direction > 0) 
@@ -124,10 +115,10 @@ private:
 		}
 		
 	private:
-		bool hasDocumentChanged(Scintilla::Internal::Document* currentDocument) {
+		bool hasDocumentChanged(Document* currentDocument) {
 			return currentDocument != _document || _documentModified;
 		}
-		void setDocument(Scintilla::Internal::Document* newDocument) {
+		void setDocument(Document* newDocument) {
 			if (newDocument != _document)
 			{
 				if (_document != NULL)
@@ -139,20 +130,20 @@ private:
 		}
 		
 		// DocWatcher, so we can track modifications to know if we should consider a search to be a continuation of last search:
-		virtual void NotifyModified(Scintilla::Internal::Document* modifiedDocument, DocModification mh, void* /*userData*/)
+		virtual void NotifyModified(Document* modifiedDocument, DocModification mh, void* /*userData*/)
 		{
 			if (modifiedDocument == _document)
 			{
-				if ((SC_PERFORMED_UNDO | SC_PERFORMED_REDO) & static_cast<int>(mh.modificationType))
+				if (FlagSet(mh.modificationType, (Scintilla::ModificationFlags::Undo | Scintilla::ModificationFlags::Redo)) )
 					_documentModified = true;
 				// Replacing last found text should not make isContinuationSearch return false.
-				else if (static_cast<int>(mh.modificationType) & SC_MOD_DELETETEXT)
+				else if (FlagSet(mh.modificationType, Scintilla::ModificationFlags::DeleteText))
 				{
 					if (mh.position == position() && mh.length == length()) // Deleting what we last found.
 						_endPositionForContinuationCheck = _position;
 					else _documentModified = true;
 				}
-				else if (static_cast<int>(mh.modificationType) & SC_MOD_INSERTTEXT)
+				else if (FlagSet(mh.modificationType, Scintilla::ModificationFlags::InsertText))
 				{
 					if (mh.position == position() && position() == _endPositionForContinuationCheck) // Replace at last found position.
 						_endPositionForContinuationCheck += mh.length;
@@ -161,7 +152,7 @@ private:
 			}
 		}
 
-		virtual void NotifyDeleted(Scintilla::Internal::Document* deletedDocument, void* /*userData*/) noexcept
+		virtual void NotifyDeleted(Document* deletedDocument, void* /*userData*/) noexcept
 		{
 			if (deletedDocument == _document)
 			{
@@ -172,13 +163,13 @@ private:
 				set(NULL);
 			}
 		}
-		virtual void NotifyModifyAttempt(Scintilla::Internal::Document* /*document*/, void* /*userData*/) {}
-		virtual void NotifySavePoint(Scintilla::Internal::Document* /*document*/, void* /*userData*/, bool /*atSavePoint*/) {}
-		virtual void NotifyStyleNeeded(Scintilla::Internal::Document* /*document*/, void* /*userData*/, Sci::Position /*endPos*/) {}
-		virtual void NotifyLexerChanged(Scintilla::Internal::Document* /*document*/, void* /*userData*/) {}
-		virtual void NotifyErrorOccurred(Scintilla::Internal::Document* /*document*/, void* /*userData*/, Scintilla::Status /*status*/) {}
+		virtual void NotifyModifyAttempt(Document* /*document*/, void* /*userData*/) {}
+		virtual void NotifySavePoint(Document* /*document*/, void* /*userData*/, bool /*atSavePoint*/) {}
+		virtual void NotifyStyleNeeded(Document* /*document*/, void* /*userData*/, Sci::Position /*endPos*/) {}
+		virtual void NotifyLexerChanged(Document* /*document*/, void* /*userData*/) {}
+		virtual void NotifyErrorOccurred(Document* /*document*/, void* /*userData*/, Scintilla::Status /*status*/) {}
 		
-		Scintilla::Internal::Document* _document;
+		Document* _document;
 		bool _documentModified;
 		Sci::Position _position, _endPosition;
 		Sci::Position _endPositionForContinuationCheck;
@@ -232,7 +223,7 @@ private:
 		bool isLineStart(Sci::Position position);
 		bool isLineEnd(Sci::Position position);
 		
-		Scintilla::Internal::Document* _document;
+		Document* _document;
 		const char *_regexString;
 		int _compileFlags;
 		Sci::Position _startPosition;
@@ -268,16 +259,19 @@ RegexSearchBase *CreateRegexSearch(CharClassify* /* charClassTable */)
 #endif
 }
 
+std::string g_exceptionMessage;
+
 /**
  * Find text in document, supporting both forward and backward
  * searches (just pass startPosition > endPosition to do a backward search).
  */
 
-Sci::Position BoostRegexSearch::FindText(Scintilla::Internal::Document* doc, Sci::Position startPosition, Sci::Position endPosition, const char *regexString,
-                        bool caseSensitive, bool /*word*/, bool /*wordStart*/, Scintilla::FindOption sciSearchFlags, Sci::Position *lengthRet) 
+Sci::Position BoostRegexSearch::FindText(Document* doc, Sci::Position startPosition, Sci::Position endPosition, const char *regexString,
+                        bool caseSensitive, bool /*word*/, bool /*wordStart*/, Scintilla::FindOption sciSearchFlags, Sci::Position *lengthRet)
 {
+	g_exceptionMessage.clear();
 	try {
-		SearchParameters search;
+		SearchParameters search{};
 		
 		search._document = doc;
 		
@@ -336,10 +330,23 @@ Sci::Position BoostRegexSearch::FindText(Scintilla::Internal::Document* doc, Sci
 		}
 	}
 
-	catch(regex_error& /*ex*/)
+	catch(regex_error& ex)
 	{
 		// -1 is normally used for not found, -2 is used here for invalid regex
+		g_exceptionMessage = ex.what();
 		return -2;
+	}
+
+	catch(boost::wrapexcept<std::runtime_error>& ex)
+	{
+		g_exceptionMessage = ex.what();
+		return -3;
+	}
+
+	catch(...)
+	{
+		g_exceptionMessage = "Unexpected exception while searching";
+		return -3;
 	}
 }
 
@@ -444,7 +451,7 @@ bool BoostRegexSearch::SearchParameters::isLineEnd(Sci::Position position)
 		|| (_document->CharAt(position) == '\n' && (position == 0 || _document->CharAt(position-1) != '\n'));
 }
 
-const char *BoostRegexSearch::SubstituteByPosition(Scintilla::Internal::Document* doc, const char *text, Sci::Position *length) {
+const char *BoostRegexSearch::SubstituteByPosition(Document* doc, const char *text, Sci::Position *length) {
 	delete[] _substituted;
 	_substituted = (doc->CodePage() == SC_CP_UTF8)
 		? _utf8.SubstituteByPosition(text, length)

@@ -64,7 +64,7 @@
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
 #define EU_VERIFY(x) (void)((x) || (EU_ABORT("failed assert(%s): %s:%d\n", #x, __FILE__, __LINE__), 0))
 #else
-static inline void 
+static inline void
 assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 {
     char msg[256] = {0};
@@ -87,7 +87,7 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
     }                                                       \
 }
 
-enum 
+enum
 {
     SKYLARK_OK = 0,
     EUE_TAB_NULL,
@@ -176,41 +176,41 @@ struct eu_config
 {
     int new_file_eol;
     int new_file_enc;
-    
+
     bool auto_close_chars;
     bool m_ident;
     char window_theme[ACNAME_LEN];
     bool m_fullscreen;
     bool m_menubar;
     bool m_toolbar;
-    bool m_statusbar;    
+    bool m_statusbar;
     bool m_linenumber;
-    
+
     bool bookmark_visable;
     int  bookmark_shape;
     uint32_t bookmark_argb;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;
-    
+
     bool m_indentation;
     int tab_width;
     bool tab2spaces;
     bool light_fold;
     bool line_mode;
-    
+
     bool m_ftree_show;
 
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
     int result_edit_height;
-    
+
     int result_list_height;
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
-    
+
     bool m_ctshow;
     int m_quality;
     int m_render;
@@ -323,7 +323,7 @@ typedef int (*eu_evp_encodeblock)(unsigned char *t, const unsigned char *f, int 
 typedef int (*eu_evp_decodeblock)(unsigned char *t, const unsigned char *f, int n);
 typedef int (*eu_aes_set_encrypt_key)(const unsigned char *userKey, const int bits, AES_KEY *key);
 typedef int (*eu_aes_set_decrypt_key)(const unsigned char *userKey, const int bits, AES_KEY *key);
-typedef void (*eu_aes_cbc_encrypt)(const unsigned char *, unsigned char *, size_t, const AES_KEY *,unsigned char *, const int); 
+typedef void (*eu_aes_cbc_encrypt)(const unsigned char *, unsigned char *, size_t, const AES_KEY *,unsigned char *, const int);
 typedef void (*eu_des_set_key_unchecked)(const_DES_cblock *key, DES_key_schedule *schedule);
 typedef void (*eu_des_ecb3_encrypt)(const_DES_cblock *input, DES_cblock *output,
                                     DES_key_schedule *ks1, DES_key_schedule *ks2,
@@ -414,6 +414,7 @@ EU_EXT_CLASS int eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback pba
 EU_EXT_CLASS int eu_sci_register(HINSTANCE hinstance);
 EU_EXT_CLASS int eu_sci_release(void);
 EU_EXT_CLASS sptr_t eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l);
+EU_EXT_CLASS void eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR nmhdr);
 
 // for iconv
 EU_EXT_CLASS int eu_iconvctl(iconv_t cd, int request, void* argument);

@@ -91,6 +91,7 @@ uint64_t util_gen_tstamp(void);
 WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *, TCHAR *, int);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
+HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);

@@ -536,7 +536,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_SETFOCUS:
         {
             NMHDR nm = {0};
-            hexview_send_notify(hwnd, NM_SETFOCUS, &nm);
+            eu_send_notify(hwnd, NM_SETFOCUS, &nm);
             break;
         }
         case WM_DESTROY:
@@ -568,6 +568,14 @@ eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
         return SendMessage(p->hwnd_sc, m, w, l);
     }
     return ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l);
+}
+
+void
+eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR phdr)
+{
+    phdr->hwndFrom = hwnd;
+    phdr->code = code;
+    SendMessage(GetParent(hwnd), WM_NOTIFY, 0, (LPARAM) phdr);
 }
 
 int

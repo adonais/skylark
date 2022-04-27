@@ -30,7 +30,6 @@ typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsig
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
 
 static pwine_get_version fn_wine_get_version;
-static volatile long gth_locked = 0;
 
 uint64_t
 util_gen_tstamp(void)
@@ -41,7 +40,7 @@ util_gen_tstamp(void)
     if (QueryPerformanceFrequency(&frequency))
     {   //获取一个时间戳
         QueryPerformanceCounter(&ticks);
-        uint64_t current_time = (double) ticks.QuadPart / (double) frequency.QuadPart * TEN_MILLION;
+        uint64_t current_time = (uint64_t)((double) ticks.QuadPart / (double) frequency.QuadPart * TEN_MILLION);
         if (current_time == (uint64_t)-1)
         {
             current_time = 0;
@@ -52,30 +51,38 @@ util_gen_tstamp(void)
     return 0;
 }
 
-static void
-util_thread_lock(void)
+HWND
+util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
 {
-    size_t spin_count = 0;
-    // Wait until the flag is false.
-    while (_InterlockedCompareExchange(&gth_locked, 1, 0) != 0)
-    {
-        // Prevent the loop from being too busy.
-        if (spin_count < 32)
-        {
-            Sleep(0);
-        }
-        else
-        {
-            Sleep(1);
-        }
-        ++spin_count;
-    }
-}
+	if (!(hwnd_stc && hwnd && ptext))
+	{
+		return NULL;
+	}
+	// Create the tooltip. g_hInst is the global instance handle.
+	HWND htip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON, CW_USEDEFAULT, CW_USEDEFAULT,
+		                       CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, eu_module_handle(), NULL);
 
-static inline void
-util_thread_unlock(void)
-{
-    _InterlockedExchange(&gth_locked, 0);
+	if (!htip)
+	{
+		return NULL;
+	}
+	// Associate the tooltip with the tool.
+	TOOLINFO toolinfo = {0};
+	toolinfo.cbSize = sizeof(TOOLINFO);
+	toolinfo.hwnd = hwnd;
+	toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+	toolinfo.uId = (LONG_PTR)hwnd_stc;
+	toolinfo.lpszText = ptext;
+	if (!SendMessage(htip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo))
+	{
+		DestroyWindow(htip);
+		return NULL;
+	}
+	SendMessage(htip, TTM_ACTIVATE, TRUE, 0);
+	SendMessage(htip, TTM_SETMAXTIPWIDTH, 0, 200);
+	// Make tip stay 15 seconds
+	SendMessage(htip, TTM_SETDELAYTIME, TTDT_AUTOPOP, MAKELPARAM((15000), (0)));
+	return htip;
 }
 
 bool
