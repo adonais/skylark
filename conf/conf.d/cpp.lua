@@ -714,7 +714,7 @@ function cpp.get_calltip()
 end
 
 function cpp.get_reqular()
-  local symbol_reqular_exp = "^(?:[\\w+]+[_a-zA-Z0-9 ]*[ \\t*]+|^)([_a-zA-Z]+[~_a-zA-Z0-9:]*)\\s*\\([^\\(^;^=^<^>]*$"
+  local symbol_reqular_exp = "\\s*(?:[\\w+]+[_a-zA-Z0-9 ]*[ \\t*]+|^)([_a-zA-Z]+[~_a-zA-Z0-9:]*)\\s*\\([^\\(^;^=^<^>]*\\)[a-zA-Z\\s ]*\\{.*$"
   return symbol_reqular_exp
 end
 
@@ -1436,7 +1436,7 @@ function cpp.create_bakup(path)
     "end\n",
     "\n",
     "function user_cpp.get_reqular()\n",
-    "  local symbol_reqular_exp = \"^(?:[\\\\w+]+[_a-zA-Z0-9 ]*[ \\\\t*]+|^)([_a-zA-Z]+[~_a-zA-Z0-9:]*)\\\\s*\\\\([^\\\\(^;^=^<^>]*$\"\n",
+    "  local symbol_reqular_exp = \"\\\\s*(?:[\\\\w+]+[_a-zA-Z0-9 ]*[ \\\\t*]+|^)([_a-zA-Z]+[~_a-zA-Z0-9:]*)\\\\s*\\\\([^\\\\(^;^=^<^>]*\\\\)[a-zA-Z\\\\s ]*\\\\{.*$\"\n",
     "  return symbol_reqular_exp\n",
     "end\n",
     "return user_cpp",

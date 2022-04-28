@@ -6,7 +6,7 @@ function luascript.get_keywords()
   return keywords0_set,keywords1_set
 end
 
-function luascript.get_autocomplete()
+ function luascript.get_autocomplete()
   local autocomplete_set = "assert collectgarbage date error gcinfo getfenv getmetatable loadstring next pcall select setfenv setmetatable time type unpack xpcall abs acos asin atan atan2 ceil cos deg exp floor frexp ldexp log log10 max min mod rad random randomseed sin sqrt tan format gsub strbyte strchar strfind strlen strlower strmatch strrep strsub strupper tonumber tostring strtrim strsplit strjoin foreach foreachi getn ipairs pairs sort tinsert tremove"
   return autocomplete_set
 end
@@ -83,7 +83,7 @@ function luascript.get_calltip()
 end
 
 function luascript.get_reqular()
-  local symbol_reqular_exp = "[ \\t]*function[ \\t]+([_a-zA-Z]+[:_a-zA-Z0-9]*)\\s*\\("
+  local symbol_reqular_exp = "\\s*|^function\\s+([_a-zA-Z]+[\\.:_a-zA-Z0-9]*)\\s*\\("
   return symbol_reqular_exp
 end
 
@@ -173,7 +173,7 @@ function luascript.create_bakup(path)
     "end\n",
     "\n",
     "function user_luascript.get_reqular()\n",
-    "  local symbol_reqular_exp = \"[ \\\\t]*function[ \\\\t]+([_a-zA-Z]+[:_a-zA-Z0-9]*)\\\\s*\\\\(\"\n",
+    "  local symbol_reqular_exp = \"\\\\s*|^function\\\\s+([_a-zA-Z]+[\\\\.:_a-zA-Z0-9]*)\\\\s*\\\\(\"\n",
     "  return symbol_reqular_exp\n",
     "end\n",
     "return user_luascript",

@@ -11,7 +11,7 @@ function cshape.get_autocomplete()
 end
 
 function cshape.get_reqular()
-  local symbol_reqular_exp = "[ \\t]+[_a-zA-Z]+[_a-zA-Z0-9]*[ \\t]+[_a-zA-Z]+[_a-zA-Z0-9]*[ \\t]+([_a-zA-Z]+[_a-zA-Z0-9:]*)\\([^\\(^;]*$"
+  local symbol_reqular_exp = "\\s*[_a-zA-Z]+[_a-zA-Z0-9]*[ \\t]+[_a-zA-Z]+[_a-zA-Z0-9]*[ \\t]+([_a-zA-Z]+[_a-zA-Z0-9:]*)\\([^\\(^;]*$"
   return symbol_reqular_exp
 end
 
@@ -29,7 +29,7 @@ function cshape.create_bakup(path)
     "end\n",
     "\n",
     "function user_cshape.get_reqular()\n",
-    "  local symbol_reqular_exp = \"[ \\\\t]+[_a-zA-Z]+[_a-zA-Z0-9]*[ \\\\t]+[_a-zA-Z]+[_a-zA-Z0-9]*[ \\\\t]+([_a-zA-Z]+[_a-zA-Z0-9:]*)\\\\([^\\\\(^;]*$\"\n",
+    "  local symbol_reqular_exp = \"\\\\s*[_a-zA-Z]+[_a-zA-Z0-9]*[ \\\\t]+[_a-zA-Z]+[_a-zA-Z0-9]*[ \\\\t]+([_a-zA-Z]+[_a-zA-Z0-9:]*)\\\\([^\\\\(^;]*$\"\n",
     "  return symbol_reqular_exp\n",
     "end\n",
     "return user_cshape",
