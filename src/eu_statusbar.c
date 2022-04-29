@@ -242,7 +242,14 @@ on_statusbar_size(void)
             InvalidateRect(g_statusbar, NULL, false);
             on_statusbar_adjust_btn();
             on_statusbar_update();
-            UpdateWindow(hwnd);
+            if (!on_dark_supports())
+            {
+                UpdateWindowEx(g_statusbar);
+            }
+            else
+            {
+                UpdateWindow(hwnd);
+            }
         }
     }
 }
@@ -694,23 +701,10 @@ set_file_by_info(time_t filetime)
 void __stdcall
 on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
 {
-    int  count = 0;
-    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
+    if (g_statusbar && pnode && eu_get_config()->m_statusbar)
     {
-        return;
+        print_str ? on_statusbar_set_text(g_statusbar, 0, print_str) : set_file_by_info(pnode->st_mtime);
     }
-    if (print_str)
-    {
-        on_statusbar_set_text(g_statusbar, 0, print_str);
-        InvalidateRect(g_statusbar, NULL, TRUE);
-        UpdateWindow(g_statusbar);
-        return;
-    }
-    if (pnode->is_blank && !pnode->st_mtime)
-    {
-        pnode->st_mtime = time(NULL);
-    }
-    set_file_by_info(pnode->st_mtime);
 }
 
 void WINAPI

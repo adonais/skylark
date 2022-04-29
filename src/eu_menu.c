@@ -316,7 +316,7 @@ menu_update_item(HMENU menu)
                 switch (m_id)
                 {
                     case IDM_HISTORY_BASE:
-                        on_file_update_recent();
+                        on_file_update_recent_menu();
                         break;
                     case IDM_FILE_EXIT_WHEN_LAST_TAB:          /* File menu */
                         util_enable_menu_item(menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));

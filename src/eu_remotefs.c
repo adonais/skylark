@@ -256,7 +256,7 @@ on_remote_server_browser(HWND hdlg)
     {
         return 1;
     }
-    if (on_file_opendlg_filename(hdlg, path, MAX_PATH))
+    if (on_file_open_filename_dlg(hdlg, path, MAX_PATH))
     {
         free(path);
         return 1;
