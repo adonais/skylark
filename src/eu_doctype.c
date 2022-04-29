@@ -1397,56 +1397,61 @@ on_doc_init_after_properties(eu_tabpage *pnode)
     return 0;
 }
 
+static bool
+are_spaces_before_after(eu_tabpage *pnode, sptr_t pos)
+{
+    int current_char = 0;
+    int pre_pre_character = 0;
+    if (pos >= 2)
+    {
+        current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, pos, 0);
+        pre_pre_character = (int) eu_sci_call(pnode, SCI_GETCHARAT, pos - 2, 0);
+    }
+    if (!(current_char && pre_pre_character && !(isspace(current_char) && isspace(pre_pre_character))))
+    {
+        return true;
+    }
+    return false;
+}
+
+static void
+on_doc_character_replace(eu_tabpage *pnode, int ch)
+{
+    char p[2] = {0};
+    p[0] = ch;
+    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)p);
+}
+
 static void
 add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     if (pnode && lpnotify && eu_get_config()->auto_close_chars)
     {   /* 自动补全关闭符号 */
         sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        switch (lpnotify->ch)
-        {
-            case '(':
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ")");
-                eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
-                break;
-            case '[':
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "]");
-                eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
-                break;
-            case '{':
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "}");
-                eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
-                break;
-            case '\'':
+        if (are_spaces_before_after(pnode, current_pos))
+        {   // 当前后是空白符的时候才添加配对符号
+            switch (lpnotify->ch)
             {
-                int pre_pre_character = 0;
-                if (current_pos >= 2)
-                {
-                    pre_pre_character = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2, 0);
-                }
-                if (pre_pre_character != '\'')
-                {
-                    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "'");
+                case '(':
+                    on_doc_character_replace(pnode, ')');
                     eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
-                }
-                break;
-            }
-            case '"':
-            {
-                int pre_pre_character = 0;
-                if (current_pos >= 2)
-                {
-                    pre_pre_character = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2, 0);
-                }
-                if (pre_pre_character != '"')
-                {
-                    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) "\"");
+                    break;
+                case '[':
+                    on_doc_character_replace(pnode, ']');
                     eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
-                }
-                break;
+                    break;
+                case '{':
+                    on_doc_character_replace(pnode, '}');
+                    eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                    break;
+                case '\'':
+                case '"':
+                    on_doc_character_replace(pnode, lpnotify->ch);
+                    eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                    break;
+                default:
+                    break;
             }
-            default:
-                break;
         }
     }
 }
@@ -1956,15 +1961,14 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
     sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
     matching = ch > 0 && strchr("()[]{}<>", ch);
-    if (matching)  // 匹配的括号高亮显示
-    {
+    if (matching)
+    {   // 匹配的括号高亮显示
         if (current_pos > 0)
         {
             --current_pos;
         }
         if ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0)) != -1)
-        {
-            // 当键盘输入时, 相邻的括号不要高亮
+        {   // 当键盘输入时, 相邻的括号不要高亮
             if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
             {
                 sptr_t m_style = eu_sci_call(pnode, SCI_GETSTYLEAT, current_pos, 0);
@@ -2011,7 +2015,7 @@ on_doc_brace_handling(eu_tabpage *pnode)
             sptr_t match_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
             sptr_t match_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, match_line, 0);
             m_indent = (int)eu_sci_call(pnode, SCI_GETLINEINDENTATION, match_line, 0);
-            if (m_indent > 0 && match_pos - match_line_start == m_indent)
+            if (m_indent >= 0 && match_pos - match_line_start == m_indent)
             {
                 char *str_space = (char *)calloc(1, m_indent+1);
                 memset(str_space, 0x20, m_indent);
