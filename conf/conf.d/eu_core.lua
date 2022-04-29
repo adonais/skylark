@@ -55,7 +55,6 @@ struct eu_config
     bool tab2spaces;
     bool light_fold;
     bool line_mode;
-    
     bool m_ftree_show;
 
     int file_tree_width;
@@ -67,8 +66,9 @@ struct eu_config
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
-    
     bool m_ctshow;
+    
+    int m_tab_active;
     int m_quality;
     int m_render;
     int  m_upfile;

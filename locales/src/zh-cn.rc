@@ -238,6 +238,13 @@ BEGIN
         MENUITEM "显示换行符",                                  IDM_VIEW_NEWLINE_VISIABLE
         MENUITEM "显示缩进线",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
         MENUITEM MF_SEPARATOR
+        POPUP "关闭标签时激活"
+        BEGIN
+            MENUITEM "左边的标签",                              IDM_VIEW_LEFT_TAB
+            MENUITEM "右边的标签",                              IDM_VIEW_RIGHT_TAB
+            MENUITEM "最左边的标签",                            IDM_VIEW_FAR_LEFT_TAB
+            MENUITEM "最右边的标签",                            IDM_VIEW_FAR_RIGHT_TAB
+        END
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "放大",                                    IDM_VIEW_ZOOMOUT

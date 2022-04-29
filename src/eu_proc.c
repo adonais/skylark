@@ -1119,6 +1119,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
                     on_view_indent_visiable(hwnd);
                     break;
+                case IDM_VIEW_LEFT_TAB:
+                case IDM_VIEW_RIGHT_TAB:
+                case IDM_VIEW_FAR_LEFT_TAB:
+                case IDM_VIEW_FAR_RIGHT_TAB:
+                    eu_get_config()->m_tab_active = wm_id;
+                    break;
                 case IDM_VIEW_ZOOMOUT:
                     on_view_zoom_out(pnode);
                     break;
@@ -1752,7 +1758,7 @@ do_calss_drop(void* lp)
 }
 
 void
-en_close_edit(void)
+eu_close_edit(void)
 {
     SendMessage(eu_module_hwnd(), WM_CLOSE, 0, 0);
 }

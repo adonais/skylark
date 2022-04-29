@@ -198,20 +198,20 @@ struct eu_config
     bool tab2spaces;
     bool light_fold;
     bool line_mode;
-
     bool m_ftree_show;
-
+    
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
     int result_edit_height;
-
     int result_list_height;
+    
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
-
     bool m_ctshow;
+    
+    int m_tab_active;
     int m_quality;
     int m_render;
     int  m_upfile;
@@ -448,7 +448,7 @@ EU_EXT_CLASS HINSTANCE eu_module_handle(void);
 
 // for eu_proc.h
 EU_EXT_CLASS HWND eu_module_hwnd(void);
-EU_EXT_CLASS void en_close_edit(void);
+EU_EXT_CLASS void eu_close_edit(void);
 EU_EXT_CLASS HWND eu_create_main_window(HINSTANCE instance);
 EU_EXT_CLASS bool eu_create_toolbar(HWND hwnd);
 EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);

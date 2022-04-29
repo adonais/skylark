@@ -694,14 +694,35 @@ static void
 on_file_other_tab(int index)
 {
     int count = TabCtrl_GetItemCount(g_tabpages);
-    if (!count)
+    if (count <= 0)
     {   // 最后一个标签
-        file_backup bak = {0};
-        share_send_msg(&bak);
+        if (!eu_get_config()->m_exit)
+        {
+            file_backup bak = {0};
+            share_send_msg(&bak);
+        }
+        else
+        {
+            eu_close_edit();
+        }
+        return;
     }
-    else
+    switch (eu_get_config()->m_tab_active)
     {   // 激活另一个标签
-        on_tabpage_select_index(index < count - 1 ? index : count - 1);
+        case IDM_VIEW_LEFT_TAB:
+            on_tabpage_select_index(index - 1);
+            break;
+        case IDM_VIEW_RIGHT_TAB:
+            on_tabpage_select_index(index > count - 1 ? 0 : index);
+            break;
+        case IDM_VIEW_FAR_LEFT_TAB:
+            on_tabpage_select_index(0);
+            break;
+        case IDM_VIEW_FAR_RIGHT_TAB:
+            on_tabpage_select_index(count - 1);
+            break;
+        default:
+            break;    
     }
 }
 
@@ -1557,15 +1578,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     int index = on_tabpage_remove(&pnode);
     if (index >= 0 && mode == FILE_ONLY_CLOSE)
     {
-        index = TabCtrl_GetItemCount(g_tabpages);
-        if (index > 0 || !eu_get_config()->m_exit)
-        {
-            on_file_other_tab(index);
-        }
-        else
-        {
-            en_close_edit();
-        }
+        on_file_other_tab(index);
     }
     return SKYLARK_OK;
 }
@@ -1594,7 +1607,7 @@ on_file_all_close(void)
         }
         else
         {
-            en_close_edit();
+            eu_close_edit();
         }
     }
     return SKYLARK_OK;

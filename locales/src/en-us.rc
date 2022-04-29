@@ -238,6 +238,13 @@ BEGIN
         MENUITEM "Show Wrap Symbol",                                   IDM_VIEW_NEWLINE_VISIABLE
         MENUITEM "Show Indent Guide",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
         MENUITEM MF_SEPARATOR
+        POPUP "Activated When Closing Tab"
+        BEGIN
+            MENUITEM "The Left Tab",                                   IDM_VIEW_LEFT_TAB
+            MENUITEM "The Right Tab",                                  IDM_VIEW_RIGHT_TAB
+            MENUITEM "The Far Left Tab",                               IDM_VIEW_FAR_LEFT_TAB
+            MENUITEM "The Far Right Tab",                              IDM_VIEW_FAR_RIGHT_TAB
+        END        
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "Zoom Out",                                       IDM_VIEW_ZOOMOUT

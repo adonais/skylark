@@ -88,6 +88,7 @@ bool   util_open_file(LPCTSTR path, pt_stream pstream);
 bool   util_exist_libcurl(void);
 time_t util_last_time(const TCHAR *path);
 uint64_t util_gen_tstamp(void);
+void util_switch_menu_group(HMENU hmenu, uint32_t first_id, uint32_t last_id, uint32_t select);
 WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *, TCHAR *, int);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);

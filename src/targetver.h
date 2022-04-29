@@ -911,6 +911,11 @@
 #define IDS_EXTRA_PATH                      42886
 #define IDC_REGXP_TIPS_STC                  42887
 
+#define IDM_VIEW_LEFT_TAB                   42990
+#define IDM_VIEW_RIGHT_TAB                  42991
+#define IDM_VIEW_FAR_LEFT_TAB               42992
+#define IDM_VIEW_FAR_RIGHT_TAB              42993
+
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 
