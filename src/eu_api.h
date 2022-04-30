@@ -337,10 +337,10 @@ typedef void (*eu_des_ede3_cbc_encrypt)(const unsigned char *input, unsigned cha
 EU_EXT_CLASS int eu_sqlite3_open(const char *filename, sqlite3 **ppdb);
 EU_EXT_CLASS int eu_sqlite3_exec(sqlite3*,  const char *sql, sql3_callback, void *, char **errmsg);
 EU_EXT_CLASS int eu_sqlite3_get_table(sqlite3 *db,const char *psql,char ***presult,int *prow,int *pcolumn,char **pzmsg);
+EU_EXT_CLASS void eu_sqlite3_free_table(char **result);
+EU_EXT_CLASS void eu_sqlite3_free(void *point);
 EU_EXT_CLASS int eu_sqlite3_close(sqlite3 *);
 EU_EXT_CLASS int eu_sqlite3_send(const char *sql, sql3_callback, void *);
-
-EU_EXT_CLASS void eu_sqlite3_free_table(char **result);
 EU_EXT_CLASS void eu_push_find_history(const char *key);
 EU_EXT_CLASS void eu_delete_find_history(const char *key);
 EU_EXT_CLASS void eu_push_replace_history(const char *key);

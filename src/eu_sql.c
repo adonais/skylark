@@ -50,6 +50,31 @@ leave_spinlock(void)
     _InterlockedExchange(&g_sql_locked, 0);
 }
 
+static bool
+sql_format_execute(const char *fmt, char *buf, int len)
+{
+    bool ret = false;
+    char *pname = eu_utf16_utf8(__ORIGINAL_NAME, NULL);
+    char *pver = eu_utf16_utf8(__EU_INFO_RELEASE_VERSION, NULL);
+    do
+    {
+        if (!pname)
+        {
+            break;
+        }
+        if (!pver)
+        {
+            break;
+        }
+        int m = snprintf(buf, len, fmt, pname, pver, on_about_build_id());
+        ret = (m > 0 && m < len);
+    } while(0);
+format_clean:
+    eu_safe_free(pname);
+    eu_safe_free(pver);
+    return ret;
+}
+
 static uintptr_t
 init_sql_file(const char *sql_path)
 {
@@ -103,16 +128,10 @@ init_sql_file(const char *sql_path)
             if (EXEC_VERSION == i)
             {
                 char buffer[MAX_PATH+1] = {0};
-                char *pname = eu_utf16_utf8(__ORIGINAL_NAME, NULL);
-                char *pver = eu_utf16_utf8(__EU_INFO_RELEASE_VERSION, NULL);
-                if (!(pname && pver))
+                if (sql_format_execute(sql[i], buffer, MAX_PATH))
                 {
-                    continue;
+                    rc = sqlite3_exec(db, buffer, 0, 0, &msg);
                 }
-                _snprintf(buffer, MAX_PATH, sql[i], pname, pver, on_about_build_id());
-                free(pname);
-                free(pver);
-                rc = sqlite3_exec(db, buffer, 0, 0, &msg);
             }
             else
             {
@@ -129,7 +148,7 @@ init_sql_file(const char *sql_path)
 mem_clean:
     if (msg)
     {
-        free(msg);
+        sqlite3_free(msg);
     }
     if (rc != SQLITE_OK)
     {
@@ -322,6 +341,9 @@ eu_clear_backup_table(void)
     }
 }
 
+/**************************************************************************************
+ * 导出sqlite几个常用函数到euapi
+ **************************************************************************************/
 int 
 eu_sqlite3_open(const char *filename, sqlite3 **ppdb)
 {
@@ -344,6 +366,12 @@ void
 eu_sqlite3_free_table(char **result)
 {
     sqlite3_free_table(result);
+}
+
+void 
+eu_sqlite3_free(void *point)
+{
+    sqlite3_free(point);
 }
 
 int 
