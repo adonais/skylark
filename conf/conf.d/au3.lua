@@ -7,6 +7,7 @@ function au3.init_after_callback(p)
   local pnode = eu_core.ffi.cast("void *", p)
   local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, "au3")
   if (res ~= 1) then
+    eu_core.euapi.on_doc_enable_foldline(pnode)                                             -- enable fold line
     eu_core.euapi.on_doc_comment_light(pnode, SCE_AU3_COMMENT, 0)                           -- third parameter(0), uses the theme default color
     eu_core.euapi.on_doc_commentblock_light(pnode, SCE_AU3_COMMENTBLOCK, 0)
     eu_core.euapi.on_doc_keyword_light(pnode, SCE_AU3_KEYWORD, 0, 0)                        -- 5, SCE_AU3_KEYWORD, keywords0
@@ -50,6 +51,7 @@ function au3.create_bakup(path)
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
     "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"au3\")\n",
     "  if (res ~= 1) then\n",
+    "    eu_core.euapi.on_doc_enable_foldline(pnode)                                             -- enable fold line\n",
     "    eu_core.euapi.on_doc_comment_light(pnode, SCE_AU3_COMMENT, 0)                           -- third parameter(0), uses the theme default color\n",
     "    eu_core.euapi.on_doc_commentblock_light(pnode, SCE_AU3_COMMENTBLOCK, 0)\n",
     "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_AU3_KEYWORD, 0, 0)                        -- 5, SCE_AU3_KEYWORD, keywords0\n",

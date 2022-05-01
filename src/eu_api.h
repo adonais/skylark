@@ -64,7 +64,7 @@
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
 #define EU_VERIFY(x) (void)((x) || (EU_ABORT("failed assert(%s): %s:%d\n", #x, __FILE__, __LINE__), 0))
 #else
-static inline void 
+static inline void
 assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 {
     char msg[256] = {0};
@@ -87,7 +87,7 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
     }                                                       \
 }
 
-enum 
+enum
 {
     SKYLARK_OK = 0,
     EUE_TAB_NULL,
@@ -124,6 +124,7 @@ enum
     EUE_OPENSSL_ENC_ERR,
     EUE_OPENSSL_DEC_ERR,
     EUE_UNKOWN_ERR,
+    SKYLARK_OPENED
 };
 
 #include <stdio.h>
@@ -175,48 +176,49 @@ struct eu_config
 {
     int new_file_eol;
     int new_file_enc;
-    
+
     bool auto_close_chars;
     bool m_ident;
     char window_theme[ACNAME_LEN];
     bool m_fullscreen;
     bool m_menubar;
     bool m_toolbar;
-    bool m_statusbar;    
+    bool m_statusbar;
     bool m_linenumber;
-    
+
     bool bookmark_visable;
     int  bookmark_shape;
     uint32_t bookmark_argb;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;
-    
+
     bool m_indentation;
     int tab_width;
     bool tab2spaces;
     bool light_fold;
     bool line_mode;
-    
     bool m_ftree_show;
-
+    
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
     int result_edit_height;
-    
     int result_list_height;
+    
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
-    
     bool m_ctshow;
+    
+    int m_tab_active;
     int m_quality;
     int m_render;
     int  m_upfile;
     bool m_light_str;
     bool m_write_copy;
     bool m_session;
+    bool m_exit;
     char m_placement[MAX_BUFFER];
     char m_language[ACNAME_LEN];
     print_set eu_print;
@@ -321,7 +323,7 @@ typedef int (*eu_evp_encodeblock)(unsigned char *t, const unsigned char *f, int 
 typedef int (*eu_evp_decodeblock)(unsigned char *t, const unsigned char *f, int n);
 typedef int (*eu_aes_set_encrypt_key)(const unsigned char *userKey, const int bits, AES_KEY *key);
 typedef int (*eu_aes_set_decrypt_key)(const unsigned char *userKey, const int bits, AES_KEY *key);
-typedef void (*eu_aes_cbc_encrypt)(const unsigned char *, unsigned char *, size_t, const AES_KEY *,unsigned char *, const int); 
+typedef void (*eu_aes_cbc_encrypt)(const unsigned char *, unsigned char *, size_t, const AES_KEY *,unsigned char *, const int);
 typedef void (*eu_des_set_key_unchecked)(const_DES_cblock *key, DES_key_schedule *schedule);
 typedef void (*eu_des_ecb3_encrypt)(const_DES_cblock *input, DES_cblock *output,
                                     DES_key_schedule *ks1, DES_key_schedule *ks2,
@@ -335,10 +337,10 @@ typedef void (*eu_des_ede3_cbc_encrypt)(const unsigned char *input, unsigned cha
 EU_EXT_CLASS int eu_sqlite3_open(const char *filename, sqlite3 **ppdb);
 EU_EXT_CLASS int eu_sqlite3_exec(sqlite3*,  const char *sql, sql3_callback, void *, char **errmsg);
 EU_EXT_CLASS int eu_sqlite3_get_table(sqlite3 *db,const char *psql,char ***presult,int *prow,int *pcolumn,char **pzmsg);
+EU_EXT_CLASS void eu_sqlite3_free_table(char **result);
+EU_EXT_CLASS void eu_sqlite3_free(void *point);
 EU_EXT_CLASS int eu_sqlite3_close(sqlite3 *);
 EU_EXT_CLASS int eu_sqlite3_send(const char *sql, sql3_callback, void *);
-
-EU_EXT_CLASS void eu_sqlite3_free_table(char **result);
 EU_EXT_CLASS void eu_push_find_history(const char *key);
 EU_EXT_CLASS void eu_delete_find_history(const char *key);
 EU_EXT_CLASS void eu_push_replace_history(const char *key);
@@ -412,6 +414,7 @@ EU_EXT_CLASS int eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback pba
 EU_EXT_CLASS int eu_sci_register(HINSTANCE hinstance);
 EU_EXT_CLASS int eu_sci_release(void);
 EU_EXT_CLASS sptr_t eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l);
+EU_EXT_CLASS void eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR nmhdr);
 
 // for iconv
 EU_EXT_CLASS int eu_iconvctl(iconv_t cd, int request, void* argument);
@@ -445,6 +448,7 @@ EU_EXT_CLASS HINSTANCE eu_module_handle(void);
 
 // for eu_proc.h
 EU_EXT_CLASS HWND eu_module_hwnd(void);
+EU_EXT_CLASS void eu_close_edit(void);
 EU_EXT_CLASS HWND eu_create_main_window(HINSTANCE instance);
 EU_EXT_CLASS bool eu_create_toolbar(HWND hwnd);
 EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);
@@ -511,6 +515,7 @@ EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 
 // for eu_doctype.c
 EU_EXT_CLASS void eu_doc_config_release(void);
+EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_init_list(eu_tabpage *pnode);
@@ -544,7 +549,6 @@ EU_EXT_CLASS int on_doc_init_after_json(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_yaml(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_makefile(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_cmake(eu_tabpage *pnode);
-EU_EXT_CLASS int on_doc_init_after_markdown(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_log(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_nim(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_shell_sh(eu_tabpage *pnode);
@@ -569,7 +573,6 @@ EU_EXT_CLASS int on_doc_css_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify);
 EU_EXT_CLASS int on_doc_cmake_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_markdown_like(eu_tabpage *pnode, SCNotification *lpnotify);
 
 /* 默认的 reload_list_ptr,reload_tree_ptr  回调函数入口 */
 EU_EXT_CLASS int on_doc_reload_list_reqular(eu_tabpage *pnode);
@@ -587,7 +590,7 @@ EU_EXT_CLASS int on_doc_click_tree_redis(eu_tabpage *pnode);
 
 /* 脚本调用 */
 EU_EXT_CLASS int on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name);
-EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t rgb, bool force);
+EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t fg_rgb, int64_t bk_rgb, bool force);
 EU_EXT_CLASS void on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
 EU_EXT_CLASS void on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);

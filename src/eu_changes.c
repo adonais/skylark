@@ -371,8 +371,7 @@ set_time_event(eu_tabpage *p)
 void WINAPI
 on_changes_window(HWND hwnd)
 {
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = { TCIF_PARAM };
         TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -393,7 +392,7 @@ on_changes_window(HWND hwnd)
             }
         }
     }
-    if (eu_get_config()->m_upfile < FILE_CHANGE_SEC_YES)
+    if (eu_get_config()->m_upfile && eu_get_config()->m_upfile < FILE_CHANGE_SEC_YES)
     { // 复位, 下次会话重新显示窗口
         eu_get_config()->m_upfile = 0;
     }

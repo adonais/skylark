@@ -23,6 +23,8 @@
 #define TAB_MIN_WIDTH 140
 #define CLOSEBUTTON_WIDTH 11
 #define CLOSEBUTTON_HEIGHT 11
+#define CX_ICON  16 
+#define CY_ICON  16 
 
 HWND g_tabpages = NULL;
 HMENU pop_editor_menu = NULL;
@@ -72,6 +74,11 @@ static void
 on_tabpage_destroy_tabbar(void)
 {
     on_tabpage_destroy_rclick();
+    HIMAGELIST himg = TabCtrl_GetImageList(g_tabpages);
+    if (himg)
+    {
+        ImageList_Destroy(himg);
+    }    
     if (g_tabpages)
     {
         g_tabpages = NULL;
@@ -86,6 +93,28 @@ on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
     UNREFERENCED_PARAMETER(wParam);
     UNREFERENCED_PARAMETER(lParam);
     return 1;
+}
+
+bool
+init_icon_img_list(HWND htab)
+{
+    bool res = false;
+    HBITMAP hbmp = NULL;
+    HINSTANCE hinst = eu_module_handle();
+    if ((hbmp = (HBITMAP) LoadImage(hinst, MAKEINTRESOURCE(IDT_BIRD), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_DEFAULTSIZE)) != NULL)
+    {
+        BITMAP bm = {0};
+        GetObject(hbmp, sizeof(BITMAP), &bm);
+        HIMAGELIST himg = ImageList_Create(IMAGEWIDTH, IMAGEHEIGHT, bm.bmBitsPixel | ILC_MASK, bm.bmWidth / IMAGEWIDTH, 1);
+        if (himg)
+        {
+            ImageList_AddMasked(himg, hbmp, 0xF0F0F0);
+            TabCtrl_SetImageList(htab, himg);
+            res = true;
+        }
+        DeleteObject((HGDIOBJ) hbmp);
+    }
+    return res;
 }
 
 static void
@@ -136,27 +165,32 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
     if (old_font)
     {
         set_text_color(hdc, dark_mode);
-        int count = TabCtrl_GetItemCount(hwnd);
         int nsel = TabCtrl_GetCurSel(hwnd);
-        for (int index = 0; index < count; ++index)
+        for (int index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
         {
-            TCITEM tci = {TCIF_PARAM};
+            TCITEM tci = {TCIF_PARAM | TCIF_TEXT | TCIF_IMAGE};
             TabCtrl_GetItem(hwnd, index, &tci);
             eu_tabpage *p = (eu_tabpage *) (tci.lParam);
             if (p)
             {
                 RECT rc;
+                colour cr = 0;
+                HIMAGELIST himg = TabCtrl_GetImageList(hwnd);
                 TabCtrl_GetItemRect(hwnd, index, &rc);
                 FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
                 if (nsel == index)
                 {   // 这里使用固定值, 因为在某些系统上, COLOR_HIGHLIGHT值不一样
-                    colour cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : rgb_high_light_color;
+                    cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : rgb_high_light_color;
                     SetBkColor(hdc, cr);
                     ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
                 }
                 else
                 {
-                    set_btnface_color(hdc, dark_mode);
+                    cr = set_btnface_color(hdc, dark_mode);
+                }
+                if (p->be_modify && himg)
+                {
+                    ImageList_Draw(himg, 0, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
                 }
                 if (STR_NOT_NUL(p->filename))
                 {
@@ -440,6 +474,12 @@ on_tabpage_create_dlg(HWND hwnd)
             err = 1;
             break;
         }
+        if (!init_icon_img_list(g_tabpages))
+        {
+            printf("init_icon_img_list return false\n");
+            err = 1;
+            break;
+        }
         SendMessage(g_tabpages, WM_SETFONT, (WPARAM) GetStockObject(DEFAULT_GUI_FONT), 0);
         TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, TAB_MIN_TOP);
         TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
@@ -588,15 +628,13 @@ on_tabpage_remove(eu_tabpage **ppnode)
     int index = 0;
     eu_tabpage *p = NULL;
     EU_VERIFY(ppnode != NULL && *ppnode != NULL && g_tabpages != NULL);
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (index = 0; index < count; ++index)
+    for (int count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         p = (eu_tabpage *) (tci.lParam);
         if (p && p == *ppnode)
-        {
-            /* 删除控件句柄与释放资源 */
+        {   /* 删除控件句柄与释放资源 */
             TabCtrl_DeleteItem(g_tabpages, index);
             on_sci_free_tab(ppnode);
             break;
@@ -695,10 +733,6 @@ on_tabpage_newdoc_reload(void)
                         _sntprintf(filename, MAX_PATH-1, m_file, _tstoi(pstr + 1));
                         _tcscpy(p->pathfile, filename);
                         _tcscpy(p->filename, filename);
-                        if (p->be_modify)
-                        {
-                            _tcsncat(p->filename, _T("*"), MAX_PATH);
-                        }
                         util_set_title(p->pathfile);
                     }
                 }
@@ -896,8 +930,8 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         util_set_title(pnode->pathfile);
         // 切换工作目录
         util_set_working_dir(pnode->pathname);
-        eu_window_resize(hwnd);
         on_toolbar_update_button();
+        eu_window_resize(hwnd);
     }
 }
 
@@ -926,7 +960,7 @@ on_tabpage_get_ptr(int index)
     int count = TabCtrl_GetItemCount(g_tabpages);
     if (index < 0 || index >= count)
     {
-        return NULL;
+        index = count - 1;
     }
     TabCtrl_GetItem(g_tabpages, index, &tci);
     return (eu_tabpage *) (tci.lParam);
@@ -966,13 +1000,8 @@ on_tabpage_select_index(int index)
 void
 on_tabpage_changing(void)
 {
-    EU_VERIFY(g_tabpages != NULL);
-    int m_page = TabCtrl_GetCurSel(g_tabpages);
-    eu_tabpage *p = on_tabpage_select_index(m_page);
-    if (p && p->hwnd_sc)
-    {
-        PostMessage(p->hwnd_sc, WM_SETFOCUS, 0, 0);
-    }
+    on_tabpage_select_index(TabCtrl_GetCurSel(g_tabpages));
+    PostMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 
 void

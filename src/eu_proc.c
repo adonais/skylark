@@ -420,20 +420,17 @@ eu_window_resize(HWND hwnd)
     }
     if (g_tabpages)
     {
+        on_toolbar_size();
         InvalidateRect(g_tabpages, NULL, true);
         UpdateWindow(g_tabpages);
     }
     if (pnode && pnode->hwnd_sc)
     {
+        PostMessage(g_statusbar, WM_SIZE, 0, 0);
         eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
                          pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-        SetFocus(pnode->hwnd_sc);
         UpdateWindowEx(pnode->hwnd_sc);
-    }
-    if (true)
-    {
-        on_toolbar_size();
-        on_statusbar_size();
+        PostMessage(hwnd ? hwnd : eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
     }
 }
 
@@ -661,15 +658,22 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 if (len > 0)
                 {
-                    if (_tcsnicmp(bak.rel_path, _T("sftp://"), 7) != 0 && _tcsrchr(bak.rel_path, _T('/')))
-                    {
-                        eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
-                    }
                     if (_tcsrchr(bak.rel_path, _T('&')))
                     {
                         eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&&"), _T("&"));
                     }
-                    on_file_only_open(&bak);
+                    if (!url_has_remote(bak.rel_path))
+                    {
+                        if (_tcsrchr(bak.rel_path, _T('/')))
+                        {
+                            eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
+                        }
+                        on_file_only_open(&bak, true);
+                    }
+                    else
+                    {
+                        on_file_open_remote(NULL, &bak, true);
+                    }
                 }
                 break;
             }
@@ -712,11 +716,17 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_CLOSEALL_EXCLUDE:
                     on_file_exclude_close(pnode);
                     break;
+                case IDM_FILE_RESTORE_RECENT:
+                    on_file_restore_recent();
+                    break;
                 case IDM_FILE_WRITE_COPY:
                     on_file_backup_menu();
                     break;
                 case IDM_FILE_SESSION:
                     on_file_session_menu();
+                    break;
+                case IDM_FILE_EXIT_WHEN_LAST_TAB:
+                    on_file_close_last_tab();
                     break;
                 case IDM_FILE_PAGESETUP:
                     on_print_setup(eu_hwndmain);
@@ -787,7 +797,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_COPY_FILENAME:
                     if (pnode && *pnode->filename)
                     {
-                        on_edit_copy_filename(pnode->filename);
+                        on_edit_push_clipboard(pnode->filename);
                     }
                     break;
                 case IDM_EDIT_COPY_PATHNAME:
@@ -1109,6 +1119,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
                     on_view_indent_visiable(hwnd);
                     break;
+                case IDM_VIEW_LEFT_TAB:
+                case IDM_VIEW_RIGHT_TAB:
+                case IDM_VIEW_FAR_LEFT_TAB:
+                case IDM_VIEW_FAR_RIGHT_TAB:
+                    eu_get_config()->m_tab_active = wm_id;
+                    break;
                 case IDM_VIEW_ZOOMOUT:
                     on_view_zoom_out(pnode);
                     break;
@@ -1186,14 +1202,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     file_backup bak = {0};
                     _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\README_CN.MD"), eu_module_path);
-                    on_file_only_open(&bak);
+                    on_file_only_open(&bak, true);
                     break;
                 }
                 case IDM_CHANGELOG:
                 {
                     file_backup bak = {0};
                     _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\share\\changelog"), eu_module_path);
-                    on_file_only_open(&bak);
+                    on_file_only_open(&bak, true);
                     break;
                 }
                 case IDM_VIEW_FULLSCREEN:
@@ -1409,7 +1425,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (lpnmhdr->code)
             {
                 case NM_CLICK:
-                    if (g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
+                    if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {
                         POINT pt;
                         LPNMMOUSE lpnmm = (LPNMMOUSE)lParam;
@@ -1739,6 +1755,12 @@ do_calss_drop(void* lp)
         do_drop_fix();
     }
     return 0;
+}
+
+void
+eu_close_edit(void)
+{
+    SendMessage(eu_module_hwnd(), WM_CLOSE, 0, 0);
 }
 
 HWND

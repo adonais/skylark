@@ -5,6 +5,7 @@ require("eu_core")
 
 function caml.init_after_callback(p)
   local pnode = eu_core.ffi.cast("void *", p)
+  eu_core.euapi.on_doc_enable_foldline(pnode)                         -- enable fold line
   return eu_core.euapi.on_doc_init_after_scilexer(pnode, "caml")
 end
 
@@ -55,6 +56,7 @@ function caml.create_bakup(path)
     "\n",
     "function user_caml.init_after_callback(p)\n",
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
+    "  eu_core.euapi.on_doc_enable_foldline(pnode)                         -- enable fold line\n",
     "  return eu_core.euapi.on_doc_init_after_scilexer(pnode, \"caml\")\n",
     "end\n",
     "\n",

@@ -38,7 +38,7 @@ eu_init_logs(void)
     }
 }
 
-void __cdecl 
+void __cdecl
 eu_logmsg(const char *format, ...)
 {
     va_list args;

@@ -31,7 +31,7 @@ typedef struct _remotefs
 {
     char        servername[100+1];
     char        protocol[20+1];
-    char        networkaddr[64+1];
+    char        networkaddr[MAX_PATH+1];
     int         port;
     int         accesss;
     char        user[20+1];

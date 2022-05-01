@@ -52,7 +52,7 @@ on_reg_admin(void)
                 break;
             }
         }
-        if (!DuplicateToken(token, SecurityImpersonation, &impersonation_token)) 
+        if (!DuplicateToken(token, SecurityImpersonation, &impersonation_token))
         {
             break;
         }
@@ -183,7 +183,7 @@ check_reg_str(HKEY key, LPCTSTR txt)
     TCHAR process[MAX_PATH] = {0};
     TCHAR sz_path[MAX_PATH] = {0};
     uint32_t dw_size = sizeof(sz_path);
-    uint32_t dw_type = REG_SZ;    
+    uint32_t dw_type = REG_SZ;
     if (!GetModuleFileName(NULL, process, MAX_PATH))
     {
         return false;
@@ -231,7 +231,7 @@ on_reg_update_menu(void)
         else
         {
             util_set_menu_item(hmenu, IDM_ENV_DIRECTORY_POPUPMENU, false);
-        }        
+        }
     }
 }
 
@@ -601,7 +601,7 @@ eu_reg_dir_popup_menu(void)
     return ret;
 }
 
-const TCHAR 
+const TCHAR
 ext_array[SUPPORTED_LANG][EXT_LEN][NAME_MAX] =
 {
     {_T("Text"),_T(".txt"), _T(".log")},
@@ -629,7 +629,7 @@ ext_array[SUPPORTED_LANG][EXT_LEN][NAME_MAX] =
     {_T("customize")}
 };
 
-static int 
+static int
 get_sub_key(HKEY h_key)
 {
     int m_sub;
@@ -637,15 +637,15 @@ get_sub_key(HKEY h_key)
     return (result == ERROR_SUCCESS)?m_sub:0;
 }
 
-static int 
+static int
 get_sub_value(HKEY h_key)
 {
     int m_value;
     long result = RegQueryInfoKey(h_key, NULL, NULL, NULL, NULL, NULL, NULL, (LPDWORD)&m_value, NULL, NULL, NULL, NULL);
     return (result == ERROR_SUCCESS)?m_value:0;
 }
-    
-static void 
+
+static void
 get_registered_exts(HWND hdlg)
 {
     int m_sub = get_sub_key(HKEY_CLASSES_ROOT);
@@ -672,7 +672,7 @@ get_registered_exts(HWND hdlg)
     }
 }
 
-static void 
+static void
 get_supported_exts(HWND hdlg)
 {
     for (int i = 0 ; i < SUPPORTED_LANG ; ++i)
@@ -681,7 +681,7 @@ get_supported_exts(HWND hdlg)
     }
 }
 
-static void 
+static void
 add_ext(TCHAR *ext)
 {
     HKEY  h_key;
@@ -706,7 +706,7 @@ add_ext(TCHAR *ext)
 }
 
 
-static bool 
+static bool
 delete_exts(const TCHAR *ext_deleted)
 {
     HKEY h_key;
@@ -747,10 +747,10 @@ write_edit_path(HWND hdlg)
     DWORD dw_disp;
     long  ret;
     TCHAR reg_str[MAX_PATH];
-    
+
     _sntprintf(reg_str, MAX_PATH-1, _T("%s%s"), EDIT_FILE, _T("\\shell\\open\\command"));
     ret = RegCreateKeyEx(HKEY_CLASSES_ROOT, reg_str, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &h_key, &dw_disp);
-        
+
     if (ret == ERROR_SUCCESS)
     {
         // Write the value for new document
@@ -761,7 +761,7 @@ write_edit_path(HWND hdlg)
         TCHAR path[MAX_PATH];
         GetModuleFileName(eu_module_handle(), path, MAX_PATH);
 
-        TCHAR path_param[MAX_PATH] = _T("\""); 
+        TCHAR path_param[MAX_PATH] = _T("\"");
         _tcsncat(path_param, path, MAX_PATH);
         _tcsncat(path_param, _T("\" \"%1\""), MAX_PATH);
 
@@ -786,7 +786,7 @@ write_edit_path(HWND hdlg)
     }
 }
 
-static INT_PTR CALLBACK 
+static INT_PTR CALLBACK
 reg_proc(HWND hdlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
@@ -830,7 +830,7 @@ reg_proc(HWND hdlg, UINT msg, WPARAM wParam, LPARAM lParam)
                 on_dark_allow_window(hdlg, true);
                 on_dark_refresh_titlebar(hdlg);
                 const int buttons[] = {IDC_ADDFROMLANGEXT_BUTTON, IDC_REMOVEEXT_BUTTON};
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
                     on_dark_allow_window(btn, true);
@@ -858,7 +858,7 @@ reg_proc(HWND hdlg, UINT msg, WPARAM wParam, LPARAM lParam)
                         else
                         {
                             SendMessage(hdlg, WM_COMMAND, IDC_REMOVEEXT_BUTTON, 0);
-                        }    
+                        }
                     }
                     return 1;
                 }
@@ -1021,7 +1021,7 @@ reg_proc(HWND hdlg, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int 
+int
 eu_create_registry_dlg(void)
 {
     int ret = 1;
@@ -1041,7 +1041,7 @@ eu_create_registry_dlg(void)
         {
             printf("share_map return false in %s\n", __FUNCTION__);
             break;
-        } 
+        }
         if (i18n_dlgbox(*memory, IDD_REGEXT_BOX, reg_proc, 0) > 0)
         {
             ret = 0;

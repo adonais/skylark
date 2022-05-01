@@ -438,10 +438,6 @@ format_file_with_clang(eu_tabpage *pnode)
             break;
         }
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        if (filename[strlen(filename) - 1] == '*')
-        {
-            filename[strlen(filename) - 1] = 0;
-        }
         if (do_lib_format(filename, text, text_len+1, &out))
         {
             eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
@@ -481,10 +477,6 @@ format_str_with_clang(eu_tabpage *pnode)
             break;
         }
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        if (filename[strlen(filename) - 1] == '*')
-        {
-            filename[strlen(filename) - 1] = 0;
-        }
         if (text && do_lib_format(filename, text, len, &out))
         {
             eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out);

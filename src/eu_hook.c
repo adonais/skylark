@@ -95,7 +95,7 @@ on_hook_exception(void)
     if (!util_under_wine())
     {
         SetUnhandledExceptionFilter(error_handle_output);
-        return pre_exception_filter();        
+        return pre_exception_filter();
     }
     return true;
 }
@@ -113,7 +113,7 @@ on_hook_exception(void)
  *return返回值        找到的地址总数, 未找到返回0.
  ***************************************************************************************/
 static int
-find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endaddr,  
+find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endaddr,
                    uintptr_t *ret, int n_size, int deviation, bool is_call, bool is_all)
 {
     uint8_t *pmark = NULL;
@@ -237,7 +237,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
                 {
                     offset = i - j + n_sunday;
                     // 判断偏移量是否大于缓冲区
-                    if (offset > mbi.RegionSize - len) 
+                    if (offset > mbi.RegionSize - len)
                     {
                         break;
                     }
@@ -290,7 +290,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
                 }
             }
             // 取下一块内存地址
-            cur_addr += mbi.RegionSize; 
+            cur_addr += mbi.RegionSize;
         }
         else
         {
@@ -363,7 +363,7 @@ do_hook(void *func, void *hook_func, void **orig_func)
     return VirtualProtect(func, index, uold, &uold);
 }
 
-static void 
+static void
 put_zrow_bottom_hook(void *ptc, int moving)
 {
     printf("put_zrow_bottom run\n");
@@ -427,7 +427,7 @@ get_data_directory_from_base(void *module_base, uint32_t entry_id)
     return rva_to_va(module_base, (uintptr_t)dataDir[entry_id].VirtualAddress);
 }
 
-static PIMAGE_THUNK_DATA 
+static PIMAGE_THUNK_DATA
 find_address_by_name(void *module_base, PIMAGE_THUNK_DATA impName, PIMAGE_THUNK_DATA impAddr, const char *func_name)
 {
     for (; impName->u1.Ordinal; ++impName, ++impAddr)
@@ -446,7 +446,7 @@ find_address_by_name(void *module_base, PIMAGE_THUNK_DATA impName, PIMAGE_THUNK_
     return NULL;
 }
 
-static PIMAGE_THUNK_DATA 
+static PIMAGE_THUNK_DATA
 find_address_by_ordinal(void *module_base, PIMAGE_THUNK_DATA impName, PIMAGE_THUNK_DATA impAddr, uint16_t ordinal)
 {
     UNREFERENCED_PARAMETER(module_base);
@@ -460,7 +460,7 @@ find_address_by_ordinal(void *module_base, PIMAGE_THUNK_DATA impName, PIMAGE_THU
     return NULL;
 }
 
-static PIMAGE_THUNK_DATA 
+static PIMAGE_THUNK_DATA
 find_iat_thunk(void *module_base, const char *dll_name, const char *func_name)
 {
     PIMAGE_IMPORT_DESCRIPTOR imports = (PIMAGE_IMPORT_DESCRIPTOR)get_data_directory_from_base(module_base, IMAGE_DIRECTORY_ENTRY_IMPORT);
@@ -477,7 +477,7 @@ find_iat_thunk(void *module_base, const char *dll_name, const char *func_name)
     return NULL;
 }
 
-static PIMAGE_THUNK_DATA 
+static PIMAGE_THUNK_DATA
 find_delayload_thunk_by_name(void *module_base, const char *dll_name, const char *func_name)
 {
     PIMAGE_DELAYLOAD_DESCRIPTOR imports = (PIMAGE_DELAYLOAD_DESCRIPTOR)get_data_directory_from_base(module_base, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT);
@@ -494,7 +494,7 @@ find_delayload_thunk_by_name(void *module_base, const char *dll_name, const char
     return NULL;
 }
 
-PIMAGE_THUNK_DATA 
+PIMAGE_THUNK_DATA
 find_delayload_thunk_by_ordinal(void *module_base, const char *dll_name, uint16_t ordinal)
 {
     PIMAGE_DELAYLOAD_DESCRIPTOR imports = (PIMAGE_DELAYLOAD_DESCRIPTOR)get_data_directory_from_base(module_base, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT);

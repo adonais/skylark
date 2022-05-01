@@ -51,7 +51,6 @@ void on_edit_copy_line_paste(eu_tabpage *pnode);
 void on_edit_paste_line(eu_tabpage *pnode);
 void on_edit_paste_line_up(eu_tabpage *pnode);
 void on_edit_delete_line(eu_tabpage *pnode);
-void on_edit_copy_filename(TCHAR *filename);
 void on_edit_delete_blank_line(eu_tabpage *pnode);
 void on_edit_delete_all_empty_lines(eu_tabpage *pnode);
 void on_edit_delete_line_header_white(eu_tabpage *pnode);

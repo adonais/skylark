@@ -70,14 +70,6 @@ hexview_set_area(int value)
     hex_area = value;
 }
 
-void
-hexview_send_notify(HWND hwnd, uint32_t code, LPNMHDR phdr)
-{
-    phdr->hwndFrom = hwnd;
-    phdr->code = code;
-    SendMessage(GetParent(hwnd), WM_NOTIFY, 0, (LPARAM) phdr);
-}
-
 static void
 hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
 {
@@ -100,7 +92,7 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
         number_items = (hexview->vscroll_pos + line_number) * 16;
         dispinfo.item.mask = HVIF_ADDRESS;
         dispinfo.item.number_items = number_items;
-        hexview_send_notify(hwnd, HVN_GETDISPINFO, (LPNMHDR) &dispinfo);
+        eu_send_notify(hwnd, HVN_GETDISPINFO, (LPNMHDR) &dispinfo);
         SetTextColor(mem_hdc, hexview->clr_text);
         _sntprintf(buffer, _countof(buffer), (hexview->ex_style & HVS_ADDRESS64) ? _T("%016I64X") : _T("%08X"), dispinfo.item.address);
         x = hexview->width_char * (0 - hexview->hscroll_pos);
@@ -119,7 +111,7 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
             dispinfo.item.number_items = i;
             dispinfo.item.address = 0;
             dispinfo.item.value = 0;
-            hexview_send_notify(hwnd, HVN_GETDISPINFO, (LPNMHDR) &dispinfo);
+            eu_send_notify(hwnd, HVN_GETDISPINFO, (LPNMHDR) &dispinfo);
             if ((hexview->ct_flags & HVF_SELECTED) && (i >= select_start && i <= select_end))
             {
                 clr_bk = SetBkColor(mem_hdc, hexview->clr_bg_selected);
@@ -953,7 +945,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                             uint8_t value;
                             dispinfo.item.mask = HVIF_BYTE;
                             dispinfo.item.number_items = hexview->number_items;
-                            hexview_send_notify(hwnd, HVN_GETDISPINFO, (LPNMHDR) &dispinfo);
+                            eu_send_notify(hwnd, HVN_GETDISPINFO, (LPNMHDR) &dispinfo);
 
                             buffer[0] = (TCHAR) wParam;
                             value = (uint8_t) _tcstoul((PCTSTR) buffer, 0, 16);
@@ -970,7 +962,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                             }
                             nm_hexview.item.number_items = hexview->number_items;
                             nm_hexview.item.value = dispinfo.item.value;
-                            hexview_send_notify(hwnd, HVN_ITEMCHANGING, (LPNMHDR) &nm_hexview);
+                            eu_send_notify(hwnd, HVN_ITEMCHANGING, (LPNMHDR) &nm_hexview);
                             SendMessage(hwnd, WM_KEYDOWN, VK_RIGHT, 0);
                         }
                         break;
@@ -982,7 +974,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                             NMHEXVIEW nm_hexview = { 0 };
                             nm_hexview.item.number_items = hexview->number_items;
                             nm_hexview.item.value = (uint8_t) wParam;
-                            hexview_send_notify(hwnd, HVN_ITEMCHANGING, (LPNMHDR) &nm_hexview);
+                            eu_send_notify(hwnd, HVN_ITEMCHANGING, (LPNMHDR) &nm_hexview);
                             SendMessage(hwnd, WM_KEYDOWN, VK_RIGHT, 0);
                         }
                         break;
@@ -1341,7 +1333,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 NMHDR nmhdr = { 0 };
                 hexview_caret(hwnd, hexview);
                 ShowCaret(hwnd);
-                hexview_send_notify(hwnd, NM_SETFOCUS, &nmhdr);
+                eu_send_notify(hwnd, NM_SETFOCUS, &nmhdr);
             }
             else
             {   // caret invisible, show it!
@@ -2038,7 +2030,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             is_utf8 = true;
         }
         // 有可能是远程文件
-        if (_tcsnicmp(pnew->pathfile, _T("sftp://"), 7) == 0)
+        if (url_has_remote(pnew->pathfile))
         {
             memcpy(&(pnew->fs_server), &(pnode->fs_server), sizeof(remotefs));
         }

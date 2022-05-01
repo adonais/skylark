@@ -12,7 +12,7 @@ SRC_OBJS=\
 	$(DIR_O)\BoostRegexSearch.obj\
 	$(DIR_O)\UTF8DocumentIterator.obj
 
-INCLUDES=$(INCLUDES) -I../boost/include
+INCLUDES=$(INCLUDES) -I../boost/include -Isrc/boostregex
 
 CXXFLAGS=$(CXXFLAGS) -DNO_CXX11_REGEX -DSCI_OWNREGEX
 

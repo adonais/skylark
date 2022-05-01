@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 2
+#define __EU_INFO_VERSION_PATCHLEVEL 3
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -84,7 +84,7 @@
 #define VC_BUILDER TEXT("VC16")
 #elif _MSC_VER >= 1910
 #define VC_BUILDER TEXT("VC15")
-#elif _MSC_VER >= 1900 
+#elif _MSC_VER >= 1900
 #define VC_BUILDER TEXT("VC14")
 #elif _MSC_VER >= 1800
 #define VC_BUILDER TEXT("VC12")
@@ -104,7 +104,7 @@
                           VER_CHARSET                 \
                           TEXT(")")
 
-// 资源标识符                       
+// 资源标识符
 #define IDR_LBREAK_MENU  10000
 #define IDR_CODEING_MENU 10001
 #define IDR_TYPES_MENU   10002
@@ -135,14 +135,14 @@
 #define IDM_ANSI_14      10036
 
 #define IDM_IBM_1        10037
-#define IDM_IBM_2        10038 
+#define IDM_IBM_2        10038
 #define IDM_IBM_3        10039
 
 #define IDM_ISO_1        10040
 #define IDM_ISO_2        10041
 #define IDM_ISO_3        10042
 #define IDM_ISO_4        10043
-#define IDM_ISO_5        10044  
+#define IDM_ISO_5        10044
 #define IDM_ISO_6        10045
 #define IDM_ISO_7        10046
 #define IDM_ISO_8        10047
@@ -151,7 +151,7 @@
 #define IDM_ISO_11       10050
 #define IDM_ISO_13       10051
 #define IDM_ISO_15       10052
-#define IDM_ISO_16       10053 
+#define IDM_ISO_16       10053
 #define IDM_ISO_KR       10054
 #define IDM_ISO_CN       10055
 #define IDM_ISO_JP_2     10056
@@ -347,6 +347,8 @@
 #define IDM_FILE_NEWFILE_UNIX_EOLS      30111
 #define IDM_FILE_SESSION                30112
 #define IDM_FILE_WRITE_COPY             30113
+#define IDM_FILE_RESTORE_RECENT         30114
+#define IDM_FILE_EXIT_WHEN_LAST_TAB     30115
 
 #define IDM_EDIT_BASE64_ENCODING        30200
 #define IDM_EDIT_BASE64_DECODING        30201
@@ -907,6 +909,12 @@
 #define IDC_DONA_STATIC4                    42884
 #define IDC_DONA_STATIC5                    42885
 #define IDS_EXTRA_PATH                      42886
+#define IDC_REGXP_TIPS_STC                  42887
+
+#define IDM_VIEW_LEFT_TAB                   42990
+#define IDM_VIEW_RIGHT_TAB                  42991
+#define IDM_VIEW_FAR_LEFT_TAB               42992
+#define IDM_VIEW_FAR_RIGHT_TAB              42993
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

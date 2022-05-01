@@ -92,11 +92,11 @@ get_locale_path(TCHAR *path, int len)
     HANDLE m_map = NULL;
     TCHAR *memory = NULL;
     TCHAR *p = NULL;
-    if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG))) 
+    if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG)))
     {
         printf("share_open error in %s\n", __FUNCTION__);
         return false;
-    }   
+    }
     if ((memory = (TCHAR *) share_map(m_map, MAX_PATH*sizeof(TCHAR), FILE_MAP_READ)))
     {
         _sntprintf(path, len-1, _T("%s"), memory);
@@ -114,11 +114,11 @@ get_locale_file(TCHAR *path, int len)
     HANDLE m_map = NULL;
     TCHAR *memory = NULL;
     TCHAR *p = NULL;
-    if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG))) 
+    if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG)))
     {
         printf("share_open error in %s\n", __FUNCTION__);
         return false;
-    }   
+    }
     if ((memory = (TCHAR *) share_map(m_map, MAX_PATH*sizeof(TCHAR), FILE_MAP_READ)))
     {
         if ((p = _tcsrchr(memory, _T('\\'))))
@@ -190,14 +190,14 @@ bool
 i18n_reload_lang(void)
 {
     HANDLE m_map = NULL;
-    TCHAR *memory = NULL; 
+    TCHAR *memory = NULL;
     do
     {
-        if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG))) 
+        if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG)))
         {
             printf("share_open error in %s\n", __FUNCTION__);
             break;
-        }   
+        }
         if (!(memory = (TCHAR *) share_map(m_map, MAX_PATH*sizeof(TCHAR), FILE_MAP_READ)))
         {
             printf("share_map error in %s\n", __FUNCTION__);
@@ -207,7 +207,7 @@ i18n_reload_lang(void)
         {
             printf("LoadLibraryEx error, cause: %lu\n", GetLastError());
             break;
-        }         
+        }
     } while(0);
     if (memory)
     {
@@ -338,7 +338,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     if (g_statusbar)
     {   // 销毁状态栏
         DestroyWindow(g_statusbar);
-    } 
+    }
     if (eu_get_search_hwnd())
     {   // 销毁搜索框
         DestroyWindow(eu_get_search_hwnd());
@@ -390,7 +390,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         printf("on_treebar_create_box return false\n");
         return 1;
-    }             
+    }
     return 0;
 }
 
@@ -417,7 +417,7 @@ i18n_switch_locale(HWND hwnd, int id)
     if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_language, -1, old, ACNAME_LEN))
     {
         return 1;
-    }    
+    }
     if (_tcscmp(sel, old) == 0)
     {
         return 0;
@@ -433,7 +433,7 @@ i18n_switch_locale(HWND hwnd, int id)
     {
         HMENU root_menu = GetMenu(hwnd);
         HMENU menu_env = root_menu ? GetSubMenu(root_menu, ENV_MENU) : NULL;
-        on_tabpage_newdoc_reload();    
+        on_tabpage_newdoc_reload();
         eu_window_resize(hwnd);
         i18n_update_multi_lang(menu_env);
         i18n_update_menu(menu_env);

@@ -29,7 +29,7 @@
 #define LOAD_I18N_RESSTR(tid, var)                             \
     TCHAR var[MAX_LOADSTRING] = { 0 };                         \
     eu_i18n_load_str(tid, var, 0);
-    
+
 #define MSG_BOX(tid, cid, mb)                                  \
     do                                                         \
     {                                                          \
@@ -49,7 +49,7 @@
         _sntprintf(txt, MAX_LOADSTRING, msg, _tcserror(errno));\
         eu_msgbox(eu_module_hwnd(), txt, cap, mb);             \
     } while (0)
-    
+
 #define MSG_BOX_SEL(tid, cid, mb, var)                         \
     do                                                         \
     {                                                          \

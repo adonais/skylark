@@ -73,7 +73,7 @@
 #ifndef snprintf
 #define snprintf c99_snprintf
 
-static inline int 
+static inline int
 c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
 {
     int count = -1;
@@ -85,7 +85,7 @@ c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
     return count;
 }
 
-static inline int 
+static inline int
 c99_snprintf(char* str, size_t size, const char* format, ...)
 {
     int count;
@@ -100,7 +100,7 @@ c99_snprintf(char* str, size_t size, const char* format, ...)
 
 #ifndef snwprintf
 #define snwprintf c99_snwprintf
-static inline int 
+static inline int
 c99_vsnwprintf(wchar_t* str, size_t size, const wchar_t* format, va_list ap)
 {
     int count = -1;
@@ -112,7 +112,7 @@ c99_vsnwprintf(wchar_t* str, size_t size, const wchar_t* format, va_list ap)
     return count;
 }
 
-static inline int 
+static inline int
 c99_snwprintf(wchar_t* str, size_t size, const wchar_t* format, ...)
 {
     int count;
@@ -151,4 +151,3 @@ __declspec(dllexport) void __cdecl eu_logmsg(const char *format, ...);
 #endif  // __cplusplus
 
 #endif // _EU_LOG_H_
-

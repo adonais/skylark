@@ -79,7 +79,7 @@ typedef struct _HEXVIEW
     int visiblelines;           // 显示区域可见行
     int visiblechars;           // 显示区域可见字符数
     int longest_line;           // 行长度
-    
+
     int hscroll_pos;            // 水平滚动条位置
     int hscroll_max;
 
@@ -88,7 +88,7 @@ typedef struct _HEXVIEW
     int height_view;            // 可见区域高
     int width_view;             // 可见区域宽
     int active_column;          // COLUMN_DATA or COLUMN_VALUE
-       
+
     uint32_t hl_position;       // 0 = HINIBBLE(上半字节); 1 = LONIBBLE(下半字节)
     uint32_t ct_flags;          // 光标状态掩码
     uint32_t ex_style;          // 地址栏掩码等...
@@ -101,13 +101,13 @@ typedef struct _HEXVIEW
     size_t number_items;
     size_t select_start;        // 光标所在字符起始地址
     size_t select_end;          // 光标所在字符结束地址
-        
+
     HFONT hfont;                // 字体句柄
     HANDLE hmap;                // 二进制文件内存映射句柄
     uint8_t *pbase;             // 文件映射基地址或内存地址, 由hmap是否为NULL决定
     intptr_t *hex_point;        // 保留, 以后用来保存原始文件增加的偏移量
     bool hex_ascii;             // 原始二进制, 非转码后的utf8
-    
+
     COLORREF clr_text;          // 文本字体颜色
     COLORREF clr_bg_text;       // 文本背景色
     COLORREF clr_bg_selected;   // 选中文本背景色
@@ -151,7 +151,6 @@ int hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile);
 int hexview_update_theme(eu_tabpage *pnode);
 void hexview_updata(intptr_t *p, intptr_t m);
 void hexview_destoy(eu_tabpage *pnode);
-void hexview_send_notify(HWND hwnd, uint32_t code, LPNMHDR nmhdr);
 uint8_t *hexview_strdup_data(eu_tabpage *, size_t *);
 bool hexview_init(eu_tabpage *pnode);
 void hexview_set_area(int value);

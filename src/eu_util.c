@@ -29,33 +29,131 @@ typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsig
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
 
-static pwine_get_version fn_wine_get_version;
-static volatile long gth_locked = 0;
+// For win32 clock_gettime
+#define MS_PER_SEC      1000ULL     // MS = milliseconds
+#define US_PER_MS       1000ULL     // US = microseconds
+#define HNS_PER_US      10ULL       // HNS = hundred-nanoseconds (e.g., 1 hns = 100 ns)
+#define NS_PER_US       1000ULL
 
-static void
-util_thread_lock(void)
+#define HNS_PER_SEC     (MS_PER_SEC * US_PER_MS * HNS_PER_US)
+#define NS_PER_HNS      (100ULL)    // NS = nanoseconds
+#define NS_PER_SEC      (MS_PER_SEC * US_PER_MS * NS_PER_US)
+
+#ifndef CLOCK_REALTIME
+#define CLOCK_REALTIME  0
+#endif
+
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC 1
+#endif
+
+static pwine_get_version fn_wine_get_version;
+
+static int
+clock_gettime_monotonic(struct timespec *tv)
 {
-    size_t spin_count = 0;
-    // Wait until the flag is false.
-    while (_InterlockedCompareExchange(&gth_locked, 1, 0) != 0)
+    static LARGE_INTEGER ticksPerSec;
+    LARGE_INTEGER ticks;
+    double seconds;
+
+    if (!ticksPerSec.QuadPart)
     {
-        // Prevent the loop from being too busy.
-        if (spin_count < 32)
+        QueryPerformanceFrequency(&ticksPerSec);
+        if (!ticksPerSec.QuadPart)
         {
-            Sleep(0);
+            errno = ENOTSUP;
+            return -1;
         }
-        else
-        {
-            Sleep(1);
-        }
-        ++spin_count;
     }
+
+    QueryPerformanceCounter(&ticks);
+
+    seconds = (double) ticks.QuadPart / (double) ticksPerSec.QuadPart;
+    tv->tv_sec = (time_t) seconds;
+    tv->tv_nsec = (long) ((ULONGLONG) (seconds * NS_PER_SEC) % NS_PER_SEC);
+
+    return 0;
 }
 
-static inline void
-util_thread_unlock(void)
+static int
+clock_gettime_realtime(struct timespec *tv)
 {
-    _InterlockedExchange(&gth_locked, 0);
+    FILETIME ft;
+    ULARGE_INTEGER hnsTime;
+
+    GetSystemTimeAsFileTime(&ft);
+
+    hnsTime.LowPart = ft.dwLowDateTime;
+    hnsTime.HighPart = ft.dwHighDateTime;
+
+    // To get POSIX Epoch as baseline, subtract the number of hns intervals from Jan 1, 1601 to Jan 1, 1970.
+    hnsTime.QuadPart -= (11644473600ULL * HNS_PER_SEC);
+
+    // modulus by hns intervals per second first, then convert to ns, as not to lose resolution
+    tv->tv_nsec = (long) ((hnsTime.QuadPart % HNS_PER_SEC) * NS_PER_HNS);
+    tv->tv_sec = (long) (hnsTime.QuadPart / HNS_PER_SEC);
+    return 0;
+}
+
+int
+util_clock_gettime(int type, struct timespec *tp)
+{
+    if (type == CLOCK_MONOTONIC)
+    {
+        return clock_gettime_monotonic(tp);
+    }
+    else if (type == CLOCK_REALTIME)
+    {
+        return clock_gettime_realtime(tp);
+    }
+    errno = ENOTSUP;
+    return -1;
+}
+
+uint64_t
+util_gen_tstamp(void)
+{
+    uint64_t ns = 0;
+    struct timespec ts;
+    if (!clock_gettime_realtime(&ts))
+    {   // 1s = le9 ns, but we can only accurately reach 100 ns
+        ns = (uint64_t)((ts.tv_sec * (time_t)1e9 + ts.tv_nsec)/100);
+    }
+    return ns;
+}
+
+HWND
+util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
+{
+	if (!(hwnd_stc && hwnd && ptext))
+	{
+		return NULL;
+	}
+	// Create the tooltip. g_hInst is the global instance handle.
+	HWND htip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON, CW_USEDEFAULT, CW_USEDEFAULT,
+		                       CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, eu_module_handle(), NULL);
+
+	if (!htip)
+	{
+		return NULL;
+	}
+	// Associate the tooltip with the tool.
+	TOOLINFO toolinfo = {0};
+	toolinfo.cbSize = sizeof(TOOLINFO);
+	toolinfo.hwnd = hwnd;
+	toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+	toolinfo.uId = (LONG_PTR)hwnd_stc;
+	toolinfo.lpszText = ptext;
+	if (!SendMessage(htip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo))
+	{
+		DestroyWindow(htip);
+		return NULL;
+	}
+	SendMessage(htip, TTM_ACTIVATE, TRUE, 0);
+	SendMessage(htip, TTM_SETMAXTIPWIDTH, 0, 200);
+	// Make tip stay 15 seconds
+	SendMessage(htip, TTM_SETDELAYTIME, TTDT_AUTOPOP, MAKELPARAM((15000), (0)));
+	return htip;
 }
 
 bool
@@ -1081,6 +1179,19 @@ util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked)
     }
 }
 
+void
+util_switch_menu_group(HMENU hmenu, uint32_t first_id, uint32_t last_id, uint32_t select)
+{
+    const int tab_sub_postion = 25;
+    HMENU htab_next = GetSubMenu(hmenu, tab_sub_postion);
+    if (htab_next)
+    {
+        for (uint32_t i = first_id; i <= last_id; ++i)
+        {
+            util_set_menu_item(htab_next, i, i == select);
+        }
+    }
+}
 
 void
 util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)

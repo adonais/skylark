@@ -162,21 +162,6 @@ on_edit_push_clipboard(const TCHAR *buf)
 }
 
 void
-on_edit_copy_filename(TCHAR *filename)
-{
-    TCHAR *name = _tcsdup(filename);
-    if (name)
-    {
-        if (name[_tcslen(name) - 1] == _T('*'))
-        {
-            name[_tcslen(name) - 1] = 0;
-        }
-        on_edit_push_clipboard(name);
-        free(name);
-    }
-}
-
-void
 on_edit_paste_line(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)
@@ -461,7 +446,7 @@ on_edit_selection(eu_tabpage *pnode, int type)
                 uint32_t attr = GetFileAttributes(file.rel_path);
                 if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
                 {
-                    on_file_only_open(&file);
+                    on_file_only_open(&file, true);
                 }
             }
             break;
@@ -1216,13 +1201,13 @@ on_edit_script_line_comment(eu_tabpage *pnode, const char *pcomment)
                 p = ++sp;
             }
             strncpy(suf_comment, sp ? sp : p+strlen(split), COMMENT_LEN);
-            on_comment_newline(pnode, pre_comment, suf_comment); 
+            on_comment_newline(pnode, pre_comment, suf_comment);
         }
         else
         {
             strncpy(pre_comment, pcomment, p - pcomment);
             strncpy(suf_comment, p+strlen(split), COMMENT_LEN);
-            on_close_selection(pnode, pre_comment, suf_comment);            
+            on_close_selection(pnode, pre_comment, suf_comment);
         }
     }
     else

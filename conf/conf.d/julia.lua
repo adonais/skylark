@@ -7,7 +7,7 @@ function julia.init_after_callback(p)
   local pnode = eu_core.ffi.cast("void *", p)
   local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, "julia")
   if (res ~= 1) then
-    -- eu_core.euapi.on_doc_default_light(pnode, 0, 0, false)
+    eu_core.euapi.on_doc_enable_foldline(pnode)                                               -- enable fold line
     eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD1, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0
     eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD2, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1
     eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD3, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2
@@ -55,6 +55,7 @@ function julia.create_bakup(path)
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
     "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"julia\")\n",
     "  if (res ~= 1) then\n",
+    "    eu_core.euapi.on_doc_enable_foldline(pnode)                                               -- enable fold line\n",
     "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD1, 0, 0)                       -- 3, SCE_JULIA_KEYWORD1, keywords0\n",
     "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD2, 1, 0x0080FF)                -- 4, SCE_JULIA_KEYWORD2, keywords1\n",
     "    eu_core.euapi.on_doc_keyword_light(pnode, SCE_JULIA_KEYWORD3, 2, 0x307300)                -- 5, SCE_JULIA_KEYWORD3, keywords2\n",

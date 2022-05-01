@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-static HMENU
+HMENU
 menu_load(uint16_t mid)
 {
     HMENU hpop = NULL;
@@ -316,14 +316,15 @@ menu_update_item(HMENU menu)
                 switch (m_id)
                 {
                     case IDM_HISTORY_BASE:
-                        on_file_update_recent();
+                        on_file_update_recent_menu();
                         break;
-                    case IDM_FILE_SAVE:                       /* File menu */
+                    case IDM_FILE_EXIT_WHEN_LAST_TAB:          /* File menu */
                         util_enable_menu_item(menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
                         util_enable_menu_item(menu, IDM_FILE_SAVEAS, pnode->filename[0]);
                         util_enable_menu_item(menu, IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl());
                         util_set_menu_item(menu, IDM_FILE_WRITE_COPY, eu_get_config()->m_write_copy);
                         util_set_menu_item(menu, IDM_FILE_SESSION, eu_get_config()->m_session);
+                        util_set_menu_item(menu, IDM_FILE_EXIT_WHEN_LAST_TAB, eu_get_config()->m_exit);
                         break;
                     case IDM_FILE_NEWFILE_WINDOWS_EOLS:
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_WINDOWS_EOLS, (eu_get_config()->new_file_eol == 0));
@@ -377,6 +378,7 @@ menu_update_item(HMENU menu)
                             util_update_menu_chars(menu, IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
                             util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces);
                         }
+                        util_switch_menu_group(menu, IDM_VIEW_LEFT_TAB, IDM_VIEW_FAR_RIGHT_TAB, eu_get_config()->m_tab_active);
                         break;
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);

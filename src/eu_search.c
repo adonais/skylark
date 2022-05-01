@@ -28,6 +28,7 @@ static LIST_HEAD(list_files);
 static LIST_HEAD(list_folders);
 static volatile long search_id = 0;
 static HANDLE search_event_final = NULL;
+static HWND hwnd_regxp_tips = NULL;
 
 #define INCLUDE_FOLDER_SUB     0x00000001
 #define INCLUDE_FOLDER_HIDDEN  0x00000002
@@ -76,6 +77,30 @@ on_search_fill_combo(void)
                 ComboBox_InsertString(hwnd_type, 0, (LPARAM)index_str[i]);
             }
         }
+    }
+}
+
+static void
+on_search_set_result(int res_id, int num, int count)
+{
+    HWND stc = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_TIPS_STC);
+    if (stc)
+    {
+        TCHAR msg[MAX_LOADSTRING] = {0};
+        LOAD_I18N_RESSTR(res_id, str);
+        _sntprintf(msg, MAX_LOADSTRING-1, str, num, count);
+        Static_SetText(stc, msg);
+    }
+}
+
+static void
+on_search_set_tip(int res_id)
+{
+    HWND stc = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_TIPS_STC);
+    if (stc)
+    {
+        LOAD_I18N_RESSTR(res_id, str);
+        Static_SetText(stc, str);
     }
 }
 
@@ -265,6 +290,7 @@ on_search_tab_ui(int index)
         CONTROL_HANDLE(hc, IDC_SEARCH_FOUNDLIST, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STRINGS, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STC, SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_REGXP_TIPS_STC, SW_HIDE)
         if (search_id)
         {
             CONTROL_HANDLE(hc, IDC_PGB_STC, SW_SHOW)
@@ -275,6 +301,7 @@ on_search_tab_ui(int index)
             CONTROL_HANDLE(hc, IDC_PGB_STC, SW_HIDE)
             CONTROL_HANDLE(hc, IDC_PGB1, SW_HIDE)
         }
+        on_search_set_tip(IDC_MSG_SEARCH_STR1);
         on_search_fill_combo();
     }
     if (hwnd_search_dlg)
@@ -1389,17 +1416,21 @@ on_search_init_pages(HWND htab)
     return orig_tab_proc != 0;
 }
 
-static void
-on_search_set_tips(int resid, int num, int count)
+static wchar_t *
+on_search_regxp_msg(void)
 {
-    HWND stc = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_TIPS_STC);
-    if (stc)
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    if (pnode)
     {
-        TCHAR msg[MAX_LOADSTRING] = {0};
-        LOAD_I18N_RESSTR(resid, str);
-        _sntprintf(msg, MAX_LOADSTRING-1, str, num, count);
-        Static_SetText(stc, msg);
+        char sz_msg[512] = {0};
+        wchar_t *ll_msg = NULL;
+        eu_sci_call(pnode, SCI_GETBOOSTREGEXERRMSG, _countof(sz_msg), (sptr_t)sz_msg);
+        if ((ll_msg = eu_utf8_utf16(sz_msg, NULL)) != NULL)
+        {
+            return ll_msg;
+        }
     }
+    return NULL;
 }
 
 static void
@@ -1408,8 +1439,48 @@ on_search_regxp_error(void)
     HWND stc = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_TIPS_STC);
     if (stc)
     {
+        HDC dc = GetDC(stc);
+        HWND hwnd_re_stc = GetDlgItem(hwnd_search_dlg, IDC_REGXP_TIPS_STC);
         LOAD_I18N_RESSTR(IDS_RE_ERROR, str);
         Static_SetText(stc, str);
+        if (hwnd_re_stc && dc)
+        {
+            RECT rc;
+            SIZE sz;
+            wchar_t *ll_msg = NULL;
+            HFONT hfont_stc = (HFONT)SendMessage(hwnd_search_dlg, WM_GETFONT, 0,0);
+            HFONT old = SelectObject(dc, hfont_stc);
+            GetTextExtentPoint32(dc, str, eu_int_cast(wcslen(str)), &sz);
+            SelectObject(dc, old);
+            ReleaseDC(stc, dc);
+            GetWindowRect(stc, &rc);
+            MapWindowPoints(NULL, hwnd_search_dlg, (LPPOINT)&rc, 2);
+            MoveWindow(hwnd_re_stc, rc.left + sz.cx + 8, rc.top, 12, rc.bottom - rc.top, TRUE);
+            ShowWindow(hwnd_re_stc, SW_HIDE);
+            ShowWindow(hwnd_re_stc, SW_SHOW);
+            if (!hwnd_regxp_tips)
+            {
+                if ((ll_msg = on_search_regxp_msg()) != NULL)
+                {
+                    hwnd_regxp_tips = util_create_tips(hwnd_re_stc, hwnd_search_dlg, ll_msg);
+                }
+                if (hwnd_regxp_tips && on_dark_enable())
+                {
+                    on_dark_set_theme(hwnd_regxp_tips, L"DarkMode_Explorer", NULL);
+                }
+            }
+            else if ((ll_msg = on_search_regxp_msg()) != NULL)
+            {
+	            TOOLINFO toolinfo = {0};
+	            toolinfo.cbSize = sizeof(TOOLINFO);
+	            toolinfo.hwnd = hwnd_search_dlg;
+	            toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+	            toolinfo.uId = (LONG_PTR)hwnd_re_stc;
+	            toolinfo.lpszText = ll_msg;
+	            SendMessage(hwnd_regxp_tips, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolinfo);
+            }
+            eu_safe_free(ll_msg);
+        }
     }
 }
 
@@ -1641,6 +1712,7 @@ on_search_report_result(int err, int resid)
     int match_count = 0;
     bool all_file = false;
     char *key = NULL;
+    HWND hwnd_re_stc = NULL;
     eu_tabpage *pnode = NULL;
     if (!(pnode = on_tabpage_focus_at()))
     {
@@ -1653,6 +1725,10 @@ on_search_report_result(int err, int resid)
     if (!(key = on_search_get_combo_str(IDC_WHAT_FOLDER_CBO)))
     {
         return 0;
+    }
+    if ((hwnd_re_stc = GetDlgItem(hwnd_search_dlg, IDC_REGXP_TIPS_STC)) != NULL)
+    {
+        ShowWindow(hwnd_re_stc, SW_HIDE);
     }
     if ((all_file = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_ALL_FILE)))
     {   // 如果在多个打开的文件中搜索, 重新计数
@@ -1697,16 +1773,16 @@ on_search_report_result(int err, int resid)
                 {
                     if (match_count > 0)
                     {
-                        on_search_set_tips(IDC_MSG_SEARCH_ERR6, tabcount, match_count);
+                        on_search_set_result(IDC_MSG_SEARCH_ERR6, tabcount, match_count);
                     }
                     else
                     {
-                        on_search_set_tips(IDC_MSG_SEARCH_ERR8, tabcount, match_count);
+                        on_search_set_result(IDC_MSG_SEARCH_ERR8, tabcount, match_count);
                     }
                 }
                 else
                 {
-                    on_search_set_tips(IDC_MSG_SEARCH_ERR7, file_count, match_count);
+                    on_search_set_result(IDC_MSG_SEARCH_ERR7, file_count, match_count);
                 }
                 break;
             }
@@ -1716,16 +1792,16 @@ on_search_report_result(int err, int resid)
                 {
                     if (match_count > 0)
                     {
-                        on_search_set_tips(IDC_MSG_SEARCH_ERR5, tabcount, match_count);
+                        on_search_set_result(IDC_MSG_SEARCH_ERR5, tabcount, match_count);
                     }
                     else
                     {
-                        on_search_set_tips(IDC_MSG_SEARCH_ERR8, tabcount, match_count);
+                        on_search_set_result(IDC_MSG_SEARCH_ERR8, tabcount, match_count);
                     }
                 }
                 else
                 {
-                    on_search_set_tips(IDC_MSG_SEARCH_ERR7, file_count, match_count);
+                    on_search_set_result(IDC_MSG_SEARCH_ERR7, file_count, match_count);
                 }
                 break;
             }
@@ -1735,16 +1811,16 @@ on_search_report_result(int err, int resid)
                 {
                     if (match_count > 0)
                     {
-                        on_search_set_tips(IDC_MSG_SEARCH_ERR9, 1, 0);
+                        on_search_set_result(IDC_MSG_SEARCH_ERR9, 1, 0);
                     }
                 }
                 else if (match_count > 0)
                 {
-                    on_search_set_tips(IDC_MSG_SEARCH_ERR12, file_count, 1);
+                    on_search_set_result(IDC_MSG_SEARCH_ERR12, file_count, 1);
                 }
                 else
                 {
-                    on_search_set_tips(IDC_MSG_SEARCH_ERR11, tabcount, match_count);
+                    on_search_set_result(IDC_MSG_SEARCH_ERR11, tabcount, match_count);
                 }
                 break;
             }
@@ -1752,11 +1828,11 @@ on_search_report_result(int err, int resid)
             {
                 if (match_count > 0)
                 {
-                    on_search_set_tips(IDC_MSG_SEARCH_ERR12, file_count, match_count);
+                    on_search_set_result(IDC_MSG_SEARCH_ERR12, file_count, match_count);
                 }
                 else
                 {
-                    on_search_set_tips(IDC_MSG_SEARCH_ERR11, tabcount, match_count);
+                    on_search_set_result(IDC_MSG_SEARCH_ERR11, tabcount, match_count);
                 }
                 break;
             }
@@ -1919,12 +1995,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
         // 十六进制数据长度不能为单数
         if (len % 2 != 0)
         {
-            HWND stc = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_TIPS_STC);
-            if (stc)
-            {
-                LOAD_I18N_RESSTR(IDC_MSG_SEARCH_ERR15, str);
-                Static_SetText(stc, str);
-            }
+            on_search_set_tip(IDC_MSG_SEARCH_ERR15);
             free(pmark);
             return 0;
         }
@@ -1974,7 +2045,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
         eu_push_find_history(pattern);
         eu_safe_free(pattern);
     }
-    on_search_set_tips(IDC_MSG_SEARCH_ERR14, 1, match);
+    on_search_set_result(IDC_MSG_SEARCH_ERR14, 1, match);
     return match;
 }
 
@@ -2136,7 +2207,7 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
     {
         file_backup bak = {0};
         _tcscpy(bak.rel_path, path);
-        if (on_file_only_open(&bak) == 0)
+        if (on_file_only_open(&bak, true) == SKYLARK_OK)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
             on_search_process_find2(NULL, u8_key);
@@ -2858,6 +2929,10 @@ on_search_dark_mode_init(HWND hdlg)
             SendMessage(btn, WM_THEMECHANGED, 0, 0);
         }
     }
+    if (hwnd_regxp_tips)
+    {
+        on_dark_set_theme(hwnd_regxp_tips, L"DarkMode_Explorer", NULL);
+    }
 }
 
 static INT_PTR CALLBACK
@@ -2891,10 +2966,12 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             HWND hwnd_combo_replace = GetDlgItem(hdlg, IDC_SEARCH_RP_CBO);
             HWND hwnd_dir = GetDlgItem(hdlg, IDC_SEARCH_DIR_CBO);
             HWND hwnd_fy = GetDlgItem(hdlg, IDC_SEARCH_FY_CBO);
-            if (!(hwnd_combo_what && hwnd_combo_replace && hwnd_dir && hwnd_fy))
+            HWND hwnd_re_stc = GetDlgItem(hdlg, IDC_REGXP_TIPS_STC);
+            if (!(hwnd_combo_what && hwnd_combo_replace && hwnd_dir && hwnd_fy && hwnd_re_stc))
             {
                 break;
             }
+            ShowWindow(hwnd_re_stc, SW_HIDE);
             COMBOBOXINFO cbinfo = { sizeof(COMBOBOXINFO) };
             GetComboBoxInfo(hwnd_combo_what, &cbinfo);
             orig_combo_proc = SetWindowLongPtr(cbinfo.hwndItem, GWLP_WNDPROC, (LONG_PTR)on_search_combo_proc);
@@ -2918,6 +2995,11 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     case IDCANCEL:
                     case IDC_SEARCH_CLOSE_BTN:
                     {
+                        HWND hwnd_re_stc = GetDlgItem(hdlg, IDC_REGXP_TIPS_STC);
+                        if (hwnd_re_stc)
+                        {
+                            ShowWindow(hwnd_re_stc, SW_HIDE);
+                        }
                         ShowWindow(hdlg, SW_HIDE);
                         break;
                     }
@@ -2972,9 +3054,12 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             HWND hwnd_word = GetDlgItem(hdlg, IDC_MATCH_WORD);
                             HWND hwnd_wdst = GetDlgItem(hdlg, IDC_MATCH_WDSTART);
                             HWND hwnd_case = GetDlgItem(hdlg, IDC_MATCH_CASE);
+                            HWND hwnd_re_stc = GetDlgItem(hdlg, IDC_REGXP_TIPS_STC);
                             EnableWindow(hwnd_word, true);
                             EnableWindow(hwnd_wdst, true);
                             EnableWindow(hwnd_case, true);
+                            ShowWindow(hwnd_re_stc, SW_HIDE);
+                            on_search_set_tip(IDC_MSG_SEARCH_STR1);
                         }
                         break;
                     }
@@ -3082,12 +3167,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_SHOWWINDOW:
             if (!IsWindowVisible(hdlg))
             {
-                HWND stc = GetDlgItem(hdlg, IDC_SEARCH_TIPS_STC);
-                if (stc)
-                {
-                    LOAD_I18N_RESSTR(IDC_MSG_SEARCH_STR1, str);
-                    Static_SetText(stc, str);
-                }
+                on_search_set_tip(IDC_MSG_SEARCH_STR1);
             }
             break;
         CASE_WM_CTLCOLOR_SET:
@@ -3096,7 +3176,9 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 return on_dark_set_contorl_color(wParam);
             }
-            else if ((HWND)lParam == GetDlgItem(hdlg, IDC_SEARCH_TIPS_STC) || (HWND)lParam == GetDlgItem(hdlg, IDC_SEARCH_HEX_STC))
+            else if ((HWND)lParam == GetDlgItem(hdlg, IDC_SEARCH_TIPS_STC) ||
+                     (HWND)lParam == GetDlgItem(hdlg, IDC_SEARCH_HEX_STC)  ||
+                     (HWND)lParam == GetDlgItem(hdlg, IDC_REGXP_TIPS_STC))
             {
                     // 绘制静态控件上的文本颜色
                     SetBkMode((HDC)wParam, TRANSPARENT);
@@ -3117,6 +3199,11 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
         {
             printf("Search window WM_DESTROY\n");
+            if (hwnd_regxp_tips)
+            {
+                DestroyWindow(hwnd_regxp_tips);
+                hwnd_regxp_tips = NULL;
+            }
             break;
         }
     }

@@ -33,7 +33,6 @@ static HWND m_edit[EDITNUMBS];
 static bool m_block[EDITNUMBS];
 static HWND m_chain;
 static HWND g_clip_hwnd;
-static HMENU pop_toolbar_menu;
 static HIMAGELIST img_list1;
 static HIMAGELIST img_list2;
 
@@ -746,11 +745,16 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             pt.x = GET_X_LPARAM(lParam);
             pt.y = GET_Y_LPARAM(lParam);
             ClientToScreen(hwnd, &pt);
-            util_set_menu_item(pop_toolbar_menu, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
-            util_set_menu_item(pop_toolbar_menu, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
-            util_set_menu_item(pop_toolbar_menu, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
-            TrackPopupMenu(pop_toolbar_menu, 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
-            break;
+            HMENU hpop = menu_load(IDR_TOOLBAR_POPUPMENU);
+            if (hpop)
+            {
+                util_set_menu_item(hpop, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
+                util_set_menu_item(hpop, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
+                util_set_menu_item(hpop, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
+                TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
+                DestroyMenu(hpop);
+            }
+            return 1;
         }
         case WM_SIZE:
         {
@@ -768,11 +772,6 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 ImageList_Destroy(img_list2);
                 img_list2 = NULL;
-            }
-            if (pop_toolbar_menu)
-            {
-                DestroyMenu(pop_toolbar_menu);
-                pop_toolbar_menu = NULL;
             }
             printf("toolbar WM_DESTROY\n");
             break;
@@ -867,13 +866,6 @@ on_toolbar_create(HWND parent)
     HWND htool = NULL;
     intptr_t tool_proc = 0;
     TCHAR str[28][BUFFSIZE] = { 0 };
-    pop_toolbar_menu = i18n_load_menu(IDR_TOOLBAR_POPUPMENU);
-    if (pop_toolbar_menu == NULL)
-    {
-        printf("i18n_load_menu(IDR_TOOLBAR_POPUPMENU) failed\n");
-        return 1;
-    }
-    pop_toolbar_menu = GetSubMenu(pop_toolbar_menu, 0);
     /*********************************************************************
      * iBitmap(0), 第i个位图
      * idCommand(0), WM_COMMAND消息响应的ID
