@@ -1205,10 +1205,7 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
         MSG_BOX(IDC_MSG_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
     }
 FILE_FINAL:
-    if (pnode->write_buffer)
-    {
-        eu_safe_free(pnode->write_buffer);
-    }
+    eu_safe_free(pnode->write_buffer);
     if (fp)
     {
         fclose(fp);

@@ -117,7 +117,7 @@ util_gen_tstamp(void)
     struct timespec ts;
     if (!clock_gettime_realtime(&ts))
     {   // 1s = le9 ns, but we can only accurately reach 100 ns
-        ns = (uint64_t)(ts.tv_sec * (time_t)1e7 + ts.tv_nsec);
+        ns = (uint64_t)((ts.tv_sec * (time_t)1e9 + ts.tv_nsec)/100);
     }
     return ns;
 }

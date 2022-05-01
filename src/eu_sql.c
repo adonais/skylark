@@ -69,7 +69,6 @@ sql_format_execute(const char *fmt, char *buf, int len)
         int m = snprintf(buf, len, fmt, pname, pver, on_about_build_id());
         ret = (m > 0 && m < len);
     } while(0);
-format_clean:
     eu_safe_free(pname);
     eu_safe_free(pver);
     return ret;
