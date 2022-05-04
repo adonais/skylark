@@ -656,7 +656,7 @@ on_toolbar_execute_script(void)
         {   // lua script
             on_toolbar_lua_exec(p);
         }
-        else if (p->doc_ptr->doc_type == DOCTYPE_SQL)
+        else if (p->doc_ptr->doc_type == DOCTYPE_SQL || p->doc_ptr->doc_type == DOCTYPE_REDIS)
         {   // sql query
             on_view_result_show(p, VK_CONTROL);
         }

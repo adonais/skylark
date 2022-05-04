@@ -103,15 +103,15 @@ typedef struct _doc_data
     const char *filedesc;                     // 文档类型描述
     int tab_width;                            // tab键宽度, default = 0, 跟随主配置
     int tab_convert_spaces;                   // tab键是否转换为空格, default = -1, 跟随主配置
-    init_before_ptr fn_init_before;           // 回调函数, 在文档初始化前运行
-    init_after_ptr fn_init_after;             // 回调函数, 在文档初始化后运行
-    parse_header_ptr fn_parse_header;         // 回调函数, 分析文件头, 用于sql
+    init_before_ptr fn_init_before;           // 回调函数, 在文档初始化前运行, 用于创建右侧边控件
+    init_after_ptr fn_init_after;             // 回调函数, 在文档初始化后运行, 用于语法解析
+    parse_header_ptr fn_parse_header;         // 回调函数, 分析文件头, 保留未使用
     key_ptr fn_keydown;                       // 回调函数, 当编辑器内按下某键
     key_ptr fn_keyup;                         // 回调函数, 当编辑器内释放某键
     add_ptr fn_on_char;                       // 回调函数, 当编辑器输入字符
-    reload_list_ptr fn_reload_symlist;        // 回调函数, 右侧边栏list控件初始化
+    reload_list_ptr fn_reload_symlist;        // 回调函数, 右侧边栏list控件刷新或重载
     click_list_ptr fn_click_symlist;          // 回调函数, 右侧边栏list控件被点击
-    reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件初始化
+    reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件刷新或重载
     click_tree_ptr fn_click_symtree;          // 回调函数, 右侧边栏tree控件被点击
     const char *keywords0;                    // 需要高亮的关键字, 分6类高亮着色
     const char *keywords1;

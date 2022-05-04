@@ -224,12 +224,12 @@ on_sci_free_tab(eu_tabpage **ppnode)
     {
         return;
     }
-    if ((*ppnode)->db_is_connect)
+    if ((*ppnode)->db_ptr)
     {
         // 关闭数据库链接
-        on_table_disconnect_database(*ppnode);
+        on_table_disconnect_database(*ppnode, true);
     }
-    if ((*ppnode)->redis_is_connect)
+    if ((*ppnode)->redis_ptr)
     {
         // 关闭redis数据库链接
         on_symtree_disconnect_redis(*ppnode);

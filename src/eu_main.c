@@ -287,8 +287,9 @@ all_clean:
     on_hook_undo();
     eu_remote_list_release();
     eu_on_dark_release(true);
-    eu_doc_config_release();
+    eu_doc_ptr_free();
     eu_font_release();
+    eu_close_db_handle();
     printf("all clean\n");
     return (int) msg.wParam;
 }

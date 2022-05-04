@@ -32,37 +32,39 @@ typedef redisContext *pRedisConnectWithTimeout(const char *ip, int port, const s
 
 typedef struct _redis_lib
 {
+    HMODULE dll;
     pRedisFree *fnRedisFree;
     pRedisCommand *fnRedisCommand;
     pFreeReplyObject *fnFreeReplyObject;
     pRedisConnectWithTimeout *fnRedisConnectWithTimeout;
 } redis_lib;
 
-typedef struct _redis_handles
+typedef struct _redis_config
 {
-    HMODULE hiredis_dll;
-    redisContext *ctx;
-} redis_handles;
+    char host[64];
+    char pass[64];
+    char dbsl[32];
+    int port;
+} redis_config;
 
 typedef struct _redis_conn
 {
-    int port;
-    char host[40];
-    char pass[64];
-    char dbsl[20];
+    redis_config config;
+    redisContext *ctx;
+    bool connected;
 } redis_conn;
 
 extern redis_lib redis_funcs;
 void on_symtree_disconnect_redis(eu_tabpage *pnode);
-int on_symtree_connect_redis(eu_tabpage *pnode);
 int on_symtree_query_redis(eu_tabpage *pnode);
+int on_symtree_parse_redis_header(eu_tabpage *pnode);
+int on_symtree_do_sql(eu_tabpage *pnode, bool reload);
 
 int on_symtree_json(eu_tabpage *pnode);
 int on_symtree_postion(eu_tabpage *pnode);
 
 int on_symtree_create(eu_tabpage *pnode);
 int on_symtree_add_text(eu_tabpage *pnode);
-int on_symtree_do_sql(eu_tabpage *pnode, bool reload);
 
 #ifdef __cplusplus
 }

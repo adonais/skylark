@@ -303,7 +303,7 @@ space_in_line(eu_tabpage *pnode, sptr_t start, sptr_t end)
     {
         return false;
     }
-    for (int i = 0; i < (int)(end - start); ++i)
+    for (int i = 0; i < eu_int_cast(end - start); ++i)
     {
         if (!(res = !!isspace(line_buf[i])))
         {
@@ -369,13 +369,10 @@ on_edit_join_line(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)
     {
-        int pos;
-        int current_line;
-        int cpos;
-        pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        current_line = (int) eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        cpos = (int) eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, cpos, 0);
+        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sptr_t line_tail_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
+        eu_sci_call(pnode, SCI_GOTOPOS, line_tail_pos, 0);
         eu_sci_call(pnode, SCI_CLEAR, 0, 0);
         eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
     }
@@ -530,10 +527,7 @@ on_edit_selection(eu_tabpage *pnode, int type)
         default:
             break;
     }
-    if (text)
-    {
-        free(text);
-    }
+    eu_safe_free(text);
 }
 
 bool
@@ -658,14 +652,8 @@ on_edit_base64_dec(eu_tabpage *pnode)
         }
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
     } while(0);
-    if (sel_text)
-    {
-        free(sel_text);
-    }
-    if (out_text)
-    {
-        free(out_text);
-    }
+    eu_safe_free(sel_text);
+    eu_safe_free(out_text);
     return err;
 }
 
@@ -1411,7 +1399,6 @@ on_edit_comment_stream(eu_tabpage *pnode)
 int
 on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
 {
-    int ret = 1;
     if (pnode && (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
     {
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
@@ -1422,9 +1409,9 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
         eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) eols_undo_str);
         eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(eols_undo_str));
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-        ret = 0;
+        return 0;
     }
-    return ret;
+    return 1;
 }
 
 void

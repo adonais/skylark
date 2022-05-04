@@ -78,65 +78,203 @@ on_symtree_add_text(eu_tabpage *pnode)
 int
 on_symtree_do_sql(eu_tabpage *pnode, bool reload)
 {
-    char *words2 = NULL;
-    int words2_buf_len;
-    int words2_remain_len;
     int words2_len;
+    int words2_buf_len;
+    int words2_remain_len;    
+    char *words2 = NULL;
     char sql[MAXLEN_FILENAME];
-    MYSQL_RES *m_result = NULL;
-    MYSQL_RES *m_result2 = NULL;
-    MYSQL_ROW row_str;
-    MYSQL_ROW row_str2;
+    int err = 0;
     TVITEM tvi;
     TVINSERTSTRUCT tvis;
     HTREEITEM hti_root;
     TCHAR utf_str[MAX_BUFFER+1] = {0};
-    int err = 0;
     if (!pnode)
     {
-        return -1;
+        return 1;
     }
     if (reload && !on_table_sql_header(pnode))
     {
-        return -1;
+        return 1;
     }
-    words2 = (char *) calloc(1, SQL_WD2_SIZE);
-    if (!words2)
+    if (!(words2 = (char *) calloc(1, SQL_WD2_SIZE)))
     {
-        return -1;
+        return 1;
     }
-    words2_buf_len = 0;
-    words2_remain_len = SQL_WD2_SIZE - 1;
-    if (_stricmp(pnode->db_config.dbtype, "MySQL") == 0)
+    do
     {
-        mysql_lib *mysql_sub = &(db_funcs.m_mysql);
-        mysql_handle *this_mysql = &(pnode->udb.handles.h_mysql);
-        snprintf(sql,
-                 sizeof(sql) - 1,
-                 "SELECT table_name FROM information_schema.TABLES WHERE table_schema='%s'",
-                 pnode->db_config.dbname);
-        err = mysql_sub->fn_mysql_query(this_mysql->mysql, sql);
-        if (err)
+        words2_buf_len = 0;
+        words2_remain_len = SQL_WD2_SIZE - 1;
+        if (_stricmp(pnode->db_ptr->config.dbtype, "MySQL") == 0)
         {
-            MSG_BOX(IDC_MSG_SYMTREE_ERR2, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            free(words2);
-            return -1;
-        }
-        m_result = mysql_sub->fn_mysql_store_result(this_mysql->mysql);
-        if (m_result)
-        {
-            TreeView_DeleteAllItems(pnode->hwnd_symtree);
-            while ((row_str = mysql_sub->fn_mysql_fetch_row(m_result)))
+            MYSQL_ROW row_str;
+            MYSQL_ROW row_str2;            
+            MYSQL_RES *m_result = NULL;
+            MYSQL_RES *m_result2 = NULL;
+            mysql_lib *mysql_sub = &(db_funcs.m_mysql);
+            mysql_handle *this_mysql = &(pnode->db_ptr->handles.h_mysql);
+            snprintf(sql,
+                     sizeof(sql) - 1,
+                     "SELECT table_name FROM information_schema.TABLES WHERE table_schema='%s'",
+                     pnode->db_ptr->config.dbname);
+            if ((err = mysql_sub->fn_mysql_query(this_mysql->mysql, sql)) != 0)
             {
+                MSG_BOX(IDC_MSG_SYMTREE_ERR2, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                break;
+            }
+            if ((m_result = mysql_sub->fn_mysql_store_result(this_mysql->mysql)) != NULL)
+            {
+                TreeView_DeleteAllItems(pnode->hwnd_symtree);
+                while ((row_str = mysql_sub->fn_mysql_fetch_row(m_result)))
+                {
+                    memset(&tvi, 0, sizeof(TVITEM));
+                    memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
+                    tvi.mask = TVIF_TEXT;
+                    tvi.pszText = util_make_u16(row_str[0], utf_str, MAX_BUFFER);
+                    tvis.hParent = TVI_ROOT;
+                    tvis.hInsertAfter = TVI_LAST;
+                    tvis.item = tvi;
+                    hti_root = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
+                    words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", row_str[0]);
+                    if (words2_len > 0)
+                    {
+                        words2_buf_len += words2_len;
+                        words2_remain_len -= words2_len;
+                    }
+                    snprintf(sql,
+                             _countof(sql) - 1,
+                             "SELECT column_name,data_type,character_maximum_length,"
+                             "numeric_precision,numeric_scale FROM information_schema.COLUMNS WHERE table_schema='%s' and "
+                             "table_name='%s' ORDER BY ordinal_position ASC",
+                             pnode->db_ptr->config.dbname,
+                             row_str[0]);
+                    if ((err = mysql_sub->fn_mysql_query(this_mysql->mysql, sql)) != 0)
+                    {
+                        MSG_BOX(IDC_MSG_SYMTREE_ERR3, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                        if (m_result) mysql_sub->fn_mysql_free_result(m_result);
+                        if (m_result2) mysql_sub->fn_mysql_free_result(m_result2);
+                        break;
+                    }
+                    if ((m_result2 = mysql_sub->fn_mysql_store_result(this_mysql->mysql)) != NULL)
+                    {
+                        while ((row_str2 = mysql_sub->fn_mysql_fetch_row(m_result2)))
+                        {
+                            char buf[MAX_BUFFER + 1] = {0};
+                            memset(&tvi, 0, sizeof(TVITEM));
+                            memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
+                            if (row_str2[2])
+                            {
+                                snprintf(buf, MAX_BUFFER, "%s --%s(%s)", row_str2[0], row_str2[1], row_str2[2]);
+                            }
+                            else if (row_str2[3] && row_str2[4])
+                            {
+                                snprintf(buf, MAX_BUFFER, "%s --%s(%s,%s)", row_str2[0], row_str2[1], row_str2[3], row_str2[4]);
+                            }
+                            else
+                            {
+                                snprintf(buf, MAX_BUFFER, "%s --%s", row_str2[0], row_str2[1]);
+                            }
+                            tvi.mask = TVIF_TEXT;
+                            tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
+                            tvis.hParent = hti_root;
+                            tvis.hInsertAfter = TVI_LAST;
+                            tvis.item = tvi;
+                            TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
+                            words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", row_str2[0]);
+                            if (words2_len > 0)
+                            {
+                                words2_buf_len += words2_len;
+                                words2_remain_len -= words2_len;
+                            }
+                        }
+                        mysql_sub->fn_mysql_free_result(m_result2);
+                        m_result2 = NULL;
+                    }
+                }
+                mysql_sub->fn_mysql_free_result(m_result);
+            }
+        }
+        else if (_stricmp(pnode->db_ptr->config.dbtype, "Oracle") == 0)
+        {
+            oci_lib *oci_sub = &(db_funcs.m_oci);
+            oci_handle *this_oci = &(pnode->db_ptr->handles.h_oci);
+            OCIStmt *stmthpp = NULL;
+            OCIStmt *stmthpp2 = NULL;
+            OCIDefine *ocid_table_name = NULL;
+            OCIDefine *ocid_column_name = NULL;
+            OCIDefine *ocid_data_type = NULL;
+            OCIDefine *ocid_data_length = NULL;
+            OCIDefine *ocid_data_precision = NULL;
+            OCIDefine *ocid_data_scale = NULL;
+            char table_name[128 + 1];
+            char column_name[128 + 1];
+            char data_type[128 + 1];
+            int data_length = 0;
+            int data_precision = 0;
+            int data_scale = 0;
+            ub2 table_name_len;
+            ub2 column_name_len;
+            ub2 data_type_len;
+            ub2 data_length_len;
+            ub2 data_precision_len;
+            ub2 data_scale_len;
+            sb2 table_name_indicator = 0;
+            sb2 column_name_indicator = 0;
+            sb2 data_type_indicator = 0;
+            sb2 data_length_indicator = 0;
+            sb2 data_precision_indicator = 0;
+            sb2 data_scale_indicator = 0;
+            char sql[MAX_BUFFER] = "SELECT table_name FROM user_tables";
+            oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &stmthpp, OCI_HTYPE_STMT, (size_t) 0, (dvoid **) 0);
+            err = (int)oci_sub->fnOCIStmtPrepare(stmthpp, this_oci->errhpp, (text *) sql, (ub4) strlen(sql), (ub4) OCI_NTV_SYNTAX, (ub4) OCI_DEFAULT);
+            if (err != OCI_SUCCESS)
+            {
+                int err_code;
+                char err_desc[512] = { 0 };
+                LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR4, err4);
+                on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
+                on_result_append_text(pnode->hwnd_qredit, err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                break;
+            }
+            oci_sub->fnOCIDefineByPos(stmthpp,
+                                      &ocid_table_name,
+                                      this_oci->errhpp,
+                                      1,
+                                      (dvoid *) table_name,
+                                      _countof(table_name) - 1,
+                                      SQLT_STR,
+                                      (void *)(uintptr_t)table_name_indicator,
+                                      &table_name_len,
+                                      NULL,
+                                      OCI_DEFAULT);
+            err = (int)oci_sub->fnOCIStmtExecute(this_oci->svchpp,
+                                                 stmthpp,
+                                                 this_oci->errhpp,
+                                                 (ub4) 1,
+                                                 (ub4) 0,
+                                                 NULL,
+                                                 NULL,
+                                                 OCI_DEFAULT);
+            if (err != OCI_SUCCESS)
+            {
+                int err_code;
+                char err_desc[512] = { 0 };
+                LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR4, err4);
+                on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
+                on_result_append_text(pnode->hwnd_qredit, err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                break;
+            }
+            TreeView_DeleteAllItems(pnode->hwnd_symtree);
+            do
+            {          
                 memset(&tvi, 0, sizeof(TVITEM));
                 memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
                 tvi.mask = TVIF_TEXT;
-                tvi.pszText = util_make_u16(row_str[0], utf_str, MAX_BUFFER);
+                tvi.pszText = util_make_u16(table_name, utf_str, MAX_BUFFER);
                 tvis.hParent = TVI_ROOT;
                 tvis.hInsertAfter = TVI_LAST;
                 tvis.item = tvi;
                 hti_root = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-                words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", row_str[0]);
+                words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", table_name);
                 if (words2_len > 0)
                 {
                     words2_buf_len += words2_len;
@@ -144,483 +282,348 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                 }
                 snprintf(sql,
                          _countof(sql) - 1,
-                         "SELECT column_name,data_type,character_maximum_length,"
-                         "numeric_precision,numeric_scale FROM information_schema.COLUMNS WHERE table_schema='%s' and "
-                         "table_name='%s' ORDER BY ordinal_position ASC",
-                         pnode->db_config.dbname,
-                         row_str[0]);
-                err = mysql_sub->fn_mysql_query(this_mysql->mysql, sql);
-                if (err)
+                         "SELECT column_name,data_type,data_length,data_precision,data_scale "
+                         "FROM user_tab_columns WHERE table_name='%s' ORDER BY column_id ASC",
+                         table_name);
+        
+                oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp),
+                                          (dvoid **) &stmthpp2,
+                                          OCI_HTYPE_STMT,
+                                          (size_t) 0,
+                                          (dvoid **) 0);
+                err = (int)oci_sub->fnOCIStmtPrepare(stmthpp2,
+                                                     this_oci->errhpp,
+                                                     (text *) sql,
+                                                     (ub4) strlen(sql),
+                                                     (ub4) OCI_NTV_SYNTAX,
+                                                     (ub4) OCI_DEFAULT);
+                if (err != OCI_SUCCESS)
                 {
-                    MSG_BOX(IDC_MSG_SYMTREE_ERR3, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                    free(words2);
-                    return -1;
+                    int err_code;
+                    char err_desc[512] = { 0 };
+                    LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR5, err5);
+                    on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
+                    on_result_append_text(pnode->hwnd_qredit, err5, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                    break;
                 }
-                m_result2 = mysql_sub->fn_mysql_store_result(this_mysql->mysql);
-                if (m_result2)
+                oci_sub->fnOCIDefineByPos(stmthpp2,
+                                          &ocid_column_name,
+                                          this_oci->errhpp,
+                                          1,
+                                          (dvoid *) column_name,
+                                          sizeof(column_name) - 1,
+                                          SQLT_STR,
+                                          (void *) &column_name_indicator,
+                                          &column_name_len,
+                                          NULL,
+                                          OCI_DEFAULT);
+                oci_sub->fnOCIDefineByPos(stmthpp2,
+                                          &ocid_data_type,
+                                          this_oci->errhpp,
+                                          2,
+                                          (dvoid *) data_type,
+                                          sizeof(data_type) - 1,
+                                          SQLT_STR,
+                                          (void *) &data_type_indicator,
+                                          &data_type_len,
+                                          NULL,
+                                          OCI_DEFAULT);
+                oci_sub->fnOCIDefineByPos(stmthpp2,
+                                          &ocid_data_length,
+                                          this_oci->errhpp,
+                                          3,
+                                          (dvoid *) &data_length,
+                                          sizeof(data_length),
+                                          SQLT_INT,
+                                          (void *) &data_length_indicator,
+                                          &data_length_len,
+                                          NULL,
+                                          OCI_DEFAULT);
+                oci_sub->fnOCIDefineByPos(stmthpp2,
+                                          &ocid_data_precision,
+                                          this_oci->errhpp,
+                                          4,
+                                          (dvoid *) &data_precision,
+                                          sizeof(data_precision),
+                                          SQLT_INT,
+                                          (void *) &data_precision_indicator,
+                                          &data_precision_len,
+                                          NULL,
+                                          OCI_DEFAULT);
+                oci_sub->fnOCIDefineByPos(stmthpp2,
+                                          &ocid_data_scale,
+                                          this_oci->errhpp,
+                                          5,
+                                          (dvoid *) &data_scale,
+                                          sizeof(data_scale),
+                                          SQLT_INT,
+                                          (void *) &data_scale_indicator,
+                                          &data_scale_len,
+                                          NULL,
+                                          OCI_DEFAULT);
+        
+                err = (int)oci_sub->fnOCIStmtExecute(this_oci->svchpp,
+                                                     stmthpp2,
+                                                     this_oci->errhpp,
+                                                     (ub4) 1,
+                                                     (ub4) 0,
+                                                     NULL,
+                                                     NULL,
+                                                     OCI_DEFAULT);
+                if (err != OCI_SUCCESS)
                 {
-                    while ((row_str2 = mysql_sub->fn_mysql_fetch_row(m_result2)))
+                    int err_code;
+                    char err_desc[512] = { 0 };
+                    LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR6, err6);
+                    on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
+                    on_result_append_text(pnode->hwnd_qredit, err6, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                    break;
+                }
+                do
+                {
+                    char buf[MAX_BUFFER];
+                    memset(&tvi, 0, sizeof(TVITEM));
+                    memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
+                    if (data_precision_indicator == -1)
                     {
-                        char buf[MAX_BUFFER + 1] = {0};
-                        memset(&tvi, 0, sizeof(TVITEM));
-                        memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-                        if (row_str2[2])
-                        {
-                            snprintf(buf, MAX_BUFFER, "%s --%s(%s)", row_str2[0], row_str2[1], row_str2[2]);
-                        }
-                        else if (row_str2[3] && row_str2[4])
-                        {
-                            snprintf(buf, MAX_BUFFER, "%s --%s(%s,%s)", row_str2[0], row_str2[1], row_str2[3], row_str2[4]);
-                        }
-                        else
-                        {
-                            snprintf(buf, MAX_BUFFER, "%s --%s", row_str2[0], row_str2[1]);
-                        }
-                        tvi.mask = TVIF_TEXT;
-                        tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
-                        tvis.hParent = hti_root;
-                        tvis.hInsertAfter = TVI_LAST;
-                        tvis.item = tvi;
-                        TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-                        words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", row_str2[0]);
-                        if (words2_len > 0)
-                        {
-                            words2_buf_len += words2_len;
-                            words2_remain_len -= words2_len;
-                        }
+                        _snprintf(buf, _countof(buf) - 1, "%s --%s(%d)", column_name, data_type, data_length);
+                    }
+                    else
+                    {
+                        _snprintf(buf, _countof(buf) - 1, "%s --%s(%d,%d)", column_name, data_type, data_precision, data_scale);
+                    }              
+                    tvi.mask = TVIF_TEXT;
+                    tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
+                    tvis.hParent = hti_root;
+                    tvis.hInsertAfter = TVI_LAST;
+                    tvis.item = tvi;
+                    TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
+                    words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", column_name);
+                    if (words2_len > 0)
+                    {
+                        words2_buf_len += words2_len;
+                        words2_remain_len -= words2_len;
+                    }               
+                } while (oci_sub->fnOCIStmtFetch2(stmthpp2, this_oci->errhpp, 1, OCI_FETCH_NEXT, 1, OCI_DEFAULT) != OCI_NO_DATA);
+                oci_sub->fnOCIHandleFree((dvoid *) stmthpp2, OCI_HTYPE_STMT);
+            } while (oci_sub->fnOCIStmtFetch2(stmthpp, this_oci->errhpp, 1, OCI_FETCH_NEXT, 1, OCI_DEFAULT) != OCI_NO_DATA);
+            oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
+        }
+        else if (_stricmp(pnode->db_ptr->config.dbtype, "Sqlite3") == 0)
+        {
+            int nrow;
+            int nrow2;
+            int ncolumn;
+            int ncolumn2;
+            int row;
+            int row2;
+            int index;
+            int index2;
+            char *errmsg = NULL;
+            char **result = NULL;
+            char **result2 = NULL;
+            sql3_handle *this_sql3 = &(pnode->db_ptr->handles.h_sql3);
+            _snprintf(sql, sizeof(sql) - 1, "select name from sqlite_master where type='table' order by name");
+            if ((err = eu_sqlite3_get_table(this_sql3->sqlite3, sql, &result, &nrow, &ncolumn, &errmsg)) != 0)
+            {
+                if (errmsg)
+                {
+                    LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR7, errbox);
+                    on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                    eu_sqlite3_free(errmsg);
+                }
+                break;
+            }
+            TreeView_DeleteAllItems(pnode->hwnd_symtree);
+            for (row = 0, index = ncolumn; row < nrow; row++, index++)
+            {           
+                memset(&tvi, 0, sizeof(TVITEM));
+                memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
+                tvi.mask = TVIF_TEXT;
+                tvi.pszText = util_make_u16(result[index], utf_str, MAX_BUFFER);
+                tvis.hParent = TVI_ROOT;
+                tvis.hInsertAfter = TVI_LAST;
+                tvis.item = tvi;
+                hti_root = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
+                words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", result[index]);
+                if (words2_len > 0)
+                {
+                    words2_buf_len += words2_len;
+                    words2_remain_len -= words2_len;
+                }
+                snprintf(sql, _countof(sql) - 1, "pragma table_info ('%s')", result[index]);
+                if ((err = eu_sqlite3_get_table(this_sql3->sqlite3, sql, &result2, &nrow2, &ncolumn2, &errmsg)) != 0)
+                {
+                    printf("sqlite3_get_table2 failed\n");
+                    if (errmsg)
+                    {
+                        LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR8, errbox);
+                        on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                        eu_sqlite3_free(errmsg);
+                    }
+                    eu_sqlite3_free_table(result);
+                    eu_sqlite3_free_table(result2);
+                    break;
+                }
+                for (row2 = 0, index2 = ncolumn2; row2 < nrow2; row2++, index2 += ncolumn2)
+                {
+                    char buf[MAX_BUFFER] = {0};
+                    memset(&tvi, 0, sizeof(TVITEM));
+                    memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
+                    snprintf(buf, _countof(buf) - 1, "%s --%s", result2[index2 + 1], result2[index2 + 2]);         
+                    tvi.mask = TVIF_TEXT;
+                    tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
+                    tvis.hParent = hti_root;
+                    tvis.hInsertAfter = TVI_LAST;
+                    tvis.item = tvi;
+                    TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
+                    words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", result2[index2 + 1]);
+                    if (words2_len > 0)
+                    {
+                        words2_buf_len += words2_len;
+                        words2_remain_len -= words2_len;
                     }
                 }
-                mysql_sub->fn_mysql_free_result(m_result2);
+                eu_sqlite3_free_table(result2);
+                result2 = NULL;
             }
         }
-        mysql_sub->fn_mysql_free_result(m_result);
-    }
-    else if (_stricmp(pnode->db_config.dbtype, "Oracle") == 0)
-    {
-        sword result;
-        oci_lib *oci_sub = &(db_funcs.m_oci);
-        oci_handle *this_oci = &(pnode->udb.handles.h_oci);
-        OCIStmt *stmthpp = NULL;
-        OCIStmt *stmthpp2 = NULL;
-        OCIDefine *ocid_table_name = NULL;
-        OCIDefine *ocid_column_name = NULL;
-        OCIDefine *ocid_data_type = NULL;
-        OCIDefine *ocid_data_length = NULL;
-        OCIDefine *ocid_data_precision = NULL;
-        OCIDefine *ocid_data_scale = NULL;
-        char table_name[128 + 1];
-        char column_name[128 + 1];
-        char data_type[128 + 1];
-        int data_length = 0;
-        int data_precision = 0;
-        int data_scale = 0;
-        ub2 table_name_len;
-        ub2 column_name_len;
-        ub2 data_type_len;
-        ub2 data_length_len;
-        ub2 data_precision_len;
-        ub2 data_scale_len;
-        sb2 table_name_indicator = 0;
-        sb2 column_name_indicator = 0;
-        sb2 data_type_indicator = 0;
-        sb2 data_length_indicator = 0;
-        sb2 data_precision_indicator = 0;
-        sb2 data_scale_indicator = 0;
-        char sql[MAX_BUFFER] = "SELECT table_name FROM user_tables";
-        oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &stmthpp, OCI_HTYPE_STMT, (size_t) 0, (dvoid **) 0);
-        result =
-            oci_sub->fnOCIStmtPrepare(stmthpp, this_oci->errhpp, (text *) sql, (ub4) strlen(sql), (ub4) OCI_NTV_SYNTAX, (ub4) OCI_DEFAULT);
-        if (result != OCI_SUCCESS)
+        else if (_stricmp(pnode->db_ptr->config.dbtype, "PostgreSQL") == 0)
         {
-            int err_code;
-            char err_desc[512] = { 0 };
-            LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR4, err4);
-            on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-            on_result_append_text(pnode->hwnd_qredit, err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
-            return -1;
-        }
-        oci_sub->fnOCIDefineByPos(stmthpp,
-                                  &ocid_table_name,
-                                  this_oci->errhpp,
-                                  1,
-                                  (dvoid *) table_name,
-                                  _countof(table_name) - 1,
-                                  SQLT_STR,
-                                  (void *)(uintptr_t)table_name_indicator,
-                                  &table_name_len,
-                                  NULL,
-                                  OCI_DEFAULT);
-        result = oci_sub->fnOCIStmtExecute(this_oci->svchpp,
-                                           stmthpp,
-                                           this_oci->errhpp,
-                                           (ub4) 1,
-                                           (ub4) 0,
-                                           NULL,
-                                           NULL,
-                                           OCI_DEFAULT);
-        if (result != OCI_SUCCESS)
-        {
-            int err_code;
-            char err_desc[512] = { 0 };
-            LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR4, err4);
-            on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-            on_result_append_text(pnode->hwnd_qredit, err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
-            return -1;
-        }
-        TreeView_DeleteAllItems(pnode->hwnd_symtree);
-        do
-        {          
-            memset(&tvi, 0, sizeof(TVITEM));
-            memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-            tvi.mask = TVIF_TEXT;
-            tvi.pszText = util_make_u16(table_name, utf_str, MAX_BUFFER);
-            tvis.hParent = TVI_ROOT;
-            tvis.hInsertAfter = TVI_LAST;
-            tvis.item = tvi;
-            hti_root = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-            words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", table_name);
-            if (words2_len > 0)
+            int nrow;
+            int row;
+            int nrow2;
+            int row2;  
+            PGresult *res = NULL;
+            PGresult *res2 = NULL;
+            pq_lib *pq_sub = &(db_funcs.m_pq);
+            pq_handle *this_pq = &(pnode->db_ptr->handles.h_pq);
+            _snprintf(sql,
+                      _countof(sql) - 1,
+                      "SELECT table_name FROM information_schema.TABLES WHERE table_catalog='%s' AND "
+                      "table_schema<>'pg_catalog' AND table_schema<>'information_schema' AND table_type='BASE TABLE' ORDER BY "
+                      "table_name ASC",
+                      pnode->db_ptr->config.dbname);
+            res = pq_sub->fnPQexec(this_pq->postgres, sql);
+            if (pq_sub->fnPQresultStatus(res) != PGRES_TUPLES_OK)
             {
-                words2_buf_len += words2_len;
-                words2_remain_len -= words2_len;
+                char *errmsg = pq_sub->fnPQresultErrorMessage(res);
+                if (errmsg)
+                {
+                    LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR7, errbox);
+                    on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                }
+                err = 1;
+                pq_sub->fnPQclear(res);
+                res = NULL;
+                break;
             }
-            snprintf(sql,
-                     _countof(sql) - 1,
-                     "SELECT column_name,data_type,data_length,data_precision,data_scale "
-                     "FROM user_tab_columns WHERE table_name='%s' ORDER BY column_id ASC",
-                     table_name);
-
-            oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp),
-                                      (dvoid **) &stmthpp2,
-                                      OCI_HTYPE_STMT,
-                                      (size_t) 0,
-                                      (dvoid **) 0);
-            result = oci_sub->fnOCIStmtPrepare(stmthpp2,
-                                               this_oci->errhpp,
-                                               (text *) sql,
-                                               (ub4) strlen(sql),
-                                               (ub4) OCI_NTV_SYNTAX,
-                                               (ub4) OCI_DEFAULT);
-            if (result != OCI_SUCCESS)
-            {
-                int err_code;
-                char err_desc[512] = { 0 };
-                LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR5, err5);
-                on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                on_result_append_text(pnode->hwnd_qredit, err5, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
-                return -1;
-            }
-            oci_sub->fnOCIDefineByPos(stmthpp2,
-                                      &ocid_column_name,
-                                      this_oci->errhpp,
-                                      1,
-                                      (dvoid *) column_name,
-                                      sizeof(column_name) - 1,
-                                      SQLT_STR,
-                                      (void *) &column_name_indicator,
-                                      &column_name_len,
-                                      NULL,
-                                      OCI_DEFAULT);
-            oci_sub->fnOCIDefineByPos(stmthpp2,
-                                      &ocid_data_type,
-                                      this_oci->errhpp,
-                                      2,
-                                      (dvoid *) data_type,
-                                      sizeof(data_type) - 1,
-                                      SQLT_STR,
-                                      (void *) &data_type_indicator,
-                                      &data_type_len,
-                                      NULL,
-                                      OCI_DEFAULT);
-            oci_sub->fnOCIDefineByPos(stmthpp2,
-                                      &ocid_data_length,
-                                      this_oci->errhpp,
-                                      3,
-                                      (dvoid *) &data_length,
-                                      sizeof(data_length),
-                                      SQLT_INT,
-                                      (void *) &data_length_indicator,
-                                      &data_length_len,
-                                      NULL,
-                                      OCI_DEFAULT);
-            oci_sub->fnOCIDefineByPos(stmthpp2,
-                                      &ocid_data_precision,
-                                      this_oci->errhpp,
-                                      4,
-                                      (dvoid *) &data_precision,
-                                      sizeof(data_precision),
-                                      SQLT_INT,
-                                      (void *) &data_precision_indicator,
-                                      &data_precision_len,
-                                      NULL,
-                                      OCI_DEFAULT);
-            oci_sub->fnOCIDefineByPos(stmthpp2,
-                                      &ocid_data_scale,
-                                      this_oci->errhpp,
-                                      5,
-                                      (dvoid *) &data_scale,
-                                      sizeof(data_scale),
-                                      SQLT_INT,
-                                      (void *) &data_scale_indicator,
-                                      &data_scale_len,
-                                      NULL,
-                                      OCI_DEFAULT);
-
-            result = oci_sub->fnOCIStmtExecute(this_oci->svchpp,
-                                               stmthpp2,
-                                               this_oci->errhpp,
-                                               (ub4) 1,
-                                               (ub4) 0,
-                                               NULL,
-                                               NULL,
-                                               OCI_DEFAULT);
-            if (result != OCI_SUCCESS)
-            {
-                int err_code;
-                char err_desc[512] = { 0 };
-                LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR6, err6);
-                on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                on_result_append_text(pnode->hwnd_qredit, err6, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
-                return -1;
-            }
-            do
-            {
-                char buf[MAX_BUFFER];
+            TreeView_DeleteAllItems(pnode->hwnd_symtree);
+            nrow = pq_sub->fnPQntuples(res);
+            for (row = 0; row < nrow; row++)
+            {       
                 memset(&tvi, 0, sizeof(TVITEM));
                 memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-                if (data_precision_indicator == -1)
-                {
-                    _snprintf(buf, _countof(buf) - 1, "%s --%s(%d)", column_name, data_type, data_length);
-                }
-                else
-                {
-                    _snprintf(buf, _countof(buf) - 1, "%s --%s(%d,%d)", column_name, data_type, data_precision, data_scale);
-                }              
                 tvi.mask = TVIF_TEXT;
-                tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
-                tvis.hParent = hti_root;
+                tvi.pszText = util_make_u16(pq_sub->fnPQgetvalue(res, row, 0), utf_str, MAX_BUFFER);
+                tvis.hParent = TVI_ROOT;
                 tvis.hInsertAfter = TVI_LAST;
                 tvis.item = tvi;
-                TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-                words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", column_name);
+                hti_root = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
+                words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", pq_sub->fnPQgetvalue(res, row, 0));
                 if (words2_len > 0)
                 {
                     words2_buf_len += words2_len;
                     words2_remain_len -= words2_len;
-                }               
-            } while (oci_sub->fnOCIStmtFetch2(stmthpp2, this_oci->errhpp, 1, OCI_FETCH_NEXT, 1, OCI_DEFAULT) != OCI_NO_DATA);
-            oci_sub->fnOCIHandleFree((dvoid *) stmthpp2, OCI_HTYPE_STMT);
-        } while (oci_sub->fnOCIStmtFetch2(stmthpp, this_oci->errhpp, 1, OCI_FETCH_NEXT, 1, OCI_DEFAULT) != OCI_NO_DATA);
-        oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
-    }
-    else if (_stricmp(pnode->db_config.dbtype, "Sqlite3") == 0)
-    {
-        char *errmsg = NULL;
-        char **result = NULL;
-        int nrow;
-        int ncolumn;
-        int row;
-        int index;
-        char **result2 = NULL;
-        int nrow2;
-        int ncolumn2;
-        int row2;
-        int index2;
-        sql3_handle *this_sql3 = &(pnode->udb.handles.h_sql3);
-        _snprintf(sql, sizeof(sql) - 1, "select name from sqlite_master where type='table' order by name");
-        err = eu_sqlite3_get_table(this_sql3->sqlite3, sql, &result, &nrow, &ncolumn, &errmsg);
-        if (err)
-        {
-            if (errmsg)
-            {
-                LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR7, errbox);
-                on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
-                eu_safe_free(errmsg);
+                }           
+                snprintf(sql,
+                         _countof(sql) - 1,
+                         "SELECT column_name,data_type,character_maximum_length,numeric_precision,numeric_scale FROM "
+                         "information_schema."
+                         "COLUMNS WHERE table_catalog='%s' AND table_name='%s' ORDER BY ordinal_position ASC",
+                         pnode->db_ptr->config.dbname,
+                         pq_sub->fnPQgetvalue(res, row, 0));
+                if (res2)
+                {
+                    pq_sub->fnPQclear(res2);
+                }
+                res2 = pq_sub->fnPQexec(this_pq->postgres, sql);
+                if (pq_sub->fnPQresultStatus(res2) != PGRES_TUPLES_OK)
+                {
+                    char *errmsg = pq_sub->fnPQresultErrorMessage(res2);
+                    if (errmsg)
+                    {
+                        LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR8, errbox);
+                        on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                    }
+                    err = 1;
+                    pq_sub->fnPQclear(res2);
+                    res2 = NULL;
+                    break;
+                }
+                nrow2 = pq_sub->fnPQntuples(res2);
+                for (row2 = 0; row2 < nrow2; row2++)
+                {
+                    char buf[MAX_BUFFER] = {0};
+                    memset(&tvi, 0, sizeof(TVITEM));
+                    memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
+                    if (!pq_sub->fnPQgetisnull(res2, row2, 2))
+                    {
+                        snprintf(buf,
+                                 _countof(buf) - 1,
+                                 "%s --%s(%s)",
+                                 pq_sub->fnPQgetvalue(res2, row2, 0),
+                                 pq_sub->fnPQgetvalue(res2, row2, 1),
+                                 pq_sub->fnPQgetvalue(res2, row2, 2));
+                    }
+                    else
+                    {
+                        snprintf(buf,
+                                 _countof(buf) - 1,
+                                 "%s --%s(%s,%s)",
+                                 pq_sub->fnPQgetvalue(res2, row2, 0),
+                                 pq_sub->fnPQgetvalue(res2, row2, 1),
+                                 pq_sub->fnPQgetvalue(res2, row2, 3),
+                                 pq_sub->fnPQgetvalue(res2, row2, 4));
+                    }                
+                    tvi.mask = TVIF_TEXT;
+                    tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
+                    tvis.hParent = hti_root;
+                    tvis.hInsertAfter = TVI_LAST;
+                    tvis.item = tvi;
+                    TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
+                    words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", pq_sub->fnPQgetvalue(res2, row2, 0));
+                    if (words2_len > 0)
+                    {
+                        words2_buf_len += words2_len;
+                        words2_remain_len -= words2_len;
+                    }
+                }
             }
-            free(words2);
-            return -1;
-        }
-        TreeView_DeleteAllItems(pnode->hwnd_symtree);
-        for (row = 0, index = ncolumn; row < nrow; row++, index++)
-        {           
-            memset(&tvi, 0, sizeof(TVITEM));
-            memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-            tvi.mask = TVIF_TEXT;
-            tvi.pszText = util_make_u16(result[index], utf_str, MAX_BUFFER);
-            tvis.hParent = TVI_ROOT;
-            tvis.hInsertAfter = TVI_LAST;
-            tvis.item = tvi;
-            hti_root = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-            words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", result[index]);
-            if (words2_len > 0)
+            if (res)
             {
-                words2_buf_len += words2_len;
-                words2_remain_len -= words2_len;
+                pq_sub->fnPQclear(res);
             }
-            snprintf(sql, _countof(sql) - 1, "pragma table_info ('%s')", result[index]);
-            err = eu_sqlite3_get_table(this_sql3->sqlite3, sql, &result2, &nrow2, &ncolumn2, &errmsg);
+            if (res2) 
+            {
+                pq_sub->fnPQclear(res2);
+            }
             if (err)
             {
-                printf("sqlite3_get_table2 failed\n");
-                if (errmsg)
-                {
-                    LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR8, errbox);
-                    on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
-                    eu_safe_free(errmsg);
-                }
-                eu_sqlite3_free_table(result);
-                return -1;
+                break;
             }
-            for (row2 = 0, index2 = ncolumn2; row2 < nrow2; row2++, index2 += ncolumn2)
-            {
-                char buf[MAX_BUFFER] = {0};
-                memset(&tvi, 0, sizeof(TVITEM));
-                memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-                snprintf(buf, _countof(buf) - 1, "%s --%s", result2[index2 + 1], result2[index2 + 2]);         
-                tvi.mask = TVIF_TEXT;
-                tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
-                tvis.hParent = hti_root;
-                tvis.hInsertAfter = TVI_LAST;
-                tvis.item = tvi;
-                TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-                words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", result2[index2 + 1]);
-                if (words2_len > 0)
-                {
-                    words2_buf_len += words2_len;
-                    words2_remain_len -= words2_len;
-                }
-            }
-            eu_sqlite3_free_table(result2);
         }
-        eu_sqlite3_free_table(result);
-    }
-    else if (_stricmp(pnode->db_config.dbtype, "PostgreSQL") == 0)
-    {
-        int nrow;
-        int row;
-        int nrow2;
-        int row2;  
-        PGresult *res = NULL;
-        PGresult *res2 = NULL;
-        pq_lib *pq_sub = &(db_funcs.m_pq);
-        pq_handle *this_pq = &(pnode->udb.handles.h_pq);
-        _snprintf(sql,
-                  _countof(sql) - 1,
-                  "SELECT table_name FROM information_schema.TABLES WHERE table_catalog='%s' AND "
-                  "table_schema<>'pg_catalog' AND table_schema<>'information_schema' AND table_type='BASE TABLE' ORDER BY "
-                  "table_name ASC",
-                  pnode->db_config.dbname);
-        res = pq_sub->fnPQexec(this_pq->postgres, sql);
-        if (pq_sub->fnPQresultStatus(res) != PGRES_TUPLES_OK)
+        else
         {
-            char *errmsg = pq_sub->fnPQresultErrorMessage(res);
-            if (errmsg)
-            {
-                LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR7, errbox);
-                on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
-            }
-            free(words2);
-            pq_sub->fnPQclear(res);
-            res = NULL;
-            return -1;
+            LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR26, msg_str);
+            on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, MAX_BUFFER));
+            err = 1;
+            break;
         }
-        TreeView_DeleteAllItems(pnode->hwnd_symtree);
-        nrow = pq_sub->fnPQntuples(res);
-        for (row = 0; row < nrow; row++)
-        {       
-            memset(&tvi, 0, sizeof(TVITEM));
-            memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-            tvi.mask = TVIF_TEXT;
-            tvi.pszText = util_make_u16(pq_sub->fnPQgetvalue(res, row, 0), utf_str, MAX_BUFFER);
-            tvis.hParent = TVI_ROOT;
-            tvis.hInsertAfter = TVI_LAST;
-            tvis.item = tvi;
-            hti_root = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-            words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", pq_sub->fnPQgetvalue(res, row, 0));
-            if (words2_len > 0)
-            {
-                words2_buf_len += words2_len;
-                words2_remain_len -= words2_len;
-            }           
-            snprintf(sql,
-                     _countof(sql) - 1,
-                     "SELECT column_name,data_type,character_maximum_length,numeric_precision,numeric_scale FROM "
-                     "information_schema."
-                     "COLUMNS WHERE table_catalog='%s' AND table_name='%s' ORDER BY ordinal_position ASC",
-                     pnode->db_config.dbname,
-                     pq_sub->fnPQgetvalue(res, row, 0));
-            res2 = pq_sub->fnPQexec(this_pq->postgres, sql);
-            if (pq_sub->fnPQresultStatus(res2) != PGRES_TUPLES_OK)
-            {
-                char *errmsg = pq_sub->fnPQresultErrorMessage(res2);
-                if (errmsg)
-                {
-                    LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR8, errbox);
-                    on_result_append_text(pnode->hwnd_qredit, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
-                }
-                free(words2);
-                pq_sub->fnPQclear(res2);
-                res2 = NULL;
-                return -1;
-            }
-            nrow2 = pq_sub->fnPQntuples(res2);
-            for (row2 = 0; row2 < nrow2; row2++)
-            {
-                char buf[MAX_BUFFER] = {0};
-                memset(&tvi, 0, sizeof(TVITEM));
-                memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-                
-                if (!pq_sub->fnPQgetisnull(res2, row2, 2))
-                {
-                    snprintf(buf,
-                             _countof(buf) - 1,
-                             "%s --%s(%s)",
-                             pq_sub->fnPQgetvalue(res2, row2, 0),
-                             pq_sub->fnPQgetvalue(res2, row2, 1),
-                             pq_sub->fnPQgetvalue(res2, row2, 2));
-                }
-                else
-                {
-                    snprintf(buf,
-                             _countof(buf) - 1,
-                             "%s --%s(%s,%s)",
-                             pq_sub->fnPQgetvalue(res2, row2, 0),
-                             pq_sub->fnPQgetvalue(res2, row2, 1),
-                             pq_sub->fnPQgetvalue(res2, row2, 3),
-                             pq_sub->fnPQgetvalue(res2, row2, 4));
-                }                
-                tvi.mask = TVIF_TEXT;
-                tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
-                tvis.hParent = hti_root;
-                tvis.hInsertAfter = TVI_LAST;
-                tvis.item = tvi;
-                TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-                words2_len = snprintf(words2 + words2_buf_len, words2_remain_len, "%s ", pq_sub->fnPQgetvalue(res2, row2, 0));
-                if (words2_len > 0)
-                {
-                    words2_buf_len += words2_len;
-                    words2_remain_len -= words2_len;
-                }
-            }
-        }
-        if (res)
-        {
-            pq_sub->fnPQclear(res);
-        }
-        if (res2)
-        {
-            pq_sub->fnPQclear(res2);
-        }
-    }
-    else
-    {
-        LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR26, msg_str);
-        on_result_append_text(pnode->hwnd_qredit, msg_str, util_make_u16(pnode->db_config.dbtype, utf_str, MAX_BUFFER));
-        return 0;
-    }
-    eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t) words2);
-    eu_sci_call(pnode, SCI_STYLESETFORE, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.color));
-    eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.bold));
+        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t) words2);
+        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.color));
+        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.bold));        
+    } while(0);
     free(words2);
     return 0;
 }
@@ -696,118 +699,111 @@ redis_reply(eu_tabpage *pnode, HTREEITEM hTreeItem, struct redisReply *reply)
     return hti;
 }
 
+static bool
+on_sysmtree_init_hredis(void)
+{
+    if (redis_funcs.dll)
+    {
+        return true;
+    }
+    TCHAR dll_path[MAX_PATH+1] = {0};
+    _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("hiredis.dll"));
+    redis_funcs.dll = LoadLibrary(dll_path);
+    if (redis_funcs.dll == NULL)
+    {
+        MSG_BOX(IDC_MSG_SYMTREE_ERR10, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+        return false;
+    }
+    redis_funcs.fnRedisConnectWithTimeout = (pRedisConnectWithTimeout *) GetProcAddress(redis_funcs.dll, "redisConnectWithTimeout");
+    redis_funcs.fnRedisFree = (pRedisFree *) GetProcAddress(redis_funcs.dll, "redisFree");
+    redis_funcs.fnRedisCommand = (pRedisCommand *) GetProcAddress(redis_funcs.dll, "redisCommand");
+    redis_funcs.fnFreeReplyObject = (pFreeReplyObject *) GetProcAddress(redis_funcs.dll, "freeReplyObject");
+    if (redis_funcs.fnRedisConnectWithTimeout == NULL || redis_funcs.fnRedisFree == NULL ||
+        redis_funcs.fnRedisCommand == NULL || redis_funcs.fnFreeReplyObject == NULL)
+    {
+        MSG_BOX(IDC_MSG_SYMTREE_ERR11, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+        safe_close_dll(redis_funcs.dll);
+        return false;
+    }
+    return true;
+}
+
 void
 on_symtree_disconnect_redis(eu_tabpage *pnode)
 {
-    if (pnode->rs_handle.ctx)
+    if (pnode && pnode->redis_ptr)
     {
-        redis_funcs.fnRedisFree(pnode->rs_handle.ctx);
-        pnode->rs_handle.ctx = NULL;
+        if (pnode->redis_ptr->ctx)
+        {
+            redis_funcs.fnRedisFree(pnode->redis_ptr->ctx);
+            pnode->redis_ptr->ctx = NULL;
+        }
+        pnode->redis_ptr->connected = false;
+        eu_safe_free(pnode->redis_ptr);
     }
-    safe_close_dll(pnode->rs_handle.hiredis_dll);
-    pnode->redis_is_connect = false;
 }
 
-int
+static int
 on_symtree_connect_redis(eu_tabpage *pnode)
 {
-    int nret = 0;
+    int err = 0;
     HTREEITEM hti;
-    if (!pnode)
+    if (!(pnode && pnode->redis_ptr))
     {
-        return -1;
+        return 1;
     }
-    if (pnode->redis_is_connect)
+    if (!on_sysmtree_init_hredis())
     {
-        return 0;
+        return 1;
     }
-    if (pnode->redis_config.host[0] == '\0') 
-    {
-        return -1;
-    }
-    if (pnode->rs_handle.hiredis_dll == NULL)
-    {
-        TCHAR dll_path[MAX_PATH+1] = {0};
-        _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("hiredis.dll"));
-        pnode->rs_handle.hiredis_dll = LoadLibrary(dll_path);
-        if (pnode->rs_handle.hiredis_dll == NULL)
-        {
-            MSG_BOX(IDC_MSG_SYMTREE_ERR10, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
-        }
-        redis_funcs.fnRedisConnectWithTimeout =
-            (pRedisConnectWithTimeout *) GetProcAddress(pnode->rs_handle.hiredis_dll, "redisConnectWithTimeout");
-        redis_funcs.fnRedisFree = (pRedisFree *) GetProcAddress(pnode->rs_handle.hiredis_dll, "redisFree");
-        redis_funcs.fnRedisCommand = (pRedisCommand *) GetProcAddress(pnode->rs_handle.hiredis_dll, "redisCommand");
-        redis_funcs.fnFreeReplyObject = (pFreeReplyObject *) GetProcAddress(pnode->rs_handle.hiredis_dll, "freeReplyObject");
-        if (redis_funcs.fnRedisConnectWithTimeout == NULL || redis_funcs.fnRedisFree == NULL ||
-            redis_funcs.fnRedisCommand == NULL || redis_funcs.fnFreeReplyObject == NULL)
-        {
-            MSG_BOX(IDC_MSG_SYMTREE_ERR11, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            on_symtree_disconnect_redis(pnode);
-            return -1;
-        }
-    }
-    if (pnode->rs_handle.ctx == NULL)
+    do
     {
         struct timeval timeout;
-        char command[MAXLEN_FILENAME];
+        char command[MAXLEN_FILENAME] = {0};
         struct redisReply *reply = NULL;
-
         timeout.tv_sec = 10;
         timeout.tv_usec = 0;
-        pnode->rs_handle.ctx = redis_funcs.fnRedisConnectWithTimeout(pnode->redis_config.host, pnode->redis_config.port, timeout);
-        if (pnode->rs_handle.ctx == NULL || pnode->rs_handle.ctx->err)
+        if (!pnode->redis_ptr->ctx)
         {
-            MSG_BOX(IDC_MSG_SYMTREE_ERR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            on_symtree_disconnect_redis(pnode);
-            return -1;
+            pnode->redis_ptr->ctx = redis_funcs.fnRedisConnectWithTimeout(pnode->redis_ptr->config.host, pnode->redis_ptr->config.port, timeout);
+            if (pnode->redis_ptr->ctx == NULL || pnode->redis_ptr->ctx->err)
+            {
+                MSG_BOX(IDC_MSG_SYMTREE_ERR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                err = 1;
+                break;
+            }
         }
-
-        if (pnode->redis_config.pass[0])
+        if (pnode->redis_ptr->config.pass[0])
         {
-            memset(command, 0, sizeof(command));
-            snprintf(command, sizeof(command) - 1, "AUTH %s", pnode->redis_config.pass);
-            reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->rs_handle.ctx, command);
-            if (reply == NULL || reply->type == REDIS_REPLY_ERROR)
+            snprintf(command, MAXLEN_FILENAME - 1, "auth %s", pnode->redis_ptr->config.pass);
+            reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->redis_ptr->ctx, command);
+            err = (reply == NULL || reply->type == REDIS_REPLY_ERROR) ? REDIS_REPLY_ERROR : 0;
+            redis_funcs.fnFreeReplyObject(reply);
+            if (err != REDIS_OK)
             {
                 MSG_BOX(IDC_MSG_SYMTREE_ERR13, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                if (reply)
-                {
-                    redis_funcs.fnFreeReplyObject(reply);
-                }
-                on_symtree_disconnect_redis(pnode);
-                return -1;
+                break;
             }
-            redis_funcs.fnFreeReplyObject(reply);
         }
-        if (pnode->redis_config.dbsl[0])
+        if (pnode->redis_ptr->config.dbsl[0])
         {
-            memset(command, 0, sizeof(command));
-            snprintf(command, sizeof(command) - 1, "SELECT %s", pnode->redis_config.dbsl);
-            reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->rs_handle.ctx, command);
-            if (reply == NULL || reply->type == REDIS_REPLY_ERROR)
+            snprintf(command, MAXLEN_FILENAME - 1, "select %s", pnode->redis_ptr->config.dbsl);
+            reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->redis_ptr->ctx, command);
+            err = (reply == NULL || reply->type == REDIS_REPLY_ERROR) ? REDIS_REPLY_ERROR : 0;
+            redis_funcs.fnFreeReplyObject(reply);
+            if (err != REDIS_OK)
             {
                 MSG_BOX(IDC_MSG_SYMTREE_ERR14, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                if (reply)
-                {
-                    redis_funcs.fnFreeReplyObject(reply);
-                }
-                on_symtree_disconnect_redis(pnode);
-                return -1;
+                break;
             }
-            redis_funcs.fnFreeReplyObject(reply);
         }
-        reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->rs_handle.ctx, "PING");
+        reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->redis_ptr->ctx, "ping");
         if (reply == NULL || reply->type == REDIS_REPLY_ERROR)
         {
             MSG_BOX(IDC_MSG_SYMTREE_ERR15, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            if (reply)
-            {
-                redis_funcs.fnFreeReplyObject(reply);
-            }
-            on_symtree_disconnect_redis(pnode);
-            return -1;
+            redis_funcs.fnFreeReplyObject(reply);
+            err = 1;
+            break;
         }
         // 写入侧边栏
         TreeView_DeleteAllItems(pnode->hwnd_symtree);
@@ -817,19 +813,30 @@ on_symtree_connect_redis(eu_tabpage *pnode)
         {
             TreeView_Expand(pnode->hwnd_symtree, hti, TVE_EXPAND);
         }
+        pnode->redis_ptr->connected = true;
+    } while(0);
+    if (err)
+    {
+        on_symtree_disconnect_redis(pnode);
     }
-    pnode->redis_is_connect = true;
-    return 0;
+    return err;
 }
 
-static bool
-parse_redis_header(eu_tabpage *pnode)
+int
+on_symtree_parse_redis_header(eu_tabpage *pnode)
 {
     sptr_t file_line;
     sptr_t file_line_count;
     bool in_config_secion = false;
     bool m_change = false;
-    redis_conn redis_config = {0};
+    redis_config rsconfig = {0};
+    if (!pnode->redis_ptr)
+    {
+        if (!(pnode->redis_ptr = (redis_conn *)calloc(1, sizeof(redis_conn))))
+        {
+            return 1;
+        }
+    }
     file_line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
     for (file_line = 0; file_line <= file_line_count; ++file_line)
     {
@@ -840,7 +847,7 @@ parse_redis_header(eu_tabpage *pnode)
         char config_value[ACNAME_LEN] = {0};
         if (!on_sci_line_text(pnode, file_line, line_buf, _countof(line_buf)))
         {
-            return false;
+            return 1;
         }
         if (!in_config_secion)
         {
@@ -853,20 +860,20 @@ parse_redis_header(eu_tabpage *pnode)
         {
             if (!strncmp(util_trim_left_white(line_buf, NULL), END_REDIS_CONNECTION_CONFIG, strlen(END_REDIS_CONNECTION_CONFIG)))
             {
-                if (redis_config.host[0])
+                if (rsconfig.host[0])
                 {
-                    if ((pnode->redis_config.host[0] && strcmp(pnode->redis_config.host, redis_config.host)) ||
-                        (pnode->redis_config.port && pnode->redis_config.port != redis_config.port) ||
-                        (pnode->redis_config.pass[0] && strcmp(pnode->redis_config.pass, redis_config.pass)) ||
-                        (pnode->redis_config.dbsl[0] && strcmp(pnode->redis_config.dbsl, redis_config.dbsl)))
+                    if ((pnode->redis_ptr->config.host[0] && strcmp(pnode->redis_ptr->config.host, rsconfig.host)) ||
+                        (pnode->redis_ptr->config.port && pnode->redis_ptr->config.port != rsconfig.port) ||
+                        (pnode->redis_ptr->config.pass[0] && strcmp(pnode->redis_ptr->config.pass, rsconfig.pass)) ||
+                        (pnode->redis_ptr->config.dbsl[0] && strcmp(pnode->redis_ptr->config.dbsl, rsconfig.dbsl)))
                     {
                         m_change = true;
                     }
-                    memcpy(&(pnode->redis_config), &redis_config, sizeof(redis_conn));
+                    memcpy(&(pnode->redis_ptr->config), &rsconfig, sizeof(rsconfig));
                 }
                 break;
             }
-            if (sscanf(line_buf, "%s%s%s%s", config_remark, config_key, config_eval, config_value) != 4)
+            if (sscanf(line_buf, "%s%s%s%s", config_remark, config_key, config_eval, config_value) < 3)
             {
                 break;
             }
@@ -876,27 +883,28 @@ parse_redis_header(eu_tabpage *pnode)
             }
             if (strcmp(config_key, "HOST") == 0)
             {
-                strncpy(redis_config.host, config_value, sizeof(redis_config.host) - 1);
+                strncpy(rsconfig.host, config_value, sizeof(rsconfig.host) - 1);
             }
             else if (strcmp(config_key, "PORT") == 0)
             {
-                redis_config.port = atoi(config_value);
+                rsconfig.port = atoi(config_value);
             }
             else if (strcmp(config_key, "PASS") == 0)
             {
-                strncpy(redis_config.pass, config_value, sizeof(redis_config.pass) - 1);
+                strncpy(rsconfig.pass, config_value, sizeof(rsconfig.pass) - 1);
             }
             else if (strcmp(config_key, "DBSL") == 0)
             {
-                strncpy(redis_config.dbsl, config_value, sizeof(redis_config.dbsl) - 1);
+                strncpy(rsconfig.dbsl, config_value, sizeof(rsconfig.dbsl) - 1);
             }
         }
     }
-    if (m_change && pnode->redis_is_connect)
+    if (m_change && pnode->redis_ptr->connected && pnode->redis_ptr->ctx && redis_funcs.fnRedisFree)
     {
-        on_symtree_disconnect_redis(pnode);
+        redis_funcs.fnRedisFree(pnode->redis_ptr->ctx);
+        pnode->redis_ptr->ctx = NULL;
     }
-    return (on_symtree_connect_redis(pnode) == 0);
+    return on_symtree_connect_redis(pnode);
 }
 
 int
@@ -907,13 +915,12 @@ on_symtree_query_redis(eu_tabpage *pnode)
     sptr_t sel_len;
     char *sel_cmd = NULL;
     char *sel_event = NULL;
-    const char *eol = on_encoding_get_eol(pnode);
     struct redisReply *reply = NULL;
     HTREEITEM hti = NULL;
-    if (!parse_redis_header(pnode))
+    if (!on_symtree_parse_redis_header(pnode))
     {
         printf("parse_redis_header return false\n");
-        return -1;
+        return 1;
     }
     start_pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
     end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
@@ -929,39 +936,31 @@ on_symtree_query_redis(eu_tabpage *pnode)
     if (sel_cmd == NULL)
     {
         printf("memory allocation failed\n");
-        return -1;
+        return 1;
     }
-    sel_event = strtok(sel_cmd, eol);
-    while (sel_event && *sel_event)
+    sel_event = strtok(sel_cmd, ";");
+    while (STR_NOT_NUL(sel_event))
     {
-        printf("sel_envent = %s\n", sel_event);
-        if (!strncmp(util_trim_left_white(sel_event, NULL), "--", strlen("--")))
+        if (!on_table_skip_comment(pnode, &sel_event))
         {
-            sel_event = strtok(NULL, eol);
-            continue;
+            break;
         }
-        if (sel_event[strlen(sel_event)-1] == ';')
+        if (strlen(sel_event) > 0)
         {
-            sel_event[strlen(sel_event)-1] = 0;
+            reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->redis_ptr->ctx, sel_event);
+            if (reply == NULL)
+            {
+                break;
+            }
+            TreeView_DeleteAllItems(pnode->hwnd_symtree);
+            hti = redis_reply(pnode, TVI_ROOT, reply);
+            redis_funcs.fnFreeReplyObject(reply);
+            if (hti)
+            {
+                TreeView_Expand(pnode->hwnd_symtree, hti, TVE_EXPAND);
+            }
         }
-        if (strstr(sel_event, "--"))
-        {
-            strstr(sel_event, "--")[0] = 0;
-        }
-        reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->rs_handle.ctx, sel_event);
-        if (reply == NULL)
-        {
-            on_symtree_disconnect_redis(pnode);
-            return -1;
-        }
-        TreeView_DeleteAllItems(pnode->hwnd_symtree);
-        hti = redis_reply(pnode, TVI_ROOT, reply);
-        redis_funcs.fnFreeReplyObject(reply);
-        if (hti)
-        {
-            TreeView_Expand(pnode->hwnd_symtree, hti, TVE_EXPAND);
-        }
-        sel_event = strtok(NULL, eol);
+        sel_event = strtok(NULL, ";");
     }
     free(sel_cmd);
     return 0;
@@ -1294,7 +1293,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (cnv)
                     {
                         _snprintf(sql, MAX_PATH, "select * from %s;", cnv);
-                        on_table_sql_query(pnode, sql);
+                        on_table_sql_query(pnode, sql, false);
                         free(cnv);
                     }
                     break;
@@ -1307,7 +1306,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (cnv && parent)
                     {
                         _snprintf(sql, MAX_PATH, "select %s from %s;", cnv, parent);
-                        on_table_sql_query(pnode, sql);
+                        on_table_sql_query(pnode, sql, false);
                     }
                     if (cnv)
                     {
@@ -1369,18 +1368,18 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     break;
                 }
-                if (!pnode->db_is_connect)
+                if ((pnode->db_ptr && pnode->db_ptr->connected) ||
+                    (pnode->redis_ptr && pnode->redis_ptr->connected) )
                 {
-                    break;
-                }
-                TreeView_SelectItem(hwnd, tvhti.hItem);
-                if (TreeView_GetChild(hwnd, tvhti.hItem))
-                {
-                    menu_pop_track(hwnd, IDR_SYMBOLTREE_TABLE_POPUPMENU, 0);
-                }
-                else
-                {
-                    menu_pop_track(hwnd, IDR_SYMBOLTREE_ROW_POPUPMENU, 0);
+                    TreeView_SelectItem(hwnd, tvhti.hItem);
+                    if (TreeView_GetChild(hwnd, tvhti.hItem))
+                    {
+                        menu_pop_track(hwnd, IDR_SYMBOLTREE_TABLE_POPUPMENU, 0);
+                    }
+                    else
+                    {
+                        menu_pop_track(hwnd, IDR_SYMBOLTREE_ROW_POPUPMENU, 0);
+                    }
                 }
             }
             else if (!(tvhti.flags & TVHT_ONITEM) && tvhti.flags > 0x1 && tvhti.flags < 0x41)

@@ -40,24 +40,20 @@ struct _tabpage
     sptr_t eusc;                // 当前编辑器类指针
     RECT rect_sc;               // 编辑器矩形区域
     int match_count;            // 查找时匹配计数
-    HWND hwnd_symlist;          // tab关联的子窗口句柄
-    RECT rect_symlist;
-    HWND hwnd_symtree;
-    RECT rect_symtree;
-    HWND hwnd_qredit;
-    RECT rect_qredit;
-    HWND hwnd_qrtable;
-    RECT rect_qrtable;
+    HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
+    RECT rect_symlist;          // 右侧边栏list窗口矩形区域
+    HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
+    RECT rect_symtree;          // 右侧边栏tree窗口矩形区域
+    HWND hwnd_qredit;           // tab关联的运行edit日志窗口 
+    RECT rect_qredit;           // edit日志窗口矩形区域 
+    HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
+    RECT rect_qrtable;          // table窗口矩形区域 
     int  tab_id;                // tab编号,用于保存会话
     bool edit_show;             // 是否显示文件运行窗口
     bool sym_show;              // 是否显示右侧边栏
     bool foldline;              // 是否存在折叠线
-    db_conn db_config;          // 数据库配置
-    db_handles udb;
-    bool db_is_connect;
-    redis_conn redis_config;    // redis配置
-    redis_handles rs_handle;
-    bool redis_is_connect;
+    db_conn *db_ptr;            // 数据库配置
+    redis_conn *redis_ptr;      // redis配置
     TCHAR pathfile[MAX_PATH];   // 文件带路径名
     TCHAR pathname[MAX_PATH];   // 文件所在路径名
     TCHAR filename[MAX_PATH];   // 文件名

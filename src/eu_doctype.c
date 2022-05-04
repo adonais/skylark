@@ -216,7 +216,7 @@ on_doc_init_result(eu_tabpage *pnode)
 }
 
 static void
-init_systree_theme(eu_tabpage *pnode)
+on_doc_setup_symtree_theme(eu_tabpage *pnode)
 {
     if (pnode && pnode->hwnd_symtree)
     {
@@ -829,7 +829,7 @@ on_doc_init_after_sql(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_SQL_COMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_SQL_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    init_systree_theme(pnode);
+    on_doc_setup_symtree_theme(pnode);
     return 0;
 }
 
@@ -840,7 +840,7 @@ on_doc_init_after_redis(eu_tabpage *pnode)
     on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_enable_foldline(pnode);
-    init_systree_theme(pnode);
+    on_doc_setup_symtree_theme(pnode);
     return 0;
 }
 
@@ -1294,7 +1294,7 @@ on_doc_init_after_json(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_JSON_LINECOMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_JSON_BLOCKCOMMENT, 0);
     on_doc_enable_foldline(pnode);
-    init_systree_theme(pnode);
+    on_doc_setup_symtree_theme(pnode);
     if (pnode->doc_ptr->fn_reload_symtree)
     {
         pnode->doc_ptr->fn_reload_symtree(pnode);
@@ -1398,7 +1398,7 @@ on_doc_init_after_properties(eu_tabpage *pnode)
 }
 
 static bool
-are_spaces_before_after(eu_tabpage *pnode, sptr_t pos)
+on_doc_character_around_space(eu_tabpage *pnode, sptr_t pos)
 {
     int current_char = 0;
     int pre_pre_character = 0;
@@ -1423,12 +1423,12 @@ on_doc_character_replace(eu_tabpage *pnode, int ch)
 }
 
 static void
-add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
+on_doc_auto_brackets(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     if (pnode && lpnotify && eu_get_config()->auto_close_chars)
     {   /* 自动补全关闭符号 */
         sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        if (are_spaces_before_after(pnode, current_pos))
+        if (on_doc_character_around_space(pnode, current_pos))
         {   // 当前后是空白符的时候才添加配对符号
             switch (lpnotify->ch)
             {
@@ -1457,7 +1457,7 @@ add_close_char(eu_tabpage *pnode, SCNotification *lpnotify)
 }
 
 static void
-add_close_bracket(eu_tabpage *pnode, SCNotification *lpnotify)
+on_doc_add_bracket(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     /* web脚本自动补全符号 */
     if (lpnotify->ch == '<' && eu_get_config()->auto_close_chars)
@@ -1547,24 +1547,24 @@ on_doc_function_tips(eu_tabpage *pnode, SCNotification *lpnotify)
     {   /* 类c风格的函数原型提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
-            int start_pos = 0;
-            int end_pos = 0;
-            int current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t start_pos = 0;
+            sptr_t end_pos = 0;
+            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2 , 0);
             if (ch == 0x20)
             {   // 函数名称后面跟了一个空格
-                start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
-                end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 2, true);
+                start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
+                end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 2, true);
             }
             else if (ch > 0x20 && ch < 0x7f)
             {
-                start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
-                end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+                start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
+                end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             }
             else
             {
-                start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
-                end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+                start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
+                end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             }
             if (end_pos - start_pos >= ACNAME_LEN)
             {
@@ -1590,8 +1590,8 @@ on_doc_function_tips(eu_tabpage *pnode, SCNotification *lpnotify)
     {   /* 函数参数输入后继续提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
-            int current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) - 1;
-            int n_pos = current_pos;
+            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) - 1;
+            sptr_t n_pos = current_pos;
             int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
             for (; n_pos >= 0 && ch != '('; n_pos--, ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
             {
@@ -1599,8 +1599,8 @@ on_doc_function_tips(eu_tabpage *pnode, SCNotification *lpnotify)
             }
             if (ch == '(' && n_pos >= 0)
             {
-                int start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, n_pos - 1, true);
-                int end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, n_pos - 1, true);
+                sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, n_pos - 1, true);
+                sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, n_pos - 1, true);
                 if (end_pos - start_pos >= ACNAME_LEN)
                 {
                     end_pos = start_pos + ACNAME_LEN;
@@ -1630,16 +1630,16 @@ on_doc_function_tips(eu_tabpage *pnode, SCNotification *lpnotify)
 }
 
 static int
-add_ctinput_char(eu_tabpage *pnode, SCNotification *lpnotify, char ch_from, bool upper_case)
+on_doc_auto_calltip(eu_tabpage *pnode, SCNotification *lpnotify, char ch_from, bool upper_case)
 {
     char word_buffer[ACNAME_LEN+1];
     if (pnode && lpnotify && lpnotify->ch == ' ' && eu_get_config()->m_ctshow)
     {   /* 函数原型提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
-            int current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            int start_pos = current_pos;
-            int end_pos;
+            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t start_pos = current_pos;
+            sptr_t end_pos;
             int ch;
             while (1)
             {
@@ -1715,7 +1715,7 @@ add_ctinput_char(eu_tabpage *pnode, SCNotification *lpnotify, char ch_from, bool
 }
 
 static int
-add_acshow_char(eu_tabpage *pnode, SCNotification *lpnotify)
+on_doc_auto_complete(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     char word_buffer[ACNAME_LEN+1] = {0};
     if ((!lpnotify || (lpnotify->ch > 0 && lpnotify->ch < 0x80)) && eu_get_config()->m_acshow)
@@ -1751,13 +1751,13 @@ add_acshow_char(eu_tabpage *pnode, SCNotification *lpnotify)
 }
 
 static int
-add_acshow_html(eu_tabpage *pnode, SCNotification *lpnotify)
+on_doc_html_complete(eu_tabpage *pnode, SCNotification *lpnotify)
 {
     int nret = 0;
-    int n_pos = 0;
     int ch_pre = 0;
     int ch = 0;
-    int current_pos = 0;
+    sptr_t n_pos = 0;
+    sptr_t current_pos = 0;
     char word_buffer[ACNAME_LEN+1];
     if (!(pnode && pnode->doc_ptr && lpnotify))
     {
@@ -1799,9 +1799,9 @@ add_acshow_html(eu_tabpage *pnode, SCNotification *lpnotify)
         }
         else if (isalpha(lpnotify->ch))
         {
-            current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            int start_pos = (int) eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
-            int end_pos = (int) eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+            current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
+            sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             if (end_pos - start_pos >= ACNAME_LEN)
             {
                 end_pos = start_pos + ACNAME_LEN;
@@ -1849,8 +1849,8 @@ on_doc_cpp_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
-        add_acshow_char(pnode, lpnotify);
+        on_doc_auto_brackets(pnode, lpnotify);
+        on_doc_auto_complete(pnode, lpnotify);
         on_doc_function_tips(pnode, lpnotify);
     }
     return 0;
@@ -1862,9 +1862,9 @@ on_doc_sql_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
-        add_acshow_char(pnode, lpnotify);
-        add_ctinput_char(pnode, lpnotify, ';', true);
+        on_doc_auto_brackets(pnode, lpnotify);
+        on_doc_auto_complete(pnode, lpnotify);
+        on_doc_auto_calltip(pnode, lpnotify, ';', true);
     }
     return 0;
 }
@@ -1875,9 +1875,9 @@ on_doc_redis_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
-        add_acshow_char(pnode, lpnotify);
-        add_ctinput_char(pnode, lpnotify, '\n', true);
+        on_doc_auto_brackets(pnode, lpnotify);
+        on_doc_auto_complete(pnode, lpnotify);
+        on_doc_auto_calltip(pnode, lpnotify, '\n', true);
     }
     return 0;
 }
@@ -1888,9 +1888,9 @@ on_doc_html_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
-        add_close_bracket(pnode, lpnotify);
-        add_acshow_html(pnode, lpnotify);
+        on_doc_auto_brackets(pnode, lpnotify);
+        on_doc_add_bracket(pnode, lpnotify);
+        on_doc_html_complete(pnode, lpnotify);
     }
     return 0;
 }
@@ -1901,8 +1901,8 @@ on_doc_xml_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
-        add_close_bracket(pnode, lpnotify);
+        on_doc_auto_brackets(pnode, lpnotify);
+        on_doc_add_bracket(pnode, lpnotify);
     }
     return 0;
 }
@@ -1913,8 +1913,8 @@ on_doc_css_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
-        add_acshow_char(pnode, lpnotify);
+        on_doc_auto_brackets(pnode, lpnotify);
+        on_doc_auto_complete(pnode, lpnotify);
     }
     return 0;
 }
@@ -1925,7 +1925,7 @@ on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
+        on_doc_auto_brackets(pnode, lpnotify);
     }
     return 0;
 }
@@ -1936,7 +1936,7 @@ on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
+        on_doc_auto_brackets(pnode, lpnotify);
     }
     return 0;
 }
@@ -1947,8 +1947,8 @@ on_doc_cmake_like(eu_tabpage *pnode, SCNotification *lpnotify)
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        add_close_char(pnode, lpnotify);
-        add_acshow_char(pnode, lpnotify);
+        on_doc_auto_brackets(pnode, lpnotify);
+        on_doc_auto_complete(pnode, lpnotify);
     }
     return 0;
 }
@@ -2042,13 +2042,15 @@ on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 int
 on_doc_keydown_sql(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
+    bool vcontrol = false;
     if (wParam == VK_F5)
     {
         if (lParam == VK_CONTROL)
         {
             eu_sci_call(pnode, SCI_SETSEL, 0, eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
+            vcontrol = true;
         }
-        return on_table_sql_query(pnode, NULL);
+        return on_table_sql_query(pnode, NULL, vcontrol);
     }
     return 0;
 }
@@ -2121,13 +2123,9 @@ on_doc_click_list_jump_sh(eu_tabpage *pnode)
 int
 on_doc_reload_tree_sql(eu_tabpage *pnode)
 {
-    if (!pnode)
+    if (!(pnode && pnode->db_ptr))
     {
         return 1;
-    }
-    if (pnode->db_is_connect)
-    {
-        on_table_disconnect_database(pnode);
     }
     return on_symtree_do_sql(pnode, true);
 }
@@ -2135,18 +2133,13 @@ on_doc_reload_tree_sql(eu_tabpage *pnode)
 int
 on_doc_reload_tree_redis(eu_tabpage *pnode)
 {
-    int err = 0;
-    if (!pnode)
+    if (!(pnode && pnode->redis_ptr))
     {
         return 1;
     }
-    if (pnode->redis_is_connect)
-    {   // 关闭redis数据库链接
-        on_symtree_disconnect_redis(pnode);
-        err = on_symtree_connect_redis(pnode);
-    }
-    return err;
+    return on_symtree_parse_redis_header(pnode);
 }
+
 
 int
 on_doc_reload_tree_json(eu_tabpage *pnode)
@@ -2235,7 +2228,7 @@ eu_doc_set_ptr(doctype_t *ptr)
 }
 
 void
-eu_doc_config_release(void)
+eu_doc_ptr_free(void)
 {
     for (doctype_t *mapper = g_doc_config; mapper && mapper->doc_type > 0; ++mapper)
     {
