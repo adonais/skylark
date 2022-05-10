@@ -238,6 +238,7 @@ BEGIN
         MENUITEM "Show Wrap Symbol",                                   IDM_VIEW_NEWLINE_VISIABLE
         MENUITEM "Show Indent Guide",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
         MENUITEM MF_SEPARATOR
+        MENUITEM "Show Tips On Tabs",                                  IDM_VIEW_TIPS_ONTAB
         POPUP "Activated When Closing Tab"
         BEGIN
             MENUITEM "The Left Tab",                                   IDM_VIEW_LEFT_TAB

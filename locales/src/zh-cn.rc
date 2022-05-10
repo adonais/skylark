@@ -238,6 +238,7 @@ BEGIN
         MENUITEM "显示换行符",                                  IDM_VIEW_NEWLINE_VISIABLE
         MENUITEM "显示缩进线",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
         MENUITEM MF_SEPARATOR
+        MENUITEM "在标签上显示提示信息",                        IDM_VIEW_TIPS_ONTAB
         POPUP "关闭标签时激活"
         BEGIN
             MENUITEM "左边的标签",                              IDM_VIEW_LEFT_TAB

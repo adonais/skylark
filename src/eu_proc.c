@@ -1108,6 +1108,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
                     on_view_indent_visiable(hwnd);
                     break;
+                case IDM_VIEW_TIPS_ONTAB:
+                    eu_get_config()->m_tab_tip = !eu_get_config()->m_tab_tip;
+                    break;
                 case IDM_VIEW_LEFT_TAB:
                 case IDM_VIEW_RIGHT_TAB:
                 case IDM_VIEW_FAR_LEFT_TAB:
@@ -1423,6 +1426,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case TTN_NEEDTEXT:
                 {
+                    if (!eu_get_config()->m_tab_tip)
+                    {
+                        break;
+                    }
                     if (p_tips->hdr.hwndFrom != TabCtrl_GetToolTips(g_tabpages))
                     {
                         break;

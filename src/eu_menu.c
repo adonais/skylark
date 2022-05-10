@@ -396,6 +396,7 @@ menu_update_item(HMENU menu)
                             util_update_menu_chars(menu, IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
                             util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces);
                         }
+                        util_set_menu_item(menu, IDM_VIEW_TIPS_ONTAB, eu_get_config()->m_tab_tip);
                         util_switch_menu_group(menu, IDM_VIEW_LEFT_TAB, IDM_VIEW_FAR_RIGHT_TAB, eu_get_config()->m_tab_active);
                         break;
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */

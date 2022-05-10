@@ -1588,6 +1588,7 @@ eu_save_config(void)
         "auto_completed_show_enable = %s\n"
         "auto_completed_show_after_input_characters = %d\n"
         "call_tip_show_enable = %s\n"
+        "tabs_tip_show_enable = %s\n"
         "tab_switch_forward = %d\n"
         "edit_font_quality = %d\n"
         "edit_rendering_technology = %d\n"
@@ -1663,6 +1664,7 @@ eu_save_config(void)
               g_config->m_acshow?"true":"false",
               g_config->acshow_chars,
               g_config->m_ctshow?"true":"false",
+              g_config->m_tab_tip?"true":"false",
               g_config->m_tab_active,
               g_config->m_quality,
               g_config->m_render,

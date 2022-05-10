@@ -67,6 +67,7 @@ struct eu_config
     bool m_acshow;
     int acshow_chars;
     bool m_ctshow;
+    bool m_tab_tip;
     
     int m_tab_active;
     int m_quality;
