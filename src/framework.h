@@ -84,7 +84,7 @@
 #define SYMBOLTREE_WIDTH_DEFAULT     300
 #define TREEVIEW_WIDTH_MIN           100
 
-#define SPLIT_WIDTH                  4
+#define SPLIT_WIDTH                  2
 #define WHITESPACE_SIZE              3
 #define EDITOR_TAB_WIDTH_DEFAULT     8
 #define MAX_TRACE_COUNT              100
@@ -119,6 +119,7 @@
 #include "eu_hook.h"
 #include "eu_share.h"
 #include "eu_script.h"
+#include "eu_splitter.h"
 #include "eu_log.h"
 #include "eu_sql.h"
 #include "eu_input.h"

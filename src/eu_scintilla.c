@@ -119,6 +119,9 @@ on_sci_init_style(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
     }
+    // 总是显示垂直滚动条
+    // eu_sci_call(pnode, SCI_SETVSCROLLBAR, 1, 0);
+    // 需要时显示水平滚动条, 但是删除文本后, 滚动条不会消失
     eu_sci_call(pnode, SCI_SETSCROLLWIDTH, 1, 0);
     eu_sci_call(pnode, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
     // 设置undo掩码, 接受SCN_MODIFIED消息
@@ -435,6 +438,8 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     eu_tabpage *pnode = NULL;
     switch (message)
     {
+        //case WM_SIZE:
+        //    return 1;
         case WM_KEYDOWN:
         {   // 按下ESC键时
             if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)) && (pnode = on_tabpage_focus_at()))
@@ -471,7 +476,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
-            eu_reset_drag_line();
             if ((pnode = on_tabpage_focus_at()) == NULL)
             {
                 break;

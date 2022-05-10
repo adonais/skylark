@@ -113,6 +113,14 @@ on_toolbar_get_clipboard(char **ppstr)
     return ret;
 }
 
+HWND WINAPI
+on_toolbar_hwnd(void)
+{
+    HWND hwnd = eu_module_hwnd();
+    HWND htool = hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
+    return htool;
+}
+
 void WINAPI
 on_toolbar_adjust_box(void)
 {
@@ -123,34 +131,6 @@ on_toolbar_adjust_box(void)
     else
     {
         g_toolbar_height = DEFAULTTOOLBAR;
-    }
-}
-
-void WINAPI
-on_toolbar_size(void)
-{
-    HWND hwnd = eu_module_hwnd();
-    HWND h_tool = hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
-    if (h_tool)
-    {
-        if (!eu_get_config()->m_toolbar)
-        {
-            if ((GetWindowLongPtr(h_tool, GWL_STYLE) & WS_VISIBLE))
-            {
-                ShowWindow(h_tool, SW_HIDE);
-            }
-            g_toolbar_height = 0;
-        }
-        else
-        {
-            RECT rc = {0};
-            RECT rect = {0};
-            GetWindowRect(hwnd, &rc);
-            GetWindowRect(h_tool, &rect);
-            g_toolbar_height = rect.bottom - rect.top;
-            eu_setpos_window(h_tool, HWND_TOP, 0, 0, rc.right - rc.left, g_toolbar_height , SWP_NOZORDER|SWP_SHOWWINDOW);
-        }
-        UpdateWindow(hwnd);
     }
 }
 

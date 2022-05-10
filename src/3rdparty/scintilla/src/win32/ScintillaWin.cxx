@@ -3541,7 +3541,7 @@ void ScintillaWin::Prepare() noexcept {
 	// Register the CallTip class
 	WNDCLASSEX wndclassc{};
 	wndclassc.cbSize = sizeof(wndclassc);
-	wndclassc.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+	wndclassc.style = CS_GLOBALCLASS;
 	wndclassc.cbWndExtra = sizeof(ScintillaWin *);
 	wndclassc.hInstance = hInstance;
 	wndclassc.lpfnWndProc = ScintillaWin::CTWndProc;
@@ -3559,7 +3559,7 @@ bool ScintillaWin::Register(HINSTANCE hInstance_) noexcept {
 	// Register Scintilla as a wide character window
 	WNDCLASSEXW wndclass {};
 	wndclass.cbSize = sizeof(wndclass);
-	wndclass.style = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
+	wndclass.style = CS_GLOBALCLASS;
 	wndclass.lpfnWndProc = ScintillaWin::SWndProc;
 	wndclass.cbWndExtra = sizeof(ScintillaWin *);
 	wndclass.hInstance = hInstance;

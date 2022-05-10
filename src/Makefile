@@ -94,6 +94,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_print.obj                       \
     $(OBJD)\eu_locale.obj                      \
     $(OBJD)\eu_format.obj                      \
+    $(OBJD)\eu_splitter.obj                    \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -183,6 +184,7 @@ $(OBJD)\eu_json.obj                        : eu_json.c eu_json.h
 $(OBJD)\eu_print.obj                       : eu_print.c eu_print.h framework.h
 $(OBJD)\eu_locale.obj                      : eu_locale.c eu_locale.h framework.h
 $(OBJD)\eu_format.obj                      : eu_format.c eu_format.h framework.h
+$(OBJD)\eu_splitter.obj                    : eu_splitter.c eu_splitter.h eu_splitter.h
 $(OBJD)\eu_rbtree.obj                      : eu_rbtree.c eu_rbtree.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c

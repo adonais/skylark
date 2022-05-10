@@ -41,13 +41,12 @@ struct _tabpage
     RECT rect_sc;               // 编辑器矩形区域
     int match_count;            // 查找时匹配计数
     HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
-    RECT rect_symlist;          // 右侧边栏list窗口矩形区域
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
-    RECT rect_symtree;          // 右侧边栏tree窗口矩形区域
-    HWND hwnd_qredit;           // tab关联的运行edit日志窗口 
-    RECT rect_qredit;           // edit日志窗口矩形区域 
+    RECT rect_sym;              // 右侧边栏窗口矩形区域
+    HWND hwnd_qredit;           // tab关联的运行edit日志窗口
+    RECT rect_qredit;           // edit日志窗口矩形区域
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
-    RECT rect_qrtable;          // table窗口矩形区域 
+    RECT rect_qrtable;          // table窗口矩形区域
     int  tab_id;                // tab编号,用于保存会话
     bool edit_show;             // 是否显示文件运行窗口
     bool sym_show;              // 是否显示右侧边栏
@@ -67,7 +66,7 @@ struct _tabpage
     int codepage;               // 文件编码
     char pre_context[4+1];      // 保存bom
     size_t pre_len;             // bom的长度
-    bool needpre;               // 是否需要bom      
+    bool needpre;               // 是否需要bom
     int eol;                    // 换行符
     int64_t begin_pos;          // 开始选择位置
     remotefs fs_server;         // SFTP
@@ -92,6 +91,7 @@ int  on_tabpage_reload_file(eu_tabpage *pnode, int flags);
 int  on_tabpage_editor_modify(eu_tabpage *pnode, const char *);
 int  on_tabpage_create_rclick(void);
 int  on_tabpage_theme_changed(eu_tabpage *p);
+int  on_tabpage_get_height(void);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);

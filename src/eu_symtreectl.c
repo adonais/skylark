@@ -31,14 +31,14 @@ get_symtree_str(eu_tabpage *pnode, bool get_parent)
     if (hti == NULL)
     {
         return NULL;
-    }     
+    }
     if (get_parent)
     {
         if (!(hti = TreeView_GetParent(pnode->hwnd_symtree, hti)))
         {
             return NULL;
         }
-    }  
+    }
     tvi.mask = TVIF_HANDLE | TVIF_TEXT;
     tvi.hItem = hti;
     tvi.cchTextMax = _countof(file_str) - 1;
@@ -80,7 +80,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
 {
     int words2_len;
     int words2_buf_len;
-    int words2_remain_len;    
+    int words2_remain_len;
     char *words2 = NULL;
     char sql[MAXLEN_FILENAME];
     int err = 0;
@@ -107,7 +107,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
         if (_stricmp(pnode->db_ptr->config.dbtype, "MySQL") == 0)
         {
             MYSQL_ROW row_str;
-            MYSQL_ROW row_str2;            
+            MYSQL_ROW row_str2;
             MYSQL_RES *m_result = NULL;
             MYSQL_RES *m_result2 = NULL;
             mysql_lib *mysql_sub = &(db_funcs.m_mysql);
@@ -265,7 +265,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
             }
             TreeView_DeleteAllItems(pnode->hwnd_symtree);
             do
-            {          
+            {
                 memset(&tvi, 0, sizeof(TVITEM));
                 memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
                 tvi.mask = TVIF_TEXT;
@@ -285,7 +285,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                          "SELECT column_name,data_type,data_length,data_precision,data_scale "
                          "FROM user_tab_columns WHERE table_name='%s' ORDER BY column_id ASC",
                          table_name);
-        
+
                 oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp),
                                           (dvoid **) &stmthpp2,
                                           OCI_HTYPE_STMT,
@@ -361,7 +361,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                                           &data_scale_len,
                                           NULL,
                                           OCI_DEFAULT);
-        
+
                 err = (int)oci_sub->fnOCIStmtExecute(this_oci->svchpp,
                                                      stmthpp2,
                                                      this_oci->errhpp,
@@ -391,7 +391,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                     else
                     {
                         _snprintf(buf, _countof(buf) - 1, "%s --%s(%d,%d)", column_name, data_type, data_precision, data_scale);
-                    }              
+                    }
                     tvi.mask = TVIF_TEXT;
                     tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
                     tvis.hParent = hti_root;
@@ -403,7 +403,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                     {
                         words2_buf_len += words2_len;
                         words2_remain_len -= words2_len;
-                    }               
+                    }
                 } while (oci_sub->fnOCIStmtFetch2(stmthpp2, this_oci->errhpp, 1, OCI_FETCH_NEXT, 1, OCI_DEFAULT) != OCI_NO_DATA);
                 oci_sub->fnOCIHandleFree((dvoid *) stmthpp2, OCI_HTYPE_STMT);
             } while (oci_sub->fnOCIStmtFetch2(stmthpp, this_oci->errhpp, 1, OCI_FETCH_NEXT, 1, OCI_DEFAULT) != OCI_NO_DATA);
@@ -436,7 +436,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
             }
             TreeView_DeleteAllItems(pnode->hwnd_symtree);
             for (row = 0, index = ncolumn; row < nrow; row++, index++)
-            {           
+            {
                 memset(&tvi, 0, sizeof(TVITEM));
                 memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
                 tvi.mask = TVIF_TEXT;
@@ -470,7 +470,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                     char buf[MAX_BUFFER] = {0};
                     memset(&tvi, 0, sizeof(TVITEM));
                     memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
-                    snprintf(buf, _countof(buf) - 1, "%s --%s", result2[index2 + 1], result2[index2 + 2]);         
+                    snprintf(buf, _countof(buf) - 1, "%s --%s", result2[index2 + 1], result2[index2 + 2]);
                     tvi.mask = TVIF_TEXT;
                     tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
                     tvis.hParent = hti_root;
@@ -493,7 +493,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
             int nrow;
             int row;
             int nrow2;
-            int row2;  
+            int row2;
             PGresult *res = NULL;
             PGresult *res2 = NULL;
             pq_lib *pq_sub = &(db_funcs.m_pq);
@@ -521,7 +521,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
             TreeView_DeleteAllItems(pnode->hwnd_symtree);
             nrow = pq_sub->fnPQntuples(res);
             for (row = 0; row < nrow; row++)
-            {       
+            {
                 memset(&tvi, 0, sizeof(TVITEM));
                 memset(&tvis, 0, sizeof(TVINSERTSTRUCT));
                 tvi.mask = TVIF_TEXT;
@@ -535,7 +535,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                 {
                     words2_buf_len += words2_len;
                     words2_remain_len -= words2_len;
-                }           
+                }
                 snprintf(sql,
                          _countof(sql) - 1,
                          "SELECT column_name,data_type,character_maximum_length,numeric_precision,numeric_scale FROM "
@@ -585,7 +585,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                                  pq_sub->fnPQgetvalue(res2, row2, 1),
                                  pq_sub->fnPQgetvalue(res2, row2, 3),
                                  pq_sub->fnPQgetvalue(res2, row2, 4));
-                    }                
+                    }
                     tvi.mask = TVIF_TEXT;
                     tvi.pszText = util_make_u16(buf, utf_str, MAX_BUFFER);
                     tvis.hParent = hti_root;
@@ -604,7 +604,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
             {
                 pq_sub->fnPQclear(res);
             }
-            if (res2) 
+            if (res2)
             {
                 pq_sub->fnPQclear(res2);
             }
@@ -622,7 +622,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
         }
         eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t) words2);
         eu_sci_call(pnode, SCI_STYLESETFORE, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.bold));        
+        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.bold));
     } while(0);
     free(words2);
     return 0;
@@ -682,7 +682,7 @@ redis_reply(eu_tabpage *pnode, HTREEITEM hTreeItem, struct redisReply *reply)
     tvis.hInsertAfter = TVI_LAST;
     tvis.item = tvi;
     hti = TreeView_InsertItem(pnode->hwnd_symtree, &tvis);
-#ifdef _UNICODE    
+#ifdef _UNICODE
     free(p_buf);
 #endif
     if (reply->type == REDIS_REPLY_ARRAY)
@@ -690,7 +690,7 @@ redis_reply(eu_tabpage *pnode, HTREEITEM hTreeItem, struct redisReply *reply)
         for (size_t i = 0; i < reply->elements; i++)
         {
             hret = redis_reply(pnode, hti, reply->element[i]);
-            if (hret == NULL) 
+            if (hret == NULL)
             {
                 return hret;
             }
@@ -1311,7 +1311,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (cnv)
                     {
                         free(cnv);
-                    } 
+                    }
                     if (parent)
                     {
                         free(parent);
@@ -1323,11 +1323,6 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_LBUTTONUP:
-        {
-            eu_reset_drag_line();
-            break;
-        }        
         case WM_LBUTTONDBLCLK:
         {
             POINT pt;
@@ -1390,7 +1385,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);   
+            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
             break;
         }
         case WM_DESTROY:
@@ -1416,8 +1411,8 @@ on_symtree_create(eu_tabpage *pnode)
     {
         DestroyWindow(pnode->hwnd_symtree);
     }
-    pnode->hwnd_symtree =
-        CreateWindow(WC_TREEVIEW, NULL, WS_CHILD | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP, 0, 0, 0, 0, eu_module_hwnd(), NULL, eu_module_handle(), NULL);
+    const int style = WS_CHILD | WS_CLIPSIBLINGS | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP;
+    pnode->hwnd_symtree = CreateWindow(WC_TREEVIEW, NULL, style, 0, 0, 0, 0, eu_module_hwnd(), NULL, eu_module_handle(), NULL);
     if (pnode->hwnd_symtree == NULL)
     {
         MSG_BOX(IDC_MSG_SYMTREE_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);

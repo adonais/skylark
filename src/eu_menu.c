@@ -18,6 +18,24 @@
 
 #include "framework.h"
 
+int
+menu_height(void)
+{
+    int m_height = 0;
+    if (eu_get_config()->m_menubar)
+    {
+        HWND hwnd = eu_module_hwnd();
+        int cy_border = GetSystemMetrics(SM_CYFRAME);
+        int cy_caption = GetSystemMetrics(SM_CYCAPTION);
+        RECT window_rect;
+        GetWindowRect(hwnd, &window_rect);
+        POINT client_top_left = { 0, 0 };
+        ClientToScreen(hwnd, &client_top_left);
+        m_height = client_top_left.y - window_rect.top - cy_caption - cy_border;
+    }
+    return m_height;
+}
+
 HMENU
 menu_load(uint16_t mid)
 {

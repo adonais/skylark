@@ -239,17 +239,9 @@ on_statusbar_size(void)
             {
                 ShowWindow(g_statusbar, SW_SHOW);
             }
-            InvalidateRect(g_statusbar, NULL, false);
+            UpdateWindowEx(g_statusbar);
             on_statusbar_adjust_btn();
             on_statusbar_update();
-            if (!on_dark_supports())
-            {
-                UpdateWindowEx(g_statusbar);
-            }
-            else
-            {
-                UpdateWindow(hwnd);
-            }
         }
     }
 }
@@ -313,7 +305,7 @@ create_button(HWND hstatus)
     }
     do
     {
-        uint32_t style =  WS_CHILD | WS_VISIBLE | WS_BORDER | BS_FLAT;
+        uint32_t style =  WS_CHILD | WS_BORDER | BS_FLAT;
         h_bt_1 = CreateWindowEx(0, _T("button"), lcap, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_1, eu_module_handle(), NULL);
         if (!h_bt_1)
         {
@@ -321,14 +313,12 @@ create_button(HWND hstatus)
             break;
         }
         Button_Enable(h_bt_1, 0);
-        ShowWindow(h_bt_1, SW_HIDE);
         h_bt_2 = CreateWindowEx(0, _T("button"), wstr, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_2, eu_module_handle(), NULL);
         if (!h_bt_2)
         {
             printf("CreateWindowEx g_bt_2 failed\n");
             break;
         }
-        ShowWindow(h_bt_2, SW_HIDE);
     } while(0);
     return (h_bt_1 && h_bt_2);
 }
@@ -992,7 +982,7 @@ bool WINAPI
 on_statusbar_init(HWND hwnd)
 {
     bool ret = false;
-    const uint32_t dw_style = SBT_NOBORDERS | WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE;
+    const uint32_t dw_style = SBT_NOBORDERS | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
     if (g_statusbar)
     {
         DestroyWindow(g_statusbar);

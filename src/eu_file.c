@@ -722,7 +722,7 @@ on_file_other_tab(int index)
             on_tabpage_select_index(count - 1);
             break;
         default:
-            break;    
+            break;
     }
 }
 
@@ -1534,7 +1534,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     {
         return EUE_TAB_NULL;
     }
-    if (!mode && eu_get_config()->m_session && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0))
+    if (!mode && eu_get_config()->m_session)
     {
         on_file_save_backup(pnode);
     }

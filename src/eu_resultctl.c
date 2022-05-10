@@ -27,9 +27,6 @@ ptr_result_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_SIZE:
             break;
-        case WM_LBUTTONUP:
-            eu_reset_drag_line();
-            break;
         case WM_RBUTTONUP:
         {
             return menu_pop_track(hwnd, IDR_RESULT_MENU, 0);
@@ -77,9 +74,9 @@ ptr_result_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);   
+            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
             break;
-        }        
+        }
         case WM_DESTROY:
         {
             printf("result_edit WM_DESTROY\n");
@@ -109,8 +106,8 @@ on_result_create_dlg(eu_tabpage *pnode)
         DestroyWindow(pnode->hwnd_qredit);
     }
     /* 创建结果消息控件 */
-    pnode->hwnd_qredit =
-        CreateWindow(_T("EDIT"), NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL, 0, 0, 0, 0, eu_module_hwnd(), NULL, eu_module_handle(), NULL);
+    const int style = WS_CHILD | WS_CLIPSIBLINGS | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL;
+    pnode->hwnd_qredit = CreateWindow(_T("EDIT"), NULL, style, 0, 0, 0, 0, eu_module_hwnd(), NULL, eu_module_handle(), NULL);
     if (pnode->hwnd_qredit == NULL)
     {
         MSG_BOX(IDC_MSG_EDIT_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -152,7 +149,7 @@ on_result_append_text(HWND hwnd, TCHAR *format, ...)
     {
         va_end(valist);
         return 1;
-       
+
     }
     if (pt)
     {
@@ -167,7 +164,7 @@ on_result_append_text(HWND hwnd, TCHAR *format, ...)
                        systime.wMinute,
                        systime.wSecond,
                        systime.wMilliseconds * 1000);
-        if (l > 0) 
+        if (l > 0)
         {
             len += l;
         }
@@ -177,12 +174,12 @@ on_result_append_text(HWND hwnd, TCHAR *format, ...)
         if (l > 0)
         {
             len += l;
-        } 
+        }
     }
     va_end(valist);
     {
         l = _sntprintf(buf + len, buf_len - 1 - len, _T("\r\n"));
-        if (l > 0) 
+        if (l > 0)
         {
             len += l;
         }

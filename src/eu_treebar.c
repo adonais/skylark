@@ -1365,11 +1365,6 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_LBUTTONDOWN:
-            break;
-        case WM_LBUTTONUP:
-            eu_reset_drag_line();
-            break;
         case WM_RBUTTONDOWN:
         {
             POINT pt;
@@ -1560,7 +1555,7 @@ on_treebar_create_box(HWND hwnd)
     {
         DestroyWindow(g_treebar);
     }
-    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|WS_CLIPSIBLINGS|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
+    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
     if (g_treebar == NULL)
     {
         return EUE_POINT_NULL;
@@ -1595,7 +1590,7 @@ on_treebar_create_dlg(HWND hwnd)
     }
     g_filetree = CreateWindow(WC_TREEVIEW,
                               NULL,
-                              WS_CHILD | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP | TVS_SHOWSELALWAYS | TVS_EDITLABELS,
+                              WS_CHILD | WS_CLIPSIBLINGS | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP | TVS_SHOWSELALWAYS | TVS_EDITLABELS,
                               0,
                               0,
                               0,
@@ -1618,11 +1613,27 @@ on_treebar_create_dlg(HWND hwnd)
             break;
         }
         load_drives_tree(g_filetree);
-        ShowWindow(g_treebar, SW_HIDE);
-        UpdateWindow(g_treebar);
-        ShowWindow(g_filetree, SW_HIDE);
-        UpdateWindow(g_filetree);
         if (!(filetree_wnd = (WNDPROC) SetWindowLongPtr(g_filetree, GWLP_WNDPROC, (LONG_PTR) filetree_proc)))
+        {
+            err = EUE_POINT_NULL;
+            break;
+        }
+        if (!on_splitter_init_treebar(hwnd))
+        {
+            err = EUE_POINT_NULL;
+            break;
+        }
+        if (!on_splitter_init_symbar(hwnd))
+        {
+            err = EUE_POINT_NULL;
+            break;
+        }
+        if (!on_splitter_init_editbar(hwnd))
+        {
+            err = EUE_POINT_NULL;
+            break;
+        }
+        if (!on_splitter_init_tablebar(hwnd))
         {
             err = EUE_POINT_NULL;
             break;

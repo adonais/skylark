@@ -1,4 +1,4 @@
-/*******************************************************************************
+/******************************************************************************
  * This file is part of Skylark project
  * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
@@ -16,21 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _EU_MENU_H_
-#define _EU_MENU_H_
+#ifndef _H_SKYLARK_SPLITTER_
+#define _H_SKYLARK_SPLITTER_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void menu_switch_theme(void);
-void menu_update_item(HMENU menu);
-HMENU menu_load(uint16_t mid);
-int menu_height();
-int menu_pop_track(HWND hwnd, uint16_t mid, int64_t lparam);
+extern HWND g_splitter_treebar;
+extern HWND g_splitter_symbar;
+extern HWND g_splitter_editbar;
+extern HWND g_splitter_tablebar;
+
+bool on_splitter_init_treebar(HWND parent);
+bool on_splitter_init_symbar(HWND parent);
+bool on_splitter_init_editbar(HWND parent);
+bool on_splitter_init_tablebar(HWND parent);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // _EU_MENU_H_
+#endif

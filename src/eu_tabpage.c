@@ -23,8 +23,8 @@
 #define TAB_MIN_WIDTH 140
 #define CLOSEBUTTON_WIDTH 11
 #define CLOSEBUTTON_HEIGHT 11
-#define CX_ICON  16 
-#define CY_ICON  16 
+#define CX_ICON  16
+#define CY_ICON  16
 
 HWND g_tabpages = NULL;
 HMENU pop_editor_menu = NULL;
@@ -35,10 +35,9 @@ static int move_from;
 static POINT pt_down;
 static WNDPROC old_tabproc;
 
-static int
+int
 on_tabpage_get_height(void)
 {
-    EU_VERIFY(g_tabpages != NULL);
     RECT rect_tabbar = { 0 };
     int tab_height = TABS_HEIGHT_DEFAULT;
     int count = TabCtrl_GetItemCount(g_tabpages);
@@ -78,7 +77,7 @@ on_tabpage_destroy_tabbar(void)
     if (himg)
     {
         ImageList_Destroy(himg);
-    }    
+    }
     if (g_tabpages)
     {
         g_tabpages = NULL;
@@ -227,8 +226,9 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
-        case WM_THEMECHANGED:
+        case WM_SIZE:
         {
+            eu_window_resize(NULL);
             break;
         }
         case WM_COMMAND:
@@ -511,23 +511,21 @@ void
 on_tabpage_adjust_box(RECT *ptp)
 {
     RECT rect_main;
-    RECT rectFileTree = { 0 };
+    RECT rect_treebar = { 0 };
+    int tab_height = on_tabpage_get_height();
     GetClientRect(eu_module_hwnd(), &rect_main);
     if (!eu_get_config()->m_ftree_show)
     {
         ptp->left = rect_main.left;
-        ptp->right = rect_main.right;
-        ptp->top = rect_main.top + on_toolbar_height();
-        ptp->bottom = rect_main.bottom - on_statusbar_height();
     }
     else
     {
-        on_treebar_adjust_box(&rectFileTree);
-        ptp->left = rectFileTree.right + SPLIT_WIDTH;
-        ptp->right = rect_main.right;
-        ptp->top = rect_main.top + on_toolbar_height();
-        ptp->bottom = rect_main.bottom - on_statusbar_height();
+        on_treebar_adjust_box(&rect_treebar);
+        ptp->left = rect_treebar.right;
     }
+    ptp->right = rect_main.right;
+    ptp->top = rect_main.top + on_toolbar_height();
+    ptp->bottom = ptp->top + tab_height + SCINTILLA_MARGIN_TOP;
 }
 
 void
@@ -535,88 +533,53 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
 {
     int tab_height = 0;
     RECT rect_tabpages = {0};
-    EU_VERIFY(pnode != NULL);
     if (true)
     {
-        tab_height = on_tabpage_get_height();
+        RECT rect_main;
+        GetClientRect(eu_module_hwnd(), &rect_main);
         on_tabpage_adjust_box(&rect_tabpages);
-        pnode->rect_sc.left = rect_tabpages.left + SCINTILLA_MARGIN_LEFT;
-        pnode->rect_sc.right = rect_tabpages.right - SCINTILLA_MARGIN_RIGHT;
-        pnode->rect_sc.top = rect_tabpages.top + tab_height + SCINTILLA_MARGIN_TOP;
-        pnode->rect_sc.bottom = rect_tabpages.bottom - SCINTILLA_MARGIN_BOTTOM;
-
-        pnode->rect_symlist.left = rect_tabpages.right;
-        pnode->rect_symlist.right = rect_tabpages.right;
-        pnode->rect_symlist.top = rect_tabpages.top + tab_height;
-        pnode->rect_symlist.bottom = rect_tabpages.bottom;
-
-        pnode->rect_symtree.left = rect_tabpages.right;
-        pnode->rect_symtree.right = rect_tabpages.right;
-        pnode->rect_symtree.top = rect_tabpages.top + tab_height;
-        pnode->rect_symtree.bottom = rect_tabpages.bottom;
+        pnode->rect_sc.left = rect_tabpages.left;
+        if (eu_get_config()->m_ftree_show)
+        {
+            pnode->rect_sc.left += SPLIT_WIDTH;
+        }
+        pnode->rect_sc.right = rect_tabpages.right;
+        pnode->rect_sc.top = rect_tabpages.bottom;
+        pnode->rect_sc.bottom = rect_main.bottom - on_statusbar_height();
     }
     if (pnode->sym_show)
     {
-        if (pnode->hwnd_symlist)
+        if (pnode->hwnd_symlist || pnode->hwnd_symtree)
         {
-            pnode->rect_sc.left = rect_tabpages.left + SCINTILLA_MARGIN_LEFT;
-            pnode->rect_sc.right = rect_tabpages.right - SYMBOLLIST_MARGIN_LEFT - eu_get_config()->sym_list_width -
-                                   SYMBOLLIST_MARGIN_RIGHT - SCINTILLA_MARGIN_RIGHT;
-            pnode->rect_sc.top = rect_tabpages.top + tab_height + SCINTILLA_MARGIN_TOP;
-            pnode->rect_sc.bottom = rect_tabpages.bottom - SCINTILLA_MARGIN_BOTTOM;
+            pnode->rect_sc.right -= (pnode->hwnd_symlist ?
+                                     eu_get_config()->sym_list_width :
+                                     eu_get_config()->sym_tree_width + SPLIT_WIDTH);
 
-            pnode->rect_symlist.left = pnode->rect_sc.right + SPLIT_WIDTH + SYMBOLLIST_MARGIN_LEFT;
-            pnode->rect_symlist.right = rect_tabpages.right - SYMBOLLIST_MARGIN_RIGHT;
-            pnode->rect_symlist.top = rect_tabpages.top + tab_height + SYMBOLTREE_MARGIN_TOP;
-            pnode->rect_symlist.bottom = rect_tabpages.bottom;
-
-            pnode->rect_symtree.left = rect_tabpages.right;
-            pnode->rect_symtree.right = rect_tabpages.right;
-            pnode->rect_symtree.top = rect_tabpages.top + tab_height;
-            pnode->rect_symtree.bottom = rect_tabpages.bottom;
-        }
-        else if (pnode->hwnd_symtree)
-        {
-            pnode->rect_sc.left = rect_tabpages.left + SCINTILLA_MARGIN_LEFT;
-            pnode->rect_sc.right = rect_tabpages.right - SYMBOLTREE_MARGIN_LEFT - eu_get_config()->sym_tree_width -
-                                   SYMBOLTREE_MARGIN_RIGHT - SCINTILLA_MARGIN_RIGHT;
-            pnode->rect_sc.top = rect_tabpages.top + tab_height + SCINTILLA_MARGIN_TOP;
-            pnode->rect_sc.bottom = rect_tabpages.bottom - SCINTILLA_MARGIN_BOTTOM;
-
-            pnode->rect_symlist.left = rect_tabpages.right;
-            pnode->rect_symlist.right = rect_tabpages.right;
-            pnode->rect_symlist.top = rect_tabpages.top + tab_height;
-            pnode->rect_symlist.bottom = rect_tabpages.bottom;
-
-            pnode->rect_symtree.left = pnode->rect_sc.right + SPLIT_WIDTH + SYMBOLTREE_MARGIN_LEFT;
-            pnode->rect_symtree.right = rect_tabpages.right - SYMBOLTREE_MARGIN_RIGHT;
-            pnode->rect_symtree.top = rect_tabpages.top + tab_height + SYMBOLTREE_MARGIN_TOP;
-            pnode->rect_symtree.bottom = rect_tabpages.bottom - SYMBOLTREE_MARGIN_BOTTOM;
+            pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
+            pnode->rect_sym.right = rect_tabpages.right;
+            pnode->rect_sym.top = pnode->rect_sc.top;
+            pnode->rect_sym.bottom = pnode->rect_sc.bottom;
         }
     }
     if (pnode->edit_show)
     {
         if (pnode->hwnd_qredit)
         {
-            pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + SPLIT_WIDTH +
-                                     eu_get_config()->result_list_height;
-            pnode->rect_symlist.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + SPLIT_WIDTH +
-                                          eu_get_config()->result_list_height;
-            pnode->rect_symtree.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + SPLIT_WIDTH +
-                                          eu_get_config()->result_list_height;
+            int rect_bottom = pnode->rect_sc.bottom;
+            pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + eu_get_config()->result_list_height;
 
-            pnode->rect_qredit.left = rect_tabpages.left + SCINTILLA_MARGIN_LEFT;
-            pnode->rect_qredit.right = rect_tabpages.right - SCINTILLA_MARGIN_RIGHT;
+            pnode->rect_qredit.left = pnode->rect_sc.left;
+            pnode->rect_qredit.right = pnode->rect_sc.right;
             pnode->rect_qredit.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
-            pnode->rect_qredit.bottom = pnode->rect_qredit.top + eu_get_config()->result_edit_height
-                                        + SPLIT_WIDTH + eu_get_config()->result_list_height;
+            pnode->rect_qredit.bottom = rect_bottom;
             if (pnode->hwnd_qrtable)
             {
-                pnode->rect_qredit.bottom = pnode->rect_qredit.top + eu_get_config()->result_edit_height;
-                pnode->rect_qrtable.left = rect_tabpages.left + SCINTILLA_MARGIN_LEFT;
-                pnode->rect_qrtable.right = rect_tabpages.right - SCINTILLA_MARGIN_RIGHT;
+                pnode->rect_qredit.bottom -= (SPLIT_WIDTH + eu_get_config()->result_list_height);
+
+                pnode->rect_qrtable.left = pnode->rect_sc.left;
+                pnode->rect_qrtable.right = pnode->rect_sc.right;
                 pnode->rect_qrtable.top = pnode->rect_qredit.bottom + SPLIT_WIDTH;
-                pnode->rect_qrtable.bottom = pnode->rect_qrtable.top + eu_get_config()->result_list_height;
+                pnode->rect_qrtable.bottom = rect_bottom;
             }
         }
     }

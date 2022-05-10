@@ -184,11 +184,6 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_LBUTTONUP:
-        {
-            eu_reset_drag_line();
-            break;
-        }
         case WM_LBUTTONDBLCLK:
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
@@ -242,7 +237,7 @@ on_symlist_create(eu_tabpage *pnode)
         }
         pnode->hwnd_symlist = CreateWindow(_T("listbox"),
                                            NULL,
-                                           WS_CHILD | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_TABSTOP | WS_VSCROLL,
+                                           WS_CHILD | WS_CLIPSIBLINGS | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_TABSTOP | WS_VSCROLL,
                                            0,
                                            0,
                                            0,

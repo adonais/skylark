@@ -45,11 +45,6 @@ listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR uIdSubClass, D
 {
     switch (msg)
     {
-        case WM_LBUTTONUP:
-        {
-            eu_reset_drag_line();
-            break;
-        }
         case WM_THEMECHANGED:
         {
             printf("qrtable recv WM_THEMECHANGED\n");
@@ -89,7 +84,7 @@ on_table_create_query_box(eu_tabpage *pnode)
         DestroyWindow(pnode->hwnd_qrtable);
     }
     /* 创建结果表格控件 */
-    const uint32_t style = WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | LVS_REPORT;
+    const uint32_t style = WS_CHILD | WS_CLIPSIBLINGS | LVS_REPORT;
     pnode->hwnd_qrtable = CreateWindow(WC_LISTVIEW, _T(""), style, 0, 0, 0, 0, eu_module_hwnd(), (HMENU)IDM_TABLE_BAR, eu_module_handle(), NULL);
     if (pnode->hwnd_qrtable == NULL)
     {
@@ -203,7 +198,7 @@ oci_database_cleanup(oci_handle *poci)
         {
             oci_sub->fnOCIHandleFree((dvoid *) (poci->svchpp), OCI_HTYPE_SVCCTX);
             poci->svchpp = NULL;
-        }                                
+        }
     }
 }
 
@@ -823,7 +818,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol)
     int field_index;
     unsigned int nfield_width;
     char *sel_sql = NULL;
-    char *psel = NULL;    
+    char *psel = NULL;
     char *field_value = NULL;
     unsigned int *afield_width = NULL;
     TCHAR utf_str[MAX_BUFFER+1] = {0};

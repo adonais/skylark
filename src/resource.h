@@ -27,6 +27,8 @@
 #define IDI_SMALL                       3
 #define IDI_TXT_48                      4
 #define IDI_TXT_32                      5
+#define IDC_CURSOR_WE                   8
+#define IDC_CURSOR_NS                   9
 #define IDD_SKYLARK_DIALOG              102
 #define IDS_APP_TITLE                   103
 #define IDD_ABOUTBOX                    103
