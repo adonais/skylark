@@ -96,7 +96,7 @@ void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_selection(eu_tabpage *pnode, int index);
-void on_tabpage_changing(void);
+void on_tabpage_changing(HWND hwnd);
 void on_tabpage_destroy_rclick(void);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);

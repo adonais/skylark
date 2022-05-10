@@ -366,7 +366,6 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                 }
                 is_moving = false;
-                PostMessage(eu_module_hwnd(), WM_LBUTTONUP, wParam, lParam);
             }
             break;
         }
@@ -918,15 +917,12 @@ on_tabpage_get_handle(void *hwnd_sc)
 eu_tabpage *
 on_tabpage_get_ptr(int index)
 {
-    EU_VERIFY(g_tabpages != NULL);
     TCITEM tci = {TCIF_PARAM};
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    if (index < 0 || index >= count)
+    if (TabCtrl_GetItem(g_tabpages, index, &tci))
     {
-        index = count - 1;
+        return (eu_tabpage *) (tci.lParam);
     }
-    TabCtrl_GetItem(g_tabpages, index, &tci);
-    return (eu_tabpage *) (tci.lParam);
+    return NULL;
 }
 
 static int
@@ -961,10 +957,17 @@ on_tabpage_select_index(int index)
 }
 
 void
-on_tabpage_changing(void)
+on_tabpage_changing(HWND hwnd)
 {
-    on_tabpage_select_index(TabCtrl_GetCurSel(g_tabpages));
-    PostMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+    eu_tabpage *p = NULL;
+    int index = TabCtrl_GetCurSel(g_tabpages);
+    if((p = on_tabpage_get_ptr(index)) != NULL)
+    {
+        util_set_title(p->pathfile);
+        util_set_working_dir(p->pathname);
+        on_toolbar_update_button();
+        SendMessage(hwnd, IDM_TAB_CLICK, (WPARAM)p, 0);
+    }
 }
 
 void
