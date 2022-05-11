@@ -347,7 +347,6 @@ hexview_caret(HWND hwnd, PHEXVIEW hexview)
 {
     sptr_t line_number = hexview->number_items / 16 + 2;
     int in_line = (int) (hexview->number_items % 16);
-
     if (hexview->total_items && line_number >= hexview->vscroll_pos && line_number <= hexview->vscroll_pos + hexview->visiblelines)
     {
         switch (hexview->active_column)
@@ -1266,16 +1265,14 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         case HVM_SETLINE:
         {
             sptr_t i = 0;
-            sptr_t offset = 0;
             sptr_t skip_line = (wParam / 16) - (hexview->select_start / 16);
-            offset = ((wParam - hexview->select_start) - (sptr_t)(skip_line * 16)) * 2;
+            sptr_t offset = ((wParam - hexview->select_start) - (sptr_t)(skip_line * 16)) * 2;
             if (offset && hexview->hl_position)
             {   // 如果光标在下半字节
                 --offset;
             }
             if (hexview->total_items / 16 * 16 <= wParam)
-            {
-                // 在末尾行, 使用VK_END跳转
+            {   // 在末尾行, 使用VK_END跳转
                 hexview->number_items = hexview->total_items - 1;
                 hexview->hl_position = 0;
                 SendMessage(hwnd, WM_VSCROLL, SB_BOTTOM, 0);
@@ -1283,21 +1280,12 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 offset = (wParam - hexview->total_items + 1) * 2;
             }
             else
-            {
-                if (skip_line < 0)
-                {
-                    for (i = 0; i > skip_line; --i)
-                    {
-                        SendMessage(hwnd, WM_KEYDOWN, VK_UP, 0);
-                    }
-                }
-                else if (skip_line > 0)
-                {
-                    for (i = 0; i < skip_line; ++i)
-                    {
-                        SendMessage(hwnd, WM_KEYDOWN, VK_DOWN, 0);
-                    }
-                }
+            {   // goto line
+                hexview->ct_flags &= ~HVF_SELECTED;
+                hexview->number_items = max(0, hexview->number_items + (skip_line * 16));
+                hexview->vscroll_pos = hexview->number_items / 16;
+                hexview_srollinfo(hwnd, hexview);
+                hexview_caret(hwnd, hexview);
             }
             if (offset < 0)
             {
