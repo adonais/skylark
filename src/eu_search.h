@@ -85,6 +85,7 @@ int on_search_update_navigate_list(eu_tabpage *pnode, int64_t pos);
 int on_search_back_navigate_this(void);
 int on_search_back_navigate_all(void);
 int on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos);
+void on_search_jmp_pos(eu_tabpage *pnode, sptr_t pos);
 void on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num);
 void on_search_clean_navigate_this(eu_tabpage *pnode);
 void on_search_page_mark(eu_tabpage *pnode, char *, int);

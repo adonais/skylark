@@ -232,12 +232,6 @@ eu_create_fullscreen(HWND hwnd)
 /*****************************************************************************
  * 窗口缩放处理函数
  ****************************************************************************/
-void
-eu_window_resize(HWND hwnd)
-{
-    PostMessage(hwnd ? hwnd : eu_hwndmain, WM_SIZE, 0, 0);
-    PostMessage(hwnd ? hwnd : eu_hwndmain, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
-}
 
 static void
 on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
@@ -356,13 +350,17 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         InvalidateRect(g_tabpages, &rect_tabbar, 1);
         UpdateWindow(g_tabpages);
         pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
+        // Can't jump until the editor window is initialized
+        if (pnode->nc_pos >= 0)
+        {
+            !pnode->hex_mode ? on_search_jmp_pos(pnode, pnode->nc_pos) : eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            pnode->nc_pos = -1;
+        }
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p != pnode)
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && p != pnode)
         {
             if (p->hwnd_symlist && p->sym_show)
             {
@@ -431,6 +429,13 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
     {
         PostMessage(g_statusbar, WM_SIZE, 0, 0);
     }
+}
+
+void
+eu_window_resize(HWND hwnd)
+{
+    PostMessage(hwnd ? hwnd : eu_hwndmain, WM_SIZE, 0, 0);
+    PostMessage(hwnd ? hwnd : eu_hwndmain, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 
 static void

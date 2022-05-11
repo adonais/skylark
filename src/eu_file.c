@@ -398,7 +398,6 @@ on_file_new(void)
     }
     if (true)
     {
-        util_set_title(pnode->pathfile);
         on_file_update_time(pnode, time(NULL));
         on_sci_after_file(pnode);
         on_tabpage_selection(pnode, -1);
@@ -495,6 +494,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     if (pbak->cp)
     {   // 存在备份,不再测试编码
         pnode->eol = pbak->eol;
+        pnode->nc_pos = pbak->lineno;
         pnode->codepage = pbak->cp;
         pnode->hex_mode = !!pbak->hex;
         if (pnode->codepage == IDM_OTHER_BIN)
@@ -802,18 +802,7 @@ on_file_only_open(file_backup *pbak, bool selection)
             return EUE_WRITE_TAB_FAIL;
         }
         on_sci_after_file(pnode);
-        int count = TabCtrl_GetItemCount(g_tabpages);
-        {   // 选中右边的标签
-            on_tabpage_select_index(count - 1);
-        }
-        if (pbak->lineno > 0)
-        {   // 跳转到行
-            on_search_jmp_line(pnode, pbak->lineno, 0);
-        }
-        else
-        {
-            eu_sci_call(pnode, SCI_GOTOPOS, 0, 0);
-        }
+        on_tabpage_selection(pnode, -1);
         on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
         if (strlen(pbak->mark_id) > 0)
         {   // 恢复书签
@@ -1515,15 +1504,7 @@ on_file_save_backup(eu_tabpage *pnode)
     filebak.focus = pnode->last_focus;
     filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
     on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
-    sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    if (pos < 0)
-    {
-        filebak.lineno = -1;
-    }
-    else
-    {
-        filebak.lineno = (size_t)eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-    }
+    filebak.lineno = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     eu_update_backup_table(&filebak);
 }
 
@@ -1789,7 +1770,9 @@ on_file_do_restore(void *data, int count, char **column, char **names)
                     }
                 }
                 else if (!on_file_only_open(&bak, false))
-                {   // 文件成功打开, 结束回调
+                {   // 刷新tab矩形区域
+                    UpdateWindowEx(g_tabpages);
+                    // 文件成功打开, 结束回调
                     return 1;
                 }
             }

@@ -336,31 +336,45 @@ on_search_init_option(void)
 void
 on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
 {
-    if (!pnode)
+    if (pnode)
     {
-        return;
-    }
-    sptr_t line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-    sptr_t screen_line_count = eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
-    if (goto_num > current_num)
-    {
-        sptr_t jump_lineno = goto_num + screen_line_count / 2;
-        if (jump_lineno > line_count)
+        sptr_t line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        sptr_t screen_line_count = eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
+        if (goto_num > current_num)
         {
-            jump_lineno = line_count;
+            sptr_t jump_lineno = goto_num + screen_line_count / 2;
+            if (jump_lineno > line_count)
+            {
+                jump_lineno = line_count;
+            }
+            eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
+            eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
         }
-        eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
-        eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
-    }
-    else
-    {
-        sptr_t jump_lineno = goto_num - screen_line_count / 2;
-        if (jump_lineno < 1)
+        else
         {
-            jump_lineno = 1;
+            sptr_t jump_lineno = goto_num - screen_line_count / 2;
+            if (jump_lineno < 1)
+            {
+                jump_lineno = 1;
+            }
+            eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
+            eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
         }
-        eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
-        eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
+    }
+}
+
+void
+on_search_jmp_pos(eu_tabpage *pnode, sptr_t pos)
+{
+    if (!pos)
+    {
+        eu_sci_call(pnode, SCI_GOTOPOS, 0, 0);
+    }
+    else if (pos > 0)
+    {
+        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        on_search_jmp_line(pnode, line, 0);
+        eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
     }
 }
 

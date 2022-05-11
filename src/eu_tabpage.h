@@ -80,7 +80,7 @@ struct _tabpage
     bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool last_focus;            // 保存前台焦点
-    int nc_line;                // 关闭编辑器时, 所处的行号
+    int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
 };
 
