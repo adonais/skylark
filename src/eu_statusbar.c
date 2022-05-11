@@ -945,8 +945,8 @@ on_statusbar_update(void)
             on_statusbar_update_line(pnode);
             on_statusbar_update_filesize(pnode);
             on_statusbar_update_eol(pnode);
-            on_statusbar_update_filetype_menu(pnode->hex_mode ? NULL : pnode);
-            on_statusbar_update_coding(pnode->hex_mode ? NULL : pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
+            on_statusbar_update_filetype_menu(pnode);
+            on_statusbar_update_coding(pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
         }
     }
 }
