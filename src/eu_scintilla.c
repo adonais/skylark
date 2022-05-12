@@ -273,10 +273,10 @@ on_sci_free_tab(eu_tabpage **ppnode)
         printf("we destroy pnode\n");
         eu_safe_free(*ppnode);
     }
-    else
+    else if ((*ppnode)->hwnd_sc)
     {
-        SendMessage((*ppnode)->hwnd_sc, HVM_SETHEXDEAD, 0, 0);
-        printf("not destroy pnode->hex_mode\n");
+        SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+        printf("hex_mode, we destroy scintilla control\n");
     }
 }
 
