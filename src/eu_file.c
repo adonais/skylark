@@ -1485,27 +1485,30 @@ on_file_save_backup(eu_tabpage *pnode)
     file_backup filebak = {0};
     filebak.cp = pnode->codepage;
     filebak.bakcp = pnode->codepage == IDM_OTHER_BIN ? IDM_OTHER_BIN : IDM_UNI_UTF8;
-    if (on_sci_doc_modified(pnode))
+    if (!pnode->is_blank || eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0)
     {
-        on_file_guid(buf, ACNAME_LEN - 1);
-        _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
-        on_file_do_write(pnode, filebak.bak_path, true, false);
-        filebak.status = 1;
-        if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
+        if (on_sci_doc_modified(pnode))
         {
-            filebak.bakcp = pnode->codepage;
-        }
+            on_file_guid(buf, ACNAME_LEN - 1);
+            _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
+            on_file_do_write(pnode, filebak.bak_path, true, false);
+            filebak.status = 1;
+            if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
+            {
+                filebak.bakcp = pnode->codepage;
+            }
+        }        
+        _tcscpy(filebak.rel_path, pnode->pathfile);
+        filebak.tab_id = pnode->tab_id;
+        filebak.eol = pnode->eol;
+        filebak.blank = pnode->is_blank;
+        filebak.hex = pnode->hex_mode;
+        filebak.focus = pnode->last_focus;
+        filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
+        on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
+        filebak.lineno = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        eu_update_backup_table(&filebak);        
     }
-    _tcscpy(filebak.rel_path, pnode->pathfile);
-    filebak.tab_id = pnode->tab_id;
-    filebak.eol = pnode->eol;
-    filebak.blank = pnode->is_blank;
-    filebak.hex = pnode->hex_mode;
-    filebak.focus = pnode->last_focus;
-    filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
-    on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
-    filebak.lineno = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    eu_update_backup_table(&filebak);
 }
 
 int

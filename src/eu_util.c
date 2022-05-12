@@ -854,8 +854,17 @@ util_set_title(const TCHAR *filename)
 }
 
 int
-util_set_working_dir(const TCHAR *path)
+util_set_working_dir(const TCHAR *path, TCHAR **pold)
 {
+    if (pold)
+    {
+        uint32_t len = GetCurrentDirectory(0, NULL);
+        *pold = len > 0 ? (TCHAR *)calloc(1, (len + 1) * sizeof(TCHAR)) : NULL;
+        if (*pold)
+        {
+            GetCurrentDirectory(len, *pold);
+        }
+    }
     if (path && path[0] && eu_exist_dir(path))
     {
         SetCurrentDirectory(path);

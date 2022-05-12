@@ -890,8 +890,6 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         HWND hwnd = eu_module_hwnd();
         TabCtrl_SetCurSel(g_tabpages, index);
         util_set_title(pnode->pathfile);
-        // 切换工作目录
-        util_set_working_dir(pnode->pathname);
         on_toolbar_update_button();
         eu_window_resize(hwnd);
     }
@@ -964,7 +962,6 @@ on_tabpage_changing(HWND hwnd)
     if((p = on_tabpage_get_ptr(index)) != NULL)
     {
         util_set_title(p->pathfile);
-        util_set_working_dir(p->pathname);
         on_toolbar_update_button();
         SendMessage(hwnd, IDM_TAB_CLICK, (WPARAM)p, 0);
     }

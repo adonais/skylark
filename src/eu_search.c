@@ -2182,32 +2182,15 @@ on_search_detail_button(void)
 static void
 on_search_active_tab(const TCHAR *path, const TCHAR *key)
 {
-    int count = 0;
     bool tab_find = false;
-    eu_tabpage *pnode = NULL;
-    if (!path)
+    if (!(path && key))
     {
         return;
     }
-    if ((pnode = on_tabpage_focus_at()) && _tcscmp(pnode->pathfile, path) == 0)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        return;
-    }
-    else
-    {
-        count = TabCtrl_GetItemCount(g_tabpages);
-    }
-    for (int index = 0; index < count; ++index)
-    {
-        eu_tabpage *p = NULL;
-        TCITEM tci = {TCIF_PARAM,};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
-        if (p && p == pnode)
-        {
-            continue;
-        }
-        if (_tcscmp(p->pathfile, path) == 0)
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && _tcscmp(p->pathfile, path) == 0)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
             on_tabpage_select_index(index);

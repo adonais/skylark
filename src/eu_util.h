@@ -55,7 +55,7 @@ int util_file_sha256(const TCHAR *path, TCHAR *out, int out_len);
 int util_hex_expand(char *hex_buf, int hex_len, char *asc_buf);
 int util_hex_fold(char *asc_buf, int asc_len, char *hex_buf);
 int util_set_title(const TCHAR *filename);
-int util_set_working_dir(const TCHAR *path);
+int util_set_working_dir(const TCHAR *path, TCHAR **old);
 int util_query_hostname(char *hostname, char *ip, int bufsize);
 int util_effect_line(eu_tabpage *pnode, sptr_t *, sptr_t *);
 int util_get_hex_byte(const char *p);

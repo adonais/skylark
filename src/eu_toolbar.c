@@ -452,8 +452,7 @@ on_cmd_start(void)
         *cmd_exec = 0;
         MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
     }
-    handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL);
-    if (handle)
+    if ((handle = handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)) != NULL)
     {
         CloseHandle(handle);
     }
@@ -711,7 +710,18 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_CMD_TAB:
                 {   // 当前目录打开shell
+                    TCHAR *pold = NULL;
+                    eu_tabpage *p = on_tabpage_focus_at();
+                    if (p)
+                    {
+                        util_set_working_dir(p->pathname, &pold);
+                    }                    
                     on_cmd_start();
+                    if (pold)
+                    {
+                        SetCurrentDirectory(pold);
+                        free(pold);
+                    }
                     break;
                 }
                 default:
