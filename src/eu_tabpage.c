@@ -38,19 +38,10 @@ static WNDPROC old_tabproc;
 int
 on_tabpage_get_height(void)
 {
-    RECT rect_tabbar = { 0 };
+    RECT rect_tabbar = {0};
     int tab_height = TABS_HEIGHT_DEFAULT;
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    if (count <= 0)
-    {
-        return tab_height;
-    }
     TabCtrl_GetItemRect(g_tabpages, 0, &rect_tabbar);
-    if (rect_tabbar.top > 0 && rect_tabbar.bottom > 0)
-    {
-        int row = TabCtrl_GetRowCount(g_tabpages);
-        return (rect_tabbar.bottom - rect_tabbar.top) * row;
-    }
+    tab_height = (rect_tabbar.bottom - rect_tabbar.top) * TabCtrl_GetRowCount(g_tabpages);
     return tab_height;
 }
 
@@ -228,7 +219,8 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SIZE:
         {
-            eu_window_resize(NULL);
+            UpdateWindowEx(hwnd); 
+            PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
             break;
         }
         case WM_COMMAND:
@@ -876,10 +868,8 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     {
         for (index = 0; index < count; ++index)
         {
-            TCITEM tci = {TCIF_PARAM};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-            if (p == pnode)
+            eu_tabpage *p = on_tabpage_get_ptr(index);
+            if (p && p == pnode)
             {
                 break;
             }

@@ -346,9 +346,8 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             UpdateWindow(g_splitter_treebar);
             // on wine, we use RedrawWindow refresh client area
             RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
+            UpdateWindowEx(g_tabpages);
         }
-        InvalidateRect(g_tabpages, &rect_tabbar, 1);
-        UpdateWindow(g_tabpages);
         pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
         // Can't jump until the editor window is initialized
         if (pnode->nc_pos >= 0)
