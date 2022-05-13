@@ -305,7 +305,7 @@ create_button(HWND hstatus)
     }
     do
     {
-        uint32_t style =  WS_CHILD | WS_BORDER | BS_FLAT;
+        uint32_t style =  WS_CHILD | WS_CLIPSIBLINGS | BS_FLAT;
         h_bt_1 = CreateWindowEx(0, _T("button"), lcap, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_1, eu_module_handle(), NULL);
         if (!h_bt_1)
         {
@@ -471,11 +471,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if ((pnode = on_tabpage_focus_at()) && pnode->hwnd_sc)
                 {
                     set_btn_rw(pnode, false);
-                    SetFocus(pnode->hwnd_sc);
-                }
-                else
-                {
-                    SetFocus(eu_module_hwnd());
+                    PostMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
                 }
                 break;
             }
@@ -617,7 +613,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_CTLCOLORBTN:
         {
             on_statusbar_update_btn((HWND)lParam);
-            return on_dark_set_contorl_color(wParam);
+            return 1;
         }
         case WM_SETTINGCHANGE:
         {
@@ -1023,6 +1019,7 @@ on_statusbar_init(HWND hwnd)
     if (ret && on_dark_enable())
     {
         on_statusbar_dark_mode();
+        PostMessage(g_statusbar, WM_SIZE, 0, 0);
     }
     return ret;
 }

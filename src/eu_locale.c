@@ -434,9 +434,9 @@ i18n_switch_locale(HWND hwnd, int id)
         HMENU root_menu = GetMenu(hwnd);
         HMENU menu_env = root_menu ? GetSubMenu(root_menu, ENV_MENU) : NULL;
         on_tabpage_newdoc_reload();
-        eu_window_resize(hwnd);
         i18n_update_multi_lang(menu_env);
         i18n_update_menu(menu_env);
+        SendMessage(hwnd, WM_SIZE, 0, 0);
     }
     return 0;
 }

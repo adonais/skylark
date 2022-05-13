@@ -434,7 +434,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
 void
 eu_window_resize(HWND hwnd)
 {
-    PostMessage(hwnd ? hwnd : eu_hwndmain, WM_SIZE, 0, 0);
+    on_proc_msg_size(hwnd ? hwnd : eu_hwndmain, NULL);
     PostMessage(hwnd ? hwnd : eu_hwndmain, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 

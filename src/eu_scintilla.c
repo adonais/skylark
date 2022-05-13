@@ -502,11 +502,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_COMMAND:
-        {
-            PostMessage(eu_module_hwnd(), WM_COMMAND, wParam, lParam);
-            break;
-        }
         case WM_THEMECHANGED:
         {
             printf("scintilla WM_THEMECHANGED\n");

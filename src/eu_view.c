@@ -80,15 +80,10 @@ on_view_switch_type(int m_type)
 static int
 set_theme_dynamic(HWND hwnd)
 {
-    int count = 0;
-    eu_tabpage *p = NULL;
     on_treebar_update_theme();
-    count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (!p)
         {
             break;
@@ -129,7 +124,7 @@ set_theme_dynamic(HWND hwnd)
             on_tabpage_editor_modify(p, "X");
         }
     }
-    eu_window_resize(hwnd);
+    SendMessage(hwnd, WM_SIZE, 0, 0);
     return SKYLARK_OK;
 }
 
