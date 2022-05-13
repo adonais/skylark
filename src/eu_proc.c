@@ -1226,6 +1226,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_get_config()->m_statusbar = !eu_get_config()->m_statusbar;
                     on_proc_msg_size(hwnd, NULL);
                     break;
+                case IDM_TAB_CLOSE_LEFT:
+                    on_file_left_close();
+                    break;
+                case IDM_TAB_CLOSE_RIGHT:
+                    on_file_right_close();
+                    break;
                 case IDM_ABOUT:
                     on_about_dialog();
                     break;

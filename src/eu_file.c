@@ -1497,7 +1497,7 @@ on_file_save_backup(eu_tabpage *pnode)
             {
                 filebak.bakcp = pnode->codepage;
             }
-        }        
+        }
         _tcscpy(filebak.rel_path, pnode->pathfile);
         filebak.tab_id = pnode->tab_id;
         filebak.eol = pnode->eol;
@@ -1507,7 +1507,7 @@ on_file_save_backup(eu_tabpage *pnode)
         filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
         on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
         filebak.lineno = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        eu_update_backup_table(&filebak);        
+        eu_update_backup_table(&filebak);
     }
 }
 
@@ -1571,10 +1571,8 @@ on_file_all_close(void)
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, this_index, &tci);
-        eu_tabpage *pnode = (eu_tabpage *) (tci.lParam);
-        if (on_file_close(pnode, FILE_ALL_CLOSE))
+        eu_tabpage *p = on_tabpage_get_ptr(this_index);
+        if (p && on_file_close(p, FILE_ALL_CLOSE))
         {
             ++this_index;
         }
@@ -1595,26 +1593,68 @@ on_file_all_close(void)
 }
 
 int
+on_file_left_close(void)
+{
+    int first = 0;
+    int this_index = TabCtrl_GetCurSel(g_tabpages);
+    eu_tabpage *pnode = on_tabpage_get_ptr(this_index);
+    for (int index = 0; index < this_index; ++index)
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(first);
+        if (p)
+        {
+            if (on_file_close(p, FILE_EXCLUDE_CLOSE))
+            {
+                ++first;
+            }
+        }
+    }
+    on_tabpage_selection(pnode, -1);
+    return SKYLARK_OK;
+}
+
+int
+on_file_right_close(void)
+{
+    const int count = TabCtrl_GetItemCount(g_tabpages);
+    const int this_index = TabCtrl_GetCurSel(g_tabpages);
+    int first = this_index + 1;
+    for (int index = first; index < count; ++index)
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(first);
+        if (p)
+        {
+            if (on_file_close(p, FILE_EXCLUDE_CLOSE))
+            {
+                ++first;
+            }
+        }
+    }
+    on_tabpage_selection(on_tabpage_get_ptr(this_index), -1);
+    return SKYLARK_OK;
+}
+
+int
 on_file_exclude_close(eu_tabpage *pnode)
 {
     int this_index = 0;
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, this_index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p == pnode)
+        eu_tabpage *p = on_tabpage_get_ptr(this_index);
+        if (p)
         {
-            ++this_index;
-            continue;
-        }
-        if (on_file_close(p, FILE_EXCLUDE_CLOSE))
-        {
-            ++this_index;
+            if (p == pnode)
+            {
+                ++this_index;
+                continue;
+            }
+            if (on_file_close(p, FILE_EXCLUDE_CLOSE))
+            {
+                ++this_index;
+            }
         }
     }
-    on_tabpage_selection(pnode, 0);
+    on_tabpage_selection(pnode, -1);
     return SKYLARK_OK;
 }
 

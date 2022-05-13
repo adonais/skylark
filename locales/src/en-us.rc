@@ -346,6 +346,8 @@ BEGIN
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
         MENUITEM "Close All But Active Document",                      IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close The Left Tabs",                                IDM_TAB_CLOSE_LEFT
+        MENUITEM "Close The Right Tabs",                               IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
         MENUITEM "Copy File Name",                                     IDM_EDIT_COPY_FILENAME
         MENUITEM "Copy File Path",                                     IDM_EDIT_COPY_PATHNAME

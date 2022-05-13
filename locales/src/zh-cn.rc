@@ -346,6 +346,8 @@ BEGIN
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭除当前文件外所有文件",                    IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
+        MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
         MENUITEM "复制文件名",                                  IDM_EDIT_COPY_FILENAME
         MENUITEM "复制路径名",                                  IDM_EDIT_COPY_PATHNAME

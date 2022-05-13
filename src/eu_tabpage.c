@@ -219,7 +219,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SIZE:
         {
-            UpdateWindowEx(hwnd); 
+            UpdateWindowEx(hwnd);
             PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
             break;
         }
