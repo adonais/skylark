@@ -452,7 +452,7 @@ on_cmd_start(void)
         *cmd_exec = 0;
         MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
     }
-    if ((handle = handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)) != NULL)
+    if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)) != NULL)
     {
         CloseHandle(handle);
     }
