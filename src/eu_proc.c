@@ -830,9 +830,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_DELETE_SPACE_LINETAIL:
                     on_edit_delete_line_tail_white(pnode);
                     break;
-                case IDM_EDIT_DELETEBLANKLINE:
-                    on_edit_delete_blank_line(pnode);
-                    break;
                 case IDM_DELETE_ALL_SPACE_LINE:
                     on_edit_delete_all_empty_lines(pnode);
                     break;

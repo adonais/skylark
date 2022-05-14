@@ -341,17 +341,6 @@ do_delete_lines(eu_tabpage *pnode, sptr_t start, sptr_t end, bool white_chars)
 }
 
 void
-on_edit_delete_blank_line(eu_tabpage *pnode)
-{
-    if (pnode && !pnode->hex_mode)
-    {
-        sptr_t start_line, end_line;
-        util_effect_line(pnode, &start_line, &end_line);
-        do_delete_lines(pnode, start_line, end_line, false);
-    }
-}
-
-void
 on_edit_delete_all_empty_lines(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)

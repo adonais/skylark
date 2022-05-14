@@ -99,8 +99,7 @@ BEGIN
             MENUITEM "删除行",                                  IDM_EDIT_DELETELINE
             MENUITEM "移除行首空白",                            IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "移除行尾空白",                            IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "删除空行",                                IDM_EDIT_DELETEBLANKLINE
-            MENUITEM "删除带有白字符的空行",                    IDM_DELETE_ALL_SPACE_LINE
+            MENUITEM "移除所有空白行",                          IDM_DELETE_ALL_SPACE_LINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "高级行操作",                                     IDM_EDIT_PLACEHOLDE5

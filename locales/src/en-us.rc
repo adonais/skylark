@@ -99,8 +99,7 @@ BEGIN
             MENUITEM "Delete Line",                                    IDM_EDIT_DELETELINE
             MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "Strip &Trailing Blanks",                         IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "&Remove Empty Lines",                            IDM_EDIT_DELETEBLANKLINE
-            MENUITEM "Remove All Empty Lines(Containing Blank Chars)", IDM_DELETE_ALL_SPACE_LINE
+            MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "Advanced Line Operations",                              IDM_EDIT_PLACEHOLDE5

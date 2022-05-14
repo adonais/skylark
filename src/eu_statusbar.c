@@ -145,8 +145,8 @@ on_statusbar_set_text(HWND hwnd, const uint8_t part, LPCTSTR lpsz)
 {
     if (lpsz && part != SB_SIMPLEID)
     {
-        WPARAM wParam = (WPARAM)part;
-        SendMessage(hwnd, SB_SETTEXT, (WPARAM)(on_dark_supports() ? (wParam |= SBT_OWNERDRAW) : (wParam &= ~SBT_OWNERDRAW)), (LPARAM)lpsz);
+        WPARAM wParam = on_dark_supports() ? (WPARAM)(part|SBT_OWNERDRAW) : MAKEWPARAM(part, 0);
+        SendMessage(hwnd, SB_SETTEXT, wParam, (LPARAM)lpsz);        
     }
 }
 
@@ -254,7 +254,7 @@ on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
     {
         const DRAWITEMSTRUCT* pdis = (const DRAWITEMSTRUCT*)lParam;
         const int part_id = (const int)pdis->itemID;
-        if (part_id == -1)
+        if (part_id < 0)
         {
             return 0;
         }
@@ -471,9 +471,11 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if ((pnode = on_tabpage_focus_at()) && pnode->hwnd_sc)
                 {
                     set_btn_rw(pnode, false);
+                    // Maybe affect this part, refresh it
+                    on_statusbar_update_filesize(pnode);
                     PostMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
                 }
-                break;
+                return 1;
             }
             uint16_t id_menu = LOWORD(wParam);
             if (id_menu >= IDM_TYPES_0 && id_menu <= IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1)
@@ -756,7 +758,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     }
     if (*file_size)
     {
-        on_statusbar_set_text(g_statusbar, 5, file_size);
+        on_statusbar_set_text(g_statusbar, STATUSBAR_DOC_SIZE, file_size);
     }
 }
 
