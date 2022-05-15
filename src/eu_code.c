@@ -19,7 +19,7 @@
 #include "framework.h"
 
 static char *
-get_database_config(char *out, int len, const char *str)
+on_doc_database_config(char *out, int len, const char *str)
 {
     const  char *CONNECTION_CONFIG =
     BEGIN_DATABASE_CONNECTION_CONFIG
@@ -38,7 +38,7 @@ get_database_config(char *out, int len, const char *str)
 }
 
 static char *
-get_redis_config(char *out, int len, const char *str)
+on_doc_redis_config(char *out, int len, const char *str)
 {
     const  char *CONNECTION_CONFIG =
     BEGIN_REDIS_CONNECTION_CONFIG
@@ -223,11 +223,11 @@ on_code_insert_config(eu_tabpage *pnode)
         char dbase_config[MAX_BUFFER+1] = {0};
         if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_SQL)
         {
-            eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) get_database_config(dbase_config, MAX_BUFFER, eol_str));
+            eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) on_doc_database_config(dbase_config, MAX_BUFFER, eol_str));
         }
         else if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_REDIS)
         {
-            eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) get_redis_config(dbase_config, MAX_BUFFER, eol_str));
+            eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) on_doc_redis_config(dbase_config, MAX_BUFFER, eol_str));
         }
     }
 }

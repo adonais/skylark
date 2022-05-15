@@ -113,6 +113,14 @@ on_toolbar_get_clipboard(char **ppstr)
     return ret;
 }
 
+HWND WINAPI
+on_toolbar_hwnd(void)
+{
+    HWND hwnd = eu_module_hwnd();
+    HWND htool = hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
+    return htool;
+}
+
 void WINAPI
 on_toolbar_adjust_box(void)
 {
@@ -123,34 +131,6 @@ on_toolbar_adjust_box(void)
     else
     {
         g_toolbar_height = DEFAULTTOOLBAR;
-    }
-}
-
-void WINAPI
-on_toolbar_size(void)
-{
-    HWND hwnd = eu_module_hwnd();
-    HWND h_tool = hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
-    if (h_tool)
-    {
-        if (!eu_get_config()->m_toolbar)
-        {
-            if ((GetWindowLongPtr(h_tool, GWL_STYLE) & WS_VISIBLE))
-            {
-                ShowWindow(h_tool, SW_HIDE);
-            }
-            g_toolbar_height = 0;
-        }
-        else
-        {
-            RECT rc = {0};
-            RECT rect = {0};
-            GetWindowRect(hwnd, &rc);
-            GetWindowRect(h_tool, &rect);
-            g_toolbar_height = rect.bottom - rect.top;
-            eu_setpos_window(h_tool, HWND_TOP, 0, 0, rc.right - rc.left, g_toolbar_height , SWP_NOZORDER|SWP_SHOWWINDOW);
-        }
-        UpdateWindow(hwnd);
     }
 }
 
@@ -472,8 +452,7 @@ on_cmd_start(void)
         *cmd_exec = 0;
         MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
     }
-    handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL);
-    if (handle)
+    if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)) != NULL)
     {
         CloseHandle(handle);
     }
@@ -656,7 +635,7 @@ on_toolbar_execute_script(void)
         {   // lua script
             on_toolbar_lua_exec(p);
         }
-        else if (p->doc_ptr->doc_type == DOCTYPE_SQL)
+        else if (p->doc_ptr->doc_type == DOCTYPE_SQL || p->doc_ptr->doc_type == DOCTYPE_REDIS)
         {   // sql query
             on_view_result_show(p, VK_CONTROL);
         }
@@ -731,7 +710,18 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_CMD_TAB:
                 {   // 当前目录打开shell
+                    TCHAR *pold = NULL;
+                    eu_tabpage *p = on_tabpage_focus_at();
+                    if (p)
+                    {
+                        util_set_working_dir(p->pathname, &pold);
+                    }                    
                     on_cmd_start();
+                    if (pold)
+                    {
+                        SetCurrentDirectory(pold);
+                        free(pold);
+                    }
                     break;
                 }
                 default:

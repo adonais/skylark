@@ -40,24 +40,19 @@ struct _tabpage
     sptr_t eusc;                // 当前编辑器类指针
     RECT rect_sc;               // 编辑器矩形区域
     int match_count;            // 查找时匹配计数
-    HWND hwnd_symlist;          // tab关联的子窗口句柄
-    RECT rect_symlist;
-    HWND hwnd_symtree;
-    RECT rect_symtree;
-    HWND hwnd_qredit;
-    RECT rect_qredit;
-    HWND hwnd_qrtable;
-    RECT rect_qrtable;
+    HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
+    HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
+    RECT rect_sym;              // 右侧边栏窗口矩形区域
+    HWND hwnd_qredit;           // tab关联的运行edit日志窗口
+    RECT rect_qredit;           // edit日志窗口矩形区域
+    HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
+    RECT rect_qrtable;          // table窗口矩形区域
     int  tab_id;                // tab编号,用于保存会话
     bool edit_show;             // 是否显示文件运行窗口
     bool sym_show;              // 是否显示右侧边栏
     bool foldline;              // 是否存在折叠线
-    db_conn db_config;          // 数据库配置
-    db_handles udb;
-    bool db_is_connect;
-    redis_conn redis_config;    // redis配置
-    redis_handles rs_handle;
-    bool redis_is_connect;
+    db_conn *db_ptr;            // 数据库配置
+    redis_conn *redis_ptr;      // redis配置
     TCHAR pathfile[MAX_PATH];   // 文件带路径名
     TCHAR pathname[MAX_PATH];   // 文件所在路径名
     TCHAR filename[MAX_PATH];   // 文件名
@@ -71,7 +66,7 @@ struct _tabpage
     int codepage;               // 文件编码
     char pre_context[4+1];      // 保存bom
     size_t pre_len;             // bom的长度
-    bool needpre;               // 是否需要bom      
+    bool needpre;               // 是否需要bom
     int eol;                    // 换行符
     int64_t begin_pos;          // 开始选择位置
     remotefs fs_server;         // SFTP
@@ -85,7 +80,7 @@ struct _tabpage
     bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool last_focus;            // 保存前台焦点
-    int nc_line;                // 关闭编辑器时, 所处的行号
+    int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
 };
 
@@ -96,11 +91,12 @@ int  on_tabpage_reload_file(eu_tabpage *pnode, int flags);
 int  on_tabpage_editor_modify(eu_tabpage *pnode, const char *);
 int  on_tabpage_create_rclick(void);
 int  on_tabpage_theme_changed(eu_tabpage *p);
+int  on_tabpage_get_height(void);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_selection(eu_tabpage *pnode, int index);
-void on_tabpage_changing(void);
+void on_tabpage_changing(HWND hwnd);
 void on_tabpage_destroy_rclick(void);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);

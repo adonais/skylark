@@ -29,7 +29,6 @@
 #define HVM_SETMODIFIEDCOLOR (WM_USER + 107)
 #define HVM_SETLINE (WM_USER + 108)
 #define HVM_GETHEXADDR (WM_USER + 109)
-#define HVM_SETHEXDEAD (WM_USER + 110)
 #define HVN_GETDISPINFO (WMN_FIRST - 0)
 #define HVN_ITEMCHANGING (WMN_FIRST - 1)
 
@@ -93,12 +92,12 @@ typedef struct _HEXVIEW
     uint32_t ct_flags;          // 光标状态掩码
     uint32_t ex_style;          // 地址栏掩码等...
 
-    intptr_t vscroll_pos;       // 垂直滚动条位置
+    intptr_t vscroll_pos;       // 垂直滚动条位置, 即光标所在行
     intptr_t vscroll_max;
     intptr_t totallines;        // 十六进制行数
 
     size_t total_items;         // 总的字节数
-    size_t number_items;
+    size_t number_items;        // 当前光标所在位置, 跳转时必须先设置此值
     size_t select_start;        // 光标所在字符起始地址
     size_t select_end;          // 光标所在字符结束地址
 

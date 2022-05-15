@@ -151,7 +151,7 @@ typedef struct _db_libs
     pq_lib m_pq;
 } db_libs;
 
-typedef struct _db_conn
+typedef struct _db_config
 {
     int dbport;
     char dbtype[16];
@@ -160,7 +160,7 @@ typedef struct _db_conn
     char dbpass[64];
     char dbname[64];
     bool config_pass;
-} db_conn;
+} db_config;
 
 typedef struct _mysql_handle
 {
@@ -186,7 +186,7 @@ typedef struct _pq_handle
     PGconn *postgres;
 } pq_handle;
 
-typedef struct _db_handles
+typedef struct _db_conn
 {
     union conn_handle
     {
@@ -195,16 +195,18 @@ typedef struct _db_handles
         sql3_handle h_sql3;
         pq_handle h_pq;
     } handles;
-} db_handles;
+    db_config config;
+    bool connected;
+} db_conn;
 
 extern db_libs db_funcs;
-bool on_table_sql_header(eu_tabpage *pnode);
 int on_table_update_theme(eu_tabpage *pnode);
 int on_table_oci_error(eu_tabpage *, OCIError *, int *, char *, size_t);
-int on_table_disconnect_database(eu_tabpage *pnode);
-int on_table_connect_database(eu_tabpage *pnode);
-int on_table_sql_query(eu_tabpage *pnode, const char *pq);
+int on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol);
 int on_table_create_query_box(eu_tabpage *pnode);
+bool on_table_sql_header(eu_tabpage *pnode);
+bool on_table_skip_comment(eu_tabpage *pnode, char **psql);
+void on_table_disconnect_database(eu_tabpage *pnode, bool force);
 
 #ifdef __cplusplus
 }

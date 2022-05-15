@@ -40,7 +40,6 @@ extern "C" {
 
 bool __stdcall on_toolbar_get_clipboard(char **ppstr);
 bool __stdcall on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
-void __stdcall on_toolbar_size(void);
 void __stdcall on_toolbar_adjust_box(void);
 void __stdcall on_toolbar_update_button(void);
 void __stdcall on_toolbar_execute_script(void);
@@ -50,6 +49,7 @@ int  __stdcall on_toolbar_height(void);
 int  __stdcall on_toolbar_create(HWND hwnd);
 bool __stdcall on_toolbar_refresh(HWND hwnd);
 HWND __stdcall on_toolbar_clip_hwnd(void);
+HWND __stdcall on_toolbar_hwnd(void);
 
 #ifdef __cplusplus
 }

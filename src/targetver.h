@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 3
+#define __EU_INFO_VERSION_PATCHLEVEL 4
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -386,12 +386,11 @@
 #define IDM_TAB_CONVERT_SPACES          30400
 #define IDM_DELETE_SPACE_LINEHEAD       30401
 #define IDM_DELETE_SPACE_LINETAIL       30402
-#define IDM_EDIT_DELETEBLANKLINE        30403
 #define IDM_DELETE_ALL_SPACE_LINE       30404
 #define IDM_EDIT_COPY_FILENAME          30405
 #define IDM_EDIT_COPY_PATHNAME          30406
 #define IDM_EDIT_COPY_PATHFILENAME      30407
-#define IDM_MOUSEMOVE                   30408
+#define IDM_TAB_CLICK                   30408
 #define IDM_TAB_CLOSE                   30410
 #define IDR_FILETREE_POPUPMENU          30411
 #define IDM_RELOAD_FILETREE             30412
@@ -915,6 +914,9 @@
 #define IDM_VIEW_RIGHT_TAB                  42991
 #define IDM_VIEW_FAR_LEFT_TAB               42992
 #define IDM_VIEW_FAR_RIGHT_TAB              42993
+#define IDM_VIEW_TIPS_ONTAB                 42994
+#define IDM_TAB_CLOSE_LEFT                  42995
+#define IDM_TAB_CLOSE_RIGHT                 42996
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

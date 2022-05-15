@@ -26,7 +26,8 @@ extern "C" {
 void menu_switch_theme(void);
 void menu_update_item(HMENU menu);
 HMENU menu_load(uint16_t mid);
-int  menu_pop_track(HWND hwnd, uint16_t mid, int64_t lparam);
+int menu_height();
+int menu_pop_track(HWND hwnd, uint16_t mid, int64_t lparam);
 
 #ifdef __cplusplus
 }

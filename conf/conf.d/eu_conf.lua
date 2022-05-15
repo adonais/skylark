@@ -54,6 +54,7 @@ function eu_conf.loadconf()
         "auto_completed_show_enable = true\n" ..
         "auto_completed_show_after_input_characters = 0\n" ..
         "call_tip_show_enable = true\n" ..
+        "tabs_tip_show_enable = true\n" ..
         "tab_switch_forward = 42991\n" ..
         "edit_font_quality = 42552\n" ..
         "edit_rendering_technology = 42560\n" ..
@@ -125,6 +126,7 @@ function eu_conf.loadconf()
         auto_completed_show_enable,
         auto_completed_show_after_input_characters,
         call_tip_show_enable,
+        tabs_tip_show_enable,
         tab_switch_forward,
         edit_font_quality,
         edit_rendering_technology,

@@ -336,31 +336,45 @@ on_search_init_option(void)
 void
 on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
 {
-    if (!pnode)
+    if (pnode)
     {
-        return;
-    }
-    sptr_t line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-    sptr_t screen_line_count = eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
-    if (goto_num > current_num)
-    {
-        sptr_t jump_lineno = goto_num + screen_line_count / 2;
-        if (jump_lineno > line_count)
+        sptr_t line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        sptr_t screen_line_count = eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
+        if (goto_num > current_num)
         {
-            jump_lineno = line_count;
+            sptr_t jump_lineno = goto_num + screen_line_count / 2;
+            if (jump_lineno > line_count)
+            {
+                jump_lineno = line_count;
+            }
+            eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
+            eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
         }
-        eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
-        eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
-    }
-    else
-    {
-        sptr_t jump_lineno = goto_num - screen_line_count / 2;
-        if (jump_lineno < 1)
+        else
         {
-            jump_lineno = 1;
+            sptr_t jump_lineno = goto_num - screen_line_count / 2;
+            if (jump_lineno < 1)
+            {
+                jump_lineno = 1;
+            }
+            eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
+            eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
         }
-        eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
-        eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
+    }
+}
+
+void
+on_search_jmp_pos(eu_tabpage *pnode, sptr_t pos)
+{
+    if (!pos)
+    {
+        eu_sci_call(pnode, SCI_GOTOPOS, 0, 0);
+    }
+    else if (pos > 0)
+    {
+        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        on_search_jmp_line(pnode, line, 0);
+        eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
     }
 }
 
@@ -2168,32 +2182,15 @@ on_search_detail_button(void)
 static void
 on_search_active_tab(const TCHAR *path, const TCHAR *key)
 {
-    int count = 0;
     bool tab_find = false;
-    eu_tabpage *pnode = NULL;
-    if (!path)
+    if (!(path && key))
     {
         return;
     }
-    if ((pnode = on_tabpage_focus_at()) && _tcscmp(pnode->pathfile, path) == 0)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        return;
-    }
-    else
-    {
-        count = TabCtrl_GetItemCount(g_tabpages);
-    }
-    for (int index = 0; index < count; ++index)
-    {
-        eu_tabpage *p = NULL;
-        TCITEM tci = {TCIF_PARAM,};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
-        if (p && p == pnode)
-        {
-            continue;
-        }
-        if (_tcscmp(p->pathfile, path) == 0)
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && _tcscmp(p->pathfile, path) == 0)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
             on_tabpage_select_index(index);

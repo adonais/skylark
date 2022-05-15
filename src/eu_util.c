@@ -854,8 +854,17 @@ util_set_title(const TCHAR *filename)
 }
 
 int
-util_set_working_dir(const TCHAR *path)
+util_set_working_dir(const TCHAR *path, TCHAR **pold)
 {
+    if (pold)
+    {
+        uint32_t len = GetCurrentDirectory(0, NULL);
+        *pold = len > 0 ? (TCHAR *)calloc(1, (len + 1) * sizeof(TCHAR)) : NULL;
+        if (*pold)
+        {
+            GetCurrentDirectory(len, *pold);
+        }
+    }
     if (path && path[0] && eu_exist_dir(path))
     {
         SetCurrentDirectory(path);
@@ -1182,7 +1191,7 @@ util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked)
 void
 util_switch_menu_group(HMENU hmenu, uint32_t first_id, uint32_t last_id, uint32_t select)
 {
-    const int tab_sub_postion = 25;
+    const int tab_sub_postion = 26;
     HMENU htab_next = GetSubMenu(hmenu, tab_sub_postion);
     if (htab_next)
     {

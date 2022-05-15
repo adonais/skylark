@@ -99,8 +99,7 @@ BEGIN
             MENUITEM "删除行",                                  IDM_EDIT_DELETELINE
             MENUITEM "移除行首空白",                            IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "移除行尾空白",                            IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "删除空行",                                IDM_EDIT_DELETEBLANKLINE
-            MENUITEM "删除带有白字符的空行",                    IDM_DELETE_ALL_SPACE_LINE
+            MENUITEM "移除所有空白行",                          IDM_DELETE_ALL_SPACE_LINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "高级行操作",                                     IDM_EDIT_PLACEHOLDE5
@@ -238,6 +237,7 @@ BEGIN
         MENUITEM "显示换行符",                                  IDM_VIEW_NEWLINE_VISIABLE
         MENUITEM "显示缩进线",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
         MENUITEM MF_SEPARATOR
+        MENUITEM "在标签上显示提示信息",                        IDM_VIEW_TIPS_ONTAB
         POPUP "关闭标签时激活"
         BEGIN
             MENUITEM "左边的标签",                              IDM_VIEW_LEFT_TAB
@@ -345,6 +345,8 @@ BEGIN
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭除当前文件外所有文件",                    IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
+        MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
         MENUITEM "复制文件名",                                  IDM_EDIT_COPY_FILENAME
         MENUITEM "复制路径名",                                  IDM_EDIT_COPY_PATHNAME

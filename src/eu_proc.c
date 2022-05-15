@@ -28,16 +28,6 @@
 typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
-static bool filebar_hover_resize;
-static bool is_filebar_resize;
-static bool function_hover_resize;
-static bool is_function_resize;
-static bool view_hover_resize;
-static bool is_view_resize;
-static bool sql_hover_resize;
-static bool is_sql_resize;
-static bool result_hover_resize;
-static bool is_result_resize;
 static HBRUSH g_control_brush;
 static HWND eu_hwndmain;  // 主窗口句柄
 static volatile long undo_off;
@@ -123,16 +113,6 @@ do_drop_fix(void)
         }
         FreeLibrary(usr32);
     }
-}
-
-void
-eu_reset_drag_line(void)
-{
-    is_filebar_resize = false;
-    is_function_resize = false;
-    is_view_resize = false;
-    is_sql_resize = false;
-    is_result_resize = false;
 }
 
 void
@@ -225,34 +205,6 @@ get_menu_border_rect(HWND hwnd, LPRECT r)
     r->bottom = client_top.y - rc_window.top;
 }
 
-/*****************************************************************************
- * 资源管理器与编辑器区分割线的位置
- ****************************************************************************/
-static bool
-get_treebar_border_rect(HWND hwnd, LPRECT r)
-{
-    RECT rc_tree = {0};
-    RECT rc_main = {0};
-    RECT rc_client = {0};
-    POINT client_top = {0};
-    on_treebar_adjust_box(&rc_tree);
-    int scale = eu_dpi_scale_xy(0, SPLIT_WIDTH);
-    if (rc_tree.right - rc_tree.left < scale)
-    {
-        return false;
-    }
-    GetWindowRect(hwnd, &rc_main);
-    GetClientRect(hwnd, &rc_client);
-    ClientToScreen(hwnd, &client_top);
-    int toolbar_height = on_toolbar_height();
-    int tree_hight = rc_client.bottom - rc_client.top - toolbar_height - on_statusbar_height();
-    r->left = rc_tree.right - rc_tree.left + SPLIT_WIDTH + scale;
-    r->right = r->left + scale;
-    r->top = client_top.y - rc_main.top + toolbar_height;
-    r->bottom = r->top + tree_hight;
-    return true;
-}
-
 bool
 eu_create_toolbar(HWND hwnd)
 {
@@ -280,158 +232,216 @@ eu_create_fullscreen(HWND hwnd)
 /*****************************************************************************
  * 窗口缩放处理函数
  ****************************************************************************/
-void
-eu_window_resize(HWND hwnd)
+
+static void
+on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
 {
-    int count = 0;
-    eu_tabpage *pnode = NULL;
+    int  number = 8;
     RECT rect_treebar = {0};
-    if (hwnd)
+    RECT rect_tabbar = {0};
+    eu_tabpage *pnode = ptab ? ptab : on_tabpage_focus_at();
+    if (!pnode)
     {
-        eu_get_config()->m_menubar?(GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK))):SetMenu(hwnd, NULL);
+        return;
     }
     on_toolbar_adjust_box();
     on_statusbar_adjust_box();
+    on_tabpage_adjust_box(&rect_tabbar);
     on_treebar_adjust_box(&rect_treebar);
-    HDWP hdwp = BeginDeferWindowPos(2);
-    if (eu_get_config()->m_ftree_show)
+    on_tabpage_adjust_window(pnode);
+    if (ptab)
     {
-        RECT rect_filetree = {0};
-        on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
-        DeferWindowPos(hdwp,
-                       g_treebar,
-                       HWND_TOP,
-                       rect_treebar.left,
-                       rect_treebar.top,
-                       rect_treebar.right - rect_treebar.left,
-                       rect_treebar.bottom - rect_treebar.top,
-                       SWP_SHOWWINDOW);
-        DeferWindowPos(hdwp,
-                       g_filetree,
-                       HWND_TOP,
-                       rect_filetree.left,
-                       rect_filetree.top,
-                       rect_filetree.right - rect_filetree.left,
-                       rect_filetree.bottom - rect_filetree.top,
-                       SWP_SHOWWINDOW);
-        ShowWindow(g_treebar, SW_SHOW);
-        ShowWindow(g_filetree, SW_SHOW);
-        UpdateWindow(g_treebar);
-        // on wine, we use RedrawWindow refresh client area
-        RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
+        number -= 5;
+    }
+    HDWP hdwp = BeginDeferWindowPos(number);
+    if (!ptab)
+    {
+        if (eu_get_config()->m_toolbar)
+        {
+            RECT rc = {0};
+            GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
+            DeferWindowPos(hdwp, on_toolbar_hwnd(), HWND_TOP, 0, 0, rc.right - rc.left, on_toolbar_height(), SWP_SHOWWINDOW);
+        }
+        else
+        {
+            DeferWindowPos(hdwp, on_toolbar_hwnd(), 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+        if (eu_get_config()->m_ftree_show)
+        {
+            RECT rect_filetree = {0};
+            on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
+            DeferWindowPos(hdwp,
+                           g_treebar,
+                           HWND_TOP,
+                           rect_treebar.left,
+                           rect_treebar.top,
+                           rect_treebar.right - rect_treebar.left,
+                           rect_treebar.bottom - rect_treebar.top,
+                           SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,
+                           g_filetree,
+                           HWND_TOP,
+                           rect_filetree.left,
+                           rect_filetree.top,
+                           rect_filetree.right - rect_filetree.left,
+                           rect_filetree.bottom - rect_filetree.top,
+                           SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,
+                           g_splitter_treebar,
+                           HWND_TOP,
+                           rect_treebar.right,
+                           pnode->rect_sc.top,
+                           SPLIT_WIDTH,
+                           rect_treebar.bottom - pnode->rect_sc.top,
+                           SWP_SHOWWINDOW);
+        }
+        else
+        {
+            DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            DeferWindowPos(hdwp, g_splitter_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+        DeferWindowPos(hdwp, g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
+                       rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
+    }
+    if (pnode->hwnd_sc)
+    {
+        DeferWindowPos(hdwp, pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
+                       pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
+    }
+    if (pnode->sym_show)
+    {
+        DeferWindowPos(hdwp, g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_sym.top,
+                       SPLIT_WIDTH, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+        if (pnode->hwnd_symlist)
+        {
+            DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
+                           pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+
+        }
+        else if (pnode->hwnd_symtree)
+        {
+            DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
+                           pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+        }
     }
     else
     {
-        DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        DeferWindowPos(hdwp, g_splitter_symbar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        if (pnode->hwnd_symlist)
+        {
+            DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+        else if (pnode->hwnd_symtree)
+        {
+            DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
     }
-    EndDeferWindowPos(hdwp);
     if (true)
     {
-        RECT rect_tabbar = {0};
-        on_tabpage_adjust_box(&rect_tabbar);
-        eu_setpos_window(g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
-                         rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
+        EndDeferWindowPos(hdwp);
+        if (!ptab)
+        {
+            UpdateWindow(g_treebar);
+            UpdateWindow(g_splitter_treebar);
+            // on wine, we use RedrawWindow refresh client area
+            RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
+            UpdateWindowEx(g_tabpages);
+        }
+        pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
+        // Can't jump until the editor window is initialized
+        if (pnode->nc_pos >= 0)
+        {
+            !pnode->hex_mode ? on_search_jmp_pos(pnode, pnode->nc_pos) : eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            pnode->nc_pos = -1;
+        }
     }
-    if ((pnode = on_tabpage_focus_at()) != NULL)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        count = TabCtrl_GetItemCount(g_tabpages);
-    }
-    for (int index = 0; index < count; ++index)
-    {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p != pnode)
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && p != pnode)
         {
             if (p->hwnd_symlist && p->sym_show)
             {
-                eu_setpos_window(p->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_symlist, SW_HIDE);
             }
             else if (p->hwnd_symtree && p->sym_show)
             {
-                eu_setpos_window(p->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_symtree, SW_HIDE);
             }
-            if (p->hwnd_qredit && p->edit_show)
+            if (p->edit_show)
             {
-                eu_setpos_window(pnode->hwnd_qredit, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
-                ShowWindow(p->hwnd_qredit, SW_HIDE);
-            }
-            if (p->hwnd_qrtable && p->edit_show)
-            {
-                eu_setpos_window(pnode->hwnd_qrtable, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
-                ShowWindow(p->hwnd_qrtable, SW_HIDE);
+                if (p->hwnd_qredit)
+                {
+                    ShowWindow(p->hwnd_qredit, SW_HIDE);
+                }
+                if (p->hwnd_qrtable)
+                {
+                    ShowWindow(p->hwnd_qrtable, SW_HIDE);
+                }
             }
             if (p->hwnd_sc)
             {
-                eu_setpos_window(p->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
                 ShowWindow(p->hwnd_sc, SW_HIDE);
             }
         }
     }
-    if (pnode)
+    if (pnode->edit_show)
     {
-        on_tabpage_adjust_window(pnode);
-        if (pnode->sym_show)
+        RECT r = {0, 0, pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH};
+        if (pnode->hwnd_qredit)
         {
-            if (pnode->hwnd_symlist)
-            {
-                eu_setpos_window(pnode->hwnd_symlist, HWND_TOP, pnode->rect_symlist.left, pnode->rect_symlist.top,
-                                 pnode->rect_symlist.right - pnode->rect_symlist.left, pnode->rect_symlist.bottom - pnode->rect_symlist.top, SWP_SHOWWINDOW);
-                UpdateWindowEx(pnode->hwnd_symlist);
-            }
-            else if (pnode->hwnd_symtree)
-            {
-                eu_setpos_window(pnode->hwnd_symtree, HWND_TOP, pnode->rect_symtree.left, pnode->rect_symtree.top,
-                                 pnode->rect_symtree.right - pnode->rect_symtree.left, pnode->rect_symtree.bottom - pnode->rect_symtree.top, SWP_SHOWWINDOW);
-                UpdateWindowEx(pnode->hwnd_symtree);
-            }
+            eu_setpos_window(pnode->hwnd_qredit, HWND_TOP, pnode->rect_qredit.left, pnode->rect_qredit.top,
+                             pnode->rect_qredit.right - pnode->rect_qredit.left, pnode->rect_qredit.bottom - pnode->rect_qredit.top, SWP_SHOWWINDOW);
+            eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
+                             pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
+            InvalidateRect(pnode->hwnd_qredit, &pnode->rect_qredit, 0);
+            UpdateWindow(pnode->hwnd_qredit);
+            InvalidateRect(g_splitter_editbar, &r, 0);
+            UpdateWindow(g_splitter_editbar);
         }
-        else
+        if (pnode->hwnd_qrtable)
         {
-            if (pnode->hwnd_symlist)
-            {
-                eu_setpos_window(pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
-                ShowWindow(pnode->hwnd_symlist, SW_HIDE);
-            }
-            if (pnode->hwnd_symtree)
-            {
-                eu_setpos_window(pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
-                ShowWindow(pnode->hwnd_symtree, SW_HIDE);
-            }
-        }
-        if (pnode->edit_show)
-        {
-            if (pnode->hwnd_qredit)
-            {
-                eu_setpos_window(pnode->hwnd_qredit, HWND_TOP, pnode->rect_qredit.left, pnode->rect_qredit.top,
-                                 pnode->rect_qredit.right - pnode->rect_qredit.left, pnode->rect_qredit.bottom - pnode->rect_qredit.top, SWP_SHOWWINDOW);
-                UpdateWindowEx(pnode->hwnd_qredit);
-            }
-            if (pnode->hwnd_qrtable)
-            {
-                eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
-                                 pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
-                UpdateWindowEx(pnode->hwnd_qrtable);
-            }
+            eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
+                             pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
+            eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_qredit.bottom,
+                             pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
+            InvalidateRect(pnode->hwnd_qrtable, &pnode->rect_qrtable, 0);
+            UpdateWindow(pnode->hwnd_qrtable);
+            InvalidateRect(g_splitter_tablebar, &r, 0);
+            UpdateWindow(g_splitter_tablebar);
         }
     }
-    if (g_tabpages)
+    else if (pnode->hwnd_qredit)
     {
-        on_toolbar_size();
-        InvalidateRect(g_tabpages, NULL, true);
-        UpdateWindow(g_tabpages);
+        ShowWindow(g_splitter_editbar, SW_HIDE);
     }
-    if (pnode && pnode->hwnd_sc)
+    else if (pnode->hwnd_qredit)
+    {
+        ShowWindow(g_splitter_tablebar, SW_HIDE);
+    }
+    if (ptab)
+    {
+        on_statusbar_update();
+    }
+    else
     {
         PostMessage(g_statusbar, WM_SIZE, 0, 0);
-        eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                         pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-        UpdateWindowEx(pnode->hwnd_sc);
-        PostMessage(hwnd ? hwnd : eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
     }
+}
+
+void
+eu_window_resize(HWND hwnd)
+{
+    on_proc_msg_size(hwnd ? hwnd : eu_hwndmain, NULL);
+    PostMessage(hwnd ? hwnd : eu_hwndmain, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+}
+
+static void
+on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
+{
+    on_proc_msg_size(hwnd, pnode);
+    PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 
 int
@@ -453,20 +463,6 @@ eu_before_proc(MSG *p_msg)
             on_sci_insert_egg(pnode);
             return 1;
         }
-    }
-    if (p_msg->message == WM_MOUSEMOVE)
-    {
-        WPARAM wParam = p_msg->wParam;
-        LPARAM lParam = p_msg->lParam;
-        if (p_msg->hwnd != eu_hwndmain)
-        {
-            POINT pt = {LOWORD(lParam), HIWORD(lParam)};
-            ClientToScreen(p_msg->hwnd, &pt);
-            ScreenToClient(eu_hwndmain, &pt);
-            lParam = MAKELONG(pt.x, pt.y);
-        }
-        wParam = MAKELONG(IDM_MOUSEMOVE, 0);
-        PostMessage(eu_hwndmain, WM_COMMAND, wParam, lParam);
     }
     return 0;
 }
@@ -509,6 +505,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostQuitMessage(0);
             }
+            if (eu_get_config()->m_menubar)
+            {
+                SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
+            }
             if (eu_get_config()->m_fullscreen)
             {
                 eu_get_config()->m_menubar = false;
@@ -525,20 +525,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (strcmp(eu_get_config()->window_theme, "black") == 0 && on_dark_supports())
                 {
                     eu_on_dark_release(false);
-                    eu_window_resize(hwnd);
+                    on_proc_msg_size(hwnd, NULL);
                 }
             }
             else
             {
                 HDC hdc = GetWindowDC(hwnd);
                 RECT r = {0};
-                RECT rect_tree = {0};
                 get_menu_border_rect(hwnd, &r);
                 FillRect(hdc, &r, (HBRUSH)on_dark_get_brush());
-                if (get_treebar_border_rect(hwnd, &rect_tree))
-                {   // 重新绘制分割线
-                    FillRect(hdc, &rect_tree, (HBRUSH)on_dark_get_brush());
-                }
                 ReleaseDC(hwnd, hdc);
             }
             return result;
@@ -546,12 +541,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NCACTIVATE:
             return 1;
         case WM_SIZE:
-            if (wParam == SIZE_MINIMIZED)
+            if (wParam != SIZE_MINIMIZED)
             {
-                break;
+                on_proc_msg_size(hwnd, NULL);
             }
-            eu_window_resize(hwnd);
             break;
+        case IDM_TAB_CLICK:
+            on_proc_tab_click(hwnd, (void *)wParam);
+            return 1;
         case WM_TIMER:
             if (on_qrgen_hwnd() && KEY_DOWN(VK_ESCAPE))
             {
@@ -565,12 +562,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 ONCE_RUN(on_changes_window(hwnd));
             }
-            return 0;
-        case WM_INITMENU:
-            return 0;
+            break;
         case WM_INITMENUPOPUP:
             menu_update_item((HMENU)wParam);
-            return 0;
+            break;
         case WM_DPICHANGED:
         {
             on_theme_setup_font(hwnd);
@@ -619,14 +614,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_allow_window(hwnd, true);
                 on_dark_refresh_titlebar(hwnd);
                 on_tabpage_foreach(on_tabpage_theme_changed);
-                if (g_statusbar && on_statusbar_init(hwnd))
+                if (g_statusbar)
                 {
-                    on_statusbar_size();
+                    on_statusbar_init(hwnd);
                 }
-                if (on_toolbar_refresh(hwnd))
-                {
-                    on_toolbar_size();
-                }
+                on_toolbar_refresh(hwnd);
                 on_dark_set_theme(g_treebar, L"Explorer", NULL);
                 on_dark_set_theme(g_tabpages, L"Explorer", NULL);
                 if (g_filetree)
@@ -836,9 +828,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_DELETE_SPACE_LINETAIL:
                     on_edit_delete_line_tail_white(pnode);
-                    break;
-                case IDM_EDIT_DELETEBLANKLINE:
-                    on_edit_delete_blank_line(pnode);
                     break;
                 case IDM_DELETE_ALL_SPACE_LINE:
                     on_edit_delete_all_empty_lines(pnode);
@@ -1119,6 +1108,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
                     on_view_indent_visiable(hwnd);
                     break;
+                case IDM_VIEW_TIPS_ONTAB:
+                    eu_get_config()->m_tab_tip = !eu_get_config()->m_tab_tip;
+                    break;
                 case IDM_VIEW_LEFT_TAB:
                 case IDM_VIEW_RIGHT_TAB:
                 case IDM_VIEW_FAR_LEFT_TAB:
@@ -1219,190 +1211,25 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_VIEW_MENUBAR:
                     eu_get_config()->m_menubar = !eu_get_config()->m_menubar;
-                    eu_window_resize(hwnd);
+                    eu_get_config()->m_menubar?(GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK))):SetMenu(hwnd, NULL);
+                    on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_TOOLBAR:
                     eu_get_config()->m_toolbar = !eu_get_config()->m_toolbar;
-                    eu_window_resize(hwnd);
+                    on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_STATUSBAR:
                     eu_get_config()->m_statusbar = !eu_get_config()->m_statusbar;
-                    eu_window_resize(hwnd);
+                    on_proc_msg_size(hwnd, NULL);
+                    break;
+                case IDM_TAB_CLOSE_LEFT:
+                    on_file_left_close();
+                    break;
+                case IDM_TAB_CLOSE_RIGHT:
+                    on_file_right_close();
                     break;
                 case IDM_ABOUT:
                     on_about_dialog();
-                    break;
-                case IDM_MOUSEMOVE:
-                    if (eu_get_config()->m_ftree_show)
-                    {
-                        RECT rect_treebar = {0};
-                        RECT rect_tabbar = {0};
-                        int x = GET_X_LPARAM(lParam);
-                        int y = GET_Y_LPARAM(lParam);
-                        on_treebar_adjust_box(&rect_treebar);
-                        on_tabpage_adjust_box(&rect_tabbar);
-                        if (is_filebar_resize)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZEWE));
-                        }
-                        else if (rect_treebar.top <= y && y <= rect_treebar.bottom && rect_treebar.right < x && x < rect_tabbar.left)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZEWE));
-                            if (!filebar_hover_resize)
-                            {
-                                filebar_hover_resize = true;
-                            }
-                        }
-                        else
-                        {
-                            if (filebar_hover_resize)
-                            {
-                                filebar_hover_resize = false;
-                            }
-                        }
-                        if (is_filebar_resize)
-                        {
-                            eu_get_config()->file_tree_width = x - rect_treebar.left - SPLIT_WIDTH / 2;
-                            if (eu_get_config()->file_tree_width < FILETREEBAR_WIDTH_MIN)
-                            {
-                                eu_get_config()->file_tree_width = FILETREEBAR_WIDTH_MIN;
-                            }
-                            eu_window_resize(eu_hwndmain);
-                        }
-                    }
-                    if (!pnode)
-                    {
-                        break;
-                    }
-                    if (pnode->hwnd_symlist)
-                    {
-                        int x = GET_X_LPARAM(lParam);
-                        int y = GET_Y_LPARAM(lParam);
-
-                        if (is_function_resize)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZEWE));
-                        }
-                        else if (pnode->rect_symlist.top <= y && y <= pnode->rect_symlist.bottom && pnode->rect_sc.right < x && x < pnode->rect_symlist.left)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZEWE));
-                            function_hover_resize = true;
-                        }
-                        else
-                        {
-                            if (function_hover_resize)
-                            {
-                                function_hover_resize = false;
-                            }
-                        }
-                        if (is_function_resize)
-                        {
-                            eu_get_config()->sym_list_width = pnode->rect_symlist.right - x - SPLIT_WIDTH / 2;
-                            if (eu_get_config()->sym_list_width < SYMBOLLIST_WIDTH_MIN)
-                            {
-                                eu_get_config()->sym_list_width = SYMBOLLIST_WIDTH_MIN;
-                            }
-                            eu_window_resize(eu_hwndmain);
-                        }
-                    }
-                    if (pnode->hwnd_symtree)
-                    {
-                        int x = GET_X_LPARAM(lParam);
-                        int y = GET_Y_LPARAM(lParam);
-
-                        if (is_view_resize)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZEWE));
-                        }
-                        else if (pnode->rect_symtree.top <= y && y <= pnode->rect_symtree.bottom && pnode->rect_sc.right < x && x < pnode->rect_symtree.left)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZEWE));
-                            view_hover_resize = true;
-                        }
-                        else
-                        {
-                            if (view_hover_resize)
-                            {
-                                view_hover_resize = false;
-                            }
-                        }
-
-                        if (is_view_resize)
-                        {
-                            eu_get_config()->sym_tree_width = pnode->rect_symtree.right - x - SPLIT_WIDTH / 2;
-                            if (eu_get_config()->sym_tree_width < TREEVIEW_WIDTH_MIN)
-                            {
-                                eu_get_config()->sym_tree_width = TREEVIEW_WIDTH_MIN;
-                            }
-                            eu_window_resize(eu_hwndmain);
-                        }
-                    }
-                    if (pnode->hwnd_qredit)
-                    {
-                        int x = GET_X_LPARAM(lParam);
-                        int y = GET_Y_LPARAM(lParam);
-
-                        if (is_sql_resize)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZENS));
-                            if (pnode->hwnd_qrtable)
-                            {
-                                eu_get_config()->result_edit_height = pnode->rect_qredit.bottom - y - SPLIT_WIDTH/2;
-                            }
-                            else
-                            {
-                                eu_get_config()->result_edit_height =
-                                    pnode->rect_qredit.bottom - y - SPLIT_WIDTH - eu_get_config()->result_list_height;
-                            }
-                            if (eu_get_config()->result_edit_height < SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
-                            {
-                                eu_get_config()->result_edit_height = SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN;
-                            }
-                            eu_window_resize(eu_hwndmain);
-                        }
-                        else if (pnode->rect_qredit.left <= x && x <= pnode->rect_qredit.right && pnode->rect_sc.bottom < y &&
-                                 y < pnode->rect_qredit.top)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZENS));
-                            sql_hover_resize = true;
-                        }
-                        else
-                        {
-                            if (sql_hover_resize)
-                            {
-                                sql_hover_resize = false;
-                            }
-                        }
-                    }
-                    if (pnode->hwnd_qrtable)
-                    {
-                        int x = GET_X_LPARAM(lParam);
-                        int y = GET_Y_LPARAM(lParam);
-
-                        if (is_result_resize)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZENS));
-                            int nListViewHeight = pnode->rect_qrtable.bottom - y - SPLIT_WIDTH / 2;
-                            if (nListViewHeight >= SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
-                            {
-                                eu_get_config()->result_list_height = nListViewHeight;
-                            }
-                            eu_window_resize(eu_hwndmain);
-                        }
-                        else if (pnode->rect_qrtable.left <= x && x <= pnode->rect_qrtable.right &&
-                                 pnode->rect_qredit.bottom < y && y < pnode->rect_qrtable.top)
-                        {
-                            SetCursor(LoadCursor(NULL, IDC_SIZENS));
-                            result_hover_resize = true;
-                        }
-                        else
-                        {
-                            if (result_hover_resize)
-                            {
-                                result_hover_resize = false;
-                            }
-                        }
-                    }
                     break;
                 default:
                     return DefWindowProc(hwnd, message, wParam, lParam);
@@ -1553,7 +1380,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case TCN_SELCHANGE:
-                    on_tabpage_changing();
+                    on_tabpage_changing(hwnd);
                     break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
@@ -1605,6 +1432,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case TTN_NEEDTEXT:
                 {
+                    if (!eu_get_config()->m_tab_tip)
+                    {
+                        break;
+                    }
                     if (p_tips->hdr.hwndFrom != TabCtrl_GetToolTips(g_tabpages))
                     {
                         break;
@@ -1661,31 +1492,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_LBUTTONDOWN:
-            if (filebar_hover_resize)
-            {
-                is_filebar_resize = true;
-            }
-            if (function_hover_resize)
-            {
-                is_function_resize = true;
-            }
-            if (view_hover_resize)
-            {
-                is_view_resize = true;
-            }
-            if (sql_hover_resize)
-            {
-                is_sql_resize = true;
-            }
-            if (result_hover_resize)
-            {
-                is_result_resize = true;
-            }
-            break;
-        case WM_LBUTTONUP:
-            eu_reset_drag_line();
-            break;
         case WM_DROPFILES:
             if (wParam)
             {
@@ -1766,9 +1572,8 @@ eu_close_edit(void)
 HWND
 eu_create_main_window(HINSTANCE instance)
 {
-    HWND hwnd = NULL;
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_calss_drop, NULL, 0, NULL));
-    if (class_register(instance) && i18n_load_menu(IDC_SKYLARK))
+    if (class_register(instance))
     {
         INITCOMMONCONTROLSEX icex;
         uint32_t ac_flags = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
@@ -1777,11 +1582,9 @@ eu_create_main_window(HINSTANCE instance)
         if (InitCommonControlsEx(&icex))
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
-            eu_hwndmain = hwnd = CreateWindowEx(WS_EX_ACCEPTFILES, APP_CLASS, app_title, ac_flags, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, instance, NULL);
-            HMENU menu = hwnd && eu_get_config()->m_menubar ? i18n_load_menu(IDC_SKYLARK) : NULL;
-            menu ? SetMenu(hwnd, menu) : (void)0;
-            on_theme_setup_font(hwnd);
+            eu_hwndmain = CreateWindowEx(WS_EX_ACCEPTFILES, APP_CLASS, app_title, ac_flags, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, instance, NULL);
+            on_theme_setup_font(eu_hwndmain);
         }
     }
-    return hwnd;
+    return eu_hwndmain;
 }

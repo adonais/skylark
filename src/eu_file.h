@@ -76,6 +76,8 @@ int on_file_save_as(eu_tabpage *pnode);
 int on_file_all_save(void);
 int on_file_close(eu_tabpage *pnode, CLOSE_MODE mode);
 int on_file_all_close(void);
+int on_file_left_close(void);
+int on_file_right_close(void);
 int on_file_exclude_close(eu_tabpage *pnode);
 int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
 int on_file_redirect(HWND hwnd, file_backup *pm);

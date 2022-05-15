@@ -274,7 +274,6 @@ hexview_pin_bottom(PHEXVIEW hexview)
         hexview->vscroll_pos = hexview->totallines - visiblelines;
         ret = true;
     }
-
     if (hexview->hscroll_pos + visiblechars > hexview->longest_line)
     {
         int hscroll_pos = hexview->longest_line - visiblechars;
@@ -347,7 +346,6 @@ hexview_caret(HWND hwnd, PHEXVIEW hexview)
 {
     sptr_t line_number = hexview->number_items / 16 + 2;
     int in_line = (int) (hexview->number_items % 16);
-
     if (hexview->total_items && line_number >= hexview->vscroll_pos && line_number <= hexview->vscroll_pos + hexview->visiblelines)
     {
         switch (hexview->active_column)
@@ -620,13 +618,295 @@ do_clean:
     return ret;
 }
 
+static void
+hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
+{
+    do
+    {
+        if (hexview->total_items)
+        {
+            bool ctrl_down = KEY_DOWN(VK_CONTROL);
+            if (ctrl_down && wParam == 0x11)
+            {
+                break;
+            }
+            switch (wParam)
+            {
+                case VK_TAB:
+                {
+                    switch (hexview->active_column)
+                    {
+                        case COLUMN_DATA:
+                            hexview->active_column = COLUMN_VALUE;
+                            break;
+                        case COLUMN_VALUE:
+                            hexview->active_column = COLUMN_DATA;
+                            break;
+                    }
+                    hexview->hl_position = 0;
+                    break;
+                }
+                case VK_LEFT:
+                {
+                    int style = (int)GetWindowLongPtr(hwnd, GWL_STYLE);
+                    if (ctrl_down && (style & WS_HSCROLL))
+                    {
+                        SendMessage(hwnd, WM_HSCROLL, SB_LINELEFT, 0);
+                    }
+                    switch (hexview->active_column)
+                    {
+                        case COLUMN_DATA:
+                        {
+                            switch (hexview->hl_position)
+                            {
+                                case 0:
+                                {
+                                    if (hexview->number_items != 0)
+                                    {
+                                        intptr_t line_number;
+                                        hexview->hl_position = 1;
+                                        hexview->number_items--;
+                                        line_number = hexview->number_items / 16;
+                                        if (line_number == hexview->vscroll_pos - 1)
+                                        {
+                                            SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
+                                        }
+                                    }
+                                    break;
+                                }
+                                case 1:
+                                {
+                                    hexview->hl_position = 0;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case COLUMN_VALUE:
+                        {
+                            if (hexview->number_items != 0)
+                            {
+                                intptr_t line_number;
+                                hexview->number_items--;
+                                line_number = hexview->number_items / 16;
+                                if (line_number == hexview->vscroll_pos - 1)
+                                {
+                                    SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case VK_RIGHT:
+                {
+                    int style = (int)GetWindowLongPtr(hwnd, GWL_STYLE);
+                    if (ctrl_down && (style & WS_HSCROLL))
+                    {
+                        SendMessage(hwnd, WM_HSCROLL, SB_LINERIGHT, 0);
+                    }
+                    switch (hexview->active_column)
+                    {
+                        case COLUMN_DATA:
+                        {
+                            switch (hexview->hl_position)
+                            {
+                                case 0:
+                                {
+                                    hexview->hl_position = 1;
+                                    break;
+                                }
+                                case 1:
+                                {
+                                    if (hexview->number_items < hexview->total_items - 1)
+                                    {
+                                        intptr_t line_number;
+                                        hexview->hl_position = 0;
+                                        hexview->number_items++;
+                                        line_number = hexview->number_items / 16;
+                                        if (line_number == hexview->vscroll_pos + hexview->visiblelines)
+                                        {
+                                            SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case COLUMN_VALUE:
+                        {
+                            if (hexview->number_items < hexview->total_items - 1)
+                            {
+                                intptr_t line_number;
+                                hexview->number_items++;
+                                line_number = hexview->number_items / 16;
+                                if (line_number == hexview->vscroll_pos + hexview->visiblelines)
+                                {
+                                    SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case VK_UP:
+                {
+                    if (ctrl_down)
+                    {
+                        SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
+                    }
+                    if (hexview->number_items >= 16)
+                    {
+                        intptr_t line_number;
+                        hexview->number_items -= 16;
+                        line_number = hexview->number_items / 16;
+                        if (line_number == hexview->vscroll_pos - 1)
+                        {
+                            SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
+                        }
+                    }
+                    break;
+                }
+                case VK_DOWN:
+                {
+                    if (ctrl_down)
+                    {
+                        SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
+                    }
+                    if ((hexview->number_items + 16) < hexview->total_items)
+                    {
+                        intptr_t line_number;
+                        hexview->number_items += 16;
+                        line_number = hexview->number_items / 16;
+                        if (line_number == hexview->vscroll_pos + hexview->visiblelines)
+                        {
+                            SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
+                        }
+                    }
+                    break;
+                }
+                case VK_PRIOR:
+                {
+                    if ((hexview->number_items - 16 * hexview->visiblelines) >= 0)
+                    {
+                        hexview->number_items -= 16 * hexview->visiblelines;
+                    }
+                    else
+                    {
+                        size_t NumberOfLines = hexview->number_items / 16;
+                        hexview->number_items -= 16 * NumberOfLines;
+                    }
+                    SendMessage(hwnd, WM_VSCROLL, SB_PAGEUP, 0);
+                    break;
+                }
+                case VK_NEXT:
+                {
+                    if ((hexview->number_items + 16 * hexview->visiblelines) < hexview->total_items)
+                    {
+                        hexview->number_items += 16 * hexview->visiblelines;
+                    }
+                    else
+                    {
+                        size_t lines_number = (hexview->total_items - hexview->number_items - 1) / 16;
+                        hexview->number_items += 16 * lines_number;
+                    }
+                    SendMessage(hwnd, WM_VSCROLL, SB_PAGEDOWN, 0);
+                    break;
+                }
+                case VK_HOME:
+                {
+                    if (ctrl_down)
+                    {
+                        hexview->number_items = 0;
+                        hexview->hl_position = 0;
+                        SendMessage(hwnd, WM_VSCROLL, SB_TOP, 0);
+                    }
+                    else
+                    {
+                        hexview->number_items &= ~0xf;
+                        hexview->hl_position = 0;
+                        if (hexview->active_column == COLUMN_DATA)
+                        {
+                            SendMessage(hwnd, WM_HSCROLL, SB_LEFT, 0);
+                        }
+                    }
+                    break;
+                }
+                case VK_END:
+                {
+                    if (ctrl_down)
+                    {
+                        hexview->number_items = hexview->total_items - 1;
+                        hexview->hl_position = 0;
+                        SendMessage(hwnd, WM_VSCROLL, SB_BOTTOM, 0);
+                    }
+                    else
+                    {
+                        hexview->number_items = (hexview->number_items & ~0xf) + 15;
+                        hexview->hl_position = 0;
+                        if (hexview->number_items >= hexview->total_items)
+                        {
+                            hexview->number_items = hexview->total_items - 1;
+                        }
+                        SendMessage(hwnd, WM_HSCROLL, SB_RIGHT, 0);
+                    }
+                    break;
+                }
+            }
+            //
+            // if lParam == 0 then WM_KEYDOWN came from WM_CHAR
+            // and we don't need to select text.
+            //
+            if ((GetKeyState(VK_SHIFT) & 0x8000) && lParam)
+            {
+                if (hexview->hl_position || (hexview->select_start != hexview->number_items))
+                {
+                    hexview->select_end = hexview->number_items;
+                    hexview->ct_flags |= HVF_SELECTED;
+                }
+                else
+                {
+                    hexview->ct_flags &= ~HVF_SELECTED;
+                }
+            }
+            else if (!ctrl_down && !(GetKeyState(VK_APPS) & 0x8000))
+            {
+                hexview->select_start = hexview->select_end = hexview->number_items;
+                hexview->ct_flags &= ~HVF_SELECTED;
+            }
+            // pagedown, pageup 由滚动条消息设置光标位置
+            if (wParam == VK_PRIOR || wParam == VK_NEXT)
+            {
+                break;
+            }
+            if (!(hexview->ct_flags & HVF_CARETVISIBLE))
+            {
+                intptr_t line_number = hexview->number_items / 16;
+                if (line_number > hexview->totallines - hexview->visiblelines)
+                {
+                    hexview->vscroll_pos = hexview->totallines - hexview->visiblelines;
+                }
+                else
+                {
+                    hexview->vscroll_pos = line_number;
+                }
+                hexview_srollinfo(hwnd, hexview);
+            }
+            hexview_caret(hwnd, hexview);
+            InvalidateRect(hwnd, NULL, false);
+        }
+    } while(0);
+}
+
 static LRESULT CALLBACK
 hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
-    PHEXVIEW hexview;
-    eu_tabpage *pnode;
-    pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    if (pnode)
+    PHEXVIEW hexview = NULL;
+    eu_tabpage *pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    if (pnode && pnode->phex)
     {
         hexview = pnode->phex;
     }
@@ -985,297 +1265,20 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case WM_KEYDOWN:
         {
-            if (hexview->total_items)
-            {
-                bool ctrl_down = KEY_DOWN(VK_CONTROL);
-                if (ctrl_down && wParam == 0x11)
-                {
-                    break;
-                }
-                switch (wParam)
-                {
-                    case VK_TAB:
-                    {
-                        switch (hexview->active_column)
-                        {
-                            case COLUMN_DATA:
-                                hexview->active_column = COLUMN_VALUE;
-                                break;
-                            case COLUMN_VALUE:
-                                hexview->active_column = COLUMN_DATA;
-                                break;
-                        }
-                        hexview->hl_position = 0;
-                        break;
-                    }
-                    case VK_LEFT:
-                    {
-                        int style = (int)GetWindowLongPtr(hwnd, GWL_STYLE);
-                        if (ctrl_down && (style & WS_HSCROLL))
-                        {
-                            SendMessage(hwnd, WM_HSCROLL, SB_LINELEFT, 0);
-                        }
-                        switch (hexview->active_column)
-                        {
-                            case COLUMN_DATA:
-                            {
-                                switch (hexview->hl_position)
-                                {
-                                    case 0:
-                                    {
-                                        if (hexview->number_items != 0)
-                                        {
-                                            intptr_t line_number;
-                                            hexview->hl_position = 1;
-                                            hexview->number_items--;
-                                            line_number = hexview->number_items / 16;
-                                            if (line_number == hexview->vscroll_pos - 1)
-                                            {
-                                                SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
-                                            }
-                                        }
-                                        break;
-                                    }
-                                    case 1:
-                                    {
-                                        hexview->hl_position = 0;
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                            case COLUMN_VALUE:
-                            {
-                                if (hexview->number_items != 0)
-                                {
-                                    intptr_t line_number;
-                                    hexview->number_items--;
-                                    line_number = hexview->number_items / 16;
-                                    if (line_number == hexview->vscroll_pos - 1)
-                                    {
-                                        SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                    case VK_RIGHT:
-                    {
-                        int style = (int)GetWindowLongPtr(hwnd, GWL_STYLE);
-                        if (ctrl_down && (style & WS_HSCROLL))
-                        {
-                            SendMessage(hwnd, WM_HSCROLL, SB_LINERIGHT, 0);
-                        }
-                        switch (hexview->active_column)
-                        {
-                            case COLUMN_DATA:
-                            {
-                                switch (hexview->hl_position)
-                                {
-                                    case 0:
-                                    {
-                                        hexview->hl_position = 1;
-                                        break;
-                                    }
-                                    case 1:
-                                    {
-                                        if (hexview->number_items < hexview->total_items - 1)
-                                        {
-                                            intptr_t line_number;
-                                            hexview->hl_position = 0;
-                                            hexview->number_items++;
-                                            line_number = hexview->number_items / 16;
-                                            if (line_number == hexview->vscroll_pos + hexview->visiblelines)
-                                            {
-                                                SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
-                                            }
-                                        }
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                            case COLUMN_VALUE:
-                            {
-                                if (hexview->number_items < hexview->total_items - 1)
-                                {
-                                    intptr_t line_number;
-                                    hexview->number_items++;
-                                    line_number = hexview->number_items / 16;
-                                    if (line_number == hexview->vscroll_pos + hexview->visiblelines)
-                                    {
-                                        SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                    case VK_UP:
-                    {
-                        if (ctrl_down)
-                        {
-                            SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
-                        }
-                        if (hexview->number_items >= 16)
-                        {
-                            intptr_t line_number;
-                            hexview->number_items -= 16;
-                            line_number = hexview->number_items / 16;
-                            if (line_number == hexview->vscroll_pos - 1)
-                            {
-                                SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
-                            }
-                        }
-                        break;
-                    }
-                    case VK_DOWN:
-                    {
-                        if (ctrl_down)
-                        {
-                            SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
-                        }
-                        if ((hexview->number_items + 16) < hexview->total_items)
-                        {
-                            intptr_t line_number;
-                            hexview->number_items += 16;
-                            line_number = hexview->number_items / 16;
-                            if (line_number == hexview->vscroll_pos + hexview->visiblelines)
-                            {
-                                SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
-                            }
-                        }
-                        break;
-                    }
-                    case VK_PRIOR:
-                    {
-                        if ((hexview->number_items - 16 * hexview->visiblelines) >= 0)
-                        {
-                            hexview->number_items -= 16 * hexview->visiblelines;
-                        }
-                        else
-                        {
-                            size_t NumberOfLines = hexview->number_items / 16;
-                            hexview->number_items -= 16 * NumberOfLines;
-                        }
-                        SendMessage(hwnd, WM_VSCROLL, SB_PAGEUP, 0);
-                        break;
-                    }
-                    case VK_NEXT:
-                    {
-                        if ((hexview->number_items + 16 * hexview->visiblelines) < hexview->total_items)
-                        {
-                            hexview->number_items += 16 * hexview->visiblelines;
-                        }
-                        else
-                        {
-                            size_t NumberOfItems = hexview->total_items - hexview->number_items - 1;
-                            size_t NumberOfLines = NumberOfItems / 16;
-                            hexview->number_items += 16 * NumberOfLines;
-                        }
-                        SendMessage(hwnd, WM_VSCROLL, SB_PAGEDOWN, 0);
-                        break;
-                    }
-                    case VK_HOME:
-                    {
-                        if (ctrl_down)
-                        {
-                            hexview->number_items = 0;
-                            hexview->hl_position = 0;
-                            SendMessage(hwnd, WM_VSCROLL, SB_TOP, 0);
-                        }
-                        else
-                        {
-                            hexview->number_items &= ~0xf;
-                            hexview->hl_position = 0;
-                            if (hexview->active_column == COLUMN_DATA)
-                            {
-                                SendMessage(hwnd, WM_HSCROLL, SB_LEFT, 0);
-                            }
-                        }
-                        break;
-                    }
-                    case VK_END:
-                    {
-                        if (ctrl_down)
-                        {
-                            hexview->number_items = hexview->total_items - 1;
-                            hexview->hl_position = 0;
-                            SendMessage(hwnd, WM_VSCROLL, SB_BOTTOM, 0);
-                        }
-                        else
-                        {
-                            hexview->number_items = (hexview->number_items & ~0xf) + 15;
-                            hexview->hl_position = 0;
-                            if (hexview->number_items >= hexview->total_items)
-                            {
-                                hexview->number_items = hexview->total_items - 1;
-                            }
-                            SendMessage(hwnd, WM_HSCROLL, SB_RIGHT, 0);
-                        }
-                        break;
-                    }
-                }
-                //
-                // if lParam == 0 then WM_KEYDOWN came from WM_CHAR
-                // and we don't need to select text.
-                //
-                if ((GetKeyState(VK_SHIFT) & 0x8000) && lParam)
-                {
-                    if (hexview->hl_position || (hexview->select_start != hexview->number_items))
-                    {
-                        hexview->select_end = hexview->number_items;
-                        hexview->ct_flags |= HVF_SELECTED;
-                    }
-                    else
-                    {
-                        hexview->ct_flags &= ~HVF_SELECTED;
-                    }
-                }
-                else if (!ctrl_down && !(GetKeyState(VK_APPS) & 0x8000))
-                {
-                    hexview->select_start = hexview->select_end = hexview->number_items;
-                    hexview->ct_flags &= ~HVF_SELECTED;
-                }
-                // pagedown, pageup 由滚动条消息设置光标位置
-                if (wParam == VK_PRIOR || wParam == VK_NEXT)
-                {
-                    break;
-                }
-                if (!(hexview->ct_flags & HVF_CARETVISIBLE))
-                {
-                    intptr_t line_number = hexview->number_items / 16;
-                    if (line_number > hexview->totallines - hexview->visiblelines)
-                    {
-                        hexview->vscroll_pos = hexview->totallines - hexview->visiblelines;
-                    }
-                    else
-                    {
-                        hexview->vscroll_pos = line_number;
-                    }
-                    hexview_srollinfo(hwnd, hexview);
-                }
-                hexview_caret(hwnd, hexview);
-                InvalidateRect(hwnd, NULL, false);
-            }
+            hexview_on_keydown(hwnd, hexview, wParam, lParam);
             break;
         }
         case HVM_SETLINE:
         {
             sptr_t i = 0;
-            sptr_t offset = 0;
             sptr_t skip_line = (wParam / 16) - (hexview->select_start / 16);
-            offset = ((wParam - hexview->select_start) - (sptr_t)(skip_line * 16)) * 2;
+            sptr_t offset = ((wParam - hexview->select_start) - (sptr_t)(skip_line * 16)) * 2;
             if (offset && hexview->hl_position)
             {   // 如果光标在下半字节
                 --offset;
             }
             if (hexview->total_items / 16 * 16 <= wParam)
-            {
-                // 在末尾行, 使用VK_END跳转
+            {   // 在末尾行, 使用VK_END跳转
                 hexview->number_items = hexview->total_items - 1;
                 hexview->hl_position = 0;
                 SendMessage(hwnd, WM_VSCROLL, SB_BOTTOM, 0);
@@ -1283,21 +1286,12 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 offset = (wParam - hexview->total_items + 1) * 2;
             }
             else
-            {
-                if (skip_line < 0)
-                {
-                    for (i = 0; i > skip_line; --i)
-                    {
-                        SendMessage(hwnd, WM_KEYDOWN, VK_UP, 0);
-                    }
-                }
-                else if (skip_line > 0)
-                {
-                    for (i = 0; i < skip_line; ++i)
-                    {
-                        SendMessage(hwnd, WM_KEYDOWN, VK_DOWN, 0);
-                    }
-                }
+            {   // goto line
+                hexview->ct_flags &= ~HVF_SELECTED;
+                hexview->number_items = max(0, hexview->number_items + (skip_line * 16));
+                hexview->vscroll_pos = hexview->number_items / 16;
+                hexview_srollinfo(hwnd, hexview);
+                hexview_caret(hwnd, hexview);
             }
             if (offset < 0)
             {
@@ -1719,22 +1713,13 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             // not including '\0' char
             return len;
         }
-        case HVM_SETHEXDEAD:
-        {
-            eu_tabpage *p = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if (p && hwnd == p->hwnd_sc)
-            {
-                DestroyWindow(hwnd);
-            }
-            return 1;
-        }
         case WM_DESTROY:
         {
-            eu_tabpage *p = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if (p)
+            if (pnode)
             {
-                hexview_destoy(p);
-                eu_safe_free (p);
+                hexview_destoy(pnode);
+                eu_safe_free (pnode);
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
                 printf("HEXVIEW WM_DESTROY\n");
             }
             break;
@@ -1772,10 +1757,8 @@ hexview_init(eu_tabpage *pnode)
         return false;
     }
     if (pnode->hwnd_sc)
-    {
-        // tab保存原先的位置, 必须先销毁text编辑器句柄
+    {   // tab保存原先的位置
         pnode->tab_id = TabCtrl_GetCurSel(g_tabpages);
-        DestroyWindow(pnode->hwnd_sc);
         on_tabpage_remove(&pnode);
     }
     if (!pnode->hex_mode)
@@ -1976,6 +1959,7 @@ hexview_switch_mode(eu_tabpage *pnode)
     }
     if (!pnode->hex_mode)
     {
+        pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         if (!pnode->phex)
         {
             pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
@@ -2021,6 +2005,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnew->raw_size = pnode->raw_size;
         pnew->tab_id = TabCtrl_GetCurSel(g_tabpages);
         pnew->doc_ptr = on_doc_get_type(pnew->filename);
+        pnew->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
         if (pnode->phex && pnode->phex->hex_ascii)
         {
             is_utf8 = false;
@@ -2085,7 +2070,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         tci.pszText = pnew->filename;
         tci.lParam = (LPARAM) pnew;
         TabCtrl_DeleteItem(g_tabpages, pnew->tab_id);
-        DestroyWindow(pnode->hwnd_sc);
+        SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0);
         if (TabCtrl_InsertItem(g_tabpages, pnew->tab_id, &tci) == -1)
         {
             printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);

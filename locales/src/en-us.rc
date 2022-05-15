@@ -99,8 +99,7 @@ BEGIN
             MENUITEM "Delete Line",                                    IDM_EDIT_DELETELINE
             MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "Strip &Trailing Blanks",                         IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "&Remove Empty Lines",                            IDM_EDIT_DELETEBLANKLINE
-            MENUITEM "Remove All Empty Lines(Containing Blank Chars)", IDM_DELETE_ALL_SPACE_LINE
+            MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE
         END
         MENUITEM MF_SEPARATOR
         POPUP "Advanced Line Operations",                              IDM_EDIT_PLACEHOLDE5
@@ -238,6 +237,7 @@ BEGIN
         MENUITEM "Show Wrap Symbol",                                   IDM_VIEW_NEWLINE_VISIABLE
         MENUITEM "Show Indent Guide",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
         MENUITEM MF_SEPARATOR
+        MENUITEM "Show Tips On Tabs",                                  IDM_VIEW_TIPS_ONTAB
         POPUP "Activated When Closing Tab"
         BEGIN
             MENUITEM "The Left Tab",                                   IDM_VIEW_LEFT_TAB
@@ -345,6 +345,8 @@ BEGIN
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
         MENUITEM "Close All But Active Document",                      IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close The Left Tabs",                                IDM_TAB_CLOSE_LEFT
+        MENUITEM "Close The Right Tabs",                               IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
         MENUITEM "Copy File Name",                                     IDM_EDIT_COPY_FILENAME
         MENUITEM "Copy File Path",                                     IDM_EDIT_COPY_PATHNAME

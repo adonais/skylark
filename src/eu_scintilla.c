@@ -119,6 +119,7 @@ on_sci_init_style(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
     }
+    // 需要时显示水平滚动条, 但是删除文本后, 滚动条不会消失
     eu_sci_call(pnode, SCI_SETSCROLLWIDTH, 1, 0);
     eu_sci_call(pnode, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
     // 设置undo掩码, 接受SCN_MODIFIED消息
@@ -224,12 +225,12 @@ on_sci_free_tab(eu_tabpage **ppnode)
     {
         return;
     }
-    if ((*ppnode)->db_is_connect)
+    if ((*ppnode)->db_ptr)
     {
         // 关闭数据库链接
-        on_table_disconnect_database(*ppnode);
+        on_table_disconnect_database(*ppnode, true);
     }
-    if ((*ppnode)->redis_is_connect)
+    if ((*ppnode)->redis_ptr)
     {
         // 关闭redis数据库链接
         on_symtree_disconnect_redis(*ppnode);
@@ -272,10 +273,10 @@ on_sci_free_tab(eu_tabpage **ppnode)
         printf("we destroy pnode\n");
         eu_safe_free(*ppnode);
     }
-    else
+    else if ((*ppnode)->hwnd_sc)
     {
-        SendMessage((*ppnode)->hwnd_sc, HVM_SETHEXDEAD, 0, 0);
-        printf("not destroy pnode->hex_mode\n");
+        SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+        printf("hex_mode, we destroy scintilla control\n");
     }
 }
 
@@ -471,7 +472,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
-            eu_reset_drag_line();
             if ((pnode = on_tabpage_focus_at()) == NULL)
             {
                 break;

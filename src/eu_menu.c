@@ -18,6 +18,24 @@
 
 #include "framework.h"
 
+int
+menu_height(void)
+{
+    int m_height = 0;
+    if (eu_get_config()->m_menubar)
+    {
+        HWND hwnd = eu_module_hwnd();
+        int cy_border = GetSystemMetrics(SM_CYFRAME);
+        int cy_caption = GetSystemMetrics(SM_CYCAPTION);
+        RECT window_rect;
+        GetWindowRect(hwnd, &window_rect);
+        POINT client_top_left = { 0, 0 };
+        ClientToScreen(hwnd, &client_top_left);
+        m_height = client_top_left.y - window_rect.top - cy_caption - cy_border;
+    }
+    return m_height;
+}
+
 HMENU
 menu_load(uint16_t mid)
 {
@@ -378,6 +396,7 @@ menu_update_item(HMENU menu)
                             util_update_menu_chars(menu, IDM_VIEW_TAB_WIDTH, eu_get_config()->tab_width);
                             util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces);
                         }
+                        util_set_menu_item(menu, IDM_VIEW_TIPS_ONTAB, eu_get_config()->m_tab_tip);
                         util_switch_menu_group(menu, IDM_VIEW_LEFT_TAB, IDM_VIEW_FAR_RIGHT_TAB, eu_get_config()->m_tab_active);
                         break;
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */
