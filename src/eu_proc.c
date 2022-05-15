@@ -532,7 +532,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 HDC hdc = GetWindowDC(hwnd);
                 RECT r = {0};
-                RECT rect_tree = {0};
                 get_menu_border_rect(hwnd, &r);
                 FillRect(hdc, &r, (HBRUSH)on_dark_get_brush());
                 ReleaseDC(hwnd, hdc);
