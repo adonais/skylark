@@ -871,6 +871,7 @@
 #define IDM_HEXVIEW_2                       42832
 #define IDM_HEXVIEW_3                       42833
 #define IDM_HEXVIEW_4                       42834
+#define IDM_HEXVIEW_5                       42835
 
 #define IDC_THEME_CARTETLINE_EDT            42840
 #define IDC_THEME_INDICATOR_EDT             42841
@@ -909,6 +910,7 @@
 #define IDC_DONA_STATIC5                    42885
 #define IDS_EXTRA_PATH                      42886
 #define IDC_REGXP_TIPS_STC                  42887
+#define IDS_HEXVIEW_BYTES                   42888
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991

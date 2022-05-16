@@ -2657,10 +2657,10 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
             }
 
         } while (FindNextFile(hfile, &fd));
-        safe_close_handle(hfile);
+        share_close(hfile);
     }
 search_err:
-    safe_close_handle(hfile);
+    share_close(hfile);
     on_search_clean_folder_list();
     return index;
 }
@@ -2849,7 +2849,7 @@ on_search_finish_wait(void)
         {
             WaitForSingleObject(search_event_final, INFINITE);
         }
-        safe_close_handle(search_event_final);
+        share_close(search_event_final);
     }
 }
 

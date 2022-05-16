@@ -35,8 +35,8 @@ extern "C"
     if (NULL != h && INVALID_HANDLE_VALUE != h) \
     {                                           \
         CloseHandle(h);                         \
-        h = NULL;                               \
-    }
+    }                                           \
+    h = (void *)0x200                           \
 
 typedef enum _CLOSE_MODE
 {

@@ -347,6 +347,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             // on wine, we use RedrawWindow refresh client area
             RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
             UpdateWindowEx(g_tabpages);
+            ShowWindow(pnode->hwnd_sc, SW_SHOW);
         }
         pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
         // Can't jump until the editor window is initialized
@@ -1328,10 +1329,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     base = (uint8_t *)(pnode->phex->pbase + phexview->item.number_items);
                     *base = phexview->item.value;
-                    if (pnode->phex->hex_point)
-                    {
-                        hexview_updata(pnode->phex->hex_point, phexview->item.number_items);
-                    }
                     on_sci_point_left(pnode);
                     break;
                 }
@@ -1488,7 +1485,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (LOWORD(wParam) != WA_INACTIVE && (pnode = on_tabpage_focus_at()))
             {
-                SetFocus(pnode->hwnd_sc);
+                if (pnode->hwnd_sc && (GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE))
+                {
+                    SetFocus(pnode->hwnd_sc);
+                }
             }
             break;
         }

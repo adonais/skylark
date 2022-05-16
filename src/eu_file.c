@@ -440,11 +440,12 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, size_t nbyte)
     if (pnode->phex->pbase == NULL)
     {
         printf("share_map failed, cause %lu\n", GetLastError());
-        safe_close_handle(pnode->phex->hmap);
+        share_close(pnode->phex->hmap);
         eu_safe_free(pnode->phex);
         return false;
     }
     pnode->phex->ex_style |= (pnode->file_attr & FILE_ATTRIBUTE_READONLY) ? HVS_READONLY : 0;
+    safe_close_handle(pnode->phex->hmap);
     return true;
 }
 
@@ -508,16 +509,17 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         else if (pnode->hex_mode)
         {
             printf("on hex_mode is true\n");
-            if ((err = !on_file_map_hex(pnode, hfile, 0)) == 0)
+            if ((err = !on_file_map_hex(pnode, hfile, 0)) != 0)
             {
-                if (pbak->bakcp == pbak->cp || !pbak->status)
-                {
-                    pnode->phex->hex_ascii = true;
-                }
-                else
-                {
-                    on_encoding_set_bom_from_cp(pnode);
-                }
+                goto pre_clean;
+            }
+            if (pbak->bakcp == pbak->cp || !pbak->status)
+            {
+                pnode->phex->hex_ascii = true;
+            }
+            else
+            {
+                on_encoding_set_bom_from_cp(pnode);
             }
         }
         else
@@ -561,7 +563,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         }
     }
 pre_clean:
-    safe_close_handle(hfile);
+    share_close(hfile);
     eu_safe_free(buf);
     return err;
 }
@@ -1720,7 +1722,7 @@ on_file_finish_wait(void)
     if (file_event_final)
     {   // we destroy windows, that it should wait for file close thread exit
         WaitForSingleObject(file_event_final, INFINITE);
-        safe_close_handle(file_event_final);
+        share_close(file_event_final);
     }
 }
 

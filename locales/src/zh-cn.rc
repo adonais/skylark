@@ -845,6 +845,7 @@ BEGIN
         MENUITEM "粘贴(&P)",             IDM_HEXVIEW_2
         MENUITEM "剪切(&T)",             IDM_HEXVIEW_3
         MENUITEM "删除(&D)",             IDM_HEXVIEW_4
+        MENUITEM "插入(&I)",             IDM_HEXVIEW_5
     END
 END
 
@@ -1106,6 +1107,7 @@ STRINGTABLE DISCARDABLE
     IDS_EXTRA_PATH          "外部程序路径: "
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
+    IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
 }
 
 /////////////////////////////////////////////////////////////////////////////
