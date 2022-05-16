@@ -1520,7 +1520,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     int index = -1;
     int ifocus = TabCtrl_GetCurSel(g_tabpages);
     eu_tabpage *p = on_tabpage_get_ptr(ifocus);
-    if (!(pnode && p))
+    if (!pnode)
     {
         return EUE_TAB_NULL;
     }
