@@ -1485,7 +1485,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (LOWORD(wParam) != WA_INACTIVE && (pnode = on_tabpage_focus_at()))
             {
-                if (pnode->hwnd_sc && (GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE))
+                if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
                 {
                     SetFocus(pnode->hwnd_sc);
                 }

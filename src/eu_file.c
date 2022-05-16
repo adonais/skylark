@@ -1516,7 +1516,11 @@ on_file_save_backup(eu_tabpage *pnode)
 int
 on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
 {
-    if (!pnode)
+    EU_VERIFY(g_tabpages != NULL);
+    int index = -1;
+    int ifocus = TabCtrl_GetCurSel(g_tabpages);
+    eu_tabpage *p = on_tabpage_get_ptr(ifocus);
+    if (!(pnode && p))
     {
         return EUE_TAB_NULL;
     }
@@ -1558,10 +1562,17 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     {
         on_file_push_recent(pnode->pathfile);
     }
-    int index = on_tabpage_remove(&pnode);
-    if (index >= 0 && mode == FILE_ONLY_CLOSE)
+    /* 关闭标签后需要激活其他标签 */
+    if ((index = on_tabpage_remove(&pnode)) >= 0 && mode == FILE_ONLY_CLOSE)
     {
-        on_file_other_tab(index);
+        if (index == ifocus)
+        {
+            on_file_other_tab(index);
+        }
+        else if (p)
+        {
+            on_tabpage_selection(p, -1);
+        }
     }
     return SKYLARK_OK;
 }

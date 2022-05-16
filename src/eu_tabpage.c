@@ -245,9 +245,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             count = TabCtrl_GetItemCount(hwnd);
             for (index = 0; index < count; ++index)
             {
-                TCITEM tci = {TCIF_PARAM};
-                TabCtrl_GetItem(hwnd, index, &tci);
-                if (!(p = (eu_tabpage *) (tci.lParam)))
+                if (!(p = on_tabpage_get_ptr(index)))
                 {
                     break;
                 }
@@ -275,9 +273,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             count = TabCtrl_GetItemCount(hwnd);
             for (index = 0; index < count; ++index)
             {
-                TCITEM tci = {TCIF_PARAM};
-                TabCtrl_GetItem(hwnd, index, &tci);
-                if (!(p = (eu_tabpage *) (tci.lParam)))
+                if (!(p = on_tabpage_get_ptr(index)))
                 {
                     break;
                 }
@@ -303,7 +299,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (on_tabpage_hit_button(&rect_tabbar, &pt))
                     {
                         PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
-                        break;
+                        return 1;
                     }
                     if (rect_tabbar.left < pt.x && pt.x < rect_tabbar.right && rect_tabbar.top < pt.y && pt.y < rect_tabbar.bottom)
                     {
@@ -402,8 +398,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             RECT rect = { 0 };
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-            count = TabCtrl_GetItemCount(hwnd);
-            for (index = 0; index < count; ++index)
+            for (index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
             {
                 TabCtrl_GetItemRect(hwnd, index, &rect);
                 if (PtInRect(&rect, point))
@@ -609,9 +604,7 @@ on_tabpage_remove_empty(void)
     }
     for (int index = 0; index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && p->is_blank && !eu_sci_call(p, SCI_GETLENGTH, 0, 0))
         {
             if (!on_sci_doc_modified(p))
@@ -641,9 +634,7 @@ on_tabpage_newdoc_name(TCHAR *filename, int len)
         _tcsncpy(filename, m_file, pstr - m_file);
         for (int index = 0; index < count; ++index)
         {
-            TCITEM tci = {TCIF_PARAM,};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+            eu_tabpage *p = on_tabpage_get_ptr(index);
             if (p && p->is_blank)
             {
                 if (_tcsncmp(p->filename, filename, _tcslen(filename)) == 0)
@@ -672,9 +663,7 @@ on_tabpage_newdoc_reload(void)
         pstr = NULL;
         for (int index = 0; index < count; ++index)
         {
-            TCITEM tci = {TCIF_PARAM,};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+            eu_tabpage *p = on_tabpage_get_ptr(index);
             if (p && p->is_blank)
             {
                 TCHAR old[MAX_PATH] = {0};
@@ -830,12 +819,9 @@ on_tabpage_theme_changed(eu_tabpage *p)
 void
 on_tabpage_foreach(tab_ptr fntab)
 {
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p)
         {
             fntab(p);
@@ -844,19 +830,20 @@ on_tabpage_foreach(tab_ptr fntab)
 }
 
 eu_tabpage *
+on_tabpage_get_ptr(int index)
+{
+    TCITEM tci = {TCIF_PARAM};
+    if (TabCtrl_GetItem(g_tabpages, index, &tci))
+    {
+        return (eu_tabpage *) (tci.lParam);
+    }
+    return NULL;
+}
+
+eu_tabpage *
 on_tabpage_focus_at(void)
 {
-    int index = -1;
-    eu_tabpage *p = NULL;
-    if (g_tabpages && (index = TabCtrl_GetCurSel(g_tabpages)) >= 0)
-    {
-        TCITEM tci = {TCIF_PARAM};
-        if (TabCtrl_GetItem(g_tabpages, index, &tci))
-        {
-            p = (eu_tabpage *) (tci.lParam);
-        }
-    }
-    return p;
+    return g_tabpages ? on_tabpage_get_ptr(TabCtrl_GetCurSel(g_tabpages)) : NULL;
 }
 
 void
@@ -902,29 +889,15 @@ on_tabpage_get_handle(void *hwnd_sc)
     return NULL;
 }
 
-eu_tabpage *
-on_tabpage_get_ptr(int index)
+int
+on_tabpage_get_index(void)
 {
-    TCITEM tci = {TCIF_PARAM};
-    if (TabCtrl_GetItem(g_tabpages, index, &tci))
-    {
-        return (eu_tabpage *) (tci.lParam);
-    }
-    return NULL;
-}
-
-static int
-on_tabpage_get_index(eu_tabpage *pnode)
-{
-    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
+    EU_VERIFY(g_tabpages != NULL);
     eu_tabpage *p = NULL;
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
-        if (p == pnode)
+        if ((p = on_tabpage_get_ptr(index)) && GetWindowLongPtr(p->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
         {
             return index;
         }
