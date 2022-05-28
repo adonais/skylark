@@ -1602,6 +1602,10 @@ on_file_all_close(void)
             eu_close_edit();
         }
     }
+    else
+    {   // 如果有标签关闭失败
+        on_tabpage_select_index(0);
+    }
     return SKYLARK_OK;
 }
 

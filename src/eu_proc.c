@@ -1295,7 +1295,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
-                // 编辑器区输入时的消息响应, 其他消息见eu_scintill.c
+                // 16进制编辑器视图消息响应
                 case HVN_GETDISPINFO:
                 {
                     PNMHVDISPINFO dispinfo = (PNMHVDISPINFO)lParam;
@@ -1337,6 +1337,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     DrawMenuBar(hwnd);
                     break;
                 }
+                // scintilla控件响应消息, 其他消息见eu_scintill.c
                 case SCN_CHARADDED:
                     on_sci_character(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
                     break;

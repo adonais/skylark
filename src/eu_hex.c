@@ -698,7 +698,8 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
 {
     do
     {
-        if (hexview->total_items)
+        eu_tabpage *pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        if (pnode && hexview->total_items > 0)
         {
             bool ctrl_down = KEY_DOWN(VK_CONTROL);
             if (ctrl_down && wParam == 0x11)
@@ -972,8 +973,27 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
             }
             hexview_caret(hwnd, hexview);
             InvalidateRect(hwnd, NULL, false);
+            on_statusbar_update_line(pnode);
         }
     } while(0);
+}
+
+static int
+hexview_postion_offset(PHEXVIEW hexview, const size_t position, int *pnum)
+{
+    int offset = -1;
+    int line_pos = position%16;
+    *pnum = 0;
+    sptr_t line_fist = position - line_pos;
+    for (int i = 0; i < 16; ++i)
+    {
+        if ((*pnum = hexview_builtin_clz(hexview->pbase[line_fist + i])) > 1 && line_pos >= i && line_pos < i + *pnum)
+        {
+            offset = line_pos - i;
+            break;
+        }
+    }
+    return offset;
 }
 
 static LRESULT CALLBACK
@@ -1242,7 +1262,6 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 if (hexview->ct_flags & HVF_SELECTED)
                 {
                     hexview->ct_flags &= ~HVF_SELECTED;
-                    InvalidateRect(hwnd, NULL, false);
                 }
                 if (!(hexview->ct_flags & HVF_CARETVISIBLE))
                 {
@@ -1255,9 +1274,43 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
+            int num = 0;
+            int offset = -1;
             if (hwnd == GetCapture())
             {
                 ReleaseCapture();
+            }
+            if (hexview->select_end == hexview->select_start)
+            {
+                if (!hexview->hex_ascii && (offset = hexview_postion_offset(hexview, hexview->number_items, &num)) >= 0)
+                {
+                    hexview->select_start = hexview->number_items - offset;
+                    hexview->select_end = hexview->select_start + num - 1;
+                    InvalidateRect(hwnd, NULL, false);
+                }
+            }
+            else
+            {
+                if (!hexview->hex_ascii)
+                {
+                    if ((offset = hexview_postion_offset(hexview, hexview->select_start, &num)) >= 0)
+                    {
+                        size_t fist_start = hexview->select_start - offset;
+                        size_t fist_end = fist_start + num - 1;
+                        hexview->select_start = hexview->select_start > hexview->select_end ? fist_end : fist_start;
+                    }
+                    if ((offset = hexview_postion_offset(hexview, hexview->number_items, &num)) >= 0)
+                    {
+                        size_t final_start = hexview->number_items - offset;
+                        size_t final_end = final_start + num - 1;
+                        hexview->select_end = hexview->select_start > hexview->select_end ? final_start : final_end;
+                    }
+                }
+                if (hexview->select_start > hexview->select_end)
+                {
+                    UTIL_SWAP(size_t, hexview->select_start, hexview->select_end);
+                }
+                InvalidateRect(hwnd, NULL, false);
             }
             if (pnode != NULL)
             {
@@ -1281,7 +1334,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 if (hexview_number_item(hexview, xpos, ypos))
                 {
                     hexview->select_end = hexview->number_items;
-                    hexview->ct_flags |= HVF_SELECTED;
+                    if (!(hexview->ct_flags & HVF_SELECTED))
+                    {
+                        hexview->ct_flags |= HVF_SELECTED;
+                    }
                     hexview_caret(hwnd, hexview);
                     InvalidateRect(hwnd, NULL, false);
                 }
@@ -1641,7 +1697,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case HVM_GETHEXADDR:
         {
-            return hexview->select_start;
+            return hexview->number_items;
         }
         case HVM_SETLINECOUNT:
         {
@@ -1654,7 +1710,6 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            printf("hex recv WM_THEMECHANGED\n");
             if (eu_get_config()->m_toolbar)
             {
                 on_toolbar_update_button();
