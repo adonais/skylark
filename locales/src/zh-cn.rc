@@ -841,11 +841,12 @@ IDR_HEXVIEW_MENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "复制(&C)",             IDM_HEXVIEW_1
-        MENUITEM "粘贴(&P)",             IDM_HEXVIEW_2
-        MENUITEM "剪切(&T)",             IDM_HEXVIEW_3
-        MENUITEM "删除(&D)",             IDM_HEXVIEW_4
-        MENUITEM "插入(&I)",             IDM_HEXVIEW_5
+        MENUITEM "复制(&C)",             IDM_HEXVIEW_COPY
+        MENUITEM "复制地址(&E)",         IDM_HEXVIEW_COPY_ADDR
+        MENUITEM "粘贴(&P)",             IDM_HEXVIEW_PASTE
+        MENUITEM "剪切(&T)",             IDM_HEXVIEW_CUT
+        MENUITEM "删除(&D)",             IDM_HEXVIEW_DEL
+        MENUITEM "插入(&I)",             IDM_HEXVIEW_INS
     END
 END
 
@@ -894,7 +895,7 @@ STRINGTABLE DISCARDABLE
     IDS_STATUS_XY                    "光标 (行 %I64u, 列 %I64u)"
     IDS_STATUS_LC                    "文件尺寸: %I64d/%I64u (字节/行)"
     IDS_STATUS_LD                    "选择: %I64d/%I64u (字节/行)"
-    IDS_STATUS_HXY                   "光标 (0x%016I64X)"
+    IDS_STATUS_HXY                   "光标 (0x%I64X)"
 }
 
 STRINGTABLE DISCARDABLE

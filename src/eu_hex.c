@@ -1082,19 +1082,24 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             switch(low)
             {
-                case IDM_HEXVIEW_1:
+                case IDM_HEXVIEW_COPY:
                     SendMessage(hwnd, WM_COPY, 0, 0);
                     break;
-                case IDM_HEXVIEW_2:
+                case IDM_HEXVIEW_COPY_ADDR:
+                    TCHAR s_xy[FILESIZE] = {0};
+                    _sntprintf(s_xy, FILESIZE-1, _T("0x%I64X"), hexview->number_items);
+                    on_edit_push_clipboard(s_xy);
+                    break;
+                case IDM_HEXVIEW_PASTE:
                     SendMessage(hwnd, WM_PASTE, 0, 0);
                     break;
-                case IDM_HEXVIEW_3:
+                case IDM_HEXVIEW_CUT:
                     SendMessage(hwnd, WM_CUT, 0, -1);
                     break;
-                case IDM_HEXVIEW_4:
+                case IDM_HEXVIEW_DEL:
                     SendMessage(hwnd, WM_CLEAR, 0, -1);
                     break;
-                case IDM_HEXVIEW_5:
+                case IDM_HEXVIEW_INS:
                     hexview_insert_data(hwnd, pnode);
                     break;
                 default:
@@ -1443,6 +1448,9 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                     SendMessage(hwnd, WM_KEYDOWN, VK_RIGHT, 0);
                 }
             }
+            // 设置跳转地址高亮
+            BYTERANGE lpos = {wParam, wParam+1};
+            SendMessage(hwnd, HVM_SETSEL, 0, (sptr_t)&lpos);
             InvalidateRect(hwnd, NULL, false);
             break;
         }

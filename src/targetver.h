@@ -867,11 +867,12 @@
 #define IDM_EDIT_SPACE_TAB                  42826
 
 #define IDR_HEXVIEW_MENU                    42830
-#define IDM_HEXVIEW_1                       42831
-#define IDM_HEXVIEW_2                       42832
-#define IDM_HEXVIEW_3                       42833
-#define IDM_HEXVIEW_4                       42834
-#define IDM_HEXVIEW_5                       42835
+#define IDM_HEXVIEW_COPY                    42831
+#define IDM_HEXVIEW_PASTE                   42832
+#define IDM_HEXVIEW_CUT                     42833
+#define IDM_HEXVIEW_DEL                     42834
+#define IDM_HEXVIEW_INS                     42835
+#define IDM_HEXVIEW_COPY_ADDR               42836
 
 #define IDC_THEME_CARTETLINE_EDT            42840
 #define IDC_THEME_INDICATOR_EDT             42841

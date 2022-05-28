@@ -842,11 +842,12 @@ IDR_HEXVIEW_MENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "&Copy",               IDM_HEXVIEW_1
-        MENUITEM "&Paste",              IDM_HEXVIEW_2
-        MENUITEM "Cu&t",                IDM_HEXVIEW_3
-        MENUITEM "&Delete",             IDM_HEXVIEW_4
-        MENUITEM "&Insert",             IDM_HEXVIEW_5
+        MENUITEM "&Copy",               IDM_HEXVIEW_COPY
+        MENUITEM "Copy Addr&ess",       IDM_HEXVIEW_COPY_ADDR
+        MENUITEM "&Paste",              IDM_HEXVIEW_PASTE
+        MENUITEM "Cu&t",                IDM_HEXVIEW_CUT
+        MENUITEM "&Delete",             IDM_HEXVIEW_DEL
+        MENUITEM "&Insert",             IDM_HEXVIEW_INS
     END
 END
 
@@ -895,7 +896,7 @@ STRINGTABLE DISCARDABLE
     IDS_STATUS_XY                    "Cursor (Line %I64u, Column %I64u)"
     IDS_STATUS_LC                    "File size: %I64d/%I64u (Byte/Line)"
     IDS_STATUS_LD                    "Select: %I64d/%I64u (Byte/Line)"
-    IDS_STATUS_HXY                   "Cursor (0x%016I64X)"
+    IDS_STATUS_HXY                   "Cursor (0x%I64X)"
 }
 
 STRINGTABLE DISCARDABLE
