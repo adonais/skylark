@@ -47,8 +47,6 @@
         (type *) ((char *) __pmember - offsetof(type, member));             \
     })
 #endif
-#define CACHE_LINE (sizeof(long))
-#define RB_NODE_ALIGNED __attribute__((aligned(CACHE_LINE)))
 #endif
 
 #if defined(_MSC_VER)
@@ -58,7 +56,7 @@
 #define container_of(ptr, type, member) ((type *) ((char *) (ptr) - offsetof(type, member)))
 #endif
 
-#define CACHE_LINE 32
+#define CACHE_LINE (sizeof(intptr_t))
 
 #if (__GUNC__ || __clang__)
 #define RB_NODE_ALIGNED __attribute__((aligned(CACHE_LINE)))
