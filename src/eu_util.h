@@ -27,6 +27,10 @@
 #define MIN(_a_, _b_) ((_a_) < (_b_) ? (_a_) : (_b_))
 #endif
 
+#ifndef UTIL_SWAP
+#define UTIL_SWAP(TYPE,A,B) {TYPE t=A; A=B; B=t;}
+#endif
+
 typedef struct UTIL_STREAM_DESC_* pt_stream;
 typedef void (*ptr_stream_close)(pt_stream pstream);
 typedef struct  UTIL_STREAM_DESC_

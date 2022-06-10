@@ -92,6 +92,7 @@ int  on_tabpage_editor_modify(eu_tabpage *pnode, const char *);
 int  on_tabpage_create_rclick(void);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
+int  on_tabpage_get_index(void);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);

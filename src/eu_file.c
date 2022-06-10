@@ -440,11 +440,12 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, size_t nbyte)
     if (pnode->phex->pbase == NULL)
     {
         printf("share_map failed, cause %lu\n", GetLastError());
-        safe_close_handle(pnode->phex->hmap);
+        share_close(pnode->phex->hmap);
         eu_safe_free(pnode->phex);
         return false;
     }
     pnode->phex->ex_style |= (pnode->file_attr & FILE_ATTRIBUTE_READONLY) ? HVS_READONLY : 0;
+    safe_close_handle(pnode->phex->hmap);
     return true;
 }
 
@@ -508,16 +509,17 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         else if (pnode->hex_mode)
         {
             printf("on hex_mode is true\n");
-            if ((err = !on_file_map_hex(pnode, hfile, 0)) == 0)
+            if ((err = !on_file_map_hex(pnode, hfile, 0)) != 0)
             {
-                if (pbak->bakcp == pbak->cp || !pbak->status)
-                {
-                    pnode->phex->hex_ascii = true;
-                }
-                else
-                {
-                    on_encoding_set_bom_from_cp(pnode);
-                }
+                goto pre_clean;
+            }
+            if (pbak->bakcp == pbak->cp || !pbak->status)
+            {
+                pnode->phex->hex_ascii = true;
+            }
+            else
+            {
+                on_encoding_set_bom_from_cp(pnode);
             }
         }
         else
@@ -561,7 +563,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         }
     }
 pre_clean:
-    safe_close_handle(hfile);
+    share_close(hfile);
     eu_safe_free(buf);
     return err;
 }
@@ -1514,6 +1516,10 @@ on_file_save_backup(eu_tabpage *pnode)
 int
 on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
 {
+    EU_VERIFY(g_tabpages != NULL);
+    int index = -1;
+    int ifocus = TabCtrl_GetCurSel(g_tabpages);
+    eu_tabpage *p = on_tabpage_get_ptr(ifocus);
     if (!pnode)
     {
         return EUE_TAB_NULL;
@@ -1556,10 +1562,17 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     {
         on_file_push_recent(pnode->pathfile);
     }
-    int index = on_tabpage_remove(&pnode);
-    if (index >= 0 && mode == FILE_ONLY_CLOSE)
+    /* 关闭标签后需要激活其他标签 */
+    if ((index = on_tabpage_remove(&pnode)) >= 0 && mode == FILE_ONLY_CLOSE)
     {
-        on_file_other_tab(index);
+        if (index == ifocus)
+        {
+            on_file_other_tab(index);
+        }
+        else if (p)
+        {
+            on_tabpage_selection(p, -1);
+        }
     }
     return SKYLARK_OK;
 }
@@ -1588,6 +1601,10 @@ on_file_all_close(void)
         {
             eu_close_edit();
         }
+    }
+    else
+    {   // 如果有标签关闭失败
+        on_tabpage_select_index(0);
     }
     return SKYLARK_OK;
 }
@@ -1720,7 +1737,7 @@ on_file_finish_wait(void)
     if (file_event_final)
     {   // we destroy windows, that it should wait for file close thread exit
         WaitForSingleObject(file_event_final, INFINITE);
-        safe_close_handle(file_event_final);
+        share_close(file_event_final);
     }
 }
 

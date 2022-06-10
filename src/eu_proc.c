@@ -1295,7 +1295,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
-                // 编辑器区输入时的消息响应, 其他消息见eu_scintill.c
+                // 16进制编辑器视图消息响应
                 case HVN_GETDISPINFO:
                 {
                     PNMHVDISPINFO dispinfo = (PNMHVDISPINFO)lParam;
@@ -1329,10 +1329,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     base = (uint8_t *)(pnode->phex->pbase + phexview->item.number_items);
                     *base = phexview->item.value;
-                    if (pnode->phex->hex_point)
-                    {
-                        hexview_updata(pnode->phex->hex_point, phexview->item.number_items);
-                    }
                     on_sci_point_left(pnode);
                     break;
                 }
@@ -1341,6 +1337,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     DrawMenuBar(hwnd);
                     break;
                 }
+                // scintilla控件响应消息, 其他消息见eu_scintill.c
                 case SCN_CHARADDED:
                     on_sci_character(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
                     break;
@@ -1489,7 +1486,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (LOWORD(wParam) != WA_INACTIVE && (pnode = on_tabpage_focus_at()))
             {
-                if (pnode->hwnd_sc && (GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE))
+                if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
                 {
                     SetFocus(pnode->hwnd_sc);
                 }

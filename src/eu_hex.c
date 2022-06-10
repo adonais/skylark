@@ -481,21 +481,11 @@ hexview_destoy(eu_tabpage *pnode)
         }
         if (pnode->phex->hmap)
         {
-            if (pnode->phex->pbase)
-            {
-                UnmapViewOfFile((LPCVOID)pnode->phex->pbase);
-                pnode->phex->pbase = NULL;
-            }
-            // 关闭映射句柄
-            safe_close_handle(pnode->phex->hmap);
+            share_unmap(pnode->phex->pbase);
         }
         else if (pnode->phex->pbase)
         {
             eu_safe_free(pnode->phex->pbase);
-        }
-        if (pnode->phex->hex_point)
-        {
-            eu_safe_free (pnode->phex->hex_point);
         }
         if (pnode->bakpath[0] && (_taccess(pnode->bakpath, 0 ) != -1))
         {   // 清理上一次的备份
@@ -618,12 +608,98 @@ do_clean:
     return ret;
 }
 
+static bool
+hexview_map_realloc(PHEXVIEW phex, int offset)
+{
+    bool ret = false;
+    uint8_t *pstr = NULL;
+    size_t nbyte = phex->total_items + offset;
+    if (!phex->pbase || !offset || (phex->ex_style & HVS_READONLY))
+    {
+        return false;
+    }
+    if ((phex->hmap = share_create(NULL, PAGE_WRITECOPY, nbyte, NULL)) != NULL)
+    {
+        if ((pstr = (uint8_t *)share_map(phex->hmap, nbyte, FILE_MAP_COPY)) != NULL)
+        {
+            memcpy(pstr + phex->number_items + offset, phex->pbase + phex->number_items, phex->total_items - phex->number_items);
+            if (phex->number_items > 0)
+            {
+                memcpy(pstr, phex->pbase, phex->number_items);
+            }
+            memset(pstr + phex->number_items, 0x20, offset);
+            share_unmap(phex->pbase);
+            phex->pbase = pstr;
+            phex->total_items = nbyte;
+            ret = true;
+        }
+    }
+    safe_close_handle(phex->hmap);
+    return ret;
+}
+
+static bool
+hexview_mem_realloc(PHEXVIEW phex, int offset)
+{
+    uint8_t *pstr = NULL;
+    if (!phex->pbase || !offset || phex->hmap || (phex->ex_style & HVS_READONLY))
+    {
+        return false;
+    }
+    if ((on_file_get_avail_phys() > (offset + phex->total_items)) && (pstr = (uint8_t *)malloc(offset + phex->total_items)))
+    {
+        memcpy(pstr + phex->number_items + offset, phex->pbase + phex->number_items, phex->total_items - phex->number_items);
+        if (phex->number_items > 0)
+        {
+            memcpy(pstr, phex->pbase, phex->number_items);
+        }
+        memset(pstr + phex->number_items, 0x20, offset);
+        free(phex->pbase);
+        phex->pbase = pstr;
+        phex->total_items += offset;
+        return true;
+    }
+    return false;
+}
+
+static void
+hexview_insert_data(HWND hwnd, eu_tabpage *pnode)
+{
+    int m_inser = 0;
+    TCHAR data_str[8 + 1] = {0};
+    LOAD_I18N_RESSTR(IDS_HEXVIEW_BYTES, desc_str);
+    if (eu_input(desc_str, data_str, _countof(data_str)) && *data_str)
+    {
+        m_inser = _tstoi(data_str);
+    }
+    if (m_inser > 0)
+    {
+        bool ret = false;
+        if (pnode->phex->hmap)
+        {
+            ret = hexview_map_realloc(pnode->phex, m_inser);
+        }
+        else
+        {
+            ret = hexview_mem_realloc(pnode->phex, m_inser);
+        }
+        if (ret)
+        {
+            SendMessage(hwnd, HVM_SETLINECOUNT, 0, 0);
+            InvalidateRect(hwnd, NULL, false);
+            on_sci_point_left(pnode);
+            on_statusbar_update_filesize(pnode);
+        }
+    }
+}
+
 static void
 hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
 {
     do
     {
-        if (hexview->total_items)
+        eu_tabpage *pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        if (pnode && hexview->total_items > 0)
         {
             bool ctrl_down = KEY_DOWN(VK_CONTROL);
             if (ctrl_down && wParam == 0x11)
@@ -897,8 +973,27 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
             }
             hexview_caret(hwnd, hexview);
             InvalidateRect(hwnd, NULL, false);
+            on_statusbar_update_line(pnode);
         }
     } while(0);
+}
+
+static int
+hexview_postion_offset(PHEXVIEW hexview, const size_t position, int *pnum)
+{
+    int offset = -1;
+    int line_pos = position%16;
+    *pnum = 0;
+    sptr_t line_fist = position - line_pos;
+    for (int i = 0; i < 16; ++i)
+    {
+        if ((*pnum = hexview_builtin_clz(hexview->pbase[line_fist + i])) > 1 && line_pos >= i && line_pos < i + *pnum)
+        {
+            offset = line_pos - i;
+            break;
+        }
+    }
+    return offset;
 }
 
 static LRESULT CALLBACK
@@ -987,17 +1082,25 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             switch(low)
             {
-                case IDM_HEXVIEW_1:
+                case IDM_HEXVIEW_COPY:
                     SendMessage(hwnd, WM_COPY, 0, 0);
                     break;
-                case IDM_HEXVIEW_2:
+                case IDM_HEXVIEW_COPY_ADDR:
+                    TCHAR s_xy[FILESIZE] = {0};
+                    _sntprintf(s_xy, FILESIZE-1, _T("0x%I64X"), hexview->number_items);
+                    on_edit_push_clipboard(s_xy);
+                    break;
+                case IDM_HEXVIEW_PASTE:
                     SendMessage(hwnd, WM_PASTE, 0, 0);
                     break;
-                case IDM_HEXVIEW_3:
+                case IDM_HEXVIEW_CUT:
                     SendMessage(hwnd, WM_CUT, 0, -1);
                     break;
-                case IDM_HEXVIEW_4:
+                case IDM_HEXVIEW_DEL:
                     SendMessage(hwnd, WM_CLEAR, 0, -1);
+                    break;
+                case IDM_HEXVIEW_INS:
+                    hexview_insert_data(hwnd, pnode);
                     break;
                 default:
                     break;
@@ -1121,7 +1224,8 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                         hexview->total_items -= len;
                         printf("len = %I64u, select_start = %I64u, select_end = %I64u\n", len, select_start, select_end);
                         on_edit_push_clipboard(u16_text);
-                        InvalidateRect(hwnd, NULL, true);
+                        SendMessage(hwnd, HVM_SETLINECOUNT, 0, 0);
+                        InvalidateRect(hwnd, NULL, false);
                         on_sci_point_left(pnode);
                         free(u16_text);
                         on_statusbar_update_filesize(pnode);
@@ -1144,7 +1248,8 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                     uint8_t *poffset = &hexview->pbase[select_start];
                     memmove(poffset, poffset + len, hexview->total_items - select_end);
                     hexview->total_items -= len;
-                    InvalidateRect(hwnd, NULL, true);
+                    SendMessage(hwnd, HVM_SETLINECOUNT, 0, 0);
+                    InvalidateRect(hwnd, NULL, false);
                     on_sci_point_left(pnode);
                     free(ptext);
                     on_statusbar_update_filesize(pnode);
@@ -1162,7 +1267,6 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 if (hexview->ct_flags & HVF_SELECTED)
                 {
                     hexview->ct_flags &= ~HVF_SELECTED;
-                    InvalidateRect(hwnd, NULL, false);
                 }
                 if (!(hexview->ct_flags & HVF_CARETVISIBLE))
                 {
@@ -1175,9 +1279,43 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
+            int num = 0;
+            int offset = -1;
             if (hwnd == GetCapture())
             {
                 ReleaseCapture();
+            }
+            if (hexview->select_end == hexview->select_start)
+            {
+                if (!hexview->hex_ascii && (offset = hexview_postion_offset(hexview, hexview->number_items, &num)) >= 0)
+                {
+                    hexview->select_start = hexview->number_items - offset;
+                    hexview->select_end = hexview->select_start + num - 1;
+                    InvalidateRect(hwnd, NULL, false);
+                }
+            }
+            else
+            {
+                if (!hexview->hex_ascii)
+                {
+                    if ((offset = hexview_postion_offset(hexview, hexview->select_start, &num)) >= 0)
+                    {
+                        size_t fist_start = hexview->select_start - offset;
+                        size_t fist_end = fist_start + num - 1;
+                        hexview->select_start = hexview->select_start > hexview->select_end ? fist_end : fist_start;
+                    }
+                    if ((offset = hexview_postion_offset(hexview, hexview->number_items, &num)) >= 0)
+                    {
+                        size_t final_start = hexview->number_items - offset;
+                        size_t final_end = final_start + num - 1;
+                        hexview->select_end = hexview->select_start > hexview->select_end ? final_start : final_end;
+                    }
+                }
+                if (hexview->select_start > hexview->select_end)
+                {
+                    UTIL_SWAP(size_t, hexview->select_start, hexview->select_end);
+                }
+                InvalidateRect(hwnd, NULL, false);
             }
             if (pnode != NULL)
             {
@@ -1201,7 +1339,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 if (hexview_number_item(hexview, xpos, ypos))
                 {
                     hexview->select_end = hexview->number_items;
-                    hexview->ct_flags |= HVF_SELECTED;
+                    if (!(hexview->ct_flags & HVF_SELECTED))
+                    {
+                        hexview->ct_flags |= HVF_SELECTED;
+                    }
                     hexview_caret(hwnd, hexview);
                     InvalidateRect(hwnd, NULL, false);
                 }
@@ -1307,6 +1448,9 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                     SendMessage(hwnd, WM_KEYDOWN, VK_RIGHT, 0);
                 }
             }
+            // 设置跳转地址高亮
+            BYTERANGE lpos = {wParam, wParam+1};
+            SendMessage(hwnd, HVM_SETSEL, 0, (sptr_t)&lpos);
             InvalidateRect(hwnd, NULL, false);
             break;
         }
@@ -1561,11 +1705,19 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case HVM_GETHEXADDR:
         {
-            return hexview->select_start;
+            return hexview->number_items;
+        }
+        case HVM_SETLINECOUNT:
+        {
+            hexview->totallines = hexview->total_items / 16 + 2;
+            if (hexview->total_items % 16)
+            {
+                hexview->totallines += 1;
+            }
+            return hexview->totallines;
         }
         case WM_THEMECHANGED:
         {
-            printf("hex recv WM_THEMECHANGED\n");
             if (eu_get_config()->m_toolbar)
             {
                 on_toolbar_update_button();

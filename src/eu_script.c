@@ -591,7 +591,7 @@ do_byte_code(eu_tabpage *pnode)
         goto allclean;
     }
     FlushFileBuffers(pfile);
-    safe_close_handle(pfile);
+    share_close(pfile);
     _sntprintf(filename, FILESIZE, _T("%s"), pnode->filename);
     if (pnode->pathname[1] == L':')
     {

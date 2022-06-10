@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 4
+#define __EU_INFO_VERSION_PATCHLEVEL 5
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -867,10 +867,12 @@
 #define IDM_EDIT_SPACE_TAB                  42826
 
 #define IDR_HEXVIEW_MENU                    42830
-#define IDM_HEXVIEW_1                       42831
-#define IDM_HEXVIEW_2                       42832
-#define IDM_HEXVIEW_3                       42833
-#define IDM_HEXVIEW_4                       42834
+#define IDM_HEXVIEW_COPY                    42831
+#define IDM_HEXVIEW_PASTE                   42832
+#define IDM_HEXVIEW_CUT                     42833
+#define IDM_HEXVIEW_DEL                     42834
+#define IDM_HEXVIEW_INS                     42835
+#define IDM_HEXVIEW_COPY_ADDR               42836
 
 #define IDC_THEME_CARTETLINE_EDT            42840
 #define IDC_THEME_INDICATOR_EDT             42841
@@ -909,6 +911,7 @@
 #define IDC_DONA_STATIC5                    42885
 #define IDS_EXTRA_PATH                      42886
 #define IDC_REGXP_TIPS_STC                  42887
+#define IDS_HEXVIEW_BYTES                   42888
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991

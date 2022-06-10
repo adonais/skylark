@@ -26,7 +26,7 @@ HMODULE g_skylark_lang = NULL;        // 资源dll句柄
 bool WINAPI
 share_open_file(LPCTSTR path, bool read_only, uint32_t dw_creation, HANDLE *phandle)
 {
-    *phandle = CreateFile(path, read_only ? GENERIC_READ : (GENERIC_READ | GENERIC_WRITE), 
+    *phandle = CreateFile(path, read_only ? GENERIC_READ : (GENERIC_READ | GENERIC_WRITE),
                           (FILE_SHARE_READ|FILE_SHARE_WRITE), NULL, dw_creation, FILE_ATTRIBUTE_NORMAL, NULL);
      if (*phandle == INVALID_HANDLE_VALUE)
      {
@@ -42,7 +42,7 @@ share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name)
     if (size > 0)
     {
         lo = (uint32_t) (size & 0xffffffff);
-        hi = (uint32_t) (((uint64_t) size >> 32) & 0xffffffff);  
+        hi = (uint32_t) (((uint64_t) size >> 32) & 0xffffffff);
     }
     if (!handle)
     {
@@ -63,20 +63,20 @@ share_map(HANDLE hmap, size_t bytes, uint32_t dw_access)
     return MapViewOfFile(hmap, dw_access, 0, 0, bytes);
 }
 
-bool WINAPI
-share_unmap(LPVOID memory) 
+void WINAPI
+share_unmap(LPVOID memory)
 {
-    if (memory == NULL)
+    if (memory)
     {
-        return false;
+        UnmapViewOfFile(memory);
+        memory = NULL;
     }
-    return UnmapViewOfFile(memory);
 }
 
 void WINAPI
 share_close(HANDLE handle)
 {
-    if ((uintptr_t)handle > 0)
+    if ((intptr_t)handle > 0)
     {
         CloseHandle(handle);
         handle = NULL;
@@ -98,7 +98,7 @@ share_map_section(HANDLE mapping, uint64_t offset, size_t length, bool read_only
     adjust = offset % si.dwAllocationGranularity;
     adj_offset = offset - adjust;
     adj_length = length + adjust;
-    return (uint8_t *)MapViewOfFile(mapping, 
+    return (uint8_t *)MapViewOfFile(mapping,
                                     read_only?FILE_MAP_READ:FILE_MAP_WRITE,
                                     (DWORD)(adj_offset >> 32),
                                     (DWORD)(adj_offset & 0xffffffff),
@@ -209,7 +209,7 @@ share_load_lang(void)
     TCHAR *u16_lang = NULL;
     HANDLE lang_map = NULL;
     TCHAR lang_path[MAX_PATH] = {0};
-    
+
     uint32_t cid = (uint32_t) GetSystemDefaultLCID();
     if (!strcmp(eu_get_config()->m_language, "auto"))
     {
@@ -229,7 +229,7 @@ share_load_lang(void)
             }
             default:
                 _sntprintf(lang_path, MAX_PATH-1, _T("%s\\locales\\en-us.dll"), eu_module_path);
-                g_skylark_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE);            
+                g_skylark_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE);
                 break;
         }
     }

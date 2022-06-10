@@ -476,7 +476,7 @@ EU_EXT_CLASS LPVOID __stdcall share_map(HANDLE hmap, size_t bytes, uint32_t dw_a
 EU_EXT_CLASS unsigned __stdcall share_send_msg(void *param);
 EU_EXT_CLASS HANDLE __stdcall share_load_lang(void);
 EU_EXT_CLASS HANDLE __stdcall share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name);
-EU_EXT_CLASS bool __stdcall share_unmap(LPVOID memory);
+EU_EXT_CLASS void __stdcall share_unmap(LPVOID memory);
 EU_EXT_CLASS void __stdcall share_close(HANDLE handle);
 EU_EXT_CLASS HANDLE __stdcall share_open(uint32_t dw_access, LPCTSTR name);
 EU_EXT_CLASS bool __stdcall share_envent_create(void);

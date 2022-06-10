@@ -962,7 +962,7 @@ on_treebar_download_file(const TCHAR *path, remotefs *pserver, TCHAR *out_path)
         MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         if (pfile)
         {
-            safe_close_handle(pfile);
+            share_close(pfile);
             DeleteFile(out_path);
         }
     }
@@ -988,7 +988,7 @@ on_node_generate_md5(void)
         {
             return EUE_LOCAL_FILE_ERR;
         }
-        safe_close_handle(pfile);
+        share_close(pfile);
         err = util_file_md5(temp_path, md, MD5_DIGEST_LENGTH * 2 + 1);
         DeleteFile(temp_path);
         if (err)
@@ -1023,7 +1023,7 @@ on_node_generate_sha1(void)
         {
             return EUE_LOCAL_FILE_ERR;
         }
-        safe_close_handle(pfile);
+        share_close(pfile);
         err = util_file_sha1(temp_path, md, SHA_DIGEST_LENGTH * 2 + 1);
         DeleteFile(temp_path);
         if (err)
@@ -1058,7 +1058,7 @@ on_node_generate_sha256(void)
         {
             return EUE_LOCAL_FILE_ERR;
         }
-        safe_close_handle(pfile);
+        share_close(pfile);
         err = util_file_sha256(temp_path, md, SHA256_DIGEST_LENGTH * 2 + 1);
         DeleteFile(temp_path);
         if (err)
