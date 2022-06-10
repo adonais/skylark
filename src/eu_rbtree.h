@@ -56,11 +56,15 @@
 #define container_of(ptr, type, member) ((type *) ((char *) (ptr) - offsetof(type, member)))
 #endif
 
-#define CACHE_LINE (sizeof(intptr_t))
-
 #if (__GUNC__ || __clang__)
+#define CACHE_LINE sizeof(intptr_t)
 #define RB_NODE_ALIGNED __attribute__((aligned(CACHE_LINE)))
 #elif defined(_MSC_VER)
+#if defined(_WIN64) || defined(_M_X64)
+#define CACHE_LINE 8
+#else
+#define CACHE_LINE 4
+#endif
 #define RB_NODE_ALIGNED __declspec(align(CACHE_LINE))
 #endif
 
