@@ -26,7 +26,6 @@
 #include "ScintillaStructures.h"
 #include "ILoader.h"
 #include "ILexer.h"
-#include "Lexilla.h"
 
 #include "Debugging.h"
 #include "Geometry.h"

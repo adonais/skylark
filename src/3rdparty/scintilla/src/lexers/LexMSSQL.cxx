@@ -116,9 +116,17 @@ static void ColouriseMSSQLDoc(Sci_PositionU startPos, Sci_Position length,
 	int prevState = initStyle;
 	char chPrev = ' ';
 	char chNext = styler[startPos];
+	int nesting = 0;
+
+	if (lineCurrent >= 1) {
+		nesting = styler.GetLineState(lineCurrent - 1);
+	}
+
 	styler.StartSegment(startPos);
 	Sci_PositionU lengthDoc = startPos + length;
 	for (Sci_PositionU i = startPos; i < lengthDoc; i++) {
+		const Sci_Position lineStartNext = styler.LineStart(lineCurrent + 1);
+		const bool atEOL = (static_cast<Sci_Position>(i) == (lineStartNext - 1));
 		char ch = chNext;
 		chNext = styler.SafeGetCharAt(i + 1);
 
@@ -227,8 +235,12 @@ static void ColouriseMSSQLDoc(Sci_PositionU startPos, Sci_Position length,
 
 		// When the last char is part of the state...
 		} else if (state == SCE_MSSQL_COMMENT) {
-				if (ch == '/' && chPrev == '*') {
-					if (((i > (styler.GetStartSegment() + 2)) || ((initStyle == SCE_MSSQL_COMMENT) &&
+				if (ch == '/' && chNext == '*')
+					nesting++;
+				else if (ch == '/' && chPrev == '*') {
+					if (nesting > 0)
+						nesting--;
+					else if (((i > (styler.GetStartSegment() + 2)) || ((initStyle == SCE_MSSQL_COMMENT) &&
 					    (styler.GetStartSegment() == startPos)))) {
 						styler.ColourTo(i, state);
 						//~ state = SCE_MSSQL_COMMENT;
@@ -272,6 +284,9 @@ static void ColouriseMSSQLDoc(Sci_PositionU startPos, Sci_Position length,
                 //i++;
 			}
 		}
+
+		if (atEOL)
+			styler.SetLineState(lineCurrent++, (state == SCE_MSSQL_COMMENT) ? nesting : 0);
 
 		chPrev = ch;
 	}

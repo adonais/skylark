@@ -69,6 +69,9 @@ public:
 		case 950:
 		case 1361:
 			encodingType = EncodingType::dbcs;
+			break;
+		default:
+			break;
 		}
 	}
 	char operator[](Sci_Position position) {
@@ -101,6 +104,7 @@ public:
 		return encodingType;
 	}
 	bool Match(Sci_Position pos, const char *s) {
+		assert(s);
 		for (int i=0; *s; i++) {
 			if (*s != SafeGetCharAt(pos+i))
 				return false;
@@ -119,6 +123,9 @@ public:
 
 	char StyleAt(Sci_Position position) const {
 		return pAccess->StyleAt(position);
+	}
+	int StyleIndexAt(Sci_Position position) const {
+		return static_cast<unsigned char>(pAccess->StyleAt(position));
 	}
 	// Return style value from buffer when in buffer, else retrieve from document.
 	// This is faster and can avoid calls to Flush() as that may be expensive.
