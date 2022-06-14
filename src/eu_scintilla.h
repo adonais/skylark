@@ -31,7 +31,7 @@ int on_sci_after_file(eu_tabpage *pnode);
 int on_sci_query_tab(eu_tabpage *pnode);
 int on_sci_point_reached(eu_tabpage *pnode);
 int on_sci_point_left(eu_tabpage *pnode);
-int on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify);
+void on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify);
 void on_sci_update_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
 void on_sci_free_tab(eu_tabpage **ppnode);
