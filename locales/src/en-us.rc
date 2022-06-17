@@ -354,7 +354,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Save",                                              IDM_FILE_SAVE
         MENUITEM SEPARATOR
-        MENUITEM "Open Folder Workspace",                              IDM_FILE_WORKSPACE
+        MENUITEM "Open Folder &Workspace",                             IDM_FILE_WORKSPACE
+        MENUITEM "Open Folder In &Explorer",                           IDM_FILE_EXPLORER
     END
 END
 
@@ -929,7 +930,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_COPY_FAIL       "Failed to copy file"
     IDC_MSG_WRITE_FAIL      "Failed to write file"
     IDC_MSG_SFTP_FAIL       "SFTP protocol does not support remote file replication"
-    IDC_MSG_EXPLORER        "File explorer"
+    IDC_MSG_EXPLORER        "File Manager"
     IDC_MSG_THEME_NAME      "New theme name:"
     IDC_MSG_THEME_ERR1      "Theme scheme name cannot be empty"
     IDC_MSG_THEME_ERR2      "Theme scheme name cannot be the same as the copy source"

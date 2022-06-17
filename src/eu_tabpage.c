@@ -385,6 +385,8 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (pnode)
             {
                 util_enable_menu_item(pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
+                util_enable_menu_item(pop_tab_menu, IDM_FILE_WORKSPACE, !pnode->is_blank);
+                util_enable_menu_item(pop_tab_menu, IDM_FILE_EXPLORER, !pnode->is_blank);
             }
             ClientToScreen(hwnd, &pt);
             HMENU hpop = GetSubMenu(pop_tab_menu, 0);

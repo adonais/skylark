@@ -354,7 +354,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_FILE_SAVE
         MENUITEM SEPARATOR
-        MENUITEM "打开文件夹工作区",                            IDM_FILE_WORKSPACE
+        MENUITEM "打开文件夹工作区(&W)",                        IDM_FILE_WORKSPACE
+        MENUITEM "在资源管理器中打开文件夹(&E)",                IDM_FILE_EXPLORER
     END
 END
 
@@ -928,7 +929,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_COPY_FAIL       "复制文件失败"
     IDC_MSG_WRITE_FAIL      "写文件失败"
     IDC_MSG_SFTP_FAIL       "SFTP协议不支持远程间复制文件"
-    IDC_MSG_EXPLORER        "文件资源管理器"
+    IDC_MSG_EXPLORER        "文件管理器"
     IDC_MSG_THEME_NAME      "新主题方案名:"
     IDC_MSG_THEME_ERR1      "主题方案名不能为空"
     IDC_MSG_THEME_ERR2      "主题方案名不能和复制源相同"

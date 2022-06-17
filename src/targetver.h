@@ -891,6 +891,7 @@
 #define IDM_TREE_BAR                        42855
 #define IDM_TABPAGE_BAR                     42856
 #define IDM_TABLE_BAR                       42857
+#define IDM_FILE_EXPLORER                   42858
 
 #define IDS_STATUSBAR_TIPS1                 42860
 #define IDS_STATUSBAR_TIPS2                 42861

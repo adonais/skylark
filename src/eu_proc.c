@@ -806,13 +806,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FILE_WORKSPACE:
-                    if (pnode && *pnode->pathfile)
+                    if (pnode && *pnode->pathfile && !pnode->is_blank)
                     {
-                        if (pnode->is_blank)
-                        {
-                            break;
-                        }
                         on_treebar_locate_path(pnode->pathfile);
+                    }
+                    break;
+                case IDM_FILE_EXPLORER:
+                    if (pnode && *pnode->pathname && !pnode->is_blank)
+                    {
+                        HANDLE handle = eu_new_process(_T("explorer.exe"), pnode->pathname, NULL, 0, NULL);
+                        if (handle)
+                        {
+                            CloseHandle(handle);
+                        }
                     }
                     break;
                 case IDM_EDIT_PASTELINE:
@@ -1053,12 +1059,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FORMAT_REFORMAT:
                     on_format_json_style(pnode);
                     on_symtree_json(pnode);
-                    on_statusbar_update_filesize(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_COMPRESS:
                     on_format_do_json(pnode, on_format_compress_callback);
                     on_symtree_json(pnode);
-                    on_statusbar_update_filesize(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
                     on_format_clang_file(pnode);
