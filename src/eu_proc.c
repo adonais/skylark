@@ -952,16 +952,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_select_line(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_LEFT_WORD:
-                    on_search_left_group(pnode);
+                    on_search_select_left_word(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_RIGHT_WORD:
-                    on_search_right_group(pnode);
+                    on_search_select_right_word(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP:
-                    on_search_left_word(pnode);
+                    on_search_select_left_group(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP:
-                    on_search_right_word(pnode);
+                    on_search_select_right_group(pnode);
                     break;
                 case IDM_SEARCH_SELECTTOP_FIRSTLINE:
                     on_search_cumulative_previous_block(pnode);
