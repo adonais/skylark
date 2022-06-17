@@ -18,6 +18,8 @@
 
 #include "framework.h"
 
+#define CLANGDLL _T("clang-format.dll")
+
 int
 menu_height(void)
 {
@@ -401,9 +403,9 @@ menu_update_item(HMENU menu)
                         break;
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON && eu_exist_file(CLANGDLL)));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE17,
-                                             (pnode->doc_ptr && !pnode->hex_mode && eu_exist_file(_T("clang-format.dll")) &&
+                                             (pnode->doc_ptr && !pnode->hex_mode && eu_exist_file(CLANGDLL) &&
                                              (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_CS ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||

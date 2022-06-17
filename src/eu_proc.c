@@ -1051,19 +1051,17 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_light_fold(hwnd);
                     break;
                 case IDM_FORMAT_REFORMAT:
-                    format_do_json_file(pnode, format_do_json_string);
+                    on_format_json_style(pnode);
                     on_symtree_json(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    on_statusbar_update_filesize(pnode);
                     break;
                 case IDM_FORMAT_COMPRESS:
-                    format_do_json_file(pnode, format_undo_json_string);
+                    on_format_do_json(pnode, on_format_compress_callback);
                     on_symtree_json(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    on_statusbar_update_filesize(pnode);
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    format_file_with_clang(pnode);
+                    on_format_clang_file(pnode);
                     if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_symtree_json(pnode);
@@ -1076,7 +1074,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    format_str_with_clang(pnode);
+                    on_format_clang_str(pnode);
                     on_symlist_reqular(pnode);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:

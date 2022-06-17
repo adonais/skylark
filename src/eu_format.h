@@ -32,11 +32,11 @@ extern "C"
 {
 #endif
 
-char *format_do_json_string(const char *text);
-char *format_undo_json_string(const char *text);
-void format_do_json_file(eu_tabpage *pnode, format_back fn); 
-void format_file_with_clang(eu_tabpage *pnode);
-void format_str_with_clang(eu_tabpage *pnode);
+char *on_format_compress_callback(const char *text);
+void on_format_json_style(eu_tabpage *pnode);
+void on_format_do_json(eu_tabpage *pnode, format_back fn); 
+void on_format_clang_file(eu_tabpage *pnode);
+void on_format_clang_str(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }
