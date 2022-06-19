@@ -75,39 +75,29 @@ BEGIN
         MENUITEM "粘贴",                                        IDM_EDIT_PASTE
         MENUITEM "删除",                                        IDM_EDIT_DELETE
         MENUITEM MF_SEPARATOR
-        POPUP "高级剪切",                                       IDM_EDIT_PLACEHOLDE1
+        POPUP "复制其他内容",                                   IDM_EDIT_PLACEHOLDE1
         BEGIN
-            MENUITEM "剪切行",                                  IDM_EDIT_CUTLINE
-            MENUITEM "剪切粘贴行",                              IDM_EDIT_CUTLINE_AND_PASTELINE
-        END
-        POPUP "高级复制",                                       IDM_EDIT_PLACEHOLDE2
-        BEGIN
-            MENUITEM "复制行",                                  IDM_EDIT_COPYLINE
-            MENUITEM "复制粘贴行",                              IDM_EDIT_COPYLINE_AND_PASTELINE
-            MENUITEM MF_SEPARATOR
             MENUITEM "复制文件名",                              IDM_EDIT_COPY_FILENAME
             MENUITEM "复制路径名",                              IDM_EDIT_COPY_PATHNAME
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
         END
-        POPUP "高级粘贴",                                       IDM_EDIT_PLACEHOLDE3
+        MENUITEM MF_SEPARATOR
+        POPUP "行编辑",                                         IDM_EDIT_PLACEHOLDE2
         BEGIN
-            MENUITEM "粘贴行",                                  IDM_EDIT_PASTELINE
-            MENUITEM "往上粘贴行",                              IDM_EDIT_PASTELINE_UPSTAIRS
-        END
-        POPUP "高级删除",                                       IDM_EDIT_PLACEHOLDE4
-        BEGIN
+            MENUITEM "复制行",                                  IDM_EDIT_COPYLINE
+            MENUITEM "剪切行",                                  IDM_EDIT_CUTLINE
             MENUITEM "删除行",                                  IDM_EDIT_DELETELINE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "上移当前行",                              IDM_EDIT_MOVE_LINEUP
+            MENUITEM "下移当前行",                              IDM_EDIT_MOVE_LINEDOWN
+            MENUITEM "合并下一行",                              IDM_EDIT_JOINLINE
+            MENUITEM MF_SEPARATOR
             MENUITEM "移除行首空白",                            IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "移除行尾空白",                            IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "移除所有空白行",                          IDM_DELETE_ALL_SPACE_LINE
+            MENUITEM "移除所有空白行",                          IDM_DELETE_ALL_SPACE_LINE            
         END
-        MENUITEM MF_SEPARATOR
-        POPUP "高级行操作",                                     IDM_EDIT_PLACEHOLDE5
+        POPUP "行排序",                                         IDM_EDIT_PLACEHOLDE5
         BEGIN
-            MENUITEM "合并行",                                  IDM_EDIT_JOINLINE
-            MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
-            MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
-            MENUITEM MF_SEPARATOR
             MENUITEM "升序排列文本行(字典顺序)",                IDM_EDIT_ASCENDING_SORT
             MENUITEM "升序排列文本行(忽略大小写)",              IDM_EDIT_ASCENDING_SORT_IGNORECASE
             MENUITEM "降序排列文本行(字典顺序)",                IDM_EDIT_DESCENDING_SORT
@@ -295,6 +285,12 @@ BEGIN
         MENUITEM "插入数据库自动连接配置头",                    IDM_DATABASE_INSERT_CONFIG
         MENUITEM "执行选定的SQL语句或REDIS命令",                IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
+        POPUP "代码注释",                                       IDM_EDIT_PLACEHOLDE21
+        BEGIN
+            MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
+            MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
+        END    
+        MENUITEM MF_SEPARATOR        
         MENUITEM "使用预设动作执行当前文件",                    IDM_PROGRAM_EXECUTE_ACTION
     END
     POPUP "设置(&T)"

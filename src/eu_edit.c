@@ -104,18 +104,6 @@ on_edit_cut_line(eu_tabpage *pnode)
 }
 
 void
-on_edit_cut_line_paste(eu_tabpage *pnode)
-{
-    if (pnode && !pnode->hex_mode)
-    {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        on_edit_cut_line(pnode);
-        on_edit_paste_line(pnode);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-    }
-}
-
-void
 on_edit_copy_line(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)
@@ -125,11 +113,22 @@ on_edit_copy_line(eu_tabpage *pnode)
 }
 
 void
-on_edit_copy_line_paste(eu_tabpage *pnode)
+on_edit_line_up(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)
     {
-        eu_sci_call(pnode, SCI_SELECTIONDUPLICATE, 0, 0);
+        eu_sci_call(pnode, SCI_MOVESELECTEDLINESUP, 0, 0);
+    }
+}
+
+void
+on_edit_line_down(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode)
+    {
+        eu_sci_call(pnode, SCI_MOVESELECTEDLINESDOWN, 0, 0);
+        // 确保所选内容在视图中可见
+        eu_sci_call(pnode, SCI_SCROLLRANGE, eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0), eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0));
     }
 }
 
@@ -159,40 +158,6 @@ on_edit_push_clipboard(const TCHAR *buf)
         CloseClipboard();
     }
     return true;
-}
-
-void
-on_edit_paste_line(eu_tabpage *pnode)
-{
-    if (pnode && !pnode->hex_mode)
-    {
-        sptr_t pos;
-        sptr_t current_line;
-        sptr_t next_pos;
-        pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        next_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line + 1, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, next_pos, 0);
-        eu_sci_call(pnode, SCI_PASTE, 0, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, next_pos, 0);
-    }
-}
-
-void
-on_edit_paste_line_up(eu_tabpage *pnode)
-{
-    if (pnode && !pnode->hex_mode)
-    {
-        sptr_t pos;
-        sptr_t current_line;
-        sptr_t start_pos;
-        pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        start_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, start_pos, 0);
-        eu_sci_call(pnode, SCI_PASTE, 0, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, start_pos, 0);
-    }
 }
 
 void

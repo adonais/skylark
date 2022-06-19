@@ -778,14 +778,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_CUTLINE:
                     on_edit_cut_line(pnode);
                     break;
-                case IDM_EDIT_CUTLINE_AND_PASTELINE:
-                    on_edit_cut_line_paste(pnode);
-                    break;
                 case IDM_EDIT_COPYLINE:
                     on_edit_copy_line(pnode);
-                    break;
-                case IDM_EDIT_COPYLINE_AND_PASTELINE:
-                    on_edit_copy_line_paste(pnode);
                     break;
                 case IDM_EDIT_COPY_FILENAME:
                     if (pnode && *pnode->filename)
@@ -821,12 +815,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                     }
                     break;
-                case IDM_EDIT_PASTELINE:
-                    on_edit_paste_line(pnode);
-                    break;
-                case IDM_EDIT_PASTELINE_UPSTAIRS:
-                    on_edit_paste_line_up(pnode);
-                    break;
                 case IDM_EDIT_DELETELINE:
                     on_edit_delete_line(pnode);
                     break;
@@ -842,6 +830,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_JOINLINE:
                     on_edit_join_line(pnode);
                     break;
+                case IDM_EDIT_MOVE_LINEUP:
+                    on_edit_line_up(pnode);
+                    break;
+                case IDM_EDIT_MOVE_LINEDOWN:
+                    on_edit_line_down(pnode);
+                    break;                                        
                 case IDM_EDIT_LINECOMMENT:
                     on_edit_comment_line(pnode);
                     break;

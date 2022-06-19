@@ -120,8 +120,6 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_EDIT_PASTE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE1, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE2, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE3, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE4, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE5, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE6, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE7, !hex_mode && eu_exist_libssl());
@@ -149,6 +147,7 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE17, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE18, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE19, !hex_mode);
+        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE21, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_WRAPLINE_MODE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SOURCE_BLOCKFOLD_TOGGLE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_SOURCE_BLOCKFOLD_CONTRACT, !hex_mode);

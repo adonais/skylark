@@ -75,39 +75,29 @@ BEGIN
         MENUITEM "&Paste",                                             IDM_EDIT_PASTE
         MENUITEM "&Delete",                                            IDM_EDIT_DELETE
         MENUITEM MF_SEPARATOR
-        POPUP "Advanced Cut",                                          IDM_EDIT_PLACEHOLDE1
+        POPUP "Copy Other Content",                                    IDM_EDIT_PLACEHOLDE1
         BEGIN
-            MENUITEM "Cut Line",                                       IDM_EDIT_CUTLINE
-            MENUITEM "Cut And Paste Line",                             IDM_EDIT_CUTLINE_AND_PASTELINE
-        END
-        POPUP "Advanced Copy",                                         IDM_EDIT_PLACEHOLDE2
-        BEGIN
-            MENUITEM "Copy Line",                                      IDM_EDIT_COPYLINE
-            MENUITEM "Copy And Paste Line",                            IDM_EDIT_COPYLINE_AND_PASTELINE
-            MENUITEM MF_SEPARATOR
             MENUITEM "Copy File Name",                                 IDM_EDIT_COPY_FILENAME
             MENUITEM "Copy File Path",                                 IDM_EDIT_COPY_PATHNAME
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
-        END
-        POPUP "Advanced Paste",                                        IDM_EDIT_PLACEHOLDE3
+        END        
+        MENUITEM MF_SEPARATOR
+        POPUP "Line Edit",                                             IDM_EDIT_PLACEHOLDE2
         BEGIN
-            MENUITEM "Paste Line",                                     IDM_EDIT_PASTELINE
-            MENUITEM "Paste Line Up",                                  IDM_EDIT_PASTELINE_UPSTAIRS
-        END
-        POPUP "Advanced Delete",                                       IDM_EDIT_PLACEHOLDE4
-        BEGIN
+            MENUITEM "Copy Line",                                      IDM_EDIT_COPYLINE
+            MENUITEM "Cut Line",                                       IDM_EDIT_CUTLINE
             MENUITEM "Delete Line",                                    IDM_EDIT_DELETELINE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Move Up Current Line",                           IDM_EDIT_MOVE_LINEUP
+            MENUITEM "Move Down Current Line",                         IDM_EDIT_MOVE_LINEDOWN
+            MENUITEM "Join Next Line",                                 IDM_EDIT_JOINLINE
+            MENUITEM MF_SEPARATOR
             MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "Strip &Trailing Blanks",                         IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE
-        END
-        MENUITEM MF_SEPARATOR
-        POPUP "Advanced Line Operations",                              IDM_EDIT_PLACEHOLDE5
+            MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE         
+        END        
+        POPUP "Line Sort",                                             IDM_EDIT_PLACEHOLDE5
         BEGIN
-            MENUITEM "&Join Lines",                                    IDM_EDIT_JOINLINE
-            MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
-            MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
-            MENUITEM MF_SEPARATOR
             MENUITEM "Sort Lines Lexicographically Ascending",         IDM_EDIT_ASCENDING_SORT
             MENUITEM "Sort Lines Lex. Ascending Ignoring Case",        IDM_EDIT_ASCENDING_SORT_IGNORECASE
             MENUITEM "Sort Lines Lexicographically Descending",        IDM_EDIT_DESCENDING_SORT
@@ -294,6 +284,12 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "Insert Database Automatic Header",                   IDM_DATABASE_INSERT_CONFIG
         MENUITEM "Executes Selected SQL Or REDIS Command",             IDM_DATABASE_EXECUTE_SQL
+        MENUITEM MF_SEPARATOR
+        POPUP "Code Comments",                                         IDM_EDIT_PLACEHOLDE21
+        BEGIN
+            MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
+            MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
+        END          
         MENUITEM MF_SEPARATOR
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END
