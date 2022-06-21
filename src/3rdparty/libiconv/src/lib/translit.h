@@ -3,16 +3,16 @@
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
- * and/or modify it under the terms of the GNU Library General Public
+ * and/or modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
  * The GNU LIBICONV Library is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public
+ * You should have received a copy of the GNU Lesser General Public
  * License along with the GNU LIBICONV Library; see the file COPYING.LIB.
  * If not, see <https://www.gnu.org/licenses/>.
  */
@@ -3805,7 +3805,7 @@ static const short translit_page1e[160] = {
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, /* 0x90-0x97 */
     -1,   -1,  742,   -1,   -1,   -1,   -1,   -1, /* 0x98-0x9f */
 };
-static const short translit_page1e_2[8] = {
+static const short translit_page1e_1[8] = {
     -1,   -1,  745,  748,   -1,   -1,   -1,   -1, /* 0xf0-0xf7 */
 };
 static const short translit_page20[88] = {
@@ -3821,7 +3821,7 @@ static const short translit_page20[88] = {
    841,  844,   -1,   -1,   -1,   -1,   -1,   -1, /* 0x48-0x4f */
     -1,   -1,   -1,   -1,   -1,   -1,   -1,  847, /* 0x50-0x57 */
 };
-static const short translit_page20_3[8] = {
+static const short translit_page20_1[8] = {
    852,   -1,   -1,  855,  860,   -1,   -1,   -1, /* 0xa8-0xaf */
 };
 static const short translit_page21[216] = {
@@ -3867,7 +3867,7 @@ static const short translit_page22[96] = {
   1210,   -1,   -1,   -1, 1213, 1216,   -1,   -1, /* 0x60-0x67 */
     -1,   -1, 1219, 1222,   -1,   -1,   -1,   -1, /* 0x68-0x6f */
 };
-static const short translit_page22_4[48] = {
+static const short translit_page22_1[48] = {
     -1,   -1,   -1,   -1,   -1, 1225,   -1,   -1, /* 0xc0-0xc7 */
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, /* 0xc8-0xcf */
     -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, /* 0xd0-0xd7 */
@@ -3996,7 +3996,7 @@ static const short translit_page31[96] = {
   2699, 2701, 2703, 2705, 2707, 2709, 2711, 2713, /* 0x80-0x87 */
   2715, 2717, 2719, 2721, 2723, 2725, 2727,   -1, /* 0x88-0x8f */
 };
-static const short translit_page31_5[528] = {
+static const short translit_page31_1[528] = {
   2729, 2731, 2733, 2735, 2737, 2739, 2741, 2743, /* 0xf0-0xf7 */
   2745, 2747, 2749, 2751, 2753, 2755, 2757, 2759, /* 0xf8-0xff */
   /* 0x3200 */
@@ -4384,12 +4384,12 @@ static const short translit_page2f8[544] = {
    wc >= 0x0eb0 && wc < 0x0ee0 ? translit_page0e[wc-0x0eb0] : \
    wc >= 0x0f70 && wc < 0x0f80 ? translit_page0f[wc-0x0f70] : \
    wc >= 0x1e00 && wc < 0x1ea0 ? translit_page1e[wc-0x1e00] : \
-   wc >= 0x1ef0 && wc < 0x1ef8 ? translit_page1e_2[wc-0x1ef0] : \
+   wc >= 0x1ef0 && wc < 0x1ef8 ? translit_page1e_1[wc-0x1ef0] : \
    wc >= 0x2000 && wc < 0x2058 ? translit_page20[wc-0x2000] : \
-   wc >= 0x20a8 && wc < 0x20b0 ? translit_page20_3[wc-0x20a8] : \
+   wc >= 0x20a8 && wc < 0x20b0 ? translit_page20_1[wc-0x20a8] : \
    wc >= 0x2100 && wc < 0x21d8 ? translit_page21[wc-0x2100] : \
    wc >= 0x2210 && wc < 0x2270 ? translit_page22[wc-0x2210] : \
-   wc >= 0x22c0 && wc < 0x22f0 ? translit_page22_4[wc-0x22c0] : \
+   wc >= 0x22c0 && wc < 0x22f0 ? translit_page22_1[wc-0x22c0] : \
    wc >= 0x2400 && wc < 0x24f0 ? translit_page24[wc-0x2400] : \
    wc >= 0x2500 && wc < 0x2540 ? translit_page25[wc-0x2500] : \
    wc == 0x25e6 ? 2025 : \
@@ -4400,7 +4400,7 @@ static const short translit_page2f8[544] = {
    wc >= 0x2f00 && wc < 0x2fd8 ? translit_page2f[wc-0x2f00] : \
    wc >= 0x3000 && wc < 0x30f8 ? translit_page30[wc-0x3000] : \
    wc >= 0x3130 && wc < 0x3190 ? translit_page31[wc-0x3130] : \
-   wc >= 0x31f0 && wc < 0x3400 ? translit_page31_5[wc-0x31f0] : \
+   wc >= 0x31f0 && wc < 0x3400 ? translit_page31_1[wc-0x31f0] : \
    wc >= 0xf900 && wc < 0xfa70 ? translit_pagef9[wc-0xf900] : \
    wc >= 0xfb00 && wc < 0xfb50 ? translit_pagefb[wc-0xfb00] : \
    wc >= 0xfe48 && wc < 0xfe70 ? translit_pagefe[wc-0xfe48] : \
