@@ -458,12 +458,47 @@ on_edit_join_line(eu_tabpage *pnode)
     }
 }
 
+static void
+do_toggle_case(eu_tabpage *pnode, bool do_uppercase)
+{
+    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t sel_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, false);
+    sptr_t sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, false);
+    if (sel_end - sel_start > 0)
+    {
+        char *line_buf = on_sci_range_text(pnode, sel_start, sel_end);
+        if (STR_NOT_NUL(line_buf))
+        {
+            const size_t len = strlen(line_buf);
+            for (int i = 0; i < len; ++i)
+            {
+                line_buf[i] = do_uppercase ? toupper(line_buf[i]) : tolower(line_buf[i]);
+            }
+            eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_end);
+            eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+            eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)line_buf);
+            eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        }
+        eu_safe_free(line_buf);
+    }
+}
+
 void
 on_edit_lower(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_LOWERCASE, 0, 0);
+        bool has_selection = false;
+        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if ((has_selection = sel_start != sel_end))
+        {
+            eu_sci_call(pnode, SCI_LOWERCASE, 0, 0);
+        }
+        else
+        {
+            do_toggle_case(pnode, false);
+        }
     }
 }
 
@@ -472,7 +507,17 @@ on_edit_upper(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_UPPERCASE, 0, 0);
+        bool has_selection = false;
+        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if ((has_selection = sel_start != sel_end))
+        {
+            eu_sci_call(pnode, SCI_UPPERCASE, 0, 0);
+        }
+        else
+        {
+            do_toggle_case(pnode, true);
+        }
     }
 }
 

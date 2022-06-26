@@ -80,7 +80,7 @@ BEGIN
             MENUITEM "Copy File Name",                                 IDM_EDIT_COPY_FILENAME
             MENUITEM "Copy File Path",                                 IDM_EDIT_COPY_PATHNAME
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
-        END        
+        END
         MENUITEM MF_SEPARATOR
         POPUP "Line Edit",                                             IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -96,8 +96,8 @@ BEGIN
             MENUITEM MF_SEPARATOR
             MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "Strip &Trailing Blanks",                         IDM_DELETE_SPACE_LINETAIL
-            MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE         
-        END        
+            MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE
+        END
         POPUP "Line Sort",                                             IDM_EDIT_PLACEHOLDE5
         BEGIN
             MENUITEM "Sort Lines Lexicographically Ascending",         IDM_EDIT_ASCENDING_SORT
@@ -236,7 +236,7 @@ BEGIN
             MENUITEM "The Right Tab",                                  IDM_VIEW_RIGHT_TAB
             MENUITEM "The Far Left Tab",                               IDM_VIEW_FAR_LEFT_TAB
             MENUITEM "The Far Right Tab",                              IDM_VIEW_FAR_RIGHT_TAB
-        END        
+        END
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "Zoom Out",                                       IDM_VIEW_ZOOMOUT
@@ -291,7 +291,7 @@ BEGIN
         BEGIN
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
-        END          
+        END
         MENUITEM MF_SEPARATOR
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END
