@@ -19,6 +19,7 @@
 #include "framework.h"
 
 #define COMMENT_LEN 16
+#define MEM_RESERVED ((char *)(uintptr_t)0x200)
 
 enum htmlblock
 {
@@ -166,6 +167,127 @@ on_edit_delete_line(eu_tabpage *pnode)
     if (pnode && !pnode->hex_mode)
     {
         eu_sci_call(pnode, SCI_LINEDELETE, 0, 0);
+    }
+}
+
+
+static int
+on_edit_add_array(eu_tabpage *pnode, char *pbuf, char *strarray[], int count)
+{
+    int k = 0;
+    const char *split = on_encoding_get_eol(pnode);
+    char *pstr = strtok(pbuf, split);
+    while (STR_NOT_NUL(pstr))
+    {
+        for(int i = 0; i < count; ++i)
+        {
+            if (!strarray[i])
+            {
+                strarray[i] = strdup(pstr);
+                printf("strarray[%d] = %s\n", i, strarray[i]);
+                break;
+            }
+            else if (strarray[i] != MEM_RESERVED && strcmp(strarray[i], pstr) == 0)
+            {
+                strarray[k] = MEM_RESERVED;
+                printf("k = [%d], address = 0x200\n", k);
+                break;
+            }
+        }
+        k++;
+        pstr = strtok(NULL, split);
+    }
+    return 0;
+}
+
+void
+on_edit_delete_dups(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode)
+    {
+        char *buf = NULL;
+        char **ptext = NULL;
+        sptr_t from_line = 0, to_line = 0;
+        bool has_selection = false;
+        bool has_last_empty = false;
+        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        sptr_t total_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        const char *eol_str = on_encoding_get_eol(pnode);
+        if ((has_selection = sel_start != sel_end))
+        {
+            sptr_t line1 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
+            sptr_t line2 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
+            if ((line1 != line2) && (eu_sci_call(pnode, SCI_POSITIONFROMLINE, line2, 0)) == sel_end)
+            {
+                // 如果所选内容的结尾包括行尾,不要在范围内包含以下行
+                --line2;
+            }
+            from_line = line1;
+            to_line = line2;
+        }
+        else
+        {
+            from_line = 0;
+            to_line = total_line - 1;
+        }
+        const sptr_t line_count = to_line - from_line + 1;
+        if (line_count < 2)
+        {
+            return;
+        }
+        const sptr_t start_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, from_line, 0);
+        const sptr_t end_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, to_line, 0) + eu_sci_call(pnode, SCI_LINELENGTH, to_line, 0);
+        const sptr_t buf_size = end_pos - start_pos + 1;
+        if ((ptext = (char **) calloc(line_count + 1, sizeof(char *))) == NULL)
+        {
+            return;
+        }
+        if ((buf = on_sci_range_text(pnode, start_pos, end_pos)) == NULL)
+        {
+            free(ptext);
+            return;
+        }
+        char *last_buf = util_strdup_line(pnode, total_line - 1, NULL);
+        if (last_buf)
+        {
+            if (*last_buf == 0 || strcmp(last_buf, eol_str) == 0)
+            {
+                has_last_empty = true;
+            }
+            free(last_buf);
+        }
+        on_edit_add_array(pnode, buf, ptext, eu_int_cast(line_count));
+        memset(buf, 0, buf_size);
+        for(int i = 0; i < eu_int_cast(line_count); ++i)
+        {
+            if (ptext[i] == MEM_RESERVED)
+            {
+                ptext[i] = NULL;
+            }
+            if (ptext[i])
+            {
+                strncat(buf, ptext[i], buf_size - 1);
+                strncat(buf, eol_str, buf_size - 1);
+                free(ptext[i]);
+            }
+        }
+        free(ptext);
+        // 如果文档末尾不存在空行, 去除换行符
+        if (!has_last_empty && to_line == total_line - 1)
+        {
+            const size_t buf_len = strlen(buf);
+            const size_t eol_len = strlen(eol_str);
+            if (buf_len > eol_len && strncmp(&buf[buf_len - eol_len], eol_str, eol_len) == 0)
+            {
+                buf[buf_len - eol_len] = 0;
+            }
+        }
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        eu_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
+        eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)buf);
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        free(buf);
     }
 }
 

@@ -87,6 +87,7 @@ BEGIN
             MENUITEM "复制行",                                  IDM_EDIT_COPYLINE
             MENUITEM "剪切行",                                  IDM_EDIT_CUTLINE
             MENUITEM "删除行",                                  IDM_EDIT_DELETELINE
+            MENUITEM "删除重复行",                              IDM_EDIT_REMOVE_DUP_LINES
             MENUITEM MF_SEPARATOR
             MENUITEM "上移当前行",                              IDM_EDIT_MOVE_LINEUP
             MENUITEM "下移当前行",                              IDM_EDIT_MOVE_LINEDOWN

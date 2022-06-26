@@ -818,6 +818,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_DELETELINE:
                     on_edit_delete_line(pnode);
                     break;
+                case IDM_EDIT_REMOVE_DUP_LINES:
+                    on_edit_delete_dups(pnode);
+                    break;
                 case IDM_DELETE_SPACE_LINEHEAD:
                     on_edit_delete_line_header_white(pnode);
                     break;

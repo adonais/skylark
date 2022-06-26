@@ -405,7 +405,7 @@
 #define IDM_EDIT_CUTLINE_AND_PASTELINE       30421
 #define IDM_EDIT_COPYLINE                    30422
 #define IDM_EDIT_COPYLINE_AND_PASTELINE      30423
-#define IDM_EDIT_PASTELINE                   30424
+#define IDM_EDIT_REMOVE_DUP_LINES            30424
 #define IDM_EDIT_PASTELINE_UPSTAIRS          30425
 #define IDM_EDIT_DELETELINE                  30426
 #define IDM_EDIT_LOWERCASE                   30427

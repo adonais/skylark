@@ -87,6 +87,7 @@ BEGIN
             MENUITEM "Copy Line",                                      IDM_EDIT_COPYLINE
             MENUITEM "Cut Line",                                       IDM_EDIT_CUTLINE
             MENUITEM "Delete Line",                                    IDM_EDIT_DELETELINE
+            MENUITEM "Remove Duplicate Lines",                         IDM_EDIT_REMOVE_DUP_LINES
             MENUITEM MF_SEPARATOR
             MENUITEM "Move Up Current Line",                           IDM_EDIT_MOVE_LINEUP
             MENUITEM "Move Down Current Line",                         IDM_EDIT_MOVE_LINEDOWN
