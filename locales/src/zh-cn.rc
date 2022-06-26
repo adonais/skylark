@@ -365,7 +365,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "剪切行",                                      IDM_EDIT_CUTLINE
         MENUITEM "复制行",                                      IDM_EDIT_COPYLINE
-        MENUITEM "粘贴行",                                      IDM_EDIT_PASTELINE
         MENUITEM "删除行",                                      IDM_EDIT_DELETELINE
         MENUITEM "合并行",                                      IDM_EDIT_JOINLINE
         MENUITEM SEPARATOR

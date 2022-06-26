@@ -365,7 +365,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Cut Line",                                           IDM_EDIT_CUTLINE
         MENUITEM "Copy Line",                                          IDM_EDIT_COPYLINE
-        MENUITEM "Paste Line",                                         IDM_EDIT_PASTELINE
         MENUITEM "Delete Line",                                        IDM_EDIT_DELETELINE
         MENUITEM "Join Lines",                                         IDM_EDIT_JOINLINE
         MENUITEM SEPARATOR
