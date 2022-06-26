@@ -184,13 +184,11 @@ on_edit_add_array(eu_tabpage *pnode, char *pbuf, char *strarray[], int count)
             if (!strarray[i])
             {
                 strarray[i] = strdup(pstr);
-                printf("strarray[%d] = %s\n", i, strarray[i]);
                 break;
             }
             else if (strarray[i] != MEM_RESERVED && strcmp(strarray[i], pstr) == 0)
             {
                 strarray[k] = MEM_RESERVED;
-                printf("k = [%d], address = 0x200\n", k);
                 break;
             }
         }
@@ -289,6 +287,12 @@ on_edit_delete_dups(eu_tabpage *pnode)
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         free(buf);
     }
+}
+
+void
+on_edit_line_transpose(eu_tabpage *pnode)
+{
+    eu_sci_call(pnode, SCI_LINETRANSPOSE, 0, 0);
 }
 
 static sptr_t

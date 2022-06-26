@@ -50,6 +50,7 @@ void on_edit_cut_line(eu_tabpage *pnode);
 void on_edit_copy_line(eu_tabpage *pnode);
 void on_edit_delete_line(eu_tabpage *pnode);
 void on_edit_delete_dups(eu_tabpage *pnode);
+void on_edit_line_transpose(eu_tabpage *pnode);
 void on_edit_delete_all_empty_lines(eu_tabpage *pnode);
 void on_edit_delete_line_header_white(eu_tabpage *pnode);
 void on_edit_delete_line_tail_white(eu_tabpage *pnode);

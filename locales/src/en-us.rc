@@ -91,6 +91,7 @@ BEGIN
             MENUITEM MF_SEPARATOR
             MENUITEM "Move Up Current Line",                           IDM_EDIT_MOVE_LINEUP
             MENUITEM "Move Down Current Line",                         IDM_EDIT_MOVE_LINEDOWN
+            MENUITEM "Transpose",                                      IDM_EDIT_LINETRANSPOSE
             MENUITEM "Join Next Line",                                 IDM_EDIT_JOINLINE
             MENUITEM MF_SEPARATOR
             MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD

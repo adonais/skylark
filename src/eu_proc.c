@@ -830,6 +830,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_DELETE_ALL_SPACE_LINE:
                     on_edit_delete_all_empty_lines(pnode);
                     break;
+                case IDM_EDIT_LINETRANSPOSE:
+                    on_edit_line_transpose(pnode);
+                    break;
                 case IDM_EDIT_JOINLINE:
                     on_edit_join_line(pnode);
                     break;

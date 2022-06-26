@@ -91,6 +91,7 @@ BEGIN
             MENUITEM MF_SEPARATOR
             MENUITEM "上移当前行",                              IDM_EDIT_MOVE_LINEUP
             MENUITEM "下移当前行",                              IDM_EDIT_MOVE_LINEDOWN
+            MENUITEM "与上一行交换",                            IDM_EDIT_LINETRANSPOSE
             MENUITEM "合并下一行",                              IDM_EDIT_JOINLINE
             MENUITEM MF_SEPARATOR
             MENUITEM "移除行首空白",                            IDM_DELETE_SPACE_LINEHEAD
