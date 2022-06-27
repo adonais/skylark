@@ -1562,7 +1562,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
     if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
     {
         *psize = 0;
-        printf("GetFileSizeEx fail, case: %u\n", GetLastError());
+        printf("GetFileSizeEx fail, case: %lu\n", GetLastError());
         return false;
     }
     return true;

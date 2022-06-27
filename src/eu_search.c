@@ -624,7 +624,7 @@ on_search_set_rectangle(eu_tabpage *pnode)
     }
 }
 
-void 
+void
 on_search_select_all(eu_tabpage *pnode)
 {
     if (pnode)
@@ -633,7 +633,7 @@ on_search_select_all(eu_tabpage *pnode)
     }
 }
 
-void 
+void
 on_search_select_word(eu_tabpage *pnode)
 {
     if (pnode)
@@ -645,7 +645,7 @@ on_search_select_word(eu_tabpage *pnode)
     }
 }
 
-void 
+void
 on_search_select_line(eu_tabpage *pnode)
 {
     if (pnode)
@@ -830,12 +830,12 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
         {
             if (pnode->hex_mode)
             {
-                
+
                 if (_stscanf(lineno, _T("%I64x"), &line) == 1)
                 {
                     SendMessage(pnode->hwnd_sc, HVM_SETLINE, line, 0);
                 }
-        
+
             }
             else
             {
@@ -3193,7 +3193,7 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace)
         return;
     }
     eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-    while (pos < max_pos && (fpos = on_search_process_find(pnode, key, pos, max_pos, flags)) > 0)
+    while (pos < max_pos && (fpos = on_search_process_find(pnode, key, pos, max_pos, flags)) >= 0)
     {
         sptr_t target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
         eu_sci_call(pnode, SCI_SETSELECTION, fpos, target_end);
