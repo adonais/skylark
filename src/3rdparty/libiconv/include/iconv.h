@@ -1,17 +1,17 @@
-/* Copyright (C) 1999-2019 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
-   and/or modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either version 2
+   and/or modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either version 2.1
    of the License, or (at your option) any later version.
 
    The GNU LIBICONV Library is distributed in the hope that it will be
    useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU LIBICONV Library; see the file COPYING.LIB.
    If not, see <https://www.gnu.org/licenses/>.  */
 
@@ -20,7 +20,7 @@
 #ifndef _LIBICONV_H
 #define _LIBICONV_H
 
-#define _LIBICONV_VERSION 0x0110    /* version number: (major<<8) + minor */
+#define _LIBICONV_VERSION 0x0111    /* version number: (major<<8) + minor */
 
 #if 0 && BUILDING_LIBICONV
 #define LIBICONV_DLL_EXPORTED __attribute__((__visibility__("default")))
@@ -29,7 +29,7 @@
 #else
 #define LIBICONV_DLL_EXPORTED
 #endif
-extern LIBICONV_DLL_EXPORTED  int _libiconv_version; /* Likewise */
+extern LIBICONV_DLL_EXPORTED int _libiconv_version; /* Likewise */
 
 /* We would like to #include any system header file which could define
    iconv_t, 1. in order to eliminate the risk that the user gets compilation

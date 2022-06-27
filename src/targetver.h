@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 5
+#define __EU_INFO_VERSION_PATCHLEVEL 6
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -365,54 +365,54 @@
 #define IDM_VIEW_INDENTGUIDES_VISIABLE       30300
 #define IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL  30301
 #define IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL  30302
-#define IDM_SEARCH_NAVIGATE_PREV_THIS   30303
-#define IDM_SEARCH_NAVIGATE_PREV_INALL  30304
-#define IDM_DATABASE_INSERT_CONFIG      30305
-#define IDM_REDIS_INSERT_CONFIG         30306
-#define IDM_REDIS_EXECUTE_COMMAND       30307
-#define IDM_SEARCH_MULTISELECT_README   30308
-#define IDM_SEARCH_COLUMNSELECT_README  30309
-#define IDM_RENAME_DIRECTORY            30310
-#define IDM_DELETE_DIRECTORY            30311
-#define IDM_CREATE_SUB_DIRECTORY        30312
-#define IDM_CREATE_FILE                 30313
-#define IDM_RENAME_FILE                 30314
-#define IDM_DELETE_FILE                 30315
-#define IDM_COPY_FILE                   30316
-#define IDM_DATABASE_SELECT_EXECUTE     30317
-#define IDM_REDIS_SELECT_EXECUTE        30318
-#define IDM_SEARCH_FILES                30319
+#define IDM_SEARCH_NAVIGATE_PREV_THIS        30303
+#define IDM_SEARCH_NAVIGATE_PREV_INALL       30304
+#define IDM_DATABASE_INSERT_CONFIG           30305
+#define IDM_REDIS_INSERT_CONFIG              30306
+#define IDM_REDIS_EXECUTE_COMMAND            30307
+#define IDM_SEARCH_MULTISELECT_README        30308
+#define IDM_SEARCH_COLUMNSELECT_README       30309
+#define IDM_RENAME_DIRECTORY                 30310
+#define IDM_DELETE_DIRECTORY                 30311
+#define IDM_CREATE_SUB_DIRECTORY             30312
+#define IDM_CREATE_FILE                      30313
+#define IDM_RENAME_FILE                      30314
+#define IDM_DELETE_FILE                      30315
+#define IDM_COPY_FILE                        30316
+#define IDM_DATABASE_SELECT_EXECUTE          30317
+#define IDM_REDIS_SELECT_EXECUTE             30318
+#define IDM_SEARCH_FILES                     30319
 
-#define IDM_TAB_CONVERT_SPACES          30400
-#define IDM_DELETE_SPACE_LINEHEAD       30401
-#define IDM_DELETE_SPACE_LINETAIL       30402
-#define IDM_DELETE_ALL_SPACE_LINE       30404
-#define IDM_EDIT_COPY_FILENAME          30405
-#define IDM_EDIT_COPY_PATHNAME          30406
-#define IDM_EDIT_COPY_PATHFILENAME      30407
-#define IDM_TAB_CLICK                   30408
-#define IDM_TAB_CLOSE                   30410
-#define IDR_FILETREE_POPUPMENU          30411
-#define IDM_RELOAD_FILETREE             30412
-#define IDM_EDIT_DELETE                 30413
-#define IDM_SEARCH_REPLACE              30414
-#define IDM_SEARCH_SELECTALL            30415
-#define IDM_VIEW_ZOOMRESET              30416
-#define IDM_RELOAD_SYMBOLLIST           30417
-#define IDM_REFRESH_FILETREE            30418
-#define IDM_FILE_SAVEALL                30419
-#define IDM_EDIT_CUTLINE                30420
-#define IDM_EDIT_CUTLINE_AND_PASTELINE  30421
-#define IDM_EDIT_COPYLINE               30422
-#define IDM_EDIT_COPYLINE_AND_PASTELINE 30423
-#define IDM_EDIT_PASTELINE              30424
-#define IDM_EDIT_PASTELINE_UPSTAIRS     30425
-#define IDM_EDIT_DELETELINE             30426
-#define IDM_EDIT_LOWERCASE              30427
-#define IDM_EDIT_UPPERCASE              30428
-#define IDM_EDIT_JOINLINE               30429
-#define IDM_SEARCH_SELECTWORD           30430
-#define IDM_SEARCH_SELECTLINE           30431
+#define IDM_TAB_CONVERT_SPACES               30400
+#define IDM_DELETE_SPACE_LINEHEAD            30401
+#define IDM_DELETE_SPACE_LINETAIL            30402
+#define IDM_DELETE_ALL_SPACE_LINE            30404
+#define IDM_EDIT_COPY_FILENAME               30405
+#define IDM_EDIT_COPY_PATHNAME               30406
+#define IDM_EDIT_COPY_PATHFILENAME           30407
+#define IDM_TAB_CLICK                        30408
+#define IDM_TAB_CLOSE                        30410
+#define IDR_FILETREE_POPUPMENU               30411
+#define IDM_RELOAD_FILETREE                  30412
+#define IDM_EDIT_DELETE                      30413
+#define IDM_SEARCH_REPLACE                   30414
+#define IDM_SEARCH_SELECTALL                 30415
+#define IDM_VIEW_ZOOMRESET                   30416
+#define IDM_RELOAD_SYMBOLLIST                30417
+#define IDM_REFRESH_FILETREE                 30418
+#define IDM_FILE_SAVEALL                     30419
+#define IDM_EDIT_CUTLINE                     30420
+#define IDM_EDIT_CUTLINE_AND_PASTELINE       30421
+#define IDM_EDIT_COPYLINE                    30422
+#define IDM_EDIT_COPYLINE_AND_PASTELINE      30423
+#define IDM_EDIT_REMOVE_DUP_LINES            30424
+#define IDM_EDIT_LINETRANSPOSE               30425
+#define IDM_EDIT_DELETELINE                  30426
+#define IDM_EDIT_LOWERCASE                   30427
+#define IDM_EDIT_UPPERCASE                   30428
+#define IDM_EDIT_JOINLINE                    30429
+#define IDM_SEARCH_SELECTWORD                30430
+#define IDM_SEARCH_SELECTLINE                30431
 #define IDM_SEARCH_ADDSELECT_LEFT_WORD       30432
 #define IDM_SEARCH_ADDSELECT_RIGHT_WORD      30433
 #define IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP  30434
@@ -421,13 +421,15 @@
 #define IDM_SEARCH_MOVE_RIGHT_WORD           30437
 #define IDM_SEARCH_MOVE_LEFT_WORDGROUP       30438
 #define IDM_SEARCH_MOVE_RIGHT_WORDGROUP      30439
-#define IDM_DATABASE_EXECUTE_SQL        30440
-#define IDM_SOURCECODE_GOTODEF          30441
-#define IDM_ENV_FILE_POPUPMENU          30442
-#define IDM_ENV_DIRECTORY_POPUPMENU     30443
-#define IDM_VIEW_WRAPLINE_MODE          30444
-#define IDM_VIEW_TAB_WIDTH              30445
-#define IDM_RELOAD_FILESEARCH           30446
+#define IDM_DATABASE_EXECUTE_SQL             30440
+#define IDM_SOURCECODE_GOTODEF               30441
+#define IDM_ENV_FILE_POPUPMENU               30442
+#define IDM_ENV_DIRECTORY_POPUPMENU          30443
+#define IDM_VIEW_WRAPLINE_MODE               30444
+#define IDM_VIEW_TAB_WIDTH                   30445
+#define IDM_RELOAD_FILESEARCH                30446
+#define IDM_EDIT_MOVE_LINEUP                 30447
+#define IDM_EDIT_MOVE_LINEDOWN               30448
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -448,11 +450,11 @@
 #define IDM_CHANGELOG                     30516
 #define IDM_INTRODUTION                   30517
 
-#define IDM_HISTORY_BASE                30600
-#define IDM_STYLETHEME_BASE             30700
-#define IDM_VIEW_COPYNEW_STYLETHEME     30800
+#define IDM_HISTORY_BASE                  30600
+#define IDM_STYLETHEME_BASE               30700
+#define IDM_VIEW_COPYNEW_STYLETHEME       30800
 
-#define    IDD_REGEXT_BOX                31000
+#define IDD_REGEXT_BOX                   31000
 #define IDC_REGEXT_LANG_LIST             (IDD_REGEXT_BOX + 1)
 #define IDC_REGEXT_LANGEXT_LIST          (IDD_REGEXT_BOX + 2)
 #define IDC_REGEXT_REGISTEREDEXTS_LIST   (IDD_REGEXT_BOX + 3)
@@ -481,7 +483,6 @@
 #define IDM_RESULT_5                    31113
 #define IDM_RESULT_CLOSE                31114
 #define IDR_RESULT_MENU                 31115
-
 
 #define IDC_MSG_ERROR          40000
 #define IDC_MSG_WARN           40001
@@ -727,11 +728,11 @@
 #define IDC_ZOOM_STATIC                      42009
 #define IDC_PREVIEW_STATIC                   42010
 
-#define IDM_FILE_PAGESETUP                  42040
-#define IDM_VIEW_HIGHLIGHT_STR              42041
-#define IDM_VIEW_HIGHLIGHT_FOLD             42042
-#define IDM_EDIT_LINECOMMENT                42043
-#define IDM_EDIT_STREAMCOMMENT              42044
+#define IDM_FILE_PAGESETUP                   42040
+#define IDM_VIEW_HIGHLIGHT_STR               42041
+#define IDM_VIEW_HIGHLIGHT_FOLD              42042
+#define IDM_EDIT_LINECOMMENT                 42043
+#define IDM_EDIT_STREAMCOMMENT               42044
 
 // Page Setup
 // based on prnsetup.dlg from Windows SDK
@@ -865,6 +866,7 @@
 #define IDM_EDIT_DESCENDING_SORT_IGNORECASE 42824
 #define IDM_EDIT_TAB_SPACE                  42825
 #define IDM_EDIT_SPACE_TAB                  42826
+#define IDM_EDIT_PLACEHOLDE21               42827
 
 #define IDR_HEXVIEW_MENU                    42830
 #define IDM_HEXVIEW_COPY                    42831
@@ -891,6 +893,7 @@
 #define IDM_TREE_BAR                        42855
 #define IDM_TABPAGE_BAR                     42856
 #define IDM_TABLE_BAR                       42857
+#define IDM_FILE_EXPLORER                   42858
 
 #define IDS_STATUSBAR_TIPS1                 42860
 #define IDS_STATUSBAR_TIPS2                 42861

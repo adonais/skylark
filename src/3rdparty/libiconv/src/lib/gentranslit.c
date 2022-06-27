@@ -1,17 +1,17 @@
-/* Copyright (C) 1999-2003, 2005, 2011-2012, 2016, 2018 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2003, 2005, 2011-2012, 2016, 2018, 2020 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
-   and/or modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either version 2
+   and/or modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either version 2.1
    of the License, or (at your option) any later version.
 
    The GNU LIBICONV Library is distributed in the hope that it will be
    useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU LIBICONV Library; see the file COPYING.LIB.
    If not, see <https://www.gnu.org/licenses/>.  */
 
@@ -46,16 +46,16 @@ int main (int argc, char *argv[])
   printf(" * This file is part of the GNU LIBICONV Library.\n");
   printf(" *\n");
   printf(" * The GNU LIBICONV Library is free software; you can redistribute it\n");
-  printf(" * and/or modify it under the terms of the GNU Library General Public\n");
+  printf(" * and/or modify it under the terms of the GNU Lesser General Public\n");
   printf(" * License as published by the Free Software Foundation; either version 2\n");
   printf(" * of the License, or (at your option) any later version.\n");
   printf(" *\n");
   printf(" * The GNU LIBICONV Library is distributed in the hope that it will be\n");
   printf(" * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
   printf(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\n");
-  printf(" * Library General Public License for more details.\n");
+  printf(" * Lesser General Public License for more details.\n");
   printf(" *\n");
-  printf(" * You should have received a copy of the GNU Library General Public\n");
+  printf(" * You should have received a copy of the GNU Lesser General Public\n");
   printf(" * License along with the GNU LIBICONV Library; see the file COPYING.LIB.\n");
   printf(" * If not, see <https://www.gnu.org/licenses/>.\n");
   printf(" */\n");
@@ -182,10 +182,16 @@ int main (int argc, char *argv[])
       if (tables[t].usecount > 1) {
         char* s;
         if (p == tables[t].minline >> 5) {
+          i++;
+          /* i is the number of tables with the same (tables[t].minline >> 5)
+             that we have seen so far. Since the tables[t].minline values are
+             strongly monotonically increasing, there are at most 32 of them. */
+          if (!(i >= 0 && i <= 32)) abort();
           s = (char*) malloc(4+1+2+1);
-          sprintf(s, "%02x_%d", p, ++i);
+          sprintf(s, "%02x_%d", p, i);
         } else {
           p = tables[t].minline >> 5;
+          i = 0;
           s = (char*) malloc(4+1);
           sprintf(s, "%02x", p);
         }

@@ -778,14 +778,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_CUTLINE:
                     on_edit_cut_line(pnode);
                     break;
-                case IDM_EDIT_CUTLINE_AND_PASTELINE:
-                    on_edit_cut_line_paste(pnode);
-                    break;
                 case IDM_EDIT_COPYLINE:
                     on_edit_copy_line(pnode);
-                    break;
-                case IDM_EDIT_COPYLINE_AND_PASTELINE:
-                    on_edit_copy_line_paste(pnode);
                     break;
                 case IDM_EDIT_COPY_FILENAME:
                     if (pnode && *pnode->filename)
@@ -806,23 +800,26 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FILE_WORKSPACE:
-                    if (pnode && *pnode->pathfile)
+                    if (pnode && *pnode->pathfile && !pnode->is_blank)
                     {
-                        if (pnode->is_blank)
-                        {
-                            break;
-                        }
                         on_treebar_locate_path(pnode->pathfile);
                     }
                     break;
-                case IDM_EDIT_PASTELINE:
-                    on_edit_paste_line(pnode);
-                    break;
-                case IDM_EDIT_PASTELINE_UPSTAIRS:
-                    on_edit_paste_line_up(pnode);
+                case IDM_FILE_EXPLORER:
+                    if (pnode && *pnode->pathname && !pnode->is_blank)
+                    {
+                        HANDLE handle = eu_new_process(_T("explorer.exe"), pnode->pathname, NULL, 0, NULL);
+                        if (handle)
+                        {
+                            CloseHandle(handle);
+                        }
+                    }
                     break;
                 case IDM_EDIT_DELETELINE:
                     on_edit_delete_line(pnode);
+                    break;
+                case IDM_EDIT_REMOVE_DUP_LINES:
+                    on_edit_delete_dups(pnode);
                     break;
                 case IDM_DELETE_SPACE_LINEHEAD:
                     on_edit_delete_line_header_white(pnode);
@@ -833,9 +830,18 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_DELETE_ALL_SPACE_LINE:
                     on_edit_delete_all_empty_lines(pnode);
                     break;
+                case IDM_EDIT_LINETRANSPOSE:
+                    on_edit_line_transpose(pnode);
+                    break;
                 case IDM_EDIT_JOINLINE:
                     on_edit_join_line(pnode);
                     break;
+                case IDM_EDIT_MOVE_LINEUP:
+                    on_edit_line_up(pnode);
+                    break;
+                case IDM_EDIT_MOVE_LINEDOWN:
+                    on_edit_line_down(pnode);
+                    break;                                        
                 case IDM_EDIT_LINECOMMENT:
                     on_edit_comment_line(pnode);
                     break;
@@ -952,16 +958,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_select_line(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_LEFT_WORD:
-                    on_search_left_group(pnode);
+                    on_search_select_left_word(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_RIGHT_WORD:
-                    on_search_right_group(pnode);
+                    on_search_select_right_word(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_LEFT_WORDGROUP:
-                    on_search_left_word(pnode);
+                    on_search_select_left_group(pnode);
                     break;
                 case IDM_SEARCH_ADDSELECT_RIGHT_WORDGROUP:
-                    on_search_right_word(pnode);
+                    on_search_select_right_group(pnode);
                     break;
                 case IDM_SEARCH_SELECTTOP_FIRSTLINE:
                     on_search_cumulative_previous_block(pnode);
@@ -1051,19 +1057,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_light_fold(hwnd);
                     break;
                 case IDM_FORMAT_REFORMAT:
-                    format_do_json_file(pnode, format_do_json_string);
+                    on_format_json_style(pnode);
                     on_symtree_json(pnode);
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_COMPRESS:
-                    format_do_json_file(pnode, format_undo_json_string);
+                    on_format_do_json(pnode, on_format_compress_callback);
                     on_symtree_json(pnode);
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    format_file_with_clang(pnode);
+                    on_format_clang_file(pnode);
                     if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_symtree_json(pnode);
@@ -1076,7 +1082,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    format_str_with_clang(pnode);
+                    on_format_clang_str(pnode);
                     on_symlist_reqular(pnode);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:

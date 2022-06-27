@@ -147,8 +147,9 @@ on_sci_before_file(eu_tabpage *pnode)
         {   // 初始化侧边栏控件
             pnode->doc_ptr->fn_init_before(pnode);
         }
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
 int
@@ -327,25 +328,18 @@ on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len)
 bool
 on_sci_doc_modified(eu_tabpage *pnode)
 {
-    if (pnode)
-    {
-        return eu_sci_call(pnode, SCI_GETMODIFY, 0, 0);
-    }
-    return false;
+    return (pnode ? eu_sci_call(pnode, SCI_GETMODIFY, 0, 0) : false);
 }
 
 int
 on_sci_query_tab(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    eu_tabpage *p = NULL;
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
-        if (p == pnode)
+        if (pnode == (eu_tabpage *) (tci.lParam))
         {
             return index;
         }
@@ -353,30 +347,10 @@ on_sci_query_tab(eu_tabpage *pnode)
     return -1;
 }
 
-int
-on_sci_point_reached(eu_tabpage *pnode)
+static int
+on_sci_status_setup(eu_tabpage *pnode, bool revise)
 {
-    int index;
-    if (!(pnode && *pnode->filename))
-    {
-        return -1;
-    }
-    index = on_sci_query_tab(pnode);
-    if (index < 0)
-    {
-        return -2;
-    }
-    on_tabpage_set_title(index, pnode->filename);
-    util_set_title(pnode->pathfile);
-    pnode->be_modify = false;
-    on_toolbar_update_button();
-    return 0;
-}
-
-int
-on_sci_point_left(eu_tabpage *pnode)
-{
-    int index;
+    int index = -1;
     if (!(pnode && *pnode->filename))
     {
         return -1;
@@ -387,22 +361,30 @@ on_sci_point_left(eu_tabpage *pnode)
     }
     on_tabpage_set_title(index, pnode->filename);
     util_set_title(pnode->pathfile);
-    pnode->be_modify = true;
+    pnode->be_modify = revise;
     on_toolbar_update_button();
     return 0;
 }
 
 int
+on_sci_point_reached(eu_tabpage *pnode)
+{
+    return on_sci_status_setup(pnode, false);
+}
+
+int
+on_sci_point_left(eu_tabpage *pnode)
+{
+    return on_sci_status_setup(pnode, true);
+}
+
+void
 on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify)
 {
-    if (!pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
     {
-        if (pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
-        {
-            return pnode->doc_ptr->fn_on_char(pnode, lpnotify);
-        }
+        pnode->doc_ptr->fn_on_char(pnode, lpnotify);
     }
-    return 0;
 }
 
 void
@@ -419,15 +401,6 @@ on_sci_update_margin(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? cur_width + m_zoom : 0));
     }
-}
-
-static void
-on_sci_goto_positon(eu_tabpage *pnode, sptr_t adjust_pos)
-{
-    EU_VERIFY(pnode != NULL);
-    eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
-    eu_sci_call(pnode, SCI_GOTOPOS, adjust_pos, 0);
-    eu_sci_call(pnode, SCI_CHOOSECARETX, 0, 0);
 }
 
 LRESULT CALLBACK

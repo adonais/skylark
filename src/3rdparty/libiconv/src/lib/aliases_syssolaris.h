@@ -1,4 +1,4 @@
-/* ANSI-C code produced by gperf version 3.1 */
+/* ANSI-C code produced by gperf version 3.2 */
 /* Command-line: gperf -m 10 lib/aliases_syssolaris.gperf  */
 /* Computed positions: -k'1,3-11,$' */
 
@@ -71,30 +71,75 @@ aliases_hash (register const char *str, register size_t len)
     {
       default:
         hval += asso_values[(unsigned char)str[10]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 10:
         hval += asso_values[(unsigned char)str[9]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 9:
         hval += asso_values[(unsigned char)str[8]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 8:
         hval += asso_values[(unsigned char)str[7]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 7:
         hval += asso_values[(unsigned char)str[6]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 6:
         hval += asso_values[(unsigned char)str[5]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 5:
         hval += asso_values[(unsigned char)str[4]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 4:
         hval += asso_values[(unsigned char)str[3]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 3:
         hval += asso_values[(unsigned char)str[2]];
+#if defined __cplusplus && (__cplusplus >= 201703L || (__cplusplus >= 201103L && defined __clang_major__ && defined __clang_minor__ && __clang_major__ + (__clang_minor__ >= 9) > 3))
+      [[fallthrough]];
+#elif defined __GNUC__ && __GNUC__ >= 7
+      __attribute__ ((__fallthrough__));
+#endif
       /*FALLTHROUGH*/
       case 2:
       case 1:
@@ -1731,7 +1776,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str956, ei_mac_hebrew}
   };
 
-const struct alias *
+static const struct alias *
 aliases_lookup (register const char *str, register size_t len)
 {
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
