@@ -75,7 +75,7 @@ BEGIN
         MENUITEM "&Paste",                                             IDM_EDIT_PASTE
         MENUITEM "&Delete",                                            IDM_EDIT_DELETE
         MENUITEM MF_SEPARATOR
-        POPUP "Copy Other Content",                                    IDM_EDIT_PLACEHOLDE1
+        POPUP "Copy To Clipboard",                                     IDM_EDIT_PLACEHOLDE1
         BEGIN
             MENUITEM "Copy File Name",                                 IDM_EDIT_COPY_FILENAME
             MENUITEM "Copy File Path",                                 IDM_EDIT_COPY_PATHNAME

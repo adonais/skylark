@@ -75,7 +75,7 @@ BEGIN
         MENUITEM "粘贴",                                        IDM_EDIT_PASTE
         MENUITEM "删除",                                        IDM_EDIT_DELETE
         MENUITEM MF_SEPARATOR
-        POPUP "复制其他内容",                                   IDM_EDIT_PLACEHOLDE1
+        POPUP "复制到剪贴板",                                   IDM_EDIT_PLACEHOLDE1
         BEGIN
             MENUITEM "复制文件名",                              IDM_EDIT_COPY_FILENAME
             MENUITEM "复制路径名",                              IDM_EDIT_COPY_PATHNAME
