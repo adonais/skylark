@@ -20,6 +20,7 @@
 #include "targetver.h"
 #include "framework.h"
 
+#define DPI_PERCENT_LARGE 168
 #define CHECK_IF(a) if ((a)!= 0) return false
 
 enum {READ_FD, WRITE_FD};
@@ -130,7 +131,7 @@ on_toolbar_adjust_box(void)
     }
     else
     {
-        g_toolbar_height = DEFAULTTOOLBAR;
+        g_toolbar_height = eu_get_dpi(NULL) >= DPI_PERCENT_LARGE ? TB_LARGE_SIZE : TB_NORMAL_SIZE;
     }
 }
 
@@ -406,14 +407,16 @@ create_clipbox(void)
 }
 
 static HIMAGELIST
-create_img_list(INT res_id, UINT mask)
+create_img_list(INT res_id, UINT mask, bool zoom)
 {
     HIMAGELIST himg = NULL;
     HBITMAP hbmp = NULL;
     BITMAP bm = { 0 };
+    int width = zoom ? IMAGE_LARGE_WIDTH : IMAGE_NORMAL_WIDTH;
+    int height = zoom ? IMAGE_LARGE_HEIGHT : IMAGE_NORMAL_HEIGHT;
     hbmp = (HBITMAP) LoadImage(eu_module_handle(), MAKEINTRESOURCE(res_id), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
     GetObject(hbmp, sizeof(BITMAP), &bm);
-    himg = ImageList_Create(IMAGEWIDTH, IMAGEHEIGHT, bm.bmBitsPixel | ILC_MASK, bm.bmWidth / IMAGEWIDTH, 1);
+    himg = ImageList_Create(width, height, bm.bmBitsPixel | ILC_MASK, bm.bmWidth / width, 1);
     ImageList_AddMasked(himg, hbmp, mask);
     if (hbmp != NULL)
     {
@@ -904,24 +907,25 @@ on_toolbar_create(HWND parent)
         { 27, IDM_CMD_TAB, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
     };
+    const bool zoom = eu_get_dpi(parent) >= DPI_PERCENT_LARGE ? true : false;
     if (!on_dark_enable())
     {
-        if ((img_list1 = create_img_list(IDB_TOOLBAR16, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list1 = create_img_list(zoom ? IDB_TOOLBAR_LARGE32 : IDB_TOOLBAR16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }
-        if ((img_list2 = create_img_list(IDB_TOOLBAR1, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list2 = create_img_list(zoom ? IDB_TOOLBAR_LARGE1 : IDB_TOOLBAR1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }
     }
     else
     {
-        if ((img_list1 = create_img_list(IDB_TOOLBAR_DARK16, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list1 = create_img_list(zoom ? IDB_DARK_LARGE32 : IDB_DARK16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }
-        if ((img_list2 = create_img_list(IDB_TOOLBAR_DARK1, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list2 = create_img_list(zoom ? IDB_DARK_LARGE1 : IDB_DARK1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }

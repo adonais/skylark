@@ -330,8 +330,12 @@
 #define IDB_TOOLBAR1                    30030
 #define IDB_TOOLBAR16                   30031
 #define IDC_TOOLBAR                     30032
-#define IDB_TOOLBAR_DARK1               30033
-#define IDB_TOOLBAR_DARK16              30034
+#define IDB_DARK1                       30033
+#define IDB_DARK16                      30034
+#define IDB_TOOLBAR_LARGE1              30035
+#define IDB_TOOLBAR_LARGE32             30036
+#define IDB_DARK_LARGE1                 30037
+#define IDB_DARK_LARGE32                30038
 
 #define IDM_FILE_CLOSEALL               30100
 #define IDM_FILE_CLOSEALL_EXCLUDE       30101

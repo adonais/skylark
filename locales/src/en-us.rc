@@ -890,9 +890,9 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_CAP                   "CAP"
     IDS_BUTTON_R                     "R/0"
     IDS_BUTTON_W                     "R/W"
-    IDS_STATUS_F1                    "Editing %d File(s), current file timestamp: %s"
+    IDS_STATUS_F1                    "%d File(s), Timestamp: %s"
     IDS_STATUS_XY                    "Cursor (Line %I64u, Column %I64u)"
-    IDS_STATUS_LC                    "File size: %I64d/%I64u (Byte/Line)"
+    IDS_STATUS_LC                    "File size: %I64d (Byte)"
     IDS_STATUS_LD                    "Select: %I64d/%I64u (Byte/Line)"
     IDS_STATUS_HXY                   "Cursor (0x%I64X)"
 }

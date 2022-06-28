@@ -19,11 +19,14 @@
 #ifndef _SKYLARK_TOOLBAR_H_
 #define _SKYLARK_TOOLBAR_H_
 
-#define EDITNUMBS       11
-#define IMAGEWIDTH      16
-#define IMAGEHEIGHT     15
-#define DEFAULTTOOLBAR  25
-#define BUFFSIZE        64
+#define EDITNUMBS            11
+#define IMAGE_NORMAL_WIDTH   16
+#define IMAGE_NORMAL_HEIGHT  15
+#define TB_NORMAL_SIZE       25
+#define IMAGE_LARGE_WIDTH    32
+#define IMAGE_LARGE_HEIGHT   31
+#define TB_LARGE_SIZE        41
+#define BUFFSIZE             64
 
 #define safe_close_console(h) \
     if (NULL != h)            \

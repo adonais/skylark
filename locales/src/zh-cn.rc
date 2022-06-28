@@ -889,9 +889,9 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_CAP                   "大写"
     IDS_BUTTON_R                     "只读"
     IDS_BUTTON_W                     "读写"
-    IDS_STATUS_F1                    "正在处理 %d 个文件, 当前文件时间戳: %s"
+    IDS_STATUS_F1                    "%d 个文件, 时间戳: %s"
     IDS_STATUS_XY                    "光标 (行 %I64u, 列 %I64u)"
-    IDS_STATUS_LC                    "文件尺寸: %I64d/%I64u (字节/行)"
+    IDS_STATUS_LC                    "文件尺寸: %I64d (字节)"
     IDS_STATUS_LD                    "选择: %I64d/%I64u (字节/行)"
     IDS_STATUS_HXY                   "光标 (0x%I64X)"
 }

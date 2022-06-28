@@ -754,7 +754,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     else
     {
         LOAD_I18N_RESSTR(IDS_STATUS_LC, s_lc);
-        _sntprintf(file_size, FILESIZE, s_lc, nsize, line);
+        _sntprintf(file_size, FILESIZE, s_lc, nsize);
     }
     if (*file_size)
     {

@@ -571,6 +571,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             on_theme_setup_font(hwnd);
             on_tabpage_foreach(hexview_update_theme);
+            on_toolbar_refresh(hwnd);
             on_statusbar_init(hwnd);
             SendMessage(g_treebar, WM_DPICHANGED, 0, 0);
             break;
