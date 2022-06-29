@@ -140,7 +140,7 @@ static int
 on_file_refresh_recent_menu(void *data, int count, char **column, char **names)
 {
     HMENU hre = (HMENU)data;
-    int index = GetMenuItemCount(hre);
+    const int index = GetMenuItemCount(hre);
     for (int i = 0; i < count && column[i]; ++i)
     {
         if (column[i][0] != 0)
@@ -1378,7 +1378,6 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
         eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
         err = eu_curl_easy_perform(curl);
-        eu_curl_easy_cleanup(curl);
         if (err != CURLE_OK)
         {
             err = EUE_CURL_NETWORK_ERR;

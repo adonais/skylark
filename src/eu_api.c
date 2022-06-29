@@ -69,14 +69,14 @@ enum
     UTF32_BE_BOM
 };
 
-static HMODULE curl_symbol;
+static HMODULE eu_curl_symbol;
 static ptr_curl_easy_init fn_curl_easy_init;
 static ptr_curl_global_init fn_curl_global_init;
 static ptr_curl_global_cleanup fn_curl_global_cleanup;
+static ptr_curl_easy_cleanup fn_curl_easy_cleanup;
 
 ptr_curl_easy_setopt eu_curl_easy_setopt = NULL;
 ptr_curl_easy_perform eu_curl_easy_perform = NULL;
-ptr_curl_easy_cleanup eu_curl_easy_cleanup = NULL;
 ptr_curl_slist_append eu_curl_slist_append = NULL;
 ptr_curl_slist_free_all eu_curl_slist_free_all = NULL;
 ptr_curl_easy_getinfo eu_curl_easy_getinfo = NULL;
@@ -2255,7 +2255,7 @@ eu_iconvctl(iconv_t cd, int request, void* argument)
 iconv_t
 eu_iconv_open (const char* tocode, const char* fromcode)
 {
-    return iconv_open (tocode, fromcode);
+    return iconv_open(tocode, fromcode);
 }
 
 size_t
@@ -2274,43 +2274,45 @@ eu_iconv_close(iconv_t cd)
     return 0;
 }
 
+/*******************************************************************
+ * 加载curl动态库与初始化curl全局变量
+ * 在最新的 7.84 版本, curl_global_init已经默认支持线程安全
+ * 函数调用失败, 返回 EUE_CURL_INIT_FAIL
+ * 成功, 返回值与 curl_global_init 函数相同
+ *******************************************************************/
 int
 eu_curl_init_global(long flags)
 {
     int result = CURLE_OK;
     EnterCriticalSection(&eu_curl_cs);
-    if (!_InterlockedCompareExchange(&eu_curl_initialized, 1, 0))
+    if (!eu_curl_initialized)
     {
         TCHAR curl_path[MAX_PATH+1] = {0};
         _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-        if ((curl_symbol = LoadLibrary(curl_path)) != NULL)
+        if ((eu_curl_symbol = LoadLibrary(curl_path)) != NULL)
         {
-            fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(curl_symbol,"curl_global_init");
-            fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(curl_symbol,"curl_easy_init");
-            fn_curl_global_cleanup = (ptr_curl_global_cleanup)GetProcAddress(curl_symbol,"curl_global_cleanup");
-            eu_curl_easy_setopt = (ptr_curl_easy_setopt)GetProcAddress(curl_symbol,"curl_easy_setopt");
-            eu_curl_easy_perform = (ptr_curl_easy_perform)GetProcAddress(curl_symbol,"curl_easy_perform");
-            eu_curl_easy_cleanup = (ptr_curl_easy_cleanup)GetProcAddress(curl_symbol,"curl_easy_cleanup");
-            eu_curl_slist_append = (ptr_curl_slist_append)GetProcAddress(curl_symbol,"curl_slist_append");
-            eu_curl_slist_free_all = (ptr_curl_slist_free_all)GetProcAddress(curl_symbol,"curl_slist_free_all");
-            eu_curl_easy_getinfo = (ptr_curl_easy_getinfo)GetProcAddress(curl_symbol,"curl_easy_getinfo");
-            eu_curl_easy_strerror = (ptr_curl_easy_strerror)GetProcAddress(curl_symbol,"curl_easy_strerror");
+            fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(eu_curl_symbol,"curl_global_init");
+            fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(eu_curl_symbol,"curl_easy_init");
+            fn_curl_global_cleanup = (ptr_curl_global_cleanup)GetProcAddress(eu_curl_symbol,"curl_global_cleanup");
+            fn_curl_easy_cleanup = (ptr_curl_easy_cleanup)GetProcAddress(eu_curl_symbol,"curl_easy_cleanup");
+            eu_curl_easy_setopt = (ptr_curl_easy_setopt)GetProcAddress(eu_curl_symbol,"curl_easy_setopt");
+            eu_curl_easy_perform = (ptr_curl_easy_perform)GetProcAddress(eu_curl_symbol,"curl_easy_perform");
+            eu_curl_slist_append = (ptr_curl_slist_append)GetProcAddress(eu_curl_symbol,"curl_slist_append");
+            eu_curl_slist_free_all = (ptr_curl_slist_free_all)GetProcAddress(eu_curl_symbol,"curl_slist_free_all");
+            eu_curl_easy_getinfo = (ptr_curl_easy_getinfo)GetProcAddress(eu_curl_symbol,"curl_easy_getinfo");
+            eu_curl_easy_strerror = (ptr_curl_easy_strerror)GetProcAddress(eu_curl_symbol,"curl_easy_strerror");
         }
         if (!(fn_curl_global_init && fn_curl_easy_init && fn_curl_global_cleanup && eu_curl_easy_setopt && eu_curl_easy_perform &&
-              eu_curl_easy_cleanup && eu_curl_slist_append && eu_curl_slist_free_all && eu_curl_easy_getinfo && eu_curl_easy_strerror)
+              fn_curl_easy_cleanup && eu_curl_slist_append && eu_curl_slist_free_all && eu_curl_easy_getinfo && eu_curl_easy_strerror)
            )
         {
-            if (curl_symbol)
-            {
-                FreeLibrary(curl_symbol);
-                curl_symbol = NULL;
-            }
             result = EUE_CURL_INIT_FAIL;
-            _InterlockedExchange(&eu_curl_initialized, 0);
+            safe_close_dll(eu_curl_symbol);
         }
         else
         {
-            result = fn_curl_global_init(CURL_GLOBAL_DEFAULT);
+            result = fn_curl_global_init(flags);
+            _InterlockedExchange(&eu_curl_initialized, 1);
         }
     }
     LeaveCriticalSection(&eu_curl_cs);
@@ -2320,7 +2322,7 @@ eu_curl_init_global(long flags)
 CURL *
 eu_curl_easy_init(void)
 {
-    if (!fn_curl_easy_init)
+    if (!eu_curl_initialized)
     {
         if (eu_curl_init_global(CURL_GLOBAL_DEFAULT) != CURLE_OK)
         {
@@ -2328,6 +2330,15 @@ eu_curl_easy_init(void)
         }
     }
     return fn_curl_easy_init();
+}
+
+void
+eu_curl_easy_cleanup(CURL *curl)
+{
+    if (eu_curl_initialized)
+    {
+        fn_curl_easy_cleanup(curl);
+    }
 }
 
 void
@@ -2339,19 +2350,19 @@ eu_curl_global_release(void)
         {
             fn_curl_global_cleanup();
         }
-        if (curl_symbol)
+        if (eu_curl_symbol)
         {
-            FreeLibrary(curl_symbol);
-            curl_symbol = NULL;
+            FreeLibrary(eu_curl_symbol);
+            eu_curl_symbol = NULL;
             fn_curl_global_init = NULL;
             fn_curl_easy_init = NULL;
             fn_curl_global_cleanup = NULL;
+            fn_curl_easy_cleanup = NULL;
             eu_curl_easy_setopt = NULL;
             eu_curl_easy_perform = NULL;
             eu_curl_easy_getinfo = NULL;
             eu_curl_slist_append = NULL;
             eu_curl_slist_free_all = NULL;
-            eu_curl_easy_cleanup = NULL;
         }
         _InterlockedExchange(&eu_curl_initialized, 0);
     }

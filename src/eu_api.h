@@ -427,7 +427,6 @@ EU_EXT_CLASS int eu_iconv_close(iconv_t cd);
 extern EU_EXT_CLASS ptr_curl_easy_strerror eu_curl_easy_strerror;
 extern EU_EXT_CLASS ptr_curl_easy_setopt eu_curl_easy_setopt;
 extern EU_EXT_CLASS ptr_curl_easy_perform eu_curl_easy_perform;
-extern EU_EXT_CLASS ptr_curl_easy_cleanup eu_curl_easy_cleanup;
 extern EU_EXT_CLASS ptr_curl_easy_getinfo eu_curl_easy_getinfo;
 extern EU_EXT_CLASS ptr_curl_slist_append eu_curl_slist_append;
 extern EU_EXT_CLASS ptr_curl_slist_free_all eu_curl_slist_free_all;
@@ -435,6 +434,7 @@ extern EU_EXT_CLASS ptr_curl_slist_free_all eu_curl_slist_free_all;
 EU_EXT_CLASS int eu_curl_init_global(long flags);
 EU_EXT_CLASS CURL* eu_curl_easy_init(void);
 EU_EXT_CLASS void eu_curl_global_release(void);
+EU_EXT_CLASS void eu_curl_easy_cleanup(CURL *);
 
 // for eu_changes.c
 EU_EXT_CLASS int __stdcall eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
