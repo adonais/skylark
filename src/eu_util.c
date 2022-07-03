@@ -125,35 +125,35 @@ util_gen_tstamp(void)
 HWND
 util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
 {
-	if (!(hwnd_stc && hwnd && ptext))
-	{
-		return NULL;
-	}
-	// Create the tooltip. g_hInst is the global instance handle.
-	HWND htip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON, CW_USEDEFAULT, CW_USEDEFAULT,
-		                       CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, eu_module_handle(), NULL);
+    if (!(hwnd_stc && hwnd && ptext))
+    {
+        return NULL;
+    }
+    // Create the tooltip. g_hInst is the global instance handle.
+    HWND htip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON, CW_USEDEFAULT, CW_USEDEFAULT,
+                               CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, eu_module_handle(), NULL);
 
-	if (!htip)
-	{
-		return NULL;
-	}
-	// Associate the tooltip with the tool.
-	TOOLINFO toolinfo = {0};
-	toolinfo.cbSize = sizeof(TOOLINFO);
-	toolinfo.hwnd = hwnd;
-	toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-	toolinfo.uId = (LONG_PTR)hwnd_stc;
-	toolinfo.lpszText = ptext;
-	if (!SendMessage(htip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo))
-	{
-		DestroyWindow(htip);
-		return NULL;
-	}
-	SendMessage(htip, TTM_ACTIVATE, TRUE, 0);
-	SendMessage(htip, TTM_SETMAXTIPWIDTH, 0, 200);
-	// Make tip stay 15 seconds
-	SendMessage(htip, TTM_SETDELAYTIME, TTDT_AUTOPOP, MAKELPARAM((15000), (0)));
-	return htip;
+    if (!htip)
+    {
+        return NULL;
+    }
+    // Associate the tooltip with the tool.
+    TOOLINFO toolinfo = {0};
+    toolinfo.cbSize = sizeof(TOOLINFO);
+    toolinfo.hwnd = hwnd;
+    toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+    toolinfo.uId = (LONG_PTR)hwnd_stc;
+    toolinfo.lpszText = ptext;
+    if (!SendMessage(htip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo))
+    {
+        DestroyWindow(htip);
+        return NULL;
+    }
+    SendMessage(htip, TTM_ACTIVATE, TRUE, 0);
+    SendMessage(htip, TTM_SETMAXTIPWIDTH, 0, 200);
+    // Make tip stay 15 seconds
+    SendMessage(htip, TTM_SETDELAYTIME, TTDT_AUTOPOP, MAKELPARAM((15000), (0)));
+    return htip;
 }
 
 bool
@@ -1678,5 +1678,32 @@ util_restore_placement(HWND hwnd)
             wp.showCmd = SW_SHOWNORMAL;
         }
         SetWindowPlacement(hwnd, &wp);
+    }
+}
+
+void
+util_untransparent(HWND hwnd)
+{
+    if (hwnd != NULL)
+    {
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, GetWindowLongPtr(hwnd, GWL_EXSTYLE) & ~0x00080000);
+    }
+}
+
+void
+util_transparent(HWND hwnd, int percent)
+{
+    if (hwnd)
+    {
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, GetWindowLongPtr(hwnd, GWL_EXSTYLE) | 0x00080000);
+        if (percent > 255)
+        {
+            percent = 255;
+        }
+        if (percent < 0)
+        {
+            percent = 0;
+        }
+        SetLayeredWindowAttributes(hwnd, 0, percent, 0x00000002);
     }
 }

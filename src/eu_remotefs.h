@@ -19,8 +19,6 @@
 #ifndef _EU_REMOTE_FS_H_
 #define _EU_REMOTE_FS_H_
 
-#define WM_FILEOPEN (WM_USER+301)
-
 #ifdef __cplusplus
 extern "C" {
 #endif

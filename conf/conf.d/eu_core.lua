@@ -60,6 +60,7 @@ struct eu_config
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
+    int document_map_width;
     int result_edit_height;
     
     int result_list_height;

@@ -135,6 +135,7 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_SEARCH_MULTISELECT_README, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_TAB_WIDTH, !hex_mode);
         util_enable_menu_item(root_menu, IDM_TAB_CONVERT_SPACES, !hex_mode);
+        util_enable_menu_item(root_menu, IDM_VIEW_DOCUMENT_MAP, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_HIGHLIGHT_STR, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_HIGHLIGHT_FOLD, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_AUTO_INDENTATION, !hex_mode);
@@ -367,6 +368,7 @@ menu_update_item(HMENU menu)
                         break;
                     case IDM_VIEW_INDENTGUIDES_VISIABLE:      /* View menu */
                         util_set_menu_item(menu, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
+                        util_set_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, pnode->map_show);
                         util_set_menu_item(menu, IDM_VIEW_SYMTREE, pnode->sym_show);
                         util_enable_menu_item(menu, IDM_VIEW_SYMTREE, pnode->hwnd_symlist || pnode->hwnd_symtree);
                         util_set_menu_item(menu, IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);

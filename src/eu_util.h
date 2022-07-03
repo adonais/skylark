@@ -101,6 +101,8 @@ const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);
 int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level);
+void util_transparent(HWND hwnd, int percent);
+void util_untransparent(HWND hwnd);
 
 #ifdef __cplusplus
 }

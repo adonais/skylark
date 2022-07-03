@@ -1009,7 +1009,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
     {
         case WM_CREATE:
         {
-            pnode = (eu_tabpage *)((LPCREATESTRUCTA)lParam)->lpCreateParams;
+            pnode = (eu_tabpage *)((LPCREATESTRUCTW)lParam)->lpCreateParams;
             if (!(pnode && pnode->phex))
             {
                 printf("pnode or pnode->phex is null\n");

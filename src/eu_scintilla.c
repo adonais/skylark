@@ -18,10 +18,10 @@
 
 #include "framework.h"
 
-static WNDPROC sc_edit_wnd = NULL;
 static volatile sptr_t ptr_scintilla = 0;
+volatile sptr_t eu_edit_wnd = 0;
 
-int
+void
 on_sci_init_style(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL);
@@ -130,10 +130,9 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
     // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
     eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
-    return 0;
 }
 
-int
+void
 on_sci_before_file(eu_tabpage *pnode)
 {
     if (pnode)
@@ -147,12 +146,10 @@ on_sci_before_file(eu_tabpage *pnode)
         {   // 初始化侧边栏控件
             pnode->doc_ptr->fn_init_before(pnode);
         }
-        return 0;
     }
-    return 1;
 }
 
-int
+void
 on_sci_after_file(eu_tabpage *pnode)
 {
     if (pnode)
@@ -188,9 +185,7 @@ on_sci_after_file(eu_tabpage *pnode)
             pnode->doc_ptr->fn_init_after(pnode);
         }
         on_sci_update_margin(pnode);
-        return 0;
     }
-    return 1;
 }
 
 void
@@ -411,7 +406,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_KEYDOWN:
         {   // 按下ESC键时
-            if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)) && (pnode = on_tabpage_focus_at()))
+            if (!(pnode = on_tabpage_focus_at()))
+            {
+                break;
+            }
+            if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)))
             {
                 sptr_t total_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
                 sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
@@ -422,6 +421,26 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     on_view_zoom_reset(pnode);
                     pnode->zoom_level = 0;
+                }
+            }
+            else if (pnode->map_show && document_map_initialized)
+            {
+                printf("on_map_static_proc recv WM_KEYDOWN\n");
+                if (wParam == VK_UP)
+                {
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 0);
+                }
+                if (wParam == VK_DOWN)
+                {
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 0);
+                }
+                if (wParam == VK_PRIOR)
+                {
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 1);
+                }
+                if (wParam == VK_NEXT)
+                {
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
                 }
             }
             break;
@@ -441,6 +460,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);
+            break;
+        }
+        case WM_MOUSEWHEEL:
+        {
             break;
         }
         case WM_LBUTTONUP:
@@ -520,27 +543,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         default:
             break;
     }
-    return CallWindowProc(sc_edit_wnd, hwnd, message, wParam, lParam);
-}
-
-int
-eu_sci_release(void)
-{
-    return Scintilla_ReleaseResources();
-}
-
-sptr_t
-eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
-{
-    if (!p)
-    {
-        return 0;
-    }
-    if (p->hex_mode && p->hwnd_sc)
-    {
-        return SendMessage(p->hwnd_sc, m, w, l);
-    }
-    return ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l);
+    return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
 }
 
 void
@@ -551,28 +554,55 @@ eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR phdr)
     SendMessage(GetParent(hwnd), WM_NOTIFY, 0, (LPARAM) phdr);
 }
 
+sptr_t
+eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
+{
+    return ((p && p->hwnd_sc) ? (p->hex_mode ? SendMessage(p->hwnd_sc, m, w, l) : ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l)) : 0);
+}
+
 int
-on_sci_init_dlg(eu_tabpage *pnode)
+eu_sci_release(void)
+{
+    return Scintilla_ReleaseResources();
+}
+
+void
+on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
+{
+    sc_edit_proc(pnode->hwnd_sc, WM_MOUSEWHEEL, wParam, lParam);
+}
+
+int
+on_sci_create(eu_tabpage *pnode, int flags, WNDPROC sc_callback)
 {
     EU_VERIFY(pnode != NULL);
-    const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
-    pnode->hwnd_sc = CreateWindowEx(0, TEXT("Scintilla"), TEXT(""), flags, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
+    int exflags = flags ? flags : WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
+    pnode->hwnd_sc = CreateWindowEx(0, TEXT("Scintilla"), TEXT(""), exflags, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
     if (pnode->hwnd_sc == NULL)
     {
         MSG_BOX(IDC_MSG_SCINTILLA_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return 1;
     }
-    if (!(sc_edit_wnd = (WNDPROC) SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, (LONG_PTR) sc_edit_proc)))
-    {
-        printf("SetWindowLongPtr(pnode->hwnd_sc) failed\n");
-        return 1;
-    }
 #ifdef _WIN64
+    if (_InterlockedCompareExchange64(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
+    {
+        SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc);
+    }
     if (!_InterlockedCompareExchange64(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
 #else
+    if (_InterlockedCompareExchange(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
+    {
+        SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc);
+    }
     if (!_InterlockedCompareExchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
 #endif
     pnode->eusc = SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
     eu_sci_call(pnode, SCI_USEPOPUP, 0, 0);
     return 0;
+}
+
+int
+on_sci_init_dlg(eu_tabpage *pnode)
+{
+    return on_sci_create(pnode, 0, NULL);
 }

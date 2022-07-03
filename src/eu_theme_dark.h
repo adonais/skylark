@@ -35,14 +35,17 @@ bool on_dark_color_scheme_change(LPARAM lParam);
 bool on_dark_color_scheme_change_msg(UINT message, LPARAM lParam);
 void on_dark_allow_app(bool allow);
 void on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list);
+void on_dark_delete_theme_brush(void);
+void on_dark_border(HWND hwnd, bool border);
 colour on_dark_get_sys_colour(HWND hwnd, int colid);
 colour on_dark_get_colorization_color(void);
 colour on_dark_light_color(colour cr_base, float factor);
 HRESULT on_dark_close_data(void *hth);
-int64_t on_dark_open_data(HWND hwnd, LPCWSTR class_list);
-int64_t on_dark_get_brush(void);
-int64_t on_dark_get_hot_brush(void);
-int64_t on_dark_set_contorl_color(WPARAM wParam);
+intptr_t on_dark_open_data(HWND hwnd, LPCWSTR class_list);
+intptr_t on_dark_get_hot_brush(void);
+intptr_t on_dark_set_contorl_color(WPARAM wParam);
+intptr_t on_dark_get_brush(void);
+intptr_t on_dark_theme_brush(void);
 
 static inline uint32_t
 set_bk_color(const HDC hdc, const bool use_dark)

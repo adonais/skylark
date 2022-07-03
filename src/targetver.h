@@ -336,6 +336,7 @@
 #define IDB_TOOLBAR_LARGE32             30036
 #define IDB_DARK_LARGE1                 30037
 #define IDB_DARK_LARGE32                30038
+#define IDM_VIEW_DOCUMENT_MAP           30039
 
 #define IDM_FILE_CLOSEALL               30100
 #define IDM_FILE_CLOSEALL_EXCLUDE       30101

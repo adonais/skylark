@@ -24,18 +24,21 @@ extern "C"
 {
 #endif
 
+extern volatile sptr_t eu_edit_wnd;
 int on_sci_init_dlg(eu_tabpage *pnode);
-int on_sci_init_style(eu_tabpage *pnode);
-int on_sci_before_file(eu_tabpage *pnode);
-int on_sci_after_file(eu_tabpage *pnode);
 int on_sci_query_tab(eu_tabpage *pnode);
 int on_sci_point_reached(eu_tabpage *pnode);
 int on_sci_point_left(eu_tabpage *pnode);
+int on_sci_create(eu_tabpage *pnode, int flags, WNDPROC sc_callback);
+void on_sci_init_style(eu_tabpage *pnode);
+void on_sci_before_file(eu_tabpage *pnode);
+void on_sci_after_file(eu_tabpage *pnode);
 void on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify);
 void on_sci_update_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
 void on_sci_free_tab(eu_tabpage **ppnode);
 void on_sci_insert_egg(eu_tabpage *pnode);
+void on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 bool on_sci_doc_modified(eu_tabpage *pnode);
 bool on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len);
 char *on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end);

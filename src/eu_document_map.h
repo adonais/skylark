@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
  * This file is part of Skylark project
  * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
@@ -16,27 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _H_SKYLARK_SPLITTER_
-#define _H_SKYLARK_SPLITTER_
+#ifndef _H_DOCUMENT_MAP_
+#define _H_DOCUMENT_MAP_
 
+// c++ compiler
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-extern HWND g_splitter_treebar;
-extern HWND g_splitter_symbar;
-extern HWND g_splitter_editbar;
-extern HWND g_splitter_tablebar;
+static bool move_down = true;
+static bool move_up = false;
 
-bool on_splitter_init_treebar(HWND parent);
-bool on_splitter_init_symbar(HWND parent);
-bool on_splitter_init_editbar(HWND parent);
-bool on_splitter_init_tablebar(HWND parent);
-HWND on_splitter_init_window(HWND parent, const TCHAR *class_name, const int flags, HMENU hmenu, WNDPROC proc, void *lp);
+extern volatile long document_map_initialized;
+extern HWND hwnd_document_map;
+extern HWND hwnd_document_static;
+eu_tabpage * __stdcall on_map_launch(void);
+void __stdcall on_map_adjust_scintilla(eu_tabpage *pnode, LPRECT lp);
+void __stdcall on_map_reload(eu_tabpage *pedit);
+void __stdcall on_map_sync_fold(eu_tabpage *pnode, eu_tabpage *ptr_map);
+void __stdcall on_map_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif  //_H_DOCUMENT_MAP_

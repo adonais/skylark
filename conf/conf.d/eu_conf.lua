@@ -48,6 +48,7 @@ function eu_conf.loadconf()
         "file_treebar_width = 253\n" ..
         "symbol_list_width = 210\n" ..
         "symbol_tree_width = 210\n" ..
+        "document_map_width = 310\n" ..
         "sqlquery_result_edit_height = 80\n" ..
         "sqlquery_result_listview_height = 270\n" ..
         "block_fold_visiable = true\n" ..
@@ -120,6 +121,7 @@ function eu_conf.loadconf()
         file_treebar_width,
         symbol_list_width,
         symbol_tree_width,
+        document_map_width,
         sqlquery_result_edit_height,
         sqlquery_result_listview_height,
         block_fold_visiable,

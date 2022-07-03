@@ -30,7 +30,6 @@
 #define EDITNUMBS          11
 #define IMAGEWIDTH         16
 #define IMAGEHEIGHT        15
-#define WM_BTN_PRESS       (WM_USER + 201)
 
 // c++ compiler
 #ifdef __cplusplus

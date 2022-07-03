@@ -60,6 +60,29 @@
 #endif
 #define MAX_ACCELS 200
 
+// Custom message
+#define HVM_SETEXTENDEDSTYLE      (WM_USER + 100)
+#define HVM_SETITEMCOUNT          (WM_USER + 101)
+#define HVM_GETSEL                (WM_USER + 102)
+#define HVM_SETSEL                (WM_USER + 103)
+#define HVM_SETTEXTCOLOR          (WM_USER + 104)
+#define HVM_SETBKCOLOR            (WM_USER + 105)
+#define HVM_SETSELBKCOLOR         (WM_USER + 106)
+#define HVM_SETMODIFIEDCOLOR      (WM_USER + 107)
+#define HVM_SETLINE               (WM_USER + 108)
+#define HVM_GETHEXADDR            (WM_USER + 109)
+#define HVM_SETLINECOUNT          (WM_USER + 110)
+#define HVN_GETDISPINFO           (WMN_FIRST - 0)
+#define HVN_ITEMCHANGING          (WMN_FIRST - 1)
+#define WM_BTN_PRESS              (WM_USER + 201)
+#define WM_FILEOPEN               (WM_USER + 301)
+#define TVI_LOADREMOTE            (WM_USER + 401)
+#define DOCUMENTMAP_SCROLL        (WM_USER + 501)
+#define DOCUMENTMAP_MOUSECLICKED  (WM_USER + 502)
+#define DOCUMENTMAP_MOUSEWHEEL    (WM_USER + 503)
+#define WM_BACKUP_OVER            (WM_USER+10001)
+#define WM_SYSLIST_OVER           (WM_USER+10002)
+
 #if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
 #define EU_VERIFY(x) (void)((x) || (EU_ABORT("failed assert(%s): %s:%d\n", #x, __FILE__, __LINE__), 0))
@@ -203,6 +226,7 @@ struct eu_config
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
+    int document_map_width;
     int result_edit_height;
     int result_list_height;
     

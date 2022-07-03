@@ -28,8 +28,6 @@ extern "C"
 {
 #endif
 
-#define WM_BACKUP_OVER (WM_USER+10001)
-#define WM_SYSLIST_OVER (WM_USER+10002)
 #define url_has_remote(ll) (_tcsnicmp(ll, _T("sftp://"), 7) == 0)
 #define safe_close_handle(h)                    \
     if (NULL != h && INVALID_HANDLE_VALUE != h) \

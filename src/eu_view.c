@@ -30,7 +30,23 @@ on_view_symtree(eu_tabpage *pnode)
 {
     if (pnode && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
-        pnode->sym_show = !pnode->sym_show;
+        if ((pnode->sym_show = !pnode->sym_show))
+        {
+            pnode->map_show = false;
+        }
+        eu_window_resize(NULL);
+    }
+}
+
+void
+on_view_document_map(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode)
+    {
+        if ((pnode->map_show = !pnode->map_show) && on_map_launch())
+        {
+            pnode->sym_show = false;
+        }
         eu_window_resize(NULL);
     }
 }
@@ -123,6 +139,10 @@ set_theme_dynamic(HWND hwnd)
         {
             on_tabpage_editor_modify(p, "X");
         }
+    }
+    if (document_map_initialized && hwnd_document_map)
+    {
+        SendMessage(hwnd_document_map, WM_THEMECHANGED, 0, 0);
     }
     SendMessage(hwnd, WM_SIZE, 0, 0);
     return SKYLARK_OK;

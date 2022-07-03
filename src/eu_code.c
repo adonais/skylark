@@ -55,32 +55,7 @@ on_doc_redis_config(char *out, int len, const char *str)
 }
 
 void
-on_code_switch_fold(eu_tabpage *pnode)
-{
-    if (pnode)
-    {
-        sptr_t fold_line;
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t fold_level = eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0);
-        if (fold_level & SC_FOLDLEVELHEADERFLAG)
-        {
-            fold_line = line;
-        }
-        else
-        {
-            fold_line = eu_sci_call(pnode, SCI_GETFOLDPARENT, line, 0);
-        }
-        if (fold_line >= 0)
-        {
-            eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
-            eu_sci_call(pnode, SCI_TOGGLEFOLD, fold_line, 0);
-        }
-    }
-}
-
-static void
-on_code_do_fold(eu_tabpage *pnode, bool expand, sptr_t line_number)
+on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap)
 {
     if (pnode)
     {
@@ -104,19 +79,71 @@ on_code_do_fold(eu_tabpage *pnode, bool expand, sptr_t line_number)
         }
         if (fold_line >= 0)
         {
+            int wrap_mode = (int)eu_sci_call(pnode, SCI_GETWRAPMODE, 0, 0);
             bool is_expand = (bool) eu_sci_call(pnode, SCI_GETFOLDEXPANDED, fold_line, 0);
-            if (!expand)
+            if (code == SC_FOLDACTION_CONTRACT)
             {
                 if (is_expand)
                 {
-                    line_number < 0 ? eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0) : (void)0;
+                    if (do_wrap && wrap_mode != SC_WRAP_CHAR)
+                    {
+                        eu_sci_call(pnode, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
+                    }
+                    eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
                     eu_sci_call(pnode, SCI_FOLDLINE, fold_line, SC_FOLDACTION_CONTRACT);
+                    if (do_wrap && wrap_mode != (int)eu_sci_call(pnode, SCI_GETWRAPMODE, 0, 0))
+                    {
+                        eu_sci_call(pnode, SCI_SETWRAPMODE, wrap_mode, 0);
+                    }
                 }
             }
-            else if (!is_expand)
+            else if (code == SC_FOLDACTION_EXPAND)
             {
-                line_number < 0 ? eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0) : (void)0;
+                if (do_wrap && wrap_mode != SC_WRAP_CHAR)
+                {
+                    eu_sci_call(pnode, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
+                }
+                eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
                 eu_sci_call(pnode, SCI_FOLDLINE, fold_line, SC_FOLDACTION_EXPAND);
+                if (do_wrap && wrap_mode != (int)eu_sci_call(pnode, SCI_GETWRAPMODE, 0, 0))
+                {
+                    eu_sci_call(pnode, SCI_SETWRAPMODE, wrap_mode, 0);
+                }
+            }
+            else
+            {
+                if (do_wrap && wrap_mode != SC_WRAP_CHAR)
+                {
+                    eu_sci_call(pnode, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
+                }
+                eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
+                eu_sci_call(pnode, SCI_TOGGLEFOLD, fold_line, 0);
+                if (do_wrap && wrap_mode != (int)eu_sci_call(pnode, SCI_GETWRAPMODE, 0, 0))
+                {
+                    eu_sci_call(pnode, SCI_SETWRAPMODE, wrap_mode, 0);
+                }
+            }
+        }
+    }
+}
+
+void
+on_code_switch_fold(eu_tabpage *pnode, sptr_t line_number)
+{
+    if (pnode)
+    {
+        const sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t line = line_number >= 0 ? line_number : eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        on_code_do_fold(pnode, SCI_TOGGLEFOLD, line, false);
+        if (document_map_initialized && pnode->map_show)
+        {
+            if (hwnd_document_map)
+            {
+                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+                if (map_edit)
+                {
+                    on_code_do_fold(map_edit, SCI_TOGGLEFOLD, line, true);
+                }
             }
         }
     }
@@ -125,25 +152,84 @@ on_code_do_fold(eu_tabpage *pnode, bool expand, sptr_t line_number)
 void
 on_code_block_contract(eu_tabpage *pnode, sptr_t line_number)
 {
-    on_code_do_fold(pnode, false, line_number);
+    if (pnode)
+    {
+        const sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t line = line_number >= 0 ? line_number : eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        on_code_do_fold(pnode, SC_FOLDACTION_CONTRACT, line, false);
+        if (document_map_initialized && pnode->map_show)
+        {
+            if (hwnd_document_map)
+            {
+                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+                if (map_edit)
+                {
+                    on_code_do_fold(map_edit, SC_FOLDACTION_CONTRACT, line, true);
+                }
+            }
+        }
+    }
 }
 
 void
 on_code_block_expand(eu_tabpage *pnode, sptr_t line_number)
 {
-    on_code_do_fold(pnode, true, line_number);
+    if (pnode)
+    {
+        sptr_t line = line_number >= 0 ? line_number : eu_sci_call(pnode, SCI_LINEFROMPOSITION, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0), 0);
+        on_code_do_fold(pnode, SC_FOLDACTION_EXPAND, line, false);
+        if (document_map_initialized && pnode->map_show)
+        {
+            if (hwnd_document_map)
+            {
+                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+                if (map_edit)
+                {
+                    on_code_do_fold(map_edit, SC_FOLDACTION_EXPAND, line, true);
+                }
+            }
+        }
+    }
 }
 
 void
 on_code_block_contract_all(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_FOLDALL, SC_FOLDACTION_CONTRACT, 0);
+    if (pnode)
+    {
+        eu_sci_call(pnode, SCI_FOLDALL, SC_FOLDACTION_CONTRACT, 0);
+        if (document_map_initialized && pnode->map_show)
+        {
+            if (hwnd_document_map)
+            {
+                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+                if (map_edit)
+                {
+                    eu_sci_call(map_edit, SCI_FOLDALL, SC_FOLDACTION_CONTRACT, 0);
+                }
+            }
+        }
+    }
 }
 
 void
 on_code_block_expand_all(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_FOLDALL, SC_FOLDACTION_EXPAND, 0);
+    if (pnode)
+    {
+        eu_sci_call(pnode, SCI_FOLDALL, SC_FOLDACTION_EXPAND, 0);
+        if (document_map_initialized && pnode->map_show)
+        {
+            if (hwnd_document_map)
+            {
+                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+                if (map_edit)
+                {
+                    eu_sci_call(map_edit, SCI_FOLDALL, SC_FOLDACTION_EXPAND, 0);
+                }
+            }
+        }
+    }
 }
 
 void

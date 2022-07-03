@@ -205,7 +205,8 @@ BEGIN
     POPUP "视图(&V)"
     BEGIN
         MENUITEM "文件管理器(&F)",                              IDM_VIEW_FILETREE
-        MENUITEM "符号链接窗口",                                IDM_VIEW_SYMTREE
+        MENUITEM "文档结构图(&D)",                              IDM_VIEW_DOCUMENT_MAP
+        MENUITEM "符号链接窗口(&S)",                            IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
         MENUITEM "全屏模式(&U)",                                IDM_VIEW_FULLSCREEN
         MENUITEM "显示菜单栏",                                  IDM_VIEW_MENUBAR

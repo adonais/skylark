@@ -539,14 +539,23 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
     {
         if (pnode->hwnd_symlist || pnode->hwnd_symtree)
         {
-            pnode->rect_sc.right -= (pnode->hwnd_symlist ?
-                                     eu_get_config()->sym_list_width :
-                                     eu_get_config()->sym_tree_width + SPLIT_WIDTH);
-
+            pnode->rect_sc.right -= (pnode->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
+                                     + SPLIT_WIDTH;
             pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
             pnode->rect_sym.right = rect_tabpages.right;
             pnode->rect_sym.top = pnode->rect_sc.top;
             pnode->rect_sym.bottom = pnode->rect_sc.bottom;
+        }
+    }
+    else if (pnode->map_show)
+    {
+        if (document_map_initialized)
+        {
+            pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
+            pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
+            pnode->rect_map.right = rect_tabpages.right;
+            pnode->rect_map.top = pnode->rect_sc.top;
+            pnode->rect_map.bottom = pnode->rect_sc.bottom;
         }
     }
     if (pnode->edit_show)
@@ -555,15 +564,13 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
         {
             int rect_bottom = pnode->rect_sc.bottom;
             pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + eu_get_config()->result_list_height;
-
             pnode->rect_qredit.left = pnode->rect_sc.left;
             pnode->rect_qredit.right = pnode->rect_sc.right;
             pnode->rect_qredit.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
             pnode->rect_qredit.bottom = rect_bottom;
             if (pnode->hwnd_qrtable)
             {
-                pnode->rect_qredit.bottom -= (SPLIT_WIDTH + eu_get_config()->result_list_height);
-
+                pnode->rect_qredit.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
                 pnode->rect_qrtable.left = pnode->rect_sc.left;
                 pnode->rect_qrtable.right = pnode->rect_sc.right;
                 pnode->rect_qrtable.top = pnode->rect_qredit.bottom + SPLIT_WIDTH;

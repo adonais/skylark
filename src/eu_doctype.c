@@ -95,7 +95,9 @@ void
 on_doc_enable_foldline(eu_tabpage *pnode)
 {
     // 启用折叠
-    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold", (sptr_t) "1");
+    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold", (sptr_t)"1");
+    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.comment", (sptr_t)"1");
+    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.preprocessor", (sptr_t)"1");
     if (pnode->doc_ptr && pnode->doc_ptr->doc_type > 0)
     {
         switch (pnode->doc_ptr->doc_type)
@@ -137,8 +139,8 @@ on_doc_enable_foldline(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, (LPARAM)"\xC2\xB7\xC2\xB7\xC2\xB7");
     // 高亮显示当前折叠块
     eu_sci_call(pnode, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
-    // 行变更时, 自动展开
-    eu_sci_call(pnode, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CLICK | SC_AUTOMATICFOLD_CHANGE, 0);
+    // 行变更时, 自动展开, 排除SC_AUTOMATICFOLD_CLICK
+    eu_sci_call(pnode, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CHANGE, 0);
     // 启用折叠标志
     pnode->foldline = true;
 }

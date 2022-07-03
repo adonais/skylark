@@ -205,7 +205,8 @@ BEGIN
     POPUP "&View"
     BEGIN
         MENUITEM "&File Manager",                                      IDM_VIEW_FILETREE
-        MENUITEM "Symbolic Window",                                    IDM_VIEW_SYMTREE
+        MENUITEM "&Document Map",                                      IDM_VIEW_DOCUMENT_MAP
+        MENUITEM "&Symbolic Window",                                   IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
         MENUITEM "F&ull Screen Mode",                                  IDM_VIEW_FULLSCREEN
         MENUITEM "Show M&enubar",                                      IDM_VIEW_MENUBAR
