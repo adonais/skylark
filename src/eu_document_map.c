@@ -331,18 +331,6 @@ on_map_sync_fold(eu_tabpage *pnode, eu_tabpage *pedit)
 }
 
 void WINAPI
-on_map_adjust_scintilla(eu_tabpage *pnode, LPRECT lp)
-{
-    if (pnode && lp && pnode->map_show && document_map_initialized)
-    {
-        lp->left = pnode->rect_map.left;
-        lp->top = pnode->rect_map.top;
-        lp->right = pnode->rect_map.right - 45;
-        lp->bottom = pnode->rect_map.bottom;
-    }
-}
-
-void WINAPI
 on_map_reload(eu_tabpage *pedit)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
@@ -380,7 +368,7 @@ on_map_launch(void)
     if (!_InterlockedCompareExchange(&document_map_initialized, 1, 0))
     {
         const TCHAR *class_name = _T("Document Map");
-        const int flags = WS_CHILD | WS_CLIPSIBLINGS;  // SS_NOTIFY|SS_OWNERDRAW
+        const int flags = WS_CHILD | WS_CLIPSIBLINGS;
         HWND parent = eu_module_hwnd();
         map_edit = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
         if (!map_edit ||

@@ -1108,6 +1108,8 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
+    IDS_RESULT_STRINGS1     "#* 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)%s"
+    IDS_RESULT_STRINGS2     "行 %*I64d: %s"
 }
 
 /////////////////////////////////////////////////////////////////////////////

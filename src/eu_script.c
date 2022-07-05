@@ -618,6 +618,7 @@ do_byte_code(eu_tabpage *pnode)
         on_result_append_text(pnode->hwnd_qredit, m_format);
     }
     pnode->edit_show = true;
+    pnode->result_show = false;
     eu_window_resize(NULL);
 allclean:
     if (pfile)

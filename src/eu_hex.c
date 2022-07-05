@@ -1925,6 +1925,8 @@ hexview_init(eu_tabpage *pnode)
             return false;
         }
         pnode->eusc = 0;
+        pnode->map_show = false;
+        pnode->result_show = false;
         pnode->hex_mode = true;
     }
     pnode->begin_pos = -1;

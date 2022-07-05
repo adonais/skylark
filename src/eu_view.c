@@ -59,6 +59,7 @@ on_view_result_show(eu_tabpage *pnode, int key)
         if (!pnode->edit_show)
         {
             pnode->edit_show = true;
+            pnode->result_show = false;
             eu_window_resize(NULL);
         }
         pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);

@@ -565,6 +565,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 }
                 free(std_buffer);
                 pnode->edit_show = true;
+                pnode->result_show = false;
                 eu_window_resize(NULL);
             }
             free(buffer);

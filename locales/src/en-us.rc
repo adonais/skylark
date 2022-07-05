@@ -1110,6 +1110,8 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
     IDS_RE_ERROR            "Error: invalid regular expression"
     IDS_HEXVIEW_BYTES       "Number of bytes to insert (decimal): "
+    IDS_RESULT_STRINGS1     "#* Search '%s' keyword in '%s' file (%d hits)%s"
+    IDS_RESULT_STRINGS2     "Line %*I64d: %s"
 }
 
 /////////////////////////////////////////////////////////////////////////////

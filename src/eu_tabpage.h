@@ -34,6 +34,16 @@ extern HWND  g_tabpages;
 extern HMENU pop_tab_menu;
 extern HMENU pop_editor_menu;
 
+typedef struct _result_postion {
+	intptr_t start;
+	intptr_t end;
+} result_postion;
+
+typedef  struct _result_vec {
+	intptr_t line;
+	result_postion mark;
+}result_vec;
+
 struct _tabpage
 {
     HWND hwnd_sc;               // 当前编辑器句柄
@@ -47,11 +57,13 @@ struct _tabpage
     RECT rect_qredit;           // edit日志窗口矩形区域
     RECT rect_qrtable;          // table窗口矩形区域
     RECT rect_map;              // 文档结构图矩形区域
+    RECT rect_result;           // 文档搜索结果矩形区域
     int  match_count;           // 查找时匹配计数
     int  tab_id;                // tab编号,用于保存会话
     bool edit_show;             // 是否显示文件运行窗口
     bool sym_show;              // 是否显示右侧边栏
     bool map_show;              // 是否显示文档结构图
+    bool result_show;           // 是否显示文档搜索结果窗口
     bool foldline;              // 是否存在折叠线
     db_conn *db_ptr;            // 数据库配置
     redis_conn *redis_ptr;      // redis配置
@@ -84,6 +96,7 @@ struct _tabpage
     bool last_focus;            // 保存前台焦点
     int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
+    result_vec *pvec;           // 临时保存行号
 };
 
 int  on_tabpage_create_dlg(HWND hwnd);

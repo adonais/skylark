@@ -578,6 +578,18 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             }
         }
     }
+    else if (pnode->result_show)
+    {
+        if (result_dlg_initialized)
+        {
+            int rect_bottom = pnode->rect_sc.bottom;
+            pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + eu_get_config()->result_list_height;
+            pnode->rect_result.left = pnode->rect_sc.left;
+            pnode->rect_result.right = pnode->rect_sc.right;
+            pnode->rect_result.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
+            pnode->rect_result.bottom = rect_bottom;
+        }
+    }
 }
 
 int

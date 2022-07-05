@@ -82,6 +82,7 @@
 #define DOCUMENTMAP_MOUSEWHEEL    (WM_USER + 503)
 #define WM_BACKUP_OVER            (WM_USER+10001)
 #define WM_SYSLIST_OVER           (WM_USER+10002)
+#define WM_RESULT_PTR             (WM_USER+10003)
 
 #if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))

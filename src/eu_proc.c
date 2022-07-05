@@ -437,6 +437,15 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
     if (pnode->edit_show)
     {
         RECT r = {0, 0, pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH};
+        if (result_dlg_initialized && hwnd_rst)
+        {
+            eu_tabpage *prst = (eu_tabpage *)GetWindowLongPtr(hwnd_rst, GWLP_USERDATA);
+            if (prst && prst->hwnd_sc)
+            {
+                eu_setpos_window(prst->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+        }      
         if (pnode->hwnd_qredit)
         {
             eu_setpos_window(pnode->hwnd_qredit, HWND_TOP, pnode->rect_qredit.left, pnode->rect_qredit.top,
@@ -460,12 +469,36 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             UpdateWindow(g_splitter_tablebar);
         }
     }
-    else if (pnode->hwnd_qredit)
+    else if (pnode->result_show)
     {
-        ShowWindow(g_splitter_editbar, SW_HIDE);
+        eu_tabpage *prst = NULL;
+        if (result_dlg_initialized && hwnd_rst)
+        {
+            eu_setpos_window(hwnd_rst, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+            eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
+                             pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
+            prst = (eu_tabpage *)GetWindowLongPtr(hwnd_rst, GWLP_USERDATA);
+        }
+        if (prst && prst->hwnd_sc)
+        {
+            eu_setpos_window(prst->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+            on_result_reload(prst);
+        }        
     }
-    else if (pnode->hwnd_qredit)
+    else
     {
+        if (result_dlg_initialized && hwnd_rst)
+        {
+            eu_tabpage *prst = (eu_tabpage *)GetWindowLongPtr(hwnd_rst, GWLP_USERDATA);
+            if (prst && prst->hwnd_sc)
+            {
+                eu_setpos_window(prst->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+        }        
+        ShowWindow(g_splitter_editbar, SW_HIDE);
         ShowWindow(g_splitter_tablebar, SW_HIDE);
     }
     if (ptab)

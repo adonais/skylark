@@ -1707,3 +1707,14 @@ util_transparent(HWND hwnd, int percent)
         SetLayeredWindowAttributes(hwnd, 0, percent, 0x00000002);
     }
 }
+
+int
+util_count_number(size_t number)
+{
+    int length = 1;
+    while (number /= 10)
+    {
+        ++length;
+    }
+    return length;
+}

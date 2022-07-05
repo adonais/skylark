@@ -31,7 +31,6 @@ extern volatile long document_map_initialized;
 extern HWND hwnd_document_map;
 extern HWND hwnd_document_static;
 eu_tabpage * __stdcall on_map_launch(void);
-void __stdcall on_map_adjust_scintilla(eu_tabpage *pnode, LPRECT lp);
 void __stdcall on_map_reload(eu_tabpage *pedit);
 void __stdcall on_map_sync_fold(eu_tabpage *pnode, eu_tabpage *ptr_map);
 void __stdcall on_map_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map);

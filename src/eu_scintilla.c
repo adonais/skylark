@@ -68,7 +68,7 @@ on_sci_init_style(eu_tabpage *pnode)
     // 选中行背景色
     eu_sci_call(pnode, SCI_SETSELBACK, true, eu_get_theme()->item.indicator.bgcolor);
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
-    // 设置换行符
+    // 是否自动换行
     eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
     if (pnode->doc_ptr)
     {
@@ -252,6 +252,11 @@ on_sci_free_tab(eu_tabpage **ppnode)
         SendMessage((*ppnode)->hwnd_qrtable, WM_CLOSE, 0, 0);
         (*ppnode)->hwnd_qrtable = NULL;
     }
+    if (cvector_size((*ppnode)->pvec) > 0)
+    {
+        cvector_free((*ppnode)->pvec);
+        (*ppnode)->pvec = NULL;
+    }    
     if (!(*ppnode)->phex)
     {
         if ((*ppnode)->hwnd_sc)

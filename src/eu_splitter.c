@@ -293,13 +293,20 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             LineTo(hdc, pnode->rect_sc.right,  cy);
             ReleaseDC(parent, hdc);
             ReleaseCapture();
-            if (pnode->hwnd_qrtable)
+            if (pnode->edit_show)
             {
-                eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_qredit.bottom) - cy - SPLIT_WIDTH/2;
+                if (pnode->hwnd_qrtable)
+                {
+                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_qredit.bottom) - cy - SPLIT_WIDTH/2;
+                }
+                else
+                {
+                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_qredit.bottom) - cy - SPLIT_WIDTH - eu_get_config()->result_list_height;
+                }
             }
-            else
+            else if (pnode->result_show && hwnd_rst)
             {
-                eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_qredit.bottom) - cy - SPLIT_WIDTH - eu_get_config()->result_list_height;
+                eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH - eu_get_config()->result_list_height;
             }
             if (eu_get_config()->result_edit_height < SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
             {

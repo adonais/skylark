@@ -18,6 +18,8 @@
 
 #include "framework.h"
 
+HWND hwnd_rst = NULL;
+volatile long result_dlg_initialized = 0;
 static WNDPROC orig_result_proc;
 
 LRESULT CALLBACK
@@ -188,4 +190,139 @@ on_result_append_text(HWND hwnd, TCHAR *format, ...)
     SendMessage(hwnd, EM_REPLACESEL, true, (LPARAM) (LPCTSTR) buf);
     free(buf);
     return 0;
+}
+
+static LRESULT CALLBACK
+on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+        case WM_LBUTTONDBLCLK:
+        {
+            eu_tabpage *pnode = on_tabpage_focus_at();
+            eu_tabpage *prst = (eu_tabpage *)SendMessage(hwnd_rst, WM_RESULT_PTR, 0, 0);
+            if (prst && pnode && pnode->pvec)
+            {
+                sptr_t line = eu_sci_call(prst, SCI_LINEFROMPOSITION, eu_sci_call(prst, SCI_GETCURRENTPOS, 0, 0), 0);
+                if (line >= 0 && cvector_size(pnode->pvec) > 0)
+                {
+                    sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+                    sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+                    on_search_jmp_line(pnode, pnode->pvec[line - 1].line, current_line);
+                    eu_sci_call(pnode, SCI_SETSEL, pnode->pvec[line - 1].mark.start, pnode->pvec[line - 1].mark.end);
+                }
+            }
+            return 1;
+        }
+        case WM_THEMECHANGED:
+        {
+            break;
+        }
+        case WM_DESTROY:
+        {
+            printf("on_result_edit_proc WM_DESTROY\n");
+            break;
+        }
+    }
+    return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
+}
+
+static LRESULT CALLBACK
+on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+        case WM_CREATE:
+        {
+            eu_tabpage *rst_scintilla = (eu_tabpage *)((LPCREATESTRUCTW)lParam)->lpCreateParams;
+            if (rst_scintilla)
+            {
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)rst_scintilla);
+                const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
+                if (!on_sci_create(rst_scintilla, flags, on_result_edit_proc))
+                {
+                    on_dark_border(rst_scintilla->hwnd_sc, true);
+                }
+            }
+            break;
+        }
+        case WM_SIZE:
+        {
+            break;
+        }
+        case WM_RESULT_PTR:
+        {
+            return GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        }
+        case WM_DESTROY:
+        {
+            eu_tabpage *rst_scintilla = (eu_tabpage *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (rst_scintilla)
+            {
+                if (rst_scintilla->hwnd_sc)
+                {
+                    DestroyWindow(rst_scintilla->hwnd_sc);
+                    rst_scintilla->hwnd_sc = NULL;
+                }
+                eu_safe_free(rst_scintilla);
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+            }
+            _InterlockedExchange(&result_dlg_initialized, 0);
+            printf("on_result_callback WM_DESTROY\n");
+            break;
+        }
+        default:
+            return DefWindowProc(hwnd, message, wParam, lParam);
+    }
+    return 0;
+}
+
+void
+on_result_reload(eu_tabpage *pedit)
+{
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    if (pedit && pnode)
+    {
+        on_sci_init_style(pedit);
+        // disable margin
+        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
+        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
+        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, 0);
+        // 同步主编辑器换行符
+        eu_sci_call(pedit, SCI_SETEOLMODE, pnode->eol, 0);
+        // 不启用自动换行
+        eu_sci_call(pedit, SCI_SETWRAPMODE, 0, 0);
+        // 不显示对齐线
+        eu_sci_call(pedit, SCI_SETINDENTATIONGUIDES, SC_IV_NONE, 0);
+        // 去除只读
+        eu_sci_call(pedit, SCI_SETREADONLY, 0, 0);
+        // 加载词语解析器
+        on_doc_init_after_scilexer(pedit, "result");
+        on_doc_default_light(pedit, SCE_RESULT_COMMENT, eu_get_theme()->item.keywords0.color, -1, true);
+        on_doc_default_light(pedit, SCE_RESULT_KEYWORD, eu_get_theme()->item.number.color, -1, true);
+    }
+}
+
+eu_tabpage *
+on_result_launch(void)
+{
+    eu_tabpage *rst_edit = NULL;
+    if (!_InterlockedCompareExchange(&result_dlg_initialized, 1, 0))
+    {
+        const TCHAR *class_name = _T("Result List");
+        const int flags = WS_CHILD | WS_CLIPSIBLINGS;
+        HWND parent = eu_module_hwnd();
+        rst_edit = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
+        if (!rst_edit ||
+            !(hwnd_rst = on_splitter_init_window(parent, class_name, flags, NULL, on_result_callback, (void *)rst_edit)))
+        {
+            _InterlockedExchange(&result_dlg_initialized, 0);
+            eu_safe_free(rst_edit);
+        }
+    }
+    else if (hwnd_rst)
+    {
+        rst_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_rst, GWLP_USERDATA);
+    }
+    return rst_edit;
 }

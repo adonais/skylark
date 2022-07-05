@@ -920,6 +920,8 @@
 #define IDS_EXTRA_PATH                      42886
 #define IDC_REGXP_TIPS_STC                  42887
 #define IDS_HEXVIEW_BYTES                   42888
+#define IDS_RESULT_STRINGS1                 42889
+#define IDS_RESULT_STRINGS2                 42890
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991
