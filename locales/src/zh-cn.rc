@@ -81,6 +81,7 @@ BEGIN
             MENUITEM "复制路径名",                              IDM_EDIT_COPY_PATHNAME
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
         END
+        MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM MF_SEPARATOR
         POPUP "行编辑",                                         IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -353,6 +354,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_FILE_SAVE
         MENUITEM SEPARATOR
+        MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM "打开文件夹工作区(&W)",                        IDM_FILE_WORKSPACE
         MENUITEM "在资源管理器中打开文件夹(&E)",                IDM_FILE_EXPLORER
     END
@@ -1105,6 +1107,7 @@ STRINGTABLE DISCARDABLE
     IDS_USER32_ERROR        "错误"
     IDS_USER32_UNFINISHED   "编辑器还未完全关闭, 请稍后重新打开"
     IDS_EXTRA_PATH          "外部程序路径: "
+    IDS_EDITOR_PATH         "外部编辑器路径: "
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "

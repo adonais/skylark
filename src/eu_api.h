@@ -251,6 +251,7 @@ struct eu_config
     int m_limit;
     uint64_t m_id;
     char m_path[MAX_PATH];
+    char editor[MAX_PATH];
     char m_actions[100][MAX_PATH];
 };
 

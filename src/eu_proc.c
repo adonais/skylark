@@ -880,6 +880,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_edit_push_clipboard(pnode->pathfile);
                     }
                     break;
+                case IDM_EDIT_OTHER_EDITOR:
+                    if (pnode && !pnode->is_blank && *pnode->pathfile)
+                    {
+                        on_edit_push_editor(pnode, pnode->pathfile);
+                    }
+                    break;                    
                 case IDM_FILE_WORKSPACE:
                     if (pnode && *pnode->pathfile && !pnode->is_blank)
                     {

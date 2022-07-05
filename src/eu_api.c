@@ -1618,6 +1618,7 @@ eu_save_config(void)
         "app_build_id = %I64u\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
+        "other_editor_path = \"%s\"\n"
         "process_actions = {\n"
         "%s"
         "}\n";
@@ -1690,6 +1691,7 @@ eu_save_config(void)
               g_config->m_limit,
               on_about_build_id(),
               g_config->m_path,
+              g_config->editor,
               pactions);
     if ((fp = _tfopen(path , _T("wb"))) != NULL)
     {

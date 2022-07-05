@@ -52,6 +52,7 @@ struct _tabpage
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
     HWND hwnd_qredit;           // tab关联的运行edit日志窗口
+    HWND hwnd_result;           // 文档搜索结果窗口句柄
     RECT rect_sc;               // 编辑器矩形区域
     RECT rect_sym;              // 右侧边栏窗口矩形区域
     RECT rect_qredit;           // edit日志窗口矩形区域

@@ -82,6 +82,7 @@ function eu_conf.loadconf()
         "app_build_id = 0\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"d:/msys2/msys2_shell.cmd -mingw64 -here\"\n" ..
+        "other_editor_path = \"\"\n" ..
         "process_actions = {}\n"
         eu_code = assert(loadstring(code))()
     else
@@ -142,7 +143,8 @@ function eu_conf.loadconf()
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         cache_limit_size,
         app_build_id,
-        process_path
+        process_path,
+        other_editor_path
     })
     eu_conf.fill_actions(m_config)
     if (not eu_core.euapi.eu_config_ptr(m_config)) then

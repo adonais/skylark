@@ -84,6 +84,7 @@ struct eu_config
     int m_limit;
     uint64_t m_id;
     char m_path[260];
+    char editor[260];
     char m_actions[100][260];
 };
     

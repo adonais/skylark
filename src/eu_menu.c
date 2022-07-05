@@ -361,6 +361,7 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_UNDO:                       /* Edit menu */
                         util_enable_menu_item(menu, IDM_EDIT_CUT, util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_COPY, util_can_selections(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);
                         break;
                     case IDM_UPDATE_SELECTION:                /* Search menu */
                         util_set_menu_item(menu, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);

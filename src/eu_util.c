@@ -24,6 +24,20 @@ typedef unsigned long (*ptr_compress_bound)(unsigned long source_len);
 typedef int (*ptr_compress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long, int);
 typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long *);
 
+typedef DWORD(WINAPI *PFNGFVSW)(LPCWSTR, LPDWORD);
+typedef DWORD(WINAPI *PFNGFVIW)(LPCWSTR, DWORD, DWORD, LPVOID);
+typedef bool(WINAPI *PFNVQVW)(LPCVOID, LPCWSTR, LPVOID, PUINT);
+
+typedef struct _LANGANDCODEPAGE
+{
+    uint16_t wLanguage;
+    uint16_t wCodePage;
+} LANGANDCODEPAGE;
+
+static PFNGFVSW pfnGetFileVersionInfoSizeW;
+static PFNGFVIW pfnGetFileVersionInfoW;
+static PFNVQVW pfnVerQueryValueW;
+
 #define BUFF_64K 0x10000
 #define BUFF_200M 0xc800000
 #define AES_IV_MATERIAL "copyright by skylark team"
@@ -1242,7 +1256,24 @@ util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
 }
 
 TCHAR *
-util_wchr_replace(TCHAR *path)
+util_path2unix(TCHAR *path)
+{
+    TCHAR *lp = NULL;
+    intptr_t pos;
+    do
+    {
+        lp = _tcschr(path, _T('\\'));
+        if (lp)
+        {
+            pos = lp - path;
+            path[pos] = _T('/');
+        }
+    } while (lp != NULL);
+    return path;
+}
+
+TCHAR *
+util_unix2path(TCHAR *path)
 {
     TCHAR *lp = NULL;
     intptr_t pos;
@@ -1255,7 +1286,7 @@ util_wchr_replace(TCHAR *path)
             path[pos] = _T('\\');
         }
     } while (lp != NULL);
-    return path;
+    return path;    
 }
 
 char *
@@ -1506,7 +1537,7 @@ util_to_abs(const char *path)
     {
         return NULL;
     }
-    util_wchr_replace(lpfile);
+    util_unix2path(lpfile);
     // 进程当前目录为基准, 得到绝对路径
     SetCurrentDirectory(eu_module_path);
     if (lpfile[0] == _T('%'))
@@ -1717,4 +1748,83 @@ util_count_number(size_t number)
         ++length;
     }
     return length;
+}
+
+/* 初始化version.dll里面的三个函数 */
+static HMODULE
+util_init_verinfo(void)
+{
+    HMODULE h_ver = LoadLibraryW(L"version.dll");
+    if (h_ver != NULL)
+    {
+        pfnGetFileVersionInfoSizeW = (PFNGFVSW) GetProcAddress(h_ver, "GetFileVersionInfoSizeW");
+        pfnGetFileVersionInfoW = (PFNGFVIW) GetProcAddress(h_ver, "GetFileVersionInfoW");
+        pfnVerQueryValueW = (PFNVQVW) GetProcAddress(h_ver, "VerQueryValueW");
+        if (!(pfnGetFileVersionInfoSizeW && pfnGetFileVersionInfoW && pfnVerQueryValueW))
+        {
+            FreeLibrary(h_ver);
+            h_ver = NULL;
+        }
+    }
+    return h_ver;
+}
+
+bool
+util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
+{
+    HMODULE h_ver = NULL;
+    bool ret = false;
+    DWORD dw_handle = 0;
+    DWORD dw_size = 0;
+    uint32_t cb_translate = 0;
+    LPWSTR pbuffer = NULL;
+    PVOID ptmp = NULL;
+    WCHAR dw_block[FILESIZE + 1] = { 0 };
+    LANGANDCODEPAGE *lptranslate = NULL;
+    do
+    {
+        if ((h_ver = util_init_verinfo()) == NULL)
+        {
+            break;
+        }
+        if ((dw_size = pfnGetFileVersionInfoSizeW(filepath, &dw_handle)) == 0)
+        {
+            printf("pfnGetFileVersionInfoSizeW return false\n");
+            break;
+        }
+        if ((pbuffer = (LPWSTR) calloc(1, dw_size * sizeof(WCHAR))) == NULL)
+        {
+            break;
+        }
+        if (!pfnGetFileVersionInfoW(filepath, 0, dw_size, (LPVOID) pbuffer))
+        {
+            printf("pfnpfnGetFileVersionInfoW return false\n");
+            break;
+        }
+        pfnVerQueryValueW((LPCVOID) pbuffer, L"\\VarFileInfo\\Translation", (LPVOID *) &lptranslate, &cb_translate);
+        if (NULL == lptranslate)
+        {
+            break;
+        }
+        for (uint16_t i = 0; i < (cb_translate / sizeof(LANGANDCODEPAGE)); i++)
+        {
+            sntprintf(dw_block,
+                      FILESIZE,
+                      L"\\StringFileInfo\\%04x%04x\\ProductName",
+                      lptranslate[i].wLanguage,
+                      lptranslate[i].wCodePage);
+            
+            ret = pfnVerQueryValueW((LPCVOID) pbuffer, (LPCWSTR) dw_block, (LPVOID *) &ptmp, &cb_translate);
+            if (ret)
+            {
+                out_string[0] = L'\0';
+                wcsncpy(out_string, (LPCWSTR) ptmp, len);
+                ret = wcslen(out_string) > 1;
+                if (ret) break;
+            }
+        }
+    } while (0);
+    eu_safe_free(pbuffer);
+    safe_close_dll(h_ver);
+    return ret;
 }

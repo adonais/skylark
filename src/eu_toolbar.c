@@ -654,7 +654,7 @@ on_toolbar_execute_script(void)
             int len = (int)_tcslen(process);
             if (len > 1 && len < MAX_PATH)
             {
-                WideCharToMultiByte(CP_UTF8, 0, process, -1, eu_get_config()->m_actions[p->doc_ptr->doc_type], MAX_PATH-1, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process), -1, eu_get_config()->m_actions[p->doc_ptr->doc_type], MAX_PATH-1, NULL, NULL);
                 CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, NULL, 0, NULL));
             }
         }
