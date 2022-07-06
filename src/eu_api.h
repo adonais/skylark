@@ -83,6 +83,8 @@
 #define WM_BACKUP_OVER            (WM_USER+10001)
 #define WM_SYSLIST_OVER           (WM_USER+10002)
 #define WM_RESULT_PTR             (WM_USER+10003)
+// Tab notification message
+#define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
 #if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
@@ -245,6 +247,7 @@ struct eu_config
     bool m_write_copy;
     bool m_session;
     bool m_exit;
+    bool m_instance;
     char m_placement[MAX_BUFFER];
     char m_language[ACNAME_LEN];
     print_set eu_print;
@@ -515,6 +518,7 @@ EU_EXT_CLASS HANDLE __stdcall share_envent_open_file_sem(void);
 EU_EXT_CLASS HWND eu_get_search_hwnd(void);
 
 // for eu_config.c
+EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
 EU_EXT_CLASS bool __stdcall eu_load_config(HMODULE *pmod);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
 

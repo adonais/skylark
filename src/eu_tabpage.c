@@ -30,10 +30,9 @@ HWND g_tabpages = NULL;
 HMENU pop_editor_menu = NULL;
 HMENU pop_tab_menu = NULL;
 
-static bool is_moving;
-static int move_from;
-static POINT pt_down;
-static WNDPROC old_tabproc;
+static WNDPROC old_tabproc = NULL;
+static bool tab_drag = false;
+static volatile int tab_move_from = -1;
 
 int
 on_tabpage_get_height(void)
@@ -147,6 +146,13 @@ on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
     return PtInRect(&rc, *pt);
 }
 
+static int
+on_tabpage_hit_index(const LPPOINT pt)
+{
+    TCHITTESTINFO hit_info = {{pt->x, pt->y},};
+    return (int)(SendMessage(g_tabpages, TCM_HITTEST, 0, (LPARAM)(&hit_info)));
+}
+
 static void
 on_tabpage_paint_draw(HWND hwnd, HDC hdc)
 {
@@ -196,6 +202,77 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
     }
 }
 
+static void
+on_tabpage_exchange_item(int old_index, int new_index)
+{
+    int i = 0;
+    TCITEM drag_item, shift_item;
+	TCHAR str1[MAX_PATH];
+	TCHAR str2[MAX_PATH];
+	drag_item.mask = shift_item.mask = TCIF_TEXT | TCIF_PARAM;
+	drag_item.cchTextMax = shift_item.cchTextMax = MAX_PATH;
+	drag_item.pszText = str1;
+	shift_item.pszText = str2;
+	TabCtrl_GetItem(g_tabpages, old_index, &drag_item);
+	if (old_index > new_index)
+	{
+		for (i = old_index; i > new_index; --i)
+		{
+			SendMessage(g_tabpages, TCM_GETITEM, i - 1, (LPARAM)(&shift_item));
+			SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
+		}
+	}
+	else
+	{
+		for (i = old_index; i < new_index; ++i)
+		{
+			SendMessage(g_tabpages, TCM_GETITEM, i + 1, (LPARAM)(&shift_item));
+			SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
+		}
+	}	
+	SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
+	on_tabpage_select_index(new_index);
+}
+
+void
+on_tabpage_drag_mouse(POINT *pscreen)
+{
+    NMHDR mn = {0};
+    TCHAR name[FILESIZE] = {0};
+    HWND hwin = WindowFromPoint(*pscreen);
+    GetClassName(hwin, name, FILESIZE - 1);
+    if (GetParent(hwin) == eu_hwnd_self())
+    {
+        eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
+    }
+    else if ((!_tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, WC_TABCONTROL)))
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(tab_move_from);
+        if (p && !p->is_blank && !p->be_modify && !p->hex_mode)
+        {
+            file_backup bak = {0};
+            _tcscpy(bak.rel_path, p->pathfile);
+            COPYDATASTRUCT cpd = { 0 };
+            cpd.lpData = (PVOID) &bak;
+            cpd.cbData = (DWORD) sizeof(file_backup);
+            on_file_close(p, FILE_ONLY_CLOSE);
+            if (!_tcscmp(name, APP_CLASS))
+            {
+                SendMessageW(hwin, WM_COPYDATA, 0, (LPARAM) &cpd);
+            }
+            else
+            {
+                SendMessageW(GetParent(hwin), WM_COPYDATA, 0, (LPARAM) &cpd);
+            }
+            SwitchToThisWindow(hwin, true);
+        }
+    }
+    else
+    {
+        eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
+    }
+}
+
 LRESULT CALLBACK
 tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -240,8 +317,14 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             TRACKMOUSEEVENT MouseEvent = { sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwnd, HOVER_DEFAULT };
             TrackMouseEvent(&MouseEvent);
             RECT rect;
-            POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             int nsel = TabCtrl_GetCurSel(hwnd);
+            POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            GetClientRect(hwnd, &rect);
+            if (!PtInRect(&rect, point))
+            {
+                SetCursor(LoadCursor(eu_module_handle(), MAKEINTRESOURCE(IDC_CURSOR_DRAG)));
+                break;
+            }
             count = TabCtrl_GetItemCount(hwnd);
             for (index = 0; index < count; ++index)
             {
@@ -252,10 +335,17 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 TabCtrl_GetItemRect(hwnd, index, &rect);
                 if (PtInRect(&rect, point))
                 {
-                    on_tabpage_draw_close(hwnd, &rect, index == nsel);
-                    p->at_close = true;
-                }
-                else if (p->at_close)
+                    if (tab_move_from >= 0 && tab_move_from != index && KEY_DOWN(VK_LBUTTON))
+                    {
+                        tab_drag = true;
+                    }
+                    else if (!tab_drag)
+                    {
+                        on_tabpage_draw_close(hwnd, &rect, index == nsel);
+                        p->at_close = true;
+                    }
+				}
+				else if (p->at_close)
                 {
                     on_tabpage_undraw_close(hwnd, &rect);
                     p->at_close = false;
@@ -287,107 +377,77 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            if (!is_moving)
+            RECT rect_tabbar;
+            POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            count = TabCtrl_GetItemCount(hwnd);
+            tab_move_from = -1;
+            tab_drag = false;
+            for (index = 0; index < count; ++index)
             {
-                RECT rect_tabbar;
-                POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-                count = TabCtrl_GetItemCount(hwnd);
-                move_from = -1;
-                for (index = 0; index < count; ++index)
+                TabCtrl_GetItemRect(hwnd, index, &rect_tabbar);
+                if (on_tabpage_hit_button(&rect_tabbar, &pt))
                 {
-                    TabCtrl_GetItemRect(hwnd, index, &rect_tabbar);
-                    if (on_tabpage_hit_button(&rect_tabbar, &pt))
-                    {
-                        PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
-                        return 1;
-                    }
-                    if (rect_tabbar.left < pt.x && pt.x < rect_tabbar.right && rect_tabbar.top < pt.y && pt.y < rect_tabbar.bottom)
-                    {
-                        move_from = index;
-                        break;
-                    }
+                    PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
+                    return 1;
                 }
-                if (move_from >= 0)
+                if (rect_tabbar.left < pt.x && pt.x < rect_tabbar.right && rect_tabbar.top < pt.y && pt.y < rect_tabbar.bottom)
                 {
-                    is_moving = true;
-                    pt_down.x = pt.x;
-                    pt_down.y = pt.y;
+                    tab_move_from = index;
+                    break;
                 }
             }
+			if (GetCapture() != hwnd)
+			{
+				SetCapture(hwnd);
+			}            
             break;
         }
         case WM_LBUTTONUP:
         {
-            if (is_moving)
+            RECT rect = {0};
+            POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            GetClientRect(hwnd, &rect);
+            ReleaseCapture();
+            if (tab_move_from >= 0)
             {
-                int x = GET_X_LPARAM(lParam);
-                int y = GET_Y_LPARAM(lParam);
-                if (abs(x - pt_down.x) > MOVE_SPLITE_LINE || abs(y - pt_down.y) > MOVE_SPLITE_LINE)
-                {
-                    int count = TabCtrl_GetItemCount(hwnd);
-                    RECT rect_tabbar;
-                    int m_to = -1;
-                    for (index = 0; index < count; ++index)
-                    {
-                        TabCtrl_GetItemRect(hwnd, index, &rect_tabbar);
-                        if (rect_tabbar.left < x && x < rect_tabbar.right && rect_tabbar.top < y && y < rect_tabbar.bottom)
-                        {
-                            m_to = index;
-                            break;
-                        }
-                    }
-                    if (m_to >= 0)
-                    {
-                        eu_tabpage *pnode = on_tabpage_focus_at();
-                        if (!pnode)
-                        {
-                            break;
-                        }
-                        TabCtrl_DeleteItem(hwnd, move_from);
-                        TCITEM tci = {TCIF_TEXT | TCIF_PARAM};
-                        tci.pszText = pnode->filename;
-                        tci.lParam = (LPARAM) pnode;
-                        if (TabCtrl_InsertItem(hwnd, m_to, &tci) != -1)
-                        {
-                            on_tabpage_select_index(m_to);
-                        }
-                    }
+                int count = TabCtrl_GetItemCount(hwnd);
+                if (!PtInRect(&rect, point))
+                {   // Get cursor position of "Screen"
+                    GetCursorPos(&point);
+                    on_tabpage_drag_mouse(&point);
+                    return 1;
                 }
-                is_moving = false;
+                if (!tab_drag)
+                {
+                    break;
+                }
+                if ((index = on_tabpage_hit_index(&point)) != -1)
+                {
+                    on_tabpage_exchange_item(tab_move_from, index);
+                }
             }
             break;
         }
         case WM_RBUTTONDOWN:
         {
-            RECT rect = { 0 };
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             int nsel = TabCtrl_GetCurSel(hwnd);
-            count = TabCtrl_GetItemCount(hwnd);
-            for (index = 0; index < count; ++index)
+            if ((index = on_tabpage_hit_index(&point)) != -1 && index != nsel)
             {
-                if (nsel == index)
-                {
-                    continue;
-                }
-                TabCtrl_GetItemRect(hwnd, index, &rect);
-                if (PtInRect(&rect, point))
-                {
-                    on_tabpage_select_index(index);
-                    break;
-                }
+                on_tabpage_select_index(index);
+                break;
             }
             return 1;
         }
         case WM_RBUTTONUP:
         {
             POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-            eu_tabpage *pnode = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd));
-            if (pnode)
+            if ((p = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd))))
             {
-                util_enable_menu_item(pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(pnode));
-                util_enable_menu_item(pop_tab_menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);
-                util_enable_menu_item(pop_tab_menu, IDM_FILE_WORKSPACE, !pnode->is_blank);
-                util_enable_menu_item(pop_tab_menu, IDM_FILE_EXPLORER, !pnode->is_blank);
+                util_enable_menu_item(pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(p));
+                util_enable_menu_item(pop_tab_menu, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
+                util_enable_menu_item(pop_tab_menu, IDM_FILE_WORKSPACE, !p->is_blank);
+                util_enable_menu_item(pop_tab_menu, IDM_FILE_EXPLORER, !p->is_blank);
             }
             ClientToScreen(hwnd, &pt);
             HMENU hpop = GetSubMenu(pop_tab_menu, 0);
@@ -399,20 +459,11 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MBUTTONUP:
         {
-            RECT rect = { 0 };
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-            for (index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
+            if ((index = on_tabpage_hit_index(&point)) != -1 && (p = on_tabpage_get_ptr(index)) != NULL)
             {
-                TabCtrl_GetItemRect(hwnd, index, &rect);
-                if (PtInRect(&rect, point))
-                {
-                    eu_tabpage *tmp = on_tabpage_get_ptr(index);
-                    if (tmp)
-                    {
-                        on_file_close(tmp, FILE_ONLY_CLOSE);
-                    }
-                    break;
-                }
+                on_file_close(p, FILE_ONLY_CLOSE);
+                return 1;
             }
             break;
         }
@@ -899,11 +950,10 @@ on_tabpage_get_handle(void *hwnd_sc)
 {
     eu_tabpage *p = NULL;
     EU_VERIFY(g_tabpages != NULL);
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         p = on_tabpage_get_ptr(index);
-        if (p->hwnd_sc == hwnd_sc)
+        if (p && p->hwnd_sc == hwnd_sc)
         {
             return p;
         }
@@ -916,8 +966,7 @@ on_tabpage_get_index(void)
 {
     EU_VERIFY(g_tabpages != NULL);
     eu_tabpage *p = NULL;
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         if ((p = on_tabpage_get_ptr(index)) && GetWindowLongPtr(p->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
         {

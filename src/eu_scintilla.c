@@ -556,7 +556,8 @@ eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR phdr)
 {
     phdr->hwndFrom = hwnd;
     phdr->code = code;
-    SendMessage(GetParent(hwnd), WM_NOTIFY, 0, (LPARAM) phdr);
+    HWND parent = GetParent(hwnd) ? GetParent(hwnd) : eu_module_hwnd();
+    SendMessage(parent, WM_NOTIFY, 0, (LPARAM) phdr);
 }
 
 sptr_t

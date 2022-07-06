@@ -78,6 +78,7 @@ struct eu_config
     bool m_write_copy;
     bool m_session;
     bool m_exit;
+    bool m_instance;
     char m_placement[1024];
     char m_language[64];
     print_set eu_print;

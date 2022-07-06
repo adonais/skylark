@@ -23,18 +23,10 @@
 static HANDLE  g_skylark_sem;         // 主窗口初始化信号量
 HMODULE g_skylark_lang = NULL;        // 资源dll句柄
 
-bool WINAPI
-share_open_file(LPCTSTR path, bool read_only, uint32_t dw_creation, HANDLE *phandle)
-{
-    *phandle = CreateFile(path, read_only ? GENERIC_READ : (GENERIC_READ | GENERIC_WRITE),
-                          (FILE_SHARE_READ|FILE_SHARE_WRITE), NULL, dw_creation, FILE_ATTRIBUTE_NORMAL, NULL);
-     if (*phandle == INVALID_HANDLE_VALUE)
-     {
-        return false;
-     }
-     return true;
-}
 
+/*****************************************************************************
+ * 共享内存API的封装
+ ****************************************************************************/
 HANDLE WINAPI
 share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name)
 {
@@ -83,6 +75,21 @@ share_close(HANDLE handle)
     }
 }
 
+/*****************************************************************************
+ * 内存映射文件, 可分块映射
+ ****************************************************************************/
+bool WINAPI
+share_open_file(LPCTSTR path, bool read_only, uint32_t dw_creation, HANDLE *phandle)
+{
+    *phandle = CreateFile(path, read_only ? GENERIC_READ : (GENERIC_READ | GENERIC_WRITE),
+                          (FILE_SHARE_READ|FILE_SHARE_WRITE), NULL, dw_creation, FILE_ATTRIBUTE_NORMAL, NULL);
+     if (*phandle == INVALID_HANDLE_VALUE)
+     {
+        return false;
+     }
+     return true;
+}
+ 
 uint8_t *WINAPI
 share_map_section(HANDLE mapping, uint64_t offset, size_t length, bool read_only)
 {
@@ -105,6 +112,9 @@ share_map_section(HANDLE mapping, uint64_t offset, size_t length, bool read_only
                                     adj_length);
 }
 
+/*****************************************************************************
+ * 主窗口建立的信号量, 复位方式为手动恢复, 初始无信号
+ ****************************************************************************/
 bool WINAPI
 share_envent_create(void)
 {
@@ -146,20 +156,8 @@ share_envent_release(void)
     share_envent_close();
 }
 
-bool WINAPI
-share_envent_create_close_sem(HANDLE *phandle)
-{
-    return (*phandle = CreateEvent(NULL, FALSE, TRUE, FILE_CLOSE_EVENT)) != NULL;
-}
-
-HANDLE WINAPI
-share_envent_open_file_sem(void)
-{
-    return OpenEvent(EVENT_ALL_ACCESS, false, FILE_CLOSE_EVENT);
-}
-
 HWND WINAPI
-share_get_hwnd(void)
+share_envent_get_hwnd(void)
 {
     HWND hwnd = NULL;
     HANDLE hmap = share_open(FILE_MAP_READ, SKYLARK_LOCK_NAME);
@@ -176,16 +174,57 @@ share_get_hwnd(void)
     return hwnd;
 }
 
+void WINAPI
+share_envent_set_hwnd(HWND hwnd)
+{
+    HANDLE hmap = share_open(FILE_MAP_WRITE | FILE_MAP_READ, SKYLARK_LOCK_NAME);
+    if (hmap)
+    {
+        HWND *pmemory = (HWND *) share_map(hmap, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
+        if (pmemory)
+        {
+            memcpy(pmemory, &hwnd, sizeof(HWND));
+            share_unmap(pmemory);
+        }
+        share_close(hmap);
+    }
+}
+
+/*****************************************************************************
+ * 文件自动保存时设置的信号量, 复位方式为自动恢复, 初始状态为有信号
+ ****************************************************************************/
+bool WINAPI
+share_envent_create_file_sem(HANDLE *phandle)
+{
+    return (*phandle = CreateEvent(NULL, FALSE, TRUE, FILE_CLOSE_EVENT)) != NULL;
+}
+
+HANDLE WINAPI
+share_envent_open_file_sem(void)
+{
+    return OpenEvent(EVENT_ALL_ACCESS, false, FILE_CLOSE_EVENT);
+}
+
+void WINAPI
+share_envent_wait_file_close_sem(HANDLE *phandle)
+{
+    WaitForSingleObject(*phandle, INFINITE);
+    share_close(*phandle);
+}
+
 /*****************************************************************************
  * 多进程共享,  以消息模式放送而不是共享内存
  ****************************************************************************/
 unsigned WINAPI
 share_send_msg(void *param)
 {
-    HWND hwnd = NULL;
-    // 等待主窗口初始化
-    share_envent_wait(INFINITE);
-    if ((hwnd = share_get_hwnd()) != NULL)
+    HWND hwnd = eu_module_hwnd();
+    if (!hwnd)
+    {
+        // 等待主窗口初始化
+        share_envent_wait(8000);
+    }
+    if ((hwnd = eu_module_hwnd()) != NULL)
     {
         file_backup *pbak = (file_backup *)param;
         if (pbak)
@@ -201,7 +240,7 @@ share_send_msg(void *param)
 }
 
 /*****************************************************************************
- * 根据当前区域加载多国语言文件
+ * 多国语言文件路径存储区, 多进程共享
  ****************************************************************************/
 HANDLE WINAPI
 share_load_lang(void)
@@ -257,6 +296,11 @@ share_load_lang(void)
     {
         printf("share_create error in %s\n", __FUNCTION__);
         return NULL;
+    }
+    else if (ERROR_ALREADY_EXISTS == GetLastError())
+    {
+        printf("lang_map_lock exist\n");
+        return lang_map;
     }
     LPVOID pmodule = share_map(lang_map, sizeof(lang_path), FILE_MAP_WRITE | FILE_MAP_READ);
     if (pmodule)

@@ -66,6 +66,7 @@ IDB_COPY_DARK           ICON                    "..\\resources\\copy_dark.ico"
 /////////////////////////////////////////////////////////////////////////////
 IDC_CURSOR_WE           CURSOR                    "..\\resources\\we.cur"
 IDC_CURSOR_NS           CURSOR                    "..\\resources\\ns.cur"
+IDC_CURSOR_DRAG         CURSOR                    "..\\resources\\drag.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //

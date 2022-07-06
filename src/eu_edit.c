@@ -174,7 +174,6 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (_tcsnicmp(name, _T("Notepad++"), _tcslen(name)) == 0)
         {
-            //_sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s -x%I64d -y%I64d"), path, file, line+1, pos-row+1);
             _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s -n%I64d -c%I64d"), path, file, line+1, pos-row+1);
         }
         else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(name)) == 0)
@@ -190,11 +189,7 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
     {
         _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s"), path, file);
     }
-    HANDLE handle = eu_new_process(cmd, NULL, NULL, 2, NULL);
-    if (handle)
-    {
-        CloseHandle(handle);
-    }
+    CloseHandle(eu_new_process(cmd, NULL, NULL, 2, NULL));
 }
 
 void

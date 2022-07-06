@@ -932,6 +932,7 @@
 #define IDM_VIEW_TIPS_ONTAB                 42994
 #define IDM_TAB_CLOSE_LEFT                  42995
 #define IDM_TAB_CLOSE_RIGHT                 42996
+#define IDC_CURSOR_DRAG                     42997
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

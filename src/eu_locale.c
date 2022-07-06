@@ -17,9 +17,6 @@
  *******************************************************************************/
 #include "framework.h"
 
-#define ENV_MENU 6
-#define LOCALE_SUB_MENU 5
-
 def_localization sz_localization[] =
 {
     {_T("English"), _T("en-us.dll")},
@@ -244,7 +241,7 @@ i18n_update_multi_lang(HMENU root_menu)
     {
         int index;
         HMENU menu_lang = NULL;
-        if (!(menu_lang = GetSubMenu(root_menu, LOCALE_SUB_MENU)))
+        if (!(menu_lang = GetSubMenu(root_menu, LOCALE_MENU_SUB)))
         {
             printf("menu_lang is null\n");
             return;
@@ -268,7 +265,7 @@ i18n_update_menu(HMENU root_menu)
     TCHAR lang_name[ACNAME_LEN] = {0};
     TCHAR current_lang[ACNAME_LEN] = {0};
     HMENU lang_menu = NULL;
-    lang_menu = root_menu ? GetSubMenu(root_menu, LOCALE_SUB_MENU) : NULL;
+    lang_menu = root_menu ? GetSubMenu(root_menu, LOCALE_MENU_SUB) : NULL;
     if (!(root_menu && lang_menu))
     {
         return;
@@ -432,7 +429,7 @@ i18n_switch_locale(HWND hwnd, int id)
     if (eu_refresh_interface(new_lang, lang_path) == 0)
     {
         HMENU root_menu = GetMenu(hwnd);
-        HMENU menu_env = root_menu ? GetSubMenu(root_menu, ENV_MENU) : NULL;
+        HMENU menu_env = root_menu ? GetSubMenu(root_menu, LOCALE_MENU) : NULL;
         on_tabpage_newdoc_reload();
         i18n_update_multi_lang(menu_env);
         i18n_update_menu(menu_env);

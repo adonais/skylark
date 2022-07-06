@@ -1203,10 +1203,9 @@ util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked)
 }
 
 void
-util_switch_menu_group(HMENU hmenu, uint32_t first_id, uint32_t last_id, uint32_t select)
+util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t last_id, uint32_t select)
 {
-    const int tab_sub_postion = 26;
-    HMENU htab_next = GetSubMenu(hmenu, tab_sub_postion);
+    HMENU htab_next = GetSubMenu(hmenu, pop_id);
     if (htab_next)
     {
         for (uint32_t i = first_id; i <= last_id; ++i)

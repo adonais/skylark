@@ -915,6 +915,23 @@ mem_clean:
 }
 
 int
+on_file_out_open(int index)
+{
+    eu_tabpage *p = on_tabpage_get_ptr(index);
+    if (p && !p->is_blank && !p->be_modify && !p->hex_mode)
+    {
+        TCHAR process[MAX_BUFFER] = {0};
+        if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
+        {
+            _sntprintf(process, MAX_BUFFER - 1, _T("%s%s%s"), process, _T(" -noremote "), p->pathfile);
+            on_file_close(p, FILE_ONLY_CLOSE);
+            CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+        }
+    }
+    return 0;
+}
+
+int
 on_file_redirect(HWND hwnd, file_backup *pbak)
 {
     int err = SKYLARK_OK;
@@ -928,8 +945,9 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
     }
     if (err != 0 && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败且标签小于1,则建立一个空白标签页
-        return on_file_new();
+        err = on_file_new();
     }
+    printf("err = %d\n", err);
     return err;
 }
 
@@ -1721,7 +1739,7 @@ on_file_unsave_close(void)
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_file_check_save, NULL, 0, (DWORD *)&file_close_id));
         if (!file_event_final)
         {
-            share_envent_create_close_sem(&file_event_final);
+            share_envent_create_file_sem(&file_event_final);
         }
         else
         {
@@ -1735,8 +1753,7 @@ on_file_finish_wait(void)
 {
     if (file_event_final)
     {   // we destroy windows, that it should wait for file close thread exit
-        WaitForSingleObject(file_event_final, INFINITE);
-        share_close(file_event_final);
+        share_envent_wait_file_close_sem(&file_event_final);
     }
 }
 

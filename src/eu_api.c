@@ -1600,6 +1600,7 @@ eu_save_config(void)
         "backup_on_file_write = %s\n"
         "save_last_session = %s\n"
         "exit_when_close_last_tab = %s\n"
+        "allow_multiple_instance = %s\n"
         "save_last_placement = \"%s\"\n"
         "ui_language = \"%s\"\n"
         "-- print default setting\n"
@@ -1678,6 +1679,7 @@ eu_save_config(void)
               g_config->m_write_copy?"true":"false",
               g_config->m_session?"true":"false",
               g_config->m_exit?"true":"false",
+              "false",
               g_config->m_placement,
               g_config->m_language[0]?g_config->m_language:"auto",
               g_config->eu_print.header,

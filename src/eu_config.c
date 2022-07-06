@@ -32,11 +32,22 @@ on_config_file_args(void)
     {
         return 1;
     }
-    else if (arg_c == 2 && args[1][0] && _tcscmp(args[1], _T("-restart")))
+    else if (arg_c >= 2 && args[1][0] && _tcscmp(args[1], _T("-restart")))
     {
         file_backup bak = {0};
-        _tcscpy(bak.rel_path, args[1]);
-        share_send_msg(&bak);
+        if (arg_c > 2)
+        {
+            if (_tcscmp(args[1], _T("-noremote")) == 0)
+            {
+                _tcscpy(bak.rel_path, args[2]);
+                share_send_msg(&bak);
+            }
+        }
+        else
+        {
+            _tcscpy(bak.rel_path, args[1]);
+            share_send_msg(&bak);
+        }
         ret = 0;
     }
     LocalFree(args);
@@ -118,20 +129,23 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int is_blank = 1;
-    if (eu_get_config()->m_session)
+    if (!eu_get_config()->m_instance)
     {
-        const char *sql = "SELECT * FROM skylark_session;";
-        int err = eu_sqlite3_send(sql, on_config_parser_bakup, &is_blank);
-        if (err != 0)
+        if (eu_get_config()->m_session)
         {
-            printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
-            return 1;
-        }
-        if (last_focus >= 0)
-        {
-            printf("last_focus = %ld\n", last_focus);
-            on_tabpage_select_index(last_focus);
-        }
+            const char *sql = "SELECT * FROM skylark_session;";
+            int err = eu_sqlite3_send(sql, on_config_parser_bakup, &is_blank);
+            if (err != 0)
+            {
+                printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
+                return 1;
+            }
+            if (last_focus >= 0)
+            {
+                printf("last_focus = %ld\n", last_focus);
+                on_tabpage_select_index(last_focus);
+            }
+        }        
     }
     if (on_config_file_args() && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
@@ -182,10 +196,9 @@ on_config_create_accel(void)
 }
 
 bool WINAPI
-eu_load_config(HMODULE *pmod)
+eu_load_main_config(void)
 {
     int  m = 0;
-    bool ret = false;
     char *lua_path = NULL;
     TCHAR path[MAX_PATH+1] = {0};
     m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
@@ -196,9 +209,19 @@ eu_load_config(HMODULE *pmod)
     if (do_lua_func(lua_path, "run", "") != 0)
     {
         printf("eu_main.lua exec failed\n");
-        goto load_fail;
-    }
-    eu_safe_free(lua_path);
+        free(lua_path);
+        return false;
+    }    
+    return true;
+}
+
+bool WINAPI
+eu_load_config(HMODULE *pmod)
+{
+    int  m = 0;
+    bool ret = false;
+    char *lua_path = NULL;
+    TCHAR path[MAX_PATH+1] = {0};
     m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
     if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
     {

@@ -23,13 +23,12 @@
 
 #define EU_TIMER_ID 1
 #define MAYBE100MS 100
-#define APP_CLASS _T("__eu_skylark__")
 
 typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
 static HBRUSH g_control_brush;
-static HWND eu_hwndmain;  // 主窗口句柄
+static HWND g_hwndmain;  // 主窗口句柄
 static volatile long undo_off;
 
 static int
@@ -46,6 +45,37 @@ on_create_window(HWND hwnd)
         return 1;
     }
     return SKYLARK_OK;
+}
+
+static int CALLBACK
+enum_skylark_proc(HWND hwnd, LPARAM lParam)
+{
+    if (IsWindowVisible(hwnd))
+    {
+        wchar_t m_class[FILESIZE] = {0};
+        GetClassName(hwnd, m_class, FILESIZE - 1);
+        if (_tcsnicmp(m_class, APP_CLASS, _tcslen(m_class)) == 0)
+        {
+            uint32_t m_pid = 0;
+            GetWindowThreadProcessId(hwnd, &m_pid);
+            HANDLE hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, m_pid);
+            if (hprocess)
+            {
+                wchar_t m_path[MAX_PATH] = {0};
+                wchar_t m_buffer[MAX_PATH] = {0};
+                DWORD bufferLen = _countof(m_buffer);
+                GetModuleFileName(NULL , m_path, bufferLen - 1);
+                QueryFullProcessImageName(hprocess, 0, m_buffer, &bufferLen);
+                if (_tcsnicmp(m_buffer, m_path, _tcslen(m_buffer)) == 0)
+                {
+                    printf("we get other hwnd = %p\n", (void *)hwnd);
+                    share_envent_set_hwnd(hwnd);
+                    return 0;
+                }
+            }
+        }
+    }
+    return 1;
 }
 
 static void
@@ -74,9 +104,13 @@ on_destory_window(HWND hwnd)
     {
         DestroyWindow(g_statusbar);
     }
+    if (g_hwndmain == share_envent_get_hwnd())
+    {
+        EnumWindows(enum_skylark_proc, 0);
+    }
     // 文件关闭,销毁信号量
     on_file_finish_wait();
-    // 结束进程
+    // 退出消息循环
     PostQuitMessage(0);
 }
 
@@ -124,7 +158,13 @@ eu_clear_undo_off(void)
 HWND
 eu_module_hwnd(void)
 {
-    return (eu_hwndmain ? eu_hwndmain : share_get_hwnd());
+    return (g_hwndmain ? g_hwndmain : share_envent_get_hwnd());
+}
+
+HWND
+eu_hwnd_self(void)
+{
+    return (g_hwndmain);
 }
 
 uint32_t
@@ -136,17 +176,17 @@ eu_get_dpi(HWND hwnd)
     if (user32)
     {   // PMv2, 使用GetDpiForWindow获取dpi
         fnGetDpiForWindow = (GetDpiForWindowPtr)GetProcAddress(user32, "GetDpiForWindow");
-        if (fnGetDpiForWindow && (dpi = fnGetDpiForWindow(hwnd ? hwnd : eu_hwndmain)) > 0)
+        if (fnGetDpiForWindow && (dpi = fnGetDpiForWindow(hwnd ? hwnd : g_hwndmain)) > 0)
         {
             return dpi;
         }
     }
     if (!dpi)
     {   // PMv1或Win7系统, 使用GetDeviceCaps获取dpi
-        HDC screen = GetDC(hwnd ? hwnd : eu_hwndmain);
+        HDC screen = GetDC(hwnd ? hwnd : g_hwndmain);
         int x = GetDeviceCaps(screen,LOGPIXELSX);
         int y = GetDeviceCaps(screen,LOGPIXELSY);
-        ReleaseDC(hwnd ? hwnd : eu_hwndmain, screen);
+        ReleaseDC(hwnd ? hwnd : g_hwndmain, screen);
         dpi = (uint32_t)((x + y)/2);
     }
     return dpi;
@@ -514,8 +554,8 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
 void
 eu_window_resize(HWND hwnd)
 {
-    on_proc_msg_size(hwnd ? hwnd : eu_hwndmain, NULL);
-    PostMessage(hwnd ? hwnd : eu_hwndmain, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+    on_proc_msg_size(hwnd ? hwnd : g_hwndmain, NULL);
+    PostMessage(hwnd ? hwnd : g_hwndmain, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 
 static void
@@ -639,7 +679,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {   // 是否按下大写键
                 on_statusbar_btn_case();
             }
-            if (eu_hwndmain == GetForegroundWindow())
+            if (g_hwndmain == GetForegroundWindow())
             {
                 ONCE_RUN(on_changes_window(hwnd));
             }
@@ -720,7 +760,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 HMENU file_menu = NULL;
                 HMENU hpop = NULL;
                 file_backup bak = {0};
-                HMENU root_menu = GetMenu(eu_hwndmain);
+                HMENU root_menu = GetMenu(g_hwndmain);
                 if (root_menu)
                 {
                     file_menu = GetSubMenu(root_menu, 0);
@@ -753,12 +793,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (IDM_STYLETHEME_BASE <= wm_id && wm_id <= IDM_STYLETHEME_BASE + VIEW_STYLETHEME_MAXCOUNT - 1)
             {
-                on_view_switch_theme(eu_hwndmain, wm_id);
+                on_view_switch_theme(g_hwndmain, wm_id);
                 break;
             }
             if (IDM_LOCALES_BASE <= wm_id && wm_id <= IDM_LOCALES_BASE + MAX_MULTI_LANG - 1)
             {
-                i18n_switch_locale(eu_hwndmain, wm_id);
+                i18n_switch_locale(g_hwndmain, wm_id);
                 break;
             }
             switch (wm_id)
@@ -803,7 +843,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_close_last_tab();
                     break;
                 case IDM_FILE_PAGESETUP:
-                    on_print_setup(eu_hwndmain);
+                    on_print_setup(g_hwndmain);
                     break;
                 case IDM_FILE_PRINT:
                     on_print_file(pnode);
@@ -1476,6 +1516,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case TCN_SELCHANGE:
                     on_tabpage_changing(hwnd);
                     break;
+                case TCN_TABDROPPED_OUT:
+                    on_file_out_open((int)(intptr_t)(lpnotify->nmhdr.hwndFrom));
+                    break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
                     break;
@@ -1628,13 +1671,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_CLOSE:
-            if (hwnd == eu_hwndmain)
+            if (hwnd == g_hwndmain)
             {
                 on_file_edit_exit(hwnd);
             }
             break;
         case WM_BACKUP_OVER:
-            if (hwnd == eu_hwndmain)
+            if (hwnd == g_hwndmain)
             {
                 DestroyWindow(hwnd);
             }
@@ -1702,9 +1745,9 @@ eu_create_main_window(HINSTANCE instance)
         if (InitCommonControlsEx(&icex))
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
-            eu_hwndmain = CreateWindowEx(WS_EX_ACCEPTFILES, APP_CLASS, app_title, ac_flags, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, instance, NULL);
-            on_theme_setup_font(eu_hwndmain);
+            g_hwndmain = CreateWindowEx(WS_EX_ACCEPTFILES, APP_CLASS, app_title, ac_flags, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, instance, NULL);
+            on_theme_setup_font(g_hwndmain);
         }
     }
-    return eu_hwndmain;
+    return g_hwndmain;
 }

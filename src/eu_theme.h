@@ -19,9 +19,6 @@
 #ifndef _H_SKYLARK_STYLETHEME_
 #define _H_SKYLARK_STYLETHEME_
 
-#define THEME_MENU 6
-#define THEME_MENU_SUB 7
-
 typedef struct _theme_desc
 {
     TCHAR desc[ACNAME_LEN];

@@ -19,6 +19,12 @@
 #ifndef _EU_MENU_H_
 #define _EU_MENU_H_
 
+#define THEME_MENU 6
+#define THEME_MENU_SUB 7
+#define LOCALE_MENU 6
+#define LOCALE_MENU_SUB 5
+#define TAB_MENU_SUB 27
+
 #ifdef __cplusplus
 extern "C" {
 #endif
