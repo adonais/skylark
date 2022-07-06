@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-#define BTN_DEFAULT_WIDTH 50
+#define BTN_DEFAULT_WIDTH 60
 #define CAP_TOGGLED ((GetKeyState(VK_CAPITAL) & 1) != 0)
 
 HWND g_statusbar = NULL;

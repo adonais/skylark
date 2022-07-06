@@ -942,6 +942,9 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         util_set_title(pnode->pathfile);
         on_toolbar_update_button();
         eu_window_resize(hwnd);
+        // 窗口处理过程中可能改变了标签位置, 重置它
+        TabCtrl_SetCurSel(g_tabpages, index);
+        util_set_title(pnode->pathfile);
     }
 }
 
@@ -962,13 +965,13 @@ on_tabpage_get_handle(void *hwnd_sc)
 }
 
 int
-on_tabpage_get_index(void)
+on_tabpage_get_index(eu_tabpage *pnode)
 {
     EU_VERIFY(g_tabpages != NULL);
     eu_tabpage *p = NULL;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        if ((p = on_tabpage_get_ptr(index)) && GetWindowLongPtr(p->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
+        if ((p = on_tabpage_get_ptr(index)) && p && (p == pnode))
         {
             return index;
         }
@@ -997,7 +1000,7 @@ on_tabpage_changing(HWND hwnd)
     {
         util_set_title(p->pathfile);
         on_toolbar_update_button();
-        SendMessage(hwnd, IDM_TAB_CLICK, (WPARAM)p, 0);
+        SendMessage(hwnd, WM_TAB_CLICK, (WPARAM)p, 0);
     }
 }
 

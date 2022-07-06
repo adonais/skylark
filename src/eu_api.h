@@ -60,6 +60,9 @@
 #endif
 #define MAX_ACCELS 200
 
+#ifndef WM_COPYGLOBALDATA
+#define WM_COPYGLOBALDATA         (0x0049)
+#endif
 // Custom message
 #define HVM_SETEXTENDEDSTYLE      (WM_USER + 100)
 #define HVM_SETITEMCOUNT          (WM_USER + 101)
@@ -83,6 +86,7 @@
 #define WM_BACKUP_OVER            (WM_USER+10001)
 #define WM_SYSLIST_OVER           (WM_USER+10002)
 #define WM_RESULT_PTR             (WM_USER+10003)
+#define WM_TAB_CLICK              (WM_USER+10004)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 

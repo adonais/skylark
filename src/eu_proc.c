@@ -17,10 +17,6 @@
  *******************************************************************************/
 #include "framework.h"
 
-#ifndef WM_COPYGLOBALDATA
-#define WM_COPYGLOBALDATA 0x0049
-#endif
-
 #define EU_TIMER_ID 1
 #define MAYBE100MS 100
 
@@ -667,7 +663,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_proc_msg_size(hwnd, NULL);
             }
             break;
-        case IDM_TAB_CLICK:
+        case WM_TAB_CLICK:
             on_proc_tab_click(hwnd, (void *)wParam);
             return 1;
         case WM_TIMER:

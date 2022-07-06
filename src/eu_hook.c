@@ -366,7 +366,7 @@ do_hook(void *func, void *hook_func, void **orig_func)
 static void
 put_zrow_bottom_hook(void *ptc, int moving)
 {
-    printf("put_zrow_bottom run\n");
+    // printf("put_zrow_bottom run\n");
     return;
 }
 
@@ -405,11 +405,13 @@ on_hook_do(void)
 void WINAPI
 on_hook_undo(void)
 {
+#ifdef _M_X64    
     if (put_zrow_bottom_stub)
     {
         __vfree(put_zrow_bottom_stub);
         put_zrow_bottom_stub = NULL;
     }
+#endif    
 }
 
 static uintptr_t

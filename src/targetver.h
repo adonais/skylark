@@ -395,7 +395,6 @@
 #define IDM_EDIT_COPY_FILENAME               30405
 #define IDM_EDIT_COPY_PATHNAME               30406
 #define IDM_EDIT_COPY_PATHFILENAME           30407
-#define IDM_TAB_CLICK                        30408
 #define IDM_TAB_CLOSE                        30410
 #define IDR_FILETREE_POPUPMENU               30411
 #define IDM_RELOAD_FILETREE                  30412
