@@ -932,6 +932,10 @@
 #define IDM_TAB_CLOSE_LEFT                  42995
 #define IDM_TAB_CLOSE_RIGHT                 42996
 #define IDC_CURSOR_DRAG                     42997
+#define IDS_COMMAND_TITLE                   42998
+#define IDS_HELP_COMMAND                    42999
+#define IDM_HELP_COMMAND                    43000
+
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

@@ -323,7 +323,7 @@ eu_update_backup_table(file_backup *pbak)
     // 文件路径存在特殊符号时进行转义
     eu_str_replace(rel_path, MAX_PATH, "'", "''");
     eu_str_replace(bak_path, MAX_PATH, "'", "''");
-    _snprintf(sql, MAX_BUFFER*2-1, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->lineno, pbak->cp, pbak->bakcp, 
+    _snprintf(sql, MAX_BUFFER*2-1, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->postion, pbak->cp, pbak->bakcp, 
               pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status);
     if (eu_sqlite3_send(sql, NULL, NULL) != 0)
     {

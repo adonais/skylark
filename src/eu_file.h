@@ -49,7 +49,9 @@ typedef struct _file_backup
     TCHAR rel_path[MAX_PATH];
     TCHAR bak_path[MAX_PATH];
     char mark_id[MAX_BUFFER];
-    size_t lineno;
+    char fold_id[MAX_BUFFER];
+    int64_t postion;
+    int64_t x;
     int tab_id;
     int cp;
     int bakcp;
@@ -59,6 +61,7 @@ typedef struct _file_backup
     int focus;
     int zoom;
     int status;
+    int y;
 }file_backup;
 
 extern HANDLE hwnd_backup;

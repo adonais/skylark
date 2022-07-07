@@ -480,6 +480,9 @@ EU_EXT_CLASS void eu_ssl_close_symbol(HMODULE *pssl);
 extern EU_EXT_CLASS TCHAR eu_module_path[MAX_PATH+1];
 EU_EXT_CLASS HINSTANCE eu_module_handle(void);
 
+// for eu_about.c
+EU_EXT_CLASS void __stdcall eu_about_command(void);
+
 // for eu_proc.h
 EU_EXT_CLASS HWND eu_module_hwnd(void);
 EU_EXT_CLASS void eu_close_edit(void);
@@ -524,7 +527,9 @@ EU_EXT_CLASS HWND eu_get_search_hwnd(void);
 // for eu_config.c
 EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
 EU_EXT_CLASS bool __stdcall eu_load_config(HMODULE *pmod);
+EU_EXT_CLASS bool __stdcall eu_has_help(wchar_t **args, int argc);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
+EU_EXT_CLASS void __stdcall eu_postion_setup(wchar_t **args, int argc, file_backup *pbak);
 
 // for eu_script.c
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);

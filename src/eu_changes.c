@@ -849,3 +849,15 @@ eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type)
     }
     return on_changes_msgbox(&msgbox);
 }
+
+int WINAPI
+eu_i18n_msgbox(HWND hwnd, uint16_t contents_id, uint16_t title_id, uint32_t type)
+{
+    wchar_t *pstr = NULL;
+    LOAD_I18N_RESSTR(title_id, title);
+    if ((pstr = (wchar_t *)calloc(sizeof(wchar_t), 2048)) && eu_i18n_load_str(contents_id, pstr, 2048))
+    {
+        return eu_msgbox(hwnd, pstr, title, type);
+    }
+    return 0;
+}

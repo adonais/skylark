@@ -3577,3 +3577,9 @@ on_about_build_id(void)
 {
     return get_compiler_time(__DATE__, __TIME__);
 }
+
+void WINAPI
+eu_about_command(void)
+{
+    eu_i18n_msgbox(eu_module_hwnd(), IDS_HELP_COMMAND, IDS_COMMAND_TITLE, MB_OK | MB_APPLMODAL);
+}

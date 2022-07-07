@@ -207,7 +207,7 @@ on_edit_push_editor(eu_tabpage *pnode, const TCHAR *file)
     else
     {
         TCHAR editor[MAX_PATH] = {0};
-        LOAD_I18N_RESSTR(IDS_EXTRA_PATH, m_input);
+        LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
         if (eu_input(m_input, editor, MAX_PATH - 1) && _tcslen(editor) > 1)
         {
             WideCharToMultiByte(CP_UTF8, 0, util_path2unix(editor), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);

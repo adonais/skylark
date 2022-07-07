@@ -334,6 +334,7 @@ BEGIN
         MENUITEM "捐赠我们",                                    IDM_DONATION
         MENUITEM "功能简介(&O) ...",                            IDM_INTRODUTION
         MENUITEM "更新历史(&H) ...",                            IDM_CHANGELOG
+        MENUITEM "命令行参数(&C) ...",                          IDM_HELP_COMMAND
         MENUITEM "关于(&A) ...",                                IDM_ABOUT
     END
 END
@@ -1113,6 +1114,8 @@ STRINGTABLE DISCARDABLE
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
     IDS_RESULT_STRINGS1     "#* 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)%s"
     IDS_RESULT_STRINGS2     "行 %*I64d: %s"
+    IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-n : 打开文件时滚动到指定行\n-c : 打开文件时滚动到指定列\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
+    IDS_COMMAND_TITLE       "Skylark命令行帮助: "
 }
 
 /////////////////////////////////////////////////////////////////////////////

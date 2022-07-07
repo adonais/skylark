@@ -19,6 +19,14 @@
 #include "framework.h"
 #include <process.h>
 
+#define REG_ON_DARK_MODE                                    \
+{                                                           \
+    if (_tcschr(argv[1], _T('=')))                          \
+    {                                                       \
+        dark_mode = eu_on_dark_init(true, true);            \
+    }                                                       \
+}
+
 /*****************************************************************************
  * 主窗口初始化之前, 先建立工具栏, 状态栏, 搜索框等顶层窗口
  ****************************************************************************/
@@ -143,37 +151,29 @@ _tmain(int argc, TCHAR *argv[])
         if (argc > 1)
         {
             file_backup bak = {0};
-            if (_tcsncmp(argv[1], _T("-reg1"), 5) == 0)
-            {   // 注册或卸载右键菜单1
-                if (_tcschr(argv[1], _T('=')))
-                {
-                    dark_mode = eu_on_dark_init(true, true);
-                }
+            if (!_tcsncmp(argv[1], REGFILE, _tcslen(REGFILE)))
+            {   // 注册或卸载文件右键菜单
+                REG_ON_DARK_MODE
                 eu_undo_file_popup();
-                _tcscpy(bak.rel_path, argv[1]);
+                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
                 share_send_msg(&bak);
             }
-            else if (_tcsncmp(argv[1], _T("-reg2"), 5) == 0)
-            {   // 注册或卸载右键菜单2
-                if (_tcschr(argv[1], _T('=')))
-                {
-                    dark_mode = eu_on_dark_init(true, true);
-                }
+            else if (!_tcsncmp(argv[1], REGFOLDER, _tcslen(REGFOLDER)))
+            {   // 注册或卸载目录右键菜单
+                REG_ON_DARK_MODE
                 eu_undo_dir_popup();
-                _tcscpy(bak.rel_path, argv[1]);
+                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
                 share_send_msg(&bak);
             }
-            else if (_tcsncmp(argv[1], _T("-reg3"), 5) == 0)
+            else if (!_tcsncmp(argv[1], REGASSOC, _tcslen(REGASSOC)))
             {   // 注册文件关联
-                if (_tcschr(argv[1], _T('=')))
-                {
-                    dark_mode = eu_on_dark_init(true, true);
-                }
+                REG_ON_DARK_MODE
                 eu_create_registry_dlg();
             }
             else if (!no_remote && _tcslen(argv[1]) > 1)
             {   // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
-                _tcscpy(bak.rel_path, argv[1]);
+                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
+                eu_postion_setup(argv, argc, &bak);
                 share_send_msg(&bak);
             }
             share_close_lang();
@@ -205,6 +205,7 @@ _tmain(int argc, TCHAR *argv[])
         {
             fname = argv[3];
             save = argv[4];
+            _tputenv(_T("LUA_PATH="));
         }
         return eu_lua_script_convert(fname, save);
     }
@@ -229,13 +230,23 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (argc > 1 && _tcscmp(argv[1], _T("-reg1")) == 0)
+    if (eu_has_help(argv, argc))
+    {
+        if (strcmp(eu_get_config()->window_theme, "black") == 0)
+        {
+            eu_on_dark_init(true, true);
+        }
+        eu_about_command();
+        msg.wParam = 0;
+        goto all_clean;
+    }
+    if (argc > 1 && _tcscmp(argv[1], REGFILE) == 0)
     {
         eu_reg_file_popup_menu();
         msg.wParam = 0;
         goto all_clean;
     }
-    if (argc > 1 && _tcscmp(argv[1], _T("-reg2")) == 0)
+    if (argc > 1 && _tcscmp(argv[1], REGFOLDER) == 0)
     {
         eu_reg_dir_popup_menu();
         msg.wParam = 0;

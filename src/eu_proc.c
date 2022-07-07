@@ -1337,6 +1337,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_only_open(&bak, true);
                     break;
                 }
+                case IDM_HELP_COMMAND:
+                    eu_about_command();
+                    break;                
                 case IDM_VIEW_FULLSCREEN:
                 {
                     on_view_full_sreen(hwnd);

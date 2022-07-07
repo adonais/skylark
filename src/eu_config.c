@@ -22,6 +22,52 @@
 
 static volatile long last_focus = -1;
 
+void WINAPI
+eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
+{
+    int arg_c = argc;
+    LPWSTR *ptr_arg = NULL;
+    if (args)
+    {
+        ptr_arg = args;
+    }
+    else
+    {
+        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
+    }
+    if (ptr_arg)
+    {
+        for (int i = 0; i < arg_c; ++i)
+        {
+            if (!_tcsncmp(ptr_arg[i], _T("-n"), 2) && _tcslen(ptr_arg[i]) > 2)
+            {
+                pbak->x = _tstoi64(&ptr_arg[i][2]);
+            }
+            else if (!_tcsncmp(ptr_arg[i], _T("-c"), 2) && _tcslen(ptr_arg[i]) > 2)
+            {
+                pbak->y = _tstoi(&ptr_arg[i][2]);
+            }            
+        }
+        if (ptr_arg != args)
+        {
+            LocalFree(ptr_arg);
+        }
+    }
+}
+
+bool WINAPI
+eu_has_help(wchar_t **args, int argc)
+{
+    for (int i = 0; i < argc; ++i)
+    {
+        if (!_tcscmp(args[i], _T("--help")))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 static int
 on_config_file_args(void)
 {
@@ -35,17 +81,15 @@ on_config_file_args(void)
     else if (arg_c >= 2 && args[1][0] && _tcscmp(args[1], _T("-restart")))
     {
         file_backup bak = {0};
-        if (arg_c > 2)
+        eu_postion_setup(args, arg_c, &bak);
+        if (arg_c > 2 && !_tcscmp(args[1], _T("-noremote")))
         {
-            if (_tcscmp(args[1], _T("-noremote")) == 0)
-            {
-                _tcscpy(bak.rel_path, args[2]);
-                share_send_msg(&bak);
-            }
+            _tcsncpy(bak.rel_path, args[2], MAX_PATH - 1);
+            share_send_msg(&bak);
         }
         else
         {
-            _tcscpy(bak.rel_path, args[1]);
+            _tcsncpy(bak.rel_path, args[1], MAX_PATH - 1);
             share_send_msg(&bak);
         }
         ret = 0;
@@ -79,7 +123,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szLine"))
         {
-            filebak.lineno = _atoi64(column[i]);
+            filebak.postion = _atoi64(column[i]);
         }
         else if (STRCMP(names[i], ==, "szCp"))
         {

@@ -251,6 +251,14 @@ on_tabpage_drag_mouse(POINT *pscreen)
         if (p && !p->is_blank && !p->be_modify && !p->hex_mode)
         {
             file_backup bak = {0};
+            sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+            if (pos > 0)
+            {
+                sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                bak.x = lineno + 1;
+                bak.y = eu_int_cast(pos - row + 1);
+            }
             _tcscpy(bak.rel_path, p->pathfile);
             COPYDATASTRUCT cpd = { 0 };
             cpd.lpData = (PVOID) &bak;

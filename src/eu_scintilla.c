@@ -160,7 +160,6 @@ on_sci_after_file(eu_tabpage *pnode)
         if (pnode->zoom_level != 0)
         {
             int zoom = pnode->zoom_level;
-            printf("pnode->zoom_level = %d\n", pnode->zoom_level);
             if (pnode->zoom_level > 0)
             {
                 while (zoom--)

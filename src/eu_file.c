@@ -495,7 +495,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     if (pbak->cp)
     {   // 存在备份,不再测试编码
         pnode->eol = pbak->eol;
-        pnode->nc_pos = pbak->lineno;
+        pnode->nc_pos = pbak->postion;
         pnode->codepage = pbak->cp;
         pnode->hex_mode = !!pbak->hex;
         if (pnode->codepage == IDM_OTHER_BIN)
@@ -728,6 +728,19 @@ on_file_other_tab(int index)
     }
 }
 
+static void
+on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
+{
+    if (pnode && pbak && pnode->nc_pos <= 0)
+    {
+        pnode->nc_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
+        if (pnode->nc_pos >= 0)
+        {
+            pnode->nc_pos += (pbak->y > 0 ? pbak->y - 1 : 0);
+        }
+    }
+}
+
 int
 on_file_only_open(file_backup *pbak, bool selection)
 {
@@ -804,6 +817,7 @@ on_file_only_open(file_backup *pbak, bool selection)
             return EUE_WRITE_TAB_FAIL;
         }
         on_sci_after_file(pnode);
+        on_file_update_postion(pnode, pbak);
         on_tabpage_selection(pnode, -1);
         on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
         if (strlen(pbak->mark_id) > 0)
@@ -923,7 +937,10 @@ on_file_out_open(int index)
         TCHAR process[MAX_BUFFER] = {0};
         if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
         {
-            _sntprintf(process, MAX_BUFFER - 1, _T("%s%s%s"), process, _T(" -noremote "), p->pathfile);
+            sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+            sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+            _sntprintf(process, MAX_BUFFER - 1, _T("%s%s%s -n%I64d -c%I64d"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
             on_file_close(p, FILE_ONLY_CLOSE);
             CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
         }
@@ -947,7 +964,7 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
     {   // 打开文件失败且标签小于1,则建立一个空白标签页
         err = on_file_new();
     }
-    printf("err = %d\n", err);
+    printf("err = %d, x = %I64d, y = %d\n", err, pbak->x, pbak->y);
     return err;
 }
 
@@ -1525,7 +1542,7 @@ on_file_save_backup(eu_tabpage *pnode)
         filebak.focus = pnode->last_focus;
         filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
         on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
-        filebak.lineno = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         eu_update_backup_table(&filebak);
     }
 }

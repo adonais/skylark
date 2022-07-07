@@ -31,6 +31,7 @@ extern "C" {
 #endif
 
 void __stdcall on_changes_window(HWND hwnd);
+int __stdcall eu_i18n_msgbox(HWND hwnd, uint16_t contents_id, uint16_t title_id, uint32_t type);
 
 #ifdef __cplusplus
 }
