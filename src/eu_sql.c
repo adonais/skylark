@@ -80,7 +80,7 @@ init_sql_file(const char *sql_path)
     const char *test = "SELECT szName FROM skylar_ver;";
     const char *sql[] = \
     {
-        "create table file_recent(szId INTEGER PRIMARY KEY, szName char, szDate BIGINT, UNIQUE(szName));",
+        "create table file_recent(szId INTEGER PRIMARY KEY, szName char, szPos BIGINT, szDate BIGINT, UNIQUE(szName));",
         "create table file_remote(szId INTEGER PRIMARY KEY, szName char, szProtocol char, szAddress char, "
         "szPort SMALLINT, szArea SMALLINT, szUser char, szPass char, szPrivate char, szPassphrase char, UNIQUE(szName));",
         "create table find_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",

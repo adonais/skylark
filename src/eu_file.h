@@ -64,6 +64,12 @@ typedef struct _file_backup
     int y;
 }file_backup;
 
+typedef struct _file_recent
+{
+    char path[MAX_PATH];
+    int64_t postion;
+}file_recent;
+
 extern HANDLE hwnd_backup;
 
 int on_file_new(void);
