@@ -1071,13 +1071,55 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
         find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
         if (find_line >= 0)
         {
-            offset = (int)strlen(szmark);
+            offset = eu_int_cast(strlen(szmark));
             if (offset >= size)
             {
                 break;
             }
             _snprintf(szmark+offset, size-offset, "%I64d;", find_line);
             current_line = find_line + 1;
+        }
+    }
+}
+
+void
+on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
+{
+    int offset = 0;
+    sptr_t header_line = 0;
+    *szfold = 0;
+    do
+    {
+        header_line = eu_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
+        if (header_line != -1)
+        {
+            offset = eu_int_cast(strlen(szfold));
+            if (offset >= size)
+            {
+                break;
+            }
+            _snprintf(szfold+offset, size-offset, "%I64d;", header_line);
+            ++header_line;
+        }
+    } while (header_line != -1);
+}
+
+void
+on_search_update_fold(eu_tabpage *pnode, char *szfold)
+{
+    if (pnode)
+    {
+        char *p = strtok(szfold, ";");
+        while (p)
+        {
+            sptr_t line = _atoi64(p);
+            uint32_t level = (uint32_t)(eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0) & SC_FOLDLEVELNUMBERMASK);
+            if (level == 0x400)
+            {   // 如果是父节点, 展开一次再折叠
+                eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_EXPAND);
+            }
+            eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_CONTRACT);
+            p = strtok(NULL, ";");
         }
     }
 }

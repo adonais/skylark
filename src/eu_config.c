@@ -124,6 +124,10 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         {
             strncpy(filebak.mark_id, column[i], MAX_BUFFER-1);
         }
+        else if (STRCMP(names[i], ==, "szFold"))
+        {
+            strncpy(filebak.fold_id, column[i], MAX_BUFFER-1);
+        }        
         else if (STRCMP(names[i], ==, "szLine"))
         {
             filebak.postion = _atoi64(column[i]);

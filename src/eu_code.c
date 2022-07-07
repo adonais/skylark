@@ -69,6 +69,7 @@ on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap)
             sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         }
+        
         if (eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0) & SC_FOLDLEVELHEADERFLAG)
         {
             fold_line = line;

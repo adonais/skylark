@@ -824,6 +824,10 @@ on_file_only_open(file_backup *pbak, bool selection)
         {   // 恢复书签
             on_search_update_mark(pnode, pbak->mark_id);
         }
+        if (strlen(pbak->fold_id) > 0)
+        {   // 恢复折叠
+            on_search_update_fold(pnode, pbak->fold_id);
+        }
     }
     if (pbak->status)
     {
@@ -1050,7 +1054,6 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
     char *cnv = NULL;
     CURL *curl = NULL;
     CURLcode res;
-    int count = 0;
     TCHAR filename[MAX_PATH];
     TCHAR *full_path = pbak->rel_path;
     eu_tabpage *pnode = NULL;
@@ -1121,10 +1124,18 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
         pnode->zoom_level = pbak->zoom;
         util_set_title(pnode->pathfile);
         on_sci_after_file(pnode);
-        eu_sci_call(pnode, SCI_GOTOPOS, 0, 0);
+        on_file_update_postion(pnode, pbak);
         on_search_add_navigate_list(pnode, 0);
-        count = TabCtrl_GetItemCount(g_tabpages);
-        on_tabpage_select_index(count - 1);
+        on_tabpage_selection(pnode, -1);
+        on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+        if (strlen(pbak->mark_id) > 0)
+        {   // 恢复书签
+            on_search_update_mark(pnode, pbak->mark_id);
+        }
+        if (strlen(pbak->fold_id) > 0)
+        {   // 恢复折叠
+            on_search_update_fold(pnode, pbak->fold_id);
+        }
     }
     if (pnode->codepage == IDM_OTHER_BIN)
     {
@@ -1542,6 +1553,7 @@ on_file_save_backup(eu_tabpage *pnode)
         filebak.focus = pnode->last_focus;
         filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
         on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
+        on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
         filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         eu_update_backup_table(&filebak);
     }
