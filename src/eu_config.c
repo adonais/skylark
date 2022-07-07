@@ -46,7 +46,7 @@ eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
             else if (!_tcsncmp(ptr_arg[i], _T("-c"), 2) && _tcslen(ptr_arg[i]) > 2)
             {
                 pbak->y = _tstoi(&ptr_arg[i][2]);
-            }            
+            }
         }
         if (ptr_arg != args)
         {
@@ -56,13 +56,16 @@ eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
 }
 
 bool WINAPI
-eu_has_help(wchar_t **args, int argc)
+eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
 {
-    for (int i = 0; i < argc; ++i)
+    if (args && argument && argc > 0)
     {
-        if (!_tcscmp(args[i], _T("--help")))
+        for (int i = 1; i < argc; ++i)
         {
-            return true;
+            if (!_tcscmp(args[i], argument))
+            {
+                return true;
+            }
         }
     }
     return false;
@@ -189,7 +192,7 @@ on_config_load_file(void *lp)
                 printf("last_focus = %ld\n", last_focus);
                 on_tabpage_select_index(last_focus);
             }
-        }        
+        }
     }
     if (on_config_file_args() && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
@@ -255,7 +258,7 @@ eu_load_main_config(void)
         printf("eu_main.lua exec failed\n");
         free(lua_path);
         return false;
-    }    
+    }
     return true;
 }
 

@@ -481,7 +481,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 eu_setpos_window(prst->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                 eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             }
-        }      
+        }
         if (pnode->hwnd_qredit)
         {
             eu_setpos_window(pnode->hwnd_qredit, HWND_TOP, pnode->rect_qredit.left, pnode->rect_qredit.top,
@@ -521,7 +521,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             eu_setpos_window(prst->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
                              pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
             on_result_reload(prst);
-        }        
+        }
     }
     else
     {
@@ -533,7 +533,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 eu_setpos_window(prst->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                 eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             }
-        }        
+        }
         ShowWindow(g_splitter_editbar, SW_HIDE);
         ShowWindow(g_splitter_tablebar, SW_HIDE);
     }
@@ -921,7 +921,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_edit_push_editor(pnode, pnode->pathfile);
                     }
-                    break;                    
+                    break;
                 case IDM_FILE_WORKSPACE:
                     if (pnode && *pnode->pathfile && !pnode->is_blank)
                     {
@@ -1339,7 +1339,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_HELP_COMMAND:
                     eu_about_command();
-                    break;                
+                    break;
                 case IDM_VIEW_FULLSCREEN:
                 {
                     on_view_full_sreen(hwnd);

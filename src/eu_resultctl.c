@@ -280,18 +280,17 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 void
 on_result_reload(eu_tabpage *pedit)
 {
-    eu_tabpage *pnode = on_tabpage_focus_at();
-    if (pedit && pnode)
+    if (pedit)
     {
         on_sci_init_style(pedit);
         // disable margin
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, 0);
-        // 同步主编辑器换行符
-        eu_sci_call(pedit, SCI_SETEOLMODE, pnode->eol, 0);
         // 不启用自动换行
         eu_sci_call(pedit, SCI_SETWRAPMODE, 0, 0);
+        // 强制使用unix回车符
+        eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 不显示对齐线
         eu_sci_call(pedit, SCI_SETINDENTATIONGUIDES, SC_IV_NONE, 0);
         // 去除只读

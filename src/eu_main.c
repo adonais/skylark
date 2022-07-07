@@ -195,19 +195,34 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-lua")) == 0)
     {
+        bool cinit = false;
         const TCHAR *fname = NULL;
         const TCHAR *save = NULL;
         if (argc > 2)
         {
             fname = argv[2];
         }
-        if (argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
+        if (AllocConsole())
+        {
+            freopen("conin$","r",stdin);
+            freopen("conout$","w", stdout);
+            freopen("conout$","w", stderr);
+            cinit = true;
+        }
+        if (cinit && argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
         {
             fname = argv[3];
             save = argv[4];
             _tputenv(_T("LUA_PATH="));
+            fprintf(stderr, "The converted files are saved in the same directory\n");
         }
-        return eu_lua_script_convert(fname, save);
+        if (cinit)
+        {
+            msg.wParam = eu_lua_script_convert(fname, save);
+            system("pause");
+            FreeConsole();
+        }
+        goto all_clean;
     }
     if (!on_hook_exception())
     {
@@ -230,7 +245,7 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (eu_has_help(argv, argc))
+    if (eu_check_arg(argv, argc, _T("--help")))
     {
         if (strcmp(eu_get_config()->window_theme, "black") == 0)
         {

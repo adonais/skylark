@@ -504,7 +504,6 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_LBREAK_2:
                 case IDM_LBREAK_3:
                 {
-                    int old_eol = pnode->eol;
                     if (!on_edit_convert_eols(pnode, id_menu-IDM_LBREAK_1))
                     {
                         set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, id_menu, STATUSBAR_DOC_EOLS);

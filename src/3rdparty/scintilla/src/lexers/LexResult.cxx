@@ -71,17 +71,17 @@ static void
 handle_word(char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler, int linenum, WordList *keywordlists[])
 {
     WordList &keywords = *keywordlists[0];
-    int ch = lineBuffer[0];
+    int stat = SCE_RESULT_DEFAULT;
     size_t line_len = strlen(lineBuffer);
     // file header comment
-    if (!linenum && line_len > 1 && ch == '#' && lineBuffer[1] == '*')
+    if (!linenum && line_len > 1 && lineBuffer[0] == '#' && lineBuffer[1] == '*')
     {
         styler.ColourTo(endPos, SCE_RESULT_COMMENT);
     }
     else if (linenum > 0)
     {
         char *p = NULL;
-        int stat = SCE_RESULT_DEFAULT;
+        
         const char *key = keywords.WordAt(0);
         if (key)
         {
@@ -93,8 +93,8 @@ handle_word(char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler,
                 styler.ColourTo(startLine + (p - lineBuffer) + key_len - 1, SCE_RESULT_KEYWORD);
             }
         }
-        styler.ColourTo(endPos, stat);
     }
+    styler.ColourTo(endPos, stat);
 }
 
 static void

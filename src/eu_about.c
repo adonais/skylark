@@ -3157,8 +3157,8 @@ get_compiler_time(char const *date_, char const *time_)
     // Find where is s_month in month_names. Deduce month value.
     // Keep consistent with the time(NULL) function, do not +1 to the month
     t.tm_mon = (int)((strstr(month_names, s_month) - month_names) / 3);
-    t.tm_year = year - 1900; 
-    t.tm_isdst = -1;  
+    t.tm_year = year - 1900;
+    t.tm_isdst = -1;
     return mktime(&t);
 }
 
@@ -3300,7 +3300,7 @@ hyper_link_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             // Since IDC_HAND is not available on all operating systems,
             // we will load the arrow cursor if IDC_HAND is not present.
             HCURSOR hCursor = LoadCursor(NULL, IDC_HAND);
-            if (NULL == hCursor) 
+            if (NULL == hCursor)
             {
                 hCursor = LoadCursor(NULL, IDC_ARROW);
             }
@@ -3311,7 +3311,7 @@ hyper_link_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     return CallWindowProc(ptr_orig_proc, hwnd, message, wParam, lParam);
 }
 
-static INT_PTR CALLBACK 
+static INT_PTR CALLBACK
 func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
@@ -3332,7 +3332,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                            __EU_INFO_RELEASE,
                            str,
                            VC_BUILDER,
-                           __DATE__, 
+                           __DATE__,
                            __TIME__);
                 SetWindowText(GetDlgItem(hdlg, IDC_EDIT_VER), build_str);
             }
@@ -3351,7 +3351,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         CASE_WM_CTLCOLOR_SET:
         {
             return on_dark_set_contorl_color(wParam);
-        }        
+        }
         case WM_SETTINGCHANGE:
         {
             if (on_dark_enable() && on_dark_color_scheme_change(lParam))
@@ -3367,7 +3367,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_allow_window(hdlg, true);
                 on_dark_refresh_titlebar(hdlg);
                 const int buttons[2] = {IDOK, IDC_BUTTON_COPY};
-                for (int id = 0; id < _countof(buttons); ++id) 
+                for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
                     on_dark_allow_window(btn, true);
@@ -3473,7 +3473,7 @@ on_about_scale_layout(HWND hdlg, HBITMAP h_wcpay, HBITMAP h_alipay)
     }
 }
 
-static INT_PTR CALLBACK 
+static INT_PTR CALLBACK
 func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
@@ -3521,7 +3521,7 @@ func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 SendMessage(hdlg, WM_THEMECHANGED, 0, 0);
             }
             break;
-        }        
+        }
         case WM_THEMECHANGED:
         {
             if (on_dark_enable())
@@ -3543,7 +3543,7 @@ func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 DeleteObject(h_wcpay);
                 h_wcpay = NULL;
-            }        
+            }
             if (h_alipay)
             {
                 DeleteObject(h_alipay);

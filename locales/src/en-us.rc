@@ -1114,7 +1114,7 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
     IDS_RE_ERROR            "Error: invalid regular expression"
     IDS_HEXVIEW_BYTES       "Number of bytes to insert (decimal): "
-    IDS_RESULT_STRINGS1     "#* Search '%s' keyword in '%s' file (%d hits)%s"
+    IDS_RESULT_STRINGS1     "#* Search '%s' keyword in '%s' file (%d hits)\n"
     IDS_RESULT_STRINGS2     "Line %*I64d: %s"
     IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-n : Scroll to indicated line on file_path\n-c : Scroll to indicated column on file_path\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
     IDS_COMMAND_TITLE       "Skylark Command Help: "

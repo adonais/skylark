@@ -2195,7 +2195,7 @@ on_search_push_result(eu_tabpage *pnode, eu_tabpage *presult, LPCTSTR key, LPCTS
         LOAD_I18N_RESSTR(IDS_RESULT_STRINGS1, path_str);
         LOAD_I18N_RESSTR(IDS_RESULT_STRINGS2, line_str);
         eu_sci_call(presult, SCI_CLEARALL, 0, 0);
-        _sntprintf(msg, MAX_BUFFER-1, path_str, key, path, pnode->match_count, on_encoding_get_eol(pnode));
+        _sntprintf(msg, MAX_BUFFER-1, path_str, key, path, pnode->match_count);
         char *path = eu_utf16_utf8(msg, NULL);
         if (path)
         {
