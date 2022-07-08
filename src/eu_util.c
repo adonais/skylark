@@ -1422,6 +1422,14 @@ util_make_u16(const char *utf8, TCHAR *utf16, int len)
     return utf16;
 }
 
+char *
+util_make_u8(const TCHAR *utf16, char *utf8, int len)
+{
+    *utf8 = 0;
+    WideCharToMultiByte(CP_UTF8, 0, utf16, -1, utf8, len, NULL, NULL);
+    return utf8;
+}
+
 void
 util_kill_thread(uint32_t pid)
 {

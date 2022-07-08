@@ -94,8 +94,7 @@
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
 #define EU_VERIFY(x) (void)((x) || (EU_ABORT("failed assert(%s): %s:%d\n", #x, __FILE__, __LINE__), 0))
 #else
-static inline void
-assert_in_release(const char *fmt, const char *exp, const char *file, int line)
+static inline void assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 {
     char msg[256] = {0};
     _snprintf(msg, 256, fmt, exp, file, line);
@@ -104,6 +103,17 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 }
 #define EU_VERIFY(x) (void)((x) || (assert_in_release("failed assert(%s): %s:%d", #x, __FILE__, __LINE__), 0))
 #endif
+static inline bool eu_cvector_at(int *v, int n)
+{
+    for (int i = 0; i < cvector_size(v); i++)
+    {
+        if (n == v[i])
+        {
+            return true;
+        }
+    }
+    return false;
+}
 #define eu_int_cast(n) ((int)((size_t)n > INT_MAX ? INT_MAX : n))
 #define eu_uint_cast(n) ((uint32_t)((size_t)n > UINT_MAX ? UINT_MAX : n))
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))

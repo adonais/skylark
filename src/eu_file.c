@@ -366,11 +366,10 @@ on_file_new(void)
         pnode->is_blank = true;
         pnode->begin_pos = -1;
     }
-    if (on_tabpage_newdoc_name(filename, 100)[0])
+    if (on_tabpage_generator(filename, 100)[0])
     {
         _tcscpy(pnode->pathfile, filename);
         _tcscpy(pnode->filename, filename);
-
     }
     if (on_tabpage_add(pnode))
     {

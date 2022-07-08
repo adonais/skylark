@@ -123,7 +123,7 @@ eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);
 eu_tabpage *on_tabpage_select_index(int index);
 eu_tabpage *on_tabpage_focus_at(void);
-TCHAR *on_tabpage_newdoc_name(TCHAR *filename, int len);
+TCHAR *on_tabpage_generator(TCHAR *filename, int len);
 LRESULT on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus

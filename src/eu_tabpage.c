@@ -702,7 +702,7 @@ on_tabpage_remove_empty(void)
 }
 
 TCHAR *
-on_tabpage_newdoc_name(TCHAR *filename, int len)
+on_tabpage_generator(TCHAR *filename, int len)
 {
     EU_VERIFY(g_tabpages != NULL);
     LOAD_I18N_RESSTR(IDC_MSG_NEW_FILE, m_file);
@@ -711,6 +711,8 @@ on_tabpage_newdoc_name(TCHAR *filename, int len)
     if ((pstr = _tcsrchr(m_file, ch)) != NULL && (pstr - m_file) > 0)
     {
         int ret = 1;
+        int vlen = 0;
+        cvector_vector_type(int) v = NULL;
         int count = TabCtrl_GetItemCount(g_tabpages);
         _tcsncpy(filename, m_file, pstr - m_file);
         for (int index = 0; index < count; ++index)
@@ -718,11 +720,30 @@ on_tabpage_newdoc_name(TCHAR *filename, int len)
             eu_tabpage *p = on_tabpage_get_ptr(index);
             if (p && p->is_blank)
             {
-                if (_tcsncmp(p->filename, filename, _tcslen(filename)) == 0)
+                size_t mlen = _tcslen(filename);
+                if (_tcsncmp(p->filename, filename, mlen) == 0 && _tcslen(p->filename) > mlen + 1)
                 {
-                    ++ret;
+                    int num = 0;
+                    if (_stscanf(&p->filename[mlen + 1], _T("%d"), &num) == 1 && num > 0)
+                    {
+                        cvector_push_back(v, num);
+                    }
                 }
             }
+        }
+        if ((vlen = cvector_size(v)) > 0)
+        {
+            int i = 0;
+            for (; i < vlen; ++i)
+            {
+                if (eu_cvector_at(v, ret))
+                {
+                    i = 0;
+                    ++ret;
+                    continue;
+                }
+            }
+            cvector_free(v);
         }
         _sntprintf(filename, len, m_file, ret);
     }
