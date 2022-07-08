@@ -27,6 +27,8 @@ extern "C"
 #endif
 
 //
+void
+on_sql_delete_row_from_backup(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

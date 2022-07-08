@@ -842,7 +842,10 @@ on_file_only_open(file_backup *pbak, bool selection)
     {
         on_tabpage_editor_modify(pnode, "X");
     }
-    on_file_push_recent(pnode->pathfile, pnode->nc_pos);
+    if (!pnode->is_blank)
+    {
+        on_file_push_recent(pnode->pathfile, pnode->nc_pos);
+    }
     return SKYLARK_OK;
 }
 
@@ -1535,36 +1538,43 @@ on_file_guid(TCHAR *buf, int len)
 }
 
 static void
-on_file_save_backup(eu_tabpage *pnode)
+on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
 {
     TCHAR buf[ACNAME_LEN] = {0};
     file_backup filebak = {0};
     filebak.cp = pnode->codepage;
     filebak.bakcp = pnode->codepage == IDM_OTHER_BIN ? IDM_OTHER_BIN : IDM_UNI_UTF8;
-    if (!pnode->is_blank || eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0)
+    if (!file_click_close(mode))
     {
-        if (on_sci_doc_modified(pnode))
+        if (!pnode->is_blank || eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0)
         {
-            on_file_guid(buf, ACNAME_LEN - 1);
-            _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
-            on_file_do_write(pnode, filebak.bak_path, true, false);
-            filebak.status = 1;
-            if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
+            if (on_sci_doc_modified(pnode))
             {
-                filebak.bakcp = pnode->codepage;
+                on_file_guid(buf, ACNAME_LEN - 1);
+                _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
+                on_file_do_write(pnode, filebak.bak_path, true, false);
+                filebak.status = 1;
+                if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
+                {
+                    filebak.bakcp = pnode->codepage;
+                }
             }
-        }
-        _tcscpy(filebak.rel_path, pnode->pathfile);
-        filebak.tab_id = pnode->tab_id;
-        filebak.eol = pnode->eol;
-        filebak.blank = pnode->is_blank;
-        filebak.hex = pnode->hex_mode;
-        filebak.focus = pnode->last_focus;
-        filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
-        on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
-        on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
-        filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        eu_update_backup_table(&filebak);
+            _tcscpy(filebak.rel_path, pnode->pathfile);
+            filebak.tab_id = pnode->tab_id;
+            filebak.eol = pnode->eol;
+            filebak.blank = pnode->is_blank;
+            filebak.hex = pnode->hex_mode;
+            filebak.focus = pnode->last_focus;
+            filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
+            on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
+            on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
+            filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            eu_update_backup_table(&filebak);
+        }        
+    }
+    else
+    {
+        on_sql_delete_row_from_backup(pnode);
     }
 }
 
@@ -1579,9 +1589,17 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     {
         return EUE_TAB_NULL;
     }
-    if (!mode && eu_get_config()->m_session)
+    if (eu_get_config()->m_session)
     {
-        on_file_save_backup(pnode);
+        on_file_save_backup(pnode, mode);
+    }
+    else
+    {
+        on_sql_delete_row_from_backup(pnode);
+    }
+    if (!file_click_close(mode) && eu_get_config()->m_session)
+    {
+        // do nothing
     }
     else if (on_sci_doc_modified(pnode))
     {
@@ -1613,7 +1631,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     /* 清理该文件的位置导航信息 */
     on_search_clean_navigate_this(pnode);
     /* 排序最近关闭文件的列表 */
-    if (mode != FILE_SHUTDOWN && !pnode->is_blank)
+    if (file_click_close(mode) && !pnode->is_blank)
     {
         on_file_push_recent(pnode->pathfile, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
     }
@@ -1738,7 +1756,7 @@ on_file_check_save(void *lp)
     int count = TabCtrl_GetItemCount(g_tabpages);
     if (eu_get_config()->m_session)
     {
-        eu_clear_backup_table();
+        // eu_clear_backup_table();
         at_focus = TabCtrl_GetCurSel(g_tabpages);
     }
     for (int index = 0; index < count; ++index)

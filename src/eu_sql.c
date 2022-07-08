@@ -87,7 +87,7 @@ init_sql_file(const char *sql_path)
         "create table replace_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
         "create table folder_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
         "create table skylark_session(szTabId SMALLINT, szRealPath char, szBakPath char, szMark char, szFold char, szLine BIGINT, szCp INTEGER, szBakCp INTEGER, szEol SMALLINT, "
-        "szBlank SMALLINT, szHex SMALLINT, szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT, UNIQUE(szTabId));",
+        "szBlank SMALLINT, szHex SMALLINT, szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT, UNIQUE(szRealPath));",
         "create table skylar_ver(szName char, szVersion char, szBUildId BIGINT);",
         "insert or ignore into skylar_ver(szName,szVersion,szBUildId) values('%s', '%s', %I64u);",
         "create trigger delete_till_30 BEFORE INSERT ON file_recent WHEN (select count(*) from file_recent)>29 "
@@ -315,16 +315,18 @@ eu_update_backup_table(file_backup *pbak)
 {
     char rel_path[MAX_PATH+1] = {0};
     char bak_path[MAX_PATH+1] = {0};
-    char sql[MAX_BUFFER*2] = {0};
-    const char *fmt = "insert or ignore into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus) "
-                      "values(%d, '%s', '%s', '%s', '%s', %I64d, %d, %d, %d, %d, %d, %d, %d, %d);";
+    char sql[MAX_BUFFER*4] = {0};
+    const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus) "
+                      "values(%d, '%s', '%s', '%s', '%s', %I64d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
+                      "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%I64d,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d;";
     WideCharToMultiByte(CP_UTF8, 0, pbak->rel_path, -1, rel_path, MAX_PATH, NULL, NULL);
     WideCharToMultiByte(CP_UTF8, 0, pbak->bak_path, -1, bak_path, MAX_PATH, NULL, NULL);
     // 文件路径存在特殊符号时进行转义
     eu_str_replace(rel_path, MAX_PATH, "'", "''");
     eu_str_replace(bak_path, MAX_PATH, "'", "''");
-    _snprintf(sql, MAX_BUFFER*2-1, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->fold_id, pbak->postion, pbak->cp, pbak->bakcp,
-              pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status);
+    _snprintf(sql, MAX_BUFFER*4-1, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->fold_id, pbak->postion, pbak->cp, pbak->bakcp,
+                  pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->tab_id,bak_path,pbak->mark_id,pbak->fold_id,pbak->postion,
+                  pbak->cp, pbak->bakcp,pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status);
     if (eu_sqlite3_send(sql, NULL, NULL) != 0)
     {
         printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
@@ -337,6 +339,21 @@ eu_clear_backup_table(void)
     if (eu_sqlite3_send("delete from skylark_session;", NULL, NULL) != 0)
     {
         printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+    }
+}
+
+void
+on_sql_delete_row_from_backup(eu_tabpage *pnode)
+{
+    if (pnode && pnode->pathfile[0])
+    {
+        char u8_path[MAX_PATH] = {0};
+        char sql[MAX_BUFFER+1] = {0};
+        _snprintf(sql, MAX_BUFFER, "delete from skylark_session where szRealPath='%s';", util_make_u8(pnode->pathfile, u8_path, MAX_PATH));
+        if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+        {
+            printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        }
     }
 }
 

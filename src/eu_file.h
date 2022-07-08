@@ -41,8 +41,11 @@ typedef enum _CLOSE_MODE
     FILE_SHUTDOWN = 0,
     FILE_ONLY_CLOSE,
     FILE_EXCLUDE_CLOSE,
-    FILE_ALL_CLOSE
+    FILE_ALL_CLOSE,
+    FILE_REMOTE_CLOSE
 }CLOSE_MODE;
+
+#define file_click_close(m) (m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 
 typedef struct _file_backup
 {
