@@ -85,6 +85,21 @@ on_map_contract_fold(eu_tabpage *pedit, sptr_t *plines)
     }
 }
 
+static void
+on_map_sync_fold(eu_tabpage *pnode, eu_tabpage *pedit)
+{
+    if (pnode && pedit)
+    {
+        cvector_vector_type(sptr_t) v = NULL;
+        on_map_get_fold(pnode, &v);
+        if (cvector_size(v) > 0)
+        {
+            on_map_contract_fold(pedit, v);
+        }
+        cvector_free(v);
+    }
+}
+
 #ifdef _DEBUG
 static void
 on_map_print(sptr_t *plines)
@@ -313,21 +328,6 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             return DefWindowProc(hwnd, msg, wParam, lParam);
     }
     return 0;
-}
-
-void WINAPI
-on_map_sync_fold(eu_tabpage *pnode, eu_tabpage *pedit)
-{
-    if (pnode && pedit)
-    {
-        cvector_vector_type(sptr_t) v = NULL;
-        on_map_get_fold(pnode, &v);
-        if (cvector_size(v) > 0)
-        {
-            on_map_contract_fold(pedit, v);
-        }
-        cvector_free(v);
-    }
 }
 
 void WINAPI

@@ -1886,7 +1886,7 @@ on_file_do_restore(void *data, int count, char **column, char **names)
         }
     }
 
-    if (_tcslen(bak.rel_path) > 1)
+    if (_tcslen(bak.rel_path) > 0)
     {
         if (url_has_remote(bak.rel_path))
         {
