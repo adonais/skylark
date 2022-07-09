@@ -753,7 +753,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     else
     {
         LOAD_I18N_RESSTR(IDS_STATUS_LC, s_lc);
-        _sntprintf(file_size, FILESIZE, s_lc, nsize);
+        _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
     }
     if (*file_size)
     {
