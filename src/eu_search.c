@@ -1481,13 +1481,13 @@ on_search_regxp_error(void)
             }
             else if ((ll_msg = on_search_regxp_msg()) != NULL)
             {
-	            TOOLINFO toolinfo = {0};
-	            toolinfo.cbSize = sizeof(TOOLINFO);
-	            toolinfo.hwnd = hwnd_search_dlg;
-	            toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-	            toolinfo.uId = (LONG_PTR)hwnd_re_stc;
-	            toolinfo.lpszText = ll_msg;
-	            SendMessage(hwnd_regxp_tips, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolinfo);
+                TOOLINFO toolinfo = {0};
+                toolinfo.cbSize = sizeof(TOOLINFO);
+                toolinfo.hwnd = hwnd_search_dlg;
+                toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+                toolinfo.uId = (LONG_PTR)hwnd_re_stc;
+                toolinfo.lpszText = ll_msg;
+                SendMessage(hwnd_regxp_tips, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolinfo);
             }
             eu_safe_free(ll_msg);
         }

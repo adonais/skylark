@@ -207,76 +207,173 @@ on_tabpage_exchange_item(int old_index, int new_index)
 {
     int i = 0;
     TCITEM drag_item, shift_item;
-	TCHAR str1[MAX_PATH];
-	TCHAR str2[MAX_PATH];
-	drag_item.mask = shift_item.mask = TCIF_TEXT | TCIF_PARAM;
-	drag_item.cchTextMax = shift_item.cchTextMax = MAX_PATH;
-	drag_item.pszText = str1;
-	shift_item.pszText = str2;
-	TabCtrl_GetItem(g_tabpages, old_index, &drag_item);
-	if (old_index > new_index)
-	{
-		for (i = old_index; i > new_index; --i)
-		{
-			SendMessage(g_tabpages, TCM_GETITEM, i - 1, (LPARAM)(&shift_item));
-			SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
-		}
-	}
-	else
-	{
-		for (i = old_index; i < new_index; ++i)
-		{
-			SendMessage(g_tabpages, TCM_GETITEM, i + 1, (LPARAM)(&shift_item));
-			SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
-		}
-	}	
-	SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
-	on_tabpage_select_index(new_index);
+    TCHAR str1[MAX_PATH];
+    TCHAR str2[MAX_PATH];
+    drag_item.mask = shift_item.mask = TCIF_TEXT | TCIF_PARAM;
+    drag_item.cchTextMax = shift_item.cchTextMax = MAX_PATH;
+    drag_item.pszText = str1;
+    shift_item.pszText = str2;
+    TabCtrl_GetItem(g_tabpages, old_index, &drag_item);
+    if (old_index > new_index)
+    {
+        for (i = old_index; i > new_index; --i)
+        {
+            SendMessage(g_tabpages, TCM_GETITEM, i - 1, (LPARAM)(&shift_item));
+            SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
+        }
+    }
+    else
+    {
+        for (i = old_index; i < new_index; ++i)
+        {
+            SendMessage(g_tabpages, TCM_GETITEM, i + 1, (LPARAM)(&shift_item));
+            SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
+        }
+    }
+    SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
+    on_tabpage_select_index(new_index);
+}
+
+static int
+on_tabpage_parser_bakup(void *data, int count, char **column, char **names)
+{
+    wchar_t path[MAX_PATH] = {0};
+    file_backup *pbak = (file_backup *)data;
+    for (int i = 0; i < count; ++i)
+    {
+        if (STRCMP(names[i], ==, "szTabId"))
+        {
+            pbak->tab_id = (short)atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szRealPath"))
+        {
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, path, MAX_PATH);
+        }
+        else if (STRCMP(names[i], ==, "szBakPath"))
+        {
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, pbak->bak_path, MAX_PATH);
+        }
+        else if (STRCMP(names[i], ==, "szMark"))
+        {
+            strncpy(pbak->mark_id, column[i], MAX_BUFFER-1);
+        }
+        else if (STRCMP(names[i], ==, "szFold"))
+        {
+            strncpy(pbak->fold_id, column[i], MAX_BUFFER-1);
+        }
+        else if (STRCMP(names[i], ==, "szLine"))
+        {
+            pbak->postion = _atoi64(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szCp"))
+        {
+            pbak->cp = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szBakCp"))
+        {
+            pbak->bakcp = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szEol"))
+        {
+            pbak->eol = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szBlank"))
+        {
+            pbak->blank = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szHex"))
+        {
+            pbak->hex = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szFocus"))
+        {
+            pbak->focus = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szZoom"))
+        {
+            pbak->zoom = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szStatus"))
+        {
+            pbak->status = atoi(column[i]);
+        }
+    }
+    if (_tcscmp(path, pbak->rel_path) == 0)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 void
 on_tabpage_drag_mouse(POINT *pscreen)
 {
+    int fn = 0;
     NMHDR mn = {0};
     TCHAR name[FILESIZE] = {0};
     HWND hwin = WindowFromPoint(*pscreen);
+    HWND parent = GetParent(hwin);
     GetClassName(hwin, name, FILESIZE - 1);
-    if (GetParent(hwin) == eu_hwnd_self())
-    {
+    if (parent == eu_hwnd_self() || hwin == eu_hwnd_self())
+    {   // 拖放在skylark编辑器本身界面上, 启动新实例
         eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
     }
-    else if ((!_tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, WC_TABCONTROL)))
-    {
+    else if (!(fn = _tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, HEX_CLASS)) || (!_tcscmp(name, WC_TABCONTROL)))
+    {   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
         eu_tabpage *p = on_tabpage_get_ptr(tab_move_from);
-        if (p && !p->is_blank && !p->be_modify && !p->hex_mode)
+        int code = fn ? (int)SendMessage(parent, WM_SKYLARK_DESC, 0, 0) : (int)SendMessage(hwin, WM_SKYLARK_DESC, 0, 0);
+        if (code != eu_int_cast(WM_SKYLARK_DESC))
+        {
+            eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
+        }
+        else if (p && !p->is_blank)
         {
             file_backup bak = {0};
-            sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-            if (pos > 0)
+            if (!p->be_modify && !p->hex_mode)
             {
-                sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-                sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
-                bak.x = lineno + 1;
-                bak.y = eu_int_cast(pos - row + 1);
-            }
-            _tcscpy(bak.rel_path, p->pathfile);
-            COPYDATASTRUCT cpd = { 0 };
-            cpd.lpData = (PVOID) &bak;
-            cpd.cbData = (DWORD) sizeof(file_backup);
-            on_file_close(p, FILE_ONLY_CLOSE);
-            if (!_tcscmp(name, APP_CLASS))
-            {
-                SendMessageW(hwin, WM_COPYDATA, 0, (LPARAM) &cpd);
+                sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                if (pos > 0)
+                {
+                    sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                    sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                    bak.x = lineno + 1;
+                    bak.y = eu_int_cast(pos - row + 1);
+                }
+                _tcscpy(bak.rel_path, p->pathfile);
+                _tputenv(_T("OPEN_FROM_SQL="));
+                on_file_close(p, FILE_ONLY_CLOSE);
             }
             else
             {
-                SendMessageW(GetParent(hwin), WM_COPYDATA, 0, (LPARAM) &cpd);
+                int err = on_file_close(p, FILE_REMOTE_CLOSE);
+                if (!err && !_tputenv(_T("OPEN_FROM_SQL=1")))
+                {
+                    const char *sql = "SELECT * FROM skylark_session;";
+                    _tcscpy(bak.rel_path, p->pathfile);
+                    int err = eu_sqlite3_send(sql, on_tabpage_parser_bakup, &bak);
+                    if (err != 0)
+                    {
+                        printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
+                    }
+                }
             }
-            SwitchToThisWindow(hwin, true);
+            COPYDATASTRUCT cpd = { 0 };
+            cpd.lpData = (PVOID) &bak;
+            cpd.cbData = (DWORD) sizeof(file_backup);
+            if (!_tcscmp(name, APP_CLASS))
+            {
+                SendMessageW(hwin, WM_COPYDATA, 0, (LPARAM) &cpd);
+                SwitchToThisWindow(hwin, true);
+            }
+            else
+            {
+                SendMessageW(parent, WM_COPYDATA, 0, (LPARAM) &cpd);
+                SwitchToThisWindow(parent, true);
+            }
         }
     }
     else
-    {
+    {   // 拖放在空白处, 启动新实例
         eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
     }
 }
@@ -352,8 +449,8 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_tabpage_draw_close(hwnd, &rect, index == nsel);
                         p->at_close = true;
                     }
-				}
-				else if (p->at_close)
+                }
+                else if (p->at_close)
                 {
                     on_tabpage_undraw_close(hwnd, &rect);
                     p->at_close = false;
@@ -404,10 +501,10 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
             }
-			if (GetCapture() != hwnd)
-			{
-				SetCapture(hwnd);
-			}            
+            if (GetCapture() != hwnd)
+            {
+                SetCapture(hwnd);
+            }
             break;
         }
         case WM_LBUTTONUP:
@@ -731,7 +828,7 @@ on_tabpage_generator(TCHAR *filename, int len)
                 }
             }
         }
-        if ((vlen = cvector_size(v)) > 0)
+        if ((vlen = eu_int_cast(cvector_size(v))) > 0)
         {
             int i = 0;
             for (; i < vlen; ++i)

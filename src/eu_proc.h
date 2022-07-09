@@ -20,6 +20,7 @@
 #define _EU_WNDPROC_H_
 
 #define APP_CLASS _T("__eu_skylark__")
+#define HEX_CLASS _T("__eu_hexview__")
 
 #ifdef __cplusplus
 extern "C"

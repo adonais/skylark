@@ -71,6 +71,39 @@ eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
     return false;
 }
 
+static bool
+on_config_parser_path(wchar_t **args, int argc, wchar_t *path)
+{
+    bool ret = false;
+    int arg_c = argc;
+    LPWSTR *ptr_arg = NULL;
+    if (args)
+    {
+        ptr_arg = args;
+    }
+    else
+    {
+        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
+    }
+    if (ptr_arg)
+    {
+        for (int i = 0; i < arg_c; ++i)
+        {
+            if (!_tcsncmp(ptr_arg[i], _T("-noremote"), 9) && (i + 1) < arg_c)
+            {
+                _tcsncpy(path, ptr_arg[i + 1], MAX_PATH - 1);
+                ret = true;
+                break;
+            }
+        }
+        if (ptr_arg != args)
+        {
+            LocalFree(ptr_arg);
+        }
+    }
+    return ret;
+}
+
 static int
 on_config_file_args(void)
 {
@@ -104,8 +137,16 @@ on_config_file_args(void)
 static int
 on_config_parser_bakup(void *data, int count, char **column, char **names)
 {
+    int index = -1;
     *(int *)data = 0;
     file_backup filebak = {0};
+    wchar_t path[MAX_PATH] = {0};
+    wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
+    if (open_sql && !on_config_parser_path(NULL, 0, path))
+    {
+        printf("on_config_parser_path return false\n");
+        return 1;
+    }    
     for (int i = 0; i < count; ++i)
     {
         if (STRCMP(names[i], ==, "szTabId"))
@@ -163,15 +204,32 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         else if (STRCMP(names[i], ==, "szStatus"))
         {
             filebak.status = atoi(column[i]);
+            if (!_tcsicmp(filebak.rel_path, path))
+            {
+                printf("filebak.status = %d\n", filebak.status);
+                break;
+            }
         }
     }
-    if (filebak.focus)
+    if (open_sql)
     {
-        _InterlockedExchange(&last_focus, filebak.tab_id);
+        if (!_tcsicmp(filebak.rel_path, path))
+        {
+            printf("filebak.bak_path2 = %ls\n", filebak.bak_path);
+            share_send_msg(&filebak);
+            return 1;
+        }
     }
-    if (filebak.rel_path[0] || filebak.bak_path[0])
+    else
     {
-        share_send_msg(&filebak);
+        if (filebak.focus)
+        {
+            _InterlockedExchange(&last_focus, filebak.tab_id);
+        }
+        if (filebak.rel_path[0] || filebak.bak_path[0])
+        {
+            share_send_msg(&filebak);
+        }
     }
     return 0;
 }
@@ -180,25 +238,26 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int is_blank = 1;
-    if (!eu_get_config()->m_instance)
+    wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
+    if (open_sql || !eu_get_config()->m_instance)
     {
-        if (eu_get_config()->m_session)
+        if (open_sql || eu_get_config()->m_session)
         {
+            int err = 0;
             const char *sql = "SELECT * FROM skylark_session;";
-            int err = eu_sqlite3_send(sql, on_config_parser_bakup, &is_blank);
-            if (err != 0)
+            if ((err = eu_sqlite3_send(sql, on_config_parser_bakup, &is_blank)))
             {
                 printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
                 return 1;
             }
-            if (last_focus >= 0)
+            if (!open_sql && last_focus >= 0)
             {
                 printf("last_focus = %ld\n", last_focus);
                 on_tabpage_select_index(last_focus);
             }
         }
     }
-    if (on_config_file_args() && is_blank)
+    if ((open_sql  || on_config_file_args()) && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
         file_backup bak = {0};
         share_send_msg(&bak);

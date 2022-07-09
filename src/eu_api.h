@@ -87,6 +87,7 @@
 #define WM_SYSLIST_OVER           (WM_USER+10002)
 #define WM_RESULT_PTR             (WM_USER+10003)
 #define WM_TAB_CLICK              (WM_USER+10004)
+#define WM_SKYLARK_DESC           (WM_USER+10005)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 

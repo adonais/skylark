@@ -683,6 +683,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_INITMENUPOPUP:
             menu_update_item((HMENU)wParam);
             break;
+        case WM_SKYLARK_DESC:
+            return WM_SKYLARK_DESC;
         case WM_DPICHANGED:
         {
             on_theme_setup_font(hwnd);

@@ -948,17 +948,31 @@ int
 on_file_out_open(int index)
 {
     eu_tabpage *p = on_tabpage_get_ptr(index);
-    if (p && !p->is_blank && !p->be_modify && !p->hex_mode)
+    if (p && !p->is_blank)
     {
         TCHAR process[MAX_BUFFER] = {0};
         if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
         {
-            sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-            sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-            sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
-            _sntprintf(process, MAX_BUFFER - 1, _T("%s%s%s -n%I64d -c%I64d"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
-            on_file_close(p, FILE_ONLY_CLOSE);
-            CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+            if (!p->be_modify && !p->hex_mode)
+            {
+                sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%I64d -c%I64d"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
+                on_file_close(p, FILE_ONLY_CLOSE);
+                _tputenv(_T("OPEN_FROM_SQL="));
+                CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+            }
+            else
+            {
+                int err = 0;
+                _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\""), process, _T(" -noremote "), p->pathfile);
+                err = on_file_close(p, FILE_REMOTE_CLOSE);
+                if (!err && !_tputenv(_T("OPEN_FROM_SQL=1")))
+                {
+                    CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+                }
+            }
         }
     }
     return 0;
@@ -1570,11 +1584,15 @@ on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
             on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
             filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             eu_update_backup_table(&filebak);
-        }        
+        }
+    }
+    else if (mode == FILE_ONLY_CLOSE)
+    {
+        on_sql_delete_backup_row(pnode);
     }
     else
     {
-        on_sql_delete_row_from_backup(pnode);
+        on_sql_delete_backup_row_thread(pnode);
     }
 }
 
@@ -1595,7 +1613,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     }
     else
     {
-        on_sql_delete_row_from_backup(pnode);
+        on_sql_delete_backup_row_thread(pnode);
     }
     if (!file_click_close(mode) && eu_get_config()->m_session)
     {
@@ -1636,9 +1654,9 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
         on_file_push_recent(pnode->pathfile, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
     }
     /* 关闭标签后需要激活其他标签 */
-    if ((index = on_tabpage_remove(&pnode)) >= 0 && mode == FILE_ONLY_CLOSE)
+    if ((index = on_tabpage_remove(&pnode)) >= 0 && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))
     {
-        if (index == ifocus)
+        if (index == ifocus || mode == FILE_REMOTE_CLOSE)
         {
             on_file_other_tab(index);
         }
@@ -1756,7 +1774,6 @@ on_file_check_save(void *lp)
     int count = TabCtrl_GetItemCount(g_tabpages);
     if (eu_get_config()->m_session)
     {
-        // eu_clear_backup_table();
         at_focus = TabCtrl_GetCurSel(g_tabpages);
     }
     for (int index = 0; index < count; ++index)
@@ -1902,7 +1919,6 @@ on_file_do_restore(void *data, int count, char **column, char **names)
             break;
         }
     }
-
     if (_tcslen(bak.rel_path) > 0)
     {
         if (url_has_remote(bak.rel_path))

@@ -35,13 +35,13 @@ extern HMENU pop_tab_menu;
 extern HMENU pop_editor_menu;
 
 typedef struct _result_postion {
-	intptr_t start;
-	intptr_t end;
+    intptr_t start;
+    intptr_t end;
 } result_postion;
 
 typedef  struct _result_vec {
-	intptr_t line;
-	result_postion mark;
+    intptr_t line;
+    result_postion mark;
 }result_vec;
 
 struct _tabpage

@@ -214,7 +214,7 @@ _tmain(int argc, TCHAR *argv[])
             fname = argv[3];
             save = argv[4];
             _tputenv(_T("LUA_PATH="));
-            fprintf(stderr, "The converted files are saved in the same directory\n");
+            fprintf(stderr, "End-of-Conversion: \n");
         }
         if (cinit)
         {

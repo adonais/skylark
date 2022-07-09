@@ -1885,7 +1885,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 static HWND
 hexview_create_dlg(HWND parent, LPVOID lparam)
 {
-    return CreateWindowEx(0, _T("__eu_hexview"), NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, parent, 0, eu_module_handle(), lparam);
+    return CreateWindowEx(0, HEX_CLASS, NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, parent, 0, eu_module_handle(), lparam);
 }
 
 static void
@@ -1896,7 +1896,7 @@ hexview_register_class(void)
     wcex.lpfnWndProc = hexview_proc;
     wcex.hInstance = GetModuleHandle(NULL);
     wcex.hCursor = LoadCursor(NULL, IDC_IBEAM);
-    wcex.lpszClassName = _T("__eu_hexview");
+    wcex.lpszClassName = HEX_CLASS;
     RegisterClassEx(&wcex);
 }
 
