@@ -146,7 +146,7 @@ on_statusbar_set_text(HWND hwnd, const uint8_t part, LPCTSTR lpsz)
     if (lpsz && part != SB_SIMPLEID)
     {
         WPARAM wParam = on_dark_supports() ? (WPARAM)(part|SBT_OWNERDRAW) : MAKEWPARAM(part, 0);
-        SendMessage(hwnd, SB_SETTEXT, wParam, (LPARAM)lpsz);        
+        SendMessage(hwnd, SB_SETTEXT, wParam, (LPARAM)lpsz);
     }
 }
 

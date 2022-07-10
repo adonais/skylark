@@ -331,14 +331,7 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
         MSG_BOX(IDS_USERTAB_TIPS1, IDC_MSG_TIPS, MB_OK);
         return;
     }
-    if (!eu_get_config()->tab2spaces)
-    {
-        eu_get_config()->tab2spaces = true;
-    }
-    else
-    {
-        eu_get_config()->tab2spaces = false;
-    }
+    eu_get_config()->tab2spaces = !eu_get_config()->tab2spaces;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = NULL;
@@ -359,29 +352,15 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
 }
 
 void
-on_view_light_str(HWND hwnd)
+on_view_light_str(void)
 {
-    if (!eu_get_config()->m_light_str)
-    {
-        eu_get_config()->m_light_str = true;
-    }
-    else
-    {
-        eu_get_config()->m_light_str = false;
-    }
+    eu_get_config()->m_light_str = !eu_get_config()->m_light_str;
 }
 
 void
-on_view_light_fold(HWND hwnd)
+on_view_light_fold(void)
 {
-    if (!eu_get_config()->light_fold)
-    {
-        eu_get_config()->light_fold = true;
-    }
-    else
-    {
-        eu_get_config()->light_fold = false;
-    }
+    eu_get_config()->light_fold = !eu_get_config()->light_fold;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -395,16 +374,9 @@ on_view_light_fold(HWND hwnd)
 }
 
 void
-on_view_wrap_line(HWND hwnd)
+on_view_wrap_line(void)
 {
-    if (!eu_get_config()->line_mode)
-    {
-        eu_get_config()->line_mode = true;
-    }
-    else
-    {
-        eu_get_config()->line_mode = false;
-    }
+    eu_get_config()->line_mode = eu_get_config()->line_mode;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -418,16 +390,9 @@ on_view_wrap_line(HWND hwnd)
 }
 
 void
-on_view_line_num(HWND hwnd)
+on_view_line_num(void)
 {
-    if (!eu_get_config()->m_linenumber)
-    {
-        eu_get_config()->m_linenumber = true;
-    }
-    else
-    {
-        eu_get_config()->m_linenumber = false;
-    }
+    eu_get_config()->m_linenumber = !eu_get_config()->m_linenumber;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -441,16 +406,9 @@ on_view_line_num(HWND hwnd)
 }
 
 void
-on_view_bookmark(HWND hwnd)
+on_view_bookmark(void)
 {
-    if (!eu_get_config()->bookmark_visable)
-    {
-        eu_get_config()->bookmark_visable = true;
-    }
-    else
-    {
-        eu_get_config()->bookmark_visable = false;
-    }
+    eu_get_config()->bookmark_visable = !eu_get_config()->bookmark_visable;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -463,17 +421,9 @@ on_view_bookmark(HWND hwnd)
     }
 }
 
-void
-on_view_show_fold_lines(HWND hwnd)
+static void
+on_view_update_fold(void)
 {
-    if (!eu_get_config()->block_fold)
-    {
-        eu_get_config()->block_fold = true;
-    }
-    else
-    {
-        eu_get_config()->block_fold = false;
-    }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -487,16 +437,16 @@ on_view_show_fold_lines(HWND hwnd)
 }
 
 void
-on_view_white_space(HWND hwnd)
+on_view_show_fold_lines(void)
 {
-    if (!eu_get_config()->ws_visiable)
-    {
-        eu_get_config()->ws_visiable = true;
-    }
-    else
-    {
-        eu_get_config()->ws_visiable = false;
-    }
+    eu_get_config()->block_fold = !eu_get_config()->block_fold;
+    on_view_update_fold();
+}
+
+void
+on_view_white_space(void)
+{
+    eu_get_config()->ws_visiable = !eu_get_config()->ws_visiable;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -512,16 +462,9 @@ on_view_white_space(HWND hwnd)
 }
 
 void
-on_view_line_visiable(HWND hwnd)
+on_view_line_visiable(void)
 {
-    if (!eu_get_config()->newline_visialbe)
-    {
-        eu_get_config()->newline_visialbe = true;
-    }
-    else
-    {
-        eu_get_config()->newline_visialbe = false;
-    }
+    eu_get_config()->newline_visialbe = !eu_get_config()->newline_visialbe;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -535,16 +478,9 @@ on_view_line_visiable(HWND hwnd)
 }
 
 void
-on_view_indent_visiable(HWND hwnd)
+on_view_indent_visiable(void)
 {
-    if (!eu_get_config()->m_indentation)
-    {
-        eu_get_config()->m_indentation = true;
-    }
-    else
-    {
-        eu_get_config()->m_indentation = false;
-    }
+    eu_get_config()->m_indentation = !eu_get_config()->m_indentation;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};

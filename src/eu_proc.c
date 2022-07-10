@@ -1179,10 +1179,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     hexview_switch_mode(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_STR:
-                    on_view_light_str(hwnd);
+                    on_view_light_str();
                     break;
                 case IDM_VIEW_HIGHLIGHT_FOLD:
-                    on_view_light_fold(hwnd);
+                    on_view_light_fold();
                     break;
                 case IDM_FORMAT_REFORMAT:
                     on_format_json_style(pnode);
@@ -1220,7 +1220,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     do_byte_code(pnode);
                     break;
                 case IDM_VIEW_WRAPLINE_MODE:
-                    on_view_wrap_line(hwnd);
+                    on_view_wrap_line();
                     break;
                 case IDM_VIEW_TAB_WIDTH:
                     on_view_tab_width(hwnd, pnode);
@@ -1229,19 +1229,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_space_converter(hwnd, pnode);
                     break;
                 case IDM_VIEW_LINENUMBER_VISIABLE:
-                    on_view_line_num(hwnd);
+                    on_view_line_num();
                     break;
                 case IDM_VIEW_BOOKMARK_VISIABLE:
-                    on_view_bookmark(hwnd);
+                    on_view_bookmark();
                     break;
                 case IDM_VIEW_WHITESPACE_VISIABLE:
-                    on_view_white_space(hwnd);
+                    on_view_white_space();
                     break;
                 case IDM_VIEW_NEWLINE_VISIABLE:
-                    on_view_line_visiable(hwnd);
+                    on_view_line_visiable();
                     break;
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
-                    on_view_indent_visiable(hwnd);
+                    on_view_indent_visiable();
                     break;
                 case IDM_VIEW_TIPS_ONTAB:
                     eu_get_config()->m_tab_tip = !eu_get_config()->m_tab_tip;
@@ -1262,7 +1262,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_zoom_reset(pnode);
                     break;
                 case IDM_SOURCE_BLOCKFOLD_VISIABLE:
-                    on_view_show_fold_lines(hwnd);
+                    on_view_show_fold_lines();
                     break;
                 case IDM_SOURCE_BLOCKFOLD_TOGGLE:
                     on_code_switch_fold(pnode, -1);

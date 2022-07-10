@@ -21,75 +21,56 @@
 #define ANY_WORD "///*///"
 #endif
 
-/* XPM */
-static const char *minus_xpm[] =
-{
-    /* width height num_colors chars_per_pixel */
-    "     9     9       16            1",
-    /* colors */
-    "` c #8c96ac",
-    ". c #c4d0da",
-    "# c #daecf4",
-    "a c #ccdeec",
-    "b c #eceef4",
-    "c c #e0e5eb",
-    "d c #a7b7c7",
-    "e c #e4ecf0",
-    "f c #d0d8e2",
-    "g c #b7c5d4",
-    "h c #fafdfc",
-    "i c #b4becc",
-    "j c #d1e6f1",
-    "k c #e4f2fb",
-    "l c #ecf6fc",
-    "m c #d4dfe7",
-    /* pixels */
-    "hbc.i.cbh",
-    "bffeheffb",
-    "mfllkllfm",
-    "gjkkkkkji",
-    "da`````jd",
-    "ga#j##jai",
-    "f.k##k#.a",
-    "#..jkj..#",
-    "hemgdgc#h"
-};
-
-static const char *plus_xpm[] =
-{
-    /* width height num_colors chars_per_pixel */
-    "     9     9       16            1",
-    /* colors */
-    "` c #242e44",
-    ". c #8ea0b5",
-    "# c #b7d5e4",
-    "a c #dcf2fc",
-    "b c #a2b8c8",
-    "c c #ccd2dc",
-    "d c #b8c6d4",
-    "e c #f4f4f4",
-    "f c #accadc",
-    "g c #798fa4",
-    "h c #a4b0c0",
-    "i c #cde5f0",
-    "j c #bcdeec",
-    "k c #ecf1f6",
-    "l c #acbccc",
-    "m c #fcfefc",
-    /* pixels */
-    "mech.hcem",
-    "eldikille",
-    "dlaa`akld",
-    ".#ii`ii#.",
-    "g#`````fg",
-    ".fjj`jjf.",
-    "lbji`ijbd",
-    "khb#idlhk",
-    "mkd.ghdkm"
-};
+#define XPM_SIZE 16
+#define XPM_DIMENSION 18
 
 static doctype_t* g_doc_config;
 extern sptr_t __stdcall CreateLexer(const char *name);
+
+static char *plus_xpm[] = {
+    /* columns rows colors chars-per-pixel */
+    "14 14 3 1 ",
+    "  c None",
+    ". c gray30",
+    "X c #8c96ac",
+    /* pixels */
+    " XXXXXXXXXXXXX",
+    " XXXXXXXXXXXXX",
+    " XXXXXXXXXXXXX",
+    " XXXXXX XXXXXX",
+    " XXXXXX XXXXXX",
+    " XXXXXX XXXXXX",
+    " XXX       XXX",
+    " XXX       XXX",
+    " XXXXXX XXXXXX",
+    " XXXXXX XXXXXX",
+    " XXXXXX XXXXXX",
+    " XXXXXXXXXXXXX",
+    " XXXXXXXXXXXXX",
+    " XXXXXXXXXXXXX",
+};
+static char *minus_xpm[] = {
+    /* columns rows colors chars-per-pixel */
+    "14 14 3 1 ",
+    "  c #8c96ac",
+    ". c gray31",
+    "X c None",
+    /* pixels */
+    "XXXXXXXXXXXXXX",
+    "X.          .X",
+    "X            X",
+    "X            X",
+    "X            X",
+    "X            X",
+    "X  XXXXXXXX  X",
+    "X  XXXXXXXX  X",
+    "X            X",
+    "X            X",
+    "X            X",
+    "X            X",
+    "X.          .X",
+    "XXXXXXXXXXXXXX"
+};
 
 void
 on_doc_enable_foldline(eu_tabpage *pnode)
@@ -113,10 +94,12 @@ on_doc_enable_foldline(eu_tabpage *pnode)
     }
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_FOLD_INDEX, SC_MARGIN_SYMBOL); // 页边类型
     eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_FOLD_INDEX, SC_MASK_FOLDERS);  // 页边掩码
+
     // 页边宽度
     eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, (eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0));
     eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_FOLD_INDEX, true); //响应鼠标消息
-    /* 折叠标签样式 */
+
+    // 折叠标签样式
     eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_PIXMAP);
     eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_PIXMAP);
     eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_PIXMAP);
@@ -124,11 +107,42 @@ on_doc_enable_foldline(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNERCURVE);
     eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
     eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNERCURVE);
-    eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDER, (sptr_t) plus_xpm);
-    eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPEN, (sptr_t) minus_xpm);
-    eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEREND, (sptr_t) plus_xpm);
-    eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPENMID, (sptr_t) minus_xpm);
-    /* 折叠标签颜色 */
+    if (eu_get_theme()->item.foldmargin.color > 0)
+    {
+        char *plus[XPM_DIMENSION] = {NULL};
+        char *minus[XPM_DIMENSION] = {NULL};
+        char str1[XPM_SIZE] = {0};
+        char str2[XPM_SIZE] = {0};
+        int  i = 0;
+        const char *fmt1 = "X c #%x";
+        const char *fmt2 = "  c #%x";
+        snprintf(str1, XPM_SIZE, fmt1, eu_get_theme()->item.foldmargin.color);
+        snprintf(str2, XPM_SIZE, fmt2, eu_get_theme()->item.foldmargin.color);
+        for (; i < XPM_DIMENSION; ++i)
+        {
+            plus[i] = plus_xpm[i];
+        }
+        plus[3] = _strdup(str1);
+        for (i = 0; i < XPM_DIMENSION; ++i)
+        {
+            minus[i] = minus_xpm[i];
+        }
+        minus[1] = _strdup(str2);
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDER, (sptr_t) plus);
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPEN, (sptr_t) minus);
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEREND, (sptr_t) plus);
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPENMID, (sptr_t) minus);
+        eu_safe_free(plus[3]);
+        eu_safe_free(minus[1]);
+    }
+    else
+    {
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDER, (sptr_t) plus_xpm);
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPEN, (sptr_t) minus_xpm);
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEREND, (sptr_t) plus_xpm);
+        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPENMID, (sptr_t) minus_xpm);
+    }
+    // 折叠线的背景颜色
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERSUB, 0xa0a0a0);
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERMIDTAIL, 0xa0a0a0);
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERTAIL, 0xa0a0a0);

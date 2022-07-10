@@ -52,9 +52,10 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_shape);
     eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
     eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
-    // 代码折叠栏颜色与亮量颜色
-    eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
+    // 代码折叠栏颜色与亮量颜色, 这里与背景色相同
     eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
+    eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
+
     // 当前行背景色
     eu_sci_call(pnode, SCI_SETCARETLINEVISIBLE, TRUE, 0);
     eu_sci_call(pnode, SCI_SETCARETLINEVISIBLEALWAYS, 1, 0);
@@ -255,7 +256,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
     {
         cvector_free((*ppnode)->pvec);
         (*ppnode)->pvec = NULL;
-    }    
+    }
     if (!(*ppnode)->phex)
     {
         if ((*ppnode)->hwnd_sc)
@@ -429,7 +430,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             else if (pnode->map_show && document_map_initialized)
             {
-                printf("on_map_static_proc recv WM_KEYDOWN\n");
                 if (wParam == VK_UP)
                 {
                     SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 0);
@@ -445,6 +445,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (wParam == VK_NEXT)
                 {
                     SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
+                }
+                if (wParam == VK_LBUTTON)
+                {
+                    printf("VK_LBUTTON msg coming\n");
                 }
             }
             break;
