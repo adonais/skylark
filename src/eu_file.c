@@ -1661,7 +1661,6 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     /* 关闭标签后需要激活其他标签 */
     if ((index = on_tabpage_remove(&pnode)) >= 0 && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))
     {
-        printf("index = %d, ifocus = %d, p = %p\n", index, ifocus, (void *)p);
         if (index == ifocus || mode == FILE_REMOTE_CLOSE)
         {
             on_file_other_tab(index);

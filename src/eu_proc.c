@@ -450,7 +450,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         {
             eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
             pnode->nc_pos = -1;
-        }            
+        }
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -471,7 +471,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 if (p->hwnd_qrtable)
                 {
                     ShowWindow(p->hwnd_qrtable, SW_HIDE);
-                }                
+                }
             }
             if (p->hwnd_sc)
             {
@@ -499,7 +499,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             UpdateWindow(pnode->hwnd_qrtable);
             InvalidateRect(g_splitter_tablebar, &r, 0);
             UpdateWindow(g_splitter_tablebar);
-        }        
+        }
         InvalidateRect(pnode->presult->hwnd_sc, &pnode->rect_result, 1);
         UpdateWindow(pnode->presult->hwnd_sc);
     }
@@ -549,7 +549,7 @@ eu_before_proc(MSG *p_msg)
             {
                 on_sci_insert_egg(pnode);
                 return 1;
-            }                
+            }
         }
         else if (RESULT_SHOW(pnode) && p_msg->hwnd == pnode->presult->hwnd_sc && p_msg->wParam == 0x43 && KEY_DOWN(VK_CONTROL))
         {   // 响应搜索结果窗口的复制快捷键
@@ -687,11 +687,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             switch (((LPDRAWITEMSTRUCT)lParam)->CtlID)
             {
-                case IDC_STATUSBAR:
-                    if (g_statusbar && ((LPDRAWITEMSTRUCT) lParam)->itemID < STATUSBAR_PART - 1)
-                    {                     
-                        return on_statusbar_draw_item(hwnd, wParam, lParam);
-                    }
                 case IDM_TREE_BAR:
                 case IDM_TABPAGE_BAR:
                     if (g_tabpages)

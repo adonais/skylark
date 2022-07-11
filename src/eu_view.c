@@ -127,7 +127,7 @@ on_view_refresh_scroll(void)
                 eu_sci_call(pnode->presult, SCI_SETHSCROLLBAR, h, 0);
             }
         }
-    }    
+    }
 }
 
 static int

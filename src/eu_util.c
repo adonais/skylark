@@ -1127,7 +1127,6 @@ util_strnspace(const char *s1, const char *s2)
     }
     if (strncmp(s1, s2, strlen(s2)) == 0)
     {
-        printf("^^^s1=%s^^^, ok\n", s1);
         return 0;
     }
     for (int i = 0; i < eu_int_cast(strlen(s1)); ++i)
@@ -1141,7 +1140,6 @@ util_strnspace(const char *s1, const char *s2)
             return 0;
         }
     }
-    printf("^^^s1=%s^^^, err!\n", s1);
     return 1;
 }
 
@@ -1287,7 +1285,7 @@ util_unix2path(TCHAR *path)
             path[pos] = _T('\\');
         }
     } while (lp != NULL);
-    return path;    
+    return path;
 }
 
 char *
@@ -1822,7 +1820,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
                       L"\\StringFileInfo\\%04x%04x\\ProductName",
                       lptranslate[i].wLanguage,
                       lptranslate[i].wCodePage);
-            
+
             ret = pfnVerQueryValueW((LPCVOID) pbuffer, (LPCWSTR) dw_block, (LPVOID *) &ptmp, &cb_translate);
             if (ret)
             {

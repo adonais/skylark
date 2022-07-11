@@ -1,6 +1,8 @@
 #ifndef _H_SKYLARK_THEME_DARK_
 #define _H_SKYLARK_THEME_DARK_
 
+
+
 #define  CASE_WM_CTLCOLOR_SET         \
            case WM_CTLCOLORDLG:       \
            case WM_CTLCOLORBTN:       \
@@ -42,6 +44,8 @@ colour on_dark_get_colorization_color(void);
 colour on_dark_light_color(colour cr_base, float factor);
 HRESULT on_dark_close_data(void *hth);
 intptr_t on_dark_open_data(HWND hwnd, LPCWSTR class_list);
+HRESULT on_dark_draw_background(void *hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect);
+HRESULT on_dark_get_partsize(void *hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz);
 intptr_t on_dark_get_hot_brush(void);
 intptr_t on_dark_set_contorl_color(WPARAM wParam);
 intptr_t on_dark_get_brush(void);

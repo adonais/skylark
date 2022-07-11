@@ -1370,6 +1370,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
 table_clean:
     eu_safe_free(sel_sql);
     eu_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
-    eu_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);    
+    eu_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
     return 0;
 }

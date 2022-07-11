@@ -53,7 +53,6 @@ void __stdcall on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *prin
 void __stdcall on_statusbar_dark_mode(void);
 void __stdcall on_statusbar_dark_release(bool off);
 void __stdcall on_statusbar_pop_menu(int parts, LPPOINT pt);
-LRESULT __stdcall on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus
 }

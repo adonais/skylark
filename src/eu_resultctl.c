@@ -42,7 +42,7 @@ on_result_append_text(TCHAR *format, ...)
         return 1;
 
     }
-    
+
     if (eu_sci_call(pnode->presult, SCI_GETLENGTH, 0, 0) < 1)
     {
         char *u8 = NULL;
@@ -174,7 +174,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
                 DestroyMenu(hpop);
             }
-            return 1;            
+            return 1;
         }
         case WM_COMMAND:
         {
@@ -236,7 +236,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
             }
             break;
-        }        
+        }
         case WM_THEMECHANGED:
         {
             break;
@@ -264,7 +264,7 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     printf("we recv IDM_EDIT_COPY message\n");
                     break;
                 default:
-                    break;  
+                    break;
             }
         }
         case WM_SIZE:

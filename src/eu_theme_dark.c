@@ -97,6 +97,8 @@ typedef HRESULT (WINAPI *SetWindowThemePtr)(HWND, const wchar_t *, const wchar_t
 typedef HTHEME (WINAPI *OpenThemeDataPtr)(HWND, LPCWSTR pszClassList);
 typedef HRESULT (WINAPI *CloseThemeDataPtr)(HTHEME);
 typedef COLORREF (WINAPI *GetThemeSysColorPtr)(HTHEME hth, int colid);
+typedef HRESULT (WINAPI *GetThemePartSizePtr)(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz);
+typedef HRESULT (WINAPI *DrawThemeBackgroundPtr)(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect);
 
 // dwm function
 typedef HRESULT (WINAPI *DwmSetWindowAttributePtr)(HWND, DWORD, LPCVOID, DWORD);
@@ -151,6 +153,34 @@ bool
 on_dark_enable(void)
 {
     return g_dark_enabled && on_dark_apps_use() && !on_dark_high_contrast();
+}
+
+HRESULT
+on_dark_draw_background(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect)
+{
+    HRESULT ret = 1;
+    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    DrawThemeBackgroundPtr fnDrawThemeBackground = uxtheme ? (DrawThemeBackgroundPtr)GetProcAddress(uxtheme, "DrawThemeBackground") : NULL;
+    if (hTheme && fnDrawThemeBackground)
+    {
+        ret = fnDrawThemeBackground(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
+    }
+    safe_close_dll(uxtheme);
+    return ret;
+}
+
+HRESULT
+on_dark_get_partsize(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz)
+{
+    HRESULT ret = 1;
+    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    GetThemePartSizePtr fnGetThemePartSize = uxtheme ? (GetThemePartSizePtr)GetProcAddress(uxtheme, "GetThemePartSize") : NULL;
+    if (hTheme && fnGetThemePartSize)
+    {
+        ret = fnGetThemePartSize(hTheme, hdc, iPartId, iStateId, prc, eSize, psz);
+    }
+    safe_close_dll(uxtheme);
+    return ret;
 }
 
 intptr_t
