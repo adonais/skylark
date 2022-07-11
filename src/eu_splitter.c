@@ -57,14 +57,24 @@ on_splitter_absolute_height(int y)
 }
 
 static HDC
-on_splitter_drawing_line(HWND parent, LPRECT r, int x)
+on_splitter_drawing_line(HWND parent, LPRECT r, int x, HPEN *ptr_pen)
 {
     HDC hdc = GetWindowDC(parent);
-    SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+    HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+    HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
     SetROP2(hdc, R2_NOTXORPEN);
     on_splitter_rect_box(parent, r, 0);
     MoveToEx(hdc, x, r->top, NULL);
     LineTo(hdc, x,  r->bottom);
+    if (ptr_pen)
+    {
+        *ptr_pen = hold_pen;
+    }
+    else
+    {
+        SelectObject(hdc, hold_pen);
+        DeleteObject(hpen);
+    }
     return hdc;
 }
 
@@ -88,7 +98,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HWND parent = GetParent(hwnd);
             on_treebar_adjust_box(&rect_tree);
             x = rect_tree.right - rect_tree.left + 3 * SPLIT_WIDTH;
-            HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x);
+            HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, NULL);
             ReleaseDC(parent, hdc);
             SetCapture(hwnd);
             break;
@@ -97,7 +107,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             RECT rect_tree;
             HWND parent = GetParent(hwnd);
-            HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x);
+            HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, NULL);
             ReleaseDC(parent, hdc);
             ReleaseCapture();
             eu_get_config()->file_tree_width = x - rect_tree.left - SPLIT_WIDTH / 2;
@@ -114,10 +124,16 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 RECT rect_tree;
                 HWND parent = GetParent(hwnd);
-                HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x);
+                HPEN hpen = NULL;
+                HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, &hpen);
                 x = rect_tree.right - rect_tree.left + (short)LOWORD(lParam);
                 MoveToEx(hdc, x, rect_tree.top, NULL);
                 LineTo(hdc, x,  rect_tree.bottom);
+                if (hpen)
+                {
+                    hpen = (HPEN)SelectObject(hdc, hpen);
+                    DeleteObject(hpen);
+                }
                 ReleaseDC(parent, hdc);
             }
             break;
@@ -164,11 +180,14 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 {
                     cx = pnode->rect_sc.right;
                 }
-                SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+                HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+                HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
                 SetROP2(hdc, R2_NOTXORPEN);
                 on_splitter_rect_box(parent, &r, on_tabpage_get_height() + SCINTILLA_MARGIN_TOP);
                 MoveToEx(hdc, cx, r.top, NULL);
                 LineTo(hdc, cx,  r.bottom);
+                SelectObject(hdc, hold_pen);
+                DeleteObject(hpen);
             }
             ReleaseDC(parent, hdc);
             SetCapture(hwnd);
@@ -220,7 +239,8 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 HDC hdc = GetWindowDC(parent);
                 if ((pnode = on_tabpage_focus_at()) != NULL)
                 {
-                    SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+                    HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+                    HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
                     SetROP2(hdc, R2_NOTXORPEN);
                     on_splitter_rect_box(parent, &r, on_tabpage_get_height() + SCINTILLA_MARGIN_TOP);
                     MoveToEx(hdc, cx, r.top, NULL);
@@ -239,6 +259,8 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     }
                     MoveToEx(hdc, cx, r.top, NULL);
                     LineTo(hdc, cx,  r.bottom);
+                    SelectObject(hdc, hold_pen);
+                    DeleteObject(hpen);
                 }
                 ReleaseDC(parent, hdc);
             }
@@ -274,10 +296,13 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             pnode = on_tabpage_focus_at();
             cy = on_splitter_absolute_height(pnode->rect_sc.bottom);
             HDC hdc = GetWindowDC(parent);
-            SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+            HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+            HPEN hold_pen = (HPEN)SelectObject(hdc, hpen);
             SetROP2(hdc, R2_NOTXORPEN);
             MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
             LineTo(hdc, pnode->rect_sc.right, cy);
+            SelectObject(hdc, hold_pen);
+            DeleteObject(hpen);
             ReleaseDC(parent, hdc);
             SetCapture(hwnd);
             break;
@@ -287,11 +312,14 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             parent = GetParent(hwnd);
             pnode = on_tabpage_focus_at();
             HDC hdc = GetWindowDC(parent);
-            SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+            HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+            HPEN hold_pen = (HPEN)SelectObject(hdc, hpen);
             SetROP2(hdc, R2_NOTXORPEN);
             MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
             LineTo(hdc, pnode->rect_sc.right,  cy);
+            SelectObject(hdc, hold_pen);
             ReleaseDC(parent, hdc);
+            DeleteObject(hpen);
             ReleaseCapture();
             if (RESULT_SHOW(pnode) && hwnd_rst)
             {
@@ -318,13 +346,16 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 parent = GetParent(hwnd);
                 pnode = on_tabpage_focus_at();
                 HDC hdc = GetWindowDC(parent);
-                SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+                HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+                HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
                 SetROP2(hdc, R2_NOTXORPEN);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  cy);
                 cy = on_splitter_absolute_height(pnode->rect_sc.bottom) + (short)HIWORD(lParam);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  cy);
+                SelectObject(hdc, hold_pen);
+                DeleteObject(hpen);
                 ReleaseDC(parent, hdc);
             }
             break;
@@ -358,10 +389,13 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             pnode = on_tabpage_focus_at();
             y = on_splitter_absolute_height(pnode->rect_result.bottom);
             HDC hdc = GetWindowDC(parent);
-            SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+            HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+            HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
             SetROP2(hdc, R2_NOTXORPEN);
             MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
             LineTo(hdc, pnode->rect_sc.right,  y);
+            SelectObject(hdc, hold_pen);
+            DeleteObject(hpen);
             ReleaseDC(parent, hdc);
             SetCapture(hwnd);
             break;
@@ -371,10 +405,13 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HWND parent = GetParent(hwnd);
             pnode = on_tabpage_focus_at();
             HDC hdc = GetWindowDC(parent);
-            SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+            HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+            HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
             SetROP2(hdc, R2_NOTXORPEN);
             MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
             LineTo(hdc, pnode->rect_sc.right,  y);
+            SelectObject(hdc, hold_pen);
+            DeleteObject(hpen);
             ReleaseDC(parent, hdc);
             ReleaseCapture();
             int m_height = on_splitter_absolute_height(pnode->rect_qrtable.bottom) - y - SPLIT_WIDTH/2;
@@ -392,13 +429,16 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 HWND parent = GetParent(hwnd);
                 pnode = on_tabpage_focus_at();
                 HDC hdc = GetWindowDC(parent);
-                SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
+                HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+                HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
                 SetROP2(hdc, R2_NOTXORPEN);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  y);
                 y = on_splitter_absolute_height(pnode->rect_result.bottom) + (short)HIWORD(lParam);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  y);
+                SelectObject(hdc, hold_pen);
+                DeleteObject(hpen);
                 ReleaseDC(parent, hdc);
             }
             break;

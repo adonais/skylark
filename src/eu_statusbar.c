@@ -192,7 +192,7 @@ on_statusbar_adjust_btn(void)
         rc.right -= btn_width;
         HDWP hdwp = BeginDeferWindowPos(2);
         DeferWindowPos(hdwp, hcap, HWND_TOP, rc.right, rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
-        rc.right -= btn_width + 2;
+        rc.right -= btn_width + SPLIT_WIDTH;
         DeferWindowPos(hdwp, hrw, HWND_TOP, rc.right, rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
         EndDeferWindowPos(hdwp);
     }
