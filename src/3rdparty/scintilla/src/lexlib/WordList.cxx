@@ -294,6 +294,7 @@ bool WordList::InListAbridged(const char *s, const char marker) const noexcept {
 }
 
 const char *WordList::WordAt(int n) const noexcept {
+    if (!words) return nullptr;
 	return words[n];
 }
 

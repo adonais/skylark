@@ -85,7 +85,7 @@
 #define DOCUMENTMAP_MOUSEWHEEL    (WM_USER + 503)
 #define WM_BACKUP_OVER            (WM_USER+10001)
 #define WM_SYSLIST_OVER           (WM_USER+10002)
-#define WM_RESULT_PTR             (WM_USER+10003)
+#define WM_STATUS_REFRESH         (WM_USER+10003)
 #define WM_TAB_CLICK              (WM_USER+10004)
 #define WM_SKYLARK_DESC           (WM_USER+10005)
 // Tab notification message
@@ -575,7 +575,6 @@ EU_EXT_CLASS void eu_close_db_handle(void);
 EU_EXT_CLASS int on_doc_init_list(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_tree(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_result(eu_tabpage *pnode);
-EU_EXT_CLASS int on_doc_init_result_list(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_list_sh(eu_tabpage *pnode);
 
 /* 默认的 init_after_ptr 回调函数入口 */

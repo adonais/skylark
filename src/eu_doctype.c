@@ -192,24 +192,6 @@ on_doc_init_tree(eu_tabpage *pnode)
 }
 
 int
-on_doc_init_result_list(eu_tabpage *pnode)
-{
-    if (!pnode)
-    {
-        return 1;
-    }
-    if (on_doc_init_list(pnode))
-    {
-        return 1;
-    }
-    if (on_result_create_dlg(pnode))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int
 on_doc_init_result(eu_tabpage *pnode)
 {
     if (!pnode)
@@ -217,10 +199,6 @@ on_doc_init_result(eu_tabpage *pnode)
         return 1;
     }
     if (on_symtree_create(pnode))
-    {
-        return 1;
-    }
-    if (on_result_create_dlg(pnode))
     {
         return 1;
     }
@@ -2066,7 +2044,7 @@ on_doc_keydown_sql(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
             eu_sci_call(pnode, SCI_SETSEL, 0, eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
             vcontrol = true;
         }
-        return on_table_sql_query(pnode, NULL, vcontrol);
+        return on_table_sql_query(pnode, NULL, vcontrol, true);
     }
     return 0;
 }

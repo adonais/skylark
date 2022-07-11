@@ -104,7 +104,6 @@ on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap)
                 {
                     eu_sci_call(pnode, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
                 }
-                eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
                 eu_sci_call(pnode, SCI_FOLDLINE, fold_line, SC_FOLDACTION_EXPAND);
                 if (do_wrap && wrap_mode != (int)eu_sci_call(pnode, SCI_GETWRAPMODE, 0, 0))
                 {
@@ -117,7 +116,6 @@ on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap)
                 {
                     eu_sci_call(pnode, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
                 }
-                eu_sci_call(pnode, SCI_GOTOLINE, fold_line, 0);
                 eu_sci_call(pnode, SCI_TOGGLEFOLD, fold_line, 0);
                 if (do_wrap && wrap_mode != (int)eu_sci_call(pnode, SCI_GETWRAPMODE, 0, 0))
                 {

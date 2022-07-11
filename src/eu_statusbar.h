@@ -40,7 +40,7 @@ extern HWND g_statusbar;
 extern char iconv_undo_str[ACNAME_LEN];
 
 bool __stdcall on_statusbar_init(HWND hwnd);
-void __stdcall on_statusbar_size(void);
+void __stdcall on_statusbar_refresh(void);
 void __stdcall on_statusbar_btn_case(void);
 int  __stdcall on_statusbar_height(void);
 void __stdcall on_statusbar_update(void);

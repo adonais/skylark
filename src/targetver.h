@@ -480,11 +480,11 @@
 #define IDS_ABOUT_DESCRIPTION           31107
 #define IDC_COMPILER                    31108
 
-#define IDM_RESULT_1                    31109
-#define IDM_RESULT_2                    31110
-#define IDM_RESULT_3                    31111
-#define IDM_RESULT_4                    31112
-#define IDM_RESULT_5                    31113
+#define IDM_RESULT_COPY                 31109
+#define IDM_RESULT_WRAPLINE             31110
+#define IDM_RESULT_SETSEL               31111
+#define IDM_RESULT_UNSETSEL             31112
+#define IDM_RESULT_CLEARALL             31113
 #define IDM_RESULT_CLOSE                31114
 #define IDR_RESULT_MENU                 31115
 
@@ -935,7 +935,7 @@
 #define IDS_COMMAND_TITLE                   42998
 #define IDS_HELP_COMMAND                    42999
 #define IDM_HELP_COMMAND                    43000
-
+#define IDS_LOADLIBRARY_SQL                 43001
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

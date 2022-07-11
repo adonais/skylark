@@ -266,13 +266,14 @@ eu_create_fullscreen(HWND hwnd)
 }
 
 /*****************************************************************************
- * 窗口缩放处理函数
- ****************************************************************************/
-
+ * 主窗口缩放处理函数
+ * 一次性处理所有窗口, 不在每个窗口处理WM_SIZE消息了
+******************************************************************************/
 static void
 on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
 {
-    int  number = 10;
+    int  number = 11;
+    RECT rc = {0};
     RECT rect_treebar = {0};
     RECT rect_tabbar = {0};
     eu_tabpage *pnode = ptab ? ptab : on_tabpage_focus_at();
@@ -285,6 +286,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
     on_tabpage_adjust_box(&rect_tabbar);
     on_treebar_adjust_box(&rect_treebar);
     on_tabpage_adjust_window(pnode);
+    GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
     if (ptab)
     {
         number -= 5;
@@ -294,8 +296,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
     {
         if (eu_get_config()->m_toolbar)
         {
-            RECT rc = {0};
-            GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
             DeferWindowPos(hdwp, on_toolbar_hwnd(), HWND_TOP, 0, 0, rc.right - rc.left, on_toolbar_height(), SWP_SHOWWINDOW);
         }
         else
@@ -420,6 +420,19 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             }
         }
     }
+    if (eu_get_config()->m_statusbar)
+    {
+        if (g_statusbar)
+        {
+            DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
+                           rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
+            PostMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+        }
+    }
+    else if (g_statusbar)
+    {
+        DeferWindowPos(hdwp, g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+    }
     if (true)
     {
         EndDeferWindowPos(hdwp);
@@ -433,12 +446,11 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             ShowWindow(pnode->hwnd_sc, SW_SHOW);
         }
         pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
-        // Can't jump until the editor window is initialized
-        if (pnode->nc_pos >= 0)
+        if (pnode->nc_pos >= 0 && pnode->hex_mode)
         {
-            !pnode->hex_mode ? on_search_jmp_pos(pnode, pnode->nc_pos) : eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
             pnode->nc_pos = -1;
-        }
+        }            
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -453,16 +465,13 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             {
                 ShowWindow(p->hwnd_symtree, SW_HIDE);
             }
-            if (p->edit_show)
+            if (RESULT_SHOW(p))
             {
-                if (p->hwnd_qredit)
-                {
-                    ShowWindow(p->hwnd_qredit, SW_HIDE);
-                }
+                ShowWindow(p->presult->hwnd_sc, SW_HIDE);
                 if (p->hwnd_qrtable)
                 {
                     ShowWindow(p->hwnd_qrtable, SW_HIDE);
-                }
+                }                
             }
             if (p->hwnd_sc)
             {
@@ -470,95 +479,54 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             }
         }
     }
-    if (pnode->edit_show)
+    if (RESULT_SHOW(pnode) && hwnd_rst)
     {
         RECT r = {0, 0, pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH};
-        if (result_dlg_initialized && hwnd_rst)
-        {
-            eu_tabpage *prst = (eu_tabpage *)GetWindowLongPtr(hwnd_rst, GWLP_USERDATA);
-            if (prst && prst->hwnd_sc)
-            {
-                eu_setpos_window(prst->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
-        }
-        if (pnode->hwnd_qredit)
-        {
-            eu_setpos_window(pnode->hwnd_qredit, HWND_TOP, pnode->rect_qredit.left, pnode->rect_qredit.top,
-                             pnode->rect_qredit.right - pnode->rect_qredit.left, pnode->rect_qredit.bottom - pnode->rect_qredit.top, SWP_SHOWWINDOW);
-            eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
-                             pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-            InvalidateRect(pnode->hwnd_qredit, &pnode->rect_qredit, 0);
-            UpdateWindow(pnode->hwnd_qredit);
-            InvalidateRect(g_splitter_editbar, &r, 0);
-            UpdateWindow(g_splitter_editbar);
-        }
+        eu_setpos_window(hwnd_rst, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+                         pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+        eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
+                         pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
+        eu_setpos_window(pnode->presult->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+                         pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+        on_result_reload(pnode->presult);
         if (pnode->hwnd_qrtable)
         {
             eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
                              pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
-            eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_qredit.bottom,
+            eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_result.bottom,
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
             InvalidateRect(pnode->hwnd_qrtable, &pnode->rect_qrtable, 0);
             UpdateWindow(pnode->hwnd_qrtable);
             InvalidateRect(g_splitter_tablebar, &r, 0);
             UpdateWindow(g_splitter_tablebar);
-        }
-    }
-    else if (pnode->result_show)
-    {
-        eu_tabpage *prst = NULL;
-        if (result_dlg_initialized && hwnd_rst)
-        {
-            eu_setpos_window(hwnd_rst, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
-                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
-            eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
-                             pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-            prst = (eu_tabpage *)GetWindowLongPtr(hwnd_rst, GWLP_USERDATA);
-        }
-        if (prst && prst->hwnd_sc)
-        {
-            eu_setpos_window(prst->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
-                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
-            on_result_reload(prst);
-        }
+        }        
+        InvalidateRect(pnode->presult->hwnd_sc, &pnode->rect_result, 1);
+        UpdateWindow(pnode->presult->hwnd_sc);
     }
     else
     {
-        if (result_dlg_initialized && hwnd_rst)
+        if (pnode->presult && pnode->presult->hwnd_sc && hwnd_rst)
         {
-            eu_tabpage *prst = (eu_tabpage *)GetWindowLongPtr(hwnd_rst, GWLP_USERDATA);
-            if (prst && prst->hwnd_sc)
-            {
-                eu_setpos_window(prst->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
+            eu_setpos_window(pnode->presult->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
         }
         ShowWindow(g_splitter_editbar, SW_HIDE);
         ShowWindow(g_splitter_tablebar, SW_HIDE);
     }
-    if (ptab)
-    {
-        on_statusbar_update();
-    }
-    else
-    {
-        PostMessage(g_statusbar, WM_SIZE, 0, 0);
-    }
+    PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+    on_statusbar_update();
 }
 
 void
 eu_window_resize(HWND hwnd)
 {
     on_proc_msg_size(hwnd ? hwnd : g_hwndmain, NULL);
-    PostMessage(hwnd ? hwnd : g_hwndmain, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 
 static void
 on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
 {
     on_proc_msg_size(hwnd, pnode);
-    PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
 }
 
 int
@@ -572,13 +540,20 @@ eu_before_proc(MSG *p_msg)
             return 1;
         }
     }
-    if((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && pnode->doc_ptr && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
+    if((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && p_msg->message == WM_KEYDOWN)
     {
-        bool main_key = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_SHIFT) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT);
-        if (main_key && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+        if (p_msg->hwnd == pnode->hwnd_sc)
         {
-            on_sci_insert_egg(pnode);
-            return 1;
+            bool main_key = pnode->doc_ptr ? KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_SHIFT) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) : false;
+            if (main_key && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+            {
+                on_sci_insert_egg(pnode);
+                return 1;
+            }                
+        }
+        else if (RESULT_SHOW(pnode) && p_msg->hwnd == pnode->presult->hwnd_sc && p_msg->wParam == 0x43 && KEY_DOWN(VK_CONTROL))
+        {   // 响应搜索结果窗口的复制快捷键
+            eu_sci_call(pnode->presult, SCI_COPY, 0, 0);
         }
     }
     return 0;
@@ -713,8 +688,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (((LPDRAWITEMSTRUCT)lParam)->CtlID)
             {
                 case IDC_STATUSBAR:
-                    if (g_statusbar && ((LPDRAWITEMSTRUCT) lParam)->itemID < 6)
-                    {
+                    if (g_statusbar && ((LPDRAWITEMSTRUCT) lParam)->itemID < STATUSBAR_PART - 1)
+                    {                     
                         return on_statusbar_draw_item(hwnd, wParam, lParam);
                     }
                 case IDM_TREE_BAR:

@@ -220,7 +220,6 @@ int64_t eu_sci_call(void *p, int m, int64_t w, int64_t l);
 int on_doc_init_list(void *pnode);
 int on_doc_init_tree(void *pnode);
 int on_doc_init_result(void *pnode);
-int on_doc_init_result_list(void *pnode);
 int on_doc_init_list_sh(void *pnode);
 
 /* 默认的 init_after_ptr 回调函数入口 */

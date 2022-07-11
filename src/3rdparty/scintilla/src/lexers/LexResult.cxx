@@ -70,19 +70,18 @@ stristr(const char *String, const char *Pattern)
 static void
 handle_word(char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler, int linenum, WordList *keywordlists[])
 {
-    WordList &keywords = *keywordlists[0];
-    int stat = SCE_RESULT_DEFAULT;
+    WordList &key_words = *keywordlists[0];
+    int state = SCE_RESULT_DEFAULT;
     size_t line_len = strlen(lineBuffer);
     // file header comment
-    if (!linenum && line_len > 1 && lineBuffer[0] == '#' && lineBuffer[1] == '*')
+    if (!linenum && line_len > 1 && lineBuffer[0] == '#' && lineBuffer[1] == '>')
     {
         styler.ColourTo(endPos, SCE_RESULT_COMMENT);
     }
-    else if (linenum > 0)
+    else if (linenum > 0 && key_words)
     {
         char *p = NULL;
-        
-        const char *key = keywords.WordAt(0);
+        const char *key = key_words.WordAt(0);
         if (key)
         {
             size_t key_len = strlen(key);
@@ -94,7 +93,7 @@ handle_word(char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler,
             }
         }
     }
-    styler.ColourTo(endPos, stat);
+    styler.ColourTo(endPos, state);
 }
 
 static void

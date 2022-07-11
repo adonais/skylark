@@ -458,10 +458,6 @@ hexview_update_theme(eu_tabpage *p)
         {
             SendMessage(p->hwnd_symtree, WM_DPICHANGED, 0, 0);
         }
-        if (p->hwnd_qredit)
-        {
-            SendMessage(p->hwnd_qredit, WM_DPICHANGED, 0, 0);
-        }
         if (p->hwnd_qrtable)
         {
             SendMessage(p->hwnd_qrtable, WM_DPICHANGED, 0, 0);
@@ -1911,6 +1907,8 @@ hexview_init(eu_tabpage *pnode)
     if (pnode->hwnd_sc)
     {   // tab保存原先的位置
         pnode->tab_id = TabCtrl_GetCurSel(g_tabpages);
+        // 16进制模式切换下, 只释放了关联窗口的资源
+        // pnode本身内存还可以共享使用
         on_tabpage_remove(&pnode);
     }
     if (!pnode->hex_mode)
@@ -1925,6 +1923,7 @@ hexview_init(eu_tabpage *pnode)
             return false;
         }
         pnode->eusc = 0;
+        pnode->sym_show = false;
         pnode->map_show = false;
         pnode->result_show = false;
         pnode->hex_mode = true;

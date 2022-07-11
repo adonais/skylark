@@ -444,7 +444,7 @@ if (not eu_core.file_exists(user_file)) then
     "          \"Lua\",\n",
     "          0,\n",
     "          -1,\n",
-    "          eu_core.euapi.on_doc_init_result_list,\n",
+    "          eu_core.euapi.on_doc_init_list,\n",
     "          eu_core.euapi.on_doc_init_after_lua,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",

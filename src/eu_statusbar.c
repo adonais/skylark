@@ -214,19 +214,10 @@ bool check_read_access(void* paddr, size_t nsize)
 }
 
 void WINAPI
-on_statusbar_size(void)
+on_statusbar_refresh(void)
 {
     if (g_statusbar)
     {
-        if (!eu_get_config()->m_statusbar)
-        {
-            if ((GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
-            {
-                ShowWindow(g_statusbar, SW_HIDE);
-            }
-            g_status_height = 0;
-        }
-        else
         {
             HWND hwnd = eu_module_hwnd();
             RECT rc_main = {0};
@@ -235,13 +226,7 @@ on_statusbar_size(void)
             int n_half = cx / 8;
             int parts[] = { n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, n_half*7+70, -1 };
             SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
-            if (!(GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
-            {
-                ShowWindow(g_statusbar, SW_SHOW);
-            }
-            UpdateWindowEx(g_statusbar);
             on_statusbar_adjust_btn();
-            on_statusbar_update();
         }
     }
 }
@@ -265,7 +250,7 @@ on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
         // overpaint part frames
         const HWND hwnd_item = pdis->hwndItem;
         const int bdh = GetSystemMetrics(SM_CYFRAME);
-        const HDC hdc_from = GetWindowDC(hwnd_item);
+        const HDC hdc_from = GetWindowDC(hwnd_item);     
         RECT rcf = rc;
         for (int i = 1; i < bdh; ++i)
         {
@@ -278,7 +263,7 @@ on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
         ReleaseDC(hwnd_item, hdc_from);
         TCHAR *text = (TCHAR *)(pdis->itemData);
         // Judge the memory permission, because the memory address may be modified under multithreading
-        if (text && check_read_access(text, 2))
+        //if (text && check_read_access(text, 2))
         {
             ExtTextOut(hdc, rc.left + 1, rc.top + 1, ETO_OPAQUE | ETO_NUMERICSLOCAL, &rc, text, (UINT)_tcslen(text), NULL);
         }
@@ -459,9 +444,13 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
         }
+        case WM_STATUS_REFRESH:
+        {
+            on_statusbar_refresh();
+            return 1;
+        }
         case WM_SIZE:
         {
-            on_statusbar_size();
             break;
         }
         case WM_COMMAND:
@@ -979,7 +968,7 @@ bool WINAPI
 on_statusbar_init(HWND hwnd)
 {
     bool ret = false;
-    const uint32_t dw_style = SBT_NOBORDERS | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+    const uint32_t dw_style = SBT_NOBORDERS | WS_CHILD | WS_CLIPSIBLINGS | SBT_OWNERDRAW;
     if (g_statusbar)
     {
         DestroyWindow(g_statusbar);
@@ -1020,7 +1009,8 @@ on_statusbar_init(HWND hwnd)
     if (ret && on_dark_enable())
     {
         on_statusbar_dark_mode();
-        PostMessage(g_statusbar, WM_SIZE, 0, 0);
+        SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+        on_statusbar_update();
     }
     return ret;
 }

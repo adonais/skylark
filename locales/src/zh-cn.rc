@@ -829,12 +829,12 @@ IDR_RESULT_MENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "复制(&C)",        IDM_RESULT_1
-        MENUITEM "粘贴(&P)",        IDM_RESULT_2
-        MENUITEM "全选(&S)",        IDM_RESULT_3
-        MENUITEM "取消选择(&D)",    IDM_RESULT_4
+        MENUITEM "复制(&C)",        IDM_RESULT_COPY
+        MENUITEM "全选(&A)",        IDM_RESULT_SETSEL
+        MENUITEM "取消选择",        IDM_RESULT_UNSETSEL
         MENUITEM SEPARATOR
-        MENUITEM "清除结果(&R)",    IDM_RESULT_5
+        MENUITEM "自动换行",        IDM_RESULT_WRAPLINE
+        MENUITEM "清除结果(&R)",    IDM_RESULT_CLEARALL
         MENUITEM "关闭此窗口(&W)",  IDM_RESULT_CLOSE
     END
 END
@@ -1092,8 +1092,8 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_EMPTY         "此文档不包含任何要打印的文本."
     IDS_PRINT_ERROR         "%s 文件打印错误"
     IDS_SELRECT             "不能在列编辑模式下进行此操作."
-    IDS_LUA_CONV_SUCCESS    "转换字节码成功, 文件保存在 [%s]"
-    IDS_LUA_CONV_FAIL       "转换字节码失败."
+    IDS_LUA_CONV_SUCCESS    "#> 转换字节码成功, 文件保存在 [%s]"
+    IDS_LUA_CONV_FAIL       "#> 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
     IDS_THEME_DESC_BLOCK    "暗黑主题"
     IDS_THEME_DESC_WHITE    "白色经典(需重启)"
@@ -1112,10 +1112,11 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
-    IDS_RESULT_STRINGS1     "#* 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
+    IDS_RESULT_STRINGS1     "#> 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
     IDS_RESULT_STRINGS2     "行 %*I64d: %s"
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-n : 打开文件时滚动到指定行\n-c : 打开文件时滚动到指定列\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
+    IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
 }
 
 /////////////////////////////////////////////////////////////////////////////

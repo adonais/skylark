@@ -1127,6 +1127,7 @@ util_strnspace(const char *s1, const char *s2)
     }
     if (strncmp(s1, s2, strlen(s2)) == 0)
     {
+        printf("^^^s1=%s^^^, ok\n", s1);
         return 0;
     }
     for (int i = 0; i < eu_int_cast(strlen(s1)); ++i)
@@ -1140,6 +1141,7 @@ util_strnspace(const char *s1, const char *s2)
             return 0;
         }
     }
+    printf("^^^s1=%s^^^, err!\n", s1);
     return 1;
 }
 

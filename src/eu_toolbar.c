@@ -531,13 +531,18 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
 {
     char *buffer = NULL;
     FILE *console = NULL;
-    if (pnode && pnode->doc_ptr && pnode->hwnd_qredit)
+    if (pnode && pnode->doc_ptr)
     {
-        if ((buffer = util_strdup_content(pnode, NULL)) && init_stdout_redirect(MAX_OUTPUT_BUF, &console))
+        if (!pnode->presult)
+        {
+            pnode->result_show = on_result_launch(pnode);
+        }
+        if (RESULT_SHOW(pnode) && (buffer = util_strdup_content(pnode, NULL)) && init_stdout_redirect(MAX_OUTPUT_BUF, &console))
         {
             int read_len = 0;
-            char *std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1);
-            if (std_buffer)
+            char *std_buffer = NULL;
+            eu_window_resize(NULL);
+            if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
                 if (do_lua_code((const char *)buffer) == 0)
                 {
@@ -552,21 +557,13 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 if (read_len > 0)
                 {
                     char *pstr = util_unix_newline(std_buffer, MAX_OUTPUT_BUF);
-                    TCHAR *result = pstr? eu_utf8_utf16(pstr,  NULL) : NULL;
-                    if (result)
-                    {
-                        on_result_append_text(NULL, _T("%s"), result);
-                        free(result);
-                    }
                     if (pstr)
                     {
+                        on_result_append_text_utf8("%s", pstr);
                         free(pstr);
                     }
                 }
                 free(std_buffer);
-                pnode->edit_show = true;
-                pnode->result_show = false;
-                eu_window_resize(NULL);
             }
             free(buffer);
         }

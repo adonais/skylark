@@ -293,20 +293,16 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             LineTo(hdc, pnode->rect_sc.right,  cy);
             ReleaseDC(parent, hdc);
             ReleaseCapture();
-            if (pnode->edit_show)
+            if (RESULT_SHOW(pnode) && hwnd_rst)
             {
                 if (pnode->hwnd_qrtable)
                 {
-                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_qredit.bottom) - cy - SPLIT_WIDTH/2;
+                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH/2;
                 }
                 else
                 {
-                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_qredit.bottom) - cy - SPLIT_WIDTH - eu_get_config()->result_list_height;
+                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH - eu_get_config()->result_list_height;
                 }
-            }
-            else if (pnode->result_show && hwnd_rst)
-            {
-                eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH - eu_get_config()->result_list_height;
             }
             if (eu_get_config()->result_edit_height < SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
             {
@@ -360,7 +356,7 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             HWND parent = GetParent(hwnd);
             pnode = on_tabpage_focus_at();
-            y = on_splitter_absolute_height(pnode->rect_qredit.bottom);
+            y = on_splitter_absolute_height(pnode->rect_result.bottom);
             HDC hdc = GetWindowDC(parent);
             SelectObject(hdc, CreatePen(PS_SOLID, SPLIT_WIDTH, 0));
             SetROP2(hdc, R2_NOTXORPEN);
@@ -400,7 +396,7 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 SetROP2(hdc, R2_NOTXORPEN);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  y);
-                y = on_splitter_absolute_height(pnode->rect_qredit.bottom) + (short)HIWORD(lParam);
+                y = on_splitter_absolute_height(pnode->rect_result.bottom) + (short)HIWORD(lParam);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  y);
                 ReleaseDC(parent, hdc);

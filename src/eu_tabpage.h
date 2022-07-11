@@ -48,20 +48,17 @@ struct _tabpage
 {
     HWND hwnd_sc;               // 当前编辑器句柄
     sptr_t eusc;                // 当前编辑器类指针
+    eu_tabpage *presult;        // 文档搜索结果的节点指针
     HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
-    HWND hwnd_qredit;           // tab关联的运行edit日志窗口
-    HWND hwnd_result;           // 文档搜索结果窗口句柄
     RECT rect_sc;               // 编辑器矩形区域
     RECT rect_sym;              // 右侧边栏窗口矩形区域
-    RECT rect_qredit;           // edit日志窗口矩形区域
     RECT rect_qrtable;          // table窗口矩形区域
     RECT rect_map;              // 文档结构图矩形区域
     RECT rect_result;           // 文档搜索结果矩形区域
     int  match_count;           // 查找时匹配计数
     int  tab_id;                // tab编号,用于保存会话
-    bool edit_show;             // 是否显示文件运行窗口
     bool sym_show;              // 是否显示右侧边栏
     bool map_show;              // 是否显示文档结构图
     bool result_show;           // 是否显示文档搜索结果窗口

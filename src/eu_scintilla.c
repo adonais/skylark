@@ -202,11 +202,6 @@ on_sci_resever_tab(eu_tabpage *pnode)
         DestroyWindow(pnode->hwnd_symtree);
         pnode->hwnd_symtree = NULL;
     }
-    if (pnode->hwnd_qredit)
-    {
-        DestroyWindow(pnode->hwnd_qredit);
-        pnode->hwnd_qredit = NULL;
-    }
     if (pnode->hwnd_qrtable)
     {
         DestroyWindow(pnode->hwnd_qrtable);
@@ -242,16 +237,18 @@ on_sci_free_tab(eu_tabpage **ppnode)
         SendMessage((*ppnode)->hwnd_symtree, WM_CLOSE, 0, 0);
         (*ppnode)->hwnd_symtree = NULL;
     }
-    if ((*ppnode)->hwnd_qredit)
-    {
-        SendMessage((*ppnode)->hwnd_qredit, WM_CLOSE, 0, 0);
-        (*ppnode)->hwnd_qredit = NULL;
-    }
     if ((*ppnode)->hwnd_qrtable)
     {
         SendMessage((*ppnode)->hwnd_qrtable, WM_CLOSE, 0, 0);
         (*ppnode)->hwnd_qrtable = NULL;
     }
+    if ((*ppnode)->presult && (*ppnode)->presult->hwnd_sc)
+    {
+        SendMessage((*ppnode)->presult->hwnd_sc, WM_CLOSE, 0, 0);
+        (*ppnode)->presult->hwnd_sc = NULL;
+        (*ppnode)->result_show = false;
+        eu_safe_free((*ppnode)->presult);
+    }    
     if (cvector_size((*ppnode)->pvec) > 0)
     {
         cvector_free((*ppnode)->pvec);
@@ -539,8 +536,8 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SETFOCUS:
         {
-            NMHDR nm = {0};
-            eu_send_notify(hwnd, NM_SETFOCUS, &nm);
+            // NMHDR nm = {0};
+            // eu_send_notify(hwnd, NM_SETFOCUS, &nm);
             break;
         }
         case WM_DESTROY:

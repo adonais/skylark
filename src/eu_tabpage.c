@@ -715,36 +715,21 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             pnode->rect_map.bottom = pnode->rect_sc.bottom;
         }
     }
-    if (pnode->edit_show)
+    if (RESULT_SHOW(pnode) && hwnd_rst)
     {
-        if (pnode->hwnd_qredit)
+        int rect_bottom = pnode->rect_sc.bottom;
+        pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + eu_get_config()->result_list_height;
+        pnode->rect_result.left = pnode->rect_sc.left;
+        pnode->rect_result.right = pnode->rect_sc.right;
+        pnode->rect_result.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
+        pnode->rect_result.bottom = rect_bottom;
+        if (pnode->hwnd_qrtable)
         {
-            int rect_bottom = pnode->rect_sc.bottom;
-            pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + eu_get_config()->result_list_height;
-            pnode->rect_qredit.left = pnode->rect_sc.left;
-            pnode->rect_qredit.right = pnode->rect_sc.right;
-            pnode->rect_qredit.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
-            pnode->rect_qredit.bottom = rect_bottom;
-            if (pnode->hwnd_qrtable)
-            {
-                pnode->rect_qredit.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
-                pnode->rect_qrtable.left = pnode->rect_sc.left;
-                pnode->rect_qrtable.right = pnode->rect_sc.right;
-                pnode->rect_qrtable.top = pnode->rect_qredit.bottom + SPLIT_WIDTH;
-                pnode->rect_qrtable.bottom = rect_bottom;
-            }
-        }
-    }
-    else if (pnode->result_show)
-    {
-        if (result_dlg_initialized)
-        {
-            int rect_bottom = pnode->rect_sc.bottom;
-            pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + eu_get_config()->result_list_height;
-            pnode->rect_result.left = pnode->rect_sc.left;
-            pnode->rect_result.right = pnode->rect_sc.right;
-            pnode->rect_result.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
-            pnode->rect_result.bottom = rect_bottom;
+            pnode->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
+            pnode->rect_qrtable.left = pnode->rect_sc.left;
+            pnode->rect_qrtable.right = pnode->rect_sc.right;
+            pnode->rect_qrtable.top = pnode->rect_result.bottom + SPLIT_WIDTH;
+            pnode->rect_qrtable.bottom = rect_bottom;
         }
     }
 }
@@ -1001,16 +986,9 @@ on_tabpage_theme_changed(eu_tabpage *p)
             SendMessage(p->hwnd_symtree, WM_THEMECHANGED, 0, 0);
         }
     }
-    if (p->edit_show)
+    if (p->result_show && p->hwnd_qrtable)
     {
-        if (p->hwnd_qredit)
-        {
-            SendMessage(p->hwnd_qredit, WM_THEMECHANGED, 0, 0);
-        }
-        if (p->hwnd_qrtable)
-        {
-            SendMessage(p->hwnd_qrtable, WM_THEMECHANGED, 0, 0);
-        }
+        SendMessage(p->hwnd_qrtable, WM_THEMECHANGED, 0, 0);
     }
     return 0;
 }

@@ -373,11 +373,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         printf("on_toolbar_create return false\n");
         return 1;
     }
-    if (!on_statusbar_init(eu_module_hwnd()))
-    {
-        printf("on_statusbar_init return false\n");
-        return 1;
-    }
     if (!on_search_create_box())
     {
         printf("on_search_create_box return false\n");
@@ -387,6 +382,16 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         printf("on_treebar_create_box return false\n");
         return 1;
+    }
+    if (!on_statusbar_init(eu_module_hwnd()))
+    {
+        printf("on_statusbar_init return false\n");
+        return 1;
+    }
+    else if (!on_dark_enable())
+    {
+        SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+        on_statusbar_update();
     }
     return 0;
 }

@@ -568,10 +568,19 @@ do_byte_code(eu_tabpage *pnode)
     int status = 1;
     uint32_t written = 0;
     size_t buf_len = 0;
+    char *utf8 = NULL;
     TCHAR filename[FILESIZE+1]= {0};
     TCHAR pname[MAX_PATH+1] = {0};
     TCHAR psave[MAX_PATH+1] = {0};
     if (!pnode)
+    {
+        return 1;
+    }
+    if (!pnode->presult)
+    {
+        pnode->result_show = on_result_launch(pnode);
+    }
+    if (!RESULT_SHOW(pnode))
     {
         return 1;
     }
@@ -607,20 +616,27 @@ do_byte_code(eu_tabpage *pnode)
     {
         status = do_jit_proc(pname, psave);
     }
+allclean:    
+    eu_window_resize(NULL);
     if (!status)
     {
+        char u8_path[MAX_PATH] = {0};
         LOAD_I18N_RESSTR(IDS_LUA_CONV_SUCCESS, m_format);
-        on_result_append_text(pnode->hwnd_qredit, m_format, psave);
+        if ((utf8 = eu_utf16_utf8(m_format, NULL)) != NULL)
+        {
+            on_result_append_text_utf8(utf8, util_make_u8(psave, u8_path, MAX_PATH));
+            free(utf8);
+        }
     }
     else
     {
         LOAD_I18N_RESSTR(IDS_LUA_CONV_FAIL, m_format);
-        on_result_append_text(pnode->hwnd_qredit, m_format);
+        if ((utf8 = eu_utf16_utf8(m_format, NULL)) != NULL)
+        {
+            on_result_append_text_utf8(utf8);
+            free(utf8);
+        }
     }
-    pnode->edit_show = true;
-    pnode->result_show = false;
-    eu_window_resize(NULL);
-allclean:
     if (pfile)
     {
         CloseHandle(pfile);
