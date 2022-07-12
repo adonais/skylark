@@ -229,9 +229,6 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
-                case IDM_EDIT_COPY:
-                    printf("we recv IDM_EDIT_COPY message\n");
-                    break;
                 default:
                     break;
             }
@@ -255,18 +252,6 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
-        case WM_COMMAND:
-        {
-            WORD low = LOWORD(wParam);
-            switch(low)
-            {
-                case IDM_EDIT_COPY:
-                    printf("we recv IDM_EDIT_COPY message\n");
-                    break;
-                default:
-                    break;
-            }
-        }
         case WM_SIZE:
         {
             break;

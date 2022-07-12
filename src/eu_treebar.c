@@ -876,7 +876,7 @@ on_tree_expand(NMTREEVIEW *lpnmtv)
 static int
 on_node_dbclick(void)
 {
-    int err = 0;
+    int err = SKYLARK_OK;
     HTREEITEM hti;
     tree_data *tvd = NULL;
     file_backup bak = {0};
@@ -896,15 +896,15 @@ on_node_dbclick(void)
     if (tvd->server != NULL)
     {
         _tcscpy(bak.rel_path, tvd->filepath);
-        err = on_file_open_remote(tvd->server, &bak, true);
+        err = (on_file_open_remote(tvd->server, &bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
     else
     {
         _tcscpy(bak.rel_path, tvd->filepath);
         eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
-        err = on_file_only_open(&bak, true);
+        err = (on_file_only_open(&bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
-    if (err != 0 && TabCtrl_GetItemCount(g_tabpages) < 1)
+    if (!err && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 建立一个空白标签页
         err = on_file_new();
     }

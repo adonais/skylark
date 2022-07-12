@@ -316,7 +316,7 @@ on_tabpage_drag_mouse(POINT *pscreen)
     GetClassName(hwin, name, FILESIZE - 1);
     if (parent == eu_hwnd_self() || hwin == eu_hwnd_self())
     {   // 拖放在skylark编辑器本身界面上, 启动新实例
-        eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
+        on_sci_send_extra((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
     }
     else if (!(fn = _tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, HEX_CLASS)) || (!_tcscmp(name, WC_TABCONTROL)))
     {   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
@@ -324,7 +324,7 @@ on_tabpage_drag_mouse(POINT *pscreen)
         int code = fn ? (int)SendMessage(parent, WM_SKYLARK_DESC, 0, 0) : (int)SendMessage(hwin, WM_SKYLARK_DESC, 0, 0);
         if (code != eu_int_cast(WM_SKYLARK_DESC))
         {
-            eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
+            on_sci_send_extra((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
         }
         else if (p && !p->is_blank)
         {
@@ -374,7 +374,7 @@ on_tabpage_drag_mouse(POINT *pscreen)
     }
     else
     {   // 拖放在空白处, 启动新实例
-        eu_send_notify((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
+        on_sci_send_extra((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
     }
 }
 
@@ -772,7 +772,6 @@ on_tabpage_remove_empty(void)
         {
             if (!on_sci_doc_modified(p))
             {
-                printf("we ready remove empty tab!\n");
                 ret = 1;
                 TabCtrl_DeleteItem(g_tabpages, index);
                 on_sci_free_tab(&p);
@@ -1023,7 +1022,7 @@ on_tabpage_focus_at(void)
     return g_tabpages ? on_tabpage_get_ptr(TabCtrl_GetCurSel(g_tabpages)) : NULL;
 }
 
-void
+int
 on_tabpage_selection(eu_tabpage *pnode, int index)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
@@ -1050,6 +1049,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         TabCtrl_SetCurSel(g_tabpages, index);
         util_set_title(pnode->pathfile);
     }
+    return (index >= 0 && index < count ? index : SKYLARK_TABCTRL_ERR);
 }
 
 eu_tabpage *
@@ -1080,7 +1080,7 @@ on_tabpage_get_index(eu_tabpage *pnode)
             return index;
         }
     }
-    return -1;
+    return SKYLARK_TABCTRL_ERR;
 }
 
 eu_tabpage *

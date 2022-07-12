@@ -841,13 +841,13 @@ util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
 time_t
 util_last_time(const TCHAR *path)
 {
-    if (path[0])
+    if (STR_NOT_NUL(path))
     {
         struct _stat buf = {0};
         _tstat(path, &buf);
         return buf.st_mtime;
     }
-    return SKYLARK_OK;
+    return 0;
 }
 
 int

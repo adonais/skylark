@@ -362,10 +362,6 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_SHOWWINDOW:
         {
-            if (!IsWindowVisible(hdlg))
-            {
-                printf("we get WM_SHOWWINDOW\n");
-            }
             break;
         }
         case WM_CLOSE:
@@ -716,7 +712,7 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     if (p)
                     {
                         util_set_working_dir(p->pathname, &pold);
-                    }                    
+                    }
                     on_cmd_start();
                     if (pold)
                     {

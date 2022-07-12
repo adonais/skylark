@@ -2193,13 +2193,13 @@ on_search_detail_button(void)
     return 0;
 }
 
-static void
+static int
 on_search_active_tab(const TCHAR *path, const TCHAR *key)
 {
-    bool tab_find = false;
+    int tab_find = EUE_TAB_NULL;
     if (!(path && key))
     {
-        return;
+        return EUE_POINT_NULL;
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -2210,21 +2210,23 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
             on_tabpage_select_index(index);
             on_search_process_find2(p, u8_key);
             free(u8_key);
-            tab_find = true;
+            tab_find = index;
             break;
         }
     }
-    if (!tab_find)
+    if (tab_find < 0)
     {
         file_backup bak = {0};
         _tcscpy(bak.rel_path, path);
-        if (on_file_only_open(&bak, true) == SKYLARK_OK)
+        tab_find = on_file_only_open(&bak, true);
+        if (tab_find > SKYLARK_OPENED)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
-            on_search_process_find2(NULL, u8_key);
+            on_search_process_count(on_tabpage_get_ptr(tab_find), u8_key);
             free(u8_key);
         }
     }
+    return tab_find;
 }
 
 static void
@@ -2266,7 +2268,7 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
             }
             // 编辑区设置成只读
             eu_sci_call(presult, SCI_SETREADONLY, 1, 0);
-            eu_sci_call(presult, SCI_GOTOLINE, 1, 0); 
+            eu_sci_call(presult, SCI_GOTOLINE, 1, 0);
         }
     }
 }
@@ -2289,8 +2291,8 @@ on_search_found_list(HWND hwnd)
         if (_stscanf(buf, _T("%260[^|]"), path) == 1 &&
             _stscanf(buf, _T("%*[^|]|%260[^|]"), key) == 1)
         {
-            on_search_active_tab(path, key);
-            eu_tabpage *pnode = on_tabpage_focus_at();
+            int tab = on_search_active_tab(path, key);
+            eu_tabpage *pnode = on_tabpage_get_ptr(tab);
             if (pnode && on_result_launch(pnode) && pnode->presult)
             {
                 pnode->result_show = true;

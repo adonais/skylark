@@ -18,8 +18,8 @@
 
 #include "framework.h"
 
-static volatile sptr_t ptr_scintilla = 0;
 volatile sptr_t eu_edit_wnd = 0;
+static volatile sptr_t ptr_scintilla = 0;
 
 void
 on_sci_init_style(eu_tabpage *pnode)
@@ -536,8 +536,8 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SETFOCUS:
         {
-            // NMHDR nm = {0};
-            // eu_send_notify(hwnd, NM_SETFOCUS, &nm);
+            NMHDR nm = {0};
+            eu_send_notify(hwnd, NM_SETFOCUS, &nm);
             break;
         }
         case WM_DESTROY:
@@ -552,24 +552,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 void
-eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR phdr)
+on_sci_send_extra(void *pdata, uint32_t code, LPNMHDR phdr)
 {
-    phdr->hwndFrom = hwnd;
+    phdr->hwndFrom = (HWND)pdata;
     phdr->code = code;
-    HWND parent = GetParent(hwnd) ? GetParent(hwnd) : eu_module_hwnd();
-    SendMessage(parent, WM_NOTIFY, 0, (LPARAM) phdr);
-}
-
-sptr_t
-eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
-{
-    return ((p && p->hwnd_sc) ? (p->hex_mode ? SendMessage(p->hwnd_sc, m, w, l) : ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l)) : 0);
-}
-
-int
-eu_sci_release(void)
-{
-    return Scintilla_ReleaseResources();
+    SendMessage(eu_module_hwnd(), WM_NOTIFY, 0, (LPARAM) phdr);
 }
 
 void
@@ -611,4 +598,27 @@ int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
     return on_sci_create(pnode, 0, NULL);
+}
+
+void
+eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR phdr)
+{
+    phdr->hwndFrom = hwnd;
+    phdr->code = code;
+    SendMessage(GetParent(hwnd), WM_NOTIFY, 0, (LPARAM) phdr);
+}
+
+int
+eu_sci_release(void)
+{
+    return Scintilla_ReleaseResources();
+}
+
+sptr_t
+eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
+{
+    return ((p && p->hwnd_sc) ?
+            (p->hex_mode ? SendMessage(p->hwnd_sc, m, w, l) :
+            (ptr_scintilla && p->eusc) ? ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l) : 0) :
+            0);
 }

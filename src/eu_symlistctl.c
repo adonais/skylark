@@ -138,7 +138,6 @@ on_symlist_jump_word(eu_tabpage *pnode)
             int i = ListBox_FindStringExact(p->hwnd_symlist, -1, ptext);
             if (i != LB_ERR)
             {
-                printf("we found this string = %ls in tab%d\n", ptext, index);
                 if (p != pnode)
                 {
                     on_tabpage_select_index(index);

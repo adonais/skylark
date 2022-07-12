@@ -34,6 +34,7 @@ void on_sci_init_style(eu_tabpage *pnode);
 void on_sci_before_file(eu_tabpage *pnode);
 void on_sci_after_file(eu_tabpage *pnode);
 void on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify);
+void on_sci_send_extra(void *pdata, uint32_t code, LPNMHDR phdr);
 void on_sci_update_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
 void on_sci_free_tab(eu_tabpage **ppnode);
