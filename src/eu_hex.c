@@ -2254,7 +2254,15 @@ hexview_switch_mode(eu_tabpage *pnode)
         }
         pnew->hex_mode = false;
         err = on_tabpage_selection(pnew, pnew->tab_id);
-        PostMessage(pnew->hwnd_sc, WM_SETFOCUS, 0, 0);
+        if (err >= 0)
+        {
+            if (pnew->nc_pos >= 0)
+            {
+                on_search_jmp_pos(pnew, pnew->nc_pos);
+                pnew->nc_pos = -1;
+            }
+            PostMessage(pnew->hwnd_sc, WM_SETFOCUS, 0, 0);
+        }
     }
 HEX_ERROR:
     eu_safe_free(pdst);
