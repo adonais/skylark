@@ -741,16 +741,27 @@ on_file_other_tab(int index)
 static void
 on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
 {
-    if (pnode && pbak && pnode->nc_pos <= 0)
-    {   // 先按指定行列打开文件位置
-        pnode->nc_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
-        if (pnode->nc_pos >= 0)
+    if (pnode && pbak)
+    {
+        sptr_t pos = 0;
+        if (pbak->x < 0)
         {
-            pnode->nc_pos += (pbak->y > 0 ? pbak->y - 1 : 0);
-        }  // 如果没指定行列, 再查看文件存储位置信息
-        if (pnode->nc_pos < 1 && pbak->postion > 0)
+            pnode->nc_pos = pbak->y;
+        }
+        else
         {
-            pnode->nc_pos = pbak->postion;
+            sptr_t line_end_pos = 0;
+            pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
+            line_end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, pbak->x > 0 ? pbak->x - 1 : 0, 0);
+            pos += (pbak->y > 0 ? pbak->y - 1 : 0);
+            if (pos > line_end_pos)
+            {
+                pos = line_end_pos;
+            }
+            if (pos > 0)
+            {
+                pnode->nc_pos = pos;
+            }
         }
     }
 }

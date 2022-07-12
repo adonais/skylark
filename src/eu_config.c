@@ -146,7 +146,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
     {
         printf("on_config_parser_path return false\n");
         return 1;
-    }    
+    }
     for (int i = 0; i < count; ++i)
     {
         if (STRCMP(names[i], ==, "szTabId"))
@@ -168,7 +168,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         else if (STRCMP(names[i], ==, "szFold"))
         {
             strncpy(filebak.fold_id, column[i], MAX_BUFFER-1);
-        }        
+        }
         else if (STRCMP(names[i], ==, "szLine"))
         {
             filebak.postion = _atoi64(column[i]);
@@ -206,7 +206,6 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
             filebak.status = atoi(column[i]);
             if (!_tcsicmp(filebak.rel_path, path))
             {
-                printf("filebak.status = %d\n", filebak.status);
                 break;
             }
         }
@@ -215,7 +214,6 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
     {
         if (!_tcsicmp(filebak.rel_path, path))
         {
-            printf("filebak.bak_path2 = %ls\n", filebak.bak_path);
             share_send_msg(&filebak);
             return 1;
         }
@@ -228,6 +226,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         }
         if (filebak.rel_path[0] || filebak.bak_path[0])
         {
+            eu_postion_setup(NULL, 0, &filebak);
             share_send_msg(&filebak);
         }
     }
