@@ -481,7 +481,8 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_doc_brace_light(pnode, false);
             }
-            on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+            pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            on_search_add_navigate_list(pnode, pnode->nc_pos);
             on_statusbar_update_line(pnode);
             break;
         }

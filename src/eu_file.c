@@ -862,7 +862,6 @@ on_file_only_open(file_backup *pbak, bool selection)
         if (pnode->nc_pos >= 0)
         {
             on_search_jmp_pos(pnode, pnode->nc_pos);
-            pnode->nc_pos = -1;
         }
     }
     else
@@ -873,7 +872,7 @@ on_file_only_open(file_backup *pbak, bool selection)
     {
         on_tabpage_editor_modify(pnode, "X");
     }
-    if (!pnode->is_blank)
+    if (!pnode->is_blank && pnode->nc_pos > 0)
     {
         on_file_push_recent(pnode->pathfile, pnode->nc_pos);
     }

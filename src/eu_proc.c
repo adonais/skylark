@@ -446,11 +446,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             ShowWindow(pnode->hwnd_sc, SW_SHOW);
         }
         pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
-        if (pnode->nc_pos >= 0 && pnode->hex_mode)
-        {
-            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
-            pnode->nc_pos = -1;
-        }
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -718,6 +713,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_set_theme(eu_get_search_hwnd(), L"Explorer", NULL);
             }
             break;
+        case WM_SYSCOMMAND:
+        {
+            if (wParam == SC_RESTORE)
+            {
+                const LRESULT rv = DefWindowProc(hwnd, message, wParam, lParam);
+                if ((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && pnode->nc_pos >= 0)
+                {
+                    eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+                }
+                return rv;
+            }
+            return DefWindowProc(hwnd, message, wParam, lParam);
+        }    
         case WM_COMMAND:
         {
             int wm_id = LOWORD(wParam);

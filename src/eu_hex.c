@@ -2136,6 +2136,10 @@ hexview_switch_mode(eu_tabpage *pnode)
                 goto HEX_ERROR;
             }
             err = pnode->tab_id;
+            if (err >=0 && pnode->nc_pos >= 0)
+            {
+                eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            }
             ShowWindow(eu_get_search_hwnd(), SW_HIDE);
         }
     }
@@ -2259,7 +2263,6 @@ hexview_switch_mode(eu_tabpage *pnode)
             if (pnew->nc_pos >= 0)
             {
                 on_search_jmp_pos(pnew, pnew->nc_pos);
-                pnew->nc_pos = -1;
             }
             PostMessage(pnew->hwnd_sc, WM_SETFOCUS, 0, 0);
         }
