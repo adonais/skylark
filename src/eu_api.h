@@ -40,6 +40,14 @@
 #pragma intrinsic(_InterlockedCompareExchange, _InterlockedExchange)
 #endif
 
+#if defined(__cplusplus)
+#define FALLTHRU_ATTR		[[fallthrough]]
+#elif (defined(__GNUC__) && __GNUC__ >= 7) || (defined(__clang__) && __clang_major__ >= 10)
+#define FALLTHRU_ATTR		__attribute__((fallthrough))
+#else
+#define FALLTHRU_ATTR
+#endif
+
 #ifndef DET_EPSILON
 #define DET_EPSILON 0.000001
 #endif
@@ -243,20 +251,20 @@ struct eu_config
     bool light_fold;
     bool line_mode;
     bool m_ftree_show;
-    
+
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
     int document_map_width;
     int result_edit_height;
     int result_list_height;
-    
+
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
     bool m_ctshow;
     bool m_tab_tip;
-    
+
     int m_tab_active;
     int m_quality;
     int m_render;

@@ -83,6 +83,16 @@ on_doc_enable_foldline(eu_tabpage *pnode)
     {
         switch (pnode->doc_ptr->doc_type)
         {
+        case DOCTYPE_XML:
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.xml.allow.scripts", (sptr_t)"0");
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.xml.at.tag.open", (sptr_t)"1");
+            FALLTHRU_ATTR
+        case DOCTYPE_HTML:
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.compact", (sptr_t)"0");
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.html", (sptr_t)"1");
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.comment", (sptr_t)"1");
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.heredoc", (sptr_t)"1");
+            break;
         case DOCTYPE_CSS:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.scss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".scss")) == 0)? "1" : "0"));
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.less.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".less")) == 0)? "1" : "0"));
