@@ -134,7 +134,7 @@ if (not eu_core.file_exists(user_file)) then
     "      {\n",
     "          e.DOCTYPE_CPP,\n",
     "          \"cpp\",\n",
-    "          \";*.h;*.hh;*.hpp;*.c;*.cc;*.cpp;*.cxx;*.rc;*.rc2;*.dlg;\",\n",
+    "          \";*.h;*.hh;*.hpp;*.c;*.cc;*.cpp;*.cxx;*.rc;*.rc2;*.dlg;*.ino;\",\n",
     "          \"C/C++\",\n",
     "          0,\n",
     "          -1,\n",
