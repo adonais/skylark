@@ -31,8 +31,6 @@ extern "C"
 typedef int (*tab_ptr)(eu_tabpage *p);
 
 extern HWND  g_tabpages;
-extern HMENU pop_tab_menu;
-extern HMENU pop_editor_menu;
 
 typedef struct _result_postion {
     intptr_t start;
@@ -102,7 +100,6 @@ int  on_tabpage_add(eu_tabpage *pnode);
 int  on_tabpage_remove(eu_tabpage **ppnode);
 int  on_tabpage_reload_file(eu_tabpage *pnode, int flags);
 int  on_tabpage_editor_modify(eu_tabpage *pnode, const char *);
-int  on_tabpage_create_rclick(void);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(eu_tabpage *pnode);
@@ -111,7 +108,6 @@ void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_changing(HWND hwnd);
-void on_tabpage_destroy_rclick(void);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);

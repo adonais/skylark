@@ -53,7 +53,7 @@ menu_load(uint16_t mid)
 }
 
 int
-menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam)
+menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam, const uint32_t flags, ptr_menu_callback fn, void *param)
 {
     HMENU hpop = menu_load(mid);
     if(hpop)
@@ -68,10 +68,22 @@ menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam)
             pt.x = GET_X_LPARAM(lparam);
             pt.y = GET_Y_LPARAM(lparam);
         }
-        TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
+        if (fn)
+        {
+            fn(hpop, param);
+        }
+        if (flags == (uint32_t)-1)
+        {
+            TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
+        }
+        else
+        {
+            TrackPopupMenu(hpop, flags, pt.x, pt.y, 0, hwnd, NULL);
+        }
         DestroyMenu(hpop);
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 void

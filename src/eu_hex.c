@@ -1064,7 +1064,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             // 限制右键显示区域
             if (x < hexview->longest_line*hexview->width_char && (y > 2*hexview->height_char &&  y < hexview->totallines*hexview->height_char))
             {
-                return menu_pop_track(hwnd, IDR_HEXVIEW_MENU, 0);
+                return menu_pop_track(hwnd, IDR_HEXVIEW_MENU, 0, -1, NULL, NULL);
             }
             return 1;
         }

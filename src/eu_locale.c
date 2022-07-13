@@ -345,8 +345,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         DestroyWindow(g_treebar);
     }
-    /* 销毁所有右键菜单 */
-    on_tabpage_destroy_rclick();
     if (true)
     {   // 更新全局变量与共享内存
         FreeLibrary(g_skylark_lang);
@@ -361,10 +359,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         return 1;
     }
     if (!SetMenu(eu_module_hwnd(), hmenu))
-    {
-        return 1;
-    }
-    if (on_tabpage_create_rclick())
     {
         return 1;
     }

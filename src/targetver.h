@@ -936,6 +936,7 @@
 #define IDS_HELP_COMMAND                    42999
 #define IDM_HELP_COMMAND                    43000
 #define IDS_LOADLIBRARY_SQL                 43001
+#define IDM_TABPAGE_SAVE                    43002
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

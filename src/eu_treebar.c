@@ -1386,16 +1386,16 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 if (tvd->img_index == img_drive || tvd->img_index == img_fold || tvd->img_index == img_close)
                 {
-                    menu_pop_track(hwnd, IDR_FILETREE_DIR_POPUPMENU, 0);
+                    menu_pop_track(hwnd, IDR_FILETREE_DIR_POPUPMENU, 0, -1, NULL, NULL);
                 }
                 else
                 {
-                    menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0);
+                    menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0, -1, NULL, NULL);
                 }
             }
             else if (tvhti.flags > 0x1 && tvhti.flags < 0x41)
             {
-                return menu_pop_track(hwnd, IDR_FILETREE_POPUPMENU, 0);
+                return menu_pop_track(hwnd, IDR_FILETREE_POPUPMENU, 0, -1, NULL, NULL);
             }
             break;
         }

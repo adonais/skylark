@@ -339,7 +339,7 @@ BEGIN
     END
 END
 
-IDR_TABPAGE_POPUPMENU MENU
+IDR_TABPAGE_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
@@ -353,7 +353,7 @@ BEGIN
         MENUITEM "Copy File Path",                                     IDM_EDIT_COPY_PATHNAME
         MENUITEM "Copy File Path And Nam",                             IDM_EDIT_COPY_PATHFILENAME
         MENUITEM SEPARATOR
-        MENUITEM "&Save",                                              IDM_FILE_SAVE
+        MENUITEM "&Save",                                              IDM_TABPAGE_SAVE
         MENUITEM SEPARATOR
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
         MENUITEM "Open Folder &Workspace",                             IDM_FILE_WORKSPACE
@@ -361,7 +361,7 @@ BEGIN
     END
 END
 
-IDR_EDITOR_POPUPMENU MENU
+IDR_EDITOR_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
@@ -579,7 +579,7 @@ END
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
 BEGIN
-    POPUP ""
+    POPUP "0"
     {
         MENUITEM "Dos/Windows (\\r\\n)",                    IDM_LBREAK_1
         MENUITEM "Classic Mac OS (\\r)",                    IDM_LBREAK_2
@@ -589,7 +589,7 @@ END
 
 IDR_CODEING_MENU MENUEX DISCARDABLE
 BEGIN
-    POPUP "", -1, MFT_STRING, MFS_ENABLED, 0
+    POPUP "0", -1, MFT_STRING, MFS_ENABLED, 0
     {
         POPUP "Unicode"
         BEGIN
@@ -665,7 +665,7 @@ END
 
 IDR_TYPES_MENU  MENUEX DISCARDABLE
 BEGIN
-    POPUP ""
+    POPUP "0"
     {
         MENUITEM "Unsupported",        IDM_TYPES_0
     }

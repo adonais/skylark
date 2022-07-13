@@ -339,7 +339,7 @@ BEGIN
     END
 END
 
-IDR_TABPAGE_POPUPMENU MENU
+IDR_TABPAGE_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
@@ -353,7 +353,7 @@ BEGIN
         MENUITEM "复制路径名",                                  IDM_EDIT_COPY_PATHNAME
         MENUITEM "复制文件名(包含路径)",                        IDM_EDIT_COPY_PATHFILENAME
         MENUITEM SEPARATOR
-        MENUITEM "保存(&S)",                                    IDM_FILE_SAVE
+        MENUITEM "保存(&S)",                                    IDM_TABPAGE_SAVE
         MENUITEM SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM "打开文件夹工作区(&W)",                        IDM_FILE_WORKSPACE
@@ -361,7 +361,7 @@ BEGIN
     END
 END
 
-IDR_EDITOR_POPUPMENU MENU
+IDR_EDITOR_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
@@ -579,7 +579,7 @@ END
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
 BEGIN
-    POPUP ""
+    POPUP "0"
     {
         MENUITEM "DOS换行符 (\\r\\n)", IDM_LBREAK_1
         MENUITEM "MAC换行符 (\\r)",    IDM_LBREAK_2
@@ -589,7 +589,7 @@ END
 
 IDR_CODEING_MENU MENUEX DISCARDABLE
 BEGIN
-    POPUP "", -1, MFT_STRING, MFS_ENABLED, 0
+    POPUP "0", -1, MFT_STRING, MFS_ENABLED, 0
     {
         POPUP "Unicode"
         BEGIN
@@ -665,7 +665,7 @@ END
 
 IDR_TYPES_MENU  MENUEX DISCARDABLE
 BEGIN
-    POPUP ""
+    POPUP "0"
     {
         MENUITEM "不支持高亮",        IDM_TYPES_0
     }

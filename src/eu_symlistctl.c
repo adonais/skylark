@@ -191,7 +191,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONDOWN:
         {
-            return menu_pop_track(hwnd, IDR_SYMBOLLIST_POPUPMENU, 0);
+            return menu_pop_track(hwnd, IDR_SYMBOLLIST_POPUPMENU, 0, -1, NULL, NULL);
         }
         case WM_DPICHANGED:
         {

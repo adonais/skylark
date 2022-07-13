@@ -131,6 +131,16 @@ on_result_append_text_utf8(char *format, ...)
     return 0;
 }
 
+static void
+on_result_menu_callback(HMENU hpop, void *param)
+{
+    eu_tabpage *p = (eu_tabpage *)param;
+    if (RESULT_SHOW(p) && hpop)
+    {
+        util_set_menu_item(hpop, IDM_RESULT_WRAPLINE, eu_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0));
+    }
+}
+
 static LRESULT CALLBACK
 on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -158,21 +168,10 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            //return menu_pop_track(hwnd, IDR_RESULT_MENU, 0);
-            POINT pt;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            ClientToScreen(hwnd, &pt);
-            HMENU hpop = menu_load(IDR_RESULT_MENU);
-            if (hpop)
+            eu_tabpage *p = on_tabpage_focus_at();
+            if (RESULT_SHOW(p))
             {
-                eu_tabpage *p = on_tabpage_focus_at();
-                if (RESULT_SHOW(p))
-                {
-                    util_set_menu_item(hpop, IDM_RESULT_WRAPLINE, eu_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0));
-                }
-                TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
-                DestroyMenu(hpop);
+                return menu_pop_track(hwnd, IDR_RESULT_MENU, 0, -1, on_result_menu_callback, p);
             }
             return 1;
         }

@@ -27,8 +27,6 @@
 #define CY_ICON  16
 
 HWND g_tabpages = NULL;
-HMENU pop_editor_menu = NULL;
-HMENU pop_tab_menu = NULL;
 
 static WNDPROC old_tabproc = NULL;
 static bool tab_drag = false;
@@ -44,25 +42,9 @@ on_tabpage_get_height(void)
     return tab_height;
 }
 
-void
-on_tabpage_destroy_rclick(void)
-{
-    if (pop_tab_menu)
-    {
-        DestroyMenu(pop_tab_menu);
-        pop_tab_menu = NULL;
-    }
-    if (pop_editor_menu)
-    {
-        DestroyMenu(pop_editor_menu);
-        pop_editor_menu = NULL;
-    }
-}
-
 static void
 on_tabpage_destroy_tabbar(void)
 {
-    on_tabpage_destroy_rclick();
     HIMAGELIST himg = TabCtrl_GetImageList(g_tabpages);
     if (himg)
     {
@@ -378,6 +360,19 @@ on_tabpage_drag_mouse(POINT *pscreen)
     }
 }
 
+static void
+on_tabpage_menu_callback(HMENU hpop, void *param)
+{
+    eu_tabpage *p = (eu_tabpage *)param;
+    if (p && hpop)
+    {
+        util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p));
+        util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
+        util_enable_menu_item(hpop, IDM_FILE_WORKSPACE, !p->is_blank);
+        util_enable_menu_item(hpop, IDM_FILE_EXPLORER, !p->is_blank);
+    }
+}
+
 LRESULT CALLBACK
 tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -546,19 +541,9 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             if ((p = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd))))
             {
-                util_enable_menu_item(pop_tab_menu, IDM_FILE_SAVE, on_sci_doc_modified(p));
-                util_enable_menu_item(pop_tab_menu, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
-                util_enable_menu_item(pop_tab_menu, IDM_FILE_WORKSPACE, !p->is_blank);
-                util_enable_menu_item(pop_tab_menu, IDM_FILE_EXPLORER, !p->is_blank);
-            }
-            ClientToScreen(hwnd, &pt);
-            HMENU hpop = GetSubMenu(pop_tab_menu, 0);
-            if (hpop)
-            {
-                TrackPopupMenu(hpop, 0, pt.x, pt.y, 0, eu_module_hwnd(), NULL);
+                return menu_pop_track(eu_module_hwnd(), IDR_TABPAGE_POPUPMENU, 0, 0, on_tabpage_menu_callback, p);
             }
             return 1;
         }
@@ -581,20 +566,6 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
     }
     return CallWindowProc(old_tabproc, hwnd, message, wParam, lParam);
-}
-
-int
-on_tabpage_create_rclick(void)
-{
-    if ((pop_tab_menu = i18n_load_menu(IDR_TABPAGE_POPUPMENU)) == NULL)
-    {
-        return 1;
-    }
-    if ((pop_editor_menu = i18n_load_menu(IDR_EDITOR_POPUPMENU)) == NULL)
-    {
-        return 1;
-    }
-    return 0;
 }
 
 int
@@ -630,10 +601,6 @@ on_tabpage_create_dlg(HWND hwnd)
         TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
         ShowWindow(g_tabpages, SW_SHOW);
         UpdateWindow(g_tabpages);
-        if ((err = on_tabpage_create_rclick()) != 0)
-        {
-            break;
-        }
         if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) tabs_proc)))
         {
             err = 1;
@@ -642,7 +609,6 @@ on_tabpage_create_dlg(HWND hwnd)
     } while(0);
     if (err)
     {
-        on_tabpage_destroy_rclick();
         if (g_tabpages)
         {
             DestroyWindow(g_tabpages);

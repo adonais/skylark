@@ -725,7 +725,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 return rv;
             }
             return DefWindowProc(hwnd, message, wParam, lParam);
-        }    
+        }
         case WM_COMMAND:
         {
             int wm_id = LOWORD(wParam);
@@ -789,6 +789,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_clear_recent();
                     break;
                 case IDM_FILE_SAVE:
+                case IDM_TABPAGE_SAVE:
                     on_file_save(pnode, false);
                     break;
                 case IDM_FILE_SAVEAS:

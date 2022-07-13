@@ -992,17 +992,14 @@ on_statusbar_init(HWND hwnd)
         {
             break;
         }
-        g_menu_break = i18n_load_menu(IDR_LBREAK_MENU);
-        g_menu_code = i18n_load_menu(IDR_CODEING_MENU);
-        g_menu_type = i18n_load_menu(IDR_TYPES_MENU);
+        g_menu_break = menu_load(IDR_LBREAK_MENU);
+        g_menu_code = menu_load(IDR_CODEING_MENU);
+        g_menu_type = menu_load(IDR_TYPES_MENU);
         if (!(g_menu_break && g_menu_code && g_menu_type))
         {
             printf("create menu failed\n");
             break;
         }
-        g_menu_break = GetSubMenu(g_menu_break, 0);
-        g_menu_code = GetSubMenu(g_menu_code, 0);
-        g_menu_type = GetSubMenu(g_menu_type, 0);
         on_statusbar_create_filetype_menu();
         ret = create_button(g_statusbar);
     } while(0);

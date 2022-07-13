@@ -654,10 +654,21 @@ on_toolbar_execute_script(void)
     }
 }
 
+static void
+on_toolbar_menu_callback(HMENU hpop, void *param)
+{
+    UNREFERENCED_PARAMETER(param);
+    if (hpop)
+    {
+        util_set_menu_item(hpop, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
+        util_set_menu_item(hpop, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
+        util_set_menu_item(hpop, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
+    }
+}
+
 /*****************************************************************
  * 工具栏回调函数, 接受工具栏点击消息, 以及销毁自身资源
  *****************************************************************/
-
 LRESULT CALLBACK
 toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -728,20 +739,7 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            POINT pt;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            ClientToScreen(hwnd, &pt);
-            HMENU hpop = menu_load(IDR_TOOLBAR_POPUPMENU);
-            if (hpop)
-            {
-                util_set_menu_item(hpop, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
-                util_set_menu_item(hpop, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
-                util_set_menu_item(hpop, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
-                TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
-                DestroyMenu(hpop);
-            }
-            return 1;
+            return menu_pop_track(hwnd, IDR_TOOLBAR_POPUPMENU, 0, -1, on_toolbar_menu_callback, NULL);
         }
         case WM_SIZE:
         {

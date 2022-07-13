@@ -325,7 +325,7 @@ on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len)
 bool
 on_sci_doc_modified(eu_tabpage *pnode)
 {
-    return (pnode ? eu_sci_call(pnode, SCI_GETMODIFY, 0, 0) : false);
+    return (pnode ? pnode->be_modify : false);
 }
 
 int
@@ -341,26 +341,26 @@ on_sci_query_tab(eu_tabpage *pnode)
             return index;
         }
     }
-    return -1;
+    return SKYLARK_TABCTRL_ERR;
 }
 
 static int
 on_sci_status_setup(eu_tabpage *pnode, bool revise)
 {
-    int index = -1;
+    int index = EUE_TAB_NULL;
     if (!(pnode && *pnode->filename))
     {
-        return -1;
+        return EUE_POINT_NULL;
     }
-    if ((index = on_sci_query_tab(pnode)) < 0)
+    if ((index = on_sci_query_tab(pnode)) < SKYLARK_OK)
     {
-        return -2;
+        return index;
     }
     on_tabpage_set_title(index, pnode->filename);
     util_set_title(pnode->pathfile);
     pnode->be_modify = revise;
     on_toolbar_update_button();
-    return 0;
+    return SKYLARK_OK;
 }
 
 int
@@ -397,6 +397,18 @@ on_sci_update_margin(eu_tabpage *pnode)
     if (cur_width != m_width)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? cur_width + m_zoom : 0));
+    }
+}
+
+static void
+on_sci_menu_callback(HMENU hpop, void *param)
+{
+    eu_tabpage *p = (eu_tabpage *)param;
+    if (p && hpop)
+    {
+        util_enable_menu_item(hpop, IDM_EDIT_CUT, util_can_selections(p));
+        util_enable_menu_item(hpop, IDM_EDIT_COPY, util_can_selections(p));
+        util_enable_menu_item(hpop, IDM_EDIT_PASTE, eu_sci_call(p,SCI_CANPASTE, 0, 0));
     }
 }
 
@@ -486,23 +498,13 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             on_statusbar_update_line(pnode);
             break;
         }
-        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
         {
-            if ((pnode = on_tabpage_get_handle(hwnd)) == NULL || pop_editor_menu == NULL)
+            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
             {
-                break;
+                return menu_pop_track(hwnd, IDR_EDITOR_POPUPMENU, 0, 0, on_sci_menu_callback, pnode);
             }
-            util_enable_menu_item(pop_editor_menu, IDM_EDIT_CUT, util_can_selections(pnode));
-            util_enable_menu_item(pop_editor_menu, IDM_EDIT_COPY, util_can_selections(pnode));
-            util_enable_menu_item(pop_editor_menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
-            HMENU pop_menu = GetSubMenu(pop_editor_menu, 0);
-            if (pop_menu)
-            {
-                POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-                ClientToScreen(hwnd, &pt);
-                TrackPopupMenu(pop_menu, 0, pt.x, pt.y, 0, hwnd, NULL);
-            }
-            break;
+            return 1;
         }
         case WM_COMMAND:
         {
