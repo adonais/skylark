@@ -884,7 +884,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_23                   "放大文本"
     IDS_TOOLBAR_24                   "缩小文本"
     IDS_TOOLBAR_25                   "打开/退出全屏"
-    IDS_TOOLBAR_26                   "运行sql或lua脚本"
+    IDS_TOOLBAR_26                   "运行"
     IDS_TOOLBAR_27                   "打开终端"
 }
 

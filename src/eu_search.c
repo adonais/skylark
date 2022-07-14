@@ -2296,6 +2296,7 @@ on_search_found_list(HWND hwnd)
             if (pnode && on_result_launch(pnode) && pnode->presult)
             {
                 pnode->result_show = true;
+                eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
                 eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
                 eu_window_resize(NULL);
                 char *u8_key = eu_utf16_utf8(key, NULL);
@@ -2305,6 +2306,9 @@ on_search_found_list(HWND hwnd)
                     free(u8_key);
                 }
                 on_search_push_result(pnode, key, path);
+                // 窗口并排可能导致主编辑器之前的光标位置被遮挡
+                // 滚动视图以使光标可见
+                eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
                 ShowWindow(hwnd_search_dlg, SW_HIDE);
             }
         }

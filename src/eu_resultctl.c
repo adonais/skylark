@@ -146,15 +146,13 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
-        case WM_KEYDOWN:
-        {
-            break;
-        }
         case WM_LBUTTONDBLCLK:
         {
             eu_tabpage *pnode = on_tabpage_focus_at();
             if (pnode && pnode->presult && pnode->pvec)
             {
+                sptr_t cur_pos = eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
+                eu_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
                 sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
                 if (line >= 0 && cvector_size(pnode->pvec) > 0)
                 {
@@ -269,23 +267,19 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 void
 on_result_reload(eu_tabpage *pedit)
 {
-    if (pedit)
+    if (pedit && eu_sci_call(pedit, SCI_GETLEXER, 0, 0) != SCLEX_RESULT)
     {
         on_sci_init_style(pedit);
         // disable margin
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, 0);
-        // Key bindings
-        // eu_sci_call(pedit, SCI_ASSIGNCMDKEY, 0x43 + (SCMOD_CTRL << 16), WM_IDM_EDIT_COPY);
-        // 不启用自动换行
-        eu_sci_call(pedit, SCI_SETWRAPMODE, 0, 0);
         // 强制使用unix回车符
         eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 不显示对齐线
         eu_sci_call(pedit, SCI_SETINDENTATIONGUIDES, SC_IV_NONE, 0);
-        // 去除只读
-        // eu_sci_call(pedit, SCI_SETREADONLY, 0, 0);
+        // 不显示插入符
+        eu_sci_call(pedit, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
         // 加载词语解析器
         on_doc_init_after_scilexer(pedit, "result");
         on_doc_default_light(pedit, SCE_RESULT_COMMENT, eu_get_theme()->item.keywords0.color, -1, true);

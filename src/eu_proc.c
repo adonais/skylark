@@ -1366,6 +1366,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
+            if (pnode->presult && pnode->presult->hwnd_sc && lpnmhdr->hwndFrom == pnode->presult->hwnd_sc)
+            {
+                break;
+            }
             switch (lpnmhdr->code)
             {
                 case NM_CLICK:
@@ -1507,12 +1511,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case SCN_MARGINCLICK:
                 {
-                    sptr_t lineno = -1;
-                    if ((pnode = on_tabpage_focus_at()) == NULL)
-                    {
-                        break;
-                    }
-                    lineno = eu_sci_call(pnode, SCI_LINEFROMPOSITION, lpnotify->position, 0);
+                    sptr_t lineno = eu_sci_call(pnode, SCI_LINEFROMPOSITION, lpnotify->position, 0);
                     if (lpnotify->margin == 1)
                     {
                         on_search_toggle_mark(pnode, lineno);
@@ -1525,7 +1524,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case SCN_PAINTED:
                 {
-                    if ((pnode = on_tabpage_focus_at()) && (lpnotify->nmhdr.hwndFrom == pnode->hwnd_sc) && pnode->map_show && document_map_initialized)
+                    if ((lpnotify->nmhdr.hwndFrom == pnode->hwnd_sc) && pnode->map_show && document_map_initialized)
                     {
                         eu_tabpage *map_edit = hwnd_document_map ? (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA) : NULL;
                         if (map_edit)
@@ -1539,10 +1538,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if ((lpnotify->updated))
                     {
-                        if (!(pnode = on_tabpage_focus_at()))
-                        {
-                            break;
-                        }
                         if (lpnotify->updated & SC_UPDATE_SELECTION)
                         {
                             if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))
@@ -1580,17 +1575,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         break;
                     }
-                    eu_tabpage *p = on_tabpage_get_ptr((int) (p_tips->hdr.idFrom));
-                    if (p)
+                    if (pnode)
                     {   // 显示标签的快捷键提示
                         memset(p_tips->szText, 0, sizeof(p_tips->szText));
                         if ((int) (p_tips->hdr.idFrom) <= 8)
                         {
-                            _sntprintf(p_tips->szText, _countof(p_tips->szText) - 1, _T("%.68s - (Alt+%d)"), p->pathfile, (int) (p_tips->hdr.idFrom) + 1);
+                            _sntprintf(p_tips->szText, _countof(p_tips->szText) - 1, _T("%.68s - (Alt+%d)"), pnode->pathfile, (int) (p_tips->hdr.idFrom) + 1);
                         }
                         else
                         {
-                            _sntprintf(p_tips->szText, _countof(p_tips->szText) - 1, _T("%.68s"), p->pathfile);
+                            _sntprintf(p_tips->szText, _countof(p_tips->szText) - 1, _T("%.68s"), pnode->pathfile);
                         }
                     }
                     break;

@@ -885,7 +885,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_23                   "Zoom Out Text"
     IDS_TOOLBAR_24                   "Zoom In Text"
     IDS_TOOLBAR_25                   "Open/Quit Full Screen"
-    IDS_TOOLBAR_26                   "Run SQL Or Lua Script"
+    IDS_TOOLBAR_26                   "Execute"
     IDS_TOOLBAR_27                   "Open The Terminal"
 }
 
