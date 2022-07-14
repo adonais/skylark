@@ -989,28 +989,32 @@ on_file_out_open(int index)
     eu_tabpage *p = on_tabpage_get_ptr(index);
     if (p && !p->is_blank)
     {
+        int err = SKYLARK_NOT_OPENED;
         TCHAR process[MAX_BUFFER] = {0};
         if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
         {
-            if (!p->be_modify && !p->hex_mode)
+            if (!eu_get_config()->m_session || (!p->be_modify && !p->hex_mode))
             {
                 sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
                 sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
                 sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
                 _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%I64d -c%I64d"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
-                on_file_close(p, FILE_ONLY_CLOSE);
-                _tputenv(_T("OPEN_FROM_SQL="));
-                CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+                if (!(err = on_file_close(p, FILE_ONLY_CLOSE)))
+                {
+                    err = _tputenv(_T("OPEN_FROM_SQL="));
+                }
             }
             else
             {
-                int err = 0;
                 _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\""), process, _T(" -noremote "), p->pathfile);
-                err = on_file_close(p, FILE_REMOTE_CLOSE);
-                if (!err && !_tputenv(_T("OPEN_FROM_SQL=1")))
+                if (!(err = on_file_close(p, FILE_REMOTE_CLOSE)))
                 {
-                    CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+                    err = _tputenv(_T("OPEN_FROM_SQL=1"));
                 }
+            }
+            if (err == SKYLARK_OK)
+            {
+                CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
             }
         }
     }

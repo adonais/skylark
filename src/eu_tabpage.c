@@ -313,7 +313,7 @@ on_tabpage_drag_mouse(POINT *pscreen)
         {
             file_backup bak = {0};
             _tcscpy(bak.rel_path, p->pathfile);
-            if (!p->be_modify && !p->hex_mode)
+            if (!eu_get_config()->m_session || (!p->be_modify && !p->hex_mode))
             {
                 sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
                 if (pos > 0)
