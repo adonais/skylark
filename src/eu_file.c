@@ -710,8 +710,7 @@ on_file_other_tab(int index)
     {   // 最后一个标签
         if (!eu_get_config()->m_exit)
         {
-            file_backup bak = {0};
-            share_send_msg(&bak);
+            on_file_new();
         }
         else
         {
@@ -1026,16 +1025,16 @@ int
 on_file_redirect(HWND hwnd, file_backup *pbak)
 {
     UNREFERENCED_PARAMETER(hwnd);
-    int err = SKYLARK_OK;
-    if (pbak->status || !url_has_remote(pbak->rel_path))
+    int err = SKYLARK_NOT_OPENED;
+    if (pbak->status || (_tcslen(pbak->rel_path) > 0 && !url_has_remote(pbak->rel_path)))
     {
         err = on_file_open_bakcup(pbak);
     }
-    else
+    else if (url_has_remote(pbak->rel_path))
     {
         err = (on_file_open_remote(NULL, pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
-    if (err != 0 && TabCtrl_GetItemCount(g_tabpages) < 1)
+    if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败且标签小于1,则建立一个空白标签页
         err = on_file_new();
     }
@@ -1701,7 +1700,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     /* 排序最近关闭文件的列表 */
     if (file_click_close(mode) && !pnode->is_blank)
     {
-        on_file_push_recent(pnode->pathfile, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+        on_file_push_recent(pnode->pathfile, pnode->nc_pos);
     }
     /* 关闭标签后需要激活其他标签 */
     if ((index = on_tabpage_remove(&pnode)) >= 0 && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))

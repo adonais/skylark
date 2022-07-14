@@ -19,6 +19,7 @@
 #ifndef _H_SKYLARK_FILE_
 #define _H_SKYLARK_FILE_
 
+#define URL_MIN 7
 #define BUFF_SIZE (8 * 1024 * 1024)                // 8M
 #define BUFF_32K (32 * 1024)                       // 32K
 #define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
@@ -28,7 +29,7 @@ extern "C"
 {
 #endif
 
-#define url_has_remote(ll) (_tcsnicmp(ll, _T("sftp://"), 7) == 0)
+#define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define safe_close_handle(h)                    \
     if (NULL != h && INVALID_HANDLE_VALUE != h) \
     {                                           \

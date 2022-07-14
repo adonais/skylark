@@ -282,7 +282,7 @@ on_tabpage_parser_bakup(void *data, int count, char **column, char **names)
     }
     if (_tcscmp(path, pbak->rel_path) == 0)
     {
-        return 1;
+        return SKYLARK_SQL_END;
     }
     return 0;
 }
@@ -302,6 +302,7 @@ on_tabpage_drag_mouse(POINT *pscreen)
     }
     else if (!(fn = _tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, HEX_CLASS)) || (!_tcscmp(name, WC_TABCONTROL)))
     {   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
+        int err = SKYLARK_NOT_OPENED;
         eu_tabpage *p = on_tabpage_get_ptr(tab_move_from);
         int code = fn ? (int)SendMessage(parent, WM_SKYLARK_DESC, 0, 0) : (int)SendMessage(hwin, WM_SKYLARK_DESC, 0, 0);
         if (code != eu_int_cast(WM_SKYLARK_DESC))
@@ -311,6 +312,7 @@ on_tabpage_drag_mouse(POINT *pscreen)
         else if (p && !p->is_blank)
         {
             file_backup bak = {0};
+            _tcscpy(bak.rel_path, p->pathfile);
             if (!p->be_modify && !p->hex_mode)
             {
                 sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
@@ -321,36 +323,42 @@ on_tabpage_drag_mouse(POINT *pscreen)
                     bak.x = lineno + 1;
                     bak.y = eu_int_cast(pos - row + 1);
                 }
-                _tcscpy(bak.rel_path, p->pathfile);
                 _tputenv(_T("OPEN_FROM_SQL="));
-                on_file_close(p, FILE_ONLY_CLOSE);
+                err = on_file_close(p, FILE_ONLY_CLOSE);
             }
             else
             {
-                int err = on_file_close(p, FILE_REMOTE_CLOSE);
+                err = on_file_close(p, FILE_REMOTE_CLOSE);
                 if (!err && !_tputenv(_T("OPEN_FROM_SQL=1")))
                 {
                     const char *sql = "SELECT * FROM skylark_session;";
-                    _tcscpy(bak.rel_path, p->pathfile);
-                    int err = eu_sqlite3_send(sql, on_tabpage_parser_bakup, &bak);
-                    if (err != 0)
+                    err = eu_sqlite3_send(sql, on_tabpage_parser_bakup, &bak);
+                    if (err != SKYLARK_OK && err != SQLITE_ABORT)
                     {
                         printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
+                        _tputenv(_T("OPEN_FROM_SQL="));
+                    }
+                    else
+                    {
+                        err = SKYLARK_OK;
                     }
                 }
             }
-            COPYDATASTRUCT cpd = { 0 };
-            cpd.lpData = (PVOID) &bak;
-            cpd.cbData = (DWORD) sizeof(file_backup);
-            if (!_tcscmp(name, APP_CLASS))
+            if (err == SKYLARK_OK)
             {
-                SendMessageW(hwin, WM_COPYDATA, 0, (LPARAM) &cpd);
-                SwitchToThisWindow(hwin, true);
-            }
-            else
-            {
-                SendMessageW(parent, WM_COPYDATA, 0, (LPARAM) &cpd);
-                SwitchToThisWindow(parent, true);
+                COPYDATASTRUCT cpd = { 0 };
+                cpd.lpData = (PVOID) &bak;
+                cpd.cbData = (DWORD) sizeof(file_backup);
+                if (!_tcscmp(name, APP_CLASS))
+                {
+                    SendMessageW(hwin, WM_COPYDATA, 0, (LPARAM) &cpd);
+                    SwitchToThisWindow(hwin, true);
+                }
+                else
+                {
+                    SendMessageW(parent, WM_COPYDATA, 0, (LPARAM) &cpd);
+                    SwitchToThisWindow(parent, true);
+                }
             }
         }
     }

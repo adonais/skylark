@@ -176,7 +176,7 @@ enum
     SKYLARK_NOT_OPENED    = -2,
     SKYLARK_OPENED        = -1,
     SKYLARK_OK            = 0,
-    SKYLARK_SQL_END       = 1
+    SKYLARK_SQL_END       = 200
 };
 
 #include <stdio.h>
