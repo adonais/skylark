@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 6
+#define __EU_INFO_VERSION_PATCHLEVEL 7
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -330,8 +330,13 @@
 #define IDB_TOOLBAR1                    30030
 #define IDB_TOOLBAR16                   30031
 #define IDC_TOOLBAR                     30032
-#define IDB_TOOLBAR_DARK1               30033
-#define IDB_TOOLBAR_DARK16              30034
+#define IDB_DARK1                       30033
+#define IDB_DARK16                      30034
+#define IDB_TOOLBAR_LARGE1              30035
+#define IDB_TOOLBAR_LARGE32             30036
+#define IDB_DARK_LARGE1                 30037
+#define IDB_DARK_LARGE32                30038
+#define IDM_VIEW_DOCUMENT_MAP           30039
 
 #define IDM_FILE_CLOSEALL               30100
 #define IDM_FILE_CLOSEALL_EXCLUDE       30101
@@ -390,7 +395,6 @@
 #define IDM_EDIT_COPY_FILENAME               30405
 #define IDM_EDIT_COPY_PATHNAME               30406
 #define IDM_EDIT_COPY_PATHFILENAME           30407
-#define IDM_TAB_CLICK                        30408
 #define IDM_TAB_CLOSE                        30410
 #define IDR_FILETREE_POPUPMENU               30411
 #define IDM_RELOAD_FILETREE                  30412
@@ -476,11 +480,11 @@
 #define IDS_ABOUT_DESCRIPTION           31107
 #define IDC_COMPILER                    31108
 
-#define IDM_RESULT_1                    31109
-#define IDM_RESULT_2                    31110
-#define IDM_RESULT_3                    31111
-#define IDM_RESULT_4                    31112
-#define IDM_RESULT_5                    31113
+#define IDM_RESULT_COPY                 31109
+#define IDM_RESULT_WRAPLINE             31110
+#define IDM_RESULT_SETSEL               31111
+#define IDM_RESULT_UNSETSEL             31112
+#define IDM_RESULT_CLEARALL             31113
 #define IDM_RESULT_CLOSE                31114
 #define IDR_RESULT_MENU                 31115
 
@@ -867,6 +871,7 @@
 #define IDM_EDIT_TAB_SPACE                  42825
 #define IDM_EDIT_SPACE_TAB                  42826
 #define IDM_EDIT_PLACEHOLDE21               42827
+#define IDM_EDIT_OTHER_EDITOR               42828
 
 #define IDR_HEXVIEW_MENU                    42830
 #define IDM_HEXVIEW_COPY                    42831
@@ -915,6 +920,9 @@
 #define IDS_EXTRA_PATH                      42886
 #define IDC_REGXP_TIPS_STC                  42887
 #define IDS_HEXVIEW_BYTES                   42888
+#define IDS_RESULT_STRINGS1                 42889
+#define IDS_RESULT_STRINGS2                 42890
+#define IDS_EDITOR_PATH                     42891
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991
@@ -923,6 +931,12 @@
 #define IDM_VIEW_TIPS_ONTAB                 42994
 #define IDM_TAB_CLOSE_LEFT                  42995
 #define IDM_TAB_CLOSE_RIGHT                 42996
+#define IDC_CURSOR_DRAG                     42997
+#define IDS_COMMAND_TITLE                   42998
+#define IDS_HELP_COMMAND                    42999
+#define IDM_HELP_COMMAND                    43000
+#define IDS_LOADLIBRARY_SQL                 43001
+#define IDM_TABPAGE_SAVE                    43002
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

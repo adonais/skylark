@@ -182,7 +182,6 @@ on_remote_remove_config(remotefs* pserver)
             {
                 list_del_init(pos);
                 eu_safe_free(tmp);
-                printf("we delete pserver node\n");
             }
         }
     }

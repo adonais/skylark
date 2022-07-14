@@ -127,7 +127,7 @@ function eu_theme.get_default(name)
           "aspsection_bgcolor = 0x00000000\n" ..
           "aspsection_bold = 0"        
     elseif (name == "white") then
-        theme = -- 默认主题配置文件
+        theme = -- 经典白主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
           "linenumber_fontsize = 9\n" ..
           "linenumber_color = 0x00111111\n" ..
@@ -257,7 +257,9 @@ function eu_theme.get_default(name)
           "linenumber_bold = 0\n" ..
           "foldmargin_font = \"Consolas\"\n" ..
           "foldmargin_fontsize = 9\n" ..
-          "foldmargin_color = 0x00000000\n" ..
+          -- 折叠标志(+,-)颜色
+          "foldmargin_color = 0x00707070\n" ..
+          -- 折叠栏背景色
           "foldmargin_bgcolor = 0x004E4C4C\n" ..
           "foldmargin_bold = 0\n" ..
           "text_font = \"Consolas\"\n" ..

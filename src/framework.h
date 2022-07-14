@@ -63,7 +63,7 @@
 #define MARGIN_BOOKMARK_VALUE        0
 
 #define MARGIN_FOLD_INDEX            2
-#define MARGIN_FOLD_WIDTH            16
+#define MARGIN_FOLD_WIDTH            14
 
 #define SYMBOLLIST_MARGIN_LEFT       2
 #define SYMBOLLIST_MARGIN_RIGHT      2
@@ -75,14 +75,11 @@
 #define SYMBOLTREE_MARGIN_TOP        2
 #define SYMBOLTREE_MARGIN_BOTTOM     0
 
-#define FILETREEBAR_WIDTH_DEFAULT    250
 #define FILETREEBAR_WIDTH_MIN        100
-
-#define SYMBOLLIST_WIDTH_DEFAULT     300
 #define SYMBOLLIST_WIDTH_MIN         100
-
-#define SYMBOLTREE_WIDTH_DEFAULT     300
 #define TREEVIEW_WIDTH_MIN           100
+#define DOCUMENTMAP_WIDTH_MIN        200
+#define DOCUMENTMAP_WIDTH_DEF        310
 
 #define SPLIT_WIDTH                  2
 #define WHITESPACE_SIZE              3
@@ -112,6 +109,7 @@
 #include "chardet.h"
 
 // skylark 源目录下的头文件
+#include "eu_cvector.h"
 #include "eu_list.h"
 #include "eu_rbtree.h"
 
@@ -158,5 +156,6 @@
 #include "eu_tabpage.h"
 #include "eu_print.h"
 #include "eu_locale.h"
+#include "eu_document_map.h"
 
 #endif  // _EU_FRAMEWORK_H_

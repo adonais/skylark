@@ -19,6 +19,13 @@
 #ifndef _EU_REGISTRY_H_
 #define _EU_REGISTRY_H_
 
+#define REGFILE         (_T("-regfile"))
+#define REGFILE_BLACK   (_T("-regfile=1"))
+#define REGFOLDER       (_T("-regfolder"))
+#define REGFOLDER_BLACK (_T("-regfolder=1"))
+#define REGASSOC        (_T("-regassoc"))
+#define REGASSOC_BLACK  (_T("-regassoc=1"))
+
 #ifdef __cplusplus
 extern "C" {
 #endif

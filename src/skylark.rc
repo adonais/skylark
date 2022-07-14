@@ -66,6 +66,7 @@ IDB_COPY_DARK           ICON                    "..\\resources\\copy_dark.ico"
 /////////////////////////////////////////////////////////////////////////////
 IDC_CURSOR_WE           CURSOR                    "..\\resources\\we.cur"
 IDC_CURSOR_NS           CURSOR                    "..\\resources\\ns.cur"
+IDC_CURSOR_DRAG         CURSOR                    "..\\resources\\drag.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -76,8 +77,12 @@ IDC_CURSOR_NS           CURSOR                    "..\\resources\\ns.cur"
 //
 IDB_TOOLBAR16           BITMAP                  "..\\resources\\toolbar_16.bmp"
 IDB_TOOLBAR1            BITMAP                  "..\\resources\\toolbar_1.bmp"
-IDB_TOOLBAR_DARK1       BITMAP                  "..\\resources\\toolbar_dark_1.bmp"
-IDB_TOOLBAR_DARK16      BITMAP                  "..\\resources\\toolbar_dark_16.bmp"
+IDB_DARK1               BITMAP                  "..\\resources\\toolbar_dark_1.bmp"
+IDB_DARK16              BITMAP                  "..\\resources\\toolbar_dark_16.bmp"
+IDB_TOOLBAR_LARGE32     BITMAP                  "..\\resources\\toolbar_large_32.bmp"
+IDB_TOOLBAR_LARGE1      BITMAP                  "..\\resources\\toolbar_large_1.bmp"
+IDB_DARK_LARGE32        BITMAP                  "..\\resources\\toolbar_dark_large_32.bmp"
+IDB_DARK_LARGE1         BITMAP                  "..\\resources\\toolbar_dark_large_1.bmp"
 IDB_BUTTON_BG_BMP       BITMAP                  "..\\resources\\bg.bmp"
 IDB_DARK_CLOSE_BMP      BITMAP                  "..\\resources\\at-dark-close.bmp"
 IDB_AC_CLOSE_BMP        BITMAP                  "..\\resources\\at-active-close.bmp"

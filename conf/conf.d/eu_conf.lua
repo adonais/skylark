@@ -48,6 +48,7 @@ function eu_conf.loadconf()
         "file_treebar_width = 253\n" ..
         "symbol_list_width = 210\n" ..
         "symbol_tree_width = 210\n" ..
+        "document_map_width = 310\n" ..
         "sqlquery_result_edit_height = 80\n" ..
         "sqlquery_result_listview_height = 270\n" ..
         "block_fold_visiable = true\n" ..
@@ -63,6 +64,7 @@ function eu_conf.loadconf()
         "backup_on_file_write = false\n" ..
         "save_last_session = true\n" ..
         "exit_when_close_last_tab = false\n" ..
+        "allow_multiple_instance = false\n" ..
         "save_last_placement = \"\"\n" ..
         "ui_language = \"auto\"\n" ..
         "-- printer default setting\n" ..
@@ -81,6 +83,7 @@ function eu_conf.loadconf()
         "app_build_id = 0\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"d:/msys2/msys2_shell.cmd -mingw64 -here\"\n" ..
+        "other_editor_path = \"\"\n" ..
         "process_actions = {}\n"
         eu_code = assert(loadstring(code))()
     else
@@ -120,6 +123,7 @@ function eu_conf.loadconf()
         file_treebar_width,
         symbol_list_width,
         symbol_tree_width,
+        document_map_width,
         sqlquery_result_edit_height,
         sqlquery_result_listview_height,
         block_fold_visiable,
@@ -135,12 +139,14 @@ function eu_conf.loadconf()
         backup_on_file_write,
         save_last_session,
         exit_when_close_last_tab,
+        allow_multiple_instance,
         save_last_placement,
         ui_language,
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         cache_limit_size,
         app_build_id,
-        process_path
+        process_path,
+        other_editor_path
     })
     eu_conf.fill_actions(m_config)
     if (not eu_core.euapi.eu_config_ptr(m_config)) then

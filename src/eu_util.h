@@ -92,15 +92,22 @@ bool   util_open_file(LPCTSTR path, pt_stream pstream);
 bool   util_exist_libcurl(void);
 time_t util_last_time(const TCHAR *path);
 uint64_t util_gen_tstamp(void);
-void util_switch_menu_group(HMENU hmenu, uint32_t first_id, uint32_t last_id, uint32_t select);
+void util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t last_id, uint32_t select);
 WCHAR* util_to_abs(const char *path);
-TCHAR* util_make_u16(const char *, TCHAR *, int);
+TCHAR* util_make_u16(const char *utf8, TCHAR *utf16, int len);
+char*  util_make_u8(const TCHAR *utf16, char *utf8, int len);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
+TCHAR* util_unix2path(TCHAR *path);
+TCHAR* util_path2unix(TCHAR *path);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);
 int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level);
+int util_count_number(size_t number);
+void util_transparent(HWND hwnd, int percent);
+void util_untransparent(HWND hwnd);
+bool util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 
 #ifdef __cplusplus
 }

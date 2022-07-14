@@ -30,7 +30,6 @@
 #define EDITNUMBS          11
 #define IMAGEWIDTH         16
 #define IMAGEHEIGHT        15
-#define WM_BTN_PRESS       (WM_USER + 201)
 
 // c++ compiler
 #ifdef __cplusplus
@@ -41,7 +40,7 @@ extern HWND g_statusbar;
 extern char iconv_undo_str[ACNAME_LEN];
 
 bool __stdcall on_statusbar_init(HWND hwnd);
-void __stdcall on_statusbar_size(void);
+void __stdcall on_statusbar_refresh(void);
 void __stdcall on_statusbar_btn_case(void);
 int  __stdcall on_statusbar_height(void);
 void __stdcall on_statusbar_update(void);
@@ -54,7 +53,6 @@ void __stdcall on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *prin
 void __stdcall on_statusbar_dark_mode(void);
 void __stdcall on_statusbar_dark_release(bool off);
 void __stdcall on_statusbar_pop_menu(int parts, LPPOINT pt);
-LRESULT __stdcall on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus
 }

@@ -458,10 +458,6 @@ hexview_update_theme(eu_tabpage *p)
         {
             SendMessage(p->hwnd_symtree, WM_DPICHANGED, 0, 0);
         }
-        if (p->hwnd_qredit)
-        {
-            SendMessage(p->hwnd_qredit, WM_DPICHANGED, 0, 0);
-        }
         if (p->hwnd_qrtable)
         {
             SendMessage(p->hwnd_qrtable, WM_DPICHANGED, 0, 0);
@@ -1009,7 +1005,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
     {
         case WM_CREATE:
         {
-            pnode = (eu_tabpage *)((LPCREATESTRUCTA)lParam)->lpCreateParams;
+            pnode = (eu_tabpage *)((LPCREATESTRUCTW)lParam)->lpCreateParams;
             if (!(pnode && pnode->phex))
             {
                 printf("pnode or pnode->phex is null\n");
@@ -1068,7 +1064,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             // 限制右键显示区域
             if (x < hexview->longest_line*hexview->width_char && (y > 2*hexview->height_char &&  y < hexview->totallines*hexview->height_char))
             {
-                return menu_pop_track(hwnd, IDR_HEXVIEW_MENU, 0);
+                return menu_pop_track(hwnd, IDR_HEXVIEW_MENU, 0, -1, NULL, NULL);
             }
             return 1;
         }
@@ -1885,7 +1881,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 static HWND
 hexview_create_dlg(HWND parent, LPVOID lparam)
 {
-    return CreateWindowEx(0, _T("__eu_hexview"), NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, parent, 0, eu_module_handle(), lparam);
+    return CreateWindowEx(0, HEX_CLASS, NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, parent, 0, eu_module_handle(), lparam);
 }
 
 static void
@@ -1896,7 +1892,7 @@ hexview_register_class(void)
     wcex.lpfnWndProc = hexview_proc;
     wcex.hInstance = GetModuleHandle(NULL);
     wcex.hCursor = LoadCursor(NULL, IDC_IBEAM);
-    wcex.lpszClassName = _T("__eu_hexview");
+    wcex.lpszClassName = HEX_CLASS;
     RegisterClassEx(&wcex);
 }
 
@@ -1911,6 +1907,8 @@ hexview_init(eu_tabpage *pnode)
     if (pnode->hwnd_sc)
     {   // tab保存原先的位置
         pnode->tab_id = TabCtrl_GetCurSel(g_tabpages);
+        // 16进制模式切换下, 只释放了关联窗口的资源
+        // pnode本身内存还可以共享使用
         on_tabpage_remove(&pnode);
     }
     if (!pnode->hex_mode)
@@ -1925,6 +1923,9 @@ hexview_init(eu_tabpage *pnode)
             return false;
         }
         pnode->eusc = 0;
+        pnode->sym_show = false;
+        pnode->map_show = false;
+        pnode->result_show = false;
         pnode->hex_mode = true;
     }
     pnode->begin_pos = -1;
@@ -2102,7 +2103,7 @@ hexview_strdup_data(eu_tabpage *pnode, size_t *plen)
 int
 hexview_switch_mode(eu_tabpage *pnode)
 {
-    int err = 0;
+    int err = EUE_TAB_NULL;
     uint8_t *pdst = NULL;
     eu_tabpage *pnew = NULL;
     if (!pnode)
@@ -2117,22 +2118,27 @@ hexview_switch_mode(eu_tabpage *pnode)
             pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
             if (!pnode->phex)
             {
-                err = 1;
+                err = EUE_POINT_NULL;
                 goto HEX_ERROR;
             }
             if (!(pnode->phex->pbase = (uint8_t *) util_strdup_content(pnode, &pnode->bytes_remaining)))
             {
                 printf("txt maybe null\n");
-                err = 1;
+                err = EUE_POINT_NULL;
                 eu_safe_free(pnode->phex);
                 goto HEX_ERROR;
             }
             if (!hexview_init(pnode))
             {
-                err = 1;
+                err = EUE_CREATE_MAP_ERR;
                 eu_safe_free(pnode->phex->pbase);
                 eu_safe_free(pnode->phex);
                 goto HEX_ERROR;
+            }
+            err = pnode->tab_id;
+            if (err >=0 && pnode->nc_pos >= 0)
+            {
+                eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
             }
             ShowWindow(eu_get_search_hwnd(), SW_HIDE);
         }
@@ -2144,6 +2150,11 @@ hexview_switch_mode(eu_tabpage *pnode)
         size_t  dst_len = 0;
         bool is_utf8 = pnode->codepage == IDM_UNI_UTF8;
         pnew = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
+        if (!pnew)
+        {
+            err = EUE_POINT_NULL;
+            goto HEX_ERROR;
+        }
         _sntprintf(pnew->pathfile, MAX_PATH - 1, _T("%s"), pnode->pathfile);
         _sntprintf(pnew->pathname, MAX_PATH - 1, _T("%s"), pnode->pathname);
         _sntprintf(pnew->filename, MAX_PATH - 1, _T("%s"), pnode->filename);
@@ -2246,12 +2257,21 @@ hexview_switch_mode(eu_tabpage *pnode)
             on_tabpage_editor_modify(pnew, "X");
         }
         pnew->hex_mode = false;
-        on_tabpage_selection(pnew, pnew->tab_id);
-        PostMessage(pnew->hwnd_sc, WM_SETFOCUS, 0, 0);
+        err = on_tabpage_selection(pnew, pnew->tab_id);
+        if (err >= 0)
+        {
+            if (pnew->nc_pos >= 0)
+            {
+                on_search_jmp_pos(pnew, pnew->nc_pos);
+            }
+            PostMessage(pnew->hwnd_sc, WM_SETFOCUS, 0, 0);
+        }
     }
 HEX_ERROR:
     eu_safe_free(pdst);
-    if (err)
+    // 不同之前版本, err返回的是tab编号
+    // 如果tab已经打开,但出现其他异常, 释放pnew会导致崩溃
+    if (err < SKYLARK_TABCTRL_ERR)
     {
         eu_safe_free(pnew);
     }

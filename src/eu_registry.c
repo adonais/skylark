@@ -333,12 +333,12 @@ eu_reg_file_popup_menu(void)
     }
     else if (eu_get_config() && strcmp(eu_get_config()->window_theme, "black") == 0)
     {
-        TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg1=1")};
+        TCHAR *argv[] = {__ORIGINAL_NAME, REGFILE_BLACK};
         ret = !run_as_admin(2, argv);
     }
     else
     {
-        TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg1")};
+        TCHAR *argv[] = {__ORIGINAL_NAME, REGFILE};
         ret = !run_as_admin(2, argv);
     }
     return ret;
@@ -590,12 +590,12 @@ eu_reg_dir_popup_menu(void)
     }
     else if (eu_get_config() && strcmp(eu_get_config()->window_theme, "black") == 0)
     {
-        TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg2=1")};
+        TCHAR *argv[] = {__ORIGINAL_NAME, REGFOLDER_BLACK};
         ret = !run_as_admin(2, argv);
     }
     else
     {
-        TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg2")};
+        TCHAR *argv[] = {__ORIGINAL_NAME, REGFOLDER};
         ret = !run_as_admin(2, argv);
     }
     return ret;
@@ -1065,12 +1065,12 @@ on_reg_files_association(void)
     }
     else if (strcmp(eu_get_config()->window_theme, "black") == 0)
     {
-        TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg3=1")};
+        TCHAR *argv[] = {__ORIGINAL_NAME, REGASSOC_BLACK};
         ret = !run_as_admin(2, argv);
     }
     else
     {
-        TCHAR *argv[] = {__ORIGINAL_NAME, _T("-reg3")};
+        TCHAR *argv[] = {__ORIGINAL_NAME, REGASSOC};
         ret = !run_as_admin(2, argv);
     }
     return ret;

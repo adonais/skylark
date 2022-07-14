@@ -95,6 +95,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_locale.obj                      \
     $(OBJD)\eu_format.obj                      \
     $(OBJD)\eu_splitter.obj                    \
+    $(OBJD)\eu_document_map.obj                \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -179,13 +180,14 @@ $(OBJD)\eu_changes.obj                     : eu_changes.c eu_changes.h framework
 $(OBJD)\eu_toolbar.obj                     : eu_toolbar.c eu_toolbar.h framework.h
 $(OBJD)\eu_statusbar.obj                   : eu_statusbar.c eu_statusbar.h framework.h
 $(OBJD)\eu_about.obj                       : eu_about.c eu_about.h framework.h skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\locales\src\*
-$(OBJD)\eu_qrgen.obj                       : eu_qrgen.c eu_qrgen.h
-$(OBJD)\eu_json.obj                        : eu_json.c eu_json.h
+$(OBJD)\eu_qrgen.obj                       : eu_qrgen.c eu_qrgen.h framework.h
+$(OBJD)\eu_json.obj                        : eu_json.c eu_json.h framework.h
 $(OBJD)\eu_print.obj                       : eu_print.c eu_print.h framework.h
 $(OBJD)\eu_locale.obj                      : eu_locale.c eu_locale.h framework.h
 $(OBJD)\eu_format.obj                      : eu_format.c eu_format.h framework.h
-$(OBJD)\eu_splitter.obj                    : eu_splitter.c eu_splitter.h eu_splitter.h
+$(OBJD)\eu_splitter.obj                    : eu_splitter.c eu_splitter.h framework.h
 $(OBJD)\eu_rbtree.obj                      : eu_rbtree.c eu_rbtree.h framework.h
+$(OBJD)\eu_document_map.obj                : eu_document_map.c eu_document_map.h eu_cvector.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp

@@ -17,9 +17,6 @@
  *******************************************************************************/
 #include "framework.h"
 
-#define ENV_MENU 6
-#define LOCALE_SUB_MENU 5
-
 def_localization sz_localization[] =
 {
     {_T("English"), _T("en-us.dll")},
@@ -244,7 +241,7 @@ i18n_update_multi_lang(HMENU root_menu)
     {
         int index;
         HMENU menu_lang = NULL;
-        if (!(menu_lang = GetSubMenu(root_menu, LOCALE_SUB_MENU)))
+        if (!(menu_lang = GetSubMenu(root_menu, LOCALE_MENU_SUB)))
         {
             printf("menu_lang is null\n");
             return;
@@ -268,7 +265,7 @@ i18n_update_menu(HMENU root_menu)
     TCHAR lang_name[ACNAME_LEN] = {0};
     TCHAR current_lang[ACNAME_LEN] = {0};
     HMENU lang_menu = NULL;
-    lang_menu = root_menu ? GetSubMenu(root_menu, LOCALE_SUB_MENU) : NULL;
+    lang_menu = root_menu ? GetSubMenu(root_menu, LOCALE_MENU_SUB) : NULL;
     if (!(root_menu && lang_menu))
     {
         return;
@@ -348,8 +345,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         DestroyWindow(g_treebar);
     }
-    /* 销毁所有右键菜单 */
-    on_tabpage_destroy_rclick();
     if (true)
     {   // 更新全局变量与共享内存
         FreeLibrary(g_skylark_lang);
@@ -367,18 +362,9 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         return 1;
     }
-    if (on_tabpage_create_rclick())
-    {
-        return 1;
-    }
     if (on_toolbar_create(eu_module_hwnd()) != 0)
     {
         printf("on_toolbar_create return false\n");
-        return 1;
-    }
-    if (!on_statusbar_init(eu_module_hwnd()))
-    {
-        printf("on_statusbar_init return false\n");
         return 1;
     }
     if (!on_search_create_box())
@@ -390,6 +376,16 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         printf("on_treebar_create_box return false\n");
         return 1;
+    }
+    if (!on_statusbar_init(eu_module_hwnd()))
+    {
+        printf("on_statusbar_init return false\n");
+        return 1;
+    }
+    else if (!on_dark_enable())
+    {
+        SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+        on_statusbar_update();
     }
     return 0;
 }
@@ -432,7 +428,7 @@ i18n_switch_locale(HWND hwnd, int id)
     if (eu_refresh_interface(new_lang, lang_path) == 0)
     {
         HMENU root_menu = GetMenu(hwnd);
-        HMENU menu_env = root_menu ? GetSubMenu(root_menu, ENV_MENU) : NULL;
+        HMENU menu_env = root_menu ? GetSubMenu(root_menu, LOCALE_MENU) : NULL;
         on_tabpage_newdoc_reload();
         i18n_update_multi_lang(menu_env);
         i18n_update_menu(menu_env);

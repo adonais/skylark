@@ -24,6 +24,20 @@ typedef unsigned long (*ptr_compress_bound)(unsigned long source_len);
 typedef int (*ptr_compress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long, int);
 typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long *);
 
+typedef DWORD(WINAPI *PFNGFVSW)(LPCWSTR, LPDWORD);
+typedef DWORD(WINAPI *PFNGFVIW)(LPCWSTR, DWORD, DWORD, LPVOID);
+typedef bool(WINAPI *PFNVQVW)(LPCVOID, LPCWSTR, LPVOID, PUINT);
+
+typedef struct _LANGANDCODEPAGE
+{
+    uint16_t wLanguage;
+    uint16_t wCodePage;
+} LANGANDCODEPAGE;
+
+static PFNGFVSW pfnGetFileVersionInfoSizeW;
+static PFNGFVIW pfnGetFileVersionInfoW;
+static PFNVQVW pfnVerQueryValueW;
+
 #define BUFF_64K 0x10000
 #define BUFF_200M 0xc800000
 #define AES_IV_MATERIAL "copyright by skylark team"
@@ -125,35 +139,35 @@ util_gen_tstamp(void)
 HWND
 util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
 {
-	if (!(hwnd_stc && hwnd && ptext))
-	{
-		return NULL;
-	}
-	// Create the tooltip. g_hInst is the global instance handle.
-	HWND htip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON, CW_USEDEFAULT, CW_USEDEFAULT,
-		                       CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, eu_module_handle(), NULL);
+    if (!(hwnd_stc && hwnd && ptext))
+    {
+        return NULL;
+    }
+    // Create the tooltip. g_hInst is the global instance handle.
+    HWND htip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON, CW_USEDEFAULT, CW_USEDEFAULT,
+                               CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, eu_module_handle(), NULL);
 
-	if (!htip)
-	{
-		return NULL;
-	}
-	// Associate the tooltip with the tool.
-	TOOLINFO toolinfo = {0};
-	toolinfo.cbSize = sizeof(TOOLINFO);
-	toolinfo.hwnd = hwnd;
-	toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-	toolinfo.uId = (LONG_PTR)hwnd_stc;
-	toolinfo.lpszText = ptext;
-	if (!SendMessage(htip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo))
-	{
-		DestroyWindow(htip);
-		return NULL;
-	}
-	SendMessage(htip, TTM_ACTIVATE, TRUE, 0);
-	SendMessage(htip, TTM_SETMAXTIPWIDTH, 0, 200);
-	// Make tip stay 15 seconds
-	SendMessage(htip, TTM_SETDELAYTIME, TTDT_AUTOPOP, MAKELPARAM((15000), (0)));
-	return htip;
+    if (!htip)
+    {
+        return NULL;
+    }
+    // Associate the tooltip with the tool.
+    TOOLINFO toolinfo = {0};
+    toolinfo.cbSize = sizeof(TOOLINFO);
+    toolinfo.hwnd = hwnd;
+    toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+    toolinfo.uId = (LONG_PTR)hwnd_stc;
+    toolinfo.lpszText = ptext;
+    if (!SendMessage(htip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo))
+    {
+        DestroyWindow(htip);
+        return NULL;
+    }
+    SendMessage(htip, TTM_ACTIVATE, TRUE, 0);
+    SendMessage(htip, TTM_SETMAXTIPWIDTH, 0, 200);
+    // Make tip stay 15 seconds
+    SendMessage(htip, TTM_SETDELAYTIME, TTDT_AUTOPOP, MAKELPARAM((15000), (0)));
+    return htip;
 }
 
 bool
@@ -827,13 +841,13 @@ util_hex_fold(char *asc_buf, int asc_len, char *hex_buf)
 time_t
 util_last_time(const TCHAR *path)
 {
-    if (path[0])
+    if (STR_NOT_NUL(path))
     {
         struct _stat buf = {0};
         _tstat(path, &buf);
         return buf.st_mtime;
     }
-    return SKYLARK_OK;
+    return 0;
 }
 
 int
@@ -1189,10 +1203,9 @@ util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked)
 }
 
 void
-util_switch_menu_group(HMENU hmenu, uint32_t first_id, uint32_t last_id, uint32_t select)
+util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t last_id, uint32_t select)
 {
-    const int tab_sub_postion = 26;
-    HMENU htab_next = GetSubMenu(hmenu, tab_sub_postion);
+    HMENU htab_next = GetSubMenu(hmenu, pop_id);
     if (htab_next)
     {
         for (uint32_t i = first_id; i <= last_id; ++i)
@@ -1242,7 +1255,24 @@ util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
 }
 
 TCHAR *
-util_wchr_replace(TCHAR *path)
+util_path2unix(TCHAR *path)
+{
+    TCHAR *lp = NULL;
+    intptr_t pos;
+    do
+    {
+        lp = _tcschr(path, _T('\\'));
+        if (lp)
+        {
+            pos = lp - path;
+            path[pos] = _T('/');
+        }
+    } while (lp != NULL);
+    return path;
+}
+
+TCHAR *
+util_unix2path(TCHAR *path)
 {
     TCHAR *lp = NULL;
     intptr_t pos;
@@ -1392,6 +1422,14 @@ util_make_u16(const char *utf8, TCHAR *utf16, int len)
     return utf16;
 }
 
+char *
+util_make_u8(const TCHAR *utf16, char *utf8, int len)
+{
+    *utf8 = 0;
+    WideCharToMultiByte(CP_UTF8, 0, utf16, -1, utf8, len, NULL, NULL);
+    return utf8;
+}
+
 void
 util_kill_thread(uint32_t pid)
 {
@@ -1506,7 +1544,7 @@ util_to_abs(const char *path)
     {
         return NULL;
     }
-    util_wchr_replace(lpfile);
+    util_unix2path(lpfile);
     // 进程当前目录为基准, 得到绝对路径
     SetCurrentDirectory(eu_module_path);
     if (lpfile[0] == _T('%'))
@@ -1679,4 +1717,121 @@ util_restore_placement(HWND hwnd)
         }
         SetWindowPlacement(hwnd, &wp);
     }
+}
+
+void
+util_untransparent(HWND hwnd)
+{
+    if (hwnd != NULL)
+    {
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, GetWindowLongPtr(hwnd, GWL_EXSTYLE) & ~0x00080000);
+    }
+}
+
+void
+util_transparent(HWND hwnd, int percent)
+{
+    if (hwnd)
+    {
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, GetWindowLongPtr(hwnd, GWL_EXSTYLE) | 0x00080000);
+        if (percent > 255)
+        {
+            percent = 255;
+        }
+        if (percent < 0)
+        {
+            percent = 0;
+        }
+        SetLayeredWindowAttributes(hwnd, 0, percent, 0x00000002);
+    }
+}
+
+int
+util_count_number(size_t number)
+{
+    int length = 1;
+    while (number /= 10)
+    {
+        ++length;
+    }
+    return length;
+}
+
+/* 初始化version.dll里面的三个函数 */
+static HMODULE
+util_init_verinfo(void)
+{
+    HMODULE h_ver = LoadLibraryW(L"version.dll");
+    if (h_ver != NULL)
+    {
+        pfnGetFileVersionInfoSizeW = (PFNGFVSW) GetProcAddress(h_ver, "GetFileVersionInfoSizeW");
+        pfnGetFileVersionInfoW = (PFNGFVIW) GetProcAddress(h_ver, "GetFileVersionInfoW");
+        pfnVerQueryValueW = (PFNVQVW) GetProcAddress(h_ver, "VerQueryValueW");
+        if (!(pfnGetFileVersionInfoSizeW && pfnGetFileVersionInfoW && pfnVerQueryValueW))
+        {
+            FreeLibrary(h_ver);
+            h_ver = NULL;
+        }
+    }
+    return h_ver;
+}
+
+bool
+util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
+{
+    HMODULE h_ver = NULL;
+    bool ret = false;
+    DWORD dw_handle = 0;
+    DWORD dw_size = 0;
+    uint32_t cb_translate = 0;
+    LPWSTR pbuffer = NULL;
+    PVOID ptmp = NULL;
+    WCHAR dw_block[FILESIZE + 1] = { 0 };
+    LANGANDCODEPAGE *lptranslate = NULL;
+    do
+    {
+        if ((h_ver = util_init_verinfo()) == NULL)
+        {
+            break;
+        }
+        if ((dw_size = pfnGetFileVersionInfoSizeW(filepath, &dw_handle)) == 0)
+        {
+            printf("pfnGetFileVersionInfoSizeW return false\n");
+            break;
+        }
+        if ((pbuffer = (LPWSTR) calloc(1, dw_size * sizeof(WCHAR))) == NULL)
+        {
+            break;
+        }
+        if (!pfnGetFileVersionInfoW(filepath, 0, dw_size, (LPVOID) pbuffer))
+        {
+            printf("pfnpfnGetFileVersionInfoW return false\n");
+            break;
+        }
+        pfnVerQueryValueW((LPCVOID) pbuffer, L"\\VarFileInfo\\Translation", (LPVOID *) &lptranslate, &cb_translate);
+        if (NULL == lptranslate)
+        {
+            break;
+        }
+        for (uint16_t i = 0; i < (cb_translate / sizeof(LANGANDCODEPAGE)); i++)
+        {
+            sntprintf(dw_block,
+                      FILESIZE,
+                      L"\\StringFileInfo\\%04x%04x\\ProductName",
+                      lptranslate[i].wLanguage,
+                      lptranslate[i].wCodePage);
+
+            ret = pfnVerQueryValueW((LPCVOID) pbuffer, (LPCWSTR) dw_block, (LPVOID *) &ptmp, &cb_translate);
+            if (ret)
+            {
+                out_string[0] = L'\0';
+                wcsncpy(out_string, (LPCWSTR) ptmp, len);
+                ret = wcslen(out_string) > 1;
+                if (ret) break;
+            }
+        }
+    } while (0);
+    eu_safe_free(pbuffer);
+    safe_close_dll(h_ver);
+    return ret;
 }

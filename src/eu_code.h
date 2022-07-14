@@ -19,16 +19,16 @@
 #ifndef _EU_CODE_H_
 #define _EU_CODE_H_
 
-#define    BEGIN_DATABASE_CONNECTION_CONFIG    "-- SKYLARK BEGIN DATABASE CONNECTION CONFIG"
-#define END_DATABASE_CONNECTION_CONFIG        "-- SKYLARK END DATABASE CONNECTION CONFIG"
-#define    BEGIN_REDIS_CONNECTION_CONFIG    "-- SKYLARK BEGIN REDIS CONNECTION CONFIG"
-#define END_REDIS_CONNECTION_CONFIG    "-- SKYLARK END REDIS CONNECTION CONFIG"
+#define BEGIN_DATABASE_CONNECTION_CONFIG    "-- SKYLARK BEGIN DATABASE CONNECTION CONFIG"
+#define END_DATABASE_CONNECTION_CONFIG      "-- SKYLARK END DATABASE CONNECTION CONFIG"
+#define BEGIN_REDIS_CONNECTION_CONFIG       "-- SKYLARK BEGIN REDIS CONNECTION CONFIG"
+#define END_REDIS_CONNECTION_CONFIG         "-- SKYLARK END REDIS CONNECTION CONFIG"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void on_code_switch_fold(eu_tabpage *pnode);
+void on_code_switch_fold(eu_tabpage *pnode, sptr_t line_number);
 void on_code_block_contract(eu_tabpage *pnode, sptr_t line_number);
 void on_code_block_expand(eu_tabpage *pnode, sptr_t line_number);
 void on_code_block_contract_all(eu_tabpage *pnode);
@@ -37,6 +37,7 @@ void on_code_set_complete_chars(eu_tabpage *pnode);
 void on_code_block_complete(void);
 void on_code_block_calltip(void);
 void on_code_insert_config(eu_tabpage *pnode);
+void on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap);
 
 #ifdef __cplusplus
 }

@@ -22,6 +22,88 @@
 
 static volatile long last_focus = -1;
 
+void WINAPI
+eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
+{
+    int arg_c = argc;
+    LPWSTR *ptr_arg = NULL;
+    if (args)
+    {
+        ptr_arg = args;
+    }
+    else
+    {
+        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
+    }
+    if (ptr_arg)
+    {
+        for (int i = 0; i < arg_c; ++i)
+        {
+            if (!_tcsncmp(ptr_arg[i], _T("-n"), 2) && _tcslen(ptr_arg[i]) > 2)
+            {
+                pbak->x = _tstoi64(&ptr_arg[i][2]);
+            }
+            else if (!_tcsncmp(ptr_arg[i], _T("-c"), 2) && _tcslen(ptr_arg[i]) > 2)
+            {
+                pbak->y = _tstoi(&ptr_arg[i][2]);
+            }
+        }
+        if (ptr_arg != args)
+        {
+            LocalFree(ptr_arg);
+        }
+    }
+}
+
+bool WINAPI
+eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
+{
+    if (args && argument && argc > 0)
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            if (!_tcscmp(args[i], argument))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+static bool
+on_config_parser_path(wchar_t **args, int argc, wchar_t *path)
+{
+    bool ret = false;
+    int arg_c = argc;
+    LPWSTR *ptr_arg = NULL;
+    if (args)
+    {
+        ptr_arg = args;
+    }
+    else
+    {
+        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
+    }
+    if (ptr_arg)
+    {
+        for (int i = 0; i < arg_c; ++i)
+        {
+            if (!_tcsncmp(ptr_arg[i], _T("-noremote"), 9) && (i + 1) < arg_c)
+            {
+                _tcsncpy(path, ptr_arg[i + 1], MAX_PATH - 1);
+                ret = true;
+                break;
+            }
+        }
+        if (ptr_arg != args)
+        {
+            LocalFree(ptr_arg);
+        }
+    }
+    return ret;
+}
+
 static int
 on_config_file_args(void)
 {
@@ -32,11 +114,20 @@ on_config_file_args(void)
     {
         return 1;
     }
-    else if (arg_c == 2 && args[1][0] && _tcscmp(args[1], _T("-restart")))
+    else if (arg_c >= 2 && args[1][0] && _tcscmp(args[1], _T("-restart")))
     {
         file_backup bak = {0};
-        _tcscpy(bak.rel_path, args[1]);
-        share_send_msg(&bak);
+        eu_postion_setup(args, arg_c, &bak);
+        if (arg_c > 2 && !_tcscmp(args[1], _T("-noremote")))
+        {
+            _tcsncpy(bak.rel_path, args[2], MAX_PATH - 1);
+            share_send_msg(&bak);
+        }
+        else
+        {
+            _tcsncpy(bak.rel_path, args[1], MAX_PATH - 1);
+            share_send_msg(&bak);
+        }
         ret = 0;
     }
     LocalFree(args);
@@ -46,8 +137,16 @@ on_config_file_args(void)
 static int
 on_config_parser_bakup(void *data, int count, char **column, char **names)
 {
+    int index = -1;
     *(int *)data = 0;
     file_backup filebak = {0};
+    wchar_t path[MAX_PATH] = {0};
+    wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
+    if (open_sql && !on_config_parser_path(NULL, 0, path))
+    {
+        printf("on_config_parser_path return false\n");
+        return 1;
+    }
     for (int i = 0; i < count; ++i)
     {
         if (STRCMP(names[i], ==, "szTabId"))
@@ -66,9 +165,13 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         {
             strncpy(filebak.mark_id, column[i], MAX_BUFFER-1);
         }
+        else if (STRCMP(names[i], ==, "szFold"))
+        {
+            strncpy(filebak.fold_id, column[i], MAX_BUFFER-1);
+        }
         else if (STRCMP(names[i], ==, "szLine"))
         {
-            filebak.lineno = _atoi64(column[i]);
+            filebak.postion = _atoi64(column[i]);
         }
         else if (STRCMP(names[i], ==, "szCp"))
         {
@@ -101,15 +204,31 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         else if (STRCMP(names[i], ==, "szStatus"))
         {
             filebak.status = atoi(column[i]);
+            if (!_tcsicmp(filebak.rel_path, path))
+            {
+                break;
+            }
         }
     }
-    if (filebak.focus)
+    if (open_sql)
     {
-        _InterlockedExchange(&last_focus, filebak.tab_id);
+        if (!_tcsicmp(filebak.rel_path, path))
+        {
+            share_send_msg(&filebak);
+            return 1;
+        }
     }
-    if (filebak.rel_path[0] || filebak.bak_path[0])
+    else
     {
-        share_send_msg(&filebak);
+        if (filebak.focus)
+        {
+            _InterlockedExchange(&last_focus, filebak.tab_id);
+        }
+        if (filebak.rel_path[0] || filebak.bak_path[0])
+        {
+            eu_postion_setup(NULL, 0, &filebak);
+            share_send_msg(&filebak);
+        }
     }
     return 0;
 }
@@ -118,22 +237,26 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int is_blank = 1;
-    if (eu_get_config()->m_session)
+    wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
+    if (open_sql || !eu_get_config()->m_instance)
     {
-        const char *sql = "SELECT * FROM skylark_session;";
-        int err = eu_sqlite3_send(sql, on_config_parser_bakup, &is_blank);
-        if (err != 0)
+        if (open_sql || eu_get_config()->m_session)
         {
-            printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
-            return 1;
-        }
-        if (last_focus >= 0)
-        {
-            printf("last_focus = %ld\n", last_focus);
-            on_tabpage_select_index(last_focus);
+            int err = 0;
+            const char *sql = "SELECT * FROM skylark_session;";
+            if ((err = eu_sqlite3_send(sql, on_config_parser_bakup, &is_blank)))
+            {
+                printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
+                return 1;
+            }
+            if (!open_sql && last_focus >= 0)
+            {
+                printf("last_focus = %ld\n", last_focus);
+                on_tabpage_select_index(last_focus);
+            }
         }
     }
-    if (on_config_file_args() && is_blank)
+    if ((open_sql  || on_config_file_args()) && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
         file_backup bak = {0};
         share_send_msg(&bak);
@@ -182,10 +305,9 @@ on_config_create_accel(void)
 }
 
 bool WINAPI
-eu_load_config(HMODULE *pmod)
+eu_load_main_config(void)
 {
     int  m = 0;
-    bool ret = false;
     char *lua_path = NULL;
     TCHAR path[MAX_PATH+1] = {0};
     m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
@@ -196,9 +318,19 @@ eu_load_config(HMODULE *pmod)
     if (do_lua_func(lua_path, "run", "") != 0)
     {
         printf("eu_main.lua exec failed\n");
-        goto load_fail;
+        free(lua_path);
+        return false;
     }
-    eu_safe_free(lua_path);
+    return true;
+}
+
+bool WINAPI
+eu_load_config(HMODULE *pmod)
+{
+    int  m = 0;
+    bool ret = false;
+    char *lua_path = NULL;
+    TCHAR path[MAX_PATH+1] = {0};
     m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
     if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
     {

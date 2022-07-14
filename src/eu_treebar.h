@@ -21,7 +21,6 @@
 
 #define CONFIG_KEY_MATERIAL_FILETREE "EU_FILETR"
 #define REMOTE_FILE_BUFFER 1024 * 1024
-#define TVI_LOADREMOTE (WM_USER + 401)
 
 #ifdef __cplusplus
 extern "C"

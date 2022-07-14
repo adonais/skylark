@@ -37,10 +37,12 @@ extern "C" {
 extern HMODULE g_skylark_lang;
 
 bool __stdcall share_open_file(LPCTSTR, bool, uint32_t, HANDLE *);
-bool __stdcall share_envent_create_close_sem(HANDLE *phandle);
+bool __stdcall share_envent_create_file_sem(HANDLE *phandle);
+void __stdcall share_envent_wait_file_close_sem(HANDLE *phandle);
+HWND __stdcall share_envent_get_hwnd(void);
+void __stdcall share_envent_set_hwnd(HWND hwnd);
 uint32_t __stdcall share_envent_wait(uint32_t milliseconds);
 uint8_t* __stdcall share_map_section(HANDLE, uint64_t, size_t, bool read_only);
-HWND __stdcall share_get_hwnd(void);
 
 #ifdef __cplusplus
 }

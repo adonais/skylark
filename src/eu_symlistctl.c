@@ -138,7 +138,6 @@ on_symlist_jump_word(eu_tabpage *pnode)
             int i = ListBox_FindStringExact(p->hwnd_symlist, -1, ptext);
             if (i != LB_ERR)
             {
-                printf("we found this string = %ls in tab%d\n", ptext, index);
                 if (p != pnode)
                 {
                     on_tabpage_select_index(index);
@@ -192,7 +191,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONDOWN:
         {
-            return menu_pop_track(hwnd, IDR_SYMBOLLIST_POPUPMENU, 0);
+            return menu_pop_track(hwnd, IDR_SYMBOLLIST_POPUPMENU, 0, -1, NULL, NULL);
         }
         case WM_DPICHANGED:
         {

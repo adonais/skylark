@@ -25,8 +25,12 @@
 extern "C" {
 #endif
 
-int on_result_create_dlg(eu_tabpage *pnode);
-int on_result_append_text(HWND hwnd , TCHAR *format , ...);
+extern HWND hwnd_rst;
+
+int on_result_append_text(wchar_t*format , ...);
+int on_result_append_text_utf8(char *format , ...);
+bool on_result_launch(eu_tabpage *pnode);
+void on_result_reload(eu_tabpage *prst);
 
 #ifdef __cplusplus
 }

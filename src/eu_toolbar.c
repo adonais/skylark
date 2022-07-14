@@ -20,6 +20,7 @@
 #include "targetver.h"
 #include "framework.h"
 
+#define DPI_PERCENT_LARGE 168
 #define CHECK_IF(a) if ((a)!= 0) return false
 
 enum {READ_FD, WRITE_FD};
@@ -130,7 +131,7 @@ on_toolbar_adjust_box(void)
     }
     else
     {
-        g_toolbar_height = DEFAULTTOOLBAR;
+        g_toolbar_height = eu_get_dpi(NULL) >= DPI_PERCENT_LARGE ? TB_LARGE_SIZE : TB_NORMAL_SIZE;
     }
 }
 
@@ -361,10 +362,6 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_SHOWWINDOW:
         {
-            if (!IsWindowVisible(hdlg))
-            {
-                printf("we get WM_SHOWWINDOW\n");
-            }
             break;
         }
         case WM_CLOSE:
@@ -406,14 +403,16 @@ create_clipbox(void)
 }
 
 static HIMAGELIST
-create_img_list(INT res_id, UINT mask)
+create_img_list(INT res_id, UINT mask, bool zoom)
 {
     HIMAGELIST himg = NULL;
     HBITMAP hbmp = NULL;
     BITMAP bm = { 0 };
+    int width = zoom ? IMAGE_LARGE_WIDTH : IMAGE_NORMAL_WIDTH;
+    int height = zoom ? IMAGE_LARGE_HEIGHT : IMAGE_NORMAL_HEIGHT;
     hbmp = (HBITMAP) LoadImage(eu_module_handle(), MAKEINTRESOURCE(res_id), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
     GetObject(hbmp, sizeof(BITMAP), &bm);
-    himg = ImageList_Create(IMAGEWIDTH, IMAGEHEIGHT, bm.bmBitsPixel | ILC_MASK, bm.bmWidth / IMAGEWIDTH, 1);
+    himg = ImageList_Create(width, height, bm.bmBitsPixel | ILC_MASK, bm.bmWidth / width, 1);
     ImageList_AddMasked(himg, hbmp, mask);
     if (hbmp != NULL)
     {
@@ -528,13 +527,18 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
 {
     char *buffer = NULL;
     FILE *console = NULL;
-    if (pnode && pnode->doc_ptr && pnode->hwnd_qredit)
+    if (pnode && pnode->doc_ptr)
     {
-        if ((buffer = util_strdup_content(pnode, NULL)) && init_stdout_redirect(MAX_OUTPUT_BUF, &console))
+        if (!pnode->presult)
+        {
+            pnode->result_show = on_result_launch(pnode);
+        }
+        if (RESULT_SHOW(pnode) && (buffer = util_strdup_content(pnode, NULL)) && init_stdout_redirect(MAX_OUTPUT_BUF, &console))
         {
             int read_len = 0;
-            char *std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1);
-            if (std_buffer)
+            char *std_buffer = NULL;
+            eu_window_resize(NULL);
+            if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
                 if (do_lua_code((const char *)buffer) == 0)
                 {
@@ -549,20 +553,13 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 if (read_len > 0)
                 {
                     char *pstr = util_unix_newline(std_buffer, MAX_OUTPUT_BUF);
-                    TCHAR *result = pstr? eu_utf8_utf16(pstr,  NULL) : NULL;
-                    if (result)
-                    {
-                        on_result_append_text(NULL, _T("%s"), result);
-                        free(result);
-                    }
                     if (pstr)
                     {
+                        on_result_append_text_utf8("%s", pstr);
                         free(pstr);
                     }
                 }
                 free(std_buffer);
-                pnode->edit_show = true;
-                eu_window_resize(NULL);
             }
             free(buffer);
         }
@@ -650,17 +647,28 @@ on_toolbar_execute_script(void)
             int len = (int)_tcslen(process);
             if (len > 1 && len < MAX_PATH)
             {
-                WideCharToMultiByte(CP_UTF8, 0, process, -1, eu_get_config()->m_actions[p->doc_ptr->doc_type], MAX_PATH-1, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process), -1, eu_get_config()->m_actions[p->doc_ptr->doc_type], MAX_PATH-1, NULL, NULL);
                 CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, NULL, 0, NULL));
             }
         }
     }
 }
 
+static void
+on_toolbar_menu_callback(HMENU hpop, void *param)
+{
+    UNREFERENCED_PARAMETER(param);
+    if (hpop)
+    {
+        util_set_menu_item(hpop, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
+        util_set_menu_item(hpop, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
+        util_set_menu_item(hpop, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
+    }
+}
+
 /*****************************************************************
  * 工具栏回调函数, 接受工具栏点击消息, 以及销毁自身资源
  *****************************************************************/
-
 LRESULT CALLBACK
 toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -715,7 +723,7 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     if (p)
                     {
                         util_set_working_dir(p->pathname, &pold);
-                    }                    
+                    }
                     on_cmd_start();
                     if (pold)
                     {
@@ -731,20 +739,7 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            POINT pt;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            ClientToScreen(hwnd, &pt);
-            HMENU hpop = menu_load(IDR_TOOLBAR_POPUPMENU);
-            if (hpop)
-            {
-                util_set_menu_item(hpop, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
-                util_set_menu_item(hpop, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
-                util_set_menu_item(hpop, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
-                TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
-                DestroyMenu(hpop);
-            }
-            return 1;
+            return menu_pop_track(hwnd, IDR_TOOLBAR_POPUPMENU, 0, -1, on_toolbar_menu_callback, NULL);
         }
         case WM_SIZE:
         {
@@ -904,24 +899,25 @@ on_toolbar_create(HWND parent)
         { 27, IDM_CMD_TAB, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
     };
+    const bool zoom = eu_get_dpi(parent) >= DPI_PERCENT_LARGE ? true : false;
     if (!on_dark_enable())
     {
-        if ((img_list1 = create_img_list(IDB_TOOLBAR16, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list1 = create_img_list(zoom ? IDB_TOOLBAR_LARGE32 : IDB_TOOLBAR16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }
-        if ((img_list2 = create_img_list(IDB_TOOLBAR1, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list2 = create_img_list(zoom ? IDB_TOOLBAR_LARGE1 : IDB_TOOLBAR1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }
     }
     else
     {
-        if ((img_list1 = create_img_list(IDB_TOOLBAR_DARK16, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list1 = create_img_list(zoom ? IDB_DARK_LARGE32 : IDB_DARK16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }
-        if ((img_list2 = create_img_list(IDB_TOOLBAR_DARK1, RGB(0xF0, 0xF0, 0xF0))) == NULL)
+        if ((img_list2 = create_img_list(zoom ? IDB_DARK_LARGE1 : IDB_DARK1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
         {
             return 1;
         }

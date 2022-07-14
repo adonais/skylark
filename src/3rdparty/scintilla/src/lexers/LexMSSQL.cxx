@@ -193,7 +193,7 @@ static void ColouriseMSSQLDoc(Sci_PositionU startPos, Sci_Position length,
 		// If is the default or one of the above succeeded
 		if (state == SCE_MSSQL_DEFAULT || state == SCE_MSSQL_DEFAULT_PREF_DATATYPE) {
 			if (iswordstart(ch)) {
-				styler.ColourTo(i - 1, SCE_MSSQL_DEFAULT);
+				styler.ColourTo(i - 1, state);
 				prevState = state;
 				state = SCE_MSSQL_IDENTIFIER;
 			} else if (ch == '/' && chNext == '*') {
@@ -201,7 +201,7 @@ static void ColouriseMSSQLDoc(Sci_PositionU startPos, Sci_Position length,
 				prevState = state;
 				state = SCE_MSSQL_COMMENT;
 			} else if (ch == '-' && chNext == '-') {
-				styler.ColourTo(i - 1, SCE_MSSQL_DEFAULT);
+				styler.ColourTo(i - 1, state);
 				prevState = state;
 				state = SCE_MSSQL_LINE_COMMENT;
 			} else if (ch == '\'') {
@@ -217,7 +217,7 @@ static void ColouriseMSSQLDoc(Sci_PositionU startPos, Sci_Position length,
 				prevState = state;
 				state = SCE_MSSQL_COLUMN_NAME_2;
 			} else if (isoperator(ch)) {
-				styler.ColourTo(i - 1, SCE_MSSQL_DEFAULT);
+				styler.ColourTo(i - 1, state);
 				styler.ColourTo(i, SCE_MSSQL_OPERATOR);
                 //~ style = SCE_MSSQL_DEFAULT;
 				prevState = state;

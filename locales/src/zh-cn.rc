@@ -75,12 +75,13 @@ BEGIN
         MENUITEM "粘贴",                                        IDM_EDIT_PASTE
         MENUITEM "删除",                                        IDM_EDIT_DELETE
         MENUITEM MF_SEPARATOR
-        POPUP "复制其他内容",                                   IDM_EDIT_PLACEHOLDE1
+        POPUP "复制到剪贴板",                                   IDM_EDIT_PLACEHOLDE1
         BEGIN
             MENUITEM "复制文件名",                              IDM_EDIT_COPY_FILENAME
             MENUITEM "复制路径名",                              IDM_EDIT_COPY_PATHNAME
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
         END
+        MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM MF_SEPARATOR
         POPUP "行编辑",                                         IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -205,7 +206,8 @@ BEGIN
     POPUP "视图(&V)"
     BEGIN
         MENUITEM "文件管理器(&F)",                              IDM_VIEW_FILETREE
-        MENUITEM "符号链接窗口",                                IDM_VIEW_SYMTREE
+        MENUITEM "文档结构图(&D)",                              IDM_VIEW_DOCUMENT_MAP
+        MENUITEM "符号链接窗口(&S)",                            IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
         MENUITEM "全屏模式(&U)",                                IDM_VIEW_FULLSCREEN
         MENUITEM "显示菜单栏",                                  IDM_VIEW_MENUBAR
@@ -332,11 +334,12 @@ BEGIN
         MENUITEM "捐赠我们",                                    IDM_DONATION
         MENUITEM "功能简介(&O) ...",                            IDM_INTRODUTION
         MENUITEM "更新历史(&H) ...",                            IDM_CHANGELOG
+        MENUITEM "命令行参数(&C) ...",                          IDM_HELP_COMMAND
         MENUITEM "关于(&A) ...",                                IDM_ABOUT
     END
 END
 
-IDR_TABPAGE_POPUPMENU MENU
+IDR_TABPAGE_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
@@ -350,14 +353,15 @@ BEGIN
         MENUITEM "复制路径名",                                  IDM_EDIT_COPY_PATHNAME
         MENUITEM "复制文件名(包含路径)",                        IDM_EDIT_COPY_PATHFILENAME
         MENUITEM SEPARATOR
-        MENUITEM "保存(&S)",                                    IDM_FILE_SAVE
+        MENUITEM "保存(&S)",                                    IDM_TABPAGE_SAVE
         MENUITEM SEPARATOR
+        MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM "打开文件夹工作区(&W)",                        IDM_FILE_WORKSPACE
         MENUITEM "在资源管理器中打开文件夹(&E)",                IDM_FILE_EXPLORER
     END
 END
 
-IDR_EDITOR_POPUPMENU MENU
+IDR_EDITOR_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
@@ -575,7 +579,7 @@ END
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
 BEGIN
-    POPUP ""
+    POPUP "0"
     {
         MENUITEM "DOS换行符 (\\r\\n)", IDM_LBREAK_1
         MENUITEM "MAC换行符 (\\r)",    IDM_LBREAK_2
@@ -585,7 +589,7 @@ END
 
 IDR_CODEING_MENU MENUEX DISCARDABLE
 BEGIN
-    POPUP "", -1, MFT_STRING, MFS_ENABLED, 0
+    POPUP "0", -1, MFT_STRING, MFS_ENABLED, 0
     {
         POPUP "Unicode"
         BEGIN
@@ -661,7 +665,7 @@ END
 
 IDR_TYPES_MENU  MENUEX DISCARDABLE
 BEGIN
-    POPUP ""
+    POPUP "0"
     {
         MENUITEM "不支持高亮",        IDM_TYPES_0
     }
@@ -825,12 +829,12 @@ IDR_RESULT_MENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "复制(&C)",        IDM_RESULT_1
-        MENUITEM "粘贴(&P)",        IDM_RESULT_2
-        MENUITEM "全选(&S)",        IDM_RESULT_3
-        MENUITEM "取消选择(&D)",    IDM_RESULT_4
+        MENUITEM "复制(&C)",        IDM_RESULT_COPY
+        MENUITEM "全选(&A)",        IDM_RESULT_SETSEL
+        MENUITEM "取消选择",        IDM_RESULT_UNSETSEL
         MENUITEM SEPARATOR
-        MENUITEM "清除结果(&R)",    IDM_RESULT_5
+        MENUITEM "自动换行",        IDM_RESULT_WRAPLINE
+        MENUITEM "清除结果(&R)",    IDM_RESULT_CLEARALL
         MENUITEM "关闭此窗口(&W)",  IDM_RESULT_CLOSE
     END
 END
@@ -880,7 +884,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_23                   "放大文本"
     IDS_TOOLBAR_24                   "缩小文本"
     IDS_TOOLBAR_25                   "打开/退出全屏"
-    IDS_TOOLBAR_26                   "运行sql或lua脚本"
+    IDS_TOOLBAR_26                   "运行"
     IDS_TOOLBAR_27                   "打开终端"
 }
 
@@ -889,9 +893,9 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_CAP                   "大写"
     IDS_BUTTON_R                     "只读"
     IDS_BUTTON_W                     "读写"
-    IDS_STATUS_F1                    "正在处理 %d 个文件, 当前文件时间戳: %s"
+    IDS_STATUS_F1                    "%d 个文件, 时间戳: %s"
     IDS_STATUS_XY                    "光标 (行 %I64u, 列 %I64u)"
-    IDS_STATUS_LC                    "文件尺寸: %I64d/%I64u (字节/行)"
+    IDS_STATUS_LC                    "文件: %I64d/%I64d (字节)"
     IDS_STATUS_LD                    "选择: %I64d/%I64u (字节/行)"
     IDS_STATUS_HXY                   "光标 (0x%I64X)"
 }
@@ -1088,8 +1092,8 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_EMPTY         "此文档不包含任何要打印的文本."
     IDS_PRINT_ERROR         "%s 文件打印错误"
     IDS_SELRECT             "不能在列编辑模式下进行此操作."
-    IDS_LUA_CONV_SUCCESS    "转换字节码成功, 文件保存在 [%s]"
-    IDS_LUA_CONV_FAIL       "转换字节码失败."
+    IDS_LUA_CONV_SUCCESS    "#> 转换字节码成功, 文件保存在 [%s]"
+    IDS_LUA_CONV_FAIL       "#> 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
     IDS_THEME_DESC_BLOCK    "暗黑主题"
     IDS_THEME_DESC_WHITE    "白色经典(需重启)"
@@ -1104,9 +1108,15 @@ STRINGTABLE DISCARDABLE
     IDS_USER32_ERROR        "错误"
     IDS_USER32_UNFINISHED   "编辑器还未完全关闭, 请稍后重新打开"
     IDS_EXTRA_PATH          "外部程序路径: "
+    IDS_EDITOR_PATH         "外部编辑器路径: "
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
+    IDS_RESULT_STRINGS1     "#> 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
+    IDS_RESULT_STRINGS2     "行 %*I64d: %s"
+    IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-n : 打开文件时滚动到指定行\n-c : 打开文件时滚动到指定列\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
+    IDS_COMMAND_TITLE       "Skylark命令行帮助: "
+    IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
 }
 
 /////////////////////////////////////////////////////////////////////////////

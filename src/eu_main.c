@@ -19,6 +19,14 @@
 #include "framework.h"
 #include <process.h>
 
+#define REG_ON_DARK_MODE                                    \
+{                                                           \
+    if (_tcschr(argv[1], _T('=')))                          \
+    {                                                       \
+        dark_mode = eu_on_dark_init(true, true);            \
+    }                                                       \
+}
+
 /*****************************************************************************
  * 主窗口初始化之前, 先建立工具栏, 状态栏, 搜索框等顶层窗口
  ****************************************************************************/
@@ -78,6 +86,7 @@ int
 _tmain(int argc, TCHAR *argv[])
 {
     bool muti = false;
+    bool no_remote = false;
     MSG msg = {0};
     HMODULE pux = NULL;   // 如果使用经典风格, 它是uxtheme的句柄
     HWND hwnd = NULL;
@@ -86,33 +95,55 @@ _tmain(int argc, TCHAR *argv[])
     TCHAR cache_path[MAX_PATH + 1] = {0};
     HANDLE hsem = NULL;
     HINSTANCE instance = eu_module_handle();
-    if (argc > 1 && _tcscmp(argv[1], _T("-restart")) == 0)
+    if (argc > 1)
     {
-        eu_wait_process(_wtoi(argv[2]));
+        if (_tcscmp(argv[1], _T("-restart")) == 0)
+        {
+            eu_wait_process(_wtoi(argv[2]));
+        }
+        else if (_tcscmp(argv[1], _T("-noremote")) == 0)
+        {
+            no_remote = true;
+        }
+    }  // 获取主进程所在目录
+    if (!eu_process_path(eu_module_path, MAX_PATH))
+    {
+        return -1;
+    }  // 便携目录是否可写入
+    if (_sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path) > 0)
+    {
+        if (!(cache_path[0] && eu_try_path(cache_path)))
+        {
+            MSG_BOX(IDC_MSG_DIR_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            return -1;
+        }
+    }  // 设置lua脚本搜索路径
+    if (!eu_lua_path_setting())
+    {
+        return -1;
+    }  // 加载主配置文件
+    if (!eu_load_main_config())
+    {
+        return -1;
     }
-    if ((hsem = share_envent_open_file_sem()) != NULL)
+    if (!no_remote && (hsem = share_envent_open_file_sem()) != NULL)
     {   // 编辑器还未完全关闭
         share_close(hsem);
         MSG_BOX(IDS_USER32_UNFINISHED, IDC_MSG_TIPS, MB_OK);
         return 0;
     }
-    if (!eu_process_path(eu_module_path, MAX_PATH))
-    {
-        return -1;
-    }
     if (!share_envent_create())
     {   // 进程同步的信号量
         return -1;
     }
-    SetLastError(0);   // 建立共享内存, 里面保存第一个进程的主窗口句柄
-    mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME);
-    if (ERROR_ALREADY_EXISTS == GetLastError())
-    {
-        muti = true;
-    }
-    else if (!mapped)
+    // 建立共享内存, 里面保存第一个进程的主窗口句柄
+    if ((mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME)) == NULL)
     {
         return -1;
+    }
+    else if (ERROR_ALREADY_EXISTS == GetLastError())
+    {
+        muti = true;
     }
     if (muti)
     {
@@ -120,37 +151,29 @@ _tmain(int argc, TCHAR *argv[])
         if (argc > 1)
         {
             file_backup bak = {0};
-            if (_tcsncmp(argv[1], _T("-reg1"), 5) == 0)
-            {   // 注册或卸载右键菜单1
-                if (_tcschr(argv[1], _T('=')))
-                {
-                    dark_mode = eu_on_dark_init(true, true);
-                }
+            if (!_tcsncmp(argv[1], REGFILE, _tcslen(REGFILE)))
+            {   // 注册或卸载文件右键菜单
+                REG_ON_DARK_MODE
                 eu_undo_file_popup();
-                _tcscpy(bak.rel_path, argv[1]);
+                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
                 share_send_msg(&bak);
             }
-            else if (_tcsncmp(argv[1], _T("-reg2"), 5) == 0)
-            {   // 注册或卸载右键菜单2
-                if (_tcschr(argv[1], _T('=')))
-                {
-                    dark_mode = eu_on_dark_init(true, true);
-                }
+            else if (!_tcsncmp(argv[1], REGFOLDER, _tcslen(REGFOLDER)))
+            {   // 注册或卸载目录右键菜单
+                REG_ON_DARK_MODE
                 eu_undo_dir_popup();
-                _tcscpy(bak.rel_path, argv[1]);
+                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
                 share_send_msg(&bak);
             }
-            else if (_tcsncmp(argv[1], _T("-reg3"), 5) == 0)
+            else if (!_tcsncmp(argv[1], REGASSOC, _tcslen(REGASSOC)))
             {   // 注册文件关联
-                if (_tcschr(argv[1], _T('=')))
-                {
-                    dark_mode = eu_on_dark_init(true, true);
-                }
+                REG_ON_DARK_MODE
                 eu_create_registry_dlg();
             }
-            else if (_tcslen(argv[1]) > 1)
+            else if (!no_remote && _tcslen(argv[1]) > 1)
             {   // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
-                _tcscpy(bak.rel_path, argv[1]);
+                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
+                eu_postion_setup(argv, argc, &bak);
                 share_send_msg(&bak);
             }
             share_close_lang();
@@ -159,28 +182,47 @@ _tmain(int argc, TCHAR *argv[])
         {   // 没有参数, 则恢复窗口
             share_send_msg(NULL);
         }
-        share_close(mapped);
-        share_envent_close();
-        if (dark_mode)
+        if (!no_remote)
         {
-            eu_on_dark_release(true);
+            share_close(mapped);
+            share_envent_close();
+            if (dark_mode)
+            {
+                eu_on_dark_release(true);
+            }
+            return 0;
         }
-        return 0;
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-lua")) == 0)
     {
+        bool cinit = false;
         const TCHAR *fname = NULL;
         const TCHAR *save = NULL;
         if (argc > 2)
         {
             fname = argv[2];
         }
-        if (argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
+        if (AllocConsole())
+        {
+            freopen("conin$","r",stdin);
+            freopen("conout$","w", stdout);
+            freopen("conout$","w", stderr);
+            cinit = true;
+        }
+        if (cinit && argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
         {
             fname = argv[3];
             save = argv[4];
+            _tputenv(_T("LUA_PATH="));
+            fprintf(stderr, "End-of-Conversion: \n");
         }
-        return eu_lua_script_convert(fname, save);
+        if (cinit)
+        {
+            msg.wParam = eu_lua_script_convert(fname, save);
+            system("pause");
+            FreeConsole();
+        }
+        goto all_clean;
     }
     if (!on_hook_exception())
     {
@@ -188,39 +230,38 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (_sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path) > 0)
+    else
     {
-        if (!(cache_path[0] && eu_try_path(cache_path)))
-        {
-            MSG_BOX(IDC_MSG_DIR_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
-        }
-        if (!eu_lua_path_setting())
-        {   // 设置lua脚本搜索路径
-            msg.wParam = -1;
-            goto all_clean;
-        }
         on_hook_do();
         eu_init_logs();
     }
     if (!eu_load_config(&pux))
-    {   // 加载配置文件
+    {   // 加载分类配置文件
         msg.wParam = -1;
         goto all_clean;
     }
     if (!(lang_map = share_load_lang()))
-    {
+    {   // 加载语言资源文件
         msg.wParam = -1;
-        printf("loadex_lang_config failed\n");
         goto all_clean;
     }
-    if (argc > 1 && _tcscmp(argv[1], _T("-reg1")) == 0)
+    if (eu_check_arg(argv, argc, _T("--help")))
+    {
+        if (strcmp(eu_get_config()->window_theme, "black") == 0)
+        {
+            eu_on_dark_init(true, true);
+        }
+        eu_about_command();
+        msg.wParam = 0;
+        goto all_clean;
+    }
+    if (argc > 1 && _tcscmp(argv[1], REGFILE) == 0)
     {
         eu_reg_file_popup_menu();
         msg.wParam = 0;
         goto all_clean;
     }
-    if (argc > 1 && _tcscmp(argv[1], _T("-reg2")) == 0)
+    if (argc > 1 && _tcscmp(argv[1], REGFOLDER) == 0)
     {
         eu_reg_dir_popup_menu();
         msg.wParam = 0;
@@ -240,15 +281,18 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (mapped)
     {
-        LPVOID phandle = share_map(mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
-        if (phandle)
+        if (!muti)
         {
-            memcpy(phandle, &hwnd, sizeof(HWND));
-            share_unmap(phandle);
-            // 主窗口初始化完成, 可以发送消息了
-            share_envent_set(true);
-            eu_load_file();
-        }
+            LPVOID phandle = share_map(mapped, sizeof(HWND), FILE_MAP_WRITE | FILE_MAP_READ);
+            if (phandle)
+            {
+                memcpy(phandle, &hwnd, sizeof(HWND));
+                share_unmap(phandle);
+            }
+        }  // 主窗口初始化完成, 可以发送消息了
+        share_envent_set(true);
+        eu_get_config()->m_instance = no_remote ? true : eu_get_config()->m_instance;
+        eu_load_file();
     }
     if (strcmp(eu_get_config()->window_theme, "black") == 0)
     {

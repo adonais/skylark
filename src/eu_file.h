@@ -19,6 +19,7 @@
 #ifndef _H_SKYLARK_FILE_
 #define _H_SKYLARK_FILE_
 
+#define URL_MIN 7
 #define BUFF_SIZE (8 * 1024 * 1024)                // 8M
 #define BUFF_32K (32 * 1024)                       // 32K
 #define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
@@ -28,9 +29,7 @@ extern "C"
 {
 #endif
 
-#define WM_BACKUP_OVER (WM_USER+10001)
-#define WM_SYSLIST_OVER (WM_USER+10002)
-#define url_has_remote(ll) (_tcsnicmp(ll, _T("sftp://"), 7) == 0)
+#define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define safe_close_handle(h)                    \
     if (NULL != h && INVALID_HANDLE_VALUE != h) \
     {                                           \
@@ -43,15 +42,20 @@ typedef enum _CLOSE_MODE
     FILE_SHUTDOWN = 0,
     FILE_ONLY_CLOSE,
     FILE_EXCLUDE_CLOSE,
-    FILE_ALL_CLOSE
+    FILE_ALL_CLOSE,
+    FILE_REMOTE_CLOSE
 }CLOSE_MODE;
+
+#define file_click_close(m) (m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 
 typedef struct _file_backup
 {
     TCHAR rel_path[MAX_PATH];
     TCHAR bak_path[MAX_PATH];
     char mark_id[MAX_BUFFER];
-    size_t lineno;
+    char fold_id[MAX_BUFFER];
+    int64_t postion;
+    int64_t x;
     int tab_id;
     int cp;
     int bakcp;
@@ -61,7 +65,14 @@ typedef struct _file_backup
     int focus;
     int zoom;
     int status;
+    int y;
 }file_backup;
+
+typedef struct _file_recent
+{
+    char path[MAX_PATH];
+    int64_t postion;
+}file_recent;
 
 extern HANDLE hwnd_backup;
 
@@ -69,6 +80,7 @@ int on_file_new(void);
 int on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force);
 int on_file_only_open(file_backup *pbak, bool selection);
 int on_file_open(void);
+int on_file_out_open(int index);
 int on_file_drop(HDROP hdrop);
 int on_file_open_remote(remotefs *pserver, file_backup *pbak, bool selection);
 int on_file_save(eu_tabpage *pnode, bool save_as);

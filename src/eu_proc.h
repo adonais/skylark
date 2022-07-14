@@ -19,6 +19,10 @@
 #ifndef _EU_WNDPROC_H_
 #define _EU_WNDPROC_H_
 
+#define APP_CLASS _T("__eu_skylark__")
+#define HEX_CLASS _T("__eu_hexview__")
+#define RESULT_SHOW(p)  (p && p->result_show && p->presult && p->presult->hwnd_sc)
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -29,6 +33,7 @@ int eu_dpi_scale_xy(int adpi, int m);
 void eu_window_resize(HWND hwnd);
 void eu_clear_undo_off(void);
 void eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi);
+HWND eu_hwnd_self(void);
 LRESULT __stdcall eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus

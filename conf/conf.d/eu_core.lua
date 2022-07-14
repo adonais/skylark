@@ -60,6 +60,7 @@ struct eu_config
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
+    int document_map_width;
     int result_edit_height;
     
     int result_list_height;
@@ -77,12 +78,14 @@ struct eu_config
     bool m_write_copy;
     bool m_session;
     bool m_exit;
+    bool m_instance;
     char m_placement[1024];
     char m_language[64];
     print_set eu_print;
     int m_limit;
     uint64_t m_id;
     char m_path[260];
+    char editor[260];
     char m_actions[100][260];
 };
     
@@ -217,7 +220,6 @@ int64_t eu_sci_call(void *p, int m, int64_t w, int64_t l);
 int on_doc_init_list(void *pnode);
 int on_doc_init_tree(void *pnode);
 int on_doc_init_result(void *pnode);
-int on_doc_init_result_list(void *pnode);
 int on_doc_init_list_sh(void *pnode);
 
 /* 默认的 init_after_ptr 回调函数入口 */

@@ -19,15 +19,24 @@
 #ifndef _EU_MENU_H_
 #define _EU_MENU_H_
 
+#define THEME_MENU 6
+#define THEME_MENU_SUB 7
+#define LOCALE_MENU 6
+#define LOCALE_MENU_SUB 5
+#define TAB_MENU_SUB 27
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+typedef void (*ptr_menu_callback)(HMENU hpop, void *p);
+HMENU menu_load(uint16_t mid);
+
 void menu_switch_theme(void);
 void menu_update_item(HMENU menu);
-HMENU menu_load(uint16_t mid);
 int menu_height();
-int menu_pop_track(HWND hwnd, uint16_t mid, int64_t lparam);
+int menu_pop_track(HWND hwnd, uint16_t mid, int64_t lparam, const uint32_t, ptr_menu_callback fn, void *param);
+
 
 #ifdef __cplusplus
 }

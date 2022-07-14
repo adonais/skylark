@@ -17,25 +17,33 @@
  *******************************************************************************/
 
 #include "framework.h"
+#include <uxtheme.h>
+#include <vssym32.h>
 
-#define BTN_DEFAULT_WIDTH 50
+#define BTN_DEFAULT_WIDTH 60
 #define CAP_TOGGLED ((GetKeyState(VK_CAPITAL) & 1) != 0)
 
-HWND g_statusbar = NULL;
+typedef struct _sb_borders
+{
+    int horizontal;
+    int vertical;
+    int between;
+} sb_borders;
 
-static HMENU g_menu_1;
-static HMENU g_menu_2;
-static HMENU g_menu_3;
+HWND g_statusbar = NULL;
+static HMENU g_menu_break;
+static HMENU g_menu_code;
+static HMENU g_menu_type;
 static HFONT hfont_btn;
-static LONG_PTR old_proc;
 static int g_status_height;
+static const int sub_id = 0x43;
 
 char iconv_undo_str[ACNAME_LEN] = {0};
 
 void WINAPI
 on_statusbar_btn_case(void)
 {
-    HWND h_bt_1 = NULL;
+    HWND hcap = NULL;
     if (util_under_wine())
     {
         return;
@@ -44,20 +52,20 @@ on_statusbar_btn_case(void)
     {
         return;
     }
-    if (!(h_bt_1 = GetDlgItem(g_statusbar, IDM_BTN_1)))
+    if (!(hcap = GetDlgItem(g_statusbar, IDM_BTN_1)))
     {
         return;
     }
     if (CAP_TOGGLED)
     {
-        if (!IsWindowEnabled(h_bt_1))
+        if (!IsWindowEnabled(hcap))
         {
-            Button_Enable(h_bt_1, 1);
+            Button_Enable(hcap, 1);
         }
     }
-    else if (IsWindowEnabled(h_bt_1))
+    else if (IsWindowEnabled(hcap))
     {
-        Button_Enable(h_bt_1, 0);
+        Button_Enable(hcap, 0);
     }
 }
 
@@ -78,10 +86,10 @@ set_btn_rw(eu_tabpage *pnode, bool m_auto)
     {
         return 0;
     }
-    HWND h_bt_2 = GetDlgItem(g_statusbar, IDM_BTN_2);
+    HWND hrw = GetDlgItem(g_statusbar, IDM_BTN_2);
     LOAD_I18N_RESSTR(IDS_BUTTON_R, rstr);
     LOAD_I18N_RESSTR(IDS_BUTTON_W, wstr);
-    if (!h_bt_2)
+    if (!hrw)
     {
         return 0;
     }
@@ -93,23 +101,23 @@ set_btn_rw(eu_tabpage *pnode, bool m_auto)
     {
         if (pnode->is_blank)
         {
-            Button_SetText(h_bt_2, wstr);
+            Button_SetText(hrw, wstr);
             on_toolbar_update_button();
         }
         return 0;
     }
-    Button_GetText(h_bt_2, lpch, EDITNUMBS - 1);
+    Button_GetText(hrw, lpch, EDITNUMBS - 1);
     if (m_auto)
     {
         if (m_attr & FILE_ATTRIBUTE_READONLY)
         {
-            Button_SetText(h_bt_2, rstr);
+            Button_SetText(hrw, rstr);
             eu_sci_call(pnode, SCI_SETREADONLY, 1, 0);
             ret = 1;
         }
         else
         {
-            Button_SetText(h_bt_2, wstr);
+            Button_SetText(hrw, wstr);
             eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
             ret = 2;
         }
@@ -121,7 +129,7 @@ set_btn_rw(eu_tabpage *pnode, bool m_auto)
             m_attr &= ~FILE_ATTRIBUTE_READONLY;
             SetFileAttributes(pnode->pathfile, m_attr);
         }
-        Button_SetText(h_bt_2, wstr);
+        Button_SetText(hrw, wstr);
         eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
         ret = 2;
     }
@@ -131,7 +139,7 @@ set_btn_rw(eu_tabpage *pnode, bool m_auto)
         {   // 加上只读属性
             m_attr |= FILE_ATTRIBUTE_READONLY;
             SetFileAttributes(pnode->pathfile, m_attr);
-            Button_SetText(h_bt_2, rstr);
+            Button_SetText(hrw, rstr);
             eu_sci_call(pnode, SCI_SETREADONLY, 1, 0);
         }
         ret = 1;
@@ -145,8 +153,8 @@ on_statusbar_set_text(HWND hwnd, const uint8_t part, LPCTSTR lpsz)
 {
     if (lpsz && part != SB_SIMPLEID)
     {
-        WPARAM wParam = on_dark_supports() ? (WPARAM)(part|SBT_OWNERDRAW) : MAKEWPARAM(part, 0);
-        SendMessage(hwnd, SB_SETTEXT, wParam, (LPARAM)lpsz);        
+        WPARAM wParam = MAKEWPARAM(part, 0);
+        SendMessage(hwnd, SB_SETTEXT, wParam, (LPARAM)lpsz);
     }
 }
 
@@ -168,65 +176,33 @@ on_statusbar_adjust_box(void)
 static void
 on_statusbar_adjust_btn(void)
 {
-    HWND h_bt_1 = GetDlgItem(g_statusbar, IDM_BTN_1);
-    HWND h_bt_2 = GetDlgItem(g_statusbar, IDM_BTN_2);
-    if (h_bt_1 && h_bt_2)
+    HWND hcap = GetDlgItem(g_statusbar, IDM_BTN_1);
+    HWND hrw = GetDlgItem(g_statusbar, IDM_BTN_2);
+    if (hcap && hrw)
     {
+        int cx = 0;
         int btn_height = 0;
         int btn_width = 0;
+        RECT rc;
+        GetClientRect(g_statusbar, &rc);
         RECT rc_part = {0};
         SendMessage(g_statusbar, SB_GETRECT, STATUSBAR_DOC_BTN, (LPARAM)&rc_part);
-        g_status_height = btn_height = rc_part.bottom - rc_part.top;
+        btn_height = rc_part.bottom - rc_part.top;
         btn_width = (rc_part.right - rc_part.left)/2;
-        if (btn_width > BTN_DEFAULT_WIDTH)
-        {
-            btn_width = BTN_DEFAULT_WIDTH;
-        }
+        rc.right -= btn_width;
         HDWP hdwp = BeginDeferWindowPos(2);
-        DeferWindowPos(hdwp, h_bt_1, HWND_TOP, rc_part.right - btn_width - 2, rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
-        DeferWindowPos(hdwp, h_bt_2, HWND_TOP, rc_part.right - 2*(btn_width+2), rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
+        DeferWindowPos(hdwp, hcap, HWND_TOP, rc.right, rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
+        rc.right -= btn_width + SPLIT_WIDTH;
+        DeferWindowPos(hdwp, hrw, HWND_TOP, rc.right, rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
         EndDeferWindowPos(hdwp);
     }
 }
 
-bool check_read_access(void* paddr, size_t nsize)
-{
-    bool ret = false;
-    if (!paddr || !nsize)
-    {
-        return ret;
-    }
-    const uint32_t dw_forbidden = PAGE_GUARD | PAGE_NOACCESS;
-    const uint32_t dw_read = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
-    MEMORY_BASIC_INFORMATION mbi;
-    uintptr_t pcur = (uintptr_t)paddr;
-    uintptr_t pend = (uintptr_t)(pcur + (nsize - 1));
-    do
-    {
-        ZeroMemory(&mbi, sizeof(mbi));
-        VirtualQuery((LPCVOID)pcur, &mbi, sizeof(mbi));
-        ret = (mbi.State & MEM_COMMIT)           // memory allocated and
-            && !(mbi.Protect & dw_forbidden)    // access to page allowed and
-            && (mbi.Protect & dw_read);        // the required rights
-        pcur = ((uintptr_t)(mbi.BaseAddress) + mbi.RegionSize);
-    } while (ret && pcur <= pend);
-    return ret;
-}
-
 void WINAPI
-on_statusbar_size(void)
+on_statusbar_refresh(void)
 {
     if (g_statusbar)
     {
-        if (!eu_get_config()->m_statusbar)
-        {
-            if ((GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
-            {
-                ShowWindow(g_statusbar, SW_HIDE);
-            }
-            g_status_height = 0;
-        }
-        else
         {
             HWND hwnd = eu_module_hwnd();
             RECT rc_main = {0};
@@ -235,56 +211,9 @@ on_statusbar_size(void)
             int n_half = cx / 8;
             int parts[] = { n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, n_half*7+70, -1 };
             SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
-            if (!(GetWindowLongPtr(g_statusbar, GWL_STYLE) & WS_VISIBLE))
-            {
-                ShowWindow(g_statusbar, SW_SHOW);
-            }
-            UpdateWindowEx(g_statusbar);
             on_statusbar_adjust_btn();
-            on_statusbar_update();
         }
     }
-}
-
-LRESULT WINAPI
-on_statusbar_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(hwnd);
-    if (on_dark_enable())
-    {
-        const DRAWITEMSTRUCT* pdis = (const DRAWITEMSTRUCT*)lParam;
-        const int part_id = (const int)pdis->itemID;
-        if (part_id < 0)
-        {
-            return 0;
-        }
-        const HDC hdc = pdis->hDC;
-        const RECT rc = pdis->rcItem;
-        set_bk_color(hdc, true);
-        set_text_color(hdc, true);
-        // overpaint part frames
-        const HWND hwnd_item = pdis->hwndItem;
-        const int bdh = GetSystemMetrics(SM_CYFRAME);
-        const HDC hdc_from = GetWindowDC(hwnd_item);
-        RECT rcf = rc;
-        for (int i = 1; i < bdh; ++i)
-        {
-            FrameRect(hdc_from, &rcf, (HBRUSH)on_dark_get_brush());
-            rcf.left -= 1;
-            rcf.top -= 1;
-            rcf.bottom += 1;
-            rcf.right += 1;
-        }
-        ReleaseDC(hwnd_item, hdc_from);
-        TCHAR *text = (TCHAR *)(pdis->itemData);
-        // Judge the memory permission, because the memory address may be modified under multithreading
-        if (text && check_read_access(text, 2))
-        {
-            ExtTextOut(hdc, rc.left + 1, rc.top + 1, ETO_OPAQUE | ETO_NUMERICSLOCAL, &rc, text, (UINT)_tcslen(text), NULL);
-        }
-        return 1;
-    }
-    return 0;
 }
 
 static bool
@@ -293,8 +222,8 @@ create_button(HWND hstatus)
     RECT rc = { 0 };
     TCHAR lcap[EDITNUMBS] = { 0 };
     TCHAR wstr[EDITNUMBS] = { 0 };
-    HWND h_bt_1 = NULL;
-    HWND h_bt_2 = NULL;
+    HWND hcap = NULL;
+    HWND hrw = NULL;
     if (!eu_i18n_load_str(IDS_BUTTON_CAP, lcap, EDITNUMBS))
     {
         return false;
@@ -306,21 +235,21 @@ create_button(HWND hstatus)
     do
     {
         uint32_t style =  WS_CHILD | WS_CLIPSIBLINGS | BS_FLAT;
-        h_bt_1 = CreateWindowEx(0, _T("button"), lcap, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_1, eu_module_handle(), NULL);
-        if (!h_bt_1)
+        hcap = CreateWindowEx(0, _T("button"), lcap, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_1, eu_module_handle(), NULL);
+        if (!hcap)
         {
             printf("CreateWindowEx g_bt_1 failed\n");
             break;
         }
-        Button_Enable(h_bt_1, 0);
-        h_bt_2 = CreateWindowEx(0, _T("button"), wstr, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_2, eu_module_handle(), NULL);
-        if (!h_bt_2)
+        Button_Enable(hcap, 0);
+        hrw = CreateWindowEx(0, _T("button"), wstr, style, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_2, eu_module_handle(), NULL);
+        if (!hrw)
         {
             printf("CreateWindowEx g_bt_2 failed\n");
             break;
         }
     } while(0);
-    return (h_bt_1 && h_bt_2);
+    return (hcap && hrw);
 }
 
 static void
@@ -334,7 +263,7 @@ set_menu_check(HMENU hmenu, int first_id, int last_id, int id, int parts)
     }
     if ((len = GetMenuString(hmenu, id, &buf[2], FILESIZE-2, MF_BYCOMMAND)) > 0)
     {
-        for (int i = IDM_UNI_UTF8; hmenu == g_menu_2 && i <= IDM_UNKNOWN; ++i)
+        for (int i = IDM_UNI_UTF8; hmenu == g_menu_code && i <= IDM_UNKNOWN; ++i)
         {
             CheckMenuItem(hmenu, i, MF_BYCOMMAND | MFS_UNCHECKED);
         }
@@ -410,19 +339,19 @@ on_statusbar_pop_menu(int parts, LPPOINT pt)
     switch (parts)
     {
         case STATUSBAR_DOC_EOLS:
-            TrackPopupMenu(g_menu_1, TPM_LEFTALIGN | TPM_BOTTOMALIGN, pt->x, pt->y, 0, g_statusbar, NULL);
+            TrackPopupMenu(g_menu_break, TPM_LEFTALIGN | TPM_BOTTOMALIGN, pt->x, pt->y, 0, g_statusbar, NULL);
             break;
         case STATUSBAR_DOC_ENC:
-            TrackPopupMenu(g_menu_2, TPM_LEFTALIGN | TPM_BOTTOMALIGN, pt->x, pt->y, 0, g_statusbar, NULL);
+            TrackPopupMenu(g_menu_code, TPM_LEFTALIGN | TPM_BOTTOMALIGN, pt->x, pt->y, 0, g_statusbar, NULL);
             break;
         case STATUSBAR_DOC_TYPE:
-            TrackPopupMenu(g_menu_3, TPM_LEFTALIGN | TPM_BOTTOMALIGN, pt->x, pt->y, 0, g_statusbar, NULL);
+            TrackPopupMenu(g_menu_type, TPM_LEFTALIGN | TPM_BOTTOMALIGN, pt->x, pt->y, 0, g_statusbar, NULL);
             break;
     }
 }
 
-static void
-on_statusbar_update_btn(HWND hwnd)
+static HFONT
+on_statusbar_default_font(void)
 {
     if (!hfont_btn)
     {
@@ -434,16 +363,22 @@ on_statusbar_update_btn(HWND hwnd)
         logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
         logfont.lfCharSet = ANSI_CHARSET;
         _tcsncpy(logfont.lfFaceName, _T("MS Shell Dlg"), _countof(logfont.lfFaceName)-1);
-        if (!(hfont_btn = CreateFontIndirect(&logfont)))
-        {
-            return;
-        }
+        hfont_btn = CreateFontIndirect(&logfont);
     }
-    SendMessage(hwnd, WM_SETFONT, (WPARAM)hfont_btn, 0);
+    return hfont_btn;
 }
 
-static intptr_t CALLBACK
-stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+static void
+on_statusbar_update_btn(HWND hwnd)
+{
+    if (hfont_btn || (on_statusbar_default_font()))
+    {
+        SendMessage(hwnd, WM_SETFONT, (WPARAM)hfont_btn, 0);
+    }
+}
+
+static LRESULT CALLBACK
+stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
 {
     eu_tabpage *pnode = NULL;
     switch (message)
@@ -459,9 +394,70 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
         }
+        case WM_PAINT:
+        {
+            if (!on_dark_enable())
+            {
+                break;
+            }
+            PAINTSTRUCT ps;
+            sb_borders borders = {0};
+            const COLORREF edge_color = 0x646464;
+            SendMessage(hwnd, SB_GETBORDERS, 0, (LPARAM)&borders);
+            intptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
+            bool is_grip = style & SBARS_SIZEGRIP;
+            HDC hdc = BeginPaint(hwnd, &ps);
+            HPEN hpen = CreatePen(PS_SOLID, 1, edge_color);
+            HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
+            HFONT hold_font = (HFONT)SelectObject(hdc, on_statusbar_default_font());
+            FillRect(hdc, &ps.rcPaint, (HBRUSH)on_dark_get_brush());
+            wchar_t str[MAX_PATH] = {0};
+            int nparts = (int)SendMessage(hwnd, SB_GETPARTS, 0, 0);
+            for (int i = 0; i < nparts; ++i)
+            {
+                RECT rc_part = {0};
+                SendMessage(hwnd, SB_GETRECT, i, (LPARAM)&rc_part);
+                RECT rc_intersect = {0};
+                if (!IntersectRect(&rc_intersect, &rc_part, &ps.rcPaint))
+                {
+                    continue;
+                }
+                POINT edges[] =
+                {
+                    {rc_part.right - 2, rc_part.top + 1},
+                    {rc_part.right - 2, rc_part.bottom - 3}
+                };
+                Polyline(hdc, edges, _countof(edges));
+                RECT rc_divider = {rc_part.right - borders.vertical, rc_part.top, rc_part.right, rc_part.bottom };
+                DWORD text_len = LOWORD(SendMessage(hwnd, SB_GETTEXTLENGTH, i, 0));
+                if (text_len < 1 || text_len > MAX_PATH - 1)
+                {
+                    continue;
+                }
+                SendMessage(hwnd, SB_GETTEXT, i, (LPARAM)str);
+                SetBkMode(hdc, TRANSPARENT);
+                SetTextColor(hdc, rgb_dark_txt_color);
+                rc_part.left += borders.between;
+                rc_part.right -= borders.vertical;
+                DrawText(hdc, str, eu_int_cast(wcslen(str)), &rc_part, DT_SINGLELINE | DT_VCENTER | DT_LEFT);
+                if (!is_grip && i < (nparts - 1))
+                {
+                    FillRect(hdc, &rc_divider, (HBRUSH)on_dark_get_hot_brush());
+                }
+            }
+            SelectObject(hdc, hold_font);
+            SelectObject(hdc, hold_pen);
+            DeleteObject(hpen);
+            EndPaint(hwnd, &ps);
+            return 0;
+        }
+        case WM_STATUS_REFRESH:
+        {
+            on_statusbar_refresh();
+            return 1;
+        }
         case WM_SIZE:
         {
-            on_statusbar_size();
             break;
         }
         case WM_COMMAND:
@@ -482,7 +478,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 if (on_view_switch_type(id_menu - IDM_TYPES_0 - 1) == 0)
                 {
-                    set_menu_check(g_menu_3, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, id_menu, STATUSBAR_DOC_TYPE);
+                    set_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, id_menu, STATUSBAR_DOC_TYPE);
                 }
                 break;
             }
@@ -504,10 +500,9 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_LBREAK_2:
                 case IDM_LBREAK_3:
                 {
-                    int old_eol = pnode->eol;
                     if (!on_edit_convert_eols(pnode, id_menu-IDM_LBREAK_1))
                     {
-                        set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, id_menu, STATUSBAR_DOC_EOLS);
+                        set_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, id_menu, STATUSBAR_DOC_EOLS);
                     }
                     break;
                 }
@@ -517,7 +512,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     _snprintf(iconv_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8);
                     pnode->codepage = IDM_UNI_UTF8;
                     on_tabpage_editor_modify(pnode, iconv_undo_str);
-                    set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
+                    set_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF8B:
                     pnode->pre_len = 3;
@@ -526,7 +521,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     _snprintf(iconv_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8B);
                     pnode->codepage = IDM_UNI_UTF8B;
                     on_tabpage_editor_modify(pnode, iconv_undo_str);
-                    set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
+                    set_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF16LEB:
                 case IDM_UNI_UTF16BEB:
@@ -534,7 +529,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_UNI_UTF32BE:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_ANSI_1:
@@ -553,7 +548,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_ANSI_14:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_ANSI_1, IDM_ANSI_14, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_code, IDM_ANSI_1, IDM_ANSI_14, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_ISO_1:
@@ -577,7 +572,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_ISO_JP_MS:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_ISO_1, IDM_ISO_JP_MS, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_code, IDM_ISO_1, IDM_ISO_JP_MS, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_IBM_1:
@@ -585,14 +580,14 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_IBM_3:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_IBM_1, IDM_IBM_3, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_code, IDM_IBM_1, IDM_IBM_3, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_EUC_1:
                 case IDM_EUC_2:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_EUC_1, IDM_EUC_2, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_code, IDM_EUC_1, IDM_EUC_2, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_OTHER_HZ:
@@ -604,7 +599,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_UNKNOWN:
                     if (!on_convert_coding(pnode, id_menu))
                     {
-                        set_menu_check(g_menu_2, IDM_OTHER_HZ, IDM_UNKNOWN, id_menu, STATUSBAR_DOC_ENC);
+                        set_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, id_menu, STATUSBAR_DOC_ENC);
                     }
                     break;
                 default:
@@ -638,17 +633,17 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            if (g_menu_1)
+            if (g_menu_break)
             {
-                DestroyMenu(g_menu_1);
+                DestroyMenu(g_menu_break);
             }
-            if (g_menu_2)
+            if (g_menu_code)
             {
-                DestroyMenu(g_menu_2);
+                DestroyMenu(g_menu_code);
             }
-            if (g_menu_3)
+            if (g_menu_type)
             {
-                DestroyMenu(g_menu_3);
+                DestroyMenu(g_menu_type);
             }
             DestroyWindow(GetDlgItem(hwnd, IDM_BTN_1));
             DestroyWindow(GetDlgItem(hwnd, IDM_BTN_2));
@@ -657,6 +652,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject(hfont_btn);
                 hfont_btn = NULL;
             }
+            RemoveWindowSubclass(hwnd, stbar_proc, sub_id);
             g_statusbar = NULL;
             printf("statusbar WM_DESTROY\n");
             break;
@@ -664,7 +660,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         default:
             break;
     }
-    return CallWindowProc((WNDPROC) old_proc, hwnd, message, wParam, lParam);
+    return DefSubclassProc(hwnd, message, wParam, lParam);
 }
 
 static void
@@ -754,7 +750,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     else
     {
         LOAD_I18N_RESSTR(IDS_STATUS_LC, s_lc);
-        _sntprintf(file_size, FILESIZE, s_lc, nsize, line);
+        _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
     }
     if (*file_size)
     {
@@ -771,19 +767,19 @@ on_statusbar_update_eol(eu_tabpage *pnode)
     }
     if(pnode->hex_mode)
     {
-        set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
+        set_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
         return;
     }
     switch (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0))
     {
         case 0:
-            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_1, STATUSBAR_DOC_EOLS);
+            set_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_1, STATUSBAR_DOC_EOLS);
             break;
         case 1:
-            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_2, STATUSBAR_DOC_EOLS);
+            set_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_2, STATUSBAR_DOC_EOLS);
             break;
         case 2:
-            set_menu_check(g_menu_1, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
+            set_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
             break;
         default:
             break;
@@ -806,14 +802,14 @@ on_statusbar_update_filetype_menu(eu_tabpage *pnode)
         {
             if (pnode->doc_ptr && (pnode->doc_ptr == doc_ptr))
             {
-                set_menu_check(g_menu_3, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0 + index, STATUSBAR_DOC_TYPE);
+                set_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0 + index, STATUSBAR_DOC_TYPE);
                 res = true;
             }
         }
     }
     if (!(pnode && res))
     {
-        set_menu_check(g_menu_3, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0, STATUSBAR_DOC_TYPE);
+        set_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0, STATUSBAR_DOC_TYPE);
     }
 }
 
@@ -843,7 +839,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_UNI_UTF16BEB:
         case IDM_UNI_UTF32LE:
         case IDM_UNI_UTF32BE:
-            set_menu_check(g_menu_2, IDM_UNI_UTF8, IDM_UNI_UTF32BE, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, type, STATUSBAR_DOC_ENC);
             break;
         case IDM_ANSI_1:
         case IDM_ANSI_2:
@@ -859,7 +855,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_ANSI_12:
         case IDM_ANSI_13:
         case IDM_ANSI_14:
-            set_menu_check(g_menu_2, IDM_ANSI_1, IDM_ANSI_14, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_code, IDM_ANSI_1, IDM_ANSI_14, type, STATUSBAR_DOC_ENC);
             break;
         case IDM_ISO_1:
         case IDM_ISO_2:
@@ -880,16 +876,16 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_ISO_JP_2:
         case IDM_ISO_JP_2004:
         case IDM_ISO_JP_MS:
-            set_menu_check(g_menu_2, IDM_ISO_1, IDM_ISO_JP_MS, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_code, IDM_ISO_1, IDM_ISO_JP_MS, type, STATUSBAR_DOC_ENC);
             break;
         case IDM_IBM_1:
         case IDM_IBM_2:
         case IDM_IBM_3:
-            set_menu_check(g_menu_2, IDM_IBM_1, IDM_IBM_3, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_code, IDM_IBM_1, IDM_IBM_3, type, STATUSBAR_DOC_ENC);
             break;
         case IDM_EUC_1:
         case IDM_EUC_2:
-            set_menu_check(g_menu_2, IDM_EUC_1, IDM_EUC_2, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_code, IDM_EUC_1, IDM_EUC_2, type, STATUSBAR_DOC_ENC);
             break;
         case IDM_OTHER_HZ:
         case IDM_OTHER_1:
@@ -898,7 +894,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_OTHER_ANSI:
         case IDM_OTHER_BIN:
         case IDM_UNKNOWN:
-            set_menu_check(g_menu_2, IDM_OTHER_HZ, IDM_UNKNOWN, type, STATUSBAR_DOC_ENC);
+            set_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, type, STATUSBAR_DOC_ENC);
             break;
         default:
             break;
@@ -908,7 +904,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
 static void
 on_statusbar_create_filetype_menu(void)
 {
-    if (g_menu_3)
+    if (g_menu_type)
     {
         int index;
         doctype_t *doc_ptr;
@@ -917,7 +913,7 @@ on_statusbar_create_filetype_menu(void)
             TCHAR *desc = NULL;
             if ((desc = eu_utf8_utf16(doc_ptr->filedesc, NULL)) != NULL)
             {
-                AppendMenu(g_menu_3, MF_POPUP | MF_STRING, IDM_TYPES_0 + index, desc);
+                AppendMenu(g_menu_type, MF_POPUP | MF_STRING, IDM_TYPES_0 + index, desc);
                 free(desc);
             }
         }
@@ -980,7 +976,7 @@ bool WINAPI
 on_statusbar_init(HWND hwnd)
 {
     bool ret = false;
-    const uint32_t dw_style = SBT_NOBORDERS | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+    const uint32_t dw_style = SBT_NOBORDERS | WS_CHILD | SBARS_SIZEGRIP;
     if (g_statusbar)
     {
         DestroyWindow(g_statusbar);
@@ -992,28 +988,17 @@ on_statusbar_init(HWND hwnd)
         {
             break;
         }
-        // no simple status bar, to allow owner draw for dark mode
-        if (SendMessage(g_statusbar, SB_ISSIMPLE, 0, 0))
-        {
-            SendMessage(g_statusbar, SB_SIMPLE, 0, 0);
-        }
-        if (!(old_proc = SetWindowLongPtr(g_statusbar, GWLP_WNDPROC, (LONG_PTR) stbar_proc)))
+        if (!(SetWindowSubclass(g_statusbar, stbar_proc, sub_id, 0)))
         {
             break;
         }
-        g_menu_1 = i18n_load_menu(IDR_LBREAK_MENU);
-        g_menu_2 = i18n_load_menu(IDR_CODEING_MENU);
-        g_menu_3 = i18n_load_menu(IDR_TYPES_MENU);
-        if (!(g_menu_1 && g_menu_2 && g_menu_3))
+        g_menu_break = menu_load(IDR_LBREAK_MENU);
+        g_menu_code = menu_load(IDR_CODEING_MENU);
+        g_menu_type = menu_load(IDR_TYPES_MENU);
+        if (!(g_menu_break && g_menu_code && g_menu_type))
         {
             printf("create menu failed\n");
             break;
-        }
-        else
-        {
-            g_menu_1 = GetSubMenu(g_menu_1, 0);
-            g_menu_2 = GetSubMenu(g_menu_2, 0);
-            g_menu_3 = GetSubMenu(g_menu_3, 0);
         }
         on_statusbar_create_filetype_menu();
         ret = create_button(g_statusbar);
@@ -1021,7 +1006,8 @@ on_statusbar_init(HWND hwnd)
     if (ret && on_dark_enable())
     {
         on_statusbar_dark_mode();
-        PostMessage(g_statusbar, WM_SIZE, 0, 0);
+        SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+        on_statusbar_update();
     }
     return ret;
 }

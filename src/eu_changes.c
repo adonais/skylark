@@ -376,19 +376,24 @@ on_changes_window(HWND hwnd)
         TCITEM tci = { TCIF_PARAM };
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p && !p->hex_mode && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
+        if (p && !p->hex_mode && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime)
         {
-            on_tabpage_selection(p, index);
-            if (_taccess(p->pathfile, 0) == -1)
+            time_t ftime = util_last_time(p->pathfile);
+            if (ftime && p->st_mtime != util_last_time(p->pathfile))
             {
-                if (!set_delete_event(p))
+                printf("p->st_mtime = %I64u, ftime = %I64u\n", p->st_mtime, ftime);
+                on_tabpage_selection(p, index);
+                if (_taccess(p->pathfile, 0) == -1)
+                {
+                    if (!set_delete_event(p))
+                    {
+                        break;
+                    }
+                }
+                else if (!set_time_event(p))
                 {
                     break;
                 }
-            }
-            else if (!set_time_event(p))
-            {
-                break;
             }
         }
     }
@@ -848,4 +853,16 @@ eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type)
         ShowWindow(hwnd, SW_SHOW);
     }
     return on_changes_msgbox(&msgbox);
+}
+
+int WINAPI
+eu_i18n_msgbox(HWND hwnd, uint16_t contents_id, uint16_t title_id, uint32_t type)
+{
+    wchar_t *pstr = NULL;
+    LOAD_I18N_RESSTR(title_id, title);
+    if ((pstr = (wchar_t *)calloc(sizeof(wchar_t), 2048)) && eu_i18n_load_str(contents_id, pstr, 2048))
+    {
+        return eu_msgbox(hwnd, pstr, title, type);
+    }
+    return 0;
 }

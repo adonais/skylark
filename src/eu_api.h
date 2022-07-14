@@ -40,6 +40,14 @@
 #pragma intrinsic(_InterlockedCompareExchange, _InterlockedExchange)
 #endif
 
+#if defined(__cplusplus)
+#define FALLTHRU_ATTR		[[fallthrough]]
+#elif (defined(__GNUC__) && __GNUC__ >= 7) || (defined(__clang__) && __clang_major__ >= 10)
+#define FALLTHRU_ATTR		__attribute__((fallthrough))
+#else
+#define FALLTHRU_ATTR
+#endif
+
 #ifndef DET_EPSILON
 #define DET_EPSILON 0.000001
 #endif
@@ -60,12 +68,42 @@
 #endif
 #define MAX_ACCELS 200
 
+#ifndef WM_COPYGLOBALDATA
+#define WM_COPYGLOBALDATA         (0x0049)
+#endif
+// Custom message
+#define HVM_SETEXTENDEDSTYLE      (WM_USER + 100)
+#define HVM_SETITEMCOUNT          (WM_USER + 101)
+#define HVM_GETSEL                (WM_USER + 102)
+#define HVM_SETSEL                (WM_USER + 103)
+#define HVM_SETTEXTCOLOR          (WM_USER + 104)
+#define HVM_SETBKCOLOR            (WM_USER + 105)
+#define HVM_SETSELBKCOLOR         (WM_USER + 106)
+#define HVM_SETMODIFIEDCOLOR      (WM_USER + 107)
+#define HVM_SETLINE               (WM_USER + 108)
+#define HVM_GETHEXADDR            (WM_USER + 109)
+#define HVM_SETLINECOUNT          (WM_USER + 110)
+#define HVN_GETDISPINFO           (WMN_FIRST - 0)
+#define HVN_ITEMCHANGING          (WMN_FIRST - 1)
+#define WM_BTN_PRESS              (WM_USER + 201)
+#define WM_FILEOPEN               (WM_USER + 301)
+#define TVI_LOADREMOTE            (WM_USER + 401)
+#define DOCUMENTMAP_SCROLL        (WM_USER + 501)
+#define DOCUMENTMAP_MOUSECLICKED  (WM_USER + 502)
+#define DOCUMENTMAP_MOUSEWHEEL    (WM_USER + 503)
+#define WM_BACKUP_OVER            (WM_USER+10001)
+#define WM_SYSLIST_OVER           (WM_USER+10002)
+#define WM_STATUS_REFRESH         (WM_USER+10003)
+#define WM_TAB_CLICK              (WM_USER+10004)
+#define WM_SKYLARK_DESC           (WM_USER+10005)
+// Tab notification message
+#define TCN_TABDROPPED_OUT        (WM_USER+20000)
+
 #if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
 #define EU_VERIFY(x) (void)((x) || (EU_ABORT("failed assert(%s): %s:%d\n", #x, __FILE__, __LINE__), 0))
 #else
-static inline void
-assert_in_release(const char *fmt, const char *exp, const char *file, int line)
+static inline void assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 {
     char msg[256] = {0};
     _snprintf(msg, 256, fmt, exp, file, line);
@@ -74,6 +112,17 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 }
 #define EU_VERIFY(x) (void)((x) || (assert_in_release("failed assert(%s): %s:%d", #x, __FILE__, __LINE__), 0))
 #endif
+static inline bool eu_cvector_at(int *v, int n)
+{
+    for (int i = 0; i < cvector_size(v); i++)
+    {
+        if (n == v[i])
+        {
+            return true;
+        }
+    }
+    return false;
+}
 #define eu_int_cast(n) ((int)((size_t)n > INT_MAX ? INT_MAX : n))
 #define eu_uint_cast(n) ((uint32_t)((size_t)n > UINT_MAX ? UINT_MAX : n))
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
@@ -89,42 +138,45 @@ assert_in_release(const char *fmt, const char *exp, const char *file, int line)
 
 enum
 {
-    SKYLARK_OK = 0,
-    EUE_TAB_NULL,
-    EUE_POINT_NULL,
-    EUE_PATH_NULL,
-    EUE_UNEXPECTED_SAVE,
-    EUE_ICONV_FAIL,
-    EUE_API_CONV_FAIL,
-    EUE_CURL_INIT_FAIL,
-    EUE_CURL_NETWORK_ERR,
-    EUE_LOCAL_FILE_ERR,
-    EUE_WRITE_FILE_ERR,
-    EUE_OPEN_FILE_ERR,
-    EUE_COPY_FILE_ERR,
-    EUE_MOVE_FILE_ERR,
-    EUE_DELETE_FILE_ERR,
-    EUE_EXT_FILTER_ERR,
-    EUE_FILE_ATTR_ERR,
-    EUE_FILE_SIZE_ERR,
-    EUE_LOAD_SCRIPT_ERR,
-    EUE_PRESET_FILE_ERR,
-    EUE_PARSE_FILE_ERR,
-    EUE_MAP_HEX_ERR,
-    EUE_NOT_ENOUGH_MEMORY,
-    EUE_OUT_OF_MEMORY,
-    EUE_API_OPEN_FILE_ERR,
-    EUE_API_READ_FILE_ERR,
-    EUE_CREATE_MAP_ERR,
-    EUE_MAPPING_MEM_ERR,
-    EUE_INSERT_TAB_FAIL,
-    EUE_WRITE_TAB_FAIL,
-    EUE_CHOOSE_FONT_ERR,
-    EUE_MENU_STATUS_ERR,
-    EUE_OPENSSL_ENC_ERR,
-    EUE_OPENSSL_DEC_ERR,
-    EUE_UNKOWN_ERR,
-    SKYLARK_OPENED
+    EUE_POINT_NULL        = -37,
+    EUE_PATH_NULL         = -36,
+    EUE_UNEXPECTED_SAVE   = -35,
+    EUE_ICONV_FAIL        = -34,
+    EUE_API_CONV_FAIL     = -33,
+    EUE_CURL_INIT_FAIL    = -32,
+    EUE_CURL_NETWORK_ERR  = -31,
+    EUE_LOCAL_FILE_ERR    = -30,
+    EUE_WRITE_FILE_ERR    = -29,
+    EUE_OPEN_FILE_ERR     = -28,
+    EUE_COPY_FILE_ERR     = -27,
+    EUE_MOVE_FILE_ERR     = -26,
+    EUE_DELETE_FILE_ERR   = -25,
+    EUE_EXT_FILTER_ERR    = -24,
+    EUE_FILE_ATTR_ERR     = -23,
+    EUE_FILE_SIZE_ERR     = -22,
+    EUE_LOAD_SCRIPT_ERR   = -21,
+    EUE_PARSE_FILE_ERR    = -20,
+    EUE_MAP_HEX_ERR       = -19,
+    EUE_NOT_ENOUGH_MEMORY = -18,
+    EUE_API_OPEN_FILE_ERR = -17,
+    EUE_API_READ_FILE_ERR = -16,
+    EUE_CREATE_MAP_ERR    = -15,
+    EUE_MAPPING_MEM_ERR   = -14,
+    EUE_CHOOSE_FONT_ERR   = -13,
+    EUE_MENU_STATUS_ERR   = -12,
+    EUE_OPENSSL_ENC_ERR   = -11,
+    EUE_OPENSSL_DEC_ERR   = -10,
+    EUE_UNKOWN_ERR        = -9,
+    EUE_TAB_NULL          = -8,
+    EUE_WRITE_TAB_FAIL    = -7,
+    EUE_INSERT_TAB_FAIL   = -6,
+    EUE_PRESET_FILE_ERR   = -5,
+    EUE_OUT_OF_MEMORY     = -4,
+    SKYLARK_TABCTRL_ERR   = -3,
+    SKYLARK_NOT_OPENED    = -2,
+    SKYLARK_OPENED        = -1,
+    SKYLARK_OK            = 0,
+    SKYLARK_SQL_END       = 200
 };
 
 #include <stdio.h>
@@ -199,19 +251,20 @@ struct eu_config
     bool light_fold;
     bool line_mode;
     bool m_ftree_show;
-    
+
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
+    int document_map_width;
     int result_edit_height;
     int result_list_height;
-    
+
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
     bool m_ctshow;
     bool m_tab_tip;
-    
+
     int m_tab_active;
     int m_quality;
     int m_render;
@@ -220,12 +273,14 @@ struct eu_config
     bool m_write_copy;
     bool m_session;
     bool m_exit;
+    bool m_instance;
     char m_placement[MAX_BUFFER];
     char m_language[ACNAME_LEN];
     print_set eu_print;
     int m_limit;
     uint64_t m_id;
     char m_path[MAX_PATH];
+    char editor[MAX_PATH];
     char m_actions[100][MAX_PATH];
 };
 
@@ -427,7 +482,6 @@ EU_EXT_CLASS int eu_iconv_close(iconv_t cd);
 extern EU_EXT_CLASS ptr_curl_easy_strerror eu_curl_easy_strerror;
 extern EU_EXT_CLASS ptr_curl_easy_setopt eu_curl_easy_setopt;
 extern EU_EXT_CLASS ptr_curl_easy_perform eu_curl_easy_perform;
-extern EU_EXT_CLASS ptr_curl_easy_cleanup eu_curl_easy_cleanup;
 extern EU_EXT_CLASS ptr_curl_easy_getinfo eu_curl_easy_getinfo;
 extern EU_EXT_CLASS ptr_curl_slist_append eu_curl_slist_append;
 extern EU_EXT_CLASS ptr_curl_slist_free_all eu_curl_slist_free_all;
@@ -435,6 +489,7 @@ extern EU_EXT_CLASS ptr_curl_slist_free_all eu_curl_slist_free_all;
 EU_EXT_CLASS int eu_curl_init_global(long flags);
 EU_EXT_CLASS CURL* eu_curl_easy_init(void);
 EU_EXT_CLASS void eu_curl_global_release(void);
+EU_EXT_CLASS void eu_curl_easy_cleanup(CURL *);
 
 // for eu_changes.c
 EU_EXT_CLASS int __stdcall eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
@@ -446,6 +501,9 @@ EU_EXT_CLASS void eu_ssl_close_symbol(HMODULE *pssl);
 // for main.c
 extern EU_EXT_CLASS TCHAR eu_module_path[MAX_PATH+1];
 EU_EXT_CLASS HINSTANCE eu_module_handle(void);
+
+// for eu_about.c
+EU_EXT_CLASS void __stdcall eu_about_command(void);
 
 // for eu_proc.h
 EU_EXT_CLASS HWND eu_module_hwnd(void);
@@ -489,8 +547,11 @@ EU_EXT_CLASS HANDLE __stdcall share_envent_open_file_sem(void);
 EU_EXT_CLASS HWND eu_get_search_hwnd(void);
 
 // for eu_config.c
+EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
 EU_EXT_CLASS bool __stdcall eu_load_config(HMODULE *pmod);
+EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
+EU_EXT_CLASS void __stdcall eu_postion_setup(wchar_t **args, int argc, file_backup *pbak);
 
 // for eu_script.c
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
@@ -525,7 +586,6 @@ EU_EXT_CLASS void eu_close_db_handle(void);
 EU_EXT_CLASS int on_doc_init_list(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_tree(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_result(eu_tabpage *pnode);
-EU_EXT_CLASS int on_doc_init_result_list(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_list_sh(eu_tabpage *pnode);
 
 /* 默认的 init_after_ptr 回调函数入口 */

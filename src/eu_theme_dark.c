@@ -97,6 +97,8 @@ typedef HRESULT (WINAPI *SetWindowThemePtr)(HWND, const wchar_t *, const wchar_t
 typedef HTHEME (WINAPI *OpenThemeDataPtr)(HWND, LPCWSTR pszClassList);
 typedef HRESULT (WINAPI *CloseThemeDataPtr)(HTHEME);
 typedef COLORREF (WINAPI *GetThemeSysColorPtr)(HTHEME hth, int colid);
+typedef HRESULT (WINAPI *GetThemePartSizePtr)(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz);
+typedef HRESULT (WINAPI *DrawThemeBackgroundPtr)(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect);
 
 // dwm function
 typedef HRESULT (WINAPI *DwmSetWindowAttributePtr)(HWND, DWORD, LPCVOID, DWORD);
@@ -121,6 +123,7 @@ static uint32_t g_build_number;
 static HMODULE g_uxtheme;
 static HBRUSH g_dark_bkgnd;
 static HBRUSH g_dark_hot_bkgnd;
+static HBRUSH g_theme_bkgnd;
 
 bool
 on_dark_supports(void)
@@ -152,15 +155,43 @@ on_dark_enable(void)
     return g_dark_enabled && on_dark_apps_use() && !on_dark_high_contrast();
 }
 
-int64_t
+HRESULT
+on_dark_draw_background(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect)
+{
+    HRESULT ret = 1;
+    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    DrawThemeBackgroundPtr fnDrawThemeBackground = uxtheme ? (DrawThemeBackgroundPtr)GetProcAddress(uxtheme, "DrawThemeBackground") : NULL;
+    if (hTheme && fnDrawThemeBackground)
+    {
+        ret = fnDrawThemeBackground(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
+    }
+    safe_close_dll(uxtheme);
+    return ret;
+}
+
+HRESULT
+on_dark_get_partsize(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz)
+{
+    HRESULT ret = 1;
+    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    GetThemePartSizePtr fnGetThemePartSize = uxtheme ? (GetThemePartSizePtr)GetProcAddress(uxtheme, "GetThemePartSize") : NULL;
+    if (hTheme && fnGetThemePartSize)
+    {
+        ret = fnGetThemePartSize(hTheme, hdc, iPartId, iStateId, prc, eSize, psz);
+    }
+    safe_close_dll(uxtheme);
+    return ret;
+}
+
+intptr_t
 on_dark_open_data(HWND hwnd, LPCWSTR class_list)
 {
-    int64_t hth = 0;
+    intptr_t hth = 0;
     HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     OpenThemeDataPtr fnOpenThemeData = uxtheme ? (OpenThemeDataPtr)GetProcAddress(uxtheme, "OpenThemeData") : NULL;
     if (class_list && fnOpenThemeData)
     {
-        hth = (int64_t)fnOpenThemeData(hwnd, class_list);
+        hth = (intptr_t)fnOpenThemeData(hwnd, class_list);
     }
     safe_close_dll(uxtheme);
     return hth;
@@ -238,7 +269,7 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
         }
         safe_close_dll(dwm);
     #else
-        SetProp(hwnd, _T("UseImmersiveDarkModeColors"), (HANDLE)(int64_t)(dark));
+        SetProp(hwnd, _T("UseImmersiveDarkModeColors"), (HANDLE)(intptr_t)(dark));
     #endif // USE_DWMAPI
     }
     else if (fnSetWindowCompositionAttribute)
@@ -392,14 +423,58 @@ on_dark_delete_brush(void)
     }
 }
 
-int64_t
+intptr_t
 on_dark_get_brush(void)
 {
     if (!g_dark_bkgnd)
     {   // not dark mode
         g_dark_bkgnd = GetSysColorBrush(COLOR_MENU);
     }
-    return (int64_t)g_dark_bkgnd;
+    return (intptr_t)g_dark_bkgnd;
+}
+
+intptr_t
+on_dark_theme_brush(void)
+{
+    if (!g_theme_bkgnd)
+    {
+        g_theme_bkgnd = CreateSolidBrush(eu_get_theme()->item.text.bgcolor);
+    }
+    return (intptr_t)g_theme_bkgnd;
+}
+
+void
+on_dark_delete_theme_brush(void)
+{
+    if (g_theme_bkgnd)
+    {
+        DeleteObject(g_theme_bkgnd);
+        g_theme_bkgnd = NULL;
+    }
+}
+
+void
+on_dark_border(HWND hwnd, bool border)
+{
+    intptr_t style = (intptr_t)GetWindowLongPtr(hwnd, GWL_STYLE);
+    bool has_border = (style & WS_BORDER) == WS_BORDER;
+    bool change = false;
+
+    if (!has_border && border)
+    {
+        style |= WS_BORDER;
+        change = true;
+    }
+    else if (has_border && !border)
+    {
+        style &= ~WS_BORDER;
+        change = true;
+    }
+    if (change)
+    {
+        SetWindowLongPtr(hwnd, GWL_STYLE, style);
+        SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+    }
 }
 
 static bool
@@ -422,13 +497,13 @@ on_dark_delete_hot_brush(void)
     }
 }
 
-int64_t
+intptr_t
 on_dark_get_hot_brush(void)
 {
-    return (int64_t)g_dark_hot_bkgnd;
+    return (intptr_t)g_dark_hot_bkgnd;
 }
 
-int64_t
+intptr_t
 on_dark_set_contorl_color(WPARAM wParam)
 {
     if (on_dark_supports())
@@ -436,7 +511,7 @@ on_dark_set_contorl_color(WPARAM wParam)
         HDC hdc = (HDC)wParam;
         set_text_color(hdc, true);
         set_bk_color(hdc, true);
-        return (int64_t)g_dark_bkgnd;
+        return (intptr_t)g_dark_bkgnd;
     }
     return 0;
 }

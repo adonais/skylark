@@ -31,25 +31,35 @@ extern "C"
 typedef int (*tab_ptr)(eu_tabpage *p);
 
 extern HWND  g_tabpages;
-extern HMENU pop_tab_menu;
-extern HMENU pop_editor_menu;
+
+typedef struct _result_postion {
+    intptr_t start;
+    intptr_t end;
+} result_postion;
+
+typedef  struct _result_vec {
+    intptr_t line;
+    result_postion mark;
+}result_vec;
 
 struct _tabpage
 {
     HWND hwnd_sc;               // 当前编辑器句柄
     sptr_t eusc;                // 当前编辑器类指针
-    RECT rect_sc;               // 编辑器矩形区域
-    int match_count;            // 查找时匹配计数
+    eu_tabpage *presult;        // 文档搜索结果的节点指针
     HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
-    RECT rect_sym;              // 右侧边栏窗口矩形区域
-    HWND hwnd_qredit;           // tab关联的运行edit日志窗口
-    RECT rect_qredit;           // edit日志窗口矩形区域
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
+    RECT rect_sc;               // 编辑器矩形区域
+    RECT rect_sym;              // 右侧边栏窗口矩形区域
     RECT rect_qrtable;          // table窗口矩形区域
+    RECT rect_map;              // 文档结构图矩形区域
+    RECT rect_result;           // 文档搜索结果矩形区域
+    int  match_count;           // 查找时匹配计数
     int  tab_id;                // tab编号,用于保存会话
-    bool edit_show;             // 是否显示文件运行窗口
     bool sym_show;              // 是否显示右侧边栏
+    bool map_show;              // 是否显示文档结构图
+    bool result_show;           // 是否显示文档搜索结果窗口
     bool foldline;              // 是否存在折叠线
     db_conn *db_ptr;            // 数据库配置
     redis_conn *redis_ptr;      // redis配置
@@ -82,6 +92,7 @@ struct _tabpage
     bool last_focus;            // 保存前台焦点
     int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
+    result_vec *pvec;           // 临时保存行号
 };
 
 int  on_tabpage_create_dlg(HWND hwnd);
@@ -89,16 +100,14 @@ int  on_tabpage_add(eu_tabpage *pnode);
 int  on_tabpage_remove(eu_tabpage **ppnode);
 int  on_tabpage_reload_file(eu_tabpage *pnode, int flags);
 int  on_tabpage_editor_modify(eu_tabpage *pnode, const char *);
-int  on_tabpage_create_rclick(void);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
-int  on_tabpage_get_index(void);
+int  on_tabpage_get_index(eu_tabpage *pnode);
+int  on_tabpage_selection(eu_tabpage *pnode, int index);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);
-void on_tabpage_selection(eu_tabpage *pnode, int index);
 void on_tabpage_changing(HWND hwnd);
-void on_tabpage_destroy_rclick(void);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
@@ -107,7 +116,7 @@ eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);
 eu_tabpage *on_tabpage_select_index(int index);
 eu_tabpage *on_tabpage_focus_at(void);
-TCHAR *on_tabpage_newdoc_name(TCHAR *filename, int len);
+TCHAR *on_tabpage_generator(TCHAR *filename, int len);
 LRESULT on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus

@@ -1071,13 +1071,55 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
         find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
         if (find_line >= 0)
         {
-            offset = (int)strlen(szmark);
+            offset = eu_int_cast(strlen(szmark));
             if (offset >= size)
             {
                 break;
             }
             _snprintf(szmark+offset, size-offset, "%I64d;", find_line);
             current_line = find_line + 1;
+        }
+    }
+}
+
+void
+on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
+{
+    int offset = 0;
+    sptr_t header_line = 0;
+    *szfold = 0;
+    do
+    {
+        header_line = eu_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
+        if (header_line != -1)
+        {
+            offset = eu_int_cast(strlen(szfold));
+            if (offset >= size)
+            {
+                break;
+            }
+            _snprintf(szfold+offset, size-offset, "%I64d;", header_line);
+            ++header_line;
+        }
+    } while (header_line != -1);
+}
+
+void
+on_search_update_fold(eu_tabpage *pnode, char *szfold)
+{
+    if (pnode)
+    {
+        char *p = strtok(szfold, ";");
+        while (p)
+        {
+            sptr_t line = _atoi64(p);
+            uint32_t level = (uint32_t)(eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0) & SC_FOLDLEVELNUMBERMASK);
+            if (level == 0x400)
+            {   // 如果是父节点, 展开一次再折叠
+                eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_EXPAND);
+            }
+            eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_CONTRACT);
+            p = strtok(NULL, ";");
         }
     }
 }
@@ -1439,13 +1481,13 @@ on_search_regxp_error(void)
             }
             else if ((ll_msg = on_search_regxp_msg()) != NULL)
             {
-	            TOOLINFO toolinfo = {0};
-	            toolinfo.cbSize = sizeof(TOOLINFO);
-	            toolinfo.hwnd = hwnd_search_dlg;
-	            toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-	            toolinfo.uId = (LONG_PTR)hwnd_re_stc;
-	            toolinfo.lpszText = ll_msg;
-	            SendMessage(hwnd_regxp_tips, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolinfo);
+                TOOLINFO toolinfo = {0};
+                toolinfo.cbSize = sizeof(TOOLINFO);
+                toolinfo.hwnd = hwnd_search_dlg;
+                toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+                toolinfo.uId = (LONG_PTR)hwnd_re_stc;
+                toolinfo.lpszText = ll_msg;
+                SendMessage(hwnd_regxp_tips, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolinfo);
             }
             eu_safe_free(ll_msg);
         }
@@ -1647,17 +1689,35 @@ on_search_process_count(eu_tabpage *pnode, const char *key)
     eu_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
     eu_sci_call(pnode, SCI_TARGETWHOLEDOCUMENT, 0, 0);
     pnode->match_count = 0;
+    // 清除行存储空间
+    if (cvector_size(pnode->pvec) > 0)
+    {
+        cvector_free(pnode->pvec);
+        pnode->pvec = NULL;
+    }
     while (pos >= 0)
     {
+        result_vec ret = {-1,};
         pos = eu_sci_call(pnode, SCI_SEARCHINTARGET, len, (sptr_t)key);
         if (pos >= 0)
         {
             sptr_t start_pos = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
             sptr_t end_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+            sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            if (line >= 0)
+            {
+                ret.line = line;
+            }
             ++pnode->match_count;
             if (end_pos >= start_pos)
             {
                 eu_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
+                ret.mark.start = pos;
+                ret.mark.end = start_pos;
+                if (ret.line >= 0)
+                {
+                    cvector_push_back(pnode->pvec, ret);
+                }
             }
             else
             {
@@ -2133,13 +2193,13 @@ on_search_detail_button(void)
     return 0;
 }
 
-static void
+static int
 on_search_active_tab(const TCHAR *path, const TCHAR *key)
 {
-    bool tab_find = false;
+    int tab_find = EUE_TAB_NULL;
     if (!(path && key))
     {
-        return;
+        return EUE_POINT_NULL;
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -2150,19 +2210,65 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
             on_tabpage_select_index(index);
             on_search_process_find2(p, u8_key);
             free(u8_key);
-            tab_find = true;
+            tab_find = index;
             break;
         }
     }
-    if (!tab_find)
+    if (tab_find < 0)
     {
         file_backup bak = {0};
         _tcscpy(bak.rel_path, path);
-        if (on_file_only_open(&bak, true) == SKYLARK_OK)
+        tab_find = on_file_only_open(&bak, true);
+        if (tab_find > SKYLARK_OPENED)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
-            on_search_process_find2(NULL, u8_key);
+            on_search_process_count(on_tabpage_get_ptr(tab_find), u8_key);
             free(u8_key);
+        }
+    }
+    return tab_find;
+}
+
+static void
+on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
+{
+    if (pnode && pnode->presult)
+    {
+        char *ptr_add = NULL;
+        eu_tabpage *presult = pnode->presult;
+        TCHAR msg[MAX_BUFFER] = {0};
+        LOAD_I18N_RESSTR(IDS_RESULT_STRINGS1, path_str);
+        LOAD_I18N_RESSTR(IDS_RESULT_STRINGS2, line_str);
+        _sntprintf(msg, MAX_BUFFER-1, path_str, key, path, pnode->match_count);
+        char *path = eu_utf16_utf8(msg, NULL);
+        if (path)
+        {
+            eu_sci_call(presult, SCI_SETREADONLY, 0, 0);
+            eu_sci_call(presult, SCI_ADDTEXT, strlen(path), (LPARAM)path);
+            free(path);
+        }
+        char *pformat = eu_utf16_utf8(line_str, NULL);
+        if (pnode->pvec && pformat)
+        {
+            const int k = util_count_number(pnode->pvec[cvector_size(pnode->pvec) - 1].line);
+            for (int i = 0; i < cvector_size(pnode->pvec); ++i)
+            {
+                char *buf = util_strdup_line(pnode, pnode->pvec[i].line, NULL);
+                if (buf)
+                {
+                    const size_t m_size = strlen(buf) + 24;
+                    if ((ptr_add = (char *)calloc(1, m_size)) != NULL)
+                    {
+                        int len = snprintf(ptr_add, m_size - 1, pformat, k, pnode->pvec[i].line + 1, buf);
+                        eu_sci_call(presult, SCI_ADDTEXT, len, (LPARAM)ptr_add);
+                        free(ptr_add);
+                    }
+                    free(buf);
+                }
+            }
+            // 编辑区设置成只读
+            eu_sci_call(presult, SCI_SETREADONLY, 1, 0);
+            eu_sci_call(presult, SCI_GOTOLINE, 1, 0);
         }
     }
 }
@@ -2185,7 +2291,26 @@ on_search_found_list(HWND hwnd)
         if (_stscanf(buf, _T("%260[^|]"), path) == 1 &&
             _stscanf(buf, _T("%*[^|]|%260[^|]"), key) == 1)
         {
-            on_search_active_tab(path, key);
+            int tab = on_search_active_tab(path, key);
+            eu_tabpage *pnode = on_tabpage_get_ptr(tab);
+            if (pnode && on_result_launch(pnode) && pnode->presult)
+            {
+                pnode->result_show = true;
+                eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
+                eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+                eu_window_resize(NULL);
+                char *u8_key = eu_utf16_utf8(key, NULL);
+                if (u8_key)
+                {
+                    eu_sci_call(pnode->presult, SCI_SETKEYWORDS, 0, (sptr_t)u8_key);
+                    free(u8_key);
+                }
+                on_search_push_result(pnode, key, path);
+                // 窗口并排可能导致主编辑器之前的光标位置被遮挡
+                // 滚动视图以使光标可见
+                eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+                ShowWindow(hwnd_search_dlg, SW_HIDE);
+            }
         }
     }
     free(buf);
