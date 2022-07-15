@@ -23,7 +23,8 @@
 #define THEME_MENU_SUB 7
 #define LOCALE_MENU 6
 #define LOCALE_MENU_SUB 5
-#define TAB_MENU_SUB 27
+#define TAB_MENU_ACTIVE_SUB 27
+#define TAB_MENU_CLOSE_SUB 28
 
 #ifdef __cplusplus
 extern "C" {

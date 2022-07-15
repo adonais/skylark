@@ -239,6 +239,11 @@ BEGIN
             MENUITEM "最左边的标签",                            IDM_VIEW_FAR_LEFT_TAB
             MENUITEM "最右边的标签",                            IDM_VIEW_FAR_RIGHT_TAB
         END
+        POPUP "关闭标签方式"
+        BEGIN
+            MENUITEM "右键单击(&R)",                            IDM_VIEW_TAB_RIGHT_CLICK
+            MENUITEM "左键双击(&L)",                            IDM_VIEW_TAB_LEFT_DBCLICK
+        END        
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "放大",                                    IDM_VIEW_ZOOMOUT

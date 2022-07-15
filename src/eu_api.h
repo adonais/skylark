@@ -264,7 +264,8 @@ struct eu_config
     int acshow_chars;
     bool m_ctshow;
     bool m_tab_tip;
-
+    
+    int m_close_way;
     int m_tab_active;
     int m_quality;
     int m_render;

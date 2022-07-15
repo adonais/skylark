@@ -420,6 +420,15 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case WM_LBUTTONDBLCLK:
+        {
+            if (eu_get_config()->m_close_way == IDM_VIEW_TAB_LEFT_DBCLICK)
+            {
+                PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
+                return 1;
+            }
+            break;
+        }
         case WM_MOUSEMOVE:
         {
             TRACKMOUSEEVENT MouseEvent = { sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwnd, HOVER_DEFAULT };
@@ -549,7 +558,11 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            if ((p = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd))))
+            if (eu_get_config()->m_close_way == IDM_VIEW_TAB_RIGHT_CLICK && KEY_UP(VK_SHIFT))
+            {
+                PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
+            }
+            else if ((p = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd))))
             {
                 return menu_pop_track(eu_module_hwnd(), IDR_TABPAGE_POPUPMENU, 0, 0, on_tabpage_menu_callback, p);
             }

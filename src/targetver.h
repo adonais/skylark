@@ -938,6 +938,8 @@
 #define IDS_LOADLIBRARY_SQL                 43001
 #define IDM_TABPAGE_SAVE                    43002
 
+#define IDM_VIEW_TAB_RIGHT_CLICK            43010
+#define IDM_VIEW_TAB_LEFT_DBCLICK           43011
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 
