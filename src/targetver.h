@@ -944,6 +944,11 @@
 #define IDM_SEARCH_SELECT_HEAD              43020
 #define IDM_SEARCH_SELECT_END               43021
 
+#define IDD_VIEWZONE                        43030
+#define IDD_VIEWZONE_CLASSIC                43031
+#define IDC_VIEWZONE_CANVAS                 43032
+#define IDD_DOCUMENTMAP                     43033
+
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 

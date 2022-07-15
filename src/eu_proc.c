@@ -272,7 +272,7 @@ eu_create_fullscreen(HWND hwnd)
 static void
 on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
 {
-    int  number = 11;
+    int  number = 10;
     RECT rc = {0};
     RECT rect_treebar = {0};
     RECT rect_tabbar = {0};
@@ -362,12 +362,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         }
         if (document_map_initialized && hwnd_document_map)
         {
-            eu_tabpage *pedit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
-            if (pedit && pedit->hwnd_sc)
-            {
-                DeferWindowPos(hdwp, pedit->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                DeferWindowPos(hdwp, hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
+            DeferWindowPos(hdwp, hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
         }
     }
     else if (pnode->map_show && document_map_initialized)
@@ -379,29 +374,15 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         {
             DeferWindowPos(hdwp, hwnd_document_map, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
                            pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
-            pedit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
         }
-        if (pedit && pedit->hwnd_sc)
+        if ((pedit = on_map_edit()) && pedit->hwnd_sc)
         {
-            int width = pnode->rect_map.right - pnode->rect_map.left;
-            if (width > DOCUMENTMAP_WIDTH_DEF)
-            {
-                width = DOCUMENTMAP_WIDTH_DEF;
-            }
-            else if (width <= DOCUMENTMAP_WIDTH_DEF && width > DOCUMENTMAP_WIDTH_MIN + 50)
-            {
-                width = eu_int_cast(width * 0.9);
-            }
-            DeferWindowPos(hdwp, pedit->hwnd_sc, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
-                           width, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
-            DeferWindowPos(hdwp, hwnd_document_static, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
-                           width, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
             on_map_reload(pedit);
         }
     }
     else
     {
-        DeferWindowPos(hdwp, g_splitter_symbar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
         if (pnode->hwnd_symlist)
         {
             DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
@@ -412,12 +393,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         }
         if (document_map_initialized && hwnd_document_map)
         {
-            eu_tabpage *pedit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
-            if (pedit && pedit->hwnd_sc)
-            {
-                DeferWindowPos(hdwp, pedit->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                DeferWindowPos(hdwp, hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
+            DeferWindowPos(hdwp, hwnd_document_map, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
         }
     }
     if (eu_get_config()->m_statusbar)
@@ -1371,9 +1347,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_NOTIFY:
+        {
             lpnmhdr = (NMHDR *) lParam;
             lpnotify = (SCNotification *) lParam;
             p_tips = (TOOLTIPTEXT *) lParam;
+            eu_tabpage *pview = NULL;
             if (lpnmhdr->hwndFrom == g_filetree)
             {
                 SendMessage(g_filetree, WM_NOTIFY, wParam, lParam);
@@ -1384,6 +1362,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
             if (pnode->presult && pnode->presult->hwnd_sc && lpnmhdr->hwndFrom == pnode->presult->hwnd_sc)
+            {
+                break;
+            }
+            if ((pview = on_map_edit()) && pview->hwnd_sc && lpnmhdr->hwndFrom == pview->hwnd_sc)
             {
                 break;
             }
@@ -1610,6 +1592,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
             }
             break;
+        }
         case WM_COPYDATA:
         {
             size_t rel_len = 0;
@@ -1658,6 +1641,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (hwnd_clip && IsWindow(hwnd_clip))
             {
                 on_toolbar_setpos_clipdlg(hwnd_clip, hwnd);
+            }
+            if (document_map_initialized && hwnd_document_map)
+            {
+                PostMessage(hwnd_document_map, WM_MOVE, 0, 0);
             }
             break;
         }

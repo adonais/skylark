@@ -667,7 +667,7 @@ on_search_select_se(eu_tabpage *pnode, uint16_t id)
 		{
 			sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
 			sel_end = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-		} 
+		}
 		else if (id == IDM_SEARCH_SELECT_HEAD)
 	    {
 			sel_start = 0;

@@ -455,10 +455,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
                 }
-                if (wParam == VK_LBUTTON)
-                {
-                    printf("VK_LBUTTON msg coming\n");
-                }
             }
             break;
         }
@@ -569,11 +565,11 @@ on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 }
 
 int
-on_sci_create(eu_tabpage *pnode, int flags, WNDPROC sc_callback)
+on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback)
 {
     EU_VERIFY(pnode != NULL);
     int exflags = flags ? flags : WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
-    pnode->hwnd_sc = CreateWindowEx(0, TEXT("Scintilla"), TEXT(""), exflags, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
+    pnode->hwnd_sc = CreateWindowEx(0, TEXT("Scintilla"), TEXT(""), exflags, 0, 0, 0, 0, parent ? parent : eu_module_hwnd(), 0, eu_module_handle(), 0);
     if (pnode->hwnd_sc == NULL)
     {
         MSG_BOX(IDC_MSG_SCINTILLA_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -600,7 +596,7 @@ on_sci_create(eu_tabpage *pnode, int flags, WNDPROC sc_callback)
 int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
-    return on_sci_create(pnode, 0, NULL);
+    return on_sci_create(pnode, NULL, 0, NULL);
 }
 
 void
