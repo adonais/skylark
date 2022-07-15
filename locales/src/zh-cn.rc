@@ -158,6 +158,8 @@ BEGIN
             MENUITEM "全选(&A)",                                IDM_SEARCH_SELECTALL
             MENUITEM "选择单词组(&W)",                          IDM_SEARCH_SELECTWORD
             MENUITEM "选择行(&L)",                              IDM_SEARCH_SELECTLINE
+            MENUITEM "选择到文档开头",                          IDM_SEARCH_SELECT_HEAD
+            MENUITEM "选择到文档结尾",                          IDM_SEARCH_SELECT_END
         END
         POPUP "高级选择",                                       IDM_EDIT_PLACEHOLDE11
         BEGIN

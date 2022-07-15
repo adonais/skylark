@@ -79,6 +79,7 @@ void on_search_move_to_bottom_block(eu_tabpage *pnode);
 void on_search_select_all(eu_tabpage *pnode);
 void on_search_select_word(eu_tabpage *pnode);
 void on_search_select_line(eu_tabpage *pnode);
+void on_search_select_se(eu_tabpage *pnode, uint16_t id);
 void on_search_select_left_word(eu_tabpage *pnode);
 void on_search_select_right_word(eu_tabpage *pnode);
 void on_search_select_left_group(eu_tabpage *pnode);

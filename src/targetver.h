@@ -940,6 +940,10 @@
 
 #define IDM_VIEW_TAB_RIGHT_CLICK            43010
 #define IDM_VIEW_TAB_LEFT_DBCLICK           43011
+
+#define IDM_SEARCH_SELECT_HEAD              43020
+#define IDM_SEARCH_SELECT_END               43021
+
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 

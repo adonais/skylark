@@ -1061,6 +1061,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_SELECTLINE:
                     on_search_select_line(pnode);
                     break;
+                case IDM_SEARCH_SELECT_HEAD:
+                case IDM_SEARCH_SELECT_END:
+                    on_search_select_se(pnode, wm_id);
+                    break;
                 case IDM_SEARCH_ADDSELECT_LEFT_WORD:
                     on_search_select_left_word(pnode);
                     break;
@@ -1231,6 +1235,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_FAR_RIGHT_TAB:
                     eu_get_config()->m_tab_active = wm_id;
                     break;
+                case IDM_VIEW_TAB_RIGHT_CLICK:
+                case IDM_VIEW_TAB_LEFT_DBCLICK:
+                {
+                    if (eu_get_config()->m_close_way == wm_id)
+                    {
+                        eu_get_config()->m_close_way = 0;
+                    }
+                    else
+                    {
+                        eu_get_config()->m_close_way = wm_id;
+                    }
+                    break;
+                }
                 case IDM_VIEW_ZOOMOUT:
                     on_view_zoom_out(pnode);
                     break;

@@ -650,12 +650,31 @@ on_search_select_line(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t current_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-        sptr_t current_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
-        sptr_t eol_mode = eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
-        eu_sci_call(pnode, SCI_SETSEL, current_start, current_end + (eol_mode == 0 ? 2 : 1));
+        // 支持类似visual studio的单行操作
+        // TAB键增加缩进, Shift+TAB减少缩进
+        eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_LINES, 0);
+    }
+}
+
+void
+on_search_select_se(eu_tabpage *pnode, uint16_t id)
+{
+    if (pnode)
+    {
+		sptr_t sel_start = 0;
+		sptr_t sel_end = 0;
+		if (id == IDM_SEARCH_SELECT_END)
+		{
+			sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+			sel_end = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+		} 
+		else if (id == IDM_SEARCH_SELECT_HEAD)
+	    {
+			sel_start = 0;
+			sel_end =  eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+		}
+		eu_sci_call(pnode, SCI_SETSELECTIONSTART, sel_start, 0);
+		eu_sci_call(pnode, SCI_SETSELECTIONEND, sel_end, 0);
     }
 }
 

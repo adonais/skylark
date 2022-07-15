@@ -168,7 +168,6 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
     TCHAR name[MAX_PATH] = {0};
     if (util_product_name(path, name, MAX_PATH - 1))
     {
-        printf("name = %ls\n", name);
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);

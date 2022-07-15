@@ -158,6 +158,8 @@ BEGIN
             MENUITEM "Select &All",                                    IDM_SEARCH_SELECTALL
             MENUITEM "Select &Word Group",                             IDM_SEARCH_SELECTWORD
             MENUITEM "Select &Line",                                   IDM_SEARCH_SELECTLINE
+            MENUITEM "Select To Document Start",                       IDM_SEARCH_SELECT_HEAD
+            MENUITEM "Select To Document End",                         IDM_SEARCH_SELECT_END            
         END
         POPUP "Advanced Select",                                       IDM_EDIT_PLACEHOLDE11
         BEGIN
