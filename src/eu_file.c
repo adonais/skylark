@@ -267,88 +267,32 @@ on_file_clear_recent(void)
     }
 }
 
-void
-on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname)
+static void
+on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname)
 {
-    const TCHAR *p1 = NULL;
-    const TCHAR *p2 = NULL;
-    const TCHAR *path_base = NULL;
-    const TCHAR *name_base = NULL;
-    TCHAR dri[8] = {0};
-    p1 = _tcschr(full_path, _T(':'));
-    if (p1)
-    {
-        path_base = p1 + 1;
-        _stprintf(dri, _T("%.*s"), (int) (path_base - full_path), full_path);
-    }
-    else
-    {
-        path_base = full_path;
-    }
-    if (dri_name && dri[0])
-    {
-        _tcscpy(dri_name, dri);
-    }
-    p1 = _tcsrchr(path_base, _T('/'));
-    p2 = _tcsrchr(path_base, _T('\\'));
-    if (p1 == NULL && p2 == NULL)
-    {
-        p1 = path_base;
-    }
-    else if (p1 && p2)
-    {
-        if (p1 < p2)
-        {
-            p1 = p2 + 1;
-        }
-        else
-        {
-            p1++;
-        }
-    }
-    else
-    {
-        if (p2)
-        {
-            p1 = p2 + 1;
-        }
-        else
-        {
-            p1++;
-        }
-    }
-    name_base = p1;
-    if (pathname)
-    {
-        _stprintf(pathname, _T("%s%.*s"), dri, (int) (name_base - path_base), path_base);
-    }
-    if (filename)
-    {
-        _tcscpy(filename, name_base);
-    }
-    p1 = _tcsrchr(name_base, _T('.'));
-    if (p1)
-    {
-        if (mainname)
-        {
-            _stprintf(mainname, _T("%.*s"), (int) (p1 - name_base), name_base);
-        }
-        if (extname)
-        {
-            _tcscpy(extname, p1);
-        }
-    }
-    else
-    {
-        if (mainname)
-        {
-            _tcscpy(mainname, name_base);
-        }
-        if (extname)
-        {
-            extname[0] = _T('\0');
-        }
-    }
+    TCHAR drv[_MAX_DRIVE];
+    TCHAR path[_MAX_DIR];
+	TCHAR ext[_MAX_EXT] = {0};
+	TCHAR part[_MAX_FNAME] = {0};
+	TCHAR *ptr_part = mainname ? mainname : part;
+	TCHAR *ptr_ext = extname ? extname : ext;
+	_tsplitpath(full_path, drv, path, ptr_part, ptr_ext);
+	if (pathname)
+	{
+	    *pathname = 0;
+	    if (_tcslen(drv) > 0 && _tcslen(path) > 0)
+		{
+		    _sntprintf(pathname, _MAX_DIR, _T("%s%s"), drv, path);
+		}
+	}
+	if (filename)
+	{
+	    *filename = 0;
+	    if (_tcslen(ptr_part) > 0 || _tcslen(ptr_ext) > 0)
+		{
+		    _sntprintf(filename, _MAX_FNAME, _T("%s%s"), ptr_part, ptr_ext);
+		}
+	}
 }
 
 int
@@ -773,8 +717,6 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
 int
 on_file_only_open(file_backup *pbak, bool selection)
 {
-    TCHAR pathname[MAX_PATH];
-    TCHAR filename[MAX_PATH];
     eu_tabpage *pnode = NULL;
     HANDLE hfile = NULL;
     int res = on_file_open_if(pbak->rel_path, selection);
@@ -790,10 +732,8 @@ on_file_only_open(file_backup *pbak, bool selection)
     {
         pnode->eol = -1;
         pnode->begin_pos = -1;
-        on_file_splite_path(pbak->rel_path, NULL, pathname, filename, NULL, NULL);
+        on_file_splite_path(pbak->rel_path, pnode->pathname, pnode->filename, NULL, pnode->extname);
         _tcsncpy(pnode->pathfile, pbak->rel_path, MAX_PATH - 1);
-        _tcsncpy(pnode->pathname, pathname, MAX_PATH - 1);
-        _tcsncpy(pnode->filename, filename, MAX_PATH - 1);
         // 有可能是远程文件
         if (url_has_remote(pbak->rel_path))
         {
@@ -1134,7 +1074,6 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
     char *cnv = NULL;
     CURL *curl = NULL;
     CURLcode res;
-    TCHAR filename[MAX_PATH];
     TCHAR *full_path = pbak->rel_path;
     eu_tabpage *pnode = NULL;
     remotefs *pserver = premote;
@@ -1158,10 +1097,13 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
     {
         pnode->eol = -1;
         pnode->begin_pos = -1;
-        on_file_splite_path(full_path, NULL, NULL, filename, NULL, NULL);
+        _tsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
+        if (_tcslen(pnode->extname) > 0)
+        {
+            _tcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+        }
         memcpy(&(pnode->fs_server), pserver, sizeof(remotefs));
         _tcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
-        _tcsncpy(pnode->filename, filename, MAX_PATH - 1);
     }
     if ((cnv = eu_utf16_utf8(full_path, NULL)) == NULL)
     {
@@ -1401,21 +1343,23 @@ on_file_save(eu_tabpage *pnode, bool save_as)
     else if (pnode->is_blank || save_as)
     {
         TCHAR full_path[MAX_PATH] = {0};
-        TCHAR filename[MAX_PATH] = {0};
         _tcsncpy(full_path, pnode->filename, MAX_PATH);
         if (on_file_get_filename_dlg(full_path, _countof(full_path)))
         {
             err = EUE_LOCAL_FILE_ERR;
             goto SAVE_FINAL;
         }
-        on_file_splite_path(full_path, NULL, NULL, filename, NULL, NULL);
+        _tsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
+        if (_tcslen(pnode->extname) > 0)
+        {
+            _tcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+        }        
         if (on_file_do_write(pnode, full_path, false, true))
         {
             err = EUE_WRITE_FILE_ERR;
             goto SAVE_FINAL;
         }
         _tcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
-        _tcsncpy(pnode->filename, filename, MAX_PATH - 1);
         // 有可能是远程服务器文件, 清除网址
         pnode->fs_server.networkaddr[0] = 0;
         on_file_update_time(pnode, 0);

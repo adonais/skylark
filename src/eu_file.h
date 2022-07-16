@@ -104,7 +104,6 @@ void on_file_edit_exit(HWND hwnd);
 void on_file_edit_restart(HWND hwnd);
 void on_file_restore_recent(void);
 void on_file_close_last_tab(void);
-void on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname);
 uint64_t __stdcall on_file_get_avail_phys(void);
 
 #ifdef __cplusplus

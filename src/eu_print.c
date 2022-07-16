@@ -61,8 +61,12 @@ on_print_file_info(LPCTSTR path, DWORD attr, SHFILEINFO *psfi, uint32_t cb_info,
     if (_taccess(path, 0) != -1)
     {
         TCHAR filename[MAX_PATH] = { 0 };
-        TCHAR extname[MAX_PATH] = { 0 };
-        on_file_splite_path(path, NULL, NULL, filename, NULL, extname);
+        TCHAR extname[_MAX_EXT] = { 0 };
+        _tsplitpath(path, NULL, NULL, filename, extname);
+        if (_tcslen(extname) > 0)
+        {
+            _tcsncat(filename, extname, MAX_PATH-1);
+        }
         dw = SHGetFileInfo(path, attr, psfi, cb_info, flags);
         if (_tcslen(psfi->szDisplayName) < _tcslen(filename))
         {
