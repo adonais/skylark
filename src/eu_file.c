@@ -272,27 +272,27 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TC
 {
     TCHAR drv[_MAX_DRIVE];
     TCHAR path[_MAX_DIR];
-	TCHAR ext[_MAX_EXT] = {0};
-	TCHAR part[_MAX_FNAME] = {0};
-	TCHAR *ptr_part = mainname ? mainname : part;
-	TCHAR *ptr_ext = extname ? extname : ext;
-	_tsplitpath(full_path, drv, path, ptr_part, ptr_ext);
-	if (pathname)
-	{
-	    *pathname = 0;
-	    if (_tcslen(drv) > 0 && _tcslen(path) > 0)
-		{
-		    _sntprintf(pathname, _MAX_DIR, _T("%s%s"), drv, path);
-		}
-	}
-	if (filename)
-	{
-	    *filename = 0;
-	    if (_tcslen(ptr_part) > 0 || _tcslen(ptr_ext) > 0)
-		{
-		    _sntprintf(filename, _MAX_FNAME, _T("%s%s"), ptr_part, ptr_ext);
-		}
-	}
+    TCHAR ext[_MAX_EXT] = {0};
+    TCHAR part[_MAX_FNAME] = {0};
+    TCHAR *ptr_part = mainname ? mainname : part;
+    TCHAR *ptr_ext = extname ? extname : ext;
+    _tsplitpath(full_path, drv, path, ptr_part, ptr_ext);
+    if (pathname)
+    {
+        *pathname = 0;
+        if (_tcslen(drv) > 0 && _tcslen(path) > 0)
+        {
+            _sntprintf(pathname, _MAX_DIR, _T("%s%s"), drv, path);
+        }
+    }
+    if (filename)
+    {
+        *filename = 0;
+        if (_tcslen(ptr_part) > 0 || _tcslen(ptr_ext) > 0)
+        {
+            _sntprintf(filename, _MAX_FNAME, _T("%s%s"), ptr_part, ptr_ext);
+        }
+    }
 }
 
 int
@@ -1353,7 +1353,7 @@ on_file_save(eu_tabpage *pnode, bool save_as)
         if (_tcslen(pnode->extname) > 0)
         {
             _tcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
-        }        
+        }
         if (on_file_do_write(pnode, full_path, false, true))
         {
             err = EUE_WRITE_FILE_ERR;

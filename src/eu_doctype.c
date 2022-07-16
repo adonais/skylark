@@ -714,7 +714,6 @@ on_doc_init_after_cpp(eu_tabpage *pnode)
     // Disable track preprocessor to avoid incorrect detection.
     // In the most of cases, the symbols are defined outside of file.
     eu_sci_call(pnode, SCI_SETPROPERTY, (WPARAM)("lexer.cpp.track.preprocessor"), (LPARAM)"0");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_C_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
@@ -739,7 +738,6 @@ int
 on_doc_init_after_cs(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cpp");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -760,7 +758,6 @@ int
 on_doc_init_after_java(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cpp");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -781,7 +778,6 @@ int
 on_doc_init_after_go(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cpp");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -802,7 +798,6 @@ int
 on_doc_init_after_swift(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cpp");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -823,7 +818,6 @@ int
 on_doc_init_after_sql(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "sql");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_SQL_WORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_SQL_WORD2,1, 0);
     on_doc_char_light(pnode, SCE_SQL_CHARACTER, 0);
@@ -841,7 +835,6 @@ int
 on_doc_init_after_redis(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cpp");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_enable_foldline(pnode);
     on_doc_setup_symtree_theme(pnode);
@@ -852,7 +845,6 @@ int
 on_doc_init_after_python(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "python");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_P_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_P_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_P_STRING, 0);
@@ -876,7 +868,6 @@ int
 on_doc_init_after_lua(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "lua");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_LUA_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_LUA_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_LUA_STRING, 0);
@@ -897,7 +888,6 @@ int
 on_doc_init_after_perl(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "perl");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_PL_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_PL_STRING, 0);
     on_doc_char_light(pnode, SCE_PL_CHARACTER, 0);
@@ -919,7 +909,6 @@ on_doc_init_after_shell(eu_tabpage *pnode)
     if (sp && _tcsstr(_T(";*.ps1;*.psc1;*.psd1;*.psm1;"), sp))
     {
         on_doc_key_scilexer(pnode, "powershell");
-        on_doc_color_customizes(pnode);
         on_doc_keyword_light(pnode, SCE_POWERSHELL_KEYWORD, 0, 0);
         on_doc_keyword_light(pnode, SCE_POWERSHELL_CMDLET, 7, 0);
         on_doc_operator_light(pnode, SCE_POWERSHELL_OPERATOR, 0);
@@ -931,7 +920,6 @@ on_doc_init_after_shell(eu_tabpage *pnode)
     else
     {
         on_doc_key_scilexer(pnode, "bash");
-        on_doc_color_customizes(pnode);
         on_doc_keyword_light(pnode, SCE_SH_WORD, 0, 0);
         on_doc_string_light(pnode, SCE_SH_STRING, 0);
         on_doc_char_light(pnode, SCE_SH_CHARACTER, 0);
@@ -976,7 +964,6 @@ on_doc_init_after_shell_sh(eu_tabpage *pnode)
     if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
     {
         on_doc_key_scilexer(pnode, "batch");
-        on_doc_color_customizes(pnode);
         on_doc_default_light(pnode, SCE_BAT_DEFAULT, 0, -1, false);
         on_doc_keyword_light(pnode, SCE_BAT_WORD, 0, 0);
         on_doc_keyword_light(pnode, SCE_BAT_COMMAND, 1, 0);
@@ -994,7 +981,6 @@ int
 on_doc_init_after_rust(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "rust");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_RUST_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_RUST_WORD2, 1, 0);
     on_doc_function_light(pnode, SCE_RUST_MACRO, 2, 0);
@@ -1018,7 +1004,6 @@ int
 on_doc_init_after_ruby(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "ruby");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_RB_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_RB_WORD_DEMOTED, 1, 0);
     on_doc_string_light(pnode, SCE_RB_STRING, 0);
@@ -1038,7 +1023,6 @@ int
 on_doc_init_after_lisp(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "lisp");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_LISP_KEYWORD, 0, 0);
     on_doc_string_light(pnode, SCE_LISP_STRING, 0);
     on_doc_number_light(pnode, SCE_LISP_NUMBER, 0);
@@ -1057,7 +1041,6 @@ int
 on_doc_init_after_asm(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "asm");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_ASM_CPUINSTRUCTION, 0, 0);
     on_doc_keyword_light(pnode, SCE_ASM_MATHINSTRUCTION, 0, 0);
     on_doc_keyword_light(pnode, SCE_ASM_REGISTER, 1, 0);
@@ -1079,7 +1062,6 @@ int
 on_doc_init_after_nim(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "nim");
-    on_doc_color_customizes(pnode);
     on_doc_default_light(pnode, SCE_NIM_DEFAULT, 0, -1, false);
     on_doc_keyword_light(pnode, SCE_NIM_WORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_NIM_NUMERROR, 8, 0);
@@ -1107,7 +1089,6 @@ int
 on_doc_init_after_cobol(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "COBOL");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_C_UUID, 0, 0);
     on_doc_function_light(pnode, SCE_C_WORD2, 1, 0);
@@ -1131,7 +1112,6 @@ on_doc_init_after_html(eu_tabpage *pnode)
 {
     int style = 0;
     on_doc_key_scilexer(pnode, "hypertext");
-    on_doc_color_customizes(pnode);
     on_doc_tags_light(pnode, SCE_H_TAG, 0);
     on_doc_keyword_light(pnode, SCE_H_ENTITY, 2, 0);
     on_doc_keyword_light(pnode, SCE_H_ATTRIBUTE, 4, 0);
@@ -1226,7 +1206,6 @@ int
 on_doc_init_after_css(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "css");
-    on_doc_color_customizes(pnode);
     on_doc_string_light(pnode, SCE_CSS_DOUBLESTRING, 0);
     on_doc_char_light(pnode, SCE_CSS_SINGLESTRING, 0);
     on_doc_operator_light(pnode, SCE_CSS_OPERATOR, 0);
@@ -1245,7 +1224,6 @@ int
 on_doc_init_after_js(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cpp");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
     on_doc_char_light(pnode, SCE_C_CHARACTER, 0);
@@ -1266,7 +1244,6 @@ int
 on_doc_init_after_xml(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "xml");
-    on_doc_color_customizes(pnode);
     on_doc_tags_light(pnode, SCE_H_TAG, 0);
     on_doc_keyword_light(pnode, SCE_H_TAGUNKNOWN, 8, 0);
     on_doc_keyword_light(pnode, SCE_H_ATTRIBUTE, 4, 0);
@@ -1287,7 +1264,6 @@ int
 on_doc_init_after_json(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "json");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_JSON_PROPERTYNAME, 4, 0);
     on_doc_keyword_light(pnode, SCE_JSON_LDKEYWORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_JSON_ERROR, 3, 0);
@@ -1310,7 +1286,6 @@ int
 on_doc_init_after_yaml(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "yaml");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_YAML_IDENTIFIER, 4, 0);
     on_doc_keyword_light(pnode, SCE_YAML_ERROR, 3, 0);
     on_doc_keyword_light(pnode, SCE_YAML_KEYWORD, 0, 0);
@@ -1326,7 +1301,6 @@ int
 on_doc_init_after_makefile(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "makefile");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_MAKE_IDENTIFIER, 4, 0);
     on_doc_comment_light(pnode, SCE_MAKE_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_MAKE_OPERATOR, 0);
@@ -1341,7 +1315,6 @@ int
 on_doc_init_after_diff(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "diff");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_DIFF_COMMAND, 4, 0);
     on_doc_comment_light(pnode, SCE_DIFF_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_DIFF_PATCH_ADD, 0);
@@ -1356,7 +1329,6 @@ int
 on_doc_init_after_cmake(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cmake");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_CMAKE_COMMANDS, 0, 0);
     on_doc_preprocessor_light(pnode, SCE_CMAKE_IFDEFINEDEF, -1, 0);
     on_doc_preprocessor_light(pnode, SCE_CMAKE_MACRODEF, -1, 0);
@@ -1377,7 +1349,6 @@ int
 on_doc_init_after_log(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "fcST");
-    on_doc_color_customizes(pnode);
     on_doc_keyword_light(pnode, SCE_STTXT_KEYWORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_STTXT_TYPE, 8, 0);
     on_doc_number_light(pnode, SCE_STTXT_DATETIME, 0);
@@ -1391,7 +1362,6 @@ int
 on_doc_init_after_properties(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "props");
-    on_doc_color_customizes(pnode);
     on_doc_default_light(pnode, SCE_PROPS_DEFAULT, 0, -1, false);
     on_doc_keyword_light(pnode, SCE_PROPS_KEY, 0, 0);
     on_doc_commentblock_light(pnode, SCE_PROPS_COMMENT, 0);

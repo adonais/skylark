@@ -461,7 +461,7 @@ on_view_update_fold(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p && p->doc_ptr && p->doc_ptr->fn_init_after)
+        if (p && p->doc_ptr && p->foldline)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0);
         }

@@ -646,7 +646,7 @@ on_toolbar_update_env(eu_tabpage *pnode)
         if (sel_str && out2 > 0 && out2 < _MAX_ENV)
         {
             psel = eu_utf8_utf16(sel_str, &out2);
-        }        
+        }
         _tsplitpath(pnode->filename, NULL, NULL, file_part, NULL);
         for (int i = 0; env_name[i]; ++i)
         {
@@ -654,17 +654,17 @@ on_toolbar_update_env(eu_tabpage *pnode)
             {
                 case 0:
                 {
-                    SetEnvironmentVariable(env_name[i], pnode->pathfile); 
+                    SetEnvironmentVariable(env_name[i], pnode->pathfile);
                     break;
                 }
                 case 1:
                 {
-                    SetEnvironmentVariable(env_name[i], pnode->pathname);      
+                    SetEnvironmentVariable(env_name[i], pnode->pathname);
                     break;
                 }
                 case 2:
                 {
-                    SetEnvironmentVariable(env_name[i], pnode->filename);        
+                    SetEnvironmentVariable(env_name[i], pnode->filename);
                     break;
                 }
                 case 3:
@@ -686,7 +686,7 @@ on_toolbar_update_env(eu_tabpage *pnode)
                 {
                     SetEnvironmentVariable(env_name[i], psel ? psel : _T(""));
                     break;
-                }                
+                }
                 default:
                     break;
             }

@@ -77,7 +77,9 @@ enum dctype
     DOCTYPE_YAML = 34,
     DOCTYPE_CAML = 35,
     DOCTYPE_MATLAB = 36,
-    DOCTYPE_CONFIGS = 37
+    DOCTYPE_CONFIGS = 37,
+    DOCTYPE_VB = 38,
+    DOCTYPE_VBS = 39
 };
 
 typedef struct _doc_styles
