@@ -56,7 +56,7 @@ int  on_treebar_load_remote(HWND hwnd, remotefs *pserver);
 int  on_treebar_locate_path(TCHAR *pathname);
 int  on_treebar_create_box(HWND hwnd);
 int  on_treebar_create_dlg(HWND hwnd);
-
+int  on_treebar_refresh_node(HTREEITEM hti_parent);
 bool on_treebar_variable_initialized(HWND *pd);
 void on_treebar_wait_hwnd(void);
 void on_treebar_update_addr(remotefs *pserver);

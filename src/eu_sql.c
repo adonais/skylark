@@ -178,6 +178,34 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
     return rc;
 }
 
+int
+on_sqlite3_post(const char *sql, sql3_callback callback, void *data)
+{
+    int rc = SQLITE_ERROR;
+    TCHAR path[MAX_PATH] = {0};
+    char *sql_path = NULL;
+    _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
+    {
+        uintptr_t db = 0;
+        if ((db = init_sql_file(sql_path)) > 0)
+        {
+            char *err = NULL;
+            if ((rc = sqlite3_exec((sqlite3 *)db, sql, callback, data, &err)))
+            {
+                if (err)
+                {
+                    printf("%s failed, cause: %s\n", __FUNCTION__, err);
+                    sqlite3_free(err);
+                }
+            }
+            sqlite3_close((sqlite3 *)db);
+        }
+        free(sql_path);
+    }
+    return rc;
+}
+
 void
 eu_push_find_history(const char *key)
 {

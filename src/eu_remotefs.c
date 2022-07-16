@@ -609,7 +609,10 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 static int
 on_remote_parser_callback(void *data, int count, char **column, char **names)
 {
-    *(int *)data = 0;
+    if ((int *)data)
+    {
+        *(int *)data = 0;
+    }
     remotefs *pserver = (remotefs *) calloc(1, sizeof(remotefs));
     if (!pserver)
     {
@@ -680,8 +683,11 @@ on_remote_list_find(const TCHAR *url)
             return NULL;
         }
     }
-    printf("addr = %s, port = %s\n", addr, port);
-    on_treebar_wait_hwnd();
+	printf("addr = %s, port = %s\n", addr, port);
+    if (list_empty(&list_server))
+    {
+        on_sqlite3_post("SELECT * FROM file_remote;", on_remote_parser_callback, NULL);
+    }
     list_for_each_safe(pos, n, &list_server)
     {
         tmp = list_entry(pos, remotefs, node_server);

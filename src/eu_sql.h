@@ -29,6 +29,7 @@ extern "C"
 //
 void on_sql_delete_backup_row(eu_tabpage *pnode);
 void on_sql_delete_backup_row_thread(eu_tabpage *pnode);
+int  on_sqlite3_post(const char *sql, sql3_callback callback, void *data);
 
 #ifdef __cplusplus
 }
