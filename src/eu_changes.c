@@ -376,24 +376,19 @@ on_changes_window(HWND hwnd)
         TCITEM tci = { TCIF_PARAM };
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p && !p->hex_mode && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime)
+        if (p && !p->hex_mode && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
         {
-            time_t ftime = util_last_time(p->pathfile);
-            if (ftime && p->st_mtime != util_last_time(p->pathfile))
+            on_tabpage_selection(p, index);
+            if (_taccess(p->pathfile, 0) == -1)
             {
-                printf("p->st_mtime = %I64u, ftime = %I64u\n", p->st_mtime, ftime);
-                on_tabpage_selection(p, index);
-                if (_taccess(p->pathfile, 0) == -1)
-                {
-                    if (!set_delete_event(p))
-                    {
-                        break;
-                    }
-                }
-                else if (!set_time_event(p))
+                if (!set_delete_event(p))
                 {
                     break;
                 }
+            }
+            else if (!set_time_event(p))
+            {
+                break;
             }
         }
     }
