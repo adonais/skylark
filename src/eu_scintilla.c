@@ -254,6 +254,11 @@ on_sci_free_tab(eu_tabpage **ppnode)
         cvector_free((*ppnode)->pvec);
         (*ppnode)->pvec = NULL;
     }
+    if (!on_tabpage_check_map() && hwnd_document_map)
+    {
+        DestroyWindow(hwnd_document_map);
+        printf("we destroy hwnd_docment_map\n");
+    }
     if (!(*ppnode)->phex)
     {
         if ((*ppnode)->hwnd_sc)

@@ -111,7 +111,7 @@ void on_tabpage_changing(HWND hwnd);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
-
+bool on_tabpage_check_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);
 eu_tabpage *on_tabpage_select_index(int index);

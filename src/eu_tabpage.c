@@ -979,6 +979,20 @@ on_tabpage_theme_changed(eu_tabpage *p)
     return 0;
 }
 
+bool
+on_tabpage_check_map(void)
+{
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && p->map_show)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void
 on_tabpage_foreach(tab_ptr fntab)
 {
