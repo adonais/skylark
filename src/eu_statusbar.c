@@ -36,7 +36,6 @@ static HMENU g_menu_code;
 static HMENU g_menu_type;
 static HFONT hfont_btn;
 static int g_status_height;
-static const int sub_id = 0x43;
 
 char iconv_undo_str[ACNAME_LEN] = {0};
 
@@ -203,16 +202,15 @@ on_statusbar_refresh(void)
 {
     if (g_statusbar)
     {
-        {
-            HWND hwnd = eu_module_hwnd();
-            RECT rc_main = {0};
-            GetWindowRect(hwnd, &rc_main);
-            int cx = rc_main.right - rc_main.left;
-            int n_half = cx / 8;
-            int parts[] = { n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, n_half*7+70, -1 };
-            SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
-            on_statusbar_adjust_btn();
-        }
+        HWND hwnd = eu_module_hwnd();
+        RECT rc_main = {0};
+        GetWindowRect(hwnd, &rc_main);
+        int cx = rc_main.right - rc_main.left;
+        int n_half = cx / 8;
+        int parts[] = { n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, n_half*7+70, -1 };
+        SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
+        on_statusbar_adjust_btn();
+        InvalidateRect(g_statusbar, NULL, 1);
     }
 }
 
@@ -378,7 +376,7 @@ on_statusbar_update_btn(HWND hwnd)
 }
 
 static LRESULT CALLBACK
-stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
+stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
     eu_tabpage *pnode = NULL;
     switch (message)
@@ -631,30 +629,37 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSu
             }
             break;
         }
+        case WM_NCDESTROY:
+        {
+            RemoveWindowSubclass(hwnd, stbar_proc, sub_id);
+            break;
+        }
         case WM_DESTROY:
         {
-            if (g_menu_break)
+            if (g_statusbar)
             {
-                DestroyMenu(g_menu_break);
+                if (g_menu_break)
+                {
+                    DestroyMenu(g_menu_break);
+                }
+                if (g_menu_code)
+                {
+                    DestroyMenu(g_menu_code);
+                }
+                if (g_menu_type)
+                {
+                    DestroyMenu(g_menu_type);
+                }
+                DestroyWindow(GetDlgItem(hwnd, IDM_BTN_1));
+                DestroyWindow(GetDlgItem(hwnd, IDM_BTN_2));
+                if (hfont_btn)
+                {
+                    DeleteObject(hfont_btn);
+                    hfont_btn = NULL;
+                }
+                g_statusbar = NULL;
+                printf("statusbar WM_DESTROY\n");                
             }
-            if (g_menu_code)
-            {
-                DestroyMenu(g_menu_code);
-            }
-            if (g_menu_type)
-            {
-                DestroyMenu(g_menu_type);
-            }
-            DestroyWindow(GetDlgItem(hwnd, IDM_BTN_1));
-            DestroyWindow(GetDlgItem(hwnd, IDM_BTN_2));
-            if (hfont_btn)
-            {
-                DeleteObject(hfont_btn);
-                hfont_btn = NULL;
-            }
-            RemoveWindowSubclass(hwnd, stbar_proc, sub_id);
-            g_statusbar = NULL;
-            printf("statusbar WM_DESTROY\n");
             break;
         }
         default:
@@ -988,7 +993,7 @@ on_statusbar_init(HWND hwnd)
         {
             break;
         }
-        if (!(SetWindowSubclass(g_statusbar, stbar_proc, sub_id, 0)))
+        if (!(SetWindowSubclass(g_statusbar, stbar_proc, STATUSBAR_SUBID, 0)))
         {
             break;
         }

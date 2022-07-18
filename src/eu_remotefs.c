@@ -269,7 +269,7 @@ on_remote_server_browser(HWND hdlg)
 }
 
 static LRESULT CALLBACK
-remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
+remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
     switch(msg)
     {
@@ -317,7 +317,7 @@ remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR
         }
         case WM_NCDESTROY:
         {
-            RemoveWindowSubclass(hwnd, remotefs_combox_proc, uIdSubClass);
+            RemoveWindowSubclass(hwnd, remotefs_combox_proc, sub_id);
             break;
         }
     }
@@ -340,11 +340,6 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_INITDIALOG:
         {
             HWND box_protocol = NULL;
-            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SMALL));
-            if (m_icon)
-            {
-                SetClassLongPtr(hdlg, GCLP_HICONSM, (LONG_PTR)m_icon);
-            }
             LOAD_I18N_RESSTR(IDC_MSG_DIR_HOME, m_home);
             LOAD_I18N_RESSTR(IDC_MSG_DIR_ROOT, m_root);
             server_box = GetDlgItem(hdlg, IDC_REMOTE_FILESERVERS_LISTBOX);
@@ -366,8 +361,8 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             ComboBox_AddString(box_access, m_root);
             ComboBox_SelectString(box_access, -1, m_home);
             SetWindowText(GetDlgItem(hdlg, IDC_NETWORK_PORT_EDIT), _T("22"));
-            SetWindowSubclass(box_protocol, remotefs_combox_proc, 0, 0);
-            SetWindowSubclass(box_access, remotefs_combox_proc, 0, 0);
+            SetWindowSubclass(box_protocol, remotefs_combox_proc, REMOTEFS_PROTOCOL_SUBID, 0);
+            SetWindowSubclass(box_access, remotefs_combox_proc, REMOTEFS_ACCESS_SUBID, 0);
             REMOTEFS_HANDLE(hdlg, IDC_PRIVATE_FILE, SW_HIDE);
             REMOTEFS_HANDLE(hdlg, IDC_LOGIN_PASSPHRASE_EDIT, SW_HIDE);
             REMOTEFS_HANDLE(hdlg, IDC_LOGIN_PRIVATE_EDIT, SW_HIDE);

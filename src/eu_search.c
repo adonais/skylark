@@ -1596,7 +1596,7 @@ on_search_combo_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 static LRESULT WINAPI
-on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
+on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
     switch(msg)
     {
@@ -1623,24 +1623,16 @@ on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR 
             rcf.left = rc.right - 24;  // rc.right - 24 exclude DROPDOWN_BUTTUON
             TCHAR text[] = {0x2B9F, 0};
             DrawText(hdc, text, (int)_tcslen(text), &rcf, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
-            HGDIOBJ newbrush = SelectObject(hdc, oldpen);
-            HGDIOBJ newpen = SelectObject(hdc, oldbrush);
+            SelectObject(hdc, oldpen);
+            SelectObject(hdc, oldbrush);
             DeleteObject(brush);
             DeleteObject(pen);
-            if (newbrush)
-            {
-                DeleteObject(newbrush);
-            }
-            if (newpen)
-            {
-                DeleteObject(newpen);
-            }
             EndPaint(hwnd, &ps);
             return 0;
         }
         case WM_NCDESTROY:
         {
-            RemoveWindowSubclass(hwnd, on_search_combo_wnd, uIdSubClass);
+            RemoveWindowSubclass(hwnd, on_search_combo_wnd, sub_id);
             break;
         }
         default:
@@ -2979,7 +2971,7 @@ on_search_dark_mode_init(HWND hdlg)
     {
         if ((btn = GetDlgItem(hdlg, cbo_buttons[id])))
         {
-            SetWindowSubclass(btn, on_search_combo_wnd, 0, 0);
+            SetWindowSubclass(btn, on_search_combo_wnd, SEARCH_COMBO_SUBID, 0);
         }
     }
     const int bs_buttons[] = { IDC_MATCH_ALL_FILE,

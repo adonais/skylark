@@ -41,13 +41,12 @@ on_table_update_theme(eu_tabpage *pnode)
 }
 
 static LRESULT CALLBACK
-listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
+listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
     switch (msg)
     {
         case WM_THEMECHANGED:
         {
-            printf("qrtable recv WM_THEMECHANGED\n");
             const intptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
             if (on_dark_enable())
             {
@@ -65,9 +64,9 @@ listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR uIdSubClass, D
             SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
             break;
         }
-        case WM_DESTROY:
+        case WM_NCDESTROY:
         {
-            RemoveWindowSubclass(hwnd, listview_proc, uIdSubClass);
+            RemoveWindowSubclass(hwnd, listview_proc, sub_id);
             printf("qrtable listview WM_DESTROY\n");
             break;
         }
@@ -91,7 +90,7 @@ on_table_create_query_box(eu_tabpage *pnode)
         MSG_BOX(IDC_MSG_QUERY_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return 1;
     }
-    SetWindowSubclass(pnode->hwnd_qrtable, listview_proc, 0, 0);
+    SetWindowSubclass(pnode->hwnd_qrtable, listview_proc, TBCTL_LIST_SUBID, 0);
     ListView_SetExtendedListViewStyle(pnode->hwnd_qrtable, LVS_EX_FLATSB | LVS_EX_DOUBLEBUFFER | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT);
     if (on_dark_supports())
     {

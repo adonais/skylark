@@ -225,12 +225,10 @@ on_map_canvas_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             break;
         }
-
 		case WM_NOTIFY:
 		{
 		    return 1;
 		}
-
         default :
             break;
     }
@@ -294,7 +292,11 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            printf("on_map_static_proc recv WM_DESTROY\n");
+            if (hwnd_document_static)
+            {
+                hwnd_document_static = NULL;
+                printf("on_map_static_proc recv WM_DESTROY\n");
+            }
             break;
         }
         default:
@@ -437,20 +439,24 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
-            if (map_edit)
+            if (hwnd_document_map)
             {
-                if (map_edit->hwnd_sc)
+                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+                if (map_edit)
                 {
-                    DestroyWindow(map_edit->hwnd_sc);
-                    map_edit->hwnd_sc = NULL;
+                    if (map_edit->hwnd_sc)
+                    {
+                        DestroyWindow(map_edit->hwnd_sc);
+                        map_edit->hwnd_sc = NULL;
+                    }
+                    eu_safe_free(map_edit);
+                    SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
                 }
-                eu_safe_free(map_edit);
-                SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+                _InterlockedExchange(&document_map_initialized, 0);
+                on_dark_delete_theme_brush();
+                hwnd_document_map = NULL;
+                printf("on_map_callback WM_DESTROY\n");
             }
-            _InterlockedExchange(&document_map_initialized, 0);
-            on_dark_delete_theme_brush();
-            printf("on_map_callback WM_DESTROY\n");
             break;
         }
         default:
