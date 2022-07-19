@@ -167,6 +167,7 @@ static eue_code eue_coding[] =
 LPTSTR WINAPI
 eu_rand_str(TCHAR *str, const int len)
 {
+    srand((uint32_t)time(0) + GetCurrentProcessId());
     for (int i = 0; i < len; ++i)
     {
         str[i] = _T('A') + rand() % 26;
