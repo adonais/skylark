@@ -301,6 +301,7 @@ BEGIN
             MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
             MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
         END
+        MENUITEM "代码片段",                                    IDM_SOURCE_SNIPPET
         MENUITEM MF_SEPARATOR
         MENUITEM "使用预设动作执行当前文件",                    IDM_PROGRAM_EXECUTE_ACTION
     END
@@ -1124,6 +1125,9 @@ STRINGTABLE DISCARDABLE
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-n : 打开文件时滚动到指定行\n-c : 打开文件时滚动到指定列\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
     IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
+    IDS_SNIPPET_EDT_DEFAULT "片段名称/注释/参数"
+    IDS_SNIPPET_COMBO_DEC   "示例"
+    IDS_SNIPPET_EXAMPLE_DEC "使用 ${n:占位符} 表示光标下一个占位符,\n使用 $0 标记末尾的插入点.\n例如:\nif (${1:true})\n{\n    $0;\n}"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1231,4 +1235,19 @@ BEGIN
     PUSHBUTTON "继续(&C)", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "帮助", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
+END
+
+IDD_SNIPPET_DLG DIALOGEX 10,10,423,258
+CAPTION "代码片段"
+FONT 8,"MS Sans Serif",0,0,0
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+BEGIN
+  CONTROL "",IDC_SNIPPET_LST,"ListBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS|LBS_NOTIFY,3,15,99,222,WS_EX_CLIENTEDGE
+  CONTROL "片段:",IDC_SNIPPET_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE,3,3,69,9
+  CONTROL "语言:",IDC_SNIPPET_STC2,"Static",WS_CHILDWINDOW|WS_VISIBLE,110,3,81,9
+  CONTROL "",IDC_SNIPPET_CBO1,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWNLIST,303,1,117,9
+  CONTROL "删除",IDC_SNIPPET_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,3,240,99,15
+  CONTROL "",IDC_SNIPPET_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_LEFT|ES_AUTOHSCROLL|ES_MULTILINE,110,240,170,15,WS_EX_CLIENTEDGE
+  CONTROL "关闭",IDC_SNIPPET_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,366,240,54,15
+  CONTROL "应用/添加",IDC_SNIPPET_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,288,240,70,15
 END

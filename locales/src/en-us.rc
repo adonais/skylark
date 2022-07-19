@@ -301,6 +301,7 @@ BEGIN
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
         END
+        MENUITEM "Code Snippets",                                      IDM_SOURCE_SNIPPET
         MENUITEM MF_SEPARATOR
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END
@@ -1126,6 +1127,9 @@ STRINGTABLE DISCARDABLE
     IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-n : Scroll to indicated line on file_path\n-c : Scroll to indicated column on file_path\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
     IDS_COMMAND_TITLE       "Skylark Command Help: "
     IDS_LOADLIBRARY_SQL     "#> Start loading database DLL ...\n"
+    IDS_SNIPPET_EDT_DEFAULT "Snippet Name/Comment/Argument"
+    IDS_SNIPPET_COMBO_DEC   "Example"
+    IDS_SNIPPET_EXAMPLE_DEC "Use ${n:PlaceHolder} to mark a placeholder token,\nUse $0 to mark the insertion point at the end.\nExample:\nif (${1:true})\n{\n    $0;\n}"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1233,4 +1237,19 @@ BEGIN
     PUSHBUTTON "&Continue", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "Help", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
+END
+
+IDD_SNIPPET_DLG DIALOGEX 10,10,423,258
+CAPTION "Code Snippets"
+FONT 8,"MS Sans Serif",0,0,0
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+BEGIN
+  CONTROL "",IDC_SNIPPET_LST,"ListBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS|LBS_NOTIFY,3,15,99,222,WS_EX_CLIENTEDGE
+  CONTROL "Snippets:",IDC_SNIPPET_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE,3,3,69,9
+  CONTROL "Language:",IDC_SNIPPET_STC2,"Static",WS_CHILDWINDOW|WS_VISIBLE,110,3,81,9
+  CONTROL "",IDC_SNIPPET_CBO1,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWNLIST,303,1,117,9
+  CONTROL "Delete",IDC_SNIPPET_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,3,240,99,15
+  CONTROL "",IDC_SNIPPET_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_LEFT|ES_AUTOHSCROLL|ES_MULTILINE,110,240,170,15,WS_EX_CLIENTEDGE
+  CONTROL "Close",IDC_SNIPPET_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,366,240,54,15
+  CONTROL "Apply/Add",IDC_SNIPPET_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,288,240,70,15
 END

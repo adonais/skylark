@@ -30,8 +30,6 @@ extern "C"
 
 typedef int (*tab_ptr)(eu_tabpage *p);
 
-extern HWND  g_tabpages;
-
 typedef struct _result_postion {
     intptr_t start;
     intptr_t end;
@@ -83,6 +81,7 @@ struct _tabpage
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
+    volatile long want;         // 标签引用计数器
     size_t bytes_remaining;     // 文件变动后的大小
     size_t bytes_written;       // 文件保存时写入的长度
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
@@ -94,6 +93,8 @@ struct _tabpage
     int zoom_level;             // 标签页的放大倍数
     result_vec *pvec;           // 临时保存行号
 };
+
+extern HWND g_tabpages;
 
 int  on_tabpage_create_dlg(HWND hwnd);
 int  on_tabpage_add(eu_tabpage *pnode);

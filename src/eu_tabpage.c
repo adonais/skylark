@@ -27,7 +27,6 @@
 #define CY_ICON  16
 
 HWND g_tabpages = NULL;
-
 static WNDPROC old_tabproc = NULL;
 static bool tab_drag = false;
 static volatile int tab_move_from = -1;
@@ -543,6 +542,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_tabpage_exchange_item(tab_move_from, index);
                 }
             }
+            tab_drag = false;
             break;
         }
         case WM_RBUTTONDOWN:

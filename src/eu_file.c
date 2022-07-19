@@ -654,7 +654,8 @@ on_file_other_tab(int index)
     {   // 最后一个标签
         if (!eu_get_config()->m_exit)
         {
-            on_file_new();
+            file_backup bak = {0};
+            share_send_msg(&bak);
         }
         else
         {

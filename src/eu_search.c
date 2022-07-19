@@ -2309,7 +2309,7 @@ on_search_found_list(HWND hwnd)
                 pnode->result_show = true;
                 eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
                 eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-                eu_window_resize(NULL);
+                on_proc_resize(NULL);
                 char *u8_key = eu_utf16_utf8(key, NULL);
                 if (u8_key)
                 {

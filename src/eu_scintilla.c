@@ -209,77 +209,127 @@ on_sci_resever_tab(eu_tabpage *pnode)
     }
 }
 
+static void
+share_spinlock_wait(volatile long *plock)
+{
+    uint64_t spin_count = 0;
+    while (_InterlockedCompareExchange(&plock, 0, 0) != 0)
+    {
+        // 防止循环太忙
+        if (spin_count < 32)
+        {
+            Sleep(0);
+        }
+        else
+        {
+            Sleep(1);
+        }
+        ++spin_count;
+    }
+}
+
+static unsigned __stdcall
+on_scintilla_delayed_thread(void *lp)
+{
+    eu_tabpage **ppnode = (eu_tabpage **)lp;
+    share_spinlock_wait(&((*ppnode)->want));
+    eu_safe_free(ppnode);
+    return 0;
+}
+
+static void
+on_scintilla_delayed_des(HWND hwnd, eu_tabpage **ppnode)
+{
+    uint32_t thr = GetCurrentThreadId();
+    uint32_t main_id = GetWindowThreadProcessId(hwnd, NULL);
+    if (thr != main_id)
+    {
+        share_spinlock_wait(&((*ppnode)->want));
+        eu_safe_free(ppnode);
+    }
+    else
+    {
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_scintilla_delayed_thread, (void *)(uintptr_t)ppnode, 0, NULL));
+    }
+}
+
 void
 on_sci_free_tab(eu_tabpage **ppnode)
 {
-    if (!(ppnode && *ppnode))
+    if (STR_NOT_NUL(ppnode))
     {
-        return;
-    }
-    if ((*ppnode)->db_ptr)
-    {
-        // 关闭数据库链接
-        on_table_disconnect_database(*ppnode, true);
-    }
-    if ((*ppnode)->redis_ptr)
-    {
-        // 关闭redis数据库链接
-        on_symtree_disconnect_redis(*ppnode);
-    }
-    // 销毁控件句柄
-    if ((*ppnode)->hwnd_symlist)
-    {
-        SendMessage((*ppnode)->hwnd_symlist, WM_CLOSE, 0, 0);
-        (*ppnode)->hwnd_symlist = NULL;
-    }
-    if ((*ppnode)->hwnd_symtree)
-    {
-        SendMessage((*ppnode)->hwnd_symtree, WM_CLOSE, 0, 0);
-        (*ppnode)->hwnd_symtree = NULL;
-    }
-    if ((*ppnode)->hwnd_qrtable)
-    {
-        SendMessage((*ppnode)->hwnd_qrtable, WM_CLOSE, 0, 0);
-        (*ppnode)->hwnd_qrtable = NULL;
-    }
-    if ((*ppnode)->presult && (*ppnode)->presult->hwnd_sc)
-    {
-        SendMessage((*ppnode)->presult->hwnd_sc, WM_CLOSE, 0, 0);
-        (*ppnode)->presult->hwnd_sc = NULL;
-        (*ppnode)->result_show = false;
-        eu_safe_free((*ppnode)->presult);
-    }
-    if (cvector_size((*ppnode)->pvec) > 0)
-    {
-        cvector_free((*ppnode)->pvec);
-        (*ppnode)->pvec = NULL;
-    }
-    if (!on_tabpage_check_map() && hwnd_document_map)
-    {
-        DestroyWindow(hwnd_document_map);
-        printf("we destroy hwnd_docment_map\n");
-    }
-    if (!(*ppnode)->phex)
-    {
-        if ((*ppnode)->hwnd_sc)
+        HWND hwnd = eu_module_hwnd();
+        if ((*ppnode)->db_ptr)
         {
-            SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            // 关闭数据库链接
+            on_table_disconnect_database(*ppnode, true);
         }
-        // 清理上一次的备份
-        if ((*ppnode)->bakpath[0] && (_taccess((*ppnode)->bakpath, 0 ) != -1))
+        if ((*ppnode)->redis_ptr)
         {
-            if (!DeleteFile((*ppnode)->bakpath))
+            // 关闭redis数据库链接
+            on_symtree_disconnect_redis(*ppnode);
+        }
+        // 销毁控件句柄
+        if ((*ppnode)->hwnd_symlist)
+        {
+            SendMessage((*ppnode)->hwnd_symlist, WM_CLOSE, 0, 0);
+            (*ppnode)->hwnd_symlist = NULL;
+        }
+        if ((*ppnode)->hwnd_symtree)
+        {
+            SendMessage((*ppnode)->hwnd_symtree, WM_CLOSE, 0, 0);
+            (*ppnode)->hwnd_symtree = NULL;
+        }
+        if ((*ppnode)->hwnd_qrtable)
+        {
+            SendMessage((*ppnode)->hwnd_qrtable, WM_CLOSE, 0, 0);
+            (*ppnode)->hwnd_qrtable = NULL;
+        }
+        if ((*ppnode)->presult && (*ppnode)->presult->hwnd_sc)
+        {
+            SendMessage((*ppnode)->presult->hwnd_sc, WM_CLOSE, 0, 0);
+            (*ppnode)->presult->hwnd_sc = NULL;
+            (*ppnode)->result_show = false;
+            eu_safe_free((*ppnode)->presult);
+        }
+        if ((*ppnode)->pvec && cvector_size((*ppnode)->pvec) > 0)
+        {
+            cvector_free((*ppnode)->pvec);
+            (*ppnode)->pvec = NULL;
+        }
+        if (!on_tabpage_check_map() && hwnd_document_map)
+        {
+            DestroyWindow(hwnd_document_map);
+        }
+        if (!(*ppnode)->phex)
+        {
+            if ((*ppnode)->hwnd_sc)
             {
-                printf("on on_sci_free_tab(), Delete(%ls) error, cause: %lu\n", (*ppnode)->bakpath, GetLastError());
+                SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            }
+            // 清理上一次的备份
+            if ((*ppnode)->bakpath[0] && (_taccess((*ppnode)->bakpath, 0 ) != -1))
+            {
+                if (!DeleteFile((*ppnode)->bakpath))
+                {
+                    printf("on on_sci_free_tab(), Delete(%ls) error, cause: %lu\n", (*ppnode)->bakpath, GetLastError());
+                }
+            }
+            // 销毁标签内存
+            if (!(*ppnode)->want)
+            {
+                eu_safe_free(*ppnode);
+            }
+            else
+            {
+                on_scintilla_delayed_des(hwnd, ppnode);
             }
         }
-        printf("we destroy pnode\n");
-        eu_safe_free(*ppnode);
-    }
-    else if ((*ppnode)->hwnd_sc)
-    {
-        SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
-        printf("hex_mode, we destroy scintilla control\n");
+        else if ((*ppnode)->hwnd_sc)
+        {
+            SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            printf("hex_mode, we destroy scintilla control\n");
+        }
     }
 }
 

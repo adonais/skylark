@@ -146,7 +146,7 @@ do_drop_fix(void)
 }
 
 void
-eu_clear_undo_off(void)
+on_proc_undo_off(void)
 {
     _InterlockedExchange(&undo_off, 0);
 }
@@ -272,226 +272,223 @@ eu_create_fullscreen(HWND hwnd)
 static void
 on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
 {
-    int  number = 10;
     RECT rc = {0};
     RECT rect_treebar = {0};
     RECT rect_tabbar = {0};
     eu_tabpage *pnode = ptab ? ptab : on_tabpage_focus_at();
-    if (!pnode)
+    if (pnode && !pnode->want)
     {
-        return;
-    }
-    on_toolbar_adjust_box();
-    on_statusbar_adjust_box();
-    on_tabpage_adjust_box(&rect_tabbar);
-    on_treebar_adjust_box(&rect_treebar);
-    on_tabpage_adjust_window(pnode);
-    GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
-    if (ptab)
-    {
-        number -= 5;
-    }
-    HDWP hdwp = BeginDeferWindowPos(number);
-    if (!ptab)
-    {
-        if (eu_get_config()->m_toolbar)
+        int number = 10;
+        _InterlockedIncrement(&pnode->want);
+        on_toolbar_adjust_box();
+        on_statusbar_adjust_box();
+        on_tabpage_adjust_box(&rect_tabbar);
+        on_treebar_adjust_box(&rect_treebar);
+        on_tabpage_adjust_window(pnode);
+        GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
+        if (ptab)
         {
-            DeferWindowPos(hdwp, on_toolbar_hwnd(), HWND_TOP, 0, 0, rc.right - rc.left, on_toolbar_height(), SWP_SHOWWINDOW);
+            number -= 5;
         }
-        else
-        {
-            DeferWindowPos(hdwp, on_toolbar_hwnd(), 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-        if (eu_get_config()->m_ftree_show)
-        {
-            RECT rect_filetree = {0};
-            on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
-            DeferWindowPos(hdwp,
-                           g_treebar,
-                           HWND_TOP,
-                           rect_treebar.left,
-                           rect_treebar.top,
-                           rect_treebar.right - rect_treebar.left,
-                           rect_treebar.bottom - rect_treebar.top,
-                           SWP_SHOWWINDOW);
-            DeferWindowPos(hdwp,
-                           g_filetree,
-                           HWND_TOP,
-                           rect_filetree.left,
-                           rect_filetree.top,
-                           rect_filetree.right - rect_filetree.left,
-                           rect_filetree.bottom - rect_filetree.top,
-                           SWP_SHOWWINDOW);
-            DeferWindowPos(hdwp,
-                           g_splitter_treebar,
-                           HWND_TOP,
-                           rect_treebar.right,
-                           pnode->rect_sc.top,
-                           SPLIT_WIDTH,
-                           rect_treebar.bottom - pnode->rect_sc.top,
-                           SWP_SHOWWINDOW);
-        }
-        else
-        {
-            DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            DeferWindowPos(hdwp, g_splitter_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-        DeferWindowPos(hdwp, g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
-                       rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
-    }
-    if (pnode->hwnd_sc)
-    {
-        DeferWindowPos(hdwp, pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                       pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-    }
-    if (pnode->sym_show)
-    {
-        DeferWindowPos(hdwp, g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_sym.top,
-                       SPLIT_WIDTH, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
-        if (pnode->hwnd_symlist)
-        {
-            DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
-                           pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
-
-        }
-        else if (pnode->hwnd_symtree)
-        {
-            DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
-                           pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
-        }
-        if (document_map_initialized && hwnd_document_map)
-        {
-            DeferWindowPos(hdwp, hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-    }
-    else if (pnode->map_show && document_map_initialized)
-    {
-        eu_tabpage *pedit = NULL;
-        DeferWindowPos(hdwp, g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_map.top,
-                       SPLIT_WIDTH, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
-        if (hwnd_document_map)
-        {
-            DeferWindowPos(hdwp, hwnd_document_map, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
-                           pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
-        }
-        if ((pedit = on_map_edit()) && pedit->hwnd_sc)
-        {
-            on_map_reload(pedit);
-        }
-    }
-    else
-    {
-        DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        if (pnode->hwnd_symlist)
-        {
-            DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-        else if (pnode->hwnd_symtree)
-        {
-            DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-        if (document_map_initialized && hwnd_document_map)
-        {
-            DeferWindowPos(hdwp, hwnd_document_map, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-    }
-    if (eu_get_config()->m_statusbar)
-    {
-        if (g_statusbar)
-        {
-            DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
-                           rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
-            PostMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
-        }
-    }
-    else if (g_statusbar)
-    {
-        DeferWindowPos(hdwp, g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-    }
-    if (true)
-    {
-        EndDeferWindowPos(hdwp);
+        HDWP hdwp = BeginDeferWindowPos(number);
         if (!ptab)
         {
-            UpdateWindow(g_treebar);
-            UpdateWindow(g_splitter_treebar);
-            // on wine, we use RedrawWindow refresh client area
-            RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
-            UpdateWindowEx(g_tabpages);
-            ShowWindow(pnode->hwnd_sc, SW_SHOW);
+            if (eu_get_config()->m_toolbar)
+            {
+                DeferWindowPos(hdwp, on_toolbar_hwnd(), HWND_TOP, 0, 0, rc.right - rc.left, on_toolbar_height(), SWP_SHOWWINDOW);
+            }
+            else
+            {
+                DeferWindowPos(hdwp, on_toolbar_hwnd(), 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+            if (eu_get_config()->m_ftree_show)
+            {
+                RECT rect_filetree = {0};
+                on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
+                DeferWindowPos(hdwp,
+                               g_treebar,
+                               HWND_TOP,
+                               rect_treebar.left,
+                               rect_treebar.top,
+                               rect_treebar.right - rect_treebar.left,
+                               rect_treebar.bottom - rect_treebar.top,
+                               SWP_SHOWWINDOW);
+                DeferWindowPos(hdwp,
+                               g_filetree,
+                               HWND_TOP,
+                               rect_filetree.left,
+                               rect_filetree.top,
+                               rect_filetree.right - rect_filetree.left,
+                               rect_filetree.bottom - rect_filetree.top,
+                               SWP_SHOWWINDOW);
+                DeferWindowPos(hdwp,
+                               g_splitter_treebar,
+                               HWND_TOP,
+                               rect_treebar.right,
+                               pnode->rect_sc.top,
+                               SPLIT_WIDTH,
+                               rect_treebar.bottom - pnode->rect_sc.top,
+                               SWP_SHOWWINDOW);
+            }
+            else
+            {
+                DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                DeferWindowPos(hdwp, g_splitter_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+            DeferWindowPos(hdwp, g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
+                           rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
         }
-        pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
-    }
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
-    {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p != pnode)
+        if (pnode->hwnd_sc)
         {
-            if (p->hwnd_symlist && p->sym_show)
+            DeferWindowPos(hdwp, pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
+                           pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
+        }
+        if (pnode->sym_show)
+        {
+            DeferWindowPos(hdwp, g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_sym.top,
+                           SPLIT_WIDTH, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+            if (pnode->hwnd_symlist)
             {
-                ShowWindow(p->hwnd_symlist, SW_HIDE);
+                DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
+                               pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+        
             }
-            else if (p->hwnd_symtree && p->sym_show)
+            else if (pnode->hwnd_symtree)
             {
-                ShowWindow(p->hwnd_symtree, SW_HIDE);
+                DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
+                               pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
             }
-            if (RESULT_SHOW(p))
+            if (document_map_initialized && hwnd_document_map)
             {
-                ShowWindow(p->presult->hwnd_sc, SW_HIDE);
-                if (p->hwnd_qrtable)
+                DeferWindowPos(hdwp, hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+        }
+        else if (pnode->map_show && document_map_initialized)
+        {
+            eu_tabpage *pedit = NULL;
+            DeferWindowPos(hdwp, g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_map.top,
+                           SPLIT_WIDTH, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
+            if (hwnd_document_map)
+            {
+                DeferWindowPos(hdwp, hwnd_document_map, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
+                               pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
+            }
+            if ((pedit = on_map_edit()) && pedit->hwnd_sc)
+            {
+                on_map_reload(pedit);
+            }
+        }
+        else
+        {
+            DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            if (pnode->hwnd_symlist)
+            {
+                DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+            else if (pnode->hwnd_symtree)
+            {
+                DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+            if (document_map_initialized && hwnd_document_map)
+            {
+                DeferWindowPos(hdwp, hwnd_document_map, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+        }
+        if (eu_get_config()->m_statusbar)
+        {
+            if (g_statusbar)
+            {
+                DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
+                               rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
+                PostMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+            }
+        }
+        else if (g_statusbar)
+        {
+            DeferWindowPos(hdwp, g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+        if (true)
+        {
+            EndDeferWindowPos(hdwp);
+            if (!ptab)
+            {
+                UpdateWindow(g_treebar);
+                UpdateWindow(g_splitter_treebar);
+                // on wine, we use RedrawWindow refresh client area
+                RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
+                UpdateWindowEx(g_tabpages);
+                ShowWindow(pnode->hwnd_sc, SW_SHOW);
+            }
+            pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
+        }
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(index);
+            if (p && p != pnode)
+            {
+                if (p->hwnd_symlist && p->sym_show)
                 {
-                    ShowWindow(p->hwnd_qrtable, SW_HIDE);
+                    ShowWindow(p->hwnd_symlist, SW_HIDE);
+                }
+                else if (p->hwnd_symtree && p->sym_show)
+                {
+                    ShowWindow(p->hwnd_symtree, SW_HIDE);
+                }
+                if (RESULT_SHOW(p))
+                {
+                    ShowWindow(p->presult->hwnd_sc, SW_HIDE);
+                    if (p->hwnd_qrtable)
+                    {
+                        ShowWindow(p->hwnd_qrtable, SW_HIDE);
+                    }
+                }
+                if (p->hwnd_sc)
+                {
+                    ShowWindow(p->hwnd_sc, SW_HIDE);
                 }
             }
-            if (p->hwnd_sc)
-            {
-                ShowWindow(p->hwnd_sc, SW_HIDE);
-            }
         }
-    }
-    if (RESULT_SHOW(pnode) && hwnd_rst)
-    {
-        RECT r = {0, 0, pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH};
-        eu_setpos_window(hwnd_rst, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
-                         pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
-        eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
-                         pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-        eu_setpos_window(pnode->presult->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
-                         pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
-        on_result_reload(pnode->presult);
-        if (pnode->hwnd_qrtable)
+        if (RESULT_SHOW(pnode) && hwnd_rst)
         {
-            eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
-                             pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
-            eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_result.bottom,
+            RECT r = {0, 0, pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH};
+            eu_setpos_window(hwnd_rst, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+            eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-            InvalidateRect(pnode->hwnd_qrtable, &pnode->rect_qrtable, 0);
-            UpdateWindow(pnode->hwnd_qrtable);
-            InvalidateRect(g_splitter_tablebar, &r, 0);
-            UpdateWindow(g_splitter_tablebar);
+            eu_setpos_window(pnode->presult->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+            on_result_reload(pnode->presult);
+            if (pnode->hwnd_qrtable)
+            {
+                eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
+                                 pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
+                eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_result.bottom,
+                                 pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
+                InvalidateRect(pnode->hwnd_qrtable, &pnode->rect_qrtable, 0);
+                UpdateWindow(pnode->hwnd_qrtable);
+                InvalidateRect(g_splitter_tablebar, &r, 0);
+                UpdateWindow(g_splitter_tablebar);
+            }
+            InvalidateRect(pnode->presult->hwnd_sc, &pnode->rect_result, 1);
+            UpdateWindow(pnode->presult->hwnd_sc);
         }
-        InvalidateRect(pnode->presult->hwnd_sc, &pnode->rect_result, 1);
-        UpdateWindow(pnode->presult->hwnd_sc);
+        PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+        on_statusbar_update();
+        _InterlockedDecrement(&pnode->want);
     }
-    else
-    {
-        if (pnode->presult && pnode->presult->hwnd_sc && hwnd_rst)
-        {
-            eu_setpos_window(pnode->presult->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            eu_setpos_window(hwnd_rst, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-        ShowWindow(g_splitter_editbar, SW_HIDE);
-        ShowWindow(g_splitter_tablebar, SW_HIDE);
-    }
-    PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
-    on_statusbar_update();
 }
 
 void
 eu_window_resize(HWND hwnd)
 {
-    on_proc_msg_size(hwnd ? hwnd : g_hwndmain, NULL);
+    PostMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
+}
+
+void
+on_proc_resize(HWND hwnd)
+{   // 当在线程需要刷新界面时, 使用消息让主线程刷新
+    SendMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
 }
 
 static void

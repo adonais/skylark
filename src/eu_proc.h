@@ -30,8 +30,9 @@ extern "C"
 
 int eu_dpi_scale_font(void);
 int eu_dpi_scale_xy(int adpi, int m);
+void on_proc_resize(HWND hwnd);
+void on_proc_undo_off(void);
 void eu_window_resize(HWND hwnd);
-void eu_clear_undo_off(void);
 void eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi);
 HWND eu_hwnd_self(void);
 LRESULT __stdcall eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);

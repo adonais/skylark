@@ -35,9 +35,11 @@
 #define EU_EXT_CLASS EU_CLASS_IMPORT
 #endif
 
-#if defined(_MSC_VER) && !defined(__clang__)
+// clang supports MS pragma intrinsic
+#if defined(_MSC_VER)
 #pragma intrinsic(memcpy, memset, memcmp, strlen)
-#pragma intrinsic(_InterlockedCompareExchange, _InterlockedExchange)
+#pragma intrinsic(_InterlockedIncrement,_InterlockedDecrement)
+#pragma intrinsic(_InterlockedCompareExchange,_InterlockedExchange)
 #endif
 
 #if defined(__cplusplus)
@@ -72,12 +74,13 @@
 #define WM_COPYGLOBALDATA         (0x0049)
 #endif
 
-#define SEARCH_COMBO_SUBID 0x38
-#define SNIPPET_EDT_SUBID 0x39
-#define TBCTL_LIST_SUBID 0x40
-#define REMOTEFS_PROTOCOL_SUBID 0x41
-#define REMOTEFS_ACCESS_SUBID 0x42
-#define STATUSBAR_SUBID 0x43
+#define REMOTEFS_PROTOCOL_SUBID 0x38
+#define REMOTEFS_ACCESS_SUBID 0x39
+#define SEARCH_COMBO_SUBID 0x40
+#define SNIPPET_EDT_SUBID 0x41
+#define SNIPPET_CMB_SUBID 0x42
+#define TBCTL_LIST_SUBID 0x43
+#define STATUSBAR_SUBID 0x44
 
 // Custom message
 #define HVM_SETEXTENDEDSTYLE      (WM_USER + 100)

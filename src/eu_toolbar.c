@@ -537,7 +537,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
         {
             int read_len = 0;
             char *std_buffer = NULL;
-            eu_window_resize(NULL);
+            on_proc_resize(NULL);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
                 if (do_lua_code((const char *)buffer) == 0)
