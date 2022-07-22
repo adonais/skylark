@@ -253,12 +253,6 @@ eu_create_statusbar(HWND hwnd)
     return on_statusbar_init(hwnd);
 }
 
-bool
-eu_create_search_dlg(void)
-{
-    return on_search_create_box();
-}
-
 void
 eu_create_fullscreen(HWND hwnd)
 {
@@ -352,7 +346,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             {
                 DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
                                pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
-        
+
             }
             else if (pnode->hwnd_symtree)
             {
@@ -1005,18 +999,23 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_edit_descbc_dec(pnode);
                     break;
                 case IDM_SEARCH_FIND:
+                    on_search_create_box();
                     on_search_find_thread(pnode);
                     break;
                 case IDM_SEARCH_FINDPREV:
+                    on_search_create_box();
                     on_search_find_pre(pnode);
                     break;
                 case IDM_SEARCH_FINDNEXT:
+                    on_search_create_box();
                     on_search_find_next(pnode);
                     break;
                 case IDM_SEARCH_REPLACE:
+                    on_search_create_box();
                     on_search_replace_thread(pnode);
                     break;
                 case IDM_SEARCH_FILES:
+                    on_search_create_box();
                     on_search_file_thread(NULL);
                     break;
                 case IDM_UPDATE_SELECTION:

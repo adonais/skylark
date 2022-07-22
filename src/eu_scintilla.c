@@ -21,6 +21,7 @@
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 
+
 void
 on_sci_init_style(eu_tabpage *pnode)
 {
@@ -209,50 +210,6 @@ on_sci_resever_tab(eu_tabpage *pnode)
     }
 }
 
-static void
-share_spinlock_wait(volatile long *plock)
-{
-    uint64_t spin_count = 0;
-    while (_InterlockedCompareExchange(&plock, 0, 0) != 0)
-    {
-        // 防止循环太忙
-        if (spin_count < 32)
-        {
-            Sleep(0);
-        }
-        else
-        {
-            Sleep(1);
-        }
-        ++spin_count;
-    }
-}
-
-static unsigned __stdcall
-on_scintilla_delayed_thread(void *lp)
-{
-    eu_tabpage **ppnode = (eu_tabpage **)lp;
-    share_spinlock_wait(&((*ppnode)->want));
-    eu_safe_free(ppnode);
-    return 0;
-}
-
-static void
-on_scintilla_delayed_des(HWND hwnd, eu_tabpage **ppnode)
-{
-    uint32_t thr = GetCurrentThreadId();
-    uint32_t main_id = GetWindowThreadProcessId(hwnd, NULL);
-    if (thr != main_id)
-    {
-        share_spinlock_wait(&((*ppnode)->want));
-        eu_safe_free(ppnode);
-    }
-    else
-    {
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_scintilla_delayed_thread, (void *)(uintptr_t)ppnode, 0, NULL));
-    }
-}
-
 void
 on_sci_free_tab(eu_tabpage **ppnode)
 {
@@ -316,14 +273,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
                 }
             }
             // 销毁标签内存
-            if (!(*ppnode)->want)
-            {
-                eu_safe_free(*ppnode);
-            }
-            else
-            {
-                on_scintilla_delayed_des(hwnd, ppnode);
-            }
+            eu_safe_free(*ppnode);
         }
         else if ((*ppnode)->hwnd_sc)
         {
@@ -630,19 +580,11 @@ on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback)
         MSG_BOX(IDC_MSG_SCINTILLA_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return 1;
     }
-#ifdef _WIN64
-    if (_InterlockedCompareExchange64(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
+    if (inter_atom_compare_exchange(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
     {
         SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc);
     }
-    if (!_InterlockedCompareExchange64(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
-#else
-    if (_InterlockedCompareExchange(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
-    {
-        SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc);
-    }
-    if (!_InterlockedCompareExchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
-#endif
+    if (!inter_atom_compare_exchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
     pnode->eusc = SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
     eu_sci_call(pnode, SCI_USEPOPUP, 0, 0);
     return 0;

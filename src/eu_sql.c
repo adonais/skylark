@@ -21,6 +21,18 @@
 #define SKYLARK_SQLITE_BUSY_TIMEOUT 2000
 #define START_TRANSACTION(db) sqlite3_exec(db, "begin transaction;", NULL, NULL, NULL)
 #define END_TRANSACTION(db)   sqlite3_exec(db, "commit transaction;", NULL, NULL, NULL)
+#define RECENT_TABLE   "create table file_recent(szId INTEGER PRIMARY KEY, szName char, szPos BIGINT, szDate BIGINT, UNIQUE(szName));"
+#define SESSION_TABLE  "create table skylark_session(szId INTEGER PRIMARY KEY,szTabId INTEGER,szRealPath char,"            \
+                       "szBakPath char,szMark char,szFold char,szLine BIGINT,szCp INTEGER,szBakCp INTEGER,szEol SMALLINT," \
+                       "szBlank SMALLINT,szHex SMALLINT,szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT,szSync SMALLINT,UNIQUE(szRealPath));"
+#define SESSION_VAULE  "(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync) "
+#define SESSION_SELECT "select szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync from "
+#define SESSION_INSERT(n1,n2) "insert or replace into "#n1 SESSION_VAULE SESSION_SELECT#n2";"
+#define RECENT_TRIGGER(n)     "create trigger delete_till_30 BEFORE INSERT ON file_recent WHEN (select count(*) from file_recent)>"#n" "\
+                              "BEGIN "\
+                              "DELETE FROM file_recent WHERE file_recent.szId IN "\
+                              "(SELECT file_recent.szId FROM file_recent ORDER BY file_recent.szId limit (select count(*) -"#n" from file_recent )); "\
+                              "END;"
 
 static CRITICAL_SECTION eu_sql_cs;
 static CRITICAL_SECTION_DEBUG critsect_sqlite3 =
@@ -30,6 +42,8 @@ static CRITICAL_SECTION_DEBUG critsect_sqlite3 =
       0, 0, (DWORD_PTR)0x1,
 };
 static CRITICAL_SECTION eu_sql_cs = { &critsect_sqlite3, -1, 0, 0, 0, 0 };
+
+static volatile intptr_t eu_memdb = 0;
 
 static bool
 sql_format_execute(const char *fmt, char *buf, int len)
@@ -55,30 +69,24 @@ sql_format_execute(const char *fmt, char *buf, int len)
     return ret;
 }
 
-static uintptr_t
-init_sql_file(const char *sql_path)
+static int
+init_sql_file(const char *sql_path, uintptr_t *pdb)
 {
-    int  rc = 0;
-    char *msg = NULL;
+    int rc = 0;
     int m_table = 0;
     sqlite3 *db = NULL;
     const char *test = "SELECT szName FROM skylar_ver;";
     const char *sql[] = \
     {
-        "create table file_recent(szId INTEGER PRIMARY KEY, szName char, szPos BIGINT, szDate BIGINT, UNIQUE(szName));",
+        RECENT_TABLE,
         "create table file_remote(szId INTEGER PRIMARY KEY, szName char, szProtocol char, szAddress char, "
         "szPort SMALLINT, szArea SMALLINT, szUser char, szPass char, szPrivate char, szPassphrase char, UNIQUE(szName));",
         "create table find_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
         "create table replace_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
         "create table folder_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
-        "create table skylark_session(szTabId SMALLINT, szRealPath char, szBakPath char, szMark char, szFold char, szLine BIGINT, szCp INTEGER, szBakCp INTEGER, szEol SMALLINT, "
-        "szBlank SMALLINT, szHex SMALLINT, szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT, UNIQUE(szRealPath));",
+        SESSION_TABLE,
         "create table skylar_ver(szName char, szVersion char, szBUildId BIGINT);",
         "insert or ignore into skylar_ver(szName,szVersion,szBUildId) values('%s', '%s', %I64u);",
-        "create trigger delete_till_30 BEFORE INSERT ON file_recent WHEN (select count(*) from file_recent)>29 "
-        "BEGIN "
-        "DELETE FROM file_recent WHERE file_recent.szId IN (SELECT file_recent.szId FROM file_recent ORDER BY file_recent.szId limit (select count(*) -29 from file_recent )); "
-        "END;",
         "create trigger delete_combo1_30 BEFORE INSERT ON find_his WHEN (select count(*) from find_his)>29 "
         "BEGIN "
         "DELETE FROM find_his WHERE find_his.szId IN (SELECT find_his.szId FROM find_his ORDER BY find_his.szId limit (select count(*) -29 from find_his )); "
@@ -95,7 +103,7 @@ init_sql_file(const char *sql_path)
     };
     if ((rc = sqlite3_open(sql_path, &db)) != SQLITE_OK)
     {
-        return 0;
+        goto mem_clean;
     }
     if ((rc = sqlite3_busy_timeout(db, SKYLARK_SQLITE_BUSY_TIMEOUT)) != SQLITE_OK)
     {
@@ -112,32 +120,40 @@ init_sql_file(const char *sql_path)
                 char buffer[MAX_PATH+1] = {0};
                 if (sql_format_execute(sql[i], buffer, MAX_PATH))
                 {
-                    rc = sqlite3_exec(db, buffer, 0, 0, &msg);
+                    rc = sqlite3_exec(db, buffer, 0, 0, NULL);
                 }
             }
             else
             {
-                rc = sqlite3_exec(db, sql[i], 0, 0, &msg);
+                rc = sqlite3_exec(db, sql[i], 0, 0, NULL);
             }
             if (rc != SQLITE_OK)
             {
-                printf("create table, sql[%d] = [%s] error: %s\n", i, sql[i], msg);
-                goto mem_clean;
+                printf("create table, sql[%d] = [%s] error: %d\n", i, sql[i], rc);
+                break;
             }
         }
+        if (!rc && (rc = sqlite3_exec(db, RECENT_TRIGGER(29), 0, 0, NULL)))
+        {
+            printf("create trigger error: %d\n", rc);
+        }
         END_TRANSACTION(db);
+        if (!rc)
+        {
+            rc = SKYLARK_SQL_END;
+        }
     }
 mem_clean:
-    if (msg)
-    {
-        sqlite3_free(msg);
-    }
     if (rc != SQLITE_OK)
     {
         sqlite3_close(db);
         db = NULL;
     }
-    return (uintptr_t)db;
+    if (pdb)
+    {
+        *pdb = (uintptr_t)db;
+    }
+    return rc;
 }
 
 /**************************************************************************************
@@ -159,7 +175,7 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
     {
         EnterCriticalSection(&eu_sql_cs);
         uintptr_t db = 0;
-        if ((db = init_sql_file(sql_path)) > 0)
+        if ((rc = init_sql_file(sql_path, &db)) == SQLITE_OK && db)
         {
             char *err = NULL;
             if ((rc = sqlite3_exec((sqlite3 *)db, sql, callback, data, &err)))
@@ -170,9 +186,9 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
                     sqlite3_free(err);
                 }
             }
-            sqlite3_close((sqlite3 *)db);
         }
         free(sql_path);
+        sqlite3_close((sqlite3 *)db);
         LeaveCriticalSection(&eu_sql_cs);
     }
     return rc;
@@ -188,7 +204,7 @@ on_sqlite3_post(const char *sql, sql3_callback callback, void *data)
     if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
     {
         uintptr_t db = 0;
-        if ((db = init_sql_file(sql_path)) > 0)
+        if ((rc = init_sql_file(sql_path, &db)) == SQLITE_OK && db)
         {
             char *err = NULL;
             if ((rc = sqlite3_exec((sqlite3 *)db, sql, callback, data, &err)))
@@ -199,10 +215,230 @@ on_sqlite3_post(const char *sql, sql3_callback callback, void *data)
                     sqlite3_free(err);
                 }
             }
-            sqlite3_close((sqlite3 *)db);
         }
         free(sql_path);
+        sqlite3_close((sqlite3 *)db);
     }
+    return rc;
+}
+
+static int
+on_sqlite3_session_callback(void *data, int count, char **column, char **names)
+{
+    bool rel = false;
+    bool bk = false;
+    int **pv = (int **)(intptr_t)data;
+    file_backup filebak = {0};
+    filebak.tab_id = -1;
+    for (int i = 0; i < count; ++i)
+    {
+        if (STRCMP(names[i], ==, "szId"))
+        {
+            filebak.tab_id = (short)atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szRealPath"))
+        {
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.rel_path, MAX_PATH);
+        }
+        else if (STRCMP(names[i], ==, "szBakPath"))
+        {
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.bak_path, MAX_PATH);
+        }
+    }
+    if (_tcslen(filebak.rel_path) > 0)
+    {
+        rel = eu_exist_file(filebak.rel_path);
+    }
+    if (_tcslen(filebak.bak_path) > 0)
+    {
+        bk = eu_exist_file(filebak.bak_path);
+    }
+    if (!(rel || bk) && filebak.tab_id != -1)
+    {
+        cvector_push_back(*pv, filebak.tab_id);
+    }
+    return 0;
+}
+
+static char *
+on_sqlite3_vec_format(const int *pv)
+{
+    char *pret = NULL;
+    if (pv)
+    {
+        char *pnum = NULL;
+        int size = eu_int_cast(cvector_size(pv));
+        int buff_len = size * LINE_MAX_LEN;
+        const char *sql = "delete from skylark_session where szId in (%s);";
+        if ((pnum = (char *)calloc(1, buff_len)))
+        {
+            int offset = 0;
+            for (int i = 0; i < size; ++i)
+            {
+                snprintf(pnum + offset, buff_len - 1 - offset, "%d,", pv[i]);
+                offset = eu_int_cast(strlen(pnum));
+            }
+            if ((offset = eu_int_cast(strlen(pnum))) > 1)
+            {
+                if (pnum[offset - 1] == ',')
+                {
+                    pnum[offset - 1] = 0;
+                }
+            }
+        }
+        if (pnum && strlen(pnum) > 0)
+        {
+            buff_len += eu_int_cast(strlen(sql));
+            if ((pret = (char *)calloc(1, buff_len)))
+            {
+                snprintf(pret, buff_len - 1, sql, pnum);
+            }
+        }
+        eu_safe_free(pnum);
+    }
+    return pret;
+}
+
+/**************************************************************************************
+ * 创建内存数据库并同步session表
+ **************************************************************************************/
+int
+on_sqlite3_create_memdb(const char *pfile)
+{
+    sqlite3 *memdb = NULL;
+    int rc = SQLITE_ERROR;
+    if (!pfile)
+    {
+        return rc;
+    }
+    if ((rc = sqlite3_open(":memory:", &memdb)))
+    {
+        fprintf(stderr, "cannot open database, cause: %d", rc);
+        sqlite3_close(memdb);
+        return rc;
+    }
+    do
+    {
+        char sql[ENV_LEN] = {0};
+        snprintf(sql, ENV_LEN - 1, "attach database '%s' as 'filedb';", pfile);
+        if ((rc = sqlite3_exec(memdb, SESSION_TABLE, NULL, NULL, NULL)))
+        {
+            fprintf(stderr, "cannot create memory database, cause: %d\n", rc);
+            break;
+        }
+        if ((rc = sqlite3_exec(memdb, sql, NULL, NULL, NULL)))
+        {
+            fprintf(stderr, "attach database error: %d\n", rc);
+            break;
+        }
+        if ((rc = sqlite3_exec(memdb, SESSION_INSERT(skylark_session, filedb.skylark_session), NULL, NULL, NULL)))
+        {
+            fprintf(stderr, "sql_transfer_data: %d\n", rc);
+            break;
+        }
+        if ((rc = sqlite3_exec(memdb, "detach database 'filedb';", NULL, NULL, NULL)))
+        {
+            fprintf(stderr, "detach database error: %d\n", rc);
+            break;
+        }
+    } while (0);
+    if (!rc)
+    {
+        inter_atom_exchange(&eu_memdb, (intptr_t)memdb);
+    }
+    else
+    {
+        sqlite3_close(memdb);
+    }
+    return rc;
+}
+
+/**************************************************************************************
+ * 清理session表中已经不存在于文件系统里的记录并执行sql语句
+ **************************************************************************************/
+int
+on_sqlite3_do_session(const char *s, sql3_callback callback, void *data)
+{
+    int rc = SQLITE_ERROR;
+    TCHAR path[MAX_PATH] = {0};
+    char *sql_path = NULL;
+    EnterCriticalSection(&eu_sql_cs);
+    _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
+    {
+        char *psql = NULL;
+        uintptr_t db = 0;
+        cvector_vector_type(int) v = NULL;
+        if ((rc = init_sql_file(sql_path, &db)) == SQLITE_OK && db)
+        {
+            const char *sql = "select szid,szrealpath,szbakpath from skylark_session;";
+            rc = sqlite3_exec((sqlite3 *)db, sql, on_sqlite3_session_callback, (void *)(intptr_t)&v, NULL);
+        }
+        if (cvector_size(v) > 0)
+        {
+            psql = on_sqlite3_vec_format(v);
+            cvector_free(v);
+        }
+        if (psql && rc == SQLITE_OK)
+        {
+            rc = sqlite3_exec((sqlite3 *)db, psql, NULL, NULL, NULL);
+        }
+        if (!eu_memdb && db && rc == SQLITE_OK)
+        {
+            rc = on_sqlite3_create_memdb(sql_path);
+        }
+        if (db && rc == SQLITE_OK)
+        {
+            rc = sqlite3_exec((sqlite3 *)db, "delete from skylark_session;", NULL, NULL, NULL);
+        }
+        if (s && rc == SQLITE_OK && eu_memdb)
+        {
+            rc = sqlite3_exec((sqlite3 *)eu_memdb, s, callback, data, NULL);
+        }
+        sqlite3_close((sqlite3 *)db);
+        free(sql_path);
+        eu_safe_free(psql);
+    }
+    LeaveCriticalSection(&eu_sql_cs);
+    return rc;
+}
+
+int
+on_sqlite3_sync_session(void)
+{
+    int rc = SQLITE_ERROR;
+    TCHAR path[MAX_PATH] = {0};
+    char *sql_path = NULL;
+    EnterCriticalSection(&eu_sql_cs);
+    _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
+    {
+        uintptr_t db = 0;
+        char sql[ENV_LEN] = {0};
+        const char *sql_del = "delete from skylark_session where szSync=0;";
+        snprintf(sql, ENV_LEN - 1, "attach database '%s' as 'filedb';", sql_path);
+        rc = init_sql_file(sql_path, &db);
+        if (db && eu_memdb && rc == SQLITE_OK)
+        {
+            rc = sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
+            if (rc == SQLITE_OK)
+            {
+                rc = sqlite3_exec((sqlite3 *)eu_memdb, SESSION_INSERT(filedb.skylark_session, skylark_session), NULL, NULL, NULL);
+            }
+            if (rc == SQLITE_OK)
+            {
+                rc = sqlite3_exec((sqlite3 *)db, sql_del, NULL, NULL, NULL);
+            }
+            if (rc == SQLITE_OK)
+            {
+                rc = sqlite3_exec((sqlite3 *)eu_memdb, "detach database 'filedb';", NULL, NULL, NULL);
+            }
+        }
+        sqlite3_close((sqlite3 *)db);
+        sqlite3_close((sqlite3 *)eu_memdb);
+        _InterlockedExchange(&eu_memdb, 0);
+    }
+    LeaveCriticalSection(&eu_sql_cs);
     return rc;
 }
 
@@ -321,25 +557,36 @@ eu_get_folder_history(sql3_callback pfunc)
 }
 
 void
-eu_update_backup_table(file_backup *pbak)
+eu_update_backup_table(file_backup *pbak, DB_MODE mode)
 {
     char rel_path[MAX_PATH+1] = {0};
     char bak_path[MAX_PATH+1] = {0};
     char sql[MAX_BUFFER*4] = {0};
-    const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus) "
-                      "values(%d, '%s', '%s', '%s', '%s', %I64d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
-                      "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%I64d,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d;";
+    const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync) "
+                      "values(%d, '%s', '%s', '%s', '%s', %I64d, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
+                      "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%I64d,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d,szSync=%d;";
     WideCharToMultiByte(CP_UTF8, 0, pbak->rel_path, -1, rel_path, MAX_PATH, NULL, NULL);
     WideCharToMultiByte(CP_UTF8, 0, pbak->bak_path, -1, bak_path, MAX_PATH, NULL, NULL);
     // 文件路径存在特殊符号时进行转义
     eu_str_replace(rel_path, MAX_PATH, "'", "''");
     eu_str_replace(bak_path, MAX_PATH, "'", "''");
     _snprintf(sql, MAX_BUFFER*4-1, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->fold_id, pbak->postion, pbak->cp, pbak->bakcp,
-                  pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->tab_id,bak_path,pbak->mark_id,pbak->fold_id,pbak->postion,
-                  pbak->cp, pbak->bakcp,pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+              pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync, pbak->tab_id,bak_path,pbak->mark_id,pbak->fold_id,pbak->postion,
+              pbak->cp, pbak->bakcp,pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync);
+    switch (mode)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        case DB_ALL:
+            sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
+            eu_sqlite3_send(sql, NULL, NULL);
+            break;
+        case DB_MEM:
+            sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
+            break;
+        case DB_FILE:
+            eu_sqlite3_send(sql, NULL, NULL);
+            break;
+        default:
+            break;
     }
 }
 
@@ -355,14 +602,15 @@ eu_clear_backup_table(void)
 static unsigned __stdcall
 on_sql_execute_thread(void *lp)
 {
+    int rc = 0;
     char sql[MAX_BUFFER+1] = {0};
     _snprintf(sql, MAX_BUFFER, "delete from skylark_session where szRealPath='%s';", (char *)lp);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+    if (eu_memdb && (rc = sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL)))
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        printf("on_sql_execute_thread failed in %s\n", __FUNCTION__);
     }
     free(lp);
-    return 0;
+    return rc;
 }
 
 void

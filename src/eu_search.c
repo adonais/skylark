@@ -2951,6 +2951,7 @@ on_search_dark_mode_release(void)
     if (hwnd_search_dlg)
     {
         DestroyWindow(hwnd_search_dlg);
+        hwnd_search_dlg = NULL;
         on_search_create_box();
     }
 }
@@ -3394,11 +3395,13 @@ on_search_space2tab(eu_tabpage *pnode)
 bool
 on_search_create_box(void)
 {
-    hwnd_search_dlg = i18n_create_dialog(eu_module_hwnd(), IDD_SEARCH_TAB_DLG, on_search_orig_find_proc);
     if (!hwnd_search_dlg)
     {
-        printf("i18n_create_dialog return false in %s\n", __FUNCTION__);
-        return false;
+        if (!(hwnd_search_dlg = i18n_create_dialog(eu_module_hwnd(), IDD_SEARCH_TAB_DLG, on_search_orig_find_proc)))
+        {
+            printf("i18n_create_dialog return false in %s\n", __FUNCTION__);
+            return false;
+        }
     }
     ShowWindow(hwnd_search_dlg, SW_HIDE);
     return (true);

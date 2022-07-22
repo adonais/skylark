@@ -336,10 +336,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {   // 销毁状态栏
         DestroyWindow(g_statusbar);
     }
-    if (eu_get_search_hwnd())
-    {   // 销毁搜索框
-        DestroyWindow(eu_get_search_hwnd());
-    }
     // 销毁文件管理器
     if (g_treebar)
     {
@@ -367,11 +363,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         printf("on_toolbar_create return false\n");
         return 1;
     }
-    if (!on_search_create_box())
-    {
-        printf("on_search_create_box return false\n");
-        return 1;
-    }
     if (on_treebar_create_box(eu_module_hwnd()))
     {
         printf("on_treebar_create_box return false\n");
@@ -387,6 +378,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
         on_statusbar_update();
     }
+    on_search_dark_mode_release();
     return 0;
 }
 

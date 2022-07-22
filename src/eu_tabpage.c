@@ -300,30 +300,33 @@ on_tabpage_drag_mouse(POINT *pscreen)
         on_sci_send_extra((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
     }
     else if (!(fn = _tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, HEX_CLASS)) || (!_tcscmp(name, WC_TABCONTROL)))
-    {   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
+    {
         int err = SKYLARK_NOT_OPENED;
         eu_tabpage *p = on_tabpage_get_ptr(tab_move_from);
         int code = fn ? (int)SendMessage(parent, WM_SKYLARK_DESC, 0, 0) : (int)SendMessage(hwin, WM_SKYLARK_DESC, 0, 0);
         if (code != eu_int_cast(WM_SKYLARK_DESC))
-        {
+        {   // 确认不是skylark编辑器, 启动新实例
             on_sci_send_extra((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
-        }
-        else if (p && !p->is_blank)
+        }   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
+        else if (p && (!p->is_blank  || eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
         {
             file_backup bak = {0};
             _tcscpy(bak.rel_path, p->pathfile);
-            if (!eu_get_config()->m_session || (!p->be_modify && !p->hex_mode))
+            if (!eu_get_config()->m_session)
             {
-                sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-                if (pos > 0)
+                if (!p->is_blank)
                 {
-                    sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-                    sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
-                    bak.x = lineno + 1;
-                    bak.y = eu_int_cast(pos - row + 1);
+                    sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                    if (pos > 0)
+                    {
+                        sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                        sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                        bak.x = lineno + 1;
+                        bak.y = eu_int_cast(pos - row + 1);
+                    }
+                    _tputenv(_T("OPEN_FROM_SQL="));
+                    err = on_file_close(p, FILE_ONLY_CLOSE);
                 }
-                _tputenv(_T("OPEN_FROM_SQL="));
-                err = on_file_close(p, FILE_ONLY_CLOSE);
             }
             else
             {
@@ -972,9 +975,16 @@ on_tabpage_theme_changed(eu_tabpage *p)
             SendMessage(p->hwnd_symtree, WM_THEMECHANGED, 0, 0);
         }
     }
-    if (p->result_show && p->hwnd_qrtable)
+    if (p->result_show)
     {
-        SendMessage(p->hwnd_qrtable, WM_THEMECHANGED, 0, 0);
+        if (p->presult && p->presult->hwnd_sc)
+        {
+            SendMessage(p->presult->hwnd_sc, WM_THEMECHANGED, 0, 0);
+        }
+        if (p->hwnd_qrtable)
+        {
+            SendMessage(p->hwnd_qrtable, WM_THEMECHANGED, 0, 0);
+        }
     }
     return 0;
 }
@@ -1047,8 +1057,8 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
         on_toolbar_update_button();
         eu_window_resize(hwnd);
         // 窗口处理过程中可能改变了标签位置, 重置它
-        TabCtrl_SetCurSel(g_tabpages, index);
-        util_set_title(pnode->pathfile);
+        // TabCtrl_SetCurSel(g_tabpages, index);
+        // util_set_title(pnode->pathfile);
     }
     return (index >= 0 && index < count ? index : SKYLARK_TABCTRL_ERR);
 }

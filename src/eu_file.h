@@ -66,6 +66,7 @@ typedef struct _file_backup
     int zoom;
     int status;
     int y;
+    int sync;
 }file_backup;
 
 typedef struct _file_recent

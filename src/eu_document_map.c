@@ -434,7 +434,6 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            on_dark_delete_theme_brush();
             break;
         }
         case WM_DESTROY:
@@ -453,7 +452,6 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
                 }
                 _InterlockedExchange(&document_map_initialized, 0);
-                on_dark_delete_theme_brush();
                 hwnd_document_map = NULL;
                 printf("on_map_callback WM_DESTROY\n");
             }

@@ -39,7 +39,16 @@
 #if defined(_MSC_VER)
 #pragma intrinsic(memcpy, memset, memcmp, strlen)
 #pragma intrinsic(_InterlockedIncrement,_InterlockedDecrement)
-#pragma intrinsic(_InterlockedCompareExchange,_InterlockedExchange)
+#pragma intrinsic(_InterlockedCompareExchange64,_InterlockedExchange64)
+#pragma intrinsic(_InterlockedCompareExchange,_InterlockedExchange,_InterlockedExchangeAdd)
+#endif
+
+#if defined(_WIN64) || defined(_M_X64)
+#define inter_atom_exchange _InterlockedExchange64
+#define inter_atom_compare_exchange _InterlockedCompareExchange64
+#else
+#define inter_atom_exchange _InterlockedExchange
+#define inter_atom_compare_exchange _InterlockedCompareExchange
 #endif
 
 #if defined(__cplusplus)
@@ -275,7 +284,7 @@ struct eu_config
     int acshow_chars;
     bool m_ctshow;
     bool m_tab_tip;
-    
+
     int m_close_way;
     int m_tab_active;
     int m_quality;
@@ -415,7 +424,7 @@ EU_EXT_CLASS void eu_push_replace_history(const char *key);
 EU_EXT_CLASS void eu_delete_replace_history(const char *key);
 EU_EXT_CLASS void eu_push_folder_history(const char *key);
 EU_EXT_CLASS void eu_delete_folder_history(const char *key);
-EU_EXT_CLASS void eu_update_backup_table(file_backup *pbak);
+EU_EXT_CLASS void eu_update_backup_table(file_backup *pbak, int mode);
 EU_EXT_CLASS void eu_clear_backup_table(void);
 EU_EXT_CLASS void eu_get_find_history(sql3_callback pfunc);
 EU_EXT_CLASS void eu_get_replace_history(sql3_callback pfunc);
@@ -523,7 +532,6 @@ EU_EXT_CLASS void eu_close_edit(void);
 EU_EXT_CLASS HWND eu_create_main_window(HINSTANCE instance);
 EU_EXT_CLASS bool eu_create_toolbar(HWND hwnd);
 EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);
-EU_EXT_CLASS bool eu_create_search_dlg(void);
 EU_EXT_CLASS void eu_create_fullscreen(HWND hwnd);
 EU_EXT_CLASS int eu_before_proc(MSG *p_msg);
 EU_EXT_CLASS uint32_t eu_get_dpi(HWND hwnd);

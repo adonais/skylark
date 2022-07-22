@@ -89,7 +89,7 @@ share_open_file(LPCTSTR path, bool read_only, uint32_t dw_creation, HANDLE *phan
      }
      return true;
 }
- 
+
 uint8_t *WINAPI
 share_map_section(HANDLE mapping, uint64_t offset, size_t length, bool read_only)
 {
@@ -309,6 +309,24 @@ share_load_lang(void)
         share_unmap(pmodule);
     }
     return lang_map;
+}
+
+void WINAPI
+share_spinlock_wait(volatile intptr_t *plock)
+{
+    uint64_t spin_count = 0;
+    while (inter_atom_compare_exchange(plock, 0, 0) != 0)
+    {
+        if (spin_count < 32)
+        {
+            Sleep(0);
+        }
+        else
+        {
+            Sleep(1);
+        }
+        ++spin_count;
+    }
 }
 
 void WINAPI

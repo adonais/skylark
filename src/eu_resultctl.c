@@ -233,7 +233,8 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            break;
+            PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDM_RESULT_CLOSE, 0), 0);
+            return 1;
         }
         case WM_DESTROY:
         {

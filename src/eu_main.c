@@ -44,10 +44,6 @@ init_instance(HINSTANCE instance)
         {
             return NULL;
         }
-        if (!eu_create_search_dlg())
-        {
-            return NULL;
-        }
         if (eu_get_config()->m_fullscreen)
         {
             eu_create_fullscreen(hwnd);

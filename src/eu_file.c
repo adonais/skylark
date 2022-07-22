@@ -710,6 +710,8 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
     }
 }
 
+static volatile long last_focus = -1;
+
 /**************************************************************************************
  * 文件打开函数, 参数selection只影响返回值, 一般设为true
  * 成功打开文件, 确保返回的是当前标签的序号
@@ -767,10 +769,11 @@ on_file_only_open(file_backup *pbak, bool selection)
             on_file_update_time(pnode, rel_t.st_mtime);
         }
     }
-    if (on_file_preload(pnode, pbak))
+    if ((res = on_file_preload(pnode, pbak)) != SKYLARK_OK)
     {
         eu_safe_free(pnode);
-        return EUE_PRESET_FILE_ERR;
+        printf("on_file_preload, err = %d\n", res);
+        return res;
     }
     if (on_tabpage_add(pnode))
     {
@@ -789,7 +792,18 @@ on_file_only_open(file_backup *pbak, bool selection)
         }
         on_sci_after_file(pnode);
         on_file_update_postion(pnode, pbak);
-        res = on_tabpage_selection(pnode, -1);
+        if (pbak->focus)
+        {
+            if (pbak->focus > 0)
+            {
+                _InterlockedExchange(&last_focus, on_tabpage_get_index(pnode));
+            }
+        }
+        else
+        {
+            _InterlockedExchange(&last_focus, pnode->tab_id);
+        }
+        res = on_tabpage_selection(pnode, last_focus);
         on_search_add_navigate_list(pnode, pnode->nc_pos);
         if (strlen(pbak->mark_id) > 0)
         {   // 恢复书签
@@ -928,21 +942,24 @@ int
 on_file_out_open(int index)
 {
     eu_tabpage *p = on_tabpage_get_ptr(index);
-    if (p && !p->is_blank)
+    if (p && (!p->is_blank  || eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
     {
-        int err = SKYLARK_NOT_OPENED;
         TCHAR process[MAX_BUFFER] = {0};
         if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
         {
-            if (!eu_get_config()->m_session || (!p->be_modify && !p->hex_mode))
+            int err = SKYLARK_NOT_OPENED;
+            if (!eu_get_config()->m_session)
             {
-                sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-                sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-                sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
-                _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%I64d -c%I64d"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
-                if (!(err = on_file_close(p, FILE_ONLY_CLOSE)))
+                if (!p->is_blank)
                 {
-                    err = _tputenv(_T("OPEN_FROM_SQL="));
+                    sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                    sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                    sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                    _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%I64d -c%I64d"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
+                    if (!(err = on_file_close(p, FILE_ONLY_CLOSE)))
+                    {
+                        err = _tputenv(_T("OPEN_FROM_SQL="));
+                    }
                 }
             }
             else
@@ -1147,9 +1164,19 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
         util_set_title(pnode->pathfile);
         on_sci_after_file(pnode);
         on_file_update_postion(pnode, pbak);
-        on_search_add_navigate_list(pnode, 0);
-        reuslt = on_tabpage_selection(pnode, -1);
-        on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+        if (pbak->focus)
+        {
+            if (pbak->focus > 0)
+            {
+                _InterlockedExchange(&last_focus, on_tabpage_get_index(pnode));
+            }
+        }
+        else
+        {
+            _InterlockedExchange(&last_focus, pnode->tab_id);
+        }
+        reuslt = on_tabpage_selection(pnode, last_focus);
+        on_search_add_navigate_list(pnode, pnode->nc_pos);
         if (strlen(pbak->mark_id) > 0)
         {   // 恢复书签
             on_search_update_mark(pnode, pbak->mark_id);
@@ -1581,16 +1608,21 @@ on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
             on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
             on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
             filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            eu_update_backup_table(&filebak);
+            if (mode == FILE_REMOTE_CLOSE)
+            {
+                eu_update_backup_table(&filebak, DB_FILE);
+                on_sql_delete_backup_row(pnode);
+            }
+            else
+            {
+                filebak.sync = 1;
+                eu_update_backup_table(&filebak, DB_MEM);
+            }
         }
-    }
-    else if (mode == FILE_ONLY_CLOSE)
-    {
-        on_sql_delete_backup_row(pnode);
     }
     else
     {
-        on_sql_delete_backup_row_thread(pnode);
+        on_sql_delete_backup_row(pnode);
     }
 }
 
@@ -1611,7 +1643,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     }
     else
     {
-        on_sql_delete_backup_row_thread(pnode);
+        on_sql_delete_backup_row(pnode);
     }
     if (!file_click_close(mode) && eu_get_config()->m_session)
     {
@@ -1722,21 +1754,24 @@ on_file_left_close(void)
 int
 on_file_right_close(void)
 {
-    const int count = TabCtrl_GetItemCount(g_tabpages);
+    int count = TabCtrl_GetItemCount(g_tabpages);
     const int this_index = TabCtrl_GetCurSel(g_tabpages);
-    int first = this_index + 1;
-    for (int index = first; index < count; ++index)
+    int right = count - 1;
+    for (; this_index < right; --right)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(first);
+        eu_tabpage *p = on_tabpage_get_ptr(right);
         if (p)
         {
             if (on_file_close(p, FILE_EXCLUDE_CLOSE))
             {
-                ++first;
+                continue;
             }
         }
     }
-    on_tabpage_selection(on_tabpage_get_ptr(this_index), -1);
+    if (count > this_index + 1)
+    {
+        on_tabpage_selection(on_tabpage_get_ptr(this_index), -1);
+    }
     return SKYLARK_OK;
 }
 
@@ -1793,6 +1828,10 @@ on_file_check_save(void *lp)
                 continue;
             }
         }
+    }
+    if (on_sqlite3_sync_session())
+    {
+        printf("on_sqlite3_sync_session return false in %s\n", __FUNCTION__);
     }
     if (!err)
     {

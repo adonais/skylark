@@ -20,8 +20,6 @@
 #define ascii_special_symbol(ch) \
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
-static volatile long last_focus = -1;
-
 void WINAPI
 eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
 {
@@ -196,6 +194,10 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         else if (STRCMP(names[i], ==, "szFocus"))
         {
             filebak.focus = atoi(column[i]);
+            if (!filebak.focus)
+            {
+                filebak.focus = -1;
+            }
         }
         else if (STRCMP(names[i], ==, "szZoom"))
         {
@@ -204,15 +206,11 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         else if (STRCMP(names[i], ==, "szStatus"))
         {
             filebak.status = atoi(column[i]);
-            if (!_tcsicmp(filebak.rel_path, path))
-            {
-                break;
-            }
         }
     }
     if (open_sql)
     {
-        if (!_tcsicmp(filebak.rel_path, path))
+        if (_tcslen(path) > 0 && !_tcsicmp(filebak.rel_path, path))
         {
             share_send_msg(&filebak);
             return 1;
@@ -220,10 +218,6 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
     }
     else
     {
-        if (filebak.focus)
-        {
-            _InterlockedExchange(&last_focus, filebak.tab_id);
-        }
         if (filebak.rel_path[0] || filebak.bak_path[0])
         {
             eu_postion_setup(NULL, 0, &filebak);
@@ -242,17 +236,12 @@ on_config_load_file(void *lp)
     {
         if (open_sql || eu_get_config()->m_session)
         {
-            int err = 0;
             const char *sql = "SELECT * FROM skylark_session;";
-            if ((err = eu_sqlite3_send(sql, on_config_parser_bakup, &is_blank)))
+            int err = on_sqlite3_do_session(sql, on_config_parser_bakup, &is_blank);
+            if (err == SQLITE_ABORT)
             {
-                printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
+                printf("callback abort in %s, cause: %d\n", __FUNCTION__, err);
                 return 1;
-            }
-            if (!open_sql && last_focus >= 0)
-            {
-                printf("last_focus = %ld\n", last_focus);
-                on_tabpage_select_index(last_focus);
             }
         }
     }
