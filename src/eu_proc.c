@@ -476,7 +476,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
 void
 eu_window_resize(HWND hwnd)
 {
-    PostMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
+    on_proc_msg_size(hwnd ? hwnd : eu_module_hwnd(), NULL);
 }
 
 void
@@ -489,6 +489,10 @@ static void
 on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
 {
     on_proc_msg_size(hwnd, pnode);
+    if (pnode && !pnode->hex_mode && pnode->nc_pos > 0)
+    {
+        eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+    }
 }
 
 int

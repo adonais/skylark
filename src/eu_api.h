@@ -278,7 +278,11 @@ struct eu_config
     int document_map_width;
     int result_edit_height;
     int result_list_height;
-
+    int file_recent_number;
+    int inter_reserved_0;
+    int inter_reserved_1;
+    int inter_reserved_2;
+    
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
@@ -302,6 +306,8 @@ struct eu_config
     uint64_t m_id;
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
+    char m_reserved_0[MAX_PATH];
+    char m_reserved_1[MAX_PATH];
     char m_actions[100][MAX_PATH];
 };
 

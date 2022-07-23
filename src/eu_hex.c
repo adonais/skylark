@@ -2262,7 +2262,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         {
             if (pnew->nc_pos >= 0)
             {
-                on_search_jmp_pos(pnew, pnew->nc_pos);
+                on_search_jmp_pos(pnew);
             }
             PostMessage(pnew->hwnd_sc, WM_SETFOCUS, 0, 0);
         }

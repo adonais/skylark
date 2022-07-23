@@ -873,7 +873,7 @@ on_tabpage_add(eu_tabpage *pnode)
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
         printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
-        return 1;
+        return SKYLARK_TABCTRL_ERR;
     }
     if (!pnode->is_blank)
     {
@@ -883,11 +883,20 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         pnode->hex_mode = true;
         pnode->bytes_remaining = pnode->raw_size;
-        pnode->tab_id = -1;
         printf("hexview_init, pnode = %p, pnode->bytes_remaining = %I64d\n", pnode, pnode->bytes_remaining);
-        return !hexview_init(pnode);
+        if (!hexview_init(pnode))
+        {
+            TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
+            return EUE_INSERT_TAB_FAIL;
+        }
+        return SKYLARK_OK;
     }
-    return on_sci_init_dlg(pnode);
+    if (on_sci_init_dlg(pnode))
+    {
+        TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
+        return EUE_INSERT_TAB_FAIL;
+    }
+    return SKYLARK_OK;
 }
 
 void

@@ -236,8 +236,7 @@ on_config_load_file(void *lp)
     {
         if (open_sql || eu_get_config()->m_session)
         {
-            const char *sql = "SELECT * FROM skylark_session;";
-            int err = on_sqlite3_do_session(sql, on_config_parser_bakup, &is_blank);
+            int err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, &is_blank);
             if (err == SQLITE_ABORT)
             {
                 printf("callback abort in %s, cause: %d\n", __FUNCTION__, err);
@@ -350,4 +349,3 @@ eu_load_file(void)
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
     on_config_create_accel();
 }
-

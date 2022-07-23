@@ -364,17 +364,20 @@ on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
 }
 
 void
-on_search_jmp_pos(eu_tabpage *pnode, sptr_t pos)
+on_search_jmp_pos(eu_tabpage *pnode)
 {
-    if (!pos)
+    if (pnode)
     {
-        eu_sci_call(pnode, SCI_GOTOPOS, 0, 0);
-    }
-    else if (pos > 0)
-    {
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        on_search_jmp_line(pnode, line, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+        if (!pnode->nc_pos || pnode->hex_mode)
+        {
+            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+        }
+        else if (pnode->nc_pos > 0)
+        {
+            sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pnode->nc_pos, 0);
+            on_search_jmp_line(pnode, line, 0);
+            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+        }
     }
 }
 
@@ -2260,8 +2263,8 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
         }
         char *pformat = eu_utf16_utf8(line_str, NULL);
         if (pnode->pvec && pformat)
-        {
-            const int k = util_count_number(pnode->pvec[cvector_size(pnode->pvec) - 1].line);
+        {   // 按照最大行数右对齐
+            const int k = util_count_number(pnode->pvec[cvector_size(pnode->pvec) - 1].line + 1);
             for (int i = 0; i < cvector_size(pnode->pvec); ++i)
             {
                 char *buf = util_strdup_line(pnode, pnode->pvec[i].line, NULL);

@@ -681,7 +681,7 @@ on_remote_list_find(const TCHAR *url)
 	printf("addr = %s, port = %s\n", addr, port);
     if (list_empty(&list_server))
     {
-        on_sqlite3_post("SELECT * FROM file_remote;", on_remote_parser_callback, NULL);
+        on_sql_post("SELECT * FROM file_remote;", on_remote_parser_callback, NULL);
     }
     list_for_each_safe(pos, n, &list_server)
     {

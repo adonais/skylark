@@ -51,6 +51,10 @@ function eu_conf.loadconf()
         "document_map_width = 310\n" ..
         "sqlquery_result_edit_height = 80\n" ..
         "sqlquery_result_listview_height = 270\n" ..
+        "file_recent_number = 29\n" ..
+        "inter_reserved_0 = 0\n" ..
+        "inter_reserved_1 = 0\n" ..
+        "inter_reserved_2 = 0\n" ..
         "block_fold_visiable = true\n" ..
         "auto_completed_show_enable = true\n" ..
         "auto_completed_show_after_input_characters = 0\n" ..
@@ -85,6 +89,8 @@ function eu_conf.loadconf()
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"d:/msys2/msys2_shell.cmd -mingw64 -here\"\n" ..
         "other_editor_path = \"\"\n" ..
+        "m_reserved_0 = \"\"\n" ..
+        "m_reserved_1 = \"\"\n" ..
         "process_actions = {}\n"
         eu_code = assert(loadstring(code))()
     else
@@ -127,6 +133,10 @@ function eu_conf.loadconf()
         document_map_width,
         sqlquery_result_edit_height,
         sqlquery_result_listview_height,
+        file_recent_number,
+        inter_reserved_0,
+        inter_reserved_1,
+        inter_reserved_2,
         block_fold_visiable,
         auto_completed_show_enable,
         auto_completed_show_after_input_characters,
@@ -148,6 +158,8 @@ function eu_conf.loadconf()
         cache_limit_size,
         app_build_id,
         process_path,
+        m_reserved_0,
+        m_reserved_1,
         other_editor_path
     })
     eu_conf.fill_actions(m_config)

@@ -88,7 +88,7 @@ void on_search_cumulative_previous_block(eu_tabpage *pnode);
 void on_search_cumulative_next_block(eu_tabpage *pnode);
 void on_search_jmp_home(eu_tabpage *pnode);
 void on_search_jmp_end(eu_tabpage *pnode);
-void on_search_jmp_pos(eu_tabpage *pnode, sptr_t pos);
+void on_search_jmp_pos(eu_tabpage *pnode);
 void on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num);
 void on_search_clean_navigate_this(eu_tabpage *pnode);
 void on_search_page_mark(eu_tabpage *pnode, char *, int);
