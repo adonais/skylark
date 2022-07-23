@@ -1081,14 +1081,13 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
     int offset = 0;
     sptr_t find_line = 0;
     sptr_t current_line = 0;
-    sptr_t line = -1;
     if (!pnode || pnode->hex_mode)
     {
         return;
     }
-    line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0) + 1;
+    const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
     *szmark = 0;
-    while (find_line != -1 && find_line < line)
+    while (find_line != -1 && find_line <= line)
     {
         find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
         if (find_line >= 0)

@@ -439,6 +439,24 @@ on_edit_delete_line_tail_white(eu_tabpage *pnode)
     }
 }
 
+void
+on_edit_delete_line_header_all(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode)
+    {
+        do_delete_space(pnode, 1, eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0), true);
+    }
+}
+
+void
+on_edit_delete_line_tail_all(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode)
+    {
+        do_delete_space(pnode, 1, eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0), false);
+    }
+}
+
 static bool
 space_in_line(eu_tabpage *pnode, sptr_t start, sptr_t end)
 {

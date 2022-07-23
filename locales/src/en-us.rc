@@ -95,8 +95,11 @@ BEGIN
             MENUITEM "Transpose",                                      IDM_EDIT_LINETRANSPOSE
             MENUITEM "Join Next Line",                                 IDM_EDIT_JOINLINE
             MENUITEM MF_SEPARATOR
-            MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD
-            MENUITEM "Strip &Trailing Blanks",                         IDM_DELETE_SPACE_LINETAIL
+            MENUITEM "Strip Leading Blan&k",                           IDM_DELETE_SPACE_LINEHEAD
+            MENUITEM "Strip &Trailing Blank",                          IDM_DELETE_SPACE_LINETAIL            
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Strip All Leading Blanks",                       IDM_DELETE_ALL_SPACE_LINEHEAD
+            MENUITEM "Strip All Trailing Blanks",                      IDM_DELETE_ALL_SPACE_LINETAIL
             MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE
         END
         POPUP "Line Sort",                                             IDM_EDIT_PLACEHOLDE5
@@ -301,7 +304,7 @@ BEGIN
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
         END
-        MENUITEM "Code Snippets",                                      IDM_SOURCE_SNIPPET
+        MENUITEM "Code Snippets",                                      IDM_SOURCE_SNIPPET,,MF_DISABLED
         MENUITEM MF_SEPARATOR
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END

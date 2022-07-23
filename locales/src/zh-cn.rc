@@ -97,6 +97,9 @@ BEGIN
             MENUITEM MF_SEPARATOR
             MENUITEM "移除行首空白",                            IDM_DELETE_SPACE_LINEHEAD
             MENUITEM "移除行尾空白",                            IDM_DELETE_SPACE_LINETAIL
+            MENUITEM MF_SEPARATOR
+            MENUITEM "移除所有行首空白",                        IDM_DELETE_ALL_SPACE_LINEHEAD
+            MENUITEM "移除所有行尾空白",                        IDM_DELETE_ALL_SPACE_LINETAIL
             MENUITEM "移除所有空白行",                          IDM_DELETE_ALL_SPACE_LINE
         END
         POPUP "行排序",                                         IDM_EDIT_PLACEHOLDE5
@@ -301,7 +304,7 @@ BEGIN
             MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
             MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
         END
-        MENUITEM "代码片段",                                    IDM_SOURCE_SNIPPET
+        MENUITEM "代码片段",                                    IDM_SOURCE_SNIPPET,,MF_DISABLED
         MENUITEM MF_SEPARATOR
         MENUITEM "使用预设动作执行当前文件",                    IDM_PROGRAM_EXECUTE_ACTION
     END
