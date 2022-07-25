@@ -505,7 +505,9 @@ on_sql_file_recent_clear(void)
 {
     if (eu_memdb)
     {
-        return sqlite3_exec((sqlite3 *)eu_memdb, "delete from file_recent;", NULL, NULL, NULL);
+        const char *sql = "delete from file_recent;";
+        sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
+        return eu_sqlite3_send(sql, NULL, NULL);
     }
     return SQLITE_ERROR;
 }

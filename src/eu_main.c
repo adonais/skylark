@@ -166,9 +166,8 @@ _tmain(int argc, TCHAR *argv[])
                 REG_ON_DARK_MODE
                 eu_create_registry_dlg();
             }
-            else if (!no_remote && _tcslen(argv[1]) > 1)
+            else if (!no_remote && eu_config_parser_path(argv, argc, bak.rel_path))
             {   // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
-                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
                 eu_postion_setup(argv, argc, &bak);
                 share_send_msg(&bak);
             }

@@ -1405,22 +1405,23 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             hexview_on_keydown(hwnd, hexview, wParam, lParam);
             break;
         }
-        case HVM_SETLINE:
+        case HVM_GOPOS:
         {
             sptr_t i = 0;
-            sptr_t skip_line = (wParam / 16) - (hexview->select_start / 16);
-            sptr_t offset = ((wParam - hexview->select_start) - (sptr_t)(skip_line * 16)) * 2;
+            sptr_t last_pos =  wParam >= hexview->total_items ? hexview->total_items - 1: wParam;
+            sptr_t skip_line = (last_pos / 16) - (hexview->select_start / 16);
+            sptr_t offset = ((last_pos - hexview->select_start) - (sptr_t)(skip_line * 16)) * 2;
             if (offset && hexview->hl_position)
             {   // 如果光标在下半字节
                 --offset;
             }
-            if (hexview->total_items / 16 * 16 <= wParam)
+            if (hexview->total_items / 16 * 16 <= (size_t)last_pos)
             {   // 在末尾行, 使用VK_END跳转
                 hexview->number_items = hexview->total_items - 1;
                 hexview->hl_position = 0;
                 SendMessage(hwnd, WM_VSCROLL, SB_BOTTOM, 0);
                 hexview_caret(hwnd, hexview);
-                offset = (wParam - hexview->total_items + 1) * 2;
+                offset = (last_pos - hexview->total_items + 1) * 2;
             }
             else
             {   // goto line
@@ -1445,7 +1446,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 }
             }
             // 设置跳转地址高亮
-            BYTERANGE lpos = {wParam, wParam+1};
+            BYTERANGE lpos = {last_pos, last_pos+1};
             SendMessage(hwnd, HVM_SETSEL, 0, (sptr_t)&lpos);
             InvalidateRect(hwnd, NULL, false);
             break;
@@ -1748,7 +1749,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case SCI_GOTOPOS:
         {
-            SendMessage(hwnd, HVM_SETLINE, wParam, 0);
+            SendMessage(hwnd, HVM_GOPOS, wParam, 0);
             break;
         }
         case SCI_SETREADONLY:

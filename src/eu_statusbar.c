@@ -80,7 +80,7 @@ set_btn_rw(eu_tabpage *pnode, bool m_auto)
 {
     int ret = 0;
     DWORD m_attr = 0;
-    TCHAR lpch[EDITNUMBS] = { 0 };
+    TCHAR lpch[EDITNUMBS] = {0};
     if (!g_statusbar)
     {
         return 0;
@@ -166,33 +166,30 @@ on_statusbar_adjust_box(void)
     }
     else if (g_statusbar)
     {
-        RECT rc = { 0 };
+        RECT rc = {0};
         GetClientRect(g_statusbar, &rc);
         g_status_height = rc.bottom - rc.top;
     }
 }
 
 static void
-on_statusbar_adjust_btn(void)
+on_statusbar_adjust_btn(int left, int right)
 {
     HWND hcap = GetDlgItem(g_statusbar, IDM_BTN_1);
     HWND hrw = GetDlgItem(g_statusbar, IDM_BTN_2);
     if (hcap && hrw)
     {
-        int cx = 0;
         int btn_height = 0;
         int btn_width = 0;
-        RECT rc;
-        GetClientRect(g_statusbar, &rc);
         RECT rc_part = {0};
         SendMessage(g_statusbar, SB_GETRECT, STATUSBAR_DOC_BTN, (LPARAM)&rc_part);
-        btn_height = rc_part.bottom - rc_part.top;
-        btn_width = (rc_part.right - rc_part.left)/2;
-        rc.right -= btn_width;
+        btn_height = rc_part.bottom - SPLIT_WIDTH;
+        btn_width = (right - left)/2 - SPLIT_WIDTH;
+        rc_part.left = right - btn_width - 4;
         HDWP hdwp = BeginDeferWindowPos(2);
-        DeferWindowPos(hdwp, hcap, HWND_TOP, rc.right, rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
-        rc.right -= btn_width + SPLIT_WIDTH;
-        DeferWindowPos(hdwp, hrw, HWND_TOP, rc.right, rc_part.top, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
+        DeferWindowPos(hdwp, hcap, HWND_TOP, rc_part.left, SPLIT_WIDTH, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
+        rc_part.left -= btn_width + SPLIT_WIDTH;
+        DeferWindowPos(hdwp, hrw, HWND_TOP, rc_part.left, SPLIT_WIDTH, btn_width, btn_height, SWP_NOZORDER | SWP_SHOWWINDOW);
         EndDeferWindowPos(hdwp);
     }
 }
@@ -200,26 +197,26 @@ on_statusbar_adjust_btn(void)
 void WINAPI
 on_statusbar_refresh(void)
 {
-    if (g_statusbar)
+    if (g_statusbar && eu_get_config()->m_statusbar)
     {
         HWND hwnd = eu_module_hwnd();
         RECT rc_main = {0};
         GetWindowRect(hwnd, &rc_main);
         int cx = rc_main.right - rc_main.left;
         int n_half = cx / 8;
-        int parts[] = { n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, n_half*7+70, -1 };
+        int btn_half = n_half*7+70;
+        int parts[] = {n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, btn_half, -1};
         SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
-        on_statusbar_adjust_btn();
-        InvalidateRect(g_statusbar, NULL, 1);
+        on_statusbar_adjust_btn(btn_half, cx);
     }
 }
 
 static bool
 create_button(HWND hstatus)
 {
-    RECT rc = { 0 };
-    TCHAR lcap[EDITNUMBS] = { 0 };
-    TCHAR wstr[EDITNUMBS] = { 0 };
+    RECT rc = {0};
+    TCHAR lcap[EDITNUMBS] = {0};
+    TCHAR wstr[EDITNUMBS] = {0};
     HWND hcap = NULL;
     HWND hrw = NULL;
     if (!eu_i18n_load_str(IDS_BUTTON_CAP, lcap, EDITNUMBS))
@@ -387,7 +384,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR sub_i
             {
                 break;
             }
-            RECT rc = { 0 };
+            RECT rc = {0};
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
@@ -658,7 +655,7 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR sub_i
                     hfont_btn = NULL;
                 }
                 g_statusbar = NULL;
-                printf("statusbar WM_DESTROY\n");                
+                printf("statusbar WM_DESTROY\n");
             }
             break;
         }
@@ -939,6 +936,7 @@ on_statusbar_update(void)
         eu_tabpage *pnode = on_tabpage_focus_at();
         if (pnode && pnode->hwnd_sc)
         {
+            SendMessage(g_statusbar, WM_SETREDRAW, FALSE, 0);
             set_btn_rw(pnode, true);
             on_statusbar_update_fileinfo(pnode, NULL);
             on_statusbar_update_line(pnode);
@@ -946,6 +944,8 @@ on_statusbar_update(void)
             on_statusbar_update_eol(pnode);
             on_statusbar_update_filetype_menu(pnode);
             on_statusbar_update_coding(pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
+            SendMessage(g_statusbar, WM_SETREDRAW, TRUE, 0);
+            RedrawWindow(g_statusbar, NULL, NULL, RDW_ERASE | RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN);
         }
     }
 }

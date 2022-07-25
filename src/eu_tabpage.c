@@ -406,8 +406,18 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SIZE:
         {
-            UpdateWindowEx(hwnd);
-            PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
+            int row = 0;
+            int count = TabCtrl_GetItemCount(hwnd);
+            if (count > 0)
+            {
+                RECT rc = {0};
+                TabCtrl_GetItemRect(hwnd, count - 1, &rc);
+                row = rc.bottom/TABS_HEIGHT_DEFAULT;
+            }
+            if (row > 1)
+            {   // 行数大于1时重新调用缩放函数, 使得tabcontrol位置正确
+                PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
+            }
             break;
         }
         case WM_COMMAND:
@@ -596,7 +606,7 @@ int
 on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
-    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_OWNERDRAWFIXED;
+    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS;  //  TCS_BUTTONS | TCS_OWNERDRAWFIXED
 #ifdef _M_X64
     if (!util_under_wine())
     {
@@ -658,8 +668,8 @@ on_tabpage_adjust_box(RECT *ptp)
         on_treebar_adjust_box(&rect_treebar);
         ptp->left = rect_treebar.right;
     }
-    ptp->right = rect_main.right;
     ptp->top = rect_main.top + on_toolbar_height();
+    ptp->right = rect_main.right;
     ptp->bottom = ptp->top + tab_height + SCINTILLA_MARGIN_TOP;
 }
 
@@ -879,11 +889,9 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         pnode->tab_id -= on_tabpage_remove_empty();
     }
-    if ((pnode->fs_server.networkaddr[0] == 0 && pnode->codepage == IDM_OTHER_BIN) || pnode->hex_mode)
+    if (pnode->fs_server.networkaddr[0] == 0 && pnode->hex_mode)
     {
-        pnode->hex_mode = true;
         pnode->bytes_remaining = pnode->raw_size;
-        printf("hexview_init, pnode = %p, pnode->bytes_remaining = %I64d\n", pnode, pnode->bytes_remaining);
         if (!hexview_init(pnode))
         {
             TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
@@ -1062,12 +1070,19 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     {
         HWND hwnd = eu_module_hwnd();
         TabCtrl_SetCurSel(g_tabpages, index);
-        util_set_title(pnode->pathfile);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && p->pathfile[0])
+        {
+            util_set_title(p->pathfile);
+        }
         on_toolbar_update_button();
         eu_window_resize(hwnd);
         // 窗口处理过程中可能改变了标签位置, 重置它
-        // TabCtrl_SetCurSel(g_tabpages, index);
-        // util_set_title(pnode->pathfile);
+        TabCtrl_SetCurSel(g_tabpages, index);
+        if (p && p->pathfile[0])
+        {
+            util_set_title(p->pathfile);
+        }
     }
     return (index >= 0 && index < count ? index : SKYLARK_TABCTRL_ERR);
 }

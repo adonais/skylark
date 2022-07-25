@@ -20,6 +20,80 @@
 #define ascii_special_symbol(ch) \
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
+bool WINAPI
+eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
+{
+    bool ret = false;
+    int arg_c = argc;
+    LPWSTR *ptr_arg = NULL;
+    if (args)
+    {
+        ptr_arg = args;
+    }
+    else
+    {
+        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
+    }
+    if (ptr_arg)
+    {
+        for (int i = 1; i < arg_c; ++i)
+        {
+            if (_tcsncmp(ptr_arg[i], _T("-"), 1) == 0)
+            {
+                continue;
+            }
+            if (_tcsncmp(ptr_arg[i], _T("-restart"), 8) == 0)
+            {
+                ++i;
+                continue;
+            }
+            if (_tcsncmp(ptr_arg[i], _T("-lua"), 4) == 0)
+            {
+                if ((i + 1) < arg_c && _tcsncmp(ptr_arg[i+1], _T("-b"), 2) == 0)
+                {
+                    i += 3;
+                }
+                else
+                {
+                    ++i;
+                }
+                continue;
+            }
+            if (_tcslen(ptr_arg[i]) > 0)
+            {
+                TCHAR *p = NULL;
+                if ((p = _tcschr(ptr_arg[i], ':')) != NULL)
+                {
+                    _tcsncpy(path, ptr_arg[i], MAX_PATH - 1);
+                }
+                else
+                {
+                    GetFullPathName(ptr_arg[i], MAX_PATH, path, &p);
+                    if (!p && _tcslen(path) < MAX_PATH - 2)
+                    {
+                        path[_tcslen(path)] = _T('*');
+                    }
+                    else if (eu_exist_dir(path) && _tcslen(path) < MAX_PATH - 2)
+                    {
+                        if (path[_tcslen(path) - 1] != _T('\\'));
+                        {
+                            path[_tcslen(path)] = _T('\\');
+                        }
+                        path[_tcslen(path)] = _T('*');
+                    }
+                }
+                ret = true;
+                break;
+            }
+        }
+        if (ptr_arg != args)
+        {
+            LocalFree(ptr_arg);
+        }
+    }
+    return ret;
+}
+
 void WINAPI
 eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
 {
@@ -56,28 +130,16 @@ eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
 bool WINAPI
 eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
 {
-    if (args && argument && argc > 0)
-    {
-        for (int i = 1; i < argc; ++i)
-        {
-            if (!_tcscmp(args[i], argument))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-static bool
-on_config_parser_path(wchar_t **args, int argc, wchar_t *path)
-{
     bool ret = false;
     int arg_c = argc;
     LPWSTR *ptr_arg = NULL;
+    if (!argument)
+    {
+        return false;
+    }
     if (args)
     {
-        ptr_arg = args;
+        ptr_arg = (LPWSTR *)args;
     }
     else
     {
@@ -85,11 +147,10 @@ on_config_parser_path(wchar_t **args, int argc, wchar_t *path)
     }
     if (ptr_arg)
     {
-        for (int i = 0; i < arg_c; ++i)
+        for (int i = 1; i < arg_c; ++i)
         {
-            if (!_tcsncmp(ptr_arg[i], _T("-noremote"), 9) && (i + 1) < arg_c)
+            if (!_tcscmp(ptr_arg[i], argument))
             {
-                _tcsncpy(path, ptr_arg[i + 1], MAX_PATH - 1);
                 ret = true;
                 break;
             }
@@ -107,25 +168,16 @@ on_config_file_args(void)
 {
     int  ret = 1;
     int  arg_c = 0;
+    file_backup bak = {0};
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &arg_c);
     if (args == NULL)
     {
         return 1;
     }
-    else if (arg_c >= 2 && args[1][0] && _tcscmp(args[1], _T("-restart")))
+    else if (arg_c >= 2 && eu_config_parser_path(args, arg_c, bak.rel_path))
     {
-        file_backup bak = {0};
         eu_postion_setup(args, arg_c, &bak);
-        if (arg_c > 2 && !_tcscmp(args[1], _T("-noremote")))
-        {
-            _tcsncpy(bak.rel_path, args[2], MAX_PATH - 1);
-            share_send_msg(&bak);
-        }
-        else
-        {
-            _tcsncpy(bak.rel_path, args[1], MAX_PATH - 1);
-            share_send_msg(&bak);
-        }
+        share_send_msg(&bak);
         ret = 0;
     }
     LocalFree(args);
@@ -140,9 +192,9 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
     file_backup filebak = {0};
     wchar_t path[MAX_PATH] = {0};
     wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
-    if (open_sql && !on_config_parser_path(NULL, 0, path))
+    if (open_sql && !eu_config_parser_path(NULL, 0, path))
     {
-        printf("on_config_parser_path return false\n");
+        printf("eu_config_parser_path return false\n");
         return 1;
     }
     for (int i = 0; i < count; ++i)
@@ -220,7 +272,10 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
     {
         if (filebak.rel_path[0] || filebak.bak_path[0])
         {
-            eu_postion_setup(NULL, 0, &filebak);
+            if (!_tcsicmp(filebak.rel_path, path))
+            {
+                eu_postion_setup(NULL, 0, &filebak);
+            }
             share_send_msg(&filebak);
         }
     }

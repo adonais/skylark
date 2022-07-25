@@ -270,10 +270,9 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
     RECT rect_treebar = {0};
     RECT rect_tabbar = {0};
     eu_tabpage *pnode = ptab ? ptab : on_tabpage_focus_at();
-    if (pnode && !pnode->want)
+    if (pnode)
     {
         int number = 10;
-        _InterlockedIncrement(&pnode->want);
         on_toolbar_adjust_box();
         on_statusbar_adjust_box();
         on_tabpage_adjust_box(&rect_tabbar);
@@ -395,7 +394,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             {
                 DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
                                rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
-                PostMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+                SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
             }
         }
         else if (g_statusbar)
@@ -469,20 +468,19 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         }
         PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
         on_statusbar_update();
-        _InterlockedDecrement(&pnode->want);
     }
-}
-
-void
-eu_window_resize(HWND hwnd)
-{
-    on_proc_msg_size(hwnd ? hwnd : eu_module_hwnd(), NULL);
 }
 
 void
 on_proc_resize(HWND hwnd)
 {   // 当在线程需要刷新界面时, 使用消息让主线程刷新
     SendMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
+}
+
+void
+eu_window_resize(HWND hwnd)
+{
+    on_proc_msg_size(hwnd ? hwnd : eu_module_hwnd(), NULL);
 }
 
 static void
@@ -1230,6 +1228,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                    break;
                 case IDM_VIEW_ZOOMOUT:
                     on_view_zoom_out(pnode);
                     break;
@@ -1580,7 +1579,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         break;
                     }
-                    if (pnode)
+                    if ((pnode = on_tabpage_get_ptr((int) (p_tips->hdr.idFrom))))
                     {   // 显示标签的快捷键提示
                         memset(p_tips->szText, 0, sizeof(p_tips->szText));
                         if ((int) (p_tips->hdr.idFrom) <= 8)

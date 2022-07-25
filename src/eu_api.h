@@ -100,7 +100,7 @@
 #define HVM_SETBKCOLOR            (WM_USER + 105)
 #define HVM_SETSELBKCOLOR         (WM_USER + 106)
 #define HVM_SETMODIFIEDCOLOR      (WM_USER + 107)
-#define HVM_SETLINE               (WM_USER + 108)
+#define HVM_GOPOS                 (WM_USER + 108)
 #define HVM_GETHEXADDR            (WM_USER + 109)
 #define HVM_SETLINECOUNT          (WM_USER + 110)
 #define HVN_GETDISPINFO           (WMN_FIRST - 0)
@@ -282,7 +282,7 @@ struct eu_config
     int inter_reserved_0;
     int inter_reserved_1;
     int inter_reserved_2;
-    
+
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
@@ -578,6 +578,7 @@ EU_EXT_CLASS bool __stdcall eu_load_config(HMODULE *pmod);
 EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
 EU_EXT_CLASS void __stdcall eu_postion_setup(wchar_t **args, int argc, file_backup *pbak);
+EU_EXT_CLASS bool __stdcall eu_config_parser_path(wchar_t **args, int argc, wchar_t *path);
 
 // for eu_script.c
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);

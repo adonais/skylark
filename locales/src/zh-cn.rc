@@ -248,7 +248,7 @@ BEGIN
         BEGIN
             MENUITEM "右键单击(&R)",                            IDM_VIEW_TAB_RIGHT_CLICK
             MENUITEM "左键双击(&L)",                            IDM_VIEW_TAB_LEFT_DBCLICK
-        END        
+        END
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "放大",                                    IDM_VIEW_ZOOMOUT
@@ -1093,7 +1093,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SEARCH_STR2     "%s|%s|(%d 次匹配)"
     IDC_MSG_SEARCH_STR3     "正在初始化引擎,不要关闭窗口......"
     IDC_MSG_SEARCH_STR4     "搜索完成, %I64u 个文件匹配, 共 %I64u 条结果"
-    IDC_MSG_SEARCH_STR5     "输入地址偏移量:"
+    IDC_MSG_SEARCH_STR5     "输入地址偏移量(Hex):"
     IDC_SEARCH_BTN_ON       "查找全部"
     IDC_SEARCH_BTN_OFF      "停止搜索"
     IDS_PRINT_HEADER        "文件名，当前日期和时间|文件名，当前日期|文件名|留空"
@@ -1125,7 +1125,7 @@ STRINGTABLE DISCARDABLE
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
     IDS_RESULT_STRINGS1     "#> 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
     IDS_RESULT_STRINGS2     "行 %*I64d: %s"
-    IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-n : 打开文件时滚动到指定行\n-c : 打开文件时滚动到指定列\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
+    IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-nXX : 打开文件时滚动到指定行\n-cXX : 打开文件时滚动到指定列\n-hex : 以16进制模式打开文本文件\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
     IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
     IDS_SNIPPET_EDT_DEFAULT "片段名称/注释/参数"

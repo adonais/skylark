@@ -20,7 +20,6 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
-#define MOVE_SPLITE_LINE 2
 #define TABS_HEIGHT_DEFAULT   21
 
 #ifdef __cplusplus

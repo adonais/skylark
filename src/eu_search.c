@@ -855,7 +855,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
 
                 if (_stscanf(lineno, _T("%I64x"), &line) == 1)
                 {
-                    SendMessage(pnode->hwnd_sc, HVM_SETLINE, line, 0);
+                    SendMessage(pnode->hwnd_sc, HVM_GOPOS, line, 0);
                 }
 
             }
@@ -1104,6 +1104,20 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
 }
 
 void
+on_search_update_mark(eu_tabpage *pnode, char *szmark)
+{
+    if (pnode)
+    {
+        char *p = strtok(szmark, ";");
+        while (p)
+        {
+            on_search_add_mark(pnode, _atoi64(p));
+            p = strtok(NULL, ";");
+        }
+    }
+}
+
+void
 on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
 {
     int offset = 0;
@@ -1140,20 +1154,6 @@ on_search_update_fold(eu_tabpage *pnode, char *szfold)
                 eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_EXPAND);
             }
             eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_CONTRACT);
-            p = strtok(NULL, ";");
-        }
-    }
-}
-
-void
-on_search_update_mark(eu_tabpage *pnode, char *szmark)
-{
-    if (pnode)
-    {
-        char *p = strtok(szmark, ";");
-        while (p)
-        {
-            on_search_add_mark(pnode, _atoi64(p));
             p = strtok(NULL, ";");
         }
     }
