@@ -249,6 +249,7 @@ BEGIN
             MENUITEM "右键单击(&R)",                            IDM_VIEW_TAB_RIGHT_CLICK
             MENUITEM "左键双击(&L)",                            IDM_VIEW_TAB_LEFT_DBCLICK
         END
+        MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "放大",                                    IDM_VIEW_ZOOMOUT

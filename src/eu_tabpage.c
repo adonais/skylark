@@ -1144,6 +1144,26 @@ on_tabpage_changing(HWND hwnd)
 }
 
 void
+on_tabpage_switch_next(HWND hwnd)
+{
+    EU_VERIFY(g_tabpages != NULL);
+    int count = TabCtrl_GetItemCount(g_tabpages);
+    int index = TabCtrl_GetCurSel(g_tabpages);
+    if (index >= 0 && count > 1 && index < count)
+    {
+        eu_tabpage *p = NULL;
+        index = (index < count - 1 ? index + 1 : 0);
+        if((p = on_tabpage_get_ptr(index)) != NULL)
+        {
+            TabCtrl_SetCurSel(g_tabpages, index);
+            util_set_title(p->pathfile);
+            on_toolbar_update_button();
+            SendMessage(hwnd, WM_TAB_CLICK, (WPARAM)p, 0);
+        }
+    }
+}
+
+void
 on_tabpage_symlist_click(eu_tabpage *pnode)
 {
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->fn_click_symlist)

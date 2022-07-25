@@ -1228,6 +1228,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case IDM_VIEW_SWITCH_TAB:
+                    on_tabpage_switch_next(hwnd);
                     break;
                 case IDM_VIEW_ZOOMOUT:
                     on_view_zoom_out(pnode);

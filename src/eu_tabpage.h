@@ -104,6 +104,7 @@ int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(eu_tabpage *pnode);
 int  on_tabpage_selection(eu_tabpage *pnode, int index);
+void on_tabpage_switch_next(HWND hwnd);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);

@@ -96,7 +96,7 @@ BEGIN
             MENUITEM "Join Next Line",                                 IDM_EDIT_JOINLINE
             MENUITEM MF_SEPARATOR
             MENUITEM "Strip Leading Blan&k",                           IDM_DELETE_SPACE_LINEHEAD
-            MENUITEM "Strip &Trailing Blank",                          IDM_DELETE_SPACE_LINETAIL            
+            MENUITEM "Strip &Trailing Blank",                          IDM_DELETE_SPACE_LINETAIL
             MENUITEM MF_SEPARATOR
             MENUITEM "Strip All Leading Blanks",                       IDM_DELETE_ALL_SPACE_LINEHEAD
             MENUITEM "Strip All Trailing Blanks",                      IDM_DELETE_ALL_SPACE_LINETAIL
@@ -162,7 +162,7 @@ BEGIN
             MENUITEM "Select &Word Group",                             IDM_SEARCH_SELECTWORD
             MENUITEM "Select &Line",                                   IDM_SEARCH_SELECTLINE
             MENUITEM "Select To Document Start",                       IDM_SEARCH_SELECT_HEAD
-            MENUITEM "Select To Document End",                         IDM_SEARCH_SELECT_END            
+            MENUITEM "Select To Document End",                         IDM_SEARCH_SELECT_END
         END
         POPUP "Advanced Select",                                       IDM_EDIT_PLACEHOLDE11
         BEGIN
@@ -249,6 +249,7 @@ BEGIN
             MENUITEM "&Right Click",                                   IDM_VIEW_TAB_RIGHT_CLICK
             MENUITEM "&Left Double Click",                             IDM_VIEW_TAB_LEFT_DBCLICK
         END
+        MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "Zoom Out",                                       IDM_VIEW_ZOOMOUT
