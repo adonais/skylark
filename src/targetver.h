@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 7
+#define __EU_INFO_VERSION_PATCHLEVEL 8
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -434,6 +434,9 @@
 #define IDM_RELOAD_FILESEARCH                30446
 #define IDM_EDIT_MOVE_LINEUP                 30447
 #define IDM_EDIT_MOVE_LINEDOWN               30448
+#define IDM_DELETE_ALL_SPACE_LINEHEAD        30449
+#define IDM_DELETE_ALL_SPACE_LINETAIL        30450
+#define IDM_VIEW_SWITCH_TAB                  30451
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -937,6 +940,31 @@
 #define IDM_HELP_COMMAND                    43000
 #define IDS_LOADLIBRARY_SQL                 43001
 #define IDM_TABPAGE_SAVE                    43002
+
+#define IDM_VIEW_TAB_RIGHT_CLICK            43010
+#define IDM_VIEW_TAB_LEFT_DBCLICK           43011
+
+#define IDM_SEARCH_SELECT_HEAD              43020
+#define IDM_SEARCH_SELECT_END               43021
+
+#define IDD_VIEWZONE                        43030
+#define IDD_VIEWZONE_CLASSIC                43031
+#define IDC_VIEWZONE_CANVAS                 43032
+#define IDD_DOCUMENTMAP                     43033
+
+#define IDM_SOURCE_SNIPPET                  44000
+#define IDD_SNIPPET_DLG                     44001
+#define IDC_SNIPPET_LST                     44002
+#define IDC_SNIPPET_EDT1                    44003
+#define IDC_SNIPPET_CBO1                    44004
+#define IDC_SNIPPET_STC1                    44005
+#define IDC_SNIPPET_STC2                    44006
+#define IDC_SNIPPET_BTN1                    44007
+#define IDC_SNIPPET_BTN3                    44008
+#define IDC_SNIPPET_BTN2                    44009
+#define IDS_SNIPPET_EDT_DEFAULT             44010
+#define IDS_SNIPPET_EXAMPLE_DEC             44011
+#define IDS_SNIPPET_COMBO_DEC               44012
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

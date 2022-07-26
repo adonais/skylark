@@ -364,17 +364,20 @@ on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
 }
 
 void
-on_search_jmp_pos(eu_tabpage *pnode, sptr_t pos)
+on_search_jmp_pos(eu_tabpage *pnode)
 {
-    if (!pos)
+    if (pnode)
     {
-        eu_sci_call(pnode, SCI_GOTOPOS, 0, 0);
-    }
-    else if (pos > 0)
-    {
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        on_search_jmp_line(pnode, line, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+        if (!pnode->nc_pos || pnode->hex_mode)
+        {
+            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+        }
+        else if (pnode->nc_pos > 0)
+        {
+            sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pnode->nc_pos, 0);
+            on_search_jmp_line(pnode, line, 0);
+            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+        }
     }
 }
 
@@ -650,12 +653,31 @@ on_search_select_line(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t current_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-        sptr_t current_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
-        sptr_t eol_mode = eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
-        eu_sci_call(pnode, SCI_SETSEL, current_start, current_end + (eol_mode == 0 ? 2 : 1));
+        // 支持类似visual studio的单行操作
+        // TAB键增加缩进, Shift+TAB减少缩进
+        eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_LINES, 0);
+    }
+}
+
+void
+on_search_select_se(eu_tabpage *pnode, uint16_t id)
+{
+    if (pnode)
+    {
+		sptr_t sel_start = 0;
+		sptr_t sel_end = 0;
+		if (id == IDM_SEARCH_SELECT_END)
+		{
+			sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+			sel_end = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+		}
+		else if (id == IDM_SEARCH_SELECT_HEAD)
+	    {
+			sel_start = 0;
+			sel_end =  eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+		}
+		eu_sci_call(pnode, SCI_SETSELECTIONSTART, sel_start, 0);
+		eu_sci_call(pnode, SCI_SETSELECTIONEND, sel_end, 0);
     }
 }
 
@@ -833,7 +855,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
 
                 if (_stscanf(lineno, _T("%I64x"), &line) == 1)
                 {
-                    SendMessage(pnode->hwnd_sc, HVM_SETLINE, line, 0);
+                    SendMessage(pnode->hwnd_sc, HVM_GOPOS, line, 0);
                 }
 
             }
@@ -1059,14 +1081,13 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
     int offset = 0;
     sptr_t find_line = 0;
     sptr_t current_line = 0;
-    sptr_t line = -1;
     if (!pnode || pnode->hex_mode)
     {
         return;
     }
-    line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0) + 1;
+    const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
     *szmark = 0;
-    while (find_line != -1 && find_line < line)
+    while (find_line != -1 && find_line <= line)
     {
         find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
         if (find_line >= 0)
@@ -1078,6 +1099,20 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
             }
             _snprintf(szmark+offset, size-offset, "%I64d;", find_line);
             current_line = find_line + 1;
+        }
+    }
+}
+
+void
+on_search_update_mark(eu_tabpage *pnode, char *szmark)
+{
+    if (pnode)
+    {
+        char *p = strtok(szmark, ";");
+        while (p)
+        {
+            on_search_add_mark(pnode, _atoi64(p));
+            p = strtok(NULL, ";");
         }
     }
 }
@@ -1119,20 +1154,6 @@ on_search_update_fold(eu_tabpage *pnode, char *szfold)
                 eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_EXPAND);
             }
             eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_CONTRACT);
-            p = strtok(NULL, ";");
-        }
-    }
-}
-
-void
-on_search_update_mark(eu_tabpage *pnode, char *szmark)
-{
-    if (pnode)
-    {
-        char *p = strtok(szmark, ";");
-        while (p)
-        {
-            on_search_add_mark(pnode, _atoi64(p));
             p = strtok(NULL, ";");
         }
     }
@@ -1577,7 +1598,7 @@ on_search_combo_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 static LRESULT WINAPI
-on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubClass, DWORD_PTR dwRefData)
+on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
     switch(msg)
     {
@@ -1604,24 +1625,16 @@ on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR 
             rcf.left = rc.right - 24;  // rc.right - 24 exclude DROPDOWN_BUTTUON
             TCHAR text[] = {0x2B9F, 0};
             DrawText(hdc, text, (int)_tcslen(text), &rcf, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
-            HGDIOBJ newbrush = SelectObject(hdc, oldpen);
-            HGDIOBJ newpen = SelectObject(hdc, oldbrush);
+            SelectObject(hdc, oldpen);
+            SelectObject(hdc, oldbrush);
             DeleteObject(brush);
             DeleteObject(pen);
-            if (newbrush)
-            {
-                DeleteObject(newbrush);
-            }
-            if (newpen)
-            {
-                DeleteObject(newpen);
-            }
             EndPaint(hwnd, &ps);
             return 0;
         }
         case WM_NCDESTROY:
         {
-            RemoveWindowSubclass(hwnd, on_search_combo_wnd, uIdSubClass);
+            RemoveWindowSubclass(hwnd, on_search_combo_wnd, sub_id);
             break;
         }
         default:
@@ -2249,8 +2262,8 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
         }
         char *pformat = eu_utf16_utf8(line_str, NULL);
         if (pnode->pvec && pformat)
-        {
-            const int k = util_count_number(pnode->pvec[cvector_size(pnode->pvec) - 1].line);
+        {   // 按照最大行数右对齐
+            const int k = util_count_number(pnode->pvec[cvector_size(pnode->pvec) - 1].line + 1);
             for (int i = 0; i < cvector_size(pnode->pvec); ++i)
             {
                 char *buf = util_strdup_line(pnode, pnode->pvec[i].line, NULL);
@@ -2298,7 +2311,7 @@ on_search_found_list(HWND hwnd)
                 pnode->result_show = true;
                 eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
                 eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-                eu_window_resize(NULL);
+                on_proc_resize(NULL);
                 char *u8_key = eu_utf16_utf8(key, NULL);
                 if (u8_key)
                 {
@@ -2940,6 +2953,7 @@ on_search_dark_mode_release(void)
     if (hwnd_search_dlg)
     {
         DestroyWindow(hwnd_search_dlg);
+        hwnd_search_dlg = NULL;
         on_search_create_box();
     }
 }
@@ -2960,7 +2974,7 @@ on_search_dark_mode_init(HWND hdlg)
     {
         if ((btn = GetDlgItem(hdlg, cbo_buttons[id])))
         {
-            SetWindowSubclass(btn, on_search_combo_wnd, 0, 0);
+            SetWindowSubclass(btn, on_search_combo_wnd, SEARCH_COMBO_SUBID, 0);
         }
     }
     const int bs_buttons[] = { IDC_MATCH_ALL_FILE,
@@ -3383,11 +3397,13 @@ on_search_space2tab(eu_tabpage *pnode)
 bool
 on_search_create_box(void)
 {
-    hwnd_search_dlg = i18n_create_dialog(eu_module_hwnd(), IDD_SEARCH_TAB_DLG, on_search_orig_find_proc);
     if (!hwnd_search_dlg)
     {
-        printf("i18n_create_dialog return false in %s\n", __FUNCTION__);
-        return false;
+        if (!(hwnd_search_dlg = i18n_create_dialog(eu_module_hwnd(), IDD_SEARCH_TAB_DLG, on_search_orig_find_proc)))
+        {
+            printf("i18n_create_dialog return false in %s\n", __FUNCTION__);
+            return false;
+        }
     }
     ShowWindow(hwnd_search_dlg, SW_HIDE);
     return (true);

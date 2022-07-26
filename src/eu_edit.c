@@ -40,7 +40,7 @@ on_edit_undo(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_clear_undo_off();
+        on_proc_undo_off();
         eu_sci_call(pnode, SCI_UNDO, 0, 0);
         util_setforce_eol(pnode);
         on_statusbar_update_eol(pnode);
@@ -52,7 +52,7 @@ on_edit_redo(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_clear_undo_off();
+        on_proc_undo_off();
         eu_sci_call(pnode, SCI_REDO, 0, 0);
         util_setforce_eol(pnode);
         on_statusbar_update_eol(pnode);
@@ -168,7 +168,6 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
     TCHAR name[MAX_PATH] = {0};
     if (util_product_name(path, name, MAX_PATH - 1))
     {
-        printf("name = %ls\n", name);
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
@@ -437,6 +436,24 @@ on_edit_delete_line_tail_white(eu_tabpage *pnode)
         sptr_t start_line, end_line;
         util_effect_line(pnode, &start_line, &end_line);
         do_delete_space(pnode, start_line, end_line, false);
+    }
+}
+
+void
+on_edit_delete_line_header_all(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode)
+    {
+        do_delete_space(pnode, 1, eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0), true);
+    }
+}
+
+void
+on_edit_delete_line_tail_all(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode)
+    {
+        do_delete_space(pnode, 1, eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0), false);
     }
 }
 

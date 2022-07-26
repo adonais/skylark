@@ -62,14 +62,19 @@ struct eu_config
     int sym_tree_width;
     int document_map_width;
     int result_edit_height;
-    
     int result_list_height;
+    int file_recent_number;
+    int inter_reserved_0;
+    int inter_reserved_1;
+    int inter_reserved_2;
+    
     bool block_fold;
     bool m_acshow;
     int acshow_chars;
     bool m_ctshow;
     bool m_tab_tip;
     
+    int m_close_way;
     int m_tab_active;
     int m_quality;
     int m_render;
@@ -86,6 +91,8 @@ struct eu_config
     uint64_t m_id;
     char m_path[260];
     char editor[260];
+    char m_reserved_0[260];
+    char m_reserved_1[260];
     char m_actions[100][260];
 };
     

@@ -29,7 +29,7 @@ int on_sci_init_dlg(eu_tabpage *pnode);
 int on_sci_query_tab(eu_tabpage *pnode);
 int on_sci_point_reached(eu_tabpage *pnode);
 int on_sci_point_left(eu_tabpage *pnode);
-int on_sci_create(eu_tabpage *pnode, int flags, WNDPROC sc_callback);
+int on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback);
 void on_sci_init_style(eu_tabpage *pnode);
 void on_sci_before_file(eu_tabpage *pnode);
 void on_sci_after_file(eu_tabpage *pnode);

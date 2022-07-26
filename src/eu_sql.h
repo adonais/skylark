@@ -19,16 +19,36 @@
 #ifndef _EU_SQL_H_
 #define _EU_SQL_H_
 
-#define PATH_MAX_RECENTLY    30
+#define LINE_MAX_LEN 9
+#define PATH_MAX_RECENTLY 30
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
-//
+typedef enum _DB_MODE
+{
+    DB_ALL = 0,
+    DB_MEM,
+    DB_FILE
+}DB_MODE;
+
+typedef struct _file_recent
+{
+    bool hex;
+    char path[MAX_PATH];
+    int64_t postion;
+}file_recent;
+
 void on_sql_delete_backup_row(eu_tabpage *pnode);
 void on_sql_delete_backup_row_thread(eu_tabpage *pnode);
+void on_sql_file_recent_thread(const file_recent *precent);
+int  on_sql_file_recent_clear(void);
+int  on_sql_sync_session(void);
+int  on_sql_do_session(const char *s, sql3_callback callback, void *data);
+int  on_sql_post(const char *sql, sql3_callback callback, void *data);
+int  on_sql_mem_post(const char *sql, sql3_callback callback, void *data);
 
 #ifdef __cplusplus
 }

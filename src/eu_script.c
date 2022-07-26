@@ -617,7 +617,7 @@ do_byte_code(eu_tabpage *pnode)
         status = do_jit_proc(pname, psave);
     }
 allclean:    
-    eu_window_resize(NULL);
+    on_proc_resize(NULL);
     if (!status)
     {
         char u8_path[MAX_PATH] = {0};

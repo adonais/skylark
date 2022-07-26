@@ -1418,7 +1418,11 @@ TCHAR *
 util_make_u16(const char *utf8, TCHAR *utf16, int len)
 {
     *utf16 = 0;
-    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, len);
+    int m = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, len);
+    if (m > 0 && m <= len)
+    {
+        utf16[m-1] = 0;
+    }
     return utf16;
 }
 
@@ -1426,7 +1430,11 @@ char *
 util_make_u8(const TCHAR *utf16, char *utf8, int len)
 {
     *utf8 = 0;
-    WideCharToMultiByte(CP_UTF8, 0, utf16, -1, utf8, len, NULL, NULL);
+    int m = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, utf8, len, NULL, NULL);
+    if (m > 0 && m <= len)
+    {
+        utf8[m-1] = 0;
+    }
     return utf8;
 }
 
@@ -1834,4 +1842,28 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
     eu_safe_free(pbuffer);
     safe_close_dll(h_ver);
     return ret;
+}
+
+const uint32_t
+util_os_version(void)
+{
+    typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(DWORD*, DWORD*, DWORD*);
+    RtlGetNtVersionNumbersPtr fnRtlGetNtVersionNumbers = NULL;
+    uint32_t major_ver, minor_ver, build_num;
+    uint32_t ver = 0;
+    HMODULE nt_dll = GetModuleHandleW(L"ntdll.dll");
+    if (nt_dll)
+    {
+        fnRtlGetNtVersionNumbers = (RtlGetNtVersionNumbersPtr)GetProcAddress(nt_dll, "RtlGetNtVersionNumbers");
+    }
+    if (fnRtlGetNtVersionNumbers)
+    {
+    #define VER_NUM 5
+        TCHAR pos[VER_NUM] = { 0 };
+        fnRtlGetNtVersionNumbers(&major_ver, &minor_ver,&build_num);
+        _sntprintf(pos, VER_NUM, _T("%u%d%u"), major_ver, 0, minor_ver);
+        ver = _tcstol(pos, NULL, 10);
+    #undef VER_NUM
+    }
+    return ver;
 }

@@ -20,7 +20,6 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
-#define MOVE_SPLITE_LINE 2
 #define TABS_HEIGHT_DEFAULT   21
 
 #ifdef __cplusplus
@@ -29,8 +28,6 @@ extern "C"
 #endif
 
 typedef int (*tab_ptr)(eu_tabpage *p);
-
-extern HWND  g_tabpages;
 
 typedef struct _result_postion {
     intptr_t start;
@@ -83,6 +80,7 @@ struct _tabpage
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
+    volatile long want;         // 标签引用计数器
     size_t bytes_remaining;     // 文件变动后的大小
     size_t bytes_written;       // 文件保存时写入的长度
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
@@ -95,6 +93,8 @@ struct _tabpage
     result_vec *pvec;           // 临时保存行号
 };
 
+extern HWND g_tabpages;
+
 int  on_tabpage_create_dlg(HWND hwnd);
 int  on_tabpage_add(eu_tabpage *pnode);
 int  on_tabpage_remove(eu_tabpage **ppnode);
@@ -104,6 +104,7 @@ int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(eu_tabpage *pnode);
 int  on_tabpage_selection(eu_tabpage *pnode, int index);
+void on_tabpage_switch_next(HWND hwnd);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);
@@ -111,7 +112,7 @@ void on_tabpage_changing(HWND hwnd);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
-
+bool on_tabpage_check_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);
 eu_tabpage *on_tabpage_select_index(int index);

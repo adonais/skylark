@@ -23,12 +23,7 @@
 #define BUFF_SIZE (8 * 1024 * 1024)                // 8M
 #define BUFF_32K (32 * 1024)                       // 32K
 #define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
+#define file_click_close(m) (m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define safe_close_handle(h)                    \
     if (NULL != h && INVALID_HANDLE_VALUE != h) \
@@ -36,6 +31,11 @@ extern "C"
         CloseHandle(h);                         \
     }                                           \
     h = (void *)0x200                           \
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 typedef enum _CLOSE_MODE
 {
@@ -45,8 +45,6 @@ typedef enum _CLOSE_MODE
     FILE_ALL_CLOSE,
     FILE_REMOTE_CLOSE
 }CLOSE_MODE;
-
-#define file_click_close(m) (m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 
 typedef struct _file_backup
 {
@@ -66,15 +64,8 @@ typedef struct _file_backup
     int zoom;
     int status;
     int y;
+    int sync;
 }file_backup;
-
-typedef struct _file_recent
-{
-    char path[MAX_PATH];
-    int64_t postion;
-}file_recent;
-
-extern HANDLE hwnd_backup;
 
 int on_file_new(void);
 int on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force);
@@ -104,7 +95,6 @@ void on_file_edit_exit(HWND hwnd);
 void on_file_edit_restart(HWND hwnd);
 void on_file_restore_recent(void);
 void on_file_close_last_tab(void);
-void on_file_splite_path(const TCHAR *full_path, TCHAR *dri_name, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname);
 uint64_t __stdcall on_file_get_avail_phys(void);
 
 #ifdef __cplusplus

@@ -21,6 +21,7 @@
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 
+
 void
 on_sci_init_style(eu_tabpage *pnode)
 {
@@ -212,69 +213,73 @@ on_sci_resever_tab(eu_tabpage *pnode)
 void
 on_sci_free_tab(eu_tabpage **ppnode)
 {
-    if (!(ppnode && *ppnode))
+    if (STR_NOT_NUL(ppnode))
     {
-        return;
-    }
-    if ((*ppnode)->db_ptr)
-    {
-        // 关闭数据库链接
-        on_table_disconnect_database(*ppnode, true);
-    }
-    if ((*ppnode)->redis_ptr)
-    {
-        // 关闭redis数据库链接
-        on_symtree_disconnect_redis(*ppnode);
-    }
-    // 销毁控件句柄
-    if ((*ppnode)->hwnd_symlist)
-    {
-        SendMessage((*ppnode)->hwnd_symlist, WM_CLOSE, 0, 0);
-        (*ppnode)->hwnd_symlist = NULL;
-    }
-    if ((*ppnode)->hwnd_symtree)
-    {
-        SendMessage((*ppnode)->hwnd_symtree, WM_CLOSE, 0, 0);
-        (*ppnode)->hwnd_symtree = NULL;
-    }
-    if ((*ppnode)->hwnd_qrtable)
-    {
-        SendMessage((*ppnode)->hwnd_qrtable, WM_CLOSE, 0, 0);
-        (*ppnode)->hwnd_qrtable = NULL;
-    }
-    if ((*ppnode)->presult && (*ppnode)->presult->hwnd_sc)
-    {
-        SendMessage((*ppnode)->presult->hwnd_sc, WM_CLOSE, 0, 0);
-        (*ppnode)->presult->hwnd_sc = NULL;
-        (*ppnode)->result_show = false;
-        eu_safe_free((*ppnode)->presult);
-    }
-    if (cvector_size((*ppnode)->pvec) > 0)
-    {
-        cvector_free((*ppnode)->pvec);
-        (*ppnode)->pvec = NULL;
-    }
-    if (!(*ppnode)->phex)
-    {
-        if ((*ppnode)->hwnd_sc)
+        HWND hwnd = eu_module_hwnd();
+        if ((*ppnode)->db_ptr)
+        {
+            // 关闭数据库链接
+            on_table_disconnect_database(*ppnode, true);
+        }
+        if ((*ppnode)->redis_ptr)
+        {
+            // 关闭redis数据库链接
+            on_symtree_disconnect_redis(*ppnode);
+        }
+        // 销毁控件句柄
+        if ((*ppnode)->hwnd_symlist)
+        {
+            SendMessage((*ppnode)->hwnd_symlist, WM_CLOSE, 0, 0);
+            (*ppnode)->hwnd_symlist = NULL;
+        }
+        if ((*ppnode)->hwnd_symtree)
+        {
+            SendMessage((*ppnode)->hwnd_symtree, WM_CLOSE, 0, 0);
+            (*ppnode)->hwnd_symtree = NULL;
+        }
+        if ((*ppnode)->hwnd_qrtable)
+        {
+            SendMessage((*ppnode)->hwnd_qrtable, WM_CLOSE, 0, 0);
+            (*ppnode)->hwnd_qrtable = NULL;
+        }
+        if ((*ppnode)->presult && (*ppnode)->presult->hwnd_sc)
+        {
+            SendMessage((*ppnode)->presult->hwnd_sc, WM_CLOSE, 0, 0);
+            (*ppnode)->presult->hwnd_sc = NULL;
+            (*ppnode)->result_show = false;
+            eu_safe_free((*ppnode)->presult);
+        }
+        if ((*ppnode)->pvec && cvector_size((*ppnode)->pvec) > 0)
+        {
+            cvector_free((*ppnode)->pvec);
+            (*ppnode)->pvec = NULL;
+        }
+        if (!on_tabpage_check_map() && hwnd_document_map)
+        {
+            DestroyWindow(hwnd_document_map);
+        }
+        if (!(*ppnode)->phex)
+        {
+            if ((*ppnode)->hwnd_sc)
+            {
+                SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            }
+            // 清理上一次的备份
+            if ((*ppnode)->bakpath[0] && (_taccess((*ppnode)->bakpath, 0 ) != -1))
+            {
+                if (!DeleteFile((*ppnode)->bakpath))
+                {
+                    printf("on on_sci_free_tab(), Delete(%ls) error, cause: %lu\n", (*ppnode)->bakpath, GetLastError());
+                }
+            }
+            // 销毁标签内存
+            eu_safe_free(*ppnode);
+        }
+        else if ((*ppnode)->hwnd_sc)
         {
             SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            printf("hex_mode, we destroy scintilla control\n");
         }
-        // 清理上一次的备份
-        if ((*ppnode)->bakpath[0] && (_taccess((*ppnode)->bakpath, 0 ) != -1))
-        {
-            if (!DeleteFile((*ppnode)->bakpath))
-            {
-                printf("on on_sci_free_tab(), Delete(%ls) error, cause: %lu\n", (*ppnode)->bakpath, GetLastError());
-            }
-        }
-        printf("we destroy pnode\n");
-        eu_safe_free(*ppnode);
-    }
-    else if ((*ppnode)->hwnd_sc)
-    {
-        SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
-        printf("hex_mode, we destroy scintilla control\n");
     }
 }
 
@@ -455,10 +460,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
                 }
-                if (wParam == VK_LBUTTON)
-                {
-                    printf("VK_LBUTTON msg coming\n");
-                }
             }
             break;
         }
@@ -569,29 +570,21 @@ on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 }
 
 int
-on_sci_create(eu_tabpage *pnode, int flags, WNDPROC sc_callback)
+on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback)
 {
     EU_VERIFY(pnode != NULL);
     int exflags = flags ? flags : WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
-    pnode->hwnd_sc = CreateWindowEx(0, TEXT("Scintilla"), TEXT(""), exflags, 0, 0, 0, 0, eu_module_hwnd(), 0, eu_module_handle(), 0);
+    pnode->hwnd_sc = CreateWindowEx(0, TEXT("Scintilla"), TEXT(""), exflags, 0, 0, 0, 0, parent ? parent : eu_module_hwnd(), 0, eu_module_handle(), 0);
     if (pnode->hwnd_sc == NULL)
     {
         MSG_BOX(IDC_MSG_SCINTILLA_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return 1;
     }
-#ifdef _WIN64
-    if (_InterlockedCompareExchange64(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
+    if (inter_atom_compare_exchange(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
     {
         SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc);
     }
-    if (!_InterlockedCompareExchange64(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
-#else
-    if (_InterlockedCompareExchange(&eu_edit_wnd, SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc), 0))
-    {
-        SetWindowLongPtr(pnode->hwnd_sc, GWLP_WNDPROC, sc_callback ? (LONG_PTR)sc_callback : (LONG_PTR)sc_edit_proc);
-    }
-    if (!_InterlockedCompareExchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
-#endif
+    if (!inter_atom_compare_exchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
     pnode->eusc = SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
     eu_sci_call(pnode, SCI_USEPOPUP, 0, 0);
     return 0;
@@ -600,7 +593,7 @@ on_sci_create(eu_tabpage *pnode, int flags, WNDPROC sc_callback)
 int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
-    return on_sci_create(pnode, 0, NULL);
+    return on_sci_create(pnode, NULL, 0, NULL);
 }
 
 void

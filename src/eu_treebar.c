@@ -242,6 +242,11 @@ on_node_rename(TVITEM *ptvi)
         TreeView_SetItem(g_filetree, ptvi);
         _tcsncpy(old->filename, ptvi->pszText, MAX_PATH - 1);
         _sntprintf(old->filepath, MAX_PATH - 1, _T("%s/%s"), old->pathname, ptvi->pszText);
+        HTREEITEM hti_parent = TreeView_GetParent(g_filetree, ptvi->hItem);
+        if (hti_parent)
+        {
+            on_treebar_refresh_node(hti_parent);
+        }
     }
     return SKYLARK_OK;
 }
@@ -804,13 +809,37 @@ append_remote_child(tree_data *tpnode)
     return SKYLARK_OK;
 }
 
+static bool
+on_treebar_node_exist(remotefs *pserver)
+{
+    HTREEITEM hti_root = NULL;
+    tree_data *tvd = NULL;
+    if (pserver && (hti_root = TreeView_GetFirstVisible(g_filetree)))
+    {
+        while ((hti_root = TreeView_GetNextSibling(g_filetree, hti_root)))
+        {
+            if ((tvd = on_treebar_get_treeview(hti_root)) != NULL && tvd->server != NULL)
+            {
+                if (strcmp(tvd->server->servername, pserver->servername) == 0)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 static int
 load_fslist_tree(HWND hwnd)
 {
     remotefs *pserver = NULL;
     list_for_each_entry(pserver, &list_server, remotefs, node_server)
     {
-        on_treebar_load_remote(hwnd, pserver);
+        if (!on_treebar_node_exist(pserver))
+        {
+            on_treebar_load_remote(hwnd, pserver);
+        }
     }
     return SKYLARK_OK;
 }
@@ -830,6 +859,11 @@ update_node_tree(void *lp)
         if (append_remote_child(tpnode))
         {
             return EUE_UNKOWN_ERR;
+        }
+        else
+        {
+            InvalidateRect(g_filetree, NULL, true);
+            UpdateWindow(g_filetree);
         }
     }
     hti_child = TreeView_GetChild(g_filetree, hti_parent);
@@ -1094,8 +1128,8 @@ flush_curl_thread(void *lp)
     return update_node_tree(hti_parent);
 }
 
-static int
-flush_nodes(HTREEITEM hti_parent)
+int
+on_treebar_refresh_node(HTREEITEM hti_parent)
 {
     int nret = SKYLARK_OK;
     HTREEITEM hti_first;
@@ -1151,7 +1185,7 @@ on_refresh_tree(HWND hwnd)
         while (hti_parent)
         {
             TreeView_SelectItem(hwnd, hti_parent);
-            flush_nodes(hti_parent);
+            on_treebar_refresh_node(hti_parent);
             Sleep(200);
             hti_parent = TreeView_GetNextSibling(g_filetree, hti_parent);
         }
@@ -1159,7 +1193,7 @@ on_refresh_tree(HWND hwnd)
     else
     {
         TreeView_SelectItem(hwnd, hti_parent);
-        flush_nodes(hti_parent);
+        on_treebar_refresh_node(hti_parent);
     }
     return SKYLARK_OK;
 }
@@ -1237,7 +1271,7 @@ on_treebar_variable_initialized(HWND *pd)
 static unsigned __stdcall
 on_treebar_wait_thread(void *lp)
 {
-    return on_treebar_variable_initialized(&g_filetree);
+    return on_treebar_variable_initialized(&g_filetree); 
 }
 
 void
@@ -1248,6 +1282,17 @@ on_treebar_wait_hwnd(void)
     {
         WaitForSingleObject(thread, INFINITE);
         CloseHandle(thread);
+    }
+}
+
+static void
+on_filetree_menu_callback(HMENU hpop, void *param)
+{
+    int number = eu_int_cast((intptr_t)param);
+    if (hpop)
+    {
+        util_enable_menu_item(hpop, IDM_RENAME_DIRECTORY, number != img_drive);
+        util_enable_menu_item(hpop, IDM_DELETE_DIRECTORY, number != img_drive);
     }
 }
 
@@ -1386,7 +1431,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 if (tvd->img_index == img_drive || tvd->img_index == img_fold || tvd->img_index == img_close)
                 {
-                    menu_pop_track(hwnd, IDR_FILETREE_DIR_POPUPMENU, 0, -1, NULL, NULL);
+                    menu_pop_track(hwnd, IDR_FILETREE_DIR_POPUPMENU, 0, -1, on_filetree_menu_callback, (void *)(intptr_t)tvd->img_index);
                 }
                 else
                 {

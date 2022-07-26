@@ -233,7 +233,8 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            break;
+            PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDM_RESULT_CLOSE, 0), 0);
+            return 1;
         }
         case WM_DESTROY:
         {
@@ -302,7 +303,7 @@ on_result_launch(eu_tabpage *pnode)
             {
                 hwnd_rst = on_splitter_init_window(eu_module_hwnd(), class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_result_callback, NULL);
             }
-            if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, flags, on_result_edit_proc))
+            if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, NULL, flags, on_result_edit_proc))
             {
                 on_dark_border(pnode->presult->hwnd_sc, true);
                 ret = true;

@@ -95,8 +95,11 @@ BEGIN
             MENUITEM "Transpose",                                      IDM_EDIT_LINETRANSPOSE
             MENUITEM "Join Next Line",                                 IDM_EDIT_JOINLINE
             MENUITEM MF_SEPARATOR
-            MENUITEM "Strip Leading Blan&ks",                          IDM_DELETE_SPACE_LINEHEAD
-            MENUITEM "Strip &Trailing Blanks",                         IDM_DELETE_SPACE_LINETAIL
+            MENUITEM "Strip Leading Blan&k",                           IDM_DELETE_SPACE_LINEHEAD
+            MENUITEM "Strip &Trailing Blank",                          IDM_DELETE_SPACE_LINETAIL
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Strip All Leading Blanks",                       IDM_DELETE_ALL_SPACE_LINEHEAD
+            MENUITEM "Strip All Trailing Blanks",                      IDM_DELETE_ALL_SPACE_LINETAIL
             MENUITEM "Remove All Empty Lines",                         IDM_DELETE_ALL_SPACE_LINE
         END
         POPUP "Line Sort",                                             IDM_EDIT_PLACEHOLDE5
@@ -158,6 +161,8 @@ BEGIN
             MENUITEM "Select &All",                                    IDM_SEARCH_SELECTALL
             MENUITEM "Select &Word Group",                             IDM_SEARCH_SELECTWORD
             MENUITEM "Select &Line",                                   IDM_SEARCH_SELECTLINE
+            MENUITEM "Select To Document Start",                       IDM_SEARCH_SELECT_HEAD
+            MENUITEM "Select To Document End",                         IDM_SEARCH_SELECT_END
         END
         POPUP "Advanced Select",                                       IDM_EDIT_PLACEHOLDE11
         BEGIN
@@ -239,6 +244,12 @@ BEGIN
             MENUITEM "The Far Left Tab",                               IDM_VIEW_FAR_LEFT_TAB
             MENUITEM "The Far Right Tab",                              IDM_VIEW_FAR_RIGHT_TAB
         END
+        POPUP "Close Tab Mode"
+        BEGIN
+            MENUITEM "&Right Click",                                   IDM_VIEW_TAB_RIGHT_CLICK
+            MENUITEM "&Left Double Click",                             IDM_VIEW_TAB_LEFT_DBCLICK
+        END
+        MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
         BEGIN
             MENUITEM "Zoom Out",                                       IDM_VIEW_ZOOMOUT
@@ -294,6 +305,7 @@ BEGIN
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
         END
+        MENUITEM "Code Snippets",                                      IDM_SOURCE_SNIPPET,,MF_DISABLED
         MENUITEM MF_SEPARATOR
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END
@@ -1083,7 +1095,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SEARCH_STR2     "%s|%s|(%d matching)"
     IDC_MSG_SEARCH_STR3     "Initializing engine, do not close window..."
     IDC_MSG_SEARCH_STR4     "Search finished, %I64u file(s) matching, Total %i64u results"
-    IDC_MSG_SEARCH_STR5     "Input Address Offset:"
+    IDC_MSG_SEARCH_STR5     "Input Address Offset(Hex):"
     IDC_SEARCH_BTN_ON       "Find All"
     IDC_SEARCH_BTN_OFF      "Stop Searching"
     IDS_PRINT_HEADER        "Filename, Current Date and Time|Filename, Current Date|Filename|Leave blank"
@@ -1116,9 +1128,12 @@ STRINGTABLE DISCARDABLE
     IDS_HEXVIEW_BYTES       "Number of bytes to insert (decimal): "
     IDS_RESULT_STRINGS1     "#> Search '%s' keyword in '%s' file (%d hits)\n"
     IDS_RESULT_STRINGS2     "Line %*I64d: %s"
-    IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-n : Scroll to indicated line on file_path\n-c : Scroll to indicated column on file_path\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
+    IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-nXX : Scroll to indicated line on file_path\n-cXX : Scroll to indicated column on file_path\n-hex : Open text file in hexadecimal mode\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
     IDS_COMMAND_TITLE       "Skylark Command Help: "
     IDS_LOADLIBRARY_SQL     "#> Start loading database DLL ...\n"
+    IDS_SNIPPET_EDT_DEFAULT "Snippet Name/Comment/Argument"
+    IDS_SNIPPET_COMBO_DEC   "Example"
+    IDS_SNIPPET_EXAMPLE_DEC "Use ${n:PlaceHolder} to mark a placeholder token,\nUse $0 to mark the insertion point at the end.\nExample:\nif (${1:true})\n{\n    $0;\n}"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1226,4 +1241,19 @@ BEGIN
     PUSHBUTTON "&Continue", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "Help", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
+END
+
+IDD_SNIPPET_DLG DIALOGEX 10,10,423,258
+CAPTION "Code Snippets"
+FONT 8,"MS Sans Serif",0,0,0
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+BEGIN
+  CONTROL "",IDC_SNIPPET_LST,"ListBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS|LBS_NOTIFY,3,15,99,222,WS_EX_CLIENTEDGE
+  CONTROL "Snippets:",IDC_SNIPPET_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE,3,3,69,9
+  CONTROL "Language:",IDC_SNIPPET_STC2,"Static",WS_CHILDWINDOW|WS_VISIBLE,110,3,81,9
+  CONTROL "",IDC_SNIPPET_CBO1,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWNLIST,303,1,117,9
+  CONTROL "Delete",IDC_SNIPPET_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,3,240,99,15
+  CONTROL "",IDC_SNIPPET_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_LEFT|ES_AUTOHSCROLL|ES_MULTILINE,110,240,170,15,WS_EX_CLIENTEDGE
+  CONTROL "Close",IDC_SNIPPET_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,366,240,54,15
+  CONTROL "Apply/Add",IDC_SNIPPET_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,288,240,70,15
 END

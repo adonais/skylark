@@ -54,6 +54,8 @@ void on_edit_line_transpose(eu_tabpage *pnode);
 void on_edit_delete_all_empty_lines(eu_tabpage *pnode);
 void on_edit_delete_line_header_white(eu_tabpage *pnode);
 void on_edit_delete_line_tail_white(eu_tabpage *pnode);
+void on_edit_delete_line_header_all(eu_tabpage *pnode);
+void on_edit_delete_line_tail_all(eu_tabpage *pnode);
 bool on_edit_push_clipboard(const TCHAR *buf);
 
 void on_edit_push_editor(eu_tabpage *pnode, const TCHAR *buf);

@@ -27,7 +27,6 @@
 #define CY_ICON  16
 
 HWND g_tabpages = NULL;
-
 static WNDPROC old_tabproc = NULL;
 static bool tab_drag = false;
 static volatile int tab_move_from = -1;
@@ -301,30 +300,33 @@ on_tabpage_drag_mouse(POINT *pscreen)
         on_sci_send_extra((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
     }
     else if (!(fn = _tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, HEX_CLASS)) || (!_tcscmp(name, WC_TABCONTROL)))
-    {   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
+    {
         int err = SKYLARK_NOT_OPENED;
         eu_tabpage *p = on_tabpage_get_ptr(tab_move_from);
         int code = fn ? (int)SendMessage(parent, WM_SKYLARK_DESC, 0, 0) : (int)SendMessage(hwin, WM_SKYLARK_DESC, 0, 0);
         if (code != eu_int_cast(WM_SKYLARK_DESC))
-        {
+        {   // 确认不是skylark编辑器, 启动新实例
             on_sci_send_extra((void *)(intptr_t)tab_move_from, TCN_TABDROPPED_OUT, &mn);
-        }
-        else if (p && !p->is_blank)
+        }   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
+        else if (p && (!p->is_blank  || eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
         {
             file_backup bak = {0};
             _tcscpy(bak.rel_path, p->pathfile);
-            if (!eu_get_config()->m_session || (!p->be_modify && !p->hex_mode))
+            if (!eu_get_config()->m_session)
             {
-                sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-                if (pos > 0)
+                if (!p->is_blank)
                 {
-                    sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-                    sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
-                    bak.x = lineno + 1;
-                    bak.y = eu_int_cast(pos - row + 1);
+                    sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                    if (pos > 0)
+                    {
+                        sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                        sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                        bak.x = lineno + 1;
+                        bak.y = eu_int_cast(pos - row + 1);
+                    }
+                    _tputenv(_T("OPEN_FROM_SQL="));
+                    err = on_file_close(p, FILE_ONLY_CLOSE);
                 }
-                _tputenv(_T("OPEN_FROM_SQL="));
-                err = on_file_close(p, FILE_ONLY_CLOSE);
             }
             else
             {
@@ -404,8 +406,18 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SIZE:
         {
-            UpdateWindowEx(hwnd);
-            PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
+            int row = 0;
+            int count = TabCtrl_GetItemCount(hwnd);
+            if (count > 0)
+            {
+                RECT rc = {0};
+                TabCtrl_GetItemRect(hwnd, count - 1, &rc);
+                row = rc.bottom/TABS_HEIGHT_DEFAULT;
+            }
+            if (row > 1)
+            {   // 行数大于1时重新调用缩放函数, 使得tabcontrol位置正确
+                PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
+            }
             break;
         }
         case WM_COMMAND:
@@ -417,6 +429,15 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ScreenToClient(hwnd, &pt);
                 LPARAM lparam = MAKELONG(pt.x, pt.y);
                 PostMessage(hwnd, WM_MBUTTONUP, 0, lparam);
+            }
+            break;
+        }
+        case WM_LBUTTONDBLCLK:
+        {
+            if (eu_get_config()->m_close_way == IDM_VIEW_TAB_LEFT_DBCLICK)
+            {
+                PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
+                return 1;
             }
             break;
         }
@@ -534,6 +555,7 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_tabpage_exchange_item(tab_move_from, index);
                 }
             }
+            tab_drag = false;
             break;
         }
         case WM_RBUTTONDOWN:
@@ -549,7 +571,11 @@ tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            if ((p = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd))))
+            if (eu_get_config()->m_close_way == IDM_VIEW_TAB_RIGHT_CLICK && KEY_UP(VK_SHIFT))
+            {
+                PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
+            }
+            else if ((p = on_tabpage_get_ptr(TabCtrl_GetCurSel(hwnd))))
             {
                 return menu_pop_track(eu_module_hwnd(), IDR_TABPAGE_POPUPMENU, 0, 0, on_tabpage_menu_callback, p);
             }
@@ -580,7 +606,7 @@ int
 on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
-    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_OWNERDRAWFIXED;
+    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS;  //  TCS_BUTTONS | TCS_OWNERDRAWFIXED
 #ifdef _M_X64
     if (!util_under_wine())
     {
@@ -642,8 +668,8 @@ on_tabpage_adjust_box(RECT *ptp)
         on_treebar_adjust_box(&rect_treebar);
         ptp->left = rect_treebar.right;
     }
-    ptp->right = rect_main.right;
     ptp->top = rect_main.top + on_toolbar_height();
+    ptp->right = rect_main.right;
     ptp->bottom = ptp->top + tab_height + SCINTILLA_MARGIN_TOP;
 }
 
@@ -857,21 +883,28 @@ on_tabpage_add(eu_tabpage *pnode)
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
         printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
-        return 1;
+        return SKYLARK_TABCTRL_ERR;
     }
     if (!pnode->is_blank)
     {
         pnode->tab_id -= on_tabpage_remove_empty();
     }
-    if ((pnode->fs_server.networkaddr[0] == 0 && pnode->codepage == IDM_OTHER_BIN) || pnode->hex_mode)
+    if (pnode->fs_server.networkaddr[0] == 0 && pnode->hex_mode)
     {
-        pnode->hex_mode = true;
         pnode->bytes_remaining = pnode->raw_size;
-        pnode->tab_id = -1;
-        printf("hexview_init, pnode = %p, pnode->bytes_remaining = %I64d\n", pnode, pnode->bytes_remaining);
-        return !hexview_init(pnode);
+        if (!hexview_init(pnode))
+        {
+            TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
+            return EUE_INSERT_TAB_FAIL;
+        }
+        return SKYLARK_OK;
     }
-    return on_sci_init_dlg(pnode);
+    if (on_sci_init_dlg(pnode))
+    {
+        TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
+        return EUE_INSERT_TAB_FAIL;
+    }
+    return SKYLARK_OK;
 }
 
 void
@@ -959,11 +992,32 @@ on_tabpage_theme_changed(eu_tabpage *p)
             SendMessage(p->hwnd_symtree, WM_THEMECHANGED, 0, 0);
         }
     }
-    if (p->result_show && p->hwnd_qrtable)
+    if (p->result_show)
     {
-        SendMessage(p->hwnd_qrtable, WM_THEMECHANGED, 0, 0);
+        if (p->presult && p->presult->hwnd_sc)
+        {
+            SendMessage(p->presult->hwnd_sc, WM_THEMECHANGED, 0, 0);
+        }
+        if (p->hwnd_qrtable)
+        {
+            SendMessage(p->hwnd_qrtable, WM_THEMECHANGED, 0, 0);
+        }
     }
     return 0;
+}
+
+bool
+on_tabpage_check_map(void)
+{
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && p->map_show)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void
@@ -1016,12 +1070,19 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     {
         HWND hwnd = eu_module_hwnd();
         TabCtrl_SetCurSel(g_tabpages, index);
-        util_set_title(pnode->pathfile);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && p->pathfile[0])
+        {
+            util_set_title(p->pathfile);
+        }
         on_toolbar_update_button();
         eu_window_resize(hwnd);
         // 窗口处理过程中可能改变了标签位置, 重置它
         TabCtrl_SetCurSel(g_tabpages, index);
-        util_set_title(pnode->pathfile);
+        if (p && p->pathfile[0])
+        {
+            util_set_title(p->pathfile);
+        }
     }
     return (index >= 0 && index < count ? index : SKYLARK_TABCTRL_ERR);
 }
@@ -1079,6 +1140,26 @@ on_tabpage_changing(HWND hwnd)
         util_set_title(p->pathfile);
         on_toolbar_update_button();
         SendMessage(hwnd, WM_TAB_CLICK, (WPARAM)p, 0);
+    }
+}
+
+void
+on_tabpage_switch_next(HWND hwnd)
+{
+    EU_VERIFY(g_tabpages != NULL);
+    int count = TabCtrl_GetItemCount(g_tabpages);
+    int index = TabCtrl_GetCurSel(g_tabpages);
+    if (index >= 0 && count > 1 && index < count)
+    {
+        eu_tabpage *p = NULL;
+        index = (index < count - 1 ? index + 1 : 0);
+        if((p = on_tabpage_get_ptr(index)) != NULL)
+        {
+            TabCtrl_SetCurSel(g_tabpages, index);
+            util_set_title(p->pathfile);
+            on_toolbar_update_button();
+            SendMessage(hwnd, WM_TAB_CLICK, (WPARAM)p, 0);
+        }
     }
 }
 

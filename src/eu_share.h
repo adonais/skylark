@@ -41,6 +41,7 @@ bool __stdcall share_envent_create_file_sem(HANDLE *phandle);
 void __stdcall share_envent_wait_file_close_sem(HANDLE *phandle);
 HWND __stdcall share_envent_get_hwnd(void);
 void __stdcall share_envent_set_hwnd(HWND hwnd);
+void __stdcall share_spinlock_wait(volatile intptr_t *plock);
 uint32_t __stdcall share_envent_wait(uint32_t milliseconds);
 uint8_t* __stdcall share_map_section(HANDLE, uint64_t, size_t, bool read_only);
 

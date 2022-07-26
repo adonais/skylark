@@ -167,6 +167,7 @@ static eue_code eue_coding[] =
 LPTSTR WINAPI
 eu_rand_str(TCHAR *str, const int len)
 {
+    srand((uint32_t)time(0) + GetCurrentProcessId());
     for (int i = 0; i < len; ++i)
     {
         str[i] = _T('A') + rand() % 26;
@@ -1239,7 +1240,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
 char *WINAPI
 eu_utf16_utf8(const wchar_t *utf16, size_t *out_len)
 {
-    int   size = 0;
+    int   m, size = 0;
     char *utf8 = NULL;
 
     size = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, NULL, 0, NULL, NULL);
@@ -1248,13 +1249,14 @@ eu_utf16_utf8(const wchar_t *utf16, size_t *out_len)
     {
         return NULL;
     }
-    size = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, utf8, size, NULL, NULL);
-    if (size > 0)
+    m = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, utf8, size, NULL, NULL);
+    if (m > 0 && m <= size)
     {
         if (out_len)
         {
-            *out_len = (size_t)size;
+            *out_len = (size_t)m;
         }
+        utf8[m-1] = 0;
     }
     else
     {
@@ -1587,11 +1589,16 @@ eu_save_config(void)
         "document_map_width = %d\n"
         "sqlquery_result_edit_height = %d\n"
         "sqlquery_result_listview_height = %d\n"
+        "file_recent_number = %d\n"
+        "inter_reserved_0 = %d\n"
+        "inter_reserved_1 = %d\n"
+        "inter_reserved_2 = %d\n"
         "block_fold_visiable = %s\n"
         "auto_completed_show_enable = %s\n"
         "auto_completed_show_after_input_characters = %d\n"
         "call_tip_show_enable = %s\n"
         "tabs_tip_show_enable = %s\n"
+        "tab_close_way = %d\n"
         "tab_switch_forward = %d\n"
         "edit_font_quality = %d\n"
         "edit_rendering_technology = %d\n"
@@ -1620,6 +1627,8 @@ eu_save_config(void)
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
         "other_editor_path = \"%s\"\n"
+        "m_reserved_0 = \"%s\"\n"
+        "m_reserved_1 = \"%s\"\n"
         "process_actions = {\n"
         "%s"
         "}\n";
@@ -1666,11 +1675,16 @@ eu_save_config(void)
               g_config->document_map_width,
               g_config->result_edit_height,
               g_config->result_list_height,
+              (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
+              g_config->inter_reserved_0,
+              g_config->inter_reserved_1,
+              g_config->inter_reserved_2,
               g_config->block_fold?"true":"false",
               g_config->m_acshow?"true":"false",
               g_config->acshow_chars,
               g_config->m_ctshow?"true":"false",
               g_config->m_tab_tip?"true":"false",
+              g_config->m_close_way,
               g_config->m_tab_active,
               g_config->m_quality,
               g_config->m_render,
@@ -1694,6 +1708,8 @@ eu_save_config(void)
               on_about_build_id(),
               g_config->m_path,
               g_config->editor,
+              g_config->m_reserved_0,
+              g_config->m_reserved_1,
               pactions);
     if ((fp = _tfopen(path , _T("wb"))) != NULL)
     {

@@ -35,9 +35,20 @@
 #define EU_EXT_CLASS EU_CLASS_IMPORT
 #endif
 
-#if defined(_MSC_VER) && !defined(__clang__)
+// clang supports MS pragma intrinsic
+#if defined(_MSC_VER)
 #pragma intrinsic(memcpy, memset, memcmp, strlen)
-#pragma intrinsic(_InterlockedCompareExchange, _InterlockedExchange)
+#pragma intrinsic(_InterlockedIncrement,_InterlockedDecrement)
+#pragma intrinsic(_InterlockedCompareExchange64,_InterlockedExchange64)
+#pragma intrinsic(_InterlockedCompareExchange,_InterlockedExchange,_InterlockedExchangeAdd)
+#endif
+
+#if defined(_WIN64) || defined(_M_X64)
+#define inter_atom_exchange _InterlockedExchange64
+#define inter_atom_compare_exchange _InterlockedCompareExchange64
+#else
+#define inter_atom_exchange _InterlockedExchange
+#define inter_atom_compare_exchange _InterlockedCompareExchange
 #endif
 
 #if defined(__cplusplus)
@@ -71,6 +82,15 @@
 #ifndef WM_COPYGLOBALDATA
 #define WM_COPYGLOBALDATA         (0x0049)
 #endif
+
+#define REMOTEFS_PROTOCOL_SUBID 0x38
+#define REMOTEFS_ACCESS_SUBID 0x39
+#define SEARCH_COMBO_SUBID 0x40
+#define SNIPPET_EDT_SUBID 0x41
+#define SNIPPET_CMB_SUBID 0x42
+#define TBCTL_LIST_SUBID 0x43
+#define STATUSBAR_SUBID 0x44
+
 // Custom message
 #define HVM_SETEXTENDEDSTYLE      (WM_USER + 100)
 #define HVM_SETITEMCOUNT          (WM_USER + 101)
@@ -80,7 +100,7 @@
 #define HVM_SETBKCOLOR            (WM_USER + 105)
 #define HVM_SETSELBKCOLOR         (WM_USER + 106)
 #define HVM_SETMODIFIEDCOLOR      (WM_USER + 107)
-#define HVM_SETLINE               (WM_USER + 108)
+#define HVM_GOPOS                 (WM_USER + 108)
 #define HVM_GETHEXADDR            (WM_USER + 109)
 #define HVM_SETLINECOUNT          (WM_USER + 110)
 #define HVN_GETDISPINFO           (WMN_FIRST - 0)
@@ -258,6 +278,10 @@ struct eu_config
     int document_map_width;
     int result_edit_height;
     int result_list_height;
+    int file_recent_number;
+    int inter_reserved_0;
+    int inter_reserved_1;
+    int inter_reserved_2;
 
     bool block_fold;
     bool m_acshow;
@@ -265,6 +289,7 @@ struct eu_config
     bool m_ctshow;
     bool m_tab_tip;
 
+    int m_close_way;
     int m_tab_active;
     int m_quality;
     int m_render;
@@ -281,6 +306,8 @@ struct eu_config
     uint64_t m_id;
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
+    char m_reserved_0[MAX_PATH];
+    char m_reserved_1[MAX_PATH];
     char m_actions[100][MAX_PATH];
 };
 
@@ -403,7 +430,7 @@ EU_EXT_CLASS void eu_push_replace_history(const char *key);
 EU_EXT_CLASS void eu_delete_replace_history(const char *key);
 EU_EXT_CLASS void eu_push_folder_history(const char *key);
 EU_EXT_CLASS void eu_delete_folder_history(const char *key);
-EU_EXT_CLASS void eu_update_backup_table(file_backup *pbak);
+EU_EXT_CLASS void eu_update_backup_table(file_backup *pbak, int mode);
 EU_EXT_CLASS void eu_clear_backup_table(void);
 EU_EXT_CLASS void eu_get_find_history(sql3_callback pfunc);
 EU_EXT_CLASS void eu_get_replace_history(sql3_callback pfunc);
@@ -511,7 +538,6 @@ EU_EXT_CLASS void eu_close_edit(void);
 EU_EXT_CLASS HWND eu_create_main_window(HINSTANCE instance);
 EU_EXT_CLASS bool eu_create_toolbar(HWND hwnd);
 EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);
-EU_EXT_CLASS bool eu_create_search_dlg(void);
 EU_EXT_CLASS void eu_create_fullscreen(HWND hwnd);
 EU_EXT_CLASS int eu_before_proc(MSG *p_msg);
 EU_EXT_CLASS uint32_t eu_get_dpi(HWND hwnd);
@@ -552,6 +578,7 @@ EU_EXT_CLASS bool __stdcall eu_load_config(HMODULE *pmod);
 EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
 EU_EXT_CLASS void __stdcall eu_postion_setup(wchar_t **args, int argc, file_backup *pbak);
+EU_EXT_CLASS bool __stdcall eu_config_parser_path(wchar_t **args, int argc, wchar_t *path);
 
 // for eu_script.c
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
