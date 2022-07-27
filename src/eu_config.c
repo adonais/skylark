@@ -155,7 +155,7 @@ eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
                 break;
             }
         }
-        if (ptr_arg != args)
+        if (ptr_arg != (LPWSTR *)args)
         {
             LocalFree(ptr_arg);
         }

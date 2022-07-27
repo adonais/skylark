@@ -35,7 +35,7 @@ typedef struct _THREAD_WINDOWS
 static volatile long keep_mask = 0;
 
 static void
-set_box_vaule(HWND hdlg)
+on_changes_box_vaule(HWND hdlg)
 {
     if (SendDlgItemMessage(hdlg, IDC_FC_CHK1, BM_GETCHECK, 0, 0))
     {
@@ -51,7 +51,7 @@ set_box_vaule(HWND hdlg)
 
 // 文件丢失框的消息处理程序。
 static INT_PTR CALLBACK
-file_exist_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
+on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
     eu_tabpage *p = NULL;
     switch (message)
@@ -159,7 +159,7 @@ file_exist_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
 
 // 文件更改框的消息处理程序。
 static INT_PTR CALLBACK
-fc_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
+on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
@@ -265,7 +265,7 @@ fc_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDC_FC_CHK1:
-                    set_box_vaule(hdlg);
+                    on_changes_box_vaule(hdlg);
                     break;
                 default:
                     break;
@@ -283,32 +283,24 @@ fc_dlg(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
 }
 
 static void
-create_alter_dlg(eu_tabpage *p, bool fc)
+on_changes_alter_dlg(eu_tabpage *p, bool fc)
 {
     HWND hwnd = eu_module_hwnd();
     if (hwnd)
     {
-        if (p && p->hwnd_sc)
-        {   // 防止编辑器内点击时收不到鼠标弹起消息
-            POINT pt;
-            GetCursorPos(&pt);
-            ScreenToClient(p->hwnd_sc, &pt);
-            LPARAM lparam = MAKELONG(pt.x, pt.y);
-            SendMessage(p->hwnd_sc, WM_LBUTTONUP, 0, lparam);
-        }
         if (fc)
         {
-            i18n_dlgbox(hwnd, IDD_DIALOG_FC, fc_dlg, (LPARAM) p);
+            i18n_dlgbox(hwnd, IDD_DIALOG_FC, on_changes_time_proc, (LPARAM) p);
         }
         else
         {
-            i18n_dlgbox(hwnd, IDD_DIALOG_NOEXIST, file_exist_dlg, (LPARAM) p);
+            i18n_dlgbox(hwnd, IDD_DIALOG_NOEXIST, on_changes_delete_proc, (LPARAM) p);
         }
     }
 }
 
 static bool
-set_delete_event(eu_tabpage *p)
+on_changes_delete_event(eu_tabpage *p)
 {
     switch (keep_mask)
     {
@@ -316,7 +308,7 @@ set_delete_event(eu_tabpage *p)
         case FILE_KEEP_YES:
         case FILE_KEEP_NO:
         {
-            create_alter_dlg(p, false);
+            on_changes_alter_dlg(p, false);
             break;
         }
         case FILE_KEEP_ALL_YES:
@@ -337,7 +329,7 @@ set_delete_event(eu_tabpage *p)
 }
 
 static bool
-set_time_event(eu_tabpage *p)
+on_changes_time_event(eu_tabpage *p)
 {
     int opt = eu_get_config()->m_upfile;
     switch (opt)
@@ -346,7 +338,7 @@ set_time_event(eu_tabpage *p)
         case FILE_CHANGE_FILE_YES:
         case FILE_CHANGE_FILE_NO:
         {
-            create_alter_dlg(p, true);
+            on_changes_alter_dlg(p, true);
             break;
         }
         case FILE_CHANGE_ALL_YES:
@@ -368,6 +360,23 @@ set_time_event(eu_tabpage *p)
     return (eu_get_config()->m_upfile > FILE_CHANGE_FILE_NO);
 }
 
+static void
+on_changes_click_sci(eu_tabpage *p)
+{
+    if (p && p->hwnd_sc)
+    {
+        POINT pt;
+        GetCursorPos(&pt);
+        HWND hwnd_click = WindowFromPoint(pt);
+        if (p->hwnd_sc == hwnd_click)
+        {
+            ScreenToClient(p->hwnd_sc, &pt);
+            LPARAM lparam = MAKELONG(pt.x, pt.y);
+            SendMessage(p->hwnd_sc, WM_LBUTTONUP, 0, lparam);
+        }
+    }
+}
+
 void WINAPI
 on_changes_window(HWND hwnd)
 {
@@ -378,15 +387,16 @@ on_changes_window(HWND hwnd)
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
         if (p && !p->hex_mode && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
         {
+            on_changes_click_sci(on_tabpage_focus_at());
             on_tabpage_selection(p, index);
             if (_taccess(p->pathfile, 0) == -1)
             {
-                if (!set_delete_event(p))
+                if (!on_changes_delete_event(p))
                 {
                     break;
                 }
             }
-            else if (!set_time_event(p))
+            else if (!on_changes_time_event(p))
             {
                 break;
             }
