@@ -157,5 +157,6 @@
 #include "eu_print.h"
 #include "eu_locale.h"
 #include "eu_document_map.h"
+#include "eu_updatechecker.h"
 
 #endif  // _EU_FRAMEWORK_H_

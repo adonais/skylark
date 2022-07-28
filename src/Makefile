@@ -96,6 +96,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_format.obj                      \
     $(OBJD)\eu_splitter.obj                    \
     $(OBJD)\eu_document_map.obj                \
+    $(OBJD)\eu_updatechecker.obj               \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -188,6 +189,7 @@ $(OBJD)\eu_format.obj                      : eu_format.c eu_format.h framework.h
 $(OBJD)\eu_splitter.obj                    : eu_splitter.c eu_splitter.h framework.h
 $(OBJD)\eu_rbtree.obj                      : eu_rbtree.c eu_rbtree.h framework.h
 $(OBJD)\eu_document_map.obj                : eu_document_map.c eu_document_map.h eu_cvector.h framework.h
+$(OBJD)\eu_updatechecker.obj               : eu_updatechecker.c eu_updatechecker.h eu_cvector.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp

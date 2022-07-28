@@ -32,10 +32,9 @@ typedef union _vlong
     unsigned long val;
 }vlong;
 
-LRESULT CALLBACK
-hyper_paren_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK
-hyper_link_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+static HFONT hfont_link = NULL;
+LRESULT CALLBACK hyper_paren_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK hyper_link_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 static const uint8_t ali_buffer[20201] = {
   0xe8,0x1e,0x04,0x00,0xe1,0x4e,0x00,0x00,0x78,0xda,0xed,0x9d,0x07,0x7c,0x54,0xc5,
@@ -3178,25 +3177,22 @@ create_hyper_link(HWND h_control)
         }
     }
 
-    // Make sure the control will send notifications.
-    LONG_PTR dwStyle = GetWindowLongPtr(h_control, GWL_STYLE);
-    SetWindowLongPtr(h_control, GWL_STYLE, dwStyle | SS_NOTIFY);
-
     // Subclass the existing control.
     WNDPROC ptr_orig_proc = (WNDPROC) GetWindowLongPtr(h_control, GWLP_WNDPROC);
     SetProp(h_control, PROP_ORIGINAL_PROC, (HANDLE) ptr_orig_proc);
     SetWindowLongPtr(h_control, GWLP_WNDPROC, (LONG_PTR)(WNDPROC) hyper_link_proc);
 
     // Create an updated font by adding an underline.
-    HFONT hOrigFont = (HFONT) SendMessage(h_control, WM_GETFONT, 0, 0);
-    SetProp(h_control, PROP_ORIGINAL_FONT, (HANDLE) hOrigFont);
-
-    LOGFONT lf;
-    GetObject(hOrigFont, sizeof(lf), &lf);
-    lf.lfUnderline = TRUE;
-
-    HFONT hfont = CreateFontIndirect(&lf);
-    SetProp(h_control, PROP_UNDERLINE_FONT, (HANDLE) hfont);
+    HFONT orig_font = (HFONT) SendMessage(h_control, WM_GETFONT, 0, 0);
+    SetProp(h_control, PROP_ORIGINAL_FONT, (HANDLE) orig_font);
+    if (!hfont_link)
+    {
+        LOGFONT lf;
+        GetObject(orig_font, sizeof(lf), &lf);
+        lf.lfUnderline = TRUE;
+        hfont_link = CreateFontIndirect(&lf);
+    }
+    SetProp(h_control, PROP_UNDERLINE_FONT, (HANDLE)hfont_link);
 
     // Set a flag on the control so we know what color it should be.
     SetProp(h_control, PROP_STATIC_HYPERLINK, (HANDLE) 1);
@@ -3212,11 +3208,16 @@ hyper_paren_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (LOWORD(wParam) == IDC_STATIC_URL_UR)
             {
-                TCHAR buf[512];
+                TCHAR buf[MAX_PATH];
                 GetWindowText(GetDlgItem(hwnd, IDC_STATIC_URL_UR), buf, _countof(buf));
-                ShellExecute(hwnd, NULL, buf, NULL, NULL, SW_SHOWNORMAL);
-                return TRUE;
+                return (LRESULT)ShellExecute(hwnd, NULL, buf, NULL, NULL, SW_SHOWNORMAL);
             }
+            else if (LOWORD(wParam) == IDC_STATIC_URL_HOMEPAGE)
+            {
+                const TCHAR *home = _T("https://sourceforge.net/projects/libportable/files/Tools/");
+                return (LRESULT)ShellExecute(hwnd, NULL, home, NULL, NULL, SW_SHOWNORMAL);
+            }
+            break;
         }
         case WM_CTLCOLORSTATIC:
         {
@@ -3260,12 +3261,13 @@ hyper_link_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR) ptr_orig_proc);
             RemoveProp(hwnd, PROP_ORIGINAL_PROC);
 
-            HFONT hOrigFont = (HFONT) GetProp(hwnd, PROP_ORIGINAL_FONT);
-            SendMessage(hwnd, WM_SETFONT, (WPARAM) hOrigFont, 0);
+            HFONT orig_font = (HFONT) GetProp(hwnd, PROP_ORIGINAL_FONT);
+            SendMessage(hwnd, WM_SETFONT, (WPARAM) orig_font, 0);
             RemoveProp(hwnd, PROP_ORIGINAL_FONT);
 
             HFONT hfont = (HFONT) GetProp(hwnd, PROP_UNDERLINE_FONT);
             DeleteObject(hfont);
+            hfont_link = NULL;
             RemoveProp(hwnd, PROP_UNDERLINE_FONT);
             RemoveProp(hwnd, PROP_STATIC_HYPERLINK);
             break;
@@ -3320,6 +3322,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_INITDIALOG:
         {
             HWND hurl = NULL;
+            HWND hpage = NULL;
             TCHAR cap[COPYRIGHT_LEN + 1] = { 0 };
             if (LoadString(eu_module_handle(), IDS_ABOUT_DESCRIPTION, cap, COPYRIGHT_LEN))
             {
@@ -3340,6 +3343,10 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 create_hyper_link(hurl);
             }
+            if ((hpage = GetDlgItem(hdlg, IDC_STATIC_URL_HOMEPAGE)) != NULL)
+            {
+                create_hyper_link(hpage);
+            }
             if (on_dark_enable())
             {
                 on_dark_set_theme(GetDlgItem(hdlg, IDOK), L"Explorer", NULL);
@@ -3351,6 +3358,16 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         CASE_WM_CTLCOLOR_SET:
         {
             return on_dark_set_contorl_color(wParam);
+        }
+        case WM_ABOUT_STC:
+        {
+            LOAD_I18N_RESSTR(eu_int_cast(wParam), str);
+            HWND hwnd_home = GetDlgItem(hdlg, IDC_STATIC_URL_HOMEPAGE);
+            if (hwnd_home)
+            {
+                SetWindowText(hwnd_home, str);
+            }
+            break;
         }
         case WM_SETTINGCHANGE:
         {
@@ -3569,6 +3586,7 @@ on_about_donation(void)
 bool
 on_about_dialog(void)
 {
+    on_update_check();
     return i18n_dlgbox(eu_module_hwnd(), IDD_ABOUTBOX, func_about_proc, 0) > 0;
 }
 

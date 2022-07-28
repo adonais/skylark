@@ -111,6 +111,7 @@
 #define DOCUMENTMAP_SCROLL        (WM_USER + 501)
 #define DOCUMENTMAP_MOUSECLICKED  (WM_USER + 502)
 #define DOCUMENTMAP_MOUSEWHEEL    (WM_USER + 503)
+#define WM_ABOUT_STC              (WM_USER + 600)
 #define WM_BACKUP_OVER            (WM_USER+10001)
 #define WM_SYSLIST_OVER           (WM_USER+10002)
 #define WM_STATUS_REFRESH         (WM_USER+10003)

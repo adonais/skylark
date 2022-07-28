@@ -772,12 +772,13 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     ICON            IDI_TXT_32, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
     EDITTEXT        IDC_EDIT_VER, 33, 6, 204, 30, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
-    LTEXT           "Developer: adonais", IDC_STATIC, 33, 38, 125, 9, NOT WS_GROUP
-    LTEXT           "Licence:   GPL v3", IDC_STATIC, 33, 52, 125, 9, NOT WS_GROUP
-    LTEXT           "Translate:",IDC_STATIC,33,66,33,9
-    LTEXT           __EU_COPYRIGHT_TRANSLATION,IDC_STATIC,71,66,165,9,SS_NOPREFIX | NOT WS_GROUP
-    LTEXT           "Project Url:", IDC_STATIC_URL_CAPTION, 33, 79, 36, 9, NOT WS_GROUP
-    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 79, 159, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "Developer/Licence: adonais/GPL v3", IDC_STATIC, 33, 38, 125, 9, NOT WS_GROUP
+    LTEXT           "Translate:",IDC_STATIC,33, 52, 33, 9
+    LTEXT           __EU_COPYRIGHT_TRANSLATION,IDC_STATIC,71, 52, 165, 9, SS_NOPREFIX | NOT WS_GROUP
+    LTEXT           "Project Url:", IDC_STATIC_URL_CAPTION, 33, 66, 36, 9, NOT WS_GROUP
+    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 66, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "Version Status:", IDC_STATIC_VER, 33, 79, 50, 9, NOT WS_GROUP
+    LTEXT           "Checking ...", IDC_STATIC_URL_HOMEPAGE, 84, 79, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP    
     EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
     DEFPUSHBUTTON   "&OK", IDOK, 97, 203, 50, 14
     PUSHBUTTON      "&Copy", IDC_BUTTON_COPY, 178, 203, 60, 14
@@ -1134,6 +1135,9 @@ STRINGTABLE DISCARDABLE
     IDS_SNIPPET_EDT_DEFAULT "Snippet Name/Comment/Argument"
     IDS_SNIPPET_COMBO_DEC   "Example"
     IDS_SNIPPET_EXAMPLE_DEC "Use ${n:PlaceHolder} to mark a placeholder token,\nUse $0 to mark the insertion point at the end.\nExample:\nif (${1:true})\n{\n    $0;\n}"
+    IDS_CHECK_VER_DEC       "It Is The Latest Version☑"
+    IDS_CHECK_VER_NEW       "New Version Detected Available😀"
+    IDS_CHECK_VER_ERR       "Connection Failure✘"
 }
 
 /////////////////////////////////////////////////////////////////////////////

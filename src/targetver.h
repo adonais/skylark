@@ -473,6 +473,11 @@
 #define IDC_SUPPORTEDEXTS_STATIC         (IDD_REGEXT_BOX + 9)
 #define IDC_REGISTEREDEXTS_STATIC        (IDD_REGEXT_BOX + 10)
 
+#define IDS_CHECK_VER_ERR               31095
+#define IDS_CHECK_VER_DEC               31096
+#define IDS_CHECK_VER_NEW               31097
+#define IDC_STATIC_VER                  31098
+#define IDC_STATIC_URL_HOMEPAGE         31099
 #define IDC_STATIC_URL_CAPTION          31100
 #define IDC_STATIC_URL_UR               31101
 #define IDC_STATIC_EDIT                 31102
