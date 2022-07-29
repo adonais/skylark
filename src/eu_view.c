@@ -476,6 +476,13 @@ on_view_show_fold_lines(void)
 }
 
 void
+on_view_identation(void)
+{
+    eu_get_config()->m_ident = !eu_get_config()->m_ident;
+    on_toolbar_update_button();
+}
+
+void
 on_view_white_space(void)
 {
     eu_get_config()->ws_visiable = !eu_get_config()->ws_visiable;

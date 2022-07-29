@@ -28,6 +28,7 @@
 extern "C" {
 #endif
 
+void on_code_close_char(void);
 void on_code_switch_fold(eu_tabpage *pnode, sptr_t line_number);
 void on_code_block_contract(eu_tabpage *pnode, sptr_t line_number);
 void on_code_block_expand(eu_tabpage *pnode, sptr_t line_number);

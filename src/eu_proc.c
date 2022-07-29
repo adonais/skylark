@@ -954,10 +954,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_encoding_convert_internal_code(pnode, on_encoding_big5_gb);
                     break;
                 case IDM_EDIT_AUTO_CLOSECHAR:
-                    on_edit_close_char();
+                    on_code_close_char();
                     break;
                 case IDM_EDIT_AUTO_INDENTATION:
-                    on_edit_identation();
+                    on_view_identation();
                     break;
                 case IDM_OPEN_FILE_PATH:
                 {

@@ -594,34 +594,6 @@ on_edit_upper(eu_tabpage *pnode)
 }
 
 void
-on_edit_close_char(void)
-{
-    if (!eu_get_config()->auto_close_chars)
-    {
-        eu_get_config()->auto_close_chars = true;
-    }
-    else
-    {
-        eu_get_config()->auto_close_chars = false;
-    }
-    on_toolbar_update_button();
-}
-
-void
-on_edit_identation(void)
-{
-    if (!eu_get_config()->m_ident)
-    {
-        eu_get_config()->m_ident = true;
-    }
-    else
-    {
-        eu_get_config()->m_ident = false;
-    }
-    on_toolbar_update_button();
-}
-
-void
 on_edit_selection(eu_tabpage *pnode, int type)
 {
     size_t len = 0;

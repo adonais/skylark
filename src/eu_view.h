@@ -42,6 +42,7 @@ void on_view_line_visiable(void);
 void on_view_indent_visiable(void);
 void on_view_light_str(void);
 void on_view_light_fold(void);
+void on_view_identation(void);
 void on_view_result_show(eu_tabpage *pnode, int key);
 void on_view_copy_theme(void);
 void on_view_tab_width(HWND hwnd, eu_tabpage *pnode);

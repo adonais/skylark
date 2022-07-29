@@ -316,3 +316,10 @@ on_code_insert_config(eu_tabpage *pnode)
         }
     }
 }
+
+void
+on_code_close_char(void)
+{
+    eu_get_config()->auto_close_chars = !eu_get_config()->auto_close_chars;
+    on_toolbar_update_button();
+}

@@ -429,6 +429,7 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
                         break;
                     case IDM_PROGRAM_EXECUTE_ACTION:  /* Programming menu */
+                        util_set_menu_item(menu, IDM_EDIT_AUTO_CLOSECHAR, eu_get_config()->auto_close_chars);
                         util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->m_acshow);
                         util_update_menu_chars(menu, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
                         util_set_menu_item(menu, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->m_ctshow);
