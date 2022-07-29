@@ -158,9 +158,9 @@ function eu_conf.loadconf()
         cache_limit_size,
         app_build_id,
         process_path,
+        other_editor_path,
         m_reserved_0,
-        m_reserved_1,
-        other_editor_path
+        m_reserved_1
     })
     eu_conf.fill_actions(m_config)
     if (not eu_core.euapi.eu_config_ptr(m_config)) then

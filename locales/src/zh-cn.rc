@@ -293,7 +293,8 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "跳到符号定义",                                IDM_SOURCECODE_GOTODEF
         MENUITEM MF_SEPARATOR
-        MENUITEM "启用自动完成框",                              IDM_SOURCEE_ENABLE_ACSHOW
+        MENUITEM "启用括号补全",                                IDM_EDIT_AUTO_CLOSECHAR
+        MENUITEM "启用关键字补全",                              IDM_SOURCEE_ENABLE_ACSHOW
         MENUITEM "输入[N]个字符后弹出自动完成框...",            IDM_SOURCEE_ACSHOW_CHARS
         MENUITEM "启用原型提示框",                              IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR

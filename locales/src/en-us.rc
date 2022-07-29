@@ -293,7 +293,8 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "Jump To Symbol Definition",                          IDM_SOURCECODE_GOTODEF
         MENUITEM MF_SEPARATOR
-        MENUITEM "Enable Autocomplete Box",                            IDM_SOURCEE_ENABLE_ACSHOW
+        MENUITEM "Enable bracket completion",                          IDM_EDIT_AUTO_CLOSECHAR
+        MENUITEM "Enable keyword completion",                          IDM_SOURCEE_ENABLE_ACSHOW
         MENUITEM "Input [N] Chars Complete Box Popup...",              IDM_SOURCEE_ACSHOW_CHARS
         MENUITEM "Enable Prototype Prompt",                            IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR
