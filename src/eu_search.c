@@ -393,7 +393,7 @@ on_search_build_flags(HWND hwnd_search)
     {
         flags |= SCFIND_MATCHCASE;
     }
-    if (flags & SCFIND_REGEXP)
+    if (!(flags & SCFIND_REGEXP))
     {   // 如果是正则表达式, 忽略这两个标志
         if (DLG_BTN_CHECK(hwnd_search, IDC_MATCH_WORD))
         {
@@ -1693,6 +1693,20 @@ on_search_push_string_listbox(const TCHAR *path, const char *key, int num)
     }
 }
 
+static void
+on_search_node_init(eu_tabpage *pnode)
+{
+    if (pnode)
+    {   // 清空计算器
+        pnode->match_count = 0;
+        // 清空高亮标记数组
+        if (pnode->pvec)
+        {
+            cvector_clear(pnode->pvec);
+        }
+    }
+}
+
 static int
 on_search_process_count(eu_tabpage *pnode, const char *key)
 {
@@ -1701,13 +1715,6 @@ on_search_process_count(eu_tabpage *pnode, const char *key)
     size_t len = strlen(key);
     eu_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
     eu_sci_call(pnode, SCI_TARGETWHOLEDOCUMENT, 0, 0);
-    pnode->match_count = 0;
-    // 清除行存储空间
-    if (cvector_size(pnode->pvec) > 0)
-    {
-        cvector_free(pnode->pvec);
-        pnode->pvec = NULL;
-    }
     while (pos >= 0)
     {
         result_vec ret = {-1,};
@@ -1727,6 +1734,7 @@ on_search_process_count(eu_tabpage *pnode, const char *key)
                 eu_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
                 ret.mark.start = pos;
                 ret.mark.end = start_pos;
+                ret.mark._start = pos - eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
                 if (ret.line >= 0)
                 {
                     cvector_push_back(pnode->pvec, ret);
@@ -1781,19 +1789,24 @@ on_search_report_result(int err, int resid)
             eu_tabpage *p = NULL;
             TCITEM tci = {TCIF_PARAM,};
             TabCtrl_GetItem(g_tabpages, index, &tci);
-            if ((p = (eu_tabpage *) (tci.lParam)) && on_search_process_count(p, key) > 0)
+            if ((p = (eu_tabpage *) (tci.lParam)))
             {
-                if (resid == IDC_SEARCH_PRE_BTN || resid == IDC_SEARCH_NEXT_BTN)
+                on_search_node_init(p);
+                if (on_search_process_count(p, key) > 0)
                 {
-                    on_search_push_string_listbox(p->pathfile, key, p->match_count);
+                    if (resid == IDC_SEARCH_PRE_BTN || resid == IDC_SEARCH_NEXT_BTN)
+                    {
+                        on_search_push_string_listbox(p->pathfile, key, p->match_count);
+                    }
+                    match_count += p->match_count;
+                    ++file_count;                    
                 }
-                match_count += p->match_count;
-                ++file_count;
             }
         }
     }
     else
     {
+        on_search_node_init(pnode);
         match_count = on_search_process_count(pnode, key);
         if (match_count > 0 && (resid == IDC_SEARCH_PRE_BTN || resid == IDC_SEARCH_NEXT_BTN))
         {
@@ -2210,13 +2223,14 @@ static int
 on_search_active_tab(const TCHAR *path, const TCHAR *key)
 {
     int tab_find = EUE_TAB_NULL;
+    eu_tabpage *p = NULL;
     if (!(path && key))
     {
         return EUE_POINT_NULL;
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
+        p = on_tabpage_get_ptr(index);
         if (p && _tcscmp(p->pathfile, path) == 0)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
@@ -2232,11 +2246,15 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
         file_backup bak = {0};
         _tcscpy(bak.rel_path, path);
         tab_find = on_file_only_open(&bak, true);
-        if (tab_find > SKYLARK_OPENED)
+        if (tab_find > SKYLARK_OPENED && (p = on_tabpage_get_ptr(tab_find)))
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
-            on_search_process_count(on_tabpage_get_ptr(tab_find), u8_key);
-            free(u8_key);
+            if (u8_key)
+            {
+                on_search_node_init(p);
+                on_search_process_count(p, u8_key);
+                free(u8_key);
+            }
         }
     }
     return tab_find;
@@ -2273,6 +2291,7 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
                     if ((ptr_add = (char *)calloc(1, m_size)) != NULL)
                     {
                         int len = snprintf(ptr_add, m_size - 1, pformat, k, pnode->pvec[i].line + 1, buf);
+                        pnode->pvec[i].mark._no = len - eu_int_cast(strlen(buf)) - 1;
                         eu_sci_call(presult, SCI_ADDTEXT, len, (LPARAM)ptr_add);
                         free(ptr_add);
                     }
@@ -2287,46 +2306,46 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
 }
 
 static void
+on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key)
+{
+    if (pnode && on_result_launch(pnode) && pnode->presult)
+    {
+        pnode->result_show = true;
+        eu_window_resize(NULL);
+        eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
+        eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+        on_result_reload(pnode->presult);
+        eu_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pnode->pvec);
+        on_search_push_result(pnode, key, path);
+        // 窗口并排可能导致主编辑器之前的光标位置被遮挡
+        // 滚动视图以使光标可见
+        eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+        ShowWindow(hwnd_search_dlg, SW_HIDE);
+    }
+}
+
+static void
 on_search_found_list(HWND hwnd)
 {
     int listno = (int)SendMessage(hwnd, LB_GETCURSEL ,0 , 0);
     int buf_len = ListBox_GetTextLen(hwnd, listno) + 1;
     TCHAR *buf = (TCHAR *)calloc(sizeof(TCHAR), buf_len);
-    if (!buf)
+    if (buf)
     {
-        return;
-    }
-    ListBox_GetText(hwnd, listno, buf);
-    if (*buf)
-    {
-        TCHAR path[MAX_PATH+1] = {0};
-        TCHAR key[MAX_PATH+1] = {0};
-        if (_stscanf(buf, _T("%260[^|]"), path) == 1 &&
-            _stscanf(buf, _T("%*[^|]|%260[^|]"), key) == 1)
+        ListBox_GetText(hwnd, listno, buf);
+        if (*buf)
         {
-            int tab = on_search_active_tab(path, key);
-            eu_tabpage *pnode = on_tabpage_get_ptr(tab);
-            if (pnode && on_result_launch(pnode) && pnode->presult)
+            TCHAR path[MAX_PATH+1] = {0};
+            TCHAR key[MAX_PATH+1] = {0};
+            if (_stscanf(buf, _T("%260[^|]"), path) == 1 &&
+                _stscanf(buf, _T("%*[^|]|%260[^|]"), key) == 1)
             {
-                pnode->result_show = true;
-                eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
-                eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-                on_proc_resize(NULL);
-                char *u8_key = eu_utf16_utf8(key, NULL);
-                if (u8_key)
-                {
-                    eu_sci_call(pnode->presult, SCI_SETKEYWORDS, 0, (sptr_t)u8_key);
-                    free(u8_key);
-                }
-                on_search_push_result(pnode, key, path);
-                // 窗口并排可能导致主编辑器之前的光标位置被遮挡
-                // 滚动视图以使光标可见
-                eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
-                ShowWindow(hwnd_search_dlg, SW_HIDE);
+                int tab = on_search_active_tab(path, key);
+                on_search_launch_result_dlg(on_tabpage_get_ptr(tab), path, key);
             }
         }
+        free(buf);
     }
-    free(buf);
 }
 
 static bool

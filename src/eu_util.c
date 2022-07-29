@@ -1867,3 +1867,87 @@ util_os_version(void)
     }
     return ver;
 }
+
+static char *
+util_stristr(const char *str, const char *pattern)
+{
+    char *pptr, *sptr, *start;
+    uintptr_t slen, plen;
+
+    for (start = (char *) str, pptr = (char *) pattern, slen = strlen(str), plen = strlen(pattern);
+         /* while string length not shorter than pattern length */
+         slen >= plen;
+         start++, slen--)
+    {
+        /* find start of pattern in string */
+        while (toupper(*start) != toupper(*pattern))
+        {
+            start++;
+            slen--;
+
+            /* if pattern longer than string */
+            if (slen < plen) return (NULL);
+        }
+
+        sptr = start;
+        pptr = (char *) pattern;
+        while (toupper(*sptr) == toupper(*pptr))
+        {
+            sptr++;
+            pptr++;
+            /* if end of pattern then pattern was found */
+            if ('\0' == *pptr) return (start);
+        }
+    }
+    return (NULL);
+}
+
+static inline char *
+util_search_case(const char *str, const char *pattern, bool incase)
+{
+    return (incase ? util_stristr(str, pattern) : (char *)strstr(str, pattern));
+}
+
+static inline bool
+util_punct_or_space(int ch)
+{
+    return isspace(ch) || ispunct(ch);
+}
+
+char *
+util_string_match(const char *str, const char *pattern, bool incase, bool match_start, bool whole)
+{
+    const char *psrc = str;
+    int slen =0, plen = (int)strlen(pattern);
+    char *presult = util_search_case(str, pattern, incase);
+    while (match_start && presult && presult - psrc > 0)
+    {
+        presult = NULL;
+        while(*psrc && !isspace(*psrc))
+        {
+            ++psrc;
+        }
+        while(*psrc && util_punct_or_space(*psrc))
+        {
+            ++psrc;
+        }
+        presult = util_search_case(psrc, pattern, incase);
+    }
+    psrc = match_start ? presult : str;
+    slen = presult ? (int)strlen(presult) : 0;
+    while(whole && presult && (presult - psrc > 0 || (slen > plen && !util_punct_or_space(presult[plen]))))
+    {
+        presult = NULL;
+        while(*psrc && !isspace(*psrc))
+        {
+            ++psrc;
+        }
+        while(*psrc && util_punct_or_space(*psrc))
+        {
+            ++psrc;
+        }
+        presult = util_search_case(psrc, pattern, incase);
+        slen = presult ? (int)strlen(presult) : 0;        
+    }
+    return presult;
+}

@@ -249,7 +249,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
             (*ppnode)->result_show = false;
             eu_safe_free((*ppnode)->presult);
         }
-        if ((*ppnode)->pvec && cvector_size((*ppnode)->pvec) > 0)
+        if ((*ppnode)->pvec)
         {
             cvector_free((*ppnode)->pvec);
             (*ppnode)->pvec = NULL;

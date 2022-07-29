@@ -29,16 +29,6 @@ extern "C"
 
 typedef int (*tab_ptr)(eu_tabpage *p);
 
-typedef struct _result_postion {
-    intptr_t start;
-    intptr_t end;
-} result_postion;
-
-typedef  struct _result_vec {
-    intptr_t line;
-    result_postion mark;
-}result_vec;
-
 struct _tabpage
 {
     HWND hwnd_sc;               // 当前编辑器句柄
