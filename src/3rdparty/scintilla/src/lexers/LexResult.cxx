@@ -1,5 +1,5 @@
 // Scintilla source code edit control
-/** @file LexOpal.cxx
+/** @file LexResult.cxx
  ** Lexer for search result (skylark edit used)
  ** Written by adonais <hua.andy@gmail.com>
  **/

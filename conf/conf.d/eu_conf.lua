@@ -85,6 +85,7 @@ function eu_conf.loadconf()
         "}\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
         "cache_limit_size = 200\n" ..
+        "snippet_enable = 44013\n" ..
         "app_build_id = 0\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"d:/msys2/msys2_shell.cmd -mingw64 -here\"\n" ..
@@ -156,6 +157,7 @@ function eu_conf.loadconf()
         ui_language,
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         cache_limit_size,
+        snippet_enable,
         app_build_id,
         process_path,
         other_editor_path,

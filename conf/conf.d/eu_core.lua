@@ -88,6 +88,7 @@ struct eu_config
     char m_language[64];
     print_set eu_print;
     int m_limit;
+    int m_snippet_enable;
     uint64_t m_id;
     char m_path[260];
     char editor[260];
@@ -187,6 +188,7 @@ typedef struct _doc_data
     const char *filetypename;                 // 文档类型名称
     const char *extname;                      // 文档扩展名
     const char *filedesc;                     // 文档类型描述
+    const char *snippet;                      // 文档的代码片段文件所在
     int tab_width;                            // tab键宽度, default = 0, 跟随主配置
     int tab_convert_spaces;                   // tab键是否转换为空格, default = -1: 跟随主配置, 0: false, 1: true
     init_before_ptr fn_init_before;           // 回调函数, 在文档初始化前运行

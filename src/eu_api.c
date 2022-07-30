@@ -1623,6 +1623,7 @@ eu_save_config(void)
         "}\n"
         "-- automatically cached file (size < 200MB)\n"
         "cache_limit_size = %d\n"
+        "snippet_enable = %d\n"
         "app_build_id = %I64u\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
@@ -1705,6 +1706,7 @@ eu_save_config(void)
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
               g_config->m_limit,
+              g_config->m_snippet_enable,
               on_about_build_id(),
               g_config->m_path,
               g_config->editor,

@@ -16,33 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _EU_MENU_H_
-#define _EU_MENU_H_
-
-/* 子菜单所在位置 */
-#define THEME_MENU 6
-#define THEME_MENU_SUB 7
-#define LOCALE_MENU 6
-#define LOCALE_MENU_SUB 5
-#define TAB_MENU_ACTIVE_SUB 27
-#define TAB_MENU_CLOSE_SUB 28
-#define TAB_MENU_SNIPPET_SUB 17
+#ifndef _EU_SNIPPET_H_
+#define _EU_SNIPPET_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void (*ptr_menu_callback)(HMENU hpop, void *p);
-HMENU menu_load(uint16_t mid);
-
-void menu_switch_theme(void);
-void menu_update_item(HMENU menu);
-int menu_height();
-int menu_pop_track(HWND hwnd, uint16_t mid, int64_t lparam, const uint32_t, ptr_menu_callback fn, void *param);
-
+void __stdcall on_snippet_create_dlg(HWND hwnd);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // _EU_MENU_H_
+#endif  // _EU_SNIPPET_H_

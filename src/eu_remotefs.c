@@ -268,6 +268,39 @@ on_remote_server_browser(HWND hdlg)
     return 0;
 }
 
+void WINAPI
+on_remotefs_draw_combo(HWND hwnd, const HDC hdc, RECT rc)
+{
+    HBRUSH brush = CreateSolidBrush(on_dark_enable() ? rgb_dark_btn_color : GetSysColor(COLOR_BTNFACE));
+    HPEN pen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
+    HGDIOBJ oldbrush = SelectObject(hdc, brush);
+    HGDIOBJ oldpen = SelectObject(hdc, pen);
+    SelectObject(hdc, (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0));
+    set_bk_color(hdc, on_dark_enable());
+    set_text_color(hdc, on_dark_enable());
+    Rectangle(hdc, 0, 0, rc.right, rc.bottom);
+    if(GetFocus() == hwnd)
+    {
+        RECT temp = rc;
+        InflateRect(&temp, -2, -2);
+        DrawFocusRect(hdc, &temp);
+    }
+    int index = (int)SendMessage(hwnd, CB_GETCURSEL, 0, 0);
+    if(index >= 0)
+    {
+        int buflen = (int)SendMessage(hwnd, CB_GETLBTEXTLEN, index, 0);
+        TCHAR *buf = (TCHAR *)calloc(sizeof(TCHAR), buflen + 1);
+        SendMessage(hwnd, CB_GETLBTEXT, index, (LPARAM)buf);
+        rc.left += 5;
+        DrawText(hdc, buf, -1, &rc, DT_EDITCONTROL|DT_LEFT|DT_VCENTER|DT_SINGLELINE);
+        free(buf);
+    }
+    SelectObject(hdc, oldpen);
+    SelectObject(hdc, oldbrush);
+    DeleteObject(brush);
+    DeleteObject(pen);
+}
+
 static LRESULT CALLBACK
 remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
@@ -275,43 +308,15 @@ remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR
     {
         case WM_PAINT:
         {
-            uintptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
-            if(!(style & CBS_DROPDOWNLIST))
+            RECT rc;
+            if (!on_dark_enable())
             {
                 break;
             }
-            RECT rc;
             GetClientRect(hwnd, &rc);
             PAINTSTRUCT ps;
             const HDC hdc = BeginPaint(hwnd, &ps);
-            HBRUSH brush = CreateSolidBrush(on_dark_enable() ? rgb_dark_btn_color : GetSysColor(COLOR_BTNFACE));
-            HPEN pen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
-            HGDIOBJ oldbrush = SelectObject(hdc, brush);
-            HGDIOBJ oldpen = SelectObject(hdc, pen);
-            SelectObject(hdc, (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0));
-            set_bk_color(hdc, on_dark_enable());
-            set_text_color(hdc, on_dark_enable());
-            Rectangle(hdc, 0, 0, rc.right, rc.bottom);
-            if(GetFocus() == hwnd)
-            {
-                RECT temp = rc;
-                InflateRect(&temp, -2, -2);
-                DrawFocusRect(hdc, &temp);
-            }
-            int index = (int)SendMessage(hwnd, CB_GETCURSEL, 0, 0);
-            if(index >= 0)
-            {
-                int buflen = (int)SendMessage(hwnd, CB_GETLBTEXTLEN, index, 0);
-                TCHAR *buf = (TCHAR *)calloc(sizeof(TCHAR), buflen + 1);
-                SendMessage(hwnd, CB_GETLBTEXT, index, (LPARAM)buf);
-                rc.left += 5;
-                DrawText(hdc, buf, -1, &rc, DT_EDITCONTROL|DT_LEFT|DT_VCENTER|DT_SINGLELINE);
-                free(buf);
-            }
-            SelectObject(hdc, oldpen);
-            SelectObject(hdc, oldbrush);
-            DeleteObject(brush);
-            DeleteObject(pen);
+            on_remotefs_draw_combo(hwnd, hdc, rc);
             EndPaint(hwnd, &ps);
             return 0;
         }

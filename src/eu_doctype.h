@@ -79,7 +79,8 @@ enum dctype
     DOCTYPE_MATLAB = 36,
     DOCTYPE_CONFIGS = 37,
     DOCTYPE_VB = 38,
-    DOCTYPE_VBS = 39
+    DOCTYPE_VBS = 39,
+    DOCTYPE_LATEX = 40
 };
 
 typedef struct _doc_styles
@@ -103,6 +104,7 @@ typedef struct _doc_data
     const char *filetypename;                 // 文档类型名称
     const char *extname;                      // 文档扩展名
     const char *filedesc;                     // 文档类型描述
+    const char *snippet;                      // 文档的代码片段文件所在
     int tab_width;                            // tab键宽度, default = 0, 跟随主配置
     int tab_convert_spaces;                   // tab键是否转换为空格, default = -1, 跟随主配置
     init_before_ptr fn_init_before;           // 回调函数, 在文档初始化前运行, 用于创建右侧边控件

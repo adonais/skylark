@@ -437,6 +437,7 @@ menu_update_item(HMENU menu)
                                              (pnode->doc_ptr->doc_type == DOCTYPE_SQL||pnode->doc_ptr->doc_type == DOCTYPE_REDIS)));
                         util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, (pnode->doc_ptr && !pnode->hex_mode &&
                                              (pnode->doc_ptr->doc_type == DOCTYPE_SQL||pnode->doc_ptr->doc_type == DOCTYPE_REDIS)));
+                        util_switch_menu_group(menu, TAB_MENU_SNIPPET_SUB, IDM_SOURCE_SNIPPET_ENABLE, IDM_SOURCE_SNIPPET_ENABLE, eu_get_config()->m_snippet_enable);
                         break;
                     case IDM_ENV_FILE_POPUPMENU:      /* Settings menu */
                         on_reg_update_menu();

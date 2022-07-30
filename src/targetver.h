@@ -957,7 +957,7 @@
 #define IDC_VIEWZONE_CANVAS                 43032
 #define IDD_DOCUMENTMAP                     43033
 
-#define IDM_SOURCE_SNIPPET                  44000
+#define IDM_SOURCE_SNIPPET_CONFIGURE        44000
 #define IDD_SNIPPET_DLG                     44001
 #define IDC_SNIPPET_LST                     44002
 #define IDC_SNIPPET_EDT1                    44003
@@ -970,6 +970,8 @@
 #define IDS_SNIPPET_EDT_DEFAULT             44010
 #define IDS_SNIPPET_EXAMPLE_DEC             44011
 #define IDS_SNIPPET_COMBO_DEC               44012
+#define IDM_SOURCE_SNIPPET_ENABLE           44013
+
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

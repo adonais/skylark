@@ -47,6 +47,7 @@ void on_remote_manager(void);
 remotefs *on_remote_list_find(const TCHAR *url);
 unsigned __stdcall on_remote_load_config(void *);
 CURL* __stdcall on_remote_init_socket(const char *, remotefs *pserver);
+void __stdcall on_remotefs_draw_combo(HWND hwnd, const HDC hdc, RECT rc);
 
 #ifdef __cplusplus
 }

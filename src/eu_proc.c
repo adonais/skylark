@@ -1285,6 +1285,21 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_DATABASE_INSERT_CONFIG:  // 插入sql头
                     on_code_insert_config(pnode);
                     break;
+                case IDM_SOURCE_SNIPPET_ENABLE:
+                {
+                    if (eu_get_config()->m_snippet_enable == wm_id)
+                    {
+                        eu_get_config()->m_snippet_enable = 0;
+                    }
+                    else
+                    {
+                        eu_get_config()->m_snippet_enable = wm_id;
+                    }
+                    break;
+                }
+                case IDM_SOURCE_SNIPPET_CONFIGURE:
+                    on_snippet_create_dlg(hwnd);
+                    break;
                 case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql,redis
                     on_view_result_show(pnode, 0);
                     break;

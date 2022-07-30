@@ -304,6 +304,7 @@ struct eu_config
     char m_language[ACNAME_LEN];
     print_set eu_print;
     int m_limit;
+    int m_snippet_enable;
     uint64_t m_id;
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
