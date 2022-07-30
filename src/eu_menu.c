@@ -376,9 +376,15 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);
                         break;
                     case IDM_UPDATE_SELECTION:                /* Search menu */
+                    {
+                        int enable = 0;
+                        on_search_jmp_matching_brace(pnode, &enable);
                         util_set_menu_item(menu, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
                         util_set_menu_item(menu, IDM_SELECTION_RECTANGLE, eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_SEARCH_MATCHING_BRACE, enable);
+                        util_enable_menu_item(menu, IDM_SEARCH_MATCHING_BRACE_SELECT, enable);
                         break;
+                    }
                     case IDM_VIEW_INDENTGUIDES_VISIABLE:      /* View menu */
                         util_set_menu_item(menu, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
                         util_set_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, pnode->map_show);

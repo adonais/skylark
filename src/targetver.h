@@ -951,6 +951,8 @@
 
 #define IDM_SEARCH_SELECT_HEAD              43020
 #define IDM_SEARCH_SELECT_END               43021
+#define IDM_SEARCH_MATCHING_BRACE           43022
+#define IDM_SEARCH_MATCHING_BRACE_SELECT    43023
 
 #define IDD_VIEWZONE                        43030
 #define IDD_VIEWZONE_CLASSIC                43031
@@ -971,7 +973,6 @@
 #define IDS_SNIPPET_EXAMPLE_DEC             44011
 #define IDS_SNIPPET_COMBO_DEC               44012
 #define IDM_SOURCE_SNIPPET_ENABLE           44013
-
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

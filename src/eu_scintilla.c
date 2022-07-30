@@ -467,6 +467,14 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_KEYUP:
         {
+            if (KEY_DOWN(VK_CONTROL) || KEY_DOWN(VK_MENU))
+            {
+                break;
+            }
+            if (wParam == VK_CONTROL || wParam == VK_MENU)
+            {
+                break;
+            }
             if ((pnode = on_tabpage_focus_at()) == NULL)
             {
                 break;

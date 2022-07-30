@@ -101,6 +101,7 @@ void on_search_finish_wait(void);
 void on_search_dark_mode_release(void);
 void on_search_tab2space(eu_tabpage *pnode);
 void on_search_space2tab(eu_tabpage *pnode);
+void on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres);
 
 #ifdef __cplusplus
 }

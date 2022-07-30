@@ -381,6 +381,58 @@ on_search_jmp_pos(eu_tabpage *pnode)
     }
 }
 
+void
+on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres)
+{
+    if (pnode && pres)
+    {
+        int char_before = 0;
+        sptr_t brace_caret = -1;
+        sptr_t brace_pos = -1;
+        sptr_t caret_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t length = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+	    if ((length > 0) && (caret_pos > 0))
+        {
+	    	char_before = (int)eu_sci_call(pnode, SCI_GETCHARAT, caret_pos - 1, 0);
+	    }
+	    if (char_before && strchr("[](){}", char_before))
+        {
+	    	brace_caret = caret_pos - 1;
+	    }
+	    if (length > 0  && (brace_caret < 0))
+        {   // 没找到, 向另一侧匹配
+	    	int char_after = (int)eu_sci_call(pnode, SCI_GETCHARAT, caret_pos, 0);
+	    	if (char_after && strchr("[](){}", char_after))
+            {
+	    		brace_caret = caret_pos;
+	    	}
+	    }
+	    if (brace_caret >= 0)
+	    {
+	        brace_pos = eu_sci_call(pnode, SCI_BRACEMATCH, brace_caret, 0);
+	    }
+	    if (brace_pos != -1)
+	    {
+	        if (*pres == IDM_SEARCH_MATCHING_BRACE)
+	        {
+	            eu_sci_call(pnode, SCI_GOTOPOS, brace_pos, 0);
+	        }
+	        else if (*pres == IDM_SEARCH_MATCHING_BRACE_SELECT)
+	        {
+	            eu_sci_call(pnode, SCI_SETSEL, min(brace_caret, brace_pos), max(brace_caret, brace_pos) + 1);
+	        }
+	        else
+	        {
+	            *pres = 1;
+	        }
+	    }
+	    else
+	    {
+	        *pres = 0;
+	    }
+    }
+}
+
 static size_t
 on_search_build_flags(HWND hwnd_search)
 {

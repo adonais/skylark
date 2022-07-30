@@ -1113,6 +1113,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_GOTOLINE:
                     on_search_jmp_specified_line(pnode);
                     break;
+                case IDM_SEARCH_MATCHING_BRACE:
+                case IDM_SEARCH_MATCHING_BRACE_SELECT:
+                    on_search_jmp_matching_brace(pnode, &wm_id);
+                    break;
                 case IDM_SEARCH_NAVIGATE_PREV_THIS:
                     on_search_back_navigate_this();
                     break;

@@ -190,6 +190,8 @@ BEGIN
             MENUITEM "Jump To Last Line",                              IDM_SEARCH_GOTOEND
             MENUITEM "Jump To Line...",                                IDM_SEARCH_GOTOLINE
         END
+        MENUITEM "Go To Matching Brace",                               IDM_SEARCH_MATCHING_BRACE
+        MENUITEM "Select Chars Between &Matching Braces",              IDM_SEARCH_MATCHING_BRACE_SELECT
         MENUITEM MF_SEPARATOR
         POPUP "Bookmark",                                              IDM_EDIT_PLACEHOLDE13
         BEGIN

@@ -190,6 +190,8 @@ BEGIN
             MENUITEM "跳到末行",                                IDM_SEARCH_GOTOEND
             MENUITEM "跳到行号",                                IDM_SEARCH_GOTOLINE
         END
+        MENUITEM "转到匹配的括号",                              IDM_SEARCH_MATCHING_BRACE
+        MENUITEM "选中匹配括号间的字符(&M)",                    IDM_SEARCH_MATCHING_BRACE_SELECT
         MENUITEM MF_SEPARATOR
         POPUP "书签",                                           IDM_EDIT_PLACEHOLDE13
         BEGIN
