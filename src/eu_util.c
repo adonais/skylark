@@ -1951,3 +1951,18 @@ util_string_match(const char *str, const char *pattern, bool incase, bool match_
     }
     return presult;
 }
+
+TCHAR *
+util_add_double_quotes(const TCHAR *path)
+{
+    TCHAR *buf = NULL;
+    if (path)
+    {
+        int len = eu_int_cast(_tcslen(path)) + 4;
+        if ((buf = (TCHAR *)calloc(sizeof(TCHAR), len + 1)) != NULL)
+        {
+            _sntprintf(buf, len, _T("\"%s\""), path);
+        }
+    }
+    return buf;
+}

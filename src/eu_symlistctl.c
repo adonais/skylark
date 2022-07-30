@@ -34,7 +34,7 @@ pcre_match_callback(pcre_conainer *pcre_info, void *para)
         char buf[MAX_PATH+1] = {0};
         const char *substring_start = pcre_info->buffer + pcre_info->ovector[2];
         int substring_length = pcre_info->ovector[3] - pcre_info->ovector[2];
-        sptr_t line_num =eu_sci_call(pnode, SCI_LINEFROMPOSITION, pcre_info->ovector[2], 0);
+        sptr_t line_num = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pcre_info->ovector[2], 0);
         snprintf(buf, MAX_PATH, "%.*s", substring_length, substring_start);
         if (STRCMP(buf, !=, "if"))
         {
