@@ -119,7 +119,7 @@ BEGIN
             MENUITEM "Space To TAB",                                   IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Action &On Selection"
+        POPUP "Action &On Selection",                                  IDM_EDIT_SELECT_GROUP
         BEGIN
             MENUITEM "&Open File",                                     IDM_OPEN_FILE_PATH
             MENUITEM "Open Containing &Folder",                        IDM_OPEN_CONTAINING_FOLDER
@@ -308,7 +308,7 @@ BEGIN
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
         END
-        POPUP "Code Snippets",
+        POPUP "Code Snippets",                                         IDM_SOURCE_SNIPPET_GROUP
         BEGIN
             MENUITEM "&Enable Snippets",                               IDM_SOURCE_SNIPPET_ENABLE
             MENUITEM "Configure Snippets",                             IDM_SOURCE_SNIPPET_CONFIGURE

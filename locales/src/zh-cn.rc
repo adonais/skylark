@@ -119,7 +119,7 @@ BEGIN
             MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
-        POPUP "选区操作(&O)"
+        POPUP "选区操作(&O)",                                   IDM_EDIT_SELECT_GROUP
         BEGIN
             MENUITEM "打开文件(&O)",                            IDM_OPEN_FILE_PATH
             MENUITEM "打开所在文件夹(&F)",                      IDM_OPEN_CONTAINING_FOLDER
@@ -308,7 +308,7 @@ BEGIN
             MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
             MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
         END
-        POPUP "代码片段",
+        POPUP "代码片段",                                       IDM_SOURCE_SNIPPET_GROUP
         BEGIN
             MENUITEM "启用代码片段(&E)",                        IDM_SOURCE_SNIPPET_ENABLE
             MENUITEM "管理代码片段",                            IDM_SOURCE_SNIPPET_CONFIGURE

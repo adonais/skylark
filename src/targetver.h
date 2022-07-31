@@ -835,6 +835,8 @@
 #define IDM_SET_RENDER_TECH_D2DRETAIN       42562
 #define IDM_SETTING_FONTQUALITY             42563
 #define IDM_SETTING_RENDER                  42564
+#define IDM_SOURCE_SNIPPET_GROUP            42565
+#define IDM_EDIT_SELECT_GROUP               42566
 
 #define IDR_TOOLBAR_POPUPMENU               42600
 #define IDM_VIEW_MENUBAR                    42601
