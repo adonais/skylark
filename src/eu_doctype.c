@@ -1932,43 +1932,38 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
 {
     sptr_t match_pos = -1;
     bool matching = false;
-    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
-    matching = ch > 0 && strchr("()[]{}<>", ch);
-    if (matching)
-    {   // 匹配的括号高亮显示
-        if (current_pos > 0)
-        {
-            --current_pos;
-        }
-        if ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0)) != -1)
-        {   // 当键盘输入时, 相邻的括号不要高亮
-            if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
+    if (eu_get_config()->brace_rgb != (uint32_t)-1)
+    {
+        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
+        matching = ch > 0 && strchr("()[]{}<>", ch);
+        if (matching)
+        {   // 匹配的括号高亮显示
+            if (current_pos > 0)
             {
-                sptr_t m_style = eu_sci_call(pnode, SCI_GETSTYLEAT, current_pos, 0);
-                sptr_t m_forecolor = eu_sci_call(pnode, SCI_STYLEGETFORE, m_style, 0);
-                sptr_t m_backcolor = eu_sci_call(pnode, SCI_STYLEGETBACK, m_style, 0);
-                eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, m_backcolor);
-                eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, m_forecolor);
-                eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
-                eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
+                --current_pos;
+            }
+            if ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0)) != -1)
+            {   // 当键盘输入时, 相邻的括号不要高亮
+                if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
+                {
+                    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_config()->brace_rgb);
+                    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.text.bgcolor);
+                    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
+                    eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
+                }
+            }
+            else
+            {
+                eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
+                eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
+                eu_sci_call(pnode, SCI_BRACEBADLIGHT, current_pos, 0);
             }
         }
         else
-        {
-            sptr_t m_style = eu_sci_call(pnode, SCI_GETSTYLEAT, current_pos, 0);
-            sptr_t m_forecolor = eu_sci_call(pnode, SCI_STYLEGETFORE, m_style, 0);
-            sptr_t m_backcolor = eu_sci_call(pnode, SCI_STYLEGETBACK, m_style, 0);
-            eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACEBAD, m_forecolor);
-            eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACEBAD, m_backcolor);
-            eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
-            eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
-            eu_sci_call(pnode, SCI_BRACEBADLIGHT, current_pos, 0);
+        {   // 光标位置移动后取消高亮显示
+            eu_sci_call(pnode, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
         }
-    }
-    else
-    {   // 光标位置移动后取消高亮显示
-        eu_sci_call(pnode, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
     }
     return 0;
 }

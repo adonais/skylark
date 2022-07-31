@@ -36,6 +36,7 @@ function eu_conf.loadconf()
         "bookmark_visiable = true\n" ..
         "bookmark_shape = 32\n" ..
         "bookmark_argb = 0x28408040\n" ..
+        "matching_brace_color = 0x0000FF\n" ..
         "white_space_visiable = false\n" ..
         "white_space_size = 3\n" ..
         "newline_visiable = false\n" ..
@@ -88,7 +89,7 @@ function eu_conf.loadconf()
         "snippet_enable = 44013\n" ..
         "app_build_id = 0\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
-        "process_path = \"d:/msys2/msys2_shell.cmd -mingw64 -here\"\n" ..
+        "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
         "m_reserved_0 = \"\"\n" ..
         "m_reserved_1 = \"\"\n" ..
@@ -119,6 +120,7 @@ function eu_conf.loadconf()
         bookmark_visiable,
         bookmark_shape,
         bookmark_argb,
+        matching_brace_color,
         white_space_visiable,
         white_space_size,
         newline_visiable,

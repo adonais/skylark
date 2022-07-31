@@ -262,6 +262,7 @@ struct eu_config
     bool bookmark_visable;
     int  bookmark_shape;
     uint32_t bookmark_argb;
+    uint32_t brace_rgb;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;
