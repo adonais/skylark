@@ -142,9 +142,10 @@ on_remote_init_socket(const char *url, remotefs *pserver)
 }
 
 static int
-on_remote_save_config(remotefs* pserver)
+on_remote_save_config(remotefs* pserver, const char *oldname)
 {
     char sql[MAX_BUFFER] = {0};
+    const char *exec = NULL;
     unsigned char enc_pass[33] = {0};
     unsigned char base64_pass[66] = {0};
     if (util_availed_char(pserver->pwd[0]))
@@ -152,12 +153,20 @@ on_remote_save_config(remotefs* pserver)
         util_aes_enc((unsigned char *) (pserver->pwd), enc_pass, 32);
         on_edit_ssl_enc_base64(base64_pass, enc_pass, 32);
     }
-    const char *exec = "insert into file_remote(szName, szProtocol, szAddress, szPort, szArea, szUser, szPass, szPrivate, szPassphrase) "
-                       "values('%s','%s', '%s', %d, %d, '%s', '%s', '%s', '%s') ON CONFLICT(szName) DO UPDATE SET szProtocol= "
-                       "excluded.szProtocol,szAddress=excluded.szAddress,szPort=excluded.szPort,szArea=excluded.szArea,"
-                       "szUser=excluded.szUser,szPass=excluded.szPass,szPrivate=excluded.szPrivate,szPassphrase=excluded.szPassphrase;";
-    _snprintf(sql, MAX_BUFFER-1, exec, pserver->servername, pserver->protocol, pserver->networkaddr,
-              pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase);
+    if (!oldname)
+    {
+        exec = "insert into file_remote(szName, szProtocol, szAddress, szPort, szArea, szUser, szPass, szPrivate, szPassphrase) "
+               "values('%s','%s', '%s', %d, %d, '%s', '%s', '%s', '%s');";
+        _snprintf(sql, MAX_BUFFER-1, exec, pserver->servername, pserver->protocol, pserver->networkaddr,
+                  pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase);
+    }
+    else
+    {   
+        exec = "update file_remote set szName='%s', szProtocol='%s', szAddress='%s', szPort='%d', szArea='%d', "
+               "szUser='%s', szPass='%s', szPrivate='%s', szPassphrase='%s' where szName='%s';";
+        _snprintf(sql, MAX_BUFFER-1, exec, pserver->servername, pserver->protocol, pserver->networkaddr,
+                  pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase, oldname);               
+    }
     return eu_sqlite3_send(sql, NULL, NULL);
 }
 
@@ -332,12 +341,12 @@ remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR
 static INT_PTR CALLBACK
 remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    int nret = 0;
     int serverindex;
     int servercount;
     remotefs *pserver = NULL;
-    static HWND server_box = NULL;
-    static HWND box_access = NULL;
-    int nret = 0;
+    HWND server_box = NULL;
+    HWND box_access = NULL;
 
     UNREFERENCED_PARAMETER(lParam);
     switch (message)
@@ -426,6 +435,8 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDC_REMOTE_FILESERVERS_LISTBOX:
                     if (HIWORD(wParam) == LBN_SELCHANGE)
                     {
+                        server_box = (HWND)lParam;
+                        box_access = GetDlgItem(hdlg, IDC_ACCESS_AREA_COMBOBOX);
                         serverindex = ListBox_GetCurSel(server_box);
                         if (serverindex >= 0)
                         {
@@ -474,6 +485,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     return 1;
                 }
                 case IDC_ADD_SERVER_BUTTON:
+                    server_box = GetDlgItem(hdlg, IDC_REMOTE_FILESERVERS_LISTBOX);
                     SetWindowText(GetDlgItem(hdlg, IDC_FILESERVER_NAME_EDIT), _T(""));
                     SetWindowText(GetDlgItem(hdlg, IDC_COMMPROTOCOL_COMBOBOX), _T("SFTP"));
                     SetWindowText(GetDlgItem(hdlg, IDC_NETWORK_ADDRESS_EDIT), _T(""));
@@ -492,6 +504,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     return 1;
                 }
                 case IDC_REMOVE_SERVER_BUTTON:
+                    server_box = GetDlgItem(hdlg, IDC_REMOTE_FILESERVERS_LISTBOX);
                     serverindex = ListBox_GetCurSel(server_box);
                     if (serverindex >= 0)
                     {
@@ -527,7 +540,11 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_APPLY_NOW:
                     {
+                        TCHAR *new_name = NULL;
+                        char old_name[100+1] = {0};
                         bool new_server = false;
+                        server_box = GetDlgItem(hdlg, IDC_REMOTE_FILESERVERS_LISTBOX);
+                        box_access = GetDlgItem(hdlg, IDC_ACCESS_AREA_COMBOBOX);
                         serverindex = ListBox_GetCurSel(server_box);
                         if (serverindex == LB_ERR)
                         {
@@ -537,6 +554,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         else
                         {
                             pserver = (remotefs *) ListBox_GetItemData(server_box,serverindex);
+                            _snprintf(old_name, 100, "%s", pserver ? pserver->servername : "");
                         }
                         if (!pserver)
                         {
@@ -570,25 +588,32 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             }
                             break;
                         }
-                        if (on_remote_save_config(pserver))
+                        // 更新文件管理器上的sftp配置
+                        if (!(new_name = eu_utf8_utf16(pserver->servername, NULL)))
                         {
                             break;
                         }
-                        // 更新文件管理器上的sftp配置
-                        on_treebar_update_addr(pserver);
                         if (new_server)
                         {
-                            printf("we add pserver to list\n");
-                            list_add_tail(&(pserver->node_server), &list_server);
-                            TCHAR *serv = *pserver->servername?eu_utf8_utf16(pserver->servername, NULL):NULL;
-                            if (serv)
+                            int i = ListBox_FindStringExact(server_box, -1, new_name);
+                            if (i == LB_ERR)
                             {
-                                serverindex = ListBox_AddString(server_box, serv);
+                                list_add_tail(&(pserver->node_server), &list_server);
+                                serverindex = ListBox_AddString(server_box, new_name);
                                 on_treebar_load_remote(g_filetree , pserver);
-                                free(serv);
+                                on_remote_save_config(pserver, NULL);
                             }
                         }
-                        SendMessage(hdlg, WM_COMMAND, MAKELONG(0, LBN_SELCHANGE), 0);
+                        else
+                        {
+                            ListBox_DeleteString(server_box, serverindex);
+                            ListBox_InsertString(server_box, serverindex, new_name);
+                            ListBox_SetCurSel(server_box, serverindex);
+                            on_treebar_update_addr(pserver);
+                            on_remote_save_config(pserver, old_name);
+                        }
+                        eu_safe_free(new_name);
+                        SendMessage(hdlg, WM_COMMAND, MAKELONG(IDC_REMOTE_FILESERVERS_LISTBOX, LBN_SELCHANGE), (LPARAM)server_box);
                         break;
                     }
                 case IDOK:

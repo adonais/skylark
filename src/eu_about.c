@@ -18,7 +18,6 @@
 
 #include "framework.h"
 
-#define COPYRIGHT_LEN 2048
 #define HBMP_SIZE 270056
 /* Start of HyperLink URL */
 #define PROP_ORIGINAL_FONT _T("_hyperlink_original_font_")
@@ -3323,8 +3322,8 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         {
             HWND hurl = NULL;
             HWND hpage = NULL;
-            TCHAR cap[COPYRIGHT_LEN + 1] = { 0 };
-            if (LoadString(eu_module_handle(), IDS_ABOUT_DESCRIPTION, cap, COPYRIGHT_LEN))
+            TCHAR cap[LARGER_LEN + 1] = { 0 };
+            if (LoadString(eu_module_handle(), IDS_ABOUT_DESCRIPTION, cap, LARGER_LEN))
             {
                 SetWindowText(GetDlgItem(hdlg, IDC_EDIT_ABOUT), cap);
             }

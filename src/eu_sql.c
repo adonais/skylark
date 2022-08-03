@@ -89,7 +89,7 @@ init_sql_file(const char *sql_path, uintptr_t *pdb)
     {
         RECENT_TABLE,
         "create table file_remote(szId INTEGER PRIMARY KEY, szName char, szProtocol char, szAddress char, "
-        "szPort SMALLINT, szArea SMALLINT, szUser char, szPass char, szPrivate char, szPassphrase char, UNIQUE(szName));",
+        "szPort SMALLINT, szArea SMALLINT, szUser char, szPass char, szPrivate char, szPassphrase char);",
         "create table find_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
         "create table replace_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
         "create table folder_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",

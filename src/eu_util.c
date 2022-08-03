@@ -38,8 +38,6 @@ static PFNGFVSW pfnGetFileVersionInfoSizeW;
 static PFNGFVIW pfnGetFileVersionInfoW;
 static PFNVQVW pfnVerQueryValueW;
 
-#define BUFF_64K 0x10000
-#define BUFF_200M 0xc800000
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
 
@@ -1113,10 +1111,15 @@ util_trim_left_white(const char *s, int *length)
 /**************************************************
  * 比较两个字符串, s1左侧可能带空白字符
  * 如果两个字符串相似, 返回0, 否则返回1
+ * plen, 跳过的空白数
  *************************************************/
 int
-util_strnspace(const char *s1, const char *s2)
+util_strnspace(const char *s1, const char *s2, int *plen)
 {
+    if (plen)
+    {
+        *plen = 0;
+    }
     if (!(s1 && s2))
     {
         return 1;
@@ -1125,7 +1128,7 @@ util_strnspace(const char *s1, const char *s2)
     {
         return 0;
     }
-    if (strncmp(s1, s2, strlen(s2)) == 0)
+    if (strncasecmp(s1, s2, strlen(s2)) == 0)
     {
         return 0;
     }
@@ -1135,10 +1138,15 @@ util_strnspace(const char *s1, const char *s2)
         {
             continue;
         }
-        if (strncmp(&s1[i], s2, strlen(s2)) == 0)
+        if (strncasecmp(&s1[i], s2, strlen(s2)) == 0)
         {
+            if (plen)
+            {
+                *plen = i;
+            }
             return 0;
         }
+        break;
     }
     return 1;
 }
@@ -1423,6 +1431,10 @@ util_make_u16(const char *utf8, TCHAR *utf16, int len)
     {
         utf16[m-1] = 0;
     }
+    else if (len > 0)
+    {
+        utf16[len-1] = 0;
+    }
     return utf16;
 }
 
@@ -1434,6 +1446,10 @@ util_make_u8(const TCHAR *utf16, char *utf8, int len)
     if (m > 0 && m <= len)
     {
         utf8[m-1] = 0;
+    }
+    else if (len > 0)
+    {
+        utf8[len-1] = 0;
     }
     return utf8;
 }
@@ -1965,4 +1981,15 @@ util_add_double_quotes(const TCHAR *path)
         }
     }
     return buf;
+}
+
+void
+util_skip_whitespace(char **cp, int n, char term)
+{
+	char *pstr = *cp;
+	while (isspace(*pstr) && *pstr != term && n--)
+	{
+	    pstr++;
+	}
+	*cp = pstr;
 }

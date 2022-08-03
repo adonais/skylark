@@ -76,8 +76,11 @@
 #define OVECCOUNT   30   // pcre, should be multiple of 3
 #ifndef MAX_BUFFER
 #define MAX_BUFFER  1024
+#define LARGER_LEN 2048
 #endif
 #define MAX_ACCELS 200
+#define BUFF_64K 0x10000
+#define BUFF_200M 0xc800000
 
 #ifndef WM_COPYGLOBALDATA
 #define WM_COPYGLOBALDATA         (0x0049)
@@ -144,8 +147,8 @@ static inline bool eu_cvector_at(int *v, int n)
     }
     return false;
 }
-#define eu_int_cast(n) ((int)((size_t)n > INT_MAX ? INT_MAX : n))
-#define eu_uint_cast(n) ((uint32_t)((size_t)n > UINT_MAX ? UINT_MAX : n))
+#define eu_int_cast(n) ((int)((intptr_t)(n)))
+#define eu_uint_cast(n) ((uint32_t)((size_t)(n)))
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
 #define ONCE_RUN(code)                                      \
 {                                                           \

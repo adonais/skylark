@@ -1241,16 +1241,8 @@ on_treebar_update_addr(remotefs *pserver)
         {
             if (strcmp(tvd->server->servername, pserver->servername) == 0)
             {
-                TCHAR networkaddr[MAX_PATH+1] = {0};
-                MultiByteToWideChar(CP_UTF8, 0, pserver->networkaddr, -1, networkaddr, MAX_PATH);
-                if (pserver->accesss == 0)
-                {
-                    _sntprintf(tvd->filepath, MAX_PATH - 1, _T("sftp://%s:%d/~/"), networkaddr, pserver->port);
-                }
-                else
-                {
-                    _sntprintf(tvd->filepath, MAX_PATH - 1, _T("sftp://%s:%d/"), networkaddr, pserver->port);
-                }
+                TreeView_DeleteItem(g_filetree, hti_root);
+                on_treebar_load_remote(g_filetree , pserver);
                 break;
             }
         }

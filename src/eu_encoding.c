@@ -84,7 +84,7 @@ close_conv_handle(euconv_t *icv)
 }
 
 int
-on_encoding_line_mode(const char *str, size_t len)
+on_encoding_line_eol(const char *str, size_t len)
 {
     char *p = (char *) memchr((void *) str, '\n', len);
     if (p)
@@ -102,7 +102,18 @@ on_encoding_line_mode(const char *str, size_t len)
     {
         return 1;
     }
-    return eu_get_config()->new_file_eol;
+    return -1;
+}
+
+int
+on_encoding_line_mode(const char *str, size_t len)
+{
+    int eol = on_encoding_line_eol(str, len);
+    if (eol == -1)
+    {
+        eol = eu_get_config()->new_file_eol;
+    }
+    return eol;
 }
 
 const char *

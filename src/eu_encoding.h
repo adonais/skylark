@@ -41,6 +41,7 @@ typedef struct _euconv
     api_convert fn_convert;
 }euconv_t;
 
+int on_encoding_line_eol(const char *str, size_t len);
 int on_encoding_line_mode(const char *str , size_t len);
 int on_encoding_set_bom(const uint8_t *buf, eu_tabpage *pnode);
 int on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn);

@@ -63,7 +63,7 @@ int util_set_working_dir(const TCHAR *path, TCHAR **old);
 int util_query_hostname(char *hostname, char *ip, int bufsize);
 int util_effect_line(eu_tabpage *pnode, sptr_t *, sptr_t *);
 int util_get_hex_byte(const char *p);
-int util_strnspace(const char *s1, const char *s2);
+int util_strnspace(const char *s1, const char *s2, int *plen);
 
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
@@ -80,6 +80,7 @@ void   util_restore_cursor(eu_tabpage *pnode);
 void   util_setforce_eol(eu_tabpage *pnode);
 void   util_save_placement(HWND hwnd);
 void   util_restore_placement(HWND hwnd);
+void   util_skip_whitespace(char **cp, int n, char term);
 bool   util_availed_char(int ch);
 bool   util_under_wine(void);
 void   util_trim_right_star(TCHAR *str);

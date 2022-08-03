@@ -783,7 +783,7 @@ on_table_skip_comment(eu_tabpage *pnode, char **psql)
             ++s;
             continue;
         }
-        if (util_strnspace(s, "--") == 0)
+        if (util_strnspace(s, "--", NULL) == 0)
         {
             if ((p = strchr(s, m_eol)) != NULL)
             {
