@@ -274,26 +274,33 @@ eu_exist_dir(LPCTSTR path)
 bool WINAPI
 eu_exist_file(LPCTSTR path)
 {
+    bool ret = false;
+    TCHAR *fullpath = NULL;
     DWORD fileattr = INVALID_FILE_ATTRIBUTES;
     if (STR_IS_NUL(path))
     {
         return false;
     }
-    if (_tcslen(path) > 1 && path[1] == L':')
+    while ((fullpath = util_strip_quotes(path)))
     {
-        fileattr = GetFileAttributes(path);
+        if (_tcslen(fullpath) > 1 && fullpath[1] == L':')
+        {
+            fileattr = GetFileAttributes(fullpath);
+        }
+        else
+        {
+            TCHAR file_path[MAX_PATH+1] = {0};
+            _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, fullpath);
+            fileattr = GetFileAttributes(file_path);
+        }
+        if (fileattr != INVALID_FILE_ATTRIBUTES)
+        {
+            ret = (fileattr & FILE_ATTRIBUTE_DIRECTORY) == 0;
+        }
+        break;
     }
-    else
-    {
-        TCHAR file_path[MAX_PATH+1] = {0};
-        _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, path);
-        fileattr = GetFileAttributes(file_path);
-    }
-    if (fileattr != INVALID_FILE_ATTRIBUTES)
-    {
-        return (fileattr & FILE_ATTRIBUTE_DIRECTORY) == 0;
-    }
-    return false;
+    eu_safe_free(fullpath);
+    return ret;
 }
 
 bool WINAPI
@@ -334,6 +341,26 @@ eu_mk_dir(LPCTSTR dir)
         }
     }
     return (eu_exist_dir(tmp_name)? true: (CreateDirectory(tmp_name, NULL)));
+}
+
+bool WINAPI
+eu_touch(LPCTSTR path)
+{
+    TCHAR *fullpath = NULL;
+    bool ret = eu_exist_file(path);
+    if (path && !ret && (fullpath = (TCHAR *)_tcsdup(path)))
+    {
+        eu_suffix_strip(fullpath);
+        eu_mk_dir(fullpath);
+        FILE *fd = _tfopen(path, _T("w+b"));
+        if (fd)
+        {
+            fclose(fd);
+            ret = true;
+        }
+        eu_safe_free(fullpath);
+    }
+    return ret;
 }
 
 bool WINAPI

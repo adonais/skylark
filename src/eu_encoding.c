@@ -86,6 +86,10 @@ close_conv_handle(euconv_t *icv)
 int
 on_encoding_line_eol(const char *str, size_t len)
 {
+    if (!str || len <= 0)
+    {
+        return -1;
+    }
     char *p = (char *) memchr((void *) str, '\n', len);
     if (p)
     {

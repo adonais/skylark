@@ -1983,6 +1983,28 @@ util_add_double_quotes(const TCHAR *path)
     return buf;
 }
 
+TCHAR *
+util_strip_quotes(const TCHAR *path)
+{
+    TCHAR *buf = (TCHAR *)_tcsdup(path);
+    if (buf && path && (path[0] == _T('"') || path[0] == _T('\'')))
+    {
+        int split = path[0];
+        TCHAR *p = NULL;
+        TCHAR *tmp = (TCHAR *)&path[1];
+        int len = eu_int_cast(_tcslen(path));
+        if ((p = _tcschr(tmp, split)) && p - tmp < len - 1)
+        {
+            _sntprintf(buf, p - tmp, _T("%s"), tmp);
+            if (p[1] != 0)
+            {
+                _tcsncat(buf, &p[1], len);
+            }
+        }
+    }
+    return buf;
+}
+
 void
 util_skip_whitespace(char **cp, int n, char term)
 {

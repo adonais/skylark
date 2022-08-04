@@ -298,7 +298,8 @@ _tmain(int argc, TCHAR *argv[])
     }
     while (GetMessage(&msg, NULL, 0, 0) > 0)
     {
-        if (!IsDialogMessage(eu_get_search_hwnd(), &msg))
+        if ((!eu_get_search_hwnd() || !IsDialogMessage(eu_get_search_hwnd(), &msg)) &&
+            (!eu_result_hwnd() || !IsDialogMessage(eu_result_hwnd(), &msg)))
         {
             if (eu_before_proc(&msg) > 0)
             {

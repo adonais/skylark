@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-HWND hwnd_rst = NULL;
+static HWND hwnd_rst = NULL;
 
 int
 on_result_append_text(TCHAR *format, ...)
@@ -42,7 +42,6 @@ on_result_append_text(TCHAR *format, ...)
         return 1;
 
     }
-
     if (eu_sci_call(pnode->presult, SCI_GETLENGTH, 0, 0) < 1)
     {
         char *u8 = NULL;
@@ -215,7 +214,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_RESULT_CLOSE:
                 {
-                    eu_tabpage *p = on_tabpage_focus_at();
+                    eu_tabpage *p = (eu_tabpage *)lParam;
                     if (p && p->presult && p->presult->hwnd_sc)
                     {
                         SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
@@ -233,8 +232,8 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDM_RESULT_CLOSE, 0), 0);
-            return 1;
+            PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDM_RESULT_CLOSE, 0), lParam);
+            break;
         }
         case WM_DESTROY:
         {
@@ -256,6 +255,10 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
+            if (hwnd_rst)
+            {
+                hwnd_rst = NULL;
+            }
             printf("on_result_callback WM_DESTROY\n");
             break;
         }
@@ -292,7 +295,6 @@ on_result_reload(eu_tabpage *pedit)
 bool
 on_result_launch(eu_tabpage *pnode)
 {
-    bool ret = false;
     if (pnode)
     {
         if (!pnode->presult)
@@ -304,16 +306,28 @@ on_result_launch(eu_tabpage *pnode)
             {
                 hwnd_rst = on_splitter_init_window(eu_module_hwnd(), class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_result_callback, NULL);
             }
-            if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, NULL, flags, on_result_edit_proc))
+            if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, hwnd_rst, flags, on_result_edit_proc))
             {
                 on_dark_border(pnode->presult->hwnd_sc, true);
-                ret = true;
             }
         }
-        else
-        {
-            ret = true;
-        }
+        return true;
     }
-    return ret;
+    return false;
+}
+
+void
+on_result_move_sci(eu_tabpage *p, int width, int height)
+{
+    if (RESULT_SHOW(p))
+    {
+        MoveWindow(p->presult->hwnd_sc, 0, 0, width, height, TRUE);
+        ShowWindow(p->presult->hwnd_sc, SW_SHOW);
+    }
+}
+
+HWND
+eu_result_hwnd(void)
+{
+    return hwnd_rst;
 }

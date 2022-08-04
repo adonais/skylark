@@ -442,15 +442,14 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 }
             }
         }
-        if (RESULT_SHOW(pnode) && hwnd_rst)
+        if (RESULT_SHOW(pnode) && eu_result_hwnd())
         {
             RECT r = {0, 0, pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH};
-            eu_setpos_window(hwnd_rst, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+            eu_setpos_window(eu_result_hwnd(), HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
                              pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
             eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-            eu_setpos_window(pnode->presult->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
-                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+            on_result_move_sci(pnode, pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top);
             if (pnode->hwnd_qrtable)
             {
                 eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
@@ -462,8 +461,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 InvalidateRect(g_splitter_tablebar, &r, 0);
                 UpdateWindow(g_splitter_tablebar);
             }
-            InvalidateRect(pnode->presult->hwnd_sc, &pnode->rect_result, 1);
-            UpdateWindow(pnode->presult->hwnd_sc);
         }
         PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
         on_statusbar_update();
@@ -513,10 +510,6 @@ eu_before_proc(MSG *p_msg)
                 on_sci_insert_egg(pnode);
                 return 1;
             }
-        }
-        else if (RESULT_SHOW(pnode) && p_msg->hwnd == pnode->presult->hwnd_sc && p_msg->wParam == 0x43 && KEY_DOWN(VK_CONTROL))
-        {   // 响应搜索结果窗口的复制快捷键
-            eu_sci_call(pnode->presult, SCI_COPY, 0, 0);
         }
     }
     return 0;

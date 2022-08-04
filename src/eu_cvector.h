@@ -131,7 +131,7 @@
  */
 #define cvector_freep(pvec)                                 \
     do {                                                    \
-        if ((pvec)) {                                       \
+        if ((pvec && *pvec)) {                              \
             void *val__;                                    \
             memcpy(&val__, (pvec), sizeof(val__));          \
             memcpy((pvec), &(void *){NULL}, sizeof(val__)); \

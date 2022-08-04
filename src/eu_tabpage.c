@@ -715,7 +715,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             pnode->rect_map.bottom = pnode->rect_sc.bottom;
         }
     }
-    if (RESULT_SHOW(pnode) && hwnd_rst)
+    if (RESULT_SHOW(pnode))
     {
         int rect_bottom = pnode->rect_sc.bottom;
         pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + eu_get_config()->result_list_height;
@@ -996,7 +996,7 @@ on_tabpage_theme_changed(eu_tabpage *p)
     {
         if (p->presult && p->presult->hwnd_sc)
         {
-            SendMessage(p->presult->hwnd_sc, WM_THEMECHANGED, 0, 0);
+            SendMessage(p->presult->hwnd_sc, WM_THEMECHANGED, 0, (sptr_t)p);
         }
         if (p->hwnd_qrtable)
         {

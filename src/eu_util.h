@@ -103,6 +103,7 @@ HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 TCHAR* util_unix2path(TCHAR *path);
 TCHAR* util_path2unix(TCHAR *path);
 TCHAR* util_add_double_quotes(const TCHAR *path);
+TCHAR* util_strip_quotes(const TCHAR *path);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);

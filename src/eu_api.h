@@ -443,6 +443,7 @@ EU_EXT_CLASS void eu_get_replace_history(sql3_callback pfunc);
 EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);
 
 // eu_api.c
+EU_EXT_CLASS bool __stdcall eu_touch(LPCTSTR path);
 EU_EXT_CLASS bool __stdcall eu_exist_path(const char *path);
 EU_EXT_CLASS bool __stdcall eu_mk_dir(LPCTSTR dir);
 EU_EXT_CLASS bool __stdcall eu_try_path(LPCTSTR dir);
@@ -577,6 +578,9 @@ EU_EXT_CLASS HANDLE __stdcall share_envent_open_file_sem(void);
 
 // for eu_search.c
 EU_EXT_CLASS HWND eu_get_search_hwnd(void);
+
+// for eu_resultctl.c
+EU_EXT_CLASS HWND eu_result_hwnd(void);
 
 // for eu_config.c
 EU_EXT_CLASS bool __stdcall eu_load_main_config(void);

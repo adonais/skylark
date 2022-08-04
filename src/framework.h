@@ -159,5 +159,6 @@
 #include "eu_document_map.h"
 #include "eu_updatechecker.h"
 #include "eu_snippet.h"
+#include "eu_snparser.h"
 
 #endif  // _EU_FRAMEWORK_H_

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
  * This file is part of Skylark project
  * Copyright ©2022 Hua andy <hua.andy@gmail.com>
 
@@ -16,23 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _EU_RESULT_EDIT_H_
-#define _EU_RESULT_EDIT_H_
-
-#define SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN 40
+#ifndef _EU_SNIPPET_PARSER_H_
+#define _EU_SNIPPET_PARSER_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int on_result_append_text(wchar_t*format , ...);
-int on_result_append_text_utf8(char *format , ...);
-bool on_result_launch(eu_tabpage *pnode);
-void on_result_reload(eu_tabpage *p);
-void on_result_move_sci(eu_tabpage *p, int width, int height);
+#ifdef _MSC_VER
+#define ftruncate(a, b) _chsize(a, b)
+#endif
+
+typedef struct _snippet_t
+{
+    intptr_t start;
+    intptr_t end;
+    char name[ACNAME_LEN];
+    char comment[ACNAME_LEN];
+    char parameter[2];
+    char body[LARGER_LEN];
+} snippet_t;
+
+bool __stdcall on_parser_vector_modify(const TCHAR *path, snippet_t **ptr_vec, int dimension);
+bool __stdcall on_parser_vector_erase(const TCHAR *path, snippet_t **ptr_vec, int dimension);
+bool __stdcall on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // _EU_RESULT_EDIT_H_
+#endif  // _EU_SNIPPET_PARSER_H_
