@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 void __stdcall on_snippet_create_dlg(HWND hwnd);
+void __stdcall on_snippet_destory(void);
 
 #ifdef __cplusplus
 }

@@ -968,13 +968,15 @@
 #define IDC_SNIPPET_CBO1                    44004
 #define IDC_SNIPPET_STC1                    44005
 #define IDC_SNIPPET_STC2                    44006
-#define IDC_SNIPPET_BTN1                    44007
-#define IDC_SNIPPET_BTN3                    44008
-#define IDC_SNIPPET_BTN2                    44009
-#define IDS_SNIPPET_EDT_DEFAULT             44010
-#define IDS_SNIPPET_EXAMPLE_DEC             44011
-#define IDS_SNIPPET_COMBO_DEC               44012
-#define IDM_SOURCE_SNIPPET_ENABLE           44013
+#define IDC_SNIPPET_DELETE                  44007
+#define IDC_SNIPPET_NEW                     44008
+#define IDC_SNIPPET_BTN_CLOSE               44009
+#define IDC_SNIPPET_BTN_APPLY               44010
+#define IDS_SNIPPET_EDT_DEFAULT             44011
+#define IDS_SNIPPET_EXAMPLE_DEC             44012
+#define IDS_SNIPPET_COMBO_DEC               44013
+#define IDM_SOURCE_SNIPPET_ENABLE           44014
+
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

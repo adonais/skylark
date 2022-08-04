@@ -1,0 +1,97 @@
+snippet class "class ..."
+class ($1:my_class) {
+public: 
+    $1($2){$3};
+    ~$1($4){$5};
+protected:
+    $6
+private:
+    $0
+};
+endsnippet
+
+snippet def "#define ..."
+#define $1
+endsnippet
+
+snippet #ifndef "#ifndef ... #define ... #endif"
+#ifndef ${1:SYMBOL}
+#define ${1:SYMBOL} ${2:value}
+#endif /* ifndef $1 */
+endsnippet
+
+snippet #if "#if #endif" b
+#if ${1:0}
+$0
+#endif
+endsnippet
+
+snippet enum "enum ..."
+enum $(1:enum_var) {
+    $0,
+};
+endsnippet
+
+snippet mark "#pragma mark (mark)"
+#if 0
+${1:#pragma mark -
+}#pragma mark $2
+#endif
+
+$0
+endsnippet
+
+snippet main "main() (main)"
+int main(int argc, char *argv[])
+{
+	$0
+	return 0;
+}
+endsnippet
+
+snippet for "for loop (for)"
+for (${2:i} = 0; $2 < ${1:count}; ${3:++$2}) {
+	$0
+}
+endsnippet
+
+snippet fori "for int loop (fori)"
+for (${4:int} ${2:i} = 0; $2 < ${1:count}; ${3:++$2}) {
+	$0
+}
+endsnippet
+
+snippet fun "function" b
+${1:void} ${2:function_name}($3)
+{
+	$0
+}
+endsnippet
+
+snippet fund "function declaration" b
+${1:void} ${2:function_name}($3);
+endsnippet
+
+snippet switch "switch ..."
+switch ($1:switch_on) {
+    $0
+    default:
+        break;
+}
+endsnippet
+
+snippet try "try ..."
+try {
+    $1
+}
+catch (const std::exception&)
+{
+    $0
+}
+endsnippet
+
+snippet while "while ..."
+while ($1:true) {
+    $0;
+}
+endsnippet

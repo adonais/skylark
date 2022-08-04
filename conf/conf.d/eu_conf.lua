@@ -86,7 +86,7 @@ function eu_conf.loadconf()
         "}\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
         "cache_limit_size = 200\n" ..
-        "snippet_enable = 44013\n" ..
+        "snippet_enable = 44014\n" ..
         "app_build_id = 0\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..

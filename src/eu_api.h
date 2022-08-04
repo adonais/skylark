@@ -582,6 +582,9 @@ EU_EXT_CLASS HWND eu_get_search_hwnd(void);
 // for eu_resultctl.c
 EU_EXT_CLASS HWND eu_result_hwnd(void);
 
+// for eu_snippet.c
+EU_EXT_CLASS HWND __stdcall eu_snippet_hwnd(void);
+
 // for eu_config.c
 EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
 EU_EXT_CLASS bool __stdcall eu_load_config(HMODULE *pmod);

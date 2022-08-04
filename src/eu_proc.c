@@ -655,6 +655,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_THEMECHANGED:
+            on_snippet_destory();
             if (on_dark_supports())
             {
                 on_dark_allow_window(hwnd, true);

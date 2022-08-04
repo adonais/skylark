@@ -37,6 +37,7 @@ typedef struct _snippet_t
     char body[LARGER_LEN];
 } snippet_t;
 
+bool __stdcall on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int eol);
 bool __stdcall on_parser_vector_modify(const TCHAR *path, snippet_t **ptr_vec, int dimension);
 bool __stdcall on_parser_vector_erase(const TCHAR *path, snippet_t **ptr_vec, int dimension);
 bool __stdcall on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol);

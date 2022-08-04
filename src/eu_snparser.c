@@ -223,36 +223,44 @@ on_parser_init_statemachine(const char *pstr, match_status *pstatus, snippet_t *
 }
 
 static int
-on_parser_open_file(const TCHAR *filename, const TCHAR *mode, uint8_t **pbuf, FILE **ppf)
+on_parser_open_file(const TCHAR *filename, const TCHAR *mode, uint8_t **pbuf, FILE **ptr_file)
 {
-    int size = 0;
-    do
+    int size = -1;
+    while (filename && mode && pbuf && ptr_file)
     {
-        if (!(*ppf = _tfopen(filename, mode)))
+        if (!(*ptr_file = _tfopen(filename, mode)))
         {
             break;
         }
-        if (fseek(*ppf, 0, SEEK_END) == -1)
+        if (fseek(*ptr_file, 0, SEEK_END) == -1)
         {
             break;
         }
-        size = (int)ftell(*ppf);
+        size = (int)ftell(*ptr_file);
         if (size == -1)
         {
             break;
         }
-        rewind(*ppf);
-        if ((*pbuf = (uint8_t *)calloc(1, size)) == NULL)
+        if (fseek(*ptr_file, 0, SEEK_SET) == -1)
         {
-            printf("malloc failed\n");
-            size = 0;
+            printf("%s, fseek failed\n", __FUNCTION__);
             break;
         }
-    } while(0);
-    if (size <= 0 && *ppf != NULL)
+        if (*pbuf || (*pbuf = (uint8_t *)calloc(1, size)) == NULL)
+        {
+            printf("malloc failed\n");
+            size = -1;
+            break;
+        }
+        break;
+    }
+    if (size < 0)
     {
-        fclose(*ppf);
-        *ppf = NULL;
+        if (ptr_file && *ptr_file)
+        {
+            fclose(*ptr_file);
+            *ptr_file = NULL;
+        }
     }
     return size;
 }
@@ -279,7 +287,7 @@ on_parser_filter_text(const TCHAR *filename, char **pbuf, intptr_t start, intptr
                 *buf++ = getc(fp);
             }
         }
-        if (size > 0 && strlen(*pbuf) > 0)
+        if (size > 0 && strlen(*pbuf) >= 0)
         {
             int result = ftruncate(_fileno(fp), 0);
             if (result != 0)
@@ -287,7 +295,14 @@ on_parser_filter_text(const TCHAR *filename, char **pbuf, intptr_t start, intptr
                 printf( "problem in changing the size\n" );
             }
             rewind(fp);
-            size = eu_int_cast(fwrite(*pbuf, 1, strlen(*pbuf), fp));
+            if (strlen(*pbuf) > 0)
+            {
+                size = eu_int_cast(fwrite(*pbuf, 1, strlen(*pbuf), fp));
+            }
+            else
+            {
+                size = 0;
+            }
         }        
     }
     if (fp)
@@ -343,7 +358,7 @@ on_parser_update_line(const char *pbuf, int size, snippet_t **ptr_vec)
 }
 
 static int
-on_parser_modify_text(FILE *fp, char **pbuf, char *txt, intptr_t start, intptr_t end)
+on_parser_modify_text(FILE *fp, char **pbuf, const char *txt, intptr_t start, intptr_t end)
 {
     int size = 0;
     char *header = NULL;
@@ -394,6 +409,126 @@ on_parser_modify_text(FILE *fp, char **pbuf, char *txt, intptr_t start, intptr_t
     return size;
 }
 
+static int
+on_parser_frequency(const char *str, const char *substr)
+{
+    int n = 0, s1 = 0, s2 = 0;
+    char *p = (char *)str;
+    s1 = eu_int_cast(strlen(str));
+    s2 = eu_int_cast(strlen(substr));
+    while (s1 >= s2)
+    {   //长串如果比子串短，不用再找了
+        str = strstr(str, substr);
+        if (str != 0)
+        {   // 找到了, 后移一个子串的长度
+            n++;
+            str += s2;
+        }
+        else
+        {
+            break;
+        }
+        s1 = eu_int_cast(strlen(str));
+    }
+    return n;
+}
+
+#if defined(_DEBUG)
+static void
+on_parser_vec_printer(snippet_t *pv)
+{
+    if (pv) {
+        snippet_t *it;
+        int i = 0;
+        for (it = cvector_begin(pv); it != cvector_end(pv); ++it, ++i) 
+        {
+            printf("pv[%d] = %I64d, %I64d, %s, %s, %s, %s\n", i, it->start, it->end, it->name, it->comment, it->parameter, it->body);
+        }
+    }
+}
+#endif
+
+bool WINAPI
+on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int eol)
+{
+    bool ret = false;
+    char *buf = NULL;
+    char *txt = NULL;
+    FILE *fp = NULL;
+    int size = on_parser_open_file(path, _T("r+b"), &buf, &fp);
+    size = size > 0 ? (int)fread((char *) buf, 1, size, fp) : 0;
+#if defined(_DEBUG)
+    on_parser_vec_printer(*ptr_vec);
+#endif    
+    while (size >= 0 && buf && fp)
+    {
+        int n = 255;
+        intptr_t start;
+        intptr_t end;
+        const char *peol = NULL;
+        const int txt_len = LARGER_LEN + MAX_PATH;
+        if (!(txt = (char *)calloc(1, txt_len + 1)))
+        {
+            break;
+        }
+        peol = (eol == SC_EOL_LF) ? "\n" : ((eol == SC_EOL_CR) ? "\r" : "\r\n");
+        if (strlen(buf) > 3 * strlen(peol))
+        {
+            n = on_parser_frequency(&buf[strlen(buf) - 1] - 3 * strlen(peol), peol);
+            printf("n = %d\n", n);
+        }
+        if (n == 0 || n == 1)
+        {
+            if (!n)
+            {
+                n = _snprintf(txt, txt_len, "%s%s", peol, peol);
+            }
+            else
+            {
+                n = _snprintf(txt, txt_len, "%s", peol);
+            }
+        }
+        else
+        {
+            n = 0;
+        }
+        _snprintf(txt + strlen(txt), txt_len - strlen(txt), SNIPPET_START" %s", (*ptr_vec)[dimension].name);
+        if ((*ptr_vec)[dimension].comment[0])
+        {
+            strncat(txt, " ", txt_len);
+            strncat(txt, (*ptr_vec)[dimension].comment, txt_len);
+            if ((*ptr_vec)[dimension].parameter[0])
+            {
+                strncat(txt, " ", txt_len);
+                strncat(txt, (*ptr_vec)[dimension].parameter, txt_len);
+            }
+        }
+        strncat(txt, peol, txt_len);
+        strncat(txt, (*ptr_vec)[dimension].body, txt_len);
+        int len = eu_int_cast(strlen((*ptr_vec)[dimension].body));
+        if (!((*ptr_vec)[dimension].body[len - 1] == '\r' || (*ptr_vec)[dimension].body[len - 1] == '\n'))
+        {
+            strncat(txt, peol, txt_len);
+        }
+        strncat(txt, SNIPPET_END, txt_len);
+        strncat(txt, peol, txt_len);
+        ftruncate(_fileno(fp), 0);
+        rewind(fp);
+        start = size > 0 ? size : 0;
+        end = size > 0 ? size + strlen(txt) : 0;
+        size = on_parser_modify_text(fp, &buf, txt, start, end);
+        fclose(fp);
+        if (size > 0)
+        {
+            ret = on_parser_update_line(buf, size, ptr_vec);
+        }
+        break;
+    }
+    eu_safe_free(buf);
+    eu_safe_free(txt);
+    return ret;
+}
+
 bool WINAPI
 on_parser_vector_erase(const TCHAR *path, snippet_t **ptr_vec, int dimension)
 {
@@ -434,7 +569,7 @@ on_parser_vector_modify(const TCHAR *path, snippet_t **ptr_vec, int dimension)
         {
             break;
         }
-        if (!(txt = (char *)malloc(txt_len + 1)))
+        if (!(txt = (char *)calloc(1, txt_len + 1)))
         {
             break;
         }
