@@ -1963,7 +1963,7 @@ util_string_match(const char *str, const char *pattern, bool incase, bool match_
             ++psrc;
         }
         presult = util_search_case(psrc, pattern, incase);
-        slen = presult ? (int)strlen(presult) : 0;        
+        slen = presult ? (int)strlen(presult) : 0;
     }
     return presult;
 }

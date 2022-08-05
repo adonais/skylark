@@ -48,10 +48,10 @@ on_snippet_reload(eu_tabpage *pedit)
     }
 }
 
-static LRESULT CALLBACK 
+static LRESULT CALLBACK
 on_snippet_edt_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
-    switch(msg) 
+    switch(msg)
     {
         case WM_LBUTTONDOWN:
         {
@@ -74,10 +74,10 @@ on_snippet_edt_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, 
     return DefSubclassProc(hwnd, msg, wp, lp);
 }
 
-static LRESULT CALLBACK 
+static LRESULT CALLBACK
 on_snippet_cmb_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
-    switch(msg) 
+    switch(msg)
     {
         case WM_PAINT:
         {
@@ -92,7 +92,7 @@ on_snippet_cmb_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, 
             on_remotefs_draw_combo(hwnd, hdc, rc);
             EndPaint(hwnd, &ps);
             return 0;
-        }        
+        }
         case WM_NCDESTROY:
             RemoveWindowSubclass(hwnd, on_snippet_cmb_proc, sub_id);
             break;
@@ -126,7 +126,7 @@ on_snippet_init_edt(HWND hwnd_edt)
     {
         LOAD_I18N_RESSTR(IDS_SNIPPET_EDT_DEFAULT, edt_str);
         Edit_SetText(hwnd_edt, edt_str);
-    }   
+    }
 }
 
 static void
@@ -261,7 +261,7 @@ on_snippet_do_listbox(const char *txt)
 static void
 on_snippet_write_control(snippet_t *pv)
 {
-    if (pv) 
+    if (pv)
     {
         snippet_t *it;
         on_snippet_do_listbox(NULL);
@@ -353,7 +353,7 @@ on_snippet_lst_click(HWND hwnd_lst, const char *ptxt, int index)
     if ((vec = (snippet_t *)GetWindowLongPtr(hwnd_cbo, GWLP_USERDATA)) != NULL)
     {
         snippet_t *it;
-        for (it = cvector_begin(vec); it != cvector_end(vec); ++it) 
+        for (it = cvector_begin(vec); it != cvector_end(vec); ++it)
         {
             if (!strcmp(it->name, ptxt))
             {
@@ -462,7 +462,7 @@ on_snippet_do_modify(HWND hdlg)
             {
                 printf("node exist\n");
                 break;
-            } 
+            }
             if (add)
             {
                 ListBox_SetCurSel(hwnd_lst, ListBox_AddString(hwnd_lst, name));
@@ -485,7 +485,7 @@ on_snippet_do_modify(HWND hdlg)
             }
             Edit_SetModify(hwnd_edt, FALSE);
             edt_modify = true;
-        }      
+        }
         if (eu_sci_call(pview, SCI_GETMODIFY, 0, 0))
         {
             char *txt = util_strdup_content(pview, NULL);
@@ -532,7 +532,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             if (on_sci_create(pview, hdlg, flags, on_snippet_edit_proc) != SKYLARK_OK)
             {
                 return (INT_PTR)DestroyWindow(hdlg);
-            }  
+            }
             SetWindowLongPtr(hdlg, GWLP_USERDATA, (LONG_PTR)pview);
             HWND hwnd_edt = GetDlgItem(hdlg, IDC_SNIPPET_EDT1);
             HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
@@ -600,7 +600,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                                 cvector_freep(&before_vec);
                             }
                             SetWindowLongPtr(cbo_self, GWLP_USERDATA, (LONG_PTR)vec);
-                            last_index = ComboBox_GetCurSel(cbo_self);            
+                            last_index = ComboBox_GetCurSel(cbo_self);
                         }
                     }
                     break;

@@ -59,10 +59,11 @@ on_view_result_show(eu_tabpage *pnode, int key)
         if (!pnode->result_show)
         {
             pnode->result_show = on_result_launch(pnode);
-            eu_window_resize(NULL);
         }
         if (RESULT_SHOW(pnode))
         {
+            pnode->presult->pwant = on_toolbar_no_highlight;
+            eu_window_resize(NULL);
             pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);
         }
     }

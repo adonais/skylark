@@ -214,7 +214,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_RESULT_CLOSE:
                 {
-                    eu_tabpage *p = (eu_tabpage *)lParam;
+                    eu_tabpage *p = on_tabpage_focus_at();
                     if (p && p->presult && p->presult->hwnd_sc)
                     {
                         SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
@@ -232,7 +232,6 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDM_RESULT_CLOSE, 0), lParam);
             break;
         }
         case WM_DESTROY:
@@ -271,7 +270,7 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 void
 on_result_reload(eu_tabpage *pedit)
 {
-    if (pedit && eu_sci_call(pedit, SCI_GETLEXER, 0, 0) != SCLEX_RESULT)
+    if (pedit)
     {
         on_sci_init_style(pedit);
         // disable margin
@@ -289,6 +288,10 @@ on_result_reload(eu_tabpage *pedit)
         on_doc_default_light(pedit, SCE_RESULT_COMMENT, 0x768465, -1, true);
         on_doc_default_light(pedit, SCE_RESULT_HEADER , eu_get_theme()->item.keywords0.color, -1, true);
         on_doc_default_light(pedit, SCE_RESULT_KEYWORD, eu_get_theme()->item.number.color, -1, true);
+        if (pedit->pwant)
+        {
+            pedit->pwant(pedit);
+        }
     }
 }
 

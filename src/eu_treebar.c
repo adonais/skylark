@@ -1263,7 +1263,7 @@ on_treebar_variable_initialized(HWND *pd)
 static unsigned __stdcall
 on_treebar_wait_thread(void *lp)
 {
-    return on_treebar_variable_initialized(&g_filetree); 
+    return on_treebar_variable_initialized(&g_filetree);
 }
 
 void

@@ -27,7 +27,8 @@ extern "C"
 {
 #endif
 
-typedef int (*tab_ptr)(eu_tabpage *p);
+typedef int  (*tab_ptr)(eu_tabpage *p);
+typedef void (__stdcall *tab_want)(void *p);
 
 struct _tabpage
 {
@@ -70,7 +71,6 @@ struct _tabpage
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
-    volatile long want;         // 标签引用计数器
     size_t bytes_remaining;     // 文件变动后的大小
     size_t bytes_written;       // 文件保存时写入的长度
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
@@ -81,6 +81,8 @@ struct _tabpage
     int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
     result_vec *pvec;           // 临时保存行号
+    tab_want pwant;             // 回调函数, 需要时使用
+    intptr_t reserved0;         // 保留, 暂未使用
 };
 
 extern HWND g_tabpages;

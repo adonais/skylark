@@ -103,7 +103,7 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
     }
     for (; *cp1 && m_sec; --m_sec)
     {
-        int sq = 0, dq = 0;	     /* 单引号,  双引号 */
+        int sq = 0, dq = 0;         /* 单引号,  双引号 */
         memset(buf, 0, ACNAME_LEN);
         cp2 = buf;
         eos = cp2 + ACNAME_LEN - 1;
@@ -112,35 +112,35 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
         {
             switch (*cp1)
             {
-		        case '\'':
-		        	if (dq)
-		        		break;	 /* 遇到双引号, 跳出switch */
-		        	if (sq)
-		        		sq--;	 /* 单引号匹配了, 清除状态 */
-		        	else if (!sq)
-		        		sq++;	 /* 设置进入单引号状态 */
-		        	break;
-		        case '"':
-		        	if (sq)
-		        		break;	 /* 遇到单引号, 跳出switch */
-		        	if (dq)
-		        		dq--;	 /* 双引号匹配了, 清除状态 */
-		        	else if (!dq)
-		        		dq++;	 /* 设置进入双引号状态 */
-		        	break;
-		        default:
-		            break;
+                case '\'':
+                    if (dq)
+                        break;     /* 遇到双引号, 跳出switch */
+                    if (sq)
+                        sq--;     /* 单引号匹配了, 清除状态 */
+                    else if (!sq)
+                        sq++;     /* 设置进入单引号状态 */
+                    break;
+                case '"':
+                    if (sq)
+                        break;     /* 遇到单引号, 跳出switch */
+                    if (dq)
+                        dq--;     /* 双引号匹配了, 清除状态 */
+                    else if (!dq)
+                        dq++;     /* 设置进入双引号状态 */
+                    break;
+                default:
+                    break;
             }  /* 无引号空格: 寻找下一个区段 */
-		    if (isspace((int)*cp1) && !dq && !sq) 
-		    {
-		    	*cp2 = '\0';
-		    	break;
-		    }
-		    else
-		    {
-			    *cp2++ = *cp1;
-		    }
-		    ++cp1;
+            if (isspace((int)*cp1) && !dq && !sq)
+            {
+                *cp2 = '\0';
+                break;
+            }
+            else
+            {
+                *cp2++ = *cp1;
+            }
+            ++cp1;
         }
         if (strlen(buf) > 0)
         {
@@ -205,7 +205,7 @@ on_parser_init_statemachine(const char *pstr, match_status *pstatus, snippet_t *
     {
         return 1;
     }
-    state_machine machines[3] = 
+    state_machine machines[3] =
     {
         {match_header, on_parser_header},
         {match_body, on_parser_body},
@@ -303,7 +303,7 @@ on_parser_filter_text(const TCHAR *filename, char **pbuf, intptr_t start, intptr
             {
                 size = 0;
             }
-        }        
+        }
     }
     if (fp)
     {
@@ -351,7 +351,7 @@ on_parser_update_line(const char *pbuf, int size, snippet_t **ptr_vec)
             status = match_header;
             it[dimension].end = (p - pstream + len + strlen(SNIPPET_END));
             ++dimension;
-        }        
+        }
         p = strtok(NULL, delim);
     }
     return true;
@@ -440,7 +440,7 @@ on_parser_vec_printer(snippet_t *pv)
     if (pv) {
         snippet_t *it;
         int i = 0;
-        for (it = cvector_begin(pv); it != cvector_end(pv); ++it, ++i) 
+        for (it = cvector_begin(pv); it != cvector_end(pv); ++it, ++i)
         {
             printf("pv[%d] = %I64d, %I64d, %s, %s, %s, %s\n", i, it->start, it->end, it->name, it->comment, it->parameter, it->body);
         }
@@ -459,7 +459,7 @@ on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int 
     size = size > 0 ? (int)fread((char *) buf, 1, size, fp) : 0;
 #if defined(_DEBUG)
     on_parser_vec_printer(*ptr_vec);
-#endif    
+#endif
     while (size >= 0 && buf && fp)
     {
         int n = 255;
@@ -661,7 +661,7 @@ on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol)
                     sdata.end = (p - pstream + len + strlen(SNIPPET_END));
                     cvector_push_back(*ptr_vec, sdata);
                     memset(&sdata, 0, sizeof(snippet_t));
-                }                
+                }
             }
             if (SKYLARK_OK != on_parser_init_statemachine(*p ? p : delim, &status, &sdata, delim))
             {

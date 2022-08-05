@@ -1851,7 +1851,7 @@ on_search_report_result(int err, int resid)
                         on_search_push_string_listbox(p->pathfile, key, p->match_count);
                     }
                     match_count += p->match_count;
-                    ++file_count;                    
+                    ++file_count;
                 }
             }
         }
@@ -2361,12 +2361,13 @@ static void
 on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key)
 {
     if (pnode && on_result_launch(pnode) && pnode->presult)
-    {
+    {   // 显示底部窗口
         pnode->result_show = true;
+        // 关键字不高亮的回调函数
+        pnode->presult->pwant = NULL;
         eu_window_resize(NULL);
         eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
         eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-        on_result_reload(pnode->presult);
         eu_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pnode->pvec);
         on_search_push_result(pnode, key, path);
         // 窗口并排可能导致主编辑器之前的光标位置被遮挡

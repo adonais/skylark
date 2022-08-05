@@ -523,6 +523,13 @@ get_output_buffer(char *buffer, int size)
 }
 
 void WINAPI
+on_toolbar_no_highlight(void *lp)
+{
+    result_vec *pvec = NULL;
+    eu_sci_call((eu_tabpage *)lp, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
+}
+
+void WINAPI
 on_toolbar_lua_exec(eu_tabpage *pnode)
 {
     char *buffer = NULL;
@@ -537,6 +544,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
         {
             int read_len = 0;
             char *std_buffer = NULL;
+            pnode->presult->pwant = on_toolbar_no_highlight;
             on_proc_resize(NULL);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {

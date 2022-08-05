@@ -161,11 +161,11 @@ on_remote_save_config(remotefs* pserver, const char *oldname)
                   pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase);
     }
     else
-    {   
+    {
         exec = "update file_remote set szName='%s', szProtocol='%s', szAddress='%s', szPort='%d', szArea='%d', "
                "szUser='%s', szPass='%s', szPrivate='%s', szPassphrase='%s' where szName='%s';";
         _snprintf(sql, MAX_BUFFER-1, exec, pserver->servername, pserver->protocol, pserver->networkaddr,
-                  pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase, oldname);               
+                  pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase, oldname);
     }
     return eu_sqlite3_send(sql, NULL, NULL);
 }
