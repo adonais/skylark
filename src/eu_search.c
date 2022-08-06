@@ -30,14 +30,7 @@ static volatile long search_id = 0;
 static HANDLE search_event_final = NULL;
 static HWND hwnd_regxp_tips = NULL;
 
-#define INCLUDE_FOLDER_SUB     0x00000001
-#define INCLUDE_FOLDER_HIDDEN  0x00000002
-#define INCLUDE_FILE_UTF8      0x00000004
-#define ON_OTHER_PAGE          0x00000001
-#define ON_REPLACE_THIS        0x00000002
-#define ON_REPLACE_ALL         0x00000004
-#define HSCRALL_LEN            768
-
+#define HSCRALL_LEN 768
 #define DLG_BTN_CHECK(h, i)                 \
     (IsDlgButtonChecked(h, i) == BST_CHECKED)
 #define CONTROL_HANDLE(hc, resi, sw)        \
@@ -313,24 +306,42 @@ on_search_tab_ui(int index)
 static void
 on_search_init_option(void)
 {
-    HWND hwnd_loop = GetDlgItem(hwnd_search_dlg, IDC_MATCH_LOOP);
-    HWND hwnd_word = GetDlgItem(hwnd_search_dlg, IDC_MATCH_WORD);
-    HWND hwnd_wdst = GetDlgItem(hwnd_search_dlg, IDC_MATCH_WDSTART);
-    HWND hwnd_case = GetDlgItem(hwnd_search_dlg, IDC_MATCH_CASE);
-    HWND hwnd_file = GetDlgItem(hwnd_search_dlg, IDC_MATCH_ALL_FILE);
-    HWND hwnd_mode = GetDlgItem(hwnd_search_dlg, IDC_MODE_NORMAL);
-    HWND hwnd_rgxp = GetDlgItem(hwnd_search_dlg, IDC_MODE_REGEXP);
-    Button_SetCheck(hwnd_file, BST_UNCHECKED);
-    Button_SetCheck(hwnd_loop, BST_UNCHECKED);
-    Button_SetCheck(hwnd_word, BST_UNCHECKED);
-    Button_SetCheck(hwnd_wdst, BST_UNCHECKED);
-    Button_SetCheck(hwnd_rgxp, BST_UNCHECKED);
-    Button_SetCheck(hwnd_case, BST_CHECKED);
-    Button_SetCheck(hwnd_mode, BST_CHECKED);
-    EnableWindow(hwnd_word, true);
-    EnableWindow(hwnd_wdst, true);
-    WPARAM wParam = MAKELONG(IDC_SEARCH_HEX_STRINGS, 0);
-    PostMessage(hwnd_search_dlg, WM_COMMAND, wParam, 0);
+    const btn_state bs[] =
+    {
+        {IDC_MATCH_ALL_FILE, ON_REPLACE_ALL},
+        {IDC_MATCH_LOOP, ON_LOOP_FLAGS},
+        {IDC_MATCH_WDSTART, SCFIND_WORDSTART},
+        {IDC_MATCH_WORD, SCFIND_WHOLEWORD},
+        {IDC_MATCH_CASE, SCFIND_MATCHCASE},
+        {IDC_SEARCH_CD_CHK, INCLUDE_CURRENT_FOLDER},
+        {IDC_SEARCH_SUB_CHK, INCLUDE_FOLDER_SUB},
+        {IDC_SEARCH_HIDE_CHK, INCLUDE_FOLDER_HIDDEN},
+        {IDC_SEARCH_UTF8_CHK, INCLUDE_FILE_UTF8},
+        {IDC_SEARCH_HEX_STRINGS, ON_HEX_STRINGS},
+        {IDC_MODE_NORMAL, NO_REGXP_FLAGS},
+        {IDC_MODE_REGEXP, SCFIND_REGEXP}
+    };
+    for (int i = 0; i < _countof(bs); ++i)
+    {
+        HWND btn = GetDlgItem(hwnd_search_dlg, bs[i].id);
+        if (eu_get_config()->last_flags & bs[i].mask)
+        {
+            Button_SetCheck(btn, BST_CHECKED);
+        }
+        else
+        {
+            Button_SetCheck(btn, BST_UNCHECKED);
+        }
+    }
+    if (eu_get_config()->last_flags & IDC_MODE_REGEXP)
+    {
+        PostMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_MODE_REGEXP, 0), 0);
+    }
+    else
+    {
+        PostMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_MODE_NORMAL, 0), 0);
+    }
+    PostMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_SEARCH_HEX_STRINGS, 0), 0);
 }
 
 void
@@ -3097,6 +3108,41 @@ on_search_dark_mode_init(HWND hdlg)
     }
 }
 
+static void
+on_search_save_state(HWND hdlg)
+{
+    const btn_state bs[] =
+    {
+        {IDC_MATCH_ALL_FILE, ON_REPLACE_ALL},
+        {IDC_MATCH_LOOP, ON_LOOP_FLAGS},
+        {IDC_MATCH_WDSTART, SCFIND_WORDSTART},
+        {IDC_MATCH_WORD, SCFIND_WHOLEWORD},
+        {IDC_MATCH_CASE, SCFIND_MATCHCASE},
+        {IDC_SEARCH_CD_CHK, INCLUDE_CURRENT_FOLDER},
+        {IDC_SEARCH_SUB_CHK, INCLUDE_FOLDER_SUB},
+        {IDC_SEARCH_HIDE_CHK, INCLUDE_FOLDER_HIDDEN},
+        {IDC_SEARCH_UTF8_CHK, INCLUDE_FILE_UTF8},
+        {IDC_SEARCH_HEX_STRINGS, ON_HEX_STRINGS},
+        {IDC_MODE_NORMAL, NO_REGXP_FLAGS},
+        {IDC_MODE_REGEXP, SCFIND_REGEXP}
+    };
+    if (eu_get_config()->last_flags == (uint32_t)-1)
+    {
+        eu_get_config()->last_flags = 0x44;
+    }
+    for (int i = 0; i < _countof(bs); ++i)
+    {
+        if (DLG_BTN_CHECK(hwnd_search_dlg, bs[i].id))
+        {
+            eu_get_config()->last_flags |= bs[i].mask;
+        }
+        else
+        {
+            eu_get_config()->last_flags &= ~bs[i].mask;
+        }
+    }
+}
+
 static INT_PTR CALLBACK
 on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -3163,6 +3209,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             ShowWindow(hwnd_re_stc, SW_HIDE);
                         }
                         ShowWindow(hdlg, SW_HIDE);
+                        on_search_save_state(hdlg);
                         break;
                     }
                     case IDC_SEARCH_NEXT_BTN:

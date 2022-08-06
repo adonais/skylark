@@ -19,12 +19,25 @@
 #ifndef _H_SKYLARK_SEARCH_
 #define _H_SKYLARK_SEARCH_
 
+#define SELECTION_ZOOM_LEVEEL -11
+
+#define ON_LOOP_FLAGS          0x00000010
+#define ON_HEX_STRINGS         0x00000020
+#define NO_REGXP_FLAGS         0x00000040
+
+#define INCLUDE_FOLDER_SUB     0x00000100
+#define INCLUDE_FOLDER_HIDDEN  0x00000200
+#define INCLUDE_FILE_UTF8      0x00000400
+#define INCLUDE_CURRENT_FOLDER 0x00000800
+
+#define ON_OTHER_PAGE          0x00001000
+#define ON_REPLACE_THIS        0x00002000
+#define ON_REPLACE_ALL         0x00004000
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-#define SELECTION_ZOOM_LEVEEL -11
 
 struct navigate_trace
 {
@@ -33,6 +46,12 @@ struct navigate_trace
     int64_t last_pos;
     struct list_head ng_node;
 };
+
+typedef struct _btn_state
+{
+    int id;
+    uint32_t mask;
+}btn_state;
 
 typedef struct _file_trace
 {

@@ -37,6 +37,7 @@ function eu_conf.loadconf()
         "bookmark_shape = 32\n" ..
         "bookmark_argb = 0x28408040\n" ..
         "matching_brace_color = 0x0000FF\n" ..
+        "last_search_flags = 0x000044\n" ..
         "white_space_visiable = false\n" ..
         "white_space_size = 3\n" ..
         "newline_visiable = false\n" ..
@@ -121,6 +122,7 @@ function eu_conf.loadconf()
         bookmark_shape,
         bookmark_argb,
         matching_brace_color,
+        last_search_flags,
         white_space_visiable,
         white_space_size,
         newline_visiable,

@@ -1602,6 +1602,7 @@ eu_save_config(void)
         "bookmark_shape = %d\n"
         "bookmark_argb = 0x%08X\n"
         "matching_brace_color = 0x%08X\n"
+        "last_search_flags = 0x%08X\n"
         "white_space_visiable = %s\n"
         "white_space_size = %d\n"
         "newline_visiable = %s\n"
@@ -1690,6 +1691,7 @@ eu_save_config(void)
               g_config->bookmark_shape,
               g_config->bookmark_argb,
               g_config->brace_rgb,
+              g_config->last_flags,
               g_config->ws_visiable?"true":"false",
               g_config->ws_size,
               g_config->newline_visialbe?"true":"false",
