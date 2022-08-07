@@ -122,7 +122,6 @@ on_result_append_text_utf8(char *format, ...)
     }
     eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
     eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-    eu_sci_call(pnode->presult, SCI_SETKEYWORDS, 0, (sptr_t)"=");
     eu_sci_call(pnode->presult, SCI_ADDTEXT, strlen(buf), (LPARAM)buf);
     eu_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
     eu_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);

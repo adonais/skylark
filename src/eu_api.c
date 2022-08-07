@@ -178,45 +178,49 @@ eu_rand_str(TCHAR *str, const int len)
 
 /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * c风格的字符串替换函数
- */
+ * 直接在输入的字符串内做替换, 所以务必保证in_size有足够的空间
+ * 在这里, in_size最大值为1024, 超出这个值将导致字符串被截断
+ ** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 LPTSTR WINAPI
 eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
 {
     TCHAR *in_ptr = in;
-    TCHAR res[MAX_PATH + 1] = { 0 };
-    size_t resoffset = 0;
+    TCHAR res[MAX_BUFFER] = { 0 };
+    size_t offset = 0;
     TCHAR *needle;
-    while ((needle = _tcsstr(in, pattern)) && resoffset < in_size)
+    while ((needle = _tcsstr(in, pattern)) && offset < in_size && offset < MAX_BUFFER)
     {
-        _tcsncpy(res + resoffset, in, needle - in);
-        resoffset += needle - in;
+        _tcsncpy(res + offset, in, needle - in);
+        offset += needle - in;
         in = needle + (int) _tcslen(pattern);
-        _tcsncpy(res + resoffset, by, _tcslen(by));
-        resoffset += (int) wcslen(by);
+        _tcsncpy(res + offset, by, MAX_BUFFER - offset);
+        offset += (int) wcslen(by);
     }
-    _tcscpy(res + resoffset, in);
+    _tcsncpy(res + offset, in, MAX_BUFFER - offset);
     _sntprintf(in_ptr, eu_int_cast(in_size), _T("%s"), res);
-    return in_ptr;
+    in = in_ptr;
+    return in;
 }
 
 char *WINAPI
 eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by)
 {
     char *in_ptr = in;
-    char res[MAX_PATH + 1] = { 0 };
-    size_t resoffset = 0;
+    char res[MAX_BUFFER] = {0};
+    size_t offset = 0;
     char *needle;
-    while ((needle = strstr(in, pattern)) && resoffset < in_size)
+    while ((needle = strstr(in, pattern)) && offset < in_size && offset < MAX_BUFFER)
     {
-        strncpy(res + resoffset, in, needle - in);
-        resoffset += needle - in;
+        strncpy(res + offset, in, needle - in);
+        offset += needle - in;
         in = needle + (int) strlen(pattern);
-        strncpy(res + resoffset, by, strlen(by));
-        resoffset += (int) strlen(by);
+        strncpy(res + offset, by, MAX_BUFFER - offset);
+        offset += (int) strlen(by);
     }
-    strcpy(res + resoffset, in);
+    strncpy(res + offset, in, MAX_BUFFER - offset);
     _snprintf(in_ptr, eu_int_cast(in_size), "%s", res);
-    return in_ptr;
+    in = in_ptr;
+    return in;
 }
 
 TCHAR *WINAPI

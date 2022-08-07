@@ -2344,8 +2344,9 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
         char *pformat = eu_utf16_utf8(line_str, NULL);
         if (pnode->pvec && pformat)
         {   // 按照最大行数右对齐
-            const int k = util_count_number(pnode->pvec[cvector_size(pnode->pvec) - 1].line + 1);
-            for (int i = 0; i < cvector_size(pnode->pvec); ++i)
+            const int max_line = (const int)cvector_size(pnode->pvec);
+            const int k = util_count_number(pnode->pvec[max_line - 1].line + 1);
+            for (int i = 0; i < max_line; ++i)
             {
                 char *buf = util_strdup_line(pnode, pnode->pvec[i].line, NULL);
                 if (buf)
@@ -2372,14 +2373,17 @@ static void
 on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key)
 {
     if (pnode && on_result_launch(pnode) && pnode->presult)
-    {   // 显示底部窗口
+    {   
+        char ptr_style[16 + 1];
+        // 显示底部窗口
         pnode->result_show = true;
         // 关键字不高亮的回调函数
         pnode->presult->pwant = NULL;
         eu_window_resize(NULL);
         eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
         eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-        eu_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pnode->pvec);
+        sprintf(ptr_style, "%p", &pnode->pvec);
+        eu_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)ptr_style);
         on_search_push_result(pnode, key, path);
         // 窗口并排可能导致主编辑器之前的光标位置被遮挡
         // 滚动视图以使光标可见

@@ -80,7 +80,7 @@ struct _tabpage
     bool last_focus;            // 保存前台焦点
     int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
-    result_vec *pvec;           // 临时保存行号
+    result_vec *pvec;           // 搜索结果标记
     tab_want pwant;             // 回调函数, 需要时使用
     intptr_t reserved0;         // 保留, 暂未使用
 };

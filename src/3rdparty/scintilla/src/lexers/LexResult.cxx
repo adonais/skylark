@@ -66,10 +66,11 @@ ColouriseResultDoc(Sci_PositionU startPos, Sci_Position length, int initStyle, W
     styler.StartSegment(startPos);
     unsigned int linePos = 0;
     size_t startLine = startPos;
-    result_vec *pmark = *(result_vec **)((sptr_t)(styler.pprops)->Get(result_extra));
-    if (!pmark)
+    result_vec **pmark = NULL;
+    const char *ptr_style = ((styler.pprops)->Get(result_extra));
+    if (ptr_style && ptr_style[0])
     {
-        return;
+        sscanf(ptr_style, "%p", (void***)&pmark);
     }
     for (size_t i = startPos; i < startPos + length; i++)
     {
@@ -77,7 +78,8 @@ ColouriseResultDoc(Sci_PositionU startPos, Sci_Position length, int initStyle, W
         if (at_eol(styler, i) || (linePos >= sizeof(lineBuffer) - 1))
         {
             lineBuffer[linePos] = '\0';
-            handle_word(pmark, lineBuffer, startLine, i, styler, styler.GetLine(startLine));
+            // 为NULL时不返回, 因为我们需要高亮显示第一行文本
+            handle_word(pmark ? *pmark : NULL, lineBuffer, startLine, i, styler, styler.GetLine(startLine));
             linePos = 0;
             startLine = i + 1;
             while (!at_eol(styler, i))
@@ -86,9 +88,9 @@ ColouriseResultDoc(Sci_PositionU startPos, Sci_Position length, int initStyle, W
             }
         }
     }
-    if (linePos > 0) // Last line does not have ending characters
+    if (linePos > 0) // 处理最后一行, 因为它们不存在换行符
     {
-        handle_word(pmark, lineBuffer, startLine, startPos + length - 1, styler, styler.GetLine(startLine));
+        handle_word(pmark ? *pmark : NULL, lineBuffer, startLine, startPos + length - 1, styler, styler.GetLine(startLine));
     }
 }
 
