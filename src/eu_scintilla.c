@@ -25,7 +25,10 @@ static volatile sptr_t ptr_scintilla = 0;
 void
 on_sci_init_style(eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL);
+    if (!pnode || !eu_get_config() || !eu_get_theme())
+    {
+        return;
+    }
     eu_sci_call(pnode, SCI_STYLERESETDEFAULT, 0, 0);
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, (sptr_t)(eu_get_theme()->item.text.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_get_theme()->item.text.fontsize);
@@ -47,6 +50,12 @@ on_sci_init_style(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
     }
+    // 自动补全窗口颜色
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST, eu_get_theme()->item.text.color);
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_BACK, eu_get_theme()->item.text.bgcolor);
+    // 函数原型窗口颜色
+	eu_sci_call(pnode, SCI_CALLTIPSETFORE, eu_get_config()->calltip_rgb != (uint32_t)-1 ? eu_get_config()->calltip_rgb : eu_get_theme()->item.text.color, 0);
+	eu_sci_call(pnode, SCI_CALLTIPSETBACK, eu_get_theme()->item.text.bgcolor, 0);
     // https://www.scintilla.org/ScintillaDoc.html#SCI_STYLESETCHECKMONOSPACED
     eu_sci_call(pnode, SCI_STYLESETCHECKMONOSPACED, STYLE_DEFAULT, true);
     // 书签栏样式

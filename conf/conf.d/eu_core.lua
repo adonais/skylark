@@ -47,6 +47,7 @@ struct eu_config
     int  bookmark_shape;
     uint32_t bookmark_argb;
     uint32_t brace_rgb;
+    uint32_t calltip_rgb;
     uint32_t last_flags;
     bool ws_visiable;
     int ws_size;

@@ -240,16 +240,19 @@ on_dark_get_sys_colour(HWND hwnd, int colid)
 void
 on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
 {
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-    SetWindowThemePtr fnSetWindowTheme = uxtheme ? (SetWindowThemePtr)GetProcAddress(uxtheme, "SetWindowTheme") : NULL;
-    if (fnSetWindowTheme)
+    if (hwnd)
     {
-        if (fnSetWindowTheme(hwnd, psz_name, psz_list) != S_OK)
+        HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        SetWindowThemePtr fnSetWindowTheme = uxtheme ? (SetWindowThemePtr)GetProcAddress(uxtheme, "SetWindowTheme") : NULL;
+        if (fnSetWindowTheme)
         {
-            printf("fnSetWindowTheme failed\n");
+            if (fnSetWindowTheme(hwnd, psz_name, psz_list) != S_OK)
+            {
+                printf("fnSetWindowTheme failed\n");
+            }
         }
+        safe_close_dll(uxtheme);
     }
-    safe_close_dll(uxtheme);
 }
 
 void

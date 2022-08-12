@@ -309,8 +309,47 @@
 #define cvector_for_each(vec, func)                          \
     do {                                                     \
         if ((vec) && (func) != NULL) {                       \
-            for (size_t i = 0; i < cvector_size(vec); i++) { \
+            for (size_t i = 0; i < cvector_size(vec); ++i) { \
                 func((vec)[i]);                              \
+            }                                                \
+        }                                                    \
+    } while (0)
+    
+/**
+ * @brief cvector_for_each - call function with param on each element of the vector
+ * @param vec - the vector
+ * @param func - function to be called on each element that takes each element as argument
+ * @return void
+ */
+#define cvector_for_each_and_do(vec, func, param)            \
+    do {                                                     \
+        if ((vec) && (func) != NULL) {                       \
+            for (size_t i = 0; i < cvector_size(vec); ++i) { \
+                func(&(vec)[i], (param));                    \
+            }                                                \
+        }                                                    \
+    } while (0)    
+
+/**
+ * @brief cvector_for_each_and_cmp - call function func on each element of the vector
+ * @param vec - the vector
+ * @param func - function to be called on each element that takes each element as argument
+ * @param param - function param
+ * @param it_ - the vector pointer
+ * @return void
+ */    
+#define cvector_for_each_and_cmp(vec, func, param, it_)      \
+    do {                                                     \
+        if ((vec) && (func) && (it_)) {                      \
+            size_t i_ = 0;                                   \
+            size_t len_ = cvector_size(vec);                 \
+            for (; i_ < len_; ++i_) {                        \
+                if (!func(&(vec)[i_], param)) {              \
+                    break;                                   \
+                }                                            \
+            }                                                \
+            if (i_ >= 0 && i_ < len_) {                      \
+                *it_ = &(vec)[i_];                           \
             }                                                \
         }                                                    \
     } while (0)

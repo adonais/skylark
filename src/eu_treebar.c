@@ -1542,11 +1542,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                     }
-                    HGDIOBJ hfont = SelectObject(hdc, old_font);
-                    if (hfont)
-                    {
-                        DeleteObject(hfont);
-                    }
+                    SelectObject(hdc, old_font);
                 }
                 EndPaint(hwnd, &ps);
             }
@@ -1613,7 +1609,6 @@ on_treebar_create_box(HWND hwnd)
         return EUE_POINT_NULL;
     }
     SendMessage(g_treebar, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), 0);
-    SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
     return SKYLARK_OK;
 }
 
