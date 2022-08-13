@@ -108,11 +108,11 @@ on_complete_muti_autoc(eu_tabpage *pnode)
 {
     if (pnode->ac_mode == AUTO_NONE)
     {
-        eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_EACH, 0);
+        eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_ONCE, 0);
     }
     else
     {
-        eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_ONCE, 0);
+        eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_EACH, 0);
     }
 }
 
