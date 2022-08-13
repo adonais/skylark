@@ -185,6 +185,16 @@ typedef struct _doc_comments
     bool initialized;
 } doc_comments;
 
+typedef struct _snippet_t
+{
+    intptr_t start;
+    intptr_t end;
+    char name[64];
+    char comment[64];
+    char parameter[8];
+    char body[2048];
+} snippet_t;
+
 typedef struct _doc_data
 {
     int doc_type;                             // 文档类型编号,自行添加请从末尾数字开始递增
@@ -204,6 +214,7 @@ typedef struct _doc_data
     click_list_ptr fn_click_symlist;          // 回调函数, 右侧边栏list控件被点击
     reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件初始化
     click_tree_ptr fn_click_symtree;          // 回调函数, 右侧边栏tree控件被点击
+    snippet_t *ptrv;                          // 解析后的代码片段关键字
     const char *keywords0;                    // 需要高亮的关键字, 分6类高亮着色
     const char *keywords1;
     const char *keywords2;

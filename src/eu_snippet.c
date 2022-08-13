@@ -272,7 +272,7 @@ on_snippet_write_control(snippet_t *pv)
     }
 }
 
-static void
+static bool
 on_snippet_init_parser(const TCHAR *path, snippet_t **ptr_vec)
 {
     int eol = 0;
@@ -286,13 +286,20 @@ on_snippet_init_parser(const TCHAR *path, snippet_t **ptr_vec)
         }
         on_snippet_write_control(vec);
         *ptr_vec = vec;
+        return true;
     }
+    return false;
 }
 
-static bool
-on_snippet_get_file(HWND hwnd_cmb, TCHAR *path, int len)
+/**************************************************************************************
+ * 返回ComboBox控件的vec指针
+ * hwnd_cmb, ComboBox控件句柄
+ * pdoc, 接受当前ComboBox句柄所在的doc指针
+ * 成功, 返回vec指针. 失败, 返回NULL指针
+ **************************************************************************************/
+static snippet_t *
+on_snippet_get_vec(HWND hwnd_cmb, doctype_t **pdoc)
 {
-    bool ret = false;
     char *pname = NULL;
     doctype_t *doc_ptr = NULL;
     TCHAR name[ACNAME_LEN] = {0};
@@ -303,40 +310,118 @@ on_snippet_get_file(HWND hwnd_cmb, TCHAR *path, int len)
         {
             if (doc_ptr->filedesc && doc_ptr->snippet && !strcmp(pname, doc_ptr->filedesc))
             {
-                TCHAR fname[MAX_PATH] = {0};
-                _sntprintf(path, len - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(doc_ptr->snippet, fname, MAX_PATH-1));
-                ret = true;
-                break;
+                eu_safe_free(pname);
+                if (pdoc)
+                {
+                    *pdoc = doc_ptr;
+                }
+                return doc_ptr->ptrv;
             }
         }
-        free(pname);
+        eu_safe_free(pname);
     }
-    return ret;
+    return NULL;
+}
+
+/**************************************************************************************
+ * 重置doc_ptr所指结构体的vec指针, 因为vec可能会随配置文件改变而改变
+ * index, doc_ptr所指结构体的序号
+ * vec, 新的vec指针
+ **************************************************************************************/
+static void
+on_snippet_set_data(int index, snippet_t *vec)
+{
+    doctype_t *doc_ptr = eu_doc_get_ptr();
+    if (doc_ptr)
+    {
+        if (index < 0)
+        {
+            doctype_t *doc = NULL;
+            if (on_snippet_get_vec(GetDlgItem(hwnd_snippet, IDC_SNIPPET_CBO1), &doc));
+            {
+                doc_ptr = doc;
+            }
+        }
+        else if (index >= 0)
+        {
+            doc_ptr = &doc_ptr[index];
+        }
+        if (doc_ptr && doc_ptr->ptrv != vec)
+        {
+            doc_ptr->ptrv = vec;
+        }
+    }
+}
+
+/**************************************************************************************
+ * 获取代码片段的文件名以及格式化后的vec数组
+ * path, 接受代码片段的文件名
+ * len, path数组的长度
+ * pvec, 接受vec数组
+ * 函数成功, 返回doc_ptr所指结构体以0开始的序号,失败返回-1
+ **************************************************************************************/
+static int
+on_snippet_get_file(HWND hwnd_cmb, TCHAR *path, int len, snippet_t **pvec)
+{
+    char *pname = NULL;
+    doctype_t *doc_ptr = NULL;
+    TCHAR name[ACNAME_LEN] = {0};
+    ComboBox_GetText(hwnd_cmb, name, ACNAME_LEN - 1);
+    if (_tcslen(name) > 0 && (pname = eu_utf16_utf8(name, NULL)) != NULL)
+    {
+        int i = 0;
+        for (doc_ptr = eu_doc_get_ptr(); doc_ptr&&doc_ptr->doc_type; ++doc_ptr, ++i)
+        {
+            if (doc_ptr->filedesc && doc_ptr->snippet && !strcmp(pname, doc_ptr->filedesc))
+            {
+                TCHAR fname[MAX_PATH] = {0};
+                int n = _sntprintf(path, len - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(doc_ptr->snippet, fname, MAX_PATH-1));
+                if (doc_ptr->ptrv && pvec)
+                {
+                    *pvec = doc_ptr->ptrv;
+                }
+                if (n > 0 && n < len);
+                {
+                    eu_safe_free(pname);
+                    return i;
+                }
+            }
+        }
+        eu_safe_free(pname);
+    }
+    return -1;
 }
 
 static void
 on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
 {
+    int index = -1;
+    snippet_t *vec = NULL;
     TCHAR snippet_file[MAX_PATH] = {0};
     TCHAR first[ACNAME_LEN] = {0};
     TCHAR str[ACNAME_LEN] = {0};
     ComboBox_GetText(hself, str, ACNAME_LEN - 1);
     ComboBox_GetLBText(hself, 0, first);
+    *ptr_vec = NULL;
     if (!_tcscmp(str, first))
     {
         on_snippet_do_edt("");
         on_snippet_do_sci("", false);
         on_snippet_do_listbox(NULL);
     }
-    else if (on_snippet_get_file(hself, snippet_file, MAX_PATH))
+    else if ((index = on_snippet_get_file(hself, snippet_file, MAX_PATH, &vec)) >= 0)
     {
-        cvector_vector_type(snippet_t) vec = NULL;
-        if (eu_exist_file(snippet_file))
+        if (vec)
         {
-            on_snippet_init_parser(snippet_file, &vec);
+            on_snippet_write_control(vec);
+            *ptr_vec = vec;
+        }        
+        else if (eu_exist_file(snippet_file) && on_snippet_init_parser(snippet_file, &vec))
+        {
+            on_snippet_set_data(index, vec);
             *ptr_vec = vec;
         }
-        if (!vec)
+        else if (!vec)
         {
             on_snippet_do_listbox(NULL);
         }
@@ -350,7 +435,7 @@ on_snippet_lst_click(HWND hwnd_lst, const char *ptxt, int index)
 {
     snippet_t *vec = NULL;
     HWND hwnd_cbo = GetDlgItem(hwnd_snippet, IDC_SNIPPET_CBO1);
-    if ((vec = (snippet_t *)GetWindowLongPtr(hwnd_cbo, GWLP_USERDATA)) != NULL)
+    if ((vec = on_snippet_get_vec(hwnd_cbo, NULL)) != NULL)
     {
         snippet_t *it;
         for (it = cvector_begin(vec); it != cvector_end(vec); ++it)
@@ -360,11 +445,11 @@ on_snippet_lst_click(HWND hwnd_lst, const char *ptxt, int index)
                 char edt_str[MAX_PATH] = {0};
                 if (it->parameter[0])
                 {
-                    _snprintf(edt_str, MAX_PATH - 1, "%s/%s/%s", it->name, it->comment, it->parameter);
+                    _snprintf(edt_str, MAX_PATH - 1, "%s,%s,%s", it->name, it->comment, it->parameter);
                 }
                 else if (it->comment[0])
                 {
-                    _snprintf(edt_str, MAX_PATH - 1, "%s/%s", it->name, it->comment);
+                    _snprintf(edt_str, MAX_PATH - 1, "%s,%s", it->name, it->comment);
                 }
                 else
                 {
@@ -385,11 +470,11 @@ on_snippet_do_modify(HWND hdlg)
         int index = -1;
         bool add = false;
         bool edt_modify = false;
+        snippet_t *vec = NULL;
         TCHAR snippet_file[MAX_PATH] = {0};
         HWND hwnd_edt = GetDlgItem(hdlg, IDC_SNIPPET_EDT1);
         HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
         HWND hwnd_lst = GetDlgItem(hdlg, IDC_SNIPPET_LST);
-        snippet_t *vec = (snippet_t *)GetWindowLongPtr(hwnd_cmb, GWLP_USERDATA);
         eu_tabpage *pview = (eu_tabpage *)GetWindowLongPtr(hdlg, GWLP_USERDATA);
         if (!(hwnd_edt && hwnd_cmb && hwnd_lst && pview))
         {
@@ -407,9 +492,11 @@ on_snippet_do_modify(HWND hdlg)
         if (add)
         {
             SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_NEW, 0), 0);
-            vec = (snippet_t *)GetWindowLongPtr(hwnd_cmb, GWLP_USERDATA);
-            printf("listbox_count = %d, vec = %p, vec_size = %zu\n", index, (void *)vec, cvector_size(vec));
         }
+        vec = on_snippet_get_vec(hwnd_cmb, NULL);
+    #ifdef _DEBUG    
+        printf("listbox_count = %d, vec = %p, vec_size = %zu\n", index, (void *)vec, cvector_size(vec));
+    #endif    
         if (!vec || cvector_size(vec) < index)
         {
             break;
@@ -421,7 +508,7 @@ on_snippet_do_modify(HWND hdlg)
             TCHAR str[MAX_PATH] = {0};
             TCHAR name[ACNAME_LEN] = {0};
             Edit_GetText(hwnd_edt, str, MAX_PATH);
-            p = _tcstok(str, _T("/"));
+            p = _tcstok(str, _T(","));
             while (p && _tcslen(p) < ACNAME_LEN)
             {
                 switch (c)
@@ -441,14 +528,14 @@ on_snippet_do_modify(HWND hdlg)
                     }
                     case 2:
                     {
-                        memset(&vec[index].parameter, 0, 2);
-                        util_make_u8(p, vec[index].parameter, 2);
+                        memset(&vec[index].parameter, 0, PARAM_LEN);
+                        util_make_u8(p, vec[index].parameter, PARAM_LEN);
                         break;
                     }
                     default:
                         break;
                 }
-                if ((p = _tcstok(NULL, _T("/"))))
+                if ((p = _tcstok(NULL, _T(","))))
                 {
                     ++c;
                 }
@@ -497,7 +584,7 @@ on_snippet_do_modify(HWND hdlg)
                 free(txt);
             }
         }
-        if (edt_modify && index >= 0 && on_snippet_get_file(hwnd_cmb, snippet_file, MAX_PATH))
+        if (edt_modify && index >= 0 && on_snippet_get_file(hwnd_cmb, snippet_file, MAX_PATH, NULL) >= 0)
         {
             if (add)
             {
@@ -591,15 +678,8 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                         int focus = ComboBox_GetCurSel(cbo_self);
                         if (focus != last_index)
                         {
-                            snippet_t *before_vec = (snippet_t *)GetWindowLongPtr(cbo_self, GWLP_USERDATA);
                             cvector_vector_type(snippet_t) vec = NULL;
                             on_snippet_do_combo(cbo_self, &vec);
-                            if (vec && vec != before_vec)
-                            {
-                                printf("IDC_SNIPPET_CBO1, cvector_freep runing\n");
-                                cvector_freep(&before_vec);
-                            }
-                            SetWindowLongPtr(cbo_self, GWLP_USERDATA, (LONG_PTR)vec);
                             last_index = ComboBox_GetCurSel(cbo_self);
                         }
                     }
@@ -648,12 +728,13 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                     {
                         i = index - 1;
                     }
-                    if (on_snippet_get_file(hwnd_cmb, snippet_file, MAX_PATH) && (vec = (snippet_t *)GetWindowLongPtr(hwnd_cmb, GWLP_USERDATA)) != NULL)
+                    if ((on_snippet_get_file(hwnd_cmb, snippet_file, MAX_PATH, &vec)) >= 0 && vec != NULL)
                     {
                         on_parser_vector_erase(snippet_file, &vec, index);
+                        on_snippet_set_data(-1, vec);
+                        ListBox_SetCurSel(hwnd_lst, i);
+                        SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_LST, LBN_SELCHANGE), (LPARAM)hwnd_lst);
                     }
-                    ListBox_SetCurSel(hwnd_lst, i);
-                    SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_LST, LBN_SELCHANGE), (LPARAM)hwnd_lst);
                     break;
                 }
                 case IDC_SNIPPET_NEW:
@@ -675,11 +756,10 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                         on_snippet_do_edt(NULL);
                         on_snippet_do_sci(NULL, false);
                     }
-                    vec = (snippet_t *)GetWindowLongPtr(hwnd_cmb, GWLP_USERDATA);
+                    vec = on_snippet_get_vec(hwnd_cmb, NULL);
                     cvector_push_back(vec, data);
-                    SetWindowLongPtr(hwnd_cmb, GWLP_USERDATA, (LONG_PTR)vec);
+                    on_snippet_set_data(-1, vec);
                     ListBox_SetCurSel(hwnd_lst, -1);
-                    printf("do new ..., vec = %p, size = %zu\n", (void *)vec, cvector_size(vec));
                     return (INT_PTR)vec;
                 }
                 case IDC_SNIPPET_BTN_APPLY:
@@ -696,13 +776,6 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
         {
             if (hwnd_snippet)
             {
-                snippet_t *vec = NULL;
-                HWND hwnd_cbo = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
-                if (hwnd_cbo && (vec = (snippet_t *)GetWindowLongPtr(hwnd_cbo, GWLP_USERDATA)) != NULL)
-                {
-                    SetWindowLongPtr(hwnd_cbo, GWLP_USERDATA, 0);
-                    cvector_freep(&vec);
-                }
                 if ((pview = (eu_tabpage *)GetWindowLongPtr(hdlg, GWLP_USERDATA)))
                 {
                     SetWindowLongPtr(hdlg, GWLP_USERDATA, 0);
@@ -716,7 +789,9 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                 last_index = 0;
                 _InterlockedExchange(&snippet_new, 0);
                 hwnd_snippet = NULL;
+            #ifdef _DEBUG    
                 printf("hwnd_snippet WM_DESTROY\n");
+            #endif    
             }
             break;
         }
@@ -735,7 +810,9 @@ on_snippet_create_dlg(HWND parent)
     hwnd_snippet = i18n_create_dialog(parent, IDD_SNIPPET_DLG, on_snippet_proc);
     if (!hwnd_snippet)
     {
+    #ifdef _DEBUG    
         printf("hwnd_snippet is null\n");
+    #endif
     }
 }
 

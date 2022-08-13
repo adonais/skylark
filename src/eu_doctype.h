@@ -28,10 +28,11 @@ extern "C"
 #endif
 
 typedef struct rb_root eutype_t;
+typedef struct _snippet_t *ptr_snippet;
 typedef int (*init_before_ptr)(eu_tabpage *pnode);
 typedef int (*init_after_ptr)(eu_tabpage *pnode);
 typedef int (*parse_header_ptr)(eu_tabpage *pnode);
-typedef int (*add_ptr)(eu_tabpage *pnode, SCNotification *lpnotify);
+typedef int (*add_ptr)(eu_tabpage *pnode, ptr_notify lpnotify);
 typedef int (*key_ptr)(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 typedef int (*reload_list_ptr)(eu_tabpage *pnode);
 typedef int (*click_list_ptr)(eu_tabpage *pnode);
@@ -117,6 +118,7 @@ typedef struct _doc_data
     click_list_ptr fn_click_symlist;          // 回调函数, 右侧边栏list控件被点击
     reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件刷新或重载
     click_tree_ptr fn_click_symtree;          // 回调函数, 右侧边栏tree控件被点击
+    ptr_snippet ptrv;                         // 解析后的代码片段关键字
     const char *keywords0;                    // 需要高亮的关键字, 分6类高亮着色
     const char *keywords1;
     const char *keywords2;

@@ -1,5 +1,5 @@
 snippet class "class ..."
-class ($1:my_class) {
+class ${1:my_class} {
 public: 
     $1($2){$3};
     ~$1($4){$5};
@@ -27,7 +27,7 @@ $0
 endsnippet
 
 snippet enum "enum ..."
-enum $(1:enum_var) {
+enum ${1:enum_var} {
     $0,
 };
 endsnippet
@@ -51,6 +51,7 @@ endsnippet
 
 snippet for "for loop (for)"
 for (${2:i} = 0; $2 < ${1:count}; ${3:++$2}) {
+    ${4:--$3};
 	$0
 }
 endsnippet
@@ -73,7 +74,7 @@ ${1:void} ${2:function_name}($3);
 endsnippet
 
 snippet switch "switch ..."
-switch ($1:switch_on) {
+switch ${1:switch_on} {
     $0
     default:
         break;
@@ -91,7 +92,7 @@ catch (const std::exception&)
 endsnippet
 
 snippet while "while ..."
-while ($1:true) {
+while ${1:true} {
     $0;
 }
 endsnippet

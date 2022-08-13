@@ -880,7 +880,7 @@
 #define IDM_EDIT_DESCENDING_SORT_IGNORECASE 42824
 #define IDM_EDIT_TAB_SPACE                  42825
 #define IDM_EDIT_SPACE_TAB                  42826
-#define IDM_EDIT_PLACEHOLDE21               42827
+#define IDM_EDIT_COMMENT_GROUP              42827
 #define IDM_EDIT_OTHER_EDITOR               42828
 
 #define IDR_HEXVIEW_MENU                    42830

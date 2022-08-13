@@ -1763,9 +1763,9 @@ on_search_node_init(eu_tabpage *pnode)
     {   // 清空计算器
         pnode->match_count = 0;
         // 清空高亮标记数组
-        if (pnode->pvec)
+        if (pnode->ret_vec)
         {
-            cvector_clear(pnode->pvec);
+            cvector_clear(pnode->ret_vec);
         }
     }
 }
@@ -1800,7 +1800,7 @@ on_search_process_count(eu_tabpage *pnode, const char *key)
                 ret.mark._start = pos - eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
                 if (ret.line >= 0)
                 {
-                    cvector_push_back(pnode->pvec, ret);
+                    cvector_push_back(pnode->ret_vec, ret);
                 }
             }
             else
@@ -2342,20 +2342,20 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
             free(path);
         }
         char *pformat = eu_utf16_utf8(line_str, NULL);
-        if (pnode->pvec && pformat)
+        if (pnode->ret_vec && pformat)
         {   // 按照最大行数右对齐
-            const int max_line = (const int)cvector_size(pnode->pvec);
-            const int k = util_count_number(pnode->pvec[max_line - 1].line + 1);
+            const int max_line = (const int)cvector_size(pnode->ret_vec);
+            const int k = util_count_number(pnode->ret_vec[max_line - 1].line + 1);
             for (int i = 0; i < max_line; ++i)
             {
-                char *buf = util_strdup_line(pnode, pnode->pvec[i].line, NULL);
+                char *buf = util_strdup_line(pnode, pnode->ret_vec[i].line, NULL);
                 if (buf)
                 {
                     const size_t m_size = strlen(buf) + 24;
                     if ((ptr_add = (char *)calloc(1, m_size)) != NULL)
                     {
-                        int len = snprintf(ptr_add, m_size - 1, pformat, k, pnode->pvec[i].line + 1, buf);
-                        pnode->pvec[i].mark._no = len - eu_int_cast(strlen(buf)) - 1;
+                        int len = snprintf(ptr_add, m_size - 1, pformat, k, pnode->ret_vec[i].line + 1, buf);
+                        pnode->ret_vec[i].mark._no = len - eu_int_cast(strlen(buf)) - 1;
                         eu_sci_call(presult, SCI_ADDTEXT, len, (LPARAM)ptr_add);
                         free(ptr_add);
                     }
@@ -2382,7 +2382,7 @@ on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key)
         eu_window_resize(NULL);
         eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
         eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-        sprintf(ptr_style, "%p", &pnode->pvec);
+        sprintf(ptr_style, "%p", &pnode->ret_vec);
         eu_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)ptr_style);
         on_search_push_result(pnode, key, path);
         // 窗口并排可能导致主编辑器之前的光标位置被遮挡

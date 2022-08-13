@@ -58,7 +58,7 @@ map_t *map_prev(rb_node_t *node);
 void map_free(map_t *node);
 void map_destory(root_t *root);
 
-char *ac_get(root_t *root, const char *val);
+int ac_get(root_t *root, const char *val, char *buf, int buf_len);
 int ac_put(root_t *root, const char *str);
 acshow_t *ac_first(root_t *tree);
 acshow_t *ac_last(root_t *tree);

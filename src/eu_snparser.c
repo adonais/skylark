@@ -153,7 +153,7 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
                     _snprintf(pdata->comment, ACNAME_LEN - 1, "%s", buf);
                     break;
                 case 1:
-                    _snprintf(pdata->parameter, 1, "%s", buf);
+                    _snprintf(pdata->parameter, PARAM_LEN - 1, "%s", buf);
                     break;
                 default:
                     break;
@@ -437,7 +437,8 @@ on_parser_frequency(const char *str, const char *substr)
 static void
 on_parser_vec_printer(snippet_t *pv)
 {
-    if (pv) {
+    if (pv)
+    {
         snippet_t *it;
         int i = 0;
         for (it = cvector_begin(pv); it != cvector_end(pv); ++it, ++i)

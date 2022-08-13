@@ -474,8 +474,8 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, enable);
                         util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, enable);
                         util_switch_menu_group(menu, TAB_MENU_SNIPPET_SUB, IDM_SOURCE_SNIPPET_ENABLE, IDM_SOURCE_SNIPPET_ENABLE, eu_get_config()->m_snippet_enable);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE21, !pnode->hex_mode && pnode->doc_ptr && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
-                        util_enable_menu_item(menu, IDM_SOURCE_SNIPPET_GROUP, !pnode->hex_mode && pnode->doc_ptr && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_EDIT_COMMENT_GROUP, !pnode->hex_mode && pnode->doc_ptr && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_SOURCE_SNIPPET_GROUP, !pnode->hex_mode && pnode->doc_ptr);
                         break;
                     case IDM_PROGRAM_EXECUTE_ACTION:
                         enable = pnode->doc_ptr && !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0;

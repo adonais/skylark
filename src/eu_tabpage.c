@@ -817,7 +817,7 @@ on_tabpage_generator(TCHAR *filename, int len)
             int i = 0;
             for (; i < vlen; ++i)
             {
-                if (eu_cvector_at(v, ret))
+                if (eu_cvector_at(v, ret) >= 0)
                 {
                     i = 0;
                     ++ret;

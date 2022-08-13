@@ -19,6 +19,10 @@
 #ifndef _EU_SNIPPET_PARSER_H_
 #define _EU_SNIPPET_PARSER_H_
 
+#ifndef PARAM_LEN
+#define PARAM_LEN 8
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,7 +37,7 @@ typedef struct _snippet_t
     intptr_t end;
     char name[ACNAME_LEN];
     char comment[ACNAME_LEN];
-    char parameter[2];
+    char parameter[PARAM_LEN];
     char body[LARGER_LEN];
 } snippet_t;
 

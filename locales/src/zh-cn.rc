@@ -303,7 +303,7 @@ BEGIN
         MENUITEM "插入数据库自动连接配置头",                    IDM_DATABASE_INSERT_CONFIG
         MENUITEM "执行选定的SQL语句或REDIS命令",                IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
-        POPUP "代码注释",                                       IDM_EDIT_PLACEHOLDE21
+        POPUP "代码注释",                                       IDM_EDIT_COMMENT_GROUP
         BEGIN
             MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
             MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
@@ -1137,7 +1137,7 @@ STRINGTABLE DISCARDABLE
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-nXX : 打开文件时滚动到指定行\n-cXX : 打开文件时滚动到指定列\n-hex : 以16进制模式打开文本文件\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
     IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
-    IDS_SNIPPET_EDT_DEFAULT "片段名称/注释/参数"
+    IDS_SNIPPET_EDT_DEFAULT "片段名称,注释,参数"
     IDS_SNIPPET_COMBO_DEC   "示例"
     IDS_SNIPPET_EXAMPLE_DEC "${n:占位符} 表示光标下一个占位符,\n$0 标记末尾的插入点.\n使用 tab 键跳转到下一个占位符\n使用 shift+tab 跳转到上一个占位符\n例如:\nif (${1:true})\n{\n    $0\n}"
     IDS_CHECK_VER_DEC       "已是最新版☑"

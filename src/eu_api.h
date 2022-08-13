@@ -69,21 +69,35 @@
 
 #define CHECK_1ST   0.500000
 #define CHECK_2ND   0.925000
-#define ENV_LEN     512
-#define FILESIZE    128
-#define ACNAME_LEN  64
-#define FT_LEN      32
+
+#ifndef OVECCOUNT
 #define OVECCOUNT   30   // pcre, should be multiple of 3
+#endif
+
+#define OVEC_LEN    16
+#define FT_LEN      32
+#define ACNAME_LEN  64
+#define FILESIZE    128
+#define ENV_LEN     512
+
+#define SNIPPET_FUNID 100
+
 #ifndef MAX_BUFFER
 #define MAX_BUFFER  1024
+#endif
+#ifndef LARGER_LEN
 #define LARGER_LEN 2048
 #endif
+#ifndef VALUE_LEN
+#define VALUE_LEN 4096
+#endif
+
 #define MAX_ACCELS 200
 #define BUFF_64K 0x10000
 #define BUFF_200M 0xc800000
 
 #ifndef WM_COPYGLOBALDATA
-#define WM_COPYGLOBALDATA         (0x0049)
+#define WM_COPYGLOBALDATA (0x0049)
 #endif
 
 #define REMOTEFS_PROTOCOL_SUBID 0x38
@@ -136,16 +150,16 @@ static inline void assert_in_release(const char *fmt, const char *exp, const cha
 }
 #define EU_VERIFY(x) (void)((x) || (assert_in_release("failed assert(%s): %s:%d", #x, __FILE__, __LINE__), 0))
 #endif
-static inline bool eu_cvector_at(int *v, int n)
+static inline int eu_cvector_at(int *v, int n)
 {
-    for (int i = 0; i < cvector_size(v); i++)
+    for (int i = 0; i < cvector_size(v); ++i)
     {
         if (n == v[i])
         {
-            return true;
+            return i;
         }
     }
-    return false;
+    return -1;
 }
 #define eu_int_cast(n) ((int)((intptr_t)(n)))
 #define eu_uint_cast(n) ((uint32_t)((size_t)(n)))
@@ -219,6 +233,7 @@ extern "C"
 typedef struct _doc_data doctype_t;
 typedef struct _tabpage eu_tabpage;
 typedef struct _file_backup file_backup;
+typedef SCNotification *ptr_notify;
 
 typedef struct _eue_accel
 {
@@ -491,7 +506,7 @@ EU_EXT_CLASS void eu_print_calltip_tree(root_t *root);
 EU_EXT_CLASS void eu_destory_calltip_tree(root_t *root);
 EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
-EU_EXT_CLASS const char *eu_find_completed_tree(root_t *acshow_root, const char *key);
+EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
 EU_EXT_CLASS void eu_set_build_id(uint64_t);
 
@@ -669,16 +684,16 @@ EU_EXT_CLASS int on_doc_keyup_general(eu_tabpage *pnode, WPARAM wParam, LPARAM l
 EU_EXT_CLASS int on_doc_keyup_general_sh(eu_tabpage *, WPARAM, LPARAM);
 
 /* 默认的 add_ptr 回调函数入口 */
-EU_EXT_CLASS int on_doc_identation(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_cpp_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_sql_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_redis_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_html_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_xml_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_css_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_json_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_makefile_like(eu_tabpage *pnode, SCNotification *lpnotify);
-EU_EXT_CLASS int on_doc_cmake_like(eu_tabpage *pnode, SCNotification *lpnotify);
+EU_EXT_CLASS int on_doc_identation(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_cpp_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_sql_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_redis_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_html_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_xml_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_css_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_json_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_makefile_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_cmake_like(eu_tabpage *pnode, ptr_notify lpnotify);
 
 /* 默认的 reload_list_ptr,reload_tree_ptr  回调函数入口 */
 EU_EXT_CLASS int on_doc_reload_list_reqular(eu_tabpage *pnode);

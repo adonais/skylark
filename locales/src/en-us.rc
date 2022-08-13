@@ -303,7 +303,7 @@ BEGIN
         MENUITEM "Insert Database Automatic Header",                   IDM_DATABASE_INSERT_CONFIG
         MENUITEM "Executes Selected SQL Or REDIS Command",             IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
-        POPUP "Code Comments",                                         IDM_EDIT_PLACEHOLDE21
+        POPUP "Code Comments",                                         IDM_EDIT_COMMENT_GROUP
         BEGIN
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
@@ -1139,7 +1139,7 @@ STRINGTABLE DISCARDABLE
     IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-nXX : Scroll to indicated line on file_path\n-cXX : Scroll to indicated column on file_path\n-hex : Open text file in hexadecimal mode\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
     IDS_COMMAND_TITLE       "Skylark Command Help: "
     IDS_LOADLIBRARY_SQL     "#> Start loading database DLL ...\n"
-    IDS_SNIPPET_EDT_DEFAULT "Snippet Name/Comment/Argument"
+    IDS_SNIPPET_EDT_DEFAULT "Snippet Name,Comment,Argument"
     IDS_SNIPPET_COMBO_DEC   "Example"
     IDS_SNIPPET_EXAMPLE_DEC "${n:PlaceHolder} to mark a placeholder token,\n$0 to mark the insertion point at the end.\nUse tab key jump to the next placeholder\nUse shift+tab jump to the previous placeholder\nExample:\nif (${1:true})\n{\n    $0\n}"
     IDS_CHECK_VER_DEC       "It Is The Latest Version☑"

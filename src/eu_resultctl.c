@@ -147,17 +147,17 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONDBLCLK:
         {
             eu_tabpage *pnode = on_tabpage_focus_at();
-            if (pnode && pnode->presult && pnode->pvec)
+            if (pnode && pnode->presult && pnode->ret_vec)
             {
                 sptr_t cur_pos = eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
                 eu_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
                 sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
-                if (line >= 0 && cvector_size(pnode->pvec) > 0)
+                if (line >= 0 && cvector_size(pnode->ret_vec) > 0)
                 {
                     sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
                     sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-                    on_search_jmp_line(pnode, pnode->pvec[line - 1].line, current_line);
-                    eu_sci_call(pnode, SCI_SETSEL, pnode->pvec[line - 1].mark.start, pnode->pvec[line - 1].mark.end);
+                    on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
+                    eu_sci_call(pnode, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
                 }
             }
             return 1;

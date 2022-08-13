@@ -179,24 +179,24 @@ eu_rand_str(TCHAR *str, const int len)
 /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * c风格的字符串替换函数
  * 直接在输入的字符串内做替换, 所以务必保证in_size有足够的空间
- * 在这里, in_size最大值为1024, 超出这个值将导致字符串被截断
+ * 在这里, in_size最大值为4096, 超出这个值将导致字符串被截断
  ** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 LPTSTR WINAPI
 eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
 {
     TCHAR *in_ptr = in;
-    TCHAR res[MAX_BUFFER] = { 0 };
+    TCHAR res[VALUE_LEN] = { 0 };
     size_t offset = 0;
     TCHAR *needle;
-    while ((needle = _tcsstr(in, pattern)) && offset < in_size && offset < MAX_BUFFER)
+    while ((needle = _tcsstr(in, pattern)) && offset < in_size && offset < VALUE_LEN)
     {
         _tcsncpy(res + offset, in, needle - in);
         offset += needle - in;
         in = needle + (int) _tcslen(pattern);
-        _tcsncpy(res + offset, by, MAX_BUFFER - offset);
+        _tcsncpy(res + offset, by, VALUE_LEN - offset);
         offset += (int) wcslen(by);
     }
-    _tcsncpy(res + offset, in, MAX_BUFFER - offset);
+    _tcsncpy(res + offset, in, VALUE_LEN - offset);
     _sntprintf(in_ptr, eu_int_cast(in_size), _T("%s"), res);
     in = in_ptr;
     return in;
@@ -206,18 +206,18 @@ char *WINAPI
 eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by)
 {
     char *in_ptr = in;
-    char res[MAX_BUFFER] = {0};
+    char res[VALUE_LEN] = {0};
     size_t offset = 0;
     char *needle;
-    while ((needle = strstr(in, pattern)) && offset < in_size && offset < MAX_BUFFER)
+    while ((needle = strstr(in, pattern)) && offset < in_size && offset < VALUE_LEN)
     {
         strncpy(res + offset, in, needle - in);
         offset += needle - in;
         in = needle + (int) strlen(pattern);
-        strncpy(res + offset, by, MAX_BUFFER - offset);
+        strncpy(res + offset, by, VALUE_LEN - offset);
         offset += (int) strlen(by);
     }
-    strncpy(res + offset, in, MAX_BUFFER - offset);
+    strncpy(res + offset, in, VALUE_LEN - offset);
     _snprintf(in_ptr, eu_int_cast(in_size), "%s", res);
     in = in_ptr;
     return in;
@@ -2008,10 +2008,28 @@ eu_print_completed_tree(root_t *acshow_root)
     printf("\n");
 }
 
-const char *
-eu_find_completed_tree(root_t *acshow_root, const char *key)
+char *
+eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str)
 {
-    return (const char *)ac_get(acshow_root, key);
+    char *res = (char *)calloc(VALUE_LEN + 1, 1);
+    if (res)
+    {
+        if (pre_str)
+        {
+            _snprintf(res, VALUE_LEN, "%s%c%d", pre_str, '\x1E', SNIPPET_FUNID);
+        }
+        else
+        {
+            ac_get(acshow_root, key, res, VALUE_LEN);
+            size_t len = strlen(res);
+            if (len > 0 && res[len - 1] == 0x20)
+            {
+                res[len - 1] = 0;
+            }
+        }
+        return res;
+    }
+    return NULL;
 }
 
 void

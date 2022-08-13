@@ -494,23 +494,35 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
-    if (p_msg->message == WM_SYSKEYDOWN && 49 <= p_msg->wParam && p_msg->wParam <= 57 && (p_msg->lParam & (1 << 29)))
+    if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
     {
-        if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 49)))
+        if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 0x31)))
         {
             return 1;
         }
     }
-    if((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && p_msg->message == WM_KEYDOWN)
+    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
-        if (p_msg->hwnd == pnode->hwnd_sc)
+        bool main_key = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT);
+        if (p_msg->wParam == VK_TAB && !main_key && eu_get_config() && eu_get_config()->m_snippet_enable)
         {
-            bool main_key = pnode->doc_ptr ? KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_SHIFT) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) : false;
-            if (main_key && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+            if (!main_key)
             {
-                on_sci_insert_egg(pnode);
-                return 1;
+                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
+                if (KEY_DOWN(VK_SHIFT))
+                {
+                    return on_complete_snippet_back(pnode);
+                }
+                else if (on_complete_snippet(pnode))
+                {
+                    return 1;
+                }
             }
+        }
+        else if (main_key && KEY_DOWN(VK_SHIFT) && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+        {
+            on_sci_insert_egg(pnode);
+            return 1;
         }
     }
     return 0;
@@ -520,7 +532,7 @@ LRESULT CALLBACK
 eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     NMHDR *lpnmhdr = NULL;
-    SCNotification *lpnotify = NULL;
+    ptr_notify lpnotify = NULL;
     TOOLTIPTEXT *p_tips = NULL;
     eu_tabpage *pnode = NULL;
     LRESULT result = 0;
@@ -668,7 +680,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 on_toolbar_refresh(hwnd);
                 on_dark_set_theme(g_treebar, L"Explorer", NULL);
-                on_dark_set_theme(g_tabpages, L"Explorer", NULL);
                 if (g_filetree)
                 {
                     SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
@@ -1369,7 +1380,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NOTIFY:
         {
             lpnmhdr = (NMHDR *) lParam;
-            lpnotify = (SCNotification *) lParam;
+            lpnotify = (ptr_notify) lParam;
             p_tips = (TOOLTIPTEXT *) lParam;
             eu_tabpage *pview = NULL;
             if (lpnmhdr->hwndFrom == g_filetree)
@@ -1583,6 +1594,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_statusbar_update_filesize(pnode);
                     }
                     break;
+                }
+                case SCN_AUTOCSELECTION:
+                {
+                    int index = (int)eu_sci_call(pnode, SCI_AUTOCGETCURRENT, 0, 0);
+                    if (((int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0) & SC_AUTOCOMPLETE_SNIPPET) && !index)
+                    {
+                        on_complete_delay_snippet();
+                    }
+                    return 1;
                 }
                 case TTN_NEEDTEXT:
                 {

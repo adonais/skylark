@@ -82,8 +82,6 @@
 #define DOCUMENTMAP_WIDTH_DEF        310
 
 #define SPLIT_WIDTH                  2
-#define WHITESPACE_SIZE              3
-#define EDITOR_TAB_WIDTH_DEFAULT     8
 #define MAX_TRACE_COUNT              100
 
 // 第三方依赖的头文件
@@ -160,5 +158,6 @@
 #include "eu_updatechecker.h"
 #include "eu_snippet.h"
 #include "eu_snparser.h"
+#include "eu_complete.h"
 
 #endif  // _EU_FRAMEWORK_H_

@@ -27,6 +27,7 @@ extern "C"
 {
 #endif
 
+typedef struct _complete_t *complete_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
 typedef void (__stdcall *tab_want)(void *p);
 
@@ -80,7 +81,9 @@ struct _tabpage
     bool last_focus;            // 保存前台焦点
     int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
-    result_vec *pvec;           // 搜索结果标记
+    int ac_mode;                // 是否处于snippet模式
+    result_vec *ret_vec;        // 搜索结果标记
+    complete_ptr ac_vec;        // snippet模式下的vec数组
     tab_want pwant;             // 回调函数, 需要时使用
     intptr_t reserved0;         // 保留, 暂未使用
 };

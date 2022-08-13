@@ -21,7 +21,6 @@
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 
-
 void
 on_sci_init_style(eu_tabpage *pnode)
 {
@@ -227,14 +226,13 @@ on_sci_free_tab(eu_tabpage **ppnode)
     if (STR_NOT_NUL(ppnode))
     {
         HWND hwnd = eu_module_hwnd();
+        // 关闭数据库链接
         if ((*ppnode)->db_ptr)
         {
-            // 关闭数据库链接
             on_table_disconnect_database(*ppnode, true);
         }
         if ((*ppnode)->redis_ptr)
         {
-            // 关闭redis数据库链接
             on_symtree_disconnect_redis(*ppnode);
         }
         // 销毁控件句柄
@@ -260,15 +258,21 @@ on_sci_free_tab(eu_tabpage **ppnode)
             (*ppnode)->result_show = false;
             eu_safe_free((*ppnode)->presult);
         }
-        if ((*ppnode)->pvec)
+        // 释放保存结果的vec数组
+        if ((*ppnode)->ret_vec)
         {
-            cvector_free((*ppnode)->pvec);
-            (*ppnode)->pvec = NULL;
+            cvector_freep(&(*ppnode)->ret_vec);
         }
+        if ((*ppnode)->ac_vec)
+        {
+            cvector_freep(&(*ppnode)->ac_vec);
+        }
+        // 关闭minimap窗口
         if (!on_tabpage_check_map() && hwnd_document_map)
         {
             DestroyWindow(hwnd_document_map);
         }
+        // 切换16进制时,销毁相关资源
         if (!(*ppnode)->phex)
         {
             if ((*ppnode)->hwnd_sc)
@@ -392,7 +396,7 @@ on_sci_point_left(eu_tabpage *pnode)
 }
 
 void
-on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify)
+on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify)
 {
     if (pnode && !pnode->hex_mode && pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
     {
@@ -424,7 +428,7 @@ on_sci_menu_callback(HMENU hpop, void *param)
     {
         util_enable_menu_item(hpop, IDM_EDIT_CUT, util_can_selections(p));
         util_enable_menu_item(hpop, IDM_EDIT_COPY, util_can_selections(p));
-        util_enable_menu_item(hpop, IDM_EDIT_PASTE, eu_sci_call(p,SCI_CANPASTE, 0, 0));
+        util_enable_menu_item(hpop, IDM_EDIT_PASTE, eu_sci_call(p, SCI_CANPASTE, 0, 0));
     }
 }
 
@@ -451,6 +455,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     on_view_zoom_reset(pnode);
                     pnode->zoom_level = 0;
+                }
+                if (pnode->ac_vec)
+                {
+                    pnode->ac_mode = AUTO_NONE;
+                    on_complete_reset_focus();
                 }
             }
             else if (pnode->map_show && document_map_initialized)
@@ -499,10 +508,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             on_statusbar_update_line(pnode);
             break;
         }
-        case WM_MOUSEWHEEL:
-        {
-            break;
-        }
         case WM_LBUTTONUP:
         {
             if ((pnode = on_tabpage_focus_at()) == NULL)
@@ -512,6 +517,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (!(wParam & 0xff))
             {
                 on_doc_brace_light(pnode, false);
+            }
+            if (pnode->ac_vec)
+            {
+                pnode->ac_mode = AUTO_NONE;
+                on_complete_reset_focus();
             }
             pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             on_search_add_navigate_list(pnode, pnode->nc_pos);
