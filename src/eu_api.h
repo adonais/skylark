@@ -604,7 +604,7 @@ EU_EXT_CLASS HWND __stdcall eu_snippet_hwnd(void);
 
 // for eu_config.c
 EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
-EU_EXT_CLASS bool __stdcall eu_load_config(HMODULE *pmod);
+EU_EXT_CLASS bool __stdcall eu_load_config(void);
 EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
 EU_EXT_CLASS void __stdcall eu_postion_setup(wchar_t **args, int argc, file_backup *pbak);

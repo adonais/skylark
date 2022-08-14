@@ -1117,7 +1117,7 @@ STRINGTABLE DISCARDABLE
     IDS_LUA_CONV_FAIL       "#> Conversion of bytecode failed."
     IDS_THEME_DESC_DEFAULT  "Default Theme"
     IDS_THEME_DESC_BLOCK    "Dark Theme"
-    IDS_THEME_DESC_WHITE    "White Classic Theme(Requires Restart)"
+    IDS_THEME_DESC_WHITE    "White Classic Theme"
     IDS_SEARCH_HEX_TIPS     "Hex datas should have two characters per byte and each byte \n\nmay be separated with a space, ignore case, Example: \n\nFF FE FD or fffefd"
     IDS_THEME_EDIT_TIPS     "alpha value, 0(completely transparent) - 255(no transparency)"
     IDS_STATUSBAR_TIPS1     "Conversion between line breaks"

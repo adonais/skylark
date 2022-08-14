@@ -1116,7 +1116,7 @@ STRINGTABLE DISCARDABLE
     IDS_LUA_CONV_FAIL       "#> 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
     IDS_THEME_DESC_BLOCK    "暗黑主题"
-    IDS_THEME_DESC_WHITE    "白色经典(需重启)"
+    IDS_THEME_DESC_WHITE    "白色经典"
     IDS_SEARCH_HEX_TIPS     "十六进制数据应该是每两个字符为一个字节, 并且\n\n每个字节间可以用空格分开, 忽略大小写, 例如: \n\nFF FE FD 或 fffefd"
     IDS_THEME_EDIT_TIPS     "透明度, 0(完全透明) - 255(不透明)"
     IDS_STATUSBAR_TIPS1     "换行符之间的相互转换"

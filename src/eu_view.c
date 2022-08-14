@@ -207,34 +207,7 @@ on_view_switch_theme(HWND hwnd, int id)
     {
         return 0;
     }
-    if (_tcscmp(pbuf, _T("white")) == 0)
-    {
-        char *pwhite = eu_utf16_utf8(pbuf, NULL);
-        if (pwhite)
-        {
-            strncpy(eu_get_config()->window_theme, pwhite, ACNAME_LEN);
-            free(pwhite);
-            on_file_edit_restart(hwnd);
-            return 0;
-        }
-    }
-    else if (_tcscmp(old, _T("white")) == 0)
-    {
-        char *ptheme = eu_utf16_utf8(pbuf, NULL);
-        if (ptheme)
-        {
-            int msg = IDOK;
-            MSG_BOX_SEL(IDS_THEMEM_WHITE_TO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, msg);
-            if (msg == IDOK)
-            {
-                strncpy(eu_get_config()->window_theme, ptheme, ACNAME_LEN);
-                free(ptheme);
-                on_file_edit_restart(hwnd);
-            }
-            return 0;
-        }
-    }
-    else if (_tcscmp(pbuf, _T("black")) == 0)
+    if (_tcscmp(pbuf, _T("black")) == 0)
     {
         if (eu_on_dark_init(true, true))
         {

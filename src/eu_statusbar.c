@@ -451,6 +451,12 @@ stbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR sub_i
             on_statusbar_refresh();
             return 1;
         }
+        case WM_MOVE:
+        {
+            on_statusbar_refresh();
+            on_statusbar_update();
+            break;
+        }        
         case WM_SIZE:
         {
             break;

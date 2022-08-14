@@ -84,7 +84,6 @@ _tmain(int argc, TCHAR *argv[])
     bool muti = false;
     bool no_remote = false;
     MSG msg = {0};
-    HMODULE pux = NULL;   // 如果使用经典风格, 它是uxtheme的句柄
     HWND hwnd = NULL;
     HANDLE mapped = NULL;
     HANDLE lang_map = NULL;
@@ -230,7 +229,7 @@ _tmain(int argc, TCHAR *argv[])
         on_hook_do();
         eu_init_logs();
     }
-    if (!eu_load_config(&pux))
+    if (!eu_load_config())
     {   // 加载分类配置文件
         msg.wParam = -1;
         goto all_clean;
@@ -321,7 +320,6 @@ all_clean:
     share_close(mapped);
     share_close(lang_map);
     share_close_lang();
-    safe_close_dll(pux);
     share_envent_release();
     eu_curl_global_release();
     eu_sci_release();

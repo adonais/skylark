@@ -368,7 +368,7 @@ eu_load_main_config(void)
 }
 
 bool WINAPI
-eu_load_config(HMODULE *pmod)
+eu_load_config(void)
 {
     int  m = 0;
     bool ret = false;
@@ -384,14 +384,7 @@ eu_load_config(HMODULE *pmod)
         printf("eu_docs exec failed\n");
         goto load_fail;
     }
-    if (_stricmp(eu_get_config()->window_theme, "white") == 0)
-    {
-        ret = on_theme_set_classic(pmod);
-    }
-    else
-    {
-        ret = true;
-    }
+    ret = true;
 load_fail:
     eu_safe_free(lua_path);
     return ret;

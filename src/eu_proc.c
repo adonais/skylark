@@ -464,7 +464,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             }
         }
         PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
-        on_statusbar_update();
     }
 }
 
@@ -1685,6 +1684,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (document_map_initialized && hwnd_document_map)
             {
                 PostMessage(hwnd_document_map, WM_MOVE, 0, 0);
+            }
+            if (g_statusbar)
+            {
+                PostMessage(g_statusbar, WM_MOVE, 0, 0);
             }
             break;
         }
