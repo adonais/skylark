@@ -910,7 +910,6 @@ STRINGTABLE DISCARDABLE
 
 STRINGTABLE DISCARDABLE
 {
-    IDS_BUTTON_CAP                   "大写"
     IDS_BUTTON_R                     "只读"
     IDS_BUTTON_W                     "读写"
     IDS_STATUS_F1                    "%d 个文件, 时间戳: %s"

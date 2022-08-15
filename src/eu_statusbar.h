@@ -40,9 +40,9 @@ extern HWND g_statusbar;
 extern char iconv_undo_str[ACNAME_LEN];
 
 bool __stdcall on_statusbar_init(HWND hwnd);
-void __stdcall on_statusbar_refresh(void);
-void __stdcall on_statusbar_btn_case(void);
 int  __stdcall on_statusbar_height(void);
+int  __stdcall on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto);
+void __stdcall on_statusbar_refresh(void);
 void __stdcall on_statusbar_update(void);
 void __stdcall on_statusbar_adjust_box(void);
 void __stdcall on_statusbar_update_eol(eu_tabpage *pnode);

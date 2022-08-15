@@ -395,6 +395,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
                                rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
                 SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+                on_statusbar_btn_rw(pnode, true);
             }
         }
         else if (g_statusbar)
@@ -613,10 +614,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (on_qrgen_hwnd() && KEY_DOWN(VK_ESCAPE))
             {
                 EndDialog(on_qrgen_hwnd(), 0);
-            }
-            if (true)
-            {   // 是否按下大写键
-                on_statusbar_btn_case();
             }
             if (g_hwndmain == GetForegroundWindow())
             {

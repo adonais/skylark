@@ -911,7 +911,6 @@ STRINGTABLE DISCARDABLE
 
 STRINGTABLE DISCARDABLE
 {
-    IDS_BUTTON_CAP                   "CAP"
     IDS_BUTTON_R                     "R/0"
     IDS_BUTTON_W                     "R/W"
     IDS_STATUS_F1                    "%d File(s), Timestamp: %s"

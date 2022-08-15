@@ -22,7 +22,7 @@ volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 
 void
-on_sci_init_style(eu_tabpage *pnode)
+on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
 {
     if (!pnode || !eu_get_config() || !eu_get_theme())
     {
@@ -32,7 +32,7 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, (sptr_t)(eu_get_theme()->item.text.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_get_theme()->item.text.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, eu_get_theme()->item.text.bgcolor);
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor >= 0 ? bgcolor : eu_get_theme()->item.text.bgcolor);
     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
     eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
@@ -142,6 +142,12 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
     // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
     eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
+}
+
+void
+on_sci_init_style(eu_tabpage *pnode)
+{
+    on_sci_init_default(pnode, -1);
 }
 
 void

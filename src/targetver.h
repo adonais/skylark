@@ -173,8 +173,8 @@
 #define IDM_LBREAK_2     10081
 #define IDM_LBREAK_3     10082
 #define IDM_LBREAK_4     10083
-#define IDM_BTN_1        10084
-#define IDM_BTN_2        10085
+#define IDM_SCI_VIEWZONE 10084
+#define IDM_BTN_RW       10085
 
 #define IDD_DIALOG_CLIP         10090
 #define IDC_CLIPBORAD           10091

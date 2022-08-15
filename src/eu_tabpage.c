@@ -139,47 +139,49 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
 {
     bool dark_mode = on_dark_enable();
     HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
-    if (old_font)
+    while (old_font)
     {
         set_text_color(hdc, dark_mode);
         int nsel = TabCtrl_GetCurSel(hwnd);
         for (int index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
         {
+            RECT rc;
+            colour cr = 0;
+            HIMAGELIST himg = TabCtrl_GetImageList(hwnd);
             TCITEM tci = {TCIF_PARAM | TCIF_TEXT | TCIF_IMAGE};
             TabCtrl_GetItem(hwnd, index, &tci);
             eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-            if (p)
+            if (!p || !himg)
             {
-                RECT rc;
-                colour cr = 0;
-                HIMAGELIST himg = TabCtrl_GetImageList(hwnd);
-                TabCtrl_GetItemRect(hwnd, index, &rc);
-                FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
-                if (nsel == index)
-                {   // 这里使用固定值, 因为在某些系统上, COLOR_HIGHLIGHT值不一样
-                    cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : rgb_high_light_color;
-                    SetBkColor(hdc, cr);
-                    ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
-                }
-                else
-                {
-                    cr = set_btnface_color(hdc, dark_mode);
-                }
-                if (p->be_modify && himg)
-                {
-                    ImageList_Draw(himg, 0, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
-                }
-                if (STR_NOT_NUL(p->filename))
-                {
-                    DrawText(hdc, p->filename, (int)_tcslen(p->filename), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
-                }
+                break;
+            }
+            TabCtrl_GetItemRect(hwnd, index, &rc);
+            FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
+            if (nsel == index)
+            {   // 这里使用固定值, 因为在某些系统上, COLOR_HIGHLIGHT值不一样
+                cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : rgb_high_light_color;
+                SetBkColor(hdc, cr);
+                ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
+            }
+            else
+            {
+                cr = set_btnface_color(hdc, dark_mode);
+            }
+            if (eu_sci_call(p,SCI_GETREADONLY, 0, 0))
+            {
+                ImageList_Draw(himg, 1, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
+            }
+            else if (p->be_modify)
+            {
+                ImageList_Draw(himg, 0, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
+            }
+            if (STR_NOT_NUL(p->filename))
+            {
+                DrawText(hdc, p->filename, (int)_tcslen(p->filename), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
             }
         }
-        HGDIOBJ hfont = SelectObject(hdc, old_font);
-        if (hfont)
-        {
-            DeleteObject(hfont);
-        }
+        SelectObject(hdc, old_font);
+        break;
     }
 }
 
@@ -376,7 +378,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
     eu_tabpage *p = (eu_tabpage *)param;
     if (p && hpop)
     {
-        util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p));
+        util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !eu_sci_call(p,SCI_GETREADONLY, 0, 0));
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
         util_enable_menu_item(hpop, IDM_FILE_WORKSPACE, !p->is_blank);
         util_enable_menu_item(hpop, IDM_FILE_EXPLORER, !p->is_blank);
