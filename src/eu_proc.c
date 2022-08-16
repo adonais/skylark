@@ -1594,8 +1594,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case SCN_AUTOCSELECTION:
                 {
                     int index = (int)eu_sci_call(pnode, SCI_AUTOCGETCURRENT, 0, 0);
-                    if (((int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0) & SC_AUTOCOMPLETE_SNIPPET) && !index)
+                    int opt = (int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0);
+                    if ((opt & SC_AUTOCOMPLETE_SNIPPET) && !index && pnode->ac_mode != AUTO_CODE)
                     {
+                        on_complete_reset_focus(pnode);
                         on_complete_delay_snippet();
                     }
                     return 1;

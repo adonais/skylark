@@ -699,6 +699,10 @@ on_statusbar_update_line(eu_tabpage *pnode)
         eu_i18n_load_str(IDS_STATUS_HXY, m_xy, 0);
         _sntprintf(s_xy, FILESIZE-1, m_xy, SendMessage(pnode->hwnd_sc, HVM_GETHEXADDR, 0, 0));
     }
+    else if (pnode->ac_mode == AUTO_CODE)
+    {
+        eu_i18n_load_str(IDS_SNIPPETS_STR, s_xy, 0);
+    }
     else
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);

@@ -11,12 +11,12 @@ private:
 endsnippet
 
 snippet def "#define ..."
-#define $1
+#define $0
 endsnippet
 
 snippet #ifndef "#ifndef ... #define ... #endif"
 #ifndef ${1:SYMBOL}
-#define ${1:SYMBOL} ${2:value}
+#define $1 ${0:value}
 #endif /* ifndef $1 */
 endsnippet
 
@@ -42,8 +42,7 @@ $0
 endsnippet
 
 snippet main "main() (main)"
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	$0
 	return 0;
 }
@@ -51,7 +50,6 @@ endsnippet
 
 snippet for "for loop (for)"
 for (${2:i} = 0; $2 < ${1:count}; ${3:++$2}) {
-    ${4:--$3};
 	$0
 }
 endsnippet
@@ -62,15 +60,41 @@ for (${4:int} ${2:i} = 0; $2 < ${1:count}; ${3:++$2}) {
 }
 endsnippet
 
+snippet forv "Vector For Loop"
+for (std::vector<$1>::iterator ${3:i} = $2.begin(); $3 != $2.end(); ++$3) {
+    $0
+}
+endsnippet
+
+snippet fprintf "fprintf ..."
+fprintf(${1:stderr}, "${2:%s}\n", $0);
+endsnippet
+
 snippet fun "function" b
-${1:void} ${2:function_name}($3)
-{
+${1:void} ${2:function_name}($3) {
 	$0
 }
 endsnippet
 
 snippet fund "function declaration" b
 ${1:void} ${2:function_name}($3);
+endsnippet
+
+snippet printf "printf ..."
+fprintf("${1:%s}\n", $0);
+endsnippet
+
+snippet rd "Read File Into Vector"
+std::vector<char> v;
+FILE *${1:fp} = nullptr;
+if (($1 = fopen("${2:filename}", "${3:r}"))) {
+	char buf[1024];
+	while (size_t len = fread(buf, 1, sizeof(buf), $1)) {
+		v.insert(v.end(), buf, buf + len);
+    }
+	fclose($1);
+}
+$0
 endsnippet
 
 snippet switch "switch ..."
@@ -91,8 +115,13 @@ catch (const std::exception&)
 }
 endsnippet
 
+snippet typedef "typedef ..."
+typedef ${1:int} ${2:MyCustomType};
+$0
+endsnippet
+
 snippet while "while ..."
-while ${1:true} {
+while (${1:true}) {
     $0;
 }
 endsnippet

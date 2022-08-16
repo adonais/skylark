@@ -52,16 +52,33 @@ static char *auto_xpm[] = {
     "              "
 };
 
-static void
+static inline void
+on_complete_vec_init(complete_t *vec)
+{
+    if (vec)
+    {
+        memset(vec, 0, sizeof(complete_t));
+        vec->index = -1;
+        memset(vec->pos, -1, OVEC_LEN * sizeof(auto_postion));
+    }
+}
+
+static inline void
 on_complete_inc_focus(void)
 {
     _InterlockedIncrement(&last_snippet_focus);
 }
 
-static void
+static inline void
 on_complete_dec_focus(void)
 {
     _InterlockedDecrement(&last_snippet_focus);
+}
+
+static inline void
+on_complete_zero_focus(void)
+{
+    _InterlockedExchange(&last_snippet_focus, 0);
 }
 
 static int
@@ -75,7 +92,7 @@ on_complete_str_cmp(snippet_t *pvec, const char *value)
 }
 
 static int
-on_complete_int_cmp(complete_t *pvec, int value)
+on_complete_char_cmp(complete_t *pvec, int value)
 {
     if (pvec)
     {
@@ -131,7 +148,7 @@ on_complete_replace_callback(void *p1, void **p2, const char *by, int start, int
         {
             complete_t *oit = NULL;
             add += eu_int_cast(p - psub);
-            cvector_for_each_and_cmp(pvec, on_complete_int_cmp, p[1], &oit);
+            cvector_for_each_and_cmp(pvec, on_complete_char_cmp, p[1], &oit);
             if (oit)
             {
                 psub = oit->value;
@@ -141,7 +158,7 @@ on_complete_replace_callback(void *p1, void **p2, const char *by, int start, int
         pos->max = pos->min + add + (intptr_t)strlen(psub);
         for (it = cvector_begin(pvec); it != cvector_end(pvec); ++it)
         {
-            if (it->pos[0].min > eu_int_cast(start + (int)strlen(by)))
+            if (it->pos[0].min > start)
             {
                 it->pos[0].min -= offset;
                 it->pos[0].max -= offset;
@@ -156,13 +173,22 @@ on_complete_replace_holder(void *p1, void **p2, const char *by, int start, int o
 {
     complete_t *pvec = (complete_t *)p1;
     complete_t  *oit = (complete_t **)p2 ? *(complete_t **)p2 : NULL;
-    if (pvec)
+    if (pvec && oit)
     {
         for (complete_t *it = cvector_begin(pvec); it != cvector_end(pvec); ++it)
         {
             for (int j = 0; j < OVEC_LEN; ++j)
             {
-                if (it->pos[j].min > start)
+                if (oit == it)
+                {
+                    if (it->pos[j].min < 0)
+                    {
+                        it->pos[j].min = start;
+                        it->pos[j].max = it->pos[j].min + (intptr_t)strlen(by);
+                        break;
+                    }
+                }
+                else if (it->pos[j].min > start)
                 {
                     it->pos[j].min -= offset;
                     it->pos[j].max -= offset;
@@ -173,8 +199,7 @@ on_complete_replace_holder(void *p1, void **p2, const char *by, int start, int o
 }
 
 static int
-on_complete_replace_fn(char *in, const size_t in_size, const char *pattern, const char *by,
-                       ptr_replace fn_replace, void *p1, auto_postion *p2)
+on_complete_replace_fn(char *in, const size_t in_size, const char *pattern, const char *by, ptr_replace fn_replace, void *p1, void *p2)
 {
     char *in_ptr = in;
     char res[VALUE_LEN] = {0};
@@ -247,8 +272,8 @@ on_complete_get_key(eu_tabpage *pnode, char *key, int len, sptr_t *ptr_pos)
 static int
 on_complete_re_callback(eu_tabpage *pnode, const char *pstr, const char *re_str, int start, int end)
 {
-    complete_t data = {0};
-    //memset(&data, -1, sizeof(complete_t));
+    complete_t data;
+    on_complete_vec_init(&data);
     if (pnode && pstr && re_str)
     {
         char buf[MAX_PATH] = {0};
@@ -330,7 +355,7 @@ on_complete_vec_printer(complete_t *pv)
             printf("pv[%d] = %d, %s, %s,", i, it->index, it->value, it->word);
             for (int j = 0; j < OVEC_LEN; ++j)
             {
-                if (it->pos[j].min > 0)
+                if (it->pos[j].min >= 0)
                 {
                     printf("it->pos[%d].min = %Id, it->pos[%d].max = %Id\n", j, it->pos[j].min, j, it->pos[j].max);
                 }
@@ -410,7 +435,7 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
                     {
                         add += eu_int_cast(p - pvalue);
                         oit = NULL;
-                        cvector_for_each_and_cmp(pnode->ac_vec, on_complete_int_cmp, p[1], &oit);
+                        cvector_for_each_and_cmp(pnode->ac_vec, on_complete_char_cmp, p[1], &oit);
                         if (oit)
                         {
                             pvalue = oit->value;
@@ -431,7 +456,7 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
                     on_complete_replace_fn(pstr, VALUE_LEN, tmp, it->value, on_complete_replace_callback, pnode->ac_vec, &it->pos[1]);
                 }
             }
-            // 替换value里面可能包含的占位符, 为下一不做好准备
+            // 替换value里面可能包含的占位符, 为下一步做好准备
             for (it = cvector_begin(pnode->ac_vec); it != cvector_end(pnode->ac_vec); ++it)
             {
                 pvalue = it->value;
@@ -439,7 +464,7 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
                 {
                     _snprintf(tmp, 3, "$%c", p[1]);
                     oit = NULL;
-                    cvector_for_each_and_cmp(pnode->ac_vec, on_complete_int_cmp, p[1], &oit);
+                    cvector_for_each_and_cmp(pnode->ac_vec, on_complete_char_cmp, p[1], &oit);
                     if (oit)
                     {
                         pvalue = oit->value;
@@ -467,16 +492,13 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
             // 可能存在没匹配正则的占位符$0..$9, 替换并将位置信息写入vec数组
             while ((p = strstr(pstr, "$")) && UTIL_BASE10(p[1]))
             {
+                complete_t data;
+                on_complete_vec_init(&data);
                 _snprintf(tmp, 3, "$%c", p[1]);
-                complete_t data = {UTIL_NUMBER(p[1]),};
-                data.pos[0].max = data.pos[0].min = (intptr_t)(p - pstr);
-                on_complete_replace_fn(pstr, VALUE_LEN, tmp, "", on_complete_replace_holder, pnode->ac_vec, NULL);
+                data.index = UTIL_NUMBER(p[1]);
                 cvector_push_back(pnode->ac_vec, data);
+                on_complete_replace_fn(pstr, VALUE_LEN, tmp, "", on_complete_replace_holder, pnode->ac_vec, &pnode->ac_vec[cvector_size(pnode->ac_vec) - 1]);
             }
-        #ifdef _DEBUG
-            printf("============ac_vec===========\n");
-            on_complete_vec_printer(pnode->ac_vec);
-        #endif
         }
     }
 }
@@ -491,29 +513,16 @@ on_complete_snippet_thread(void *lp)
 static void
 on_complete_update_vec(complete_t *it, intptr_t pos)
 {
-    if (it)
+    if (it && pos)
     {
-        int j;
-        if (!pos)
+        for (int j = 0; j < OVEC_LEN; ++j)
         {
-            for (j = 0; j < OVEC_LEN; ++j)
+            if (it->pos[j].min >= 0)
             {
-                if (it->pos[j].min > 0)
-                {
-                    it->pos[j].min += pos;
-                    it->pos[j].max += pos;
-                }
+                it->pos[j].min += pos;
+                it->pos[j].max += pos;
             }
         }
-    }
-}
-
-static void
-on_complete_pushv(complete_t *it, int **v)
-{
-    if (it)
-    {
-        cvector_push_back(*v, eu_int_cast(it->pos[0].min));
     }
 }
 
@@ -523,6 +532,12 @@ on_complete_sort_callback(const void* _a, const void* _b)
     int* a = (int*)_a;
     int* b = (int*)_b;
     return *a - *b;
+}
+
+static int
+on_complete_struct_cmp(const void* _a, const void* _b)
+{
+    return (*(complete_t *)_a).index > (*(complete_t *)_b).index ? 1 : -1;
 }
 
 static void
@@ -557,7 +572,7 @@ on_complete_sort_update(eu_tabpage *pnode, complete_t *it, int **pv, int offset,
                         {
                             msub = true;
                         }
-                        cvector_for_each_and_cmp(pnode->ac_vec, on_complete_int_cmp, p[1], &oit);
+                        cvector_for_each_and_cmp(pnode->ac_vec, on_complete_char_cmp, p[1], &oit);
                         if (oit)
                         {
                             pword = strchr(oit->word, ':');
@@ -666,77 +681,105 @@ on_complete_snippet_jmp(eu_tabpage *pnode, complete_t *it)
     {
         eu_sci_call(pnode, SCI_SETEMPTYSELECTION, it->pos[0].min, 0);
         eu_sci_call(pnode, SCI_SETSELECTION, it->pos[0].min, it->pos[0].max);
-        for (int j = 1; j < OVEC_LEN && it->pos[j].min > 0; ++j)
+        for (int j = 1; j < OVEC_LEN && it->pos[j].min > 0 && it->pos[j].max - it->pos[j].min < ACNAME_LEN; ++j)
         {
-            eu_sci_call(pnode, SCI_ADDSELECTION, it->pos[j].min, it->pos[j].max);
+            char value[ACNAME_LEN] = {0};
+            Sci_TextRange tr = {{it->pos[j].min, it->pos[j].max}, value};
+            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            if (!strcmp(value, it->value))
+            {
+                eu_sci_call(pnode, SCI_ADDSELECTION, it->pos[j].min, it->pos[j].max);
+            }
         }
         eu_sci_call(pnode, SCI_SETMAINSELECTION, 0, 0);
+        if (!it->index)
+        {   // 已经到达$0
+            on_complete_reset_focus(pnode);
+        }
         return true;
     }
     return false;
 }
 
+static void
+on_complete_call_autocshow(eu_tabpage *pnode, const char *word_buffer, const sptr_t pos)
+{
+    char *key = NULL;
+    const char *snippet_str = NULL;
+    int flags = SC_AUTOCOMPLETE_FIXED_SIZE;
+    if (eu_get_config()->m_snippet_enable)
+    {
+        snippet_str = on_complete_get_func(pnode, word_buffer);
+    }
+    if ((key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, word_buffer, snippet_str)) && key[0])
+    {
+        if (snippet_str)
+        {
+            flags |= SC_AUTOCOMPLETE_SNIPPET;
+            on_complete_muti_autoc(pnode);
+            eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
+        }
+        eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, flags, 0);
+        eu_sci_call(pnode, SCI_AUTOCSHOW, pos, (sptr_t)key);
+    }
+    eu_safe_free(key);
+}
+
+static void
+on_complete_any_autocshow(eu_tabpage *pnode)
+{
+    if (pnode && pnode->doc_ptr)
+    {
+        char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL);
+        if ((key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL)) && key[0])
+        {
+            on_complete_muti_autoc(pnode);
+            eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, SC_AUTOCOMPLETE_FIXED_SIZE, 0);
+            eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
+        }
+        eu_safe_free(key);
+    }
+}
+
 void
 on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify)
-{
-    char word_buffer[ACNAME_LEN+1] = {0};
-    if ((!lpnotify || (lpnotify->ch > 0 && lpnotify->ch < 0x80)) && eu_get_config()->m_acshow)
-    {   /* 自动补全提示 */
-        if (pnode->doc_ptr && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)))
+{   /* 自动补全提示 */
+    if (eu_get_config()->m_acshow && pnode && pnode->doc_ptr && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)))
+    {
+        on_complete_set_word(pnode);
+        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
+        sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+        if (end_pos - start_pos >= ACNAME_LEN)
         {
-            on_complete_set_word(pnode);
-            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
-            sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
-            if (end_pos - start_pos >= ACNAME_LEN)
-            {
-                end_pos = start_pos + ACNAME_LEN;
-            }
-            if (end_pos - start_pos > eu_get_config()->acshow_chars)
-            {
-                Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
-                eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
-                if (word_buffer[0])
-                {
-                    const char *snippet_str = on_complete_get_func(pnode, word_buffer);
-                    char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, word_buffer, snippet_str);
-                    if (STR_NOT_NUL(key))
-                    {
-                        int flags = snippet_str ? SC_AUTOCOMPLETE_FIXED_SIZE | SC_AUTOCOMPLETE_SNIPPET : SC_AUTOCOMPLETE_FIXED_SIZE;
-                        eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
-                        eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, flags, 0);
-                        on_complete_muti_autoc(pnode);
-                        eu_sci_call(pnode, SCI_AUTOCSHOW, current_pos - start_pos, (sptr_t)key);
-                    }
-                    eu_safe_free(key);
-                }
-            }
-            on_complete_unset_word(pnode);
+            end_pos = start_pos + ACNAME_LEN;
         }
+        if (end_pos - start_pos > eu_get_config()->acshow_chars)
+        {
+            char word_buffer[ACNAME_LEN+1] = {0};
+            Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
+            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            if (word_buffer[0])
+            {
+                on_complete_call_autocshow(pnode, word_buffer, current_pos - start_pos);
+            }
+        }
+        on_complete_unset_word(pnode);
     }
 }
 
 void
 on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    int nret = 0;
-    int ch_pre = 0;
-    int ch = 0;
-    char *key = NULL;
     sptr_t n_pos = 0;
     sptr_t current_pos = 0;
-    char word_buffer[ACNAME_LEN+1];
-    if ((pnode && pnode->doc_ptr && lpnotify) && (lpnotify->ch > 0 && lpnotify->ch < 0x80) && eu_get_config()->m_acshow)
+    if (pnode && pnode->doc_ptr && lpnotify && lpnotify->ch > 0 && eu_get_config()->m_acshow)
     {   /* html类文档自动补全提示 */
+        int ch = 0;
+        int ch_pre = 0;
         if (lpnotify->ch == '<')
         {
-            key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL);
-            if (STR_NOT_NUL(key))
-            {
-                on_complete_muti_autoc(pnode);
-                eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
-            }
-            eu_safe_free(key);
+            on_complete_any_autocshow(pnode);
         }
         else if (lpnotify->ch == ' ')
         {
@@ -752,13 +795,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
             }
             if (n_pos >= 0 && ch == '<' && ch_pre != '?' && ch_pre != '%')
             {
-                key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL);
-                if (STR_NOT_NUL(key))
-                {
-                    on_complete_muti_autoc(pnode);
-                    eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
-                }
-                eu_safe_free(key);
+                on_complete_any_autocshow(pnode);
             }
         }
         else if (isalpha(lpnotify->ch))
@@ -774,6 +811,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
             if (start_pos > 0 && end_pos - start_pos >= eu_get_config()->acshow_chars)
             {
                 bool is_attr = false;
+                char word_buffer[ACNAME_LEN+1];
                 for (ch = 0, n_pos = current_pos; n_pos >= 0; n_pos--)
                 {
                     ch_pre = ch;
@@ -794,14 +832,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
                     eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
                     if (word_buffer[0])
                     {
-                        const char *snippet_str = on_complete_get_func(pnode, word_buffer);
-                        key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, word_buffer, snippet_str);
-                        if (STR_NOT_NUL(key))
-                        {
-                            on_complete_muti_autoc(pnode);
-                            eu_sci_call(pnode, SCI_AUTOCSHOW, current_pos - start_pos, (sptr_t) key);
-                        }
-                        eu_safe_free(key);
+                        on_complete_call_autocshow(pnode, word_buffer, current_pos - start_pos);
                     }
                 }
             }
@@ -820,7 +851,7 @@ on_complete_snippet_back(eu_tabpage *pnode)
         complete_t *it = NULL;
         if (!on_complete_update_postion(pnode, &oit, true))
         {
-            on_complete_reset_focus();
+            on_complete_reset_focus(pnode);
             ret = false;
             break;
         }
@@ -831,7 +862,10 @@ on_complete_snippet_back(eu_tabpage *pnode)
         if (it)
         {   // 解析vec数组, 设置shift+tab跳转
             ret = on_complete_snippet_jmp(pnode, it);
-            on_complete_dec_focus();
+            if (ret && pnode->ac_vec)
+            {
+                on_complete_dec_focus();
+            }
         }
         break;
     }
@@ -853,14 +887,17 @@ on_complete_snippet(eu_tabpage *pnode)
     {
         if (!on_complete_update_postion(pnode, &it, false))
         {   // 光标所在编辑过, 更新位置信息
-            on_complete_reset_focus();
+            on_complete_reset_focus(pnode);
             return false;
         }
         if (it && it - pnode->ac_vec < (intptr_t)size)
         {   // 解析vec数组, 设置tab跳转
             it++;
             ret = on_complete_snippet_jmp(pnode, it);
-            on_complete_inc_focus();
+            if (ret && pnode->ac_vec)
+            {
+                on_complete_inc_focus();
+            }
         }
         return ret;
     }
@@ -885,9 +922,24 @@ on_complete_snippet(eu_tabpage *pnode)
                     on_complete_replace(pnode, str, str_space);
                     free(str_space);
                     eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)str);
-                    if (pnode->ac_vec)
+                    if (pnode->ac_vec && (size = cvector_size(pnode->ac_vec)) > 0)
                     {
                         cvector_for_each_and_do(pnode->ac_vec, on_complete_update_vec, pos);
+                        if (size > 1)
+                        {   // 把结构数组按1,2..9,0排序
+                            qsort(pnode->ac_vec, size, sizeof(complete_t), on_complete_struct_cmp);
+                            if (!pnode->ac_vec[0].index)
+                            {
+                                complete_t data = {0};
+                                memcpy(&data, &pnode->ac_vec[0], sizeof(complete_t));
+                                cvector_erase(pnode->ac_vec, 0);
+                                cvector_push_back(pnode->ac_vec, data);
+                            }
+                        }
+                    #ifdef _DEBUG
+                        printf("============ac_vec===========\n");
+                        on_complete_vec_printer(pnode->ac_vec);
+                    #endif
                     }
                 }
             }
@@ -895,9 +947,9 @@ on_complete_snippet(eu_tabpage *pnode)
         if (pos >= 0 && ret && pnode->ac_vec && cvector_size(pnode->ac_vec) > 0)
         {
             it = &pnode->ac_vec[0];
-            on_complete_reset_focus();
+            on_complete_zero_focus();
             ret = on_complete_snippet_jmp(pnode, it);
-            if (ret)
+            if (ret && pnode->ac_vec)
             {
                 pnode->ac_mode = AUTO_CODE;
             }
@@ -950,9 +1002,14 @@ on_complete_unset_word(eu_tabpage *pnode)
 }
 
 void
-on_complete_reset_focus(void)
+on_complete_reset_focus(eu_tabpage *pnode)
 {
     _InterlockedExchange(&last_snippet_focus, 0);
+    if (pnode)
+    {
+        pnode->ac_mode = AUTO_NONE;
+        cvector_freep(&pnode->ac_vec);
+    }
 }
 
 const char *

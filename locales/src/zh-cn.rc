@@ -1142,6 +1142,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_DEC       "已是最新版☑"
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
+    IDS_SNIPPETS_STR        "☑代码片段补全模式"
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -1144,6 +1144,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_DEC       "It Is The Latest Version☑"
     IDS_CHECK_VER_NEW       "New Version Detected Available😀"
     IDS_CHECK_VER_ERR       "Connection Failure✘"
+    IDS_SNIPPETS_STR        "☑Code Snippet Completion"
 }
 
 /////////////////////////////////////////////////////////////////////////////

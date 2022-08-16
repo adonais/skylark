@@ -50,7 +50,7 @@ bool on_complete_snippet_back(eu_tabpage *pnode);
 void on_complete_delay_snippet(void);
 void on_complete_set_word(eu_tabpage *pnode);
 void on_complete_unset_word(eu_tabpage *pnode);
-void on_complete_reset_focus(void);
+void on_complete_reset_focus(eu_tabpage *pnode);
 void on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify);
 void on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify);
 const char *on_complete_get_func(eu_tabpage *pnode, const char *key);

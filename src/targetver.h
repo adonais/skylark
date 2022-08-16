@@ -473,6 +473,7 @@
 #define IDC_SUPPORTEDEXTS_STATIC         (IDD_REGEXT_BOX + 9)
 #define IDC_REGISTEREDEXTS_STATIC        (IDD_REGEXT_BOX + 10)
 
+#define IDS_SNIPPETS_STR                31094
 #define IDS_CHECK_VER_ERR               31095
 #define IDS_CHECK_VER_DEC               31096
 #define IDS_CHECK_VER_NEW               31097

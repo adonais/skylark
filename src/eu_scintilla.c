@@ -454,7 +454,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 sptr_t total_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
                 sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
                 eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
                 eu_sci_call(pnode, SCI_SETEMPTYSELECTION, cur_pos, 0);
                 if (pnode->zoom_level == SELECTION_ZOOM_LEVEEL)
@@ -462,11 +461,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_zoom_reset(pnode);
                     pnode->zoom_level = 0;
                 }
-                if (pnode->ac_vec)
+                if (pnode->ac_vec && (!(eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0) || eu_sci_call(pnode, SCI_CALLTIPACTIVE, 0, 0))))
                 {
-                    pnode->ac_mode = AUTO_NONE;
-                    on_complete_reset_focus();
+                    on_complete_reset_focus(pnode);
                 }
+                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
             }
             else if (pnode->map_show && document_map_initialized)
             {
@@ -526,8 +525,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (pnode->ac_vec)
             {
-                pnode->ac_mode = AUTO_NONE;
-                on_complete_reset_focus();
+                on_complete_reset_focus(pnode);
             }
             pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             on_search_add_navigate_list(pnode, pnode->nc_pos);
