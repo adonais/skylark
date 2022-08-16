@@ -75,6 +75,12 @@ function eu_conf.loadconf()
         "allow_multiple_instance = false\n" ..
         "save_last_placement = \"\"\n" ..
         "ui_language = \"auto\"\n" ..
+        "-- caret default setting\n" ..
+        "caret = {\n" ..
+        "    blink = 500,\n" ..
+        "    width = 2,\n" ..
+        "    rgb = 0x000A99FF\n" ..
+        "}\n" ..
         "-- printer default setting\n" ..
         "printer = {\n" ..
         "    header = 1,\n" ..
@@ -161,6 +167,7 @@ function eu_conf.loadconf()
         allow_multiple_instance,
         save_last_placement,
         ui_language,
+        {caret.blink, caret.width, caret.rgb},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         cache_limit_size,
         snippet_enable,

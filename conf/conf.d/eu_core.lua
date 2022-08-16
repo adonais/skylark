@@ -29,6 +29,13 @@ typedef struct _print_set
     RECT rect;
 }print_set;
 
+typedef struct _caret_set
+{
+    int blink;
+    int width;
+    uint32_t rgb;
+}caret_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -89,6 +96,7 @@ struct eu_config
     bool m_instance;
     char m_placement[1024];
     char m_language[64];
+    caret_set eu_caret;
     print_set eu_print;
     int m_limit;
     int m_snippet_enable;

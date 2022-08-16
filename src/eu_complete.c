@@ -120,16 +120,19 @@ on_complete_postion_cmp(complete_t *pvec, intptr_t pos)
     return 1;
 }
 
-static void
+static inline void
 on_complete_muti_autoc(eu_tabpage *pnode)
 {
-    if (pnode->ac_mode == AUTO_NONE)
+    if (pnode)
     {
-        eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_ONCE, 0);
-    }
-    else
-    {
-        eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_EACH, 0);
+        if (!eu_sci_call(pnode, SCI_AUTOCGETMULTI, 0, 0))
+        {
+            eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_EACH, 0);
+        }
+        if (eu_sci_call(pnode, SCI_GETCARETPERIOD, 0, 0) > 0)
+        {
+            eu_sci_call(pnode, SCI_SETCARETPERIOD, 0, 0);
+        }
     }
 }
 
@@ -716,7 +719,6 @@ on_complete_call_autocshow(eu_tabpage *pnode, const char *word_buffer, const spt
         if (snippet_str)
         {
             flags |= SC_AUTOCOMPLETE_SNIPPET;
-            on_complete_muti_autoc(pnode);
             eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
         }
         eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, flags, 0);
@@ -733,7 +735,6 @@ on_complete_any_autocshow(eu_tabpage *pnode)
         char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL);
         if ((key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL)) && key[0])
         {
-            on_complete_muti_autoc(pnode);
             eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, SC_AUTOCOMPLETE_FIXED_SIZE, 0);
             eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
         }
@@ -948,6 +949,7 @@ on_complete_snippet(eu_tabpage *pnode)
         {
             it = &pnode->ac_vec[0];
             on_complete_zero_focus();
+            on_complete_muti_autoc(pnode);
             ret = on_complete_snippet_jmp(pnode, it);
             if (ret && pnode->ac_vec)
             {
@@ -1009,6 +1011,10 @@ on_complete_reset_focus(eu_tabpage *pnode)
     {
         pnode->ac_mode = AUTO_NONE;
         cvector_freep(&pnode->ac_vec);
+        if (!eu_sci_call(pnode, SCI_SETCARETPERIOD, 0, 0))
+        {
+            eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_config()->eu_caret.blink, 0);
+        }
     }
 }
 

@@ -66,7 +66,6 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     // 代码折叠栏颜色与亮量颜色, 这里与背景色相同
     eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
-
     // 当前行背景色
     eu_sci_call(pnode, SCI_SETCARETLINEVISIBLE, TRUE, 0);
     eu_sci_call(pnode, SCI_SETCARETLINEVISIBLEALWAYS, 1, 0);
@@ -74,9 +73,12 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     // 设置边框透明度
     eu_sci_call(pnode, SCI_SETCARETLINEBACKALPHA, eu_get_theme()->item.caretline.bgcolor >> 24, 0);
     eu_sci_call(pnode, SCI_SETCARETLINEFRAME, 2, 0);
-
+    // 设置插入符样式
     eu_sci_call(pnode, SCI_SETCARETSTYLE, 1, 0);
-    eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.text.color, 0);
+    eu_sci_call(pnode, SCI_SETCARETWIDTH, eu_get_config()->eu_caret.width, 0);
+    eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_config()->eu_caret.blink, 0);
+    eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_config()->eu_caret.rgb != (uint32_t)-1 ? eu_get_config()->eu_caret.rgb : eu_get_theme()->item.text.color, 0);
+    eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_config()->eu_caret.rgb != (uint32_t)-1 ? eu_get_config()->eu_caret.rgb : eu_get_theme()->item.text.color, 0);
     // 选中行背景色
     eu_sci_call(pnode, SCI_SETSELBACK, true, eu_get_theme()->item.indicator.bgcolor);
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);

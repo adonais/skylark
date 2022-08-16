@@ -1644,6 +1644,12 @@ eu_save_config(void)
         "allow_multiple_instance = %s\n"
         "save_last_placement = \"%s\"\n"
         "ui_language = \"%s\"\n"
+        "-- caret default setting\n"
+        "caret = {\n"
+        "    blink = %d,\n"
+        "    width = %d,\n"
+        "    rgb = 0x%08X\n"
+        "}\n"
         "-- print default setting\n"
         "printer = {\n"
         "    header = %d,\n"
@@ -1734,6 +1740,9 @@ eu_save_config(void)
               "false",
               g_config->m_placement,
               g_config->m_language[0]?g_config->m_language:"auto",
+              g_config->eu_caret.blink>=0?g_config->eu_caret.blink:500,
+              g_config->eu_caret.width>=0?g_config->eu_caret.width:1,
+              g_config->eu_caret.rgb,
               g_config->eu_print.header,
               g_config->eu_print.footer,
               g_config->eu_print.color_mode,
