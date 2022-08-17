@@ -32,7 +32,7 @@ enum ${1:enum_var} {
 };
 endsnippet
 
-snippet mark "#pragma mark (mark)"
+snippet mark "#pragma mark (mark)" Ab
 #if 0
 ${1:#pragma mark -
 }#pragma mark $2
@@ -80,6 +80,10 @@ snippet fund "function declaration" b
 ${1:void} ${2:function_name}($3);
 endsnippet
 
+snippet map "std::map (map)"
+std::map<${1:key}, ${2:value}> map$0;
+endsnippet
+
 snippet printf "printf ..."
 fprintf("${1:%s}\n", $0);
 endsnippet
@@ -97,8 +101,8 @@ if (($1 = fopen("${2:filename}", "${3:r}"))) {
 $0
 endsnippet
 
-snippet switch "switch ..."
-switch ${1:switch_on} {
+snippet switch "switch ..." A
+switch (${1:expression}) {
     $0
     default:
         break;
@@ -115,9 +119,17 @@ catch (const std::exception&)
 }
 endsnippet
 
+snippet tp "template <typename ..> (template)"
+template <typename ${1:_InputIter}>
+endsnippet
+
 snippet typedef "typedef ..."
 typedef ${1:int} ${2:MyCustomType};
 $0
+endsnippet
+
+snippet vector "std::vector (v)"
+std::vector<${1:char}> v$0;
 endsnippet
 
 snippet while "while ..."

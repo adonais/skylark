@@ -1140,7 +1140,7 @@ STRINGTABLE DISCARDABLE
     IDS_LOADLIBRARY_SQL     "#> Start loading database DLL ...\n"
     IDS_SNIPPET_EDT_DEFAULT "Snippet Name,Comment,Argument"
     IDS_SNIPPET_COMBO_DEC   "Example"
-    IDS_SNIPPET_EXAMPLE_DEC "${n:PlaceHolder} to mark a placeholder token,\n$0 to mark the insertion point at the end.\nUse tab key jump to the next placeholder\nUse shift+tab jump to the previous placeholder\nExample:\nif (${1:true})\n{\n    $0\n}"
+    IDS_SNIPPET_EXAMPLE_DEC "${n:PlaceHolder} to mark a placeholder token,\n$0 to mark the insertion point at the end.\nUse tab key jump to the next placeholder\nUse shift+tab jump to the previous placeholder\nThe parameter b, It means that the trigger keyword should be at the beginning of line.\nThe parameter A, Indicates automatic trigger.\nExample:\nif (${1:true})\n{\n    $0\n}"
     IDS_CHECK_VER_DEC       "It Is The Latest Version☑"
     IDS_CHECK_VER_NEW       "New Version Detected Available😀"
     IDS_CHECK_VER_ERR       "Connection Failure✘"

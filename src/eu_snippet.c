@@ -108,7 +108,8 @@ on_snippet_init_sci(eu_tabpage *pview)
     if (pview)
     {
         char *u8_str = NULL;
-        LOAD_I18N_RESSTR(IDS_SNIPPET_EXAMPLE_DEC, sc_str);
+        TCHAR sc_str[MAX_BUFFER] = {0};
+        eu_i18n_load_str(IDS_SNIPPET_EXAMPLE_DEC, sc_str, MAX_BUFFER - 1);
         if ((u8_str = eu_utf16_utf8(sc_str, NULL)))
         {
             eu_sci_call(pview, SCI_CLEARALL, 0, 0);

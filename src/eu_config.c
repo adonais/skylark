@@ -347,6 +347,37 @@ on_config_create_accel(void)
     }
 }
 
+static bool
+on_config_sync_snippet(void)
+{
+    TCHAR p1[MAX_PATH+1] = {0};
+    TCHAR p2[MAX_PATH+1] = {0};
+    TCHAR *snippets[] = {_T("cpp.snippets"),
+                         _T("cshape.snippets"),
+                         _T("css.snippets"),
+                         _T("golang.snippets"),
+                         _T("julia.snippets"),
+                         _T("luascript.snippets"),
+                         _T("rust.snippets"),
+                         _T("text.snippets"),
+                         NULL};
+    _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets"), eu_module_path);
+    if (!eu_exist_dir(p2))
+    {
+        if (!eu_mk_dir(p2))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; snippets[i]; ++i)
+    {
+        _sntprintf(p1, MAX_PATH, _T("%s\\conf\\conf.d\\snippets\\%s"), eu_module_path, snippets[i]);
+        _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets\\%s"), eu_module_path, snippets[i]);
+        CopyFile(p1, p2, TRUE);
+    }
+    return true;
+}
+
 bool WINAPI
 eu_load_main_config(void)
 {
@@ -376,6 +407,10 @@ eu_load_config(void)
     TCHAR path[MAX_PATH+1] = {0};
     m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
     if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
+    {
+        goto load_fail;
+    }
+    if (!on_config_sync_snippet())
     {
         goto load_fail;
     }
