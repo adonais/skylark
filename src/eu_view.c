@@ -358,6 +358,12 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
 }
 
 void
+on_view_light_brace(void)
+{
+    eu_get_config()->eu_brace.matching = !eu_get_config()->eu_brace.matching;
+}
+
+void
 on_view_light_str(void)
 {
     eu_get_config()->m_light_str = !eu_get_config()->m_light_str;
@@ -414,7 +420,7 @@ on_view_line_num(void)
 void
 on_view_bookmark(void)
 {
-    eu_get_config()->bookmark_visable = !eu_get_config()->bookmark_visable;
+    eu_get_config()->eu_bookmark.visable = !eu_get_config()->eu_bookmark.visable;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -422,7 +428,7 @@ on_view_bookmark(void)
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
         if (p)
         {
-            eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->bookmark_visable ? MARGIN_BOOKMARK_WIDTH : 0));
+            eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
         }
     }
 }

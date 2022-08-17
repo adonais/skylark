@@ -25,7 +25,6 @@ function eu_conf.loadconf()
         "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n" ..
         "newfile_eols = 2\n" ..
         "newfile_encoding = 10014\n" ..
-        "enable_auto_add_close_char = true\n" ..
         "enable_auto_identation = true\n" ..
         "window_theme = \"default\"\n" ..
         "window_full_screen = false\n" ..
@@ -33,11 +32,6 @@ function eu_conf.loadconf()
         "window_toolbar_visiable = true\n" ..
         "window_statusbar_visiable = true\n" ..
         "line_number_visiable = true\n" ..
-        "bookmark_visiable = true\n" ..
-        "bookmark_shape = 32\n" ..
-        "bookmark_argb = 0x28408040\n" ..
-        "matching_brace_color = 0x0000FF\n" ..
-        "function_calltip_color = 0x768465\n" ..
         "last_search_flags = 0x000044\n" ..
         "white_space_visiable = false\n" ..
         "white_space_size = 3\n" ..
@@ -59,9 +53,6 @@ function eu_conf.loadconf()
         "inter_reserved_1 = 0\n" ..
         "inter_reserved_2 = 0\n" ..
         "block_fold_visiable = true\n" ..
-        "auto_completed_show_enable = true\n" ..
-        "auto_completed_show_after_input_characters = 0\n" ..
-        "call_tip_show_enable = true\n" ..
         "tabs_tip_show_enable = true\n" ..
         "tab_close_way = 0\n" ..
         "tab_switch_forward = 42991\n" ..
@@ -75,11 +66,34 @@ function eu_conf.loadconf()
         "allow_multiple_instance = false\n" ..
         "save_last_placement = \"\"\n" ..
         "ui_language = \"auto\"\n" ..
+        "-- bookmark default setting\n" ..
+        "bookmark = {\n" ..
+        "    visable = true,\n" ..
+        "    shape = 32,\n" ..
+        "    argb = 0x28408040\n" ..
+        "}\n" ..
+        "-- brace default setting\n" ..
+        "brace = {\n" ..
+        "    matching = true,\n" ..
+        "    autoc = true,\n" ..
+        "    rgb = 0x000000FF\n" ..
+        "}\n" ..
         "-- caret default setting\n" ..
         "caret = {\n" ..
         "    blink = 500,\n" ..
         "    width = 2,\n" ..
         "    rgb = 0x000A99FF\n" ..
+        "}\n" ..
+        "-- calltip default setting\n" ..
+        "calltip = {\n" ..
+        "    enable = true,\n" ..
+        "    rgb = 0x00768465\n" ..
+        "}\n" ..
+        "-- auto complete default setting\n" ..
+        "complete = {\n" ..
+        "    enable = true,\n" ..
+        "    characters = 0,\n" ..
+        "    snippet = 44014\n" ..
         "}\n" ..
         "-- printer default setting\n" ..
         "printer = {\n" ..
@@ -94,7 +108,6 @@ function eu_conf.loadconf()
         "}\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
         "cache_limit_size = 200\n" ..
-        "snippet_enable = 44014\n" ..
         "app_build_id = 0\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
@@ -106,18 +119,9 @@ function eu_conf.loadconf()
     else
         eu_code = dofile(file)
     end
-    local m_bookmark_shape = 32
-    local m_bookmark_argb = 0x2408040
-    if (bookmark_shape ~= nil and bookmark_shape >=0) then
-        m_bookmark_shape = bookmark_shape
-    end
-    if (bookmark_argb ~= nil and bookmark_argb >=0) then
-        m_bookmark_argb = bookmark_argb
-    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
-        enable_auto_add_close_char,
         enable_auto_identation,
         window_theme,
         window_full_screen,
@@ -125,11 +129,6 @@ function eu_conf.loadconf()
         window_toolbar_visiable,
         window_statusbar_visiable,
         line_number_visiable,
-        bookmark_visiable,
-        bookmark_shape,
-        bookmark_argb,
-        matching_brace_color,
-        function_calltip_color,
         last_search_flags,
         white_space_visiable,
         white_space_size,
@@ -151,9 +150,6 @@ function eu_conf.loadconf()
         inter_reserved_1,
         inter_reserved_2,
         block_fold_visiable,
-        auto_completed_show_enable,
-        auto_completed_show_after_input_characters,
-        call_tip_show_enable,
         tabs_tip_show_enable,
         tab_close_way,
         tab_switch_forward,
@@ -167,10 +163,13 @@ function eu_conf.loadconf()
         allow_multiple_instance,
         save_last_placement,
         ui_language,
+        {bookmark.visable, bookmark.shape, bookmark.argb},
+        {brace.matching, brace.autoc, brace.rgb},
         {caret.blink, caret.width, caret.rgb},
+        {calltip.enable, calltip.rgb},
+        {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         cache_limit_size,
-        snippet_enable,
         app_build_id,
         process_path,
         other_editor_path,

@@ -226,6 +226,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "&Hex Edit View",                                     IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
+        MENUITEM "Highlight The Matching Brace",                       IDM_VIEW_HIGHLIGHT_BRACE
         MENUITEM "Highlight The Matching String",                      IDM_VIEW_HIGHLIGHT_STR
         MENUITEM "Highlight Current &Block",                           IDM_VIEW_HIGHLIGHT_FOLD
         MENUITEM "Auto Indent",                                        IDM_EDIT_AUTO_INDENTATION

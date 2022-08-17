@@ -746,6 +746,7 @@
 #define IDM_VIEW_HIGHLIGHT_FOLD              42042
 #define IDM_EDIT_LINECOMMENT                 42043
 #define IDM_EDIT_STREAMCOMMENT               42044
+#define IDM_VIEW_HIGHLIGHT_BRACE             42045
 
 // Page Setup
 // based on prnsetup.dlg from Windows SDK

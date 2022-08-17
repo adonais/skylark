@@ -1594,7 +1594,6 @@ eu_save_config(void)
         "newfile_eols = %d\n"
         "-- the macro is defined in the targetver.h\n"
         "newfile_encoding = %d\n"
-        "enable_auto_add_close_char = %s\n"
         "enable_auto_identation = %s\n"
         "window_theme = \"%s\"\n"
         "window_full_screen = %s\n"
@@ -1602,11 +1601,6 @@ eu_save_config(void)
         "window_toolbar_visiable = %s\n"
         "window_statusbar_visiable = %s\n"
         "line_number_visiable = %s\n"
-        "bookmark_visiable = %s\n"
-        "bookmark_shape = %d\n"
-        "bookmark_argb = 0x%08X\n"
-        "matching_brace_color = 0x%08X\n"
-        "function_calltip_color = 0x%08X\n"
         "last_search_flags = 0x%08X\n"
         "white_space_visiable = %s\n"
         "white_space_size = %d\n"
@@ -1628,9 +1622,6 @@ eu_save_config(void)
         "inter_reserved_1 = %d\n"
         "inter_reserved_2 = %d\n"
         "block_fold_visiable = %s\n"
-        "auto_completed_show_enable = %s\n"
-        "auto_completed_show_after_input_characters = %d\n"
-        "call_tip_show_enable = %s\n"
         "tabs_tip_show_enable = %s\n"
         "tab_close_way = %d\n"
         "tab_switch_forward = %d\n"
@@ -1644,11 +1635,34 @@ eu_save_config(void)
         "allow_multiple_instance = %s\n"
         "save_last_placement = \"%s\"\n"
         "ui_language = \"%s\"\n"
+        "-- bookmark default setting\n"
+        "bookmark = {\n"
+        "    visiable = %s,\n"
+        "    shape = %d,\n"
+        "    argb = 0x%08X\n"
+        "}\n"
+        "-- brace default setting\n"
+        "brace = {\n"
+        "    matching = %s,\n"
+		"    autoc = %s,\n"
+        "    rgb = 0x%08X\n"
+        "}\n"
         "-- caret default setting\n"
         "caret = {\n"
         "    blink = %d,\n"
         "    width = %d,\n"
         "    rgb = 0x%08X\n"
+        "}\n"
+        "-- calltip default setting\n"
+        "calltip = {\n"
+        "    enable = %s,\n"
+        "    rgb = 0x%08X\n"
+        "}\n"        
+        "-- auto complete default setting\n"
+        "complete = {\n"
+        "    enable = %s,\n"
+        "    characters = %d,\n"
+        "    snippet = %d\n"
         "}\n"
         "-- print default setting\n"
         "printer = {\n"
@@ -1663,7 +1677,6 @@ eu_save_config(void)
         "}\n"
         "-- automatically cached file (size < 200MB)\n"
         "cache_limit_size = %d\n"
-        "snippet_enable = %d\n"
         "app_build_id = %I64u\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
@@ -1690,7 +1703,6 @@ eu_save_config(void)
     _snprintf(save, BUFF_32K - 1, pconfig,
               g_config->new_file_eol,
               g_config->new_file_enc,
-              g_config->auto_close_chars?"true":"false",
               g_config->m_ident?"true":"false",
               g_config->window_theme[0]?g_config->window_theme:"default",
               g_config->m_fullscreen?"true":"false",
@@ -1698,11 +1710,6 @@ eu_save_config(void)
               g_config->m_toolbar?"true":"false",
               g_config->m_statusbar?"true":"false",
               g_config->m_linenumber?"true":"false",
-              g_config->bookmark_visable?"true":"false",
-              g_config->bookmark_shape,
-              g_config->bookmark_argb,
-              g_config->brace_rgb,
-              g_config->calltip_rgb,
               g_config->last_flags,
               g_config->ws_visiable?"true":"false",
               g_config->ws_size,
@@ -1724,9 +1731,6 @@ eu_save_config(void)
               g_config->inter_reserved_1,
               g_config->inter_reserved_2,
               g_config->block_fold?"true":"false",
-              g_config->m_acshow?"true":"false",
-              g_config->acshow_chars,
-              g_config->m_ctshow?"true":"false",
               g_config->m_tab_tip?"true":"false",
               g_config->m_close_way,
               g_config->m_tab_active,
@@ -1740,9 +1744,20 @@ eu_save_config(void)
               "false",
               g_config->m_placement,
               g_config->m_language[0]?g_config->m_language:"auto",
+              g_config->eu_bookmark.visable?"true":"false",
+              g_config->eu_bookmark.shape,
+              g_config->eu_bookmark.argb,
+              g_config->eu_brace.matching?"true":"false",
+              g_config->eu_brace.autoc?"true":"false",
+              g_config->eu_brace.rgb,
               g_config->eu_caret.blink>=0?g_config->eu_caret.blink:500,
               g_config->eu_caret.width>=0?g_config->eu_caret.width:1,
               g_config->eu_caret.rgb,
+              g_config->eu_calltip.enable?"true":"false",
+              g_config->eu_calltip.rgb,
+              g_config->eu_complete.enable?"true":"false",
+              g_config->eu_complete.characters,
+              g_config->eu_complete.snippet,
               g_config->eu_print.header,
               g_config->eu_print.footer,
               g_config->eu_print.color_mode,
@@ -1752,7 +1767,6 @@ eu_save_config(void)
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
               g_config->m_limit,
-              g_config->m_snippet_enable,
               on_about_build_id(),
               g_config->m_path,
               g_config->editor,

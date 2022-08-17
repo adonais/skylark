@@ -247,12 +247,12 @@ on_code_block_complete(void)
         else if (state == MF_CHECKED)
         {
             util_set_menu_item(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, false);
-            eu_get_config()->m_acshow = false;
+            eu_get_config()->eu_complete.enable = false;
         }
         else
         {
             util_set_menu_item(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, true);
-            eu_get_config()->m_acshow = true;
+            eu_get_config()->eu_complete.enable = true;
         }
     }
 }
@@ -261,13 +261,13 @@ void
 on_code_set_complete_chars(eu_tabpage *pnode)
 {
     TCHAR input_chars[3] = {0};
-    _sntprintf(input_chars, _countof(input_chars)-1, _T("%d"), eu_get_config()->acshow_chars);
+    _sntprintf(input_chars, _countof(input_chars)-1, _T("%d"), eu_get_config()->eu_complete.characters);
     LOAD_I18N_RESSTR(IDC_MSG_AC_STR, ac_str);
     if (eu_input(ac_str, input_chars, _countof(input_chars)))
     {
         if (input_chars[0])
         {
-            eu_get_config()->acshow_chars = _tstoi(input_chars);
+            eu_get_config()->eu_complete.characters = _tstoi(input_chars);
             on_toolbar_update_button();
         }
     }
@@ -289,12 +289,12 @@ on_code_block_calltip(void)
         else if (state == MF_CHECKED)
         {
             util_set_menu_item(hmenu, IDM_SOURCE_ENABLE_CTSHOW, false);
-            eu_get_config()->m_ctshow = false;
+            eu_get_config()->eu_calltip.enable = false;
         }
         else
         {
             util_set_menu_item(hmenu, IDM_SOURCE_ENABLE_CTSHOW, true);
-            eu_get_config()->m_ctshow = true;
+            eu_get_config()->eu_calltip.enable = true;
         }
     }
 }
@@ -320,6 +320,6 @@ on_code_insert_config(eu_tabpage *pnode)
 void
 on_code_close_char(void)
 {
-    eu_get_config()->auto_close_chars = !eu_get_config()->auto_close_chars;
+    eu_get_config()->eu_brace.autoc = !eu_get_config()->eu_brace.autoc;
     on_toolbar_update_button();
 }

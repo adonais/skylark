@@ -270,12 +270,38 @@ typedef struct _caret_set
     uint32_t rgb;
 }caret_set;
 
+typedef struct _bookmark_set
+{
+    bool visable;
+    int  shape;
+    uint32_t argb;
+}bookmark_set;
+
+typedef struct _brace_set
+{
+    bool matching;
+    bool autoc;
+    uint32_t rgb;
+}brace_set;
+
+typedef struct _calltip_set
+{
+    bool enable;
+    uint32_t rgb;
+}calltip_set;
+
+typedef struct _complete_set
+{
+    bool enable;
+    int  characters;
+    int  snippet;
+}complete_set;
+
 struct eu_config
 {
     int new_file_eol;
     int new_file_enc;
 
-    bool auto_close_chars;
     bool m_ident;
     char window_theme[ACNAME_LEN];
     bool m_fullscreen;
@@ -284,11 +310,6 @@ struct eu_config
     bool m_statusbar;
     bool m_linenumber;
 
-    bool bookmark_visable;
-    int  bookmark_shape;
-    uint32_t bookmark_argb;
-    uint32_t brace_rgb;
-    uint32_t calltip_rgb;
     uint32_t last_flags;
     bool ws_visiable;
     int ws_size;
@@ -313,9 +334,6 @@ struct eu_config
     int inter_reserved_2;
 
     bool block_fold;
-    bool m_acshow;
-    int acshow_chars;
-    bool m_ctshow;
     bool m_tab_tip;
 
     int m_close_way;
@@ -330,10 +348,13 @@ struct eu_config
     bool m_instance;
     char m_placement[MAX_BUFFER];
     char m_language[ACNAME_LEN];
+    bookmark_set eu_bookmark;
+    brace_set eu_brace;
     caret_set eu_caret;
+    calltip_set eu_calltip;
+    complete_set eu_complete;
     print_set eu_print;
     int m_limit;
-    int m_snippet_enable;
     uint64_t m_id;
     char m_path[MAX_PATH];
     char editor[MAX_PATH];

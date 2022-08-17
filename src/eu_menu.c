@@ -145,6 +145,7 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_VIEW_TAB_WIDTH, !hex_mode);
         util_enable_menu_item(root_menu, IDM_TAB_CONVERT_SPACES, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_DOCUMENT_MAP, !hex_mode);
+        util_enable_menu_item(root_menu, IDM_VIEW_HIGHLIGHT_BRACE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_HIGHLIGHT_STR, !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_HIGHLIGHT_FOLD, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_AUTO_INDENTATION, !hex_mode);
@@ -401,11 +402,12 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
                         util_set_menu_item(menu, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
                         util_set_menu_item(menu, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
+                        util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_BRACE, eu_get_config()->eu_brace.matching);
                         util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
                         util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_FOLD, eu_get_config()->light_fold);
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
                         util_set_menu_item(menu, IDM_VIEW_LINENUMBER_VISIABLE, eu_get_config()->m_linenumber);
-                        util_set_menu_item(menu, IDM_VIEW_BOOKMARK_VISIABLE, eu_get_config()->bookmark_visable);
+                        util_set_menu_item(menu, IDM_VIEW_BOOKMARK_VISIABLE, eu_get_config()->eu_bookmark.visable);
                         util_set_menu_item(menu, IDM_VIEW_WHITESPACE_VISIABLE, eu_get_config()->ws_visiable);
                         util_set_menu_item(menu, IDM_VIEW_NEWLINE_VISIABLE, eu_get_config()->newline_visialbe);
                         util_set_menu_item(menu, IDM_EDIT_AUTO_INDENTATION, eu_get_config()->m_ident);
@@ -463,17 +465,17 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_SOURCECODE_GOTODEF, enable);
                         break;    
                     case IDM_EDIT_AUTO_CLOSECHAR:
-                        util_set_menu_item(menu, IDM_EDIT_AUTO_CLOSECHAR, eu_get_config()->auto_close_chars);
-                        util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->m_acshow);
-                        util_update_menu_chars(menu, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->acshow_chars);
-                        util_set_menu_item(menu, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->m_ctshow);
+                        util_set_menu_item(menu, IDM_EDIT_AUTO_CLOSECHAR, eu_get_config()->eu_brace.autoc);
+                        util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->eu_complete.enable);
+                        util_update_menu_chars(menu, IDM_SOURCEE_ACSHOW_CHARS, eu_get_config()->eu_complete.characters);
+                        util_set_menu_item(menu, IDM_SOURCE_ENABLE_CTSHOW, eu_get_config()->eu_calltip.enable);
                         break;
                     case IDM_DATABASE_INSERT_CONFIG:
                     case IDM_DATABASE_EXECUTE_SQL:
                         enable = pnode->doc_ptr && !pnode->hex_mode && (pnode->doc_ptr->doc_type == DOCTYPE_SQL||pnode->doc_ptr->doc_type == DOCTYPE_REDIS);
                         util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, enable);
                         util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, enable);
-                        util_switch_menu_group(menu, TAB_MENU_SNIPPET_SUB, IDM_SOURCE_SNIPPET_ENABLE, IDM_SOURCE_SNIPPET_ENABLE, eu_get_config()->m_snippet_enable);
+                        util_switch_menu_group(menu, TAB_MENU_SNIPPET_SUB, IDM_SOURCE_SNIPPET_ENABLE, IDM_SOURCE_SNIPPET_ENABLE, eu_get_config()->eu_complete.snippet);
                         util_enable_menu_item(menu, IDM_EDIT_COMMENT_GROUP, !pnode->hex_mode && pnode->doc_ptr && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
                         util_enable_menu_item(menu, IDM_SOURCE_SNIPPET_GROUP, !pnode->hex_mode && pnode->doc_ptr);
                         break;

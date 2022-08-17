@@ -1391,7 +1391,7 @@ on_doc_character_replace(eu_tabpage *pnode, int ch)
 static void
 on_doc_auto_brackets(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    if (pnode && lpnotify && eu_get_config()->auto_close_chars)
+    if (pnode && lpnotify && eu_get_config()->eu_brace.autoc)
     {   /* 自动补全关闭符号 */
         sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         if (on_doc_character_around_space(pnode, current_pos))
@@ -1426,7 +1426,7 @@ static void
 on_doc_add_bracket(eu_tabpage *pnode, ptr_notify lpnotify)
 {
     /* web脚本自动补全符号 */
-    if (lpnotify->ch == '<' && eu_get_config()->auto_close_chars)
+    if (lpnotify->ch == '<' && eu_get_config()->eu_brace.autoc)
     {
         sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ">");
@@ -1505,7 +1505,7 @@ static int
 on_doc_function_tips(eu_tabpage *pnode, ptr_notify lpnotify)
 {
     char word_buffer[ACNAME_LEN+1] = {0};
-    if (!(pnode && lpnotify && eu_get_config()->m_ctshow))
+    if (!(pnode && lpnotify && eu_get_config()->eu_calltip.enable))
     {
         return 1;
     }
@@ -1599,7 +1599,7 @@ static int
 on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool upper_case)
 {
     char word_buffer[ACNAME_LEN+1];
-    if (pnode && lpnotify && lpnotify->ch == ' ' && eu_get_config()->m_ctshow)
+    if (pnode && lpnotify && lpnotify->ch == ' ' && eu_get_config()->eu_calltip.enable)
     {   /* 函数原型提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
@@ -1670,7 +1670,7 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
             }
         }
     }
-    else if (pnode && lpnotify && lpnotify->ch == '\n' && eu_get_config()->m_ctshow)
+    else if (pnode && lpnotify && lpnotify->ch == '\n' && eu_get_config()->eu_calltip.enable)
     {
         if (eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
         {
@@ -1795,7 +1795,7 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
 {
     sptr_t match_pos = -1;
     bool matching = false;
-    if (eu_get_config()->brace_rgb != (uint32_t)-1)
+    if (pnode && eu_get_config() && eu_get_config()->eu_brace.matching)
     {
         sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
@@ -1810,7 +1810,8 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
             {   // 当键盘输入时, 相邻的括号不要高亮
                 if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
                 {
-                    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_config()->brace_rgb);
+                    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT,
+                                eu_get_config()->eu_brace.rgb != (uint32_t)-1 ? eu_get_config()->eu_brace.rgb : eu_get_theme()->item.text.color);
                     eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.text.bgcolor);
                     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
                     eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);

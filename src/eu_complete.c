@@ -753,7 +753,7 @@ on_complete_call_autocshow(eu_tabpage *pnode, const char *word_buffer, const spt
     char *key = NULL;
     const char *snippet_str = NULL;
     int flags = SC_AUTOCOMPLETE_FIXED_SIZE;
-    if (eu_get_config()->m_snippet_enable)
+    if (eu_get_config()->eu_complete.snippet)
     {
         uint32_t mark = 0;
         snippet_str = on_complete_get_func(pnode, word_buffer);
@@ -782,7 +782,7 @@ on_complete_call_autocshow(eu_tabpage *pnode, const char *word_buffer, const spt
 static void
 on_complete_any_autocshow(eu_tabpage *pnode)
 {
-    if (pnode && pnode->doc_ptr && eu_get_config()->m_acshow)
+    if (pnode && pnode->doc_ptr && eu_get_config()->eu_complete.enable)
     {
         char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL);
         if ((key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL)) && key[0])
@@ -792,6 +792,25 @@ on_complete_any_autocshow(eu_tabpage *pnode)
         }
         eu_safe_free(key);
     }
+}
+
+bool
+on_complete_auto_expand(eu_tabpage *pnode, const char *key, const sptr_t start_pos)
+{
+    uint32_t mark = on_complete_build_flags(pnode, key);
+    bool expand = (mark & COMPLETE_AUTO_EXPAND);
+    if (expand)
+    {
+        if ((mark & COMPLETE_LINE_HEADER) && !on_complete_at_header(pnode, start_pos))
+        {
+            expand = false;
+        }
+    }
+    if (mark > 0 && expand && eu_get_config()->eu_complete.snippet && pnode->ac_mode != AUTO_CODE)
+    {
+        return true;
+    }
+    return false;
 }
 
 void
@@ -812,21 +831,12 @@ on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify)
         eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
         if (word_buffer[0])
         {
-            uint32_t mark = on_complete_build_flags(pnode, word_buffer);
-            bool expand = (mark & COMPLETE_AUTO_EXPAND);
-            if (expand)
-            {
-                if ((mark & COMPLETE_LINE_HEADER) && !on_complete_at_header(pnode, start_pos))
-                {
-                    expand = false;
-                }
-            }
-            if (mark > 0 && expand && eu_get_config()->m_snippet_enable && pnode->ac_mode != AUTO_CODE)
+            if (on_complete_auto_expand(pnode, word_buffer, start_pos))
             {
                 on_complete_reset_focus(pnode);
                 on_complete_snippet(pnode);
             }
-            else if (eu_get_config()->m_acshow && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)) && end_pos - start_pos > eu_get_config()->acshow_chars)
+            else if (eu_get_config()->eu_complete.enable && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)) && end_pos - start_pos > eu_get_config()->eu_complete.characters)
             {
                 on_complete_call_autocshow(pnode, word_buffer, current_pos, start_pos);
             }
@@ -875,7 +885,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
             {
                 end_pos = start_pos + ACNAME_LEN;
             }
-            if (start_pos > 0 && end_pos - start_pos >= eu_get_config()->acshow_chars)
+            if (start_pos > 0 && end_pos - start_pos >= eu_get_config()->eu_complete.characters)
             {
                 bool is_attr = false;
                 char word_buffer[ACNAME_LEN+1];
@@ -899,21 +909,12 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
                     eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
                     if (word_buffer[0])
                     {
-                        uint32_t mark = on_complete_build_flags(pnode, word_buffer);
-                        bool expand = (mark & COMPLETE_AUTO_EXPAND);
-                        if (expand)
-                        {
-                            if ((mark & COMPLETE_LINE_HEADER) && !on_complete_at_header(pnode, start_pos))
-                            {
-                                expand = false;
-                            }
-                        }
-                        if (mark > 0 && expand && eu_get_config()->m_snippet_enable && pnode->ac_mode != AUTO_CODE)
+                        if (on_complete_auto_expand(pnode, word_buffer, start_pos))
                         {
                             on_complete_reset_focus(pnode);
                             on_complete_snippet(pnode);
                         }
-                        else if (eu_get_config()->m_acshow && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)))
+                        else if (eu_get_config()->eu_complete.enable && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)))
                         {
                             on_complete_call_autocshow(pnode, word_buffer, current_pos, start_pos);
                         }

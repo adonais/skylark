@@ -226,6 +226,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "十六进制视图(&H)",                            IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
+        MENUITEM "高亮显示匹配的括号",                          IDM_VIEW_HIGHLIGHT_BRACE
         MENUITEM "高亮显示匹配的字符串",                        IDM_VIEW_HIGHLIGHT_STR
         MENUITEM "高亮当前代码块",                              IDM_VIEW_HIGHLIGHT_FOLD
         MENUITEM "自动缩进",                                    IDM_EDIT_AUTO_INDENTATION

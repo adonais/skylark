@@ -504,7 +504,7 @@ eu_before_proc(MSG *p_msg)
     if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_key = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT);
-        if (p_msg->wParam == VK_TAB && !main_key && eu_get_config() && eu_get_config()->m_snippet_enable)
+        if (p_msg->wParam == VK_TAB && !main_key && eu_get_config() && eu_get_config()->eu_complete.snippet)
         {
             if (!main_key)
             {
@@ -1146,6 +1146,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_HEXEDIT_MODE:
                     hexview_switch_mode(pnode);
                     break;
+                case IDM_VIEW_HIGHLIGHT_BRACE:
+                    on_view_light_brace();
+                    break;
                 case IDM_VIEW_HIGHLIGHT_STR:
                     on_view_light_str();
                     break;
@@ -1293,13 +1296,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_SOURCE_SNIPPET_ENABLE:
                 {
-                    if (eu_get_config()->m_snippet_enable == wm_id)
+                    if (eu_get_config()->eu_complete.snippet == wm_id)
                     {
-                        eu_get_config()->m_snippet_enable = 0;
+                        eu_get_config()->eu_complete.snippet = 0;
                     }
                     else
                     {
-                        eu_get_config()->m_snippet_enable = wm_id;
+                        eu_get_config()->eu_complete.snippet = wm_id;
                     }
                     break;
                 }
@@ -1595,7 +1598,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     int index = (int)eu_sci_call(pnode, SCI_AUTOCGETCURRENT, 0, 0);
                     int opt = (int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0);
-                    if ((opt & SC_AUTOCOMPLETE_SNIPPET) && !index && pnode->ac_mode != AUTO_CODE)
+                    if (((opt & SC_AUTOCOMPLETE_SNIPPET) && !index && pnode->ac_mode != AUTO_CODE) || on_complete_auto_expand(pnode, lpnotify->text, lpnotify->position))
                     {
                         on_complete_reset_focus(pnode);
                         on_complete_delay_snippet();
