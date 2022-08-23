@@ -1,16 +1,32 @@
 # Snippets for Go
 
-snippet import "Import declaration"
+snippet "^import" "Import declaration" r
 import (
 	"${1:package}"
 )
 endsnippet
 
-snippet package "Package declaration" 
+snippet "^package" "Package declaration" r
 // Package $1 provides ...
 package ${1:main}
 endsnippet
 
+# Mostly converted from: https:""github.com"AlanQuatermain"go-tmbundle
+snippet "^cons" "Constants declaration" r
+const (
+	${1:constant} ${2:type} = ${0:value}
+)
+endsnippet
+
+snippet "^con" "Constant declaration" r
+const ${1:name} ${2:type} = ${0:value}
+endsnippet
+
+snippet iota "Iota constant generator" b
+const (
+	${1:constant} ${2:type} = iota
+)
+endsnippet
 snippet struct "Struct declaration" b
 type ${1:Struct} struct {
 	$0
@@ -36,14 +52,14 @@ case$0
 endsnippet
 
 # functions
-snippet main "Main function"
+snippet "^main" "Main function" r
 func main() {
 	$0
 }
 endsnippet
 
 snippet func "Function" b
-func ${1:name}(${2:params})${3:type} {
+func ${1:name}(${2:params}) ${3:type} {
 	$0
 }
 endsnippet
@@ -60,7 +76,13 @@ map[${1:keytype}]${2:valtype}
 endsnippet
 
 snippet var "Variable declaration" b
-var ${1:name}${2:type}${3: = ${0:value}}
+var ${1:name} ${2:type}${3: = ${0:value}}
+endsnippet
+
+snippet vars "Variables declaration" b
+var (
+	${1:name} ${2:type}${3: = ${0:value} }
+)
 endsnippet
 
 snippet err "Basic error handling" b

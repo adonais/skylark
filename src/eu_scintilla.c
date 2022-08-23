@@ -275,6 +275,10 @@ on_sci_free_tab(eu_tabpage **ppnode)
         {
             cvector_freep(&(*ppnode)->ac_vec);
         }
+        if ((*ppnode)->re_group)
+        {
+            cvector_freep(&(*ppnode)->re_group);
+        }
         // 关闭minimap窗口
         if (!on_tabpage_check_map() && hwnd_document_map)
         {

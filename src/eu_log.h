@@ -19,10 +19,6 @@
 #ifndef _EU_LOG_H_
 #define _EU_LOG_H_
 
-#ifndef MAXLEN_FILENAME
-#define MAXLEN_FILENAME 256
-#endif
-
 #ifndef MAX_OUTPUT_BUF
 #define MAX_OUTPUT_BUF 1024*64
 #endif

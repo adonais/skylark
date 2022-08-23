@@ -250,9 +250,9 @@ on_table_disconnect_database(eu_tabpage *pnode, bool force)
         }
         else
         {
-            TCHAR utf_str[16+1] = {0};
+            TCHAR utf_str[OVEC_LEN+1] = {0};
             LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR3, err_msg);
-            on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, 16));
+            on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, OVEC_LEN));
         }
         pnode->db_ptr->connected = false;
         if (force)
@@ -340,7 +340,7 @@ on_table_connect_database(eu_tabpage *pnode)
             if (pnode->db_ptr->config.dbpass[0] == 0)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR7, m_pass);
-                TCHAR dbpass[64] = {0};
+                TCHAR dbpass[ACNAME_LEN] = {0};
                 eu_input(m_pass, dbpass, _countof(dbpass));
                 if (dbpass[0] == 0)
                 {
@@ -352,7 +352,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 }
                 else
                 {
-                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, 64, NULL, NULL);
+                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, ACNAME_LEN, NULL, NULL);
                 }
             }
             this_mysql->mysql = mysql_sub->fn_mysql_real_connect(this_mysql->mysql,
@@ -483,7 +483,7 @@ on_table_connect_database(eu_tabpage *pnode)
             if (pnode->db_ptr->config.dbpass[0] == 0)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR7, m_pass);
-                TCHAR dbpass[64] = {0};
+                TCHAR dbpass[ACNAME_LEN] = {0};
                 eu_input(m_pass, dbpass, _countof(dbpass));
                 if (pnode->db_ptr->config.dbpass[0] == 0)
                 {
@@ -493,7 +493,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 }
                 else
                 {
-                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, 64, NULL, NULL);
+                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, ACNAME_LEN, NULL, NULL);
                 }
             }
             oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &(this_oci->servhpp), OCI_HTYPE_SERVER, (size_t) 0, (dvoid **) 0);

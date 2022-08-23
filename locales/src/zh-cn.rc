@@ -1139,7 +1139,7 @@ STRINGTABLE DISCARDABLE
     IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
     IDS_SNIPPET_EDT_DEFAULT "片段名称,注释,参数"
     IDS_SNIPPET_COMBO_DEC   "示例"
-    IDS_SNIPPET_EXAMPLE_DEC "${n:占位符} 表示光标下一个占位符,\n$0 标记末尾的插入点.\n使用 tab 键跳转到下一个占位符\n使用 shift+tab 跳转到上一个占位符\n参数b, 表示触发关键字应该在行首.\n参数A, 表示自动触发，不需要按Tab键.\n例如:\nif (${1:true})\n{\n    $0\n}"
+    IDS_SNIPPET_EXAMPLE_DEC "${n:占位符} 表示光标下一个占位符,\n$0 标记末尾的插入点.\n使用 tab 键跳转到下一个占位符\n使用 shift+tab 跳转到上一个占位符\n参数A, 表示自动触发，不需要按Tab键.\n参数b, 表示触发关键字应该在行首.\n参数r, 表示触发关键字是正则表达式.\n正则表达式请使用perl正则语法\n捕获组使用\\1...\\9\n示例:\nif (${1:true})\n{\n    $0\n}"
     IDS_CHECK_VER_DEC       "已是最新版☑"
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"

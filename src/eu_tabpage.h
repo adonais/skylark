@@ -28,6 +28,7 @@ extern "C"
 #endif
 
 typedef struct _complete_t *complete_ptr;
+typedef struct _capture_set *capture_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
 typedef void (__stdcall *tab_want)(void *p);
 
@@ -84,6 +85,7 @@ struct _tabpage
     int ac_mode;                // 是否处于snippet模式
     result_vec *ret_vec;        // 搜索结果标记
     complete_ptr ac_vec;        // snippet模式下的vec数组
+    capture_ptr re_group;       // snippet正则模式下捕获组
     tab_want pwant;             // 回调函数, 需要时使用
     intptr_t reserved0;         // 保留, 暂未使用
 };

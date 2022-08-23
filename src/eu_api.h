@@ -78,6 +78,7 @@
 #define FT_LEN      32
 #define ACNAME_LEN  64
 #define FILESIZE    128
+#define MAX_SIZE    256
 #define ENV_LEN     512
 
 #define SNIPPET_FUNID 100
@@ -176,6 +177,9 @@ static inline int eu_cvector_at(int *v, int n)
 
 enum
 {
+    EUE_PCRE_BACK_ABORT   = -40,
+    EUE_PCRE_NO_MATCHING  = -39,
+    EUE_PCRE_EXP_ERR      = -38,
     EUE_POINT_NULL        = -37,
     EUE_PATH_NULL         = -36,
     EUE_UNEXPECTED_SAVE   = -35,

@@ -80,7 +80,7 @@ on_theme_menu_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, LRESUL
             UAHDRAWMENUITEM* pdmi = (UAHDRAWMENUITEM*)lParam;
 
             // 获取菜单字符串
-            wchar_t menuString[256] = { 0 };
+            wchar_t menuString[MAX_SIZE] = { 0 };
             MENUITEMINFO mii = { sizeof(mii), MIIM_STRING };
             mii.dwTypeData = menuString;
             mii.cch = (sizeof(menuString) / 2) - 1;

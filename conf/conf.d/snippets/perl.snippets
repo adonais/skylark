@@ -1,0 +1,84 @@
+###########################################################################
+#                            Perl Snippets                                #
+###########################################################################
+snippet ife "Conditional if..else (ife)"
+if ($1) {
+	${2:# body...}
+}
+else {
+	${3:# else...}
+}
+$0
+endsnippet
+
+snippet ifee "Conditional if..elsif..else (ifee)"
+if ($1) {
+	${2:# body...}
+}
+elsif ($3) {
+	${4:# elsif...}
+}
+else {
+	${5:# else...}
+}
+$0
+endsnippet
+
+snippet xunless "Conditional one-line (unless)"
+${1:expression} unless ${2:condition};
+$0
+endsnippet
+
+snippet xif "Conditional one-line (xif)"
+${1:expression} if ${2:condition};
+
+endsnippet
+
+snippet sub "Function (sub)"
+sub ${1:function_name} {
+	${2:# body...}
+}
+$0
+endsnippet
+
+snippet xfore "Loop one-line (xforeach)"
+${1:expression} foreach @${2:array};
+$0
+endsnippet
+
+snippet xwhile "Loop one-line (xwhile)"
+${1:expression} while ${2:condition};
+$0
+endsnippet
+
+snippet test "Test"
+#!/usr/bin/env perl -w
+
+use strict;
+use Test::More tests => ${1:1};
+use ${2:ModuleName};
+
+ok(${3:assertion});
+$0
+endsnippet
+
+snippet unless "unless"
+unless ($1) {
+	${2:# body...}
+}
+$0
+endsnippet
+
+snippet while "while"
+while ($1) {
+	${2:# body...}
+}
+$0
+endsnippet
+
+snippet until "until"
+until ($1) {
+	${2:# body...}
+}
+$0
+endsnippet

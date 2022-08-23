@@ -19,6 +19,8 @@
 #ifndef _H_AUTO_COMPLETE_
 #define _H_AUTO_COMPLETE_
 
+#define GROUP_SIZE 3
+
 typedef enum _auto_state
 {
     AUTO_NONE = 0,
@@ -32,10 +34,16 @@ typedef struct _auto_postion
 	intptr_t max;
 }auto_postion;
 
+typedef struct _capture_set
+{
+	char cap[GROUP_SIZE];
+	char str[MAX_SIZE];
+}capture_set;
+
 typedef struct _complete_t
 {
     int index;
-    char value[ACNAME_LEN];
+    char value[MAX_SIZE];
     char word[MAX_ACCELS];
     auto_postion pos[OVEC_LEN];
 }complete_t;
@@ -54,7 +62,6 @@ void on_complete_unset_word(eu_tabpage *pnode);
 void on_complete_reset_focus(eu_tabpage *pnode);
 void on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify);
 void on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify);
-const char *on_complete_get_func(eu_tabpage *pnode, const char *key);
 
 #ifdef __cplusplus
 }

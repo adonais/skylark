@@ -39,6 +39,8 @@
 #define UTIL_BASE10(ch) ((ch) >= 0x30 && (ch) <= 0x39)
 #endif
 
+#define util_prev(p) ((p) - (psrc) > 0 ? (p[-1]) : (0))
+
 typedef struct UTIL_STREAM_DESC_* pt_stream;
 typedef void (*ptr_stream_close)(pt_stream pstream);
 typedef struct  UTIL_STREAM_DESC_
@@ -111,7 +113,8 @@ HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 TCHAR* util_unix2path(TCHAR *path);
 TCHAR* util_path2unix(TCHAR *path);
 TCHAR* util_add_double_quotes(const TCHAR *path);
-TCHAR* util_strip_quotes(const TCHAR *path);
+TCHAR* util_wstr_unquote(const TCHAR *path);
+char * util_str_unquote(const char *path);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);

@@ -1984,22 +1984,46 @@ util_add_double_quotes(const TCHAR *path)
 }
 
 TCHAR *
-util_strip_quotes(const TCHAR *path)
+util_wstr_unquote(const TCHAR *path)
 {
-    TCHAR *buf = (TCHAR *)_tcsdup(path);
-    if (buf && path && (path[0] == _T('"') || path[0] == _T('\'')))
+    TCHAR *buf = NULL;
+    if (path)
     {
-        int split = path[0];
-        TCHAR *p = NULL;
-        TCHAR *tmp = (TCHAR *)&path[1];
-        int len = eu_int_cast(_tcslen(path));
-        if ((p = _tcschr(tmp, split)) && p - tmp < len - 1)
+        if ((path[0] == _T('"') || path[0] == _T('\'')))
         {
-            _sntprintf(buf, p - tmp, _T("%s"), tmp);
-            if (p[1] != 0)
+            buf = (TCHAR *)_tcsdup(&path[1]);
+            int len = buf ? eu_int_cast(_tcslen(buf)) : 0;
+            if (len > 0 && (buf[len - 1] == _T('"') || buf[len - 1] == _T('\'')))
             {
-                _tcsncat(buf, &p[1], len);
+                buf[len - 1] = 0;
             }
+        }
+        else
+        {
+            buf = (TCHAR *)_tcsdup(path);
+        }
+    }
+    return buf;
+}
+
+char *
+util_str_unquote(const char *path)
+{
+    char *buf = NULL;
+    if (path)
+    {
+        if ((path[0] == '"' || path[0] == '\''))
+        {
+            buf = (char *)_strdup(&path[1]);
+            int len = buf ? eu_int_cast(strlen(buf)) : 0;
+            if (len > 0 && (buf[len - 1] == '"' || buf[len - 1] == '\''))
+            {
+                buf[len - 1] = 0;
+            }
+        }
+        else
+        {
+            buf = (char *)_strdup(path);
         }
     }
     return buf;

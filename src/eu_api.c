@@ -285,7 +285,7 @@ eu_exist_file(LPCTSTR path)
     {
         return false;
     }
-    while ((fullpath = util_strip_quotes(path)))
+    while ((fullpath = util_wstr_unquote(path)))
     {
         if (_tcslen(fullpath) > 1 && fullpath[1] == L':')
         {
