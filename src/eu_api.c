@@ -1614,6 +1614,7 @@ eu_save_config(void)
         "file_treebar_width = %d\n"
         "symbol_list_width = %d\n"
         "symbol_tree_width = %d\n"
+        "sidebar_width = %d\n"
         "document_map_width = %d\n"
         "sqlquery_result_edit_height = %d\n"
         "sqlquery_result_listview_height = %d\n"
@@ -1723,6 +1724,7 @@ eu_save_config(void)
               g_config->file_tree_width,
               g_config->sym_list_width,
               g_config->sym_tree_width,
+              g_config->sidebar_width,
               g_config->document_map_width,
               g_config->result_edit_height,
               g_config->result_list_height,

@@ -914,7 +914,7 @@ on_complete_var_embed(eu_tabpage *pnode, complete_t *it, int index, complete_t *
 }
 
 static void
-on_complete_sort_update(complete_t *it, int **pv, int offset, int index)
+on_complete_sort_update(eu_tabpage *pnode, complete_t *it, int **pv, int offset, int index)
 {
     if (it && (*pv) && cvector_size(*pv) > 0)
     {
@@ -923,6 +923,8 @@ on_complete_sort_update(complete_t *it, int **pv, int offset, int index)
         {   // 更新所有大于此变量位置的节点
             if (it->pos[j].min > first_pos)
             {
+                bool msub = false;
+                complete_t *oit = NULL;
                 cvector_push_back((*pv), eu_int_cast(it->pos[j].min));
                 qsort((*pv), cvector_size((*pv)), sizeof(int), on_complete_sort_callback);
                 int m = eu_cvector_at((*pv), eu_int_cast(it->pos[j].min));
@@ -932,6 +934,11 @@ on_complete_sort_update(complete_t *it, int **pv, int offset, int index)
                     it->pos[j].max += (m * offset);
                 }
                 cvector_erase((*pv), m);
+                if ((msub = on_complete_var_embed(pnode, it, index, &oit)) && oit && oit != it)
+                {
+                    Sci_TextRange tr = {{it->pos[j].min, it->pos[j].max + offset}, it->value};
+                    eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+                }
             }
         }
     }
@@ -967,7 +974,7 @@ on_complete_update_part(eu_tabpage *pnode, complete_t *pvec, int offset)
             {
                 for (int j = 0; j < OVEC_LEN; ++j)
                 {
-                    if (pvec->pos[i].min >= 0 && it->pos[j].min <= pvec->pos[i].min &&
+                    if (pvec->pos[i].min >= 0 && it->pos[j].min >= 0 && it->pos[j].min <= pvec->pos[i].min &&
                         it->pos[j].min + (intptr_t)strlen(it->value) >= pvec->pos[i].max)
                     {
                         msub = true;
@@ -1063,7 +1070,7 @@ on_complete_update_postion(eu_tabpage *pnode, complete_t **ptr_vec, bool back)
         {
             if (it != oit)
             {
-                on_complete_sort_update(it, &v, offset, oit->index);
+                on_complete_sort_update(pnode, it, &v, offset, oit->index);
             }
         }
         // 变量嵌套时, 更新位置信息

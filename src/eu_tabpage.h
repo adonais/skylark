@@ -45,11 +45,13 @@ struct _tabpage
     RECT rect_qrtable;          // table窗口矩形区域
     RECT rect_map;              // 文档结构图矩形区域
     RECT rect_result;           // 文档搜索结果矩形区域
+    RECT rect_sidebar;          // 侧边栏矩形区域
     int  match_count;           // 查找时匹配计数
     int  tab_id;                // tab编号,用于保存会话
     bool sym_show;              // 是否显示右侧边栏
     bool map_show;              // 是否显示文档结构图
     bool result_show;           // 是否显示文档搜索结果窗口
+    bool sidebar_show;          // 是否显示侧边栏窗口
     bool foldline;              // 是否存在折叠线
     db_conn *db_ptr;            // 数据库配置
     redis_conn *redis_ptr;      // redis配置
