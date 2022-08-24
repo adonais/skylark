@@ -21,16 +21,18 @@
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 
-
 void
-on_sci_init_style(eu_tabpage *pnode)
+on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
 {
-    EU_VERIFY(pnode != NULL);
+    if (!pnode || !eu_get_config() || !eu_get_theme())
+    {
+        return;
+    }
     eu_sci_call(pnode, SCI_STYLERESETDEFAULT, 0, 0);
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, (sptr_t)(eu_get_theme()->item.text.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_get_theme()->item.text.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, eu_get_theme()->item.text.bgcolor);
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor >= 0 ? bgcolor : eu_get_theme()->item.text.bgcolor);
     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
     eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
@@ -47,16 +49,23 @@ on_sci_init_style(eu_tabpage *pnode)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
     }
+    // 自动补全窗口颜色
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST, eu_get_theme()->item.text.color);
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_BACK, eu_get_theme()->item.text.bgcolor);
+    // 函数原型窗口颜色
+	eu_sci_call(pnode, SCI_CALLTIPSETFORE, eu_get_config()->eu_calltip.rgb != (uint32_t)-1 ? eu_get_config()->eu_calltip.rgb : eu_get_theme()->item.text.color, 0);
+	eu_sci_call(pnode, SCI_CALLTIPSETBACK, eu_get_theme()->item.text.bgcolor, 0);
+    // https://www.scintilla.org/ScintillaDoc.html#SCI_STYLESETCHECKMONOSPACED
+    eu_sci_call(pnode, SCI_STYLESETCHECKMONOSPACED, STYLE_DEFAULT, true);
     // 书签栏样式
     eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_BOOKMARK_INDEX, TRUE);
-    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->bookmark_visable ? MARGIN_BOOKMARK_WIDTH : 0));
-    eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_shape);
-    eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
-    eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->bookmark_argb);
+    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
+    eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.shape);
+    eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
+    eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
     // 代码折叠栏颜色与亮量颜色, 这里与背景色相同
     eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
-
     // 当前行背景色
     eu_sci_call(pnode, SCI_SETCARETLINEVISIBLE, TRUE, 0);
     eu_sci_call(pnode, SCI_SETCARETLINEVISIBLEALWAYS, 1, 0);
@@ -64,9 +73,12 @@ on_sci_init_style(eu_tabpage *pnode)
     // 设置边框透明度
     eu_sci_call(pnode, SCI_SETCARETLINEBACKALPHA, eu_get_theme()->item.caretline.bgcolor >> 24, 0);
     eu_sci_call(pnode, SCI_SETCARETLINEFRAME, 2, 0);
-
+    // 设置插入符样式
     eu_sci_call(pnode, SCI_SETCARETSTYLE, 1, 0);
-    eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.text.color, 0);
+    eu_sci_call(pnode, SCI_SETCARETWIDTH, eu_get_config()->eu_caret.width, 0);
+    eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_config()->eu_caret.blink, 0);
+    eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_config()->eu_caret.rgb != (uint32_t)-1 ? eu_get_config()->eu_caret.rgb : eu_get_theme()->item.text.color, 0);
+    eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_config()->eu_caret.rgb != (uint32_t)-1 ? eu_get_config()->eu_caret.rgb : eu_get_theme()->item.text.color, 0);
     // 选中行背景色
     eu_sci_call(pnode, SCI_SETSELBACK, true, eu_get_theme()->item.indicator.bgcolor);
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
@@ -132,6 +144,12 @@ on_sci_init_style(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
     // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
     eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
+}
+
+void
+on_sci_init_style(eu_tabpage *pnode)
+{
+    on_sci_init_default(pnode, -1);
 }
 
 void
@@ -216,14 +234,13 @@ on_sci_free_tab(eu_tabpage **ppnode)
     if (STR_NOT_NUL(ppnode))
     {
         HWND hwnd = eu_module_hwnd();
+        // 关闭数据库链接
         if ((*ppnode)->db_ptr)
         {
-            // 关闭数据库链接
             on_table_disconnect_database(*ppnode, true);
         }
         if ((*ppnode)->redis_ptr)
         {
-            // 关闭redis数据库链接
             on_symtree_disconnect_redis(*ppnode);
         }
         // 销毁控件句柄
@@ -249,15 +266,25 @@ on_sci_free_tab(eu_tabpage **ppnode)
             (*ppnode)->result_show = false;
             eu_safe_free((*ppnode)->presult);
         }
-        if ((*ppnode)->pvec && cvector_size((*ppnode)->pvec) > 0)
+        // 释放保存结果的vec数组
+        if ((*ppnode)->ret_vec)
         {
-            cvector_free((*ppnode)->pvec);
-            (*ppnode)->pvec = NULL;
+            cvector_freep(&(*ppnode)->ret_vec);
         }
+        if ((*ppnode)->ac_vec)
+        {
+            cvector_freep(&(*ppnode)->ac_vec);
+        }
+        if ((*ppnode)->re_group)
+        {
+            cvector_freep(&(*ppnode)->re_group);
+        }
+        // 关闭minimap窗口
         if (!on_tabpage_check_map() && hwnd_document_map)
         {
             DestroyWindow(hwnd_document_map);
         }
+        // 切换16进制时,销毁相关资源
         if (!(*ppnode)->phex)
         {
             if ((*ppnode)->hwnd_sc)
@@ -381,7 +408,7 @@ on_sci_point_left(eu_tabpage *pnode)
 }
 
 void
-on_sci_character(eu_tabpage *pnode, SCNotification *lpnotify)
+on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify)
 {
     if (pnode && !pnode->hex_mode && pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
     {
@@ -413,7 +440,7 @@ on_sci_menu_callback(HMENU hpop, void *param)
     {
         util_enable_menu_item(hpop, IDM_EDIT_CUT, util_can_selections(p));
         util_enable_menu_item(hpop, IDM_EDIT_COPY, util_can_selections(p));
-        util_enable_menu_item(hpop, IDM_EDIT_PASTE, eu_sci_call(p,SCI_CANPASTE, 0, 0));
+        util_enable_menu_item(hpop, IDM_EDIT_PASTE, eu_sci_call(p, SCI_CANPASTE, 0, 0));
     }
 }
 
@@ -433,7 +460,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 sptr_t total_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
                 sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
                 eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
                 eu_sci_call(pnode, SCI_SETEMPTYSELECTION, cur_pos, 0);
                 if (pnode->zoom_level == SELECTION_ZOOM_LEVEEL)
@@ -441,6 +467,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_zoom_reset(pnode);
                     pnode->zoom_level = 0;
                 }
+                if (pnode->ac_vec && (!(eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0) || eu_sci_call(pnode, SCI_CALLTIPACTIVE, 0, 0))))
+                {
+                    on_complete_reset_focus(pnode);
+                }
+                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
             }
             else if (pnode->map_show && document_map_initialized)
             {
@@ -465,6 +496,14 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_KEYUP:
         {
+            if (KEY_DOWN(VK_CONTROL) || KEY_DOWN(VK_MENU))
+            {
+                break;
+            }
+            if (wParam == VK_CONTROL || wParam == VK_MENU)
+            {
+                break;
+            }
             if ((pnode = on_tabpage_focus_at()) == NULL)
             {
                 break;
@@ -480,10 +519,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             on_statusbar_update_line(pnode);
             break;
         }
-        case WM_MOUSEWHEEL:
-        {
-            break;
-        }
         case WM_LBUTTONUP:
         {
             if ((pnode = on_tabpage_focus_at()) == NULL)
@@ -493,6 +528,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (!(wParam & 0xff))
             {
                 on_doc_brace_light(pnode, false);
+            }
+            if (pnode->ac_vec)
+            {
+                on_complete_reset_focus(pnode);
             }
             pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             on_search_add_navigate_list(pnode, pnode->nc_pos);

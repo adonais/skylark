@@ -27,17 +27,10 @@ extern "C"
 {
 #endif
 
-typedef int (*tab_ptr)(eu_tabpage *p);
-
-typedef struct _result_postion {
-    intptr_t start;
-    intptr_t end;
-} result_postion;
-
-typedef  struct _result_vec {
-    intptr_t line;
-    result_postion mark;
-}result_vec;
+typedef struct _complete_t *complete_ptr;
+typedef struct _capture_set *capture_ptr;
+typedef int  (*tab_ptr)(eu_tabpage *p);
+typedef void (__stdcall *tab_want)(void *p);
 
 struct _tabpage
 {
@@ -52,11 +45,13 @@ struct _tabpage
     RECT rect_qrtable;          // table窗口矩形区域
     RECT rect_map;              // 文档结构图矩形区域
     RECT rect_result;           // 文档搜索结果矩形区域
+    RECT rect_sidebar;          // 侧边栏矩形区域
     int  match_count;           // 查找时匹配计数
     int  tab_id;                // tab编号,用于保存会话
     bool sym_show;              // 是否显示右侧边栏
     bool map_show;              // 是否显示文档结构图
     bool result_show;           // 是否显示文档搜索结果窗口
+    bool sidebar_show;          // 是否显示侧边栏窗口
     bool foldline;              // 是否存在折叠线
     db_conn *db_ptr;            // 数据库配置
     redis_conn *redis_ptr;      // redis配置
@@ -80,7 +75,6 @@ struct _tabpage
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
-    volatile long want;         // 标签引用计数器
     size_t bytes_remaining;     // 文件变动后的大小
     size_t bytes_written;       // 文件保存时写入的长度
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
@@ -90,7 +84,12 @@ struct _tabpage
     bool last_focus;            // 保存前台焦点
     int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
-    result_vec *pvec;           // 临时保存行号
+    int ac_mode;                // 是否处于snippet模式
+    result_vec *ret_vec;        // 搜索结果标记
+    complete_ptr ac_vec;        // snippet模式下的vec数组
+    capture_ptr re_group;       // snippet正则模式下捕获组
+    tab_want pwant;             // 回调函数, 需要时使用
+    intptr_t reserved0;         // 保留, 暂未使用
 };
 
 extern HWND g_tabpages;

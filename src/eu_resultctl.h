@@ -25,12 +25,11 @@
 extern "C" {
 #endif
 
-extern HWND hwnd_rst;
-
 int on_result_append_text(wchar_t*format , ...);
 int on_result_append_text_utf8(char *format , ...);
 bool on_result_launch(eu_tabpage *pnode);
-void on_result_reload(eu_tabpage *prst);
+void on_result_reload(eu_tabpage *p);
+void on_result_move_sci(eu_tabpage *p, int width, int height);
 
 #ifdef __cplusplus
 }

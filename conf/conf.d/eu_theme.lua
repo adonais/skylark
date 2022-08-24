@@ -9,12 +9,12 @@ function eu_theme.get_default(name)
           "linenumber_font = \"Consolas\"\n" ..
           "linenumber_fontsize = 9\n" ..
           "linenumber_color = 0x00A0A0A0\n" ..
-          "linenumber_bgcolor = 0x001E1E1E\n" ..
+          "linenumber_bgcolor = 0x00111111\n" ..
           "linenumber_bold = 0\n" ..
           "foldmargin_font = \"Consolas\"\n" ..
           "foldmargin_fontsize = 9\n" ..
           "foldmargin_color = 0x00000000\n" ..
-          "foldmargin_bgcolor = 0x001E1E1E\n" ..
+          "foldmargin_bgcolor = 0x00111111\n" ..
           "foldmargin_bold = 0\n" ..
           "text_font = \"Consolas\"\n" ..
           "text_fontsize = 11\n" ..
@@ -253,7 +253,7 @@ function eu_theme.get_default(name)
           "linenumber_font = \"Consolas\"\n" ..
           "linenumber_fontsize = 9\n" ..
           "linenumber_color = 0x00FFFFFF\n" ..
-          "linenumber_bgcolor = 0x00444444\n" ..
+          "linenumber_bgcolor = 0x004E4C4C\n" ..
           "linenumber_bold = 0\n" ..
           "foldmargin_font = \"Consolas\"\n" ..
           "foldmargin_fontsize = 9\n" ..

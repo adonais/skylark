@@ -395,6 +395,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
                                rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
                 SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+                on_statusbar_btn_rw(pnode, true);
             }
         }
         else if (g_statusbar)
@@ -442,15 +443,14 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 }
             }
         }
-        if (RESULT_SHOW(pnode) && hwnd_rst)
+        if (RESULT_SHOW(pnode) && eu_result_hwnd())
         {
             RECT r = {0, 0, pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH};
-            eu_setpos_window(hwnd_rst, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+            eu_setpos_window(eu_result_hwnd(), HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
                              pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
             eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-            eu_setpos_window(pnode->presult->hwnd_sc, HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
-                             pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
+            on_result_move_sci(pnode, pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top);
             on_result_reload(pnode->presult);
             if (pnode->hwnd_qrtable)
             {
@@ -463,11 +463,8 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 InvalidateRect(g_splitter_tablebar, &r, 0);
                 UpdateWindow(g_splitter_tablebar);
             }
-            InvalidateRect(pnode->presult->hwnd_sc, &pnode->rect_result, 1);
-            UpdateWindow(pnode->presult->hwnd_sc);
         }
         PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
-        on_statusbar_update();
     }
 }
 
@@ -497,27 +494,35 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
-    if (p_msg->message == WM_SYSKEYDOWN && 49 <= p_msg->wParam && p_msg->wParam <= 57 && (p_msg->lParam & (1 << 29)))
+    if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
     {
-        if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 49)))
+        if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 0x31)))
         {
             return 1;
         }
     }
-    if((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && p_msg->message == WM_KEYDOWN)
+    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
-        if (p_msg->hwnd == pnode->hwnd_sc)
+        bool main_key = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT);
+        if (p_msg->wParam == VK_TAB && !main_key && eu_get_config() && eu_get_config()->eu_complete.snippet)
         {
-            bool main_key = pnode->doc_ptr ? KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_SHIFT) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) : false;
-            if (main_key && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+            if (!main_key)
             {
-                on_sci_insert_egg(pnode);
-                return 1;
+                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
+                if (KEY_DOWN(VK_SHIFT))
+                {
+                    return on_complete_snippet_back(pnode);
+                }
+                else if (on_complete_snippet(pnode))
+                {
+                    return 1;
+                }
             }
         }
-        else if (RESULT_SHOW(pnode) && p_msg->hwnd == pnode->presult->hwnd_sc && p_msg->wParam == 0x43 && KEY_DOWN(VK_CONTROL))
-        {   // 响应搜索结果窗口的复制快捷键
-            eu_sci_call(pnode->presult, SCI_COPY, 0, 0);
+        else if (main_key && KEY_DOWN(VK_SHIFT) && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+        {
+            on_sci_insert_egg(pnode);
+            return 1;
         }
     }
     return 0;
@@ -527,7 +532,7 @@ LRESULT CALLBACK
 eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     NMHDR *lpnmhdr = NULL;
-    SCNotification *lpnotify = NULL;
+    ptr_notify lpnotify = NULL;
     TOOLTIPTEXT *p_tips = NULL;
     eu_tabpage *pnode = NULL;
     LRESULT result = 0;
@@ -610,10 +615,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 EndDialog(on_qrgen_hwnd(), 0);
             }
-            if (true)
-            {   // 是否按下大写键
-                on_statusbar_btn_case();
-            }
             if (g_hwndmain == GetForegroundWindow())
             {
                 ONCE_RUN(on_changes_window(hwnd));
@@ -663,6 +664,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_THEMECHANGED:
+            on_snippet_destory();
             if (on_dark_supports())
             {
                 on_dark_allow_window(hwnd, true);
@@ -674,7 +676,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 on_toolbar_refresh(hwnd);
                 on_dark_set_theme(g_treebar, L"Explorer", NULL);
-                on_dark_set_theme(g_tabpages, L"Explorer", NULL);
                 if (g_filetree)
                 {
                     SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
@@ -955,10 +956,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_encoding_convert_internal_code(pnode, on_encoding_big5_gb);
                     break;
                 case IDM_EDIT_AUTO_CLOSECHAR:
-                    on_edit_close_char();
+                    on_code_close_char();
                     break;
                 case IDM_EDIT_AUTO_INDENTATION:
-                    on_edit_identation();
+                    on_view_identation();
                     break;
                 case IDM_OPEN_FILE_PATH:
                 {
@@ -1114,6 +1115,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_GOTOLINE:
                     on_search_jmp_specified_line(pnode);
                     break;
+                case IDM_SEARCH_MATCHING_BRACE:
+                case IDM_SEARCH_MATCHING_BRACE_SELECT:
+                    on_search_jmp_matching_brace(pnode, &wm_id);
+                    break;
                 case IDM_SEARCH_NAVIGATE_PREV_THIS:
                     on_search_back_navigate_this();
                     break;
@@ -1140,6 +1145,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_VIEW_HEXEDIT_MODE:
                     hexview_switch_mode(pnode);
+                    break;
+                case IDM_VIEW_HIGHLIGHT_BRACE:
+                    on_view_light_brace();
                     break;
                 case IDM_VIEW_HIGHLIGHT_STR:
                     on_view_light_str();
@@ -1286,6 +1294,21 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_DATABASE_INSERT_CONFIG:  // 插入sql头
                     on_code_insert_config(pnode);
                     break;
+                case IDM_SOURCE_SNIPPET_ENABLE:
+                {
+                    if (eu_get_config()->eu_complete.snippet == wm_id)
+                    {
+                        eu_get_config()->eu_complete.snippet = 0;
+                    }
+                    else
+                    {
+                        eu_get_config()->eu_complete.snippet = wm_id;
+                    }
+                    break;
+                }
+                case IDM_SOURCE_SNIPPET_CONFIGURE:
+                    on_snippet_create_dlg(hwnd);
+                    break;
                 case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql,redis
                     on_view_result_show(pnode, 0);
                     break;
@@ -1356,7 +1379,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NOTIFY:
         {
             lpnmhdr = (NMHDR *) lParam;
-            lpnotify = (SCNotification *) lParam;
+            lpnotify = (ptr_notify) lParam;
             p_tips = (TOOLTIPTEXT *) lParam;
             eu_tabpage *pview = NULL;
             if (lpnmhdr->hwndFrom == g_filetree)
@@ -1571,6 +1594,17 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case SCN_AUTOCSELECTION:
+                {
+                    int index = (int)eu_sci_call(pnode, SCI_AUTOCGETCURRENT, 0, 0);
+                    int opt = (int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0);
+                    if (((opt & SC_AUTOCOMPLETE_SNIPPET) && !index && pnode->ac_mode != AUTO_CODE) || on_complete_auto_expand(pnode, lpnotify->text, lpnotify->position))
+                    {
+                        on_complete_reset_focus(pnode);
+                        on_complete_delay_snippet();
+                    }
+                    return 1;
+                }
                 case TTN_NEEDTEXT:
                 {
                     if (!eu_get_config()->m_tab_tip)
@@ -1652,6 +1686,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (document_map_initialized && hwnd_document_map)
             {
                 PostMessage(hwnd_document_map, WM_MOVE, 0, 0);
+            }
+            if (g_statusbar)
+            {
+                PostMessage(g_statusbar, WM_MOVE, 0, 0);
             }
             break;
         }

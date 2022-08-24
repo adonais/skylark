@@ -36,7 +36,7 @@ using namespace Scintilla::Internal;
 AutoComplete::AutoComplete() :
 	active(false),
 	separator(' '),
-	typesep('?'),
+	typesep('\x1E'),
 	ignoreCase(false),
 	chooseSingle(false),
 	options(AutoCompleteOption::Normal),
@@ -65,11 +65,15 @@ bool AutoComplete::Active() const noexcept {
 void AutoComplete::Start(Window &parent, int ctrlID,
 	Sci::Position position, Point location, Sci::Position startLen_,
 	int lineHeight, bool unicodeMode, Technology technology, ListOptions listOptions) {
+	/*
 	if (active) {
 		Cancel();
 	}
+	*/
 	lb->SetOptions(listOptions);
-	lb->Create(parent, ctrlID, location, lineHeight, unicodeMode, technology);
+	if (!active) {
+	    lb->Create(parent, ctrlID, location, lineHeight, unicodeMode, technology);
+	}
 	lb->Clear();
 	active = true;
 	startLen = startLen_;

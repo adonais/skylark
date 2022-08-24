@@ -1241,16 +1241,8 @@ on_treebar_update_addr(remotefs *pserver)
         {
             if (strcmp(tvd->server->servername, pserver->servername) == 0)
             {
-                TCHAR networkaddr[MAX_PATH+1] = {0};
-                MultiByteToWideChar(CP_UTF8, 0, pserver->networkaddr, -1, networkaddr, MAX_PATH);
-                if (pserver->accesss == 0)
-                {
-                    _sntprintf(tvd->filepath, MAX_PATH - 1, _T("sftp://%s:%d/~/"), networkaddr, pserver->port);
-                }
-                else
-                {
-                    _sntprintf(tvd->filepath, MAX_PATH - 1, _T("sftp://%s:%d/"), networkaddr, pserver->port);
-                }
+                TreeView_DeleteItem(g_filetree, hti_root);
+                on_treebar_load_remote(g_filetree , pserver);
                 break;
             }
         }
@@ -1271,7 +1263,7 @@ on_treebar_variable_initialized(HWND *pd)
 static unsigned __stdcall
 on_treebar_wait_thread(void *lp)
 {
-    return on_treebar_variable_initialized(&g_filetree); 
+    return on_treebar_variable_initialized(&g_filetree);
 }
 
 void
@@ -1550,11 +1542,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                     }
-                    HGDIOBJ hfont = SelectObject(hdc, old_font);
-                    if (hfont)
-                    {
-                        DeleteObject(hfont);
-                    }
+                    SelectObject(hdc, old_font);
                 }
                 EndPaint(hwnd, &ps);
             }
@@ -1621,7 +1609,6 @@ on_treebar_create_box(HWND hwnd)
         return EUE_POINT_NULL;
     }
     SendMessage(g_treebar, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), 0);
-    SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
     return SKYLARK_OK;
 }
 

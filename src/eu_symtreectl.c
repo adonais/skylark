@@ -25,7 +25,7 @@ get_symtree_str(eu_tabpage *pnode, bool get_parent)
 {
     HTREEITEM hti;
     TVITEM tvi = {0};
-    TCHAR file_str[MAXLEN_FILENAME] = {0};
+    TCHAR file_str[MAX_SIZE] = {0};
     char *cnv = NULL;
     hti = TreeView_GetSelection(pnode->hwnd_symtree);
     if (hti == NULL)
@@ -82,7 +82,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
     int words2_buf_len;
     int words2_remain_len;
     char *words2 = NULL;
-    char sql[MAXLEN_FILENAME];
+    char sql[MAX_SIZE];
     int err = 0;
     TVITEM tvi;
     TVINSERTSTRUCT tvis;
@@ -759,7 +759,7 @@ on_symtree_connect_redis(eu_tabpage *pnode)
     do
     {
         struct timeval timeout;
-        char command[MAXLEN_FILENAME] = {0};
+        char command[MAX_SIZE] = {0};
         struct redisReply *reply = NULL;
         timeout.tv_sec = 10;
         timeout.tv_usec = 0;
@@ -775,7 +775,7 @@ on_symtree_connect_redis(eu_tabpage *pnode)
         }
         if (pnode->redis_ptr->config.pass[0])
         {
-            snprintf(command, MAXLEN_FILENAME - 1, "auth %s", pnode->redis_ptr->config.pass);
+            snprintf(command, MAX_SIZE - 1, "auth %s", pnode->redis_ptr->config.pass);
             reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->redis_ptr->ctx, command);
             err = (reply == NULL || reply->type == REDIS_REPLY_ERROR) ? REDIS_REPLY_ERROR : 0;
             redis_funcs.fnFreeReplyObject(reply);
@@ -787,7 +787,7 @@ on_symtree_connect_redis(eu_tabpage *pnode)
         }
         if (pnode->redis_ptr->config.dbsl[0])
         {
-            snprintf(command, MAXLEN_FILENAME - 1, "select %s", pnode->redis_ptr->config.dbsl);
+            snprintf(command, MAX_SIZE - 1, "select %s", pnode->redis_ptr->config.dbsl);
             reply = (struct redisReply *) redis_funcs.fnRedisCommand(pnode->redis_ptr->ctx, command);
             err = (reply == NULL || reply->type == REDIS_REPLY_ERROR) ? REDIS_REPLY_ERROR : 0;
             redis_funcs.fnFreeReplyObject(reply);

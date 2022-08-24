@@ -30,14 +30,7 @@ static volatile long search_id = 0;
 static HANDLE search_event_final = NULL;
 static HWND hwnd_regxp_tips = NULL;
 
-#define INCLUDE_FOLDER_SUB     0x00000001
-#define INCLUDE_FOLDER_HIDDEN  0x00000002
-#define INCLUDE_FILE_UTF8      0x00000004
-#define ON_OTHER_PAGE          0x00000001
-#define ON_REPLACE_THIS        0x00000002
-#define ON_REPLACE_ALL         0x00000004
-#define HSCRALL_LEN            768
-
+#define HSCRALL_LEN 768
 #define DLG_BTN_CHECK(h, i)                 \
     (IsDlgButtonChecked(h, i) == BST_CHECKED)
 #define CONTROL_HANDLE(hc, resi, sw)        \
@@ -313,24 +306,42 @@ on_search_tab_ui(int index)
 static void
 on_search_init_option(void)
 {
-    HWND hwnd_loop = GetDlgItem(hwnd_search_dlg, IDC_MATCH_LOOP);
-    HWND hwnd_word = GetDlgItem(hwnd_search_dlg, IDC_MATCH_WORD);
-    HWND hwnd_wdst = GetDlgItem(hwnd_search_dlg, IDC_MATCH_WDSTART);
-    HWND hwnd_case = GetDlgItem(hwnd_search_dlg, IDC_MATCH_CASE);
-    HWND hwnd_file = GetDlgItem(hwnd_search_dlg, IDC_MATCH_ALL_FILE);
-    HWND hwnd_mode = GetDlgItem(hwnd_search_dlg, IDC_MODE_NORMAL);
-    HWND hwnd_rgxp = GetDlgItem(hwnd_search_dlg, IDC_MODE_REGEXP);
-    Button_SetCheck(hwnd_file, BST_UNCHECKED);
-    Button_SetCheck(hwnd_loop, BST_UNCHECKED);
-    Button_SetCheck(hwnd_word, BST_UNCHECKED);
-    Button_SetCheck(hwnd_wdst, BST_UNCHECKED);
-    Button_SetCheck(hwnd_rgxp, BST_UNCHECKED);
-    Button_SetCheck(hwnd_case, BST_CHECKED);
-    Button_SetCheck(hwnd_mode, BST_CHECKED);
-    EnableWindow(hwnd_word, true);
-    EnableWindow(hwnd_wdst, true);
-    WPARAM wParam = MAKELONG(IDC_SEARCH_HEX_STRINGS, 0);
-    PostMessage(hwnd_search_dlg, WM_COMMAND, wParam, 0);
+    const btn_state bs[] =
+    {
+        {IDC_MATCH_ALL_FILE, ON_REPLACE_ALL},
+        {IDC_MATCH_LOOP, ON_LOOP_FLAGS},
+        {IDC_MATCH_WDSTART, SCFIND_WORDSTART},
+        {IDC_MATCH_WORD, SCFIND_WHOLEWORD},
+        {IDC_MATCH_CASE, SCFIND_MATCHCASE},
+        {IDC_SEARCH_CD_CHK, INCLUDE_CURRENT_FOLDER},
+        {IDC_SEARCH_SUB_CHK, INCLUDE_FOLDER_SUB},
+        {IDC_SEARCH_HIDE_CHK, INCLUDE_FOLDER_HIDDEN},
+        {IDC_SEARCH_UTF8_CHK, INCLUDE_FILE_UTF8},
+        {IDC_SEARCH_HEX_STRINGS, ON_HEX_STRINGS},
+        {IDC_MODE_NORMAL, NO_REGXP_FLAGS},
+        {IDC_MODE_REGEXP, SCFIND_REGEXP}
+    };
+    for (int i = 0; i < _countof(bs); ++i)
+    {
+        HWND btn = GetDlgItem(hwnd_search_dlg, bs[i].id);
+        if (eu_get_config()->last_flags & bs[i].mask)
+        {
+            Button_SetCheck(btn, BST_CHECKED);
+        }
+        else
+        {
+            Button_SetCheck(btn, BST_UNCHECKED);
+        }
+    }
+    if (eu_get_config()->last_flags & IDC_MODE_REGEXP)
+    {
+        PostMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_MODE_REGEXP, 0), 0);
+    }
+    else
+    {
+        PostMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_MODE_NORMAL, 0), 0);
+    }
+    PostMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_SEARCH_HEX_STRINGS, 0), 0);
 }
 
 void
@@ -381,6 +392,58 @@ on_search_jmp_pos(eu_tabpage *pnode)
     }
 }
 
+void
+on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres)
+{
+    if (pnode && pres)
+    {
+        int char_before = 0;
+        sptr_t brace_caret = -1;
+        sptr_t brace_pos = -1;
+        sptr_t caret_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t length = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+	    if ((length > 0) && (caret_pos > 0))
+        {
+	    	char_before = (int)eu_sci_call(pnode, SCI_GETCHARAT, caret_pos - 1, 0);
+	    }
+	    if (char_before && strchr("[](){}", char_before))
+        {
+	    	brace_caret = caret_pos - 1;
+	    }
+	    if (length > 0  && (brace_caret < 0))
+        {   // 没找到, 向另一侧匹配
+	    	int char_after = (int)eu_sci_call(pnode, SCI_GETCHARAT, caret_pos, 0);
+	    	if (char_after && strchr("[](){}", char_after))
+            {
+	    		brace_caret = caret_pos;
+	    	}
+	    }
+	    if (brace_caret >= 0)
+	    {
+	        brace_pos = eu_sci_call(pnode, SCI_BRACEMATCH, brace_caret, 0);
+	    }
+	    if (brace_pos != -1)
+	    {
+	        if (*pres == IDM_SEARCH_MATCHING_BRACE)
+	        {
+	            eu_sci_call(pnode, SCI_GOTOPOS, brace_pos, 0);
+	        }
+	        else if (*pres == IDM_SEARCH_MATCHING_BRACE_SELECT)
+	        {
+	            eu_sci_call(pnode, SCI_SETSEL, min(brace_caret, brace_pos), max(brace_caret, brace_pos) + 1);
+	        }
+	        else
+	        {
+	            *pres = 1;
+	        }
+	    }
+	    else
+	    {
+	        *pres = 0;
+	    }
+    }
+}
+
 static size_t
 on_search_build_flags(HWND hwnd_search)
 {
@@ -393,7 +456,7 @@ on_search_build_flags(HWND hwnd_search)
     {
         flags |= SCFIND_MATCHCASE;
     }
-    if (flags & SCFIND_REGEXP)
+    if (!(flags & SCFIND_REGEXP))
     {   // 如果是正则表达式, 忽略这两个标志
         if (DLG_BTN_CHECK(hwnd_search, IDC_MATCH_WORD))
         {
@@ -1693,6 +1756,20 @@ on_search_push_string_listbox(const TCHAR *path, const char *key, int num)
     }
 }
 
+static void
+on_search_node_init(eu_tabpage *pnode)
+{
+    if (pnode)
+    {   // 清空计算器
+        pnode->match_count = 0;
+        // 清空高亮标记数组
+        if (pnode->ret_vec)
+        {
+            cvector_clear(pnode->ret_vec);
+        }
+    }
+}
+
 static int
 on_search_process_count(eu_tabpage *pnode, const char *key)
 {
@@ -1701,13 +1778,6 @@ on_search_process_count(eu_tabpage *pnode, const char *key)
     size_t len = strlen(key);
     eu_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
     eu_sci_call(pnode, SCI_TARGETWHOLEDOCUMENT, 0, 0);
-    pnode->match_count = 0;
-    // 清除行存储空间
-    if (cvector_size(pnode->pvec) > 0)
-    {
-        cvector_free(pnode->pvec);
-        pnode->pvec = NULL;
-    }
     while (pos >= 0)
     {
         result_vec ret = {-1,};
@@ -1727,9 +1797,10 @@ on_search_process_count(eu_tabpage *pnode, const char *key)
                 eu_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
                 ret.mark.start = pos;
                 ret.mark.end = start_pos;
+                ret.mark._start = pos - eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
                 if (ret.line >= 0)
                 {
-                    cvector_push_back(pnode->pvec, ret);
+                    cvector_push_back(pnode->ret_vec, ret);
                 }
             }
             else
@@ -1781,19 +1852,24 @@ on_search_report_result(int err, int resid)
             eu_tabpage *p = NULL;
             TCITEM tci = {TCIF_PARAM,};
             TabCtrl_GetItem(g_tabpages, index, &tci);
-            if ((p = (eu_tabpage *) (tci.lParam)) && on_search_process_count(p, key) > 0)
+            if ((p = (eu_tabpage *) (tci.lParam)))
             {
-                if (resid == IDC_SEARCH_PRE_BTN || resid == IDC_SEARCH_NEXT_BTN)
+                on_search_node_init(p);
+                if (on_search_process_count(p, key) > 0)
                 {
-                    on_search_push_string_listbox(p->pathfile, key, p->match_count);
+                    if (resid == IDC_SEARCH_PRE_BTN || resid == IDC_SEARCH_NEXT_BTN)
+                    {
+                        on_search_push_string_listbox(p->pathfile, key, p->match_count);
+                    }
+                    match_count += p->match_count;
+                    ++file_count;
                 }
-                match_count += p->match_count;
-                ++file_count;
             }
         }
     }
     else
     {
+        on_search_node_init(pnode);
         match_count = on_search_process_count(pnode, key);
         if (match_count > 0 && (resid == IDC_SEARCH_PRE_BTN || resid == IDC_SEARCH_NEXT_BTN))
         {
@@ -2210,13 +2286,14 @@ static int
 on_search_active_tab(const TCHAR *path, const TCHAR *key)
 {
     int tab_find = EUE_TAB_NULL;
+    eu_tabpage *p = NULL;
     if (!(path && key))
     {
         return EUE_POINT_NULL;
     }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
+        p = on_tabpage_get_ptr(index);
         if (p && _tcscmp(p->pathfile, path) == 0)
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
@@ -2232,11 +2309,15 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
         file_backup bak = {0};
         _tcscpy(bak.rel_path, path);
         tab_find = on_file_only_open(&bak, true);
-        if (tab_find > SKYLARK_OPENED)
+        if (tab_find > SKYLARK_OPENED && (p = on_tabpage_get_ptr(tab_find)))
         {
             char *u8_key = eu_utf16_utf8(key, NULL);
-            on_search_process_count(on_tabpage_get_ptr(tab_find), u8_key);
-            free(u8_key);
+            if (u8_key)
+            {
+                on_search_node_init(p);
+                on_search_process_count(p, u8_key);
+                free(u8_key);
+            }
         }
     }
     return tab_find;
@@ -2261,18 +2342,20 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
             free(path);
         }
         char *pformat = eu_utf16_utf8(line_str, NULL);
-        if (pnode->pvec && pformat)
+        if (pnode->ret_vec && pformat)
         {   // 按照最大行数右对齐
-            const int k = util_count_number(pnode->pvec[cvector_size(pnode->pvec) - 1].line + 1);
-            for (int i = 0; i < cvector_size(pnode->pvec); ++i)
+            const int max_line = (const int)cvector_size(pnode->ret_vec);
+            const int k = util_count_number(pnode->ret_vec[max_line - 1].line + 1);
+            for (int i = 0; i < max_line; ++i)
             {
-                char *buf = util_strdup_line(pnode, pnode->pvec[i].line, NULL);
+                char *buf = util_strdup_line(pnode, pnode->ret_vec[i].line, NULL);
                 if (buf)
                 {
                     const size_t m_size = strlen(buf) + 24;
                     if ((ptr_add = (char *)calloc(1, m_size)) != NULL)
                     {
-                        int len = snprintf(ptr_add, m_size - 1, pformat, k, pnode->pvec[i].line + 1, buf);
+                        int len = snprintf(ptr_add, m_size - 1, pformat, k, pnode->ret_vec[i].line + 1, buf);
+                        pnode->ret_vec[i].mark._no = len - eu_int_cast(strlen(buf)) - 1;
                         eu_sci_call(presult, SCI_ADDTEXT, len, (LPARAM)ptr_add);
                         free(ptr_add);
                     }
@@ -2287,46 +2370,50 @@ on_search_push_result(eu_tabpage *pnode, LPCTSTR key, LPCTSTR path)
 }
 
 static void
+on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key)
+{
+    if (pnode && on_result_launch(pnode) && pnode->presult)
+    {   
+        char ptr_style[16 + 1];
+        // 显示底部窗口
+        pnode->result_show = true;
+        // 关键字不高亮的回调函数
+        pnode->presult->pwant = NULL;
+        eu_window_resize(NULL);
+        eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
+        eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+        sprintf(ptr_style, "%p", &pnode->ret_vec);
+        eu_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)ptr_style);
+        on_search_push_result(pnode, key, path);
+        // 窗口并排可能导致主编辑器之前的光标位置被遮挡
+        // 滚动视图以使光标可见
+        eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+        ShowWindow(hwnd_search_dlg, SW_HIDE);
+    }
+}
+
+static void
 on_search_found_list(HWND hwnd)
 {
     int listno = (int)SendMessage(hwnd, LB_GETCURSEL ,0 , 0);
     int buf_len = ListBox_GetTextLen(hwnd, listno) + 1;
     TCHAR *buf = (TCHAR *)calloc(sizeof(TCHAR), buf_len);
-    if (!buf)
+    if (buf)
     {
-        return;
-    }
-    ListBox_GetText(hwnd, listno, buf);
-    if (*buf)
-    {
-        TCHAR path[MAX_PATH+1] = {0};
-        TCHAR key[MAX_PATH+1] = {0};
-        if (_stscanf(buf, _T("%260[^|]"), path) == 1 &&
-            _stscanf(buf, _T("%*[^|]|%260[^|]"), key) == 1)
+        ListBox_GetText(hwnd, listno, buf);
+        if (*buf)
         {
-            int tab = on_search_active_tab(path, key);
-            eu_tabpage *pnode = on_tabpage_get_ptr(tab);
-            if (pnode && on_result_launch(pnode) && pnode->presult)
+            TCHAR path[MAX_PATH+1] = {0};
+            TCHAR key[MAX_PATH+1] = {0};
+            if (_stscanf(buf, _T("%260[^|]"), path) == 1 &&
+                _stscanf(buf, _T("%*[^|]|%260[^|]"), key) == 1)
             {
-                pnode->result_show = true;
-                eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
-                eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-                on_proc_resize(NULL);
-                char *u8_key = eu_utf16_utf8(key, NULL);
-                if (u8_key)
-                {
-                    eu_sci_call(pnode->presult, SCI_SETKEYWORDS, 0, (sptr_t)u8_key);
-                    free(u8_key);
-                }
-                on_search_push_result(pnode, key, path);
-                // 窗口并排可能导致主编辑器之前的光标位置被遮挡
-                // 滚动视图以使光标可见
-                eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
-                ShowWindow(hwnd_search_dlg, SW_HIDE);
+                int tab = on_search_active_tab(path, key);
+                on_search_launch_result_dlg(on_tabpage_get_ptr(tab), path, key);
             }
         }
+        free(buf);
     }
-    free(buf);
 }
 
 static bool
@@ -3025,6 +3112,41 @@ on_search_dark_mode_init(HWND hdlg)
     }
 }
 
+static void
+on_search_save_state(HWND hdlg)
+{
+    const btn_state bs[] =
+    {
+        {IDC_MATCH_ALL_FILE, ON_REPLACE_ALL},
+        {IDC_MATCH_LOOP, ON_LOOP_FLAGS},
+        {IDC_MATCH_WDSTART, SCFIND_WORDSTART},
+        {IDC_MATCH_WORD, SCFIND_WHOLEWORD},
+        {IDC_MATCH_CASE, SCFIND_MATCHCASE},
+        {IDC_SEARCH_CD_CHK, INCLUDE_CURRENT_FOLDER},
+        {IDC_SEARCH_SUB_CHK, INCLUDE_FOLDER_SUB},
+        {IDC_SEARCH_HIDE_CHK, INCLUDE_FOLDER_HIDDEN},
+        {IDC_SEARCH_UTF8_CHK, INCLUDE_FILE_UTF8},
+        {IDC_SEARCH_HEX_STRINGS, ON_HEX_STRINGS},
+        {IDC_MODE_NORMAL, NO_REGXP_FLAGS},
+        {IDC_MODE_REGEXP, SCFIND_REGEXP}
+    };
+    if (eu_get_config()->last_flags == (uint32_t)-1)
+    {
+        eu_get_config()->last_flags = 0x44;
+    }
+    for (int i = 0; i < _countof(bs); ++i)
+    {
+        if (DLG_BTN_CHECK(hwnd_search_dlg, bs[i].id))
+        {
+            eu_get_config()->last_flags |= bs[i].mask;
+        }
+        else
+        {
+            eu_get_config()->last_flags &= ~bs[i].mask;
+        }
+    }
+}
+
 static INT_PTR CALLBACK
 on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -3091,6 +3213,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             ShowWindow(hwnd_re_stc, SW_HIDE);
                         }
                         ShowWindow(hdlg, SW_HIDE);
+                        on_search_save_state(hdlg);
                         break;
                     }
                     case IDC_SEARCH_NEXT_BTN:

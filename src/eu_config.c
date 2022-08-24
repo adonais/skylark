@@ -347,6 +347,37 @@ on_config_create_accel(void)
     }
 }
 
+static bool
+on_config_sync_snippet(void)
+{
+    TCHAR p1[MAX_PATH+1] = {0};
+    TCHAR p2[MAX_PATH+1] = {0};
+    TCHAR *snippets[] = {_T("cpp.snippets"),
+                         _T("cshape.snippets"),
+                         _T("css.snippets"),
+                         _T("golang.snippets"),
+                         _T("julia.snippets"),
+                         _T("luascript.snippets"),
+                         _T("rust.snippets"),
+                         _T("text.snippets"),
+                         NULL};
+    _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets"), eu_module_path);
+    if (!eu_exist_dir(p2))
+    {
+        if (!eu_mk_dir(p2))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; snippets[i]; ++i)
+    {
+        _sntprintf(p1, MAX_PATH, _T("%s\\conf\\conf.d\\snippets\\%s"), eu_module_path, snippets[i]);
+        _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets\\%s"), eu_module_path, snippets[i]);
+        CopyFile(p1, p2, TRUE);
+    }
+    return true;
+}
+
 bool WINAPI
 eu_load_main_config(void)
 {
@@ -368,7 +399,7 @@ eu_load_main_config(void)
 }
 
 bool WINAPI
-eu_load_config(HMODULE *pmod)
+eu_load_config(void)
 {
     int  m = 0;
     bool ret = false;
@@ -379,19 +410,16 @@ eu_load_config(HMODULE *pmod)
     {
         goto load_fail;
     }
+    if (!on_config_sync_snippet())
+    {
+        goto load_fail;
+    }
     if (do_lua_parser_doctype(lua_path, "fill_my_docs"))
     {
         printf("eu_docs exec failed\n");
         goto load_fail;
     }
-    if (_stricmp(eu_get_config()->window_theme, "white") == 0)
-    {
-        ret = on_theme_set_classic(pmod);
-    }
-    else
-    {
-        ret = true;
-    }
+    ret = true;
 load_fail:
     eu_safe_free(lua_path);
     return ret;

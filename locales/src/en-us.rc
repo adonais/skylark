@@ -119,7 +119,7 @@ BEGIN
             MENUITEM "Space To TAB",                                   IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Action &On Selection"
+        POPUP "Action &On Selection",                                  IDM_EDIT_SELECT_GROUP
         BEGIN
             MENUITEM "&Open File",                                     IDM_OPEN_FILE_PATH
             MENUITEM "Open Containing &Folder",                        IDM_OPEN_CONTAINING_FOLDER
@@ -190,6 +190,8 @@ BEGIN
             MENUITEM "Jump To Last Line",                              IDM_SEARCH_GOTOEND
             MENUITEM "Jump To Line...",                                IDM_SEARCH_GOTOLINE
         END
+        MENUITEM "Go To Matching Brace",                               IDM_SEARCH_MATCHING_BRACE
+        MENUITEM "Select Chars Between &Matching Braces",              IDM_SEARCH_MATCHING_BRACE_SELECT
         MENUITEM MF_SEPARATOR
         POPUP "Bookmark",                                              IDM_EDIT_PLACEHOLDE13
         BEGIN
@@ -224,6 +226,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "&Hex Edit View",                                     IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
+        MENUITEM "Highlight The Matching Brace",                       IDM_VIEW_HIGHLIGHT_BRACE
         MENUITEM "Highlight The Matching String",                      IDM_VIEW_HIGHLIGHT_STR
         MENUITEM "Highlight Current &Block",                           IDM_VIEW_HIGHLIGHT_FOLD
         MENUITEM "Auto Indent",                                        IDM_EDIT_AUTO_INDENTATION
@@ -293,19 +296,24 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "Jump To Symbol Definition",                          IDM_SOURCECODE_GOTODEF
         MENUITEM MF_SEPARATOR
-        MENUITEM "Enable Autocomplete Box",                            IDM_SOURCEE_ENABLE_ACSHOW
+        MENUITEM "Enable bracket completion",                          IDM_EDIT_AUTO_CLOSECHAR
+        MENUITEM "Enable keyword completion",                          IDM_SOURCEE_ENABLE_ACSHOW
         MENUITEM "Input [N] Chars Complete Box Popup...",              IDM_SOURCEE_ACSHOW_CHARS
         MENUITEM "Enable Prototype Prompt",                            IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR
         MENUITEM "Insert Database Automatic Header",                   IDM_DATABASE_INSERT_CONFIG
         MENUITEM "Executes Selected SQL Or REDIS Command",             IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
-        POPUP "Code Comments",                                         IDM_EDIT_PLACEHOLDE21
+        POPUP "Code Comments",                                         IDM_EDIT_COMMENT_GROUP
         BEGIN
             MENUITEM "Toggle Line Comment",                            IDM_EDIT_LINECOMMENT
             MENUITEM "Block Comment",                                  IDM_EDIT_STREAMCOMMENT
         END
-        MENUITEM "Code Snippets",                                      IDM_SOURCE_SNIPPET,,MF_DISABLED
+        POPUP "Code Snippets",                                         IDM_SOURCE_SNIPPET_GROUP
+        BEGIN
+            MENUITEM "&Enable Snippets",                               IDM_SOURCE_SNIPPET_ENABLE
+            MENUITEM "Configure Snippets",                             IDM_SOURCE_SNIPPET_CONFIGURE
+        END
         MENUITEM MF_SEPARATOR
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END
@@ -772,12 +780,13 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     ICON            IDI_TXT_32, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
     EDITTEXT        IDC_EDIT_VER, 33, 6, 204, 30, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
-    LTEXT           "Developer: adonais", IDC_STATIC, 33, 38, 125, 9, NOT WS_GROUP
-    LTEXT           "Licence:   GPL v3", IDC_STATIC, 33, 52, 125, 9, NOT WS_GROUP
-    LTEXT           "Translate:",IDC_STATIC,33,66,33,9
-    LTEXT           __EU_COPYRIGHT_TRANSLATION,IDC_STATIC,71,66,165,9,SS_NOPREFIX | NOT WS_GROUP
-    LTEXT           "Project Url:", IDC_STATIC_URL_CAPTION, 33, 79, 36, 9, NOT WS_GROUP
-    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 79, 159, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "Developer/Licence: adonais/GPL v3", IDC_STATIC, 33, 38, 125, 9, NOT WS_GROUP
+    LTEXT           "Translate:",IDC_STATIC,33, 52, 33, 9
+    LTEXT           __EU_COPYRIGHT_TRANSLATION,IDC_STATIC,71, 52, 165, 9, SS_NOPREFIX | NOT WS_GROUP
+    LTEXT           "Project Url:", IDC_STATIC_URL_CAPTION, 33, 66, 36, 9, NOT WS_GROUP
+    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 66, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "Version Status:", IDC_STATIC_VER, 33, 79, 50, 9, NOT WS_GROUP
+    LTEXT           "Checking ...", IDC_STATIC_URL_HOMEPAGE, 84, 79, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP    
     EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
     DEFPUSHBUTTON   "&OK", IDOK, 97, 203, 50, 14
     PUSHBUTTON      "&Copy", IDC_BUTTON_COPY, 178, 203, 60, 14
@@ -903,7 +912,6 @@ STRINGTABLE DISCARDABLE
 
 STRINGTABLE DISCARDABLE
 {
-    IDS_BUTTON_CAP                   "CAP"
     IDS_BUTTON_R                     "R/0"
     IDS_BUTTON_W                     "R/W"
     IDS_STATUS_F1                    "%d File(s), Timestamp: %s"
@@ -1109,7 +1117,7 @@ STRINGTABLE DISCARDABLE
     IDS_LUA_CONV_FAIL       "#> Conversion of bytecode failed."
     IDS_THEME_DESC_DEFAULT  "Default Theme"
     IDS_THEME_DESC_BLOCK    "Dark Theme"
-    IDS_THEME_DESC_WHITE    "White Classic Theme(Requires Restart)"
+    IDS_THEME_DESC_WHITE    "White Classic Theme"
     IDS_SEARCH_HEX_TIPS     "Hex datas should have two characters per byte and each byte \n\nmay be separated with a space, ignore case, Example: \n\nFF FE FD or fffefd"
     IDS_THEME_EDIT_TIPS     "alpha value, 0(completely transparent) - 255(no transparency)"
     IDS_STATUSBAR_TIPS1     "Conversion between line breaks"
@@ -1131,9 +1139,13 @@ STRINGTABLE DISCARDABLE
     IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-nXX : Scroll to indicated line on file_path\n-cXX : Scroll to indicated column on file_path\n-hex : Open text file in hexadecimal mode\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
     IDS_COMMAND_TITLE       "Skylark Command Help: "
     IDS_LOADLIBRARY_SQL     "#> Start loading database DLL ...\n"
-    IDS_SNIPPET_EDT_DEFAULT "Snippet Name/Comment/Argument"
+    IDS_SNIPPET_EDT_DEFAULT "Snippet Name,Comment,Argument"
     IDS_SNIPPET_COMBO_DEC   "Example"
-    IDS_SNIPPET_EXAMPLE_DEC "Use ${n:PlaceHolder} to mark a placeholder token,\nUse $0 to mark the insertion point at the end.\nExample:\nif (${1:true})\n{\n    $0;\n}"
+    IDS_SNIPPET_EXAMPLE_DEC "${n:PlaceHolder} to mark a placeholder token,\n$0 to mark the insertion point at the end.\nUse tab key jump to the next placeholder\nUse shift+tab jump to the previous placeholder\nThe parameter A, Indicates automatic trigger.\nThe parameter b, The trigger keyword should be at the beginning of line.\nThe parameter r, The trigger keyword is a regular expression.\nUse Perl syntax for regular expressions\nCapture groups use \\1...\\9\nExample:\nif (${1:true})\n{\n    $0\n}"
+    IDS_CHECK_VER_DEC       "It Is The Latest Version☑"
+    IDS_CHECK_VER_NEW       "New Version Detected Available😀"
+    IDS_CHECK_VER_ERR       "Connection Failure✘"
+    IDS_SNIPPETS_STR        "☑Code Snippet Completion"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1243,17 +1255,19 @@ BEGIN
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
 END
 
-IDD_SNIPPET_DLG DIALOGEX 10,10,423,258
+IDD_SNIPPET_DLG DIALOGEX 10,10,468,294
 CAPTION "Code Snippets"
 FONT 8,"MS Sans Serif",0,0,0
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE WS_CAPTION|WS_SYSMENU|WS_VISIBLE
+EXSTYLE WS_EX_TOOLWINDOW
 BEGIN
-  CONTROL "",IDC_SNIPPET_LST,"ListBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS|LBS_NOTIFY,3,15,99,222,WS_EX_CLIENTEDGE
+  CONTROL "",IDC_SNIPPET_LST,"ListBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS|LBS_NOTIFY,3,18,99,253,WS_EX_CLIENTEDGE
   CONTROL "Snippets:",IDC_SNIPPET_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE,3,3,69,9
-  CONTROL "Language:",IDC_SNIPPET_STC2,"Static",WS_CHILDWINDOW|WS_VISIBLE,110,3,81,9
-  CONTROL "",IDC_SNIPPET_CBO1,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWNLIST,303,1,117,9
-  CONTROL "Delete",IDC_SNIPPET_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,3,240,99,15
-  CONTROL "",IDC_SNIPPET_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_LEFT|ES_AUTOHSCROLL|ES_MULTILINE,110,240,170,15,WS_EX_CLIENTEDGE
-  CONTROL "Close",IDC_SNIPPET_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,366,240,54,15
-  CONTROL "Apply/Add",IDC_SNIPPET_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,288,240,70,15
+  CONTROL "Language:",IDC_SNIPPET_STC2,"Static",WS_CHILDWINDOW|WS_VISIBLE,108,3,81,9
+  CONTROL "",IDC_SNIPPET_CBO1,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|CBS_DROPDOWNLIST,348,1,117,9
+  CONTROL "Delete",IDC_SNIPPET_DELETE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,3,275,45,15
+  CONTROL "",IDC_SNIPPET_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL|ES_MULTILINE,108,275,233,15,WS_EX_CLIENTEDGE
+  CONTROL "Close",IDC_SNIPPET_BTN_CLOSE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,411,275,54,15
+  CONTROL "Apply",IDC_SNIPPET_BTN_APPLY,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,275,54,15
+  CONTROL "New",IDC_SNIPPET_NEW,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,57,275,45,15
 END

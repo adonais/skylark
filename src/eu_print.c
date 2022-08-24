@@ -500,7 +500,7 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     HFONT font_header;
     int footer_line_height;
     HFONT font_footer;
-    TCHAR date_str[256];
+    TCHAR date_str[MAX_SIZE];
     DOCINFO di = {sizeof(DOCINFO)};
     int doc_len;
     int doc_max;
@@ -667,7 +667,7 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     // Get current date...
     SYSTEMTIME st;
     GetLocalTime(&st);
-    GetDateFormat(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, date_str, 256);
+    GetDateFormat(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, date_str, MAX_SIZE);
 
     // Get current time...
     if (ptr_print->header == 0)

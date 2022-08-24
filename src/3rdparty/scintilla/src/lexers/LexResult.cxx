@@ -1,5 +1,5 @@
 // Scintilla source code edit control
-/** @file LexOpal.cxx
+/** @file LexResult.cxx
  ** Lexer for search result (skylark edit used)
  ** Written by adonais <hua.andy@gmail.com>
  **/
@@ -20,6 +20,7 @@
 
 #include "WordList.h"
 #include "LexAccessor.h"
+#include "PropSetSimple.h"
 #include "Accessor.h"
 #include "StyleContext.h"
 #include "CharacterSet.h"
@@ -33,65 +34,24 @@ at_eol(Accessor &styler, size_t i)
     return (styler[i] == '\n') || ((styler[i] == '\r') && (styler.SafeGetCharAt(i + 1) != '\n'));
 }
 
-static char *
-stristr(const char *String, const char *Pattern)
-{
-    char *pptr, *sptr, *start;
-    uintptr_t slen, plen;
-
-    for (start = (char *) String, pptr = (char *) Pattern, slen = strlen(String), plen = strlen(Pattern);
-         /* while string length not shorter than pattern length */
-         slen >= plen;
-         start++, slen--)
-    {
-        /* find start of pattern in string */
-        while (toupper(*start) != toupper(*Pattern))
-        {
-            start++;
-            slen--;
-
-            /* if pattern longer than string */
-            if (slen < plen) return (NULL);
-        }
-
-        sptr = start;
-        pptr = (char *) Pattern;
-        while (toupper(*sptr) == toupper(*pptr))
-        {
-            sptr++;
-            pptr++;
-            /* if end of pattern then pattern was found */
-            if ('\0' == *pptr) return (start);
-        }
-    }
-    return (NULL);
-}
-
 static void
-handle_word(char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler, int linenum, WordList *keywordlists[])
+handle_word(result_vec *pvec, char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler, int linenum)
 {
-    WordList &key_words = *keywordlists[0];
     int state = SCE_RESULT_DEFAULT;
     size_t line_len = strlen(lineBuffer);
-    // file header comment
+    // file comment
     if (!linenum && line_len > 1 && lineBuffer[0] == '#' && lineBuffer[1] == '>')
     {
         styler.ColourTo(endPos, SCE_RESULT_COMMENT);
     }
-    else if (linenum > 0 && key_words)
+    else if (linenum > 0 && pvec && ((size_t *)(pvec))[-2] >= (size_t)(linenum - 1))
     {
-        char *p = NULL;
-        const char *key = key_words.WordAt(0);
-        if (key)
-        {
-            size_t key_len = strlen(key);
-            if ((p = stristr(lineBuffer, key)) != NULL)
-            {
-                // End of keyword, colourise it
-                styler.ColourTo(startLine + (p - lineBuffer) - 1, SCE_RESULT_DEFAULT);
-                styler.ColourTo(startLine + (p - lineBuffer) + key_len - 1, SCE_RESULT_KEYWORD);
-            }
-        }
+        result_postion mark = pvec[linenum - 1].mark;
+        // line header
+        styler.ColourTo(startLine + mark._no, SCE_RESULT_HEADER);
+        styler.ColourTo(startLine + mark._no + mark._start, SCE_RESULT_DEFAULT);
+        // end of keyword, colourise it
+        styler.ColourTo(startLine + mark._no + mark._start + (mark.end - mark.start), SCE_RESULT_KEYWORD);
     }
     styler.ColourTo(endPos, state);
 }
@@ -99,32 +59,41 @@ handle_word(char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler,
 static void
 ColouriseResultDoc(Sci_PositionU startPos, Sci_Position length, int initStyle, WordList *keywordlists[], Accessor &styler)
 {
+    (void)initStyle;
+    (void)keywordlists;
     char lineBuffer[SC_LINE_LENGTH];
     styler.StartAt(startPos);
     styler.StartSegment(startPos);
     unsigned int linePos = 0;
     size_t startLine = startPos;
-    (void) initStyle;
+    result_vec **pmark = NULL;
+    const char *ptr_style = ((styler.pprops)->Get(result_extra));
+    if (ptr_style && ptr_style[0])
+    {
+        sscanf(ptr_style, "%p", (void***)&pmark);
+    }
     for (size_t i = startPos; i < startPos + length; i++)
     {
         lineBuffer[linePos++] = styler[i];
         if (at_eol(styler, i) || (linePos >= sizeof(lineBuffer) - 1))
         {
             lineBuffer[linePos] = '\0';
-            handle_word(lineBuffer, startLine, i, styler, styler.GetLine(startLine), keywordlists);
+            // 为NULL时不返回, 因为我们需要高亮显示第一行文本
+            handle_word(pmark ? *pmark : NULL, lineBuffer, startLine, i, styler, styler.GetLine(startLine));
             linePos = 0;
             startLine = i + 1;
-
             while (!at_eol(styler, i))
-                i++;
+            {
+                ++i;
+            }
         }
     }
-    if (linePos > 0) // Last line does not have ending characters
+    if (linePos > 0) // 处理最后一行, 因为它们不存在换行符
     {
-        handle_word(lineBuffer, startLine, startPos + length - 1, styler, styler.GetLine(startLine), keywordlists);
+        handle_word(pmark ? *pmark : NULL, lineBuffer, startLine, startPos + length - 1, styler, styler.GetLine(startLine));
     }
 }
 
-static const char *const resultWordList[] = { "Keywords", 0 };
+static const char *const emptyWordList[] = { 0 };
 
-LexerModule lmResult(SCLEX_RESULT, ColouriseResultDoc, "result", 0, resultWordList);
+LexerModule lmResult(SCLEX_RESULT, ColouriseResultDoc, "result", 0, emptyWordList);

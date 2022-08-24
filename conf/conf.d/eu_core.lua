@@ -29,12 +29,45 @@ typedef struct _print_set
     RECT rect;
 }print_set;
 
+typedef struct _caret_set
+{
+    int blink;
+    int width;
+    uint32_t rgb;
+}caret_set;
+
+typedef struct _bookmark_set
+{
+    bool visable;
+    int  shape;
+    uint32_t argb;
+}bookmark_set;
+
+typedef struct _brace_set
+{
+    bool matching;
+    bool autoc;
+    uint32_t rgb;
+}brace_set;
+
+typedef struct _calltip_set
+{
+    bool enable;
+    uint32_t rgb;
+}calltip_set;
+
+typedef struct _complete_set
+{
+    bool enable;
+    int  characters;
+    int  snippet;
+}complete_set;
+
 struct eu_config
 {
     int new_file_eol;
     int new_file_enc;
     
-    bool auto_close_chars;
     bool m_ident;
     char window_theme[64];
     bool m_fullscreen;
@@ -42,10 +75,8 @@ struct eu_config
     bool m_toolbar;
     bool m_statusbar;
     bool m_linenumber;
-    
-    bool bookmark_visable;
-    int  bookmark_shape;
-    uint32_t bookmark_argb;
+
+    uint32_t last_flags;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;
@@ -60,6 +91,7 @@ struct eu_config
     int file_tree_width;
     int sym_list_width;
     int sym_tree_width;
+    int sidebar_width;
     int document_map_width;
     int result_edit_height;
     int result_list_height;
@@ -69,9 +101,6 @@ struct eu_config
     int inter_reserved_2;
     
     bool block_fold;
-    bool m_acshow;
-    int acshow_chars;
-    bool m_ctshow;
     bool m_tab_tip;
     
     int m_close_way;
@@ -86,6 +115,11 @@ struct eu_config
     bool m_instance;
     char m_placement[1024];
     char m_language[64];
+    bookmark_set eu_bookmark;
+    brace_set eu_brace;
+    caret_set eu_caret;
+    calltip_set eu_calltip;
+    complete_set eu_complete;
     print_set eu_print;
     int m_limit;
     uint64_t m_id;
@@ -181,12 +215,23 @@ typedef struct _doc_comments
     bool initialized;
 } doc_comments;
 
+typedef struct _snippet_t
+{
+    intptr_t start;
+    intptr_t end;
+    char name[64];
+    char comment[64];
+    char parameter[8];
+    char body[2048];
+} snippet_t;
+
 typedef struct _doc_data
 {
     int doc_type;                             // 文档类型编号,自行添加请从末尾数字开始递增
     const char *filetypename;                 // 文档类型名称
     const char *extname;                      // 文档扩展名
     const char *filedesc;                     // 文档类型描述
+    const char *snippet;                      // 文档的代码片段文件所在
     int tab_width;                            // tab键宽度, default = 0, 跟随主配置
     int tab_convert_spaces;                   // tab键是否转换为空格, default = -1: 跟随主配置, 0: false, 1: true
     init_before_ptr fn_init_before;           // 回调函数, 在文档初始化前运行
@@ -199,6 +244,7 @@ typedef struct _doc_data
     click_list_ptr fn_click_symlist;          // 回调函数, 右侧边栏list控件被点击
     reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件初始化
     click_tree_ptr fn_click_symtree;          // 回调函数, 右侧边栏tree控件被点击
+    snippet_t *ptrv;                          // 解析后的代码片段关键字
     const char *keywords0;                    // 需要高亮的关键字, 分6类高亮着色
     const char *keywords1;
     const char *keywords2;

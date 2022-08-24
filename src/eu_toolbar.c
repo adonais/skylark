@@ -523,6 +523,13 @@ get_output_buffer(char *buffer, int size)
 }
 
 void WINAPI
+on_toolbar_no_highlight(void *lp)
+{
+    result_vec *pvec = NULL;
+    eu_sci_call((eu_tabpage *)lp, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
+}
+
+void WINAPI
 on_toolbar_lua_exec(eu_tabpage *pnode)
 {
     char *buffer = NULL;
@@ -537,6 +544,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
         {
             int read_len = 0;
             char *std_buffer = NULL;
+            pnode->presult->pwant = on_toolbar_no_highlight;
             on_proc_resize(NULL);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
@@ -901,7 +909,7 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->hex_mode?2:1);
             on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->hex_mode?2:1);
             on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage != IDM_OTHER_BIN)?2:1);
+            on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage!=IDM_OTHER_BIN)&&eu_sci_call(pnode, SCI_GETLENGTH, 0, 0)> 0?2:1);
             on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);

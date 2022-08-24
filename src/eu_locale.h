@@ -23,18 +23,18 @@
 #define MAX_MULTI_LANG 99
 
 #define LOAD_APP_RESSTR(tid, var)                              \
-    TCHAR var[MAX_LOADSTRING] = { 0 };                         \
+    TCHAR var[MAX_LOADSTRING] = {0};                           \
     LoadString(eu_module_handle(), tid, var, MAX_LOADSTRING - 1)
 
 #define LOAD_I18N_RESSTR(tid, var)                             \
-    TCHAR var[MAX_LOADSTRING] = { 0 };                         \
-    eu_i18n_load_str(tid, var, 0);
+    TCHAR var[MAX_PATH] = {0};                                 \
+    eu_i18n_load_str(tid, var, MAX_PATH);
 
 #define MSG_BOX(tid, cid, mb)                                  \
     do                                                         \
     {                                                          \
-        TCHAR text[MAX_LOADSTRING] = { 0 };                    \
-        TCHAR cap[MAX_LOADSTRING] = { 0 };                     \
+        TCHAR text[MAX_LOADSTRING] = {0};                      \
+        TCHAR cap[MAX_LOADSTRING] = {0};                       \
         eu_i18n_load_str(tid, text, 0);                        \
         eu_i18n_load_str(cid, cap, 0);                         \
         eu_msgbox(eu_module_hwnd(), text, cap, mb);            \
@@ -43,7 +43,7 @@
 #define MSG_BOX_ERR(tid, cid, mb)                              \
     do                                                         \
     {                                                          \
-        TCHAR txt[MAX_LOADSTRING+1] = { 0 };                   \
+        TCHAR txt[MAX_LOADSTRING+1] = {0};                     \
         LOAD_I18N_RESSTR(cid, cap);                            \
         LOAD_I18N_RESSTR(tid, msg);                            \
         _sntprintf(txt, MAX_LOADSTRING, msg, _tcserror(errno));\
@@ -54,7 +54,7 @@
     do                                                         \
     {                                                          \
         LOAD_I18N_RESSTR(cid, cap);                            \
-        TCHAR txt[MAX_PATH+1] = { 0 };                         \
+        TCHAR txt[MAX_PATH+1] = {0};                           \
         LoadString(g_skylark_lang, tid, txt, MAX_PATH);        \
         var = eu_msgbox(eu_module_hwnd(), txt, cap, mb);       \
     } while (0)
@@ -62,7 +62,7 @@
 #define print_err_msg(fmt, str)                                      \
     do                                                               \
     {                                                                \
-        TCHAR txt[MAX_LOADSTRING + 1] = { 0 };                       \
+        TCHAR txt[MAX_LOADSTRING + 1] = {0};                         \
         LOAD_I18N_RESSTR(IDC_MSG_ERROR, cap);                        \
         LOAD_I18N_RESSTR(fmt, msg);                                  \
         _sntprintf(txt, MAX_LOADSTRING, msg, str);                   \

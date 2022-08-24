@@ -31,6 +31,16 @@
 #define UTIL_SWAP(TYPE,A,B) {TYPE t=A; A=B; B=t;}
 #endif
 
+#ifndef UTIL_NUMBER
+#define UTIL_NUMBER(ch) ((ch) - 0x30)
+#endif
+
+#ifndef UTIL_BASE10
+#define UTIL_BASE10(ch) ((ch) >= 0x30 && (ch) <= 0x39)
+#endif
+
+#define util_prev(p) ((p) - (psrc) > 0 ? (p[-1]) : (0))
+
 typedef struct UTIL_STREAM_DESC_* pt_stream;
 typedef void (*ptr_stream_close)(pt_stream pstream);
 typedef struct  UTIL_STREAM_DESC_
@@ -63,7 +73,7 @@ int util_set_working_dir(const TCHAR *path, TCHAR **old);
 int util_query_hostname(char *hostname, char *ip, int bufsize);
 int util_effect_line(eu_tabpage *pnode, sptr_t *, sptr_t *);
 int util_get_hex_byte(const char *p);
-int util_strnspace(const char *s1, const char *s2);
+int util_strnspace(const char *s1, const char *s2, int *plen);
 
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
@@ -80,6 +90,7 @@ void   util_restore_cursor(eu_tabpage *pnode);
 void   util_setforce_eol(eu_tabpage *pnode);
 void   util_save_placement(HWND hwnd);
 void   util_restore_placement(HWND hwnd);
+void   util_skip_whitespace(char **cp, int n, char term);
 bool   util_availed_char(int ch);
 bool   util_under_wine(void);
 void   util_trim_right_star(TCHAR *str);
@@ -96,10 +107,14 @@ void util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t
 WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *utf8, TCHAR *utf16, int len);
 char*  util_make_u8(const TCHAR *utf16, char *utf8, int len);
+char*  util_string_match(const char *str, const char *pattern, bool incase, bool match_start, bool whole);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 TCHAR* util_unix2path(TCHAR *path);
 TCHAR* util_path2unix(TCHAR *path);
+TCHAR* util_add_double_quotes(const TCHAR *path);
+TCHAR* util_wstr_unquote(const TCHAR *path);
+char * util_str_unquote(const char *path);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);

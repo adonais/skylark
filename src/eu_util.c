@@ -38,8 +38,6 @@ static PFNGFVSW pfnGetFileVersionInfoSizeW;
 static PFNGFVIW pfnGetFileVersionInfoW;
 static PFNVQVW pfnVerQueryValueW;
 
-#define BUFF_64K 0x10000
-#define BUFF_200M 0xc800000
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
 
@@ -1113,10 +1111,15 @@ util_trim_left_white(const char *s, int *length)
 /**************************************************
  * 比较两个字符串, s1左侧可能带空白字符
  * 如果两个字符串相似, 返回0, 否则返回1
+ * plen, 跳过的空白数
  *************************************************/
 int
-util_strnspace(const char *s1, const char *s2)
+util_strnspace(const char *s1, const char *s2, int *plen)
 {
+    if (plen)
+    {
+        *plen = 0;
+    }
     if (!(s1 && s2))
     {
         return 1;
@@ -1125,7 +1128,7 @@ util_strnspace(const char *s1, const char *s2)
     {
         return 0;
     }
-    if (strncmp(s1, s2, strlen(s2)) == 0)
+    if (strncasecmp(s1, s2, strlen(s2)) == 0)
     {
         return 0;
     }
@@ -1135,10 +1138,15 @@ util_strnspace(const char *s1, const char *s2)
         {
             continue;
         }
-        if (strncmp(&s1[i], s2, strlen(s2)) == 0)
+        if (strncasecmp(&s1[i], s2, strlen(s2)) == 0)
         {
+            if (plen)
+            {
+                *plen = i;
+            }
             return 0;
         }
+        break;
     }
     return 1;
 }
@@ -1423,6 +1431,10 @@ util_make_u16(const char *utf8, TCHAR *utf16, int len)
     {
         utf16[m-1] = 0;
     }
+    else if (len > 0)
+    {
+        utf16[len-1] = 0;
+    }
     return utf16;
 }
 
@@ -1434,6 +1446,10 @@ util_make_u8(const TCHAR *utf16, char *utf8, int len)
     if (m > 0 && m <= len)
     {
         utf8[m-1] = 0;
+    }
+    else if (len > 0)
+    {
+        utf8[len-1] = 0;
     }
     return utf8;
 }
@@ -1866,4 +1882,160 @@ util_os_version(void)
     #undef VER_NUM
     }
     return ver;
+}
+
+static char *
+util_stristr(const char *str, const char *pattern)
+{
+    char *pptr, *sptr, *start;
+    uintptr_t slen, plen;
+
+    for (start = (char *) str, pptr = (char *) pattern, slen = strlen(str), plen = strlen(pattern);
+         /* while string length not shorter than pattern length */
+         slen >= plen;
+         start++, slen--)
+    {
+        /* find start of pattern in string */
+        while (toupper(*start) != toupper(*pattern))
+        {
+            start++;
+            slen--;
+
+            /* if pattern longer than string */
+            if (slen < plen) return (NULL);
+        }
+
+        sptr = start;
+        pptr = (char *) pattern;
+        while (toupper(*sptr) == toupper(*pptr))
+        {
+            sptr++;
+            pptr++;
+            /* if end of pattern then pattern was found */
+            if ('\0' == *pptr) return (start);
+        }
+    }
+    return (NULL);
+}
+
+static inline char *
+util_search_case(const char *str, const char *pattern, bool incase)
+{
+    return (incase ? util_stristr(str, pattern) : (char *)strstr(str, pattern));
+}
+
+static inline bool
+util_punct_or_space(int ch)
+{
+    return isspace(ch) || ispunct(ch);
+}
+
+char *
+util_string_match(const char *str, const char *pattern, bool incase, bool match_start, bool whole)
+{
+    const char *psrc = str;
+    int slen =0, plen = (int)strlen(pattern);
+    char *presult = util_search_case(str, pattern, incase);
+    while (match_start && presult && presult - psrc > 0)
+    {
+        presult = NULL;
+        while(*psrc && !isspace(*psrc))
+        {
+            ++psrc;
+        }
+        while(*psrc && util_punct_or_space(*psrc))
+        {
+            ++psrc;
+        }
+        presult = util_search_case(psrc, pattern, incase);
+    }
+    psrc = match_start ? presult : str;
+    slen = presult ? (int)strlen(presult) : 0;
+    while(whole && presult && (presult - psrc > 0 || (slen > plen && !util_punct_or_space(presult[plen]))))
+    {
+        presult = NULL;
+        while(*psrc && !isspace(*psrc))
+        {
+            ++psrc;
+        }
+        while(*psrc && util_punct_or_space(*psrc))
+        {
+            ++psrc;
+        }
+        presult = util_search_case(psrc, pattern, incase);
+        slen = presult ? (int)strlen(presult) : 0;
+    }
+    return presult;
+}
+
+TCHAR *
+util_add_double_quotes(const TCHAR *path)
+{
+    TCHAR *buf = NULL;
+    if (path)
+    {
+        int len = eu_int_cast(_tcslen(path)) + 4;
+        if ((buf = (TCHAR *)calloc(sizeof(TCHAR), len + 1)) != NULL)
+        {
+            _sntprintf(buf, len, _T("\"%s\""), path);
+        }
+    }
+    return buf;
+}
+
+TCHAR *
+util_wstr_unquote(const TCHAR *path)
+{
+    TCHAR *buf = NULL;
+    if (path)
+    {
+        if ((path[0] == _T('"') || path[0] == _T('\'')))
+        {
+            buf = (TCHAR *)_tcsdup(&path[1]);
+            int len = buf ? eu_int_cast(_tcslen(buf)) : 0;
+            if (len > 0 && (buf[len - 1] == _T('"') || buf[len - 1] == _T('\'')))
+            {
+                buf[len - 1] = 0;
+            }
+        }
+        else
+        {
+            buf = (TCHAR *)_tcsdup(path);
+        }
+    }
+    return buf;
+}
+
+char *
+util_str_unquote(const char *path)
+{
+    char *buf = NULL;
+    if (path)
+    {
+        if ((path[0] == '"' || path[0] == '\''))
+        {
+            buf = (char *)_strdup(&path[1]);
+            int len = buf ? eu_int_cast(strlen(buf)) : 0;
+            if (len > 0 && (buf[len - 1] == '"' || buf[len - 1] == '\''))
+            {
+                buf[len - 1] = 0;
+            }
+        }
+        else
+        {
+            buf = (char *)_strdup(path);
+        }
+    }
+    return buf;
+}
+
+void
+util_skip_whitespace(char **cp, int n, char term)
+{
+	char *pstr = *cp;
+	while (isspace(*pstr) && *pstr != term && n--)
+	{
+	    pstr++;
+	}
+	*cp = pstr;
 }

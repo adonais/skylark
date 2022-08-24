@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 2
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 8
+#define __EU_INFO_VERSION_PATCHLEVEL 9
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -173,8 +173,8 @@
 #define IDM_LBREAK_2     10081
 #define IDM_LBREAK_3     10082
 #define IDM_LBREAK_4     10083
-#define IDM_BTN_1        10084
-#define IDM_BTN_2        10085
+#define IDM_SCI_VIEWZONE 10084
+#define IDM_BTN_RW       10085
 
 #define IDD_DIALOG_CLIP         10090
 #define IDC_CLIPBORAD           10091
@@ -473,6 +473,12 @@
 #define IDC_SUPPORTEDEXTS_STATIC         (IDD_REGEXT_BOX + 9)
 #define IDC_REGISTEREDEXTS_STATIC        (IDD_REGEXT_BOX + 10)
 
+#define IDS_SNIPPETS_STR                31094
+#define IDS_CHECK_VER_ERR               31095
+#define IDS_CHECK_VER_DEC               31096
+#define IDS_CHECK_VER_NEW               31097
+#define IDC_STATIC_VER                  31098
+#define IDC_STATIC_URL_HOMEPAGE         31099
 #define IDC_STATIC_URL_CAPTION          31100
 #define IDC_STATIC_URL_UR               31101
 #define IDC_STATIC_EDIT                 31102
@@ -740,6 +746,7 @@
 #define IDM_VIEW_HIGHLIGHT_FOLD              42042
 #define IDM_EDIT_LINECOMMENT                 42043
 #define IDM_EDIT_STREAMCOMMENT               42044
+#define IDM_VIEW_HIGHLIGHT_BRACE             42045
 
 // Page Setup
 // based on prnsetup.dlg from Windows SDK
@@ -830,6 +837,8 @@
 #define IDM_SET_RENDER_TECH_D2DRETAIN       42562
 #define IDM_SETTING_FONTQUALITY             42563
 #define IDM_SETTING_RENDER                  42564
+#define IDM_SOURCE_SNIPPET_GROUP            42565
+#define IDM_EDIT_SELECT_GROUP               42566
 
 #define IDR_TOOLBAR_POPUPMENU               42600
 #define IDM_VIEW_MENUBAR                    42601
@@ -873,7 +882,7 @@
 #define IDM_EDIT_DESCENDING_SORT_IGNORECASE 42824
 #define IDM_EDIT_TAB_SPACE                  42825
 #define IDM_EDIT_SPACE_TAB                  42826
-#define IDM_EDIT_PLACEHOLDE21               42827
+#define IDM_EDIT_COMMENT_GROUP              42827
 #define IDM_EDIT_OTHER_EDITOR               42828
 
 #define IDR_HEXVIEW_MENU                    42830
@@ -946,25 +955,30 @@
 
 #define IDM_SEARCH_SELECT_HEAD              43020
 #define IDM_SEARCH_SELECT_END               43021
+#define IDM_SEARCH_MATCHING_BRACE           43022
+#define IDM_SEARCH_MATCHING_BRACE_SELECT    43023
 
 #define IDD_VIEWZONE                        43030
 #define IDD_VIEWZONE_CLASSIC                43031
 #define IDC_VIEWZONE_CANVAS                 43032
 #define IDD_DOCUMENTMAP                     43033
 
-#define IDM_SOURCE_SNIPPET                  44000
+#define IDM_SOURCE_SNIPPET_CONFIGURE        44000
 #define IDD_SNIPPET_DLG                     44001
 #define IDC_SNIPPET_LST                     44002
 #define IDC_SNIPPET_EDT1                    44003
 #define IDC_SNIPPET_CBO1                    44004
 #define IDC_SNIPPET_STC1                    44005
 #define IDC_SNIPPET_STC2                    44006
-#define IDC_SNIPPET_BTN1                    44007
-#define IDC_SNIPPET_BTN3                    44008
-#define IDC_SNIPPET_BTN2                    44009
-#define IDS_SNIPPET_EDT_DEFAULT             44010
-#define IDS_SNIPPET_EXAMPLE_DEC             44011
-#define IDS_SNIPPET_COMBO_DEC               44012
+#define IDC_SNIPPET_DELETE                  44007
+#define IDC_SNIPPET_NEW                     44008
+#define IDC_SNIPPET_BTN_CLOSE               44009
+#define IDC_SNIPPET_BTN_APPLY               44010
+#define IDS_SNIPPET_EDT_DEFAULT             44011
+#define IDS_SNIPPET_EXAMPLE_DEC             44012
+#define IDS_SNIPPET_COMBO_DEC               44013
+#define IDM_SOURCE_SNIPPET_ENABLE           44014
+
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

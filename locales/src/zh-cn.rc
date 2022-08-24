@@ -119,7 +119,7 @@ BEGIN
             MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB
         END
         MENUITEM MF_SEPARATOR
-        POPUP "选区操作(&O)"
+        POPUP "选区操作(&O)",                                   IDM_EDIT_SELECT_GROUP
         BEGIN
             MENUITEM "打开文件(&O)",                            IDM_OPEN_FILE_PATH
             MENUITEM "打开所在文件夹(&F)",                      IDM_OPEN_CONTAINING_FOLDER
@@ -190,6 +190,8 @@ BEGIN
             MENUITEM "跳到末行",                                IDM_SEARCH_GOTOEND
             MENUITEM "跳到行号",                                IDM_SEARCH_GOTOLINE
         END
+        MENUITEM "转到匹配的括号",                              IDM_SEARCH_MATCHING_BRACE
+        MENUITEM "选中匹配括号间的字符(&M)",                    IDM_SEARCH_MATCHING_BRACE_SELECT
         MENUITEM MF_SEPARATOR
         POPUP "书签",                                           IDM_EDIT_PLACEHOLDE13
         BEGIN
@@ -224,6 +226,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "十六进制视图(&H)",                            IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
+        MENUITEM "高亮显示匹配的括号",                          IDM_VIEW_HIGHLIGHT_BRACE
         MENUITEM "高亮显示匹配的字符串",                        IDM_VIEW_HIGHLIGHT_STR
         MENUITEM "高亮当前代码块",                              IDM_VIEW_HIGHLIGHT_FOLD
         MENUITEM "自动缩进",                                    IDM_EDIT_AUTO_INDENTATION
@@ -293,19 +296,24 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "跳到符号定义",                                IDM_SOURCECODE_GOTODEF
         MENUITEM MF_SEPARATOR
-        MENUITEM "启用自动完成框",                              IDM_SOURCEE_ENABLE_ACSHOW
+        MENUITEM "启用括号补全",                                IDM_EDIT_AUTO_CLOSECHAR
+        MENUITEM "启用关键字补全",                              IDM_SOURCEE_ENABLE_ACSHOW
         MENUITEM "输入[N]个字符后弹出自动完成框...",            IDM_SOURCEE_ACSHOW_CHARS
         MENUITEM "启用原型提示框",                              IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR
         MENUITEM "插入数据库自动连接配置头",                    IDM_DATABASE_INSERT_CONFIG
         MENUITEM "执行选定的SQL语句或REDIS命令",                IDM_DATABASE_EXECUTE_SQL
         MENUITEM MF_SEPARATOR
-        POPUP "代码注释",                                       IDM_EDIT_PLACEHOLDE21
+        POPUP "代码注释",                                       IDM_EDIT_COMMENT_GROUP
         BEGIN
             MENUITEM "行注释",                                  IDM_EDIT_LINECOMMENT
             MENUITEM "块注释",                                  IDM_EDIT_STREAMCOMMENT
         END
-        MENUITEM "代码片段",                                    IDM_SOURCE_SNIPPET,,MF_DISABLED
+        POPUP "代码片段",                                       IDM_SOURCE_SNIPPET_GROUP
+        BEGIN
+            MENUITEM "启用代码片段(&E)",                        IDM_SOURCE_SNIPPET_ENABLE
+            MENUITEM "管理代码片段",                            IDM_SOURCE_SNIPPET_CONFIGURE
+        END
         MENUITEM MF_SEPARATOR
         MENUITEM "使用预设动作执行当前文件",                    IDM_PROGRAM_EXECUTE_ACTION
     END
@@ -771,12 +779,13 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     ICON            IDI_TXT_32, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
     EDITTEXT        IDC_EDIT_VER, 33, 6, 204, 30, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
-    LTEXT           "开发者: adonais", IDC_STATIC, 33, 38, 125, 9, NOT WS_GROUP
-    LTEXT           "许可证: GPL v3", IDC_STATIC, 33, 52, 125, 9, NOT WS_GROUP
-    LTEXT           "翻译: ",IDC_STATIC,33,66,33,9
-    LTEXT           __EU_COPYRIGHT_TRANSLATION,IDC_STATIC,71,66,165,9,SS_NOPREFIX | NOT WS_GROUP
-    LTEXT           "项目地址:", IDC_STATIC_URL_CAPTION, 33, 79, 36, 9, NOT WS_GROUP
-    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 79, 159, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "开发者/许可证: adonais/GPL v3", IDC_STATIC, 33, 38, 159, 9, NOT WS_GROUP
+    LTEXT           "翻译: ",IDC_STATIC, 33, 52, 33, 9
+    LTEXT           __EU_COPYRIGHT_TRANSLATION, IDC_STATIC, 71, 52, 165, 9, SS_NOPREFIX | NOT WS_GROUP
+    LTEXT           "项目地址:", IDC_STATIC_URL_CAPTION, 33, 66, 36, 9, NOT WS_GROUP
+    LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 66, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "版本状态:", IDC_STATIC_VER, 33, 79, 36, 9, NOT WS_GROUP
+    LTEXT           "正在检测 ...", IDC_STATIC_URL_HOMEPAGE, 71, 79, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
     DEFPUSHBUTTON   "确定(&O)", IDOK, 97, 203, 50, 14
     PUSHBUTTON      "复制信息(&C)", IDC_BUTTON_COPY, 178, 203, 60, 14
@@ -902,7 +911,6 @@ STRINGTABLE DISCARDABLE
 
 STRINGTABLE DISCARDABLE
 {
-    IDS_BUTTON_CAP                   "大写"
     IDS_BUTTON_R                     "只读"
     IDS_BUTTON_W                     "读写"
     IDS_STATUS_F1                    "%d 个文件, 时间戳: %s"
@@ -1108,7 +1116,7 @@ STRINGTABLE DISCARDABLE
     IDS_LUA_CONV_FAIL       "#> 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
     IDS_THEME_DESC_BLOCK    "暗黑主题"
-    IDS_THEME_DESC_WHITE    "白色经典(需重启)"
+    IDS_THEME_DESC_WHITE    "白色经典"
     IDS_SEARCH_HEX_TIPS     "十六进制数据应该是每两个字符为一个字节, 并且\n\n每个字节间可以用空格分开, 忽略大小写, 例如: \n\nFF FE FD 或 fffefd"
     IDS_THEME_EDIT_TIPS     "透明度, 0(完全透明) - 255(不透明)"
     IDS_STATUSBAR_TIPS1     "换行符之间的相互转换"
@@ -1129,9 +1137,13 @@ STRINGTABLE DISCARDABLE
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-nXX : 打开文件时滚动到指定行\n-cXX : 打开文件时滚动到指定列\n-hex : 以16进制模式打开文本文件\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
     IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
-    IDS_SNIPPET_EDT_DEFAULT "片段名称/注释/参数"
+    IDS_SNIPPET_EDT_DEFAULT "片段名称,注释,参数"
     IDS_SNIPPET_COMBO_DEC   "示例"
-    IDS_SNIPPET_EXAMPLE_DEC "使用 ${n:占位符} 表示光标下一个占位符,\n使用 $0 标记末尾的插入点.\n例如:\nif (${1:true})\n{\n    $0;\n}"
+    IDS_SNIPPET_EXAMPLE_DEC "${n:占位符} 表示光标下一个占位符,\n$0 标记末尾的插入点.\n使用 tab 键跳转到下一个占位符\n使用 shift+tab 跳转到上一个占位符\n参数A, 表示自动触发，不需要按Tab键.\n参数b, 表示触发关键字应该在行首.\n参数r, 表示触发关键字是正则表达式.\n正则表达式请使用perl正则语法\n捕获组使用\\1...\\9\n示例:\nif (${1:true})\n{\n    $0\n}"
+    IDS_CHECK_VER_DEC       "已是最新版☑"
+    IDS_CHECK_VER_NEW       "检测到新版本发布😀"
+    IDS_CHECK_VER_ERR       "连接服务器失败✘"
+    IDS_SNIPPETS_STR        "☑代码片段补全模式"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1241,17 +1253,19 @@ BEGIN
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
 END
 
-IDD_SNIPPET_DLG DIALOGEX 10,10,423,258
+IDD_SNIPPET_DLG DIALOGEX 10,10,468,294
 CAPTION "代码片段"
 FONT 8,"MS Sans Serif",0,0,0
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+STYLE WS_CAPTION|WS_SYSMENU|WS_VISIBLE
+EXSTYLE WS_EX_TOOLWINDOW
 BEGIN
-  CONTROL "",IDC_SNIPPET_LST,"ListBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS|LBS_NOTIFY,3,15,99,222,WS_EX_CLIENTEDGE
+  CONTROL "",IDC_SNIPPET_LST,"ListBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|LBS_NOINTEGRALHEIGHT|LBS_HASSTRINGS|LBS_NOTIFY,3,18,99,253,WS_EX_CLIENTEDGE
   CONTROL "片段:",IDC_SNIPPET_STC1,"Static",WS_CHILDWINDOW|WS_VISIBLE,3,3,69,9
-  CONTROL "语言:",IDC_SNIPPET_STC2,"Static",WS_CHILDWINDOW|WS_VISIBLE,110,3,81,9
-  CONTROL "",IDC_SNIPPET_CBO1,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|WS_VSCROLL|CBS_DROPDOWNLIST,303,1,117,9
-  CONTROL "删除",IDC_SNIPPET_BTN1,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,3,240,99,15
-  CONTROL "",IDC_SNIPPET_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_LEFT|ES_AUTOHSCROLL|ES_MULTILINE,110,240,170,15,WS_EX_CLIENTEDGE
-  CONTROL "关闭",IDC_SNIPPET_BTN3,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,366,240,54,15
-  CONTROL "应用/添加",IDC_SNIPPET_BTN2,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,288,240,70,15
+  CONTROL "语言:",IDC_SNIPPET_STC2,"Static",WS_CHILDWINDOW|WS_VISIBLE,108,3,81,9
+  CONTROL "",IDC_SNIPPET_CBO1,"ComboBox",WS_CHILDWINDOW|WS_VISIBLE|WS_VSCROLL|WS_TABSTOP|CBS_DROPDOWNLIST,348,1,117,9
+  CONTROL "删除",IDC_SNIPPET_DELETE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,3,275,45,15
+  CONTROL "",IDC_SNIPPET_EDT1,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL|ES_MULTILINE,108,275,233,15,WS_EX_CLIENTEDGE
+  CONTROL "关闭",IDC_SNIPPET_BTN_CLOSE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,411,275,54,15
+  CONTROL "确定",IDC_SNIPPET_BTN_APPLY,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,351,275,54,15
+  CONTROL "新建",IDC_SNIPPET_NEW,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,57,275,45,15
 END

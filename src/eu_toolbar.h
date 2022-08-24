@@ -48,6 +48,7 @@ void __stdcall on_toolbar_update_button(void);
 void __stdcall on_toolbar_execute_script(void);
 void __stdcall on_toolbar_lua_exec(eu_tabpage *pnode);
 void __stdcall on_toolbar_setup_button(int id, int flags);
+void __stdcall on_toolbar_no_highlight(void *lp);
 int  __stdcall on_toolbar_height(void);
 int  __stdcall on_toolbar_create(HWND hwnd);
 bool __stdcall on_toolbar_refresh(HWND hwnd);

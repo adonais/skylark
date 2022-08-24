@@ -19,16 +19,19 @@
 #ifndef _EU_CHANGLES_H_
 #define _EU_CHANGLES_H_
 
-#define FILE_CHANGE_FILE_YES 1
-#define FILE_CHANGE_FILE_NO  2
-#define FILE_CHANGE_ALL_YES  3
-#define FILE_CHANGE_ALL_NO   4
-#define FILE_CHANGE_SEC_YES  5
-#define FILE_CHANGE_SEC_NO   6
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum
+{
+    FILE_CHANGE_FILE_YES = 1,
+    FILE_CHANGE_FILE_NO,
+    FILE_CHANGE_ALL_YES,
+    FILE_CHANGE_ALL_NO ,
+    FILE_CHANGE_SEC_YES,
+    FILE_CHANGE_SEC_NO
+};
 
 void __stdcall on_changes_window(HWND hwnd);
 int __stdcall eu_i18n_msgbox(HWND hwnd, uint16_t contents_id, uint16_t title_id, uint32_t type);

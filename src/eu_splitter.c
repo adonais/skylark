@@ -321,7 +321,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             ReleaseDC(parent, hdc);
             DeleteObject(hpen);
             ReleaseCapture();
-            if (RESULT_SHOW(pnode) && hwnd_rst)
+            if (RESULT_SHOW(pnode) && eu_result_hwnd())
             {
                 if (pnode->hwnd_qrtable)
                 {

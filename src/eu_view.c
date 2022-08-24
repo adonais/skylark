@@ -59,10 +59,11 @@ on_view_result_show(eu_tabpage *pnode, int key)
         if (!pnode->result_show)
         {
             pnode->result_show = on_result_launch(pnode);
-            eu_window_resize(NULL);
         }
         if (RESULT_SHOW(pnode))
         {
+            pnode->presult->pwant = on_toolbar_no_highlight;
+            eu_window_resize(NULL);
             pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);
         }
     }
@@ -206,34 +207,7 @@ on_view_switch_theme(HWND hwnd, int id)
     {
         return 0;
     }
-    if (_tcscmp(pbuf, _T("white")) == 0)
-    {
-        char *pwhite = eu_utf16_utf8(pbuf, NULL);
-        if (pwhite)
-        {
-            strncpy(eu_get_config()->window_theme, pwhite, ACNAME_LEN);
-            free(pwhite);
-            on_file_edit_restart(hwnd);
-            return 0;
-        }
-    }
-    else if (_tcscmp(old, _T("white")) == 0)
-    {
-        char *ptheme = eu_utf16_utf8(pbuf, NULL);
-        if (ptheme)
-        {
-            int msg = IDOK;
-            MSG_BOX_SEL(IDS_THEMEM_WHITE_TO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, msg);
-            if (msg == IDOK)
-            {
-                strncpy(eu_get_config()->window_theme, ptheme, ACNAME_LEN);
-                free(ptheme);
-                on_file_edit_restart(hwnd);
-            }
-            return 0;
-        }
-    }
-    else if (_tcscmp(pbuf, _T("black")) == 0)
+    if (_tcscmp(pbuf, _T("black")) == 0)
     {
         if (eu_on_dark_init(true, true))
         {
@@ -384,6 +358,12 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
 }
 
 void
+on_view_light_brace(void)
+{
+    eu_get_config()->eu_brace.matching = !eu_get_config()->eu_brace.matching;
+}
+
+void
 on_view_light_str(void)
 {
     eu_get_config()->m_light_str = !eu_get_config()->m_light_str;
@@ -440,7 +420,7 @@ on_view_line_num(void)
 void
 on_view_bookmark(void)
 {
-    eu_get_config()->bookmark_visable = !eu_get_config()->bookmark_visable;
+    eu_get_config()->eu_bookmark.visable = !eu_get_config()->eu_bookmark.visable;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -448,7 +428,7 @@ on_view_bookmark(void)
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
         if (p)
         {
-            eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->bookmark_visable ? MARGIN_BOOKMARK_WIDTH : 0));
+            eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
         }
     }
 }
@@ -473,6 +453,13 @@ on_view_show_fold_lines(void)
 {
     eu_get_config()->block_fold = !eu_get_config()->block_fold;
     on_view_update_fold();
+}
+
+void
+on_view_identation(void)
+{
+    eu_get_config()->m_ident = !eu_get_config()->m_ident;
+    on_toolbar_update_button();
 }
 
 void

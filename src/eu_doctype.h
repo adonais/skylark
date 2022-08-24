@@ -28,10 +28,11 @@ extern "C"
 #endif
 
 typedef struct rb_root eutype_t;
+typedef struct _snippet_t *ptr_snippet;
 typedef int (*init_before_ptr)(eu_tabpage *pnode);
 typedef int (*init_after_ptr)(eu_tabpage *pnode);
 typedef int (*parse_header_ptr)(eu_tabpage *pnode);
-typedef int (*add_ptr)(eu_tabpage *pnode, SCNotification *lpnotify);
+typedef int (*add_ptr)(eu_tabpage *pnode, ptr_notify lpnotify);
 typedef int (*key_ptr)(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 typedef int (*reload_list_ptr)(eu_tabpage *pnode);
 typedef int (*click_list_ptr)(eu_tabpage *pnode);
@@ -79,7 +80,8 @@ enum dctype
     DOCTYPE_MATLAB = 36,
     DOCTYPE_CONFIGS = 37,
     DOCTYPE_VB = 38,
-    DOCTYPE_VBS = 39
+    DOCTYPE_VBS = 39,
+    DOCTYPE_LATEX = 40
 };
 
 typedef struct _doc_styles
@@ -103,6 +105,7 @@ typedef struct _doc_data
     const char *filetypename;                 // 文档类型名称
     const char *extname;                      // 文档扩展名
     const char *filedesc;                     // 文档类型描述
+    const char *snippet;                      // 文档的代码片段文件所在
     int tab_width;                            // tab键宽度, default = 0, 跟随主配置
     int tab_convert_spaces;                   // tab键是否转换为空格, default = -1, 跟随主配置
     init_before_ptr fn_init_before;           // 回调函数, 在文档初始化前运行, 用于创建右侧边控件
@@ -115,6 +118,7 @@ typedef struct _doc_data
     click_list_ptr fn_click_symlist;          // 回调函数, 右侧边栏list控件被点击
     reload_tree_ptr fn_reload_symtree;        // 回调函数, 右侧边栏tree控件刷新或重载
     click_tree_ptr fn_click_symtree;          // 回调函数, 右侧边栏tree控件被点击
+    ptr_snippet ptrv;                         // 解析后的代码片段关键字
     const char *keywords0;                    // 需要高亮的关键字, 分6类高亮着色
     const char *keywords1;
     const char *keywords2;

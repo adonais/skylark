@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-HWND hwnd_rst = NULL;
+static HWND hwnd_rst = NULL;
 
 int
 on_result_append_text(TCHAR *format, ...)
@@ -42,7 +42,6 @@ on_result_append_text(TCHAR *format, ...)
         return 1;
 
     }
-
     if (eu_sci_call(pnode->presult, SCI_GETLENGTH, 0, 0) < 1)
     {
         char *u8 = NULL;
@@ -123,7 +122,6 @@ on_result_append_text_utf8(char *format, ...)
     }
     eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
     eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-    eu_sci_call(pnode->presult, SCI_SETKEYWORDS, 0, (sptr_t)"=");
     eu_sci_call(pnode->presult, SCI_ADDTEXT, strlen(buf), (LPARAM)buf);
     eu_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
     eu_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
@@ -149,17 +147,17 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONDBLCLK:
         {
             eu_tabpage *pnode = on_tabpage_focus_at();
-            if (pnode && pnode->presult && pnode->pvec)
+            if (pnode && pnode->presult && pnode->ret_vec)
             {
                 sptr_t cur_pos = eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
                 eu_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
                 sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
-                if (line >= 0 && cvector_size(pnode->pvec) > 0)
+                if (line >= 0 && cvector_size(pnode->ret_vec) > 0)
                 {
                     sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
                     sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-                    on_search_jmp_line(pnode, pnode->pvec[line - 1].line, current_line);
-                    eu_sci_call(pnode, SCI_SETSEL, pnode->pvec[line - 1].mark.start, pnode->pvec[line - 1].mark.end);
+                    on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
+                    eu_sci_call(pnode, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
                 }
             }
             return 1;
@@ -233,8 +231,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(IDM_RESULT_CLOSE, 0), 0);
-            return 1;
+            break;
         }
         case WM_DESTROY:
         {
@@ -256,6 +253,10 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
+            if (hwnd_rst)
+            {
+                hwnd_rst = NULL;
+            }
             printf("on_result_callback WM_DESTROY\n");
             break;
         }
@@ -268,7 +269,7 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 void
 on_result_reload(eu_tabpage *pedit)
 {
-    if (pedit && eu_sci_call(pedit, SCI_GETLEXER, 0, 0) != SCLEX_RESULT)
+    if (pedit)
     {
         on_sci_init_style(pedit);
         // disable margin
@@ -283,15 +284,19 @@ on_result_reload(eu_tabpage *pedit)
         eu_sci_call(pedit, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
         // 加载词语解析器
         on_doc_init_after_scilexer(pedit, "result");
-        on_doc_default_light(pedit, SCE_RESULT_COMMENT, eu_get_theme()->item.keywords0.color, -1, true);
+        on_doc_default_light(pedit, SCE_RESULT_COMMENT, 0x768465, -1, true);
+        on_doc_default_light(pedit, SCE_RESULT_HEADER , eu_get_theme()->item.keywords0.color, -1, true);
         on_doc_default_light(pedit, SCE_RESULT_KEYWORD, eu_get_theme()->item.number.color, -1, true);
+        if (pedit->pwant)
+        {
+            pedit->pwant(pedit);
+        }
     }
 }
 
 bool
 on_result_launch(eu_tabpage *pnode)
 {
-    bool ret = false;
     if (pnode)
     {
         if (!pnode->presult)
@@ -303,16 +308,28 @@ on_result_launch(eu_tabpage *pnode)
             {
                 hwnd_rst = on_splitter_init_window(eu_module_hwnd(), class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_result_callback, NULL);
             }
-            if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, NULL, flags, on_result_edit_proc))
+            if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, hwnd_rst, flags, on_result_edit_proc))
             {
                 on_dark_border(pnode->presult->hwnd_sc, true);
-                ret = true;
             }
         }
-        else
-        {
-            ret = true;
-        }
+        return true;
     }
-    return ret;
+    return false;
+}
+
+void
+on_result_move_sci(eu_tabpage *p, int width, int height)
+{
+    if (RESULT_SHOW(p))
+    {
+        MoveWindow(p->presult->hwnd_sc, 0, 0, width, height, TRUE);
+        ShowWindow(p->presult->hwnd_sc, SW_SHOW);
+    }
+}
+
+HWND
+eu_result_hwnd(void)
+{
+    return hwnd_rst;
 }

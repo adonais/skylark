@@ -250,9 +250,9 @@ on_table_disconnect_database(eu_tabpage *pnode, bool force)
         }
         else
         {
-            TCHAR utf_str[16+1] = {0};
+            TCHAR utf_str[OVEC_LEN+1] = {0};
             LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR3, err_msg);
-            on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, 16));
+            on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, OVEC_LEN));
         }
         pnode->db_ptr->connected = false;
         if (force)
@@ -268,7 +268,7 @@ on_table_connect_database(eu_tabpage *pnode)
     char ip[ACNAME_LEN+1] = {0};
     TCHAR utf_str[ACNAME_LEN+1] = {0};
     TCHAR user[ACNAME_LEN+1] = {0};
-    TCHAR name[ACNAME_LEN+1] = {0};
+    TCHAR name[MAX_PATH+1] = {0};
     TCHAR dll_path[MAX_PATH+1] = {0};
     if (!(pnode && pnode->db_ptr && pnode->db_ptr->config.dbtype[0]))
     {
@@ -340,7 +340,7 @@ on_table_connect_database(eu_tabpage *pnode)
             if (pnode->db_ptr->config.dbpass[0] == 0)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR7, m_pass);
-                TCHAR dbpass[64] = {0};
+                TCHAR dbpass[ACNAME_LEN] = {0};
                 eu_input(m_pass, dbpass, _countof(dbpass));
                 if (dbpass[0] == 0)
                 {
@@ -352,7 +352,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 }
                 else
                 {
-                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, 64, NULL, NULL);
+                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, ACNAME_LEN, NULL, NULL);
                 }
             }
             this_mysql->mysql = mysql_sub->fn_mysql_real_connect(this_mysql->mysql,
@@ -370,7 +370,7 @@ on_table_connect_database(eu_tabpage *pnode)
                                       util_make_u16(ip, utf_str, ACNAME_LEN),
                                       pnode->db_ptr->config.dbport,
                                       util_make_u16(pnode->db_ptr->config.dbuser, user, ACNAME_LEN),
-                                      util_make_u16(pnode->db_ptr->config.dbname, name, ACNAME_LEN));
+                                      util_make_u16(pnode->db_ptr->config.dbname, name, MAX_PATH));
                 mysql_sub->fn_mysql_close(this_mysql->mysql);
                 this_mysql->mysql = NULL;
                 if (!pnode->db_ptr->config.config_pass)
@@ -386,7 +386,7 @@ on_table_connect_database(eu_tabpage *pnode)
                                       util_make_u16(ip, utf_str, ACNAME_LEN),
                                       pnode->db_ptr->config.dbport,
                                       util_make_u16(pnode->db_ptr->config.dbuser, user, ACNAME_LEN),
-                                      util_make_u16(pnode->db_ptr->config.dbname, name, ACNAME_LEN));
+                                      util_make_u16(pnode->db_ptr->config.dbname, name, MAX_PATH));
             }
             if (mysql_sub->fn_mysql_set_character_set(this_mysql->mysql, "utf8mb4"))
             {
@@ -483,7 +483,7 @@ on_table_connect_database(eu_tabpage *pnode)
             if (pnode->db_ptr->config.dbpass[0] == 0)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR7, m_pass);
-                TCHAR dbpass[64] = {0};
+                TCHAR dbpass[ACNAME_LEN] = {0};
                 eu_input(m_pass, dbpass, _countof(dbpass));
                 if (pnode->db_ptr->config.dbpass[0] == 0)
                 {
@@ -493,7 +493,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 }
                 else
                 {
-                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, 64, NULL, NULL);
+                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, ACNAME_LEN, NULL, NULL);
                 }
             }
             oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &(this_oci->servhpp), OCI_HTYPE_SERVER, (size_t) 0, (dvoid **) 0);
@@ -574,7 +574,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 return 1;
             }
             LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR20, err_msg);
-            on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbname, name, ACNAME_LEN));
+            on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbname, name, MAX_PATH));
             pnode->db_ptr->connected = true;
         }
     }
@@ -653,7 +653,7 @@ on_table_connect_database(eu_tabpage *pnode)
                                   util_make_u16(ip, utf_str, ACNAME_LEN),
                                   atoi(src_port),
                                   util_make_u16(pnode->db_ptr->config.dbname, user, ACNAME_LEN),
-                                  util_make_u16(pnode->db_ptr->config.dbuser, name, ACNAME_LEN));
+                                  util_make_u16(pnode->db_ptr->config.dbuser, name, MAX_PATH));
             pnode->db_ptr->connected = true;
         }
     }
@@ -783,7 +783,7 @@ on_table_skip_comment(eu_tabpage *pnode, char **psql)
             ++s;
             continue;
         }
-        if (util_strnspace(s, "--") == 0)
+        if (util_strnspace(s, "--", NULL) == 0)
         {
             if ((p = strchr(s, m_eol)) != NULL)
             {

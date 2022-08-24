@@ -178,45 +178,49 @@ eu_rand_str(TCHAR *str, const int len)
 
 /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * c风格的字符串替换函数
- */
+ * 直接在输入的字符串内做替换, 所以务必保证in_size有足够的空间
+ * 在这里, in_size最大值为4096, 超出这个值将导致字符串被截断
+ ** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 LPTSTR WINAPI
 eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
 {
     TCHAR *in_ptr = in;
-    TCHAR res[MAX_PATH + 1] = { 0 };
-    size_t resoffset = 0;
+    TCHAR res[VALUE_LEN] = { 0 };
+    size_t offset = 0;
     TCHAR *needle;
-    while ((needle = _tcsstr(in, pattern)) && resoffset < in_size)
+    while ((needle = _tcsstr(in, pattern)) && offset < in_size && offset < VALUE_LEN)
     {
-        _tcsncpy(res + resoffset, in, needle - in);
-        resoffset += needle - in;
+        _tcsncpy(res + offset, in, needle - in);
+        offset += needle - in;
         in = needle + (int) _tcslen(pattern);
-        _tcsncpy(res + resoffset, by, _tcslen(by));
-        resoffset += (int) wcslen(by);
+        _tcsncpy(res + offset, by, VALUE_LEN - offset);
+        offset += (int) wcslen(by);
     }
-    _tcscpy(res + resoffset, in);
+    _tcsncpy(res + offset, in, VALUE_LEN - offset);
     _sntprintf(in_ptr, eu_int_cast(in_size), _T("%s"), res);
-    return in_ptr;
+    in = in_ptr;
+    return in;
 }
 
 char *WINAPI
 eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by)
 {
     char *in_ptr = in;
-    char res[MAX_PATH + 1] = { 0 };
-    size_t resoffset = 0;
+    char res[VALUE_LEN] = {0};
+    size_t offset = 0;
     char *needle;
-    while ((needle = strstr(in, pattern)) && resoffset < in_size)
+    while ((needle = strstr(in, pattern)) && offset < in_size && offset < VALUE_LEN)
     {
-        strncpy(res + resoffset, in, needle - in);
-        resoffset += needle - in;
+        strncpy(res + offset, in, needle - in);
+        offset += needle - in;
         in = needle + (int) strlen(pattern);
-        strncpy(res + resoffset, by, strlen(by));
-        resoffset += (int) strlen(by);
+        strncpy(res + offset, by, VALUE_LEN - offset);
+        offset += (int) strlen(by);
     }
-    strcpy(res + resoffset, in);
+    strncpy(res + offset, in, VALUE_LEN - offset);
     _snprintf(in_ptr, eu_int_cast(in_size), "%s", res);
-    return in_ptr;
+    in = in_ptr;
+    return in;
 }
 
 TCHAR *WINAPI
@@ -274,26 +278,33 @@ eu_exist_dir(LPCTSTR path)
 bool WINAPI
 eu_exist_file(LPCTSTR path)
 {
+    bool ret = false;
+    TCHAR *fullpath = NULL;
     DWORD fileattr = INVALID_FILE_ATTRIBUTES;
     if (STR_IS_NUL(path))
     {
         return false;
     }
-    if (_tcslen(path) > 1 && path[1] == L':')
+    while ((fullpath = util_wstr_unquote(path)))
     {
-        fileattr = GetFileAttributes(path);
+        if (_tcslen(fullpath) > 1 && fullpath[1] == L':')
+        {
+            fileattr = GetFileAttributes(fullpath);
+        }
+        else
+        {
+            TCHAR file_path[MAX_PATH+1] = {0};
+            _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, fullpath);
+            fileattr = GetFileAttributes(file_path);
+        }
+        if (fileattr != INVALID_FILE_ATTRIBUTES)
+        {
+            ret = (fileattr & FILE_ATTRIBUTE_DIRECTORY) == 0;
+        }
+        break;
     }
-    else
-    {
-        TCHAR file_path[MAX_PATH+1] = {0};
-        _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, path);
-        fileattr = GetFileAttributes(file_path);
-    }
-    if (fileattr != INVALID_FILE_ATTRIBUTES)
-    {
-        return (fileattr & FILE_ATTRIBUTE_DIRECTORY) == 0;
-    }
-    return false;
+    eu_safe_free(fullpath);
+    return ret;
 }
 
 bool WINAPI
@@ -334,6 +345,26 @@ eu_mk_dir(LPCTSTR dir)
         }
     }
     return (eu_exist_dir(tmp_name)? true: (CreateDirectory(tmp_name, NULL)));
+}
+
+bool WINAPI
+eu_touch(LPCTSTR path)
+{
+    TCHAR *fullpath = NULL;
+    bool ret = eu_exist_file(path);
+    if (path && !ret && (fullpath = (TCHAR *)_tcsdup(path)))
+    {
+        eu_suffix_strip(fullpath);
+        eu_mk_dir(fullpath);
+        FILE *fd = _tfopen(path, _T("w+b"));
+        if (fd)
+        {
+            fclose(fd);
+            ret = true;
+        }
+        eu_safe_free(fullpath);
+    }
+    return ret;
 }
 
 bool WINAPI
@@ -1563,7 +1594,6 @@ eu_save_config(void)
         "newfile_eols = %d\n"
         "-- the macro is defined in the targetver.h\n"
         "newfile_encoding = %d\n"
-        "enable_auto_add_close_char = %s\n"
         "enable_auto_identation = %s\n"
         "window_theme = \"%s\"\n"
         "window_full_screen = %s\n"
@@ -1571,9 +1601,7 @@ eu_save_config(void)
         "window_toolbar_visiable = %s\n"
         "window_statusbar_visiable = %s\n"
         "line_number_visiable = %s\n"
-        "bookmark_visiable = %s\n"
-        "bookmark_shape = %d\n"
-        "bookmark_argb = 0x%08X\n"
+        "last_search_flags = 0x%08X\n"
         "white_space_visiable = %s\n"
         "white_space_size = %d\n"
         "newline_visiable = %s\n"
@@ -1586,6 +1614,7 @@ eu_save_config(void)
         "file_treebar_width = %d\n"
         "symbol_list_width = %d\n"
         "symbol_tree_width = %d\n"
+        "sidebar_width = %d\n"
         "document_map_width = %d\n"
         "sqlquery_result_edit_height = %d\n"
         "sqlquery_result_listview_height = %d\n"
@@ -1594,9 +1623,6 @@ eu_save_config(void)
         "inter_reserved_1 = %d\n"
         "inter_reserved_2 = %d\n"
         "block_fold_visiable = %s\n"
-        "auto_completed_show_enable = %s\n"
-        "auto_completed_show_after_input_characters = %d\n"
-        "call_tip_show_enable = %s\n"
         "tabs_tip_show_enable = %s\n"
         "tab_close_way = %d\n"
         "tab_switch_forward = %d\n"
@@ -1610,6 +1636,35 @@ eu_save_config(void)
         "allow_multiple_instance = %s\n"
         "save_last_placement = \"%s\"\n"
         "ui_language = \"%s\"\n"
+        "-- bookmark default setting\n"
+        "bookmark = {\n"
+        "    visable = %s,\n"
+        "    shape = %d,\n"
+        "    argb = 0x%08X\n"
+        "}\n"
+        "-- brace default setting\n"
+        "brace = {\n"
+        "    matching = %s,\n"
+		"    autoc = %s,\n"
+        "    rgb = 0x%08X\n"
+        "}\n"
+        "-- caret default setting\n"
+        "caret = {\n"
+        "    blink = %d,\n"
+        "    width = %d,\n"
+        "    rgb = 0x%08X\n"
+        "}\n"
+        "-- calltip default setting\n"
+        "calltip = {\n"
+        "    enable = %s,\n"
+        "    rgb = 0x%08X\n"
+        "}\n"
+        "-- auto complete default setting\n"
+        "complete = {\n"
+        "    enable = %s,\n"
+        "    characters = %d,\n"
+        "    snippet = %d\n"
+        "}\n"
         "-- print default setting\n"
         "printer = {\n"
         "    header = %d,\n"
@@ -1649,7 +1704,6 @@ eu_save_config(void)
     _snprintf(save, BUFF_32K - 1, pconfig,
               g_config->new_file_eol,
               g_config->new_file_enc,
-              g_config->auto_close_chars?"true":"false",
               g_config->m_ident?"true":"false",
               g_config->window_theme[0]?g_config->window_theme:"default",
               g_config->m_fullscreen?"true":"false",
@@ -1657,9 +1711,7 @@ eu_save_config(void)
               g_config->m_toolbar?"true":"false",
               g_config->m_statusbar?"true":"false",
               g_config->m_linenumber?"true":"false",
-              g_config->bookmark_visable?"true":"false",
-              g_config->bookmark_shape,
-              g_config->bookmark_argb,
+              g_config->last_flags,
               g_config->ws_visiable?"true":"false",
               g_config->ws_size,
               g_config->newline_visialbe?"true":"false",
@@ -1672,6 +1724,7 @@ eu_save_config(void)
               g_config->file_tree_width,
               g_config->sym_list_width,
               g_config->sym_tree_width,
+              g_config->sidebar_width,
               g_config->document_map_width,
               g_config->result_edit_height,
               g_config->result_list_height,
@@ -1680,9 +1733,6 @@ eu_save_config(void)
               g_config->inter_reserved_1,
               g_config->inter_reserved_2,
               g_config->block_fold?"true":"false",
-              g_config->m_acshow?"true":"false",
-              g_config->acshow_chars,
-              g_config->m_ctshow?"true":"false",
               g_config->m_tab_tip?"true":"false",
               g_config->m_close_way,
               g_config->m_tab_active,
@@ -1696,6 +1746,20 @@ eu_save_config(void)
               "false",
               g_config->m_placement,
               g_config->m_language[0]?g_config->m_language:"auto",
+              g_config->eu_bookmark.visable?"true":"false",
+              g_config->eu_bookmark.shape,
+              g_config->eu_bookmark.argb,
+              g_config->eu_brace.matching?"true":"false",
+              g_config->eu_brace.autoc?"true":"false",
+              g_config->eu_brace.rgb,
+              g_config->eu_caret.blink>=0?g_config->eu_caret.blink:500,
+              g_config->eu_caret.width>=0?g_config->eu_caret.width:1,
+              g_config->eu_caret.rgb,
+              g_config->eu_calltip.enable?"true":"false",
+              g_config->eu_calltip.rgb,
+              g_config->eu_complete.enable?"true":"false",
+              g_config->eu_complete.characters,
+              g_config->eu_complete.snippet,
               g_config->eu_print.header,
               g_config->eu_print.footer,
               g_config->eu_print.color_mode,
@@ -1969,10 +2033,28 @@ eu_print_completed_tree(root_t *acshow_root)
     printf("\n");
 }
 
-const char *
-eu_find_completed_tree(root_t *acshow_root, const char *key)
+char *
+eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str)
 {
-    return (const char *)ac_get(acshow_root, key);
+    char *res = (char *)calloc(VALUE_LEN + 1, 1);
+    if (res)
+    {
+        if (pre_str)
+        {
+            _snprintf(res, VALUE_LEN, "%s%c%d", pre_str, '\x1E', SNIPPET_FUNID);
+        }
+        else
+        {
+            ac_get(acshow_root, key, res, VALUE_LEN);
+            size_t len = strlen(res);
+            if (len > 0 && res[len - 1] == 0x20)
+            {
+                res[len - 1] = 0;
+            }
+        }
+        return res;
+    }
+    return NULL;
 }
 
 void

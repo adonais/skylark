@@ -1,3 +1,27 @@
+/******************************************************************************
+ * This file is part of c-vector project
+ * From https://https://github.com/eteran/c-vector/list.h
+ * The MIT License (MIT)
+ * Copyright (c) 2015 Evan Teran
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 
 #ifndef CVECTOR_H_
 #define CVECTOR_H_
@@ -101,6 +125,21 @@
     } while (0)
 
 /**
+ * @brief cvector_freep - frees all memory and assign null to the pointer
+ * @param pvec - the vector pointer
+ * @return void
+ */
+#define cvector_freep(pvec)                                 \
+    do {                                                    \
+        if ((pvec && *pvec)) {                              \
+            void *val__;                                    \
+            memcpy(&val__, (pvec), sizeof(val__));          \
+            memcpy((pvec), &(void *){NULL}, sizeof(val__)); \
+            cvector_free(val__);                            \
+        }                                                   \
+    } while (0)
+
+/**
  * @brief cvector_begin - returns an iterator to first element of the vector
  * @param vec - the vector
  * @return a pointer to the first element (or NULL)
@@ -187,6 +226,16 @@
     } while (0)
 
 /**
+ * @brief cvector_clear - empty the array, but not free memory
+ * @param vec - the vector
+ * @return void
+ */
+#define cvector_clear(vec)                           \
+    do {                                             \
+        cvector_set_size((vec), 0);                  \
+    } while (0)
+
+/**
  * @brief cvector_copy - copy a vector
  * @param from - the original vector
  * @param to - destination to which the function copy to
@@ -260,8 +309,47 @@
 #define cvector_for_each(vec, func)                          \
     do {                                                     \
         if ((vec) && (func) != NULL) {                       \
-            for (size_t i = 0; i < cvector_size(vec); i++) { \
+            for (size_t i = 0; i < cvector_size(vec); ++i) { \
                 func((vec)[i]);                              \
+            }                                                \
+        }                                                    \
+    } while (0)
+    
+/**
+ * @brief cvector_for_each - call function with param on each element of the vector
+ * @param vec - the vector
+ * @param func - function to be called on each element that takes each element as argument
+ * @return void
+ */
+#define cvector_for_each_and_do(vec, func, param)            \
+    do {                                                     \
+        if ((vec) && (func) != NULL) {                       \
+            for (size_t i = 0; i < cvector_size(vec); ++i) { \
+                func(&(vec)[i], (param));                    \
+            }                                                \
+        }                                                    \
+    } while (0)    
+
+/**
+ * @brief cvector_for_each_and_cmp - call function func on each element of the vector
+ * @param vec - the vector
+ * @param func - function to be called on each element that takes each element as argument
+ * @param param - function param
+ * @param it_ - the vector pointer
+ * @return void
+ */    
+#define cvector_for_each_and_cmp(vec, func, param, it_)      \
+    do {                                                     \
+        if ((vec) && (func) && (it_)) {                      \
+            size_t i_ = 0;                                   \
+            size_t len_ = cvector_size(vec);                 \
+            for (; i_ < len_; ++i_) {                        \
+                if (!func(&(vec)[i_], param)) {              \
+                    break;                                   \
+                }                                            \
+            }                                                \
+            if (i_ >= 0 && i_ < len_) {                      \
+                *it_ = &(vec)[i_];                           \
             }                                                \
         }                                                    \
     } while (0)

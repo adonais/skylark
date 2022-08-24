@@ -18,7 +18,9 @@
 
 #include "eu_map.h"
 
+#ifndef VALUE_LEN
 #define VALUE_LEN 4096
+#endif
 
 #ifndef ANY_WORD
 #define ANY_WORD  "///*///"
@@ -186,32 +188,27 @@ map_destory(root_t *root)
     }
 }
 
-char *
-ac_get(root_t *root, const char *val)
+int
+ac_get(root_t *root, const char *val, char *buf, int buf_len)
 {
-    int    len;
+    int len;
     int offset = 0;
     acshow_t *node = NULL;
-    char *res = (char *)calloc(1, VALUE_LEN);
-    if (!res)
-    {
-        return NULL;
-    }
     for (node = ac_first(root); node != NULL;)
     {
         if (strcmp(val, ANY_WORD) == 0)
         {
-            len = _snprintf(res + offset, VALUE_LEN - offset - 1, "%s ", node->str);
-            offset += len;              
+            len = _snprintf(buf + offset, buf_len - offset - 1, "%s ", node->str);
+            offset += len;
         }
         else if (strncmp(node->str, val, strlen(val)) == 0)
         {
-            len = _snprintf(res + offset, VALUE_LEN - offset - 1, "%s ", node->str);
+            len = _snprintf(buf + offset, buf_len - offset - 1, "%s ", node->str);
             offset += len;
         }
         node = ac_next(&(node->node));
     }
-    return res;
+    return 0;
 }
 
 int ac_put(root_t *root, const char *str)

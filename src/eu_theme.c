@@ -146,25 +146,6 @@ on_theme_load_script(const TCHAR *ac_name)
     return do_lua_func(script_name, "switch_theme", name);
 }
 
-// 禁止应用程序中所有窗口使用Visual Styles
-bool
-on_theme_set_classic(HMODULE *pmod)
-{
-    typedef void (WINAPI *SetThemeAppPropertiesPtr)(DWORD flags);
-    *pmod = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-    if (*pmod)
-    {
-        SetThemeAppPropertiesPtr fnSetThemeAppProperties = (SetThemeAppPropertiesPtr)GetProcAddress(*pmod, "SetThemeAppProperties");
-        if (fnSetThemeAppProperties)
-        {
-            DWORD flags = (STAP_ALLOW_CONTROLS | STAP_ALLOW_WEBCONTENT);
-            fnSetThemeAppProperties(flags);
-        }
-        return true;
-    }
-    return false;
-}
-
 static bool
 search_theme_files(theme_desc *lptheme, int m)
 {

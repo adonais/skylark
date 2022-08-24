@@ -154,11 +154,11 @@ typedef struct _db_libs
 typedef struct _db_config
 {
     int dbport;
-    char dbtype[16];
-    char dbhost[256];
-    char dbuser[64];
-    char dbpass[64];
-    char dbname[64];
+    char dbtype[OVEC_LEN];
+    char dbhost[MAX_SIZE];
+    char dbuser[ACNAME_LEN];
+    char dbpass[ACNAME_LEN];
+    char dbname[ACNAME_LEN];
     bool config_pass;
 } db_config;
 
