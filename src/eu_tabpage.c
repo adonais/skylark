@@ -386,7 +386,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
 }
 
 LRESULT CALLBACK
-tabs_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     int count = 0;
     int index = 0;
@@ -636,8 +636,7 @@ on_tabpage_create_dlg(HWND hwnd)
         TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, TAB_MIN_TOP);
         TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
         ShowWindow(g_tabpages, SW_SHOW);
-        UpdateWindow(g_tabpages);
-        if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) tabs_proc)))
+        if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) on_tabpage_proc_callback)))
         {
             err = 1;
             break;
