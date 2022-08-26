@@ -3596,6 +3596,15 @@ on_about_dialog(void)
 uint64_t
 on_about_build_id(void)
 {
+#ifdef ACTIONS_BUILDING
+    int zone = 0;
+    TIME_ZONE_INFORMATION tzi;
+    GetTimeZoneInformation(&tzi);
+    if ((zone = tzi.Bias/(-60)))
+    {
+        return (zone * 3600 + get_compiler_time(__DATE__, __TIME__));
+    }
+#endif
     return get_compiler_time(__DATE__, __TIME__);
 }
 
