@@ -11,8 +11,11 @@ CDEP    =  -I3rdparty\libcurl\include -I3rdparty\libopenssl\include -I3rdparty\l
 CFLAGS  = -W3 -WX- -wd4996 -wd4819 -Zi -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" \
           -utf-8 -D "JSON_TRACK_SOURCE" -D "PCRE_STATIC" $(CFLAGS) $(CDEP)
 
-API_CLFGAS = $(CFLAGS) -D "EUAPI_BUILDDING"
+!IF "$(ACTIONS_BUILDING)"=="1"
+CFLAGS = $(CFLAGS) -D "ACTIONS_BUILDING"
+!ENDIF
 
+API_CLFGAS = $(CFLAGS) -D "EUAPI_BUILDDING"
 
 CXXFLAGS = $(CFLAGS) /TP /EHsc
 
