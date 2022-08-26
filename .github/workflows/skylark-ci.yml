@@ -37,7 +37,7 @@ jobs:
       run: |
         cd /d %GITHUB_WORKSPACE%
         call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64"
-        nmake CC=clang-cl -DACTIONS_BUILDING=1
+        nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
       shell: cmd
       
