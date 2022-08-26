@@ -87,6 +87,7 @@ $(DIR_O)/CaseConvert.obj: \
 	$(SRC)/UniConversion.h
 $(DIR_O)/CaseFolder.obj: \
 	$(SRC)/CaseFolder.cxx \
+	$(SRC)/CharacterType.h \
 	$(SRC)/CaseFolder.h \
 	$(SRC)/CaseConvert.h
 $(DIR_O)/CellBuffer.obj: \
@@ -96,8 +97,21 @@ $(DIR_O)/CellBuffer.obj: \
 	$(SRC)/Position.h \
 	$(SRC)/SplitVector.h \
 	$(SRC)/Partitioning.h \
+	$(SRC)/RunStyles.h \
+	$(SRC)/SparseVector.h \
+	$(SRC)/ChangeHistory.h \
 	$(SRC)/CellBuffer.h \
 	$(SRC)/UniConversion.h
+$(DIR_O)/ChangeHistory.obj: \
+	$(SRC)/ChangeHistory.cxx \
+	src/include/ScintillaTypes.h \
+	$(SRC)/Debugging.h \
+	$(SRC)/Position.h \
+	$(SRC)/SplitVector.h \
+	$(SRC)/Partitioning.h \
+	$(SRC)/RunStyles.h \
+	$(SRC)/SparseVector.h \
+	$(SRC)/ChangeHistory.h
 $(DIR_O)/CharacterCategoryMap.obj: \
 	$(SRC)/CharacterCategoryMap.cxx \
 	$(SRC)/CharacterCategoryMap.h
@@ -273,6 +287,8 @@ $(DIR_O)/KeyMap.obj: \
 	src/include/ScintillaTypes.h \
 	src/include/ScintillaMessages.h \
 	$(SRC)/Debugging.h \
+	$(SRC)/Geometry.h \
+	$(SRC)/Platform.h \
 	$(SRC)/KeyMap.h
 $(DIR_O)/LineMarker.obj: \
 	$(SRC)/LineMarker.cxx \
@@ -372,43 +388,6 @@ $(DIR_O)/RunStyles.obj: \
 	$(SRC)/Partitioning.h \
 	$(SRC)/RunStyles.h
 $(DIR_O)/ScintillaBase.obj: \
-	$(SRC)/ScintillaBase.cxx \
-	src/include/ScintillaTypes.h \
-	src/include/ScintillaMessages.h \
-	src/include/ScintillaStructures.h \
-	src/include/ILoader.h \
-	src/include/Sci_Position.h \
-	src/include/ILexer.h \
-	$(SRC)/Debugging.h \
-	$(SRC)/Geometry.h \
-	$(SRC)/Platform.h \
-	$(SRC)/CharacterCategoryMap.h \
-	$(SRC)/Position.h \
-	$(SRC)/UniqueString.h \
-	$(SRC)/SplitVector.h \
-	$(SRC)/Partitioning.h \
-	$(SRC)/RunStyles.h \
-	$(SRC)/ContractionState.h \
-	$(SRC)/CellBuffer.h \
-	$(SRC)/CallTip.h \
-	$(SRC)/KeyMap.h \
-	$(SRC)/Indicator.h \
-	$(SRC)/LineMarker.h \
-	$(SRC)/Style.h \
-	$(SRC)/ViewStyle.h \
-	$(SRC)/CharClassify.h \
-	$(SRC)/Decoration.h \
-	$(SRC)/CaseFolder.h \
-	$(SRC)/Document.h \
-	$(SRC)/Selection.h \
-	$(SRC)/PositionCache.h \
-	$(SRC)/EditModel.h \
-	$(SRC)/MarginView.h \
-	$(SRC)/EditView.h \
-	$(SRC)/Editor.h \
-	$(SRC)/AutoComplete.h \
-	$(SRC)/ScintillaBase.h
-$(DIR_O)/ScintillaBaseL.obj: \
 	$(SRC)/ScintillaBase.cxx \
 	src/include/ScintillaTypes.h \
 	src/include/ScintillaMessages.h \
