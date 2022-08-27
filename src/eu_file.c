@@ -659,7 +659,7 @@ on_file_other_tab(int index)
     switch (eu_get_config()->m_tab_active)
     {   // 激活另一个标签
         case IDM_VIEW_LEFT_TAB:
-            on_tabpage_select_index(index - 1);
+            on_tabpage_select_index(index > 0 ? index - 1 : count - 1);
             break;
         case IDM_VIEW_RIGHT_TAB:
             on_tabpage_select_index(index > count - 1 ? 0 : index);
