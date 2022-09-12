@@ -916,7 +916,7 @@ on_complete_var_embed(eu_tabpage *pnode, complete_t *it, int index, complete_t *
 static void
 on_complete_sort_update(eu_tabpage *pnode, complete_t *it, int **pv, int offset, int index)
 {
-    if (it && (*pv) && cvector_size(*pv) > 0)
+    if (it && pv && cvector_size(*pv) > 0)
     {
         int first_pos = (*pv)[0];
         for (int j = 0; j < OVEC_LEN; ++j)
@@ -1064,9 +1064,9 @@ on_complete_update_postion(eu_tabpage *pnode, complete_t **ptr_vec, bool back)
             }
         }
     }
-    if (offset && oit && v)
+    if (oit)
     {   // 找出位置在它们之前或之后的vec, 更新位置信息
-        for (complete_t *it = cvector_begin(pnode->ac_vec); it != cvector_end(pnode->ac_vec); ++it)
+        for (complete_t *it = cvector_begin(pnode->ac_vec); offset && it != cvector_end(pnode->ac_vec); ++it)
         {
             if (it != oit)
             {
@@ -1340,6 +1340,11 @@ on_complete_snippet_back(eu_tabpage *pnode)
             {
                 on_complete_dec_focus();
             }
+        }
+        else
+        {
+            on_complete_reset_focus(pnode);
+            ret = false;
         }
         break;
     }

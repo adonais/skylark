@@ -394,10 +394,12 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_ERASEBKGND:
+        {
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
+        }
         case WM_PAINT:
         {
             PAINTSTRUCT ps;
@@ -408,18 +410,6 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SIZE:
         {
-            int row = 0;
-            int count = TabCtrl_GetItemCount(hwnd);
-            if (count > 0)
-            {
-                RECT rc = {0};
-                TabCtrl_GetItemRect(hwnd, count - 1, &rc);
-                row = rc.bottom/TABS_HEIGHT_DEFAULT;
-            }
-            if (row > 1)
-            {   // 行数大于1时重新调用缩放函数, 使得tabcontrol位置正确
-                PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
-            }
             break;
         }
         case WM_COMMAND:
@@ -642,13 +632,10 @@ on_tabpage_create_dlg(HWND hwnd)
             break;
         }
     } while(0);
-    if (err)
+    if (err && g_tabpages)
     {
-        if (g_tabpages)
-        {
-            DestroyWindow(g_tabpages);
-            g_tabpages = NULL;
-        }
+        DestroyWindow(g_tabpages);
+        g_tabpages = NULL;
     }
     return err;
 }
