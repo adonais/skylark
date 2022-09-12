@@ -394,10 +394,12 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_ERASEBKGND:
+        {
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
             FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
             return 1;
+        }
         case WM_PAINT:
         {
             PAINTSTRUCT ps;
@@ -408,7 +410,6 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_SIZE:
         {
-            PostMessage(eu_module_hwnd(), WM_SIZE, 0, 0);
             break;
         }
         case WM_COMMAND:

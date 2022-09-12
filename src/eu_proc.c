@@ -406,13 +406,19 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         {
             EndDeferWindowPos(hdwp);
             if (!ptab)
-            {
+            {   // 重新计算标签栏大小
+                on_tabpage_adjust_box(&rect_tabbar);
+                on_tabpage_adjust_window(pnode);
+                eu_setpos_window(g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
+                                 rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
+                eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
+                                 pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
                 UpdateWindow(g_treebar);
                 UpdateWindow(g_splitter_treebar);
                 // on wine, we use RedrawWindow refresh client area
                 RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
                 UpdateWindowEx(g_tabpages);
-                ShowWindow(pnode->hwnd_sc, SW_SHOW);
+                UpdateWindowEx(pnode->hwnd_sc);
             }
             pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
         }

@@ -363,7 +363,7 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             eu_tabpage *map_edit = (eu_tabpage *)lParam;
             SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)map_edit);
-            const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
+            const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_EX_RTLREADING;
             if (on_sci_create(map_edit, hwnd, flags, on_map_edit_proc) != SKYLARK_OK)
             {
                 (intptr_t)EndDialog(hwnd, 1);
