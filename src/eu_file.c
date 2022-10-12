@@ -19,8 +19,6 @@
 #include <fcntl.h>
 #include "framework.h"
 
-#define MINIMUM_MEM 0x12c00000
-
 static volatile long file_close_id = 0;
 static volatile long last_focus = -1;
 static HANDLE file_event_final = NULL;
@@ -442,13 +440,6 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     if (!util_file_size(hfile, &pnode->raw_size))
     {
         err = EUE_FILE_SIZE_ERR;
-        goto pre_clean;
-    }
-    if (on_file_get_avail_phys() - pnode->raw_size < MINIMUM_MEM)
-    {
-        // phymem < 300MB, Skylark exit
-        MSG_BOX(IDC_MSG_MEM_NOT_AVAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        err = EUE_NOT_ENOUGH_MEMORY;
         goto pre_clean;
     }
     if (pbak->cp)
