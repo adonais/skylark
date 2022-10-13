@@ -28,6 +28,7 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     {
         return;
     }
+    // 编辑区样式与字体设置
     eu_sci_call(pnode, SCI_STYLERESETDEFAULT, 0, 0);
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, (sptr_t)(eu_get_theme()->item.text.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_get_theme()->item.text.fontsize);
@@ -35,7 +36,9 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor >= 0 ? bgcolor : eu_get_theme()->item.text.bgcolor);
     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
     eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
+    // 页边区设置
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
+    // 行号显示以及样式设置
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_LINENUMBER_INDEX, SC_MARGIN_NUMBER);
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
@@ -84,6 +87,9 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
     // 是否自动换行
     eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
+    // 换行符样式
+    eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
+    // tab字符是否当成空格
     if (pnode->doc_ptr)
     {
         eu_sci_call(pnode, SCI_SETTABWIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width, 0);
@@ -94,10 +100,13 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
         eu_sci_call(pnode, SCI_SETTABWIDTH, eu_get_config()->tab_width, 0);
         eu_sci_call(pnode, SCI_SETUSETABS,!eu_get_config()->tab2spaces, 0);
     }
+    // tab字符显示时的样式
+    eu_sci_call(pnode, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
+    // 空白字符样式
     eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_config()->ws_visiable ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
     eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_config()->ws_size, 0);
-    eu_sci_call(pnode, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
-    eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, rgb_alpha(eu_get_theme()->item.text.color, 0x3f));
     // 是否显示对齐线
     eu_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
     eu_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
