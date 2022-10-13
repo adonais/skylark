@@ -406,6 +406,8 @@ struct styletheme
     struct styleclass cdata;
     struct styleclass phpsection;
     struct styleclass aspsection;
+    
+    struct styleclass activetab;
 };
 
 struct eu_theme

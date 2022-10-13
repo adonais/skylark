@@ -125,7 +125,12 @@ function eu_theme.get_default(name)
           "aspsection_fontsize = 11\n" ..
           "aspsection_color = 0x00808080\n" ..
           "aspsection_bgcolor = 0x00000000\n" ..
-          "aspsection_bold = 0"        
+          "aspsection_bold = 0\n" ..
+          "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
+          "activetab_fontsize = 11\n" ..
+          "activetab_color = 0\n" ..
+          "activetab_bgcolor = 0x00545454\n" ..
+          "activetab_bold = 0"
     elseif (name == "white") then
         theme = -- 经典白主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -247,7 +252,12 @@ function eu_theme.get_default(name)
           "aspsection_fontsize = 11\n" ..
           "aspsection_color = 0x00C0C0C0\n" ..
           "aspsection_bgcolor = 0x00000000\n" ..
-          "aspsection_bold = 0"        
+          "aspsection_bold = 0\n" ..
+          "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
+          "activetab_fontsize = 11\n" ..
+          "activetab_color = 0\n" ..
+          "activetab_bgcolor = 0x00d77800\n" ..
+          "activetab_bold = 0"
     else
         theme = -- 默认主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -371,7 +381,12 @@ function eu_theme.get_default(name)
           "aspsection_fontsize = 11\n" ..
           "aspsection_color = 0x00808080\n" ..
           "aspsection_bgcolor = 0x00000000\n" ..
-          "aspsection_bold = 0"
+          "aspsection_bold = 0\n" ..
+          "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
+          "activetab_fontsize = 11\n" ..
+          "activetab_color = 0\n" ..
+          "activetab_bgcolor = 0x00d77800\n" ..
+          "activetab_bold = 0"
     end
     return theme
 end
@@ -420,6 +435,25 @@ function eu_theme.load_default(name)
     end
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)
+    if (activetab_font == nil) then
+        activetab_font = "DEFAULT_GUI_FONT"
+    end
+    if (activetab_fontsize == nil) then
+        activetab_fontsize = 11
+    end
+    if (activetab_bgcolor == nil) then
+        if (name ~= "black") then
+            activetab_bgcolor = 0x00d77800
+        else
+            activetab_bgcolor = 0x00545454
+        end
+    end
+    if (activetab_color == nil) then
+        activetab_color = 0
+    end
+    if (activetab_bold == nil) then
+        activetab_bold = 0
+    end
     local m_theme = eu_core.ffi.new("struct eu_theme", {m_file, tname,
       {
         {linenumber_font,linenumber_fontsize,linenumber_color,linenumber_bgcolor,linenumber_bold},
@@ -445,7 +479,8 @@ function eu_theme.load_default(name)
         {tagends_font,tagends_fontsize,tagends_color,tagends_bgcolor,tagends_bold},
         {cdata_font,cdata_fontsize,cdata_color,cdata_bgcolor,cdata_bold},
         {phpsection_font,phpsection_fontsize,phpsection_color,phpsection_bgcolor,phpsection_bold},
-        {aspsection_font,aspsection_fontsize,aspsection_color,aspsection_bgcolor,aspsection_bold}
+        {aspsection_font,aspsection_fontsize,aspsection_color,aspsection_bgcolor,aspsection_bold},
+        {activetab_font,activetab_fontsize,activetab_color,activetab_bgcolor,activetab_bold}
       }
     })
     return eu_core.euapi.eu_theme_ptr(m_theme, true)
