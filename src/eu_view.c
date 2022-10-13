@@ -474,8 +474,6 @@ on_view_white_space(void)
         if (p)
         {
             eu_sci_call(p, SCI_SETVIEWWS, (eu_get_config()->ws_visiable == true ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
-            eu_sci_call(p, SCI_SETWHITESPACESIZE, eu_get_config()->ws_size, 0);
-            eu_sci_call(p, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
         }
     }
 }

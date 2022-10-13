@@ -34,7 +34,7 @@ function eu_conf.loadconf()
         "line_number_visiable = true\n" ..
         "last_search_flags = 0x000044\n" ..
         "white_space_visiable = false\n" ..
-        "white_space_size = 3\n" ..
+        "white_space_size = 2\n" ..
         "newline_visiable = false\n" ..
         "indentation_guides_visiable = true\n" ..
         "tab_width = 4\n" ..
