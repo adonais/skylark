@@ -196,8 +196,6 @@
 #define IDB_COPY_DARK        10117
 #define IDB_BUTTON_BG_BMP    10118
 #define IDB_AC_CLOSE_BMP     10119
-#define IDB_UN_CLOSE_BMP     10120
-#define IDB_DARK_CLOSE_BMP   10121
 
 #define IDC_BUTTON0   10122
 #define IDC_BUTTON1   10123

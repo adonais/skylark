@@ -1,8 +1,6 @@
 #ifndef _H_SKYLARK_THEME_DARK_
 #define _H_SKYLARK_THEME_DARK_
 
-
-
 #define  CASE_WM_CTLCOLOR_SET         \
            case WM_CTLCOLORDLG:       \
            case WM_CTLCOLORBTN:       \
@@ -18,7 +16,9 @@
 #define rgb_dark_btn_color   (0x333333)
 #define rgb_dark_txt_color   (0xFFFFFF)
 #define rgb_dark_hot_color   (0x404040)
-#define rgb_high_light_color (0xd77800)
+#define rgb_bmp_close_color  (0xd77800)
+//#define rgb_high_light_color (0xdd7e6b)
+#define rgb_high_light_color RGB(215, 120, 0)
 
 typedef uint32_t colour;
   

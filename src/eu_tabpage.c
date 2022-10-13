@@ -25,6 +25,7 @@
 #define CLOSEBUTTON_HEIGHT 11
 #define CX_ICON  16
 #define CY_ICON  16
+#define COLORREF2RGB(c) ((c & 0xff00) | ((c >> 16) & 0xff) | ((c << 16) & 0xff0000))
 
 HWND g_tabpages = NULL;
 static WNDPROC old_tabproc = NULL;
@@ -87,20 +88,111 @@ init_icon_img_list(HWND htab)
     return res;
 }
 
+static HBITMAP
+replace_color(HBITMAP hbmp, COLORREF old, COLORREF new_color, HDC bmp_dc)
+{
+    HBITMAP ret = NULL;
+    if (hbmp)
+    {   // DC for Source Bitmap
+        HDC buffer_dc = CreateCompatibleDC(NULL); 
+        if (buffer_dc)
+        {
+            HBITMAP htmp = (HBITMAP) NULL;
+            if (bmp_dc)
+            {
+                if (hbmp == (HBITMAP)GetCurrentObject(bmp_dc, OBJ_BITMAP))
+                {
+                    htmp = CreateBitmap(1, 1, 1, 1, NULL);
+                    SelectObject(bmp_dc, htmp);
+                }
+            }
+            HGDIOBJ PreviousBufferObject=SelectObject(buffer_dc,hbmp);
+            // here buffer_dc contains the bitmap
+            // DC for working
+            HDC direct_dc = CreateCompatibleDC(NULL);
+            if (direct_dc)
+            {   // Get bitmap size
+                BITMAP bm;
+                GetObject(hbmp, sizeof(bm), &bm);
+                // create a BITMAPINFO with minimal initilisation 
+                // for the CreateDIBSection
+                BITMAPINFO RGB32BitsBITMAPINFO; 
+                ZeroMemory(&RGB32BitsBITMAPINFO,sizeof(BITMAPINFO));
+                RGB32BitsBITMAPINFO.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+                RGB32BitsBITMAPINFO.bmiHeader.biWidth=bm.bmWidth;
+                RGB32BitsBITMAPINFO.bmiHeader.biHeight=bm.bmHeight;
+                RGB32BitsBITMAPINFO.bmiHeader.biPlanes = 1;
+                RGB32BitsBITMAPINFO.bmiHeader.biBitCount = 32;
+                // pointer used for direct Bitmap pixels access
+                UINT * pixels;
+                HBITMAP direct_map = CreateDIBSection(direct_dc, 
+                                     (BITMAPINFO *)&RGB32BitsBITMAPINFO, 
+                                     DIB_RGB_COLORS,
+                                     (void **)&pixels, 
+                                     NULL, 0);
+                if (direct_map)
+                {
+                    // here direct_map!=NULL so pixels!=NULL no need to test
+                    HGDIOBJ PreviousObject = SelectObject(direct_dc, direct_map);
+                    BitBlt(direct_dc, 0, 0, bm.bmWidth,bm.bmHeight, buffer_dc,0,0,SRCCOPY);
+                    // here the direct_dc contains the bitmap
+                    // Convert COLORREF to RGB (Invert RED and BLUE)
+                    old = COLORREF2RGB(old);
+                    new_color = COLORREF2RGB(new_color);
+                    // After all the inits we can do the job : Replace Color
+                    for (int i = ((bm.bmWidth*bm.bmHeight)-1); i >= 0; i--)
+                    {
+                        if (pixels[i]==old)
+                        {
+                            pixels[i]=new_color;
+                        }
+                    }
+                    // little clean up
+                    // Don't delete the result of SelectObject because it's 
+                    // our modified bitmap (direct_map)
+                    SelectObject(direct_dc,PreviousObject);
+                    // finish
+                    ret = direct_map;
+                }
+                // clean up
+                DeleteDC(direct_dc);
+            }
+            if (htmp)
+            {
+                SelectObject(bmp_dc, hbmp);
+                DeleteObject(htmp);
+            }
+            SelectObject(buffer_dc,PreviousBufferObject);
+            // buffer_dc is now useless
+            DeleteDC(buffer_dc);
+        }
+    }
+    return ret;
+}
+
 static void
 on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 {
-    int nclose = on_dark_supports() ? IDB_DARK_CLOSE_BMP : (sel ? IDB_AC_CLOSE_BMP : IDB_UN_CLOSE_BMP);
+    HBITMAP hbmp = NULL;
     HDC hdc = GetDC(hwnd);
     HDC hdc_mem  = CreateCompatibleDC(hdc);
-    HBITMAP hbmp = LoadBitmap(eu_module_handle(), MAKEINTRESOURCE(nclose));
+    HBITMAP hbmp_orig = LoadBitmap(eu_module_handle(), MAKEINTRESOURCE(IDB_AC_CLOSE_BMP));
     int border = (lprect->bottom - lprect->top - CLOSEBUTTON_HEIGHT + 1) / 2;
     int left = lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP;
     int top = lprect->top + border;
-    SelectObject(hdc_mem, hbmp);
-    StretchBlt(hdc, left, top, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, hdc_mem, 0, 0, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, SRCCOPY);
-    DeleteDC(hdc_mem);
-    DeleteObject(hbmp);
+    uint32_t cr = eu_get_theme()->item.activetab.bgcolor;
+    if (!sel)
+    {
+        cr = on_dark_supports() ? rgb_dark_btn_color : GetSysColor(COLOR_BTNFACE);
+    }
+    if ((hbmp = replace_color(hbmp_orig, rgb_bmp_close_color, cr, NULL)) != NULL)
+    {
+        DeleteObject(hbmp_orig);
+        SelectObject(hdc_mem, hbmp);
+        StretchBlt(hdc, left, top, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, hdc_mem, 0, 0, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, SRCCOPY);
+        DeleteDC(hdc_mem);
+        DeleteObject(hbmp);
+    }
     ReleaseDC(hwnd, hdc);
 }
 
@@ -158,8 +250,8 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             TabCtrl_GetItemRect(hwnd, index, &rc);
             FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
             if (nsel == index)
-            {   // 这里使用固定值, 因为在某些系统上, COLOR_HIGHLIGHT值不一样
-                cr = dark_mode ? on_dark_light_color(rgb_dark_bk_color, 1.5f) : rgb_high_light_color;
+            {   // 从主题获取COLOR_HIGHLIGHT值
+                cr = eu_get_theme()->item.activetab.bgcolor;
                 SetBkColor(hdc, cr);
                 ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
             }

@@ -1914,7 +1914,12 @@ eu_save_theme(void)
         "aspsection_fontsize = %d\n"
         "aspsection_color = 0x%08X\n"
         "aspsection_bgcolor = 0x%08X\n"
-        "aspsection_bold = %d";
+        "aspsection_bold = %d\n"
+        "activetab_font = \"%s\"\n"
+        "activetab_fontsize = %d\n"
+        "activetab_color = 0x%08X\n"
+        "activetab_bgcolor = 0x%08X\n"
+        "activetab_bold = %d";
     if (!g_theme)
     {
         return;
@@ -1951,7 +1956,8 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(tagends),
         EXPAND_STYLETHEME(cdata),
         EXPAND_STYLETHEME(phpsection),
-        EXPAND_STYLETHEME(aspsection));
+        EXPAND_STYLETHEME(aspsection),
+        EXPAND_STYLETHEME(activetab));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)
