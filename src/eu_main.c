@@ -226,7 +226,6 @@ _tmain(int argc, TCHAR *argv[])
     }
     else
     {
-        on_hook_do();
         eu_init_logs();
     }
     if (!eu_load_config())

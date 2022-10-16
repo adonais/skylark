@@ -776,7 +776,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_all_save();
                     break;
                 case IDM_FILE_CLOSE:
-                    on_file_close(pnode, FILE_ONLY_CLOSE);
+                    on_tabpage_close_tabs();
                     break;
                 case IDM_FILE_CLOSEALL:
                     on_file_all_close();
@@ -1533,11 +1533,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                     }
                     break;
-                case TCN_SELCHANGE:
-                    on_tabpage_changing(hwnd);
-                    break;
                 case TCN_TABDROPPED_OUT:
-                    on_file_out_open((int)(intptr_t)(lpnotify->nmhdr.hwndFrom));
+                    on_file_out_open(eu_int_cast(lpnotify->nmhdr.hwndFrom));
                     break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));

@@ -623,7 +623,6 @@ on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol)
     size = on_parser_open_file(path, _T("r"), &buf, &fp);
     while (size > 0 && (size = (int)fread((char *) buf, 1, size, fp)) > 0)
     {
-        int line = 0;
         char *p = NULL;
         char *save = NULL;
         char *pstream = NULL;
@@ -669,9 +668,9 @@ on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol)
                 ret = false;
                 break;
             }
-            if ((p = on_parser_strtok(NULL, delim, &save)))
+            if (!(p = on_parser_strtok(NULL, delim, &save)))
             {
-                ++line;
+                break;
             }
         }
         break;

@@ -363,9 +363,9 @@ IDR_TABPAGE_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
-        MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
-        MENUITEM "关闭除当前文件外所有文件",                    IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭标签页(&C)",                              IDM_FILE_CLOSE
+        MENUITEM "关闭所有标签页",                              IDM_FILE_CLOSEALL
+        MENUITEM "关闭除当前标签外所有标签",                    IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
         MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
@@ -1146,6 +1146,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
     IDS_SNIPPETS_STR        "☑代码片段补全模式"
+    IDS_TABPAGE_CLOSE_NUM   "关闭 %d 个标签页(&C)"
 }
 
 /////////////////////////////////////////////////////////////////////////////

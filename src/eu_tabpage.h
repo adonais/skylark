@@ -20,7 +20,7 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
-#define TABS_HEIGHT_DEFAULT   21
+#define TABS_HEIGHT_DEFAULT   23
 
 #ifdef __cplusplus
 extern "C"
@@ -107,10 +107,10 @@ void on_tabpage_switch_next(HWND hwnd);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);
-void on_tabpage_changing(HWND hwnd);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
+void on_tabpage_close_tabs(void);
 bool on_tabpage_check_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);

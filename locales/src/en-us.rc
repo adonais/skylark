@@ -36,7 +36,7 @@ BEGIN
         MENUITEM "Save All",                                           IDM_FILE_SAVEALL
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
-        MENUITEM "Close All But Active Document",                      IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close Other Documents",                              IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
         MENUITEM "Restore Recent Closed File",                         IDM_FILE_RESTORE_RECENT
         MENUITEM "Backup On File Save",                                IDM_FILE_WRITE_COPY
@@ -363,9 +363,9 @@ IDR_TABPAGE_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "&Close",                                             IDM_FILE_CLOSE
-        MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
-        MENUITEM "Close All But Active Document",                      IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "&Close Tab",                                         IDM_FILE_CLOSE
+        MENUITEM "Close All Tabs",                                     IDM_FILE_CLOSEALL
+        MENUITEM "Close Other Tabs",                                   IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "Close The Left Tabs",                                IDM_TAB_CLOSE_LEFT
         MENUITEM "Close The Right Tabs",                               IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
@@ -1148,6 +1148,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_NEW       "New Version Detected Available😀"
     IDS_CHECK_VER_ERR       "Connection Failure✘"
     IDS_SNIPPETS_STR        "☑Code Snippet Completion"
+    IDS_TABPAGE_CLOSE_NUM   "&Close %d Tabs"
 }
 
 /////////////////////////////////////////////////////////////////////////////

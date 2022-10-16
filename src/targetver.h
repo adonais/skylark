@@ -977,6 +977,7 @@
 #define IDS_SNIPPET_COMBO_DEC               44013
 #define IDM_SOURCE_SNIPPET_ENABLE           44014
 
+#define IDS_TABPAGE_CLOSE_NUM               44020
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
