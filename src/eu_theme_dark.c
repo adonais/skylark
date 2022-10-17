@@ -386,24 +386,10 @@ on_dark_fix_scrollbar(bool fixed)
     }
 }
 
-static bool
-check_system_build_number(uint32_t build_number)
+static inline bool
+check_system_build_number(const uint32_t build_number)
 {
-    switch (build_number)
-    {
-        case 17763: // Win10 v1809
-        case 18362: // Win10 v1903
-        case 18363: // Win10 v1909
-        case 19041: // Win10 v2004
-        case 19042: // Win10 v20H2
-        case 19043: // Win10 v21H1 Insider Beta and Release Preview Channels [2021-04-28]
-        case 21337: // Win10 v21H2 Insider Dev Channel [2021-05-11]
-            return true;
-        default:
-            // not supported
-            break;
-    }
-    return false;
+    return (build_number >= 17763);
 }
 
 static bool
