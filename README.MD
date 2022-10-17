@@ -9,6 +9,7 @@ Compared with vs code, atom, and more editors, it can start up in less than a se
 * Perl Compatible Regular Expression.  
 * Support for many encodings, Syntax highlight for a lot of languages.  
 * Supports clang-format.  
+* Supports code snippet.  
 * Supports dark mode. 
 
 # Build:
