@@ -905,11 +905,12 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_20                   "Open/Close file manager"
     IDS_TOOLBAR_21                   "Open/Close symbol window"
     IDS_TOOLBAR_22                   "Setup Themes"
-    IDS_TOOLBAR_23                   "Zoom Out Text"
-    IDS_TOOLBAR_24                   "Zoom In Text"
-    IDS_TOOLBAR_25                   "Open/Quit Full Screen"
-    IDS_TOOLBAR_26                   "Execute"
-    IDS_TOOLBAR_27                   "Open The Terminal"
+    IDS_TOOLBAR_23                   "Configure Snippets"
+    IDS_TOOLBAR_24                   "Zoom Out Text"
+    IDS_TOOLBAR_25                   "Zoom In Text"
+    IDS_TOOLBAR_26                   "Open/Quit Full Screen"
+    IDS_TOOLBAR_27                   "Execute"
+    IDS_TOOLBAR_28                   "Open The Terminal"
 }
 
 STRINGTABLE DISCARDABLE

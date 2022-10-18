@@ -904,11 +904,12 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_20                   "打开/关闭文件管理器"
     IDS_TOOLBAR_21                   "打开/关闭软链接窗口"
     IDS_TOOLBAR_22                   "设置主题"
-    IDS_TOOLBAR_23                   "放大文本"
-    IDS_TOOLBAR_24                   "缩小文本"
-    IDS_TOOLBAR_25                   "打开/退出全屏"
-    IDS_TOOLBAR_26                   "运行"
-    IDS_TOOLBAR_27                   "打开终端"
+    IDS_TOOLBAR_23                   "管理代码片段"
+    IDS_TOOLBAR_24                   "放大文本"
+    IDS_TOOLBAR_25                   "缩小文本"
+    IDS_TOOLBAR_26                   "打开/退出全屏"
+    IDS_TOOLBAR_27                   "运行"
+    IDS_TOOLBAR_28                   "打开终端"
 }
 
 STRINGTABLE DISCARDABLE

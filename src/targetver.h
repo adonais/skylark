@@ -273,6 +273,7 @@
 #define IDS_TOOLBAR_25   10205
 #define IDS_TOOLBAR_26   10206
 #define IDS_TOOLBAR_27   10207
+#define IDS_TOOLBAR_28   10208
 // file type
 #define IDM_TYPES_0   10300
 
@@ -334,7 +335,11 @@
 #define IDB_TOOLBAR_LARGE32             30036
 #define IDB_DARK_LARGE1                 30037
 #define IDB_DARK_LARGE32                30038
-#define IDM_VIEW_DOCUMENT_MAP           30039
+#define IDB_TOOLBAR_MIDDLING1           30039
+#define IDB_TOOLBAR_MIDDLING24          30040
+#define IDB_DARK_MIDDLING1              30041
+#define IDB_DARK_MIDDLING24             30042
+#define IDM_VIEW_DOCUMENT_MAP           30043
 
 #define IDM_FILE_CLOSEALL               30100
 #define IDM_FILE_CLOSEALL_EXCLUDE       30101

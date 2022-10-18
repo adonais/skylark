@@ -20,7 +20,8 @@
 #include "targetver.h"
 #include "framework.h"
 
-#define DPI_PERCENT_LARGE 168
+#define DPI_PERCENT_MIDDLING 144
+#define DPI_PERCENT_LARGE    192
 #define CHECK_IF(a) if ((a)!= 0) return false
 
 enum {READ_FD, WRITE_FD};
@@ -36,6 +37,34 @@ static HWND m_chain;
 static HWND g_clip_hwnd;
 static HIMAGELIST img_list1;
 static HIMAGELIST img_list2;
+
+static void
+on_toolbar_init_params(int *res_hot, int *res_grey, int *width, int *height)
+{
+    const bool dark = on_dark_enable();
+    const uint32_t dpi = eu_get_dpi(NULL);
+    if (dpi >= DPI_PERCENT_LARGE)
+    {
+        *res_hot = dark ? IDB_DARK_LARGE32 : IDB_TOOLBAR_LARGE32;
+        *res_grey = dark ? IDB_DARK_LARGE1 : IDB_TOOLBAR_LARGE1;
+        *width = IMAGE_LARGE_WIDTH;
+        *height = IMAGE_LARGE_HEIGHT;
+    }
+    else if (dpi >= DPI_PERCENT_MIDDLING || (GetSystemMetrics(SM_CXSCREEN) >= HIGHT_4X && GetSystemMetrics(SM_CYSCREEN) >= HIGHT_4Y))
+    {
+        *res_hot = dark ? IDB_DARK_MIDDLING24 : IDB_TOOLBAR_MIDDLING24;
+        *res_grey = dark ? IDB_DARK_MIDDLING1 : IDB_TOOLBAR_MIDDLING1;
+        *width = IMAGE_MIDDLING_WIDTH;
+        *height = IMAGE_MIDDLING_HEIGHT;
+    }
+    else
+    {
+        *res_hot = dark ? IDB_DARK16 : IDB_TOOLBAR16;
+        *res_grey = dark ? IDB_DARK1 : IDB_TOOLBAR1;
+        *width = IMAGE_NORMAL_WIDTH;
+        *height = IMAGE_NORMAL_HEIGHT;
+    }
+}
 
 /**********************************************
  * 设置工具栏按钮的状态,
@@ -125,13 +154,22 @@ on_toolbar_hwnd(void)
 void WINAPI
 on_toolbar_adjust_box(void)
 {
+    const uint32_t dpi = eu_get_dpi(NULL);
     if (!eu_get_config()->m_toolbar)
     {
         g_toolbar_height = 0;
     }
+    else if (dpi >= DPI_PERCENT_LARGE)
+    {
+        g_toolbar_height = TB_LARGE_SIZE;
+    }
+    else if (dpi >= DPI_PERCENT_MIDDLING || (GetSystemMetrics(SM_CXSCREEN) >= HIGHT_4X && GetSystemMetrics(SM_CYSCREEN) >= HIGHT_4Y))
+    {
+        g_toolbar_height = TB_MIDDLING_SIZE;
+    }
     else
     {
-        g_toolbar_height = eu_get_dpi(NULL) >= DPI_PERCENT_LARGE ? TB_LARGE_SIZE : TB_NORMAL_SIZE;
+        g_toolbar_height = TB_NORMAL_SIZE;
     }
 }
 
@@ -403,17 +441,15 @@ create_clipbox(void)
 }
 
 static HIMAGELIST
-create_img_list(INT res_id, UINT mask, bool zoom)
+create_img_list(int res_id, int width, int height)
 {
     HIMAGELIST himg = NULL;
     HBITMAP hbmp = NULL;
-    BITMAP bm = { 0 };
-    int width = zoom ? IMAGE_LARGE_WIDTH : IMAGE_NORMAL_WIDTH;
-    int height = zoom ? IMAGE_LARGE_HEIGHT : IMAGE_NORMAL_HEIGHT;
+    BITMAP bm = {0};
     hbmp = (HBITMAP) LoadImage(eu_module_handle(), MAKEINTRESOURCE(res_id), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
     GetObject(hbmp, sizeof(BITMAP), &bm);
     himg = ImageList_Create(width, height, bm.bmBitsPixel | ILC_MASK, bm.bmWidth / width, 1);
-    ImageList_AddMasked(himg, hbmp, mask);
+    ImageList_AddMasked(himg, hbmp, RGB(0xF0, 0xF0, 0xF0));
     if (hbmp != NULL)
     {
         DeleteObject((HGDIOBJ) hbmp);
@@ -940,7 +976,7 @@ on_toolbar_create(HWND parent)
     int tb_size = 0;
     HWND htool = NULL;
     intptr_t tool_proc = 0;
-    TCHAR str[28][BUFFSIZE] = { 0 };
+    TCHAR str[29][BUFFSIZE] = { 0 };
     /*********************************************************************
      * iBitmap(0), 第i个位图
      * idCommand(0), WM_COMMAND消息响应的ID
@@ -980,37 +1016,28 @@ on_toolbar_create(HWND parent)
         { 20, IDM_VIEW_FILETREE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 21, IDM_VIEW_SYMTREE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 22, IDM_VIEW_MODIFY_STYLETHEME, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 23, IDM_SOURCE_SNIPPET_CONFIGURE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
-        { 23, IDM_VIEW_ZOOMOUT, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
-        { 24, IDM_VIEW_ZOOMIN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
-        { 25, IDM_VIEW_FULLSCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 24, IDM_VIEW_ZOOMOUT, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 25, IDM_VIEW_ZOOMIN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 26, IDM_VIEW_FULLSCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
-        { 26, IDM_SCRIPT_EXEC, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
-        { 27, IDM_CMD_TAB, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 27, IDM_SCRIPT_EXEC, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 28, IDM_CMD_TAB, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
     };
-    const bool zoom = eu_get_dpi(parent) >= DPI_PERCENT_LARGE ? true : false;
-    if (!on_dark_enable())
+    int res_hot;
+    int res_grey;
+    int width;
+    int height;
+    on_toolbar_init_params(&res_hot, &res_grey, &width, &height);
+    if ((img_list1 = create_img_list(res_hot, width, height)) == NULL)
     {
-        if ((img_list1 = create_img_list(zoom ? IDB_TOOLBAR_LARGE32 : IDB_TOOLBAR16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
-        if ((img_list2 = create_img_list(zoom ? IDB_TOOLBAR_LARGE1 : IDB_TOOLBAR1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
+        return 1;
     }
-    else
+    if ((img_list2 = create_img_list(res_grey, width, height)) == NULL)
     {
-        if ((img_list1 = create_img_list(zoom ? IDB_DARK_LARGE32 : IDB_DARK16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
-        if ((img_list2 = create_img_list(zoom ? IDB_DARK_LARGE1 : IDB_DARK1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
+        return 1;
     }
     tb_size = sizeof(tb_cmd) / sizeof(TBBUTTON);
     for (int i = 0, j = 0; i < tb_size; ++i)
