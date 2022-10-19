@@ -71,7 +71,7 @@ int on_file_new(void);
 int on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force);
 int on_file_only_open(file_backup *pbak, bool selection);
 int on_file_open(void);
-int on_file_out_open(int index);
+int on_file_out_open(int index, uint32_t *pid);
 int on_file_drop(HDROP hdrop);
 int on_file_open_remote(remotefs *pserver, file_backup *pbak, bool selection);
 int on_file_save(eu_tabpage *pnode, bool save_as);

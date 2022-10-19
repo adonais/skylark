@@ -50,6 +50,12 @@ typedef struct  UTIL_STREAM_DESC_
     ptr_stream_close     close;
 } util_stream;
 
+typedef struct _HANDLE_DATA
+{
+    uint32_t pid;
+    HWND handle;
+} handle_data;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -110,6 +116,7 @@ char*  util_make_u8(const TCHAR *utf16, char *utf8, int len);
 char*  util_string_match(const char *str, const char *pattern, bool incase, bool match_start, bool whole);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
+HWND   util_get_hwnd(const uint32_t pid);
 TCHAR* util_unix2path(TCHAR *path);
 TCHAR* util_path2unix(TCHAR *path);
 TCHAR* util_add_double_quotes(const TCHAR *path);

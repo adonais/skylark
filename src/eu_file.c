@@ -947,7 +947,7 @@ mem_clean:
  * 无论是否打开文件, 它总是弹出一个新窗口, 所以返回值总是SKYLARK_OK
  **************************************************************************************/
 int
-on_file_out_open(int index)
+on_file_out_open(int index, uint32_t *pid)
 {
     eu_tabpage *p = on_tabpage_get_ptr(index);
     if (p && (!p->is_blank  || eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
@@ -980,7 +980,7 @@ on_file_out_open(int index)
             }
             if (err == SKYLARK_OK)
             {
-                CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+                CloseHandle(eu_new_process(process, NULL, NULL, 0, pid));
             }
         }
     }

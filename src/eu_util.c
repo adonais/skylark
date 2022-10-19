@@ -2039,3 +2039,31 @@ util_skip_whitespace(char **cp, int n, char term)
 	}
 	*cp = pstr;
 }
+
+static inline bool
+util_main_window(HWND handle)
+{
+    return (GetWindow(handle, GW_OWNER) == (HWND)0 && IsWindowVisible(handle));
+}
+
+static int CALLBACK
+util_enum_callback(HWND handle, LPARAM lparam)
+{
+    handle_data *pdata = (handle_data *)lparam;
+    uint32_t process_id = 0;
+    GetWindowThreadProcessId(handle, &process_id);
+    if (pdata->pid != process_id || !util_main_window(handle))
+    {
+        return 1;
+    }
+    pdata->handle = handle;
+    return 0;
+}
+
+HWND
+util_get_hwnd(const uint32_t pid)
+{
+    handle_data data = {pid, 0};
+    EnumWindows(util_enum_callback, (LPARAM)&data);
+    return data.handle;
+}

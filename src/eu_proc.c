@@ -1534,7 +1534,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case TCN_TABDROPPED_OUT:
-                    on_file_out_open(eu_int_cast(lpnotify->nmhdr.hwndFrom));
+                    on_file_out_open(eu_int_cast(lpnotify->nmhdr.hwndFrom), NULL);
                     break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
