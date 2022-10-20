@@ -191,28 +191,103 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
     CloseHandle(eu_new_process(cmd, NULL, NULL, 2, NULL));
 }
 
+static void
+on_edit_compare(const TCHAR *path, const wchar_t **pvec, const bool hex)
+{
+    if (path && pvec)
+    {
+        int count = eu_int_cast(cvector_size(pvec));
+        const int len = (count + 1) * (MAX_PATH + 1);
+        wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
+        if (cmd_exec != NULL)
+        {
+            if (!hex)
+            {
+                _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
+            }
+            else
+            {
+                _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/fv=\"Hex Compare\""));
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                if (i == count - 1)
+                {
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, pvec[i], len);
+                    wcsncat(cmd_exec, _T("\""), len);
+                }
+                else
+                {
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, pvec[i], len);
+                    wcsncat(cmd_exec, _T("\" "), len);
+                }
+            }
+            CloseHandle(eu_new_process(cmd_exec, NULL, NULL, 2, NULL));
+            free(cmd_exec);
+        }
+    }
+}
+
 void
 on_edit_push_editor(eu_tabpage *pnode)
 {
-   if (strlen(eu_get_config()->editor) > 1)
-   {
-       wchar_t *path = eu_utf8_utf16(eu_get_config()->editor, NULL);
-       if (path)
-       {
-           on_edit_execute(pnode, path);
-           free(path);
-       }
-   }
-   else
-   {
-       TCHAR editor[MAX_PATH] = {0};
-       LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
-       if (eu_input(m_input, editor, MAX_PATH - 1) && _tcslen(editor) > 1)
-       {
-           WideCharToMultiByte(CP_UTF8, 0, util_path2unix(editor), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
-           on_edit_execute(pnode, editor);
-       }
-   }
+    wchar_t *path = NULL;
+    if (strlen(eu_get_config()->editor) > 1)
+    {
+        path = eu_utf8_utf16(eu_get_config()->editor, NULL);
+    }
+    else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+    {
+        LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
+        if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+        {
+            WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
+        }
+    }
+    if (STR_NOT_NUL(path))
+    {
+        on_edit_execute(pnode, path);
+    }
+    eu_safe_free(path);
+}
+
+void
+on_edit_push_compare(void)
+{
+    int num = 0;
+    bool hex = false;
+    cvector_vector_type(wchar_t *) v = NULL;
+    if ((num = on_tabpage_sel_path(&v, &hex)) > 1 && num < 4)
+    {
+        wchar_t *path = NULL;
+        if (strlen(eu_get_config()->m_reserved_0) > 1)
+        {
+            path = eu_utf8_utf16(eu_get_config()->m_reserved_0, NULL);
+        }
+        else if ((path = util_which(_T("bcompare"))) != NULL)
+        {
+            printf("path = %ls\n", path);
+        }
+        else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+        {
+            LOAD_I18N_RESSTR(IDS_EDITOR_BCOMPARE, m_input);
+            if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+            {
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->m_reserved_0, MAX_PATH-1, NULL, NULL);
+            }
+        }
+        if (STR_NOT_NUL(path))
+        {
+            on_edit_compare(path, v, hex);
+        }
+        eu_safe_free(path);
+    }
+    if (v)
+    {
+        cvector_free_each_and_free(v, free);
+    }
 }
 
 void
@@ -271,8 +346,7 @@ on_edit_delete_dups(eu_tabpage *pnode)
             sptr_t line1 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
             sptr_t line2 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
             if ((line1 != line2) && (eu_sci_call(pnode, SCI_POSITIONFROMLINE, line2, 0)) == sel_end)
-            {
-                // 如果所选内容的结尾包括行尾,不要在范围内包含以下行
+            {   // 如果所选内容的结尾包括行尾,不要在范围内包含以下行
                 --line2;
             }
             from_line = line1;

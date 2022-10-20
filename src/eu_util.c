@@ -2067,3 +2067,79 @@ util_get_hwnd(const uint32_t pid)
     EnumWindows(util_enum_callback, (LPARAM)&data);
     return data.handle;
 }
+
+TCHAR *
+util_which(const TCHAR *name)
+{
+    bool diff = false;
+    bool add_suf = true;
+    TCHAR *file = NULL;
+    TCHAR *env_path = NULL;
+    TCHAR sz_work[MAX_PATH + 1] = {0};
+    TCHAR sz_process[MAX_PATH + 1] = {0};
+    const TCHAR *delimiter = _T(";");
+    TCHAR *path = _tgetenv(_T("PATH"));
+    TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
+    TCHAR *dot = _tcsrchr(name, _T('.'));
+    int len = eu_int_cast(_tcslen(path)) + (2 * MAX_PATH);
+    if (!path)
+    {
+        return NULL;
+    }
+    GetSystemDirectory(sz_work, MAX_PATH);
+    eu_process_path(sz_process, MAX_PATH);
+    if (!sz_work[0] || !sz_process[0])
+    {
+        return NULL;
+    }
+    if ((env_path = (TCHAR *)calloc(sizeof(TCHAR), len + 1)) == NULL)
+    {
+        return NULL;
+    }
+    diff = _tcscmp(sz_work, sz_process) != 0;
+    if (dot)
+    {
+        for (int i = 0; av[i]; ++i)
+        {
+            if (_tcsicmp(dot, av[i]) == 0)
+            {
+                add_suf = false;
+                break;
+            }
+        }
+    }
+    if ((file = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH)) != NULL)
+    {
+        if (diff)
+        {
+            _sntprintf(env_path, len, _T("%s;%s;%s"), path, sz_process, sz_work);
+        }
+        else
+        {
+            _sntprintf(env_path, len, _T("%s;%s"), path, sz_process);
+        }
+        wchar_t *tok = _tcstok(env_path, delimiter);
+        while (tok)
+        {
+            int i = 0;
+            _sntprintf(file, MAX_PATH, _T("%s\\%s"), tok, name);
+            do
+            {
+                struct _stat st;
+                if (_tstat(file, &st) != -1 && (st.st_mode & S_IEXEC))
+                {
+                    eu_safe_free(env_path);
+                    return file;
+                }
+                if (add_suf && av[i])
+                {
+                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), tok, name, av[i]);
+                }
+            } while (av[i++]);
+            tok = _tcstok(NULL, delimiter);
+        }
+        eu_safe_free(file);
+    }
+    eu_safe_free(env_path);
+    return NULL;
+}

@@ -381,6 +381,12 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_OTHER_EDITOR:
                         util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);
                         break;
+                    case IDM_EDIT_OTHER_BCOMPARE:
+                    {
+                        int num = on_tabpage_sel_number(NULL, false);
+                        util_enable_menu_item(menu, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
+                        break; 
+                    }
                     case IDM_UPDATE_SELECTION:              /* Search menu */
                         util_set_menu_item(menu, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
                         util_set_menu_item(menu, IDM_SELECTION_RECTANGLE, eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);

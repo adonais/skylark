@@ -887,6 +887,7 @@
 #define IDM_EDIT_SPACE_TAB                  42826
 #define IDM_EDIT_COMMENT_GROUP              42827
 #define IDM_EDIT_OTHER_EDITOR               42828
+#define IDM_EDIT_OTHER_BCOMPARE             42829
 
 #define IDR_HEXVIEW_MENU                    42830
 #define IDM_HEXVIEW_COPY                    42831
@@ -938,6 +939,7 @@
 #define IDS_RESULT_STRINGS1                 42889
 #define IDS_RESULT_STRINGS2                 42890
 #define IDS_EDITOR_PATH                     42891
+#define IDS_EDITOR_BCOMPARE                 42892
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991

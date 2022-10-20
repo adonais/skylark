@@ -105,6 +105,7 @@ int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(eu_tabpage *pnode);
 int  on_tabpage_selection(eu_tabpage *pnode, int index);
 int  on_tabpage_sel_number(int **pvec, const bool ascending);
+int  on_tabpage_sel_path(wchar_t ***pvec, bool *hex);
 void on_tabpage_switch_next(HWND hwnd);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);

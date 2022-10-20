@@ -181,6 +181,26 @@ on_tabpage_sel_number(int **pvec, const bool ascending)
     return num;
 }
 
+int
+on_tabpage_sel_path(wchar_t ***pvec, bool *hex)
+{
+    int num = 0;
+    eu_tabpage *p = NULL;
+    for (int i = 0, count = TabCtrl_GetItemCount(g_tabpages); i < count; ++i)
+    {
+        if (on_tabpage_nfocus(i) && (p = on_tabpage_get_ptr(i)) && !p->is_blank && !url_has_remote(p->pathfile))
+        {
+            cvector_push_back(*pvec, _wcsdup(p->pathfile));
+            if (hex && p->hex_mode)
+            {
+                *hex = p->hex_mode;
+            }
+            ++num;
+        }
+    }
+    return num;
+}
+
 void
 on_tabpage_active_one(int index)
 {
@@ -656,6 +676,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
         }
         util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !eu_sci_call(p,SCI_GETREADONLY, 0, 0));
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
+        util_enable_menu_item(hpop, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
         util_enable_menu_item(hpop, IDM_FILE_WORKSPACE, !p->is_blank);
         util_enable_menu_item(hpop, IDM_FILE_EXPLORER, !p->is_blank);
     }

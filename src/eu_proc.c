@@ -879,6 +879,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_tabpage_do_file(on_tabpage_push_editor);
                     }
                     break;
+                case IDM_EDIT_OTHER_BCOMPARE:
+                    {
+                        on_edit_push_compare();
+                    }
+                    break;                    
                 case IDM_FILE_WORKSPACE:
                     if (pnode && *pnode->pathfile && !pnode->is_blank)
                     {
