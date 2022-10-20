@@ -1036,21 +1036,27 @@ on_tabpage_create_dlg(HWND hwnd)
     return err;
 }
 
-static void
-on_tabpage_do_file(int it)
+void
+on_tabpage_close_tabs(int it)
 {
     on_file_close(on_tabpage_get_ptr(it), FILE_ONLY_CLOSE);
 }
 
 void
-on_tabpage_close_tabs(void)
+on_tabpage_save_files(int it)
+{
+    on_file_save(on_tabpage_get_ptr(it), false);
+}
+
+void
+on_tabpage_do_file(tab_callback func)
 {
     int num = 0;
     cvector_vector_type(int) v = NULL;
     num = on_tabpage_sel_number(&v, false);
-    if (num >= 1)
+    if (num > 0)
     {
-        cvector_for_each(v, on_tabpage_do_file);
+        cvector_for_each(v, func);
     }
     cvector_freep(&v);
 }

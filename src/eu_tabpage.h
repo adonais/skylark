@@ -30,6 +30,7 @@ extern "C"
 typedef struct _complete_t *complete_ptr;
 typedef struct _capture_set *capture_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
+typedef void  (*tab_callback)(int index);
 typedef void (__stdcall *tab_want)(void *p);
 
 struct _tabpage
@@ -110,7 +111,9 @@ void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
-void on_tabpage_close_tabs(void);
+void on_tabpage_close_tabs(int);
+void on_tabpage_save_files(int);
+void on_tabpage_do_file(tab_callback func);
 bool on_tabpage_check_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);

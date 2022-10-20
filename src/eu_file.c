@@ -502,7 +502,7 @@ pre_clean:
 }
 
 int
-on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, bool force)
+on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, const bool force)
 {
     size_t len = 0;
     size_t buf_len = 0;
@@ -744,7 +744,7 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
  * 如果selection为false, 且文件已经打开的情况下, 返回值是SKYLARK_OPENED(-1)
  **************************************************************************************/
 int
-on_file_only_open(file_backup *pbak, bool selection)
+on_file_only_open(file_backup *pbak, const bool selection)
 {
     eu_tabpage *pnode = NULL;
     int res = on_file_open_if(pbak->rel_path, selection);
@@ -947,7 +947,7 @@ mem_clean:
  * 无论是否打开文件, 它总是弹出一个新窗口, 所以返回值总是SKYLARK_OK
  **************************************************************************************/
 int
-on_file_out_open(int index, uint32_t *pid)
+on_file_out_open(const int index, uint32_t *pid)
 {
     eu_tabpage *p = on_tabpage_get_ptr(index);
     if (p && (!p->is_blank  || eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
@@ -1095,7 +1095,7 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
  * 函数成功, 返回值为当前打开标签的序号, 失败则为负数
  **************************************************************************************/
 int
-on_file_open_remote(remotefs *premote, file_backup *pbak, bool selection)
+on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
 {
     char *cnv = NULL;
     CURL *curl = NULL;
@@ -1328,7 +1328,7 @@ on_file_write_remote(void *buffer, size_t size, size_t nmemb, void *stream)
 }
 
 static int
-on_file_write_backup(eu_tabpage *pnode)
+on_file_write_backup(const eu_tabpage *pnode)
 {
     int ret = 0;
     if (pnode && !util_availed_char(pnode->fs_server.networkaddr[0]))
@@ -1350,7 +1350,7 @@ on_file_write_backup(eu_tabpage *pnode)
 }
 
 int
-on_file_save(eu_tabpage *pnode, bool save_as)
+on_file_save(eu_tabpage *pnode, const bool save_as)
 {
     int err = SKYLARK_OK;
     char *cnv = NULL;
@@ -1921,13 +1921,13 @@ on_file_close_last_tab(void)
 }
 
 void
-on_file_new_eols(eu_tabpage *pnode, int eol_mode)
+on_file_new_eols(eu_tabpage *pnode, const int eol_mode)
 {
     eu_get_config()->new_file_eol = eol_mode;
 }
 
 void
-on_file_new_encoding(eu_tabpage *pnode, int new_enc)
+on_file_new_encoding(eu_tabpage *pnode, const int new_enc)
 {
     eu_get_config()->new_file_enc = new_enc;
 }

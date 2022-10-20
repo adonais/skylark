@@ -767,7 +767,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_SAVE:
                 case IDM_TABPAGE_SAVE:
-                    on_file_save(pnode, false);
+                    on_tabpage_do_file(on_tabpage_save_files);
                     break;
                 case IDM_FILE_SAVEAS:
                     on_file_save_as(pnode);
@@ -776,7 +776,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_all_save();
                     break;
                 case IDM_FILE_CLOSE:
-                    on_tabpage_close_tabs();
+                    on_tabpage_do_file(on_tabpage_close_tabs);
                     break;
                 case IDM_FILE_CLOSEALL:
                     on_file_all_close();
