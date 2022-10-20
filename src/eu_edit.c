@@ -162,7 +162,7 @@ on_edit_push_clipboard(const TCHAR *buf)
 }
 
 static void
-on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
+on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
 {
     TCHAR cmd[MAX_BUFFER] = {0};
     TCHAR name[MAX_PATH] = {0};
@@ -173,51 +173,46 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (_tcsnicmp(name, _T("Notepad++"), _tcslen(name)) == 0)
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s -n%I64d -c%I64d"), path, file, line+1, pos-row+1);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\" -n%I64d -c%I64d"), path, pnode->pathfile, line+1, pos-row+1);
         }
         else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(name)) == 0)
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s/%I64d/%I64d"), path, file, line+1, pos-row+1);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s/%I64d/%I64d\""), path, pnode->pathfile, line+1, pos-row+1);
         }
         else
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s"), path, file);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, pnode->pathfile);
         }
     }
     else
     {
-        _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s"), path, file);
+        _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, pnode->pathfile);
     }
     CloseHandle(eu_new_process(cmd, NULL, NULL, 2, NULL));
 }
 
 void
-on_edit_push_editor(eu_tabpage *pnode, const TCHAR *file)
+on_edit_push_editor(eu_tabpage *pnode)
 {
-    TCHAR *pbuf = util_add_double_quotes(file);
-    if (pbuf)
-    {
-        if (strlen(eu_get_config()->editor) > 1)
-        {
-            wchar_t *path = eu_utf8_utf16(eu_get_config()->editor, NULL);
-            if (path)
-            {
-                on_edit_execute(pnode, path, pbuf);
-                free(path);
-            }
-        }
-        else
-        {
-            TCHAR editor[MAX_PATH] = {0};
-            LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
-            if (eu_input(m_input, editor, MAX_PATH - 1) && _tcslen(editor) > 1)
-            {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(editor), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
-                on_edit_execute(pnode, editor, pbuf);
-            }
-        }
-        free(pbuf);
-    }
+   if (strlen(eu_get_config()->editor) > 1)
+   {
+       wchar_t *path = eu_utf8_utf16(eu_get_config()->editor, NULL);
+       if (path)
+       {
+           on_edit_execute(pnode, path);
+           free(path);
+       }
+   }
+   else
+   {
+       TCHAR editor[MAX_PATH] = {0};
+       LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
+       if (eu_input(m_input, editor, MAX_PATH - 1) && _tcslen(editor) > 1)
+       {
+           WideCharToMultiByte(CP_UTF8, 0, util_path2unix(editor), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
+           on_edit_execute(pnode, editor);
+       }
+   }
 }
 
 void

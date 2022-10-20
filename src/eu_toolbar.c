@@ -610,54 +610,94 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
     }
 }
 
+static bool
+on_toolbar_mk_temp(wchar_t ***vec)
+{
+    cvector_vector_type(int) v = NULL;
+    if (on_tabpage_sel_number(&v, true) > 0)
+    {
+        for (int i = 0; i < cvector_size(v); ++i)
+        {
+            HANDLE pfile = NULL;
+            char *pbuffer = NULL;
+            wchar_t *pname = NULL;
+            uint32_t buf_len = 0;
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && p->doc_ptr && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+            {
+                if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
+                {
+                    if ((pbuffer = util_strdup_content(p, (size_t *)&buf_len)) != NULL)
+                    {
+                        uint32_t written;
+                        WriteFile(pfile, pbuffer, buf_len, &written, NULL);
+                        cvector_push_back(*vec, pname);
+                    }
+                }
+            }
+            safe_close_handle(pfile);
+        }
+    }
+    cvector_freep(&v);
+    return (*vec != NULL && cvector_size(*vec) > 0);
+}
+
 static unsigned __stdcall
 do_extra_actions(void *lp)
 {
-    eu_tabpage *p = on_tabpage_focus_at();
-    if (p && p->doc_ptr)
+    wchar_t *abs_path = NULL;
+    cvector_vector_type(wchar_t *) vec = NULL;
+    char *pactions = eu_get_config()->m_actions[eu_int_cast(lp)];
+    if (strlen(pactions) < 1)
     {
-        char *pactions = eu_get_config()->m_actions[p->doc_ptr->doc_type];
-        if (strlen(pactions) > 0)
+        return 1;
+    }
+    if (!on_toolbar_mk_temp(&vec))
+    {
+        return 1;
+    }
+    if ((abs_path = util_to_abs(pactions)) != NULL)
+    {
+        int count = eu_int_cast(cvector_size(vec));
+        const int len = (count + 1) * (MAX_PATH + 1);
+        wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
+        if (cmd_exec != NULL)
         {
-            WCHAR *abs_path = util_to_abs(pactions);
-            if (abs_path)
+            HANDLE handle = NULL;
+            _snwprintf(cmd_exec, len, _T("\"%s\" "), abs_path);
+            for (int i = 0; i < count; ++i)
             {
-                DWORD written;
-                HANDLE pfile = NULL;
-                char *pbuffer = NULL;
-                uint32_t buf_len = 0;
-                TCHAR cmd_exec[MAX_BUFFER] = {0};
-                TCHAR pname[MAX_PATH+1] = {0};
-                if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) == INVALID_HANDLE_VALUE)
+                if (i == count - 1)
                 {
-                    printf("util_mk_temp return failed, cause:%lu\n", GetLastError());
-                    free(abs_path);
-                    return 1;
-                }
-                if (!(pbuffer = util_strdup_content(p, (size_t *)&buf_len)))
-                {
-                    CloseHandle(pfile);
-                    free(abs_path);
-                    return 1;
-                }
-                WriteFile(pfile, pbuffer, buf_len, &written, NULL);
-                CloseHandle(pfile);
-                _sntprintf(cmd_exec, MAX_BUFFER - 1, _T("%s %s"), abs_path, pname);
-                free(abs_path);
-                HANDLE handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL);
-                if (handle)
-                {
-                    WaitForSingleObject(handle, INFINITE);
-                    CloseHandle(handle);
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, vec[i], len);
+                    wcsncat(cmd_exec, _T("\""), len);
                 }
                 else
                 {
-                    *pactions = 0;
-                    MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, vec[i], len);
+                    wcsncat(cmd_exec, _T("\" "), len);
                 }
-                DeleteFile(pname);
             }
+            if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)))
+            {
+                WaitForSingleObject(handle, INFINITE);
+            }
+            else
+            {
+                *pactions = 0;
+                MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+            }
+            safe_close_handle(handle);
+            cvector_for_each(vec, DeleteFile);
+            free(cmd_exec);
         }
+        free(abs_path);
+    }
+    if (vec)
+    {
+        cvector_free_each_and_free(vec, free);
     }
     return 0;
 }
@@ -748,16 +788,17 @@ on_toolbar_execute_script(void)
     eu_tabpage *p = on_tabpage_focus_at();
     if (p && !p->hex_mode && p->doc_ptr)
     {
-        if (strlen(eu_get_config()->m_actions[p->doc_ptr->doc_type]) > 1)
+        intptr_t param = (intptr_t)p->doc_ptr->doc_type;
+        if (strlen(eu_get_config()->m_actions[param]) > 1)
         {
             on_toolbar_update_env(p);
-            CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, NULL, 0, NULL));
+            CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
         }
-        else if (p->doc_ptr->doc_type == DOCTYPE_LUA)
+        else if (param == DOCTYPE_LUA)
         {   // lua script
             on_toolbar_lua_exec(p);
         }
-        else if (p->doc_ptr->doc_type == DOCTYPE_SQL || p->doc_ptr->doc_type == DOCTYPE_REDIS)
+        else if (param == DOCTYPE_SQL || param == DOCTYPE_REDIS)
         {   // sql query
             on_view_result_show(p, VK_CONTROL);
         }
@@ -772,9 +813,9 @@ on_toolbar_execute_script(void)
             int len = (int)_tcslen(process);
             if (len > 1 && len < MAX_PATH)
             {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process), -1, eu_get_config()->m_actions[p->doc_ptr->doc_type], MAX_PATH-1, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process), -1, eu_get_config()->m_actions[param], MAX_PATH-1, NULL, NULL);
                 on_toolbar_update_env(p);
-                CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, NULL, 0, NULL));
+                CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
             }
         }
     }

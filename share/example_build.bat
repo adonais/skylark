@@ -1,4 +1,4 @@
-@echo Building "%1" ...
+@echo Building %1 ...
 @set PATH=%PATH%;D:\msys2\mingw64\bin
 @echo FULL_CURRENT_PATH = "%FULL_CURRENT_PATH%"
 @echo CURRENT_DIRECTORY = "%CURRENT_DIRECTORY%"
@@ -7,7 +7,7 @@
 @echo EXT_PART = "%EXT_PART%"
 @echo CURRENT_LINESTR = "%CURRENT_LINESTR%"
 @echo CURRENT_SELSTR = "%CURRENT_SELSTR%"
-call g++ "%1" -g -o "%temp%\%NAME_PART%.exe"
+call g++ %1 -g -o "%temp%\%NAME_PART%.exe"
 
 @if ERRORLEVEL 1 GOTO END-ERR
 

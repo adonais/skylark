@@ -136,26 +136,6 @@ on_tabpage_nfocus(int index)
     return false;
 }
 
-static int
-on_tabpage_sel_number(int **pvec, const bool ascending)
-{
-    int num = 0;
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    int index = ascending ? 0 : count - 1;
-    for (; ascending ? index < count : index >= 0; ascending ? ++index : --index)
-    {
-        if (on_tabpage_nfocus(index))
-        {
-            if (pvec)
-            {
-                cvector_push_back(*pvec, index);
-            }
-            ++num;
-        }
-    }
-    return num;
-}
-
 static void
 on_tabpage_changing(int index)
 {
@@ -179,6 +159,26 @@ on_tabpage_deselect(int index)
         TabCtrl_GetItemRect(g_tabpages, index, &rc);
         InvalidateRect(g_tabpages, &rc, true);
     }
+}
+
+int
+on_tabpage_sel_number(int **pvec, const bool ascending)
+{
+    int num = 0;
+    int count = TabCtrl_GetItemCount(g_tabpages);
+    int index = ascending ? 0 : count - 1;
+    for (; ascending ? index < count : index >= 0; ascending ? ++index : --index)
+    {
+        if (on_tabpage_nfocus(index))
+        {
+            if (pvec)
+            {
+                cvector_push_back(*pvec, index);
+            }
+            ++num;
+        }
+    }
+    return num;
 }
 
 void
@@ -1046,6 +1046,16 @@ void
 on_tabpage_save_files(int it)
 {
     on_file_save(on_tabpage_get_ptr(it), false);
+}
+
+void
+on_tabpage_push_editor(int it)
+{
+    eu_tabpage *p = on_tabpage_get_ptr(it);
+    if (p && !p->is_blank && *p->pathfile)
+    {
+        on_edit_push_editor(p);
+    }
 }
 
 void
