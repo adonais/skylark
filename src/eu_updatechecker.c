@@ -67,6 +67,7 @@ on_update_init(struct curl_slist **pheaders)
         eu_curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_update_read_json);
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
+        eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
     }
     return curl;
 }
