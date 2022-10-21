@@ -1476,6 +1476,7 @@ on_edit_comment_line(eu_tabpage *pnode)
         case DOCTYPE_JAVA:
         case DOCTYPE_JAVASCRIPT:
         case DOCTYPE_KOTLIN:
+        case DOCTYPE_VERILOG:
             eu_toggle_comment(pnode, "// ", false);
             break;
         case DOCTYPE_CMAKE:
@@ -1574,6 +1575,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
         case DOCTYPE_JAVASCRIPT:
         case DOCTYPE_SQL:
         case DOCTYPE_KOTLIN:
+        case DOCTYPE_VERILOG:
             on_close_selection(pnode, "/*", "*/");
             break;
         case DOCTYPE_CMAKE:
