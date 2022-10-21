@@ -117,6 +117,7 @@ void on_tabpage_close_tabs(int);
 void on_tabpage_save_files(int);
 void on_tabpage_push_editor(int);
 void on_tabpage_do_file(tab_callback func);
+void on_tabpage_active_tab(eu_tabpage *pnode);
 bool on_tabpage_check_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);

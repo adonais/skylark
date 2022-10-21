@@ -2111,6 +2111,10 @@ hexview_switch_mode(eu_tabpage *pnode)
     {
         return err;
     }
+    if (on_tabpage_focus_at() != pnode)
+    {
+        on_tabpage_active_tab(pnode);
+    }
     if (!pnode->hex_mode)
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
@@ -2277,4 +2281,25 @@ HEX_ERROR:
         eu_safe_free(pnew);
     }
     return err;
+}
+
+void
+hexview_switch_item(eu_tabpage *pnode)
+{
+    if (g_tabpages && pnode)
+    {
+        eu_tabpage *p = NULL;
+        cvector_vector_type(int) v = NULL;
+        int num = on_tabpage_sel_number(&v, false);
+        for (int i = 0; i < num; ++i)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && p != pnode && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
+            {
+                hexview_switch_mode(p);
+            }
+        }
+        hexview_switch_mode(pnode);
+        cvector_freep(&v);
+    }
 }

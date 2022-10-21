@@ -447,7 +447,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         pnode->eol = pbak->eol;
         pnode->nc_pos = pbak->postion;
         pnode->codepage = pbak->cp;
-        if (pnode->codepage == IDM_OTHER_BIN)
+        if (!TAB_NOT_BIN(pnode))
         {
             pnode->hex_mode = true;
             if (!on_file_map_hex(pnode, hfile, 0))
@@ -488,7 +488,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         on_encoding_set_bom_from_cp(pnode);
         goto pre_clean;
     }
-    if ((err = on_file_set_codepage(pnode, hfile)) == SKYLARK_OK && pnode->codepage == IDM_OTHER_BIN)
+    if ((err = on_file_set_codepage(pnode, hfile)) == SKYLARK_OK && !TAB_NOT_BIN(pnode))
     {   // 不在备份中打开, 测试是否16进制文件?
         pnode->hex_mode = true;
         if (!on_file_map_hex(pnode, hfile, 0))
@@ -950,7 +950,7 @@ int
 on_file_out_open(const int index, uint32_t *pid)
 {
     eu_tabpage *p = on_tabpage_get_ptr(index);
-    if (p && (!p->is_blank  || eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
+    if (p && (!p->is_blank  || TAB_NOT_NUL(p)))
     {
         TCHAR process[MAX_BUFFER] = {0};
         if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
@@ -1184,7 +1184,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
         on_sci_after_file(pnode);
     }
     reuslt = on_file_after_open(pnode, pbak);
-    if (pnode->codepage == IDM_OTHER_BIN)
+    if (!TAB_NOT_BIN(pnode))
     {
         return hexview_switch_mode(pnode);
     }
@@ -1210,7 +1210,7 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
             pathfilename = (pnode->pathfile[0]?pnode->pathfile:pathfilename);
         }
     }
-    else if (pnode->codepage == IDM_OTHER_BIN)
+    else if (!TAB_NOT_BIN(pnode))
     {
         // 原生的16进制视图
         // 是否自动cache
@@ -1401,7 +1401,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     else if (util_availed_char(pnode->fs_server.networkaddr[0]))
     {
         size_t buf_len = 0;
-        if (pnode->codepage != IDM_OTHER_BIN)
+        if (TAB_NOT_BIN(pnode))
         {
             if (pnode->hex_mode)
             {
@@ -1580,10 +1580,10 @@ on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
     TCHAR buf[ACNAME_LEN] = {0};
     file_backup filebak = {0};
     filebak.cp = pnode->codepage;
-    filebak.bakcp = pnode->codepage == IDM_OTHER_BIN ? IDM_OTHER_BIN : IDM_UNI_UTF8;
+    filebak.bakcp = !TAB_NOT_BIN(pnode) ? IDM_OTHER_BIN : IDM_UNI_UTF8;
     if (!file_click_close(mode))
     {
-        if (!pnode->is_blank || eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0)
+        if (!pnode->is_blank || TAB_NOT_NUL(pnode))
         {
             if (on_sci_doc_modified(pnode))
             {

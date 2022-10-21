@@ -113,27 +113,12 @@ init_icon_img_list(HWND htab)
 static inline void
 on_tabpage_set_active(int index)
 {
-    if (g_tabpages)
+    if (g_tabpages && index >= 0)
     {
         TabCtrl_DeselectAll(g_tabpages, true);
         TabCtrl_SetCurSel(g_tabpages, index);
         TabCtrl_SetCurFocus(g_tabpages, index);
     }
-}
-
-static bool
-on_tabpage_nfocus(int index)
-{
-    if (g_tabpages && index >= 0)
-    {
-        TCITEM tci = {TCIF_STATE};
-        tci.dwStateMask = TCIS_BUTTONPRESSED;
-        if (SendMessage(g_tabpages, TCM_GETITEM, index, (LPARAM)&tci))
-        {
-            return ((tci.dwState & TCIS_BUTTONPRESSED) || (TabCtrl_GetCurSel(g_tabpages) == index));
-        }
-    }
-    return false;
 }
 
 static void
@@ -159,6 +144,21 @@ on_tabpage_deselect(int index)
         TabCtrl_GetItemRect(g_tabpages, index, &rc);
         InvalidateRect(g_tabpages, &rc, true);
     }
+}
+
+static bool
+on_tabpage_nfocus(int index)
+{
+    if (g_tabpages && index >= 0)
+    {
+        TCITEM tci = {TCIF_STATE};
+        tci.dwStateMask = TCIS_BUTTONPRESSED;
+        if (SendMessage(g_tabpages, TCM_GETITEM, index, (LPARAM)&tci))
+        {
+            return ((tci.dwState & TCIS_BUTTONPRESSED) || (TabCtrl_GetCurSel(g_tabpages) == index));
+        }
+    }
+    return false;
 }
 
 int
@@ -532,7 +532,7 @@ static void
 on_tabpage_send_file(const HWND hwin, const int index)
 {
     eu_tabpage *p = on_tabpage_get_ptr(index);
-    if (p && (!p->is_blank  || eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
+    if (p && (!p->is_blank  || TAB_NOT_NUL(p)))
     {
         file_backup bak = {0};
         int err = SKYLARK_NOT_OPENED;
@@ -1314,7 +1314,7 @@ on_tabpage_add(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     TCITEM tci = { 0 };
-    if (pnode->codepage != IDM_OTHER_BIN && !pnode->hex_mode)
+    if (TAB_NOT_BIN(pnode) && !pnode->hex_mode)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
@@ -1548,16 +1548,24 @@ on_tabpage_get_handle(void *hwnd_sc)
 int
 on_tabpage_get_index(eu_tabpage *pnode)
 {
-    EU_VERIFY(g_tabpages != NULL);
-    eu_tabpage *p = NULL;
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    if (g_tabpages)
     {
-        if ((p = on_tabpage_get_ptr(index)) && p && (p == pnode))
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            return index;
+            if ((p = on_tabpage_get_ptr(index)) && p && (p == pnode))
+            {
+                return index;
+            }
         }
     }
     return SKYLARK_TABCTRL_ERR;
+}
+
+void
+on_tabpage_active_tab(eu_tabpage *pnode)
+{
+    on_tabpage_set_active(on_tabpage_get_index(pnode));
 }
 
 eu_tabpage *

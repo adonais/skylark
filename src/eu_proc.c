@@ -1155,7 +1155,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_copy_theme();
                     break;
                 case IDM_VIEW_HEXEDIT_MODE:
-                    hexview_switch_mode(pnode);
+                    hexview_switch_item(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_BRACE:
                     on_view_light_brace();

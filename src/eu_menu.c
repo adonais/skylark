@@ -364,18 +364,18 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_REDO:
                         util_enable_menu_item(menu, IDM_EDIT_UNDO, eu_sci_call(pnode,SCI_CANUNDO, 0, 0));
                         util_enable_menu_item(menu, IDM_EDIT_REDO, eu_sci_call(pnode,SCI_CANREDO, 0, 0));
-                        break;    
-                    case IDM_EDIT_CUT:    
+                        break;
+                    case IDM_EDIT_CUT:
                     case IDM_EDIT_COPY:
                     case IDM_EDIT_PASTE:
-                    case IDM_EDIT_DELETE:    
+                    case IDM_EDIT_DELETE:
                         util_enable_menu_item(menu, IDM_EDIT_CUT, util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_COPY, util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
-                        util_enable_menu_item(menu, IDM_EDIT_DELETE, eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE2, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE5, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE6, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_EDIT_DELETE, TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE2, !pnode->hex_mode && TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE5, !pnode->hex_mode && TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE6, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_SELECT_GROUP, util_can_selections(pnode));
                         break;
                     case IDM_EDIT_OTHER_EDITOR:
@@ -385,7 +385,7 @@ menu_update_item(HMENU menu)
                     {
                         int num = on_tabpage_sel_number(NULL, false);
                         util_enable_menu_item(menu, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
-                        break; 
+                        break;
                     }
                     case IDM_UPDATE_SELECTION:              /* Search menu */
                         util_set_menu_item(menu, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
@@ -421,7 +421,7 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, !pnode->hex_mode && pnode->foldline);
                         util_set_menu_item(menu, IDM_VIEW_INDENTGUIDES_VISIABLE, eu_get_config()->m_indentation);
-                        util_enable_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN && TAB_NOT_NUL(pnode));
                         util_set_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->hex_mode);
                         if (pnode->doc_ptr)
                         {
@@ -451,15 +451,15 @@ menu_update_item(HMENU menu)
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE19, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE19, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
                     case IDM_EDIT_QRCODE:
                         util_enable_menu_item(menu, IDM_EDIT_QRCODE, util_can_selections(pnode));
                         break;
                     case IDM_SOURCE_BLOCKFOLD_TOGGLE: /* Programming menu */
                     case IDM_SOURCE_BLOCKFOLD_CONTRACT:
-                    case IDM_SOURCE_BLOCKFOLD_EXPAND:    
-                        enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0;
+                    case IDM_SOURCE_BLOCKFOLD_EXPAND:
+                        enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_TOGGLE, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_CONTRACT, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_EXPAND, enable);
@@ -469,7 +469,7 @@ menu_update_item(HMENU menu)
                     case IDM_SOURCECODE_GOTODEF:
                         enable = pnode->doc_ptr && !pnode->hex_mode && pnode->hwnd_symlist;
                         util_enable_menu_item(menu, IDM_SOURCECODE_GOTODEF, enable);
-                        break;    
+                        break;
                     case IDM_EDIT_AUTO_CLOSECHAR:
                         util_set_menu_item(menu, IDM_EDIT_AUTO_CLOSECHAR, eu_get_config()->eu_brace.autoc);
                         util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->eu_complete.enable);
@@ -482,11 +482,11 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, enable);
                         util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, enable);
                         util_switch_menu_group(menu, TAB_MENU_SNIPPET_SUB, IDM_SOURCE_SNIPPET_ENABLE, IDM_SOURCE_SNIPPET_ENABLE, eu_get_config()->eu_complete.snippet);
-                        util_enable_menu_item(menu, IDM_EDIT_COMMENT_GROUP, !pnode->hex_mode && pnode->doc_ptr && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_EDIT_COMMENT_GROUP, !pnode->hex_mode && pnode->doc_ptr && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_SOURCE_SNIPPET_GROUP, !pnode->hex_mode && pnode->doc_ptr);
                         break;
                     case IDM_PROGRAM_EXECUTE_ACTION:
-                        enable = pnode->doc_ptr && !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0;
+                        enable = pnode->doc_ptr && !pnode->hex_mode && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_PROGRAM_EXECUTE_ACTION,  enable);
                         break;
                     case IDM_ENV_FILE_POPUPMENU:      /* Settings menu */

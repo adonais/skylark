@@ -19,7 +19,7 @@
 #ifndef _H_SKYLARK_EDIT_
 #define _H_SKYLARK_EDIT_
 
-#define MIN_POS(x, y) ((x < y) ? x : y)
+#define MIN_POS(x, y) ((x < y) ? (x) : (y))
 // suppress -Wimplicit-fallthrough in C source
 #if defined(__cplusplus)
 #define FALLTHROUGH_ATTR        [[fallthrough]]
@@ -30,6 +30,8 @@
 #endif
 #define STR_IS_NUL(s) (s == NULL || *s == 0)
 #define STR_NOT_NUL(s) (s != NULL && *s != 0)
+#define TAB_NOT_NUL(p) (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0)
+#define TAB_NOT_BIN(p) (p->codepage != IDM_OTHER_BIN)
 
 #ifdef __cplusplus
 extern "C"
