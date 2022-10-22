@@ -1344,7 +1344,7 @@ on_complete_snippet_back(eu_tabpage *pnode)
         else
         {
             on_complete_reset_focus(pnode);
-            ret = false;
+            ret = true;
         }
         break;
     }
@@ -1357,7 +1357,7 @@ on_complete_snippet(eu_tabpage *pnode)
     size_t size = 0;
     bool ret = false;
     char *str = NULL;
-    complete_t *it;
+    complete_t *it = NULL;
     if (!pnode)
     {
         return false;
@@ -1370,13 +1370,21 @@ on_complete_snippet(eu_tabpage *pnode)
             on_complete_reset_focus(pnode);
             return false;
         }
-        if (it && it - pnode->ac_vec < (intptr_t)size)
-        {   // 解析vec数组, 设置tab跳转
-            it++;
-            ret = on_complete_snippet_jmp(pnode, it);
-            if (ret && pnode->ac_vec)
-            {
-                on_complete_inc_focus();
+        if (it)
+        {   
+            if (it - pnode->ac_vec < (intptr_t)(size - 1))
+            {   // 解析vec数组, 设置tab跳转
+                ++it;
+                ret = on_complete_snippet_jmp(pnode, it);
+                if (ret && pnode->ac_vec)
+                {
+                    on_complete_inc_focus();
+                }
+            }
+            else
+            {   // 处理完了最后一个变量
+                on_complete_reset_focus(pnode);
+                ret = true;
             }
         }
         return ret;
