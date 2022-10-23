@@ -275,7 +275,7 @@ init_lib_format(const char *filename, const char *data, size_t size, char **pout
 }
 
 int
-on_format_js_callback(const char *text, uint8_t **pbuf)
+on_format_js_callback(const uint8_t *text, uint8_t **pbuf)
 {
     size_t in = 0;
     size_t out = 0;
@@ -285,7 +285,7 @@ on_format_js_callback(const char *text, uint8_t **pbuf)
     {
         return 1;
     }    
-    length = strlen(text);
+    length = strlen((const char *)text);
     *pbuf = length > 0 ? (uint8_t *) malloc(length) : NULL;
     if (*pbuf == NULL)
     {
@@ -357,7 +357,7 @@ on_format_js_callback(const char *text, uint8_t **pbuf)
 }
 
 int
-on_format_json_callback(const char *text, uint8_t **pbuf)
+on_format_json_callback(const uint8_t *text, uint8_t **pbuf)
 {
     size_t in = 0;
     size_t out = 0;
@@ -369,7 +369,7 @@ on_format_json_callback(const char *text, uint8_t **pbuf)
     {
         return 1;
     }
-    length = strlen(text);
+    length = strlen((const char *)text);
     *pbuf = length > 0 ? (uint8_t *) malloc(length) : NULL;
     if (*pbuf == NULL)
     {
@@ -436,11 +436,11 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
             break;
         }
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        if (fn(text, &out) == SKYLARK_OK && out)
+        if (fn((const uint8_t *)text, &out) == SKYLARK_OK && out)
         {
             if (pnode->doc_ptr->doc_type == DOCTYPE_JSON)
             {
-                if (strcmp(text, out))
+                if (strcmp(text, (const char *)out))
                 {
                     eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
                     eu_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)out), (LPARAM)out);
@@ -450,7 +450,7 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
             {
                 uint8_t *p = out;
                 util_skip_whitespace(&p, eu_int_cast(strlen((const char *) p)), 0);
-                if (strcmp(text, p))
+                if (strcmp(text, (const char *)p))
                 {
                     eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
                     eu_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)p), (LPARAM)p);

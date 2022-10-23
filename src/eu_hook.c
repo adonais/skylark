@@ -143,7 +143,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
         return 0;
     }
     // 去除所有空格
-    for (int k = 0; c < len; ++c)
+    for (int k = 0; c < (int)len; ++c)
     {
         if (mark[c] != ' ')
         {
@@ -151,7 +151,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
         }
     }
     len = strlen(mark_code);
-    printf("addr = 0x%I64x, endaddr = 0x%I64x, mark_code.length = %I64u, mark_code = %s\n", addr, endaddr, len, mark_code);
+    printf("addr = 0x%zx, endaddr = 0x%zx, mark_code.length = %zu, mark_code = %s\n", addr, endaddr, len, mark_code);
     // 特征码长度不能为单数
     if (len % 2 != 0)
     {
@@ -170,7 +170,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
     {
         return 0;
     }
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < (int)len; i++)
     {
         char temp[3] = { 0 };
         strncpy(temp, &mark_code[i * 2], 2);
@@ -226,7 +226,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
             ReadProcessMemory(hps, (LPCVOID) cur_addr, pmem, mbi.RegionSize, 0);
             i = 0;
             j = 0;
-            while (j < len)
+            while (j < (int)len)
             {
                 if (pmem[i] == pmark[j] || pwild[j] == 0xFF)
                 {
@@ -237,7 +237,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
                 {
                     offset = i - j + n_sunday;
                     // 判断偏移量是否大于缓冲区
-                    if (offset > mbi.RegionSize - len)
+                    if (offset > eu_int_cast(mbi.RegionSize - len))
                     {
                         break;
                     }
@@ -272,7 +272,7 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
                     {
                         ret[count] += temp;
                     }
-                    printf("ret[%d] = 0x%I64x\n", count, ret[count]);
+                    printf("ret[%d] = 0x%zx\n", count, ret[count]);
                 }
                 if (++count >= n_size)
                 {

@@ -71,7 +71,7 @@ struct _tabpage
     size_t pre_len;             // bom的长度
     bool needpre;               // 是否需要bom
     int eol;                    // 换行符
-    int64_t begin_pos;          // 开始选择位置
+    intptr_t begin_pos;         // 开始选择位置
     remotefs fs_server;         // SFTP
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
@@ -83,7 +83,7 @@ struct _tabpage
     bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool last_focus;            // 保存前台焦点
-    int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
+    intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
     int ac_mode;                // 是否处于snippet模式
     result_vec *ret_vec;        // 搜索结果标记

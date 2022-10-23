@@ -927,10 +927,10 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_R                     "只读"
     IDS_BUTTON_W                     "读写"
     IDS_STATUS_F1                    "%d 个文件, 时间戳: %s"
-    IDS_STATUS_XY                    "光标 (行 %I64u, 列 %I64u)"
-    IDS_STATUS_LC                    "文件: %I64d/%I64d (字节)"
-    IDS_STATUS_LD                    "选择: %I64d/%I64u (字节/行)"
-    IDS_STATUS_HXY                   "光标 (0x%I64X)"
+    IDS_STATUS_XY                    "光标 (行 %zu, 列 %zu)"
+    IDS_STATUS_LC                    "文件: %zd/%zd (字节)"
+    IDS_STATUS_LD                    "选择: %zd/%zu (字节/行)"
+    IDS_STATUS_HXY                   "光标 (0x%zX)"
 }
 
 STRINGTABLE DISCARDABLE
@@ -1114,7 +1114,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SEARCH_STR1     "提示: 正则表达式请使用perl正则语法"
     IDC_MSG_SEARCH_STR2     "%s|%s|(%d 次匹配)"
     IDC_MSG_SEARCH_STR3     "正在初始化引擎,不要关闭窗口......"
-    IDC_MSG_SEARCH_STR4     "搜索完成, %I64u 个文件匹配, 共 %I64u 条结果"
+    IDC_MSG_SEARCH_STR4     "搜索完成, %zu 个文件匹配, 共 %zu 条结果"
     IDC_MSG_SEARCH_STR5     "输入地址偏移量(Hex):"
     IDC_SEARCH_BTN_ON       "查找全部"
     IDC_SEARCH_BTN_OFF      "停止搜索"

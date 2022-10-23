@@ -457,13 +457,13 @@ do_lua_parser_doctype(const char *fname, const char *func)
     }
     if (doc_point)
     {
-        printf("doc_point = %I64x\n", doc_point);
+        printf("doc_point = %zx\n", doc_point);
         eu_doc_set_ptr((doctype_t *)doc_point);
     }
     return status;
 }
 
-void
+void WINAPI
 do_lua_parser_release(void)
 {
     if (pstate)

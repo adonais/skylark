@@ -33,8 +33,7 @@ CFLAGS   = $(CFLAGS)
 !ENDIF
 !ELSEIF "$(PLATFORM)"=="x86"
 BITS	 = 32
-CFLAGS   = $(CFLAGS) -DWIN32 -D_WIN32 -I$(INCD)
-!ERROR $(PLATFORM) is not supported, please use x86 compiler
+CFLAGS   = $(CFLAGS) -arch:SSE2 -DWIN32 -I$(INCD)
 !ELSE
 !ERROR Unknown target processor: $(PLATFORM)
 !ENDIF

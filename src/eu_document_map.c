@@ -112,7 +112,7 @@ on_map_print(sptr_t *plines)
         sptr_t *it;
         for (it = cvector_begin(plines); it != cvector_end(plines); ++it)
         {
-            printf("plines[%d] = %I64d\n", i, *it);
+            printf("plines[%d] = %zd\n", i, *it);
             ++i;
         }
     }

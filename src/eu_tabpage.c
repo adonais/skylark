@@ -486,7 +486,7 @@ on_tabpage_parser_bakup(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szLine"))
         {
-            pbak->postion = _atoi64(column[i]);
+            pbak->postion = _atoz(column[i]);
         }
         else if (STRCMP(names[i], ==, "szCp"))
         {
@@ -588,7 +588,7 @@ on_tabpage_send_group(const HWND hwin)
     cvector_vector_type(int) v = NULL;
     if (on_tabpage_sel_number(&v, false) > 0 && eu_cvector_at(v, tab_move_from) >= 0)
     {
-        for (int i = 0; i < cvector_size(v); ++i)
+        for (size_t i = 0; i < cvector_size(v); ++i)
         {
             on_tabpage_send_file(hwin, v[i]);
         }
@@ -614,7 +614,7 @@ on_tabpage_new_hinst(void)
             if ((hwin = util_get_hwnd(pid)) != NULL)
             {
                 cvector_erase(v, 0);
-                for (int i = 0; i < cvector_size(v); ++i)
+                for (size_t i = 0; i < cvector_size(v); ++i)
                 {
                     on_tabpage_send_file(hwin, v[i]);
                 }
@@ -1333,7 +1333,7 @@ on_tabpage_add(eu_tabpage *pnode)
     }
     if (pnode->fs_server.networkaddr[0] == 0 && pnode->hex_mode)
     {
-        pnode->bytes_remaining = pnode->raw_size;
+        pnode->bytes_remaining = (size_t)pnode->raw_size;
         if (!hexview_init(pnode))
         {
             TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);

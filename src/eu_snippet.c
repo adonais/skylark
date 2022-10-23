@@ -498,7 +498,7 @@ on_snippet_do_modify(HWND hdlg)
     #ifdef _DEBUG    
         printf("listbox_count = %d, vec = %p, vec_size = %zu\n", index, (void *)vec, cvector_size(vec));
     #endif    
-        if (!vec || cvector_size(vec) < index)
+        if (!vec || (int)cvector_size(vec) < index)
         {
             break;
         }

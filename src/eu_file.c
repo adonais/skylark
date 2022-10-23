@@ -530,7 +530,7 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, const bool force)
     }
     if (!force)
     {
-        uf_stream.size = pnode->raw_size;
+        uf_stream.size = (size_t)pnode->raw_size;
     }
     if (!util_open_file(pfull, &uf_stream))
     {
@@ -678,9 +678,8 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
         }
         else
         {
-            sptr_t line_end_pos = 0;
             pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
-            line_end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, pbak->x > 0 ? pbak->x - 1 : 0, 0);
+            sptr_t line_end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, pbak->x > 0 ? pbak->x - 1 : 0, 0);
             pos += (pbak->y > 0 ? pbak->y - 1 : 0);
             if (pos > line_end_pos)
             {
@@ -963,7 +962,7 @@ on_file_out_open(const int index, uint32_t *pid)
                     sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
                     sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
                     sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
-                    _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%I64d -c%I64d"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
+                    _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%zd -c%zd"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
                     if (!(err = on_file_close(p, FILE_ONLY_CLOSE)))
                     {
                         err = _tputenv(_T("OPEN_FROM_SQL="));
@@ -1204,7 +1203,7 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
             ret = EUE_POINT_NULL;
             goto FILE_FINAL;
         }
-        if (!save_as && eu_get_config()->m_limit && eu_get_config()->m_limit <= pnode->bytes_remaining/1024/1024)
+        if (!save_as && eu_get_config()->m_limit && eu_get_config()->m_limit <= eu_int_cast(pnode->bytes_remaining/1024/1024))
         {   // 非二进制文件, 不产生备份, 直接写入原文件
             isbak = false;
             pathfilename = (pnode->pathfile[0]?pnode->pathfile:pathfilename);
@@ -1214,14 +1213,14 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
     {
         // 原生的16进制视图
         // 是否自动cache
-        bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > pnode->phex->total_items/1024/1024);
+        bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->phex->total_items/1024/1024));
         // 既不另存为,又不产生缓存, 则直接写入源文件
         ret = hexview_save_data(pnode, save_as || is_cache ? pathfilename : NULL);
         goto FILE_FINAL;
     }
     else
     {   // 以流打开的16进制视图
-        bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > pnode->phex->total_items/1024/1024);
+        bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->phex->total_items/1024/1024));
         // hex_ascii为真,是原始的二进制,非utf8转码后的二进制
         if (pnode->phex->hex_ascii && pnode->phex->hmap)
         {
@@ -1950,7 +1949,7 @@ on_file_do_restore(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szPos"))
         {
-            bak.postion = _atoi64(column[i]);
+            bak.postion = _atoz(column[i]);
         }
         else if (STRCMP(names[i], ==, "szHex"))
         {

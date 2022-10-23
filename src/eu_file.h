@@ -52,8 +52,8 @@ typedef struct _file_backup
     TCHAR bak_path[MAX_PATH];
     char mark_id[MAX_BUFFER];
     char fold_id[MAX_BUFFER];
-    int64_t postion;
-    int64_t x;
+    intptr_t postion;
+    intptr_t x;
     int tab_id;
     int cp;
     int bakcp;

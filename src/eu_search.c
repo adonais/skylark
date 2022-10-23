@@ -916,7 +916,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
             if (pnode->hex_mode)
             {
 
-                if (_stscanf(lineno, _T("%I64x"), &line) == 1)
+                if (_stscanf(lineno, _T("%zx"), &line) == 1)
                 {
                     SendMessage(pnode->hwnd_sc, HVM_GOPOS, line, 0);
                 }
@@ -924,7 +924,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
             }
             else
             {
-                line = _tstoi64(lineno);
+                line = _tstoz(lineno);
                 sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
                 sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
                 on_search_jmp_line(pnode, line - 1, current_line);
@@ -1160,7 +1160,7 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
             {
                 break;
             }
-            _snprintf(szmark+offset, size-offset, "%I64d;", find_line);
+            _snprintf(szmark+offset, size-offset, "%zd;", find_line);
             current_line = find_line + 1;
         }
     }
@@ -1174,7 +1174,7 @@ on_search_update_mark(eu_tabpage *pnode, char *szmark)
         char *p = strtok(szmark, ";");
         while (p)
         {
-            on_search_add_mark(pnode, _atoi64(p));
+            on_search_add_mark(pnode, _atoz(p));
             p = strtok(NULL, ";");
         }
     }
@@ -1196,7 +1196,7 @@ on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
             {
                 break;
             }
-            _snprintf(szfold+offset, size-offset, "%I64d;", header_line);
+            _snprintf(szfold+offset, size-offset, "%zd;", header_line);
             ++header_line;
         }
     } while (header_line != -1);
@@ -1210,7 +1210,7 @@ on_search_update_fold(eu_tabpage *pnode, char *szfold)
         char *p = strtok(szfold, ";");
         while (p)
         {
-            sptr_t line = _atoi64(p);
+            sptr_t line = _atoz(p);
             uint32_t level = (uint32_t)(eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0) & SC_FOLDLEVELNUMBERMASK);
             if (level == 0x400)
             {   // 如果是父节点, 展开一次再折叠
@@ -1292,7 +1292,7 @@ on_search_back_navigate_this(void)
             if (prev->hwnd_sc == pnode->hwnd_sc)
             {
                 sptr_t text_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : prev->last_pos;
+                sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : (sptr_t)prev->last_pos;
                 eu_sci_call(pnode, SCI_GOTOPOS, go_pos, 0);
             }
         }
@@ -1328,7 +1328,7 @@ on_search_back_navigate_all(void)
                 on_tabpage_selection(prev->pnode, -1);
             }
             sptr_t text_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-            sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : prev->last_pos;
+            sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : (sptr_t)prev->last_pos;
             eu_sci_call(pnode, SCI_GOTOPOS, go_pos, 0);
         }
         return SKYLARK_OK;
@@ -1999,7 +1999,7 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
     DO_SEARCH_LOOP:
     {
         found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags);
-        printf("start_pos = %I64d, end_pos = %I64d, found_pos = %I64d\n", start_pos, end_pos, found_pos);
+        printf("start_pos = %zd, end_pos = %zd, found_pos = %zd\n", start_pos, end_pos, found_pos);
         if (found_pos >= 0)
         {
             target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
@@ -2101,7 +2101,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
             return EUE_OUT_OF_MEMORY;
         }
         // 去除所有空格
-        for (int c = 0, k = 0; c < len; ++c)
+        for (size_t c = 0, k = 0; c < len; ++c)
         {
             if (pattern[c] != 0x20)
             {

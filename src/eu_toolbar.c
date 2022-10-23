@@ -616,7 +616,7 @@ on_toolbar_mk_temp(wchar_t ***vec)
     cvector_vector_type(int) v = NULL;
     if (on_tabpage_sel_number(&v, true) > 0)
     {
-        for (int i = 0; i < cvector_size(v); ++i)
+        for (size_t i = 0; i < cvector_size(v); ++i)
         {
             HANDLE pfile = NULL;
             char *pbuffer = NULL;

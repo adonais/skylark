@@ -289,7 +289,7 @@ on_doc_color_customizes(eu_tabpage *pnode)
         {
             if (mask & 0x1)
             {
-                int64_t bk_color = (pstyle->bkcolor[i] == (uint32_t)-1 ? (int64_t)-1 : pstyle->bkcolor[i]);
+                intptr_t bk_color = (pstyle->bkcolor[i] == (uint32_t)-1 ? (intptr_t)-1 : pstyle->bkcolor[i]);
                 on_doc_default_light(pnode, pstyle->type[i], pstyle->fgcolor[i], bk_color, true);
             }
         }
@@ -324,7 +324,7 @@ on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
 }
 
 void
-on_doc_default_light(eu_tabpage *pnode, int lex, int64_t fg_rgb, int64_t bk_rgb, bool force)
+on_doc_default_light(eu_tabpage *pnode, int lex, intptr_t fg_rgb, intptr_t bk_rgb, bool force)
 {
     if (pnode)
     {
@@ -355,7 +355,7 @@ on_doc_default_light(eu_tabpage *pnode, int lex, int64_t fg_rgb, int64_t bk_rgb,
 }
 
 void
-on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
+on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
 {
     if (pnode)
     {
@@ -437,7 +437,7 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 }
 
 void
-on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
+on_doc_function_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
 {
     if (pnode)
     {
@@ -460,7 +460,7 @@ on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 }
 
 void
-on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
+on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
 {
     if (pnode)
     {
@@ -483,13 +483,13 @@ on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 }
 
 void
-on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
+on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
 {
     on_doc_marcro_light(pnode, lex, index, rgb);
 }
 
 void
-on_doc_send_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
+on_doc_send_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
 {
     if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
@@ -498,7 +498,7 @@ on_doc_send_light(eu_tabpage *pnode, int lex, int index, int64_t rgb)
 }
 
 void
-on_doc_variable_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_variable_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
@@ -507,7 +507,7 @@ on_doc_variable_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_tags_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_tags_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {
@@ -530,7 +530,7 @@ on_doc_tags_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_string_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_string_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {
@@ -553,7 +553,7 @@ on_doc_string_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_operator_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_operator_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {
@@ -576,7 +576,7 @@ on_doc_operator_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_char_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_char_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {
@@ -599,7 +599,7 @@ on_doc_char_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_number_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_number_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {
@@ -622,7 +622,7 @@ on_doc_number_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_special_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_special_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
@@ -631,7 +631,7 @@ on_doc_special_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_comment_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_comment_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {
@@ -654,7 +654,7 @@ on_doc_comment_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_commentblock_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_commentblock_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {
@@ -677,7 +677,7 @@ on_doc_commentblock_light(eu_tabpage *pnode, int lex, int64_t rgb)
 }
 
 void
-on_doc_commentdoc_light(eu_tabpage *pnode, int lex, int64_t rgb)
+on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode)
     {

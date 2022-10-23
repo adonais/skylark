@@ -443,7 +443,7 @@ on_parser_vec_printer(snippet_t *pv)
         int i = 0;
         for (it = cvector_begin(pv); it != cvector_end(pv); ++it, ++i)
         {
-            printf("pv[%d] = %I64d, %I64d, %s, %s, %s, %s\n", i, it->start, it->end, it->name, it->comment, it->parameter, it->body);
+            printf("pv[%d] = %zd, %zd, %s, %s, %s, %s\n", i, it->start, it->end, it->name, it->comment, it->parameter, it->body);
         }
     }
 }
@@ -539,7 +539,7 @@ on_parser_vector_erase(const TCHAR *path, snippet_t **ptr_vec, int dimension)
     {
         intptr_t start = (*ptr_vec)[dimension].start;
         intptr_t end = (*ptr_vec)[dimension].end;
-        cvector_erase(*ptr_vec, dimension);
+        cvector_erase(*ptr_vec, (size_t)dimension);
         int size = on_parser_filter_text(path, &buf, start, end);
         if (size > 0)
         {

@@ -1661,7 +1661,7 @@ util_open_file(LPCTSTR path, pt_stream pstream)
     {
         if (!pstream->size)
         {
-            if (!util_file_size(hfile, &pstream->size))
+            if (!util_file_size(hfile, (uint64_t *)&pstream->size))
             {
                 CloseHandle(hfile);
                 return false;

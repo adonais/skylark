@@ -933,7 +933,7 @@ on_complete_sort_update(eu_tabpage *pnode, complete_t *it, int **pv, int offset,
                     it->pos[j].min += (m * offset);
                     it->pos[j].max += (m * offset);
                 }
-                cvector_erase((*pv), m);
+                cvector_erase((*pv), (size_t)m);
                 if ((msub = on_complete_var_embed(pnode, it, index, &oit)) && oit && oit != it)
                 {
                     Sci_TextRange tr = {{it->pos[j].min, it->pos[j].max + offset}, it->value};
@@ -1021,7 +1021,7 @@ on_complete_update_postion(eu_tabpage *pnode, complete_t **ptr_vec, bool back)
     }
     if (current_pos >= 0)
     {   // 根据上一个焦点, 获取要跳转的vec index
-        if (last_snippet_focus >= 0 && last_snippet_focus < cvector_size(pnode->ac_vec))
+        if (last_snippet_focus >= 0 && last_snippet_focus < (int)cvector_size(pnode->ac_vec))
         {
             oit = &pnode->ac_vec[last_snippet_focus];
         }

@@ -39,16 +39,22 @@
 #if defined(_MSC_VER)
 #pragma intrinsic(memcpy, memset, memcmp, strlen)
 #pragma intrinsic(_InterlockedIncrement,_InterlockedDecrement)
-#pragma intrinsic(_InterlockedCompareExchange64,_InterlockedExchange64)
 #pragma intrinsic(_InterlockedCompareExchange,_InterlockedExchange,_InterlockedExchangeAdd)
+#if defined(_WIN64) || defined(_M_X64)
+#pragma intrinsic(_InterlockedCompareExchange64,_InterlockedExchange64)
+#endif
 #endif
 
 #if defined(_WIN64) || defined(_M_X64)
 #define inter_atom_exchange _InterlockedExchange64
 #define inter_atom_compare_exchange _InterlockedCompareExchange64
+#define _tstoz _tstoi64
+#define _atoz _atoi64
 #else
 #define inter_atom_exchange _InterlockedExchange
 #define inter_atom_compare_exchange _InterlockedCompareExchange
+#define _tstoz _tstoi
+#define _atoz atoi
 #endif
 
 #if defined(__cplusplus)
@@ -138,6 +144,9 @@
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
+#define eu_int_cast(n) ((int)((intptr_t)(n)))
+#define eu_uint_cast(n) ((uint32_t)((size_t)(n)))
+
 #if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
 #define EU_VERIFY(x) (void)((x) || (EU_ABORT("failed assert(%s): %s:%d\n", #x, __FILE__, __LINE__), 0))
@@ -153,7 +162,7 @@ static inline void assert_in_release(const char *fmt, const char *exp, const cha
 #endif
 static inline int eu_cvector_at(int *v, int n)
 {
-    for (int i = 0; i < cvector_size(v); ++i)
+    for (int i = 0; i < eu_int_cast(cvector_size(v)); ++i)
     {
         if (n == v[i])
         {
@@ -162,8 +171,6 @@ static inline int eu_cvector_at(int *v, int n)
     }
     return -1;
 }
-#define eu_int_cast(n) ((int)((intptr_t)(n)))
-#define eu_uint_cast(n) ((uint32_t)((size_t)(n)))
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
 #define ONCE_RUN(code)                                      \
 {                                                           \
@@ -747,22 +754,22 @@ EU_EXT_CLASS int on_doc_click_tree_redis(eu_tabpage *pnode);
 
 /* 脚本调用 */
 EU_EXT_CLASS int on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name);
-EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, int64_t fg_rgb, int64_t bk_rgb, bool force);
-EU_EXT_CLASS void on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
-EU_EXT_CLASS void on_doc_function_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
-EU_EXT_CLASS void on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
-EU_EXT_CLASS void on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
-EU_EXT_CLASS void on_doc_variable_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_string_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_operator_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_char_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_number_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_special_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_send_light(eu_tabpage *pnode, int lex, int index, int64_t rgb);
-EU_EXT_CLASS void on_doc_tags_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_comment_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_commentblock_light(eu_tabpage *pnode, int lex, int64_t rgb);
-EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, int64_t rgb);
+EU_EXT_CLASS void on_doc_default_light(eu_tabpage *pnode, int lex, intptr_t fg_rgb, intptr_t bk_rgb, bool force);
+EU_EXT_CLASS void on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb);
+EU_EXT_CLASS void on_doc_function_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb);
+EU_EXT_CLASS void on_doc_preprocessor_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb);
+EU_EXT_CLASS void on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb);
+EU_EXT_CLASS void on_doc_variable_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_string_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_operator_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_char_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_number_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_special_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_send_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb);
+EU_EXT_CLASS void on_doc_tags_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_comment_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_commentblock_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t rgb);
 
 #ifdef __cplusplus
 }

@@ -97,10 +97,10 @@ on_print_get_fonts(LPWSTR pface_name, uint16_t *psize)
     {
         if ((bool)(GetProcAddress(ux_theme, "IsAppThemed"))())
         {
-            h_theme = (HTHEME)(INT_PTR)(GetProcAddress(ux_theme, "OpenThemeData"))(NULL, _T("WINDOWSTYLE;WINDOW"));
+            h_theme = (HTHEME)(INT_PTR)((OpenThemeDataPtr)GetProcAddress(ux_theme, "OpenThemeData"))(NULL, _T("WINDOWSTYLE;WINDOW"));
             if (h_theme)
             {
-                if (S_OK == (HRESULT)(GetProcAddress(ux_theme, "GetThemeSysFont"))(h_theme, /*TMT_MSGBOXFONT*/ 805, &lf))
+                if (S_OK == (HRESULT)((GetThemeSysFontPtr)GetProcAddress(ux_theme, "GetThemeSysFont"))(h_theme, /*TMT_MSGBOXFONT*/ 805, &lf))
                 {
                     if (lf.lfHeight < 0)
                     {
@@ -114,7 +114,7 @@ on_print_get_fonts(LPWSTR pface_name, uint16_t *psize)
                     _tcsncpy(pface_name, lf.lfFaceName, LF_FACESIZE);
                     m_succeed = true;
                 }
-                (GetProcAddress(ux_theme, "CloseThemeData"))(h_theme);
+                ((CloseThemeDataPtr)GetProcAddress(ux_theme, "CloseThemeData"))(h_theme);
             }
         }
         FreeLibrary(ux_theme);

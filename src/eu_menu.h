@@ -38,7 +38,7 @@ HMENU menu_load(uint16_t mid);
 void menu_switch_theme(void);
 void menu_update_item(HMENU menu);
 int menu_height();
-int menu_pop_track(HWND hwnd, uint16_t mid, int64_t lparam, const uint32_t, ptr_menu_callback fn, void *param);
+int menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam, const uint32_t, ptr_menu_callback fn, void *param);
 
 
 #ifdef __cplusplus

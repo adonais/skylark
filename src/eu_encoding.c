@@ -278,7 +278,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     {
         pdst = *dst;
     }
-    printf("lsrc = %llu, ldst = %llu\n", lsrc, ldst);
+    printf("lsrc = %zu, ldst = %zu\n", lsrc, ldst);
     ret = eu_iconv(icv->cd, &psrc, &lsrc, &pdst, &ldst);
     if (ret != (size_t) -1)
     {
@@ -288,7 +288,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     else
     {
         eu_safe_free(*dst);
-        printf("eu_iconv convert[%s->%s] failed! lsrc = %llu, ldst = %llu, ret = %d\n", icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
+        printf("eu_iconv convert[%s->%s] failed! lsrc = %zu, ldst = %zu, ret = %d\n", icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
     }
     close_conv_handle(icv);
     return ret;

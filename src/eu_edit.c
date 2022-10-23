@@ -173,11 +173,11 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (_tcsnicmp(name, _T("Notepad++"), _tcslen(name)) == 0)
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\" -n%I64d -c%I64d"), path, pnode->pathfile, line+1, pos-row+1);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\" -n%zd -c%zd"), path, pnode->pathfile, line+1, pos-row+1);
         }
         else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(name)) == 0)
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s/%I64d/%I64d\""), path, pnode->pathfile, line+1, pos-row+1);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s/%zd/%zd\""), path, pnode->pathfile, line+1, pos-row+1);
         }
         else
         {
@@ -616,7 +616,7 @@ do_toggle_case(eu_tabpage *pnode, bool do_uppercase)
         if (STR_NOT_NUL(line_buf))
         {
             const size_t len = strlen(line_buf);
-            for (int i = 0; i < len; ++i)
+            for (size_t i = 0; i < len; ++i)
             {
                 line_buf[i] = do_uppercase ? toupper(line_buf[i]) : tolower(line_buf[i]);
             }

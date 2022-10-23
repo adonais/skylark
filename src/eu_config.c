@@ -113,7 +113,7 @@ eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
         {
             if (!_tcsncmp(ptr_arg[i], _T("-n"), 2) && _tcslen(ptr_arg[i]) > 2)
             {
-                pbak->x = _tstoi64(&ptr_arg[i][2]);
+                pbak->x = _tstoz(&ptr_arg[i][2]);
             }
             else if (!_tcsncmp(ptr_arg[i], _T("-c"), 2) && _tcslen(ptr_arg[i]) > 2)
             {
@@ -221,7 +221,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szLine"))
         {
-            filebak.postion = _atoi64(column[i]);
+            filebak.postion = _atoz(column[i]);
         }
         else if (STRCMP(names[i], ==, "szCp"))
         {

@@ -983,7 +983,7 @@ tvi_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
     }
     tvi.mask = TVIF_TEXT | TVIF_PARAM;
     tvi.pszText = buf;
-    tvi.lParam = pos;
+    tvi.lParam = (LPARAM)pos;
     tvis.hParent = parent;
     tvis.hInsertAfter = TVI_LAST;
     tvis.item = tvi;
@@ -1015,7 +1015,7 @@ tvi_inser_object(HWND dlg, HTREEITEM parent, const char *parent_str, const char 
         {
             tvi.pszText = u16_txt;
             tvi.mask = TVIF_TEXT | TVIF_PARAM;
-            tvi.lParam = pos;
+            tvi.lParam = (LPARAM)pos;
             tvis.hParent = parent;
             tvis.hInsertAfter = TVI_LAST;
             tvis.item = tvi;
@@ -1186,7 +1186,7 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
     json_value *json_root = NULL;
     sets.settings |= json_enable_comments;
     TreeView_DeleteAllItems(pnode->hwnd_symtree);
-    if ((json_root = json_parse_ex(&sets, buffer, len, NULL)))
+    if ((json_root = json_parse_ex(&sets, buffer, (size_t)len, NULL)))
     {
         process_value(pnode, tree_root, json_root, 0);
         json_value_free(json_root);
