@@ -107,7 +107,7 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
         memset(buf, 0, ACNAME_LEN);
         cp2 = buf;
         eos = cp2 + ACNAME_LEN - 1;
-        util_skip_whitespace(&cp1, ACNAME_LEN, 0);
+        util_skip_whitespace((uint8_t **)&cp1, ACNAME_LEN, 0);
         while ((*cp1 != '\0') && (cp2 != eos))
         {
             switch (*cp1)
@@ -620,7 +620,7 @@ on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol)
     {
         return false;
     }
-    size = on_parser_open_file(path, _T("r"), &buf, &fp);
+    size = on_parser_open_file(path, _T("rb"), &buf, &fp);
     while (size > 0 && (size = (int)fread((char *) buf, 1, size, fp)) > 0)
     {
         char *p = NULL;

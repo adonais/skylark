@@ -2030,9 +2030,9 @@ util_str_unquote(const char *path)
 }
 
 void
-util_skip_whitespace(char **cp, int n, char term)
+util_skip_whitespace(uint8_t **cp, int n, int term)
 {
-	char *pstr = *cp;
+	uint8_t *pstr = *cp;
 	while (isspace(*pstr) && *pstr != term && n--)
 	{
 	    pstr++;

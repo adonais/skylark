@@ -146,7 +146,7 @@ if (not eu_core.file_exists(user_file)) then
     "      {\n",
     "          e.DOCTYPE_CPP,\n",
     "          \"cpp\",\n",
-    "          \";*.h;*.hh;*.hpp;*.c;*.cc;*.cpp;*.cxx;*.rc;*.rc2;*.dlg;*.ino;\",\n",
+    "          \";*.h;*.hh;*.hpp;*.c;*.cc;*.cpp;*.cxx;*.rc;*.rc2;*.dlg;*.ino;*.mm;\",\n",
     "          \"C/C++\",\n",
     "          \"cpp.snippets\",\n",
     "          0,\n",

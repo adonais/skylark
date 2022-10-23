@@ -790,10 +790,12 @@
 
 #define IDM_THEME_CANCEL                    42200
 
-#define IDM_FORMAT_REFORMAT                 42250
-#define IDM_FORMAT_COMPRESS                 42251
+#define IDM_FORMAT_REFORMAT_JSON            42250
+#define IDM_FORMAT_COMPRESS_JSON            42251
 #define IDM_FORMAT_WHOLE_FILE               42252
 #define IDM_FORMAT_RANGLE_STR               42253
+#define IDM_FORMAT_REFORMAT_JS              42254
+#define IDM_FORMAT_COMPRESS_JS              42255
 
 #define IDM_LOCALES_BASE                    42300
 #define IDR_SYMBOLTREE_REFRESH_POPUPMENU    42400
@@ -859,6 +861,7 @@
 #define IDM_ONLINE_SEARCH_BAIDU             42707
 #define IDM_ONLINE_SEARCH_BING              42708
 
+#define IDM_EDIT_PLACEHOLDE_JS              42800
 #define IDM_EDIT_PLACEHOLDE1                42801
 #define IDM_EDIT_PLACEHOLDE2                42802
 #define IDM_EDIT_PLACEHOLDE3                42803

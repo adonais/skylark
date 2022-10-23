@@ -265,19 +265,26 @@ BEGIN
     BEGIN
         POPUP "Json File",                                             IDM_EDIT_PLACEHOLDE16
         BEGIN
-            MENUITEM "Reformat Json",                                  IDM_FORMAT_REFORMAT
-            MENUITEM "Compress Json",                                  IDM_FORMAT_COMPRESS
+            MENUITEM "Reformat Json",                                  IDM_FORMAT_REFORMAT_JSON
+            MENUITEM "Compress Json",                                  IDM_FORMAT_COMPRESS_JSON
         END
-        POPUP "Clang-format",                                          IDM_EDIT_PLACEHOLDE17
+        POPUP "Javascript File",                                       IDM_EDIT_PLACEHOLDE_JS
         BEGIN
-            MENUITEM "Format Current Document",                        IDM_FORMAT_WHOLE_FILE
-            MENUITEM "Format Selected Text",                           IDM_FORMAT_RANGLE_STR
+            MENUITEM "Reformat Js",                                    IDM_FORMAT_REFORMAT_JS
+            MENUITEM "Compress Js",                                    IDM_FORMAT_COMPRESS_JS
         END
         POPUP "Lua Scripts",                                           IDM_EDIT_PLACEHOLDE18
         BEGIN
             MENUITEM "Run This Script",                                IDM_FORMAT_RUN_SCRIPT
             MENUITEM "Convert To Bytecode",                            IDM_FORMAT_BYTE_CODE
         END
+        MENUITEM MF_SEPARATOR
+        POPUP "Clang-format",                                          IDM_EDIT_PLACEHOLDE17
+        BEGIN
+            MENUITEM "Format Current Document",                        IDM_FORMAT_WHOLE_FILE
+            MENUITEM "Format Selected Text",                           IDM_FORMAT_RANGLE_STR
+        END
+        MENUITEM MF_SEPARATOR
         POPUP "Chinese Internal Code Conversion",                      IDM_EDIT_PLACEHOLDE19
         BEGIN
             MENUITEM "Simplified To Traditional",                      IDM_EDIT_GB_BIG5

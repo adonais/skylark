@@ -1166,20 +1166,32 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_HIGHLIGHT_FOLD:
                     on_view_light_fold();
                     break;
-                case IDM_FORMAT_REFORMAT:
-                    on_format_json_style(pnode);
+                case IDM_FORMAT_REFORMAT_JSON:
+                    on_format_file_style(pnode);
                     on_symtree_json(pnode);
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
                     break;
-                case IDM_FORMAT_COMPRESS:
-                    on_format_do_json(pnode, on_format_compress_callback);
+                case IDM_FORMAT_COMPRESS_JSON:
+                    on_format_do_compress(pnode, on_format_json_callback);
                     on_symtree_json(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
+                    break;
+                case IDM_FORMAT_REFORMAT_JS:
+                    on_format_file_style(pnode);
+                    on_symlist_reqular(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
+                    break;
+                case IDM_FORMAT_COMPRESS_JS:
+                    on_format_do_compress(pnode, on_format_js_callback);
+                    on_symlist_reqular(pnode);
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    on_format_clang_file(pnode);
+                    on_format_clang_file(pnode, true);
                     if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_symtree_json(pnode);
@@ -1192,7 +1204,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    on_format_clang_str(pnode);
+                    on_format_clang_file(pnode, false);
                     on_symlist_reqular(pnode);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:

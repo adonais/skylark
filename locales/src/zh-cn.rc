@@ -265,19 +265,26 @@ BEGIN
     BEGIN
         POPUP "Json 文件",                                      IDM_EDIT_PLACEHOLDE16
         BEGIN
-            MENUITEM "格式化 Json",                             IDM_FORMAT_REFORMAT
-            MENUITEM "压缩 Json",                               IDM_FORMAT_COMPRESS
+            MENUITEM "格式化 Json",                             IDM_FORMAT_REFORMAT_JSON
+            MENUITEM "压缩 Json",                               IDM_FORMAT_COMPRESS_JSON
         END
-        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE17
+        POPUP "Javascript 文件",                                IDM_EDIT_PLACEHOLDE_JS
         BEGIN
-            MENUITEM "格式化当前文档",                          IDM_FORMAT_WHOLE_FILE
-            MENUITEM "格式化选中文本",                          IDM_FORMAT_RANGLE_STR
+            MENUITEM "格式化 Js",                               IDM_FORMAT_REFORMAT_JS
+            MENUITEM "压缩 Js",                                 IDM_FORMAT_COMPRESS_JS
         END
         POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE18
         BEGIN
             MENUITEM "运行当前脚本",                            IDM_FORMAT_RUN_SCRIPT
             MENUITEM "转换为字节码",                            IDM_FORMAT_BYTE_CODE
         END
+        MENUITEM MF_SEPARATOR
+        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE17
+        BEGIN
+            MENUITEM "格式化当前文档",                          IDM_FORMAT_WHOLE_FILE
+            MENUITEM "格式化选中文本",                          IDM_FORMAT_RANGLE_STR
+        END
+        MENUITEM MF_SEPARATOR
         POPUP "简繁内码转换",                                   IDM_EDIT_PLACEHOLDE19
         BEGIN
             MENUITEM "简体转繁体",                              IDM_EDIT_GB_BIG5
