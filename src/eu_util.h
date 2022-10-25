@@ -90,7 +90,7 @@ void   util_restore_cursor(eu_tabpage *pnode);
 void   util_setforce_eol(eu_tabpage *pnode);
 void   util_save_placement(HWND hwnd);
 void   util_restore_placement(HWND hwnd);
-void   util_skip_whitespace(char **cp, int n, char term);
+void   util_skip_whitespace(uint8_t **cp, int n, int term);
 bool   util_availed_char(int ch);
 bool   util_under_wine(void);
 void   util_trim_right_star(TCHAR *str);

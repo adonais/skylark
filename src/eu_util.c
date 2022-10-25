@@ -282,16 +282,22 @@ done:
 void
 util_wait_cursor(eu_tabpage *pnode)
 {
+    if (pnode && !pnode->hex_mode)
+    {
     eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
+    }
 }
 
 void
 util_restore_cursor(eu_tabpage *pnode)
 {
     POINT pt;
+    if (pnode && !pnode->hex_mode)
+    {
     eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
     GetCursorPos(&pt);
     SetCursorPos(pt.x, pt.y);
+    }
 }
 
 static bool
@@ -2030,9 +2036,9 @@ util_str_unquote(const char *path)
 }
 
 void
-util_skip_whitespace(char **cp, int n, char term)
+util_skip_whitespace(uint8_t **cp, int n, int term)
 {
-	char *pstr = *cp;
+	uint8_t *pstr = *cp;
 	while (isspace(*pstr) && *pstr != term && n--)
 	{
 	    pstr++;

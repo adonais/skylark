@@ -933,7 +933,7 @@ on_complete_sort_update(eu_tabpage *pnode, complete_t *it, int **pv, int offset,
                     it->pos[j].min += (m * offset);
                     it->pos[j].max += (m * offset);
                 }
-                cvector_erase((*pv), m);
+                cvector_erase((*pv), (size_t)m);
                 if ((msub = on_complete_var_embed(pnode, it, index, &oit)) && oit && oit != it)
                 {
                     Sci_TextRange tr = {{it->pos[j].min, it->pos[j].max + offset}, it->value};
@@ -1021,7 +1021,7 @@ on_complete_update_postion(eu_tabpage *pnode, complete_t **ptr_vec, bool back)
     }
     if (current_pos >= 0)
     {   // 根据上一个焦点, 获取要跳转的vec index
-        if (last_snippet_focus >= 0 && last_snippet_focus < cvector_size(pnode->ac_vec))
+        if (last_snippet_focus >= 0 && last_snippet_focus < (int)cvector_size(pnode->ac_vec))
         {
             oit = &pnode->ac_vec[last_snippet_focus];
         }
@@ -1344,7 +1344,7 @@ on_complete_snippet_back(eu_tabpage *pnode)
         else
         {
             on_complete_reset_focus(pnode);
-            ret = false;
+            ret = true;
         }
         break;
     }
@@ -1357,7 +1357,7 @@ on_complete_snippet(eu_tabpage *pnode)
     size_t size = 0;
     bool ret = false;
     char *str = NULL;
-    complete_t *it;
+    complete_t *it = NULL;
     if (!pnode)
     {
         return false;
@@ -1370,13 +1370,21 @@ on_complete_snippet(eu_tabpage *pnode)
             on_complete_reset_focus(pnode);
             return false;
         }
-        if (it && it - pnode->ac_vec < (intptr_t)size)
-        {   // 解析vec数组, 设置tab跳转
-            it++;
-            ret = on_complete_snippet_jmp(pnode, it);
-            if (ret && pnode->ac_vec)
-            {
-                on_complete_inc_focus();
+        if (it)
+        {   
+            if (it - pnode->ac_vec < (intptr_t)(size - 1))
+            {   // 解析vec数组, 设置tab跳转
+                ++it;
+                ret = on_complete_snippet_jmp(pnode, it);
+                if (ret && pnode->ac_vec)
+                {
+                    on_complete_inc_focus();
+                }
+            }
+            else
+            {   // 处理完了最后一个变量
+                on_complete_reset_focus(pnode);
+                ret = true;
             }
         }
         return ret;

@@ -1113,6 +1113,7 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_PAGENUM       "第 %i 页"
     IDS_PRINT_EMPTY         "此文档不包含任何要打印的文本."
     IDS_PRINT_ERROR         "%s 文件打印错误"
+    IDS_PRINT_HEX_WARNS     "暂时不支持在16进制模式下打印"
     IDS_SELRECT             "不能在列编辑模式下进行此操作."
     IDS_LUA_CONV_SUCCESS    "#> 转换字节码成功, 文件保存在 [%s]"
     IDS_LUA_CONV_FAIL       "#> 转换字节码失败."
