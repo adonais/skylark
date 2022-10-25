@@ -1776,6 +1776,14 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             return hexview->total_items;
         }
+        case SCI_GETSELECTIONSTART:
+        {
+            return (min(hexview->select_start, hexview->select_end));
+        }
+        case SCI_GETSELECTIONEND:
+        {
+            return (max(hexview->select_start, hexview->select_end));
+        }
         case SCI_GETLINECOUNT:
         {
             return hexview->totallines - 2;

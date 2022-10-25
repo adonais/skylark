@@ -282,16 +282,22 @@ done:
 void
 util_wait_cursor(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
+    if (pnode && !pnode->hex_mode)
+    {
+        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
+    }
 }
 
 void
 util_restore_cursor(eu_tabpage *pnode)
 {
     POINT pt;
-    eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
-    GetCursorPos(&pt);
-    SetCursorPos(pt.x, pt.y);
+    if (pnode && !pnode->hex_mode)
+    {
+        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
+        GetCursorPos(&pt);
+        SetCursorPos(pt.x, pt.y);
+    }
 }
 
 static bool

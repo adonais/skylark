@@ -787,6 +787,7 @@
 #define IDS_PRINT_EMPTY                     42104
 #define IDS_PRINT_ERROR                     42105
 #define IDS_SELRECT                         42106
+#define IDS_PRINT_HEX_WARNS                 42107
 
 #define IDM_THEME_CANCEL                    42200
 

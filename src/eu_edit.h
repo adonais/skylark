@@ -19,7 +19,7 @@
 #ifndef _H_SKYLARK_EDIT_
 #define _H_SKYLARK_EDIT_
 
-#define MIN_POS(x, y) ((x < y) ? (x) : (y))
+#define MIN_POS(x, y) (((x) < (y)) ? (x) : (y))
 // suppress -Wimplicit-fallthrough in C source
 #if defined(__cplusplus)
 #define FALLTHROUGH_ATTR        [[fallthrough]]
