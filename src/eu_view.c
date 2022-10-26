@@ -641,7 +641,7 @@ on_view_setfullscreenimpl(HWND hwnd)
         SystemParametersInfo(SPI_SETWORKAREA, 0, NULL, SPIF_SENDCHANGE);
         SetWindowLongPtr(hwnd, GWL_STYLE, saved_style & ~(WS_CAPTION | WS_THICKFRAME));
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, saved_exstyle & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
-        SetWindowPos(hwnd, HWND_TOP, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+        SetWindowPos(hwnd, HWND_TOP, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
     }
     else
     {
@@ -675,6 +675,7 @@ on_view_full_sreen(HWND hwnd)
         eu_get_config()->m_menubar = true;
         eu_get_config()->m_toolbar = true;
         eu_get_config()->m_statusbar = true;
+        GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
     }
     else
     {
@@ -682,6 +683,7 @@ on_view_full_sreen(HWND hwnd)
         eu_get_config()->m_menubar = false;
         eu_get_config()->m_toolbar = false;
         eu_get_config()->m_statusbar = false;
+        SetMenu(hwnd, NULL);
     }
     on_view_setfullscreenimpl(hwnd);
     eu_window_resize(hwnd);

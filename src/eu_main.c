@@ -46,7 +46,7 @@ init_instance(HINSTANCE instance)
         }
         if (eu_get_config()->m_fullscreen)
         {
-            eu_create_fullscreen(hwnd);
+            printf("we create fullsrceen window\n");
         }
         else if (strlen(eu_get_config()->m_placement) < 1)
         {
