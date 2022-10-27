@@ -21,11 +21,11 @@
 
 #define EDITNUMBS            11
 #define IMAGE_NORMAL_WIDTH   16
-#define IMAGE_NORMAL_HEIGHT  15
-#define TB_NORMAL_SIZE       25
+#define IMAGE_NORMAL_HEIGHT  16
+#define TB_NORMAL_SIZE       26
 #define IMAGE_LARGE_WIDTH    32
-#define IMAGE_LARGE_HEIGHT   31
-#define TB_LARGE_SIZE        41
+#define IMAGE_LARGE_HEIGHT   32
+#define TB_LARGE_SIZE        42
 #define BUFFSIZE             64
 
 #define safe_close_console(h) \
