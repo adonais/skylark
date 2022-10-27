@@ -21,14 +21,14 @@
 
 #define EDITNUMBS             11
 #define IMAGE_NORMAL_WIDTH    16
-#define IMAGE_NORMAL_HEIGHT   15
+#define IMAGE_NORMAL_HEIGHT   16
 #define IMAGE_MIDDLING_WIDTH  24
-#define IMAGE_MIDDLING_HEIGHT 23
+#define IMAGE_MIDDLING_HEIGHT 24
 #define IMAGE_LARGE_WIDTH     32
-#define IMAGE_LARGE_HEIGHT    31
-#define TB_NORMAL_SIZE        25
-#define TB_MIDDLING_SIZE      32
-#define TB_LARGE_SIZE         41
+#define IMAGE_LARGE_HEIGHT    32
+#define TB_NORMAL_SIZE        26
+#define TB_MIDDLING_SIZE      34
+#define TB_LARGE_SIZE         42
 #define BUFFSIZE              64
 #define HIGHT_4X              3840
 #define HIGHT_4Y              2160
