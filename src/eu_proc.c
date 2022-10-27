@@ -579,8 +579,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (eu_get_config()->m_fullscreen)
             {
-                eu_get_config()->m_menubar = false;
-                eu_get_config()->m_toolbar = false;
                 eu_get_config()->m_statusbar = false;
                 on_view_setfullscreenimpl(hwnd);
             }
@@ -1382,9 +1380,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_STATUSBAR:
-                    eu_get_config()->m_statusbar = !eu_get_config()->m_statusbar;
-                    on_proc_msg_size(hwnd, NULL);
+                {
+                    if (eu_get_config() && !(eu_get_config()->m_fullscreen))
+                    {
+                        eu_get_config()->m_statusbar = !eu_get_config()->m_statusbar;
+                        on_proc_msg_size(hwnd, NULL);
+                    }
                     break;
+                }
                 case IDM_TAB_CLOSE_LEFT:
                     on_file_left_close();
                     break;
