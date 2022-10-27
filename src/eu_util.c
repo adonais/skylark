@@ -858,14 +858,15 @@ int
 util_set_title(const TCHAR *filename)
 {
     TCHAR title[100 + MAX_PATH];
+    bool admin = on_reg_admin();
     LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
     if (filename && filename[0])
     {
-        _sntprintf(title, _countof(title) - 1, _T("%s - %s"), app_title, filename);
+        _sntprintf(title, _countof(title) - 1, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
     }
     else
     {
-        _sntprintf(title, _countof(title) - 1, _T("%s"), app_title);
+        _sntprintf(title, _countof(title) - 1, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
     }
     SetWindowText(eu_module_hwnd(), title);
     return SKYLARK_OK;
