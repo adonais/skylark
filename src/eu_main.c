@@ -113,7 +113,7 @@ _tmain(int argc, TCHAR *argv[])
             return -1;
         }
     }  // 设置lua脚本搜索路径
-    if (!eu_lua_path_setting())
+    if (!eu_lua_path_setting(NULL))
     {
         return -1;
     }  // 加载主配置文件

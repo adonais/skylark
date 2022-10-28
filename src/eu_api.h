@@ -656,7 +656,7 @@ EU_EXT_CLASS bool __stdcall eu_config_parser_path(wchar_t **args, int argc, wcha
 // for eu_script.c
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
 EU_EXT_CLASS int __stdcall eu_lua_script_exec(const TCHAR *fname);
-EU_EXT_CLASS bool __stdcall eu_lua_path_setting(void);
+EU_EXT_CLASS bool __stdcall eu_lua_path_setting(eu_tabpage *pnode);
 EU_EXT_CLASS int luaopen_euapi(void *L);
 
 // for eu_theme.c
