@@ -131,6 +131,7 @@ int util_count_number(size_t number);
 void util_transparent(HWND hwnd, int percent);
 void util_untransparent(HWND hwnd);
 bool util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
+bool util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);
 
 #ifdef __cplusplus

@@ -192,28 +192,29 @@ _tmain(int argc, TCHAR *argv[])
         bool cinit = false;
         const TCHAR *fname = NULL;
         const TCHAR *save = NULL;
+        bool is_cui = !eu_gui_app();
         if (argc > 2)
         {
             fname = argv[2];
         }
-        if (AllocConsole())
+        if (!is_cui)
         {
+            cinit = (bool)AllocConsole();
             freopen("conin$","r",stdin);
             freopen("conout$","w", stdout);
             freopen("conout$","w", stderr);
-            cinit = true;
         }
-        if (cinit && argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
+        if ((is_cui || cinit) && argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
         {
             fname = argv[3];
             save = argv[4];
             _tputenv(_T("LUA_PATH="));
-            fprintf(stderr, "End-of-Conversion: \n");
+            fprintf(stderr, "End-of-Conversion.\n");
+            msg.wParam = eu_lua_script_convert(fname, save);
+            system("pause");
         }
         if (cinit)
         {
-            msg.wParam = eu_lua_script_convert(fname, save);
-            system("pause");
             FreeConsole();
         }
         goto all_clean;

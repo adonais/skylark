@@ -52,8 +52,7 @@ static CURL*
 on_update_init(struct curl_slist **pheaders)
 {
     CURL *curl = NULL;
-    struct curl_slist *headers = NULL;
-    if ((curl = eu_curl_easy_init()) != NULL)
+    if (pheaders && (curl = eu_curl_easy_init()) != NULL)
     {
         *pheaders = eu_curl_slist_append(*pheaders, "Accept: application/json");
         *pheaders = eu_curl_slist_append(*pheaders, "Content-Type: application/json");

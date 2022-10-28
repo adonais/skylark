@@ -1165,6 +1165,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_ERR       "Connection Failure✘"
     IDS_SNIPPETS_STR        "☑Code Snippet Completion"
     IDS_TABPAGE_CLOSE_NUM   "&Close %d Tabs"
+    IDS_BUTTON_RW_TIPS      "This file does not have write permission, and its r/w attribute cannot be changed. You may need to restart the editor with administrator privileges"
 }
 
 /////////////////////////////////////////////////////////////////////////////

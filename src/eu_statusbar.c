@@ -87,7 +87,8 @@ int WINAPI
 on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
 {
     int ret = 0;
-    DWORD m_attr = 0;
+    uint32_t attr = 0;
+    uint32_t grant = 0;
     TCHAR lpch[EDITNUMBS] = {0};
     if (!g_statusbar)
     {
@@ -104,7 +105,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
     {
         return 0;
     }
-    if ((m_attr = GetFileAttributes(pnode->pathfile)) == INVALID_FILE_ATTRIBUTES)
+    if ((attr = GetFileAttributes(pnode->pathfile)) == INVALID_FILE_ATTRIBUTES)
     {
         if (pnode->is_blank)
         {
@@ -116,11 +117,17 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
     Button_GetText(hrw, lpch, EDITNUMBS - 1);
     if (m_auto)
     {
-        if (m_attr & FILE_ATTRIBUTE_READONLY)
+        if (attr & FILE_ATTRIBUTE_READONLY)
         {
             Button_SetText(hrw, rstr);
             on_statusbar_btn(pnode, true);
             ret = 1;
+        }
+        else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
+        {
+            Button_SetText(hrw, rstr);
+            on_statusbar_btn(pnode, true);
+            ret = 2;
         }
         else
         {
@@ -129,12 +136,17 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
             ret = 2;
         }
     }
+    else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
+    {
+        MSG_BOX(IDS_BUTTON_RW_TIPS, IDC_MSG_TIPS, MB_OK);
+        ret = 0;
+    }
     else if (_tcscmp(lpch, rstr) == 0)
     {
-        if (m_attr & FILE_ATTRIBUTE_READONLY)
+        if (attr & FILE_ATTRIBUTE_READONLY)
         {   // 去掉只读属性
-            m_attr &= ~FILE_ATTRIBUTE_READONLY;
-            SetFileAttributes(pnode->pathfile, m_attr);
+            attr &= ~FILE_ATTRIBUTE_READONLY;
+            SetFileAttributes(pnode->pathfile, attr);
         }
         Button_SetText(hrw, wstr);
         on_statusbar_btn(pnode, false);
@@ -142,10 +154,10 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
     }
     else if (_tcscmp(lpch, wstr) == 0)
     {
-        if (!(m_attr & FILE_ATTRIBUTE_READONLY))
+        if (!(attr & FILE_ATTRIBUTE_READONLY))
         {   // 加上只读属性
-            m_attr |= FILE_ATTRIBUTE_READONLY;
-            SetFileAttributes(pnode->pathfile, m_attr);
+            attr |= FILE_ATTRIBUTE_READONLY;
+            SetFileAttributes(pnode->pathfile, attr);
             Button_SetText(hrw, rstr);
             on_statusbar_btn(pnode, true);
         }

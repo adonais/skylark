@@ -2150,3 +2150,58 @@ util_which(const TCHAR *name)
     eu_safe_free(env_path);
     return NULL;
 }
+bool
+eu_gui_app(void)
+{
+    HMODULE hmodule = GetModuleHandle(NULL);
+    if(hmodule == NULL)
+    {
+        return false;
+    }
+    IMAGE_DOS_HEADER* dos_header = (IMAGE_DOS_HEADER *)hmodule;
+    IMAGE_NT_HEADERS* pe_header =(IMAGE_NT_HEADERS *)((uint8_t *)dos_header + dos_header->e_lfanew);
+    return pe_header->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI;
+}
+
+bool
+util_file_access(LPCTSTR filename, uint32_t *pgranted)
+{
+    bool ret = false;
+    uint32_t length = 0;
+    if (!GetFileSecurity(filename, OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION, NULL, 0, &length) &&
+        ERROR_INSUFFICIENT_BUFFER == GetLastError())
+    {
+        PSECURITY_DESCRIPTOR security = (PSECURITY_DESCRIPTOR) malloc(length);
+        if (security &&
+            GetFileSecurity(filename, OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION, security, length, &length))
+        {
+            HANDLE old_token = NULL;
+            if (OpenProcessToken(GetCurrentProcess(), TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ, &old_token))
+            {
+                HANDLE token = NULL;
+                uint32_t access_mask = MAXIMUM_ALLOWED;
+                if (DuplicateToken(old_token, SecurityImpersonation, &token))
+                {
+                    GENERIC_MAPPING mapping = {0xFFFFFFFF};
+                    PRIVILEGE_SET privileges = {0};
+                    uint32_t granted_access = 0, privileges_length = sizeof(privileges);
+                    BOOL result = FALSE;
+                    mapping.GenericRead = FILE_GENERIC_READ;
+                    mapping.GenericWrite = FILE_GENERIC_WRITE;
+                    mapping.GenericExecute = FILE_GENERIC_EXECUTE;
+                    mapping.GenericAll = FILE_ALL_ACCESS;
+                    MapGenericMask(&access_mask, &mapping);
+                    if (AccessCheck(security, token, access_mask, &mapping, &privileges, &privileges_length, &granted_access, &result))
+                    {
+                        ret = (result == TRUE);
+                        *pgranted = granted_access;
+                    }
+                    CloseHandle(token);
+                }
+                CloseHandle(old_token);
+            }
+        }
+        eu_safe_free(security);
+    }
+    return ret;
+}
