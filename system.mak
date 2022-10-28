@@ -34,7 +34,7 @@ CFLAGS   = $(CFLAGS)
 !ELSEIF "$(PLATFORM)"=="x86"
 BITS	 = 32
 CFLAGS   = $(CFLAGS) -DWIN32 -D_WIN32 -I$(INCD)
-!ERROR $(PLATFORM) is not supported, please use x86 compiler
+!ERROR $(PLATFORM) is not supported, please use x64 compiler
 !ELSE
 !ERROR Unknown target processor: $(PLATFORM)
 !ENDIF
@@ -56,7 +56,7 @@ AR   = llvm-lib -nologo -llvmlibthin
 LD   = lld-link -nologo -guard:cf
 CXX  = clang-cl
 CFLAGS   = -nologo -Gw -flto=thin -guard:cf $(CFLAGS) -Wno-unused-variable -Wno-unused-function -Wno-parentheses-equality \
-           -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-unused-value -Wno-empty-body
+           -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-unused-value -Wno-empty-body -Wno-unused-but-set-variable
 DLLFLAGS = -nologo -debug -incremental:no -opt:ref -opt:icf -dll -guard:cf
 MAVX2    = -mavx2
 !IF "$(BITS)" == "32"
@@ -76,6 +76,6 @@ NO_HIDE  = -subsystem:console
 
 ##############################################################################
 ##
-INCD  = $(ROOT)\include
+INCD  = $(ROOT)\src
 BIND  = $(ROOT)\Release
 OBJD  = $(ROOT)\.dep
