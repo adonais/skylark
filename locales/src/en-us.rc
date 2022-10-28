@@ -45,7 +45,7 @@ BEGIN
         MENUITEM "Print Setup",                                        IDM_FILE_PAGESETUP
         MENUITEM "Print...",                                           IDM_FILE_PRINT
         MENUITEM MF_SEPARATOR
-        MENUITEM "&Remote File Manager...",                            IDM_FILE_REMOTE_FILESERVERS
+        MENUITEM "Remote File &Manager...",                            IDM_FILE_REMOTE_FILESERVERS
         MENUITEM MF_SEPARATOR
         POPUP "New File Newline"
         BEGIN
@@ -63,6 +63,9 @@ BEGIN
         END
         MENUITEM MF_SEPARATOR
         MENUITEM "Exit When Close Last Tab",                           IDM_FILE_EXIT_WHEN_LAST_TAB
+        MENUITEM MF_SEPARATOR
+        MENUITEM "&Restart As Administrator",                          IDM_FILE_RESTART_ADMIN
+        MENUITEM MF_SEPARATOR
         MENUITEM "E&xit",                                              IDM_EXIT
     END
     POPUP "&Edit"

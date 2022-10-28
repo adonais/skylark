@@ -794,6 +794,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_EXIT_WHEN_LAST_TAB:
                     on_file_close_last_tab();
                     break;
+                case IDM_FILE_RESTART_ADMIN:
+                    on_file_edit_restart(hwnd);
+                    break;
                 case IDM_FILE_PAGESETUP:
                     on_print_setup(g_hwndmain);
                     break;

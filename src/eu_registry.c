@@ -174,6 +174,20 @@ run_as_admin(int argc, TCHAR **argv)
     return result;
 }
 
+bool
+on_reg_admin_execute(const wchar_t *cmdline)
+{
+    int arg_c = 0;
+    bool ret = false;
+    LPWSTR *arg_v = CommandLineToArgvW(cmdline, &arg_c);
+    if (arg_v)
+    {
+        ret = run_as_admin(arg_c, arg_v);
+        LocalFree(arg_v);
+    }
+    return ret;
+}
+
 static bool
 check_reg_str(HKEY key, LPCTSTR txt)
 {

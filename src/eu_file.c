@@ -1896,8 +1896,18 @@ on_file_edit_restart(HWND hwnd)
         _tcsncat(process, _T(" -restart "), MAX_PATH);
         len = (int)_tcslen(process);
         _sntprintf(process + len, MAX_PATH - len, _T("%lu"), GetCurrentProcessId());
-        on_file_edit_exit(hwnd);
-        CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+        if (on_reg_admin())
+        {
+            on_file_edit_exit(hwnd);
+            CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
+        }
+        else
+        {
+            if (on_reg_admin_execute(process))
+            {
+                on_file_edit_exit(hwnd);
+            }
+        }
     }
 }
 

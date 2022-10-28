@@ -45,7 +45,7 @@ BEGIN
         MENUITEM "打印设置",                                    IDM_FILE_PAGESETUP
         MENUITEM "打印...(&P)",                                 IDM_FILE_PRINT
         MENUITEM MF_SEPARATOR
-        MENUITEM "远程文件管理器...(&R)",                       IDM_FILE_REMOTE_FILESERVERS
+        MENUITEM "远程文件管理器...(&M)",                       IDM_FILE_REMOTE_FILESERVERS
         MENUITEM MF_SEPARATOR
         POPUP "新建文件换行符"
         BEGIN
@@ -63,6 +63,9 @@ BEGIN
         END
         MENUITEM MF_SEPARATOR
         MENUITEM "关闭最后一个标签时退出",                      IDM_FILE_EXIT_WHEN_LAST_TAB
+        MENUITEM MF_SEPARATOR
+        MENUITEM "重启到管理员模式(&R)",                        IDM_FILE_RESTART_ADMIN
+        MENUITEM MF_SEPARATOR
         MENUITEM "退出(&X)",                                    IDM_EXIT
     END
     POPUP "编辑(&E)"

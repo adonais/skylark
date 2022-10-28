@@ -38,13 +38,9 @@ eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
     {
         for (int i = 1; i < arg_c; ++i)
         {
-            if (_tcsncmp(ptr_arg[i], _T("-"), 1) == 0)
-            {
-                continue;
-            }
             if (_tcsncmp(ptr_arg[i], _T("-restart"), 8) == 0)
             {
-                ++i;
+                i += 2;
                 continue;
             }
             if (_tcsncmp(ptr_arg[i], _T("-lua"), 4) == 0)
@@ -59,6 +55,10 @@ eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
                 }
                 continue;
             }
+            if (_tcsncmp(ptr_arg[i], _T("-"), 1) == 0)
+            {
+                continue;
+            }            
             if (_tcslen(ptr_arg[i]) > 0)
             {
                 TCHAR *p = NULL;
