@@ -362,10 +362,15 @@ on_config_sync_snippet(void)
                          _T("cshape.snippets"),
                          _T("css.snippets"),
                          _T("golang.snippets"),
+                         _T("javascript.snippets"),
+                         _T("json.snippets"),
                          _T("julia.snippets"),
                          _T("luascript.snippets"),
+                         _T("perl.snippets"),
+                         _T("php.snippets"),
                          _T("rust.snippets"),
                          _T("text.snippets"),
+                         _T("verilog.snippets"),
                          NULL};
     _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets"), eu_module_path);
     if (!eu_exist_dir(p2))
