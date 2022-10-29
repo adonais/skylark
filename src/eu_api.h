@@ -171,7 +171,16 @@ static inline int eu_cvector_at(int *v, int n)
     }
     return -1;
 }
+#define MEM_RESERVED ((char *)(uintptr_t)0x200)
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
+#define eu_close_file(p) ((p) ? ((fclose((FILE *)(p))), ((p) = NULL)) : (void *)(p))
+#define eu_close_console(h) eu_close_file(h), FreeConsole()
+#define eu_close_handle(h)                      \
+    if (NULL != h && INVALID_HANDLE_VALUE != h) \
+    {                                           \
+        CloseHandle(h);                         \
+    }                                           \
+    h = (void *)MEM_RESERVED
 #define ONCE_RUN(code)                                      \
 {                                                           \
     static volatile long _done = 0;                         \

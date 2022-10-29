@@ -19,7 +19,6 @@
 #include "framework.h"
 
 #define COMMENT_LEN 16
-#define MEM_RESERVED ((char *)(uintptr_t)0x200)
 
 enum htmlblock
 {

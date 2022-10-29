@@ -366,7 +366,7 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, size_t nbyte)
         return false;
     }
     pnode->phex->ex_style |= (pnode->file_attr & FILE_ATTRIBUTE_READONLY) ? HVS_READONLY : 0;
-    safe_close_handle(pnode->phex->hmap);
+    eu_close_handle(pnode->phex->hmap);
     return true;
 }
 

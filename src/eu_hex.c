@@ -630,7 +630,7 @@ hexview_map_realloc(PHEXVIEW phex, int offset)
             ret = true;
         }
     }
-    safe_close_handle(phex->hmap);
+    eu_close_handle(phex->hmap);
     return ret;
 }
 

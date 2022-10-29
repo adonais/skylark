@@ -504,7 +504,7 @@ close_stdout_redirect(FILE *console)
     _close(fd_stdout);
     _close(fd_pipe[WRITE_FD]);
     _close(fd_pipe[READ_FD]);
-    safe_close_console(console);
+    eu_close_console(console);
     return true;
 }
 
@@ -537,7 +537,7 @@ init_stdout_redirect(int size, FILE **pconsole)
     }while(0);
     if (!ret)
     {
-        safe_close_console(*pconsole);
+        eu_close_console(*pconsole);
     }
     return ret;
 }
@@ -636,7 +636,7 @@ on_toolbar_mk_temp(wchar_t ***vec)
                     }
                 }
             }
-            safe_close_handle(pfile);
+            eu_close_handle(pfile);
         }
     }
     cvector_freep(&v);
@@ -690,7 +690,7 @@ do_extra_actions(void *lp)
                 *pactions = 0;
                 MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
             }
-            safe_close_handle(handle);
+            eu_close_handle(handle);
             cvector_for_each(vec, DeleteFile);
             free(cmd_exec);
         }

@@ -225,10 +225,9 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    else
-    {
-        eu_init_logs();
-    }
+#if APP_DEBUG
+    eu_init_logs();
+#endif
     if (!eu_load_config())
     {   // 加载分类配置文件
         msg.wParam = -1;

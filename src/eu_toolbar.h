@@ -33,14 +33,6 @@
 #define HIGHT_4X              3840
 #define HIGHT_4Y              2160
 
-#define safe_close_console(h) \
-    if (NULL != h)            \
-    {                         \
-        fclose(h);            \
-        h = NULL;             \
-        FreeConsole();        \
-    }
-
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {
