@@ -43,20 +43,20 @@ endsnippet
 
 snippet main "main() (main)"
 int main(int argc, char *argv[]) {
-	$0
-	return 0;
+    $0
+    return 0;
 }
 endsnippet
 
 snippet for "for loop (for)"
 for (${2:i} = 0; $2 < ${1:count}; ${3:++$2}) {
-	$0
+    $0
 }
 endsnippet
 
 snippet fori "for int loop (fori)"
 for (${4:int} ${2:i} = 0; $2 < ${1:count}; ${3:++$2}) {
-	$0
+    $0
 }
 endsnippet
 
@@ -72,7 +72,7 @@ endsnippet
 
 snippet fun "function" b
 ${1:void} ${2:function_name}($3) {
-	$0
+    $0
 }
 endsnippet
 
@@ -92,11 +92,11 @@ snippet rd "Read File Into Vector"
 std::vector<char> v;
 FILE *${1:fp} = nullptr;
 if (($1 = fopen("${2:filename}", "${3:r}"))) {
-	char buf[1024];
-	while (size_t len = fread(buf, 1, sizeof(buf), $1)) {
-		v.insert(v.end(), buf, buf + len);
+    char buf[1024];
+    while (size_t len = fread(buf, 1, sizeof(buf), $1)) {
+        v.insert(v.end(), buf, buf + len);
     }
-	fclose($1);
+    fclose($1);
 }
 $0
 endsnippet

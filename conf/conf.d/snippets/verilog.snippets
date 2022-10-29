@@ -1,103 +1,103 @@
 snippet if "# if statement"
-	if ($1) begin
-		$0
-	end
+    if ($1) begin
+        $0
+    end
 endsnippet
 
 snippet ife "# If/else statements"
-	if ($1) begin
-		$2
-	end
-	else begin
-		$0
-	end
+    if ($1) begin
+        $2
+    end
+    else begin
+        $0
+    end
 endsnippet
 
 snippet eif "# Else if statement"
-	else if ($1) begin
-		$0
-	end
+    else if ($1) begin
+        $0
+    end
 endsnippet
 
 snippet el "#Else statement"
-	else begin
-		$0
-	end
+    else begin
+        $0
+    end
 endsnippet
 
 snippet wh "# While statement"
-	while ($1) begin
-		$0
-	end
+    while ($1) begin
+        $0
+    end
 endsnippet
 
 snippet rep "# Repeat Loop"
-	repeat ($1) begin
-		$0
-	end
+    repeat ($1) begin
+        $0
+    end
 endsnippet
 
 snippet case "# Case statement"
-	case (${1:/* variable */})
-		${2:/* value */}: begin
-			$3
-		end
-		default: begin
-			$0
-		end
-	endcase
+    case (${1:/* variable */})
+        ${2:/* value */}: begin
+            $3
+        end
+        default: begin
+            $0
+        end
+    endcase
 endsnippet
 
 snippet casez "# CaseZ statement"
-	casez (${1:/* variable */})
-		${2:/* value */}: begin
-			$3
-		end
-		default: begin
-			$0
-		end
-	endcase
+    casez (${1:/* variable */})
+        ${2:/* value */}: begin
+            $3
+        end
+        default: begin
+            $0
+        end
+    endcase
 endsnippet
 
 snippet al "# Always block"
-	always @(${1:/* sensitive list */}) begin
-		$0
-	end
+    always @(${1:/* sensitive list */}) begin
+        $0
+    end
 endsnippet
 
 snippet for "# For"
-	for (int ${2:i} = 0; $2 < ${1:count}; $2${3:++}) begin
-		$0
-	end
+    for (int ${2:i} = 0; $2 < ${1:count}; $2${3:++}) begin
+        $0
+    end
 endsnippet
 
 snippet forev "# Forever"
-	forever begin
-		$0
-	end
+    forever begin
+        $0
+    end
 endsnippet
 
 snippet fun "# Function"
-	function ${1:void} ${2:name}($3);
-		$0
-	endfunction: $2
+    function ${1:void} ${2:name}($3);
+        $0
+    endfunction: $2
 endsnippet
 
 snippet task "# Task"
-	task ${1:name}($2);
-		$0
-	endtask: $1
+    task ${1:name}($2);
+        $0
+    endtask: $1
 endsnippet
 
 snippet ini "Initial"
-	initial begin
-		$0
-	end
+    initial begin
+        $0
+    end
 endsnippet
 
 snippet tde "typedef eum"
-	typedef enum ${2:logic[15:0]}
-	{
-		${3:REG = 16'h0000}
-	} ${1:my_dest_t};
+    typedef enum ${2:logic[15:0]}
+    {
+        ${3:REG = 16'h0000}
+    } ${1:my_dest_t};
 endsnippet
