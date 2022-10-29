@@ -641,9 +641,10 @@ on_file_other_tab(int index)
             file_backup bak = {0};
             share_send_msg(&bak);
         }
-        else
+        else if (on_sql_sync_session() == SKYLARK_OK)
         {
-            eu_close_edit();
+            printf("close last tab, skylark exit ...\n");
+            SendMessage(eu_module_hwnd(), WM_BACKUP_OVER, 0, 0);
         }
         return;
     }
@@ -1607,6 +1608,10 @@ on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
             filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             if (mode == FILE_REMOTE_CLOSE)
             {
+                if (TabCtrl_GetItemCount(g_tabpages) <= 1 && eu_get_config()->m_exit)
+                {
+                    filebak.sync = 1;
+                }
                 eu_update_backup_table(&filebak, DB_FILE);
                 on_sql_delete_backup_row(pnode);
             }

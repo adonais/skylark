@@ -58,7 +58,7 @@ eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
             if (_tcsncmp(ptr_arg[i], _T("-"), 1) == 0)
             {
                 continue;
-            }            
+            }
             if (_tcslen(ptr_arg[i]) > 0)
             {
                 TCHAR *p = NULL;
@@ -285,20 +285,26 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
 static unsigned __stdcall
 on_config_load_file(void *lp)
 {
+    int err = 0;
     int is_blank = 1;
     wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
-    if (open_sql || !eu_get_config()->m_instance)
+    if (open_sql || eu_get_config()->m_session || !eu_get_config()->m_instance)
     {
-        if (open_sql || eu_get_config()->m_session)
+        if (eu_get_config()->m_session)
         {
-            int err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, &is_blank);
-            if (err == SQLITE_ABORT)
-            {
-                printf("callback abort in %s, cause: %d\n", __FUNCTION__, err);
-                return 1;
-            }
+            err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, &is_blank);
+        }
+        else
+        {
+            err = on_sql_do_session("SELECT * FROM skylar_ver;", NULL, NULL);
+        }
+        if (err == SQLITE_ABORT)
+        {
+            printf("callback abort in %s, cause: %d\n", __FUNCTION__, err);
+            return 1;
         }
     }
+    printf("open_sql = %zu, err = %d, is_blank = %d\n", (intptr_t)open_sql, err, is_blank);
     if ((open_sql  || on_config_file_args()) && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
         file_backup bak = {0};
