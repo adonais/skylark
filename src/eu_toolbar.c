@@ -468,7 +468,7 @@ close_stdout_redirect(FILE *console)
     _close(fd_stdout);
     _close(fd_pipe[WRITE_FD]);
     _close(fd_pipe[READ_FD]);
-    safe_close_console(console);
+    eu_close_console(console);
     return true;
 }
 
@@ -501,7 +501,7 @@ init_stdout_redirect(int size, FILE **pconsole)
     }while(0);
     if (!ret)
     {
-        safe_close_console(*pconsole);
+        eu_close_console(*pconsole);
     }
     return ret;
 }

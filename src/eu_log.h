@@ -135,7 +135,7 @@ extern "C" {
 #if APP_DEBUG
 __declspec(dllexport) void __stdcall eu_init_logs(void);
 __declspec(dllexport) void __cdecl eu_logmsg(const char *format, ...);
-//#define printf eu_logmsg
+#define printf eu_logmsg
 #else
 #define eu_init_logs(...) (__noop)
 #define eu_logmsg(...) (__noop)

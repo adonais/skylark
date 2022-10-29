@@ -19,35 +19,36 @@
 #include "framework.h"
 
 #define FORMAT_MAX_LEN  (2 * 1024 * 1024)
-typedef bool (*ptr_format)(const char *filename, const char *data, size_t size, char **pout);
+typedef bool (*ptr_format)(const char* filename, const char* data, size_t size, char** pout);
 
 static void
-init_stderr_redirect(FILE **pconsole)
+init_stderr_redirect(FILE** pout, FILE **perr)
 {
-    *pconsole = NULL;
     if ((_fileno(stderr) != 2) && AllocConsole())
     {
-        *pconsole = freopen("CONOUT$", "w", stderr);
-        ShowWindow (FindWindow(_T("ConsoleWindowClass"), NULL), SW_HIDE);
+        *pout = freopen("CONOUT$", "w", stdout);
+        *perr = freopen("CONOUT$", "w", stderr);
+        ShowWindow(FindWindow(_T("ConsoleWindowClass"), NULL), SW_HIDE);
     }
 }
 
 static bool
-init_lib_format(const char *filename, const char *data, size_t size, char **pout)
+init_lib_format(const char* filename, const char* data, size_t size, char** pout)
 {
     bool ret = false;
-    TCHAR format_path[MAX_PATH+1] = {0};
+    TCHAR format_path[MAX_PATH + 1] = { 0 };
     HMODULE m_dll = NULL;
     _sntprintf(format_path, MAX_PATH, _T("%s\\clang-format.dll"), eu_module_path);
     if ((m_dll = LoadLibrary(format_path)))
     {
-        ptr_format fn_lib_format = (ptr_format) GetProcAddress(m_dll, "lib_format");
+        ptr_format fn_lib_format = (ptr_format)GetProcAddress(m_dll, "lib_format");
         if (fn_lib_format)
         {
-            FILE *console;
-            init_stderr_redirect(&console);
+            FILE *out = NULL, *err = NULL;
+            init_stderr_redirect(&out, &err);
             ret = fn_lib_format(filename, data, size, pout);
-            safe_close_console(console);
+            eu_close_file(out);
+            eu_close_console(err);
         }
         FreeLibrary(m_dll);
     }

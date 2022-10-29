@@ -227,7 +227,9 @@ _tmain(int argc, TCHAR *argv[])
     else
     {
         on_hook_do();
+    #if APP_DEBUG
         eu_init_logs();
+    #endif
     }
     if (!eu_load_config())
     {   // 加载分类配置文件

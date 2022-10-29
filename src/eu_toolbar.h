@@ -28,14 +28,6 @@
 #define TB_LARGE_SIZE        42
 #define BUFFSIZE             64
 
-#define safe_close_console(h) \
-    if (NULL != h)            \
-    {                         \
-        fclose(h);            \
-        h = NULL;             \
-        FreeConsole();        \
-    }
-
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {
