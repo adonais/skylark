@@ -746,8 +746,15 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     }
     else
     {
-        LOAD_I18N_RESSTR(IDS_STATUS_LC, s_lc);
-        _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+        LOAD_I18N_RESSTR(pnode->hex_mode? IDS_STATUS_HLC : IDS_STATUS_LC, s_lc);
+        if (!pnode->hex_mode)
+        {
+            _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+        }    
+        else
+        {
+            _sntprintf(file_size, FILESIZE, s_lc, nsize);
+        }
     }
     if (*file_size)
     {
@@ -764,7 +771,8 @@ on_statusbar_update_eol(eu_tabpage *pnode)
     }
     if(pnode->hex_mode)
     {
-        on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
+        TCHAR buf[] = {0xA554, 0x0020, _T('N'), _T('a'), _T('N'), 0};
+        on_statusbar_set_text(g_statusbar, STATUSBAR_DOC_EOLS, buf);
         return;
     }
     switch (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0))
