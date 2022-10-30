@@ -934,6 +934,7 @@ STRINGTABLE DISCARDABLE
     IDS_STATUS_XY                    "Cursor (Line %zu, Column %zu)"
     IDS_STATUS_LC                    "File: %zd/%zd (Byte)"
     IDS_STATUS_LD                    "Select: %zd/%zu (Byte/Line)"
+    IDS_STATUS_HLC                   "File: %zd (Byte)"
     IDS_STATUS_HXY                   "Cursor (0x%zX)"
 }
 
