@@ -184,7 +184,6 @@ on_sci_after_file(eu_tabpage *pnode)
     if (pnode)
     {
         eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
-        eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
         eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
         if (pnode->zoom_level != 0)
         {

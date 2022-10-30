@@ -1217,6 +1217,7 @@ on_tabpage_changing(HWND hwnd)
     int index = TabCtrl_GetCurSel(g_tabpages);
     if((p = on_tabpage_get_ptr(index)) != NULL)
     {
+        util_set_undo(p);
         util_set_title(p->pathfile);
         on_toolbar_update_button();
         SendMessage(hwnd, WM_TAB_CLICK, (WPARAM)p, 0);

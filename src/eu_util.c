@@ -1706,14 +1706,23 @@ util_open_file(LPCTSTR path, pt_stream pstream)
 }
 
 void
-util_setforce_eol(eu_tabpage *pnode)
+util_set_undo(eu_tabpage *p)
+{
+    if (p && !eu_sci_call(p, SCI_GETUNDOCOLLECTION, 0 , 0))
+    {
+        eu_sci_call(p, SCI_SETUNDOCOLLECTION, 1 , 0);
+    }
+}
+
+void
+util_setforce_eol(eu_tabpage *p)
 {
     size_t len = 0;
-    char *pdata = util_strdup_content(pnode, &len);
+    char *pdata = util_strdup_content(p, &len);
     if (pdata)
     {
-        pnode->eol = on_encoding_line_mode(pdata, len);
-        eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+        p->eol = on_encoding_line_mode(pdata, len);
+        eu_sci_call(p, SCI_SETEOLMODE, p->eol, 0);
         free(pdata);
     }
 }
