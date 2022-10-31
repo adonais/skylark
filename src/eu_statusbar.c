@@ -522,6 +522,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                     on_tabpage_editor_modify(pnode, iconv_undo_str);
                     on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     break;
+                case IDM_UNI_UTF16LE:
                 case IDM_UNI_UTF16LEB:
                 case IDM_UNI_UTF16BEB:
                 case IDM_UNI_UTF32LE:

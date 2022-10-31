@@ -127,6 +127,7 @@ on_tabpage_changing(int index)
     eu_tabpage *p = NULL;
     if((p = on_tabpage_get_ptr(index)) != NULL)
     {
+        util_set_undo(p);
         util_set_title(p->pathfile);
         on_toolbar_update_button();
         SendMessage(eu_module_hwnd(), WM_TAB_CLICK, (WPARAM)p, 0);

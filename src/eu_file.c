@@ -400,11 +400,14 @@ on_file_set_codepage(eu_tabpage *pnode, const HANDLE hfile)
         else // 如果是utf8编码, 获取换行符, 否则, 等编码转换后再获取换行符
         {
             pnode->codepage = eu_try_encoding(buf, bytesread, false, NULL);
-            if (pnode->codepage < IDM_UNI_UTF16LEB)
+            if (pnode->codepage < IDM_UNI_UTF16LE)
             {
                 pnode->eol = on_encoding_line_mode((const char *)buf, bytesread);
             }
-            on_encoding_set_bom((const uint8_t *) buf, pnode);
+            if (pnode->codepage != IDM_OTHER_BIN)
+            {
+                on_encoding_set_bom((const uint8_t *) buf, pnode);
+            }
         }
     } while(0);
     eu_safe_free(buf);
@@ -1046,11 +1049,14 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
     len = size * nmemb;
     if (!pnode->bytes_remaining)
     {
-        on_encoding_set_bom((const uint8_t *) buffer, pnode);
         pnode->codepage = eu_try_encoding(buffer, len, false, NULL);
-        if (pnode->codepage < IDM_UNI_UTF16LEB)
+        if (pnode->codepage < IDM_UNI_UTF16LE)
         {
             pnode->eol = on_encoding_line_mode(buffer, len);
+        }
+        if (pnode->codepage != IDM_OTHER_BIN)
+        {
+            on_encoding_set_bom((const uint8_t *) buffer, pnode);
         }
         offset = pnode->pre_len;
     }

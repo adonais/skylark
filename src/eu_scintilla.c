@@ -168,8 +168,8 @@ on_sci_before_file(eu_tabpage *pnode)
     {
         on_sci_init_style(pnode);
         eu_sci_call(pnode, SCI_CANCEL, 0, 0);
-        eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
         eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 0, 0);
+        eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
         eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
         if (pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
         {   // 初始化侧边栏控件
@@ -184,7 +184,6 @@ on_sci_after_file(eu_tabpage *pnode)
     if (pnode)
     {
         eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
-        eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
         eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
         if (pnode->zoom_level != 0)
         {
@@ -209,7 +208,7 @@ on_sci_after_file(eu_tabpage *pnode)
             pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
         }
         if (pnode->doc_ptr && pnode->doc_ptr->fn_init_after)
-        {   // 设置侧边栏数据
+        {   // 设置此标签页的语法解析
             pnode->doc_ptr->fn_init_after(pnode);
         }
         on_sci_update_margin(pnode);
