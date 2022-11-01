@@ -726,7 +726,7 @@
 #define IDC_SEARCH_REALL_BTN                41124
 #define IDC_SEARCH_CD_CHK                   41125
 #define IDC_SEARCH_SUB_CHK                  41126
-#define IDC_SEARCH_ALL_BTN                  41127
+#define IDC_SEARCH_START_ENGINE             41127
 #define IDC_MATCH_WDSTART                   41128
 #define IDC_SEARCH_HIDE_CHK                 41129
 #define IDC_SEARCH_FOUNDLIST                41130
@@ -736,6 +736,8 @@
 #define IDC_SEARCH_HEX_STC                  41134
 #define IDS_SEARCH_HEX_TIPS                 41135
 #define IDC_SEARCH_HEX_STRINGS              41136
+#define IDC_SEARCH_ALL_BTN                  41137
+#define IDC_SEARCH_SELRE_BTN                41138
 
 // additional controls
 #define IDD_PAGESETUP                        42000

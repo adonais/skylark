@@ -1131,8 +1131,8 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_ERROR         "%s File printing error"
     IDS_PRINT_HEX_WARNS     "Printing in hex mode is not currently supported"
     IDS_SELRECT             "This operation cannot be performed in column edit mode."
-    IDS_LUA_CONV_SUCCESS    "#> Conversion of bytecode succeeded, file saved [%s]"
-    IDS_LUA_CONV_FAIL       "#> Conversion of bytecode failed."
+    IDS_LUA_CONV_SUCCESS    "»» Conversion of bytecode succeeded, file saved [%s]"
+    IDS_LUA_CONV_FAIL       "»» Conversion of bytecode failed."
     IDS_THEME_DESC_DEFAULT  "Default Theme"
     IDS_THEME_DESC_BLOCK    "Dark Theme"
     IDS_THEME_DESC_WHITE    "White Classic Theme"
@@ -1153,11 +1153,11 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
     IDS_RE_ERROR            "Error: invalid regular expression"
     IDS_HEXVIEW_BYTES       "Number of bytes to insert (decimal): "
-    IDS_RESULT_STRINGS1     "#> Search '%s' keyword in '%s' file (%d hits)\n"
-    IDS_RESULT_STRINGS2     "Line %*I64d: %s"
+    IDS_RESULT_STRINGS1     "»» Search '%s' keyword in '%s' file (%d hits)\n"
+    IDS_RESULT_STRINGS2     "Line %*zd: %s"
     IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-nXX : Scroll to indicated line on file_path\n-cXX : Scroll to indicated column on file_path\n-hex : Open text file in hexadecimal mode\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
     IDS_COMMAND_TITLE       "Skylark Command Help: "
-    IDS_LOADLIBRARY_SQL     "#> Start loading database DLL ...\n"
+    IDS_LOADLIBRARY_SQL     "»» Start loading database DLL ...\n"
     IDS_SNIPPET_EDT_DEFAULT "Snippet Name,Comment,Argument"
     IDS_SNIPPET_COMBO_DEC   "Example"
     IDS_SNIPPET_EXAMPLE_DEC "${n:PlaceHolder} to mark a placeholder token,\n$0 to mark the insertion point at the end.\nUse tab key jump to the next placeholder\nUse shift+tab jump to the previous placeholder\nThe parameter A, Indicates automatic trigger.\nThe parameter b, The trigger keyword should be at the beginning of line.\nThe parameter r, The trigger keyword is a regular expression.\nUse Perl syntax for regular expressions\nCapture groups use \\1...\\9\nExample:\nif (${1:true})\n{\n    $0\n}"
@@ -1197,10 +1197,12 @@ BEGIN
   CONTROL "▲",IDC_SEARCH_PRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,20,15,13
   CONTROL "▼ Find Next",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
   CONTROL "Show Details",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
-  CONTROL "Close",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "Find All",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "Close",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,182,90,13
   CONTROL "Replace",IDC_SEARCH_RE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
   CONTROL "Replace &All",IDC_SEARCH_REALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,90,90,13
-  CONTROL "Find All",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
+  CONTROL "&In Selection",IDC_SEARCH_SELRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
+  CONTROL "Start Searching",IDC_SEARCH_START_ENGINE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
   CONTROL "Follow current doc",IDC_SEARCH_CD_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,129,90,15
   CONTROL "In all sub-folders",IDC_SEARCH_SUB_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,144,90,15
   CONTROL "In hidden folders",IDC_SEARCH_HIDE_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,159,90,15

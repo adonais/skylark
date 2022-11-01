@@ -1604,6 +1604,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                 on_toolbar_setup_button(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
                                 on_toolbar_setup_button(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
                             }
+                            on_search_turn_select(pnode);
                         }
                         else if ((lpnotify->updated & SC_UPDATE_CONTENT) && pnode->map_show && document_map_initialized)
                         {

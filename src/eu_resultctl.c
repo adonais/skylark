@@ -139,6 +139,22 @@ on_result_menu_callback(HMENU hpop, void *param)
     }
 }
 
+static eu_tabpage *
+on_result_other_tab(int line, result_vec *vec)
+{
+    if ((int)cvector_size(vec) >= line)
+    {
+        for (int i = line - 1; i >= 0; --i)
+        {
+            if (vec[i].line == -1)
+            {
+                return (eu_tabpage *)(vec[i].mark._no);
+            }
+        }
+    }
+    return NULL;
+}
+
 static LRESULT CALLBACK
 on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -152,12 +168,21 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 sptr_t cur_pos = eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
                 eu_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
                 sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
-                if (line >= 0 && cvector_size(pnode->ret_vec) > 0)
+                if (line > 0 && cvector_size(pnode->ret_vec) > 0)
                 {
                     sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
                     sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-                    on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
-                    eu_sci_call(pnode, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
+                    eu_tabpage *p = on_result_other_tab((int)line, pnode->ret_vec);
+                    if (!p)
+                    {
+                        on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
+                        eu_sci_call(pnode, SCI_SETSELECTION, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
+                    }
+                    else if (on_tabpage_selection(p, -1) >= 0)
+                    {
+                        on_search_jmp_line(p, pnode->ret_vec[line - 1].line, current_line);
+                        eu_sci_call(p, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
+                    }
                 }
             }
             return 1;

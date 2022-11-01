@@ -75,6 +75,6 @@ NO_HIDE  = -subsystem:console
 
 ##############################################################################
 ##
-INCD  = $(ROOT)\include
+INCD  = $(ROOT)\src
 BIND  = $(ROOT)\Release
 OBJD  = $(ROOT)\.dep

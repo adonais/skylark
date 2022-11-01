@@ -1130,8 +1130,8 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_ERROR         "%s 文件打印错误"
     IDS_PRINT_HEX_WARNS     "暂时不支持在16进制模式下打印"
     IDS_SELRECT             "不能在列编辑模式下进行此操作."
-    IDS_LUA_CONV_SUCCESS    "#> 转换字节码成功, 文件保存在 [%s]"
-    IDS_LUA_CONV_FAIL       "#> 转换字节码失败."
+    IDS_LUA_CONV_SUCCESS    "»» 转换字节码成功, 文件保存在 [%s]"
+    IDS_LUA_CONV_FAIL       "»» 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
     IDS_THEME_DESC_BLOCK    "暗黑主题"
     IDS_THEME_DESC_WHITE    "白色经典"
@@ -1151,11 +1151,11 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
-    IDS_RESULT_STRINGS1     "#> 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
-    IDS_RESULT_STRINGS2     "行 %*I64d: %s"
+    IDS_RESULT_STRINGS1     "»» 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
+    IDS_RESULT_STRINGS2     "行 %*zd: %s"
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-nXX : 打开文件时滚动到指定行\n-cXX : 打开文件时滚动到指定列\n-hex : 以16进制模式打开文本文件\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
-    IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
+    IDS_LOADLIBRARY_SQL     "»» 开始装载数据库动态链接库 ...\n"
     IDS_SNIPPET_EDT_DEFAULT "片段名称,注释,参数"
     IDS_SNIPPET_COMBO_DEC   "示例"
     IDS_SNIPPET_EXAMPLE_DEC "${n:占位符} 表示光标下一个占位符,\n$0 标记末尾的插入点.\n使用 tab 键跳转到下一个占位符\n使用 shift+tab 跳转到上一个占位符\n参数A, 表示自动触发，不需要按Tab键.\n参数b, 表示触发关键字应该在行首.\n参数r, 表示触发关键字是正则表达式.\n正则表达式请使用perl正则语法\n捕获组使用\\1...\\9\n示例:\nif (${1:true})\n{\n    $0\n}"
@@ -1195,10 +1195,12 @@ BEGIN
   CONTROL "▲",IDC_SEARCH_PRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,20,15,13
   CONTROL "▼ 查找下一个",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
   CONTROL "显示详情",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
-  CONTROL "关闭",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "查找全部",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "关闭",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,182,90,13
   CONTROL "替换",IDC_SEARCH_RE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
   CONTROL "全部替换",IDC_SEARCH_REALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,90,90,13
-  CONTROL "查找全部",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
+  CONTROL "选区替换",IDC_SEARCH_SELRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
+  CONTROL "开始搜索",IDC_SEARCH_START_ENGINE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
   CONTROL "当前文件夹",IDC_SEARCH_CD_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,129,90,15
   CONTROL "包含子目录",IDC_SEARCH_SUB_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,144,90,15
   CONTROL "包含隐藏目录",IDC_SEARCH_HIDE_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,159,90,15

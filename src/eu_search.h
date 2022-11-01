@@ -33,6 +33,7 @@
 #define ON_OTHER_PAGE          0x00001000
 #define ON_REPLACE_THIS        0x00002000
 #define ON_REPLACE_ALL         0x00004000
+#define ON_REPLACE_SELECTION   0x00008000
 
 #ifdef __cplusplus
 extern "C"
@@ -121,6 +122,7 @@ void on_search_dark_mode_release(void);
 void on_search_tab2space(eu_tabpage *pnode);
 void on_search_space2tab(eu_tabpage *pnode);
 void on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres);
+void on_search_turn_select(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }
