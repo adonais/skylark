@@ -1478,8 +1478,8 @@ util_exist_libcurl(void)
     bool ret = false;
     HMODULE lib_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((lib_symbol = LoadLibrary(curl_path)) != NULL)
+    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+    if ((lib_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(lib_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1503,8 +1503,8 @@ util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, uns
     int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibrary(curl_path)) != NULL)
+    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(curl_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1522,8 +1522,8 @@ util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, u
     int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibrary(curl_path)) != NULL)
+    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         ptr_uncompress fn_uncompress = (ptr_uncompress)GetProcAddress(curl_symbol,"zlib_uncompress2");
         if (fn_uncompress)
@@ -1726,7 +1726,6 @@ util_setforce_eol(eu_tabpage *p)
         free(pdata);
     }
 }
-
 
 void
 util_save_placement(HWND hwnd)
@@ -2098,7 +2097,7 @@ util_which(const TCHAR *name)
     TCHAR *path = _tgetenv(_T("PATH"));
     TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
     TCHAR *dot = _tcsrchr(name, _T('.'));
-    int len = eu_int_cast(_tcslen(path)) + (2 * MAX_PATH);
+    int len = eu_int_cast(_tcslen(path)) + (3 * MAX_PATH);
     if (!path)
     {
         return NULL;
@@ -2129,11 +2128,11 @@ util_which(const TCHAR *name)
     {
         if (diff)
         {
-            _sntprintf(env_path, len, _T("%s;%s;%s"), path, sz_process, sz_work);
+            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins;%s"), path, sz_process, sz_process, sz_work);
         }
         else
         {
-            _sntprintf(env_path, len, _T("%s;%s"), path, sz_process);
+            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins"), path, sz_process, sz_process);
         }
         wchar_t *tok = _tcstok(env_path, delimiter);
         while (tok)
@@ -2160,6 +2159,7 @@ util_which(const TCHAR *name)
     eu_safe_free(env_path);
     return NULL;
 }
+
 bool
 eu_gui_app(void)
 {

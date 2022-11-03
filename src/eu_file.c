@@ -705,10 +705,9 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
     }
 }
 
-static int
-on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
+static void
+on_file_update_focus(eu_tabpage *pnode, file_backup *pbak)
 {
-    int result = 0;
     if (pbak->focus)
     {
         if (pbak->focus > 0)
@@ -719,7 +718,14 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
     else
     {
         _InterlockedExchange(&last_focus, pnode->tab_id);
-    }
+    }    
+}
+
+static int
+on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
+{
+    int result = 0;
+    on_file_update_focus(pnode, pbak);
     on_file_update_postion(pnode, pbak);
     on_search_add_navigate_list(pnode, pnode->nc_pos);
     result = on_tabpage_selection(pnode, last_focus);
@@ -810,13 +816,13 @@ on_file_only_open(file_backup *pbak, const bool selection)
     if ((res = on_file_preload(pnode, pbak)) != SKYLARK_OK)
     {
         eu_safe_free(pnode);
-        printf("on_file_preload, err = %d\n", res);
+        printf("on_file_preload failed, err = %d\n", res);
         return res;
     }
     if ((res = on_tabpage_add(pnode)) != SKYLARK_OK)
     {
         eu_safe_free(pnode);
-        printf("on_tabpage_add, err = %d\n", res);
+        printf("on_tabpage_add failed, err = %d\n", res);
         return res;
     }
     if (!pnode->hex_mode)

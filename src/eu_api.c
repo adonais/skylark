@@ -194,7 +194,7 @@ eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
         offset += needle - in;
         in = needle + (int) _tcslen(pattern);
         _tcsncpy(res + offset, by, VALUE_LEN - offset);
-        offset += (int) wcslen(by);
+        offset += (int) _tcslen(by);
     }
     _tcsncpy(res + offset, in, VALUE_LEN - offset);
     _sntprintf(in_ptr, eu_int_cast(in_size), _T("%s"), res);
@@ -312,9 +312,9 @@ eu_exist_libssl(void)
 {
     TCHAR ssl_path[MAX_PATH+1] = {0};
 #ifdef _WIN64
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
 #else
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
 #endif
     return eu_exist_file(ssl_path);
 }
@@ -985,6 +985,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
         {
             *o = pi.dwProcessId;
         }
+        CloseHandle(pi.hThread);
     }
     return pi.hProcess;
 }
@@ -2402,8 +2403,8 @@ eu_curl_init_global(long flags)
     if (!eu_curl_initialized)
     {
         TCHAR curl_path[MAX_PATH+1] = {0};
-        _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-        if ((eu_curl_symbol = LoadLibrary(curl_path)) != NULL)
+        _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+        if ((eu_curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
         {
             fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(eu_curl_symbol,"curl_global_init");
             fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(eu_curl_symbol,"curl_easy_init");
@@ -2488,11 +2489,11 @@ eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
     HMODULE ssl = NULL;
     TCHAR ssl_path[MAX_PATH+1] = {0};
 #ifdef _WIN64
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
 #else
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
 #endif
-    if ((ssl = LoadLibrary(ssl_path)) != NULL)
+    if ((ssl = LoadLibraryEx(ssl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         for (int i = 0; i < n && s[i][0]; ++i)
         {

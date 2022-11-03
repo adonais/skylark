@@ -614,8 +614,7 @@ on_tabpage_new_hinst(void)
             // 发送其他文件到新进程
             if ((hwin = util_get_hwnd(pid)) != NULL)
             {
-                cvector_erase(v, 0);
-                for (size_t i = 0; i < cvector_size(v); ++i)
+                for (size_t i = 1; i < cvector_size(v); ++i)
                 {
                     on_tabpage_send_file(hwin, v[i]);
                 }
@@ -1314,12 +1313,11 @@ int
 on_tabpage_add(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    TCITEM tci = { 0 };
+    TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
     if (TAB_NOT_BIN(pnode) && !pnode->hex_mode)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
-    tci.mask = TCIF_TEXT | TCIF_PARAM;
     tci.pszText = pnode->filename;
     tci.lParam = (LPARAM) pnode;
     pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);

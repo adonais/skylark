@@ -258,8 +258,8 @@ init_lib_format(const char *filename, const char *data, size_t size, char **pout
     bool ret = false;
     TCHAR format_path[MAX_PATH+1] = {0};
     HMODULE m_dll = NULL;
-    _sntprintf(format_path, MAX_PATH, _T("%s\\clang-format.dll"), eu_module_path);
-    if ((m_dll = LoadLibrary(format_path)))
+    _sntprintf(format_path, MAX_PATH, _T("%s\\plugins\\clang-format.dll"), eu_module_path);
+    if ((m_dll = LoadLibraryEx(format_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)))
     {
         ptr_format fn_lib_format = (ptr_format)GetProcAddress(m_dll, "lib_format");
         if (fn_lib_format)

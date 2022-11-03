@@ -995,6 +995,8 @@
 #define IDS_TABPAGE_CLOSE_NUM               44020
 #define IDS_BUTTON_RW_TIPS                  44021
 
+#define IDS_PLUGINS_MSG1                    44030
+
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 

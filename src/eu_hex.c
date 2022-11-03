@@ -1784,6 +1784,14 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             return (max(hexview->select_start, hexview->select_end));
         }
+        case SCI_LINEFROMPOSITION:
+        {
+            if (wParam >= 0)
+            {
+                return wParam/16;
+            }
+            return 0;
+        }
         case SCI_GETLINECOUNT:
         {
             return hexview->totallines - 2;

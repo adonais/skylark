@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-#define CLANGDLL _T("clang-format.dll")
+#define CLANGDLL _T("plugins\\clang-format.dll")
 
 int
 menu_height(void)

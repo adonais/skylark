@@ -289,8 +289,8 @@ on_table_connect_database(eu_tabpage *pnode)
         mysql_handle *this_mysql = &(pnode->db_ptr->handles.h_mysql);
         if (mysql_sub->mysql_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libmysql.dll"));
-            mysql_sub->mysql_dll = LoadLibrary(dll_path);
+            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libmysql.dll"));
+            mysql_sub->mysql_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
             if (mysql_sub->mysql_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -406,8 +406,8 @@ on_table_connect_database(eu_tabpage *pnode)
         sword result;
         if (oci_sub->oci_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("oci.dll"));
-            oci_sub->oci_dll = LoadLibrary(dll_path);
+            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("oci.dll"));
+            oci_sub->oci_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
             if (oci_sub->oci_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -584,8 +584,8 @@ on_table_connect_database(eu_tabpage *pnode)
         pq_handle *this_pq = &(pnode->db_ptr->handles.h_pq);
         if (pq_sub->libpq_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libpq.dll"));
-            pq_sub->libpq_dll = LoadLibrary(dll_path);
+            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libpq.dll"));
+            pq_sub->libpq_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
             if (pq_sub->libpq_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR21, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
