@@ -392,21 +392,25 @@ on_config_sync_snippet(void)
 bool WINAPI
 eu_load_main_config(void)
 {
-    int  m = 0;
+    bool ret = false;
     char *lua_path = NULL;
     TCHAR path[MAX_PATH+1] = {0};
-    m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
-    if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
+    int  m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
+    do
     {
-        return false;
-    }
-    if (do_lua_func(lua_path, "run", "") != 0)
-    {
-        printf("eu_main.lua exec failed\n");
-        free(lua_path);
-        return false;
-    }
-    return true;
+        if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
+        {
+            break;
+        }
+        if (do_lua_func(lua_path, "run", "") != 0)
+        {
+            printf("eu_main.lua exec failed\n");
+            break;
+        }
+        ret = true;
+    } while(0);
+    eu_safe_free(lua_path);
+    return ret;
 }
 
 bool WINAPI

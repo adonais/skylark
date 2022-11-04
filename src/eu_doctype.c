@@ -1838,25 +1838,27 @@ on_doc_brace_handling(eu_tabpage *pnode)
     sptr_t match_pos = -1;
     sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+    sptr_t current_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+    sptr_t current_line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
     int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
-    int m_indent = (int)eu_sci_call(pnode, SCI_GETLINEINDENTATION, current_line, 0);
+    sptr_t m_indent = util_line_header(pnode, current_line_start, current_line_end, NULL);
     if (m_indent > 0 && strchr(")]}>", ch))
     {   // 当匹配括号前都是空白时, 使之对齐
         sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
         if ((current_pos - 1 - line_start == m_indent) && ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))
         {
+            char *str_space = NULL;
             sptr_t match_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
             sptr_t match_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, match_line, 0);
-            m_indent = (int)eu_sci_call(pnode, SCI_GETLINEINDENTATION, match_line, 0);
-            if (m_indent >= 0 && match_pos - match_line_start == m_indent)
+            sptr_t match_line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, match_line, 0);
+            m_indent = util_line_header(pnode, match_line_start, match_line_end, &str_space);
+            if (m_indent >= 0 && str_space && match_pos - match_line_start == m_indent)
             {
-                char *str_space = (char *)calloc(1, m_indent+1);
-                memset(str_space, 0x20, m_indent);
                 eu_sci_call(pnode, SCI_SETTARGETSTART, line_start, 0);
                 eu_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
                 eu_sci_call(pnode, SCI_REPLACETARGET, m_indent, (sptr_t)str_space);
-                eu_safe_free(str_space);
             }
+            eu_safe_free(str_space);
         }
     }
     return on_doc_brace_light(pnode, true);

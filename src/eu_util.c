@@ -988,7 +988,7 @@ util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout)
         }
         if (len > start && len < end && pout)
         {
-            *pout = on_sci_range_text(pnode, len, end);
+            *pout = on_sci_range_text(pnode, start, len);
         }
         len -= start;
     }
