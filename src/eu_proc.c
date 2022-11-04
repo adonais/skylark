@@ -884,7 +884,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_edit_push_compare();
                     }
-                    break;                    
+                    break;
                 case IDM_FILE_WORKSPACE:
                     if (pnode && *pnode->pathfile && !pnode->is_blank)
                     {
@@ -951,6 +951,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_UPPERCASE:
                     on_edit_upper(pnode);
+                    break;
+                case IDM_EDIT_WORD_UPPERCASE:
+                    on_edit_sentence_upper(pnode, false);
+                    break;
+                case IDM_EDIT_SENTENCE_UPPERCASE:
+                    on_edit_sentence_upper(pnode, true);
                     break;
                 case IDM_EDIT_TAB_SPACE:
                     on_search_tab2space(pnode);

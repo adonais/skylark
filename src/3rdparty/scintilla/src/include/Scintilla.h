@@ -1374,6 +1374,7 @@ typedef  struct _result_vec {
 typedef struct Sci_NotifyHeader Sci_NotifyHeader;
 typedef struct SCNotification SCNotification;
 typedef struct Sci_TextRange Sci_TextRange;
+typedef struct Sci_TextRangeFull Sci_TextRangeFull;
 typedef struct Sci_TextToFind Sci_TextToFind;
 #endif
 

@@ -604,11 +604,28 @@ on_edit_join_line(eu_tabpage *pnode)
 }
 
 static void
-do_toggle_case(eu_tabpage *pnode, bool do_uppercase)
+do_toggle_case(eu_tabpage *pnode, bool do_uppercase, bool do_line, bool first)
 {
+    sptr_t sel_start = 0;
+    sptr_t sel_end = 0;
+    eu_sci_call(pnode, SCI_SETCHARSDEFAULT, 0, 0);
     sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t sel_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, false);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, false);
+    if (do_line)
+    {
+        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+        sel_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sel_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        sptr_t indent = util_line_header(pnode, sel_start, sel_end, NULL);
+        if (indent)
+        {
+            sel_start += indent;
+        }
+    }
+    else
+    {
+        sel_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, false);
+        sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, false);
+    }
     if (sel_end - sel_start > 0)
     {
         char *line_buf = on_sci_range_text(pnode, sel_start, sel_end);
@@ -617,7 +634,18 @@ do_toggle_case(eu_tabpage *pnode, bool do_uppercase)
             const size_t len = strlen(line_buf);
             for (size_t i = 0; i < len; ++i)
             {
-                line_buf[i] = do_uppercase ? toupper(line_buf[i]) : tolower(line_buf[i]);
+                if (!first)
+                {
+                    line_buf[i] = do_uppercase ? toupper(line_buf[i]) : tolower(line_buf[i]);
+                }
+                else if (!i)
+                {
+                    line_buf[i] = toupper(line_buf[i]);
+                }
+                else
+                {
+                    line_buf[i] = tolower(line_buf[i]);
+                }
             }
             eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_end);
             eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
@@ -625,6 +653,7 @@ do_toggle_case(eu_tabpage *pnode, bool do_uppercase)
             eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         }
         eu_safe_free(line_buf);
+        eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
     }
 }
 
@@ -642,7 +671,7 @@ on_edit_lower(eu_tabpage *pnode)
         }
         else
         {
-            do_toggle_case(pnode, false);
+            do_toggle_case(pnode, false, false, false);
         }
     }
 }
@@ -661,7 +690,75 @@ on_edit_upper(eu_tabpage *pnode)
         }
         else
         {
-            do_toggle_case(pnode, true);
+            do_toggle_case(pnode, true, false, false);
+        }
+    }
+}
+
+static void
+do_selection_case(eu_tabpage *pnode, bool sentence)
+{
+    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    if (sel_end > sel_start)
+    {
+        char *buf = NULL;
+        char *copy = NULL;
+        int len = eu_int_cast(sel_end - sel_start);
+        if ((buf = on_sci_range_text(pnode, sel_start, sel_end)))
+        {
+            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            copy = _strdup(buf), _strlwr(buf);
+            for (int i = 0; i < len; ++i, ++sel_start)
+            {
+                if (buf[i] > 0x60 && buf[i] < 0x7b)
+                {
+                    buf[i] -= 0x20;
+                    if (sentence)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, sel_start, true);
+                        if (sel_end > sel_start && eu_int_cast(sel_end - sel_start) < len)
+                        {
+                            i += eu_int_cast(sel_end - sel_start);
+                            sel_start = sel_end;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (copy && strcmp(copy ,buf))
+            {
+                eu_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
+                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)buf);
+                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+            }
+        }
+        eu_safe_free(buf);
+        eu_safe_free(copy);
+    }
+}
+
+void
+on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence)
+{
+    if (pnode && !eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    {
+        if (!eu_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0))
+        {
+            do_selection_case(pnode, sentence);
+        }
+        else
+        {
+            do_toggle_case(pnode, true, sentence, true);
         }
     }
 }

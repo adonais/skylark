@@ -123,6 +123,7 @@ TCHAR* util_path2unix(TCHAR *path);
 TCHAR* util_add_double_quotes(const TCHAR *path);
 TCHAR* util_wstr_unquote(const TCHAR *path);
 TCHAR* util_which(const TCHAR *name);
+sptr_t util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout);
 char * util_str_unquote(const char *path);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);

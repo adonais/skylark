@@ -118,6 +118,8 @@ BEGIN
         BEGIN
             MENUITEM "转小写",                                  IDM_EDIT_LOWERCASE
             MENUITEM "转大写",                                  IDM_EDIT_UPPERCASE
+            MENUITEM "词首大写(&C)",                            IDM_EDIT_WORD_UPPERCASE
+            MENUITEM "句首大写(&S)",                            IDM_EDIT_SENTENCE_UPPERCASE
             MENUITEM MF_SEPARATOR
             MENUITEM "制表符转空格",                            IDM_EDIT_TAB_SPACE
             MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB

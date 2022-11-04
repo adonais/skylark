@@ -971,6 +971,30 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
     return NULL;
 }
 
+sptr_t
+util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout)
+{
+    sptr_t len = 0;
+    if (pnode && end > start)
+    {
+        char *txt = NULL;
+        for (len = start; len < end; ++len)
+        {
+            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, len, 0);
+            if (!isspace(ch))
+            {
+                break;
+            }
+        }
+        if (len > start && len < end && pout)
+        {
+            *pout = on_sci_range_text(pnode, len, end);
+        }
+        len -= start;
+    }
+    return len;
+}
+
 char *
 util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen)
 {

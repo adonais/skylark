@@ -335,8 +335,8 @@ on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end)
     char *text = NULL;
     if (pnode && (text = (char *) calloc(1, end - start + 1)))
     {
-        Sci_TextRange tr = {{start, end}, text};
-        eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+        Sci_TextRangeFull tr = {{start, end}, text};
+        eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
     }
     return text;
 }
