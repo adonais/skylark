@@ -817,9 +817,13 @@ on_print_file(eu_tabpage *pnode)
 {
     if (pnode && pnode->pathfile[0])
     {
-        SHFILEINFO shfi = {0};
-        if (!pnode->hex_mode)
+        if (pnode->pmod && pnode->plugin)
         {
+            np_plugins_print(&pnode->plugin->funcs, &pnode->plugin->npp, NULL);
+        }
+        else if (!pnode->hex_mode)
+        {
+            SHFILEINFO shfi = {0};
             on_print_file_info(pnode->pathfile, 0, &shfi, sizeof(SHFILEINFO), SHGFI_DISPLAYNAME);
             if (_tcslen(shfi.szDisplayName) > 0)
             {

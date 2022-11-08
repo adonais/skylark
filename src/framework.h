@@ -111,6 +111,7 @@
 #include "eu_list.h"
 #include "eu_rbtree.h"
 
+#include "eu_nphost.h"
 #include "eu_api.h"
 #include "eu_hook.h"
 #include "eu_share.h"

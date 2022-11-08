@@ -101,6 +101,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_snippet.obj                     \
     $(OBJD)\eu_snparser.obj                    \
     $(OBJD)\eu_complete.obj                    \
+    $(OBJD)\eu_nphost.obj                      \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -155,7 +156,7 @@ $(OBJD)\eu_hex.obj                         : eu_hex.c eu_hex.h framework.h
 $(OBJD)\eu_scintilla.obj                   : eu_scintilla.c eu_scintilla.h framework.h
 $(OBJD)\eu_encoding.obj                    : eu_encoding.c eu_encoding.h framework.h
 $(OBJD)\eu_registry.obj                    : eu_registry.c eu_registry.h framework.h
-$(OBJD)\eu_file.obj                        : eu_file.c eu_file.h framework.h
+$(OBJD)\eu_file.obj                        : eu_file.c eu_file.h eu_nphost.h framework.h
 $(OBJD)\eu_treebar.obj                     : eu_treebar.c eu_treebar.h framework.h eu_list.h
 $(OBJD)\eu_resultctl.obj                   : eu_resultctl.c eu_resultctl.h framework.h
 $(OBJD)\eu_tablectl.obj                    : eu_tablectl.c eu_tablectl.h framework.h
@@ -167,7 +168,7 @@ $(OBJD)\eu_theme_dark.obj                  : eu_theme_dark.c eu_theme_dark.h fra
 $(OBJD)\eu_theme_menu.obj                  : eu_theme_menu.c eu_theme_menu.h framework.h
 $(OBJD)\eu_symlistctl.obj                  : eu_symlistctl.c eu_symlistctl.h framework.h eu_list.h
 $(OBJD)\eu_symtreectl.obj                  : eu_symtreectl.c eu_symtreectl.h framework.h eu_list.h
-$(OBJD)\eu_tabpage.obj                     : eu_tabpage.c eu_tabpage.h framework.h
+$(OBJD)\eu_tabpage.obj                     : eu_tabpage.c eu_tabpage.h eu_nphost.h framework.h
 $(OBJD)\eu_util.obj                        : eu_util.c eu_util.h framework.h
 $(OBJD)\eu_view.obj                        : eu_view.c eu_view.h framework.h
 $(OBJD)\eu_proc.obj                        : eu_proc.c eu_proc.h framework.h
@@ -197,6 +198,7 @@ $(OBJD)\eu_updatechecker.obj               : eu_updatechecker.c eu_updatechecker
 $(OBJD)\eu_snippet.obj                     : eu_snippet.c eu_snippet.h eu_cvector.h framework.h
 $(OBJD)\eu_snparser.obj                    : eu_snparser.c eu_snparser.h eu_cvector.h framework.h
 $(OBJD)\eu_complete.obj                    : eu_complete.c eu_complete.h eu_cvector.h framework.h
+$(OBJD)\eu_nphost.obj                      : eu_nphost.c eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp

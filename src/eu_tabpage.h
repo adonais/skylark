@@ -47,6 +47,8 @@ struct _tabpage
     RECT rect_map;              // 文档结构图矩形区域
     RECT rect_result;           // 文档搜索结果矩形区域
     RECT rect_sidebar;          // 侧边栏矩形区域
+    NMM pmod;                   // 插件模块地址
+    npdata *plugin;             // 插件动态数据表
     int  match_count;           // 查找时匹配计数
     int  tab_id;                // tab编号,用于保存会话
     bool sym_show;              // 是否显示右侧边栏

@@ -81,13 +81,12 @@
 #endif
 
 #define OVEC_LEN    16
-#define FT_LEN      32
-#define ACNAME_LEN  64
 #define FILESIZE    128
 #define MAX_SIZE    256
 #define ENV_LEN     512
 
 #define SNIPPET_FUNID 100
+#define PERROR_LEN    100
 
 #ifndef MAX_BUFFER
 #define MAX_BUFFER  1024
@@ -145,7 +144,7 @@
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
 #define eu_int_cast(n) ((int)((intptr_t)(n)))
-#define eu_uint_cast(n) ((uint32_t)((size_t)(n)))
+#define eu_uint_cast(n) ((uint32_t)((uintptr_t)(n)))
 
 #if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))
@@ -384,55 +383,6 @@ struct eu_config
     char m_actions[100][MAX_PATH];
 };
 
-struct styleclass
-{
-    char font[FT_LEN];
-    int fontsize;
-    uint32_t color;
-    uint32_t bgcolor;
-    int bold;
-};
-
-struct styletheme
-{
-    struct styleclass linenumber;
-    struct styleclass foldmargin;
-
-    struct styleclass text;
-    struct styleclass caretline;
-    struct styleclass indicator;
-
-    struct styleclass keywords0;
-    struct styleclass keywords1;
-    struct styleclass string;
-    struct styleclass character;
-    struct styleclass number;
-    struct styleclass operators;
-    struct styleclass preprocessor;
-    struct styleclass comment;
-    struct styleclass commentline;
-    struct styleclass commentdoc;
-
-    struct styleclass tags;
-    struct styleclass unknowtags;
-    struct styleclass attributes;
-    struct styleclass unknowattributes;
-    struct styleclass entities;
-    struct styleclass tagends;
-    struct styleclass cdata;
-    struct styleclass phpsection;
-    struct styleclass aspsection;
-    
-    struct styleclass activetab;
-};
-
-struct eu_theme
-{
-    char pathfile[MAX_PATH];
-    char name[ACNAME_LEN];
-    struct styletheme item;
-};
-
 typedef struct _pcre_conainer
 {
     const char *buffer;          // 需要匹配的字符串
@@ -524,13 +474,7 @@ EU_EXT_CLASS LPTSTR __stdcall eu_suffix_strip(TCHAR *path);
 EU_EXT_CLASS LPTSTR __stdcall eu_rand_str(TCHAR *str, const int len);
 EU_EXT_CLASS char* __stdcall eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by);
 EU_EXT_CLASS LPTSTR __stdcall eu_wstr_replace(TCHAR *in, size_t in_size, LPCTSTR pattern, LPCTSTR by);
-
-EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
-EU_EXT_CLASS const char *eu_query_encoding_name(int code);
-EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
-EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
-EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reverse, intptr_t *pret);
-
+EU_EXT_CLASS bool __stdcall eu_open_file(LPCTSTR path, pf_stream pstream);
 EU_EXT_CLASS int __stdcall eu_try_encoding(uint8_t *, size_t, bool is_file, const TCHAR *);
 EU_EXT_CLASS char *__stdcall eu_utf16_utf8(const wchar_t *utf16, size_t *out_len);
 EU_EXT_CLASS char *__stdcall eu_utf16_mbcs(int codepage, const wchar_t *utf16, size_t *out_len);
@@ -543,10 +487,15 @@ EU_EXT_CLASS bool __stdcall eu_config_ptr(struct eu_config *pconfig);
 EU_EXT_CLASS bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
 EU_EXT_CLASS bool __stdcall eu_accel_ptr(ACCEL *accel);
 EU_EXT_CLASS HANDLE __stdcall eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o);
+EU_EXT_CLASS struct eu_theme *__stdcall eu_get_theme(void);
+EU_EXT_CLASS struct eu_config *__stdcall eu_get_config(void);
+EU_EXT_CLASS eue_accel *__stdcall eu_get_accel(void);
 
-EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
-EU_EXT_CLASS struct eu_config *eu_get_config(void);
-EU_EXT_CLASS eue_accel *eu_get_accel(void);
+EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
+EU_EXT_CLASS const char *eu_query_encoding_name(int code);
+EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
+EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
+EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reverse, intptr_t *pret);
 EU_EXT_CLASS TCHAR *eu_process_path(TCHAR *path, const int len);
 EU_EXT_CLASS void eu_save_config(void);
 EU_EXT_CLASS void eu_save_theme(void);
@@ -654,6 +603,9 @@ EU_EXT_CLASS HWND eu_result_hwnd(void);
 // for eu_snippet.c
 EU_EXT_CLASS HWND __stdcall eu_snippet_hwnd(void);
 
+// for eu_locale.c
+EU_EXT_CLASS bool __stdcall eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
+
 // for eu_config.c
 EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
 EU_EXT_CLASS bool __stdcall eu_load_config(void);
@@ -677,9 +629,6 @@ EU_EXT_CLASS void eu_on_dark_release(bool shutdown);
 
 // for eu_remotefs.c
 EU_EXT_CLASS void eu_remote_list_release(void);
-
-// for eu_locale.c
-EU_EXT_CLASS bool eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
 
 // for eu_util.c
 EU_EXT_CLASS void eu_restore_placement(HWND hwnd);

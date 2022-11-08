@@ -292,6 +292,16 @@ on_sci_free_tab(eu_tabpage **ppnode)
         {
             DestroyWindow(hwnd_document_map);
         }
+        if ((*ppnode)->pmod && (*ppnode)->plugin)
+        {
+            printf("we run np_plugins_destroy\n");
+            if ((*ppnode)->hwnd_sc)
+            {
+                SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            }
+            np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
+            np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
+        }
         // 切换16进制时,销毁相关资源
         if (!(*ppnode)->phex)
         {

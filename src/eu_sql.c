@@ -251,7 +251,14 @@ on_sqlite3_session_callback(void *data, int count, char **column, char **names)
     }
     if (_tcslen(filebak.rel_path) > 0)
     {
-        rel = eu_exist_file(filebak.rel_path);
+        if (!url_has_remote(filebak.rel_path))
+        {
+            rel = eu_exist_file(filebak.rel_path);
+        }
+        else
+        {
+            rel = true;
+        }
     }
     if (_tcslen(filebak.bak_path) > 0)
     {

@@ -41,15 +41,6 @@
 
 #define util_prev(p) ((p) - (psrc) > 0 ? (p[-1]) : (0))
 
-typedef struct UTIL_STREAM_DESC_* pt_stream;
-typedef void (*ptr_stream_close)(pt_stream pstream);
-typedef struct  UTIL_STREAM_DESC_
-{
-    size_t               size;
-    uintptr_t            base;
-    ptr_stream_close     close;
-} util_stream;
-
 typedef struct _HANDLE_DATA
 {
     uint32_t pid;
@@ -106,7 +97,7 @@ bool   util_string_to_struct(const char *buffer, void *buf, size_t bufsize);
 bool   util_creater_window(HWND hwnd, HWND hparent);
 bool   util_can_selections(eu_tabpage *pnode);
 bool   util_file_size(HANDLE hfile, uint64_t *psize);
-bool   util_open_file(LPCTSTR path, pt_stream pstream);
+bool   util_open_file(LPCTSTR path, pf_stream pstream);
 bool   util_exist_libcurl(void);
 time_t util_last_time(const TCHAR *path);
 uint64_t util_gen_tstamp(void);

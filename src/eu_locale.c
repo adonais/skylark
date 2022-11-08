@@ -129,7 +129,7 @@ get_locale_file(TCHAR *path, int len)
     return ret;
 }
 
-bool
+bool WINAPI
 eu_i18n_load_str(uint16_t id, TCHAR *str, int len)
 {
     bool ret = true;

@@ -12,6 +12,7 @@ all:
     @if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
     cd "$(MAKEDIR)\src"
     @$(MAKE) /NOLOGO /$(MAKEFLAGS)
+    @if exist "$(MAKEDIR)\plugins\pdfview\Makefile" cd "$(MAKEDIR)\plugins\pdfview" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
     cd "$(MAKEDIR)\locales"
     @$(MAKE) /NOLOGO /$(MAKEFLAGS)
     cd "$(MAKEDIR)"
@@ -52,6 +53,7 @@ clean:
     @if exist "$(MAKEDIR)\src\3rdparty\qrencode\Makefile" cd "$(MAKEDIR)\src\3rdparty\qrencode" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
     @if exist "$(MAKEDIR)\src\3rdparty\boost\Makefile" cd "$(MAKEDIR)\src\3rdparty\boost" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
     @if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+    @if exist "$(MAKEDIR)\plugins\pdfview\Makefile" cd "$(MAKEDIR)\plugins\pdfview" && $(MAKE)  /NOLOGO /$(MAKEFLAGS) clean
     cd "$(MAKEDIR)\src"
     @$(MAKE) /NOLOGO /$(MAKEFLAGS) clean
     cd "$(MAKEDIR)\locales"
@@ -59,5 +61,6 @@ clean:
     cd "$(MAKEDIR)"
     -del /q /f /s *~ 2>nul
     -del /f *.7z 2>nul
+    -rmdir /q /s Release .dep 2>nul
     -rd /s/q skylark_x64 2>nul
     -rd /s/q skylark_x86 2>nul

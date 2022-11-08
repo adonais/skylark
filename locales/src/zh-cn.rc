@@ -956,6 +956,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_ATTACH_FAIL1    "连接远程文件服务器失败, 无效的私钥或者私钥口令错误"
     IDC_MSG_ATTACH_FAIL2    "连接远程文件服务器失败, 用户名或密码错误"
     IDC_MSG_ATTACH_FAIL3    "初始化libcurl错误, 可能没找到函数入口"
+    IDC_MSG_ATTACH_ERRORS   "链接错误, 原因: %s"
     IDC_MSG_OPENSSL_FAIL    "初始化libopenssl错误, 可能没找到函数入口"
     IDC_MSG_ATTACH_SUCCESS  "连接远程文件服务器成功"
     IDC_MSG_DIR_HOME        "/HOME(用户目录)"
@@ -1167,7 +1168,7 @@ STRINGTABLE DISCARDABLE
     IDS_SNIPPETS_STR        "☑代码片段补全模式"
     IDS_TABPAGE_CLOSE_NUM   "关闭 %d 个标签页(&C)"
     IDS_BUTTON_RW_TIPS      "文件没有写权限, 不能改变其读写属性. 你可能需要\n以管理员权限重启编辑器"
-    IDS_PLUGINS_MSG1        "SumatraPDF 正在打开文档 ..."
+    IDS_PLUGINS_MSG1        "正在用SumatraPDF打开文件..."
 }
 
 /////////////////////////////////////////////////////////////////////////////

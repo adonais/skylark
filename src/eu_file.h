@@ -78,6 +78,8 @@ int on_file_right_close(void);
 int on_file_exclude_close(eu_tabpage *pnode);
 int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
 int on_file_redirect(HWND hwnd, file_backup *pm);
+int on_file_stream_upload(eu_tabpage *pnode, TCHAR *pmsg);
+void on_file_update_time(eu_tabpage *pnode, time_t m);
 void on_file_backup_menu(void);
 void on_file_session_menu(void);
 void on_file_new_eols(eu_tabpage *pnode, const int new_eol);

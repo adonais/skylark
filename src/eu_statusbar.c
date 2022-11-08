@@ -43,7 +43,7 @@ char iconv_undo_str[ACNAME_LEN] = {0};
 static void
 on_statusbar_btn(eu_tabpage *pnode, bool only_read)
 {
-    if (pnode)
+    if (pnode && !pnode->pmod)
     {
         if (!only_read)
         {
@@ -766,7 +766,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
         }    
         else
         {
-            _sntprintf(file_size, FILESIZE, s_lc, nsize);
+            _sntprintf(file_size, FILESIZE, s_lc, pnode->pmod ? (sptr_t)pnode->raw_size : nsize);
         }
     }
     if (*file_size)

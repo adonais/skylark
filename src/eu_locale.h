@@ -30,43 +30,43 @@
     TCHAR var[MAX_PATH] = {0};                                 \
     eu_i18n_load_str(tid, var, MAX_PATH);
 
-#define MSG_BOX(tid, cid, mb)                                  \
-    do                                                         \
-    {                                                          \
-        TCHAR text[MAX_LOADSTRING] = {0};                      \
-        TCHAR cap[MAX_LOADSTRING] = {0};                       \
-        eu_i18n_load_str(tid, text, 0);                        \
-        eu_i18n_load_str(cid, cap, 0);                         \
-        eu_msgbox(eu_module_hwnd(), text, cap, mb);            \
+#define MSG_BOX(tid, cid, mb)                                   \
+    do                                                          \
+    {                                                           \
+        TCHAR _txt[MAX_LOADSTRING] = {0};                       \
+        TCHAR _cap[MAX_LOADSTRING] = {0};                       \
+        eu_i18n_load_str(tid, _txt, 0);                         \
+        eu_i18n_load_str(cid, _cap, 0);                         \
+        eu_msgbox(eu_module_hwnd(), _txt, _cap, mb);            \
     } while (0)
 
-#define MSG_BOX_ERR(tid, cid, mb)                              \
-    do                                                         \
-    {                                                          \
-        TCHAR txt[MAX_LOADSTRING+1] = {0};                     \
-        LOAD_I18N_RESSTR(cid, cap);                            \
-        LOAD_I18N_RESSTR(tid, msg);                            \
-        _sntprintf(txt, MAX_LOADSTRING, msg, _tcserror(errno));\
-        eu_msgbox(eu_module_hwnd(), txt, cap, mb);             \
+#define MSG_BOX_ERR(tid, cid, mb)                                \
+    do                                                           \
+    {                                                            \
+        TCHAR _txt[MAX_LOADSTRING+1] = {0};                      \
+        LOAD_I18N_RESSTR(cid, _cap);                             \
+        LOAD_I18N_RESSTR(tid, _msg);                             \
+        _sntprintf(_txt, MAX_LOADSTRING, _msg, _tcserror(errno));\
+        eu_msgbox(eu_module_hwnd(), _txt, _cap, mb);             \
     } while (0)
 
-#define MSG_BOX_SEL(tid, cid, mb, var)                         \
-    do                                                         \
-    {                                                          \
-        LOAD_I18N_RESSTR(cid, cap);                            \
-        TCHAR txt[MAX_PATH+1] = {0};                           \
-        LoadString(g_skylark_lang, tid, txt, MAX_PATH);        \
-        var = eu_msgbox(eu_module_hwnd(), txt, cap, mb);       \
+#define MSG_BOX_SEL(tid, cid, mb, var)                           \
+    do                                                           \
+    {                                                            \
+        LOAD_I18N_RESSTR(cid, _cap);                             \
+        TCHAR _txt[MAX_PATH+1] = {0};                            \
+        LoadString(g_skylark_lang, tid, _txt, MAX_PATH);         \
+        var = eu_msgbox(eu_module_hwnd(), _txt, _cap, mb);       \
     } while (0)
 
-#define print_err_msg(fmt, str)                                      \
-    do                                                               \
-    {                                                                \
-        TCHAR txt[MAX_LOADSTRING + 1] = {0};                         \
-        LOAD_I18N_RESSTR(IDC_MSG_ERROR, cap);                        \
-        LOAD_I18N_RESSTR(fmt, msg);                                  \
-        _sntprintf(txt, MAX_LOADSTRING, msg, str);                   \
-        eu_msgbox(eu_module_hwnd(), txt, cap, MB_ICONERROR | MB_OK); \
+#define print_err_msg(fmt, str)                                        \
+    do                                                                 \
+    {                                                                  \
+        TCHAR _txt[MAX_LOADSTRING + 1] = {0};                          \
+        LOAD_I18N_RESSTR(IDC_MSG_ERROR, _cap);                         \
+        LOAD_I18N_RESSTR(fmt, _msg);                                   \
+        _sntprintf(_txt, MAX_LOADSTRING, _msg, str);                   \
+        eu_msgbox(eu_module_hwnd(), _txt, _cap, MB_ICONERROR | MB_OK); \
     } while (0)
 
 typedef struct _def_localization

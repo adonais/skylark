@@ -990,6 +990,12 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     return pi.hProcess;
 }
 
+bool WINAPI
+eu_open_file(LPCTSTR path, pf_stream pstream)
+{
+    return util_open_file(path, pstream);
+}
+
 char *
 eu_strcasestr(const char *haystack, const char *needle)
 {
@@ -1504,17 +1510,17 @@ eu_accel_ptr(ACCEL *accel)
     return (g_accel->accel_num>0);
 }
 
-struct eu_config *eu_get_config(void)
+struct eu_config *WINAPI eu_get_config(void)
 {
     return g_config;
 }
 
-struct eu_theme *eu_get_theme(void)
+struct eu_theme *WINAPI eu_get_theme(void)
 {
     return g_theme;
 }
 
-eue_accel *eu_get_accel(void)
+eue_accel *WINAPI eu_get_accel(void)
 {
     return g_accel;
 }

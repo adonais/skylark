@@ -978,20 +978,24 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_FILE_SAVEAS, 2);
             on_toolbar_setup_button(IDM_FILE_CLOSE, 2);
             on_toolbar_setup_button(IDM_FILE_PRINT, 2);
-            on_toolbar_setup_button(IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_FIND, 2);
-            on_toolbar_setup_button(IDM_SEARCH_FINDPREV, 2);
-            on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, 2);
-            on_toolbar_setup_button(IDM_EDIT_UNDO, eu_sci_call(pnode,SCI_CANUNDO, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_EDIT_REDO, eu_sci_call(pnode,SCI_CANREDO, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->hex_mode?2:1);
+            on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_PASTE, !pnode->pmod && eu_sci_call(pnode,SCI_CANPASTE, 0, 0)?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_FIND, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_SEARCH_FINDPREV, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && eu_sci_call(pnode,SCI_CANUNDO, 0, 0)?2:1);
+            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && eu_sci_call(pnode,SCI_CANREDO, 0, 0)?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
             on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage!=IDM_OTHER_BIN)&& TAB_NOT_NUL(pnode)?2:1);
             on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl()?2:1);
+            on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_VIEW_ZOOMIN, !pnode->pmod ? 2 : 1);
         }
     }
 }

@@ -1662,7 +1662,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
 }
 
 static void
-util_close_stream_by_free(pt_stream pstream)
+util_close_stream_by_free(pf_stream pstream)
 {
     if (pstream && pstream->base)
     {
@@ -1673,7 +1673,7 @@ util_close_stream_by_free(pt_stream pstream)
 }
 
 static void
-util_close_stream_by_munmap(pt_stream pstream)
+util_close_stream_by_munmap(pf_stream pstream)
 {
     if (pstream && pstream->base)
     {
@@ -1684,7 +1684,7 @@ util_close_stream_by_munmap(pt_stream pstream)
 }
 
 bool
-util_open_file(LPCTSTR path, pt_stream pstream)
+util_open_file(LPCTSTR path, pf_stream pstream)
 {
     bool ret = false;
     HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);

@@ -846,7 +846,7 @@ if (not eu_core.file_exists(user_file)) then
     "      {\n",
     "          e.DOCTYPE_XML,\n",
     "          ffi_null,\n",
-    "          \";*.xml;*.xsl;*.svg;*.xul;*.xsd;*.dtd;*.xslt;*.axl;*.xrc;*.rdf;*.manifest;*.vcproj;*.vcxproj;*.filters;\",\n",
+    "          \";*.xml;*.xsl;*.svg;*.xul;*.xsd;*.dtd;*.xslt;*.axl;*.xrc;*.rdf;*.manifest;*.vcproj;*.vcxproj;*.filters;*.fb2;\",\n",
     "          \"XML\",\n",
     "          \"xml.snippets\",\n",
     "          0,\n",

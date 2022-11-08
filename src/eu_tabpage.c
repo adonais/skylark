@@ -1318,9 +1318,11 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
-    tci.pszText = pnode->filename;
-    tci.lParam = (LPARAM) pnode;
-    pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
+    {
+        tci.pszText = pnode->filename;
+        tci.lParam = (LPARAM) pnode;
+        pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);        
+    }
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
         printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
@@ -1329,6 +1331,12 @@ on_tabpage_add(eu_tabpage *pnode)
     if (!pnode->is_blank)
     {
         pnode->tab_id -= on_tabpage_remove_empty();
+    }
+    if (np_plugins_lookup(NPP_PDFVIEW, pnode->extname, &pnode->pmod))
+    {
+        const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
+        printf("we execute plugins\n");
+        return on_sci_create(pnode, NULL, flags, NULL);
     }
     if (pnode->fs_server.networkaddr[0] == 0 && pnode->hex_mode)
     {

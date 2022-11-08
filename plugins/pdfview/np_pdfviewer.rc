@@ -1,0 +1,36 @@
+#ifndef _PDF_RES_INVOKED_
+#define _PDF_RES_INVOKED_
+
+#ifndef _MAC
+
+// Version
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,100
+PRODUCTVERSION  1,0,0,100
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    //language ID = U.S. English, char set = Windows, Multilingual
+    BEGIN
+      VALUE "CompanyName", "ZH_CN NetWork"
+      VALUE "FileDescription", "Skylark Edit Plugin"
+      VALUE "FileVersion", "1.0.0"
+      VALUE "InternalName", "np_pdfviewer\0"
+      VALUE "LegalCopyright", "License: GPL v3"
+      VALUE "OriginalFilename", "np_pdfviewer.dll"
+      VALUE "ProductName", "np_pdfviewer.dll"
+      VALUE "ProductVersion", "1.0.0"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1252
+  END
+END
+
+#endif    // !_MAC
+
+#endif    // _PDF_RES_INVOKED_

@@ -957,6 +957,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_ATTACH_FAIL1    "Failed to connect to remote file server, wrong passphrase or invalid private file"
     IDC_MSG_ATTACH_FAIL2    "Failed to connect to remote file server, wrong user name or password"
     IDC_MSG_ATTACH_FAIL3    "Error initializing libcurl, function entry may not be found"
+    IDC_MSG_ATTACH_ERRORS   "Connection error: %s"
     IDC_MSG_ATTACH_SUCCESS  "Successful connection to remote file server"
     IDC_MSG_OPENSSL_FAIL    "Error initializing libopenssl, function entry may not be found"
     IDC_MSG_DIR_HOME        "/HOME(user folder)"

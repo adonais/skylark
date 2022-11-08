@@ -535,6 +535,89 @@ eu_before_proc(MSG *p_msg)
     return 0;
 }
 
+static void
+on_proc_save_status(npn_nmhdr *lpnmhdr)
+{
+    eu_tabpage *pnode = NULL;
+    if (!lpnmhdr)
+    {
+        return;
+    }
+    if (lpnmhdr->pnode)
+    {
+        pnode = (eu_tabpage *)lpnmhdr->pnode;
+    }
+    else
+    {
+        pnode = on_tabpage_focus_at();
+    }
+    if (!pnode)
+    {
+        return;
+    }
+    if (lpnmhdr->nm.idFrom)
+    {
+        pnode->be_modify = true;
+        printf("skylark: doc has been modified\n");
+    }
+    else if (pnode->plugin && pnode->be_modify)
+    {
+        bool remote = false;
+        wchar_t *tmp_path = NULL;
+        wchar_t *full_path = NULL;
+        pnode->be_modify = false;
+        printf("skylark: doc has been saved\n");
+        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&full_path) && STR_NOT_NUL(full_path))
+        {
+            if (url_has_remote(pnode->pathfile))
+            {
+                if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TMPNAME, (void **)&tmp_path))
+                {
+                    remote = true;
+                }
+            }
+            if (wcscmp(full_path, remote ? tmp_path : pnode->pathfile))
+            {
+                wcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
+                _wsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
+                if (wcslen(pnode->extname) > 0)
+                {
+                    wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+                }
+                util_set_title(pnode->pathfile);
+                printf("skylark: doc has been changed\n");
+            }
+            else if (remote)
+            {   // 传送修改到远程服务器
+                pf_stream pstream = NULL;
+                if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_STREAM, (void **)&pstream) && pstream)
+                {
+                    memset(full_path, 0, 260);
+                    pnode->write_buffer = (uint8_t *)pstream->base;
+                    pnode->bytes_remaining = pstream->size;
+                    if (on_file_stream_upload(pnode, full_path) != SKYLARK_OK)
+                    {
+                        print_err_msg(IDC_MSG_ATTACH_ERRORS, full_path);
+                        pnode->st_mtime = 0;
+                    }
+                    else
+                    {
+                        on_file_update_time(pnode, time(NULL));
+                    }
+                    pstream->close(pstream);
+                    eu_safe_free(pstream);
+                    pnode->write_buffer = NULL;
+                    pnode->bytes_remaining = 0;
+                }
+            }                        
+            eu_safe_free(tmp_path);
+            eu_safe_free(full_path);
+        }
+    }
+    on_toolbar_update_button();
+    InvalidateRect(g_tabpages, NULL, false);
+}
+
 LRESULT CALLBACK
 eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1660,6 +1743,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             _sntprintf(p_tips->szText, _countof(p_tips->szText) - 1, _T("%.68s"), pnode->pathfile);
                         }
                     }
+                    break;
+                }
+                case NPP_DOC_MODIFY:
+                {
+                    printf("we recv NPP_DOC_MODIFY\n");
+                    on_proc_save_status((npn_nmhdr *)lParam);
                     break;
                 }
                 default:
