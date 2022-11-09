@@ -21,14 +21,13 @@
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
 bool WINAPI
-eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
+eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
 {
     bool ret = false;
-    int arg_c = argc;
     LPWSTR *ptr_arg = NULL;
     if (args)
     {
-        ptr_arg = args;
+        ptr_arg = (LPWSTR *)args;
     }
     else
     {
@@ -95,13 +94,12 @@ eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
 }
 
 void WINAPI
-eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
+eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
 {
-    int arg_c = argc;
     LPWSTR *ptr_arg = NULL;
     if (args)
     {
-        ptr_arg = args;
+        ptr_arg = (LPWSTR *)args;
     }
     else
     {

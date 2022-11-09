@@ -294,7 +294,6 @@ on_sci_free_tab(eu_tabpage **ppnode)
         }
         if ((*ppnode)->pmod && (*ppnode)->plugin)
         {
-            printf("we run np_plugins_destroy\n");
             if ((*ppnode)->hwnd_sc)
             {
                 SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);

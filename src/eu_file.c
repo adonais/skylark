@@ -683,6 +683,7 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
         else
         {
             pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
+            
             sptr_t line_end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, pbak->x > 0 ? pbak->x - 1 : 0, 0);
             pos += (pbak->y > 0 ? pbak->y - 1 : 0);
             if (pos > line_end_pos)
@@ -795,7 +796,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
     else if (res >= SKYLARK_OK && (pnode = on_tabpage_get_ptr(res)))
     {   // 如果文件已经打开, 根据新参数更新插入符位置
         on_file_update_postion(pnode, pbak);
-        if (pnode->nc_pos > 0)
+        if (pnode->nc_pos >= 0)
         {
             on_search_jmp_pos(pnode);
         }
@@ -1178,7 +1179,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     else if (reuslt >= SKYLARK_OK && (pnode = on_tabpage_get_ptr(reuslt)))
     {   // 如果文件已经打开, 根据新参数更新插入符位置
         on_file_update_postion(pnode, pbak);
-        if (pnode->nc_pos > 0)
+        if (pnode->nc_pos >= 0)
         {
             on_search_jmp_pos(pnode);
         }

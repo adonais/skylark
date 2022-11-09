@@ -1747,7 +1747,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case NPP_DOC_MODIFY:
                 {
-                    printf("we recv NPP_DOC_MODIFY\n");
                     on_proc_save_status((npn_nmhdr *)lParam);
                     break;
                 }

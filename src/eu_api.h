@@ -611,8 +611,8 @@ EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
 EU_EXT_CLASS bool __stdcall eu_load_config(void);
 EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
-EU_EXT_CLASS void __stdcall eu_postion_setup(wchar_t **args, int argc, file_backup *pbak);
-EU_EXT_CLASS bool __stdcall eu_config_parser_path(wchar_t **args, int argc, wchar_t *path);
+EU_EXT_CLASS void __stdcall eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
+EU_EXT_CLASS bool __stdcall eu_config_parser_path(const wchar_t **args, int argc, wchar_t *path);
 
 // for eu_script.c
 EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
