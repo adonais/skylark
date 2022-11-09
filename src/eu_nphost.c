@@ -122,6 +122,16 @@ np_plugins_getvalue(const npp_funcs *pfunc, const NPP instance, npp_variable v, 
 }
 
 int
+np_plugins_setvalue(const npp_funcs *pfunc, const NPP instance, npp_variable v, void *value)
+{
+    if (pfunc && pfunc->setvalue)
+    {
+        return pfunc->setvalue(instance, v, value);
+    }
+    return NP_GENERIC_ERROR;
+}
+
+int
 np_plugins_destroy(const npp_funcs *pfunc, const NPP instance, nppsave **data)
 {
     if (pfunc && pfunc->destroy)

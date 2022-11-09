@@ -156,7 +156,7 @@ $(OBJD)\eu_hex.obj                         : eu_hex.c eu_hex.h framework.h
 $(OBJD)\eu_scintilla.obj                   : eu_scintilla.c eu_scintilla.h framework.h
 $(OBJD)\eu_encoding.obj                    : eu_encoding.c eu_encoding.h framework.h
 $(OBJD)\eu_registry.obj                    : eu_registry.c eu_registry.h framework.h
-$(OBJD)\eu_file.obj                        : eu_file.c eu_file.h eu_nphost.h framework.h
+$(OBJD)\eu_file.obj                        : eu_file.c eu_file.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_treebar.obj                     : eu_treebar.c eu_treebar.h framework.h eu_list.h
 $(OBJD)\eu_resultctl.obj                   : eu_resultctl.c eu_resultctl.h framework.h
 $(OBJD)\eu_tablectl.obj                    : eu_tablectl.c eu_tablectl.h framework.h
@@ -168,10 +168,10 @@ $(OBJD)\eu_theme_dark.obj                  : eu_theme_dark.c eu_theme_dark.h fra
 $(OBJD)\eu_theme_menu.obj                  : eu_theme_menu.c eu_theme_menu.h framework.h
 $(OBJD)\eu_symlistctl.obj                  : eu_symlistctl.c eu_symlistctl.h framework.h eu_list.h
 $(OBJD)\eu_symtreectl.obj                  : eu_symtreectl.c eu_symtreectl.h framework.h eu_list.h
-$(OBJD)\eu_tabpage.obj                     : eu_tabpage.c eu_tabpage.h eu_nphost.h framework.h
+$(OBJD)\eu_tabpage.obj                     : eu_tabpage.c eu_tabpage.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_util.obj                        : eu_util.c eu_util.h framework.h
 $(OBJD)\eu_view.obj                        : eu_view.c eu_view.h framework.h
-$(OBJD)\eu_proc.obj                        : eu_proc.c eu_proc.h framework.h
+$(OBJD)\eu_proc.obj                        : eu_proc.c eu_proc.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_menu.obj                        : eu_menu.c eu_menu.h framework.h
 $(OBJD)\eu_config.obj                      : eu_config.c eu_config.h framework.h
 $(OBJD)\eu_input.obj                       : eu_input.c eu_input.h framework.h
@@ -188,7 +188,7 @@ $(OBJD)\eu_statusbar.obj                   : eu_statusbar.c eu_statusbar.h frame
 $(OBJD)\eu_about.obj                       : eu_about.c eu_about.h framework.h skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\locales\src\*
 $(OBJD)\eu_qrgen.obj                       : eu_qrgen.c eu_qrgen.h framework.h
 $(OBJD)\eu_json.obj                        : eu_json.c eu_json.h framework.h
-$(OBJD)\eu_print.obj                       : eu_print.c eu_print.h framework.h
+$(OBJD)\eu_print.obj                       : eu_print.c eu_print.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_locale.obj                      : eu_locale.c eu_locale.h framework.h
 $(OBJD)\eu_format.obj                      : eu_format.c eu_format.h framework.h
 $(OBJD)\eu_splitter.obj                    : eu_splitter.c eu_splitter.h framework.h

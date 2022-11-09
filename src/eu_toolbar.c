@@ -233,7 +233,7 @@ static void
 clip_lock(uint32_t nid)
 {
     int i = nid - IDC_CHECK0;
-    m_block[i] = !m_block[i];
+    m_block[i]  ^= true;
     if (m_block[i])
     {
         ++m_locked;

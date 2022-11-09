@@ -2038,19 +2038,19 @@ on_file_edit_restart(HWND hwnd)
 void
 on_file_backup_menu(void)
 {
-    eu_get_config()->m_write_copy = !eu_get_config()->m_write_copy;
+    eu_get_config()->m_write_copy ^= true;
 }
 
 void
 on_file_session_menu(void)
 {
-    eu_get_config()->m_session = !eu_get_config()->m_session;
+    eu_get_config()->m_session ^= true;
 }
 
 void
 on_file_close_last_tab(void)
 {
-    eu_get_config()->m_exit = !eu_get_config()->m_exit;
+    eu_get_config()->m_exit ^= true;
 }
 
 void

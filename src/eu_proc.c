@@ -1333,7 +1333,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_indent_visiable();
                     break;
                 case IDM_VIEW_TIPS_ONTAB:
-                    eu_get_config()->m_tab_tip = !eu_get_config()->m_tab_tip;
+                    eu_get_config()->m_tab_tip ^= true;
                     break;
                 case IDM_VIEW_LEFT_TAB:
                 case IDM_VIEW_RIGHT_TAB:
@@ -1468,19 +1468,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 case IDM_VIEW_MENUBAR:
-                    eu_get_config()->m_menubar = !eu_get_config()->m_menubar;
+                    eu_get_config()->m_menubar ^= true;
                     eu_get_config()->m_menubar?(GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK))):SetMenu(hwnd, NULL);
                     on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_TOOLBAR:
-                    eu_get_config()->m_toolbar = !eu_get_config()->m_toolbar;
+                    eu_get_config()->m_toolbar ^= true;
                     on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_STATUSBAR:
                 {
                     if (eu_get_config() && !(eu_get_config()->m_fullscreen))
                     {
-                        eu_get_config()->m_statusbar = !eu_get_config()->m_statusbar;
+                        eu_get_config()->m_statusbar ^= true;
                         on_proc_msg_size(hwnd, NULL);
                     }
                     break;

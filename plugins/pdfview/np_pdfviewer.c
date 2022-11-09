@@ -37,6 +37,9 @@
 #ifndef IDM_TITLE_PLUGIN
 #define IDM_TITLE_PLUGIN 1224
 #endif
+#ifndef IDM_THEME_PLUGIN
+#define IDM_THEME_PLUGIN 1225
+#endif
 #ifndef VALUE_LEN
 #define VALUE_LEN 4096
 #endif
@@ -61,23 +64,23 @@ typedef struct _instance_data
     bool        istmp;
 } instance_data;
 
-typedef struct _np_rect
-{
-    int x, y;
-    int dx, dy;
-}np_rect;
-
 typedef struct _double_buffer
 {
-    void (*init)(struct _double_buffer *_this, HWND hwnd, np_rect rect);
+    void (*init)(struct _double_buffer *_this, HWND hwnd, npn_rect rect);
     HWND hwnd_target;
     HDC hdc_canvas, hdc_buffer;
     HBITMAP hdb;
-    np_rect rc;
+    npn_rect rc;
     void (*destroy)(struct _double_buffer *_this);
     HDC (*getdc)(struct _double_buffer *_this);
     void (*flush)(struct _double_buffer *_this, HDC hdc);
 } double_buffer;
+
+typedef struct _instance_theme
+{
+    COLORREF fg;
+    COLORREF bg;
+} instance_theme;
 
 #define COL_WINDOW_BG RGB(0xcc, 0xcc, 0xcc)
 
@@ -173,7 +176,7 @@ pdf_openfile(const wchar_t *path, pf_stream pstream)
     return false;
 }
 
-static np_theme
+static npn_theme
 pdf_get_theme(void)
 {
     HMODULE hmodule = GetModuleHandleW(L"euapi.dll");
@@ -303,7 +306,7 @@ pdf_destroy_hdc(double_buffer *_this)
 }
 
 static void
-pdf_init_hdc(double_buffer *_this, HWND hwnd, np_rect rect)
+pdf_init_hdc(double_buffer *_this, HWND hwnd, npn_rect rect)
 {
     _this->hwnd_target = hwnd;
     _this->rc = rect;
@@ -397,44 +400,15 @@ pdf_create_font(HDC hdc, const WCHAR *name, int size)
     return CreateFontIndirect(&lf);
 }
 
-static bool
-np_client_rect(HWND hwnd, np_rect *prect) 
-{
-    RECT rc;
-    if (prect && GetClientRect(hwnd, &rc))
-    {
-        prect->x = rc.left;
-        prect->y = rc.top;
-        prect->dx = rc.right - rc.left;
-        prect->dy = rc.bottom - rc.top;
-        return true;
-    }
-    return false;
-}
-
-static bool
-to_rect(np_rect *prc, RECT *rect)
-{
-    if (prc && rect)
-    {
-        rect->left = prc->x;
-        rect->top = prc->y;
-        rect->right = prc->x + prc->dx;
-        rect->bottom = prc->y + prc->dy;
-        return true;
-    }
-    return false;
-}
-
 static void 
-to_offset(np_rect *prc, int _x, int _y) 
+to_offset(npn_rect *prc, int _x, int _y) 
 {
     prc->x += _x;
     prc->y += _y;
 }
 
 static void 
-to_inflate(np_rect *prc, int _x, int _y)
+to_inflate(npn_rect *prc, int _x, int _y)
 {
     prc->x -= _x; 
     prc->dx += 2 * _x;
@@ -443,10 +417,10 @@ to_inflate(np_rect *prc, int _x, int _y)
 }
 
 static void 
-pdf_draw_text(HDC hdc, np_rect *prc, const WCHAR *txt, bool rtl)
+pdf_draw_text(HDC hdc, npn_rect *prc, const WCHAR *txt, bool rtl)
 {
     RECT tmp;
-    if (prc && to_rect(prc, &tmp))
+    if (prc && npn_to_rect(prc, &tmp))
     {
         SetBkMode(hdc, TRANSPARENT);
         DrawText(hdc, txt, -1, &tmp, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | (rtl ? DT_RTLREADING : 0));
@@ -471,8 +445,8 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         HFONT hfont = pdf_create_font(hdc, L"MS Shell Dlg", 14);
         
         // set up double buffering
-        np_rect rc_client;
-        np_client_rect(hwnd, &rc_client);
+        npn_rect rc_client;
+        npn_client_rect(hwnd, &rc_client);
         
         double_buffer buffer = {pdf_init_hdc};
         buffer.init(&buffer, hwnd, rc_client);
@@ -480,7 +454,7 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         
         // display message centered in the window
         RECT rc;
-        to_rect(&rc_client, &rc);
+        npn_to_rect(&rc_client, &rc);
         FillRect(hdc_buffer, &rc, brush_bg);
         hfont = (HFONT)SelectObject(hdc_buffer, hfont);
         SetTextColor(hdc_buffer, RGB(0, 0, 0));
@@ -491,18 +465,18 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         if (0 < data->progress && data->progress <= 1)
         {
             SIZE msgSize;
-            np_rect rc_progress = rc_client;
+            npn_rect rc_progress = rc_client;
             
             HBRUSH brush_progress = CreateSolidBrush(RGB(0x80, 0x80, 0xff));
             GetTextExtentPoint32(hdc_buffer, data->message, (int)wcslen(data->message), &msgSize);
             to_inflate(&rc_progress, -(rc_progress.dx - msgSize.cx) / 2, -(rc_progress.dy - msgSize.cy) / 2 + 2);
             to_offset(&rc_progress,0, msgSize.cy + 4 + 2);
             RECT rect_progress;
-            to_rect(&rc_progress, &rect_progress);
+            npn_to_rect(&rc_progress, &rect_progress);
             FillRect(hdc_buffer, &rect_progress, (HBRUSH)GetStockObject(WHITE_BRUSH));
-            np_rect all_progress = rc_progress;
+            npn_rect all_progress = rc_progress;
             rc_progress.dx = (int)(data->progress * rc_progress.dx);
-            to_rect(&rc_progress, &rect_progress);
+            npn_to_rect(&rc_progress, &rect_progress);
             FillRect(hdc_buffer, &rect_progress, brush_progress);
             DeleteObject(brush_progress);
             
@@ -783,7 +757,7 @@ launch_sumatra(instance_data *data, const char *url_utf8)
             {
                 uint32_t fg = pdf_get_theme()->item.text.color;
                 uint32_t bg = pdf_get_theme()->item.text.bgcolor;
-                _snwprintf(cmd_line, VALUE_LEN + MAX_PATH - 1, L"\"%s\" -plugin \"%s\" %zd \"%s\" -bgcolor #%x -set-color-range #%x #%x",
+                _snwprintf(cmd_line, VALUE_LEN + MAX_PATH - 1, L"\"%s\" -plugin \"%s\" %zd \"%s\" -bgcolor #%08x -set-color-range #%08x #%08x",
                            data->exepath, url, data->npwin ? (intptr_t)data->npwin->window : (intptr_t)0, data->filepath, bg, fg, bg);
             }
             else
@@ -990,6 +964,42 @@ pdf_getvalue(NPP instance, npp_variable variable, void **value)
     return ret;
 }
 
+static int
+pdf_setvalue(NPP instance, npp_variable variable, void *value)
+{
+    int ret = NP_GENERIC_ERROR;
+    if (instance)
+    {
+        (void *)value;
+        instance_data *data = (instance_data *)instance->pdata;
+        if (data && data->npwin && data->hprocess)
+        {
+            HWND hwnd = (HWND)data->npwin->window;
+            HWND hchild = hwnd ? FindWindowEx(hwnd, NULL, NULL, NULL) : NULL;
+            if (variable == NV_THEME && hchild && pdf_get_theme())
+            {             
+                instance_theme theme = {0};
+                size_t bytes_value = sizeof(instance_theme);
+                theme.fg = pdf_get_theme()->item.text.color;
+                theme.bg = pdf_get_theme()->item.text.bgcolor;
+                void *remote_ptr = VirtualAllocEx(data->hprocess, 0, bytes_value, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                if (remote_ptr)
+                {
+                    size_t bytes_written = 0;
+                    bool w = WriteProcessMemory(data->hprocess, remote_ptr, (void *)&theme, bytes_value, &bytes_written);
+                    if (w)
+                    {
+                        SendMessage(hchild, WM_COMMAND, IDM_THEME_PLUGIN, (LPARAM)remote_ptr);
+                        ret = NP_NO_ERROR;
+                    }
+                    VirtualFreeEx(data->hprocess, remote_ptr, 0, MEM_RELEASE);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
 // NPP回调函数准备
 NPP_EXPORT int
 npp_entry(npp_funcs *pfunc)
@@ -1008,6 +1018,7 @@ npp_entry(npp_funcs *pfunc)
         pfunc->savefile = pdf_savefile;
         pfunc->savefileas = pdf_savefileas;
         pfunc->getvalue = pdf_getvalue;
+        pfunc->setvalue = pdf_setvalue;
         pfunc->print = pdf_print;
         pfunc->event = pdf_event;
         return NP_NO_ERROR;

@@ -77,6 +77,7 @@ typedef enum
     NV_TABTITLE = 1,
     NV_TMPNAME,
     NV_STREAM,
+    NV_THEME,
     NV_OBJETCT
 } npp_variable;
 
@@ -221,6 +222,7 @@ typedef int (*npp_newstream_ptr)(NPP instance, npstream* stream, bool seekable, 
 typedef int (*npp_destroystream_ptr)(NPP instance, npstream* stream, uint16_t reason);
 typedef int (*npp_handle_ptr)(NPP instance, void *event);
 typedef int (*npp_getvalue_ptr)(NPP instance, npp_variable v, void **value);
+typedef int (*npp_setvalue_ptr)(NPP instance, npp_variable v, void *value);
 typedef void (*npp_print_ptr)(NPP instance, npprint *platform);
 typedef void (*npp_stream2file_ptr)(NPP instance, npstream* stream, const char* fname);
 typedef void (*npp_savefile_ptr)(const NPP instance);
@@ -242,6 +244,7 @@ typedef struct _npp_funcs
     npp_savefile_ptr savefile;
     npp_savefileas_ptr savefileas;
     npp_getvalue_ptr getvalue;
+    npp_setvalue_ptr setvalue;
     npp_print_ptr print;
     npp_handle_ptr event;
 } npp_funcs;

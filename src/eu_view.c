@@ -21,7 +21,7 @@
 void
 on_view_filetree(void)
 {
-    eu_get_config()->m_ftree_show = !eu_get_config()->m_ftree_show;
+    eu_get_config()->m_ftree_show ^= true;
     eu_window_resize(NULL);
 }
 
@@ -30,7 +30,7 @@ on_view_symtree(eu_tabpage *pnode)
 {
     if (pnode && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
-        if ((pnode->sym_show = !pnode->sym_show))
+        if ((pnode->sym_show ^= true))
         {
             pnode->map_show = false;
         }
@@ -43,7 +43,7 @@ on_view_document_map(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)
     {
-        if ((pnode->map_show = !pnode->map_show) && on_map_launch())
+        if ((pnode->map_show ^= true) && on_map_launch())
         {
             pnode->sym_show = false;
         }
@@ -171,6 +171,10 @@ on_view_refresh_theme(HWND hwnd)
         if (p->be_modify)
         {
             on_tabpage_editor_modify(p, "X");
+        }
+        if (p->pmod)
+        {
+            np_plugins_setvalue(&p->plugin->funcs, &p->plugin->npp, NV_THEME, NULL);
         }
     }
     if (document_map_initialized && hwnd_document_map)
@@ -337,7 +341,7 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
         MSG_BOX(IDS_USERTAB_TIPS1, IDC_MSG_TIPS, MB_OK);
         return;
     }
-    eu_get_config()->tab2spaces = !eu_get_config()->tab2spaces;
+    eu_get_config()->tab2spaces ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = NULL;
@@ -360,19 +364,19 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
 void
 on_view_light_brace(void)
 {
-    eu_get_config()->eu_brace.matching = !eu_get_config()->eu_brace.matching;
+    eu_get_config()->eu_brace.matching ^= true;
 }
 
 void
 on_view_light_str(void)
 {
-    eu_get_config()->m_light_str = !eu_get_config()->m_light_str;
+    eu_get_config()->m_light_str ^= true;
 }
 
 void
 on_view_light_fold(void)
 {
-    eu_get_config()->light_fold = !eu_get_config()->light_fold;
+    eu_get_config()->light_fold ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -388,7 +392,7 @@ on_view_light_fold(void)
 void
 on_view_wrap_line(void)
 {
-    eu_get_config()->line_mode = !eu_get_config()->line_mode;
+    eu_get_config()->line_mode ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -404,7 +408,7 @@ on_view_wrap_line(void)
 void
 on_view_line_num(void)
 {
-    eu_get_config()->m_linenumber = !eu_get_config()->m_linenumber;
+    eu_get_config()->m_linenumber ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -420,7 +424,7 @@ on_view_line_num(void)
 void
 on_view_bookmark(void)
 {
-    eu_get_config()->eu_bookmark.visable = !eu_get_config()->eu_bookmark.visable;
+    eu_get_config()->eu_bookmark.visable ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -451,21 +455,21 @@ on_view_update_fold(void)
 void
 on_view_show_fold_lines(void)
 {
-    eu_get_config()->block_fold = !eu_get_config()->block_fold;
+    eu_get_config()->block_fold ^= true;
     on_view_update_fold();
 }
 
 void
 on_view_identation(void)
 {
-    eu_get_config()->m_ident = !eu_get_config()->m_ident;
+    eu_get_config()->m_ident ^= true;
     on_toolbar_update_button();
 }
 
 void
 on_view_white_space(void)
 {
-    eu_get_config()->ws_visiable = !eu_get_config()->ws_visiable;
+    eu_get_config()->ws_visiable ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -481,7 +485,7 @@ on_view_white_space(void)
 void
 on_view_line_visiable(void)
 {
-    eu_get_config()->newline_visialbe = !eu_get_config()->newline_visialbe;
+    eu_get_config()->newline_visialbe ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -497,7 +501,7 @@ on_view_line_visiable(void)
 void
 on_view_indent_visiable(void)
 {
-    eu_get_config()->m_indentation = !eu_get_config()->m_indentation;
+    eu_get_config()->m_indentation ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
