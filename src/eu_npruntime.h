@@ -181,12 +181,18 @@ struct styletheme
     struct styleclass activetab;
 };
 
+typedef struct _npn_rect
+{
+    int x, y;
+    int dx, dy;
+}npn_rect;
+
 typedef struct eu_theme
 {
     char pathfile[MAX_PATH];
     char name[ACNAME_LEN];
     struct styletheme item;
-} *np_theme;
+} *npn_theme;
 
 typedef struct  _npn_nmhdr
 {
@@ -245,12 +251,41 @@ typedef void (*np_init_ptr)(const NMM hmod);
 typedef void (*np_shutdown_ptr)(void);
 typedef bool (*np_mimetype_ptr)(const wchar_t *name);
 
-typedef bool     (WINAPI *npn_translation_ptr)(uint16_t id, wchar_t *str, int len);
-typedef bool     (WINAPI *npn_openfile_ptr)(const wchar_t *path, pf_stream pstream);
-typedef wchar_t* (WINAPI *npn_utf8_utf16_ptr)(const char *utf8, size_t *out_len);
-typedef wchar_t* (WINAPI *npn_wstr_replace_ptr)(wchar_t* in, size_t in_size, const wchar_t* pattern, const wchar_t* by);
-typedef HANDLE   (WINAPI *npn_new_process_ptr)(const wchar_t* wcmd, const wchar_t* param, const wchar_t* pcd, int flags, uint32_t *o);
-typedef np_theme (WINAPI *npn_theme_ptr)(void);
+typedef bool      (WINAPI *npn_translation_ptr)(uint16_t id, wchar_t *str, int len);
+typedef bool      (WINAPI *npn_openfile_ptr)(const wchar_t *path, pf_stream pstream);
+typedef wchar_t*  (WINAPI *npn_utf8_utf16_ptr)(const char *utf8, size_t *out_len);
+typedef wchar_t*  (WINAPI *npn_wstr_replace_ptr)(wchar_t* in, size_t in_size, const wchar_t* pattern, const wchar_t* by);
+typedef HANDLE    (WINAPI *npn_new_process_ptr)(const wchar_t* wcmd, const wchar_t* param, const wchar_t* pcd, int flags, uint32_t *o);
+typedef npn_theme (WINAPI *npn_theme_ptr)(void);
+
+static bool
+npn_client_rect(HWND hwnd, npn_rect *prect) 
+{
+    RECT rc;
+    if (prect && GetClientRect(hwnd, &rc))
+    {
+        prect->x = rc.left;
+        prect->y = rc.top;
+        prect->dx = rc.right - rc.left;
+        prect->dy = rc.bottom - rc.top;
+        return true;
+    }
+    return false;
+}
+
+static bool
+npn_to_rect(npn_rect *prc, RECT *rect)
+{
+    if (prc && rect)
+    {
+        rect->left = prc->x;
+        rect->top = prc->y;
+        rect->right = prc->x + prc->dx;
+        rect->bottom = prc->y + prc->dy;
+        return true;
+    }
+    return false;
+}
 
 static void
 npn_send_notify(HWND hwnd, uint32_t code, npn_nmhdr *phdr)

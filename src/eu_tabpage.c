@@ -131,6 +131,11 @@ on_tabpage_changing(int index)
         util_set_title(p->pathfile);
         on_toolbar_update_button();
         SendMessage(eu_module_hwnd(), WM_TAB_CLICK, (WPARAM)p, 0);
+        if (p->pmod)
+        {
+            eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top,
+                             p->rect_sc.right - p->rect_sc.left, p->rect_sc.bottom - p->rect_sc.top, SWP_SHOWWINDOW);
+        }
     }
 }
 

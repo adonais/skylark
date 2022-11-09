@@ -557,8 +557,13 @@ on_proc_save_status(npn_nmhdr *lpnmhdr)
     }
     if (lpnmhdr->nm.idFrom)
     {
-        pnode->be_modify = true;
-        printf("skylark: doc has been modified\n");
+        if (!pnode->be_modify)
+        {
+            pnode->be_modify = true;
+            on_toolbar_update_button();
+            InvalidateRect(g_tabpages, NULL, false); 
+        }
+        printf("skylark: doc has been modified\n");   
     }
     else if (pnode->plugin && pnode->be_modify)
     {
@@ -613,9 +618,9 @@ on_proc_save_status(npn_nmhdr *lpnmhdr)
             eu_safe_free(tmp_path);
             eu_safe_free(full_path);
         }
+        on_toolbar_update_button();
+        InvalidateRect(g_tabpages, NULL, false);
     }
-    on_toolbar_update_button();
-    InvalidateRect(g_tabpages, NULL, false);
 }
 
 LRESULT CALLBACK
