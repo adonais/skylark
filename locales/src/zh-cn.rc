@@ -387,6 +387,7 @@ BEGIN
         MENUITEM "复制文件名(包含路径)",                        IDM_EDIT_COPY_PATHFILENAME
         MENUITEM SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_TABPAGE_SAVE
+        MENUITEM "退出全屏(&U)",                                IDM_TABPAGE_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM "发送到BCompare进行比较",                      IDM_EDIT_OTHER_BCOMPARE

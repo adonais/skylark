@@ -684,6 +684,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
         util_enable_menu_item(hpop, IDM_FILE_WORKSPACE, !p->is_blank);
         util_enable_menu_item(hpop, IDM_FILE_EXPLORER, !p->is_blank);
+        util_enable_menu_item(hpop, IDM_TABPAGE_FULLSCREEN, eu_get_config()->m_fullscreen);
     }
 }
 

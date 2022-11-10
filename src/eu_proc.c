@@ -1463,6 +1463,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_about_command();
                     break;
                 case IDM_VIEW_FULLSCREEN:
+                case IDM_TABPAGE_FULLSCREEN:
                 {
                     on_view_full_sreen(hwnd);
                     break;

@@ -387,6 +387,7 @@ BEGIN
         MENUITEM "Copy File Path And Nam",                             IDM_EDIT_COPY_PATHFILENAME
         MENUITEM SEPARATOR
         MENUITEM "&Save",                                              IDM_TABPAGE_SAVE
+        MENUITEM "Quit F&ull Screen",                                  IDM_TABPAGE_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
         MENUITEM "Send To BCompare For Comparison",                    IDM_EDIT_OTHER_BCOMPARE
