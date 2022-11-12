@@ -3053,7 +3053,7 @@ static void
 on_search_at_search_button(int res_id)
 {
     int ret = 0;
-    TCHAR lpch[FT_LEN+1] = { 0 };
+    TCHAR lpch[DW_SIZE+1] = { 0 };
     HWND h_btn = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_START_ENGINE);
     if (h_btn)
     {
@@ -3080,7 +3080,7 @@ on_search_find_all_button(void* lp)
     HWND hwnd_cb = NULL;
     file_trace *pfile = NULL;
     uint8_t *data = NULL;
-    TCHAR filetype[FT_LEN+1] = {0};
+    TCHAR filetype[DW_SIZE+1] = {0};
     TCHAR text[MAX_PATH+1] = {0};
     TCHAR result_str[MAX_PATH+1] = {0};
     uint64_t file_count = 0;
@@ -3090,7 +3090,7 @@ on_search_find_all_button(void* lp)
     bool inpcre = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MODE_REGEXP);
     HWND hwnd_type = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_FY_CBO);
     char *u8_folder = on_search_get_combo_str(IDC_SEARCH_DIR_CBO);
-    ComboBox_GetText(hwnd_type, filetype, FT_LEN);
+    ComboBox_GetText(hwnd_type, filetype, DW_SIZE);
     if (!filetype[0])
     {
         goto res_clean;
@@ -3677,7 +3677,7 @@ void
 on_search_tab2space(eu_tabpage *pnode)
 {
     int flags = SCFIND_REGEXP;
-    char str_replace[ACNAME_LEN] = {0};
+    char str_replace[QW_SIZE] = {0};
     const char *key = "\t";
     int number = 0;
     if (!pnode)
@@ -3700,7 +3700,7 @@ void
 on_search_space2tab(eu_tabpage *pnode)
 {
     int flags = SCFIND_REGEXP;
-    char key[ACNAME_LEN] = {0};
+    char key[QW_SIZE] = {0};
     const char *str_replace = "\t";
     int number = 0;
     if (!pnode)

@@ -32,7 +32,7 @@ enum htmlblock
     HTML_TEXT_BLOCK_SGML
 };
 
-char eols_undo_str[ACNAME_LEN] = {0};
+char eols_undo_str[QW_SIZE] = {0};
 
 void
 on_edit_undo(eu_tabpage *pnode)
@@ -1286,8 +1286,8 @@ static void
 on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_str)
 {
     int offset = 0;
-    char start[ACNAME_LEN + 1] = { 0 };
-    char end[ACNAME_LEN + 1] = { 0 };
+    char start[QW_SIZE + 1] = { 0 };
+    char end[QW_SIZE + 1] = { 0 };
     sptr_t eline_start = 0;
     sptr_t eline_end = 0;
     const char *str_eol = on_encoding_get_eol(pnode);
@@ -1297,20 +1297,20 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (pos != line_start)
     {
-        strncat(start, str_eol, ACNAME_LEN);
+        strncat(start, str_eol, QW_SIZE);
     }
-    strncat(start, open_str, ACNAME_LEN);
+    strncat(start, open_str, QW_SIZE);
     if (line_start != line_end)
     {
-        strncat(start, str_eol, ACNAME_LEN);
+        strncat(start, str_eol, QW_SIZE);
         if (line_start > pos)
         {   // 添加回车符, 还需要添加行首可能存在的空白
-            char word_buffer[ACNAME_LEN + 1] = {0};
+            char word_buffer[QW_SIZE + 1] = {0};
             Sci_TextRange tr = {{line_start, pos}, word_buffer};
             eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (*word_buffer)
             {
-                strncat(start, word_buffer, ACNAME_LEN);
+                strncat(start, word_buffer, QW_SIZE);
             }
         }
     }
@@ -1320,13 +1320,13 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     eline_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (eline_start != eline_end)
     {
-        strncat(end, str_eol, ACNAME_LEN);
+        strncat(end, str_eol, QW_SIZE);
     }
-    strncat(end, close_str, ACNAME_LEN);
+    strncat(end, close_str, QW_SIZE);
     char *next_buf = util_strdup_line(pnode, line+1, NULL);
     if (STR_NOT_NUL(next_buf) && strcmp(next_buf, str_eol) != 0)
     {   // 下一行是空行, 不多添加回车符
-        strncat(end, str_eol, ACNAME_LEN);
+        strncat(end, str_eol, QW_SIZE);
     }
     eu_safe_free(next_buf);
     on_close_selection(pnode, start, end);
@@ -1376,8 +1376,8 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
         {
             whilte_line = true;
         }
-        char ch_buf[FT_LEN + 1] = { 0 };
-        struct Sci_TextRange tr = { {indent_pos, indent_pos + MIN_POS(FT_LEN, cch_comment) }, ch_buf };
+        char ch_buf[DW_SIZE + 1] = { 0 };
+        struct Sci_TextRange tr = { {indent_pos, indent_pos + MIN_POS(DW_SIZE, cch_comment) }, ch_buf };
         eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
 
         sptr_t comment_pos;
@@ -1745,7 +1745,7 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         eu_sci_call(pnode, SCI_CONVERTEOLS, eol_mode, 0);
         eu_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
-        _snprintf(eols_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_eol/?@#$%^&*()`/~", pnode->eol, eol_mode);
+        _snprintf(eols_undo_str, QW_SIZE-1, "%s=%d=%d", "_eol/?@#$%^&*()`/~", pnode->eol, eol_mode);
         pnode->eol = eol_mode;
         eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) eols_undo_str);
         eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(eols_undo_str));

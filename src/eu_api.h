@@ -322,7 +322,7 @@ struct eu_config
     int new_file_enc;
 
     bool m_ident;
-    char window_theme[ACNAME_LEN];
+    char window_theme[QW_SIZE];
     bool m_fullscreen;
     bool m_menubar;
     bool m_toolbar;
@@ -367,7 +367,7 @@ struct eu_config
     bool m_exit;
     bool m_instance;
     char m_placement[MAX_BUFFER];
-    char m_language[ACNAME_LEN];
+    char m_language[QW_SIZE];
     bookmark_set eu_bookmark;
     brace_set eu_brace;
     caret_set eu_caret;

@@ -535,8 +535,38 @@ eu_before_proc(MSG *p_msg)
     return 0;
 }
 
+static int
+on_proc_save_remote(eu_tabpage *pnode)
+{
+    int ret = EUE_CURL_NETWORK_ERR;
+    if (pnode && pnode->plugin)
+    {   // 传送修改到远程服务器
+        pf_stream pstream = NULL;
+        wchar_t msg[PERROR_LEN+1] = {0};
+        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_STREAM, (void **)&pstream) && pstream)
+        {
+            pnode->write_buffer = (uint8_t *)pstream->base;
+            pnode->bytes_remaining = pstream->size;
+            if ((ret = on_file_stream_upload(pnode, msg)) != SKYLARK_OK)
+            {
+                print_err_msg(IDC_MSG_ATTACH_ERRORS, msg);
+                pnode->st_mtime = 0;
+            }
+            else
+            {
+                on_file_update_time(pnode, time(NULL));
+            }
+            pstream->close(pstream);
+            eu_safe_free(pstream);
+            pnode->write_buffer = NULL;
+            pnode->bytes_remaining = 0;
+        }
+    }
+    return ret;
+}
+
 static void
-on_proc_save_status(npn_nmhdr *lpnmhdr)
+on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
 {
     eu_tabpage *pnode = NULL;
     if (!lpnmhdr)
@@ -555,71 +585,76 @@ on_proc_save_status(npn_nmhdr *lpnmhdr)
     {
         return;
     }
-    if (lpnmhdr->nm.idFrom)
+    if (lpnmhdr->modified)
     {
         if (!pnode->be_modify)
         {
             pnode->be_modify = true;
             on_toolbar_update_button();
             InvalidateRect(g_tabpages, NULL, false); 
+            printf("skylark: doc has been modified\n"); 
         }
-        printf("skylark: doc has been modified\n");   
     }
-    else if (pnode->plugin && pnode->be_modify)
+    if (flags && !lpnmhdr->modified && pnode->plugin)
     {
         bool remote = false;
-        wchar_t *tmp_path = NULL;
+        bool backup = false;
         wchar_t *full_path = NULL;
         pnode->be_modify = false;
         printf("skylark: doc has been saved\n");
         if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&full_path) && STR_NOT_NUL(full_path))
         {
+            printf("full_path = %ls, pnode->pathfile = %ls, pnode->bakpath = %ls\n", full_path, pnode->pathfile, pnode->bakpath);
             if (url_has_remote(pnode->pathfile))
             {
-                if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TMPNAME, (void **)&tmp_path))
-                {
-                    remote = true;
-                }
+                remote = true;
             }
-            if (wcscmp(full_path, remote ? tmp_path : pnode->pathfile))
+            else if (pnode->bakpath[0] && (wcsicmp(full_path, pnode->bakpath) == 0))
+            {   // 获取流保存在本地的临时文件名
+                backup = true;
+            }
+            if (flags == OPERATE_SAVE)
             {
-                wcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
+                if (remote)
+                {
+                    on_proc_save_remote(pnode);
+                }
+                else if (backup)
+                {
+                    np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, pnode->pathfile);
+                    util_delete_file(pnode->bakpath);
+                    pnode->bakpath[0] = 0;
+                }
+                else
+                {
+                    np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+                }
+                on_file_update_time(pnode, 0);
+            }
+            else if (flags == OPERATE_SAVEAS)
+            {
+                if (remote)
+                {
+                    pnode->fs_server.networkaddr[0] = 0;
+                }
+                else if (backup)
+                {
+                    util_delete_file(pnode->bakpath);
+                    pnode->bakpath[0] = 0;
+                }
+                on_sql_delete_backup_row(pnode);
+                _tcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
                 _wsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
                 if (wcslen(pnode->extname) > 0)
                 {
                     wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
                 }
+                on_file_update_time(pnode, 0);
                 util_set_title(pnode->pathfile);
-                printf("skylark: doc has been changed\n");
+                np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
             }
-            else if (remote)
-            {   // 传送修改到远程服务器
-                pf_stream pstream = NULL;
-                if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_STREAM, (void **)&pstream) && pstream)
-                {
-                    memset(full_path, 0, 260);
-                    pnode->write_buffer = (uint8_t *)pstream->base;
-                    pnode->bytes_remaining = pstream->size;
-                    if (on_file_stream_upload(pnode, full_path) != SKYLARK_OK)
-                    {
-                        print_err_msg(IDC_MSG_ATTACH_ERRORS, full_path);
-                        pnode->st_mtime = 0;
-                    }
-                    else
-                    {
-                        on_file_update_time(pnode, time(NULL));
-                    }
-                    pstream->close(pstream);
-                    eu_safe_free(pstream);
-                    pnode->write_buffer = NULL;
-                    pnode->bytes_remaining = 0;
-                }
-            }                        
-            eu_safe_free(tmp_path);
             eu_safe_free(full_path);
         }
-        on_toolbar_update_button();
-        InvalidateRect(g_tabpages, NULL, false);
     }
 }
 
@@ -1753,7 +1788,18 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case NPP_DOC_MODIFY:
                 {
-                    on_proc_save_status((npn_nmhdr *)lParam);
+                    on_proc_save_status(wParam, (npn_nmhdr *)lParam);
+                    break;
+                }
+                case NPP_DOC_STATUS:
+                {
+                    if (pnode && lParam && ((npn_nmhdr *)lpnmhdr)->nm.idFrom > 0)
+                    {
+                        if (GetParent((HWND)(((npn_nmhdr *)lpnmhdr)->nm.idFrom)) == pnode->hwnd_sc)
+                        {
+                            return (intptr_t)pnode->be_modify;
+                        }
+                    }
                     break;
                 }
                 default:

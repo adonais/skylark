@@ -302,7 +302,7 @@ on_config_load_file(void *lp)
             return 1;
         }
     }
-    printf("open_sql = %zu, err = %d, is_blank = %d\n", (intptr_t)open_sql, err, is_blank);
+    printf("open_sql = %ls, err = %d, is_blank = %d\n", open_sql, err, is_blank);
     if ((open_sql  || on_config_file_args()) && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
         file_backup bak = {0};

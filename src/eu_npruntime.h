@@ -42,6 +42,7 @@
 #define NP_NO_DATA                     (NPERR_BASE + 12)
 #define NP_STREAM_NOT_SEEKABLE         (NPERR_BASE + 13)
 #define NPP_DOC_MODIFY                 (WM_USER+30000)
+#define NPP_DOC_STATUS                 (WM_USER+30001)
 #define NPP_EXPORT                     __declspec(dllexport)
 
 /*
@@ -58,8 +59,9 @@
 #define NP_ASFILE     3
 #define NP_ASFILEONLY 4
 
-#define FT_LEN      32
-#define ACNAME_LEN  64
+#define DW_SIZE     32
+#define QW_SIZE     64
+#define TITLE_SZIE  512
 
 #define NP_MAXREADY (((unsigned)(~0)<<1)>>1)
 
@@ -77,9 +79,17 @@ typedef enum
     NV_TABTITLE = 1,
     NV_TMPNAME,
     NV_STREAM,
-    NV_THEME,
+    NV_THEME_CHANGE,
+    NV_PATH_CHANGE,
     NV_OBJETCT
 } npp_variable;
+
+typedef enum
+{
+    OPERATE_NONE = 0,
+    OPERATE_SAVE,
+    OPERATE_SAVEAS
+} wparam_variable;
 
 typedef struct _npstream
 {
@@ -142,7 +152,7 @@ typedef struct _nppsave
 
 struct styleclass
 {
-    char font[FT_LEN];
+    char font[DW_SIZE];
     int fontsize;
     uint32_t color;
     uint32_t bgcolor;
@@ -178,7 +188,7 @@ struct styletheme
     struct styleclass cdata;
     struct styleclass phpsection;
     struct styleclass aspsection;
-    
+
     struct styleclass activetab;
 };
 
@@ -191,13 +201,14 @@ typedef struct _npn_rect
 typedef struct eu_theme
 {
     char pathfile[MAX_PATH];
-    char name[ACNAME_LEN];
+    char name[QW_SIZE];
     struct styletheme item;
 } *npn_theme;
 
 typedef struct  _npn_nmhdr
 {
     NMHDR nm;
+    bool modified;
     void *pnode;
 } npn_nmhdr;
 
@@ -262,7 +273,7 @@ typedef HANDLE    (WINAPI *npn_new_process_ptr)(const wchar_t* wcmd, const wchar
 typedef npn_theme (WINAPI *npn_theme_ptr)(void);
 
 static bool
-npn_client_rect(HWND hwnd, npn_rect *prect) 
+npn_client_rect(HWND hwnd, npn_rect *prect)
 {
     RECT rc;
     if (prect && GetClientRect(hwnd, &rc))
@@ -290,12 +301,12 @@ npn_to_rect(npn_rect *prc, RECT *rect)
     return false;
 }
 
-static void
-npn_send_notify(HWND hwnd, uint32_t code, npn_nmhdr *phdr)
+static intptr_t
+npn_send_notify(HWND hwnd, uint32_t code, WPARAM local, npn_nmhdr *phdr)
 {
     phdr->nm.hwndFrom = hwnd;
     phdr->nm.code = code;
-    SendMessage(GetParent(hwnd), WM_NOTIFY, 0, (LPARAM) phdr);
+    return (intptr_t)SendMessage(GetParent(hwnd), WM_NOTIFY, local, (LPARAM) phdr);
 }
 
 #ifdef __cplusplus

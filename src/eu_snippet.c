@@ -303,8 +303,8 @@ on_snippet_get_vec(HWND hwnd_cmb, doctype_t **pdoc)
 {
     char *pname = NULL;
     doctype_t *doc_ptr = NULL;
-    TCHAR name[ACNAME_LEN] = {0};
-    ComboBox_GetText(hwnd_cmb, name, ACNAME_LEN - 1);
+    TCHAR name[QW_SIZE] = {0};
+    ComboBox_GetText(hwnd_cmb, name, QW_SIZE - 1);
     if (_tcslen(name) > 0 && (pname = eu_utf16_utf8(name, NULL)) != NULL)
     {
         for (doc_ptr = eu_doc_get_ptr(); doc_ptr&&doc_ptr->doc_type; ++doc_ptr)
@@ -366,8 +366,8 @@ on_snippet_get_file(HWND hwnd_cmb, TCHAR *path, int len, snippet_t **pvec)
 {
     char *pname = NULL;
     doctype_t *doc_ptr = NULL;
-    TCHAR name[ACNAME_LEN] = {0};
-    ComboBox_GetText(hwnd_cmb, name, ACNAME_LEN - 1);
+    TCHAR name[QW_SIZE] = {0};
+    ComboBox_GetText(hwnd_cmb, name, QW_SIZE - 1);
     if (_tcslen(name) > 0 && (pname = eu_utf16_utf8(name, NULL)) != NULL)
     {
         int i = 0;
@@ -399,9 +399,9 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
     int index = -1;
     snippet_t *vec = NULL;
     TCHAR snippet_file[MAX_PATH] = {0};
-    TCHAR first[ACNAME_LEN] = {0};
-    TCHAR str[ACNAME_LEN] = {0};
-    ComboBox_GetText(hself, str, ACNAME_LEN - 1);
+    TCHAR first[QW_SIZE] = {0};
+    TCHAR str[QW_SIZE] = {0};
+    ComboBox_GetText(hself, str, QW_SIZE - 1);
     ComboBox_GetLBText(hself, 0, first);
     *ptr_vec = NULL;
     if (!_tcscmp(str, first))
@@ -416,7 +416,7 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
         {
             on_snippet_write_control(vec);
             *ptr_vec = vec;
-        }        
+        }
         else if (eu_exist_file(snippet_file) && on_snippet_init_parser(snippet_file, &vec))
         {
             on_snippet_set_data(index, vec);
@@ -495,9 +495,9 @@ on_snippet_do_modify(HWND hdlg)
             SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_NEW, 0), 0);
         }
         vec = on_snippet_get_vec(hwnd_cmb, NULL);
-    #ifdef _DEBUG    
+    #ifdef _DEBUG
         printf("listbox_count = %d, vec = %p, vec_size = %zu\n", index, (void *)vec, cvector_size(vec));
-    #endif    
+    #endif
         if (!vec || (int)cvector_size(vec) < index)
         {
             break;
@@ -507,24 +507,24 @@ on_snippet_do_modify(HWND hdlg)
             int c = 0;
             TCHAR *p = NULL;
             TCHAR str[MAX_PATH] = {0};
-            TCHAR name[ACNAME_LEN] = {0};
+            TCHAR name[QW_SIZE] = {0};
             Edit_GetText(hwnd_edt, str, MAX_PATH);
             p = _tcstok(str, _T(","));
-            while (p && _tcslen(p) < ACNAME_LEN)
+            while (p && _tcslen(p) < QW_SIZE)
             {
                 switch (c)
                 {
                     case 0:
                     {
-                        memset(&vec[index].name, 0, ACNAME_LEN);
-                        _sntprintf(name, ACNAME_LEN - 1, _T("%s"), p);
-                        util_make_u8(p, vec[index].name, ACNAME_LEN);
+                        memset(&vec[index].name, 0, QW_SIZE);
+                        _sntprintf(name, QW_SIZE - 1, _T("%s"), p);
+                        util_make_u8(p, vec[index].name, QW_SIZE);
                         break;
                     }
                     case 1:
                     {
-                        memset(&vec[index].comment, 0, ACNAME_LEN);
-                        util_make_u8(p, vec[index].comment, ACNAME_LEN);
+                        memset(&vec[index].comment, 0, QW_SIZE);
+                        util_make_u8(p, vec[index].comment, QW_SIZE);
                         break;
                     }
                     case 2:
@@ -790,9 +790,9 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                 last_index = 0;
                 _InterlockedExchange(&snippet_new, 0);
                 hwnd_snippet = NULL;
-            #ifdef _DEBUG    
+            #ifdef _DEBUG
                 printf("hwnd_snippet WM_DESTROY\n");
-            #endif    
+            #endif
             }
             break;
         }
@@ -811,7 +811,7 @@ on_snippet_create_dlg(HWND parent)
     hwnd_snippet = i18n_create_dialog(parent, IDD_SNIPPET_DLG, on_snippet_proc);
     if (!hwnd_snippet)
     {
-    #ifdef _DEBUG    
+    #ifdef _DEBUG
         printf("hwnd_snippet is null\n");
     #endif
     }

@@ -170,7 +170,7 @@ $(OBJD)\eu_symlistctl.obj                  : eu_symlistctl.c eu_symlistctl.h fra
 $(OBJD)\eu_symtreectl.obj                  : eu_symtreectl.c eu_symtreectl.h framework.h eu_list.h
 $(OBJD)\eu_tabpage.obj                     : eu_tabpage.c eu_tabpage.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_util.obj                        : eu_util.c eu_util.h framework.h
-$(OBJD)\eu_view.obj                        : eu_view.c eu_view.h framework.h
+$(OBJD)\eu_view.obj                        : eu_view.c eu_view.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_proc.obj                        : eu_proc.c eu_proc.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_menu.obj                        : eu_menu.c eu_menu.h framework.h
 $(OBJD)\eu_config.obj                      : eu_config.c eu_config.h framework.h

@@ -2198,6 +2198,28 @@ eu_gui_app(void)
 }
 
 bool
+util_delete_file(LPCTSTR filepath)
+{
+    int ret = 1;
+	int path_len = eu_int_cast(_tcslen(filepath));
+	TCHAR *psz_from = (TCHAR *)calloc(sizeof(TCHAR), path_len + 2);
+	if (psz_from)
+	{
+	    _tcscpy(psz_from, filepath);
+	    psz_from[path_len] = 0;
+	    psz_from[++path_len] = 0;
+	    SHFILEOPSTRUCT st_struct = {0};
+	    st_struct.wFunc = FO_DELETE;
+	    st_struct.pFrom = psz_from;
+	    st_struct.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR | FOF_SILENT | FOF_FILESONLY;
+	    st_struct.fAnyOperationsAborted = 0;
+	    ret = SHFileOperation(&st_struct);
+	    free(psz_from);
+	}
+	return (ret == 0);
+}
+
+bool
 util_file_access(LPCTSTR filename, uint32_t *pgranted)
 {
     bool ret = false;

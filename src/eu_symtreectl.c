@@ -841,10 +841,10 @@ on_symtree_parse_redis_header(eu_tabpage *pnode)
     for (file_line = 0; file_line <= file_line_count; ++file_line)
     {
         char line_buf[FILESIZE+1] = {0};
-        char config_remark[ACNAME_LEN] = {0};
-        char config_key[ACNAME_LEN] = {0};
-        char config_eval[ACNAME_LEN] = {0};
-        char config_value[ACNAME_LEN] = {0};
+        char config_remark[QW_SIZE] = {0};
+        char config_key[QW_SIZE] = {0};
+        char config_eval[QW_SIZE] = {0};
+        char config_value[QW_SIZE] = {0};
         if (!on_sci_line_text(pnode, file_line, line_buf, _countof(line_buf)))
         {
             return 1;

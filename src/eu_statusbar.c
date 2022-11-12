@@ -38,7 +38,7 @@ static HMENU g_menu_type;
 static HFONT hfont_btn;
 static int g_status_height;
 
-char iconv_undo_str[ACNAME_LEN] = {0};
+char iconv_undo_str[QW_SIZE] = {0};
 
 static void
 on_statusbar_btn(eu_tabpage *pnode, bool only_read)
@@ -70,7 +70,7 @@ on_statusbar_btn(eu_tabpage *pnode, bool only_read)
                 on_sci_init_default(pnode, STATUS_STATIC_FOCUS);
                 on_sci_after_file(pnode);
             }
-            eu_sci_call(pnode, SCI_SETREADONLY, 1, 0); 
+            eu_sci_call(pnode, SCI_SETREADONLY, 1, 0);
             InvalidateRect(g_tabpages, NULL, 0);
         }
     }
@@ -316,7 +316,7 @@ on_statusbar_convert_coding(eu_tabpage *pnode, int encoding)
     }
     free(file_buf);
     // we set new codepage
-    _snprintf(iconv_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, encoding);
+    _snprintf(iconv_undo_str, QW_SIZE-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, encoding);
     pnode->codepage = encoding;
     on_encoding_set_bom_from_cp(pnode);
     return on_tabpage_editor_modify(pnode, iconv_undo_str);
@@ -454,7 +454,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             on_statusbar_refresh();
             on_statusbar_update();
             break;
-        }        
+        }
         case WM_SIZE:
         {
             break;
@@ -508,7 +508,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_UNI_UTF8:
                     pnode->pre_len = 0;
                     memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
-                    _snprintf(iconv_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8);
+                    _snprintf(iconv_undo_str, QW_SIZE-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8);
                     pnode->codepage = IDM_UNI_UTF8;
                     on_tabpage_editor_modify(pnode, iconv_undo_str);
                     on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
@@ -517,7 +517,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                     pnode->pre_len = 3;
                     memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
                     memcpy(pnode->pre_context, "\xEF\xBB\xBF", 3);
-                    _snprintf(iconv_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8B);
+                    _snprintf(iconv_undo_str, QW_SIZE-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8B);
                     pnode->codepage = IDM_UNI_UTF8B;
                     on_tabpage_editor_modify(pnode, iconv_undo_str);
                     on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
@@ -763,7 +763,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
         if (!pnode->hex_mode)
         {
             _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
-        }    
+        }
         else
         {
             _sntprintf(file_size, FILESIZE, s_lc, pnode->pmod ? (sptr_t)pnode->raw_size : nsize);

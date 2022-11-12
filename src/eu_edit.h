@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-extern char eols_undo_str[ACNAME_LEN];
+extern char eols_undo_str[QW_SIZE];
 
 void on_edit_undo(eu_tabpage *pnode);
 void on_edit_redo(eu_tabpage *pnode);

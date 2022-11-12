@@ -91,7 +91,7 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
     char *cp2 = NULL;
     char *eos = NULL;
     int m_sec = 3;
-    char buf[ACNAME_LEN] = {'s', 'n', 'i', 'p', 'p', 'e', 't', 0};
+    char buf[QW_SIZE] = {'s', 'n', 'i', 'p', 'p', 'e', 't', 0};
     if (!(pstr && pstate && pdata && !strncasecmp(pstr, buf, strlen(buf))))
     {
         printf("pointer is null in %s\n", __FUNCTION__);
@@ -104,10 +104,10 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
     for (; *cp1 && m_sec; --m_sec)
     {
         int sq = 0, dq = 0;         /* 单引号,  双引号 */
-        memset(buf, 0, ACNAME_LEN);
+        memset(buf, 0, QW_SIZE);
         cp2 = buf;
-        eos = cp2 + ACNAME_LEN - 1;
-        util_skip_whitespace((uint8_t **)&cp1, ACNAME_LEN, 0);
+        eos = cp2 + QW_SIZE - 1;
+        util_skip_whitespace((uint8_t **)&cp1, QW_SIZE, 0);
         while ((*cp1 != '\0') && (cp2 != eos))
         {
             switch (*cp1)
@@ -147,10 +147,10 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
             switch (m_sec)
             {
                 case 3:
-                    _snprintf(pdata->name, ACNAME_LEN - 1, "%s", buf);
+                    _snprintf(pdata->name, QW_SIZE - 1, "%s", buf);
                     break;
                 case 2:
-                    _snprintf(pdata->comment, ACNAME_LEN - 1, "%s", buf);
+                    _snprintf(pdata->comment, QW_SIZE - 1, "%s", buf);
                     break;
                 case 1:
                     _snprintf(pdata->parameter, PARAM_LEN - 1, "%s", buf);

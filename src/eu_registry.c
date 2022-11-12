@@ -1041,7 +1041,7 @@ eu_create_registry_dlg(void)
     int ret = 1;
     HANDLE m_map = NULL;
     HWND *memory = NULL;
-    TCHAR ui_dest[ACNAME_LEN+1] = {0};
+    TCHAR ui_dest[QW_SIZE+1] = {0};
     m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_NAME);
     if (!m_map)
     {

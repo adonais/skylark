@@ -262,15 +262,15 @@ void
 i18n_update_menu(HMENU root_menu)
 {
     int index;
-    TCHAR lang_name[ACNAME_LEN] = {0};
-    TCHAR current_lang[ACNAME_LEN] = {0};
+    TCHAR lang_name[QW_SIZE] = {0};
+    TCHAR current_lang[QW_SIZE] = {0};
     HMENU lang_menu = NULL;
     lang_menu = root_menu ? GetSubMenu(root_menu, LOCALE_MENU_SUB) : NULL;
     if (!(root_menu && lang_menu))
     {
         return;
     }
-    if (!get_locale_file(lang_name, ACNAME_LEN))
+    if (!get_locale_file(lang_name, QW_SIZE))
     {
         printf("get_locale_file return false\n");
         return;
@@ -279,7 +279,7 @@ i18n_update_menu(HMENU root_menu)
     {
         if (!_tcscmp(sz_localization[index].dll, lang_name))
         {
-            _tcsncpy(current_lang, sz_localization[index].desc, ACNAME_LEN-1);
+            _tcsncpy(current_lang, sz_localization[index].desc, QW_SIZE-1);
             break;
         }
     }
@@ -287,14 +287,14 @@ i18n_update_menu(HMENU root_menu)
     for (index = 0; index < count; ++index)
     {
         bool select = false;
-        TCHAR buf[ACNAME_LEN] = { 0 };
-        int len = GetMenuString(root_menu, IDM_LOCALES_BASE + index, buf, ACNAME_LEN - 1, MF_BYCOMMAND);
+        TCHAR buf[QW_SIZE] = { 0 };
+        int len = GetMenuString(root_menu, IDM_LOCALES_BASE + index, buf, QW_SIZE - 1, MF_BYCOMMAND);
         if (len > 0 && _tcscmp(buf, current_lang) == 0)
         {
             char *u8_lang = eu_utf16_utf8(lang_name, NULL);
             if (u8_lang)
             {
-                strncpy(eu_get_config()->m_language, u8_lang, ACNAME_LEN - 1);
+                strncpy(eu_get_config()->m_language, u8_lang, QW_SIZE - 1);
                 free(u8_lang);
             }
             select = true;
@@ -386,12 +386,12 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
 int
 i18n_switch_locale(HWND hwnd, int id)
 {
-    TCHAR buf[ACNAME_LEN] = {0};
-    TCHAR old[ACNAME_LEN] = {0};
-    TCHAR sel[ACNAME_LEN] = {0};
+    TCHAR buf[QW_SIZE] = {0};
+    TCHAR old[QW_SIZE] = {0};
+    TCHAR sel[QW_SIZE] = {0};
     TCHAR lang_path[MAX_PATH] = {0};
     HMODULE new_lang = NULL;
-    if (!GetMenuString(GetMenu(hwnd), id, buf, ACNAME_LEN, MF_BYCOMMAND))
+    if (!GetMenuString(GetMenu(hwnd), id, buf, QW_SIZE, MF_BYCOMMAND))
     {
         return 1;
     }
@@ -399,11 +399,11 @@ i18n_switch_locale(HWND hwnd, int id)
     {
         if (!_tcscmp(sz_localization[i].desc, buf))
         {
-            _tcsncpy(sel, sz_localization[i].dll, ACNAME_LEN-1);
+            _tcsncpy(sel, sz_localization[i].dll, QW_SIZE-1);
             break;
         }
     }
-    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_language, -1, old, ACNAME_LEN))
+    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_language, -1, old, QW_SIZE))
     {
         return 1;
     }

@@ -1443,7 +1443,7 @@ on_doc_identation(eu_tabpage *pnode, ptr_notify lpnotify)
     }
     const int m_eol = on_encoding_eol_char(pnode);
     const int m_width = (const int)eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
-    if (m_width > ACNAME_LEN || m_width < 0)
+    if (m_width > QW_SIZE || m_width < 0)
     {
         return 1;
     }
@@ -1452,8 +1452,8 @@ on_doc_identation(eu_tabpage *pnode, ptr_notify lpnotify)
     if (lpnotify->ch == m_eol)
     {   // 自动缩进
         sptr_t pre_lpos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line - 1, 0);
-        char pre_indent[ACNAME_LEN+1] = {0};
-        char str_indent[ACNAME_LEN+1] = {'\t',};
+        char pre_indent[QW_SIZE+1] = {0};
+        char str_indent[QW_SIZE+1] = {'\t',};
         int indent_len = 0;
         sptr_t n_pos = pre_lpos;
         bool collect_indent = true;
@@ -1463,7 +1463,7 @@ on_doc_identation(eu_tabpage *pnode, ptr_notify lpnotify)
         {
             if (collect_indent)
             {
-                if (strchr(" \t", ch) && indent_len < ACNAME_LEN)
+                if (strchr(" \t", ch) && indent_len < QW_SIZE)
                 {
                     pre_indent[indent_len] = ch;
                     indent_len++;
@@ -1504,7 +1504,7 @@ on_doc_identation(eu_tabpage *pnode, ptr_notify lpnotify)
 static int
 on_doc_function_tips(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    char word_buffer[ACNAME_LEN+1] = {0};
+    char word_buffer[QW_SIZE+1] = {0};
     if (!(pnode && lpnotify && eu_get_config()->eu_calltip.enable))
     {
         return 1;
@@ -1532,9 +1532,9 @@ on_doc_function_tips(eu_tabpage *pnode, ptr_notify lpnotify)
                 start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
                 end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             }
-            if (end_pos - start_pos >= ACNAME_LEN)
+            if (end_pos - start_pos >= QW_SIZE)
             {
-                end_pos = start_pos + ACNAME_LEN;
+                end_pos = start_pos + QW_SIZE;
             }
             Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
             eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
@@ -1567,9 +1567,9 @@ on_doc_function_tips(eu_tabpage *pnode, ptr_notify lpnotify)
             {
                 sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, n_pos - 1, true);
                 sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, n_pos - 1, true);
-                if (end_pos - start_pos >= ACNAME_LEN)
+                if (end_pos - start_pos >= QW_SIZE)
                 {
-                    end_pos = start_pos + ACNAME_LEN;
+                    end_pos = start_pos + QW_SIZE;
                 }
                 Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
                 eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
@@ -1598,7 +1598,7 @@ on_doc_function_tips(eu_tabpage *pnode, ptr_notify lpnotify)
 static int
 on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool upper_case)
 {
-    char word_buffer[ACNAME_LEN+1];
+    char word_buffer[QW_SIZE+1];
     if (pnode && lpnotify && lpnotify->ch == ' ' && eu_get_config()->eu_calltip.enable)
     {   /* 函数原型提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
@@ -1649,9 +1649,9 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
                     break;
                 }
             }
-            if (end_pos - start_pos >= ACNAME_LEN)
+            if (end_pos - start_pos >= QW_SIZE)
             {
-                end_pos = start_pos + ACNAME_LEN;
+                end_pos = start_pos + QW_SIZE;
             }
             Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
             eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
@@ -2059,8 +2059,8 @@ on_doc_set_vec(void *lp)
         if (mapper->snippet[0])
         {
             int eol = -1;
-            TCHAR fname[ACNAME_LEN] = {0};
-            _sntprintf(path, MAX_PATH - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(mapper->snippet, fname, ACNAME_LEN-1));
+            TCHAR fname[QW_SIZE] = {0};
+            _sntprintf(path, MAX_PATH - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(mapper->snippet, fname, QW_SIZE-1));
             on_parser_init(path, &mapper->ptrv, &eol);
         }
     }

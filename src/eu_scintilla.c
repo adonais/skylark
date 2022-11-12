@@ -178,40 +178,53 @@ on_sci_before_file(eu_tabpage *pnode)
     }
 }
 
+static void
+on_sci_reset_zoom(eu_tabpage *pnode)
+{
+    if (pnode->zoom_level != 0)
+    {
+        int zoom = pnode->zoom_level;
+        if (pnode->zoom_level > 0)
+        {
+            while (zoom--)
+            {
+                on_view_zoom_out(pnode);
+            }
+        }
+        else if (pnode->zoom_level < 0)
+        {
+            while (zoom++)
+            {
+                on_view_zoom_in(pnode);
+            }
+        }
+    }
+}
+
 void
 on_sci_after_file(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
-        eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
-        if (pnode->zoom_level != 0)
+        if (!pnode->hex_mode)
         {
-            int zoom = pnode->zoom_level;
-            if (pnode->zoom_level > 0)
+            eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
+            eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+            on_sci_reset_zoom(pnode);
+            if (!pnode->raw_size)
             {
-                while (zoom--)
-                {
-                    on_view_zoom_out(pnode);
-                }
+                pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
             }
-            else if (pnode->zoom_level < 0)
-            {
-                while (zoom++)
-                {
-                    on_view_zoom_in(pnode);
-                }
+            if (pnode->doc_ptr && pnode->doc_ptr->fn_init_after)
+            {   // 设置此标签页的语法解析
+                pnode->doc_ptr->fn_init_after(pnode);
             }
+            on_sci_update_margin(pnode);            
         }
-        if (!pnode->raw_size)
+        else
         {
-            pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
+            on_sci_reset_zoom(pnode);
         }
-        if (pnode->doc_ptr && pnode->doc_ptr->fn_init_after)
-        {   // 设置此标签页的语法解析
-            pnode->doc_ptr->fn_init_after(pnode);
-        }
-        on_sci_update_margin(pnode);
     }
 }
 
@@ -233,6 +246,19 @@ on_sci_resever_tab(eu_tabpage *pnode)
     {
         DestroyWindow(pnode->hwnd_qrtable);
         pnode->hwnd_qrtable = NULL;
+    }
+}
+
+// 清理上一次的备份
+static void
+on_sci_delete_file(const eu_tabpage *pnode)
+{
+    if (pnode && (pnode)->bakpath[0] && (_taccess((pnode)->bakpath, 0 ) != -1))
+    {
+        if (!util_delete_file((pnode)->bakpath))
+        {
+            printf("on on_sci_free_tab(), delete(%ls) error, cause: %u\n", (pnode)->bakpath, GetLastError());
+        }
     }
 }
 
@@ -300,6 +326,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
             }
             np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
             np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
+            on_sci_delete_file(*ppnode);
         }
         // 切换16进制时,销毁相关资源
         if (!(*ppnode)->phex)
@@ -308,14 +335,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
             {
                 SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
             }
-            // 清理上一次的备份
-            if ((*ppnode)->bakpath[0] && (_taccess((*ppnode)->bakpath, 0 ) != -1))
-            {
-                if (!DeleteFile((*ppnode)->bakpath))
-                {
-                    printf("on on_sci_free_tab(), Delete(%ls) error, cause: %lu\n", (*ppnode)->bakpath, GetLastError());
-                }
-            }
+            on_sci_delete_file(*ppnode);
             // 销毁标签内存
             eu_safe_free(*ppnode);
         }
@@ -439,9 +459,9 @@ on_sci_update_margin(eu_tabpage *pnode)
     EU_VERIFY(pnode != NULL);
     sptr_t m_width = eu_sci_call(pnode, SCI_GETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
     sptr_t m_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-    char marg_width[FT_LEN] = { 0 };
+    char marg_width[DW_SIZE] = { 0 };
     int m_zoom = (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
-    snprintf(marg_width, FT_LEN - 1, "__%d", m_line);
+    snprintf(marg_width, DW_SIZE - 1, "__%d", m_line);
     sptr_t cur_width = eu_sci_call(pnode, SCI_TEXTWIDTH, STYLE_LINENUMBER, (sptr_t) marg_width);
     if (cur_width != m_width)
     {

@@ -156,9 +156,9 @@ typedef struct _db_config
     int dbport;
     char dbtype[OVEC_LEN];
     char dbhost[MAX_SIZE];
-    char dbuser[ACNAME_LEN];
-    char dbpass[ACNAME_LEN];
-    char dbname[ACNAME_LEN];
+    char dbuser[QW_SIZE];
+    char dbpass[QW_SIZE];
+    char dbname[QW_SIZE];
     bool config_pass;
 } db_config;
 

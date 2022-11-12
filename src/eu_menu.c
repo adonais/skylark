@@ -100,10 +100,10 @@ menu_switch_theme(void)
             for (int index = 0, count = GetMenuItemCount(theme_menu); index < count; ++index)
             {
                 bool select = false;
-                TCHAR buf[ACNAME_LEN] = { 0 };
-                TCHAR theme[ACNAME_LEN] = { 0 };
-                int len = GetMenuString(root_menu, IDM_STYLETHEME_BASE + index, buf, ACNAME_LEN - 1, MF_BYCOMMAND);
-                if (len > 0 && MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme, ACNAME_LEN) > 0)
+                TCHAR buf[QW_SIZE] = { 0 };
+                TCHAR theme[QW_SIZE] = { 0 };
+                int len = GetMenuString(root_menu, IDM_STYLETHEME_BASE + index, buf, QW_SIZE - 1, MF_BYCOMMAND);
+                if (len > 0 && MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme, QW_SIZE) > 0)
                 {
                     TCHAR* pbuf = on_theme_query_name(buf);
                     if (pbuf && _tcscmp(pbuf, theme) == 0)
@@ -112,7 +112,7 @@ menu_switch_theme(void)
                     }
                     if (_stricmp(eu_get_config()->window_theme, eu_get_theme()->name))
                     {
-                        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, ACNAME_LEN);
+                        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
                     }
                 }
                 util_set_menu_item(root_menu, IDM_STYLETHEME_BASE + index, select);

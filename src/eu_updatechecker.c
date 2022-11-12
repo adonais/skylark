@@ -37,7 +37,7 @@ on_update_read_json(void *buffer, size_t size, size_t nmemb, void *stream)
                 ++p;
             }
             char *terminators = strchr(p, ',');
-            if (terminators && terminators - p < ACNAME_LEN)
+            if (terminators && terminators - p < QW_SIZE)
             {
                 snprintf(pdata, terminators - p, "%s", p);
                 // 已找到, 返回0, 引发CURLE_WRITE_ERROR中断
@@ -75,10 +75,10 @@ static int64_t
 on_update_build_time(void)
 {
     struct tm *p;
-    char chunk[ACNAME_LEN] = {0};
+    char chunk[QW_SIZE] = {0};
     time_t t = on_about_build_id();
     p = localtime(&t);
-    _snprintf(chunk, ACNAME_LEN - 1, "%d%02d%02d%02d%02d%02d", (1900+p->tm_year), (1+p->tm_mon),p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
+    _snprintf(chunk, QW_SIZE - 1, "%d%02d%02d%02d%02d%02d", (1900+p->tm_year), (1+p->tm_mon),p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
     /* 编译时间 + 1小时 */
     return (_atoi64(chunk) + 3600);
 }
@@ -99,7 +99,7 @@ on_update_send_request(void *lp)
 {
     int64_t tag = 0;
     HWND hwnd = NULL;
-    char chunk[ACNAME_LEN] = {0};
+    char chunk[QW_SIZE] = {0};
     CURLcode res = CURLE_FAILED_INIT;
     struct curl_slist *headers = NULL;
     CURL *curl = on_update_init(&headers);

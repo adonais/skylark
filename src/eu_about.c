@@ -3330,11 +3330,11 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             LOAD_I18N_RESSTR(IDC_COMPILER, str);
             {
                 struct tm *p;
-                TCHAR chunk[ACNAME_LEN] = {0};
+                TCHAR chunk[QW_SIZE] = {0};
                 TCHAR build_str[MAX_PATH + 1] = {0};
                 time_t t = on_about_build_id();
                 p = localtime(&t);
-                _sntprintf(chunk, ACNAME_LEN-1, _T("%d-%02d-%02d %02d:%02d:%02d"), (1900+p->tm_year), (1+p->tm_mon),p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
+                _sntprintf(chunk, QW_SIZE-1, _T("%d-%02d-%02d %02d:%02d:%02d"), (1900+p->tm_year), (1+p->tm_mon),p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
                 _sntprintf(build_str, MAX_PATH, _T("%s\r\n\r\n%s: %s (%s)\r\n"),
                            __EU_INFO_RELEASE,
                            str,

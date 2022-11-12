@@ -28,7 +28,7 @@ static HBRUSH brush_caretline;
 static HBRUSH brush_indicator;
 static HBRUSH brush_activetab;
 
-static TCHAR uni_font[FT_LEN+1];
+static TCHAR uni_font[DW_SIZE+1];
 static struct styletheme dlg_style;
 
 static HWND hwnd_linenumber_static;
@@ -123,7 +123,7 @@ on_theme_query_name(TCHAR *str)
     }
     for (iter = &pm_query[0]; iter->res_id; ++iter)
     {
-        if (eu_i18n_load_str(iter->res_id, iter->desc, ACNAME_LEN-1))
+        if (eu_i18n_load_str(iter->res_id, iter->desc, QW_SIZE-1))
         {
             if (_tcsicmp(iter->desc, str) == 0)
             {
@@ -139,13 +139,13 @@ on_theme_load_script(const TCHAR *ac_name)
 {
     TCHAR script[MAX_PATH];
     char script_name[MAX_PATH] = {0};
-    char name[ACNAME_LEN+1] = {0};
+    char name[QW_SIZE+1] = {0};
     _sntprintf(script, MAX_PATH - 1, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
     if (!WideCharToMultiByte(CP_UTF8, 0, script, -1, script_name, MAX_PATH-1, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
     }
-    if (!WideCharToMultiByte(CP_UTF8, 0, ac_name, -1, name, ACNAME_LEN, NULL, NULL))
+    if (!WideCharToMultiByte(CP_UTF8, 0, ac_name, -1, name, QW_SIZE, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
     }
@@ -177,18 +177,18 @@ search_theme_files(theme_desc *lptheme, int m)
         }
         if (_tcsicmp(data.cFileName, _T("styletheme.conf")) == 0)
         {
-            eu_i18n_load_str(IDS_THEME_DESC_DEFAULT, lptheme[index].desc, ACNAME_LEN-1);
-            _tcsncpy(lptheme[index].name, _T("default"), ACNAME_LEN-1);
+            eu_i18n_load_str(IDS_THEME_DESC_DEFAULT, lptheme[index].desc, QW_SIZE-1);
+            _tcsncpy(lptheme[index].name, _T("default"), QW_SIZE-1);
         }
         else if (_stscanf(data.cFileName + _tcslen(_T("styletheme_")), _T("%[^.]"), lptheme[index].name) == 1)
         {
             if (_tcsicmp(lptheme[index].name, _T("black")) == 0)
             {
-                eu_i18n_load_str(IDS_THEME_DESC_BLOCK, lptheme[index].desc, ACNAME_LEN-1);
+                eu_i18n_load_str(IDS_THEME_DESC_BLOCK, lptheme[index].desc, QW_SIZE-1);
             }
             else if (_tcsicmp(lptheme[index].name, _T("white")) == 0)
             {
-                eu_i18n_load_str(IDS_THEME_DESC_WHITE, lptheme[index].desc, ACNAME_LEN-1);
+                eu_i18n_load_str(IDS_THEME_DESC_WHITE, lptheme[index].desc, QW_SIZE-1);
             }
         }
         else
@@ -292,7 +292,7 @@ on_theme_copy_style(TCHAR *ac_theme)
         printf("on_theme_load_script(%ls) failed\n", ac_theme);
         return EUE_LOAD_SCRIPT_ERR;
     }
-    strncpy(eu_get_config()->window_theme, eu_get_theme()->name, ACNAME_LEN - 1);
+    strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE - 1);
     on_theme_update_item();
     menu_switch_theme();
     on_view_modify_theme();
@@ -302,7 +302,7 @@ on_theme_copy_style(TCHAR *ac_theme)
 static inline
 TCHAR *u16_font(char *font)
 {
-    MultiByteToWideChar(CP_UTF8, 0, font, -1, uni_font, FT_LEN);
+    MultiByteToWideChar(CP_UTF8, 0, font, -1, uni_font, DW_SIZE);
     return uni_font;
 }
 
@@ -428,7 +428,7 @@ choose_style_font(char *font, int *fontsize, int *bold)
     {
         *font = 0;
     }
-    if (!WideCharToMultiByte(CP_UTF8, 0, lf.lfFaceName, -1, font, FT_LEN, NULL, NULL))
+    if (!WideCharToMultiByte(CP_UTF8, 0, lf.lfFaceName, -1, font, DW_SIZE, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
     }
@@ -1021,7 +1021,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     choose_text_color(hdlg, &dlg_style.activetab.bgcolor);
                     InvalidateRect(hwnd_activetab_static, NULL, TRUE);
                     break;
-                }                
+                }
             }
             STYLE_MSG(keywords0,hwnd_keyword_static,font_keyword_static,IDC_SETFONT_KEYWORDS_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS_BTN)
             else STYLE_MSG(keywords1,hwnd_keyword2_static,font_keyword2_static,IDC_SETFONT_KEYWORDS2_BTN,IDC_SETTEXTCOLOR_KEYWORDS2_BTN)

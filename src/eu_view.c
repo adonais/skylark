@@ -174,7 +174,7 @@ on_view_refresh_theme(HWND hwnd)
         }
         if (p->pmod)
         {
-            np_plugins_setvalue(&p->plugin->funcs, &p->plugin->npp, NV_THEME, NULL);
+            np_plugins_setvalue(&p->plugin->funcs, &p->plugin->npp, NV_THEME_CHANGE, NULL);
         }
     }
     if (document_map_initialized && hwnd_document_map)
@@ -193,13 +193,13 @@ on_view_switch_theme(HWND hwnd, int id)
     HFONT hfont = NULL;
     eu_tabpage *p = NULL;
     TCHAR *pbuf = NULL;
-    TCHAR buf[ACNAME_LEN+1] = {0};
-    TCHAR old[ACNAME_LEN+1] = {0};
-    if (!GetMenuString(GetMenu(hwnd), id, buf, ACNAME_LEN, MF_BYCOMMAND))
+    TCHAR buf[QW_SIZE+1] = {0};
+    TCHAR old[QW_SIZE+1] = {0};
+    if (!GetMenuString(GetMenu(hwnd), id, buf, QW_SIZE, MF_BYCOMMAND))
     {
         return 1;
     }
-    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, old, ACNAME_LEN))
+    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, old, QW_SIZE))
     {
         return 1;
     }
@@ -229,7 +229,7 @@ on_view_switch_theme(HWND hwnd, int id)
     }
     else
     {
-        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, ACNAME_LEN);
+        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
     }
     return on_view_refresh_theme(hwnd);
 }
@@ -253,18 +253,18 @@ on_view_modify_theme(void)
 void
 on_view_copy_theme(void)
 {
-    TCHAR theme_name[ACNAME_LEN+1] = {0};
-    TCHAR old_theme[ACNAME_LEN+1] = {0};
+    TCHAR theme_name[QW_SIZE+1] = {0};
+    TCHAR old_theme[QW_SIZE+1] = {0};
     LOAD_I18N_RESSTR(IDC_MSG_THEME_NAME, caption);
-    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme_name, ACNAME_LEN))
+    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme_name, QW_SIZE))
     {
         return;
     }
     else
     {
-        _tcsncpy(old_theme, theme_name, ACNAME_LEN);
+        _tcsncpy(old_theme, theme_name, QW_SIZE);
     }
-    if (eu_input(caption, theme_name, ACNAME_LEN))
+    if (eu_input(caption, theme_name, QW_SIZE))
     {
         if (!theme_name[0])
         {
@@ -303,10 +303,10 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
         {
             eu_tabpage *p = NULL;
             int m_width = _tstoi(tab_width);
-            if (m_width > ACNAME_LEN)
+            if (m_width > QW_SIZE)
             {
-                _sntprintf(tab_width, _countof(tab_width)-1, _T("%d"), ACNAME_LEN);
-                eu_get_config()->tab_width = ACNAME_LEN;
+                _sntprintf(tab_width, _countof(tab_width)-1, _T("%d"), QW_SIZE);
+                eu_get_config()->tab_width = QW_SIZE;
             }
             else
             {

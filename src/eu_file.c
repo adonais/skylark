@@ -35,10 +35,10 @@ on_file_set_filter(const TCHAR *ext, TCHAR **pfilter)
     {
         TCHAR *pext = NULL;
         TCHAR *pdesc = NULL;
-        TCHAR exts[ACNAME_LEN+1] = {0};
-        char u8_exts[ACNAME_LEN+1] = {0};
-        _sntprintf(exts, ACNAME_LEN, _T("*%s;"), ext);
-        WideCharToMultiByte(CP_UTF8, 0, exts, -1, u8_exts, ACNAME_LEN, NULL, NULL);
+        TCHAR exts[QW_SIZE+1] = {0};
+        char u8_exts[QW_SIZE+1] = {0};
+        _sntprintf(exts, QW_SIZE, _T("*%s;"), ext);
+        WideCharToMultiByte(CP_UTF8, 0, exts, -1, u8_exts, QW_SIZE, NULL, NULL);
         for (doctype_t *mapper = eu_doc_get_ptr(); mapper && mapper->doc_type; ++mapper)
         {
             if (mapper->extname && strstr(mapper->extname, u8_exts) != NULL)
@@ -683,7 +683,7 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
         else
         {
             pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
-            
+
             sptr_t line_end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, pbak->x > 0 ? pbak->x - 1 : 0, 0);
             pos += (pbak->y > 0 ? pbak->y - 1 : 0);
             if (pos > line_end_pos)
@@ -719,7 +719,7 @@ on_file_update_focus(eu_tabpage *pnode, file_backup *pbak)
     else
     {
         _InterlockedExchange(&last_focus, pnode->tab_id);
-    }    
+    }
 }
 
 static int
@@ -763,7 +763,7 @@ on_file_load_plugins(eu_tabpage *pnode, bool route_open)
             if (!route_open)
             {
                 char u8_file[MAX_PATH] = {0};
-                pnode->plugin->funcs.asfile(&pnode->plugin->npp, NULL, util_make_u8(pnode->pathfile, u8_file, MAX_PATH));
+                pnode->plugin->funcs.asfile(&pnode->plugin->npp, NULL, util_make_u8(pnode->bakpath[0] ? pnode->bakpath : pnode->pathfile, u8_file, MAX_PATH));
             }
             else
             {
@@ -777,6 +777,27 @@ on_file_load_plugins(eu_tabpage *pnode, bool route_open)
         }
     }
     return ret;
+}
+
+static time_t
+on_file_max_date(file_backup *pbak)
+{
+    if (pbak)
+    {
+         struct _stat rel_t = {0};
+         struct _stat bak_t = {0};
+         _tstat(pbak->rel_path, &rel_t);
+         if (pbak->bak_path[0])
+         {
+             _tstat(pbak->bak_path, &bak_t);
+         }
+         if (rel_t.st_mtime > bak_t.st_mtime)
+         {
+             pbak->status = 0;
+         }
+         return rel_t.st_mtime > 0 ? rel_t.st_mtime : bak_t.st_mtime;
+    }
+    return 0;
 }
 
 /**************************************************************************************
@@ -829,20 +850,8 @@ on_file_only_open(file_backup *pbak, const bool selection)
         }
         if (!pnode->is_blank)
         {
-            struct _stat rel_t;
-            struct _stat bak_t = {0};
-            bak_t.st_mtime = INTPTR_MAX;
-            _tstat(pbak->rel_path, &rel_t);
-            if (pbak->bak_path[0])
-            {
-                _tstat(pbak->bak_path, &bak_t);
-            }
-            if (rel_t.st_mtime > bak_t.st_mtime)
-            {
-                pbak->status = 0;
-            }
             pnode->zoom_level = pbak->zoom;
-            on_file_update_time(pnode, rel_t.st_mtime);
+            on_file_update_time(pnode, on_file_max_date(pbak));
         }
     }
     if ((res = on_file_preload(pnode, pbak)) != SKYLARK_OK)
@@ -867,10 +876,10 @@ on_file_only_open(file_backup *pbak, const bool selection)
             on_file_other_tab(index);
             return EUE_WRITE_TAB_FAIL;
         }
-        on_sci_after_file(pnode);
     }
     if (!pnode->pmod)
     {   // 非插件加载
+        on_sci_after_file(pnode);
         res = on_file_after_open(pnode, pbak);
         if (pbak->status)
         {
@@ -883,6 +892,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
     }
     else
     {
+        pnode->be_modify = !!pbak->status;
         on_file_load_plugins(pnode, false);
         on_file_update_focus(pnode, pbak);
         res = on_tabpage_selection(pnode, last_focus);
@@ -1485,6 +1495,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
 {
     char *ptext = NULL;
     int err = SKYLARK_OK;
+    npn_nmhdr nphdr = {0};
     if (!pnode)
     {
         return EUE_TAB_NULL;
@@ -1493,36 +1504,34 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     {
         err = EUE_UNEXPECTED_SAVE;
         goto SAVE_FINAL;
-    }
+    }  // 插件打开的文件, 保存
     if (pnode->pmod && pnode->plugin && !save_as)
     {
-        npn_nmhdr nphdr = {0};
         nphdr.pnode = (void *)pnode;
         if (eu_get_config()->m_write_copy && on_file_write_backup(pnode))
         {
             err = EUE_WRITE_FILE_ERR;
             goto SAVE_FINAL;
         }
-        np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
-        npn_send_notify(pnode->hwnd_sc, NPP_DOC_MODIFY, &nphdr);
+        npn_send_notify(pnode->hwnd_sc, NPP_DOC_MODIFY, OPERATE_SAVE, &nphdr);
         goto SAVE_FINAL;
-    }
+    }  // 编辑器文件另存为
     if (pnode->is_blank || save_as)
     {
-        if (!pnode->pmod)
+        TCHAR full_path[MAX_PATH] = {0};
+        _tcsncpy(full_path, pnode->filename, MAX_PATH);
+        if (on_file_get_filename_dlg(full_path, _countof(full_path)))
         {
-            TCHAR full_path[MAX_PATH] = {0};
-            _tcsncpy(full_path, pnode->filename, MAX_PATH);
-            if (on_file_get_filename_dlg(full_path, _countof(full_path)))
-            {
-                err = EUE_LOCAL_FILE_ERR;
-                goto SAVE_FINAL;
-            }
-            _tsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
-            if (_tcslen(pnode->extname) > 0)
-            {
-                _tcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
-            }
+            err = EUE_LOCAL_FILE_ERR;
+            goto SAVE_FINAL;
+        }
+        _tsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
+        if (_tcslen(pnode->extname) > 0)
+        {
+            _tcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+        }
+        if (!pnode->pmod)
+        {   // 非插件另存为
             if (on_file_do_write(pnode, full_path, false, true))
             {
                 err = EUE_WRITE_FILE_ERR;
@@ -1542,12 +1551,14 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
             }
         }
         else if (pnode->plugin)
-        {
-            np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, NULL);
+        {   // 插件另存为
+            np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, full_path);
+            nphdr.pnode = (void *)pnode;
+            npn_send_notify(pnode->hwnd_sc, NPP_DOC_MODIFY, OPERATE_SAVEAS, &nphdr);
         }
     }
     else if (util_availed_char(pnode->fs_server.networkaddr[0]))
-    {
+    {   // sftp文件保存
         size_t buf_len = 0;
         wchar_t msg[PERROR_LEN+1] = {0};
         if (TAB_NOT_BIN(pnode))
@@ -1628,15 +1639,17 @@ SAVE_FINAL:
     {
         free(ptext);
     }
-    if (!err && !pnode->pmod)
+    if (!err)
     {
-        // 发送SCI_SETSAVEPOINT消息
-        eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
-        if (!(pnode->is_blank || save_as))
-        {
-            if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
+        if (!pnode->pmod)
+        {   // 发送SCI_SETSAVEPOINT消息
+            eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
+            if (!(pnode->is_blank || save_as))
             {
-                pnode->doc_ptr->fn_reload_symlist(pnode);
+                if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
+                {
+                    pnode->doc_ptr->fn_reload_symlist(pnode);
+                }
             }
         }
         on_toolbar_update_button();
@@ -1648,11 +1661,7 @@ SAVE_FINAL:
 int
 on_file_save_as(eu_tabpage *pnode)
 {
-    if (!pnode)
-    {
-        return EUE_TAB_NULL;
-    }
-    return on_file_save(pnode, true);
+    return !pnode ? EUE_TAB_NULL : on_file_save(pnode, true);
 }
 
 int
@@ -1694,9 +1703,48 @@ on_file_guid(TCHAR *buf, int len)
 }
 
 static void
+on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
+{
+#define TMP_SUFFX (L".$bak~")
+    bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->raw_size/1024/1024));
+    if (is_cache)
+    {
+        // 保存本地文件, 并移动到cache_path
+        int ret = 0;
+        wchar_t *tmp_path = NULL;
+        wchar_t pathfile[MAX_PATH] = {0};
+        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && tmp_path)
+        {
+            _snwprintf(pathfile, MAX_PATH - 1 , L"%s", tmp_path);
+            wcsncat(tmp_path, TMP_SUFFX, MAX_PATH - 1);
+            ret = CopyFileW(pathfile, tmp_path, false);
+        }
+        if (ret)
+        {
+            np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+            ret = MoveFileW(pathfile, cache_path);
+        }
+        if (ret)
+        {
+            ret = MoveFileExW(tmp_path, pathfile, MOVEFILE_REPLACE_EXISTING|MOVEFILE_COPY_ALLOWED);
+        }
+        eu_safe_free(tmp_path);
+    }
+    else if (!url_has_remote(pnode->pathfile))
+    {   // no cache, 则自动保存
+        np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+    }
+    else
+    {   // 网络流文件的修改丢弃
+        on_sql_delete_backup_row(pnode);
+    }
+#undef TMP_SUFFX
+}
+
+static void
 on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
 {
-    TCHAR buf[ACNAME_LEN] = {0};
+    TCHAR buf[QW_SIZE] = {0};
     file_backup filebak = {0};
     filebak.cp = pnode->codepage;
     filebak.bakcp = !TAB_NOT_BIN(pnode) ? IDM_OTHER_BIN : IDM_UNI_UTF8;
@@ -1704,11 +1752,19 @@ on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
     {
         if (!pnode->is_blank || TAB_NOT_NUL(pnode))
         {
-            if (on_sci_doc_modified(pnode))
+            if (pnode->be_modify)
             {
-                on_file_guid(buf, ACNAME_LEN - 1);
-                _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
-                on_file_do_write(pnode, filebak.bak_path, true, false);
+                on_file_guid(buf, QW_SIZE - 1);
+                if (!pnode->pmod)
+                {
+                    _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
+                    on_file_do_write(pnode, filebak.bak_path, true, false);
+                }
+                else
+                {
+                    _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s%s"), eu_module_path, buf, pnode->extname);
+                    on_file_npp_write(pnode, filebak.bak_path, true);
+                }
                 filebak.status = 1;
                 if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
                 {
@@ -1727,10 +1783,9 @@ on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
             filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             if (mode == FILE_REMOTE_CLOSE)
             {
-                if (TabCtrl_GetItemCount(g_tabpages) <= 1 && eu_get_config()->m_exit)
-                {
-                    filebak.sync = 1;
-                }
+                filebak.sync = (int)(url_has_remote(filebak.rel_path) ? 1 : 
+                               (TabCtrl_GetItemCount(g_tabpages) <= 1 && eu_get_config()->m_exit) ? 1 : 0);
+                
                 eu_update_backup_table(&filebak, DB_FILE);
                 on_sql_delete_backup_row(pnode);
             }

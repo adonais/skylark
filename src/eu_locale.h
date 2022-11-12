@@ -71,8 +71,8 @@
 
 typedef struct _def_localization
 {
-    TCHAR desc[ACNAME_LEN];
-    TCHAR dll[ACNAME_LEN];
+    TCHAR desc[QW_SIZE];
+    TCHAR dll[QW_SIZE];
 }def_localization;
 
 #ifdef __cplusplus
