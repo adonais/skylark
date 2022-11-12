@@ -1344,7 +1344,7 @@ on_tabpage_add(eu_tabpage *pnode)
         printf("we execute plugins\n");
         return on_sci_create(pnode, NULL, flags, NULL);
     }
-    if (pnode->fs_server.networkaddr[0] == 0 && pnode->hex_mode)
+    if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
     {
         pnode->bytes_remaining = (size_t)pnode->raw_size;
         if (!hexview_init(pnode))
