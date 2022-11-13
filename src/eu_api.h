@@ -609,7 +609,7 @@ EU_EXT_CLASS bool __stdcall eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
 // for eu_config.c
 EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
 EU_EXT_CLASS bool __stdcall eu_load_config(void);
-EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *);
+EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
 EU_EXT_CLASS void __stdcall eu_load_file(void);
 EU_EXT_CLASS void __stdcall eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
 EU_EXT_CLASS bool __stdcall eu_config_parser_path(const wchar_t **args, int argc, wchar_t *path);

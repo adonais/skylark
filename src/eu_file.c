@@ -460,7 +460,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
             goto pre_clean;
         }
     }
-    if (eu_check_arg(NULL, 0, _T("-hex")))
+    if (eu_check_arg(NULL, 0, _T("-hex"), pfull))
     {
         pnode->hex_mode = true;
     }

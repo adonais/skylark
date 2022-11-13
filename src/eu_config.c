@@ -126,10 +126,9 @@ eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
 }
 
 bool WINAPI
-eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
+eu_check_arg(const wchar_t **args, int arg_c, const wchar_t *argument, const wchar_t *pathfile)
 {
     bool ret = false;
-    int arg_c = argc;
     LPWSTR *ptr_arg = NULL;
     if (!argument)
     {
@@ -151,6 +150,19 @@ eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
             {
                 ret = true;
                 break;
+            }
+        }
+        if (pathfile)
+        {   // 参数前后的文件名称是否一致
+            wchar_t tmp_file[MAX_PATH] = {0};
+            bool exist = eu_config_parser_path(args, arg_c, tmp_file);
+            if (exist)
+            {
+                exist = wcsicmp(tmp_file, pathfile) == 0;
+            }
+            if (!exist)
+            {
+                ret = false;
             }
         }
         if (ptr_arg != (LPWSTR *)args)

@@ -490,7 +490,7 @@ hexview_destoy(eu_tabpage *pnode)
                 printf("on hexview_destoy, Delete(%ls) error, cause: %lu\n", pnode->bakpath, GetLastError());
             }
         }
-        eu_safe_free (pnode->phex);
+        eu_safe_free(pnode->phex);
     }
 }
 
