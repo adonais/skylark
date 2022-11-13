@@ -34,7 +34,7 @@ on_theme_drawex_text(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCWSTR 
     {
         ret = fnDrawThemeTextEx(hTheme, hdc, iPartId, iStateId, pszText,cchText, dwTextFlags, pRect, pOptions);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return ret;
 }
 

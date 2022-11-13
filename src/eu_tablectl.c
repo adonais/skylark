@@ -204,10 +204,10 @@ oci_database_cleanup(oci_handle *poci)
 void
 eu_close_db_handle(void)
 {
-    safe_close_dll(db_funcs.m_mysql.mysql_dll);
-    safe_close_dll(db_funcs.m_oci.oci_dll);
-    safe_close_dll(db_funcs.m_pq.libpq_dll);
-    safe_close_dll(redis_funcs.dll);
+    eu_close_dll(db_funcs.m_mysql.mysql_dll);
+    eu_close_dll(db_funcs.m_oci.oci_dll);
+    eu_close_dll(db_funcs.m_pq.libpq_dll);
+    eu_close_dll(redis_funcs.dll);
 }
 
 void
@@ -320,7 +320,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 mysql_sub->fn_mysql_close == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                safe_close_dll(mysql_sub->mysql_dll);
+                eu_close_dll(mysql_sub->mysql_dll);
                 return 1;
             }
         }
@@ -462,7 +462,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 oci_sub->fnOCITransDetach == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR13, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                safe_close_dll(oci_sub->oci_dll);
+                eu_close_dll(oci_sub->oci_dll);
                 return 1;
             }
         }
@@ -619,7 +619,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 pq_sub->fnPQsetClientEncoding == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR22, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                safe_close_dll(pq_sub->libpq_dll);
+                eu_close_dll(pq_sub->libpq_dll);
                 return 1;
             }
         }

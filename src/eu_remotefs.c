@@ -102,15 +102,7 @@ on_remote_init_socket(const char *url, remotefs *pserver)
 {
     bool oneway_certification = false;
     CURL *curl = NULL;
-    if (!url)
-    {
-        return NULL;
-    }
-    if (!pserver)
-    {
-        return NULL;
-    }
-    if (!util_availed_char(pserver->user[0]))
+    if (!url || !pserver || !util_availed_char(pserver->user[0]))
     {
         return NULL;
     }

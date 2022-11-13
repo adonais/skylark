@@ -96,7 +96,7 @@ typedef struct _npstream
   void*    pdata;         /* plug-in private data */
   void*    ndata;         /* reserve private data */
   const    char* url;
-  uint32_t end;
+  intptr_t end;
   uint32_t lastmodified;
   void*    notifydata;
   const    char* headers; /* Response headers from host.
@@ -234,8 +234,8 @@ typedef int (*npp_destroystream_ptr)(NPP instance, npstream* stream, uint16_t re
 typedef int (*npp_handle_ptr)(NPP instance, void *event);
 typedef int (*npp_getvalue_ptr)(NPP instance, npp_variable v, void **value);
 typedef int (*npp_setvalue_ptr)(NPP instance, npp_variable v, void *value);
+typedef int (*npp_stream2file_ptr)(NPP instance, npstream* stream);
 typedef void (*npp_print_ptr)(NPP instance, npprint *platform);
-typedef void (*npp_stream2file_ptr)(NPP instance, npstream* stream, const char* fname);
 typedef void (*npp_savefile_ptr)(const NPP instance);
 typedef void (*npp_savefileas_ptr)(const NPP instance, const wchar_t *fname);
 typedef uint32_t (*npp_writeready_ptr)(NPP instance, npstream* stream);

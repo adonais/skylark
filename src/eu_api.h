@@ -180,6 +180,12 @@ static inline int eu_cvector_at(int *v, int n)
         CloseHandle(h);                         \
     }                                           \
     h = (void *)MEM_RESERVED
+#define eu_close_dll(h)                         \
+    if (NULL != h)                              \
+    {                                           \
+        FreeLibrary(h);                         \
+        h = NULL;                               \
+    }
 #define ONCE_RUN(code)                                      \
 {                                                           \
     static volatile long _done = 0;                         \

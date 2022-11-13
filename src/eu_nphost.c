@@ -153,7 +153,5 @@ np_plugins_shutdown(HMODULE *hmod, npdata **plugin)
         }
         free(*plugin);
         *plugin = NULL;
-        FreeLibrary(*hmod);
-        *hmod = NULL;
     }
 }

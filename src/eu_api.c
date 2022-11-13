@@ -2428,7 +2428,7 @@ eu_curl_init_global(long flags)
            )
         {
             result = EUE_CURL_INIT_FAIL;
-            safe_close_dll(eu_curl_symbol);
+            eu_close_dll(eu_curl_symbol);
         }
         else
         {

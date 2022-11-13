@@ -1896,7 +1896,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
     } while (0);
     eu_safe_free(pbuffer);
-    safe_close_dll(h_ver);
+    eu_close_dll(h_ver);
     return ret;
 }
 

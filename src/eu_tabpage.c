@@ -1320,7 +1320,7 @@ on_tabpage_add(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
-    if (TAB_NOT_BIN(pnode) && !pnode->hex_mode)
+    if (TAB_NOT_BIN(pnode) && !pnode->hex_mode && !pnode->pmod)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
@@ -1338,12 +1338,6 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         pnode->tab_id -= on_tabpage_remove_empty();
     }
-    if (np_plugins_lookup(NPP_PDFVIEW, pnode->extname, &pnode->pmod))
-    {
-        const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
-        printf("we execute plugins\n");
-        return on_sci_create(pnode, NULL, flags, NULL);
-    }
     if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
     {
         pnode->bytes_remaining = (size_t)pnode->raw_size;
@@ -1353,6 +1347,12 @@ on_tabpage_add(eu_tabpage *pnode)
             return EUE_INSERT_TAB_FAIL;
         }
         return SKYLARK_OK;
+    }
+    if (!pnode->hex_mode && pnode->pmod)
+    {
+        const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
+        printf("we execute plugins\n");
+        return on_sci_create(pnode, NULL, flags, NULL);
     }
     if (on_sci_init_dlg(pnode))
     {
@@ -1381,10 +1381,13 @@ on_tabpage_editor_modify(eu_tabpage *pnode, const char *str)
     {
         return (int)eu_sci_call(pnode, SCN_SAVEPOINTLEFT, 0, 0);
     }
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-    eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) str);
-    eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(str));
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    if (!pnode->plugin)
+    {
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) str);
+        eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(str));
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    }
     return 0;
 }
 
@@ -1392,6 +1395,10 @@ int
 on_tabpage_reload_file(eu_tabpage *pnode, int flags)
 {
     EU_VERIFY(pnode != NULL);
+    if (pnode->hex_mode || pnode->plugin)
+    {
+        return 0;
+    }
     switch (flags)
     {
         case 0: // 保留
@@ -1407,7 +1414,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-            if (on_file_to_tab(pnode, NULL, true))
+            if (on_file_load(pnode, NULL, true))
             {
                 return 1;
             }

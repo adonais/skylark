@@ -181,7 +181,7 @@ on_sci_before_file(eu_tabpage *pnode)
 static void
 on_sci_reset_zoom(eu_tabpage *pnode)
 {
-    if (pnode->zoom_level != 0)
+    if (pnode && pnode->zoom_level != 0)
     {
         int zoom = pnode->zoom_level;
         if (pnode->zoom_level > 0)
@@ -198,6 +198,7 @@ on_sci_reset_zoom(eu_tabpage *pnode)
                 on_view_zoom_in(pnode);
             }
         }
+        pnode->zoom_level = 0;      
     }
 }
 
@@ -206,7 +207,7 @@ on_sci_after_file(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        if (!pnode->hex_mode)
+        if (!pnode->hex_mode && !pnode->pmod)
         {
             eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
             eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
@@ -221,7 +222,7 @@ on_sci_after_file(eu_tabpage *pnode)
             }
             on_sci_update_margin(pnode);            
         }
-        else
+        else if (!pnode->plugin)
         {
             on_sci_reset_zoom(pnode);
         }
@@ -318,16 +319,18 @@ on_sci_free_tab(eu_tabpage **ppnode)
         {
             DestroyWindow(hwnd_document_map);
         }
-        if ((*ppnode)->pmod && (*ppnode)->plugin)
+        if ((*ppnode)->plugin)
         {
+            np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
+            np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
             if ((*ppnode)->hwnd_sc)
             {
                 SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+                (*ppnode)->hwnd_sc = NULL;
             }
-            np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
-            np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
             on_sci_delete_file(*ppnode);
         }
+        eu_close_dll((*ppnode)->pmod);
         // 切换16进制时,销毁相关资源
         if (!(*ppnode)->phex)
         {

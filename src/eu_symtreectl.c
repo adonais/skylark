@@ -722,7 +722,7 @@ on_sysmtree_init_hredis(void)
         redis_funcs.fnRedisCommand == NULL || redis_funcs.fnFreeReplyObject == NULL)
     {
         MSG_BOX(IDC_MSG_SYMTREE_ERR11, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        safe_close_dll(redis_funcs.dll);
+        eu_close_dll(redis_funcs.dll);
         return false;
     }
     return true;

@@ -81,7 +81,7 @@ on_dark_draw_background(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRE
     {
         ret = fnDrawThemeBackground(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return ret;
 }
 
@@ -95,7 +95,7 @@ on_dark_get_partsize(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT 
     {
         ret = fnGetThemePartSize(hTheme, hdc, iPartId, iStateId, prc, eSize, psz);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return ret;
 }
 
@@ -109,7 +109,7 @@ on_dark_open_data(HWND hwnd, LPCWSTR class_list)
     {
         hth = (intptr_t)fnOpenThemeData(hwnd, class_list);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return hth;
 }
 
@@ -123,7 +123,7 @@ on_dark_close_data(void *hth)
     {
         ret = fnCloseThemeData(hth);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return ret;
 }
 
@@ -149,7 +149,7 @@ on_dark_get_sys_colour(HWND hwnd, int colid)
     {
         col = GetSysColor(colid);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return col;
 }
 
@@ -167,7 +167,7 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
                 printf("fnSetWindowTheme failed\n");
             }
         }
-        safe_close_dll(uxtheme);
+        eu_close_dll(uxtheme);
     }
 }
 
@@ -186,7 +186,7 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
                 fnDwmSetWindowAttribute(hwnd, 19, &dark, sizeof dark);
             }
         }
-        safe_close_dll(dwm);
+        eu_close_dll(dwm);
     #else
         SetProp(hwnd, _T("UseImmersiveDarkModeColors"), (HANDLE)(intptr_t)(dark));
     #endif // USE_DWMAPI
@@ -217,7 +217,7 @@ on_dark_get_colorization_color(void)
             theme_color = RGB(r, g, b);
         }
     }
-    safe_close_dll(dwm);
+    eu_close_dll(dwm);
     return theme_color;
 }
 
@@ -298,7 +298,7 @@ on_dark_fix_scrollbar(bool fixed)
                 VirtualProtect(addr, sizeof(IMAGE_THUNK_DATA), old_protect, &old_protect);
             }
         }
-        safe_close_dll(comctl);
+        eu_close_dll(comctl);
     }
 }
 
@@ -441,7 +441,7 @@ eu_on_dark_release(bool shutdown)
 {
     if (shutdown)
     {
-        safe_close_dll(g_uxtheme);
+        eu_close_dll(g_uxtheme);
     }
     else if (g_dark_enabled)
     {
@@ -454,7 +454,7 @@ eu_on_dark_release(bool shutdown)
         g_dark_enabled = false;
         on_toolbar_refresh(hwnd);
         fnFlushMenuThemes();
-        safe_close_dll(g_uxtheme);
+        eu_close_dll(g_uxtheme);
         SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
         on_tabpage_foreach(on_tabpage_theme_changed);
         if (g_treebar)
@@ -544,7 +544,7 @@ eu_on_dark_init(bool fix_scroll, bool dark)
             else
             {
                 g_dark_supported = false;
-                safe_close_dll(g_uxtheme);
+                eu_close_dll(g_uxtheme);
             }
         }
     }

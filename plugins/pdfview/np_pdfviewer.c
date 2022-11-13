@@ -60,7 +60,7 @@ typedef struct _instance_data
     HANDLE      hprocess;
     WCHAR       exepath[MAX_PATH];
     float       progress, prev_progress;
-    uint32_t    total_size, curr_size;
+    intptr_t    total_size, curr_size;
     bool        istmp;
 } instance_data;
 
@@ -728,8 +728,8 @@ pdf_newstream(NPP instance, npstream* stream, bool seekable, uint16_t* stype)
 static uint32_t
 pdf_writeready(NPP instance, npstream* stream)
 {
-    int32_t res = stream->end > 0 ? stream->end : UINT_MAX;
-    printf("sp:  pdf_writeready() res=%d\n", res);
+    uint32_t res = stream->end > 0 ? stream->end : UINT_MAX;
+    printf("sp:  pdf_writeready() res=%u\n", res);
     return res;
 }
 
@@ -833,15 +833,15 @@ pdf_show_progress(void *p)
     return 0;
 }
 
-static void
-pdf_stream2file(NPP instance, npstream* stream, const char* fname)
+static int
+pdf_stream2file(NPP instance, npstream* stream)
 {
+    int ret = NP_OUT_OF_MEMORY;
     instance_data *data = (instance_data *)instance->pdata;
-    if (!fname)
+    if (!data)
     {
-        printf("sp: pdf_stream2file() error: fname is NULL\n");
-        wcsncpy(data->message, L"Error: The document couldn't be downloaded!", MAX_PATH);
-        goto Exit;
+        printf("sp: pdf_stream2file() error: instance->pdata is NULL\n");
+        return NP_OUT_OF_MEMORY;
     }
     if (data->hfile)
     {
@@ -850,19 +850,20 @@ pdf_stream2file(NPP instance, npstream* stream, const char* fname)
     data->progress = 1.0f;
     data->prev_progress = 0.0f; // force update
     pdf_progress_repaint(data);
-    MultiByteToWideChar(CP_UTF8, 0, fname, -1, data->filepath, MAX_PATH);
-    struct _stat st;
-    _wstat(data->filepath, &st);
-    data->total_size = (uint32_t)st.st_size;
-    launch_sumatra(data, stream ? stream->url : "");
-    // 文件打开慢时, 使用一个不太精确的进度条提示
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, pdf_show_progress, (void *)data, 0, NULL));
-Exit:
-    if (data->npwin)
+    MultiByteToWideChar(CP_UTF8, 0, stream->url, -1, data->filepath, MAX_PATH);
+    data->total_size = stream->end;
+    ret = launch_sumatra(data, "");
+    if (!ret)
     {
-        InvalidateRect((HWND)data->npwin->window, NULL, FALSE);
-        UpdateWindow((HWND)data->npwin->window);
+        // 文件打开慢时, 使用一个不太精确的进度条提示
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, pdf_show_progress, (void *)data, 0, NULL));
+        if (data->npwin)
+        {
+            InvalidateRect((HWND)data->npwin->window, NULL, FALSE);
+            UpdateWindow((HWND)data->npwin->window);
+        }
     }
+    return ret;
 }
 
 static int
@@ -876,7 +877,7 @@ pdf_destroystream(NPP instance, npstream* stream, uint16_t reason)
         {
             printf("url: %s", stream->url);
         }
-        printf("end: %d", stream->end);
+        printf("end: %zd", stream->end);
     }
     if (!instance)
     {

@@ -62,7 +62,7 @@ typedef struct _file_backup
 }file_backup;
 
 int on_file_new(void);
-int on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, const bool force);
+int on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force);
 int on_file_only_open(file_backup *pbak, const bool selection);
 int on_file_open(void);
 int on_file_out_open(const int index, uint32_t *pid);

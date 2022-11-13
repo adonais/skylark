@@ -1738,7 +1738,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case SCI_SETZOOM:
         {
-            _InterlockedExchange(&hex_zoom, 0);
+            _InterlockedExchange(&hex_zoom, (long)wParam);
             SendMessage(hwnd, WM_SETFONT, 0, 0);
             InvalidateRect(hwnd, NULL, false);
             break;
@@ -2137,6 +2137,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         if (!pnode->phex)
         {
             pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
+            hex_zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
             if (!pnode->phex)
             {
                 err = EUE_POINT_NULL;
@@ -2190,6 +2191,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnew->tab_id = TabCtrl_GetCurSel(g_tabpages);
         pnew->doc_ptr = on_doc_get_type(pnew->filename);
         pnew->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
+        pnew->zoom_level = hex_zoom > SELECTION_ZOOM_LEVEEL ? hex_zoom : 0;
         if (pnode->phex && pnode->phex->hex_ascii)
         {
             is_utf8 = false;

@@ -332,5 +332,5 @@ share_spinlock_wait(volatile intptr_t *plock)
 void WINAPI
 share_close_lang(void)
 {
-    safe_close_dll(g_skylark_lang);
+    eu_close_dll(g_skylark_lang);
 }

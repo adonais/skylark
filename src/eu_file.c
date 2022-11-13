@@ -419,8 +419,8 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
 {
     int err = SKYLARK_OK;
     HANDLE hfile = NULL;
-    TCHAR *pfull = pbak->rel_path;
-    if (!pnode)
+    TCHAR *pfull = pbak ? pbak->rel_path : NULL;
+    if (!pnode || !pbak)
     {
         return EUE_TAB_NULL;
     }
@@ -486,7 +486,12 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         }
         goto pre_clean;
     }
-    else if (pbak->cp)
+    if (pnode->pmod)
+    {
+        err = SKYLARK_OK;
+        goto pre_clean;
+    }
+    if (pbak->cp)
     {
         on_encoding_set_bom_from_cp(pnode);
         goto pre_clean;
@@ -504,8 +509,47 @@ pre_clean:
     return err;
 }
 
+static int
+on_file_load_plugins(eu_tabpage *pnode, bool route_open)
+{
+    int ret = np_plugins_initialize(pnode->pmod, &pnode->plugin);
+    if (ret == NP_NO_ERROR && pnode->plugin)
+    {
+        printf("np_plugins_initialize ok!\n");
+        ret = pnode->plugin->funcs.newp(&pnode->plugin->npp, NULL);
+        if (ret == 0)
+        {
+            pnode->plugin->win.window = pnode->hwnd_sc;
+            pnode->plugin->funcs.setwindow(&pnode->plugin->npp, &pnode->plugin->win);
+            if (!route_open)
+            {
+                char u8_file[MAX_PATH] = {0};
+                util_make_u8(pnode->bakpath[0] ? pnode->bakpath : pnode->pathfile, u8_file, MAX_PATH);
+                pnode->plugin->stream.url = (const char *)u8_file;
+                pnode->plugin->stream.end = (intptr_t)pnode->raw_size;
+                ret = pnode->plugin->funcs.asfile(&pnode->plugin->npp, &pnode->plugin->stream);
+                if (!ret)
+                {
+                    pnode->hex_mode = true;
+                }
+            }
+            else
+            {
+                uint16_t type;
+                pnode->plugin->stream.end = (intptr_t)pnode->raw_size;
+                ret = pnode->plugin->funcs.newstream(&pnode->plugin->npp, &pnode->plugin->stream, false, &type);
+                if (!ret)
+                {
+                    pnode->plugin->funcs.writeready(&pnode->plugin->npp, &pnode->plugin->stream);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
 int
-on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, const bool force)
+on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
 {
     size_t len = 0;
     size_t buf_len = 0;
@@ -520,6 +564,10 @@ on_file_to_tab(eu_tabpage *pnode, file_backup *pbak, const bool force)
     if (pnode->hex_mode)
     {
         return SKYLARK_OK;
+    }
+    if (pnode->pmod)
+    {
+        return on_file_load_plugins(pnode, false);
     }
     pfull = pnode->pathfile;
     if (pbak && pbak->status)
@@ -600,8 +648,7 @@ on_file_open_if(const TCHAR *pfile, bool selection)
 {
     int res = SKYLARK_NOT_OPENED;
     eu_tabpage *pnode = NULL;
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
         if (!TabCtrl_GetItem(g_tabpages, index, &tci))
@@ -634,7 +681,7 @@ on_file_open_if(const TCHAR *pfile, bool selection)
 }
 
 static void
-on_file_other_tab(int index)
+on_file_active_other(int index)
 {
     int count = TabCtrl_GetItemCount(g_tabpages);
     if (count <= 0)
@@ -722,15 +769,29 @@ on_file_update_focus(eu_tabpage *pnode, file_backup *pbak)
     }
 }
 
+static void
+on_file_before_open(eu_tabpage *pnode)
+{
+    if (!pnode->hex_mode && !pnode->pmod)
+    {
+        on_sci_before_file(pnode);
+        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+    }
+}
+
 static int
 on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
 {
     int result = 0;
+    on_sci_after_file(pnode);
     on_file_update_focus(pnode, pbak);
-    on_file_update_postion(pnode, pbak);
-    on_search_add_navigate_list(pnode, pnode->nc_pos);
+    if (!pnode->plugin)
+    {
+        on_file_update_postion(pnode, pbak);
+        on_search_add_navigate_list(pnode, pnode->nc_pos);
+    }
     result = on_tabpage_selection(pnode, last_focus);
-    if (!pnode->hex_mode)
+    if (!pnode->hex_mode && !pnode->pmod)
     {
         if (strlen(pbak->mark_id) > 0)
         {   // 恢复书签
@@ -745,38 +806,15 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
     {
         on_search_jmp_pos(pnode);
     }
-    return result;
-}
-
-static int
-on_file_load_plugins(eu_tabpage *pnode, bool route_open)
-{
-    int ret = np_plugins_initialize(pnode->pmod, &pnode->plugin);
-    if (ret == NP_NO_ERROR && pnode->plugin)
+    if (pnode->be_modify)
     {
-        printf("np_plugins_initialize ok!\n");
-        ret = pnode->plugin->funcs.newp(&pnode->plugin->npp, NULL);
-        if (ret == 0)
-        {
-            pnode->plugin->win.window = pnode->hwnd_sc;
-            pnode->plugin->funcs.setwindow(&pnode->plugin->npp, &pnode->plugin->win);
-            if (!route_open)
-            {
-                char u8_file[MAX_PATH] = {0};
-                pnode->plugin->funcs.asfile(&pnode->plugin->npp, NULL, util_make_u8(pnode->bakpath[0] ? pnode->bakpath : pnode->pathfile, u8_file, MAX_PATH));
-            }
-            else
-            {
-                uint16_t type;
-                ret = pnode->plugin->funcs.newstream(&pnode->plugin->npp, &pnode->plugin->stream, false, &type);
-                if (!ret)
-                {
-                    pnode->plugin->funcs.writeready(&pnode->plugin->npp, &pnode->plugin->stream);
-                }
-            }
-        }
+        on_tabpage_editor_modify(pnode, "X");
     }
-    return ret;
+    if (!pnode->is_blank)
+    {
+        on_file_push_recent(pnode);
+    }
+    return result;
 }
 
 static time_t
@@ -800,6 +838,62 @@ on_file_max_date(file_backup *pbak)
     return 0;
 }
 
+static int
+on_file_node_initialize(eu_tabpage **p, file_backup *pbak)
+{
+    if (p && pbak)
+    {
+        if (*p)
+        {
+            printf("Waning: node != NULL (should be NULL)\n");
+        }
+        if ((*p = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))) == NULL)
+        {
+            return EUE_OUT_OF_MEMORY;
+        }
+        (*p)->eol = -1;
+        (*p)->begin_pos = -1;
+        (*p)->hex_mode = !!pbak->hex;
+        (*p)->is_blank = pbak->blank;
+        (*p)->be_modify = !!pbak->status;
+        // 有可能是远程文件
+        if (url_has_remote(pbak->rel_path))
+        {
+            remotefs *pserver = on_remote_list_find(pbak->rel_path);
+            if (pserver)
+            {
+                memcpy(&((*p)->fs_server), pserver, sizeof(remotefs));
+            }
+            _tsplitpath(pbak->rel_path, NULL, NULL, (*p)->filename, (*p)->extname);
+            if (_tcslen((*p)->extname) > 0)
+            {
+                _tcsncat((*p)->filename, (*p)->extname, MAX_PATH-1);
+            }
+            _tcsncpy((*p)->pathfile, pbak->rel_path, MAX_PATH - 1);
+        }
+        else
+        {
+            on_file_splite_path(pbak->rel_path, (*p)->pathname, (*p)->filename, NULL, (*p)->extname);
+            _tcsncpy((*p)->pathfile, pbak->rel_path, MAX_PATH - 1);
+        }
+        if (pbak->bak_path[0])
+        {
+            _tcsncpy((*p)->bakpath, pbak->bak_path, MAX_PATH - 1);
+        }
+        if (!(*p)->is_blank)
+        {
+            (*p)->zoom_level = pbak->zoom;
+            on_file_update_time((*p), on_file_max_date(pbak));
+        }
+        if ((*p)->extname[0])
+        {
+            np_plugins_lookup(NPP_PDFVIEW, (*p)->extname, &(*p)->pmod);
+        }
+        return SKYLARK_OK;
+    }
+    return EUE_POINT_NULL;
+}
+
 /**************************************************************************************
  * 文件打开函数, 参数selection只影响返回值, 一般设为true
  * 成功打开文件, 确保返回的是当前标签的序号
@@ -814,7 +908,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
     {
         return res;
     }
-    else if (res >= SKYLARK_OK && (pnode = on_tabpage_get_ptr(res)))
+    if (res >= SKYLARK_OK && (pnode = on_tabpage_get_ptr(res)) != NULL)
     {   // 如果文件已经打开, 根据新参数更新插入符位置
         on_file_update_postion(pnode, pbak);
         if (pnode->nc_pos >= 0)
@@ -823,36 +917,9 @@ on_file_only_open(file_backup *pbak, const bool selection)
         }
         return res;
     }
-    if ((pnode = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))) == NULL)
+    if ((res = on_file_node_initialize(&pnode, pbak)) != SKYLARK_OK)
     {
-        return EUE_OUT_OF_MEMORY;
-    }
-    if (true)
-    {
-        pnode->eol = -1;
-        pnode->begin_pos = -1;
-        pnode->hex_mode = !!pbak->hex;
-        pnode->is_blank = pbak->blank;
-        on_file_splite_path(pbak->rel_path, pnode->pathname, pnode->filename, NULL, pnode->extname);
-        _tcsncpy(pnode->pathfile, pbak->rel_path, MAX_PATH - 1);
-        // 有可能是远程文件
-        if (url_has_remote(pbak->rel_path))
-        {
-            remotefs *pserver = on_remote_list_find(pbak->rel_path);
-            if (pserver)
-            {
-                memcpy(&(pnode->fs_server), pserver, sizeof(remotefs));
-            }
-        }
-        if (pbak->bak_path[0])
-        {
-            _tcsncpy(pnode->bakpath, pbak->bak_path, MAX_PATH - 1);
-        }
-        if (!pnode->is_blank)
-        {
-            pnode->zoom_level = pbak->zoom;
-            on_file_update_time(pnode, on_file_max_date(pbak));
-        }
+        return res;
     }
     if ((res = on_file_preload(pnode, pbak)) != SKYLARK_OK)
     {
@@ -866,37 +933,14 @@ on_file_only_open(file_backup *pbak, const bool selection)
         printf("on_tabpage_add failed, err = %d\n", res);
         return res;
     }
-    if (!pnode->hex_mode && !pnode->pmod)
+    on_file_before_open(pnode);
+    if (on_file_load(pnode, pbak, false))
     {
-        on_sci_before_file(pnode);
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        if (on_file_to_tab(pnode, pbak, false))
-        {
-            int index = on_tabpage_remove(&pnode);
-            on_file_other_tab(index);
-            return EUE_WRITE_TAB_FAIL;
-        }
+        int index = on_tabpage_remove(&pnode);
+        on_file_active_other(index);
+        return EUE_WRITE_TAB_FAIL;
     }
-    if (!pnode->pmod)
-    {   // 非插件加载
-        on_sci_after_file(pnode);
-        res = on_file_after_open(pnode, pbak);
-        if (pbak->status)
-        {
-            on_tabpage_editor_modify(pnode, "X");
-        }
-        if (!pnode->is_blank)
-        {
-            on_file_push_recent(pnode);
-        }
-    }
-    else
-    {
-        pnode->be_modify = !!pbak->status;
-        on_file_load_plugins(pnode, false);
-        on_file_update_focus(pnode, pbak);
-        res = on_tabpage_selection(pnode, last_focus);
-    }
+    res = on_file_after_open(pnode, pbak);
     return res;
 }
 
@@ -1106,7 +1150,7 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
     len = size * nmemb;
     if (!pnode->bytes_remaining)
     {
-        if (!pnode->pmod)
+        if (pnode->hex_mode || !pnode->pmod)
         {
             pnode->codepage = eu_try_encoding(buffer, len, false, NULL);
             if (pnode->codepage < IDM_UNI_UTF16LE)
@@ -1152,7 +1196,7 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
     }
     else
     {
-        if (!pnode->pmod)
+        if (pnode->hex_mode || !pnode->pmod)
         {
             eu_sci_call(pnode, SCI_ADDTEXT, len - offset, (LPARAM)(data + offset));
         }
@@ -1165,10 +1209,75 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
     return len;
 }
 
+static size_t
+on_file_header_parser(void *hdr, size_t size, size_t nmemb, void *userdata)
+{
+    const size_t cb = size * nmemb;
+    const char *hdr_str = hdr;
+    eu_tabpage *pnode = (eu_tabpage *)userdata;
+    if (hdr && pnode)
+    {
+        char *p = NULL;
+        char u8_file[MAX_PATH] = {' ',};
+        util_make_u8(pnode->filename, &u8_file[1], MAX_PATH - 2);
+        if (u8_file[0] && (p = strstr(hdr, u8_file)) && (p[strlen(u8_file)] == '\r' || p[strlen(u8_file)] == '\n'))
+        {
+            printf("%s\n", hdr_str);
+        }
+    }
+    return cb;
+}
+
+static int
+on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
+{
+    char *url = NULL;
+    CURL *curl = NULL;
+    CURLcode res = EUE_CURL_INIT_FAIL;
+    remotefs *pserver = on_remote_list_find(path);
+    if (!pserver)
+    {
+        return res;
+    }
+    if ((url = eu_utf16_utf8(path, NULL)) == NULL)
+    {
+        return res;
+    }
+    if (!(curl = on_remote_init_socket(url, pserver)))
+    {
+        free(url);
+        return res;
+    }
+    if (strrchr(url, '/'))
+    {
+        strrchr(url, '/')[0] = 0;
+    }
+    eu_curl_easy_setopt(curl, CURLOPT_URL, url);
+    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+    eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
+    eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+    eu_curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "sftp");
+    eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_header_parser);
+    eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, pnode);
+    if ((res = eu_curl_easy_perform(curl)) == CURLE_OK)
+    {
+        res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &pnode->st_mtime);
+    }
+    else
+    {
+        const char *err_string = eu_curl_easy_strerror(res);
+        printf("%s error[%d]: %s\n", __FUNCTION__, res, err_string);
+        pnode->raw_size = 0;
+    }
+    eu_curl_easy_cleanup(curl);
+    free(url);
+    return res;
+}
+
 /**************************************************************************************
  * 打开远程文件的函数
  * premote为远程服务器信息的结构体变量
- * pbak包含文件url的一个结构体变量
+ * pbak包含文件路径的一个结构体变量
  * selection只影响返回值, 一般设为true
  * 函数成功, 返回值为当前打开标签的序号, 失败则为负数
  **************************************************************************************/
@@ -1177,66 +1286,48 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
 {
     char *cnv = NULL;
     CURL *curl = NULL;
-    CURLcode res = EUE_CURL_INIT_FAIL;
-    TCHAR *full_path = pbak->rel_path;
     eu_tabpage *pnode = NULL;
-    remotefs *pserver = premote;
-    int reuslt = on_file_open_if(full_path, selection);
-    if (reuslt < SKYLARK_NOT_OPENED  || reuslt == SKYLARK_OPENED)
+    int result = on_file_open_if(pbak->rel_path, selection);
+    if (result < SKYLARK_NOT_OPENED  || result == SKYLARK_OPENED)
     {
-        return reuslt;
+        return result;
     }
-    else if (reuslt >= SKYLARK_OK && (pnode = on_tabpage_get_ptr(reuslt)))
+    if (result >= SKYLARK_OK && (pnode = on_tabpage_get_ptr(result)) != NULL)
     {   // 如果文件已经打开, 根据新参数更新插入符位置
         on_file_update_postion(pnode, pbak);
         if (pnode->nc_pos >= 0)
         {
             on_search_jmp_pos(pnode);
         }
-        return reuslt;
+        return result;
     }
-    if (!pserver)
+    if ((result = on_file_node_initialize(&pnode, pbak)) != SKYLARK_OK)
     {
-        if ((pserver = on_remote_list_find(pbak->rel_path)) == NULL)
-        {
-            return EUE_UNKOWN_ERR;
-        }
+        return result;
     }
-    if ((pnode = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))) == NULL)
+    if (eu_check_arg(NULL, 0, _T("-hex"), pbak->rel_path))
     {
-        return EUE_OUT_OF_MEMORY;
+        pnode->hex_mode = true;
     }
-    if (true)
-    {
-        pnode->eol = -1;
-        pnode->begin_pos = -1;
-        pnode->zoom_level = pbak->zoom;
-        _tsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
-        if (_tcslen(pnode->extname) > 0)
-        {
-            _tcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
-        }
-        memcpy(&(pnode->fs_server), pserver, sizeof(remotefs));
-        _tcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
-    }
-    if ((cnv = eu_utf16_utf8(full_path, NULL)) == NULL)
+    printf("pnode->hex_mode = %d\n", pnode->hex_mode);
+    if ((cnv = eu_utf16_utf8(pbak->rel_path, NULL)) == NULL)
     {
         eu_safe_free(pnode);
         return EUE_API_CONV_FAIL;
     }
     if (on_tabpage_add(pnode))
     {
+        eu_safe_free(cnv);
         eu_safe_free(pnode);
         return EUE_INSERT_TAB_FAIL;
-    }
-    if (!pnode->pmod)
+    }    
+    on_file_before_open(pnode);
+    if (!(curl = on_remote_init_socket(cnv, premote ? premote : &pnode->fs_server)))
     {
-        on_sci_before_file(pnode);
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-    }
-    if (!(curl = on_remote_init_socket(cnv, pserver)))
-    {
-        eu_safe_free(pnode);
+        on_sql_delete_backup_row(pnode);
+        int index = on_tabpage_remove(&pnode);
+        on_file_active_other(index);
+        eu_safe_free(cnv);
         return EUE_CURL_INIT_FAIL;
     }
     eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_read_remote);
@@ -1244,10 +1335,10 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
 #if APP_DEBUG
     eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
-    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
-    eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 90);
+    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
+    eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
     eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-    res = eu_curl_easy_perform(curl);
+    CURLcode res = eu_curl_easy_perform(curl);
     if (res == CURLE_OK)
     {
         res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &pnode->st_mtime);
@@ -1255,34 +1346,32 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     eu_curl_easy_cleanup(curl);
     if (res != CURLE_OK)
     {
-        TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
-        pnode->hwnd_sc ? SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0) : (void)0;
         on_sql_delete_backup_row(pnode);
-        eu_safe_free(pnode);
+        int index = on_tabpage_remove(&pnode);
+        on_file_active_other(index);
+        eu_safe_free(cnv);
         MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return EUE_CURL_NETWORK_ERR;
     }
-    if (TAB_NOT_BIN(pnode) && !pnode->pmod)
+    result = on_file_after_open(pnode, pbak);
+    if (!pnode->hex_mode && pnode->pmod && pnode->plugin && pnode->plugin->funcs.write)
     {
-        on_sci_after_file(pnode);
-    }
-    if (!pnode->pmod)
-    {
-        reuslt = on_file_after_open(pnode, pbak);
-        if (!TAB_NOT_BIN(pnode))
-        {
-            return hexview_switch_mode(pnode);
-        }
-    }
-    else if (pnode->plugin && pnode->plugin->funcs.write)
-    {
-        pnode->hex_mode = true;
         pnode->raw_size = pnode->bytes_remaining;
         pnode->plugin->funcs.destroystream(&pnode->plugin->npp, NULL, 0);
         on_file_update_focus(pnode, NULL);
-        reuslt = on_tabpage_selection(pnode, last_focus);
+        pnode->hex_mode = true;
+        result = on_tabpage_selection(pnode, last_focus);
     }
-    return reuslt;
+    else if (!TAB_NOT_BIN(pnode) || pnode->hex_mode)
+    {
+        if (pnode->hex_mode)
+        {
+            pnode->hex_mode ^= true;
+        }
+        result = hexview_switch_mode(pnode);
+    }
+    eu_safe_free(cnv);
+    return result;
 }
 
 static int
@@ -1476,8 +1565,8 @@ on_file_stream_upload(eu_tabpage *pnode, wchar_t *pmsg)
         #if defined(APP_DEBUG) && (APP_DEBUG > 0)
             eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         #endif
-            eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10);
-            eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
+            eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
+            eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
             err = eu_curl_easy_perform(curl);
             if (err && pmsg)
             {
@@ -1708,8 +1797,7 @@ on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
 #define TMP_SUFFX (L".$bak~")
     bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->raw_size/1024/1024));
     if (is_cache)
-    {
-        // 保存本地文件, 并移动到cache_path
+    {   // 保存本地文件, 并移动到cache_path
         int ret = 0;
         wchar_t *tmp_path = NULL;
         wchar_t pathfile[MAX_PATH] = {0};
@@ -1742,7 +1830,7 @@ on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
 }
 
 static void
-on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
+on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
 {
     TCHAR buf[QW_SIZE] = {0};
     file_backup filebak = {0};
@@ -1775,7 +1863,7 @@ on_file_save_backup(eu_tabpage *pnode, CLOSE_MODE mode)
             filebak.tab_id = pnode->tab_id;
             filebak.eol = pnode->eol;
             filebak.blank = pnode->is_blank;
-            filebak.hex = pnode->hex_mode;
+            filebak.hex = !(pnode->pmod&&pnode->plugin) ? pnode->hex_mode : 0;
             filebak.focus = pnode->last_focus;
             filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
             on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
@@ -1864,7 +1952,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     {
         if (index == ifocus || mode == FILE_REMOTE_CLOSE)
         {
-            on_file_other_tab(index);
+            on_file_active_other(index);
         }
         else if (p)
         {
