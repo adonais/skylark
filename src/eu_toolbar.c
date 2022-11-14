@@ -271,7 +271,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_INITDIALOG:
         {
-            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SMALL));
+            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SKYLARK));
             if (m_icon)
             {
                 SetClassLongPtr(hdlg, GCLP_HICONSM, (LONG_PTR)m_icon);

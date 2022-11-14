@@ -25,8 +25,7 @@
 
 #define IDI_SKYLARK                     2
 #define IDI_SMALL                       3
-#define IDI_TXT_48                      4
-#define IDI_TXT_32                      5
+#define IDI_DEFAULT                     4
 #define IDC_CURSOR_WE                   8
 #define IDC_CURSOR_NS                   9
 #define IDD_SKYLARK_DIALOG              102

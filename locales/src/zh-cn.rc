@@ -786,8 +786,6 @@ END
 /////////////////////////////////////////////////////////////////////////////
 #define __EU_COPYRIGHT_TRANSLATION "Copyright © 2022 by ualy123"
 /////////////////////////////////////////////////////////////////////////////
-// ico
-IDI_TXT_32              ICON                    "..\\resources\\txt32.ico"
 
 //
 IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 245, 228
@@ -795,7 +793,7 @@ STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "版本信息"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    ICON            IDI_TXT_32, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
+    ICON            IDI_SMALL, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
     EDITTEXT        IDC_EDIT_VER, 33, 6, 204, 30, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
     LTEXT           "开发者/许可证: adonais/GPL v3", IDC_STATIC, 33, 38, 159, 9, NOT WS_GROUP
     LTEXT           "翻译: ",IDC_STATIC, 33, 52, 33, 9

@@ -48,8 +48,8 @@
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_SKYLARK             ICON                    "..\\resources\\skylark.ico"
-IDI_SMALL               ICON                    "..\\resources\\skylark32.ico"
-IDI_TXT_48              ICON                    "..\\resources\\txt48.ico"
+IDI_SMALL               ICON                    "..\\resources\\txt32.ico"
+IDI_DEFAULT             ICON                    "..\\resources\\txt48.ico"
 IDB_CLSDFOLD            ICON                    "..\\resources\\folder-closed.ico"
 IDB_DOC                 ICON                    "..\\resources\\txt.ico"
 IDB_DRIVE               ICON                    "..\\resources\\drive.ico"

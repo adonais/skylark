@@ -3322,8 +3322,14 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         {
             HWND hurl = NULL;
             HWND hpage = NULL;
+            HINSTANCE main = eu_module_handle();
             TCHAR cap[LARGER_LEN + 1] = {0};
-            if (LoadString(eu_module_handle(), IDS_ABOUT_DESCRIPTION, cap, LARGER_LEN))
+            HICON m_icon = LoadIcon(main, MAKEINTRESOURCE(IDI_SMALL));
+            if (m_icon)
+            {
+                Static_SetIcon(GetDlgItem(hdlg, IDC_STATIC_EDIT), m_icon);
+            }
+            if (LoadString(main, IDS_ABOUT_DESCRIPTION, cap, LARGER_LEN))
             {
                 SetWindowText(GetDlgItem(hdlg, IDC_EDIT_ABOUT), cap);
             }

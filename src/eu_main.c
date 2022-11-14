@@ -239,7 +239,7 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (eu_check_arg(argv, argc, _T("--help")))
+    if (eu_check_arg(argv, argc, _T("--help"), NULL))
     {
         if (strcmp(eu_get_config()->window_theme, "black") == 0)
         {

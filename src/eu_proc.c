@@ -1908,7 +1908,7 @@ class_register(HINSTANCE instance)
     wcex.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = APP_CLASS;
-    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SKYLARK));
     return RegisterClassEx(&wcex);
 }
 
