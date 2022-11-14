@@ -23,10 +23,11 @@
 #define EDIT_FILE    _T("skylark_file")
 #define EDIT_BACKUP  _T("skylark_backup")
 #define EDIT_DOC     _T("skylark Document")
-#define SUPPORTED_LANG 10
-#define EXT_LEN 27
-#define NAME_MAX 18
-#define EXT_NAME 32
+
+#define EXT_LEN        27
+#define NAME_MAX       18
+#define EXT_NAME       32
+#define SUPPORTED_LANG 11
 
 static bool is_customize;
 
@@ -640,6 +641,7 @@ ext_array[SUPPORTED_LANG][EXT_LEN][NAME_MAX] =
     {_T("property script"),_T(".rc"), _T(".as"), _T(".mx"), _T(".vb"), _T(".vbs")},
     {_T("fortran, TeX, SQL"),_T(".f"), _T(".for"), _T(".f90"), _T(".f95"), _T(".f2k"), _T(".tex"), _T(".sql")},
     {_T("misc"),_T(".nfo"), _T(".mak")},
+    {_T("by plugin"),_T(".cbr"), _T(".cbz"),_T(".chm"), _T(".pdf"),_T(".pdb"), _T(".xps"),_T(".djvu"), _T(".epub"), _T(".mobi")},
     {_T("customize")}
 };
 
