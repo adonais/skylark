@@ -91,7 +91,7 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
     char *cp2 = NULL;
     char *eos = NULL;
     int m_sec = 3;
-    char buf[ACNAME_LEN] = {'s', 'n', 'i', 'p', 'p', 'e', 't', 0};
+    char buf[QW_SIZE] = {'s', 'n', 'i', 'p', 'p', 'e', 't', 0};
     if (!(pstr && pstate && pdata && !strncasecmp(pstr, buf, strlen(buf))))
     {
         printf("pointer is null in %s\n", __FUNCTION__);
@@ -104,10 +104,10 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
     for (; *cp1 && m_sec; --m_sec)
     {
         int sq = 0, dq = 0;         /* 单引号,  双引号 */
-        memset(buf, 0, ACNAME_LEN);
+        memset(buf, 0, QW_SIZE);
         cp2 = buf;
-        eos = cp2 + ACNAME_LEN - 1;
-        util_skip_whitespace(&cp1, ACNAME_LEN, 0);
+        eos = cp2 + QW_SIZE - 1;
+        util_skip_whitespace((uint8_t **)&cp1, QW_SIZE, 0);
         while ((*cp1 != '\0') && (cp2 != eos))
         {
             switch (*cp1)
@@ -147,10 +147,10 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
             switch (m_sec)
             {
                 case 3:
-                    _snprintf(pdata->name, ACNAME_LEN - 1, "%s", buf);
+                    _snprintf(pdata->name, QW_SIZE - 1, "%s", buf);
                     break;
                 case 2:
-                    _snprintf(pdata->comment, ACNAME_LEN - 1, "%s", buf);
+                    _snprintf(pdata->comment, QW_SIZE - 1, "%s", buf);
                     break;
                 case 1:
                     _snprintf(pdata->parameter, PARAM_LEN - 1, "%s", buf);
@@ -443,7 +443,7 @@ on_parser_vec_printer(snippet_t *pv)
         int i = 0;
         for (it = cvector_begin(pv); it != cvector_end(pv); ++it, ++i)
         {
-            printf("pv[%d] = %I64d, %I64d, %s, %s, %s, %s\n", i, it->start, it->end, it->name, it->comment, it->parameter, it->body);
+            printf("pv[%d] = %zd, %zd, %s, %s, %s, %s\n", i, it->start, it->end, it->name, it->comment, it->parameter, it->body);
         }
     }
 }
@@ -539,7 +539,7 @@ on_parser_vector_erase(const TCHAR *path, snippet_t **ptr_vec, int dimension)
     {
         intptr_t start = (*ptr_vec)[dimension].start;
         intptr_t end = (*ptr_vec)[dimension].end;
-        cvector_erase(*ptr_vec, dimension);
+        cvector_erase(*ptr_vec, (size_t)dimension);
         int size = on_parser_filter_text(path, &buf, start, end);
         if (size > 0)
         {
@@ -620,10 +620,9 @@ on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol)
     {
         return false;
     }
-    size = on_parser_open_file(path, _T("r"), &buf, &fp);
+    size = on_parser_open_file(path, _T("rb"), &buf, &fp);
     while (size > 0 && (size = (int)fread((char *) buf, 1, size, fp)) > 0)
     {
-        int line = 0;
         char *p = NULL;
         char *save = NULL;
         char *pstream = NULL;
@@ -669,9 +668,9 @@ on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol)
                 ret = false;
                 break;
             }
-            if ((p = on_parser_strtok(NULL, delim, &save)))
+            if (!(p = on_parser_strtok(NULL, delim, &save)))
             {
-                ++line;
+                break;
             }
         }
         break;

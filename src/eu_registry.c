@@ -23,10 +23,11 @@
 #define EDIT_FILE    _T("skylark_file")
 #define EDIT_BACKUP  _T("skylark_backup")
 #define EDIT_DOC     _T("skylark Document")
-#define SUPPORTED_LANG 10
-#define EXT_LEN 27
-#define NAME_MAX 18
-#define EXT_NAME 32
+
+#define EXT_LEN        27
+#define NAME_MAX       18
+#define EXT_NAME       32
+#define SUPPORTED_LANG 11
 
 static bool is_customize;
 
@@ -172,6 +173,20 @@ run_as_admin(int argc, TCHAR **argv)
     }
     FreeLibrary(hlib);
     return result;
+}
+
+bool
+on_reg_admin_execute(const wchar_t *cmdline)
+{
+    int arg_c = 0;
+    bool ret = false;
+    LPWSTR *arg_v = CommandLineToArgvW(cmdline, &arg_c);
+    if (arg_v)
+    {
+        ret = run_as_admin(arg_c, arg_v);
+        LocalFree(arg_v);
+    }
+    return ret;
 }
 
 static bool
@@ -626,6 +641,7 @@ ext_array[SUPPORTED_LANG][EXT_LEN][NAME_MAX] =
     {_T("property script"),_T(".rc"), _T(".as"), _T(".mx"), _T(".vb"), _T(".vbs")},
     {_T("fortran, TeX, SQL"),_T(".f"), _T(".for"), _T(".f90"), _T(".f95"), _T(".f2k"), _T(".tex"), _T(".sql")},
     {_T("misc"),_T(".nfo"), _T(".mak")},
+    {_T("by plugin"),_T(".cbr"), _T(".cbz"),_T(".chm"), _T(".pdf"),_T(".pdb"), _T(".xps"),_T(".djvu"), _T(".epub"), _T(".mobi")},
     {_T("customize")}
 };
 
@@ -1027,7 +1043,7 @@ eu_create_registry_dlg(void)
     int ret = 1;
     HANDLE m_map = NULL;
     HWND *memory = NULL;
-    TCHAR ui_dest[ACNAME_LEN+1] = {0};
+    TCHAR ui_dest[QW_SIZE+1] = {0};
     m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_NAME);
     if (!m_map)
     {

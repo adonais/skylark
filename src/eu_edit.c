@@ -19,7 +19,6 @@
 #include "framework.h"
 
 #define COMMENT_LEN 16
-#define MEM_RESERVED ((char *)(uintptr_t)0x200)
 
 enum htmlblock
 {
@@ -33,7 +32,7 @@ enum htmlblock
     HTML_TEXT_BLOCK_SGML
 };
 
-char eols_undo_str[ACNAME_LEN] = {0};
+char eols_undo_str[QW_SIZE] = {0};
 
 void
 on_edit_undo(eu_tabpage *pnode)
@@ -162,7 +161,7 @@ on_edit_push_clipboard(const TCHAR *buf)
 }
 
 static void
-on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
+on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
 {
     TCHAR cmd[MAX_BUFFER] = {0};
     TCHAR name[MAX_PATH] = {0};
@@ -173,50 +172,120 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path, const TCHAR *file)
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (_tcsnicmp(name, _T("Notepad++"), _tcslen(name)) == 0)
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s -n%I64d -c%I64d"), path, file, line+1, pos-row+1);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\" -n%zd -c%zd"), path, pnode->pathfile, line+1, pos-row+1);
         }
         else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(name)) == 0)
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s/%I64d/%I64d"), path, file, line+1, pos-row+1);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s/%zd/%zd\""), path, pnode->pathfile, line+1, pos-row+1);
         }
         else
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s"), path, file);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, pnode->pathfile);
         }
     }
     else
     {
-        _sntprintf(cmd, MAX_BUFFER - 1, _T("%s %s"), path, file);
+        _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, pnode->pathfile);
     }
     CloseHandle(eu_new_process(cmd, NULL, NULL, 2, NULL));
 }
 
-void
-on_edit_push_editor(eu_tabpage *pnode, const TCHAR *file)
+static void
+on_edit_compare(const TCHAR *path, const wchar_t **pvec, const bool hex)
 {
-    TCHAR *pbuf = util_add_double_quotes(file);
-    if (pbuf)
+    if (path && pvec)
     {
-        if (strlen(eu_get_config()->editor) > 1)
+        int count = eu_int_cast(cvector_size(pvec));
+        const int len = (count + 1) * (MAX_PATH + 1);
+        wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
+        if (cmd_exec != NULL)
         {
-            wchar_t *path = eu_utf8_utf16(eu_get_config()->editor, NULL);
-            if (path)
+            if (!hex)
             {
-                on_edit_execute(pnode, path, pbuf);
-                free(path);
+                _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
+            }
+            else
+            {
+                _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/fv=\"Hex Compare\""));
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                if (i == count - 1)
+                {
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, pvec[i], len);
+                    wcsncat(cmd_exec, _T("\""), len);
+                }
+                else
+                {
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, pvec[i], len);
+                    wcsncat(cmd_exec, _T("\" "), len);
+                }
+            }
+            CloseHandle(eu_new_process(cmd_exec, NULL, NULL, 2, NULL));
+            free(cmd_exec);
+        }
+    }
+}
+
+void
+on_edit_push_editor(eu_tabpage *pnode)
+{
+    wchar_t *path = NULL;
+    if (strlen(eu_get_config()->editor) > 1)
+    {
+        path = eu_utf8_utf16(eu_get_config()->editor, NULL);
+    }
+    else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+    {
+        LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
+        if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+        {
+            WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
+        }
+    }
+    if (STR_NOT_NUL(path))
+    {
+        on_edit_execute(pnode, path);
+    }
+    eu_safe_free(path);
+}
+
+void
+on_edit_push_compare(void)
+{
+    int num = 0;
+    bool hex = false;
+    cvector_vector_type(wchar_t *) v = NULL;
+    if ((num = on_tabpage_sel_path(&v, &hex)) > 1 && num < 4)
+    {
+        wchar_t *path = NULL;
+        if (strlen(eu_get_config()->m_reserved_0) > 1)
+        {
+            path = eu_utf8_utf16(eu_get_config()->m_reserved_0, NULL);
+        }
+        else if ((path = util_which(_T("bcompare"))) != NULL)
+        {
+            printf("path = %ls\n", path);
+        }
+        else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+        {
+            LOAD_I18N_RESSTR(IDS_EDITOR_BCOMPARE, m_input);
+            if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+            {
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->m_reserved_0, MAX_PATH-1, NULL, NULL);
             }
         }
-        else
+        if (STR_NOT_NUL(path))
         {
-            TCHAR editor[MAX_PATH] = {0};
-            LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
-            if (eu_input(m_input, editor, MAX_PATH - 1) && _tcslen(editor) > 1)
-            {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(editor), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
-                on_edit_execute(pnode, editor, pbuf);
-            }
+            on_edit_compare(path, v, hex);
         }
-        free(pbuf);
+        eu_safe_free(path);
+    }
+    if (v)
+    {
+        cvector_free_each_and_free(v, free);
     }
 }
 
@@ -276,8 +345,7 @@ on_edit_delete_dups(eu_tabpage *pnode)
             sptr_t line1 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
             sptr_t line2 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
             if ((line1 != line2) && (eu_sci_call(pnode, SCI_POSITIONFROMLINE, line2, 0)) == sel_end)
-            {
-                // 如果所选内容的结尾包括行尾,不要在范围内包含以下行
+            {   // 如果所选内容的结尾包括行尾,不要在范围内包含以下行
                 --line2;
             }
             from_line = line1;
@@ -536,20 +604,48 @@ on_edit_join_line(eu_tabpage *pnode)
 }
 
 static void
-do_toggle_case(eu_tabpage *pnode, bool do_uppercase)
+do_toggle_case(eu_tabpage *pnode, bool do_uppercase, bool do_line, bool first)
 {
+    sptr_t sel_start = 0;
+    sptr_t sel_end = 0;
+    eu_sci_call(pnode, SCI_SETCHARSDEFAULT, 0, 0);
     sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t sel_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, false);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, false);
+    if (do_line)
+    {
+        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+        sel_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sel_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        sptr_t indent = util_line_header(pnode, sel_start, sel_end, NULL);
+        if (indent)
+        {
+            sel_start += indent;
+        }
+    }
+    else
+    {
+        sel_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, false);
+        sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, false);
+    }
     if (sel_end - sel_start > 0)
     {
         char *line_buf = on_sci_range_text(pnode, sel_start, sel_end);
         if (STR_NOT_NUL(line_buf))
         {
             const size_t len = strlen(line_buf);
-            for (int i = 0; i < len; ++i)
+            for (size_t i = 0; i < len; ++i)
             {
-                line_buf[i] = do_uppercase ? toupper(line_buf[i]) : tolower(line_buf[i]);
+                if (!first)
+                {
+                    line_buf[i] = do_uppercase ? toupper(line_buf[i]) : tolower(line_buf[i]);
+                }
+                else if (!i)
+                {
+                    line_buf[i] = toupper(line_buf[i]);
+                }
+                else
+                {
+                    line_buf[i] = tolower(line_buf[i]);
+                }
             }
             eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_end);
             eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
@@ -557,6 +653,7 @@ do_toggle_case(eu_tabpage *pnode, bool do_uppercase)
             eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         }
         eu_safe_free(line_buf);
+        eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
     }
 }
 
@@ -574,7 +671,7 @@ on_edit_lower(eu_tabpage *pnode)
         }
         else
         {
-            do_toggle_case(pnode, false);
+            do_toggle_case(pnode, false, false, false);
         }
     }
 }
@@ -593,7 +690,75 @@ on_edit_upper(eu_tabpage *pnode)
         }
         else
         {
-            do_toggle_case(pnode, true);
+            do_toggle_case(pnode, true, false, false);
+        }
+    }
+}
+
+static void
+do_selection_case(eu_tabpage *pnode, bool sentence)
+{
+    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    if (sel_end > sel_start)
+    {
+        char *buf = NULL;
+        char *copy = NULL;
+        int len = eu_int_cast(sel_end - sel_start);
+        if ((buf = on_sci_range_text(pnode, sel_start, sel_end)))
+        {
+            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            copy = _strdup(buf), _strlwr(buf);
+            for (int i = 0; i < len; ++i, ++sel_start)
+            {
+                if (buf[i] > 0x60 && buf[i] < 0x7b)
+                {
+                    buf[i] -= 0x20;
+                    if (sentence)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, sel_start, true);
+                        if (sel_end > sel_start && eu_int_cast(sel_end - sel_start) < len)
+                        {
+                            i += eu_int_cast(sel_end - sel_start);
+                            sel_start = sel_end;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (copy && strcmp(copy ,buf))
+            {
+                eu_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
+                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)buf);
+                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+            }
+        }
+        eu_safe_free(buf);
+        eu_safe_free(copy);
+    }
+}
+
+void
+on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence)
+{
+    if (pnode && !eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    {
+        if (!eu_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0))
+        {
+            do_selection_case(pnode, sentence);
+        }
+        else
+        {
+            do_toggle_case(pnode, true, sentence, true);
         }
     }
 }
@@ -1121,8 +1286,8 @@ static void
 on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_str)
 {
     int offset = 0;
-    char start[ACNAME_LEN + 1] = { 0 };
-    char end[ACNAME_LEN + 1] = { 0 };
+    char start[QW_SIZE + 1] = { 0 };
+    char end[QW_SIZE + 1] = { 0 };
     sptr_t eline_start = 0;
     sptr_t eline_end = 0;
     const char *str_eol = on_encoding_get_eol(pnode);
@@ -1132,20 +1297,20 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (pos != line_start)
     {
-        strncat(start, str_eol, ACNAME_LEN);
+        strncat(start, str_eol, QW_SIZE);
     }
-    strncat(start, open_str, ACNAME_LEN);
+    strncat(start, open_str, QW_SIZE);
     if (line_start != line_end)
     {
-        strncat(start, str_eol, ACNAME_LEN);
+        strncat(start, str_eol, QW_SIZE);
         if (line_start > pos)
         {   // 添加回车符, 还需要添加行首可能存在的空白
-            char word_buffer[ACNAME_LEN + 1] = {0};
+            char word_buffer[QW_SIZE + 1] = {0};
             Sci_TextRange tr = {{line_start, pos}, word_buffer};
             eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (*word_buffer)
             {
-                strncat(start, word_buffer, ACNAME_LEN);
+                strncat(start, word_buffer, QW_SIZE);
             }
         }
     }
@@ -1155,13 +1320,13 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     eline_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (eline_start != eline_end)
     {
-        strncat(end, str_eol, ACNAME_LEN);
+        strncat(end, str_eol, QW_SIZE);
     }
-    strncat(end, close_str, ACNAME_LEN);
+    strncat(end, close_str, QW_SIZE);
     char *next_buf = util_strdup_line(pnode, line+1, NULL);
     if (STR_NOT_NUL(next_buf) && strcmp(next_buf, str_eol) != 0)
     {   // 下一行是空行, 不多添加回车符
-        strncat(end, str_eol, ACNAME_LEN);
+        strncat(end, str_eol, QW_SIZE);
     }
     eu_safe_free(next_buf);
     on_close_selection(pnode, start, end);
@@ -1211,8 +1376,8 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
         {
             whilte_line = true;
         }
-        char ch_buf[FT_LEN + 1] = { 0 };
-        struct Sci_TextRange tr = { {indent_pos, indent_pos + MIN_POS(FT_LEN, cch_comment) }, ch_buf };
+        char ch_buf[DW_SIZE + 1] = { 0 };
+        struct Sci_TextRange tr = { {indent_pos, indent_pos + MIN_POS(DW_SIZE, cch_comment) }, ch_buf };
         eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
 
         sptr_t comment_pos;
@@ -1407,6 +1572,7 @@ on_edit_comment_line(eu_tabpage *pnode)
         case DOCTYPE_JAVA:
         case DOCTYPE_JAVASCRIPT:
         case DOCTYPE_KOTLIN:
+        case DOCTYPE_VERILOG:
             eu_toggle_comment(pnode, "// ", false);
             break;
         case DOCTYPE_CMAKE:
@@ -1505,6 +1671,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
         case DOCTYPE_JAVASCRIPT:
         case DOCTYPE_SQL:
         case DOCTYPE_KOTLIN:
+        case DOCTYPE_VERILOG:
             on_close_selection(pnode, "/*", "*/");
             break;
         case DOCTYPE_CMAKE:
@@ -1578,7 +1745,7 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         eu_sci_call(pnode, SCI_CONVERTEOLS, eol_mode, 0);
         eu_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
-        _snprintf(eols_undo_str, ACNAME_LEN-1, "%s=%d=%d", "_eol/?@#$%^&*()`/~", pnode->eol, eol_mode);
+        _snprintf(eols_undo_str, QW_SIZE-1, "%s=%d=%d", "_eol/?@#$%^&*()`/~", pnode->eol, eol_mode);
         pnode->eol = eol_mode;
         eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) eols_undo_str);
         eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(eols_undo_str));

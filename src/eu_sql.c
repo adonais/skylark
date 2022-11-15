@@ -248,10 +248,25 @@ on_sqlite3_session_callback(void *data, int count, char **column, char **names)
         {
             MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.bak_path, MAX_PATH);
         }
+        else if (STRCMP(names[i], ==, "szSync"))
+        {
+            filebak.sync = atoi(column[i]);
+        }        
     }
     if (_tcslen(filebak.rel_path) > 0)
     {
-        rel = eu_exist_file(filebak.rel_path);
+        if (!url_has_remote(filebak.rel_path))
+        {
+            rel = eu_exist_file(filebak.rel_path);
+        }
+        else
+        {
+            rel = eu_exist_file(filebak.bak_path);
+            if (!rel)
+            {
+                rel = filebak.sync;
+            }
+        }
     }
     if (_tcslen(filebak.bak_path) > 0)
     {
@@ -402,7 +417,7 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
         {   // 根据配置重建触发器
             int tri = 0;
             DO_TRIGGER(buf, n);
-            const char *sql = "select szid,szrealpath,szbakpath from skylark_session;";
+            const char *sql = "select szid,szrealpath,szbakpath,szSync from skylark_session;";
             rc = sqlite3_exec((sqlite3 *)db, "select szTrigger from skylar_ver;", on_sql_skyver_callbak, (void *)&tri, NULL);
             if (tri != n)
             {

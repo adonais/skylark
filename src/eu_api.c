@@ -23,7 +23,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(_WIN64)
 #pragma comment(linker, "/include:luaL_openlibs")
 #endif
 
@@ -194,7 +194,7 @@ eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
         offset += needle - in;
         in = needle + (int) _tcslen(pattern);
         _tcsncpy(res + offset, by, VALUE_LEN - offset);
-        offset += (int) wcslen(by);
+        offset += (int) _tcslen(by);
     }
     _tcsncpy(res + offset, in, VALUE_LEN - offset);
     _sntprintf(in_ptr, eu_int_cast(in_size), _T("%s"), res);
@@ -312,9 +312,9 @@ eu_exist_libssl(void)
 {
     TCHAR ssl_path[MAX_PATH+1] = {0};
 #ifdef _WIN64
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
 #else
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
 #endif
     return eu_exist_file(ssl_path);
 }
@@ -417,7 +417,7 @@ printf_bytes(const char *str, size_t len, const char *name)
     }
     if (eu_strcasestr(name, "utf-16"))
     {
-        for(int i = 0;i<len && (str[i] || str[i+1]);++i)
+        for(int i = 0; i < eu_int_cast(len) && (str[i] || str[i+1]); ++i)
         {
             printf("%.2x ",(unsigned char)str[i]);
         }
@@ -426,7 +426,7 @@ printf_bytes(const char *str, size_t len, const char *name)
     }
     else
     {
-        for(int i = 0;i<len && str[i];++i)
+        for(int i = 0; i < eu_int_cast(len) && str[i];++i)
         {
             printf("%.2x ",(unsigned char)str[i]);
         }
@@ -485,7 +485,7 @@ iconv_err:
     eu_iconv_close(cd);
     if (ret != (size_t)-1)
     {
-        printf("%s->%s ok, ret = %I64u!\n", from_desc, dst_desc, ret);
+        printf("%s->%s ok, ret = %zu!\n", from_desc, dst_desc, ret);
     }
     return (ret == 0);
 }
@@ -578,7 +578,7 @@ is_mbcs_gb18030(const char *chars, size_t len)
     {
         len = str_len;
     }
-    for (int i = 0; i < len; i++)
+    for (size_t i = 0; i < eu_int_cast(len); ++i)
     {
         uint8_t ch = chars[i];
         // 非法字符0xFF
@@ -660,7 +660,7 @@ eu_memstr(const uint8_t *haystack, const char *needle, size_t size)
         if (1 == sscanf(needle+i*2,"%02x", (unsigned int *)(need+i)))
         {
             i++;
-            if (i>=needlesize)
+            if ((size_t)i >= needlesize)
                 break;
         }
         else
@@ -732,7 +732,7 @@ eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reve
     for (i = 0; i < str_len; ++i)
     {
         int found = 0;
-        for (int j = 0; j < len; ++j)
+        for (size_t j = 0; j < len; ++j)
         {
             if (str[i + j] == pmark[j])
             {
@@ -985,8 +985,15 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
         {
             *o = pi.dwProcessId;
         }
+        CloseHandle(pi.hThread);
     }
     return pi.hProcess;
+}
+
+bool WINAPI
+eu_open_file(LPCTSTR path, pf_stream pstream)
+{
+    return util_open_file(path, pstream);
 }
 
 char *
@@ -1088,7 +1095,7 @@ eu_iconv_full_text(const TCHAR *file_name, const char *from_desc, const char *ds
     }
     if (st.st_size < BUFF_SIZE)
     {
-        buf_len = st.st_size;
+        buf_len = (size_t)st.st_size;
     }
     if ((data = (uint8_t *) calloc(1, buf_len)) == NULL)
     {
@@ -1503,17 +1510,17 @@ eu_accel_ptr(ACCEL *accel)
     return (g_accel->accel_num>0);
 }
 
-struct eu_config *eu_get_config(void)
+struct eu_config *WINAPI eu_get_config(void)
 {
     return g_config;
 }
 
-struct eu_theme *eu_get_theme(void)
+struct eu_theme *WINAPI eu_get_theme(void)
 {
     return g_theme;
 }
 
-eue_accel *eu_get_accel(void)
+eue_accel *WINAPI eu_get_accel(void)
 {
     return g_accel;
 }
@@ -1572,7 +1579,7 @@ eu_cat_process(void)
         size_t len = (size_t)(count * MAX_PATH);
         if ((pactions = (char *)calloc(1, len)) != NULL)
         {
-            for (int i = 1; i <= count && len > offset; ++i)
+            for (int i = 1; i <= count && len > (size_t)offset; ++i)
             {
                 _snprintf(pactions + offset, len - offset, "    \"%s\"%s", g_config->m_actions[i], i == count ? "\n" : ",\n");
                 offset += (int)(strlen(g_config->m_actions[i]) + 8);
@@ -1682,7 +1689,9 @@ eu_save_config(void)
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
         "other_editor_path = \"%s\"\n"
+        "-- beyond compare Path\n"
         "m_reserved_0 = \"%s\"\n"
+        "-- reserved variables\n"
         "m_reserved_1 = \"%s\"\n"
         "process_actions = {\n"
         "%s"
@@ -1914,7 +1923,12 @@ eu_save_theme(void)
         "aspsection_fontsize = %d\n"
         "aspsection_color = 0x%08X\n"
         "aspsection_bgcolor = 0x%08X\n"
-        "aspsection_bold = %d";
+        "aspsection_bold = %d\n"
+        "activetab_font = \"%s\"\n"
+        "activetab_fontsize = %d\n"
+        "activetab_color = 0x%08X\n"
+        "activetab_bgcolor = 0x%08X\n"
+        "activetab_bold = %d";
     if (!g_theme)
     {
         return;
@@ -1951,7 +1965,8 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(tagends),
         EXPAND_STYLETHEME(cdata),
         EXPAND_STYLETHEME(phpsection),
-        EXPAND_STYLETHEME(aspsection));
+        EXPAND_STYLETHEME(aspsection),
+        EXPAND_STYLETHEME(activetab));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)
@@ -2259,14 +2274,14 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
                 break;
             }
             pcre_info->ovector[1] = start_offset + 1; // advance one byte
-            if (crlf_is_newline && start_offset < pcre_info->buffer_length - 1 && pcre_info->buffer[start_offset] == '\r' &&
+            if (crlf_is_newline && start_offset < (int)pcre_info->buffer_length - 1 && pcre_info->buffer[start_offset] == '\r' &&
                 pcre_info->buffer[start_offset + 1] == '\n')
             {
                 pcre_info->ovector[1] += 1;
             }
             else if (utf8)
             {
-                while (pcre_info->ovector[1] < pcre_info->buffer_length)
+                while (pcre_info->ovector[1] < (int)pcre_info->buffer_length)
                 {
                     if ((pcre_info->buffer[pcre_info->ovector[1]] & 0xc0) != 0x80)
                     {
@@ -2394,8 +2409,8 @@ eu_curl_init_global(long flags)
     if (!eu_curl_initialized)
     {
         TCHAR curl_path[MAX_PATH+1] = {0};
-        _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-        if ((eu_curl_symbol = LoadLibrary(curl_path)) != NULL)
+        _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+        if ((eu_curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
         {
             fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(eu_curl_symbol,"curl_global_init");
             fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(eu_curl_symbol,"curl_easy_init");
@@ -2413,7 +2428,7 @@ eu_curl_init_global(long flags)
            )
         {
             result = EUE_CURL_INIT_FAIL;
-            safe_close_dll(eu_curl_symbol);
+            eu_close_dll(eu_curl_symbol);
         }
         else
         {
@@ -2480,11 +2495,11 @@ eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
     HMODULE ssl = NULL;
     TCHAR ssl_path[MAX_PATH+1] = {0};
 #ifdef _WIN64
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
 #else
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
+    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
 #endif
-    if ((ssl = LoadLibrary(ssl_path)) != NULL)
+    if ((ssl = LoadLibraryEx(ssl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         for (int i = 0; i < n && s[i][0]; ++i)
         {

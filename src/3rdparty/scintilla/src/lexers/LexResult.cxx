@@ -40,11 +40,11 @@ handle_word(result_vec *pvec, char *lineBuffer, size_t startLine, size_t endPos,
     int state = SCE_RESULT_DEFAULT;
     size_t line_len = strlen(lineBuffer);
     // file comment
-    if (!linenum && line_len > 1 && lineBuffer[0] == '#' && lineBuffer[1] == '>')
+    if ((line_len > 4 && lineBuffer[0] == 0xc2 && lineBuffer[1] == 0xbb && lineBuffer[3] == 0xc2 && lineBuffer[4] == 0xbb && lineBuffer[5] == ' '))
     {
         styler.ColourTo(endPos, SCE_RESULT_COMMENT);
     }
-    else if (linenum > 0 && pvec && ((size_t *)(pvec))[-2] >= (size_t)(linenum - 1))
+    else if (linenum > 0 && pvec && ((size_t *)(pvec))[-2] > (size_t)(linenum - 1) && pvec[linenum - 1].line >= 0)
     {
         result_postion mark = pvec[linenum - 1].mark;
         // line header

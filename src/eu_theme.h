@@ -21,15 +21,15 @@
 
 typedef struct _theme_desc
 {
-    TCHAR desc[ACNAME_LEN];
-    TCHAR name[ACNAME_LEN];
+    TCHAR desc[QW_SIZE];
+    TCHAR name[QW_SIZE];
 }theme_desc;
 
 typedef struct _theme_query
 {
     uint16_t res_id;
-    TCHAR desc[ACNAME_LEN];
-    TCHAR name[ACNAME_LEN];
+    TCHAR desc[QW_SIZE];
+    TCHAR name[QW_SIZE];
 }theme_query;
 
 #ifdef __cplusplus

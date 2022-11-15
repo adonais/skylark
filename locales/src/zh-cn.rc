@@ -45,7 +45,7 @@ BEGIN
         MENUITEM "打印设置",                                    IDM_FILE_PAGESETUP
         MENUITEM "打印...(&P)",                                 IDM_FILE_PRINT
         MENUITEM MF_SEPARATOR
-        MENUITEM "远程文件管理器...(&R)",                       IDM_FILE_REMOTE_FILESERVERS
+        MENUITEM "远程文件管理器...(&M)",                       IDM_FILE_REMOTE_FILESERVERS
         MENUITEM MF_SEPARATOR
         POPUP "新建文件换行符"
         BEGIN
@@ -63,6 +63,9 @@ BEGIN
         END
         MENUITEM MF_SEPARATOR
         MENUITEM "关闭最后一个标签时退出",                      IDM_FILE_EXIT_WHEN_LAST_TAB
+        MENUITEM MF_SEPARATOR
+        MENUITEM "重启到管理员模式(&R)",                        IDM_FILE_RESTART_ADMIN
+        MENUITEM MF_SEPARATOR
         MENUITEM "退出(&X)",                                    IDM_EXIT
     END
     POPUP "编辑(&E)"
@@ -82,6 +85,7 @@ BEGIN
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
         END
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
+        MENUITEM "发送到BCompare进行比较",                      IDM_EDIT_OTHER_BCOMPARE
         MENUITEM MF_SEPARATOR
         POPUP "行编辑",                                         IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -114,6 +118,8 @@ BEGIN
         BEGIN
             MENUITEM "转小写",                                  IDM_EDIT_LOWERCASE
             MENUITEM "转大写",                                  IDM_EDIT_UPPERCASE
+            MENUITEM "词首大写(&C)",                            IDM_EDIT_WORD_UPPERCASE
+            MENUITEM "句首大写(&S)",                            IDM_EDIT_SENTENCE_UPPERCASE
             MENUITEM MF_SEPARATOR
             MENUITEM "制表符转空格",                            IDM_EDIT_TAB_SPACE
             MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB
@@ -264,19 +270,26 @@ BEGIN
     BEGIN
         POPUP "Json 文件",                                      IDM_EDIT_PLACEHOLDE16
         BEGIN
-            MENUITEM "格式化 Json",                             IDM_FORMAT_REFORMAT
-            MENUITEM "压缩 Json",                               IDM_FORMAT_COMPRESS
+            MENUITEM "格式化 Json",                             IDM_FORMAT_REFORMAT_JSON
+            MENUITEM "压缩 Json",                               IDM_FORMAT_COMPRESS_JSON
         END
-        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE17
+        POPUP "Javascript 文件",                                IDM_EDIT_PLACEHOLDE_JS
         BEGIN
-            MENUITEM "格式化当前文档",                          IDM_FORMAT_WHOLE_FILE
-            MENUITEM "格式化选中文本",                          IDM_FORMAT_RANGLE_STR
+            MENUITEM "格式化 Js",                               IDM_FORMAT_REFORMAT_JS
+            MENUITEM "压缩 Js",                                 IDM_FORMAT_COMPRESS_JS
         END
         POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE18
         BEGIN
             MENUITEM "运行当前脚本",                            IDM_FORMAT_RUN_SCRIPT
             MENUITEM "转换为字节码",                            IDM_FORMAT_BYTE_CODE
         END
+        MENUITEM MF_SEPARATOR
+        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE17
+        BEGIN
+            MENUITEM "格式化当前文档",                          IDM_FORMAT_WHOLE_FILE
+            MENUITEM "格式化选中文本",                          IDM_FORMAT_RANGLE_STR
+        END
+        MENUITEM MF_SEPARATOR
         POPUP "简繁内码转换",                                   IDM_EDIT_PLACEHOLDE19
         BEGIN
             MENUITEM "简体转繁体",                              IDM_EDIT_GB_BIG5
@@ -363,9 +376,9 @@ IDR_TABPAGE_POPUPMENU MENU DISCARDABLE
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
-        MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
-        MENUITEM "关闭除当前文件外所有文件",                    IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭标签页(&C)",                              IDM_FILE_CLOSE
+        MENUITEM "关闭所有标签页",                              IDM_FILE_CLOSEALL
+        MENUITEM "关闭除当前标签外所有标签",                    IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
         MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
@@ -374,8 +387,11 @@ BEGIN
         MENUITEM "复制文件名(包含路径)",                        IDM_EDIT_COPY_PATHFILENAME
         MENUITEM SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_TABPAGE_SAVE
+        MENUITEM "退出全屏(&U)",                                IDM_TABPAGE_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
+        MENUITEM "发送到BCompare进行比较",                      IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM SEPARATOR
         MENUITEM "打开文件夹工作区(&W)",                        IDM_FILE_WORKSPACE
         MENUITEM "在资源管理器中打开文件夹(&E)",                IDM_FILE_EXPLORER
     END
@@ -584,12 +600,14 @@ BEGIN
     CONTROL "背景色",IDC_SETBGCOLOR_TEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,459,228,50,14
     CONTROL "选中文本",IDC_INDICATOR_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,254,268,96,10
     CONTROL "背景色",IDC_SETBGCOLOR_INDICATOR_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,459,265,50,14
-    CONTROL "行号",IDC_LINENUMBER_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,18,231,93,10
+    CONTROL "行号",IDC_LINENUMBER_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE|SS_CENTER,18,231,93,10
     CONTROL "颜色",IDC_SETTEXTCOLOR_LINENUMBER_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,112,229,50,14
     CONTROL "背景色",IDC_SETBGCOLOR_LINENUMBER_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,229,50,14
     CONTROL "页边区",IDC_THEME_MARGIN_STATIC,"Button",WS_CHILDWINDOW|WS_VISIBLE|BS_GROUPBOX,7,211,228,82
-    CONTROL "语句块折叠",IDC_FOLDMARGIN_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTER,18,248,93,10
+    CONTROL "语句块折叠",IDC_FOLDMARGIN_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE|SS_CENTER,18,249,93,10
     CONTROL "背景色",IDC_SETBGCOLOR_FOLDMARGIN_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,167,246,50,14
+    CONTROL "激活标签页",IDC_THEME_TAB_STATIC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_CENTERIMAGE|SS_CENTER,15,268,93,10
+    CONTROL "背景色",IDC_SETBGCOLOR_TAB_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,168,265,50,14
     CONTROL "",IDC_THEME_CARTETLINE_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,246,33,12,WS_EX_CLIENTEDGE
     CONTROL "",IDC_THEME_CARTETLINE_UDN,"msctls_updown32",WS_VISIBLE|UDS_HOTTRACK|UDS_ARROWKEYS|UDS_AUTOBUDDY|UDS_ALIGNRIGHT|UDS_SETBUDDYINT,426,246,12,13
     CONTROL "",IDC_THEME_INDICATOR_EDT,"Edit",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,405,265,33,12,WS_EX_CLIENTEDGE
@@ -768,8 +786,6 @@ END
 /////////////////////////////////////////////////////////////////////////////
 #define __EU_COPYRIGHT_TRANSLATION "Copyright © 2022 by ualy123"
 /////////////////////////////////////////////////////////////////////////////
-// ico
-IDI_TXT_32              ICON                    "..\\resources\\txt32.ico"
 
 //
 IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 245, 228
@@ -777,7 +793,7 @@ STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "版本信息"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    ICON            IDI_TXT_32, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
+    ICON            IDI_SMALL, IDC_STATIC_EDIT, 5, 5, 20, 20, SS_NOTIFY
     EDITTEXT        IDC_EDIT_VER, 33, 6, 204, 30, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
     LTEXT           "开发者/许可证: adonais/GPL v3", IDC_STATIC, 33, 38, 159, 9, NOT WS_GROUP
     LTEXT           "翻译: ",IDC_STATIC, 33, 52, 33, 9
@@ -902,11 +918,12 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_20                   "打开/关闭文件管理器"
     IDS_TOOLBAR_21                   "打开/关闭软链接窗口"
     IDS_TOOLBAR_22                   "设置主题"
-    IDS_TOOLBAR_23                   "放大文本"
-    IDS_TOOLBAR_24                   "缩小文本"
-    IDS_TOOLBAR_25                   "打开/退出全屏"
-    IDS_TOOLBAR_26                   "运行"
-    IDS_TOOLBAR_27                   "打开终端"
+    IDS_TOOLBAR_23                   "管理代码片段"
+    IDS_TOOLBAR_24                   "放大文本"
+    IDS_TOOLBAR_25                   "缩小文本"
+    IDS_TOOLBAR_26                   "打开/退出全屏"
+    IDS_TOOLBAR_27                   "运行"
+    IDS_TOOLBAR_28                   "打开终端"
 }
 
 STRINGTABLE DISCARDABLE
@@ -914,10 +931,11 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_R                     "只读"
     IDS_BUTTON_W                     "读写"
     IDS_STATUS_F1                    "%d 个文件, 时间戳: %s"
-    IDS_STATUS_XY                    "光标 (行 %I64u, 列 %I64u)"
-    IDS_STATUS_LC                    "文件: %I64d/%I64d (字节)"
-    IDS_STATUS_LD                    "选择: %I64d/%I64u (字节/行)"
-    IDS_STATUS_HXY                   "光标 (0x%I64X)"
+    IDS_STATUS_XY                    "光标 (行 %zu, 列 %zu)"
+    IDS_STATUS_LC                    "文件: %zd/%zd (字节)"
+    IDS_STATUS_LD                    "选择: %zd/%zu (字节/行)"
+    IDS_STATUS_HLC                   "文件: %zd (字节)"
+    IDS_STATUS_HXY                   "光标 (0x%zX)"
 }
 
 STRINGTABLE DISCARDABLE
@@ -937,6 +955,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_ATTACH_FAIL1    "连接远程文件服务器失败, 无效的私钥或者私钥口令错误"
     IDC_MSG_ATTACH_FAIL2    "连接远程文件服务器失败, 用户名或密码错误"
     IDC_MSG_ATTACH_FAIL3    "初始化libcurl错误, 可能没找到函数入口"
+    IDC_MSG_ATTACH_ERRORS   "链接错误, 原因: %s"
     IDC_MSG_OPENSSL_FAIL    "初始化libopenssl错误, 可能没找到函数入口"
     IDC_MSG_ATTACH_SUCCESS  "连接远程文件服务器成功"
     IDC_MSG_DIR_HOME        "/HOME(用户目录)"
@@ -1101,7 +1120,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SEARCH_STR1     "提示: 正则表达式请使用perl正则语法"
     IDC_MSG_SEARCH_STR2     "%s|%s|(%d 次匹配)"
     IDC_MSG_SEARCH_STR3     "正在初始化引擎,不要关闭窗口......"
-    IDC_MSG_SEARCH_STR4     "搜索完成, %I64u 个文件匹配, 共 %I64u 条结果"
+    IDC_MSG_SEARCH_STR4     "搜索完成, %zu 个文件匹配, 共 %zu 条结果"
     IDC_MSG_SEARCH_STR5     "输入地址偏移量(Hex):"
     IDC_SEARCH_BTN_ON       "查找全部"
     IDC_SEARCH_BTN_OFF      "停止搜索"
@@ -1111,9 +1130,10 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_PAGENUM       "第 %i 页"
     IDS_PRINT_EMPTY         "此文档不包含任何要打印的文本."
     IDS_PRINT_ERROR         "%s 文件打印错误"
+    IDS_PRINT_HEX_WARNS     "暂时不支持在16进制模式下打印"
     IDS_SELRECT             "不能在列编辑模式下进行此操作."
-    IDS_LUA_CONV_SUCCESS    "#> 转换字节码成功, 文件保存在 [%s]"
-    IDS_LUA_CONV_FAIL       "#> 转换字节码失败."
+    IDS_LUA_CONV_SUCCESS    "»» 转换字节码成功, 文件保存在 [%s]"
+    IDS_LUA_CONV_FAIL       "»» 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
     IDS_THEME_DESC_BLOCK    "暗黑主题"
     IDS_THEME_DESC_WHITE    "白色经典"
@@ -1129,14 +1149,15 @@ STRINGTABLE DISCARDABLE
     IDS_USER32_UNFINISHED   "编辑器还未完全关闭, 请稍后重新打开"
     IDS_EXTRA_PATH          "外部程序路径: "
     IDS_EDITOR_PATH         "外部编辑器路径: "
+    IDS_EDITOR_BCOMPARE     "Bcompare路径: "
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
-    IDS_RESULT_STRINGS1     "#> 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
-    IDS_RESULT_STRINGS2     "行 %*I64d: %s"
+    IDS_RESULT_STRINGS1     "»» 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
+    IDS_RESULT_STRINGS2     "行 %*zd: %s"
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-nXX : 打开文件时滚动到指定行\n-cXX : 打开文件时滚动到指定列\n-hex : 以16进制模式打开文本文件\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
-    IDS_LOADLIBRARY_SQL     "#> 开始装载数据库动态链接库 ...\n"
+    IDS_LOADLIBRARY_SQL     "»» 开始装载数据库动态链接库 ...\n"
     IDS_SNIPPET_EDT_DEFAULT "片段名称,注释,参数"
     IDS_SNIPPET_COMBO_DEC   "示例"
     IDS_SNIPPET_EXAMPLE_DEC "${n:占位符} 表示光标下一个占位符,\n$0 标记末尾的插入点.\n使用 tab 键跳转到下一个占位符\n使用 shift+tab 跳转到上一个占位符\n参数A, 表示自动触发，不需要按Tab键.\n参数b, 表示触发关键字应该在行首.\n参数r, 表示触发关键字是正则表达式.\n正则表达式请使用perl正则语法\n捕获组使用\\1...\\9\n示例:\nif (${1:true})\n{\n    $0\n}"
@@ -1144,6 +1165,10 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
     IDS_SNIPPETS_STR        "☑代码片段补全模式"
+    IDS_TABPAGE_CLOSE_NUM   "关闭 %d 个标签页(&C)"
+    IDS_BUTTON_ROUTE_TIPS   "文件存储在服务端, 不能改变其读写属性"
+    IDS_BUTTON_RW_TIPS      "文件没有写权限, 不能改变其读写属性. 你可能需要\n以管理员权限重启编辑器"
+    IDS_PLUGINS_MSG1        "正在用SumatraPDF打开文件..."
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1174,10 +1199,12 @@ BEGIN
   CONTROL "▲",IDC_SEARCH_PRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,264,20,15,13
   CONTROL "▼ 查找下一个",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
   CONTROL "显示详情",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
-  CONTROL "关闭",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "查找全部",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
+  CONTROL "关闭",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,182,90,13
   CONTROL "替换",IDC_SEARCH_RE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
   CONTROL "全部替换",IDC_SEARCH_REALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,90,90,13
-  CONTROL "查找全部",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
+  CONTROL "选区替换",IDC_SEARCH_SELRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
+  CONTROL "开始搜索",IDC_SEARCH_START_ENGINE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,111,90,13
   CONTROL "当前文件夹",IDC_SEARCH_CD_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,129,90,15
   CONTROL "包含子目录",IDC_SEARCH_SUB_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,144,90,15
   CONTROL "包含隐藏目录",IDC_SEARCH_HIDE_CHK,"Button",WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,282,159,90,15

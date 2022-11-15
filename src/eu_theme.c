@@ -18,14 +18,17 @@
 #include "framework.h"
 #include <uxtheme.h>
 
+#define FONT_SIZE_CONVERT(fontsize) (-MulDiv((fontsize), eu_get_dpi(NULL), 72))
+
 static HFONT  g_hfont;
 static HBRUSH brush_linenumber;
 static HBRUSH brush_foldmargin;
 static HBRUSH brush_text;
 static HBRUSH brush_caretline;
 static HBRUSH brush_indicator;
+static HBRUSH brush_activetab;
 
-static TCHAR uni_font[FT_LEN+1];
+static TCHAR uni_font[DW_SIZE+1];
 static struct styletheme dlg_style;
 
 static HWND hwnd_linenumber_static;
@@ -99,6 +102,9 @@ static HFONT font_phpsection_static;
 
 static HWND hwnd_aspsection_static;
 static HFONT font_aspsection_static;
+
+static HWND hwnd_activetab_static;
+static HFONT font_activetab_static;
 static theme_query pm_query[] =
 {
     {IDS_THEME_DESC_DEFAULT, {0}, _T("default")} ,
@@ -117,7 +123,7 @@ on_theme_query_name(TCHAR *str)
     }
     for (iter = &pm_query[0]; iter->res_id; ++iter)
     {
-        if (eu_i18n_load_str(iter->res_id, iter->desc, ACNAME_LEN-1))
+        if (eu_i18n_load_str(iter->res_id, iter->desc, QW_SIZE-1))
         {
             if (_tcsicmp(iter->desc, str) == 0)
             {
@@ -133,13 +139,13 @@ on_theme_load_script(const TCHAR *ac_name)
 {
     TCHAR script[MAX_PATH];
     char script_name[MAX_PATH] = {0};
-    char name[ACNAME_LEN+1] = {0};
+    char name[QW_SIZE+1] = {0};
     _sntprintf(script, MAX_PATH - 1, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
     if (!WideCharToMultiByte(CP_UTF8, 0, script, -1, script_name, MAX_PATH-1, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
     }
-    if (!WideCharToMultiByte(CP_UTF8, 0, ac_name, -1, name, ACNAME_LEN, NULL, NULL))
+    if (!WideCharToMultiByte(CP_UTF8, 0, ac_name, -1, name, QW_SIZE, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
     }
@@ -171,18 +177,18 @@ search_theme_files(theme_desc *lptheme, int m)
         }
         if (_tcsicmp(data.cFileName, _T("styletheme.conf")) == 0)
         {
-            eu_i18n_load_str(IDS_THEME_DESC_DEFAULT, lptheme[index].desc, ACNAME_LEN-1);
-            _tcsncpy(lptheme[index].name, _T("default"), ACNAME_LEN-1);
+            eu_i18n_load_str(IDS_THEME_DESC_DEFAULT, lptheme[index].desc, QW_SIZE-1);
+            _tcsncpy(lptheme[index].name, _T("default"), QW_SIZE-1);
         }
         else if (_stscanf(data.cFileName + _tcslen(_T("styletheme_")), _T("%[^.]"), lptheme[index].name) == 1)
         {
             if (_tcsicmp(lptheme[index].name, _T("black")) == 0)
             {
-                eu_i18n_load_str(IDS_THEME_DESC_BLOCK, lptheme[index].desc, ACNAME_LEN-1);
+                eu_i18n_load_str(IDS_THEME_DESC_BLOCK, lptheme[index].desc, QW_SIZE-1);
             }
             else if (_tcsicmp(lptheme[index].name, _T("white")) == 0)
             {
-                eu_i18n_load_str(IDS_THEME_DESC_WHITE, lptheme[index].desc, ACNAME_LEN-1);
+                eu_i18n_load_str(IDS_THEME_DESC_WHITE, lptheme[index].desc, QW_SIZE-1);
             }
         }
         else
@@ -286,7 +292,7 @@ on_theme_copy_style(TCHAR *ac_theme)
         printf("on_theme_load_script(%ls) failed\n", ac_theme);
         return EUE_LOAD_SCRIPT_ERR;
     }
-    strncpy(eu_get_config()->window_theme, eu_get_theme()->name, ACNAME_LEN - 1);
+    strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE - 1);
     on_theme_update_item();
     menu_switch_theme();
     on_view_modify_theme();
@@ -296,7 +302,7 @@ on_theme_copy_style(TCHAR *ac_theme)
 static inline
 TCHAR *u16_font(char *font)
 {
-    MultiByteToWideChar(CP_UTF8, 0, font, -1, uni_font, FT_LEN);
+    MultiByteToWideChar(CP_UTF8, 0, font, -1, uni_font, DW_SIZE);
     return uni_font;
 }
 
@@ -388,8 +394,6 @@ choose_color_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM unnamedParam4)
     return 0;
 }
 
-#define FONT_SIZE_CONVERT(fontsize) (-MulDiv((fontsize), eu_get_dpi(NULL), 72))
-
 static int
 choose_style_font(char *font, int *fontsize, int *bold)
 {
@@ -424,7 +428,7 @@ choose_style_font(char *font, int *fontsize, int *bold)
     {
         *font = 0;
     }
-    if (!WideCharToMultiByte(CP_UTF8, 0, lf.lfFaceName, -1, font, FT_LEN, NULL, NULL))
+    if (!WideCharToMultiByte(CP_UTF8, 0, lf.lfFaceName, -1, font, DW_SIZE, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
     }
@@ -461,21 +465,28 @@ choose_text_color(HWND hwnd, uint32_t *color)
 // 建立示例字体
 #define CREATE_STYLETHEME_FONT(_st_memb_, _idc_static_, _hwnd_handle_name_, _font_handle_name_)   \
     _hwnd_handle_name_ = GetDlgItem(hdlg, _idc_static_);                                          \
-    _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),              \
-                                    0,                                                            \
-                                    0,                                                            \
-                                    0,                                                            \
-                                    (dlg_style._st_memb_.bold ? FW_BOLD : FW_NORMAL),             \
-                                    false,                                                        \
-                                    FALSE,                                                        \
-                                    0,                                                            \
-                                    DEFAULT_CHARSET,                                              \
-                                    OUT_DEFAULT_PRECIS,                                           \
-                                    CLIP_DEFAULT_PRECIS,                                          \
-                                    DEFAULT_QUALITY,                                              \
-                                    DEFAULT_PITCH | FF_SWISS,                                     \
-                                    u16_font(dlg_style._st_memb_.font));                          \
-    SendMessage(_hwnd_handle_name_, WM_SETFONT, (WPARAM) _font_handle_name_, FALSE);
+    if (_idc_static_ == IDC_THEME_TAB_STATIC)                                                     \
+    {                                                                                             \
+        SendMessage(_hwnd_handle_name_, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), 0); \
+    }                                                                                             \
+    else                                                                                          \
+    {                                                                                             \
+        _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),          \
+                                        0,                                                        \
+                                        0,                                                        \
+                                        0,                                                        \
+                                        (dlg_style._st_memb_.bold ? FW_BOLD : FW_NORMAL),         \
+                                        false,                                                    \
+                                        FALSE,                                                    \
+                                        0,                                                        \
+                                        DEFAULT_CHARSET,                                          \
+                                        OUT_DEFAULT_PRECIS,                                       \
+                                        CLIP_DEFAULT_PRECIS,                                      \
+                                        DEFAULT_QUALITY,                                          \
+                                        DEFAULT_PITCH | FF_SWISS,                                 \
+                                        u16_font(dlg_style._st_memb_.font));                      \
+        SendMessage(_hwnd_handle_name_, WM_SETFONT, (WPARAM) _font_handle_name_, 0);              \
+    }
 
 #define SET_STATIC_TEXTCOLOR(_hwnd_static_, _st_memb_)         \
     if ((HWND) lParam == _hwnd_static_)                        \
@@ -572,6 +583,8 @@ theme_release_handle(void)
     brush_caretline = NULL;
     DeleteObject(brush_indicator);
     brush_indicator = NULL;
+    DeleteObject(brush_activetab);
+    brush_activetab = NULL;
 }
 
 static void
@@ -635,6 +648,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(cdata, IDC_CDATA_STATIC, hwnd_cdata_static, font_cdata_static)
             CREATE_STYLETHEME_FONT(phpsection, IDC_PHPSECTION_STATIC, hwnd_phpsection_static, font_phpsection_static)
             CREATE_STYLETHEME_FONT(aspsection, IDC_ASPSECTION_STATIC, hwnd_aspsection_static, font_aspsection_static)
+            CREATE_STYLETHEME_FONT(activetab, IDC_THEME_TAB_STATIC, hwnd_activetab_static, font_activetab_static)
             HWND hwnd_caretline_edt = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
             HWND hwnd_caretline_udn = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_UDN);
             HWND hwnd_indicator_edt = GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT);
@@ -706,7 +720,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETBGCOLOR_INDICATOR_BTN,
                                        IDC_SETTEXTCOLOR_LINENUMBER_BTN,
                                        IDC_SETBGCOLOR_LINENUMBER_BTN,
-                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN
+                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN,
+                                       IDC_SETBGCOLOR_TAB_BTN
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -775,7 +790,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETBGCOLOR_INDICATOR_BTN,
                                        IDC_SETTEXTCOLOR_LINENUMBER_BTN,
                                        IDC_SETBGCOLOR_LINENUMBER_BTN,
-                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN
+                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN,
+                                       IDC_SETBGCOLOR_TAB_BTN
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -862,6 +878,18 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 brush_indicator = CreateSolidBrush(dlg_style.indicator.bgcolor);
                 return (INT_PTR) brush_indicator;
+            }
+            else if ((HWND) lParam == hwnd_activetab_static)
+            {
+                dlg_style.activetab.bgcolor &= 0x00ffffff;
+                SetTextColor((HDC) wParam, dlg_style.text.color);
+                SetBkColor((HDC) wParam, dlg_style.activetab.bgcolor);
+                if (brush_activetab)
+                {
+                    DeleteObject(brush_activetab);
+                }
+                brush_activetab = CreateSolidBrush(dlg_style.activetab.bgcolor);
+                return (INT_PTR) brush_activetab;
             }
             else SET_STATIC_TEXTCOLOR(hwnd_keyword_static, keywords0)
             else SET_STATIC_TEXTCOLOR(hwnd_keyword2_static, keywords1)
@@ -986,6 +1014,12 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     choose_text_color(hdlg, &dlg_style.indicator.bgcolor);
                     InvalidateRect(hwnd_indicator_static, NULL, TRUE);
+                    break;
+                }
+                case IDC_SETBGCOLOR_TAB_BTN:
+                {
+                    choose_text_color(hdlg, &dlg_style.activetab.bgcolor);
+                    InvalidateRect(hwnd_activetab_static, NULL, TRUE);
                     break;
                 }
             }

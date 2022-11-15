@@ -21,7 +21,7 @@
 void
 on_view_filetree(void)
 {
-    eu_get_config()->m_ftree_show = !eu_get_config()->m_ftree_show;
+    eu_get_config()->m_ftree_show ^= true;
     eu_window_resize(NULL);
 }
 
@@ -30,7 +30,7 @@ on_view_symtree(eu_tabpage *pnode)
 {
     if (pnode && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
-        if ((pnode->sym_show = !pnode->sym_show))
+        if ((pnode->sym_show ^= true))
         {
             pnode->map_show = false;
         }
@@ -43,7 +43,7 @@ on_view_document_map(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)
     {
-        if ((pnode->map_show = !pnode->map_show) && on_map_launch())
+        if ((pnode->map_show ^= true) && on_map_launch())
         {
             pnode->sym_show = false;
         }
@@ -172,6 +172,10 @@ on_view_refresh_theme(HWND hwnd)
         {
             on_tabpage_editor_modify(p, "X");
         }
+        if (p->pmod)
+        {
+            np_plugins_setvalue(&p->plugin->funcs, &p->plugin->npp, NV_THEME_CHANGE, NULL);
+        }
     }
     if (document_map_initialized && hwnd_document_map)
     {
@@ -189,13 +193,13 @@ on_view_switch_theme(HWND hwnd, int id)
     HFONT hfont = NULL;
     eu_tabpage *p = NULL;
     TCHAR *pbuf = NULL;
-    TCHAR buf[ACNAME_LEN+1] = {0};
-    TCHAR old[ACNAME_LEN+1] = {0};
-    if (!GetMenuString(GetMenu(hwnd), id, buf, ACNAME_LEN, MF_BYCOMMAND))
+    TCHAR buf[QW_SIZE+1] = {0};
+    TCHAR old[QW_SIZE+1] = {0};
+    if (!GetMenuString(GetMenu(hwnd), id, buf, QW_SIZE, MF_BYCOMMAND))
     {
         return 1;
     }
-    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, old, ACNAME_LEN))
+    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, old, QW_SIZE))
     {
         return 1;
     }
@@ -225,7 +229,7 @@ on_view_switch_theme(HWND hwnd, int id)
     }
     else
     {
-        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, ACNAME_LEN);
+        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
     }
     return on_view_refresh_theme(hwnd);
 }
@@ -249,18 +253,18 @@ on_view_modify_theme(void)
 void
 on_view_copy_theme(void)
 {
-    TCHAR theme_name[ACNAME_LEN+1] = {0};
-    TCHAR old_theme[ACNAME_LEN+1] = {0};
+    TCHAR theme_name[QW_SIZE+1] = {0};
+    TCHAR old_theme[QW_SIZE+1] = {0};
     LOAD_I18N_RESSTR(IDC_MSG_THEME_NAME, caption);
-    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme_name, ACNAME_LEN))
+    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme_name, QW_SIZE))
     {
         return;
     }
     else
     {
-        _tcsncpy(old_theme, theme_name, ACNAME_LEN);
+        _tcsncpy(old_theme, theme_name, QW_SIZE);
     }
-    if (eu_input(caption, theme_name, ACNAME_LEN))
+    if (eu_input(caption, theme_name, QW_SIZE))
     {
         if (!theme_name[0])
         {
@@ -299,10 +303,10 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
         {
             eu_tabpage *p = NULL;
             int m_width = _tstoi(tab_width);
-            if (m_width > ACNAME_LEN)
+            if (m_width > QW_SIZE)
             {
-                _sntprintf(tab_width, _countof(tab_width)-1, _T("%d"), ACNAME_LEN);
-                eu_get_config()->tab_width = ACNAME_LEN;
+                _sntprintf(tab_width, _countof(tab_width)-1, _T("%d"), QW_SIZE);
+                eu_get_config()->tab_width = QW_SIZE;
             }
             else
             {
@@ -337,7 +341,7 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
         MSG_BOX(IDS_USERTAB_TIPS1, IDC_MSG_TIPS, MB_OK);
         return;
     }
-    eu_get_config()->tab2spaces = !eu_get_config()->tab2spaces;
+    eu_get_config()->tab2spaces ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = NULL;
@@ -360,19 +364,19 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
 void
 on_view_light_brace(void)
 {
-    eu_get_config()->eu_brace.matching = !eu_get_config()->eu_brace.matching;
+    eu_get_config()->eu_brace.matching ^= true;
 }
 
 void
 on_view_light_str(void)
 {
-    eu_get_config()->m_light_str = !eu_get_config()->m_light_str;
+    eu_get_config()->m_light_str ^= true;
 }
 
 void
 on_view_light_fold(void)
 {
-    eu_get_config()->light_fold = !eu_get_config()->light_fold;
+    eu_get_config()->light_fold ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -388,7 +392,7 @@ on_view_light_fold(void)
 void
 on_view_wrap_line(void)
 {
-    eu_get_config()->line_mode = !eu_get_config()->line_mode;
+    eu_get_config()->line_mode ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -404,7 +408,7 @@ on_view_wrap_line(void)
 void
 on_view_line_num(void)
 {
-    eu_get_config()->m_linenumber = !eu_get_config()->m_linenumber;
+    eu_get_config()->m_linenumber ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -420,7 +424,7 @@ on_view_line_num(void)
 void
 on_view_bookmark(void)
 {
-    eu_get_config()->eu_bookmark.visable = !eu_get_config()->eu_bookmark.visable;
+    eu_get_config()->eu_bookmark.visable ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -451,21 +455,21 @@ on_view_update_fold(void)
 void
 on_view_show_fold_lines(void)
 {
-    eu_get_config()->block_fold = !eu_get_config()->block_fold;
+    eu_get_config()->block_fold ^= true;
     on_view_update_fold();
 }
 
 void
 on_view_identation(void)
 {
-    eu_get_config()->m_ident = !eu_get_config()->m_ident;
+    eu_get_config()->m_ident ^= true;
     on_toolbar_update_button();
 }
 
 void
 on_view_white_space(void)
 {
-    eu_get_config()->ws_visiable = !eu_get_config()->ws_visiable;
+    eu_get_config()->ws_visiable ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -474,8 +478,6 @@ on_view_white_space(void)
         if (p)
         {
             eu_sci_call(p, SCI_SETVIEWWS, (eu_get_config()->ws_visiable == true ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
-            eu_sci_call(p, SCI_SETWHITESPACESIZE, eu_get_config()->ws_size, 0);
-            eu_sci_call(p, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
         }
     }
 }
@@ -483,7 +485,7 @@ on_view_white_space(void)
 void
 on_view_line_visiable(void)
 {
-    eu_get_config()->newline_visialbe = !eu_get_config()->newline_visialbe;
+    eu_get_config()->newline_visialbe ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -499,7 +501,7 @@ on_view_line_visiable(void)
 void
 on_view_indent_visiable(void)
 {
-    eu_get_config()->m_indentation = !eu_get_config()->m_indentation;
+    eu_get_config()->m_indentation ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -643,7 +645,7 @@ on_view_setfullscreenimpl(HWND hwnd)
         SystemParametersInfo(SPI_SETWORKAREA, 0, NULL, SPIF_SENDCHANGE);
         SetWindowLongPtr(hwnd, GWL_STYLE, saved_style & ~(WS_CAPTION | WS_THICKFRAME));
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, saved_exstyle & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
-        SetWindowPos(hwnd, HWND_TOP, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+        SetWindowPos(hwnd, HWND_TOP, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
     }
     else
     {
@@ -677,6 +679,7 @@ on_view_full_sreen(HWND hwnd)
         eu_get_config()->m_menubar = true;
         eu_get_config()->m_toolbar = true;
         eu_get_config()->m_statusbar = true;
+        GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
     }
     else
     {
@@ -684,6 +687,7 @@ on_view_full_sreen(HWND hwnd)
         eu_get_config()->m_menubar = false;
         eu_get_config()->m_toolbar = false;
         eu_get_config()->m_statusbar = false;
+        SetMenu(hwnd, NULL);
     }
     on_view_setfullscreenimpl(hwnd);
     eu_window_resize(hwnd);

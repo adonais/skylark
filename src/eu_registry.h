@@ -32,6 +32,7 @@ extern "C" {
 
 int on_reg_files_association(void);
 bool on_reg_admin(void);
+bool on_reg_admin_execute(const wchar_t *cmdline);
 void on_reg_update_menu(void);
 
 #ifdef __cplusplus

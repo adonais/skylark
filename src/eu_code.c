@@ -320,6 +320,6 @@ on_code_insert_config(eu_tabpage *pnode)
 void
 on_code_close_char(void)
 {
-    eu_get_config()->eu_brace.autoc = !eu_get_config()->eu_brace.autoc;
+    eu_get_config()->eu_brace.autoc ^= true;
     on_toolbar_update_button();
 }

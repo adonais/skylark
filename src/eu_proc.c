@@ -406,13 +406,19 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         {
             EndDeferWindowPos(hdwp);
             if (!ptab)
-            {
+            {   // 重新计算标签栏大小
+                on_tabpage_adjust_box(&rect_tabbar);
+                on_tabpage_adjust_window(pnode);
+                eu_setpos_window(g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
+                                 rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
+                eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
+                                 pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
                 UpdateWindow(g_treebar);
                 UpdateWindow(g_splitter_treebar);
                 // on wine, we use RedrawWindow refresh client area
                 RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
                 UpdateWindowEx(g_tabpages);
-                ShowWindow(pnode->hwnd_sc, SW_SHOW);
+                UpdateWindowEx(pnode->hwnd_sc);
             }
             pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
         }
@@ -503,10 +509,11 @@ eu_before_proc(MSG *p_msg)
     }
     if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
-        bool main_key = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT);
-        if (p_msg->wParam == VK_TAB && !main_key && eu_get_config() && eu_get_config()->eu_complete.snippet)
+        bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
+        bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
+        if (p_msg->wParam == VK_TAB && main_up && eu_get_config() && eu_get_config()->eu_complete.snippet)
         {
-            if (!main_key)
+            if (main_up)
             {
                 eu_sci_call(pnode, SCI_CANCEL, 0, 0);
                 if (KEY_DOWN(VK_SHIFT))
@@ -519,13 +526,136 @@ eu_before_proc(MSG *p_msg)
                 }
             }
         }
-        else if (main_key && KEY_DOWN(VK_SHIFT) && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+        else if (main_down && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
         {
             on_sci_insert_egg(pnode);
             return 1;
         }
     }
     return 0;
+}
+
+static int
+on_proc_save_remote(eu_tabpage *pnode)
+{
+    int ret = EUE_CURL_NETWORK_ERR;
+    if (pnode && pnode->plugin)
+    {   // 传送修改到远程服务器
+        pf_stream pstream = NULL;
+        wchar_t msg[PERROR_LEN+1] = {0};
+        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_STREAM, (void **)&pstream) && pstream)
+        {
+            pnode->write_buffer = (uint8_t *)pstream->base;
+            pnode->bytes_remaining = pstream->size;
+            if ((ret = on_file_stream_upload(pnode, msg)) != SKYLARK_OK)
+            {
+                print_err_msg(IDC_MSG_ATTACH_ERRORS, msg);
+                pnode->st_mtime = 0;
+            }
+            else
+            {
+                on_file_update_time(pnode, time(NULL));
+            }
+            pstream->close(pstream);
+            eu_safe_free(pstream);
+            pnode->write_buffer = NULL;
+            pnode->bytes_remaining = 0;
+        }
+    }
+    return ret;
+}
+
+static void
+on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
+{
+    eu_tabpage *pnode = NULL;
+    if (!lpnmhdr)
+    {
+        return;
+    }
+    if (lpnmhdr->pnode)
+    {
+        pnode = (eu_tabpage *)lpnmhdr->pnode;
+    }
+    else
+    {
+        pnode = on_tabpage_focus_at();
+    }
+    if (!pnode)
+    {
+        return;
+    }
+    if (lpnmhdr->modified)
+    {
+        if (!pnode->be_modify)
+        {
+            pnode->be_modify = true;
+            on_toolbar_update_button();
+            InvalidateRect(g_tabpages, NULL, false); 
+            printf("skylark: doc has been modified\n"); 
+        }
+    }
+    if (flags && !lpnmhdr->modified && pnode->plugin)
+    {
+        bool remote = false;
+        bool backup = false;
+        wchar_t *full_path = NULL;
+        pnode->be_modify = false;
+        printf("skylark: doc has been saved\n");
+        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&full_path) && STR_NOT_NUL(full_path))
+        {
+            printf("full_path = %ls, pnode->pathfile = %ls, pnode->bakpath = %ls\n", full_path, pnode->pathfile, pnode->bakpath);
+            if (url_has_remote(pnode->pathfile))
+            {
+                remote = true;
+            }
+            else if (pnode->bakpath[0] && (wcsicmp(full_path, pnode->bakpath) == 0))
+            {   // 获取流保存在本地的临时文件名
+                backup = true;
+            }
+            if (flags == OPERATE_SAVE)
+            {
+                if (remote)
+                {
+                    on_proc_save_remote(pnode);
+                }
+                else if (backup)
+                {
+                    np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, pnode->pathfile);
+                    util_delete_file(pnode->bakpath);
+                    pnode->bakpath[0] = 0;
+                }
+                else
+                {
+                    np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+                }
+                on_file_update_time(pnode, 0);
+            }
+            else if (flags == OPERATE_SAVEAS)
+            {
+                if (remote)
+                {
+                    pnode->fs_server.networkaddr[0] = 0;
+                }
+                else if (backup)
+                {
+                    util_delete_file(pnode->bakpath);
+                    pnode->bakpath[0] = 0;
+                }
+                on_sql_delete_backup_row(pnode);
+                _tcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
+                _wsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
+                if (wcslen(pnode->extname) > 0)
+                {
+                    wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+                }
+                on_file_update_time(pnode, 0);
+                util_set_title(pnode->pathfile);
+                np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
+            }
+            eu_safe_free(full_path);
+        }
+    }
 }
 
 LRESULT CALLBACK
@@ -572,8 +702,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (eu_get_config()->m_fullscreen)
             {
-                eu_get_config()->m_menubar = false;
-                eu_get_config()->m_toolbar = false;
                 eu_get_config()->m_statusbar = false;
                 on_view_setfullscreenimpl(hwnd);
             }
@@ -760,7 +888,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_SAVE:
                 case IDM_TABPAGE_SAVE:
-                    on_file_save(pnode, false);
+                    on_tabpage_do_file(on_tabpage_save_files);
                     break;
                 case IDM_FILE_SAVEAS:
                     on_file_save_as(pnode);
@@ -769,7 +897,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_all_save();
                     break;
                 case IDM_FILE_CLOSE:
-                    on_file_close(pnode, FILE_ONLY_CLOSE);
+                    on_tabpage_do_file(on_tabpage_close_tabs);
                     break;
                 case IDM_FILE_CLOSEALL:
                     on_file_all_close();
@@ -788,6 +916,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_EXIT_WHEN_LAST_TAB:
                     on_file_close_last_tab();
+                    break;
+                case IDM_FILE_RESTART_ADMIN:
+                    on_file_edit_restart(hwnd);
                     break;
                 case IDM_FILE_PAGESETUP:
                     on_print_setup(g_hwndmain);
@@ -868,9 +999,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_EDIT_OTHER_EDITOR:
-                    if (pnode && !pnode->is_blank && *pnode->pathfile)
                     {
-                        on_edit_push_editor(pnode, pnode->pathfile);
+                        on_tabpage_do_file(on_tabpage_push_editor);
+                    }
+                    break;
+                case IDM_EDIT_OTHER_BCOMPARE:
+                    {
+                        on_edit_push_compare();
                     }
                     break;
                 case IDM_FILE_WORKSPACE:
@@ -939,6 +1074,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_UPPERCASE:
                     on_edit_upper(pnode);
+                    break;
+                case IDM_EDIT_WORD_UPPERCASE:
+                    on_edit_sentence_upper(pnode, false);
+                    break;
+                case IDM_EDIT_SENTENCE_UPPERCASE:
+                    on_edit_sentence_upper(pnode, true);
                     break;
                 case IDM_EDIT_TAB_SPACE:
                     on_search_tab2space(pnode);
@@ -1144,7 +1285,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_copy_theme();
                     break;
                 case IDM_VIEW_HEXEDIT_MODE:
-                    hexview_switch_mode(pnode);
+                    hexview_switch_item(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_BRACE:
                     on_view_light_brace();
@@ -1155,20 +1296,32 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_HIGHLIGHT_FOLD:
                     on_view_light_fold();
                     break;
-                case IDM_FORMAT_REFORMAT:
-                    on_format_json_style(pnode);
+                case IDM_FORMAT_REFORMAT_JSON:
+                    on_format_file_style(pnode);
                     on_symtree_json(pnode);
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
                     break;
-                case IDM_FORMAT_COMPRESS:
-                    on_format_do_json(pnode, on_format_compress_callback);
+                case IDM_FORMAT_COMPRESS_JSON:
+                    on_format_do_compress(pnode, on_format_json_callback);
                     on_symtree_json(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
+                    break;
+                case IDM_FORMAT_REFORMAT_JS:
+                    on_format_file_style(pnode);
+                    on_symlist_reqular(pnode);
+                    util_setforce_eol(pnode);
+                    on_statusbar_update_eol(pnode);
+                    break;
+                case IDM_FORMAT_COMPRESS_JS:
+                    on_format_do_compress(pnode, on_format_js_callback);
+                    on_symlist_reqular(pnode);
                     util_setforce_eol(pnode);
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    on_format_clang_file(pnode);
+                    on_format_clang_file(pnode, true);
                     if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_symtree_json(pnode);
@@ -1181,7 +1334,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    on_format_clang_str(pnode);
+                    on_format_clang_file(pnode, false);
                     on_symlist_reqular(pnode);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
@@ -1215,7 +1368,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_indent_visiable();
                     break;
                 case IDM_VIEW_TIPS_ONTAB:
-                    eu_get_config()->m_tab_tip = !eu_get_config()->m_tab_tip;
+                    eu_get_config()->m_tab_tip ^= true;
                     break;
                 case IDM_VIEW_LEFT_TAB:
                 case IDM_VIEW_RIGHT_TAB:
@@ -1345,23 +1498,29 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_about_command();
                     break;
                 case IDM_VIEW_FULLSCREEN:
+                case IDM_TABPAGE_FULLSCREEN:
                 {
                     on_view_full_sreen(hwnd);
                     break;
                 }
                 case IDM_VIEW_MENUBAR:
-                    eu_get_config()->m_menubar = !eu_get_config()->m_menubar;
+                    eu_get_config()->m_menubar ^= true;
                     eu_get_config()->m_menubar?(GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK))):SetMenu(hwnd, NULL);
                     on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_TOOLBAR:
-                    eu_get_config()->m_toolbar = !eu_get_config()->m_toolbar;
+                    eu_get_config()->m_toolbar ^= true;
                     on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_STATUSBAR:
-                    eu_get_config()->m_statusbar = !eu_get_config()->m_statusbar;
-                    on_proc_msg_size(hwnd, NULL);
+                {
+                    if (eu_get_config() && !(eu_get_config()->m_fullscreen))
+                    {
+                        eu_get_config()->m_statusbar ^= true;
+                        on_proc_msg_size(hwnd, NULL);
+                    }
                     break;
+                }
                 case IDM_TAB_CLOSE_LEFT:
                     on_file_left_close();
                     break;
@@ -1526,11 +1685,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                     }
                     break;
-                case TCN_SELCHANGE:
-                    on_tabpage_changing(hwnd);
-                    break;
                 case TCN_TABDROPPED_OUT:
-                    on_file_out_open((int)(intptr_t)(lpnotify->nmhdr.hwndFrom));
+                    on_file_out_open(eu_int_cast(lpnotify->nmhdr.hwndFrom), NULL);
                     break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
@@ -1578,6 +1734,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                 on_toolbar_setup_button(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
                                 on_toolbar_setup_button(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
                             }
+                            on_search_turn_select(pnode);
                         }
                         else if ((lpnotify->updated & SC_UPDATE_CONTENT) && pnode->map_show && document_map_initialized)
                         {
@@ -1625,6 +1782,22 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         else
                         {
                             _sntprintf(p_tips->szText, _countof(p_tips->szText) - 1, _T("%.68s"), pnode->pathfile);
+                        }
+                    }
+                    break;
+                }
+                case NPP_DOC_MODIFY:
+                {
+                    on_proc_save_status(wParam, (npn_nmhdr *)lParam);
+                    break;
+                }
+                case NPP_DOC_STATUS:
+                {
+                    if (pnode && lParam && ((npn_nmhdr *)lpnmhdr)->nm.idFrom > 0)
+                    {
+                        if (GetParent((HWND)(((npn_nmhdr *)lpnmhdr)->nm.idFrom)) == pnode->hwnd_sc)
+                        {
+                            return (intptr_t)pnode->be_modify;
                         }
                     }
                     break;
@@ -1735,7 +1908,7 @@ class_register(HINSTANCE instance)
     wcex.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = APP_CLASS;
-    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SKYLARK));
     return RegisterClassEx(&wcex);
 }
 

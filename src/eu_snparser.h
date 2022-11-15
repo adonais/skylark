@@ -35,8 +35,8 @@ typedef struct _snippet_t
 {
     intptr_t start;
     intptr_t end;
-    char name[ACNAME_LEN];
-    char comment[ACNAME_LEN];
+    char name[QW_SIZE];
+    char comment[QW_SIZE];
     char parameter[PARAM_LEN];
     char body[LARGER_LEN];
 } snippet_t;

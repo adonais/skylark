@@ -48,13 +48,12 @@
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_SKYLARK             ICON                    "..\\resources\\skylark.ico"
-IDI_SMALL               ICON                    "..\\resources\\skylark32.ico"
-IDI_TXT_48              ICON                    "..\\resources\\txt48.ico"
+IDI_SMALL               ICON                    "..\\resources\\txt32.ico"
+IDI_DEFAULT             ICON                    "..\\resources\\txt48.ico"
 IDB_CLSDFOLD            ICON                    "..\\resources\\folder-closed.ico"
 IDB_DOC                 ICON                    "..\\resources\\txt.ico"
 IDB_DRIVE               ICON                    "..\\resources\\drive.ico"
-IDB_EXE                 ICON                    "..\\resources\\exe.ico"
-IDB_OPENFOLD            ICON                    "..\\resources\\folder.ico"
+IDB_OPENFOLD            ICON                    "..\\resources\\folder-open.ico"
 IDB_TXT                 ICON                    "..\\resources\\doc.ico"
 IDB_COPY                ICON                    "..\\resources\\copy.ico"
 IDB_COPY_DARK           ICON                    "..\\resources\\copy_dark.ico"
@@ -83,10 +82,12 @@ IDB_TOOLBAR_LARGE32     BITMAP                  "..\\resources\\toolbar_large_32
 IDB_TOOLBAR_LARGE1      BITMAP                  "..\\resources\\toolbar_large_1.bmp"
 IDB_DARK_LARGE32        BITMAP                  "..\\resources\\toolbar_dark_large_32.bmp"
 IDB_DARK_LARGE1         BITMAP                  "..\\resources\\toolbar_dark_large_1.bmp"
+IDB_TOOLBAR_MIDDLING24  BITMAP                  "..\\resources\\toolbar_middling_24.bmp"
+IDB_TOOLBAR_MIDDLING1   BITMAP                  "..\\resources\\toolbar_middling_1.bmp"
+IDB_DARK_MIDDLING24     BITMAP                  "..\\resources\\toolbar_dark_middling_24.bmp"
+IDB_DARK_MIDDLING1      BITMAP                  "..\\resources\\toolbar_dark_middling_1.bmp"
 IDB_BUTTON_BG_BMP       BITMAP                  "..\\resources\\bg.bmp"
-IDB_DARK_CLOSE_BMP      BITMAP                  "..\\resources\\at-dark-close.bmp"
 IDB_AC_CLOSE_BMP        BITMAP                  "..\\resources\\at-active-close.bmp"
-IDB_UN_CLOSE_BMP        BITMAP                  "..\\resources\\at-unactive-close.bmp"
 IDT_BIRD                BITMAP                  "..\\resources\\img_tab.bmp"
 
 /////////////////////////////////////////////////////////////////////////////

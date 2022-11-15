@@ -282,16 +282,22 @@ done:
 void
 util_wait_cursor(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
+    if (pnode && !pnode->hex_mode)
+    {
+        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
+    }
 }
 
 void
 util_restore_cursor(eu_tabpage *pnode)
 {
     POINT pt;
-    eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
-    GetCursorPos(&pt);
-    SetCursorPos(pt.x, pt.y);
+    if (pnode && !pnode->hex_mode)
+    {
+        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
+        GetCursorPos(&pt);
+        SetCursorPos(pt.x, pt.y);
+    }
 }
 
 static bool
@@ -852,14 +858,15 @@ int
 util_set_title(const TCHAR *filename)
 {
     TCHAR title[100 + MAX_PATH];
+    bool admin = on_reg_admin();
     LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
     if (filename && filename[0])
     {
-        _sntprintf(title, _countof(title) - 1, _T("%s - %s"), app_title, filename);
+        _sntprintf(title, _countof(title) - 1, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
     }
     else
     {
-        _sntprintf(title, _countof(title) - 1, _T("%s"), app_title);
+        _sntprintf(title, _countof(title) - 1, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
     }
     SetWindowText(eu_module_hwnd(), title);
     return SKYLARK_OK;
@@ -962,6 +969,30 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
         (*plen) = 0;
     }
     return NULL;
+}
+
+sptr_t
+util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout)
+{
+    sptr_t len = 0;
+    if (pnode && end > start)
+    {
+        char *txt = NULL;
+        for (len = start; len < end; ++len)
+        {
+            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, len, 0);
+            if (!isspace(ch))
+            {
+                break;
+            }
+        }
+        if (len > start && len < end && pout)
+        {
+            *pout = on_sci_range_text(pnode, start, len);
+        }
+        len -= start;
+    }
+    return len;
 }
 
 char *
@@ -1471,8 +1502,8 @@ util_exist_libcurl(void)
     bool ret = false;
     HMODULE lib_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((lib_symbol = LoadLibrary(curl_path)) != NULL)
+    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+    if ((lib_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(lib_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1496,8 +1527,8 @@ util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, uns
     int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibrary(curl_path)) != NULL)
+    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(curl_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1515,8 +1546,8 @@ util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, u
     int ret = -2;      // STREAM_ERROR
     HMODULE curl_symbol = NULL;
     TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibrary(curl_path)) != NULL)
+    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
+    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
     {
         ptr_uncompress fn_uncompress = (ptr_uncompress)GetProcAddress(curl_symbol,"zlib_uncompress2");
         if (fn_uncompress)
@@ -1631,7 +1662,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
 }
 
 static void
-util_close_stream_by_free(pt_stream pstream)
+util_close_stream_by_free(pf_stream pstream)
 {
     if (pstream && pstream->base)
     {
@@ -1642,7 +1673,7 @@ util_close_stream_by_free(pt_stream pstream)
 }
 
 static void
-util_close_stream_by_munmap(pt_stream pstream)
+util_close_stream_by_munmap(pf_stream pstream)
 {
     if (pstream && pstream->base)
     {
@@ -1653,7 +1684,7 @@ util_close_stream_by_munmap(pt_stream pstream)
 }
 
 bool
-util_open_file(LPCTSTR path, pt_stream pstream)
+util_open_file(LPCTSTR path, pf_stream pstream)
 {
     bool ret = false;
     HANDLE hfile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
@@ -1661,7 +1692,7 @@ util_open_file(LPCTSTR path, pt_stream pstream)
     {
         if (!pstream->size)
         {
-            if (!util_file_size(hfile, &pstream->size))
+            if (!util_file_size(hfile, (uint64_t *)&pstream->size))
             {
                 CloseHandle(hfile);
                 return false;
@@ -1699,14 +1730,23 @@ util_open_file(LPCTSTR path, pt_stream pstream)
 }
 
 void
-util_setforce_eol(eu_tabpage *pnode)
+util_set_undo(eu_tabpage *p)
+{
+    if (p && !eu_sci_call(p, SCI_GETUNDOCOLLECTION, 0 , 0))
+    {
+        eu_sci_call(p, SCI_SETUNDOCOLLECTION, 1 , 0);
+    }
+}
+
+void
+util_setforce_eol(eu_tabpage *p)
 {
     size_t len = 0;
-    char *pdata = util_strdup_content(pnode, &len);
+    char *pdata = util_strdup_content(p, &len);
     if (pdata)
     {
-        pnode->eol = on_encoding_line_mode(pdata, len);
-        eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+        p->eol = on_encoding_line_mode(pdata, len);
+        eu_sci_call(p, SCI_SETEOLMODE, p->eol, 0);
         free(pdata);
     }
 }
@@ -1856,7 +1896,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
     } while (0);
     eu_safe_free(pbuffer);
-    safe_close_dll(h_ver);
+    eu_close_dll(h_ver);
     return ret;
 }
 
@@ -2030,12 +2070,194 @@ util_str_unquote(const char *path)
 }
 
 void
-util_skip_whitespace(char **cp, int n, char term)
+util_skip_whitespace(uint8_t **cp, int n, int term)
 {
-	char *pstr = *cp;
+	uint8_t *pstr = *cp;
 	while (isspace(*pstr) && *pstr != term && n--)
 	{
 	    pstr++;
 	}
 	*cp = pstr;
+}
+
+static inline bool
+util_main_window(HWND handle)
+{
+    return (GetWindow(handle, GW_OWNER) == (HWND)0 && IsWindowVisible(handle));
+}
+
+static int CALLBACK
+util_enum_callback(HWND handle, LPARAM lparam)
+{
+    handle_data *pdata = (handle_data *)lparam;
+    uint32_t process_id = 0;
+    GetWindowThreadProcessId(handle, &process_id);
+    if (pdata->pid != process_id || !util_main_window(handle))
+    {
+        return 1;
+    }
+    pdata->handle = handle;
+    return 0;
+}
+
+HWND
+util_get_hwnd(const uint32_t pid)
+{
+    handle_data data = {pid, 0};
+    EnumWindows(util_enum_callback, (LPARAM)&data);
+    return data.handle;
+}
+
+TCHAR *
+util_which(const TCHAR *name)
+{
+    bool diff = false;
+    bool add_suf = true;
+    TCHAR *file = NULL;
+    TCHAR *env_path = NULL;
+    TCHAR sz_work[MAX_PATH + 1] = {0};
+    TCHAR sz_process[MAX_PATH + 1] = {0};
+    const TCHAR *delimiter = _T(";");
+    TCHAR *path = _tgetenv(_T("PATH"));
+    TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
+    TCHAR *dot = _tcsrchr(name, _T('.'));
+    int len = eu_int_cast(_tcslen(path)) + (3 * MAX_PATH);
+    if (!path)
+    {
+        return NULL;
+    }
+    GetSystemDirectory(sz_work, MAX_PATH);
+    eu_process_path(sz_process, MAX_PATH);
+    if (!sz_work[0] || !sz_process[0])
+    {
+        return NULL;
+    }
+    if ((env_path = (TCHAR *)calloc(sizeof(TCHAR), len + 1)) == NULL)
+    {
+        return NULL;
+    }
+    diff = _tcscmp(sz_work, sz_process) != 0;
+    if (dot)
+    {
+        for (int i = 0; av[i]; ++i)
+        {
+            if (_tcsicmp(dot, av[i]) == 0)
+            {
+                add_suf = false;
+                break;
+            }
+        }
+    }
+    if ((file = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH)) != NULL)
+    {
+        if (diff)
+        {
+            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins;%s"), path, sz_process, sz_process, sz_work);
+        }
+        else
+        {
+            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins"), path, sz_process, sz_process);
+        }
+        wchar_t *tok = _tcstok(env_path, delimiter);
+        while (tok)
+        {
+            int i = 0;
+            _sntprintf(file, MAX_PATH, _T("%s\\%s"), tok, name);
+            do
+            {
+                struct _stat st;
+                if (_tstat(file, &st) != -1 && (st.st_mode & S_IEXEC))
+                {
+                    eu_safe_free(env_path);
+                    return file;
+                }
+                if (add_suf && av[i])
+                {
+                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), tok, name, av[i]);
+                }
+            } while (av[i++]);
+            tok = _tcstok(NULL, delimiter);
+        }
+        eu_safe_free(file);
+    }
+    eu_safe_free(env_path);
+    return NULL;
+}
+
+bool
+eu_gui_app(void)
+{
+    HMODULE hmodule = GetModuleHandle(NULL);
+    if(hmodule == NULL)
+    {
+        return false;
+    }
+    IMAGE_DOS_HEADER* dos_header = (IMAGE_DOS_HEADER *)hmodule;
+    IMAGE_NT_HEADERS* pe_header =(IMAGE_NT_HEADERS *)((uint8_t *)dos_header + dos_header->e_lfanew);
+    return pe_header->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI;
+}
+
+bool
+util_delete_file(LPCTSTR filepath)
+{
+    int ret = 1;
+	int path_len = eu_int_cast(_tcslen(filepath));
+	TCHAR *psz_from = (TCHAR *)calloc(sizeof(TCHAR), path_len + 2);
+	if (psz_from)
+	{
+	    _tcscpy(psz_from, filepath);
+	    psz_from[path_len] = 0;
+	    psz_from[++path_len] = 0;
+	    SHFILEOPSTRUCT st_struct = {0};
+	    st_struct.wFunc = FO_DELETE;
+	    st_struct.pFrom = psz_from;
+	    st_struct.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR | FOF_SILENT | FOF_FILESONLY;
+	    st_struct.fAnyOperationsAborted = 0;
+	    ret = SHFileOperation(&st_struct);
+	    free(psz_from);
+	}
+	return (ret == 0);
+}
+
+bool
+util_file_access(LPCTSTR filename, uint32_t *pgranted)
+{
+    bool ret = false;
+    uint32_t length = 0;
+    if (!GetFileSecurity(filename, OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION, NULL, 0, &length) &&
+        ERROR_INSUFFICIENT_BUFFER == GetLastError())
+    {
+        PSECURITY_DESCRIPTOR security = (PSECURITY_DESCRIPTOR) malloc(length);
+        if (security &&
+            GetFileSecurity(filename, OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION, security, length, &length))
+        {
+            HANDLE old_token = NULL;
+            if (OpenProcessToken(GetCurrentProcess(), TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ, &old_token))
+            {
+                HANDLE token = NULL;
+                uint32_t access_mask = MAXIMUM_ALLOWED;
+                if (DuplicateToken(old_token, SecurityImpersonation, &token))
+                {
+                    GENERIC_MAPPING mapping = {0xFFFFFFFF};
+                    PRIVILEGE_SET privileges = {0};
+                    uint32_t granted_access = 0, privileges_length = sizeof(privileges);
+                    BOOL result = FALSE;
+                    mapping.GenericRead = FILE_GENERIC_READ;
+                    mapping.GenericWrite = FILE_GENERIC_WRITE;
+                    mapping.GenericExecute = FILE_GENERIC_EXECUTE;
+                    mapping.GenericAll = FILE_ALL_ACCESS;
+                    MapGenericMask(&access_mask, &mapping);
+                    if (AccessCheck(security, token, access_mask, &mapping, &privileges, &privileges_length, &granted_access, &result))
+                    {
+                        ret = (result == TRUE);
+                        *pgranted = granted_access;
+                    }
+                    CloseHandle(token);
+                }
+                CloseHandle(old_token);
+            }
+        }
+        eu_safe_free(security);
+    }
+    return ret;
 }

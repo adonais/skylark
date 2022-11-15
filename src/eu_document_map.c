@@ -112,7 +112,7 @@ on_map_print(sptr_t *plines)
         sptr_t *it;
         for (it = cvector_begin(plines); it != cvector_end(plines); ++it)
         {
-            printf("plines[%d] = %I64d\n", i, *it);
+            printf("plines[%d] = %zd\n", i, *it);
             ++i;
         }
     }
@@ -363,7 +363,7 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             eu_tabpage *map_edit = (eu_tabpage *)lParam;
             SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)map_edit);
-            const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
+            const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_EX_RTLREADING;
             if (on_sci_create(map_edit, hwnd, flags, on_map_edit_proc) != SKYLARK_OK)
             {
                 (intptr_t)EndDialog(hwnd, 1);

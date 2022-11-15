@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 extern HWND g_statusbar;
-extern char iconv_undo_str[ACNAME_LEN];
+extern char iconv_undo_str[QW_SIZE];
 
 bool __stdcall on_statusbar_init(HWND hwnd);
 int  __stdcall on_statusbar_height(void);

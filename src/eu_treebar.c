@@ -900,11 +900,10 @@ update_node_tree(void *lp)
 static void
 on_tree_expand(NMTREEVIEW *lpnmtv)
 {
-    if (lpnmtv->action != 0x2)
+    if (lpnmtv && lpnmtv->action == 0x2)
     {
-        return;
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, update_node_tree, (void *) lpnmtv->itemNew.hItem, 0, NULL));
     }
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, update_node_tree, (void *) lpnmtv->itemNew.hItem, 0, NULL));
 }
 
 static int
@@ -1318,11 +1317,17 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_tree_expand(lpnmtv);
                     if (lpnmtv->action == TVE_COLLAPSE)
                     {
-                        item.iSelectedImage = img_close;
+                        if ((item.iSelectedImage) != img_drive)
+                        {
+                            item.iSelectedImage = img_close;
+                        }
                     }
                     else if (lpnmtv->action == TVE_EXPAND)
                     {
-                        item.iSelectedImage = img_fold;
+                        if ((item.iSelectedImage) != img_drive)
+                        {
+                            item.iSelectedImage = img_fold;
+                        }
                     }
                     TreeView_SetItem(hwnd, &item);
                 }
@@ -1484,11 +1489,8 @@ load_tree_imglist(HWND hwnd)
     img_text = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
 
-    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_EXE));
-    img_exe = ImageList_AddIcon(himl, hicon);
-    DestroyIcon(hicon);
     // Fail if not all of the images were added.
-    if (ImageList_GetImageCount(himl) < 6)
+    if (ImageList_GetImageCount(himl) < 5)
     {
         ImageList_Destroy(himl);
         return NULL;

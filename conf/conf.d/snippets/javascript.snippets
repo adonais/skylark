@@ -1,6 +1,221 @@
 ###########################################################################
 #                            Javascript Snippets                          #
 ###########################################################################
+snippet #! "#!/usr/bin/env node" b
+#!/usr/bin/env node
+endsnippet
+
 snippet imp "import"
 import ${2} from ${1}
+endsnippet
+
+snippet iti "it (js, inject)" b
+it('${1:description}', inject(function($2) {
+    $0
+}));
+endsnippet
+
+snippet befi "before each (js, inject)" b
+beforeEach(inject(function($1) {
+    $0
+}));
+endsnippet
+
+snippet aconf "angular config"
+config(function($1) {
+    $0
+});
+endsnippet
+
+snippet ex "module.exports"
+module.exports = $1;
+endsnippet
+
+snippet hcs "http.createServer"
+http.createServer($1).listen($2);
+endsnippet
+
+snippet ncs "net.createServer"
+net.createServer(function(${1:socket}){
+    $1.on('data', function(${3:data}){
+        $4
+    });
+    $1.on('end', function(){
+        $5
+    });
+}).listen(${6:8124});
+endsnippet
+
+snippet pipe "pipe"
+pipe(${1:stream})$2
+endsnippet
+
+# Express snippets
+
+snippet eget "express GET"
+${1:app}.get('$2', $3);
+endsnippet
+
+snippet epost "express POST"
+${1:app}.post('$2', $3);
+endsnippet
+
+snippet eput "express PUT"
+${1:app}.put('$2', $3);
+endsnippet
+
+snippet edelete "express DELETE"
+${1:app}.delete('$2', $3);
+endsnippet
+
+# process snippets
+
+snippet stdout "stdout"
+process.stdout
+endsnippet
+
+snippet stdin "stdin"
+process.stdin
+endsnippet
+
+snippet stderr "stderr"
+process.stderr
+endsnippet
+
+snippet des "Describe (js)" b
+describe('${1:description}', () => {
+    $0
+});
+endsnippet
+
+snippet it "it (js)" b
+it('${1:description}', () => {
+    $0
+});
+endsnippet
+
+snippet bef "before each (js)" b
+beforeEach(() => {
+    $0
+});
+endsnippet
+
+snippet aft "after each (js)" b
+afterEach(() => {
+    $0
+});
+endsnippet
+
+snippet befa "before all (js)" b
+beforeAll(() => {
+    $0
+});
+endsnippet
+
+snippet afta "after all (js)" b
+afterAll(() => {
+    $0
+});
+endsnippet
+
+snippet ru "runs (js)" b
+runs(() => {
+    $0
+});
+endsnippet
+
+# Application
+snippet eapp "App.Name = Ember.Application.create({});"
+import Application from '@ember/application';
+
+export default Application.extend({
+    ${0://Properties here...}
+});
+endsnippet
+
+# Models
+snippet emod "import DS from 'ember-data';"
+import DS from 'ember-data';
+
+export default DS.Model.extend({
+    ${0://Properties here...}
+});
+endsnippet
+
+# Controller
+snippet econtroller "import Controller from '@ember/controller';"
+import Controller from '@ember/controller';
+
+export default Controller.extend({
+    ${0://Properties here...}
+});
+endsnippet
+
+# Route
+snippet eroute "import Route from '@ember/routing/route';"
+import Route from '@ember/routing/route';
+
+export default Route.extend({
+    ${0://Properties here...}
+});
+endsnippet
+
+# Component
+snippet ecomponent "import Component from '@ember/component';"
+import Component from '@ember/component';
+
+export default Component.extend({
+    ${0://Properties here...}
+});
+endsnippet
+
+# Object
+snippet eobj "import EmberObject from '@ember/object';"
+import EmberObject from '@ember/object';
+
+export default EmberObject.extend({
+    ${0://Properties here...}
+});
+endsnippet
+
+# Mixin
+snippet emix "App.MixinName = Ember.Model.extend({...});"
+import Mixin from '@ember/object/mixin';
+
+export default Mixin.create({
+    ${0://Properties here...}
+});
+endsnippet
+
+# Ember getter and setter
+snippet eget "this.get('property');"
+${1:this}.get('${2:property}');
+endsnippet
+
+snippet eset "this.set('property', value);"
+${1:this}.set('${2:property}', ${3:value});
+endsnippet
+
+# Computed properties
+snippet cproimport "import { computed } from '@ember/object';"
+import { computed } from '@ember/object';
+$0
+endsnippet
+
+snippet cpro "property_name: computed('...', function() {...}),"
+${1:property_name}: computed('${3:argument}', function() {
+    ${0://body...}
+}),
+endsnippet
+
+# Observers
+snippet prooimport "import { observer } from '@ember/object';"
+import { observer } from '@ember/object';
+$0
+endsnippet
+
+snippet proo "property_name: observer('...', function() {...}),"
+${1:property_name}: observer('${3:argument}', function() {
+    ${0://body...}
+}),
 endsnippet

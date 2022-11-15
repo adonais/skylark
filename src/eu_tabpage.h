@@ -20,7 +20,7 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
-#define TABS_HEIGHT_DEFAULT   21
+#define TABS_HEIGHT_DEFAULT   23
 
 #ifdef __cplusplus
 extern "C"
@@ -30,6 +30,7 @@ extern "C"
 typedef struct _complete_t *complete_ptr;
 typedef struct _capture_set *capture_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
+typedef void  (*tab_callback)(int index);
 typedef void (__stdcall *tab_want)(void *p);
 
 struct _tabpage
@@ -46,6 +47,8 @@ struct _tabpage
     RECT rect_map;              // 文档结构图矩形区域
     RECT rect_result;           // 文档搜索结果矩形区域
     RECT rect_sidebar;          // 侧边栏矩形区域
+    NMM pmod;                   // 插件模块地址
+    npdata *plugin;             // 插件动态数据表
     int  match_count;           // 查找时匹配计数
     int  tab_id;                // tab编号,用于保存会话
     bool sym_show;              // 是否显示右侧边栏
@@ -70,7 +73,7 @@ struct _tabpage
     size_t pre_len;             // bom的长度
     bool needpre;               // 是否需要bom
     int eol;                    // 换行符
-    int64_t begin_pos;          // 开始选择位置
+    intptr_t begin_pos;         // 开始选择位置
     remotefs fs_server;         // SFTP
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
@@ -82,7 +85,7 @@ struct _tabpage
     bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool last_focus;            // 保存前台焦点
-    int64_t nc_pos;             // 关闭编辑器时, 光标所处位置
+    intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
     int zoom_level;             // 标签页的放大倍数
     int ac_mode;                // 是否处于snippet模式
     result_vec *ret_vec;        // 搜索结果标记
@@ -103,14 +106,20 @@ int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(eu_tabpage *pnode);
 int  on_tabpage_selection(eu_tabpage *pnode, int index);
+int  on_tabpage_sel_number(int **pvec, const bool ascending);
+int  on_tabpage_sel_path(wchar_t ***pvec, bool *hex);
 void on_tabpage_switch_next(HWND hwnd);
 void on_tabpage_adjust_box(RECT *ptp);
 void on_tabpage_adjust_window(eu_tabpage *pnode);
 void on_tabpage_set_title(int ntab, TCHAR *title);
-void on_tabpage_changing(HWND hwnd);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
+void on_tabpage_close_tabs(int);
+void on_tabpage_save_files(int);
+void on_tabpage_push_editor(int);
+void on_tabpage_do_file(tab_callback func);
+void on_tabpage_active_tab(eu_tabpage *pnode);
 bool on_tabpage_check_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);

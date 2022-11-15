@@ -53,21 +53,20 @@ on_print_init(void)
     return ptr_print;
 }
 
-static DWORD_PTR
+static void
 on_print_file_info(LPCTSTR path, DWORD attr, SHFILEINFO *psfi, uint32_t cb_info, uint32_t flags)
 {
-    DWORD_PTR dw = 0;
     CoInitialize(NULL);
     if (_taccess(path, 0) != -1)
     {
-        TCHAR filename[MAX_PATH] = { 0 };
-        TCHAR extname[_MAX_EXT] = { 0 };
+        TCHAR filename[MAX_PATH] = {0};
+        TCHAR extname[_MAX_EXT] = {0};
         _tsplitpath(path, NULL, NULL, filename, extname);
         if (_tcslen(extname) > 0)
         {
             _tcsncat(filename, extname, MAX_PATH-1);
         }
-        dw = SHGetFileInfo(path, attr, psfi, cb_info, flags);
+        DWORD_PTR dw = SHGetFileInfo(path, attr, psfi, cb_info, flags);
         if (_tcslen(psfi->szDisplayName) < _tcslen(filename))
         {
             _tcsncat(psfi->szDisplayName, extname, _countof(psfi->szDisplayName));
@@ -78,7 +77,6 @@ on_print_file_info(LPCTSTR path, DWORD attr, SHFILEINFO *psfi, uint32_t cb_info,
         _sntprintf(psfi->szDisplayName, MAX_PATH - 1, _T("%s"), path);
     }
     CoUninitialize();
-    return dw;
 }
 
 static bool
@@ -97,10 +95,10 @@ on_print_get_fonts(LPWSTR pface_name, uint16_t *psize)
     {
         if ((bool)(GetProcAddress(ux_theme, "IsAppThemed"))())
         {
-            h_theme = (HTHEME)(INT_PTR)(GetProcAddress(ux_theme, "OpenThemeData"))(NULL, _T("WINDOWSTYLE;WINDOW"));
+            h_theme = (HTHEME)(INT_PTR)((OpenThemeDataPtr)GetProcAddress(ux_theme, "OpenThemeData"))(NULL, _T("WINDOWSTYLE;WINDOW"));
             if (h_theme)
             {
-                if (S_OK == (HRESULT)(GetProcAddress(ux_theme, "GetThemeSysFont"))(h_theme, /*TMT_MSGBOXFONT*/ 805, &lf))
+                if (S_OK == (HRESULT)((GetThemeSysFontPtr)GetProcAddress(ux_theme, "GetThemeSysFont"))(h_theme, /*TMT_MSGBOXFONT*/ 805, &lf))
                 {
                     if (lf.lfHeight < 0)
                     {
@@ -114,7 +112,7 @@ on_print_get_fonts(LPWSTR pface_name, uint16_t *psize)
                     _tcsncpy(pface_name, lf.lfFaceName, LF_FACESIZE);
                     m_succeed = true;
                 }
-                (GetProcAddress(ux_theme, "CloseThemeData"))(h_theme);
+                ((CloseThemeDataPtr)GetProcAddress(ux_theme, "CloseThemeData"))(h_theme);
             }
         }
         FreeLibrary(ux_theme);
@@ -404,7 +402,7 @@ on_print_proc(HWND hwnd, uint32_t msg, WPARAM wParam, LPARAM lParam)
 void
 on_print_setup(HWND hwnd)
 {
-    PAGESETUPDLG pdlg = { 0 };
+    PAGESETUPDLG pdlg = {0};
     print_set *ptr_print = on_print_init();
     if (!ptr_print)
     {
@@ -484,11 +482,72 @@ on_print_hook_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+static void
+on_print_draw_line(const HDC hdc, const uint32_t ta, const struct Sci_RangeToFormat *pfr_print, const int height, bool header)
+{
+    HPEN pen;
+    HPEN pen_old;
+    SetTextAlign(hdc, ta);
+    pen = CreatePen(0, 1, RGB(0, 0, 0));
+    pen_old = (HPEN) SelectObject(hdc, pen);
+    MoveToEx(hdc, pfr_print->rc.left, (header ? pfr_print->rc.top : pfr_print->rc.bottom) - height / 4, NULL);
+    LineTo(hdc, pfr_print->rc.right, (header ? pfr_print->rc.top : pfr_print->rc.bottom) - height / 4);
+    SelectObject(hdc, pen_old);
+    DeleteObject(pen);    
+}
+
+static void
+on_print_footer(const HDC hdc, const HFONT font_footer, const TCHAR *str, const struct Sci_RangeToFormat *pfr_print, const int height)
+{
+    uint32_t ta = SetTextAlign(hdc, TA_TOP);
+    RECT rcw = {pfr_print->rc.left, pfr_print->rc.bottom + height / 2, pfr_print->rc.right, pfr_print->rc.bottom + height + height / 2};
+    SIZE size_footer;
+    SetTextColor(hdc, RGB(0, 0, 0));
+    SetBkColor(hdc, RGB(255, 255, 255));
+    SelectObject(hdc, font_footer);    
+    GetTextExtentPoint32(hdc, str, (int)_tcslen(str), &size_footer);
+    ExtTextOut(hdc, pfr_print->rc.right - 5 - size_footer.cx, pfr_print->rc.bottom + height / 2, 0, &rcw, str, (uint32_t)_tcslen(str), NULL);
+    on_print_draw_line(hdc, ta, pfr_print, height, false);
+    
+}
+
+static void
+on_print_header(const HDC hdc, const HFONT font_header, const TCHAR *title, const struct Sci_RangeToFormat *pfr_print, const int height, const int id)
+{
+    uint32_t ta = SetTextAlign(hdc, TA_BOTTOM);
+    RECT rcw = {pfr_print->rc.left, pfr_print->rc.top - height - height / 2, pfr_print->rc.right, pfr_print->rc.top - height / 2};
+    SetTextColor(hdc, RGB(0, 0, 0));
+    SetBkColor(hdc, RGB(255, 255, 255));
+    SelectObject(hdc, font_header);
+    rcw.bottom = rcw.top + height;
+    ExtTextOut(hdc, pfr_print->rc.left + 5, pfr_print->rc.top - height / 2, 0, &rcw, title, (uint32_t)_tcslen(title), NULL);
+    // Print date in header
+    if (id == 0 || id == 1)
+    {
+        SIZE size_info;
+        TCHAR date_str[MAX_SIZE];
+        // Get current date...
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+        GetDateFormat(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, date_str, MAX_SIZE);
+        // Get current time...
+        if (id == 0)
+        {
+            TCHAR time_str[128];
+            GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOSECONDS, &st, NULL, time_str, 128);
+            _tcscat(date_str, _T(" "));
+            _tcscat(date_str, time_str);
+        }
+        SelectObject(hdc, font_header);
+        GetTextExtentPoint32(hdc, date_str, (int)_tcslen(date_str), &size_info);
+        ExtTextOut(hdc, pfr_print->rc.right - 5 - size_info.cx, pfr_print->rc.top - height / 2, 0, &rcw, date_str, (uint32_t)_tcslen(date_str), NULL);
+    }
+    on_print_draw_line(hdc, ta, pfr_print, height, true);
+}
+
 static bool
 on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
 {
-    int start_pos;
-    int end_pos;
     HDC hdc;
     RECT rect_margins;
     RECT rect_phys_margins;
@@ -496,33 +555,32 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     POINT pt_page;
     POINT pt_dpi;
     TEXTMETRIC tm;
+    HFONT hold_font = NULL;
+    HFONT font_header = NULL;
+    HFONT font_footer = NULL;
+    int start_pos;
+    int end_pos;    
     int header_line_height;
-    HFONT font_header;
     int footer_line_height;
-    HFONT font_footer;
-    TCHAR date_str[MAX_SIZE];
-    DOCINFO di = {sizeof(DOCINFO)};
     int doc_len;
     int doc_max;
     int len_printed;
-    struct Sci_RangeToFormat fr_print;
     int page_num;
     bool print_page;
     TCHAR page_str[32];
-    HPEN pen;
-    HPEN pen_old;
+    DOCINFO di = {sizeof(DOCINFO)};
+    struct Sci_RangeToFormat fr_print;
     PRINTDLG pdlg = {sizeof(PRINTDLG)};
     print_set *ptr_print = on_print_init();
     if (!ptr_print)
     {
         return false;
     }
-    // 不打印空文档
-    if (eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) == 0)
-    {
+    if ((doc_len = (int)eu_sci_call(pnode, SCI_GETLENGTH, 0, 0)) <= 0)
+    {   // 不打印空文档
         MSG_BOX(IDS_PRINT_EMPTY, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return true;
-    }    
+    }
     pdlg.hwndOwner = eu_module_hwnd();
     pdlg.hInstance = eu_module_handle();
     pdlg.Flags = PD_ENABLEPRINTHOOK | PD_USEDEVMODECOPIES | PD_ALLPAGES | PD_RETURNDC;
@@ -626,12 +684,11 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     // Convert device coordinates into logical coordinates
     DPtoLP(hdc, (LPPOINT) &rect_margins, 2);
     DPtoLP(hdc, (LPPOINT) &rect_phys_margins, 2);
-
     // Convert page size to logical units and we're done!
     DPtoLP(hdc, (LPPOINT) &pt_page, 1);
     header_line_height = MulDiv(8, pt_dpi.y, 72);
     font_header = CreateFont(header_line_height, 0, 0, 0, FW_BOLD, 0, 0, 0, 0, 0, 0, 0, 0, _T("Arial"));
-    SelectObject(hdc, font_header);
+    hold_font = SelectObject(hdc, font_header);
     GetTextMetrics(hdc, &tm);
     header_line_height = tm.tmHeight + tm.tmExternalLeading;
     if (ptr_print->header == 3) 
@@ -651,183 +708,95 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     di.lpszOutput = 0;
     di.lpszDatatype = 0;
     di.fwType = 0;
-    if (StartDoc(hdc, &di) < 0)
+    if (StartDoc(hdc, &di) > 0)
+    {   // 开始执行一个打印作业, 设置打印颜色
+        int pmodes[5] = {SC_PRINT_NORMAL, SC_PRINT_INVERTLIGHT, SC_PRINT_BLACKONWHITE, SC_PRINT_COLOURONWHITE, SC_PRINT_COLOURONWHITEDEFAULTBG};
+        eu_sci_call(pnode, SCI_SETPRINTCOLOURMODE, pmodes[ptr_print->color_mode], 0);
+        // 打印放大设置
+        eu_sci_call(pnode, SCI_SETPRINTMAGNIFICATION, (WPARAM) ptr_print->zoom, 0);
+        doc_max = doc_len;
+        len_printed = 0;
+        // 打印所选内容
+        if (pdlg.Flags & PD_SELECTION)
+        {
+            if (start_pos > end_pos)
+            {
+                len_printed = end_pos;
+                doc_len = start_pos;
+            }
+            else
+            {
+                len_printed = start_pos;
+                doc_len = end_pos;
+            }
+            if (len_printed < 0)
+            {
+                len_printed = 0;
+            }
+            if (doc_len > doc_max)
+            {
+                doc_len = doc_max;
+            }
+        }
+        // 从可打印区域减去物理页边距
+        fr_print.hdc = hdc;
+        fr_print.hdcTarget = hdc;
+        fr_print.rc.left = rect_margins.left - rect_phys_margins.left;
+        fr_print.rc.top = rect_margins.top - rect_phys_margins.top;
+        fr_print.rc.right = pt_page.x - rect_margins.right - rect_phys_margins.left;
+        fr_print.rc.bottom = pt_page.y - rect_margins.bottom - rect_phys_margins.top;
+        fr_print.rcPage.left = 0;
+        fr_print.rcPage.top = 0;
+        fr_print.rcPage.right = pt_page.x - rect_phys_margins.left - rect_phys_margins.right - 1;
+        fr_print.rcPage.bottom = pt_page.y - rect_phys_margins.top - rect_phys_margins.bottom - 1;
+        fr_print.rc.top += header_line_height + header_line_height / 2;
+        fr_print.rc.bottom -= footer_line_height + footer_line_height / 2;
+        // 从第1页开始, 打印每页
+        page_num = 1;
+        // Show wait cursor...
+        util_wait_cursor(pnode);
+        while (len_printed < doc_len)
+        {
+            print_page = (!(pdlg.Flags & PD_PAGENUMS) || ((page_num >= pdlg.nFromPage) && (page_num <= pdlg.nToPage)));
+            _stprintf(page_str, page_fmt, page_num);
+            if (!print_page)
+            {
+                break;
+            }
+            on_statusbar_update_fileinfo(pnode, page_str);
+            // 打印机走纸, 打印内容
+            StartPage(hdc);
+            if (ptr_print->header < 3)
+            {   // 打印页眉
+                on_print_header(hdc, font_header, doc_title, &fr_print, header_line_height, ptr_print->header);
+            }            
+            fr_print.chrg.cpMin = len_printed;
+            fr_print.chrg.cpMax = doc_len;
+            len_printed = (int)eu_sci_call(pnode, SCI_FORMATRANGE, print_page, (LPARAM) &fr_print);
+            if (ptr_print->footer == 0)
+            {   // 打印页尾
+                on_print_footer(hdc, font_footer, page_str, &fr_print, footer_line_height);
+            }
+            // 打印机停纸, 停止打印内容
+            EndPage(hdc);
+            ++page_num;
+            if ((pdlg.Flags & PD_PAGENUMS) && (page_num > pdlg.nToPage))
+            {
+                break;
+            }
+        }
+        eu_sci_call(pnode, SCI_FORMATRANGE, false, 0);
+        // 结束打印作业
+        EndDoc(hdc);        
+    }
+    if (hold_font)
+    {
+        SelectObject(hdc, hold_font);
+    }
+    if (hdc)
     {
         DeleteDC(hdc);
-        if (font_header)
-        {
-            DeleteObject(font_header);
-        }
-        if (font_footer)
-        {
-            DeleteObject(font_footer);
-        }
-        return false;
     }
-    // Get current date...
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-    GetDateFormat(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, NULL, date_str, MAX_SIZE);
-
-    // Get current time...
-    if (ptr_print->header == 0)
-    {
-        TCHAR timeString[128];
-        GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOSECONDS, &st, NULL, timeString, 128);
-        _tcscat(date_str, _T(" "));
-        _tcscat(date_str, timeString);
-    }
-    // Set print color mode
-    int printColorModes[5] = { SC_PRINT_NORMAL, SC_PRINT_INVERTLIGHT, SC_PRINT_BLACKONWHITE, SC_PRINT_COLOURONWHITE, SC_PRINT_COLOURONWHITEDEFAULTBG };
-    eu_sci_call(pnode, SCI_SETPRINTCOLOURMODE, printColorModes[ptr_print->color_mode], 0);
-    // Set print zoom...
-    eu_sci_call(pnode, SCI_SETPRINTMAGNIFICATION, (WPARAM) ptr_print->zoom, 0);
-
-    doc_len = (int) eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-    doc_max = doc_len;
-    len_printed = 0;
-    // 请求打印所选内容
-    if (pdlg.Flags & PD_SELECTION)
-    {
-        if (start_pos > end_pos)
-        {
-            len_printed = end_pos;
-            doc_len = start_pos;
-        }
-        else
-        {
-            len_printed = start_pos;
-            doc_len = end_pos;
-        }
-        if (len_printed < 0)
-        {
-            len_printed = 0;
-        }
-        if (doc_len > doc_max)
-        {
-            doc_len = doc_max;
-        }
-    }
-    // 从可打印区域减去物理页边距
-    fr_print.hdc = hdc;
-    fr_print.hdcTarget = hdc;
-    fr_print.rc.left = rect_margins.left - rect_phys_margins.left;
-    fr_print.rc.top = rect_margins.top - rect_phys_margins.top;
-    fr_print.rc.right = pt_page.x - rect_margins.right - rect_phys_margins.left;
-    fr_print.rc.bottom = pt_page.y - rect_margins.bottom - rect_phys_margins.top;
-    fr_print.rcPage.left = 0;
-    fr_print.rcPage.top = 0;
-    fr_print.rcPage.right = pt_page.x - rect_phys_margins.left - rect_phys_margins.right - 1;
-    fr_print.rcPage.bottom = pt_page.y - rect_phys_margins.top - rect_phys_margins.bottom - 1;
-    fr_print.rc.top += header_line_height + header_line_height / 2;
-    fr_print.rc.bottom -= footer_line_height + footer_line_height / 2;
-    // 从第1页开始, 打印每页
-    page_num = 1;
-
-    while (len_printed < doc_len)
-    {
-        print_page = (!(pdlg.Flags & PD_PAGENUMS) || ((page_num >= pdlg.nFromPage) && (page_num <= pdlg.nToPage)));
-        _stprintf(page_str, page_fmt, page_num);
-        if (print_page)
-        {
-            // Show wait cursor...
-            util_wait_cursor(pnode);
-            // Display current page number in Statusbar
-            on_statusbar_update_fileinfo(pnode, page_str);
-            StartPage(hdc);
-            SetTextColor(hdc, RGB(0, 0, 0));
-            SetBkColor(hdc, RGB(255, 255, 255));
-            SelectObject(hdc, font_header);
-            uint32_t ta = SetTextAlign(hdc, TA_BOTTOM);
-            RECT rcw = { fr_print.rc.left,
-                         fr_print.rc.top - header_line_height - header_line_height / 2,
-                         fr_print.rc.right,
-                         fr_print.rc.top - header_line_height / 2 };
-            rcw.bottom = rcw.top + header_line_height;
-            if (ptr_print->header < 3)
-            {
-                ExtTextOut(hdc,
-                           fr_print.rc.left + 5,
-                           fr_print.rc.top - header_line_height / 2,
-                           /*ETO_OPAQUE*/ 0,
-                           &rcw,
-                           doc_title,
-                           (uint32_t)_tcslen(doc_title),
-                           NULL);
-            }
-            // Print date in header
-            if (ptr_print->header == 0 || ptr_print->header == 1)
-            {
-                SIZE sizeInfo;
-                SelectObject(hdc, font_footer);
-                GetTextExtentPoint32(hdc, date_str, lstrlen(date_str), &sizeInfo);
-                ExtTextOut(hdc,
-                           fr_print.rc.right - 5 - sizeInfo.cx,
-                           fr_print.rc.top - header_line_height / 2,
-                           /*ETO_OPAQUE*/ 0,
-                           &rcw,
-                           date_str,
-                           (uint32_t)_tcslen(date_str),
-                           NULL);
-            }
-            if (ptr_print->header < 3)
-            {
-                SetTextAlign(hdc, ta);
-                pen = CreatePen(0, 1, RGB(0, 0, 0));
-                pen_old = (HPEN) SelectObject(hdc, pen);
-                MoveToEx(hdc, fr_print.rc.left, fr_print.rc.top - header_line_height / 4, NULL);
-                LineTo(hdc, fr_print.rc.right, fr_print.rc.top - header_line_height / 4);
-                SelectObject(hdc, pen_old);
-                DeleteObject(pen);
-            }
-        }
-        fr_print.chrg.cpMin = len_printed;
-        fr_print.chrg.cpMax = doc_len;
-        len_printed = (int) eu_sci_call(pnode, SCI_FORMATRANGE, print_page, (LPARAM) &fr_print);
-        if (print_page)
-        {
-            SetTextColor(hdc, RGB(0, 0, 0));
-            SetBkColor(hdc, RGB(255, 255, 255));
-            SelectObject(hdc, font_footer);
-            uint32_t ta = SetTextAlign(hdc, TA_TOP);
-            RECT rcw = { fr_print.rc.left,
-                         fr_print.rc.bottom + footer_line_height / 2,
-                         fr_print.rc.right,
-                         fr_print.rc.bottom + footer_line_height + footer_line_height / 2 };
-
-            if (ptr_print->footer == 0)
-            {
-                SIZE sizeFooter;
-                GetTextExtentPoint32(hdc, page_str, lstrlen(page_str), &sizeFooter);
-                ExtTextOut(hdc,
-                           fr_print.rc.right - 5 - sizeFooter.cx,
-                           fr_print.rc.bottom + footer_line_height / 2,
-                           /*ETO_OPAQUE*/ 0,
-                           &rcw,
-                           page_str,
-                           (uint32_t)_tcslen(page_str),
-                           NULL);
-
-                SetTextAlign(hdc, ta);
-                pen = CreatePen(0, 1, RGB(0, 0, 0));
-                pen_old = (HPEN) SelectObject(hdc, pen);
-                SetBkColor(hdc, RGB(0, 0, 0));
-                MoveToEx(hdc, fr_print.rc.left, fr_print.rc.bottom + footer_line_height / 4, NULL);
-                LineTo(hdc, fr_print.rc.right, fr_print.rc.bottom + footer_line_height / 4);
-                SelectObject(hdc, pen_old);
-                DeleteObject(pen);
-            }
-            EndPage(hdc);
-        }
-        page_num++;
-        if ((pdlg.Flags & PD_PAGENUMS) && (page_num > pdlg.nToPage))
-        {
-            break;
-        }
-    }
-    eu_sci_call(pnode, SCI_FORMATRANGE, false, 0);
-    EndDoc(hdc);
-    DeleteDC(hdc);
     if (font_header)
     {
         DeleteObject(font_header);
@@ -846,26 +815,30 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
 int
 on_print_file(eu_tabpage *pnode)
 {
-    SHFILEINFO shfi;
-    TCHAR *title = NULL;
-    TCHAR page_fmt[32];
-    if (!pnode)
+    if (pnode && pnode->pathfile[0])
     {
-        return 1;
-    }
-    if (_tcslen(pnode->pathfile) > 0)
-    {
-        on_print_file_info(pnode->pathfile, 0, &shfi, sizeof(SHFILEINFO), SHGFI_DISPLAYNAME);
-        title = shfi.szDisplayName;
-    }
-    else
-    {
-        return 1;
-    }
-    eu_i18n_load_str(IDS_PRINT_PAGENUM, page_fmt, _countof(page_fmt));
-    if (!on_print_layout(pnode, title, page_fmt))
-    {
-        print_err_msg(IDS_PRINT_ERROR, title);
+        if (pnode->pmod && pnode->plugin)
+        {
+            np_plugins_print(&pnode->plugin->funcs, &pnode->plugin->npp, NULL);
+        }
+        else if (!pnode->hex_mode)
+        {
+            SHFILEINFO shfi = {0};
+            on_print_file_info(pnode->pathfile, 0, &shfi, sizeof(SHFILEINFO), SHGFI_DISPLAYNAME);
+            if (_tcslen(shfi.szDisplayName) > 0)
+            {
+                TCHAR page_fmt[32];
+                eu_i18n_load_str(IDS_PRINT_PAGENUM, page_fmt, _countof(page_fmt));
+                if (!on_print_layout(pnode, shfi.szDisplayName, page_fmt))
+                {
+                    print_err_msg(IDS_PRINT_ERROR, shfi.szDisplayName);
+                }
+            }
+        }
+        else
+        {
+            MSG_BOX(IDS_PRINT_HEX_WARNS, IDC_MSG_ERROR, MB_ICONSTOP | MB_OK);
+        }
     }
     return 0;
 }

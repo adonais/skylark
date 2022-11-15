@@ -25,8 +25,7 @@
 
 #define IDI_SKYLARK                     2
 #define IDI_SMALL                       3
-#define IDI_TXT_48                      4
-#define IDI_TXT_32                      5
+#define IDI_DEFAULT                     4
 #define IDC_CURSOR_WE                   8
 #define IDC_CURSOR_NS                   9
 #define IDD_SKYLARK_DIALOG              102
@@ -219,6 +218,9 @@
 #define IDC_THEME_MARKUP_STATIC         1131
 #define IDC_THEME_EDIT_STATIC           1132
 #define IDC_THEME_MARGIN_STATIC         1133
-#define IDT_BIRD                        1134
+#define IDC_THEME_TAB_STATIC            1134
+#define IDC_SETBGCOLOR_TAB_BTN          1135
+
+#define IDT_BIRD                        1140
 
 #endif  // _EU_RESOURCE_H_

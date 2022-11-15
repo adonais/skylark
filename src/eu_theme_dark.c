@@ -17,92 +17,8 @@
  *******************************************************************************/
 
 #include "framework.h"
-#include <uxtheme.h>
-#include <vssym32.h>
 
 #define USE_DWMAPI 1  // 启用DWM绘制标题栏
-
-typedef enum tagIMMERSIVE_HC_CACHE_MODE
-{
-    IHCM_USE_CACHED_VALUE,
-    IHCM_REFRESH
-}IMMERSIVE_HC_CACHE_MODE;
-
-// 1903 18362
-typedef enum tagPreferredAppMode
-{
-    Default,
-    AllowDark,
-    ForceDark,
-    ForceLight,
-    Max
-}PreferredAppMode;
-
-typedef enum tagWINDOWCOMPOSITIONATTRIB
-{
-    WCA_UNDEFINED = 0,
-    WCA_NCRENDERING_ENABLED = 1,
-    WCA_NCRENDERING_POLICY = 2,
-    WCA_TRANSITIONS_FORCEDISABLED = 3,
-    WCA_ALLOW_NCPAINT = 4,
-    WCA_CAPTION_BUTTON_BOUNDS = 5,
-    WCA_NONCLIENT_RTL_LAYOUT = 6,
-    WCA_FORCE_ICONIC_REPRESENTATION = 7,
-    WCA_EXTENDED_FRAME_BOUNDS = 8,
-    WCA_HAS_ICONIC_BITMAP = 9,
-    WCA_THEME_ATTRIBUTES = 10,
-    WCA_NCRENDERING_EXILED = 11,
-    WCA_NCADORNMENTINFO = 12,
-    WCA_EXCLUDED_FROM_LIVEPREVIEW = 13,
-    WCA_VIDEO_OVERLAY_ACTIVE = 14,
-    WCA_FORCE_ACTIVEWINDOW_APPEARANCE = 15,
-    WCA_DISALLOW_PEEK = 16,
-    WCA_CLOAK = 17,
-    WCA_CLOAKED = 18,
-    WCA_ACCENT_POLICY = 19,
-    WCA_FREEZE_REPRESENTATION = 20,
-    WCA_EVER_UNCLOAKED = 21,
-    WCA_VISUAL_OWNER = 22,
-    WCA_HOLOGRAPHIC = 23,
-    WCA_EXCLUDED_FROM_DDA = 24,
-    WCA_PASSIVEUPDATEMODE = 25,
-    WCA_USEDARKMODECOLORS = 26,
-    WCA_LAST = 27
-}WINDOWCOMPOSITIONATTRIB;
-
-typedef struct tagWINDOWCOMPOSITIONATTRIBDATA
-{
-    WINDOWCOMPOSITIONATTRIB Attrib;
-    PVOID pvData;
-    SIZE_T cbData;
-}WINDOWCOMPOSITIONATTRIBDATA;
-
-typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(LPDWORD major, LPDWORD minor, LPDWORD build);
-typedef BOOL (WINAPI *SetWindowCompositionAttributePtr)(HWND hwnd, WINDOWCOMPOSITIONATTRIBDATA*);
-// 1809 17763
-typedef bool (WINAPI *ShouldAppsUseDarkModePtr)(void); // ordinal 132
-typedef bool (WINAPI *AllowDarkModeForWindowPtr)(HWND hwnd, bool allow); // ordinal 133
-typedef bool (WINAPI *AllowDarkModeForAppPtr)(bool allow); // ordinal 135, in 1809
-typedef void (WINAPI *FlushMenuThemesPtr)(void); // ordinal 136
-typedef void (WINAPI *RefreshImmersiveColorPolicyStatePtr)(void); // ordinal 104
-typedef bool (WINAPI *IsDarkModeAllowedForWindowPtr)(HWND hwnd); // ordinal 137
-typedef bool (WINAPI *GetIsImmersiveColorUsingHighContrastPtr)(IMMERSIVE_HC_CACHE_MODE mode); // ordinal 106
-typedef HTHEME(WINAPI *OpenNcThemeDataPtr)(HWND hwnd, LPCWSTR pszClassList); // ordinal 49
-// 1903 18362
-typedef bool (WINAPI *ShouldSystemUseDarkModePtr)(void); // ordinal 138
-typedef PreferredAppMode (WINAPI *SetPreferredAppModePtr)(PreferredAppMode appMode); // ordinal 135, in 1903
-typedef bool (WINAPI *IsDarkModeAllowedForAppPtr)(void); // ordinal 139
-
-typedef HRESULT (WINAPI *SetWindowThemePtr)(HWND, const wchar_t *, const wchar_t *);
-typedef HTHEME (WINAPI *OpenThemeDataPtr)(HWND, LPCWSTR pszClassList);
-typedef HRESULT (WINAPI *CloseThemeDataPtr)(HTHEME);
-typedef COLORREF (WINAPI *GetThemeSysColorPtr)(HTHEME hth, int colid);
-typedef HRESULT (WINAPI *GetThemePartSizePtr)(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz);
-typedef HRESULT (WINAPI *DrawThemeBackgroundPtr)(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect);
-
-// dwm function
-typedef HRESULT (WINAPI *DwmSetWindowAttributePtr)(HWND, DWORD, LPCVOID, DWORD);
-typedef HRESULT (WINAPI *DwmGetColorizationColorPtr)(DWORD *pcrColorization, BOOL  *pfOpaqueBlend);
 
 static SetWindowCompositionAttributePtr fnSetWindowCompositionAttribute;
 static ShouldAppsUseDarkModePtr fnShouldAppsUseDarkMode;
@@ -165,7 +81,7 @@ on_dark_draw_background(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRE
     {
         ret = fnDrawThemeBackground(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return ret;
 }
 
@@ -179,7 +95,7 @@ on_dark_get_partsize(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT 
     {
         ret = fnGetThemePartSize(hTheme, hdc, iPartId, iStateId, prc, eSize, psz);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return ret;
 }
 
@@ -193,7 +109,7 @@ on_dark_open_data(HWND hwnd, LPCWSTR class_list)
     {
         hth = (intptr_t)fnOpenThemeData(hwnd, class_list);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return hth;
 }
 
@@ -207,7 +123,7 @@ on_dark_close_data(void *hth)
     {
         ret = fnCloseThemeData(hth);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return ret;
 }
 
@@ -233,7 +149,7 @@ on_dark_get_sys_colour(HWND hwnd, int colid)
     {
         col = GetSysColor(colid);
     }
-    safe_close_dll(uxtheme);
+    eu_close_dll(uxtheme);
     return col;
 }
 
@@ -251,7 +167,7 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
                 printf("fnSetWindowTheme failed\n");
             }
         }
-        safe_close_dll(uxtheme);
+        eu_close_dll(uxtheme);
     }
 }
 
@@ -270,7 +186,7 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
                 fnDwmSetWindowAttribute(hwnd, 19, &dark, sizeof dark);
             }
         }
-        safe_close_dll(dwm);
+        eu_close_dll(dwm);
     #else
         SetProp(hwnd, _T("UseImmersiveDarkModeColors"), (HANDLE)(intptr_t)(dark));
     #endif // USE_DWMAPI
@@ -301,7 +217,7 @@ on_dark_get_colorization_color(void)
             theme_color = RGB(r, g, b);
         }
     }
-    safe_close_dll(dwm);
+    eu_close_dll(dwm);
     return theme_color;
 }
 
@@ -382,28 +298,14 @@ on_dark_fix_scrollbar(bool fixed)
                 VirtualProtect(addr, sizeof(IMAGE_THUNK_DATA), old_protect, &old_protect);
             }
         }
-        safe_close_dll(comctl);
+        eu_close_dll(comctl);
     }
 }
 
-static bool
-check_system_build_number(uint32_t build_number)
+static inline bool
+check_system_build_number(const uint32_t build_number)
 {
-    switch (build_number)
-    {
-        case 17763: // Win10 v1809
-        case 18362: // Win10 v1903
-        case 18363: // Win10 v1909
-        case 19041: // Win10 v2004
-        case 19042: // Win10 v20H2
-        case 19043: // Win10 v21H1 Insider Beta and Release Preview Channels [2021-04-28]
-        case 21337: // Win10 v21H2 Insider Dev Channel [2021-05-11]
-            return true;
-        default:
-            // not supported
-            break;
-    }
-    return false;
+    return (build_number >= 17763);
 }
 
 static bool
@@ -539,7 +441,7 @@ eu_on_dark_release(bool shutdown)
 {
     if (shutdown)
     {
-        safe_close_dll(g_uxtheme);
+        eu_close_dll(g_uxtheme);
     }
     else if (g_dark_enabled)
     {
@@ -552,7 +454,7 @@ eu_on_dark_release(bool shutdown)
         g_dark_enabled = false;
         on_toolbar_refresh(hwnd);
         fnFlushMenuThemes();
-        safe_close_dll(g_uxtheme);
+        eu_close_dll(g_uxtheme);
         SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
         on_tabpage_foreach(on_tabpage_theme_changed);
         if (g_treebar)
@@ -642,7 +544,7 @@ eu_on_dark_init(bool fix_scroll, bool dark)
             else
             {
                 g_dark_supported = false;
-                safe_close_dll(g_uxtheme);
+                eu_close_dll(g_uxtheme);
             }
         }
     }

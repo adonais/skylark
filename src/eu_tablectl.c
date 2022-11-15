@@ -204,10 +204,10 @@ oci_database_cleanup(oci_handle *poci)
 void
 eu_close_db_handle(void)
 {
-    safe_close_dll(db_funcs.m_mysql.mysql_dll);
-    safe_close_dll(db_funcs.m_oci.oci_dll);
-    safe_close_dll(db_funcs.m_pq.libpq_dll);
-    safe_close_dll(redis_funcs.dll);
+    eu_close_dll(db_funcs.m_mysql.mysql_dll);
+    eu_close_dll(db_funcs.m_oci.oci_dll);
+    eu_close_dll(db_funcs.m_pq.libpq_dll);
+    eu_close_dll(redis_funcs.dll);
 }
 
 void
@@ -265,9 +265,9 @@ on_table_disconnect_database(eu_tabpage *pnode, bool force)
 static int
 on_table_connect_database(eu_tabpage *pnode)
 {
-    char ip[ACNAME_LEN+1] = {0};
-    TCHAR utf_str[ACNAME_LEN+1] = {0};
-    TCHAR user[ACNAME_LEN+1] = {0};
+    char ip[QW_SIZE+1] = {0};
+    TCHAR utf_str[QW_SIZE+1] = {0};
+    TCHAR user[QW_SIZE+1] = {0};
     TCHAR name[MAX_PATH+1] = {0};
     TCHAR dll_path[MAX_PATH+1] = {0};
     if (!(pnode && pnode->db_ptr && pnode->db_ptr->config.dbtype[0]))
@@ -278,7 +278,7 @@ on_table_connect_database(eu_tabpage *pnode)
     {
         return 0;
     }
-    if (util_query_hostname(pnode->db_ptr->config.dbhost, ip, ACNAME_LEN))
+    if (util_query_hostname(pnode->db_ptr->config.dbhost, ip, QW_SIZE))
     {
         printf("util_query_hostname error\n");
         return 1;
@@ -289,8 +289,8 @@ on_table_connect_database(eu_tabpage *pnode)
         mysql_handle *this_mysql = &(pnode->db_ptr->handles.h_mysql);
         if (mysql_sub->mysql_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libmysql.dll"));
-            mysql_sub->mysql_dll = LoadLibrary(dll_path);
+            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libmysql.dll"));
+            mysql_sub->mysql_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
             if (mysql_sub->mysql_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -320,7 +320,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 mysql_sub->fn_mysql_close == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                safe_close_dll(mysql_sub->mysql_dll);
+                eu_close_dll(mysql_sub->mysql_dll);
                 return 1;
             }
         }
@@ -340,7 +340,7 @@ on_table_connect_database(eu_tabpage *pnode)
             if (pnode->db_ptr->config.dbpass[0] == 0)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR7, m_pass);
-                TCHAR dbpass[ACNAME_LEN] = {0};
+                TCHAR dbpass[QW_SIZE] = {0};
                 eu_input(m_pass, dbpass, _countof(dbpass));
                 if (dbpass[0] == 0)
                 {
@@ -352,7 +352,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 }
                 else
                 {
-                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, ACNAME_LEN, NULL, NULL);
+                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, QW_SIZE, NULL, NULL);
                 }
             }
             this_mysql->mysql = mysql_sub->fn_mysql_real_connect(this_mysql->mysql,
@@ -367,9 +367,9 @@ on_table_connect_database(eu_tabpage *pnode)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR9, err_msg);
                 on_result_append_text(err_msg,
-                                      util_make_u16(ip, utf_str, ACNAME_LEN),
+                                      util_make_u16(ip, utf_str, QW_SIZE),
                                       pnode->db_ptr->config.dbport,
-                                      util_make_u16(pnode->db_ptr->config.dbuser, user, ACNAME_LEN),
+                                      util_make_u16(pnode->db_ptr->config.dbuser, user, QW_SIZE),
                                       util_make_u16(pnode->db_ptr->config.dbname, name, MAX_PATH));
                 mysql_sub->fn_mysql_close(this_mysql->mysql);
                 this_mysql->mysql = NULL;
@@ -383,9 +383,9 @@ on_table_connect_database(eu_tabpage *pnode)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR10, err_msg);
                 on_result_append_text(err_msg,
-                                      util_make_u16(ip, utf_str, ACNAME_LEN),
+                                      util_make_u16(ip, utf_str, QW_SIZE),
                                       pnode->db_ptr->config.dbport,
-                                      util_make_u16(pnode->db_ptr->config.dbuser, user, ACNAME_LEN),
+                                      util_make_u16(pnode->db_ptr->config.dbuser, user, QW_SIZE),
                                       util_make_u16(pnode->db_ptr->config.dbname, name, MAX_PATH));
             }
             if (mysql_sub->fn_mysql_set_character_set(this_mysql->mysql, "utf8mb4"))
@@ -406,8 +406,8 @@ on_table_connect_database(eu_tabpage *pnode)
         sword result;
         if (oci_sub->oci_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("oci.dll"));
-            oci_sub->oci_dll = LoadLibrary(dll_path);
+            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("oci.dll"));
+            oci_sub->oci_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
             if (oci_sub->oci_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -462,7 +462,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 oci_sub->fnOCITransDetach == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR13, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                safe_close_dll(oci_sub->oci_dll);
+                eu_close_dll(oci_sub->oci_dll);
                 return 1;
             }
         }
@@ -483,7 +483,7 @@ on_table_connect_database(eu_tabpage *pnode)
             if (pnode->db_ptr->config.dbpass[0] == 0)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR7, m_pass);
-                TCHAR dbpass[ACNAME_LEN] = {0};
+                TCHAR dbpass[QW_SIZE] = {0};
                 eu_input(m_pass, dbpass, _countof(dbpass));
                 if (pnode->db_ptr->config.dbpass[0] == 0)
                 {
@@ -493,7 +493,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 }
                 else
                 {
-                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, ACNAME_LEN, NULL, NULL);
+                    WideCharToMultiByte(CP_UTF8, 0, dbpass, -1, pnode->db_ptr->config.dbpass, QW_SIZE, NULL, NULL);
                 }
             }
             oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &(this_oci->servhpp), OCI_HTYPE_SERVER, (size_t) 0, (dvoid **) 0);
@@ -505,14 +505,14 @@ on_table_connect_database(eu_tabpage *pnode)
                 char err_desc[512] = { 0 };
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR15, err_msg);
                 on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                on_result_append_text(err_msg, util_make_u16(ip, utf_str, ACNAME_LEN), err_code, util_make_u16(err_desc, user, ACNAME_LEN));
+                on_result_append_text(err_msg, util_make_u16(ip, utf_str, QW_SIZE), err_code, util_make_u16(err_desc, user, QW_SIZE));
                 oci_database_cleanup(this_oci);
                 return 1;
             }
             else
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR16, err_msg);
-                on_result_append_text(err_msg, util_make_u16(ip, utf_str, ACNAME_LEN));
+                on_result_append_text(err_msg, util_make_u16(ip, utf_str, QW_SIZE));
             }
             oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &(this_oci->svchpp), OCI_HTYPE_SVCCTX, (size_t) 0, (dvoid **) 0);
             oci_sub->fnOCIAttrSet((dvoid *) (this_oci->svchpp),
@@ -551,7 +551,7 @@ on_table_connect_database(eu_tabpage *pnode)
             else
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR18, err_msg);
-                on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbuser, user, ACNAME_LEN));
+                on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbuser, user, QW_SIZE));
             }
             oci_sub->fnOCIAttrSet((dvoid *) (this_oci->svchpp),
                                   (ub4) OCI_HTYPE_SVCCTX,
@@ -584,8 +584,8 @@ on_table_connect_database(eu_tabpage *pnode)
         pq_handle *this_pq = &(pnode->db_ptr->handles.h_pq);
         if (pq_sub->libpq_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("libpq.dll"));
-            pq_sub->libpq_dll = LoadLibrary(dll_path);
+            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libpq.dll"));
+            pq_sub->libpq_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
             if (pq_sub->libpq_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR21, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -619,7 +619,7 @@ on_table_connect_database(eu_tabpage *pnode)
                 pq_sub->fnPQsetClientEncoding == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR22, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                safe_close_dll(pq_sub->libpq_dll);
+                eu_close_dll(pq_sub->libpq_dll);
                 return 1;
             }
         }
@@ -650,9 +650,9 @@ on_table_connect_database(eu_tabpage *pnode)
             }
             LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR25, err_msg);
             on_result_append_text(err_msg,
-                                  util_make_u16(ip, utf_str, ACNAME_LEN),
+                                  util_make_u16(ip, utf_str, QW_SIZE),
                                   atoi(src_port),
-                                  util_make_u16(pnode->db_ptr->config.dbname, user, ACNAME_LEN),
+                                  util_make_u16(pnode->db_ptr->config.dbname, user, QW_SIZE),
                                   util_make_u16(pnode->db_ptr->config.dbuser, name, MAX_PATH));
             pnode->db_ptr->connected = true;
         }
@@ -660,7 +660,7 @@ on_table_connect_database(eu_tabpage *pnode)
     else
     {
         LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR26, err_msg);
-        on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, ACNAME_LEN));
+        on_result_append_text(err_msg, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, QW_SIZE));
     }
     return 0;
 }
@@ -684,10 +684,10 @@ on_table_sql_header(eu_tabpage *pnode)
     for (file_line = 0; file_line <= file_line_count; file_line++)
     {
         char line_buf[FILESIZE+1] = {0};
-        char config_remark[ACNAME_LEN] = {0};
-        char config_key[ACNAME_LEN] = {0};
-        char config_eval[ACNAME_LEN] = {0};
-        char config_value[ACNAME_LEN] = {0};
+        char config_remark[QW_SIZE] = {0};
+        char config_key[QW_SIZE] = {0};
+        char config_eval[QW_SIZE] = {0};
+        char config_value[QW_SIZE] = {0};
         if (!on_sci_line_text(pnode, file_line, line_buf, _countof(line_buf)))
         {
             return false;

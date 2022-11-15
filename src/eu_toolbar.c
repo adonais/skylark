@@ -20,7 +20,8 @@
 #include "targetver.h"
 #include "framework.h"
 
-#define DPI_PERCENT_LARGE 168
+#define DPI_PERCENT_MIDDLING 144
+#define DPI_PERCENT_LARGE    192
 #define CHECK_IF(a) if ((a)!= 0) return false
 
 enum {READ_FD, WRITE_FD};
@@ -36,6 +37,34 @@ static HWND m_chain;
 static HWND g_clip_hwnd;
 static HIMAGELIST img_list1;
 static HIMAGELIST img_list2;
+
+static void
+on_toolbar_init_params(int *res_hot, int *res_grey, int *width, int *height)
+{
+    const bool dark = on_dark_enable();
+    const uint32_t dpi = eu_get_dpi(NULL);
+    if (dpi >= DPI_PERCENT_LARGE)
+    {
+        *res_hot = dark ? IDB_DARK_LARGE32 : IDB_TOOLBAR_LARGE32;
+        *res_grey = dark ? IDB_DARK_LARGE1 : IDB_TOOLBAR_LARGE1;
+        *width = IMAGE_LARGE_WIDTH;
+        *height = IMAGE_LARGE_HEIGHT;
+    }
+    else if (dpi >= DPI_PERCENT_MIDDLING || (GetSystemMetrics(SM_CXSCREEN) >= HIGHT_4X && GetSystemMetrics(SM_CYSCREEN) >= HIGHT_4Y))
+    {
+        *res_hot = dark ? IDB_DARK_MIDDLING24 : IDB_TOOLBAR_MIDDLING24;
+        *res_grey = dark ? IDB_DARK_MIDDLING1 : IDB_TOOLBAR_MIDDLING1;
+        *width = IMAGE_MIDDLING_WIDTH;
+        *height = IMAGE_MIDDLING_HEIGHT;
+    }
+    else
+    {
+        *res_hot = dark ? IDB_DARK16 : IDB_TOOLBAR16;
+        *res_grey = dark ? IDB_DARK1 : IDB_TOOLBAR1;
+        *width = IMAGE_NORMAL_WIDTH;
+        *height = IMAGE_NORMAL_HEIGHT;
+    }
+}
 
 /**********************************************
  * 设置工具栏按钮的状态,
@@ -125,13 +154,22 @@ on_toolbar_hwnd(void)
 void WINAPI
 on_toolbar_adjust_box(void)
 {
+    const uint32_t dpi = eu_get_dpi(NULL);
     if (!eu_get_config()->m_toolbar)
     {
         g_toolbar_height = 0;
     }
+    else if (dpi >= DPI_PERCENT_LARGE)
+    {
+        g_toolbar_height = TB_LARGE_SIZE;
+    }
+    else if (dpi >= DPI_PERCENT_MIDDLING || (GetSystemMetrics(SM_CXSCREEN) >= HIGHT_4X && GetSystemMetrics(SM_CYSCREEN) >= HIGHT_4Y))
+    {
+        g_toolbar_height = TB_MIDDLING_SIZE;
+    }
     else
     {
-        g_toolbar_height = eu_get_dpi(NULL) >= DPI_PERCENT_LARGE ? TB_LARGE_SIZE : TB_NORMAL_SIZE;
+        g_toolbar_height = TB_NORMAL_SIZE;
     }
 }
 
@@ -195,7 +233,7 @@ static void
 clip_lock(uint32_t nid)
 {
     int i = nid - IDC_CHECK0;
-    m_block[i] = !m_block[i];
+    m_block[i]  ^= true;
     if (m_block[i])
     {
         ++m_locked;
@@ -233,7 +271,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_INITDIALOG:
         {
-            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SMALL));
+            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SKYLARK));
             if (m_icon)
             {
                 SetClassLongPtr(hdlg, GCLP_HICONSM, (LONG_PTR)m_icon);
@@ -403,17 +441,15 @@ create_clipbox(void)
 }
 
 static HIMAGELIST
-create_img_list(INT res_id, UINT mask, bool zoom)
+create_img_list(int res_id, int width, int height)
 {
     HIMAGELIST himg = NULL;
     HBITMAP hbmp = NULL;
-    BITMAP bm = { 0 };
-    int width = zoom ? IMAGE_LARGE_WIDTH : IMAGE_NORMAL_WIDTH;
-    int height = zoom ? IMAGE_LARGE_HEIGHT : IMAGE_NORMAL_HEIGHT;
+    BITMAP bm = {0};
     hbmp = (HBITMAP) LoadImage(eu_module_handle(), MAKEINTRESOURCE(res_id), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
     GetObject(hbmp, sizeof(BITMAP), &bm);
     himg = ImageList_Create(width, height, bm.bmBitsPixel | ILC_MASK, bm.bmWidth / width, 1);
-    ImageList_AddMasked(himg, hbmp, mask);
+    ImageList_AddMasked(himg, hbmp, RGB(0xF0, 0xF0, 0xF0));
     if (hbmp != NULL)
     {
         DeleteObject((HGDIOBJ) hbmp);
@@ -468,7 +504,7 @@ close_stdout_redirect(FILE *console)
     _close(fd_stdout);
     _close(fd_pipe[WRITE_FD]);
     _close(fd_pipe[READ_FD]);
-    safe_close_console(console);
+    eu_close_console(console);
     return true;
 }
 
@@ -501,7 +537,7 @@ init_stdout_redirect(int size, FILE **pconsole)
     }while(0);
     if (!ret)
     {
-        safe_close_console(*pconsole);
+        eu_close_console(*pconsole);
     }
     return ret;
 }
@@ -546,6 +582,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
             char *std_buffer = NULL;
             pnode->presult->pwant = on_toolbar_no_highlight;
             on_proc_resize(NULL);
+            eu_lua_path_setting(pnode);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
                 if (do_lua_code((const char *)buffer) == 0)
@@ -553,8 +590,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                     read_len = get_output_buffer(std_buffer, MAX_OUTPUT_BUF);
                 }
                 else
-                {
-                    // 写标准输出设备, 防止_read函数阻塞
+                {   // 写标准输出设备, 防止_read函数阻塞
                     fprintf(stdout, "Failed to execute Lua script\n");
                 }
                 close_stdout_redirect(console);
@@ -570,58 +606,99 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 free(std_buffer);
             }
             free(buffer);
+            eu_lua_path_setting(NULL);
         }
     }
+}
+
+static bool
+on_toolbar_mk_temp(wchar_t ***vec)
+{
+    cvector_vector_type(int) v = NULL;
+    if (on_tabpage_sel_number(&v, true) > 0)
+    {
+        for (size_t i = 0; i < cvector_size(v); ++i)
+        {
+            HANDLE pfile = NULL;
+            char *pbuffer = NULL;
+            wchar_t *pname = NULL;
+            uint32_t buf_len = 0;
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && p->doc_ptr && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+            {
+                if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
+                {
+                    if ((pbuffer = util_strdup_content(p, (size_t *)&buf_len)) != NULL)
+                    {
+                        uint32_t written;
+                        WriteFile(pfile, pbuffer, buf_len, &written, NULL);
+                        cvector_push_back(*vec, pname);
+                    }
+                }
+            }
+            eu_close_handle(pfile);
+        }
+    }
+    cvector_freep(&v);
+    return (*vec != NULL && cvector_size(*vec) > 0);
 }
 
 static unsigned __stdcall
 do_extra_actions(void *lp)
 {
-    eu_tabpage *p = on_tabpage_focus_at();
-    if (p && p->doc_ptr)
+    wchar_t *abs_path = NULL;
+    cvector_vector_type(wchar_t *) vec = NULL;
+    char *pactions = eu_get_config()->m_actions[eu_int_cast(lp)];
+    if (strlen(pactions) < 1)
     {
-        char *pactions = eu_get_config()->m_actions[p->doc_ptr->doc_type];
-        if (strlen(pactions) > 0)
+        return 1;
+    }
+    if (!on_toolbar_mk_temp(&vec))
+    {
+        return 1;
+    }
+    if ((abs_path = util_to_abs(pactions)) != NULL)
+    {
+        int count = eu_int_cast(cvector_size(vec));
+        const int len = (count + 1) * (MAX_PATH + 1);
+        wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
+        if (cmd_exec != NULL)
         {
-            WCHAR *abs_path = util_to_abs(pactions);
-            if (abs_path)
+            HANDLE handle = NULL;
+            _snwprintf(cmd_exec, len, _T("\"%s\" "), abs_path);
+            for (int i = 0; i < count; ++i)
             {
-                DWORD written;
-                HANDLE pfile = NULL;
-                char *pbuffer = NULL;
-                uint32_t buf_len = 0;
-                TCHAR cmd_exec[MAX_BUFFER] = {0};
-                TCHAR pname[MAX_PATH+1] = {0};
-                if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) == INVALID_HANDLE_VALUE)
+                if (i == count - 1)
                 {
-                    printf("util_mk_temp return failed, cause:%lu\n", GetLastError());
-                    free(abs_path);
-                    return 1;
-                }
-                if (!(pbuffer = util_strdup_content(p, (size_t *)&buf_len)))
-                {
-                    CloseHandle(pfile);
-                    free(abs_path);
-                    return 1;
-                }
-                WriteFile(pfile, pbuffer, buf_len, &written, NULL);
-                CloseHandle(pfile);
-                _sntprintf(cmd_exec, MAX_BUFFER - 1, _T("%s %s"), abs_path, pname);
-                free(abs_path);
-                HANDLE handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL);
-                if (handle)
-                {
-                    WaitForSingleObject(handle, INFINITE);
-                    CloseHandle(handle);
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, vec[i], len);
+                    wcsncat(cmd_exec, _T("\""), len);
                 }
                 else
                 {
-                    *pactions = 0;
-                    MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, vec[i], len);
+                    wcsncat(cmd_exec, _T("\" "), len);
                 }
-                DeleteFile(pname);
             }
+            if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)))
+            {
+                WaitForSingleObject(handle, INFINITE);
+            }
+            else
+            {
+                *pactions = 0;
+                MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+            }
+            eu_close_handle(handle);
+            cvector_for_each(vec, DeleteFile);
+            free(cmd_exec);
         }
+        free(abs_path);
+    }
+    if (vec)
+    {
+        cvector_free_each_and_free(vec, free);
     }
     return 0;
 }
@@ -712,16 +789,17 @@ on_toolbar_execute_script(void)
     eu_tabpage *p = on_tabpage_focus_at();
     if (p && !p->hex_mode && p->doc_ptr)
     {
-        if (strlen(eu_get_config()->m_actions[p->doc_ptr->doc_type]) > 1)
+        intptr_t param = (intptr_t)p->doc_ptr->doc_type;
+        if (strlen(eu_get_config()->m_actions[param]) > 1)
         {
             on_toolbar_update_env(p);
-            CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, NULL, 0, NULL));
+            CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
         }
-        else if (p->doc_ptr->doc_type == DOCTYPE_LUA)
+        else if (param == DOCTYPE_LUA)
         {   // lua script
             on_toolbar_lua_exec(p);
         }
-        else if (p->doc_ptr->doc_type == DOCTYPE_SQL || p->doc_ptr->doc_type == DOCTYPE_REDIS)
+        else if (param == DOCTYPE_SQL || param == DOCTYPE_REDIS)
         {   // sql query
             on_view_result_show(p, VK_CONTROL);
         }
@@ -736,9 +814,9 @@ on_toolbar_execute_script(void)
             int len = (int)_tcslen(process);
             if (len > 1 && len < MAX_PATH)
             {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process), -1, eu_get_config()->m_actions[p->doc_ptr->doc_type], MAX_PATH-1, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process), -1, eu_get_config()->m_actions[param], MAX_PATH-1, NULL, NULL);
                 on_toolbar_update_env(p);
-                CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, NULL, 0, NULL));
+                CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
             }
         }
     }
@@ -900,20 +978,24 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_FILE_SAVEAS, 2);
             on_toolbar_setup_button(IDM_FILE_CLOSE, 2);
             on_toolbar_setup_button(IDM_FILE_PRINT, 2);
-            on_toolbar_setup_button(IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_FIND, 2);
-            on_toolbar_setup_button(IDM_SEARCH_FINDPREV, 2);
-            on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, 2);
-            on_toolbar_setup_button(IDM_EDIT_UNDO, eu_sci_call(pnode,SCI_CANUNDO, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_EDIT_REDO, eu_sci_call(pnode,SCI_CANREDO, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage!=IDM_OTHER_BIN)&&eu_sci_call(pnode, SCI_GETLENGTH, 0, 0)> 0?2:1);
+            on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_PASTE, !pnode->pmod && eu_sci_call(pnode,SCI_CANPASTE, 0, 0)?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_FIND, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_SEARCH_FINDPREV, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && eu_sci_call(pnode,SCI_CANUNDO, 0, 0)?2:1);
+            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && eu_sci_call(pnode,SCI_CANREDO, 0, 0)?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
+            on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
+            on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage!=IDM_OTHER_BIN)&& TAB_NOT_NUL(pnode)?2:1);
             on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl()?2:1);
+            on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_VIEW_ZOOMIN, !pnode->pmod ? 2 : 1);
         }
     }
 }
@@ -940,7 +1022,7 @@ on_toolbar_create(HWND parent)
     int tb_size = 0;
     HWND htool = NULL;
     intptr_t tool_proc = 0;
-    TCHAR str[28][BUFFSIZE] = { 0 };
+    TCHAR str[29][BUFFSIZE] = { 0 };
     /*********************************************************************
      * iBitmap(0), 第i个位图
      * idCommand(0), WM_COMMAND消息响应的ID
@@ -980,37 +1062,28 @@ on_toolbar_create(HWND parent)
         { 20, IDM_VIEW_FILETREE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 21, IDM_VIEW_SYMTREE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 22, IDM_VIEW_MODIFY_STYLETHEME, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 23, IDM_SOURCE_SNIPPET_CONFIGURE, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
-        { 23, IDM_VIEW_ZOOMOUT, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
-        { 24, IDM_VIEW_ZOOMIN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
-        { 25, IDM_VIEW_FULLSCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 24, IDM_VIEW_ZOOMOUT, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 25, IDM_VIEW_ZOOMIN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 26, IDM_VIEW_FULLSCREEN, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
-        { 26, IDM_SCRIPT_EXEC, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
-        { 27, IDM_CMD_TAB, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 27, IDM_SCRIPT_EXEC, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
+        { 28, IDM_CMD_TAB, TBSTATE_ENABLED, TBSTYLE_BUTTON, { 0 }, 0, 0 },
         { 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, { 0 }, 0, 0 },
     };
-    const bool zoom = eu_get_dpi(parent) >= DPI_PERCENT_LARGE ? true : false;
-    if (!on_dark_enable())
+    int res_hot;
+    int res_grey;
+    int width;
+    int height;
+    on_toolbar_init_params(&res_hot, &res_grey, &width, &height);
+    if ((img_list1 = create_img_list(res_hot, width, height)) == NULL)
     {
-        if ((img_list1 = create_img_list(zoom ? IDB_TOOLBAR_LARGE32 : IDB_TOOLBAR16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
-        if ((img_list2 = create_img_list(zoom ? IDB_TOOLBAR_LARGE1 : IDB_TOOLBAR1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
+        return 1;
     }
-    else
+    if ((img_list2 = create_img_list(res_grey, width, height)) == NULL)
     {
-        if ((img_list1 = create_img_list(zoom ? IDB_DARK_LARGE32 : IDB_DARK16, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
-        if ((img_list2 = create_img_list(zoom ? IDB_DARK_LARGE1 : IDB_DARK1, RGB(0xF0, 0xF0, 0xF0), zoom)) == NULL)
-        {
-            return 1;
-        }
+        return 1;
     }
     tb_size = sizeof(tb_cmd) / sizeof(TBBUTTON);
     for (int i = 0, j = 0; i < tb_size; ++i)

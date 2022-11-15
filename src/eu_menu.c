@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-#define CLANGDLL _T("clang-format.dll")
+#define CLANGDLL _T("plugins\\clang-format.dll")
 
 int
 menu_height(void)
@@ -100,10 +100,10 @@ menu_switch_theme(void)
             for (int index = 0, count = GetMenuItemCount(theme_menu); index < count; ++index)
             {
                 bool select = false;
-                TCHAR buf[ACNAME_LEN] = { 0 };
-                TCHAR theme[ACNAME_LEN] = { 0 };
-                int len = GetMenuString(root_menu, IDM_STYLETHEME_BASE + index, buf, ACNAME_LEN - 1, MF_BYCOMMAND);
-                if (len > 0 && MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme, ACNAME_LEN) > 0)
+                TCHAR buf[QW_SIZE] = { 0 };
+                TCHAR theme[QW_SIZE] = { 0 };
+                int len = GetMenuString(root_menu, IDM_STYLETHEME_BASE + index, buf, QW_SIZE - 1, MF_BYCOMMAND);
+                if (len > 0 && MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->name, -1, theme, QW_SIZE) > 0)
                 {
                     TCHAR* pbuf = on_theme_query_name(buf);
                     if (pbuf && _tcscmp(pbuf, theme) == 0)
@@ -112,7 +112,7 @@ menu_switch_theme(void)
                     }
                     if (_stricmp(eu_get_config()->window_theme, eu_get_theme()->name))
                     {
-                        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, ACNAME_LEN);
+                        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
                     }
                 }
                 util_set_menu_item(root_menu, IDM_STYLETHEME_BASE + index, select);
@@ -131,9 +131,6 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
         util_enable_menu_item(root_menu, IDM_EDIT_DELETE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PASTE, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE1, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE7, !hex_mode && eu_exist_libssl());
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE8, !hex_mode && eu_exist_libssl());
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE9, !hex_mode && eu_exist_libssl());
         util_enable_menu_item(root_menu, IDM_UPDATE_SELECTION, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE10, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE11, !hex_mode);
@@ -364,23 +361,32 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_REDO:
                         util_enable_menu_item(menu, IDM_EDIT_UNDO, eu_sci_call(pnode,SCI_CANUNDO, 0, 0));
                         util_enable_menu_item(menu, IDM_EDIT_REDO, eu_sci_call(pnode,SCI_CANREDO, 0, 0));
-                        break;    
-                    case IDM_EDIT_CUT:    
+                        break;
+                    case IDM_EDIT_CUT:
                     case IDM_EDIT_COPY:
                     case IDM_EDIT_PASTE:
-                    case IDM_EDIT_DELETE:    
+                    case IDM_EDIT_DELETE:
                         util_enable_menu_item(menu, IDM_EDIT_CUT, util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_COPY, util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
-                        util_enable_menu_item(menu, IDM_EDIT_DELETE, eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE2, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE5, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE6, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_EDIT_DELETE, TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE2, !pnode->hex_mode && TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE5, !pnode->hex_mode && TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE6, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_SELECT_GROUP, util_can_selections(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE7, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE8, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE9, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
                         break;
                     case IDM_EDIT_OTHER_EDITOR:
                         util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);
                         break;
+                    case IDM_EDIT_OTHER_BCOMPARE:
+                    {
+                        int num = on_tabpage_sel_number(NULL, false);
+                        util_enable_menu_item(menu, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
+                        break;
+                    }
                     case IDM_UPDATE_SELECTION:              /* Search menu */
                         util_set_menu_item(menu, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
                         util_set_menu_item(menu, IDM_SELECTION_RECTANGLE, eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);
@@ -415,7 +421,7 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_VISIABLE, !pnode->hex_mode && pnode->foldline);
                         util_set_menu_item(menu, IDM_VIEW_INDENTGUIDES_VISIABLE, eu_get_config()->m_indentation);
-                        util_enable_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->codepage != IDM_OTHER_BIN && TAB_NOT_NUL(pnode));
                         util_set_menu_item(menu, IDM_VIEW_HEXEDIT_MODE, pnode->hex_mode);
                         if (pnode->doc_ptr)
                         {
@@ -435,25 +441,30 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_VIEW_SWITCH_TAB, g_tabpages && TabCtrl_GetItemCount(g_tabpages) > 1);
                         break;
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */
+                    {
+                        enable = eu_exist_file(CLANGDLL);
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON && eu_exist_file(CLANGDLL)));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON && enable));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_JS, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT && enable));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE17,
-                                             (pnode->doc_ptr && !pnode->hex_mode && eu_exist_file(CLANGDLL) &&
+                                             (pnode->doc_ptr && !pnode->hex_mode && enable &&
                                              (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                                             pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE19, !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE19, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
+                    }
                     case IDM_EDIT_QRCODE:
                         util_enable_menu_item(menu, IDM_EDIT_QRCODE, util_can_selections(pnode));
                         break;
                     case IDM_SOURCE_BLOCKFOLD_TOGGLE: /* Programming menu */
                     case IDM_SOURCE_BLOCKFOLD_CONTRACT:
-                    case IDM_SOURCE_BLOCKFOLD_EXPAND:    
-                        enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0;
+                    case IDM_SOURCE_BLOCKFOLD_EXPAND:
+                        enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_TOGGLE, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_CONTRACT, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_EXPAND, enable);
@@ -463,7 +474,7 @@ menu_update_item(HMENU menu)
                     case IDM_SOURCECODE_GOTODEF:
                         enable = pnode->doc_ptr && !pnode->hex_mode && pnode->hwnd_symlist;
                         util_enable_menu_item(menu, IDM_SOURCECODE_GOTODEF, enable);
-                        break;    
+                        break;
                     case IDM_EDIT_AUTO_CLOSECHAR:
                         util_set_menu_item(menu, IDM_EDIT_AUTO_CLOSECHAR, eu_get_config()->eu_brace.autoc);
                         util_set_menu_item(menu, IDM_SOURCEE_ENABLE_ACSHOW, eu_get_config()->eu_complete.enable);
@@ -476,11 +487,11 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_DATABASE_INSERT_CONFIG, enable);
                         util_enable_menu_item(menu, IDM_DATABASE_EXECUTE_SQL, enable);
                         util_switch_menu_group(menu, TAB_MENU_SNIPPET_SUB, IDM_SOURCE_SNIPPET_ENABLE, IDM_SOURCE_SNIPPET_ENABLE, eu_get_config()->eu_complete.snippet);
-                        util_enable_menu_item(menu, IDM_EDIT_COMMENT_GROUP, !pnode->hex_mode && pnode->doc_ptr && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0);
+                        util_enable_menu_item(menu, IDM_EDIT_COMMENT_GROUP, !pnode->hex_mode && pnode->doc_ptr && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_SOURCE_SNIPPET_GROUP, !pnode->hex_mode && pnode->doc_ptr);
                         break;
                     case IDM_PROGRAM_EXECUTE_ACTION:
-                        enable = pnode->doc_ptr && !pnode->hex_mode && eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) > 0;
+                        enable = pnode->doc_ptr && !pnode->hex_mode && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_PROGRAM_EXECUTE_ACTION,  enable);
                         break;
                     case IDM_ENV_FILE_POPUPMENU:      /* Settings menu */

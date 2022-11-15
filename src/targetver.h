@@ -28,9 +28,9 @@
 #define MAKE_VERSION_STR(a, b, c, d, sep)  (TO_STR(a)TEXT(" ")TO_STR(b) sep TO_STR(c) sep TO_STR(d))
 
 // 定义版本信息
-#define __EU_INFO_VERSION 2
+#define __EU_INFO_VERSION 3
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 9
+#define __EU_INFO_VERSION_PATCHLEVEL 0
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -196,8 +196,6 @@
 #define IDB_COPY_DARK        10117
 #define IDB_BUTTON_BG_BMP    10118
 #define IDB_AC_CLOSE_BMP     10119
-#define IDB_UN_CLOSE_BMP     10120
-#define IDB_DARK_CLOSE_BMP   10121
 
 #define IDC_BUTTON0   10122
 #define IDC_BUTTON1   10123
@@ -246,6 +244,7 @@
 #define IDS_STATUS_LC  10177
 #define IDS_STATUS_LD  10178
 #define IDS_STATUS_HXY 10179
+#define IDS_STATUS_HLC 10279
 
 #define IDS_TOOLBAR_0    10180
 #define IDS_TOOLBAR_1    10181
@@ -275,6 +274,7 @@
 #define IDS_TOOLBAR_25   10205
 #define IDS_TOOLBAR_26   10206
 #define IDS_TOOLBAR_27   10207
+#define IDS_TOOLBAR_28   10208
 // file type
 #define IDM_TYPES_0   10300
 
@@ -336,7 +336,11 @@
 #define IDB_TOOLBAR_LARGE32             30036
 #define IDB_DARK_LARGE1                 30037
 #define IDB_DARK_LARGE32                30038
-#define IDM_VIEW_DOCUMENT_MAP           30039
+#define IDB_TOOLBAR_MIDDLING1           30039
+#define IDB_TOOLBAR_MIDDLING24          30040
+#define IDB_DARK_MIDDLING1              30041
+#define IDB_DARK_MIDDLING24             30042
+#define IDM_VIEW_DOCUMENT_MAP           30043
 
 #define IDM_FILE_CLOSEALL               30100
 #define IDM_FILE_CLOSEALL_EXCLUDE       30101
@@ -354,6 +358,7 @@
 #define IDM_FILE_WRITE_COPY             30113
 #define IDM_FILE_RESTORE_RECENT         30114
 #define IDM_FILE_EXIT_WHEN_LAST_TAB     30115
+#define IDM_FILE_RESTART_ADMIN          30116
 
 #define IDM_EDIT_BASE64_ENCODING        30200
 #define IDM_EDIT_BASE64_DECODING        30201
@@ -437,6 +442,8 @@
 #define IDM_DELETE_ALL_SPACE_LINEHEAD        30449
 #define IDM_DELETE_ALL_SPACE_LINETAIL        30450
 #define IDM_VIEW_SWITCH_TAB                  30451
+#define IDM_EDIT_WORD_UPPERCASE              30452
+#define IDM_EDIT_SENTENCE_UPPERCASE          30453
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -531,6 +538,7 @@
 #define IDC_MSG_ICONV_FAIL1    40031
 #define IDC_MSG_ICONV_FAIL2    40032
 #define IDC_MSG_OPENSSL_FAIL   40033
+#define IDC_MSG_ATTACH_ERRORS  40034
 
 #define IDM_FILE_NEWFILE_ENCODING_UTF8      40100
 #define IDM_FILE_NEWFILE_ENCODING_UTF8B     40101
@@ -721,7 +729,7 @@
 #define IDC_SEARCH_REALL_BTN                41124
 #define IDC_SEARCH_CD_CHK                   41125
 #define IDC_SEARCH_SUB_CHK                  41126
-#define IDC_SEARCH_ALL_BTN                  41127
+#define IDC_SEARCH_START_ENGINE             41127
 #define IDC_MATCH_WDSTART                   41128
 #define IDC_SEARCH_HIDE_CHK                 41129
 #define IDC_SEARCH_FOUNDLIST                41130
@@ -731,6 +739,8 @@
 #define IDC_SEARCH_HEX_STC                  41134
 #define IDS_SEARCH_HEX_TIPS                 41135
 #define IDC_SEARCH_HEX_STRINGS              41136
+#define IDC_SEARCH_ALL_BTN                  41137
+#define IDC_SEARCH_SELRE_BTN                41138
 
 // additional controls
 #define IDD_PAGESETUP                        42000
@@ -784,13 +794,16 @@
 #define IDS_PRINT_EMPTY                     42104
 #define IDS_PRINT_ERROR                     42105
 #define IDS_SELRECT                         42106
+#define IDS_PRINT_HEX_WARNS                 42107
 
 #define IDM_THEME_CANCEL                    42200
 
-#define IDM_FORMAT_REFORMAT                 42250
-#define IDM_FORMAT_COMPRESS                 42251
+#define IDM_FORMAT_REFORMAT_JSON            42250
+#define IDM_FORMAT_COMPRESS_JSON            42251
 #define IDM_FORMAT_WHOLE_FILE               42252
 #define IDM_FORMAT_RANGLE_STR               42253
+#define IDM_FORMAT_REFORMAT_JS              42254
+#define IDM_FORMAT_COMPRESS_JS              42255
 
 #define IDM_LOCALES_BASE                    42300
 #define IDR_SYMBOLTREE_REFRESH_POPUPMENU    42400
@@ -856,6 +869,7 @@
 #define IDM_ONLINE_SEARCH_BAIDU             42707
 #define IDM_ONLINE_SEARCH_BING              42708
 
+#define IDM_EDIT_PLACEHOLDE_JS              42800
 #define IDM_EDIT_PLACEHOLDE1                42801
 #define IDM_EDIT_PLACEHOLDE2                42802
 #define IDM_EDIT_PLACEHOLDE3                42803
@@ -884,6 +898,7 @@
 #define IDM_EDIT_SPACE_TAB                  42826
 #define IDM_EDIT_COMMENT_GROUP              42827
 #define IDM_EDIT_OTHER_EDITOR               42828
+#define IDM_EDIT_OTHER_BCOMPARE             42829
 
 #define IDR_HEXVIEW_MENU                    42830
 #define IDM_HEXVIEW_COPY                    42831
@@ -935,6 +950,7 @@
 #define IDS_RESULT_STRINGS1                 42889
 #define IDS_RESULT_STRINGS2                 42890
 #define IDS_EDITOR_PATH                     42891
+#define IDS_EDITOR_BCOMPARE                 42892
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991
@@ -949,6 +965,7 @@
 #define IDM_HELP_COMMAND                    43000
 #define IDS_LOADLIBRARY_SQL                 43001
 #define IDM_TABPAGE_SAVE                    43002
+#define IDM_TABPAGE_FULLSCREEN              43003
 
 #define IDM_VIEW_TAB_RIGHT_CLICK            43010
 #define IDM_VIEW_TAB_LEFT_DBCLICK           43011
@@ -979,6 +996,11 @@
 #define IDS_SNIPPET_COMBO_DEC               44013
 #define IDM_SOURCE_SNIPPET_ENABLE           44014
 
+#define IDS_TABPAGE_CLOSE_NUM               44020
+#define IDS_BUTTON_RW_TIPS                  44021
+#define IDS_BUTTON_ROUTE_TIPS               44022
+
+#define IDS_PLUGINS_MSG1                    44030
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

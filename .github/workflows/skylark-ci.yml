@@ -2,7 +2,7 @@ name: Skylark Ci
 on: 
   push:
     branches: 
-      - release
+      - 2.x
 env:
   APP_NAME: skylark
   MY_BITS : x64
@@ -37,6 +37,7 @@ jobs:
       run: |
         cd /d %GITHUB_WORKSPACE%
         call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64"
+        nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
       shell: cmd
       

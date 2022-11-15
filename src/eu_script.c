@@ -85,8 +85,7 @@ report_gui(lua_State *L, int status)
         {
             if ((cnv = eu_utf8_utf16(gui_msg, NULL)) != NULL)
             {
-
-                on_result_append_text(NULL, _T("%s: %s"), __ORIGINAL_NAME, cnv);
+                on_result_append_text(_T("%s: %s"), __ORIGINAL_NAME, cnv);
                 free(cnv);
             }
             free(gui_msg);
@@ -457,13 +456,13 @@ do_lua_parser_doctype(const char *fname, const char *func)
     }
     if (doc_point)
     {
-        printf("doc_point = %I64x\n", doc_point);
+        printf("doc_point = %zx\n", doc_point);
         eu_doc_set_ptr((doctype_t *)doc_point);
     }
     return status;
 }
 
-void
+void WINAPI
 do_lua_parser_release(void)
 {
     if (pstate)
@@ -501,11 +500,19 @@ eu_lua_script_exec(const TCHAR *fname)
 }
 
 bool WINAPI
-eu_lua_path_setting(void)
+eu_lua_path_setting(eu_tabpage *pnode)
 {
     TCHAR lua_path[ENV_LEN + 1] = {0};
-    _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua"),
-               eu_module_path, eu_module_path, eu_module_path);
+    if (!pnode)
+    {
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua"),
+                   eu_module_path, eu_module_path, eu_module_path);        
+    }
+    else
+    {
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua;%s?.lua"),
+                   eu_module_path, eu_module_path, eu_module_path, pnode->pathname);
+    }
     return (_tputenv(lua_path) == 0);
 }
 

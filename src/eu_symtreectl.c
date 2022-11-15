@@ -707,8 +707,8 @@ on_sysmtree_init_hredis(void)
         return true;
     }
     TCHAR dll_path[MAX_PATH+1] = {0};
-    _sntprintf(dll_path, MAX_PATH, _T("%s\\%s"), eu_module_path, _T("hiredis.dll"));
-    redis_funcs.dll = LoadLibrary(dll_path);
+    _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("hiredis.dll"));
+    redis_funcs.dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
     if (redis_funcs.dll == NULL)
     {
         MSG_BOX(IDC_MSG_SYMTREE_ERR10, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -722,7 +722,7 @@ on_sysmtree_init_hredis(void)
         redis_funcs.fnRedisCommand == NULL || redis_funcs.fnFreeReplyObject == NULL)
     {
         MSG_BOX(IDC_MSG_SYMTREE_ERR11, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        safe_close_dll(redis_funcs.dll);
+        eu_close_dll(redis_funcs.dll);
         return false;
     }
     return true;
@@ -841,10 +841,10 @@ on_symtree_parse_redis_header(eu_tabpage *pnode)
     for (file_line = 0; file_line <= file_line_count; ++file_line)
     {
         char line_buf[FILESIZE+1] = {0};
-        char config_remark[ACNAME_LEN] = {0};
-        char config_key[ACNAME_LEN] = {0};
-        char config_eval[ACNAME_LEN] = {0};
-        char config_value[ACNAME_LEN] = {0};
+        char config_remark[QW_SIZE] = {0};
+        char config_key[QW_SIZE] = {0};
+        char config_eval[QW_SIZE] = {0};
+        char config_value[QW_SIZE] = {0};
         if (!on_sci_line_text(pnode, file_line, line_buf, _countof(line_buf)))
         {
             return 1;
@@ -983,7 +983,7 @@ tvi_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
     }
     tvi.mask = TVIF_TEXT | TVIF_PARAM;
     tvi.pszText = buf;
-    tvi.lParam = pos;
+    tvi.lParam = (LPARAM)pos;
     tvis.hParent = parent;
     tvis.hInsertAfter = TVI_LAST;
     tvis.item = tvi;
@@ -1015,7 +1015,7 @@ tvi_inser_object(HWND dlg, HTREEITEM parent, const char *parent_str, const char 
         {
             tvi.pszText = u16_txt;
             tvi.mask = TVIF_TEXT | TVIF_PARAM;
-            tvi.lParam = pos;
+            tvi.lParam = (LPARAM)pos;
             tvis.hParent = parent;
             tvis.hInsertAfter = TVI_LAST;
             tvis.item = tvi;
@@ -1186,7 +1186,7 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
     json_value *json_root = NULL;
     sets.settings |= json_enable_comments;
     TreeView_DeleteAllItems(pnode->hwnd_symtree);
-    if ((json_root = json_parse_ex(&sets, buffer, len, NULL)))
+    if ((json_root = json_parse_ex(&sets, buffer, (size_t)len, NULL)))
     {
         process_value(pnode, tree_root, json_root, 0);
         json_value_free(json_root);

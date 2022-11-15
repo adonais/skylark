@@ -46,7 +46,7 @@ init_instance(HINSTANCE instance)
         }
         if (eu_get_config()->m_fullscreen)
         {
-            eu_create_fullscreen(hwnd);
+            printf("we create fullsrceen window\n");
         }
         else if (strlen(eu_get_config()->m_placement) < 1)
         {
@@ -113,7 +113,7 @@ _tmain(int argc, TCHAR *argv[])
             return -1;
         }
     }  // 设置lua脚本搜索路径
-    if (!eu_lua_path_setting())
+    if (!eu_lua_path_setting(NULL))
     {
         return -1;
     }  // 加载主配置文件
@@ -192,43 +192,44 @@ _tmain(int argc, TCHAR *argv[])
         bool cinit = false;
         const TCHAR *fname = NULL;
         const TCHAR *save = NULL;
+        bool is_cui = !eu_gui_app();
         if (argc > 2)
         {
             fname = argv[2];
         }
-        if (AllocConsole())
+        if (!is_cui)
         {
+            cinit = (bool)AllocConsole();
             freopen("conin$","r",stdin);
             freopen("conout$","w", stdout);
             freopen("conout$","w", stderr);
-            cinit = true;
         }
-        if (cinit && argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
+        if ((is_cui || cinit) && argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
         {
             fname = argv[3];
             save = argv[4];
             _tputenv(_T("LUA_PATH="));
-            fprintf(stderr, "End-of-Conversion: \n");
+            fprintf(stderr, "End-of-Conversion.\n");
+            msg.wParam = eu_lua_script_convert(fname, save);
+            system("pause");
         }
         if (cinit)
         {
-            msg.wParam = eu_lua_script_convert(fname, save);
-            system("pause");
             FreeConsole();
         }
         goto all_clean;
     }
+#if 0
     if (!on_hook_exception())
     {
         printf("on_hook_exception failed\n");
         msg.wParam = -1;
         goto all_clean;
     }
-    else
-    {
-        on_hook_do();
-        eu_init_logs();
-    }
+#endif    
+#if APP_DEBUG
+    eu_init_logs();
+#endif
     if (!eu_load_config())
     {   // 加载分类配置文件
         msg.wParam = -1;
@@ -239,7 +240,7 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = -1;
         goto all_clean;
     }
-    if (eu_check_arg(argv, argc, _T("--help")))
+    if (eu_check_arg(argv, argc, _T("--help"), NULL))
     {
         if (strcmp(eu_get_config()->window_theme, "black") == 0)
         {

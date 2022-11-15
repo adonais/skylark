@@ -3322,20 +3322,30 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         {
             HWND hurl = NULL;
             HWND hpage = NULL;
-            TCHAR cap[LARGER_LEN + 1] = { 0 };
-            if (LoadString(eu_module_handle(), IDS_ABOUT_DESCRIPTION, cap, LARGER_LEN))
+            HINSTANCE main = eu_module_handle();
+            TCHAR cap[LARGER_LEN + 1] = {0};
+            HICON m_icon = LoadIcon(main, MAKEINTRESOURCE(IDI_SMALL));
+            if (m_icon)
+            {
+                Static_SetIcon(GetDlgItem(hdlg, IDC_STATIC_EDIT), m_icon);
+            }
+            if (LoadString(main, IDS_ABOUT_DESCRIPTION, cap, LARGER_LEN))
             {
                 SetWindowText(GetDlgItem(hdlg, IDC_EDIT_ABOUT), cap);
             }
             LOAD_I18N_RESSTR(IDC_COMPILER, str);
             {
-                TCHAR build_str[MAX_PATH + 1] = { 0 };
-                _sntprintf(build_str, MAX_PATH, _T("%s\r\n\r\n%s: %s (%hs %hs)\r\n"),
+                struct tm *p;
+                TCHAR chunk[QW_SIZE] = {0};
+                TCHAR build_str[MAX_PATH + 1] = {0};
+                time_t t = on_about_build_id();
+                p = localtime(&t);
+                _sntprintf(chunk, QW_SIZE-1, _T("%d-%02d-%02d %02d:%02d:%02d"), (1900+p->tm_year), (1+p->tm_mon),p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
+                _sntprintf(build_str, MAX_PATH, _T("%s\r\n\r\n%s: %s (%s)\r\n"),
                            __EU_INFO_RELEASE,
                            str,
                            VC_BUILDER,
-                           __DATE__,
-                           __TIME__);
+                           chunk);
                 SetWindowText(GetDlgItem(hdlg, IDC_EDIT_VER), build_str);
             }
             if ((hurl = GetDlgItem(hdlg, IDC_STATIC_URL_UR)) != NULL)
@@ -3592,6 +3602,15 @@ on_about_dialog(void)
 uint64_t
 on_about_build_id(void)
 {
+#ifdef ACTIONS_BUILDING
+    int zone = 0;
+    TIME_ZONE_INFORMATION tzi;
+    GetTimeZoneInformation(&tzi);
+    if ((zone = tzi.Bias/(-60)))
+    {
+        return (zone * 3600 + get_compiler_time(__DATE__, __TIME__));
+    }
+#endif
     return get_compiler_time(__DATE__, __TIME__);
 }
 

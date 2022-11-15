@@ -21,14 +21,13 @@
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
 bool WINAPI
-eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
+eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
 {
     bool ret = false;
-    int arg_c = argc;
     LPWSTR *ptr_arg = NULL;
     if (args)
     {
-        ptr_arg = args;
+        ptr_arg = (LPWSTR *)args;
     }
     else
     {
@@ -38,13 +37,9 @@ eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
     {
         for (int i = 1; i < arg_c; ++i)
         {
-            if (_tcsncmp(ptr_arg[i], _T("-"), 1) == 0)
-            {
-                continue;
-            }
             if (_tcsncmp(ptr_arg[i], _T("-restart"), 8) == 0)
             {
-                ++i;
+                i += 2;
                 continue;
             }
             if (_tcsncmp(ptr_arg[i], _T("-lua"), 4) == 0)
@@ -57,6 +52,10 @@ eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
                 {
                     ++i;
                 }
+                continue;
+            }
+            if (_tcsncmp(ptr_arg[i], _T("-"), 1) == 0)
+            {
                 continue;
             }
             if (_tcslen(ptr_arg[i]) > 0)
@@ -95,13 +94,12 @@ eu_config_parser_path(wchar_t **args, int argc, wchar_t *path)
 }
 
 void WINAPI
-eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
+eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
 {
-    int arg_c = argc;
     LPWSTR *ptr_arg = NULL;
     if (args)
     {
-        ptr_arg = args;
+        ptr_arg = (LPWSTR *)args;
     }
     else
     {
@@ -113,7 +111,7 @@ eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
         {
             if (!_tcsncmp(ptr_arg[i], _T("-n"), 2) && _tcslen(ptr_arg[i]) > 2)
             {
-                pbak->x = _tstoi64(&ptr_arg[i][2]);
+                pbak->x = _tstoz(&ptr_arg[i][2]);
             }
             else if (!_tcsncmp(ptr_arg[i], _T("-c"), 2) && _tcslen(ptr_arg[i]) > 2)
             {
@@ -128,10 +126,9 @@ eu_postion_setup(wchar_t **args, int argc, file_backup *pbak)
 }
 
 bool WINAPI
-eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
+eu_check_arg(const wchar_t **args, int arg_c, const wchar_t *argument, const wchar_t *pathfile)
 {
     bool ret = false;
-    int arg_c = argc;
     LPWSTR *ptr_arg = NULL;
     if (!argument)
     {
@@ -153,6 +150,19 @@ eu_check_arg(const wchar_t **args, int argc, const wchar_t *argument)
             {
                 ret = true;
                 break;
+            }
+        }
+        if (pathfile)
+        {   // 参数前后的文件名称是否一致
+            wchar_t tmp_file[MAX_PATH] = {0};
+            bool exist = eu_config_parser_path(args, arg_c, tmp_file);
+            if (exist)
+            {
+                exist = wcsicmp(tmp_file, pathfile) == 0;
+            }
+            if (!exist)
+            {
+                ret = false;
             }
         }
         if (ptr_arg != (LPWSTR *)args)
@@ -221,7 +231,7 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szLine"))
         {
-            filebak.postion = _atoi64(column[i]);
+            filebak.postion = _atoz(column[i]);
         }
         else if (STRCMP(names[i], ==, "szCp"))
         {
@@ -285,20 +295,26 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
 static unsigned __stdcall
 on_config_load_file(void *lp)
 {
+    int err = 0;
     int is_blank = 1;
     wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
-    if (open_sql || !eu_get_config()->m_instance)
+    if (open_sql || eu_get_config()->m_session || !eu_get_config()->m_instance)
     {
-        if (open_sql || eu_get_config()->m_session)
+        if (eu_get_config()->m_session)
         {
-            int err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, &is_blank);
-            if (err == SQLITE_ABORT)
-            {
-                printf("callback abort in %s, cause: %d\n", __FUNCTION__, err);
-                return 1;
-            }
+            err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, &is_blank);
+        }
+        else
+        {
+            err = on_sql_do_session("SELECT * FROM skylar_ver;", NULL, NULL);
+        }
+        if (err == SQLITE_ABORT)
+        {
+            printf("callback abort in %s, cause: %d\n", __FUNCTION__, err);
+            return 1;
         }
     }
+    printf("open_sql = %ls, err = %d, is_blank = %d\n", open_sql, err, is_blank);
     if ((open_sql  || on_config_file_args()) && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
         file_backup bak = {0};
@@ -356,10 +372,15 @@ on_config_sync_snippet(void)
                          _T("cshape.snippets"),
                          _T("css.snippets"),
                          _T("golang.snippets"),
+                         _T("javascript.snippets"),
+                         _T("json.snippets"),
                          _T("julia.snippets"),
                          _T("luascript.snippets"),
+                         _T("perl.snippets"),
+                         _T("php.snippets"),
                          _T("rust.snippets"),
                          _T("text.snippets"),
+                         _T("verilog.snippets"),
                          NULL};
     _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets"), eu_module_path);
     if (!eu_exist_dir(p2))
@@ -381,21 +402,25 @@ on_config_sync_snippet(void)
 bool WINAPI
 eu_load_main_config(void)
 {
-    int  m = 0;
+    bool ret = false;
     char *lua_path = NULL;
     TCHAR path[MAX_PATH+1] = {0};
-    m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
-    if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
+    int  m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
+    do
     {
-        return false;
-    }
-    if (do_lua_func(lua_path, "run", "") != 0)
-    {
-        printf("eu_main.lua exec failed\n");
-        free(lua_path);
-        return false;
-    }
-    return true;
+        if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
+        {
+            break;
+        }
+        if (do_lua_func(lua_path, "run", "") != 0)
+        {
+            printf("eu_main.lua exec failed\n");
+            break;
+        }
+        ret = true;
+    } while(0);
+    eu_safe_free(lua_path);
+    return ret;
 }
 
 bool WINAPI

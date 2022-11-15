@@ -11,12 +11,13 @@ CDEP    =  -I3rdparty\libcurl\include -I3rdparty\libopenssl\include -I3rdparty\l
 CFLAGS  = -W3 -WX- -wd4996 -wd4819 -Zi -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" \
           -utf-8 -D "JSON_TRACK_SOURCE" -D "PCRE_STATIC" $(CFLAGS) $(CDEP)
 
+!IF "$(ACTIONS_BUILDING)"=="1"
+CFLAGS = $(CFLAGS) -D "ACTIONS_BUILDING"
+!ENDIF
+
 API_CLFGAS = $(CFLAGS) -D "EUAPI_BUILDDING"
 
-
 CXXFLAGS = $(CFLAGS) /TP /EHsc
-
-RFLAGS  = -nologo -D "_UNICODE" -D "UNICODE"
 
 LDFLAGS = $(LT) -DEBUG -MACHINE:$(PLATFORM) -ENTRY:wmainCRTStartup
 # /opt:ref /opt:icf /LARGEADDRESSAWARE /ENTRY:mainCRTStartup $(HIDE) $(NO_HIDE)
@@ -100,6 +101,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_snippet.obj                     \
     $(OBJD)\eu_snparser.obj                    \
     $(OBJD)\eu_complete.obj                    \
+    $(OBJD)\eu_nphost.obj                      \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -132,11 +134,12 @@ dirs:
 	@if not exist "$(BIND)" mkdir "$(BIND)" && echo.   Created $(BIND)
 	@if not exist "$(BIND)\\conf" mkdir "$(BIND)\\conf" && echo.   Created $(BIND)\\conf
 	@if not exist "$(BIND)\share" mkdir "$(BIND)\share"
+	@if not exist "$(BIND)\plugins" mkdir "$(BIND)\plugins"
 	@if exist "$(ROOT)\\conf" xcopy "$(ROOT)\\conf" "$(BIND)\\conf" /s /e /q /y 2>&1>NUL
 	@if exist "$(ROOT)\share" xcopy "$(ROOT)\share" "$(BIND)\share" /s /e /q /y 2>&1>NUL
 	@if exist "$(ROOT)\\README_CN.MD" copy /y "$(ROOT)\\README_CN.MD" "$(BIND)\\README_CN.MD" 2>&1>NUL
 !IF "$(BITS)" == "64"
-	@if exist "$(MAKEDIR)\\3rdparty\\bin" xcopy "$(MAKEDIR)\\3rdparty\\bin" "$(BIND)" /s /e /q /y 2>&1>NUL
+	@if exist "$(MAKEDIR)\\3rdparty\\plugins" xcopy "$(MAKEDIR)\\3rdparty\\plugins" "$(BIND)\\plugins" /s /e /q /y 2>&1>NUL
 !endif
 	@if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
 
@@ -154,7 +157,7 @@ $(OBJD)\eu_hex.obj                         : eu_hex.c eu_hex.h framework.h
 $(OBJD)\eu_scintilla.obj                   : eu_scintilla.c eu_scintilla.h framework.h
 $(OBJD)\eu_encoding.obj                    : eu_encoding.c eu_encoding.h framework.h
 $(OBJD)\eu_registry.obj                    : eu_registry.c eu_registry.h framework.h
-$(OBJD)\eu_file.obj                        : eu_file.c eu_file.h framework.h
+$(OBJD)\eu_file.obj                        : eu_file.c eu_file.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_treebar.obj                     : eu_treebar.c eu_treebar.h framework.h eu_list.h
 $(OBJD)\eu_resultctl.obj                   : eu_resultctl.c eu_resultctl.h framework.h
 $(OBJD)\eu_tablectl.obj                    : eu_tablectl.c eu_tablectl.h framework.h
@@ -166,10 +169,10 @@ $(OBJD)\eu_theme_dark.obj                  : eu_theme_dark.c eu_theme_dark.h fra
 $(OBJD)\eu_theme_menu.obj                  : eu_theme_menu.c eu_theme_menu.h framework.h
 $(OBJD)\eu_symlistctl.obj                  : eu_symlistctl.c eu_symlistctl.h framework.h eu_list.h
 $(OBJD)\eu_symtreectl.obj                  : eu_symtreectl.c eu_symtreectl.h framework.h eu_list.h
-$(OBJD)\eu_tabpage.obj                     : eu_tabpage.c eu_tabpage.h framework.h
+$(OBJD)\eu_tabpage.obj                     : eu_tabpage.c eu_tabpage.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_util.obj                        : eu_util.c eu_util.h framework.h
-$(OBJD)\eu_view.obj                        : eu_view.c eu_view.h framework.h
-$(OBJD)\eu_proc.obj                        : eu_proc.c eu_proc.h framework.h
+$(OBJD)\eu_view.obj                        : eu_view.c eu_view.h eu_nphost.h eu_npruntime.h framework.h
+$(OBJD)\eu_proc.obj                        : eu_proc.c eu_proc.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_menu.obj                        : eu_menu.c eu_menu.h framework.h
 $(OBJD)\eu_config.obj                      : eu_config.c eu_config.h framework.h
 $(OBJD)\eu_input.obj                       : eu_input.c eu_input.h framework.h
@@ -186,7 +189,7 @@ $(OBJD)\eu_statusbar.obj                   : eu_statusbar.c eu_statusbar.h frame
 $(OBJD)\eu_about.obj                       : eu_about.c eu_about.h framework.h skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\locales\src\*
 $(OBJD)\eu_qrgen.obj                       : eu_qrgen.c eu_qrgen.h framework.h
 $(OBJD)\eu_json.obj                        : eu_json.c eu_json.h framework.h
-$(OBJD)\eu_print.obj                       : eu_print.c eu_print.h framework.h
+$(OBJD)\eu_print.obj                       : eu_print.c eu_print.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_locale.obj                      : eu_locale.c eu_locale.h framework.h
 $(OBJD)\eu_format.obj                      : eu_format.c eu_format.h framework.h
 $(OBJD)\eu_splitter.obj                    : eu_splitter.c eu_splitter.h framework.h
@@ -196,6 +199,7 @@ $(OBJD)\eu_updatechecker.obj               : eu_updatechecker.c eu_updatechecker
 $(OBJD)\eu_snippet.obj                     : eu_snippet.c eu_snippet.h eu_cvector.h framework.h
 $(OBJD)\eu_snparser.obj                    : eu_snparser.c eu_snparser.h eu_cvector.h framework.h
 $(OBJD)\eu_complete.obj                    : eu_complete.c eu_complete.h eu_cvector.h framework.h
+$(OBJD)\eu_nphost.obj                      : eu_nphost.c eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp

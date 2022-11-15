@@ -19,7 +19,7 @@
 #ifndef _SKYLARK_FORMAT_H_
 #define _SKYLARK_FORMAT_H_
 
-typedef char *(*format_back)(const char *);
+typedef int (*format_back)(const uint8_t *ptext, uint8_t **pbuf);
 typedef struct _rcstring
 {
     char *text;    /*<! char c-string */
@@ -32,11 +32,11 @@ extern "C"
 {
 #endif
 
-char *on_format_compress_callback(const char *text);
-void on_format_json_style(eu_tabpage *pnode);
-void on_format_do_json(eu_tabpage *pnode, format_back fn); 
-void on_format_clang_file(eu_tabpage *pnode);
-void on_format_clang_str(eu_tabpage *pnode);
+int  on_format_js_callback(const uint8_t *text, uint8_t **pbuf);
+int  on_format_json_callback(const uint8_t *text, uint8_t **pbuf);
+void on_format_file_style(eu_tabpage *pnode);
+void on_format_do_compress(eu_tabpage *pnode, format_back fn); 
+void on_format_clang_file(eu_tabpage *pnode, const bool whole);
 
 #ifdef __cplusplus
 }

@@ -490,7 +490,7 @@ hexview_destoy(eu_tabpage *pnode)
                 printf("on hexview_destoy, Delete(%ls) error, cause: %lu\n", pnode->bakpath, GetLastError());
             }
         }
-        eu_safe_free (pnode->phex);
+        eu_safe_free(pnode->phex);
     }
 }
 
@@ -630,7 +630,7 @@ hexview_map_realloc(PHEXVIEW phex, int offset)
             ret = true;
         }
     }
-    safe_close_handle(phex->hmap);
+    eu_close_handle(phex->hmap);
     return ret;
 }
 
@@ -1083,7 +1083,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_HEXVIEW_COPY_ADDR:
                     TCHAR s_xy[FILESIZE] = {0};
-                    _sntprintf(s_xy, FILESIZE-1, _T("0x%I64X"), hexview->number_items);
+                    _sntprintf(s_xy, FILESIZE-1, _T("0x%zX"), hexview->number_items);
                     on_edit_push_clipboard(s_xy);
                     break;
                 case IDM_HEXVIEW_PASTE:
@@ -1218,7 +1218,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                         uint8_t *poffset = &hexview->pbase[select_start];
                         memmove(poffset, poffset + len, hexview->total_items - select_end);
                         hexview->total_items -= len;
-                        printf("len = %I64u, select_start = %I64u, select_end = %I64u\n", len, select_start, select_end);
+                        printf("len = %zu, select_start = %zu, select_end = %zu\n", len, select_start, select_end);
                         on_edit_push_clipboard(u16_text);
                         SendMessage(hwnd, HVM_SETLINECOUNT, 0, 0);
                         InvalidateRect(hwnd, NULL, false);
@@ -1738,7 +1738,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         }
         case SCI_SETZOOM:
         {
-            _InterlockedExchange(&hex_zoom, 0);
+            _InterlockedExchange(&hex_zoom, (long)wParam);
             SendMessage(hwnd, WM_SETFONT, 0, 0);
             InvalidateRect(hwnd, NULL, false);
             break;
@@ -1775,6 +1775,22 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         case SCI_GETLENGTH:
         {
             return hexview->total_items;
+        }
+        case SCI_GETSELECTIONSTART:
+        {
+            return (min(hexview->select_start, hexview->select_end));
+        }
+        case SCI_GETSELECTIONEND:
+        {
+            return (max(hexview->select_start, hexview->select_end));
+        }
+        case SCI_LINEFROMPOSITION:
+        {
+            if (wParam >= 0)
+            {
+                return wParam/16;
+            }
+            return 0;
         }
         case SCI_GETLINECOUNT:
         {
@@ -2018,7 +2034,7 @@ hexview_map_write(const uint8_t *pbuf, const size_t buf_len, const TCHAR *dst_pa
         {
             block = filesize;
         }
-        data = share_map_section(hmap, offset, block, false);
+        data = share_map_section(hmap, offset, (size_t)block, false);
         if (!data)
         {
             printf("create_file_mem error, cause : %lu\n", GetLastError());
@@ -2027,7 +2043,7 @@ hexview_map_write(const uint8_t *pbuf, const size_t buf_len, const TCHAR *dst_pa
         }
         else
         {
-            memcpy(data, pbuf+offset, block);
+            memcpy(data, pbuf+offset, (size_t)block);
             // 刷新缓存, 但是对大文件来说太慢
             // FlushViewOfFile(data, block);
             // FlushFileBuffers(hfile);
@@ -2111,12 +2127,17 @@ hexview_switch_mode(eu_tabpage *pnode)
     {
         return err;
     }
+    if (on_tabpage_focus_at() != pnode)
+    {
+        on_tabpage_active_tab(pnode);
+    }
     if (!pnode->hex_mode)
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         if (!pnode->phex)
         {
             pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
+            hex_zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
             if (!pnode->phex)
             {
                 err = EUE_POINT_NULL;
@@ -2170,6 +2191,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnew->tab_id = TabCtrl_GetCurSel(g_tabpages);
         pnew->doc_ptr = on_doc_get_type(pnew->filename);
         pnew->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
+        pnew->zoom_level = hex_zoom > SELECTION_ZOOM_LEVEEL ? hex_zoom : 0;
         if (pnode->phex && pnode->phex->hex_ascii)
         {
             is_utf8 = false;
@@ -2199,7 +2221,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         }
         else
         {
-            size_t src_len = pnode->raw_size;
+            size_t src_len = (size_t)pnode->raw_size;
             uint8_t *data = pnode->phex->pbase;
             euconv_t evd = { 0 };
             evd.src_from = eu_query_encoding_name(pnode->codepage);
@@ -2222,7 +2244,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             {   // 因为pbase带bom情况下转换为utf8, 会产生bom
                 // 而我们不需要, 因为前面已经保存了原始文本的bom
                 offset = 3;
-                printf("offset = %I64u\n", offset);
+                printf("offset = %zu\n", offset);
             }
         }
         if (!pdst)
@@ -2277,4 +2299,25 @@ HEX_ERROR:
         eu_safe_free(pnew);
     }
     return err;
+}
+
+void
+hexview_switch_item(eu_tabpage *pnode)
+{
+    if (g_tabpages && pnode)
+    {
+        eu_tabpage *p = NULL;
+        cvector_vector_type(int) v = NULL;
+        int num = on_tabpage_sel_number(&v, false);
+        for (int i = 0; i < num; ++i)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && p != pnode && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
+            {
+                hexview_switch_mode(p);
+            }
+        }
+        hexview_switch_mode(pnode);
+        cvector_freep(&v);
+    }
 }

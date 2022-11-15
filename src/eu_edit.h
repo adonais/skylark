@@ -19,7 +19,7 @@
 #ifndef _H_SKYLARK_EDIT_
 #define _H_SKYLARK_EDIT_
 
-#define MIN_POS(x, y) ((x < y) ? x : y)
+#define MIN_POS(x, y) (((x) < (y)) ? (x) : (y))
 // suppress -Wimplicit-fallthrough in C source
 #if defined(__cplusplus)
 #define FALLTHROUGH_ATTR        [[fallthrough]]
@@ -30,13 +30,15 @@
 #endif
 #define STR_IS_NUL(s) (s == NULL || *s == 0)
 #define STR_NOT_NUL(s) (s != NULL && *s != 0)
+#define TAB_NOT_NUL(p) (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0)
+#define TAB_NOT_BIN(p) (p->codepage != IDM_OTHER_BIN)
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-extern char eols_undo_str[ACNAME_LEN];
+extern char eols_undo_str[QW_SIZE];
 
 void on_edit_undo(eu_tabpage *pnode);
 void on_edit_redo(eu_tabpage *pnode);
@@ -58,14 +60,16 @@ void on_edit_delete_line_header_all(eu_tabpage *pnode);
 void on_edit_delete_line_tail_all(eu_tabpage *pnode);
 bool on_edit_push_clipboard(const TCHAR *buf);
 
-void on_edit_push_editor(eu_tabpage *pnode, const TCHAR *buf);
+void on_edit_push_editor(eu_tabpage *pnode);
 void on_edit_join_line(eu_tabpage *pnode);
 void on_edit_lower(eu_tabpage *pnode);
 void on_edit_upper(eu_tabpage *pnode);
+void on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence);
 void on_edit_selection(eu_tabpage *pnode, int type);
 void on_edit_undo_eol(eu_tabpage *pnode);
 void on_edit_undo_iconv(eu_tabpage *pnode);
 void on_edit_sorting(eu_tabpage *pnode, int wm_id);
+void on_edit_push_compare(void);
 
 int on_edit_base64_enc(eu_tabpage *pnode);
 int on_edit_base64_dec(eu_tabpage *pnode);

@@ -23,12 +23,6 @@
 
 #define SKYLARK_LOCK_NAME _T("_ue_handle_lock_")
 #define SKYLARK_LOCK_LANG _T("_ue_lang_lock_")
-#define safe_close_dll(h)                       \
-    if (NULL != h)                              \
-    {                                           \
-        FreeLibrary(h);                         \
-        h = NULL;                               \
-    }
 
 #ifdef __cplusplus
 extern "C" {

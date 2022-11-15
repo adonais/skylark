@@ -129,7 +129,11 @@ dirs:
     
 $(MINILUA): $(MIN_OBJS)
 	$(LD) $(LDFLAGS) -out:$@ $(MIN_OBJS)
+!IF "$(BITS)" == "64"	
 	$(MINILUA) dynasm\dynasm.lua -LN -D WIN -D JIT -D FFI -D P64 -o $(SRC)\host\buildvm_arch.h $(SRC)\vm_x64.dasc
+!ELSE
+	$(MINILUA) dynasm\dynasm.lua -LN -D WIN -D JIT -D FFI -o $(SRC)\host\buildvm_arch.h $(SRC)\vm_x86.dasc
+!ENDIF
 	
 $(BUILDVM): $(BUILDVM_OBJS) $(MINILUA)
 	$(LD) $(LDFLAGS) -out:$@ $(BUILDVM_OBJS)
