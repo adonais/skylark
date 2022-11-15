@@ -1166,6 +1166,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
     IDS_SNIPPETS_STR        "☑代码片段补全模式"
     IDS_TABPAGE_CLOSE_NUM   "关闭 %d 个标签页(&C)"
+    IDS_BUTTON_ROUTE_TIPS   "文件存储在服务端, 不能改变其读写属性"
     IDS_BUTTON_RW_TIPS      "文件没有写权限, 不能改变其读写属性. 你可能需要\n以管理员权限重启编辑器"
     IDS_PLUGINS_MSG1        "正在用SumatraPDF打开文件..."
 }

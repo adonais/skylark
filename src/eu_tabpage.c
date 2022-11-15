@@ -121,6 +121,16 @@ on_tabpage_set_active(int index)
     }
 }
 
+static inline void
+on_tabpage_setpos(eu_tabpage *p)
+{
+    if (p && p->hwnd_sc)
+    {
+        eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left, 
+                         p->rect_sc.bottom - p->rect_sc.top, SWP_SHOWWINDOW);
+    }
+}
+
 static void
 on_tabpage_changing(int index)
 {
@@ -133,8 +143,7 @@ on_tabpage_changing(int index)
         SendMessage(eu_module_hwnd(), WM_TAB_CLICK, (WPARAM)p, 0);
         if (p->pmod)
         {
-            eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top,
-                             p->rect_sc.right - p->rect_sc.left, p->rect_sc.bottom - p->rect_sc.top, SWP_SHOWWINDOW);
+            on_tabpage_setpos(p);
         }
     }
 }
@@ -1516,12 +1525,13 @@ int
 on_tabpage_selection(eu_tabpage *pnode, int index)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
+    eu_tabpage *p = NULL;
     int count = TabCtrl_GetItemCount(g_tabpages);
     if (index < 0)
     {
         for (index = 0; index < count; ++index)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(index);
+            p = on_tabpage_get_ptr(index);
             if (p && p == pnode)
             {
                 break;
@@ -1532,17 +1542,13 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     {
         HWND hwnd = eu_module_hwnd();
         on_tabpage_set_active(index);
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->pathfile[0])
-        {
-            util_set_title(p->pathfile);
-        }
-        on_toolbar_update_button();
-        eu_window_resize(hwnd);
-        // 窗口处理过程中可能改变了标签位置, 重置它
-        on_tabpage_set_active(index);
-        if (p && p->pathfile[0])
-        {
+        on_proc_resize(hwnd);
+        if ((p = on_tabpage_get_ptr(index)))
+        {   // 窗口处理过程中可能改变了标签位置, 重置它
+            on_tabpage_deselect(index);
+            TabCtrl_SetCurFocus(g_tabpages, index);
+            TabCtrl_SetCurSel(g_tabpages, index);
+            on_toolbar_update_button();
             util_set_title(p->pathfile);
         }
     }

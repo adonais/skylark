@@ -998,6 +998,7 @@
 
 #define IDS_TABPAGE_CLOSE_NUM               44020
 #define IDS_BUTTON_RW_TIPS                  44021
+#define IDS_BUTTON_ROUTE_TIPS               44022
 
 #define IDS_PLUGINS_MSG1                    44030
 

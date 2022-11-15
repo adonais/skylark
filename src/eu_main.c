@@ -219,13 +219,14 @@ _tmain(int argc, TCHAR *argv[])
         }
         goto all_clean;
     }
-    /*
+#if 0
     if (!on_hook_exception())
     {
         printf("on_hook_exception failed\n");
         msg.wParam = -1;
         goto all_clean;
-    }*/
+    }
+#endif    
 #if APP_DEBUG
     eu_init_logs();
 #endif
