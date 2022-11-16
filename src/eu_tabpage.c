@@ -998,6 +998,18 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case WM_TAB_NCCLICK:
+        {
+            if (eu_get_config()->m_new_way == IDM_VIEW_TAB_RIGHT_NEW && wParam == MK_RBUTTON)
+            {
+                on_file_new();
+            }
+            if (eu_get_config()->m_new_way == IDM_VIEW_TAB_DBCLICK_NEW && wParam == MK_LBUTTON)
+            {
+                on_file_new();
+            }
+            break;
+        }
         case WM_MOUSEHOVER:
         {   // 鼠标悬停激活
             break;

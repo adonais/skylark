@@ -739,6 +739,25 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_proc_msg_size(hwnd, NULL);
             }
             break;
+        case WM_RBUTTONDOWN:
+        case WM_LBUTTONDBLCLK:
+        {
+            if (eu_get_config() && eu_get_config()->m_new_way > 0)
+            {
+                POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                if (g_tabpages)
+                {
+                    RECT rect = {0};
+                    MapWindowPoints(hwnd, g_tabpages, &pt, 1);
+                    GetClientRect(g_tabpages, &rect);
+                    if (PtInRect(&rect, pt) && (int)SendMessage(g_tabpages, WM_NCHITTEST, 0, lParam) == HTTRANSPARENT)
+                    {
+                        PostMessage(g_tabpages, WM_TAB_NCCLICK, wParam, 0);
+                    }
+                }
+            }
+            break;
+        }
         case WM_TAB_CLICK:
             on_proc_tab_click(hwnd, (void *)wParam);
             return 1;
@@ -1420,6 +1439,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     else
                     {
                         eu_get_config()->m_close_way = wm_id;
+                    }
+                    break;
+                }
+                case IDM_VIEW_TAB_RIGHT_NEW:
+                case IDM_VIEW_TAB_DBCLICK_NEW:
+                {
+                    if (eu_get_config()->m_new_way == wm_id)
+                    {
+                        eu_get_config()->m_new_way = 0;
+                    }
+                    else
+                    {
+                        eu_get_config()->m_new_way = wm_id;
                     }
                     break;
                 }

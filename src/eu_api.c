@@ -1632,6 +1632,7 @@ eu_save_config(void)
         "block_fold_visiable = %s\n"
         "tabs_tip_show_enable = %s\n"
         "tab_close_way = %d\n"
+        "tab_new_way = %d\n"
         "tab_switch_forward = %d\n"
         "edit_font_quality = %d\n"
         "edit_rendering_technology = %d\n"
@@ -1744,6 +1745,7 @@ eu_save_config(void)
               g_config->block_fold?"true":"false",
               g_config->m_tab_tip?"true":"false",
               g_config->m_close_way,
+              g_config->m_new_way,
               g_config->m_tab_active,
               g_config->m_quality,
               g_config->m_render,

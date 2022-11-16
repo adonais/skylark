@@ -258,6 +258,11 @@ BEGIN
             MENUITEM "&Right Click",                                   IDM_VIEW_TAB_RIGHT_CLICK
             MENUITEM "&Left Double Click",                             IDM_VIEW_TAB_LEFT_DBCLICK
         END
+        POPUP "New Tab Mode"
+        BEGIN
+            MENUITEM "&Right-click Empty Space",                       IDM_VIEW_TAB_RIGHT_NEW
+            MENUITEM "&Left-double-click Empty Space",                 IDM_VIEW_TAB_DBCLICK_NEW
+        END
         MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
         BEGIN
@@ -290,7 +295,7 @@ BEGIN
             MENUITEM "Format Selected Text",                           IDM_FORMAT_RANGLE_STR
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Chinese Internal Code Conversion",                      IDM_EDIT_PLACEHOLDE19
+        POPUP "Chinese Internal Code Conversion",                      IDM_EDIT_PLACEHOLDE_ICODE
         BEGIN
             MENUITEM "Simplified To Traditional",                      IDM_EDIT_GB_BIG5
             MENUITEM "Traditional To Simplified",                      IDM_EDIT_BIG5_GB
@@ -299,7 +304,7 @@ BEGIN
         MENUITEM "Word Wrap",                                          IDM_VIEW_WRAPLINE_MODE
         MENUITEM "QR Code Generator",                                  IDM_EDIT_QRCODE
     END
-    POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE20
+    POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
         MENUITEM "Block Collapse Switch",                              IDM_SOURCE_BLOCKFOLD_TOGGLE
         MENUITEM "Fold Block",                                         IDM_SOURCE_BLOCKFOLD_CONTRACT

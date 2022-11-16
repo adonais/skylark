@@ -258,6 +258,11 @@ BEGIN
             MENUITEM "右键单击(&R)",                            IDM_VIEW_TAB_RIGHT_CLICK
             MENUITEM "左键双击(&L)",                            IDM_VIEW_TAB_LEFT_DBCLICK
         END
+        POPUP "新建标签方式"
+        BEGIN
+            MENUITEM "空白区右键单击(&R)",                      IDM_VIEW_TAB_RIGHT_NEW
+            MENUITEM "空白区左键双击(&L)",                      IDM_VIEW_TAB_DBCLICK_NEW
+        END
         MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE15
         BEGIN
@@ -290,7 +295,7 @@ BEGIN
             MENUITEM "格式化选中文本",                          IDM_FORMAT_RANGLE_STR
         END
         MENUITEM MF_SEPARATOR
-        POPUP "简繁内码转换",                                   IDM_EDIT_PLACEHOLDE19
+        POPUP "简繁内码转换",                                   IDM_EDIT_PLACEHOLDE_ICODE
         BEGIN
             MENUITEM "简体转繁体",                              IDM_EDIT_GB_BIG5
             MENUITEM "繁体转简体",                              IDM_EDIT_BIG5_GB
@@ -299,7 +304,7 @@ BEGIN
         MENUITEM "自动换行(&L)",                                IDM_VIEW_WRAPLINE_MODE
         MENUITEM "生成二维码",                                  IDM_EDIT_QRCODE
     END
-    POPUP "编程(&P)",                                           IDM_EDIT_PLACEHOLDE20
+    POPUP "编程(&P)",                                           IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
         MENUITEM "语句块折叠切换",                              IDM_SOURCE_BLOCKFOLD_TOGGLE
         MENUITEM "语句块合拢",                                  IDM_SOURCE_BLOCKFOLD_CONTRACT

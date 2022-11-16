@@ -888,8 +888,8 @@
 #define IDM_EDIT_PLACEHOLDE_JSON            42816
 #define IDM_EDIT_PLACEHOLDE_CLANG           42817
 #define IDM_EDIT_PLACEHOLDE_LUA             42818
-#define IDM_EDIT_PLACEHOLDE19               42819
-#define IDM_EDIT_PLACEHOLDE20               42820
+#define IDM_EDIT_PLACEHOLDE_ICODE           42819
+#define IDM_EDIT_PLACEHOLDE_PROGRAM         42820
 #define IDM_EDIT_ASCENDING_SORT             42821
 #define IDM_EDIT_DESCENDING_SORT            42822
 #define IDM_EDIT_ASCENDING_SORT_IGNORECASE  42823
@@ -1001,6 +1001,9 @@
 #define IDS_BUTTON_ROUTE_TIPS               44022
 
 #define IDS_PLUGINS_MSG1                    44030
+
+#define IDM_VIEW_TAB_RIGHT_NEW              44040
+#define IDM_VIEW_TAB_DBCLICK_NEW            44041
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
