@@ -126,7 +126,7 @@ on_tabpage_setpos(eu_tabpage *p)
 {
     if (p && p->hwnd_sc)
     {
-        eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left, 
+        eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left,
                          p->rect_sc.bottom - p->rect_sc.top, SWP_SHOWWINDOW);
     }
 }
@@ -859,9 +859,10 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEMOVE:
         {
-            TRACKMOUSEEVENT MouseEvent = {sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwnd, HOVER_DEFAULT};
             RECT rect;
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            TRACKMOUSEEVENT MouseEvent = {sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwnd, HOVER_DEFAULT};
+            TrackMouseEvent(&MouseEvent);
             GetClientRect(hwnd, &rect);
             if (!PtInRect(&rect, point))
             {
@@ -900,7 +901,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     p->at_close = false;
                 }
             }
-            return TrackMouseEvent(&MouseEvent);
+            break;
         }
         case WM_LBUTTONDOWN:
         {
@@ -985,7 +986,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 return menu_pop_track(eu_module_hwnd(), IDR_TABPAGE_POPUPMENU, 0, 0, on_tabpage_menu_callback, p);
             }
-            return 1;
+            break;
         }
         case WM_MBUTTONUP:
         {
@@ -999,7 +1000,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEHOVER:
         {   // 鼠标悬停激活
-            return 1;
+            break;
         }
         case WM_MOUSELEAVE:
         {
@@ -1017,7 +1018,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_tabpage_undraw_close(hwnd, &rect);
                 }
             }
-            return 1;
+            break;
         }
         case WM_DESTROY:
         {
@@ -1034,11 +1035,8 @@ int
 on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
-    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS;  //  TCS_BUTTONS | TCS_OWNERDRAWFIXED
-    if (!util_under_wine())
-    {
-        flags |= TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_FOCUSNEVER;
-    }
+    const uint32_t flags = \
+          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_FOCUSNEVER;
     g_tabpages = CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)IDM_TABPAGE_BAR, eu_module_handle(), NULL);
     do
     {
@@ -1336,7 +1334,7 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
-        pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);        
+        pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
     }
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
