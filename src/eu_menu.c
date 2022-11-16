@@ -444,9 +444,9 @@ menu_update_item(HMENU menu)
                     {
                         enable = eu_exist_file(CLANGDLL);
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON && enable));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_JSON, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON && enable));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_JS, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT && enable));
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE17,
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_CLANG,
                                              (pnode->doc_ptr && !pnode->hex_mode && enable &&
                                              (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_CS ||
@@ -454,7 +454,7 @@ menu_update_item(HMENU menu)
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_LUA, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE19, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
                     }

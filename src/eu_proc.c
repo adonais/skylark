@@ -500,6 +500,10 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
+    if (p_msg->message == WM_SYSKEYDOWN && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
+    {
+        return 1;
+    }
     if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
     {
         if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 0x31)))
@@ -591,8 +595,8 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
         {
             pnode->be_modify = true;
             on_toolbar_update_button();
-            InvalidateRect(g_tabpages, NULL, false); 
-            printf("skylark: doc has been modified\n"); 
+            InvalidateRect(g_tabpages, NULL, false);
+            printf("skylark: doc has been modified\n");
         }
     }
     if (flags && !lpnmhdr->modified && pnode->plugin)
@@ -833,17 +837,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 int len = 0;
                 HMENU file_menu = NULL;
                 HMENU hpop = NULL;
+                HMENU root_menu = GetMenu(hwnd);
                 file_backup bak = {0};
-                HMENU root_menu = GetMenu(g_hwndmain);
-                if (root_menu)
-                {
-                    file_menu = GetSubMenu(root_menu, 0);
-                    hpop = GetSubMenu(file_menu, 2);
-                }
-                if (root_menu && file_menu && hpop)
-                {
-                    len = GetMenuString(hpop, wm_id, bak.rel_path, MAX_PATH, MF_BYCOMMAND);
-                }
+                file_menu = root_menu ? GetSubMenu(root_menu, 0) : NULL;
+                hpop = file_menu ? GetSubMenu(file_menu, 2) : NULL;
+                len = hpop ? GetMenuString(hpop, wm_id, bak.rel_path, MAX_PATH, MF_BYCOMMAND) : 0;
                 if (len > 0)
                 {
                     if (_tcsrchr(bak.rel_path, _T('&')))
@@ -1297,51 +1295,87 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_light_fold();
                     break;
                 case IDM_FORMAT_REFORMAT_JSON:
-                    on_format_file_style(pnode);
-                    on_symtree_json(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    {
+                        on_format_file_style(pnode);
+                        on_symtree_json(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_COMPRESS_JSON:
-                    on_format_do_compress(pnode, on_format_json_callback);
-                    on_symtree_json(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    {
+                        on_format_do_compress(pnode, on_format_json_callback);
+                        on_symtree_json(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_REFORMAT_JS:
-                    on_format_file_style(pnode);
-                    on_symlist_reqular(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    {
+                        on_format_file_style(pnode);
+                        on_symlist_reqular(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_COMPRESS_JS:
-                    on_format_do_compress(pnode, on_format_js_callback);
-                    on_symlist_reqular(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    {
+                        on_format_do_compress(pnode, on_format_js_callback);
+                        on_symlist_reqular(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    on_format_clang_file(pnode, true);
-                    if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    if (pnode->doc_ptr && !pnode->hex_mode &&
+                        (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
                     {
-                        on_symtree_json(pnode);
+                        on_format_clang_file(pnode, true);
+                        if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                        {
+                            on_symtree_json(pnode);
+                        }
+                        else
+                        {
+                            on_symlist_reqular(pnode);
+                        }
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
                     }
-                    else
-                    {
-                        on_symlist_reqular(pnode);
-                    }
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    on_format_clang_file(pnode, false);
-                    on_symlist_reqular(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode &&
+                        (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
+                    {
+                        on_format_clang_file(pnode, false);
+                        on_symlist_reqular(pnode);
+                    }
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
-                    on_toolbar_lua_exec(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    {
+                        on_toolbar_lua_exec(pnode);
+                    }
                     break;
                 case IDM_FORMAT_BYTE_CODE:
-                    do_byte_code(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    {
+                        do_byte_code(pnode);
+                    }
                     break;
                 case IDM_VIEW_WRAPLINE_MODE:
                     on_view_wrap_line();
@@ -1541,6 +1575,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             lpnotify = (ptr_notify) lParam;
             p_tips = (TOOLTIPTEXT *) lParam;
             eu_tabpage *pview = NULL;
+            if (!lpnmhdr || !lpnotify || !p_tips)
+            {
+                break;
+            }
             if (lpnmhdr->hwndFrom == g_filetree)
             {
                 SendMessage(g_filetree, WM_NOTIFY, wParam, lParam);

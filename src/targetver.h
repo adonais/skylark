@@ -885,9 +885,9 @@
 #define IDM_EDIT_PLACEHOLDE13               42813
 #define IDM_EDIT_PLACEHOLDE14               42814
 #define IDM_EDIT_PLACEHOLDE15               42815
-#define IDM_EDIT_PLACEHOLDE16               42816
-#define IDM_EDIT_PLACEHOLDE17               42817
-#define IDM_EDIT_PLACEHOLDE18               42818
+#define IDM_EDIT_PLACEHOLDE_JSON            42816
+#define IDM_EDIT_PLACEHOLDE_CLANG           42817
+#define IDM_EDIT_PLACEHOLDE_LUA             42818
 #define IDM_EDIT_PLACEHOLDE19               42819
 #define IDM_EDIT_PLACEHOLDE20               42820
 #define IDM_EDIT_ASCENDING_SORT             42821

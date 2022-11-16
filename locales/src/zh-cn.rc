@@ -268,7 +268,7 @@ BEGIN
     END
     POPUP "格式(&M)"
     BEGIN
-        POPUP "Json 文件",                                      IDM_EDIT_PLACEHOLDE16
+        POPUP "Json 文件",                                      IDM_EDIT_PLACEHOLDE_JSON
         BEGIN
             MENUITEM "格式化 Json",                             IDM_FORMAT_REFORMAT_JSON
             MENUITEM "压缩 Json",                               IDM_FORMAT_COMPRESS_JSON
@@ -278,13 +278,13 @@ BEGIN
             MENUITEM "格式化 Js",                               IDM_FORMAT_REFORMAT_JS
             MENUITEM "压缩 Js",                                 IDM_FORMAT_COMPRESS_JS
         END
-        POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE18
+        POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
             MENUITEM "运行当前脚本",                            IDM_FORMAT_RUN_SCRIPT
             MENUITEM "转换为字节码",                            IDM_FORMAT_BYTE_CODE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE17
+        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE_CLANG
         BEGIN
             MENUITEM "格式化当前文档",                          IDM_FORMAT_WHOLE_FILE
             MENUITEM "格式化选中文本",                          IDM_FORMAT_RANGLE_STR

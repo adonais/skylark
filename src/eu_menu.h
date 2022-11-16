@@ -33,13 +33,11 @@ extern "C" {
 #endif
 
 typedef void (*ptr_menu_callback)(HMENU hpop, void *p);
-HMENU menu_load(uint16_t mid);
-
+int  menu_height();
+int  menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam, const uint32_t, ptr_menu_callback fn, void *param);
 void menu_switch_theme(void);
-void menu_update_item(HMENU menu);
-int menu_height();
-int menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam, const uint32_t, ptr_menu_callback fn, void *param);
-
+void menu_update_item(void *lp);
+HMENU menu_load(uint16_t mid);
 
 #ifdef __cplusplus
 }
