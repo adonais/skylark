@@ -1794,16 +1794,19 @@ static int
 on_search_process_count(eu_tabpage *pnode, const char *key, bool sel)
 {
     sptr_t pos = 0;
+    sptr_t end_pos = 0;
     size_t flags = on_search_build_flags(hwnd_search_dlg);
     size_t len = strlen(key);
     eu_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
     if (sel)
     {
         eu_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
+        end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     }
     else
     {
         eu_sci_call(pnode, SCI_TARGETWHOLEDOCUMENT, 0, 0);
+        end_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
     }
     while (pos >= 0)
     {
@@ -1812,7 +1815,6 @@ on_search_process_count(eu_tabpage *pnode, const char *key, bool sel)
         if (pos >= 0)
         {
             sptr_t start_pos = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-            sptr_t end_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
             sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             if (line >= 0)
             {
@@ -1892,10 +1894,12 @@ on_search_report_result(eu_tabpage *pnode, int err, const int button)
     else
     {
         on_search_node_init(pnode);
-        match_count = on_search_process_count(pnode, key, button == IDC_SEARCH_SELRE_BTN);
-        if (match_count > 0 && (button == IDC_SEARCH_PRE_BTN || button == IDC_SEARCH_NEXT_BTN))
+        if ((match_count = on_search_process_count(pnode, key, button == IDC_SEARCH_SELRE_BTN)) > 0)
         {
-            on_search_push_string_listbox(pnode->pathfile, key, match_count);
+            if (button == IDC_SEARCH_PRE_BTN || button == IDC_SEARCH_NEXT_BTN)
+            {
+                on_search_push_string_listbox(pnode->pathfile, key, match_count);
+            }
         }
     }
     if (pnode->match_count == -2)
