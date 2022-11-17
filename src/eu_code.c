@@ -149,49 +149,6 @@ on_code_switch_fold(eu_tabpage *pnode, sptr_t line_number)
 }
 
 void
-on_code_block_contract(eu_tabpage *pnode, sptr_t line_number)
-{
-    if (pnode)
-    {
-        const sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t line = line_number >= 0 ? line_number : eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        on_code_do_fold(pnode, SC_FOLDACTION_CONTRACT, line, false);
-        if (document_map_initialized && pnode->map_show)
-        {
-            if (hwnd_document_map)
-            {
-                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
-                if (map_edit)
-                {
-                    on_code_do_fold(map_edit, SC_FOLDACTION_CONTRACT, line, true);
-                }
-            }
-        }
-    }
-}
-
-void
-on_code_block_expand(eu_tabpage *pnode, sptr_t line_number)
-{
-    if (pnode)
-    {
-        sptr_t line = line_number >= 0 ? line_number : eu_sci_call(pnode, SCI_LINEFROMPOSITION, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0), 0);
-        on_code_do_fold(pnode, SC_FOLDACTION_EXPAND, line, false);
-        if (document_map_initialized && pnode->map_show)
-        {
-            if (hwnd_document_map)
-            {
-                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
-                if (map_edit)
-                {
-                    on_code_do_fold(map_edit, SC_FOLDACTION_EXPAND, line, true);
-                }
-            }
-        }
-    }
-}
-
-void
 on_code_block_contract_all(eu_tabpage *pnode)
 {
     if (pnode)

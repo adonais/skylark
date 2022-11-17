@@ -84,8 +84,6 @@ sptr_t on_search_process_find(eu_tabpage *, const char *, size_t, size_t, size_t
 bool on_search_create_box(void);
 
 void on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno);
-void on_search_add_mark(eu_tabpage *pnode, sptr_t lineno);
-void on_search_remove_marks_this(eu_tabpage *pnode);
 void on_search_remove_marks_all(eu_tabpage *pnode);
 void on_search_jmp_premark_this(eu_tabpage *pnode);
 void on_search_jmp_next_mark_this(eu_tabpage *pnode);

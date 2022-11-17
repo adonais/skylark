@@ -201,9 +201,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "Bookmark",                                              IDM_EDIT_PLACEHOLDE13
         BEGIN
-            MENUITEM "Toggle Bookmark ",                               IDM_SEARCH_TOGGLE_BOOKMARK
-            MENUITEM "Add Bookmark",                                   IDM_SEARCH_ADD_BOOKMARK
-            MENUITEM "Delete Bookmark",                                IDM_SEARCH_REMOVE_BOOKMARK
+            MENUITEM "Add/Delete Bookmark ",                           IDM_SEARCH_TOGGLE_BOOKMARK
             MENUITEM "Delete All Bookmark",                            IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "Jump Previous Bookmark (Current File)",          IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "Jump Next Bookmark (Current File)",              IDM_SEARCH_GOTO_NEXT_BOOKMARK
@@ -264,7 +262,8 @@ BEGIN
             MENUITEM "&Left-double-click Empty Space",                 IDM_VIEW_TAB_DBCLICK_NEW
         END
         MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
-        POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
+        MENUITEM MF_SEPARATOR
+        POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN
             MENUITEM "Zoom Out",                                       IDM_VIEW_ZOOMOUT
             MENUITEM "Zoom In",                                        IDM_VIEW_ZOOMIN
@@ -306,9 +305,7 @@ BEGIN
     END
     POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
-        MENUITEM "Block Collapse Switch",                              IDM_SOURCE_BLOCKFOLD_TOGGLE
-        MENUITEM "Fold Block",                                         IDM_SOURCE_BLOCKFOLD_CONTRACT
-        MENUITEM "Unfold Block",                                       IDM_SOURCE_BLOCKFOLD_EXPAND
+        MENUITEM "Block Collapse Fold/Unfold",                         IDM_SOURCE_BLOCKFOLD_TOGGLE
         MENUITEM "Fold All",                                           IDM_SOURCE_BLOCKFOLD_CONTRACTALL
         MENUITEM "Unfold All",                                         IDM_SOURCE_BLOCKFOLD_EXPANDALL
         MENUITEM MF_SEPARATOR
@@ -917,7 +914,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_13                   "Find Next"
     IDS_TOOLBAR_14                   "Undo Operation"
     IDS_TOOLBAR_15                   "Redo Last Operation"
-    IDS_TOOLBAR_16                   "Toggle Bookmark "
+    IDS_TOOLBAR_16                   "Add/Delete Bookmark"
     IDS_TOOLBAR_17                   "Jump to previous bookmark"
     IDS_TOOLBAR_18                   "Jump to the next bookmark"
     IDS_TOOLBAR_19                   "Text⇔Hex mode"

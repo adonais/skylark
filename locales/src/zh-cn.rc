@@ -201,9 +201,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "书签",                                           IDM_EDIT_PLACEHOLDE13
         BEGIN
-            MENUITEM "切换书签",                                IDM_SEARCH_TOGGLE_BOOKMARK
-            MENUITEM "增加书签",                                IDM_SEARCH_ADD_BOOKMARK
-            MENUITEM "删除书签",                                IDM_SEARCH_REMOVE_BOOKMARK
+            MENUITEM "增加/删除书签",                           IDM_SEARCH_TOGGLE_BOOKMARK
             MENUITEM "删除所有书签",                            IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "跳到上一个书签 (当前文件)",               IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "跳到下一个书签 (当前文件)",               IDM_SEARCH_GOTO_NEXT_BOOKMARK
@@ -264,7 +262,8 @@ BEGIN
             MENUITEM "空白区左键双击(&L)",                      IDM_VIEW_TAB_DBCLICK_NEW
         END
         MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
-        POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE15
+        MENUITEM MF_SEPARATOR
+        POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN
             MENUITEM "放大",                                    IDM_VIEW_ZOOMOUT
             MENUITEM "缩小",                                    IDM_VIEW_ZOOMIN
@@ -306,9 +305,7 @@ BEGIN
     END
     POPUP "编程(&P)",                                           IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
-        MENUITEM "语句块折叠切换",                              IDM_SOURCE_BLOCKFOLD_TOGGLE
-        MENUITEM "语句块合拢",                                  IDM_SOURCE_BLOCKFOLD_CONTRACT
-        MENUITEM "语句块展开",                                  IDM_SOURCE_BLOCKFOLD_EXPAND
+        MENUITEM "语句块合拢/展开",                             IDM_SOURCE_BLOCKFOLD_TOGGLE
         MENUITEM "全部语句块合拢",                              IDM_SOURCE_BLOCKFOLD_CONTRACTALL
         MENUITEM "全部语句块展开",                              IDM_SOURCE_BLOCKFOLD_EXPANDALL
         MENUITEM MF_SEPARATOR
@@ -916,7 +913,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_13                   "查找下一个"
     IDS_TOOLBAR_14                   "撤销操作"
     IDS_TOOLBAR_15                   "恢复上一次操作"
-    IDS_TOOLBAR_16                   "切换书签"
+    IDS_TOOLBAR_16                   "增加/删除书签"
     IDS_TOOLBAR_17                   "跳到上一个书签"
     IDS_TOOLBAR_18                   "跳到下一个书签"
     IDS_TOOLBAR_19                   "文本⇔十六进制"

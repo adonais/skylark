@@ -1243,12 +1243,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_TOGGLE_BOOKMARK:
                     on_search_toggle_mark(pnode, -1);
                     break;
-                case IDM_SEARCH_ADD_BOOKMARK:
-                    on_search_add_mark(pnode, -1);
-                    break;
-                case IDM_SEARCH_REMOVE_BOOKMARK:
-                    on_search_remove_marks_this(pnode);
-                    break;
                 case IDM_SEARCH_REMOVE_ALL_BOOKMARKS:
                     on_search_remove_marks_all(pnode);
                     break;
@@ -1472,12 +1466,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_SOURCE_BLOCKFOLD_TOGGLE:
                     on_code_switch_fold(pnode, -1);
-                    break;
-                case IDM_SOURCE_BLOCKFOLD_CONTRACT:
-                    on_code_block_contract(pnode, -1);
-                    break;
-                case IDM_SOURCE_BLOCKFOLD_EXPAND:
-                    on_code_block_expand(pnode, -1);
                     break;
                 case IDM_SOURCE_BLOCKFOLD_CONTRACTALL:
                     on_code_block_contract_all(pnode);

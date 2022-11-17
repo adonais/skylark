@@ -463,12 +463,8 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_EDIT_QRCODE, util_can_selections(pnode));
                         break;
                     case IDM_SOURCE_BLOCKFOLD_TOGGLE: /* Programming menu */
-                    case IDM_SOURCE_BLOCKFOLD_CONTRACT:
-                    case IDM_SOURCE_BLOCKFOLD_EXPAND:
                         enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_TOGGLE, enable);
-                        util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_CONTRACT, enable);
-                        util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_EXPAND, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_CONTRACTALL, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_EXPANDALL, enable);
                         break;

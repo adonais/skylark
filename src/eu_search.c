@@ -981,7 +981,7 @@ on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
     }
 }
 
-void
+static void
 on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
 {
     sptr_t current_line = lineno;
@@ -996,7 +996,7 @@ on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
     }
 }
 
-void
+static void
 on_search_remove_marks_this(eu_tabpage *pnode)
 {
     if (pnode)
