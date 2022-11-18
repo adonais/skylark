@@ -820,6 +820,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_dark_allow_window(hwnd, true);
                 on_dark_refresh_titlebar(hwnd);
+                on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
                 on_tabpage_foreach(on_tabpage_theme_changed);
                 if (g_statusbar)
                 {
