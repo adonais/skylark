@@ -1500,10 +1500,8 @@ bool
 util_exist_libcurl(void)
 {
     bool ret = false;
-    HMODULE lib_symbol = NULL;
-    TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((lib_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+    HMODULE lib_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    if (lib_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(lib_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1525,10 +1523,8 @@ int
 util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level)
 {
     int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = NULL;
-    TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    if (curl_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(curl_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1544,10 +1540,8 @@ int
 util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len)
 {
     int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = NULL;
-    TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    if (curl_symbol)
     {
         ptr_uncompress fn_uncompress = (ptr_uncompress)GetProcAddress(curl_symbol,"zlib_uncompress2");
         if (fn_uncompress)

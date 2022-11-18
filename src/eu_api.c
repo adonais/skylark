@@ -279,31 +279,25 @@ bool WINAPI
 eu_exist_file(LPCTSTR path)
 {
     bool ret = false;
-    TCHAR *fullpath = NULL;
-    DWORD fileattr = INVALID_FILE_ATTRIBUTES;
+    uint32_t fileattr = INVALID_FILE_ATTRIBUTES;
     if (STR_IS_NUL(path))
     {
         return false;
     }
-    while ((fullpath = util_wstr_unquote(path)))
+    if (_tcslen(path) > 1 && path[1] == L':')
     {
-        if (_tcslen(fullpath) > 1 && fullpath[1] == L':')
-        {
-            fileattr = GetFileAttributes(fullpath);
-        }
-        else
-        {
-            TCHAR file_path[MAX_PATH+1] = {0};
-            _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, fullpath);
-            fileattr = GetFileAttributes(file_path);
-        }
-        if (fileattr != INVALID_FILE_ATTRIBUTES)
-        {
-            ret = (fileattr & FILE_ATTRIBUTE_DIRECTORY) == 0;
-        }
-        break;
+        fileattr = GetFileAttributes(path);
     }
-    eu_safe_free(fullpath);
+    else
+    {
+        TCHAR file_path[MAX_PATH+1] = {0};
+        _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, path);
+        fileattr = GetFileAttributes(file_path);
+    }
+    if (fileattr != INVALID_FILE_ATTRIBUTES)
+    {
+        ret = (fileattr & FILE_ATTRIBUTE_DIRECTORY) == 0;
+    }
     return ret;
 }
 
@@ -2410,9 +2404,7 @@ eu_curl_init_global(long flags)
     EnterCriticalSection(&eu_curl_cs);
     if (!eu_curl_initialized)
     {
-        TCHAR curl_path[MAX_PATH+1] = {0};
-        _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
-        if ((eu_curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+        if ((eu_curl_symbol = np_load_plugin_library(_T("libcurl.dll"))) != NULL)
         {
             fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(eu_curl_symbol,"curl_global_init");
             fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(eu_curl_symbol,"curl_easy_init");
@@ -2495,13 +2487,13 @@ HMODULE
 eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
 {
     HMODULE ssl = NULL;
-    TCHAR ssl_path[MAX_PATH+1] = {0};
+    const TCHAR *ssl_path =
 #ifdef _WIN64
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
+    _T("libcrypto-1_1-x64.dll");
 #else
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
+    _T("libcrypto-1_1.dll");
 #endif
-    if ((ssl = LoadLibraryEx(ssl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+    if ((ssl = np_load_plugin_library(ssl_path)) != NULL)
     {
         for (int i = 0; i < n && s[i][0]; ++i)
         {

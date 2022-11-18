@@ -269,7 +269,6 @@ on_table_connect_database(eu_tabpage *pnode)
     TCHAR utf_str[QW_SIZE+1] = {0};
     TCHAR user[QW_SIZE+1] = {0};
     TCHAR name[MAX_PATH+1] = {0};
-    TCHAR dll_path[MAX_PATH+1] = {0};
     if (!(pnode && pnode->db_ptr && pnode->db_ptr->config.dbtype[0]))
     {
         return 1;
@@ -289,8 +288,7 @@ on_table_connect_database(eu_tabpage *pnode)
         mysql_handle *this_mysql = &(pnode->db_ptr->handles.h_mysql);
         if (mysql_sub->mysql_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libmysql.dll"));
-            mysql_sub->mysql_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+            mysql_sub->mysql_dll = np_load_plugin_library(_T("libmysql.dll"));
             if (mysql_sub->mysql_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -406,8 +404,7 @@ on_table_connect_database(eu_tabpage *pnode)
         sword result;
         if (oci_sub->oci_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("oci.dll"));
-            oci_sub->oci_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+            oci_sub->oci_dll = np_load_plugin_library(_T("oci.dll"));
             if (oci_sub->oci_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -584,8 +581,7 @@ on_table_connect_database(eu_tabpage *pnode)
         pq_handle *this_pq = &(pnode->db_ptr->handles.h_pq);
         if (pq_sub->libpq_dll == NULL)
         {
-            _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libpq.dll"));
-            pq_sub->libpq_dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+            pq_sub->libpq_dll = np_load_plugin_library(_T("libpq.dll"));
             if (pq_sub->libpq_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR21, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
