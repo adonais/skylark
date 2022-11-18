@@ -1594,8 +1594,8 @@ on_file_stream_upload(eu_tabpage *pnode, wchar_t *pmsg)
         #if defined(APP_DEBUG) && (APP_DEBUG > 0)
             eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         #endif
+            // 设置链接超时, 不要设置上传超时, 防止文件被截断
             eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
-            eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
             err = eu_curl_easy_perform(curl);
             if (err && pmsg)
             {
