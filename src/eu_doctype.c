@@ -314,10 +314,6 @@ on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
     if (pnode)
     {
         on_doc_key_scilexer(pnode, name);
-        if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
-        {
-            pnode->doc_ptr->fn_reload_symlist(pnode);
-        }
         return 0;
     }
     return 1;

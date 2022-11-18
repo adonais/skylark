@@ -408,7 +408,7 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             {
                 cr = set_btnface_color(hdc, dark_mode);
             }
-            if (eu_sci_call(p,SCI_GETREADONLY, 0, 0))
+            if (p->file_attr & FILE_ATTRIBUTE_READONLY)
             {
                 ImageList_Draw(himg, 1, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
             }
