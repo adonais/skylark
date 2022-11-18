@@ -1328,7 +1328,8 @@ on_file_remote_thread(eu_tabpage *p, file_backup *pbak, remotefs *premote)
             printf("pnode->st_mtime = %zu\n", p->st_mtime);
         }
         eu_curl_easy_cleanup(curl);
-        eu_safe_free((void *)p->reserved0);
+        free((void *)p->reserved0);
+        p->reserved0 = 0;
     }
     return ret;
 }
