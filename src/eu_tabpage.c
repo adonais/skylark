@@ -349,8 +349,8 @@ static void
 on_tabpage_undraw_close(HWND hwnd, const LPRECT lprect)
 {
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + TAB_MIN_TOP,
-               lprect->right - TAB_MIN_TOP,
+               lprect->top + 1,
+               lprect->right,
                lprect->bottom - 1
               };
     InvalidateRect(hwnd, &rc, true);
@@ -361,9 +361,9 @@ static bool
 on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
 {
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + TAB_MIN_TOP,
-               lprect->right - TAB_MIN_TOP,
-               lprect->top + TAB_MIN_TOP + CLOSEBUTTON_HEIGHT
+               lprect->top + 1,
+               lprect->right,
+               lprect->bottom - 1
               };
     return PtInRect(&rc, *pt);
 }
@@ -905,7 +905,6 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            RECT rect_tabbar;
             g_point.x = GET_X_LPARAM(lParam);
             g_point.y = GET_Y_LPARAM(lParam);
             count = TabCtrl_GetItemCount(hwnd);
@@ -913,17 +912,15 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             tab_drag = false;
             tab_mutil_select = false;
             tab_do_drag = false;
-            for (index = 0; index < count; ++index)
-            {
-                TabCtrl_GetItemRect(hwnd, index, &rect_tabbar);
-                if (on_tabpage_hit_button(&rect_tabbar, &g_point))
-                {
-                    PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
-                    return 1;
-                }
-            }
             if ((tab_move_from = on_tabpage_hit_index(&g_point)) != -1)
             {
+                RECT rc;
+                TabCtrl_GetItemRect(hwnd, tab_move_from, &rc);
+                if (on_tabpage_hit_button(&rc, &g_point))
+                {
+                    PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
+                    break;
+                }
                 if (KEY_UP(VK_CONTROL))
                 {
                     on_tabpage_active_one(tab_move_from);
