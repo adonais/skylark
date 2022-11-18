@@ -34,13 +34,19 @@ at_eol(Accessor &styler, size_t i)
     return (styler[i] == '\n') || ((styler[i] == '\r') && (styler.SafeGetCharAt(i + 1) != '\n'));
 }
 
+static inline bool
+planning_chars(const uint8_t *s)
+{
+    const size_t len = strlen((const char *)s);
+    return (len > 5 && s[0] == 0xc2 && s[1] == 0xbb && s[2] == ' ' && s[3] == 0xc2 && s[4] == 0xbb && s[5] == ' ');
+}
+
 static void
 handle_word(result_vec *pvec, char *lineBuffer, size_t startLine, size_t endPos, Accessor &styler, int linenum)
 {
     int state = SCE_RESULT_DEFAULT;
-    size_t line_len = strlen(lineBuffer);
     // file comment
-    if ((line_len > 4 && lineBuffer[0] == 0xc2 && lineBuffer[1] == 0xbb && lineBuffer[3] == 0xc2 && lineBuffer[4] == 0xbb && lineBuffer[5] == ' '))
+    if (planning_chars((const uint8_t *)lineBuffer))
     {
         styler.ColourTo(endPos, SCE_RESULT_COMMENT);
     }
