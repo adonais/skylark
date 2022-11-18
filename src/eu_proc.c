@@ -413,41 +413,10 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                                  rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
                 eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
                                  pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-                UpdateWindow(g_treebar);
-                UpdateWindow(g_splitter_treebar);
-                // on wine, we use RedrawWindow refresh client area
-                RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
                 UpdateWindowEx(g_tabpages);
                 UpdateWindowEx(pnode->hwnd_sc);
             }
             pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
-        }
-        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
-        {
-            eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && p != pnode)
-            {
-                if (p->hwnd_symlist && p->sym_show)
-                {
-                    ShowWindow(p->hwnd_symlist, SW_HIDE);
-                }
-                else if (p->hwnd_symtree && p->sym_show)
-                {
-                    ShowWindow(p->hwnd_symtree, SW_HIDE);
-                }
-                if (RESULT_SHOW(p))
-                {
-                    ShowWindow(p->presult->hwnd_sc, SW_HIDE);
-                    if (p->hwnd_qrtable)
-                    {
-                        ShowWindow(p->hwnd_qrtable, SW_HIDE);
-                    }
-                }
-                if (p->hwnd_sc)
-                {
-                    ShowWindow(p->hwnd_sc, SW_HIDE);
-                }
-            }
         }
         if (RESULT_SHOW(pnode) && eu_result_hwnd())
         {
@@ -464,9 +433,8 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                                  pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
                 eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_result.bottom,
                                  pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-                InvalidateRect(pnode->hwnd_qrtable, &pnode->rect_qrtable, 0);
-                UpdateWindow(pnode->hwnd_qrtable);
-                InvalidateRect(g_splitter_tablebar, &r, 0);
+                UpdateWindowEx(pnode->hwnd_qrtable);
+                InvalidateRect(g_splitter_tablebar, &r, false);
                 UpdateWindow(g_splitter_tablebar);
             }
         }
@@ -506,10 +474,8 @@ eu_before_proc(MSG *p_msg)
     }
     if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
     {
-        if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 0x31)))
-        {
-            return 1;
-        }
+        on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
+        return 1;
     }
     if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {

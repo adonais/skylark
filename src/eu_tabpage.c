@@ -919,7 +919,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (on_tabpage_hit_button(&rc, &g_point))
                 {
                     PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
-                    break;
+                    return 1;
                 }
                 if (KEY_UP(VK_CONTROL))
                 {
@@ -1617,16 +1617,13 @@ void
 on_tabpage_switch_next(HWND hwnd)
 {
     EU_VERIFY(g_tabpages != NULL);
+    UNREFERENCED_PARAMETER(hwnd);
     int count = TabCtrl_GetItemCount(g_tabpages);
     int index = TabCtrl_GetCurSel(g_tabpages);
     if (index >= 0 && count > 1 && index < count)
     {
-        eu_tabpage *p = NULL;
         index = (index < count - 1 ? index + 1 : 0);
-        if((p = on_tabpage_get_ptr(index)) != NULL)
-        {
-            on_tabpage_selection(p, index);
-        }
+        on_tabpage_active_one(index);
     }
 }
 
