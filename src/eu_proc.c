@@ -282,7 +282,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         if (ptab)
         {
             number -= 5;
-        }
+        }   
         HDWP hdwp = BeginDeferWindowPos(number);
         if (!ptab)
         {
@@ -417,6 +417,14 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 UpdateWindowEx(pnode->hwnd_sc);
             }
             pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
+        }
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(index);
+            if (p && p != pnode && !p->plugin && p->hex_mode && p->hwnd_sc)
+            {
+                ShowWindow(p->hwnd_sc, SW_HIDE);
+            }
         }
         if (RESULT_SHOW(pnode) && eu_result_hwnd())
         {

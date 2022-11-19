@@ -2152,11 +2152,22 @@ util_which(const TCHAR *name)
         {
             _sntprintf(env_path, len, _T("%s;%s;%s\\plugins"), path, sz_process, sz_process);
         }
+        bool quote = false;
         wchar_t *tok = _tcstok(env_path, delimiter);
         while (tok)
         {
             int i = 0;
-            _sntprintf(file, MAX_PATH, _T("%s\\%s"), tok, name);
+            int blen = eu_int_cast(wcslen(tok));
+            if (blen > 0 && tok[blen - 1] == '"')
+            {
+                tok[blen - 1] = 0;
+                quote = true;
+            }
+            else
+            {
+                quote = false;
+            }
+            _sntprintf(file, MAX_PATH, _T("%s\\%s"), quote? &tok[1] : tok, name);
             do
             {
                 struct _stat st;
@@ -2167,7 +2178,7 @@ util_which(const TCHAR *name)
                 }
                 if (add_suf && av[i])
                 {
-                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), tok, name, av[i]);
+                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), quote? &tok[1] : tok, name, av[i]);
                 }
             } while (av[i++]);
             tok = _tcstok(NULL, delimiter);

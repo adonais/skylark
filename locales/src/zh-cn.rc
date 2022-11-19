@@ -85,7 +85,7 @@ BEGIN
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
         END
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
-        MENUITEM "发送到BCompare进行比较",                      IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "发送到外部应用进行比较",                      IDM_EDIT_OTHER_BCOMPARE
         MENUITEM MF_SEPARATOR
         POPUP "行编辑",                                         IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -392,7 +392,7 @@ BEGIN
         MENUITEM "退出全屏(&U)",                                IDM_TABPAGE_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
-        MENUITEM "发送到BCompare进行比较",                      IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "发送到外部应用进行比较",                      IDM_EDIT_OTHER_BCOMPARE
         MENUITEM SEPARATOR
         MENUITEM "打开文件夹工作区(&W)",                        IDM_FILE_WORKSPACE
         MENUITEM "在资源管理器中打开文件夹(&E)",                IDM_FILE_EXPLORER

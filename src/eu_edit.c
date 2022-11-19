@@ -170,11 +170,11 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-        if (_tcsnicmp(name, _T("Notepad++"), _tcslen(name)) == 0)
+        if (_tcsnicmp(name, _T("Notepad++"), _tcslen(_T("Notepad++"))) == 0)
         {
             _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\" -n%zd -c%zd"), path, pnode->pathfile, line+1, pos-row+1);
         }
-        else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(name)) == 0)
+        else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(_T("UltraEdit"))) == 0)
         {
             _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s/%zd/%zd\""), path, pnode->pathfile, line+1, pos-row+1);
         }
@@ -191,22 +191,32 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
 }
 
 static void
-on_edit_compare(const TCHAR *path, const wchar_t **pvec, const bool hex)
+on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
 {
     if (path && pvec)
     {
+        wchar_t *cmd_exec = NULL;
+        wchar_t name[MAX_PATH] = {0};
         int count = eu_int_cast(cvector_size(pvec));
         const int len = (count + 1) * (MAX_PATH + 1);
-        wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
-        if (cmd_exec != NULL)
+        util_product_name(path, name, MAX_PATH - 1);
+        if ((cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1)) != NULL)
         {
             if (!hex)
             {
                 _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
             }
-            else
+            else if (_tcsnicmp(name, _T("Beyond Compare"), _tcslen(_T("Beyond Compare"))) == 0)
             {
                 _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/fv=\"Hex Compare\""));
+            }
+            else if (_tcsnicmp(name, _T("WinMerge"), _tcslen(_T("WinMerge"))) == 0)
+            {
+                _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/m Binary /t Binary"));
+            }
+            else
+            {
+                _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
             }
             for (int i = 0; i < count; ++i)
             {
@@ -266,6 +276,10 @@ on_edit_push_compare(void)
             path = eu_utf8_utf16(eu_get_config()->m_reserved_0, NULL);
         }
         else if ((path = util_which(_T("bcompare"))) != NULL)
+        {
+            printf("path = %ls\n", path);
+        }
+        else if ((path = util_which(_T("winmergeu"))) != NULL)
         {
             printf("path = %ls\n", path);
         }

@@ -85,7 +85,7 @@ BEGIN
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
         END
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
-        MENUITEM "Send To BCompare For Comparison",                    IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "Send To External App For Comparison",                IDM_EDIT_OTHER_BCOMPARE
         MENUITEM MF_SEPARATOR
         POPUP "Line Edit",                                             IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -392,7 +392,7 @@ BEGIN
         MENUITEM "Quit F&ull Screen",                                  IDM_TABPAGE_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
-        MENUITEM "Send To BCompare For Comparison",                    IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "Send To External App For Comparison",                IDM_EDIT_OTHER_BCOMPARE
         MENUITEM SEPARATOR
         MENUITEM "Open Folder &Workspace",                             IDM_FILE_WORKSPACE
         MENUITEM "Open Folder In &Explorer",                           IDM_FILE_EXPLORER
