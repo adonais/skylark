@@ -1074,10 +1074,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_edit_sentence_upper(pnode, true);
                     break;
                 case IDM_EDIT_TAB_SPACE:
-                    on_search_tab2space(pnode);
+                    on_search_tab_space(pnode, true);
                     break;
                 case IDM_EDIT_SPACE_TAB:
-                    on_search_space2tab(pnode);
+                    on_search_tab_space(pnode, false);
                     break;
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();

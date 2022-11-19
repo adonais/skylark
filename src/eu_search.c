@@ -3678,49 +3678,54 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace)
 }
 
 void
-on_search_tab2space(eu_tabpage *pnode)
+on_search_tab_space(eu_tabpage *p, bool tospace)
 {
-    int flags = SCFIND_REGEXP;
-    char str_replace[QW_SIZE] = {0};
-    const char *key = "\t";
     int number = 0;
-    if (!pnode)
-    {
-        return;
-    }
-    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
-    {
-        number = pnode->doc_ptr->tab_width;
-    }
-    else
-    {
-        number = eu_get_config()->tab_width;
-    }
-    memset(str_replace, 0x20, number);
-    on_search_do_space(pnode, key, str_replace);
-}
-
-void
-on_search_space2tab(eu_tabpage *pnode)
-{
-    int flags = SCFIND_REGEXP;
     char key[QW_SIZE] = {0};
-    const char *str_replace = "\t";
-    int number = 0;
-    if (!pnode)
+    char str_replace[QW_SIZE] = {0};
+    cvector_vector_type(int) v = NULL;
+    UNREFERENCED_PARAMETER(p);
+    if ((on_tabpage_sel_number(&v, false)) > 0)
     {
-        return;
+        int count = eu_int_cast(cvector_size(v));
+        for (int k = 0; k < count; ++k)
+        {
+            eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
+            if (pnode && !pnode->hex_mode)
+            {
+                if (pnode)
+                {
+                    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
+                    {
+                        number = pnode->doc_ptr->tab_width;
+                    }
+                    else
+                    {
+                        number = eu_get_config()->tab_width;
+                    }
+                    if (number < QW_SIZE)
+                    {
+                        if (tospace)
+                        {
+                            key[0] = '\t';
+                            key[1] = 0;
+                            memset(str_replace, 0x20, number);
+                            str_replace[number] = 0;
+                        }
+                        else
+                        {
+                            memset(key, 0x20, number);
+                            key[number] = 0;
+                            str_replace[0] = '\t';
+                            str_replace[1] = 0;
+                        }
+                        on_search_do_space(pnode, key, str_replace);
+                    }
+                }
+            }
+        }
     }
-    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
-    {
-        number = pnode->doc_ptr->tab_width;
-    }
-    else
-    {
-        number = eu_get_config()->tab_width;
-    }
-    memset(key, 0x20, number);
-    on_search_do_space(pnode, key, str_replace);
+    cvector_freep(&v);
 }
 
 bool
