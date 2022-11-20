@@ -927,6 +927,10 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 else if (on_tabpage_nfocus(tab_move_from))
                 {
+                    if (TabCtrl_GetCurSel(hwnd) != tab_move_from)
+                    {
+                        on_tabpage_deselect(tab_move_from);
+                    }
                     return 1;
                 }
             }
