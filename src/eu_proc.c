@@ -1319,39 +1319,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    if (pnode->doc_ptr && !pnode->hex_mode &&
-                        (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
-                    {
-                        on_format_clang_file(pnode, true);
-                        if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
-                        {
-                            on_symtree_json(pnode);
-                        }
-                        else
-                        {
-                            on_symlist_reqular(pnode);
-                        }
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
-                    }
+                    on_format_clang_file(pnode, true);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    if (pnode->doc_ptr && !pnode->hex_mode &&
-                        (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
-                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
-                    {
-                        on_format_clang_file(pnode, false);
-                        on_symlist_reqular(pnode);
-                    }
+                    on_format_clang_file(pnode, false);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
                     if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
