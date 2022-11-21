@@ -126,6 +126,7 @@ void on_dark_allow_app(bool allow);
 void on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list);
 void on_dark_delete_theme_brush(void);
 void on_dark_border(HWND hwnd, bool border);
+void on_dark_tips_theme(HWND hwnd, int msg);
 colour on_dark_get_sys_colour(HWND hwnd, int colid);
 colour on_dark_get_colorization_color(void);
 colour on_dark_light_color(colour cr_base, float factor);

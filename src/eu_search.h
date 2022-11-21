@@ -84,8 +84,6 @@ sptr_t on_search_process_find(eu_tabpage *, const char *, size_t, size_t, size_t
 bool on_search_create_box(void);
 
 void on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno);
-void on_search_add_mark(eu_tabpage *pnode, sptr_t lineno);
-void on_search_remove_marks_this(eu_tabpage *pnode);
 void on_search_remove_marks_all(eu_tabpage *pnode);
 void on_search_jmp_premark_this(eu_tabpage *pnode);
 void on_search_jmp_next_mark_this(eu_tabpage *pnode);
@@ -119,8 +117,7 @@ void on_search_set_selection(eu_tabpage *pnode);
 void on_search_set_rectangle(eu_tabpage *pnode);
 void on_search_finish_wait(void);
 void on_search_dark_mode_release(void);
-void on_search_tab2space(eu_tabpage *pnode);
-void on_search_space2tab(eu_tabpage *pnode);
+void on_search_tab_space(eu_tabpage *p, bool tospace);
 void on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres);
 void on_search_turn_select(eu_tabpage *pnode);
 

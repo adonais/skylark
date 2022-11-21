@@ -36,7 +36,7 @@ int  on_format_js_callback(const uint8_t *text, uint8_t **pbuf);
 int  on_format_json_callback(const uint8_t *text, uint8_t **pbuf);
 void on_format_file_style(eu_tabpage *pnode);
 void on_format_do_compress(eu_tabpage *pnode, format_back fn); 
-void on_format_clang_file(eu_tabpage *pnode, const bool whole);
+void on_format_clang_file(eu_tabpage *p, const bool whole);
 
 #ifdef __cplusplus
 }

@@ -282,7 +282,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         if (ptab)
         {
             number -= 5;
-        }
+        }   
         HDWP hdwp = BeginDeferWindowPos(number);
         if (!ptab)
         {
@@ -413,10 +413,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                                  rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
                 eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
                                  pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-                UpdateWindow(g_treebar);
-                UpdateWindow(g_splitter_treebar);
-                // on wine, we use RedrawWindow refresh client area
-                RedrawWindow(g_filetree, NULL, NULL,RDW_INVALIDATE | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN);
                 UpdateWindowEx(g_tabpages);
                 UpdateWindowEx(pnode->hwnd_sc);
             }
@@ -425,28 +421,9 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && p != pnode)
+            if (p && p != pnode && !p->plugin && p->hex_mode && p->hwnd_sc)
             {
-                if (p->hwnd_symlist && p->sym_show)
-                {
-                    ShowWindow(p->hwnd_symlist, SW_HIDE);
-                }
-                else if (p->hwnd_symtree && p->sym_show)
-                {
-                    ShowWindow(p->hwnd_symtree, SW_HIDE);
-                }
-                if (RESULT_SHOW(p))
-                {
-                    ShowWindow(p->presult->hwnd_sc, SW_HIDE);
-                    if (p->hwnd_qrtable)
-                    {
-                        ShowWindow(p->hwnd_qrtable, SW_HIDE);
-                    }
-                }
-                if (p->hwnd_sc)
-                {
-                    ShowWindow(p->hwnd_sc, SW_HIDE);
-                }
+                ShowWindow(p->hwnd_sc, SW_HIDE);
             }
         }
         if (RESULT_SHOW(pnode) && eu_result_hwnd())
@@ -464,9 +441,8 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                                  pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
                 eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_result.bottom,
                                  pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
-                InvalidateRect(pnode->hwnd_qrtable, &pnode->rect_qrtable, 0);
-                UpdateWindow(pnode->hwnd_qrtable);
-                InvalidateRect(g_splitter_tablebar, &r, 0);
+                UpdateWindowEx(pnode->hwnd_qrtable);
+                InvalidateRect(g_splitter_tablebar, &r, false);
                 UpdateWindow(g_splitter_tablebar);
             }
         }
@@ -500,12 +476,14 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
+    if (p_msg->message == WM_SYSKEYDOWN && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
+    {
+        return 1;
+    }
     if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
     {
-        if ((pnode = on_tabpage_select_index((uint32_t) (p_msg->wParam) - 0x31)))
-        {
-            return 1;
-        }
+        on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
+        return 1;
     }
     if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
@@ -591,8 +569,8 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
         {
             pnode->be_modify = true;
             on_toolbar_update_button();
-            InvalidateRect(g_tabpages, NULL, false); 
-            printf("skylark: doc has been modified\n"); 
+            InvalidateRect(g_tabpages, NULL, false);
+            printf("skylark: doc has been modified\n");
         }
     }
     if (flags && !lpnmhdr->modified && pnode->plugin)
@@ -735,6 +713,25 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_proc_msg_size(hwnd, NULL);
             }
             break;
+        case WM_RBUTTONDOWN:
+        case WM_LBUTTONDBLCLK:
+        {
+            if (eu_get_config() && eu_get_config()->m_new_way > 0)
+            {
+                POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                if (g_tabpages)
+                {
+                    RECT rect = {0};
+                    MapWindowPoints(hwnd, g_tabpages, &pt, 1);
+                    GetClientRect(g_tabpages, &rect);
+                    if (PtInRect(&rect, pt) && (int)SendMessage(g_tabpages, WM_NCHITTEST, 0, lParam) == HTTRANSPARENT)
+                    {
+                        PostMessage(g_tabpages, WM_TAB_NCCLICK, wParam, 0);
+                    }
+                }
+            }
+            break;
+        }
         case WM_TAB_CLICK:
             on_proc_tab_click(hwnd, (void *)wParam);
             return 1;
@@ -797,6 +794,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_dark_allow_window(hwnd, true);
                 on_dark_refresh_titlebar(hwnd);
+                on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
                 on_tabpage_foreach(on_tabpage_theme_changed);
                 if (g_statusbar)
                 {
@@ -833,17 +831,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 int len = 0;
                 HMENU file_menu = NULL;
                 HMENU hpop = NULL;
+                HMENU root_menu = GetMenu(hwnd);
                 file_backup bak = {0};
-                HMENU root_menu = GetMenu(g_hwndmain);
-                if (root_menu)
-                {
-                    file_menu = GetSubMenu(root_menu, 0);
-                    hpop = GetSubMenu(file_menu, 2);
-                }
-                if (root_menu && file_menu && hpop)
-                {
-                    len = GetMenuString(hpop, wm_id, bak.rel_path, MAX_PATH, MF_BYCOMMAND);
-                }
+                file_menu = root_menu ? GetSubMenu(root_menu, 0) : NULL;
+                hpop = file_menu ? GetSubMenu(file_menu, 2) : NULL;
+                len = hpop ? GetMenuString(hpop, wm_id, bak.rel_path, MAX_PATH, MF_BYCOMMAND) : 0;
                 if (len > 0)
                 {
                     if (_tcsrchr(bak.rel_path, _T('&')))
@@ -1082,10 +1074,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_edit_sentence_upper(pnode, true);
                     break;
                 case IDM_EDIT_TAB_SPACE:
-                    on_search_tab2space(pnode);
+                    on_search_tab_space(pnode, true);
                     break;
                 case IDM_EDIT_SPACE_TAB:
-                    on_search_space2tab(pnode);
+                    on_search_tab_space(pnode, false);
                     break;
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();
@@ -1226,12 +1218,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_TOGGLE_BOOKMARK:
                     on_search_toggle_mark(pnode, -1);
                     break;
-                case IDM_SEARCH_ADD_BOOKMARK:
-                    on_search_add_mark(pnode, -1);
-                    break;
-                case IDM_SEARCH_REMOVE_BOOKMARK:
-                    on_search_remove_marks_this(pnode);
-                    break;
                 case IDM_SEARCH_REMOVE_ALL_BOOKMARKS:
                     on_search_remove_marks_all(pnode);
                     break;
@@ -1297,51 +1283,58 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_light_fold();
                     break;
                 case IDM_FORMAT_REFORMAT_JSON:
-                    on_format_file_style(pnode);
-                    on_symtree_json(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    {
+                        on_format_file_style(pnode);
+                        on_symtree_json(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_COMPRESS_JSON:
-                    on_format_do_compress(pnode, on_format_json_callback);
-                    on_symtree_json(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    {
+                        on_format_do_compress(pnode, on_format_json_callback);
+                        on_symtree_json(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_REFORMAT_JS:
-                    on_format_file_style(pnode);
-                    on_symlist_reqular(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    {
+                        on_format_file_style(pnode);
+                        on_symlist_reqular(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_COMPRESS_JS:
-                    on_format_do_compress(pnode, on_format_js_callback);
-                    on_symlist_reqular(pnode);
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    {
+                        on_format_do_compress(pnode, on_format_js_callback);
+                        on_symlist_reqular(pnode);
+                        util_setforce_eol(pnode);
+                        on_statusbar_update_eol(pnode);
+                    }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
                     on_format_clang_file(pnode, true);
-                    if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
-                    {
-                        on_symtree_json(pnode);
-                    }
-                    else
-                    {
-                        on_symlist_reqular(pnode);
-                    }
-                    util_setforce_eol(pnode);
-                    on_statusbar_update_eol(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
                     on_format_clang_file(pnode, false);
-                    on_symlist_reqular(pnode);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
-                    on_toolbar_lua_exec(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    {
+                        on_toolbar_lua_exec(pnode);
+                    }
                     break;
                 case IDM_FORMAT_BYTE_CODE:
-                    do_byte_code(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    {
+                        do_byte_code(pnode);
+                    }
                     break;
                 case IDM_VIEW_WRAPLINE_MODE:
                     on_view_wrap_line();
@@ -1389,6 +1382,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case IDM_VIEW_TAB_RIGHT_NEW:
+                case IDM_VIEW_TAB_DBCLICK_NEW:
+                {
+                    if (eu_get_config()->m_new_way == wm_id)
+                    {
+                        eu_get_config()->m_new_way = 0;
+                    }
+                    else
+                    {
+                        eu_get_config()->m_new_way = wm_id;
+                    }
+                    break;
+                }
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
                     break;
@@ -1406,12 +1412,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_SOURCE_BLOCKFOLD_TOGGLE:
                     on_code_switch_fold(pnode, -1);
-                    break;
-                case IDM_SOURCE_BLOCKFOLD_CONTRACT:
-                    on_code_block_contract(pnode, -1);
-                    break;
-                case IDM_SOURCE_BLOCKFOLD_EXPAND:
-                    on_code_block_expand(pnode, -1);
                     break;
                 case IDM_SOURCE_BLOCKFOLD_CONTRACTALL:
                     on_code_block_contract_all(pnode);
@@ -1541,6 +1541,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             lpnotify = (ptr_notify) lParam;
             p_tips = (TOOLTIPTEXT *) lParam;
             eu_tabpage *pview = NULL;
+            if (!lpnmhdr || !lpnotify || !p_tips)
+            {
+                break;
+            }
             if (lpnmhdr->hwndFrom == g_filetree)
             {
                 SendMessage(g_filetree, WM_NOTIFY, wParam, lParam);

@@ -85,7 +85,7 @@ BEGIN
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
         END
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
-        MENUITEM "Send To BCompare For Comparison",                    IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "Send To External App For Comparison",                IDM_EDIT_OTHER_BCOMPARE
         MENUITEM MF_SEPARATOR
         POPUP "Line Edit",                                             IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -201,9 +201,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "Bookmark",                                              IDM_EDIT_PLACEHOLDE13
         BEGIN
-            MENUITEM "Toggle Bookmark ",                               IDM_SEARCH_TOGGLE_BOOKMARK
-            MENUITEM "Add Bookmark",                                   IDM_SEARCH_ADD_BOOKMARK
-            MENUITEM "Delete Bookmark",                                IDM_SEARCH_REMOVE_BOOKMARK
+            MENUITEM "Add/Delete Bookmark ",                           IDM_SEARCH_TOGGLE_BOOKMARK
             MENUITEM "Delete All Bookmark",                            IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "Jump Previous Bookmark (Current File)",          IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "Jump Next Bookmark (Current File)",              IDM_SEARCH_GOTO_NEXT_BOOKMARK
@@ -258,8 +256,14 @@ BEGIN
             MENUITEM "&Right Click",                                   IDM_VIEW_TAB_RIGHT_CLICK
             MENUITEM "&Left Double Click",                             IDM_VIEW_TAB_LEFT_DBCLICK
         END
+        POPUP "New Tab Mode"
+        BEGIN
+            MENUITEM "&Right-click Empty Space",                       IDM_VIEW_TAB_RIGHT_NEW
+            MENUITEM "&Left-double-click Empty Space",                 IDM_VIEW_TAB_DBCLICK_NEW
+        END
         MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
-        POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE15
+        MENUITEM MF_SEPARATOR
+        POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN
             MENUITEM "Zoom Out",                                       IDM_VIEW_ZOOMOUT
             MENUITEM "Zoom In",                                        IDM_VIEW_ZOOMIN
@@ -268,7 +272,7 @@ BEGIN
     END
     POPUP "For&mat"
     BEGIN
-        POPUP "Json File",                                             IDM_EDIT_PLACEHOLDE16
+        POPUP "Json File",                                             IDM_EDIT_PLACEHOLDE_JSON
         BEGIN
             MENUITEM "Reformat Json",                                  IDM_FORMAT_REFORMAT_JSON
             MENUITEM "Compress Json",                                  IDM_FORMAT_COMPRESS_JSON
@@ -278,19 +282,19 @@ BEGIN
             MENUITEM "Reformat Js",                                    IDM_FORMAT_REFORMAT_JS
             MENUITEM "Compress Js",                                    IDM_FORMAT_COMPRESS_JS
         END
-        POPUP "Lua Scripts",                                           IDM_EDIT_PLACEHOLDE18
+        POPUP "Lua Scripts",                                           IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
             MENUITEM "Run This Script",                                IDM_FORMAT_RUN_SCRIPT
             MENUITEM "Convert To Bytecode",                            IDM_FORMAT_BYTE_CODE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Clang-format",                                          IDM_EDIT_PLACEHOLDE17
+        POPUP "Clang-format",                                          IDM_EDIT_PLACEHOLDE_CLANG
         BEGIN
             MENUITEM "Format Current Document",                        IDM_FORMAT_WHOLE_FILE
             MENUITEM "Format Selected Text",                           IDM_FORMAT_RANGLE_STR
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Chinese Internal Code Conversion",                      IDM_EDIT_PLACEHOLDE19
+        POPUP "Chinese Internal Code Conversion",                      IDM_EDIT_PLACEHOLDE_ICODE
         BEGIN
             MENUITEM "Simplified To Traditional",                      IDM_EDIT_GB_BIG5
             MENUITEM "Traditional To Simplified",                      IDM_EDIT_BIG5_GB
@@ -299,11 +303,9 @@ BEGIN
         MENUITEM "Word Wrap",                                          IDM_VIEW_WRAPLINE_MODE
         MENUITEM "QR Code Generator",                                  IDM_EDIT_QRCODE
     END
-    POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE20
+    POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
-        MENUITEM "Block Collapse Switch",                              IDM_SOURCE_BLOCKFOLD_TOGGLE
-        MENUITEM "Fold Block",                                         IDM_SOURCE_BLOCKFOLD_CONTRACT
-        MENUITEM "Unfold Block",                                       IDM_SOURCE_BLOCKFOLD_EXPAND
+        MENUITEM "Block Collapse Fold/Unfold",                         IDM_SOURCE_BLOCKFOLD_TOGGLE
         MENUITEM "Fold All",                                           IDM_SOURCE_BLOCKFOLD_CONTRACTALL
         MENUITEM "Unfold All",                                         IDM_SOURCE_BLOCKFOLD_EXPANDALL
         MENUITEM MF_SEPARATOR
@@ -390,7 +392,7 @@ BEGIN
         MENUITEM "Quit F&ull Screen",                                  IDM_TABPAGE_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
-        MENUITEM "Send To BCompare For Comparison",                    IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "Send To External App For Comparison",                IDM_EDIT_OTHER_BCOMPARE
         MENUITEM SEPARATOR
         MENUITEM "Open Folder &Workspace",                             IDM_FILE_WORKSPACE
         MENUITEM "Open Folder In &Explorer",                           IDM_FILE_EXPLORER
@@ -912,7 +914,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_13                   "Find Next"
     IDS_TOOLBAR_14                   "Undo Operation"
     IDS_TOOLBAR_15                   "Redo Last Operation"
-    IDS_TOOLBAR_16                   "Toggle Bookmark "
+    IDS_TOOLBAR_16                   "Add/Delete Bookmark"
     IDS_TOOLBAR_17                   "Jump to previous bookmark"
     IDS_TOOLBAR_18                   "Jump to the next bookmark"
     IDS_TOOLBAR_19                   "Text⇔Hex mode"
@@ -1133,8 +1135,8 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_ERROR         "%s File printing error"
     IDS_PRINT_HEX_WARNS     "Printing in hex mode is not currently supported"
     IDS_SELRECT             "This operation cannot be performed in column edit mode."
-    IDS_LUA_CONV_SUCCESS    "»» Conversion of bytecode succeeded, file saved [%s]"
-    IDS_LUA_CONV_FAIL       "»» Conversion of bytecode failed."
+    IDS_LUA_CONV_SUCCESS    "» » Conversion of bytecode succeeded, file saved [%s]"
+    IDS_LUA_CONV_FAIL       "» » Conversion of bytecode failed."
     IDS_THEME_DESC_DEFAULT  "Default Theme"
     IDS_THEME_DESC_BLOCK    "Dark Theme"
     IDS_THEME_DESC_WHITE    "White Classic Theme"
@@ -1155,11 +1157,11 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
     IDS_RE_ERROR            "Error: invalid regular expression"
     IDS_HEXVIEW_BYTES       "Number of bytes to insert (decimal): "
-    IDS_RESULT_STRINGS1     "»» Search '%s' keyword in '%s' file (%d hits)\n"
+    IDS_RESULT_STRINGS1     "» » Search '%s' keyword in '%s' file (%d hits)\n"
     IDS_RESULT_STRINGS2     "Line %*zd: %s"
     IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-nXX : Scroll to indicated line on file_path\n-cXX : Scroll to indicated column on file_path\n-hex : Open text file in hexadecimal mode\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
     IDS_COMMAND_TITLE       "Skylark Command Help: "
-    IDS_LOADLIBRARY_SQL     "»» Start loading database DLL ...\n"
+    IDS_LOADLIBRARY_SQL     "» » Start loading database DLL ...\n"
     IDS_SNIPPET_EDT_DEFAULT "Snippet Name,Comment,Argument"
     IDS_SNIPPET_COMBO_DEC   "Example"
     IDS_SNIPPET_EXAMPLE_DEC "${n:PlaceHolder} to mark a placeholder token,\n$0 to mark the insertion point at the end.\nUse tab key jump to the next placeholder\nUse shift+tab jump to the previous placeholder\nThe parameter A, Indicates automatic trigger.\nThe parameter b, The trigger keyword should be at the beginning of line.\nThe parameter r, The trigger keyword is a regular expression.\nUse Perl syntax for regular expressions\nCapture groups use \\1...\\9\nExample:\nif (${1:true})\n{\n    $0\n}"

@@ -668,8 +668,8 @@ eu_update_backup_table(file_backup *pbak, DB_MODE mode)
     char bak_path[MAX_PATH+1] = {0};
     char sql[MAX_BUFFER*4] = {0};
     const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync) "
-                      "values(%d, '%s', '%s', '%s', '%s', %I64d, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
-                      "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%I64d,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d,szSync=%d;";
+                      "values(%d, '%s', '%s', '%s', '%s', %zd, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
+                      "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%zd,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d,szSync=%d;";
     WideCharToMultiByte(CP_UTF8, 0, pbak->rel_path, -1, rel_path, MAX_PATH, NULL, NULL);
     WideCharToMultiByte(CP_UTF8, 0, pbak->bak_path, -1, bak_path, MAX_PATH, NULL, NULL);
     // 文件路径存在特殊符号时进行转义

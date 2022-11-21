@@ -1500,10 +1500,8 @@ bool
 util_exist_libcurl(void)
 {
     bool ret = false;
-    HMODULE lib_symbol = NULL;
-    TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((lib_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+    HMODULE lib_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    if (lib_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(lib_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1525,10 +1523,8 @@ int
 util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level)
 {
     int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = NULL;
-    TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    if (curl_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(curl_symbol,"zlib_compress2");
         if (fn_compress)
@@ -1544,10 +1540,8 @@ int
 util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len)
 {
     int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = NULL;
-    TCHAR curl_path[MAX_PATH+1] = {0};
-    _sntprintf(curl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcurl.dll"));
-    if ((curl_symbol = LoadLibraryEx(curl_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    if (curl_symbol)
     {
         ptr_uncompress fn_uncompress = (ptr_uncompress)GetProcAddress(curl_symbol,"zlib_uncompress2");
         if (fn_uncompress)
@@ -2158,11 +2152,22 @@ util_which(const TCHAR *name)
         {
             _sntprintf(env_path, len, _T("%s;%s;%s\\plugins"), path, sz_process, sz_process);
         }
+        bool quote = false;
         wchar_t *tok = _tcstok(env_path, delimiter);
         while (tok)
         {
             int i = 0;
-            _sntprintf(file, MAX_PATH, _T("%s\\%s"), tok, name);
+            int blen = eu_int_cast(wcslen(tok));
+            if (blen > 0 && tok[blen - 1] == '"')
+            {
+                tok[blen - 1] = 0;
+                quote = true;
+            }
+            else
+            {
+                quote = false;
+            }
+            _sntprintf(file, MAX_PATH, _T("%s\\%s"), quote? &tok[1] : tok, name);
             do
             {
                 struct _stat st;
@@ -2173,7 +2178,7 @@ util_which(const TCHAR *name)
                 }
                 if (add_suf && av[i])
                 {
-                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), tok, name, av[i]);
+                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), quote? &tok[1] : tok, name, av[i]);
                 }
             } while (av[i++]);
             tok = _tcstok(NULL, delimiter);
@@ -2258,6 +2263,48 @@ util_file_access(LPCTSTR filename, uint32_t *pgranted)
             }
         }
         eu_safe_free(security);
+    }
+    return ret;
+}
+
+int
+util_split(const char *pstr, char (*pout)[QW_SIZE], char ch)
+{
+    int ret = 0;
+    if (NULL != pstr && NULL != pout)
+    {
+        char *tmp = (char *)pstr;
+        // i为行，j为列. 每行为一个字符串
+        int i = 0, j = 0;
+        int countrow = 0;
+        while (*tmp)
+        {   // 遇到分隔符，字符串结束，加0
+            if (ch == *tmp)
+            {
+                *(*(pout + i) + j) = '\0';
+            }
+            else if ((ch == *(tmp - 1)) && (ch != *tmp))
+            {   // 上一个是分隔符，这一个不是分隔符行 行增长
+                if (countrow != 0)
+                {
+                    i++;
+                }
+                j = 0;
+                *(*(pout + i) + j) = *tmp;
+                j++;
+            }
+            else
+            {   // 非空格写入字符
+                if (0 == i)
+                {
+                    countrow = 1;
+                }
+                *(*(pout + i) + j) = *tmp;
+                j++;
+            }
+            tmp++;
+        }
+        ret = i;
     }
     return ret;
 }

@@ -85,7 +85,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
                 break;
             }
         }
-        if (ptr_arg != args)
+        if (args != (const wchar_t **)ptr_arg)
         {
             LocalFree(ptr_arg);
         }
@@ -118,7 +118,7 @@ eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
                 pbak->y = _tstoi(&ptr_arg[i][2]);
             }
         }
-        if (ptr_arg != args)
+        if (args != (const wchar_t **)ptr_arg)
         {
             LocalFree(ptr_arg);
         }

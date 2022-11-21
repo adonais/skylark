@@ -73,7 +73,7 @@ hexview_set_area(int value)
 static void
 hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
 {
-    RECT rc = { 0 };
+    RECT rc = {0};
     // 清除内存dc
     rc.right = hexview->width_view;
     rc.bottom = hexview->height_char;
@@ -204,7 +204,7 @@ hexview_paint(HWND hwnd, HDC hdc, PHEXVIEW hexview)
     COLORREF clr_bk;
     int line_number;
     int add_line = 0;
-    RECT rect = { 0 };
+    RECT rect = {0};
     UNREFERENCED_PARAMETER(hwnd);
     mem_hdc = CreateCompatibleDC(hdc);
     hbm_mem = CreateCompatibleBitmap(hdc, hexview->width_view, hexview->height_char);
@@ -288,7 +288,7 @@ hexview_pin_bottom(PHEXVIEW hexview)
 static intptr_t
 hexview_track_pos(HWND hwnd, PHEXVIEW hexview, int nbar)
 {
-    SCROLLINFO si = { 0 };
+    SCROLLINFO si = {0};
     si.cbSize = sizeof(SCROLLINFO);
     si.fMask = SIF_TRACKPOS | SIF_PAGE;
     GetScrollInfo(hwnd, nbar, &si);
@@ -309,7 +309,7 @@ hexview_track_pos(HWND hwnd, PHEXVIEW hexview, int nbar)
 static void
 hexview_srollinfo(HWND hwnd, PHEXVIEW hexview)
 {
-    SCROLLINFO si = { 0 };
+    SCROLLINFO si = {0};
     si.cbSize = sizeof(SCROLLINFO);
     si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
     if (hexview->vscroll_max <= MAXLONG)
@@ -1356,9 +1356,9 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                         if (_istxdigit((wint_t) wParam))
                         {
 
-                            NMHVDISPINFO dispinfo = { 0 };
-                            NMHEXVIEW nm_hexview = { 0 };
-                            TCHAR buffer[4] = { 0 };
+                            NMHVDISPINFO dispinfo = {0};
+                            NMHEXVIEW nm_hexview = {0};
+                            TCHAR buffer[4] = {0};
                             uint8_t value;
                             dispinfo.item.mask = HVIF_BYTE;
                             dispinfo.item.number_items = hexview->number_items;
@@ -1388,7 +1388,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                     {
                         if (_istprint((wint_t) wParam) && wParam != VK_TAB)
                         {
-                            NMHEXVIEW nm_hexview = { 0 };
+                            NMHEXVIEW nm_hexview = {0};
                             nm_hexview.item.number_items = hexview->number_items;
                             nm_hexview.item.value = (uint8_t) wParam;
                             eu_send_notify(hwnd, HVN_ITEMCHANGING, (LPNMHDR) &nm_hexview);
@@ -1465,7 +1465,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             CreateCaret(hwnd, NULL, 1, hexview->height_char);
             if (hexview->ct_flags & HVF_CARETVISIBLE)
             {
-                NMHDR nmhdr = { 0 };
+                NMHDR nmhdr = {0};
                 hexview_caret(hwnd, hexview);
                 ShowCaret(hwnd);
                 eu_send_notify(hwnd, NM_SETFOCUS, &nmhdr);
@@ -1904,8 +1904,8 @@ hexview_create_dlg(HWND parent, LPVOID lparam)
 static void
 hexview_register_class(void)
 {
-    WNDCLASSEX wcex = { 0 };
-    wcex.cbSize = sizeof(WNDCLASSEX);
+    WNDCLASSEX wcex = {wcex.cbSize = sizeof(WNDCLASSEX)};
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = hexview_proc;
     wcex.hInstance = GetModuleHandle(NULL);
     wcex.hCursor = LoadCursor(NULL, IDC_IBEAM);
@@ -1930,7 +1930,7 @@ hexview_init(eu_tabpage *pnode)
     }
     if (!pnode->hex_mode)
     {
-        TCITEM tci = { 0 };
+        TCITEM tci = {0};
         tci.mask = TCIF_TEXT | TCIF_PARAM;
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
@@ -2223,7 +2223,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         {
             size_t src_len = (size_t)pnode->raw_size;
             uint8_t *data = pnode->phex->pbase;
-            euconv_t evd = { 0 };
+            euconv_t evd = {0};
             evd.src_from = eu_query_encoding_name(pnode->codepage);
             evd.dst_to = "utf-8";
             if (evd.src_from && strcmp(evd.src_from, "UTF-8(BOM)") == 0)

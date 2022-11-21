@@ -85,7 +85,7 @@ BEGIN
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
         END
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
-        MENUITEM "发送到BCompare进行比较",                      IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "发送到外部应用进行比较",                      IDM_EDIT_OTHER_BCOMPARE
         MENUITEM MF_SEPARATOR
         POPUP "行编辑",                                         IDM_EDIT_PLACEHOLDE2
         BEGIN
@@ -201,9 +201,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "书签",                                           IDM_EDIT_PLACEHOLDE13
         BEGIN
-            MENUITEM "切换书签",                                IDM_SEARCH_TOGGLE_BOOKMARK
-            MENUITEM "增加书签",                                IDM_SEARCH_ADD_BOOKMARK
-            MENUITEM "删除书签",                                IDM_SEARCH_REMOVE_BOOKMARK
+            MENUITEM "增加/删除书签",                           IDM_SEARCH_TOGGLE_BOOKMARK
             MENUITEM "删除所有书签",                            IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "跳到上一个书签 (当前文件)",               IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "跳到下一个书签 (当前文件)",               IDM_SEARCH_GOTO_NEXT_BOOKMARK
@@ -258,8 +256,14 @@ BEGIN
             MENUITEM "右键单击(&R)",                            IDM_VIEW_TAB_RIGHT_CLICK
             MENUITEM "左键双击(&L)",                            IDM_VIEW_TAB_LEFT_DBCLICK
         END
+        POPUP "新建标签方式"
+        BEGIN
+            MENUITEM "空白区右键单击(&R)",                      IDM_VIEW_TAB_RIGHT_NEW
+            MENUITEM "空白区左键双击(&L)",                      IDM_VIEW_TAB_DBCLICK_NEW
+        END
         MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
-        POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE15
+        MENUITEM MF_SEPARATOR
+        POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN
             MENUITEM "放大",                                    IDM_VIEW_ZOOMOUT
             MENUITEM "缩小",                                    IDM_VIEW_ZOOMIN
@@ -268,7 +272,7 @@ BEGIN
     END
     POPUP "格式(&M)"
     BEGIN
-        POPUP "Json 文件",                                      IDM_EDIT_PLACEHOLDE16
+        POPUP "Json 文件",                                      IDM_EDIT_PLACEHOLDE_JSON
         BEGIN
             MENUITEM "格式化 Json",                             IDM_FORMAT_REFORMAT_JSON
             MENUITEM "压缩 Json",                               IDM_FORMAT_COMPRESS_JSON
@@ -278,19 +282,19 @@ BEGIN
             MENUITEM "格式化 Js",                               IDM_FORMAT_REFORMAT_JS
             MENUITEM "压缩 Js",                                 IDM_FORMAT_COMPRESS_JS
         END
-        POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE18
+        POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
             MENUITEM "运行当前脚本",                            IDM_FORMAT_RUN_SCRIPT
             MENUITEM "转换为字节码",                            IDM_FORMAT_BYTE_CODE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE17
+        POPUP "Clang-format",                                   IDM_EDIT_PLACEHOLDE_CLANG
         BEGIN
             MENUITEM "格式化当前文档",                          IDM_FORMAT_WHOLE_FILE
             MENUITEM "格式化选中文本",                          IDM_FORMAT_RANGLE_STR
         END
         MENUITEM MF_SEPARATOR
-        POPUP "简繁内码转换",                                   IDM_EDIT_PLACEHOLDE19
+        POPUP "简繁内码转换",                                   IDM_EDIT_PLACEHOLDE_ICODE
         BEGIN
             MENUITEM "简体转繁体",                              IDM_EDIT_GB_BIG5
             MENUITEM "繁体转简体",                              IDM_EDIT_BIG5_GB
@@ -299,11 +303,9 @@ BEGIN
         MENUITEM "自动换行(&L)",                                IDM_VIEW_WRAPLINE_MODE
         MENUITEM "生成二维码",                                  IDM_EDIT_QRCODE
     END
-    POPUP "编程(&P)",                                           IDM_EDIT_PLACEHOLDE20
+    POPUP "编程(&P)",                                           IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
-        MENUITEM "语句块折叠切换",                              IDM_SOURCE_BLOCKFOLD_TOGGLE
-        MENUITEM "语句块合拢",                                  IDM_SOURCE_BLOCKFOLD_CONTRACT
-        MENUITEM "语句块展开",                                  IDM_SOURCE_BLOCKFOLD_EXPAND
+        MENUITEM "语句块合拢/展开",                             IDM_SOURCE_BLOCKFOLD_TOGGLE
         MENUITEM "全部语句块合拢",                              IDM_SOURCE_BLOCKFOLD_CONTRACTALL
         MENUITEM "全部语句块展开",                              IDM_SOURCE_BLOCKFOLD_EXPANDALL
         MENUITEM MF_SEPARATOR
@@ -390,7 +392,7 @@ BEGIN
         MENUITEM "退出全屏(&U)",                                IDM_TABPAGE_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
-        MENUITEM "发送到BCompare进行比较",                      IDM_EDIT_OTHER_BCOMPARE
+        MENUITEM "发送到外部应用进行比较",                      IDM_EDIT_OTHER_BCOMPARE
         MENUITEM SEPARATOR
         MENUITEM "打开文件夹工作区(&W)",                        IDM_FILE_WORKSPACE
         MENUITEM "在资源管理器中打开文件夹(&E)",                IDM_FILE_EXPLORER
@@ -911,7 +913,7 @@ STRINGTABLE DISCARDABLE
     IDS_TOOLBAR_13                   "查找下一个"
     IDS_TOOLBAR_14                   "撤销操作"
     IDS_TOOLBAR_15                   "恢复上一次操作"
-    IDS_TOOLBAR_16                   "切换书签"
+    IDS_TOOLBAR_16                   "增加/删除书签"
     IDS_TOOLBAR_17                   "跳到上一个书签"
     IDS_TOOLBAR_18                   "跳到下一个书签"
     IDS_TOOLBAR_19                   "文本⇔十六进制"
@@ -1132,8 +1134,8 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_ERROR         "%s 文件打印错误"
     IDS_PRINT_HEX_WARNS     "暂时不支持在16进制模式下打印"
     IDS_SELRECT             "不能在列编辑模式下进行此操作."
-    IDS_LUA_CONV_SUCCESS    "»» 转换字节码成功, 文件保存在 [%s]"
-    IDS_LUA_CONV_FAIL       "»» 转换字节码失败."
+    IDS_LUA_CONV_SUCCESS    "» » 转换字节码成功, 文件保存在 [%s]"
+    IDS_LUA_CONV_FAIL       "» » 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
     IDS_THEME_DESC_BLOCK    "暗黑主题"
     IDS_THEME_DESC_WHITE    "白色经典"
@@ -1153,11 +1155,11 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
-    IDS_RESULT_STRINGS1     "»» 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
+    IDS_RESULT_STRINGS1     "» » 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
     IDS_RESULT_STRINGS2     "行 %*zd: %s"
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-nXX : 打开文件时滚动到指定行\n-cXX : 打开文件时滚动到指定列\n-hex : 以16进制模式打开文本文件\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
     IDS_COMMAND_TITLE       "Skylark命令行帮助: "
-    IDS_LOADLIBRARY_SQL     "»» 开始装载数据库动态链接库 ...\n"
+    IDS_LOADLIBRARY_SQL     "» » 开始装载数据库动态链接库 ...\n"
     IDS_SNIPPET_EDT_DEFAULT "片段名称,注释,参数"
     IDS_SNIPPET_COMBO_DEC   "示例"
     IDS_SNIPPET_EXAMPLE_DEC "${n:占位符} 表示光标下一个占位符,\n$0 标记末尾的插入点.\n使用 tab 键跳转到下一个占位符\n使用 shift+tab 跳转到上一个占位符\n参数A, 表示自动触发，不需要按Tab键.\n参数b, 表示触发关键字应该在行首.\n参数r, 表示触发关键字是正则表达式.\n正则表达式请使用perl正则语法\n捕获组使用\\1...\\9\n示例:\nif (${1:true})\n{\n    $0\n}"

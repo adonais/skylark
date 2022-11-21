@@ -436,6 +436,7 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_VIEW_TIPS_ONTAB, eu_get_config()->m_tab_tip);
                         util_switch_menu_group(menu, TAB_MENU_ACTIVE_SUB, IDM_VIEW_LEFT_TAB, IDM_VIEW_FAR_RIGHT_TAB, eu_get_config()->m_tab_active);
                         util_switch_menu_group(menu, TAB_MENU_CLOSE_SUB, IDM_VIEW_TAB_RIGHT_CLICK, IDM_VIEW_TAB_LEFT_DBCLICK, eu_get_config()->m_close_way);
+                        util_switch_menu_group(menu, TAB_MENU_NEW_SUB, IDM_VIEW_TAB_RIGHT_NEW, IDM_VIEW_TAB_DBCLICK_NEW, eu_get_config()->m_new_way);
                         break;
                     case IDM_VIEW_SWITCH_TAB:
                         util_enable_menu_item(menu, IDM_VIEW_SWITCH_TAB, g_tabpages && TabCtrl_GetItemCount(g_tabpages) > 1);
@@ -444,9 +445,9 @@ menu_update_item(HMENU menu)
                     {
                         enable = eu_exist_file(CLANGDLL);
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE16, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON && enable));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_JSON, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON && enable));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_JS, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT && enable));
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE17,
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_CLANG,
                                              (pnode->doc_ptr && !pnode->hex_mode && enable &&
                                              (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_CS ||
@@ -454,20 +455,16 @@ menu_update_item(HMENU menu)
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE18, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
-                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE19, !pnode->hex_mode && TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_LUA, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_ICODE, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
                     }
                     case IDM_EDIT_QRCODE:
                         util_enable_menu_item(menu, IDM_EDIT_QRCODE, util_can_selections(pnode));
                         break;
                     case IDM_SOURCE_BLOCKFOLD_TOGGLE: /* Programming menu */
-                    case IDM_SOURCE_BLOCKFOLD_CONTRACT:
-                    case IDM_SOURCE_BLOCKFOLD_EXPAND:
                         enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_TOGGLE, enable);
-                        util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_CONTRACT, enable);
-                        util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_EXPAND, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_CONTRACTALL, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_EXPANDALL, enable);
                         break;

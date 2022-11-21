@@ -68,7 +68,7 @@ void on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence);
 void on_edit_selection(eu_tabpage *pnode, int type);
 void on_edit_undo_eol(eu_tabpage *pnode);
 void on_edit_undo_iconv(eu_tabpage *pnode);
-void on_edit_sorting(eu_tabpage *pnode, int wm_id);
+void on_edit_sorting(eu_tabpage *p, int wm_id);
 void on_edit_push_compare(void);
 
 int on_edit_base64_enc(eu_tabpage *pnode);

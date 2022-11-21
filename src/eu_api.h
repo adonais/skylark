@@ -140,6 +140,7 @@
 #define WM_STATUS_REFRESH         (WM_USER+10003)
 #define WM_TAB_CLICK              (WM_USER+10004)
 #define WM_SKYLARK_DESC           (WM_USER+10005)
+#define WM_TAB_NCCLICK            (WM_USER+10006)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
@@ -363,6 +364,7 @@ struct eu_config
     bool m_tab_tip;
 
     int m_close_way;
+    int m_new_way;
     int m_tab_active;
     int m_quality;
     int m_render;

@@ -256,10 +256,8 @@ static bool
 init_lib_format(const char *filename, const char *data, size_t size, char **pout)
 {
     bool ret = false;
-    TCHAR format_path[MAX_PATH+1] = {0};
-    HMODULE m_dll = NULL;
-    _sntprintf(format_path, MAX_PATH, _T("%s\\plugins\\clang-format.dll"), eu_module_path);
-    if ((m_dll = LoadLibraryEx(format_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)))
+    HMODULE m_dll = np_load_plugin_library(_T("clang-format.dll"));
+    if (m_dll)
     {
         ptr_format fn_lib_format = (ptr_format)GetProcAddress(m_dll, "lib_format");
         if (fn_lib_format)
@@ -465,66 +463,91 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
 }
 
 void
+on_format_clang_file(eu_tabpage *p, const bool whole)
+{
+    cvector_vector_type(int) v = NULL;
+    UNREFERENCED_PARAMETER(p);
+    if ((on_tabpage_sel_number(&v, false)) > 0)
+    {
+        int count = eu_int_cast(cvector_size(v));
+        for (int i = 0; i < count; ++i)
+        {
+            char *out = NULL;
+            char *text = NULL;
+            char *filename = NULL;
+            eu_tabpage *pnode = on_tabpage_get_ptr(v[i]);
+            do
+            {
+                size_t text_len = 0;
+                if (!pnode || !pnode->doc_ptr || pnode->hex_mode || pnode->plugin)
+                {
+                    break;
+                }
+                if (!(pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                    pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                    pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                    pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                    pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                    pnode->doc_ptr->doc_type == DOCTYPE_JSON))
+                {
+                    break;
+                }
+                if (!(filename = eu_utf16_utf8(pnode->filename, NULL)))
+                {
+                    break;
+                }
+                if (whole)
+                {
+                    if (!(text = util_strdup_content(pnode, &text_len)))
+                    {
+                        break;
+                    }
+                }
+                else if (!(text = util_strdup_select(pnode, &text_len, 0)))
+                {
+                    break;
+                }
+                if (text_len > FORMAT_MAX_LEN)
+                {
+                    MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                    break;
+                }
+                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                if (init_lib_format(filename, text, whole ? text_len + 1 : text_len, &out) && strcmp(text, out))
+                {
+                    if (whole)
+                    {
+                        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                        eu_sci_call(pnode, SCI_ADDTEXT, strlen(out), (sptr_t)out);
+                    }
+                    else
+                    {
+                        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)out);
+                    }
+                    if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    {
+                        on_symtree_json(pnode);
+                    }
+                    else
+                    {
+                        on_symlist_reqular(pnode);
+                    }
+                }
+                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+            } while(0);
+            eu_safe_free(text);
+            eu_safe_free(filename);
+            eu_safe_free(out);
+        }
+    }
+    cvector_freep(&v);
+}
+
+void
 on_format_file_style(eu_tabpage *pnode)
 {
     if (pnode && pnode->doc_ptr && (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT))
     {
         on_format_clang_file(pnode, true);
     }
-}
-
-void
-on_format_clang_file(eu_tabpage *pnode, const bool whole)
-{
-    char *out = NULL;
-    char *text = NULL;
-    size_t text_len = 0;
-    char *filename = NULL;
-    do
-    {
-        if (!pnode)
-        {
-            break;
-        }
-        if (!(filename = eu_utf16_utf8(pnode->filename, NULL)))
-        {
-            break;
-        }
-        if (whole)
-        {
-            if (!(text = util_strdup_content(pnode, &text_len)))
-            {
-                break;
-            }
-        }
-        else
-        {
-            if (!(text = util_strdup_select(pnode, &text_len, 0)))
-            {
-                break;
-            }
-        }
-        if (text_len > FORMAT_MAX_LEN)
-        {
-            MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            break;
-        }
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        if (init_lib_format(filename, text, whole ? text_len + 1 : text_len, &out) && strcmp(text, out))
-        {
-            if (whole)
-            {
-                eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                eu_sci_call(pnode, SCI_ADDTEXT, strlen(out), (sptr_t)out);
-            }
-            else
-            {
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)out);
-            }
-        }
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-    } while(0);
-    eu_safe_free(text);
-    eu_safe_free(filename);
-    eu_safe_free(out);
 }

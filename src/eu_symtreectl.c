@@ -706,9 +706,7 @@ on_sysmtree_init_hredis(void)
     {
         return true;
     }
-    TCHAR dll_path[MAX_PATH+1] = {0};
-    _sntprintf(dll_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("hiredis.dll"));
-    redis_funcs.dll = LoadLibraryEx(dll_path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+    redis_funcs.dll = np_load_plugin_library(_T("hiredis.dll"));
     if (redis_funcs.dll == NULL)
     {
         MSG_BOX(IDC_MSG_SYMTREE_ERR10, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);

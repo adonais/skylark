@@ -437,6 +437,19 @@ on_dark_light_color(colour cr_base, float factor)
 }
 
 void
+on_dark_tips_theme(HWND hwnd, int msg)
+{
+    if (hwnd && msg > 0)
+    {
+        HWND htips = (HWND) SendMessage(hwnd, msg, 0, 0);
+        if (NULL != htips)
+        {
+            on_dark_set_theme(htips, g_dark_enabled ? L"DarkMode_Explorer" : NULL, NULL);
+        }
+    }
+}
+
+void
 eu_on_dark_release(bool shutdown)
 {
     if (shutdown)
@@ -456,6 +469,7 @@ eu_on_dark_release(bool shutdown)
         fnFlushMenuThemes();
         eu_close_dll(g_uxtheme);
         SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
+        on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
         on_tabpage_foreach(on_tabpage_theme_changed);
         if (g_treebar)
         {

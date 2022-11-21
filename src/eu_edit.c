@@ -37,25 +37,51 @@ char eols_undo_str[QW_SIZE] = {0};
 void
 on_edit_undo(eu_tabpage *pnode)
 {
+    cvector_vector_type(int) v = NULL;
+    if ((on_tabpage_sel_number(&v, false)) > 0)
+    {
+        int count = eu_int_cast(cvector_size(v));
+        for (int i = 0; i < count; ++i)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && !p->hex_mode)
+            {
+                on_proc_undo_off();
+                eu_sci_call(p, SCI_UNDO, 0, 0);
+            }
+        }
+    }
     if (pnode)
     {
-        on_proc_undo_off();
-        eu_sci_call(pnode, SCI_UNDO, 0, 0);
         util_setforce_eol(pnode);
         on_statusbar_update_eol(pnode);
     }
+    cvector_freep(&v);
 }
 
 void
 on_edit_redo(eu_tabpage *pnode)
 {
+    cvector_vector_type(int) v = NULL;
+    if ((on_tabpage_sel_number(&v, false)) > 0)
+    {
+        int count = eu_int_cast(cvector_size(v));
+        for (int i = 0; i < count; ++i)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && !p->hex_mode)
+            {
+                on_proc_undo_off();
+                eu_sci_call(p, SCI_REDO, 0, 0);
+            }
+        }
+    }
     if (pnode)
     {
-        on_proc_undo_off();
-        eu_sci_call(pnode, SCI_REDO, 0, 0);
         util_setforce_eol(pnode);
         on_statusbar_update_eol(pnode);
     }
+    cvector_freep(&v);
 }
 
 void
@@ -170,11 +196,11 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-        if (_tcsnicmp(name, _T("Notepad++"), _tcslen(name)) == 0)
+        if (_tcsnicmp(name, _T("Notepad++"), _tcslen(_T("Notepad++"))) == 0)
         {
             _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\" -n%zd -c%zd"), path, pnode->pathfile, line+1, pos-row+1);
         }
-        else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(name)) == 0)
+        else if (_tcsnicmp(name, _T("UltraEdit"), _tcslen(_T("UltraEdit"))) == 0)
         {
             _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s/%zd/%zd\""), path, pnode->pathfile, line+1, pos-row+1);
         }
@@ -191,22 +217,32 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
 }
 
 static void
-on_edit_compare(const TCHAR *path, const wchar_t **pvec, const bool hex)
+on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
 {
     if (path && pvec)
     {
+        wchar_t *cmd_exec = NULL;
+        wchar_t name[MAX_PATH] = {0};
         int count = eu_int_cast(cvector_size(pvec));
         const int len = (count + 1) * (MAX_PATH + 1);
-        wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
-        if (cmd_exec != NULL)
+        util_product_name(path, name, MAX_PATH - 1);
+        if ((cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1)) != NULL)
         {
             if (!hex)
             {
                 _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
             }
-            else
+            else if (_tcsnicmp(name, _T("Beyond Compare"), _tcslen(_T("Beyond Compare"))) == 0)
             {
                 _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/fv=\"Hex Compare\""));
+            }
+            else if (_tcsnicmp(name, _T("WinMerge"), _tcslen(_T("WinMerge"))) == 0)
+            {
+                _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/m Binary /t Binary"));
+            }
+            else
+            {
+                _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
             }
             for (int i = 0; i < count; ++i)
             {
@@ -266,6 +302,10 @@ on_edit_push_compare(void)
             path = eu_utf8_utf16(eu_get_config()->m_reserved_0, NULL);
         }
         else if ((path = util_which(_T("bcompare"))) != NULL)
+        {
+            printf("path = %ls\n", path);
+        }
+        else if ((path = util_which(_T("winmergeu"))) != NULL)
         {
             printf("path = %ls\n", path);
         }
@@ -515,19 +555,41 @@ on_edit_delete_line_tail_white(eu_tabpage *pnode)
 void
 on_edit_delete_line_header_all(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    cvector_vector_type(int) v = NULL;
+    UNREFERENCED_PARAMETER(pnode);
+    if ((on_tabpage_sel_number(&v, false)) > 0)
     {
-        do_delete_space(pnode, 1, eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0), true);
+        int count = eu_int_cast(cvector_size(v));
+        for (int i = 0; i < count; ++i)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && !p->hex_mode)
+            {
+                do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
+            }
+        }
     }
+    cvector_freep(&v);
 }
 
 void
 on_edit_delete_line_tail_all(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    cvector_vector_type(int) v = NULL;
+    UNREFERENCED_PARAMETER(pnode);
+    if ((on_tabpage_sel_number(&v, false)) > 0)
     {
-        do_delete_space(pnode, 1, eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0), false);
+        int count = eu_int_cast(cvector_size(v));
+        for (int i = 0; i < count; ++i)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && !p->hex_mode)
+            {
+                do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
+            }
+        }
     }
+    cvector_freep(&v);
 }
 
 static bool
@@ -579,14 +641,21 @@ do_delete_lines(eu_tabpage *pnode, sptr_t start, sptr_t end, bool white_chars)
 void
 on_edit_delete_all_empty_lines(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    cvector_vector_type(int) v = NULL;
+    UNREFERENCED_PARAMETER(pnode);
+    if ((on_tabpage_sel_number(&v, false)) > 0)
     {
-        sptr_t end_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-        if (end_line > 0)
+        int count = eu_int_cast(cvector_size(v));
+        for (int i = 0; i < count; ++i)
         {
-            do_delete_lines(pnode, 0, end_line, true);
+            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            if (p && !p->hex_mode)
+            {
+                do_delete_lines(p, 0, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
+            }
         }
     }
+    cvector_freep(&v);
 }
 
 void
@@ -1807,128 +1876,142 @@ stri_descending_compare(const void *p1, const void *p2)
 }
 
 void
-on_edit_sorting(eu_tabpage *pnode, int wm_id)
+on_edit_sorting(eu_tabpage *p, int wm_id)
 {
-    int i = 0;
-    int count = 0;
-    bool neol = false;
-    bool has_lineselection = false;
-    char **ppline = NULL;
-    sptr_t cur_line = 0;
-    sptr_t cur_line_start =  0;
-    sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t anchor_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
-    const char *str_eol = on_encoding_get_eol(pnode);
-    if (cur_pos == anchor_pos)
+    cvector_vector_type(int) v = NULL;
+    UNREFERENCED_PARAMETER(p);
+    if ((on_tabpage_sel_number(&v, false)) > 0)
     {
-        count = eu_int_cast(eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0));
-    }
-    else
-    {
-        if (!eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
-        {   // 行选中状态下的部分排序
-            sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-            sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-            cur_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
-            cur_line_start =  eu_sci_call(pnode, SCI_POSITIONFROMLINE, cur_line, 0);
-            sptr_t eol_line =  eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
-            sptr_t eol_line_end =  eu_sci_call(pnode, SCI_GETLINEENDPOSITION, eol_line, 0);
-            if (!(sel_start != cur_line_start || sel_end != eol_line_end))
-            {   // 正确的选中, 行头--行末
-                count = eu_int_cast(eol_line - cur_line);
-                if (count < 1)
-                {
-                    goto sorting_clean;
-                }
-                ++count;
-                has_lineselection = true;
-            }
-        }
-        else
+        int count = eu_int_cast(cvector_size(v));
+        for (int k = 0; k < count; ++k)
         {
-            MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            goto sorting_clean;
-        }
-    }
-    if (count < 2 || count > UINT16_MAX)
-    {   // 最多排序65535行, 因为内存可能不足
-        return;
-    }
-    if (!(ppline = (char**)calloc(1, sizeof(char*) * count)))
-    {
-        return;
-    }
-    for (i = 0; i < count; ++i)
-    {   //分配ppline[]中的数组元素, 指针变量
-        *(ppline + i) = util_strdup_line(pnode, cur_line++, NULL);
-        if (*(ppline + i) == NULL)
-        {
-            goto sorting_clean;
-        }
-    }
-    --i;// 查看最后一行是否存在换行符
-    if (ppline[i][strlen(ppline[i]) - 1] == on_encoding_eol_char(pnode))
-    {
-        !has_lineselection ? neol = true : (void)0;
-    }
-    else
-    {   // util_strdup_line内存分配时多出了3个字节, 所以不存在越界问题
-        strcat(ppline[i], str_eol);
-    }
-    switch (wm_id)
-    {
-        case IDM_EDIT_ASCENDING_SORT:
-            qsort(ppline, count, sizeof(char *), str_ascending_compare);
-            break;
-        case IDM_EDIT_DESCENDING_SORT:
-            qsort(ppline, count, sizeof(char *), str_descending_compare);
-            break;
-        case IDM_EDIT_ASCENDING_SORT_IGNORECASE:
-            qsort(ppline, count, sizeof(char *), stri_ascending_compare);
-            break;
-        case IDM_EDIT_DESCENDING_SORT_IGNORECASE:
-            qsort(ppline, count, sizeof(char *), stri_descending_compare);
-            break;
-        default:
-            goto sorting_clean;
-    }
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-    if (!has_lineselection)
-    {
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-    }
-    else
-    {
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)(""));
-    }
-    for (i = 0; i < count; i++)
-    {
-        if (!neol && i == count -1)
-        {
-            char *p = strstr(ppline[i], str_eol);
-            if (p)
+            eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
+            if (pnode && !pnode->hex_mode)
             {
-                *p = 0;
+                int i = 0;
+                int count = 0;
+                bool neol = false;
+                bool has_lineselection = false;
+                char **ppline = NULL;
+                sptr_t cur_line = 0;
+                sptr_t cur_line_start =  0;
+                sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+                sptr_t anchor_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+                const char *str_eol = on_encoding_get_eol(pnode);
+                if (cur_pos == anchor_pos)
+                {
+                    count = eu_int_cast(eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0));
+                }
+                else
+                {
+                    if (!eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+                    {   // 行选中状态下的部分排序
+                        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+                        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+                        cur_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
+                        cur_line_start =  eu_sci_call(pnode, SCI_POSITIONFROMLINE, cur_line, 0);
+                        sptr_t eol_line =  eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
+                        sptr_t eol_line_end =  eu_sci_call(pnode, SCI_GETLINEENDPOSITION, eol_line, 0);
+                        if (!(sel_start != cur_line_start || sel_end != eol_line_end))
+                        {   // 正确的选中, 行头--行末
+                            count = eu_int_cast(eol_line - cur_line);
+                            if (count < 1)
+                            {
+                                goto sorting_clean;
+                            }
+                            ++count;
+                            has_lineselection = true;
+                        }
+                    }
+                    else
+                    {
+                        MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                        goto sorting_clean;
+                    }
+                }
+                if (count < 2 || count > UINT16_MAX)
+                {   // 最多排序65535行, 因为内存可能不足
+                    return;
+                }
+                if (!(ppline = (char**)calloc(1, sizeof(char*) * count)))
+                {
+                    return;
+                }
+                for (i = 0; i < count; ++i)
+                {   //分配ppline[]中的数组元素, 指针变量
+                    *(ppline + i) = util_strdup_line(pnode, cur_line++, NULL);
+                    if (*(ppline + i) == NULL)
+                    {
+                        goto sorting_clean;
+                    }
+                }
+                --i;// 查看最后一行是否存在换行符
+                if (ppline[i][strlen(ppline[i]) - 1] == on_encoding_eol_char(pnode))
+                {
+                    !has_lineselection ? neol = true : (void)0;
+                }
+                else
+                {   // util_strdup_line内存分配时多出了3个字节, 所以不存在越界问题
+                    strcat(ppline[i], str_eol);
+                }
+                switch (wm_id)
+                {
+                    case IDM_EDIT_ASCENDING_SORT:
+                        qsort(ppline, count, sizeof(char *), str_ascending_compare);
+                        break;
+                    case IDM_EDIT_DESCENDING_SORT:
+                        qsort(ppline, count, sizeof(char *), str_descending_compare);
+                        break;
+                    case IDM_EDIT_ASCENDING_SORT_IGNORECASE:
+                        qsort(ppline, count, sizeof(char *), stri_ascending_compare);
+                        break;
+                    case IDM_EDIT_DESCENDING_SORT_IGNORECASE:
+                        qsort(ppline, count, sizeof(char *), stri_descending_compare);
+                        break;
+                    default:
+                        goto sorting_clean;
+                }
+                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                if (!has_lineselection)
+                {
+                    eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                }
+                else
+                {
+                    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)(""));
+                }
+                for (i = 0; i < count; i++)
+                {
+                    if (!neol && i == count -1)
+                    {
+                        char *p = strstr(ppline[i], str_eol);
+                        if (p)
+                        {
+                            *p = 0;
+                        }
+                    }
+                    if (!has_lineselection)
+                    {
+                        eu_sci_call(pnode, SCI_APPENDTEXT, strlen(ppline[i]), (LPARAM) (ppline[i]));
+                    }
+                    else
+                    {
+                        eu_sci_call(pnode, SCI_INSERTTEXT, cur_line_start, (LPARAM) (ppline[i]));
+                        cur_line_start += strlen(ppline[i]);
+                    }
+                }
+                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+            sorting_clean:
+                if (ppline)
+                {
+                    for (i = 0; i < count; i++)
+                    {
+                        eu_safe_free(*(ppline + i));
+                    }
+                    free(ppline);
+                }
             }
         }
-        if (!has_lineselection)
-        {
-            eu_sci_call(pnode, SCI_APPENDTEXT, strlen(ppline[i]), (LPARAM) (ppline[i]));
-        }
-        else
-        {
-            eu_sci_call(pnode, SCI_INSERTTEXT, cur_line_start, (LPARAM) (ppline[i]));
-            cur_line_start += strlen(ppline[i]);
-        }
     }
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-sorting_clean:
-    if (ppline)
-    {
-        for (i = 0; i < count; i++)
-        {
-            eu_safe_free(*(ppline + i));
-        }
-        free(ppline);
-    }
+    cvector_freep(&v);
 }

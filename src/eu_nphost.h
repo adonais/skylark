@@ -36,7 +36,6 @@ typedef struct _npdata
 extern "C" {
 #endif
 
-bool np_process_path(wchar_t *path, const int len);
 bool np_plugins_lookup(const wchar_t *file, const wchar_t *name, NMM *hmod);
 int  np_plugins_initialize(const NMM hmod, npdata **pdata);
 int  np_plugins_destroy(const npp_funcs *pfunc, const NPP instance, nppsave **data);
@@ -46,6 +45,7 @@ void np_plugins_shutdown(HMODULE *hmod, npdata **plugin);
 void np_plugins_savefile(const npp_funcs *pfunc, const NPP instance);
 void np_plugins_savefileas(const npp_funcs *pfunc, const NPP instance, const wchar_t *path);
 void np_plugins_print(const npp_funcs *pfunc, const NPP instance, npprint *platform);
+HMODULE np_load_plugin_library(const TCHAR *filename);
 
 #ifdef __cplusplus
 }

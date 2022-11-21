@@ -947,19 +947,6 @@ is_exec_file(eu_tabpage *pnode)
             pnode->doc_ptr->doc_type == DOCTYPE_REDIS);
 }
 
-static void
-on_toolbar_dark_tips(HWND hwnd)
-{
-    if (on_dark_enable())
-    {
-        HWND htips = (HWND) SendMessage(hwnd, TB_GETTOOLTIPS, 0, 0);
-        if (NULL != htips)
-        {
-            on_dark_set_theme(htips, L"DarkMode_Explorer", NULL);
-        }
-    }
-}
-
 int WINAPI
 on_toolbar_height(void)
 {
@@ -1127,7 +1114,7 @@ on_toolbar_create(HWND parent)
     SendMessage(htool, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
     SendMessage(htool, TB_SETMAXTEXTROWS, 0, 0);
     SendMessage(htool, TB_AUTOSIZE, 0, 0);
-    on_toolbar_dark_tips(htool);
+    on_dark_tips_theme(htool, TB_GETTOOLTIPS);
     // 剪贴板窗口
     return !create_clipbox();
 }

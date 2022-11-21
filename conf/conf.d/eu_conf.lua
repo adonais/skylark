@@ -56,6 +56,7 @@ function eu_conf.loadconf()
         "block_fold_visiable = true\n" ..
         "tabs_tip_show_enable = true\n" ..
         "tab_close_way = 0\n" ..
+        "tab_new_way = 0\n" ..
         "tab_switch_forward = 42991\n" ..
         "edit_font_quality = 42552\n" ..
         "edit_rendering_technology = 42560\n" ..
@@ -120,6 +121,9 @@ function eu_conf.loadconf()
     else
         eu_code = dofile(file)
     end
+    if (tab_new_way == nil) then
+        tab_new_way = 0
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -154,6 +158,7 @@ function eu_conf.loadconf()
         block_fold_visiable,
         tabs_tip_show_enable,
         tab_close_way,
+        tab_new_way,
         tab_switch_forward,
         edit_font_quality,
         edit_rendering_technology,

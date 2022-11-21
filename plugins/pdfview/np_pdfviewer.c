@@ -434,14 +434,15 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
         NPP instance = (NPP)GetWindowLongPtr(hwnd, GWLP_USERDATA);
         instance_data *data = instance ? (instance_data *)instance->pdata : NULL;
-        if (!data)
+        if (!data || !pdf_get_theme())
         {
             return DefWindowProc(hwnd, msg, wparam, lparam);
         }
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
-        
-        HBRUSH brush_bg = CreateSolidBrush(COL_WINDOW_BG);
+        uint32_t fg = pdf_get_theme()->item.text.color;
+        uint32_t bg = pdf_get_theme()->item.text.bgcolor;
+        HBRUSH brush_bg = CreateSolidBrush(bg);
         HFONT hfont = pdf_create_font(hdc, L"MS Shell Dlg", 14);
         
         // set up double buffering
@@ -457,10 +458,10 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         npn_to_rect(&rc_client, &rc);
         FillRect(hdc_buffer, &rc, brush_bg);
         hfont = (HFONT)SelectObject(hdc_buffer, hfont);
-        SetTextColor(hdc_buffer, RGB(0, 0, 0));
+        SetTextColor(hdc_buffer, fg);
         SetBkMode(hdc_buffer, TRANSPARENT);
         pdf_draw_text(hdc_buffer, &rc_client, data->message, false);
-        
+
         // draw a progress bar, if a download is in progress
         if (0 < data->progress && data->progress <= 1)
         {
@@ -473,7 +474,7 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
             to_offset(&rc_progress,0, msgSize.cy + 4 + 2);
             RECT rect_progress;
             npn_to_rect(&rc_progress, &rect_progress);
-            FillRect(hdc_buffer, &rect_progress, (HBRUSH)GetStockObject(WHITE_BRUSH));
+            FillRect(hdc_buffer, &rect_progress, (HBRUSH)GetStockObject(GRAY_BRUSH));
             npn_rect all_progress = rc_progress;
             rc_progress.dx = (int)(data->progress * rc_progress.dx);
             npn_to_rect(&rc_progress, &rect_progress);
@@ -578,6 +579,7 @@ pdf_destroy(const NPP instance, nppsave **save)
         {
             CloseHandle(data->hprocess);
         }
+        SetWindowLongPtr(data->npwin->window, GWLP_USERDATA, 0);
         free(instance->pdata);
         instance->pdata = NULL;
     }

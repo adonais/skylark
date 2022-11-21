@@ -135,7 +135,7 @@ print_jit_status(lua_State *L)
 static void
 print_version(void)
 {
-    fputs("#>" LUAJIT_VERSION "\n", stdout);
+    fputs("» »" LUAJIT_VERSION "\n", stdout);
 }
 
 static void

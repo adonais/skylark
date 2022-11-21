@@ -19,6 +19,8 @@
 #include <fcntl.h>
 #include "framework.h"
 
+#define TWO_DISM 10
+
 static volatile long file_close_id = 0;
 static volatile long last_focus = -1;
 static HANDLE file_event_final = NULL;
@@ -200,7 +202,7 @@ on_file_push_recent(const eu_tabpage *pnode)
         if (pnode && util_make_u8(pnode->pathfile, precent->path, MAX_PATH-1)[0])
         {   // 也支持16进制编辑器获取实时位置
             precent->postion = eu_sci_call((eu_tabpage *)pnode, SCI_GETCURRENTPOS, 0, 0);
-            precent->hex = pnode->hex_mode;
+            precent->hex = !(pnode->pmod && pnode->plugin) ? pnode->hex_mode : 0;
             on_sql_file_recent_thread(precent);
         }
         free(precent);
@@ -414,6 +416,90 @@ on_file_set_codepage(eu_tabpage *pnode, const HANDLE hfile)
     return err;
 }
 
+static size_t
+on_file_header_parser(void *hdr, size_t size, size_t nmemb, void *userdata)
+{
+    const size_t cb = size * nmemb;
+    if (hdr && userdata)
+    {
+        char *p = NULL;
+        char *u8_file = ((char (*)[QW_SIZE])userdata)[0];
+        if (u8_file[0] && (p = strstr(hdr, u8_file)) && (p[strlen(u8_file)] == '\r' || p[strlen(u8_file)] == '\n'))
+        {
+            util_split(hdr, userdata, ' ');
+            return 0;
+        }
+    }
+    return cb;
+}
+
+static void
+on_file_attr_parser(eu_tabpage *pnode, char (*pstr)[QW_SIZE])
+{
+    if (pnode && pstr)
+    {
+        for (int i = 0; i < TWO_DISM; ++i)
+        {
+            if (i == 4 && pstr[i][0])
+            {   // 预先获取文件大小
+                pnode->raw_size = _atoi64(pstr[i]);
+                printf("%I64u\n", pnode->raw_size);
+            }
+        }
+    }
+}
+
+static int
+on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
+{
+    char *p = NULL;
+    char *url = NULL;
+    CURL *curl = NULL;
+    CURLcode res = EUE_CURL_INIT_FAIL;
+    char data[TWO_DISM][QW_SIZE] = {0};
+    remotefs *pserver = on_remote_list_find(path);
+    if (!pserver)
+    {
+        return res;
+    }
+    if ((url = eu_utf16_utf8(path, NULL)) == NULL)
+    {
+        return res;
+    }
+    if ((p = strrchr(url, '/')) && strlen(p) > 1)
+    {
+        p[1] = 0;
+    }    
+    if (!(curl = on_remote_init_socket(url, pserver)))
+    {
+        free(url);
+        return res;
+    }
+    {   // INOUT, 传送一个文件名, 返回一个数组指针
+        data[0][0] = ' ';
+        util_make_u8(pnode->filename, &data[0][1], QW_SIZE - 2);
+    }
+    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+    eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
+    eu_curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "sftp");
+    eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_header_parser);
+    eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
+    if ((res = eu_curl_easy_perform(curl)) == CURLE_OK || res == CURLE_WRITE_ERROR)
+    {
+        res = CURLE_OK;
+        on_file_attr_parser(pnode, data);
+    }
+    else
+    {
+        const char *err_string = eu_curl_easy_strerror(res);
+        printf("%s error[%d]: %s\n", __FUNCTION__, res, err_string);
+        pnode->raw_size = 0;
+    }
+    eu_curl_easy_cleanup(curl);
+    free(url);
+    return res;
+}
+
 static int
 on_file_preload(eu_tabpage *pnode, file_backup *pbak)
 {
@@ -432,7 +518,15 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     {
         return EUE_PATH_NULL;
     }
-    if ((pnode->file_attr = GetFileAttributes(pfull)) == INVALID_FILE_ATTRIBUTES)
+    if (eu_check_arg(NULL, 0, _T("-hex"), pfull))
+    {
+        pnode->hex_mode = true;
+    }
+    if (url_has_remote(pfull))
+    {
+        return on_file_remote_lenght(pnode, pfull);
+    }
+    else if ((pnode->file_attr = GetFileAttributes(pfull)) == INVALID_FILE_ATTRIBUTES)
     {
         return EUE_FILE_ATTR_ERR;
     }
@@ -460,13 +554,8 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
             goto pre_clean;
         }
     }
-    if (eu_check_arg(NULL, 0, _T("-hex"), pfull))
-    {
-        pnode->hex_mode = true;
-    }
     if (pnode->hex_mode)
     {
-        printf("on hex_mode is true\n");
         if ((err = !on_file_map_hex(pnode, hfile, 0)) != 0)
         {
             goto pre_clean;
@@ -1209,69 +1298,40 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
     return len;
 }
 
-static size_t
-on_file_header_parser(void *hdr, size_t size, size_t nmemb, void *userdata)
-{
-    const size_t cb = size * nmemb;
-    const char *hdr_str = hdr;
-    eu_tabpage *pnode = (eu_tabpage *)userdata;
-    if (hdr && pnode)
-    {
-        char *p = NULL;
-        char u8_file[MAX_PATH] = {' ',};
-        util_make_u8(pnode->filename, &u8_file[1], MAX_PATH - 2);
-        if (u8_file[0] && (p = strstr(hdr, u8_file)) && (p[strlen(u8_file)] == '\r' || p[strlen(u8_file)] == '\n'))
-        {
-            printf("%s\n", hdr_str);
-        }
-    }
-    return cb;
-}
-
 static int
-on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
+on_file_remote_thread(eu_tabpage *p, file_backup *pbak, remotefs *premote)
 {
-    char *url = NULL;
     CURL *curl = NULL;
-    CURLcode res = EUE_CURL_INIT_FAIL;
-    remotefs *pserver = on_remote_list_find(path);
-    if (!pserver)
+    CURLcode ret = EUE_CURL_INIT_FAIL;
+    if (p->fs_server.networkaddr[0] == 0 && premote)
     {
-        return res;
+        memcpy(&(p->fs_server), premote, sizeof(remotefs));
     }
-    if ((url = eu_utf16_utf8(path, NULL)) == NULL)
+    if ((p->reserved0 = (intptr_t)eu_utf16_utf8(pbak->rel_path, NULL)) != 0)
     {
-        return res;
+        if (!(curl = on_remote_init_socket((const char *)p->reserved0, &p->fs_server)))
+        {
+            return EUE_CURL_INIT_FAIL;
+        }
+        eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_read_remote);
+        eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, p);
+    #if APP_DEBUG
+        eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    #endif
+        eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
+        eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
+        eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+        ret = eu_curl_easy_perform(curl);
+        if (!ret)
+        {
+            ret = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &p->st_mtime);
+            printf("pnode->st_mtime = %zu\n", p->st_mtime);
+        }
+        eu_curl_easy_cleanup(curl);
+        free((void *)p->reserved0);
+        p->reserved0 = 0;
     }
-    if (!(curl = on_remote_init_socket(url, pserver)))
-    {
-        free(url);
-        return res;
-    }
-    if (strrchr(url, '/'))
-    {
-        strrchr(url, '/')[0] = 0;
-    }
-    eu_curl_easy_setopt(curl, CURLOPT_URL, url);
-    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
-    eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
-    eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-    eu_curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "sftp");
-    eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_header_parser);
-    eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, pnode);
-    if ((res = eu_curl_easy_perform(curl)) == CURLE_OK)
-    {
-        res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &pnode->st_mtime);
-    }
-    else
-    {
-        const char *err_string = eu_curl_easy_strerror(res);
-        printf("%s error[%d]: %s\n", __FUNCTION__, res, err_string);
-        pnode->raw_size = 0;
-    }
-    eu_curl_easy_cleanup(curl);
-    free(url);
-    return res;
+    return ret;
 }
 
 /**************************************************************************************
@@ -1284,8 +1344,6 @@ on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
 int
 on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
 {
-    char *cnv = NULL;
-    CURL *curl = NULL;
     eu_tabpage *pnode = NULL;
     int result = on_file_open_if(pbak->rel_path, selection);
     if (result < SKYLARK_NOT_OPENED  || result == SKYLARK_OPENED)
@@ -1305,51 +1363,24 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     {
         return result;
     }
-    if (eu_check_arg(NULL, 0, _T("-hex"), pbak->rel_path))
-    {
-        pnode->hex_mode = true;
-    }
-    printf("pnode->hex_mode = %d\n", pnode->hex_mode);
-    if ((cnv = eu_utf16_utf8(pbak->rel_path, NULL)) == NULL)
+    if ((result = on_file_preload(pnode, pbak)) != SKYLARK_OK)
     {
         eu_safe_free(pnode);
-        return EUE_API_CONV_FAIL;
+        printf("on_file_preload failed, err = %d\n", result);
+        return result;
     }
     if (on_tabpage_add(pnode))
     {
-        eu_safe_free(cnv);
         eu_safe_free(pnode);
         return EUE_INSERT_TAB_FAIL;
-    }    
+    }
     on_file_before_open(pnode);
-    if (!(curl = on_remote_init_socket(cnv, premote ? premote : &pnode->fs_server)))
+    on_tabpage_selection(pnode, pnode->tab_id);
+    if (on_file_remote_thread(pnode, pbak, premote) != CURLE_OK)
     {
         on_sql_delete_backup_row(pnode);
         int index = on_tabpage_remove(&pnode);
         on_file_active_other(index);
-        eu_safe_free(cnv);
-        return EUE_CURL_INIT_FAIL;
-    }
-    eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_read_remote);
-    eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, pnode);
-#if APP_DEBUG
-    eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
-    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
-    eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
-    eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-    CURLcode res = eu_curl_easy_perform(curl);
-    if (res == CURLE_OK)
-    {
-        res = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &pnode->st_mtime);
-    }
-    eu_curl_easy_cleanup(curl);
-    if (res != CURLE_OK)
-    {
-        on_sql_delete_backup_row(pnode);
-        int index = on_tabpage_remove(&pnode);
-        on_file_active_other(index);
-        eu_safe_free(cnv);
         MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return EUE_CURL_NETWORK_ERR;
     }
@@ -1370,7 +1401,6 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
         }
         result = hexview_switch_mode(pnode);
     }
-    eu_safe_free(cnv);
     return result;
 }
 
@@ -1565,8 +1595,8 @@ on_file_stream_upload(eu_tabpage *pnode, wchar_t *pmsg)
         #if defined(APP_DEBUG) && (APP_DEBUG > 0)
             eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         #endif
+            // 设置链接超时, 不要设置上传超时, 防止文件被截断
             eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
-            eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
             err = eu_curl_easy_perform(curl);
             if (err && pmsg)
             {
@@ -1863,7 +1893,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
             filebak.tab_id = pnode->tab_id;
             filebak.eol = pnode->eol;
             filebak.blank = pnode->is_blank;
-            filebak.hex = !(pnode->pmod&&pnode->plugin) ? pnode->hex_mode : 0;
+            filebak.hex = !(pnode->pmod && pnode->plugin) ? pnode->hex_mode : 0;
             filebak.focus = pnode->last_focus;
             filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
             on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);

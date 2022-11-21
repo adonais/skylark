@@ -16,22 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+#include <tchar.h>
 #include "eu_nphost.h"
 
-bool
-np_process_path(wchar_t *path, const int len)
+extern TCHAR eu_module_path[MAX_PATH+1];
+
+HMODULE
+np_load_plugin_library(const TCHAR *filename)
 {
-    wchar_t *p = NULL;
-    if (!GetModuleFileNameW(NULL , path , len - 1))
+    if (filename && *filename)
     {
-        return false;
+        TCHAR dll[MAX_PATH + 1] = {0};
+        int n = _sntprintf(dll, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, filename);
+        if (n > 0 && n < MAX_PATH)
+        {
+            return LoadLibraryEx(dll, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+        }
     }
-    p = wcsrchr(path , L'\\');
-    if(p)
-    {
-        *p = 0 ;
-    }
-    return !!path[0];
+    return NULL;
 }
 
 void
@@ -58,13 +60,7 @@ np_plugins_lookup(const wchar_t *file, const wchar_t *name, NMM *hmod)
     bool ret = false;
     if (file && name && name[0] && hmod)
     {
-        wchar_t path[MAX_PATH] = {0};
-        if (np_process_path(path, MAX_PATH))
-        {
-            wcsncat(path, L"\\plugins\\", MAX_PATH);
-            wcsncat(path, file, MAX_PATH);
-        }
-        if (path[0] && (*hmod = LoadLibraryEx(path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH)) != NULL)
+        if ((*hmod = np_load_plugin_library(file)) != NULL)
         {
             np_mimetype_ptr fn_mimetype = (np_mimetype_ptr)GetProcAddress(*hmod, "npp_mime_type");
             if (fn_mimetype)

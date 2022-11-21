@@ -126,7 +126,7 @@ on_tabpage_setpos(eu_tabpage *p)
 {
     if (p && p->hwnd_sc)
     {
-        eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left, 
+        eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left,
                          p->rect_sc.bottom - p->rect_sc.top, SWP_SHOWWINDOW);
     }
 }
@@ -349,8 +349,8 @@ static void
 on_tabpage_undraw_close(HWND hwnd, const LPRECT lprect)
 {
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + TAB_MIN_TOP,
-               lprect->right - TAB_MIN_TOP,
+               lprect->top + 1,
+               lprect->right,
                lprect->bottom - 1
               };
     InvalidateRect(hwnd, &rc, true);
@@ -361,9 +361,9 @@ static bool
 on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
 {
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + TAB_MIN_TOP,
-               lprect->right - TAB_MIN_TOP,
-               lprect->top + TAB_MIN_TOP + CLOSEBUTTON_HEIGHT
+               lprect->top + 1,
+               lprect->right,
+               lprect->bottom - 1
               };
     return PtInRect(&rc, *pt);
 }
@@ -408,7 +408,7 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             {
                 cr = set_btnface_color(hdc, dark_mode);
             }
-            if (eu_sci_call(p,SCI_GETREADONLY, 0, 0))
+            if (p->file_attr & FILE_ATTRIBUTE_READONLY)
             {
                 ImageList_Draw(himg, 1, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
             }
@@ -859,9 +859,10 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEMOVE:
         {
-            TRACKMOUSEEVENT MouseEvent = {sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwnd, HOVER_DEFAULT};
             RECT rect;
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            TRACKMOUSEEVENT MouseEvent = {sizeof(TRACKMOUSEEVENT), TME_HOVER | TME_LEAVE, hwnd, HOVER_DEFAULT};
+            TrackMouseEvent(&MouseEvent);
             GetClientRect(hwnd, &rect);
             if (!PtInRect(&rect, point))
             {
@@ -900,11 +901,10 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     p->at_close = false;
                 }
             }
-            return TrackMouseEvent(&MouseEvent);
+            break;
         }
         case WM_LBUTTONDOWN:
         {
-            RECT rect_tabbar;
             g_point.x = GET_X_LPARAM(lParam);
             g_point.y = GET_Y_LPARAM(lParam);
             count = TabCtrl_GetItemCount(hwnd);
@@ -912,23 +912,25 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             tab_drag = false;
             tab_mutil_select = false;
             tab_do_drag = false;
-            for (index = 0; index < count; ++index)
+            if ((tab_move_from = on_tabpage_hit_index(&g_point)) != -1)
             {
-                TabCtrl_GetItemRect(hwnd, index, &rect_tabbar);
-                if (on_tabpage_hit_button(&rect_tabbar, &g_point))
+                RECT rc;
+                TabCtrl_GetItemRect(hwnd, tab_move_from, &rc);
+                if (on_tabpage_hit_button(&rc, &g_point))
                 {
                     PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
                     return 1;
                 }
-            }
-            if ((tab_move_from = on_tabpage_hit_index(&g_point)) != -1)
-            {
                 if (KEY_UP(VK_CONTROL))
                 {
                     on_tabpage_active_one(tab_move_from);
                 }
                 else if (on_tabpage_nfocus(tab_move_from))
                 {
+                    if (TabCtrl_GetCurSel(hwnd) != tab_move_from)
+                    {
+                        on_tabpage_deselect(tab_move_from);
+                    }
                     return 1;
                 }
             }
@@ -985,7 +987,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 return menu_pop_track(eu_module_hwnd(), IDR_TABPAGE_POPUPMENU, 0, 0, on_tabpage_menu_callback, p);
             }
-            return 1;
+            break;
         }
         case WM_MBUTTONUP:
         {
@@ -997,9 +999,21 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case WM_TAB_NCCLICK:
+        {
+            if (eu_get_config()->m_new_way == IDM_VIEW_TAB_RIGHT_NEW && wParam == MK_RBUTTON)
+            {
+                on_file_new();
+            }
+            if (eu_get_config()->m_new_way == IDM_VIEW_TAB_DBCLICK_NEW && wParam == MK_LBUTTON)
+            {
+                on_file_new();
+            }
+            break;
+        }
         case WM_MOUSEHOVER:
         {   // 鼠标悬停激活
-            return 1;
+            break;
         }
         case WM_MOUSELEAVE:
         {
@@ -1017,7 +1031,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_tabpage_undraw_close(hwnd, &rect);
                 }
             }
-            return 1;
+            break;
         }
         case WM_DESTROY:
         {
@@ -1034,11 +1048,8 @@ int
 on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
-    uint32_t flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS;  //  TCS_BUTTONS | TCS_OWNERDRAWFIXED
-    if (!util_under_wine())
-    {
-        flags |= TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_FOCUSNEVER;
-    }
+    const uint32_t flags = \
+          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_FOCUSNEVER;
     g_tabpages = CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)IDM_TABPAGE_BAR, eu_module_handle(), NULL);
     do
     {
@@ -1336,7 +1347,7 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
-        pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);        
+        pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
     }
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
@@ -1610,16 +1621,13 @@ void
 on_tabpage_switch_next(HWND hwnd)
 {
     EU_VERIFY(g_tabpages != NULL);
+    UNREFERENCED_PARAMETER(hwnd);
     int count = TabCtrl_GetItemCount(g_tabpages);
     int index = TabCtrl_GetCurSel(g_tabpages);
     if (index >= 0 && count > 1 && index < count)
     {
-        eu_tabpage *p = NULL;
         index = (index < count - 1 ? index + 1 : 0);
-        if((p = on_tabpage_get_ptr(index)) != NULL)
-        {
-            on_tabpage_selection(p, index);
-        }
+        on_tabpage_active_one(index);
     }
 }
 

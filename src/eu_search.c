@@ -981,7 +981,7 @@ on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
     }
 }
 
-void
+static void
 on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
 {
     sptr_t current_line = lineno;
@@ -996,7 +996,7 @@ on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
     }
 }
 
-void
+static void
 on_search_remove_marks_this(eu_tabpage *pnode)
 {
     if (pnode)
@@ -1794,16 +1794,19 @@ static int
 on_search_process_count(eu_tabpage *pnode, const char *key, bool sel)
 {
     sptr_t pos = 0;
+    sptr_t end_pos = 0;
     size_t flags = on_search_build_flags(hwnd_search_dlg);
     size_t len = strlen(key);
     eu_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
     if (sel)
     {
         eu_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
+        end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     }
     else
     {
         eu_sci_call(pnode, SCI_TARGETWHOLEDOCUMENT, 0, 0);
+        end_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
     }
     while (pos >= 0)
     {
@@ -1812,7 +1815,6 @@ on_search_process_count(eu_tabpage *pnode, const char *key, bool sel)
         if (pos >= 0)
         {
             sptr_t start_pos = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-            sptr_t end_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
             sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             if (line >= 0)
             {
@@ -1892,10 +1894,12 @@ on_search_report_result(eu_tabpage *pnode, int err, const int button)
     else
     {
         on_search_node_init(pnode);
-        match_count = on_search_process_count(pnode, key, button == IDC_SEARCH_SELRE_BTN);
-        if (match_count > 0 && (button == IDC_SEARCH_PRE_BTN || button == IDC_SEARCH_NEXT_BTN))
+        if ((match_count = on_search_process_count(pnode, key, button == IDC_SEARCH_SELRE_BTN)) > 0)
         {
-            on_search_push_string_listbox(pnode->pathfile, key, match_count);
+            if (button == IDC_SEARCH_PRE_BTN || button == IDC_SEARCH_NEXT_BTN)
+            {
+                on_search_push_string_listbox(pnode->pathfile, key, match_count);
+            }
         }
     }
     if (pnode->match_count == -2)
@@ -3674,49 +3678,54 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace)
 }
 
 void
-on_search_tab2space(eu_tabpage *pnode)
+on_search_tab_space(eu_tabpage *p, bool tospace)
 {
-    int flags = SCFIND_REGEXP;
-    char str_replace[QW_SIZE] = {0};
-    const char *key = "\t";
     int number = 0;
-    if (!pnode)
-    {
-        return;
-    }
-    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
-    {
-        number = pnode->doc_ptr->tab_width;
-    }
-    else
-    {
-        number = eu_get_config()->tab_width;
-    }
-    memset(str_replace, 0x20, number);
-    on_search_do_space(pnode, key, str_replace);
-}
-
-void
-on_search_space2tab(eu_tabpage *pnode)
-{
-    int flags = SCFIND_REGEXP;
     char key[QW_SIZE] = {0};
-    const char *str_replace = "\t";
-    int number = 0;
-    if (!pnode)
+    char str_replace[QW_SIZE] = {0};
+    cvector_vector_type(int) v = NULL;
+    UNREFERENCED_PARAMETER(p);
+    if ((on_tabpage_sel_number(&v, false)) > 0)
     {
-        return;
+        int count = eu_int_cast(cvector_size(v));
+        for (int k = 0; k < count; ++k)
+        {
+            eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
+            if (pnode && !pnode->hex_mode)
+            {
+                if (pnode)
+                {
+                    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
+                    {
+                        number = pnode->doc_ptr->tab_width;
+                    }
+                    else
+                    {
+                        number = eu_get_config()->tab_width;
+                    }
+                    if (number < QW_SIZE)
+                    {
+                        if (tospace)
+                        {
+                            key[0] = '\t';
+                            key[1] = 0;
+                            memset(str_replace, 0x20, number);
+                            str_replace[number] = 0;
+                        }
+                        else
+                        {
+                            memset(key, 0x20, number);
+                            key[number] = 0;
+                            str_replace[0] = '\t';
+                            str_replace[1] = 0;
+                        }
+                        on_search_do_space(pnode, key, str_replace);
+                    }
+                }
+            }
+        }
     }
-    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
-    {
-        number = pnode->doc_ptr->tab_width;
-    }
-    else
-    {
-        number = eu_get_config()->tab_width;
-    }
-    memset(key, 0x20, number);
-    on_search_do_space(pnode, key, str_replace);
+    cvector_freep(&v);
 }
 
 bool
