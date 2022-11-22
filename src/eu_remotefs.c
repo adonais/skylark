@@ -521,6 +521,7 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         on_remote_remove_config(pserver);
                         ListBox_DeleteString(server_box, serverindex);
+                        Edit_SetText(GetDlgItem(hdlg, IDC_FILESERVER_NAME_EDIT), _T(""));
                         servercount = ListBox_GetCount(server_box);
                         if (serverindex == servercount)
                         {
