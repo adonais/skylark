@@ -1650,7 +1650,7 @@ eu_save_config(void)
 		"    autoc = %s,\n"
         "    rgb = 0x%08X\n"
         "}\n"
-        "-- caret default setting\n"
+        "-- unused settings\n"
         "caret = {\n"
         "    blink = %d,\n"
         "    width = %d,\n"
@@ -1757,9 +1757,9 @@ eu_save_config(void)
               g_config->eu_brace.matching?"true":"false",
               g_config->eu_brace.autoc?"true":"false",
               g_config->eu_brace.rgb,
-              g_config->eu_caret.blink>=0?g_config->eu_caret.blink:500,
-              g_config->eu_caret.width>=0?g_config->eu_caret.width:1,
-              g_config->eu_caret.rgb,
+              0,
+              0,
+              0,
               g_config->eu_calltip.enable?"true":"false",
               g_config->eu_calltip.rgb,
               g_config->eu_complete.enable?"true":"false",
@@ -1924,7 +1924,17 @@ eu_save_theme(void)
         "activetab_fontsize = %d\n"
         "activetab_color = 0x%08X\n"
         "activetab_bgcolor = 0x%08X\n"
-        "activetab_bold = %d";
+        "activetab_bold = %d\n"
+        "caret_font = \"%s\"\n"
+        "caret_fontsize = %d\n"
+        "caret_color = 0x%08X\n"
+        "caret_bgcolor = 0x%08X\n"
+        "caret_bold = %d\n"
+        "symbolic_font = \"%s\"\n"
+        "symbolic_fontsize = %d\n"
+        "symbolic_color = 0x%08X\n"
+        "symbolic_bgcolor = 0x%08X\n"
+        "symbolic_bold = %d";
     if (!g_theme)
     {
         return;
@@ -1962,7 +1972,9 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(cdata),
         EXPAND_STYLETHEME(phpsection),
         EXPAND_STYLETHEME(aspsection),
-        EXPAND_STYLETHEME(activetab));
+        EXPAND_STYLETHEME(activetab),
+        EXPAND_STYLETHEME(caret),
+        EXPAND_STYLETHEME(symbolic));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)

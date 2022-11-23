@@ -1500,7 +1500,7 @@ on_complete_reset_focus(eu_tabpage *pnode)
         cvector_freep(&pnode->ac_vec);
         if (!eu_sci_call(pnode, SCI_SETCARETPERIOD, 0, 0))
         {
-            eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_config()->eu_caret.blink, 0);
+            eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_theme()->item.caret.bold, 0);
         }
     }
 }

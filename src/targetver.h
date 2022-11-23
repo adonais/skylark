@@ -905,6 +905,7 @@
 #define IDM_HEXVIEW_INS                     42835
 #define IDM_HEXVIEW_COPY_ADDR               42836
 
+#define IDS_THEME_CARET_TIPS                42839
 #define IDC_THEME_CARTETLINE_EDT            42840
 #define IDC_THEME_INDICATOR_EDT             42841
 #define IDC_THEME_CARTETLINE_UDN            42844
