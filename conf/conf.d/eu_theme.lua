@@ -130,7 +130,17 @@ function eu_theme.get_default(name)
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
           "activetab_bgcolor = 0x00545454\n" ..
-          "activetab_bold = 0"
+          "activetab_bold = 0\n" ..
+          "caret_font = \"Consolas\"\n" ..
+          "caret_fontsize = 11\n" ..
+          "caret_color = 0x020A99FF\n" ..
+          "caret_bgcolor = 0x001E1E1E\n" ..
+          "caret_bold = 500\n" ..
+          "symbolic_font = \"Consolas\"\n" ..
+          "symbolic_fontsize = 13\n" ..
+          "symbolic_color = 0x00D4D4D4\n" ..
+          "symbolic_bgcolor = 0x001E1E1E\n" ..
+          "symbolic_bold = 0"
     elseif (name == "white") then
         theme = -- 经典白主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -257,7 +267,17 @@ function eu_theme.get_default(name)
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
           "activetab_bgcolor = 0x00d77800\n" ..
-          "activetab_bold = 0"
+          "activetab_bold = 0\n" ..
+          "caret_font = \"Consolas\"\n" ..
+          "caret_fontsize = 11\n" ..
+          "caret_color = 0x020A99FF\n" ..
+          "caret_bgcolor = 0x00FFFFFF\n" ..
+          "caret_bold = 500\n" ..
+          "symbolic_font = \"Consolas\"\n" ..
+          "symbolic_fontsize = 13\n" ..
+          "symbolic_color = 0x00000000\n" ..
+          "symbolic_bgcolor = 0x00FFFFFF\n" ..
+          "symbolic_bold = 0"
     else
         theme = -- 默认主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -359,7 +379,7 @@ function eu_theme.get_default(name)
           "unknowattributes_bold = 0\n" ..
           "entities_font = \"Consolas\"\n" ..
           "entities_fontsize = 11\n" ..
-          "entities_color = 0x00800080\n" ..
+          "entities_color = 0x008000FF\n" ..
           "entities_bgcolor = 0x00000000\n" ..
           "entities_bold = 0\n" ..
           "tagends_font = \"Consolas\"\n" ..
@@ -386,7 +406,17 @@ function eu_theme.get_default(name)
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
           "activetab_bgcolor = 0x00d77800\n" ..
-          "activetab_bold = 0"
+          "activetab_bold = 0\n" ..
+          "caret_font = \"Consolas\"\n" ..
+          "caret_fontsize = 11\n" ..
+          "caret_color = 0x020A99FF\n" ..
+          "caret_bgcolor = 0x00444444\n" ..
+          "caret_bold = 500\n" ..
+          "symbolic_font = \"Consolas\"\n" ..
+          "symbolic_fontsize = 13\n" ..
+          "symbolic_color = 0x00FFFFFF\n" ..
+          "symbolic_bgcolor = 0x00444444\n" ..
+          "symbolic_bold = 0"
     end
     return theme
 end
@@ -454,6 +484,24 @@ function eu_theme.load_default(name)
     if (activetab_bold == nil) then
         activetab_bold = 0
     end
+    if (caret_color == nil) then
+        caret_color = 0x020A99FF
+    end
+    if (caret_bold == nil) then
+        caret_bold = 500
+    end
+    if (symbolic_font == nil) then
+        symbolic_font = text_font
+    end
+    if (symbolic_fontsize == nil) then
+        symbolic_fontsize = 13
+    end
+    if (symbolic_color == nil) then
+        symbolic_color = text_color
+    end
+    if (symbolic_bold == nil) then
+        symbolic_bold = text_bold
+    end        
     local m_theme = eu_core.ffi.new("struct eu_theme", {m_file, tname,
       {
         {linenumber_font,linenumber_fontsize,linenumber_color,linenumber_bgcolor,linenumber_bold},
@@ -480,7 +528,9 @@ function eu_theme.load_default(name)
         {cdata_font,cdata_fontsize,cdata_color,cdata_bgcolor,cdata_bold},
         {phpsection_font,phpsection_fontsize,phpsection_color,phpsection_bgcolor,phpsection_bold},
         {aspsection_font,aspsection_fontsize,aspsection_color,aspsection_bgcolor,aspsection_bold},
-        {activetab_font,activetab_fontsize,activetab_color,activetab_bgcolor,activetab_bold}
+        {activetab_font,activetab_fontsize,activetab_color,activetab_bgcolor,activetab_bold},
+        {text_font,text_fontsize,caret_color,text_bgcolor,caret_bold},
+        {symbolic_font,symbolic_fontsize,symbolic_color,text_bgcolor,symbolic_bold}
       }
     })
     return eu_core.euapi.eu_theme_ptr(m_theme, true)

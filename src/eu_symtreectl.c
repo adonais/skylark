@@ -1264,6 +1264,24 @@ on_symtree_postion(eu_tabpage *pnode)
     return 0;
 }
 
+int
+on_symtree_update_theme(eu_tabpage *pnode)
+{
+    if (pnode && pnode->hwnd_symtree)
+    {
+        if (pnode->hwnd_font)
+        {
+            DeleteObject(pnode->hwnd_font);
+        }
+        pnode->hwnd_font = util_create_font(eu_get_theme()->item.symbolic.font, eu_get_theme()->item.symbolic.fontsize, eu_get_theme()->item.symbolic.bold);
+        SendMessage(pnode->hwnd_symtree, WM_SETFONT, (WPARAM)pnode->hwnd_font, 0);
+        SendMessage(pnode->hwnd_symtree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.symbolic.color);
+        SendMessage(pnode->hwnd_symtree, TVM_SETLINECOLOR, 0, eu_get_theme()->item.symbolic.color);
+        SendMessage(pnode->hwnd_symtree, TVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);        
+    }
+    return SKYLARK_OK;
+}
+
 LRESULT CALLBACK
 symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1383,15 +1401,25 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
+            pnode = on_tabpage_focus_at();
+            on_symtree_update_theme(pnode);
             break;
         }
         case WM_DESTROY:
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if (pnode && pnode->json_id)
-            {
-                util_kill_thread(pnode->json_id);
+            if (pnode)
+            {   
+                if (pnode->hwnd_font)
+                {
+                    DeleteObject(pnode->hwnd_font);
+                    pnode->hwnd_font = NULL;
+                }
+                // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
+                if (pnode->json_id)
+                {
+                    util_kill_thread(pnode->json_id);
+                }
             }
             printf("symtree WM_DESTROY\n");
             break;
@@ -1426,6 +1454,7 @@ on_symtree_create(eu_tabpage *pnode)
     else
     {
         SetWindowLongPtr(pnode->hwnd_symtree, GWLP_USERDATA, (intptr_t) pnode);
+        on_symtree_update_theme(pnode);
     }
     return 0;
 }

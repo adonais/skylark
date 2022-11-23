@@ -30,6 +30,7 @@ extern "C"
 
 int eu_dpi_scale_font(void);
 int eu_dpi_scale_xy(int adpi, int m);
+void on_proc_destory_brush(void);
 void on_proc_resize(HWND hwnd);
 void on_proc_undo_off(void);
 void eu_window_resize(HWND hwnd);

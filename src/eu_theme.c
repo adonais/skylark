@@ -18,8 +18,6 @@
 #include "framework.h"
 #include <uxtheme.h>
 
-#define FONT_SIZE_CONVERT(fontsize) (-MulDiv((fontsize), eu_get_dpi(NULL), 72))
-
 static HFONT  g_hfont;
 static HBRUSH brush_linenumber;
 static HBRUSH brush_foldmargin;
@@ -261,7 +259,7 @@ on_theme_setup_font(HWND hwnd)
     SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
     LOGFONT logfont = ncm.lfMessageFont;
     int font_size = logfont.lfHeight < 0 ? -logfont.lfHeight : logfont.lfHeight;
-    logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(hwnd), SC_FONT_SIZE_MULTIPLIER);
+    logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(hwnd), USER_DEFAULT_SCREEN_DPI);
     g_hfont = CreateFontIndirect(&logfont);
     if (g_hfont)
     {
@@ -416,7 +414,7 @@ choose_style_font(char *font, int *fontsize, int *bold)
     hdc = GetDC(hwnd);
     _tcsncpy(lf.lfFaceName, u16_font(font), _countof(lf.lfFaceName)-1);
     lf.lfWeight = (bold && *bold) ? FW_BOLD : FW_NORMAL;
-    lf.lfHeight = FONT_SIZE_CONVERT(*fontsize);
+    lf.lfHeight = -MulDiv(*fontsize, eu_get_dpi(hwnd), 72);
     cf.hwndOwner = hwnd;
     cf.hInstance = eu_module_handle();
     cf.lpLogFont = &lf;
@@ -482,7 +480,7 @@ choose_text_color(HWND hwnd, uint32_t *color)
     }                                                                                             \
     else                                                                                          \
     {                                                                                             \
-        _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),          \
+        _font_handle_name_ = CreateFont(FONT_SIZE_DPI(dlg_style._st_memb_.fontsize),              \
                                         0,                                                        \
                                         0,                                                        \
                                         0,                                                        \
@@ -513,7 +511,7 @@ choose_text_color(HWND hwnd, uint32_t *color)
     strcpy(dlg_style._st_memb_.font, dlg_style.text.font);                                        \
     dlg_style._st_memb_.fontsize = dlg_style.text.fontsize;                                       \
     DeleteObject(_font_handle_name_);                                                             \
-    _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),              \
+    _font_handle_name_ = CreateFont(FONT_SIZE_DPI(dlg_style._st_memb_.fontsize),                  \
                                     0,                                                            \
                                     0,                                                            \
                                     0,                                                            \
@@ -537,7 +535,7 @@ choose_text_color(HWND hwnd, uint32_t *color)
     {                                                                                                                 \
         choose_style_font(dlg_style._st_memb_.font, &(dlg_style._st_memb_.fontsize), &(dlg_style._st_memb_.bold));    \
         DeleteObject(_font_handle_name_);                                                                             \
-        _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),                              \
+        _font_handle_name_ = CreateFont(FONT_SIZE_DPI(dlg_style._st_memb_.fontsize),                                  \
                                         0,                                                                            \
                                         0,                                                                            \
                                         0,                                                                            \
@@ -1032,7 +1030,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     choose_style_font(dlg_style.text.font, &(dlg_style.text.fontsize), &(dlg_style.text.bold));
 
                     SYNC_FONT(text, hwnd_text_static, font_text_static)
-                    SYNC_FONT(caret, hwnd_caret_static, font_caret_static)
 
                     SYNC_FONT(keywords0, hwnd_keyword_static, font_keyword_static)
                     SYNC_FONT(keywords1, hwnd_keyword2_static, font_keyword2_static)
@@ -1054,7 +1051,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     SYNC_FONT(cdata, hwnd_cdata_static, font_cdata_static)
                     SYNC_FONT(phpsection, hwnd_phpsection_static, font_phpsection_static)
                     SYNC_FONT(aspsection, hwnd_aspsection_static, font_aspsection_static)
-                    SYNC_FONT(symbolic, hwnd_symbolic_static, font_symbolic_static)
                     break;
                 }
                 case IDC_SETTEXTCOLOR_TEXT_BTN:

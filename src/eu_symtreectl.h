@@ -56,6 +56,7 @@ typedef struct _redis_conn
 
 extern redis_lib redis_funcs;
 void on_symtree_disconnect_redis(eu_tabpage *pnode);
+
 int on_symtree_query_redis(eu_tabpage *pnode);
 int on_symtree_parse_redis_header(eu_tabpage *pnode);
 int on_symtree_do_sql(eu_tabpage *pnode, bool reload);
@@ -65,6 +66,7 @@ int on_symtree_postion(eu_tabpage *pnode);
 
 int on_symtree_create(eu_tabpage *pnode);
 int on_symtree_add_text(eu_tabpage *pnode);
+int on_symtree_update_theme(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

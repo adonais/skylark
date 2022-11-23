@@ -41,6 +41,7 @@ struct _tabpage
     HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
+    HFONT hwnd_font;            // tab关联的子窗口控件字体句柄
     RECT rect_sc;               // 编辑器矩形区域
     RECT rect_sym;              // 右侧边栏窗口矩形区域
     RECT rect_qrtable;          // table窗口矩形区域

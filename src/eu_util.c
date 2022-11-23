@@ -2308,3 +2308,23 @@ util_split(const char *pstr, char (*pout)[QW_SIZE], char ch)
     }
     return ret;
 }
+
+HFONT
+util_create_font(const char* name, const int font_size, const bool bold)
+{
+    LOGFONT lf = {FONT_SIZE_DPI(font_size)};
+    lf.lfWidth = 0;
+    lf.lfItalic = FALSE;
+    lf.lfUnderline = FALSE;
+    lf.lfStrikeOut = FALSE;
+    lf.lfCharSet = DEFAULT_CHARSET;
+    lf.lfOutPrecision = OUT_TT_PRECIS;
+    lf.lfQuality = DEFAULT_QUALITY;
+    lf.lfPitchAndFamily = DEFAULT_PITCH;
+    lf.lfWeight = bold ? FW_BOLD : FW_NORMAL;
+    lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+    lf.lfEscapement = 0;
+    lf.lfOrientation = 0;
+    util_make_u16(name, lf.lfFaceName, _countof(lf.lfFaceName)-1);
+    return CreateFontIndirectW(&lf);
+}

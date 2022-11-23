@@ -83,12 +83,8 @@ on_destory_window(HWND hwnd)
     KillTimer(hwnd, EU_TIMER_ID);
     // 等待搜索完成
     on_search_finish_wait();
-    // 销毁全局画刷
-    if (g_control_brush)
-    {
-        DeleteObject(g_control_brush);
-        g_control_brush = NULL;
-    }
+    // 销毁控件画刷
+    on_proc_destory_brush();
     // 销毁工具栏
     HWND h_tool = GetDlgItem(hwnd, IDC_TOOLBAR);
     if (h_tool)
@@ -149,6 +145,16 @@ void
 on_proc_undo_off(void)
 {
     _InterlockedExchange(&undo_off, 0);
+}
+
+void
+on_proc_destory_brush(void)
+{
+    if (g_control_brush)
+    {
+        DeleteObject(g_control_brush);
+        g_control_brush = NULL;
+    }    
 }
 
 HWND
@@ -760,14 +766,37 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLOREDIT:
-        {  // 为控件创建单独的画刷,用来绘制背景色
-            HDC hdc = (HDC) wParam;
-            if (g_control_brush)
+        {   // 为list控件创建画刷,用来绘制背景色
+            HDC hdc = (HDC)wParam;
+            if (!(pnode = on_tabpage_focus_at()))
             {
-                DeleteObject(g_control_brush);
+                break;
+            }            
+            if (!g_control_brush)
+            {
+                if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))
+                    break;
             }
-            g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor);
+            if (pnode->hwnd_symlist == (HWND)lParam)
+            {
+                SetTextColor(hdc, eu_get_theme()->item.symbolic.color & 0xFFFFFF);
+            }
+            else
+            {
+                SetTextColor(hdc, eu_get_theme()->item.text.color);
+            }
+            SetBkColor(hdc, eu_get_theme()->item.text.bgcolor);
+            SetBkMode(hdc, TRANSPARENT);
+            return (LRESULT)g_control_brush;
+        }
+        case WM_CTLCOLOREDIT:
+        {   // 为edit控件创建画刷,用来绘制背景色
+            HDC hdc = (HDC)wParam;
+            if (!g_control_brush)
+            {
+                if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))
+                    break;
+            }
             SetTextColor(hdc, eu_get_theme()->item.text.color);
             SetBkColor(hdc, eu_get_theme()->item.text.bgcolor);
             SetBkMode(hdc, TRANSPARENT);
