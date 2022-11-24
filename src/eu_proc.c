@@ -427,9 +427,20 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && p != pnode && !p->plugin && p->hex_mode && p->hwnd_sc)
+            if (p && p != pnode && !p->plugin)
             {
-                ShowWindow(p->hwnd_sc, SW_HIDE);
+                if (RESULT_SHOW(p))
+                {
+                    ShowWindow(p->presult->hwnd_sc, SW_HIDE);
+                    if (p->hwnd_qrtable)
+                    {
+                        ShowWindow(p->hwnd_qrtable, SW_HIDE);
+                    }
+                }       
+                if (p->hex_mode && p->hwnd_sc)
+                {
+                    ShowWindow(p->hwnd_sc, SW_HIDE);
+                }
             }
         }
         if (RESULT_SHOW(pnode) && eu_result_hwnd())
