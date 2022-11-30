@@ -40,6 +40,7 @@ void on_sci_update_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
 void on_sci_free_tab(eu_tabpage **ppnode);
 void on_sci_insert_egg(eu_tabpage *pnode);
+void on_sci_refresh_ui(eu_tabpage *pnode);
 void on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 bool on_sci_doc_modified(eu_tabpage *pnode);
 bool on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len);

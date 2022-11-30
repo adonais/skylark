@@ -220,12 +220,23 @@ on_sci_after_file(eu_tabpage *pnode)
             {   // 设置此标签页的语法解析
                 pnode->doc_ptr->fn_init_after(pnode);
             }
-            on_sci_update_margin(pnode);            
+            on_sci_update_margin(pnode);
         }
         else if (!pnode->plugin)
         {
             on_sci_reset_zoom(pnode);
         }
+    }
+}
+
+void
+on_sci_refresh_ui(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        on_toolbar_update_button();
+        on_statusbar_update();
+        on_sci_update_margin(pnode);
     }
 }
 
