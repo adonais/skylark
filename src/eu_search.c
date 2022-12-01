@@ -2016,7 +2016,10 @@ on_search_report_result(void *lp)
         }
     }
 report_err:
-    _InterlockedDecrement(&search_btn_id);
+    if (search_btn_id > 0)
+    {
+        _InterlockedDecrement(&search_btn_id);
+    }
     eu_safe_free(key);
     eu_safe_free(lp);
     return match_count;
