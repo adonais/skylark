@@ -28,8 +28,16 @@ static LIST_HEAD(list_trace);
 static LIST_HEAD(list_files);
 static LIST_HEAD(list_folders);
 static volatile long search_id = 0;
+static volatile long search_btn_id = 0;
 static HANDLE search_event_final = NULL;
 static HWND hwnd_regxp_tips = NULL;
+
+typedef struct _report_data
+{
+    eu_tabpage *p;
+    int code;
+    int button;
+}report_data;
 
 #define HSCRALL_LEN 768
 #define DLG_BTN_CHECK(h, i)                 \
@@ -1845,22 +1853,40 @@ on_search_process_count(eu_tabpage *pnode, const char *key, bool sel)
     return pnode->match_count;
 }
 
-static int
-on_search_report_result(eu_tabpage *pnode, int err, const int button)
+static unsigned __stdcall
+on_search_report_result(void *lp)
 {
+    int err = 0;
+    int button = 0;
     int tabcount = 1;
     int file_count = 1;
     int match_count = 0;
     bool all_file = false;
     char *key = NULL;
     HWND hwnd_re_stc = NULL;
+    eu_tabpage *pnode = NULL;
+    report_data rdata = {0};
+    if (!lp)
+    {
+        goto report_err;
+    }
+    if (!util_string_to_struct(lp, &rdata, sizeof(rdata)))
+    {
+        goto report_err;
+    }
+    else
+    {
+        pnode = rdata.p;
+        err = rdata.code;
+        button = rdata.button;
+    }
     if (!pnode || pnode->hex_mode)
     {
-        return 0;
+        goto report_err;
     }
     if (!(key = on_search_get_combo_str(IDC_WHAT_FOLDER_CBO)))
     {
-        return 0;
+        goto report_err;
     }
     if ((hwnd_re_stc = GetDlgItem(hwnd_search_dlg, IDC_REGXP_TIPS_STC)) != NULL)
     {
@@ -1989,8 +2015,48 @@ on_search_report_result(eu_tabpage *pnode, int err, const int button)
                 break;
         }
     }
-    free(key);
+report_err:
+    _InterlockedDecrement(&search_btn_id);
+    eu_safe_free(key);
+    eu_safe_free(lp);
     return match_count;
+}
+
+/*************************************************************************************************
+ * 功能,  汇报页面搜索结果                                                                       *
+ * pnode, 标签句柄                                                                               *
+ * err, 搜索时的错误码                                                                           *
+ * button, 按钮id                                                                                *
+ * use_thread, 使用线程搜索                                                                      *
+ * 当使用线程搜索时, 返回值总是0, 非线程搜索时, 返回匹配的总数                                   *
+ *************************************************************************************************/
+static int
+on_search_report_thread(eu_tabpage *pnode, int err, const int button, const bool use_thread)
+{
+    int match = 0;
+    report_data rdata = {pnode, err, (int)button};
+    if (use_thread)
+    {
+        HANDLE thr = NULL;
+        if (search_btn_id < LONG_MAX && 
+           (thr = (HANDLE) _beginthreadex(NULL, 0, on_search_report_result, util_struct_to_string(&rdata, sizeof(rdata)), 0, NULL)))
+        {
+            _InterlockedIncrement(&search_btn_id);
+            CloseHandle(thr);
+        }
+    }
+    else
+    {
+        match = on_search_report_result(util_struct_to_string(&rdata, sizeof(rdata)));
+    }
+    return match;
+}
+
+bool
+on_search_report_ok(void)
+{
+    printf("search_btn_id = %ld\n", search_btn_id);
+    return (search_btn_id == 0);
 }
 
 /*************************************************************************************************
@@ -2405,8 +2471,8 @@ on_search_find_next_button(const int button)
     if (pnode)
     {
         int err = on_search_find_button(pnode, button);
-        int match = on_search_report_result(pnode, err, button);
-        if (button == IDC_SEARCH_ALL_BTN && match > 0)
+        on_search_report_thread(pnode, err, button, true);
+        if (button == IDC_SEARCH_ALL_BTN && err == 0)
         {
             int size = 0;
             int index = 0;
@@ -2744,7 +2810,7 @@ on_search_replace_button(void)
     {
         return;
     }
-    if (!on_search_report_result(pnode, 0, IDC_SEARCH_RE_BTN))
+    if (!on_search_report_thread(pnode, 0, IDC_SEARCH_RE_BTN, false))
     {
         return;
     }
@@ -2752,7 +2818,7 @@ on_search_replace_button(void)
     {
         if (!on_search_at_replace_page(pnode, opt))
         {
-            on_search_report_result(pnode, 1, IDC_SEARCH_RE_BTN);
+            on_search_report_thread(pnode, 1, IDC_SEARCH_RE_BTN, false);
         }
     }
     else
@@ -2806,7 +2872,7 @@ on_search_replace_all_button(const int button)
     {
         opt |= ON_REPLACE_SELECTION;
     }
-    if (!on_search_report_result(pnode, 0, button))
+    if (!on_search_report_thread(pnode, 0, button, false))
     {
         return;
     }

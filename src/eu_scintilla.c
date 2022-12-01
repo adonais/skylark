@@ -351,7 +351,10 @@ on_sci_free_tab(eu_tabpage **ppnode)
             }
             on_sci_delete_file(*ppnode);
             // 销毁标签内存
-            eu_safe_free(*ppnode);
+            if (on_search_report_ok())
+            {
+                eu_safe_free(*ppnode);
+            }
         }
         else if ((*ppnode)->hwnd_sc)
         {
