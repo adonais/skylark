@@ -1327,8 +1327,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_file_style(pnode);
                         on_symtree_json(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JSON:
@@ -1336,8 +1335,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_do_compress(pnode, on_format_json_callback);
                         on_symtree_json(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_JS:
@@ -1345,8 +1343,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_file_style(pnode);
                         on_symlist_reqular(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JS:
@@ -1354,15 +1351,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_do_compress(pnode, on_format_js_callback);
                         on_symlist_reqular(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
                     on_format_clang_file(pnode, true);
+                    on_sci_refresh_ui(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
                     on_format_clang_file(pnode, false);
+                    on_sci_refresh_ui(pnode);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
                     if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
