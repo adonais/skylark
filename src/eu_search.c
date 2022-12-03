@@ -32,11 +32,21 @@ static volatile long search_btn_id = 0;
 static HANDLE search_event_final = NULL;
 static HWND hwnd_regxp_tips = NULL;
 
+static CRITICAL_SECTION eu_search_cs;
+static CRITICAL_SECTION_DEBUG critsect_search =
+{
+    0, 0, &eu_search_cs,
+    { &critsect_search.ProcessLocksList, &critsect_search.ProcessLocksList },
+      0, 0, (DWORD_PTR)0x1,
+};
+static CRITICAL_SECTION eu_search_cs = { &critsect_search, -1, 0, 0, 0, 0 };
+
 typedef struct _report_data
 {
     eu_tabpage *p;
     int code;
     int button;
+    bool thr;
 }report_data;
 
 #define HSCRALL_LEN 768
@@ -54,6 +64,31 @@ if (hc)                                     \
     {                                       \
         ShowWindow(hc, SW_SHOW);            \
     }                                       \
+}
+
+static void
+enter_spin_slock(const bool use_thread)
+{
+    if (use_thread)
+    {
+        EnterCriticalSection(&eu_search_cs);
+    }
+    else
+    {
+        while (search_btn_id != 0)
+        {
+            Sleep(100);
+        }
+    }
+}
+
+static void
+leave_spin_slock(const bool use_thread)
+{
+    if (use_thread)
+    {
+        LeaveCriticalSection(&eu_search_cs);
+    }
 }
 
 static void
@@ -1874,7 +1909,7 @@ on_search_report_result(void *lp)
     {
         goto report_err;
     }
-    else
+    if (true)
     {
         pnode = rdata.p;
         err = rdata.code;
@@ -1892,13 +1927,13 @@ on_search_report_result(void *lp)
     {
         ShowWindow(hwnd_re_stc, SW_HIDE);
     }
+    enter_spin_slock(rdata.thr);
     if ((all_file = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_ALL_FILE)))
     {   // 如果在多个打开的文件中搜索, 重新计数
         file_count = 0;
         tabcount = TabCtrl_GetItemCount(g_tabpages);
         for (int index = 0; index < tabcount; ++index)
         {
-            int result = 0;
             eu_tabpage *p = NULL;
             TCITEM tci = {TCIF_PARAM,};
             TabCtrl_GetItem(g_tabpages, index, &tci);
@@ -1928,6 +1963,7 @@ on_search_report_result(void *lp)
             }
         }
     }
+    leave_spin_slock(rdata.thr);
     if (pnode->match_count == -2)
     {
         on_search_regxp_error();
@@ -2037,7 +2073,7 @@ static int
 on_search_report_thread(eu_tabpage *pnode, int err, const int button, const bool use_thread)
 {
     int match = 0;
-    report_data rdata = {pnode, err, (int)button};
+    report_data rdata = {pnode, err, (int)button, (bool)use_thread};
     if (use_thread)
     {
         HANDLE thr = NULL;
@@ -2474,7 +2510,7 @@ on_search_find_next_button(const int button)
     if (pnode)
     {
         int err = on_search_find_button(pnode, button);
-        on_search_report_thread(pnode, err, button, true);
+        on_search_report_thread(pnode, err, button, button != IDC_SEARCH_ALL_BTN);
         if (button == IDC_SEARCH_ALL_BTN && err == 0)
         {
             int size = 0;
