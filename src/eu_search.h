@@ -82,6 +82,7 @@ int on_search_combo_callback(void *data, int count, char **column, char **names)
 
 sptr_t on_search_process_find(eu_tabpage *, const char *, size_t, size_t, size_t);
 bool on_search_create_box(void);
+bool on_search_report_ok(void);
 
 void on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno);
 void on_search_remove_marks_all(eu_tabpage *pnode);

@@ -212,18 +212,6 @@ on_doc_init_result(eu_tabpage *pnode)
 }
 
 static void
-on_doc_setup_symtree_theme(eu_tabpage *pnode)
-{
-    if (pnode && pnode->hwnd_symtree)
-    {
-        SendMessage(pnode->hwnd_symtree, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
-        SendMessage(pnode->hwnd_symtree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
-        SendMessage(pnode->hwnd_symtree, TVM_SETLINECOLOR, 0, eu_get_theme()->item.text.color);
-        SendMessage(pnode->hwnd_symtree, TVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
-    }
-}
-
-static void
 on_doc_set_keyword(eu_tabpage *pnode)
 {
     if (!(pnode && pnode->doc_ptr))
@@ -815,7 +803,6 @@ on_doc_init_after_sql(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_SQL_COMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_SQL_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_setup_symtree_theme(pnode);
     return 0;
 }
 
@@ -825,7 +812,6 @@ on_doc_init_after_redis(eu_tabpage *pnode)
     on_doc_key_scilexer(pnode, "cpp");
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_setup_symtree_theme(pnode);
     return 0;
 }
 
@@ -1262,7 +1248,6 @@ on_doc_init_after_json(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_JSON_LINECOMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_JSON_BLOCKCOMMENT, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_setup_symtree_theme(pnode);
     if (pnode->doc_ptr->fn_reload_symtree)
     {
         pnode->doc_ptr->fn_reload_symtree(pnode);

@@ -1771,8 +1771,7 @@ SAVE_FINAL:
                 }
             }
         }
-        on_toolbar_update_button();
-        eu_window_resize(NULL);
+        on_sci_refresh_ui(pnode);
     }
     return err;
 }

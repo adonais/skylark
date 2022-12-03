@@ -123,11 +123,12 @@ int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *sourc
 int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level);
 int util_count_number(size_t number);
 int util_split(const char *pstr, char (*pout)[QW_SIZE], char ch);
-void util_transparent(HWND hwnd, int percent);
-void util_untransparent(HWND hwnd);
-bool util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
-bool util_file_access(LPCTSTR filename, uint32_t *pgranted);
+void  util_transparent(HWND hwnd, int percent);
+void  util_untransparent(HWND hwnd);
+bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
+bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);
+HFONT util_create_font(const char* name, const int font_size, const bool bold);
 
 #ifdef __cplusplus
 }

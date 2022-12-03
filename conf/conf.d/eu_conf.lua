@@ -80,11 +80,11 @@ function eu_conf.loadconf()
         "    autoc = true,\n" ..
         "    rgb = 0x000000FF\n" ..
         "}\n" ..
-        "-- caret default setting\n" ..
+        "-- unused settings\n" ..
         "caret = {\n" ..
-        "    blink = 500,\n" ..
-        "    width = 2,\n" ..
-        "    rgb = 0x000A99FF\n" ..
+        "    blink = 0,\n" ..
+        "    width = 0,\n" ..
+        "    rgb = 0x0\n" ..
         "}\n" ..
         "-- calltip default setting\n" ..
         "calltip = {\n" ..

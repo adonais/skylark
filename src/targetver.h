@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 3
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 1
+#define __EU_INFO_VERSION_PATCHLEVEL 2
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -905,6 +905,7 @@
 #define IDM_HEXVIEW_INS                     42835
 #define IDM_HEXVIEW_COPY_ADDR               42836
 
+#define IDS_THEME_CARET_TIPS                42839
 #define IDC_THEME_CARTETLINE_EDT            42840
 #define IDC_THEME_INDICATOR_EDT             42841
 #define IDC_THEME_CARTETLINE_UDN            42844

@@ -190,6 +190,8 @@ struct styletheme
     struct styleclass aspsection;
 
     struct styleclass activetab;
+    struct styleclass caret;
+    struct styleclass symbolic;
 };
 
 typedef struct _npn_rect

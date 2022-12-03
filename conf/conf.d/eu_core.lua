@@ -171,6 +171,8 @@ struct styletheme
     struct styleclass aspsection;
     
     struct styleclass activetab;
+    struct styleclass caret;
+    struct styleclass symbolic;
 };
 
 struct eu_theme

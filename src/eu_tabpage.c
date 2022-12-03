@@ -410,11 +410,11 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             }
             if (p->file_attr & FILE_ATTRIBUTE_READONLY)
             {
-                ImageList_Draw(himg, 1, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
+                ImageList_Draw(himg, 1, hdc, rc.left + 6, rc.top + (rc.bottom - rc.top - CY_ICON)/2, ILD_TRANSPARENT);
             }
             else if (p->be_modify)
             {
-                ImageList_Draw(himg, 0, hdc, rc.left + 6, rc.top + 3, ILD_TRANSPARENT);
+                ImageList_Draw(himg, 0, hdc, rc.left + 6, rc.top + (rc.bottom - rc.top - CY_ICON)/2, ILD_TRANSPARENT);
             }
             if (STR_NOT_NUL(p->filename))
             {

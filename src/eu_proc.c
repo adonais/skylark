@@ -83,12 +83,8 @@ on_destory_window(HWND hwnd)
     KillTimer(hwnd, EU_TIMER_ID);
     // 等待搜索完成
     on_search_finish_wait();
-    // 销毁全局画刷
-    if (g_control_brush)
-    {
-        DeleteObject(g_control_brush);
-        g_control_brush = NULL;
-    }
+    // 销毁控件画刷
+    on_proc_destory_brush();
     // 销毁工具栏
     HWND h_tool = GetDlgItem(hwnd, IDC_TOOLBAR);
     if (h_tool)
@@ -149,6 +145,16 @@ void
 on_proc_undo_off(void)
 {
     _InterlockedExchange(&undo_off, 0);
+}
+
+void
+on_proc_destory_brush(void)
+{
+    if (g_control_brush)
+    {
+        DeleteObject(g_control_brush);
+        g_control_brush = NULL;
+    }    
 }
 
 HWND
@@ -421,9 +427,20 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && p != pnode && !p->plugin && p->hex_mode && p->hwnd_sc)
+            if (p && p != pnode && !p->plugin)
             {
-                ShowWindow(p->hwnd_sc, SW_HIDE);
+                if (RESULT_SHOW(p))
+                {
+                    ShowWindow(p->presult->hwnd_sc, SW_HIDE);
+                    if (p->hwnd_qrtable)
+                    {
+                        ShowWindow(p->hwnd_qrtable, SW_HIDE);
+                    }
+                }       
+                if (p->hex_mode && p->hwnd_sc)
+                {
+                    ShowWindow(p->hwnd_sc, SW_HIDE);
+                }
             }
         }
         if (RESULT_SHOW(pnode) && eu_result_hwnd())
@@ -760,14 +777,37 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLOREDIT:
-        {  // 为控件创建单独的画刷,用来绘制背景色
-            HDC hdc = (HDC) wParam;
-            if (g_control_brush)
+        {   // 为list控件创建画刷,用来绘制背景色
+            HDC hdc = (HDC)wParam;
+            if (!(pnode = on_tabpage_focus_at()))
             {
-                DeleteObject(g_control_brush);
+                break;
+            }            
+            if (!g_control_brush)
+            {
+                if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))
+                    break;
             }
-            g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor);
+            if (pnode->hwnd_symlist == (HWND)lParam)
+            {
+                SetTextColor(hdc, eu_get_theme()->item.symbolic.color & 0xFFFFFF);
+            }
+            else
+            {
+                SetTextColor(hdc, eu_get_theme()->item.text.color);
+            }
+            SetBkColor(hdc, eu_get_theme()->item.text.bgcolor);
+            SetBkMode(hdc, TRANSPARENT);
+            return (LRESULT)g_control_brush;
+        }
+        case WM_CTLCOLOREDIT:
+        {   // 为edit控件创建画刷,用来绘制背景色
+            HDC hdc = (HDC)wParam;
+            if (!g_control_brush)
+            {
+                if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))
+                    break;
+            }
             SetTextColor(hdc, eu_get_theme()->item.text.color);
             SetBkColor(hdc, eu_get_theme()->item.text.bgcolor);
             SetBkMode(hdc, TRANSPARENT);
@@ -1287,8 +1327,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_file_style(pnode);
                         on_symtree_json(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JSON:
@@ -1296,8 +1335,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_do_compress(pnode, on_format_json_callback);
                         on_symtree_json(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_JS:
@@ -1305,8 +1343,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_file_style(pnode);
                         on_symlist_reqular(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JS:
@@ -1314,15 +1351,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_format_do_compress(pnode, on_format_js_callback);
                         on_symlist_reqular(pnode);
-                        util_setforce_eol(pnode);
-                        on_statusbar_update_eol(pnode);
+                        on_sci_refresh_ui(pnode);
                     }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
                     on_format_clang_file(pnode, true);
+                    on_sci_refresh_ui(pnode);
                     break;
                 case IDM_FORMAT_RANGLE_STR:
                     on_format_clang_file(pnode, false);
+                    on_sci_refresh_ui(pnode);
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
                     if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)

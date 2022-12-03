@@ -18,8 +18,6 @@
 #include "framework.h"
 #include <uxtheme.h>
 
-#define FONT_SIZE_CONVERT(fontsize) (-MulDiv((fontsize), eu_get_dpi(NULL), 72))
-
 static HFONT  g_hfont;
 static HBRUSH brush_linenumber;
 static HBRUSH brush_foldmargin;
@@ -27,6 +25,7 @@ static HBRUSH brush_text;
 static HBRUSH brush_caretline;
 static HBRUSH brush_indicator;
 static HBRUSH brush_activetab;
+static HBRUSH brush_language;
 
 static TCHAR uni_font[DW_SIZE+1];
 static struct styletheme dlg_style;
@@ -45,6 +44,9 @@ static HFONT font_caretline_static;
 
 static HWND hwnd_indicator_static;
 static HFONT font_indicator_static;
+
+static HWND hwnd_caret_static;
+static HFONT font_caret_static;
 
 static HWND hwnd_keyword_static;
 static HFONT font_keyword_static;
@@ -73,8 +75,8 @@ static HFONT font_comment_static;
 static HWND hwnd_commentline_static;
 static HFONT font_commentline_static;
 
-static HWND hwnd_commentDoc_static;
-static HFONT font_commentDoc_static;
+static HWND hwnd_commentdoc_static;
+static HFONT font_commentdoc_static;
 
 static HWND hwnd_tags_static;
 static HFONT font_tags_static;
@@ -105,6 +107,10 @@ static HFONT font_aspsection_static;
 
 static HWND hwnd_activetab_static;
 static HFONT font_activetab_static;
+
+static HWND hwnd_symbolic_static;
+static HFONT font_symbolic_static;
+
 static theme_query pm_query[] =
 {
     {IDS_THEME_DESC_DEFAULT, {0}, _T("default")} ,
@@ -253,7 +259,7 @@ on_theme_setup_font(HWND hwnd)
     SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
     LOGFONT logfont = ncm.lfMessageFont;
     int font_size = logfont.lfHeight < 0 ? -logfont.lfHeight : logfont.lfHeight;
-    logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(hwnd), SC_FONT_SIZE_MULTIPLIER);
+    logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(hwnd), USER_DEFAULT_SCREEN_DPI);
     g_hfont = CreateFontIndirect(&logfont);
     if (g_hfont)
     {
@@ -407,8 +413,8 @@ choose_style_font(char *font, int *fontsize, int *bold)
     CHOOSEFONT cf= {sizeof(CHOOSEFONT)};
     hdc = GetDC(hwnd);
     _tcsncpy(lf.lfFaceName, u16_font(font), _countof(lf.lfFaceName)-1);
-    lf.lfWeight = (*bold) ? FW_BOLD : FW_NORMAL;
-    lf.lfHeight = FONT_SIZE_CONVERT(*fontsize);
+    lf.lfWeight = (bold && *bold) ? FW_BOLD : FW_NORMAL;
+    lf.lfHeight = -MulDiv(*fontsize, eu_get_dpi(hwnd), 72);
     cf.hwndOwner = hwnd;
     cf.hInstance = eu_module_handle();
     cf.lpLogFont = &lf;
@@ -433,7 +439,10 @@ choose_style_font(char *font, int *fontsize, int *bold)
         return EUE_API_CONV_FAIL;
     }
     (*fontsize) = cf.iPointSize / 10;
-    (*bold) = (lf.lfWeight == FW_BOLD);
+    if (bold)
+    {
+        (*bold) = (lf.lfWeight == FW_BOLD);
+    }
     return SKYLARK_OK;
 }
 
@@ -471,10 +480,11 @@ choose_text_color(HWND hwnd, uint32_t *color)
     }                                                                                             \
     else                                                                                          \
     {                                                                                             \
-        _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),          \
+        _font_handle_name_ = CreateFont(FONT_SIZE_DPI(dlg_style._st_memb_.fontsize),              \
                                         0,                                                        \
                                         0,                                                        \
                                         0,                                                        \
+                                        _idc_static_ == IDC_CARET_STATIC ? FW_NORMAL :            \
                                         (dlg_style._st_memb_.bold ? FW_BOLD : FW_NORMAL),         \
                                         false,                                                    \
                                         FALSE,                                                    \
@@ -491,7 +501,9 @@ choose_text_color(HWND hwnd, uint32_t *color)
 #define SET_STATIC_TEXTCOLOR(_hwnd_static_, _st_memb_)         \
     if ((HWND) lParam == _hwnd_static_)                        \
     {                                                          \
+        dlg_style._st_memb_.color &= 0x00ffffff;               \
         SetTextColor((HDC) wParam, dlg_style._st_memb_.color); \
+        SetBkColor((HDC) wParam, dlg_style.text.bgcolor);      \
     }
 
 // 选择新字体后更新示例字体
@@ -499,10 +511,11 @@ choose_text_color(HWND hwnd, uint32_t *color)
     strcpy(dlg_style._st_memb_.font, dlg_style.text.font);                                        \
     dlg_style._st_memb_.fontsize = dlg_style.text.fontsize;                                       \
     DeleteObject(_font_handle_name_);                                                             \
-    _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),              \
+    _font_handle_name_ = CreateFont(FONT_SIZE_DPI(dlg_style._st_memb_.fontsize),                  \
                                     0,                                                            \
                                     0,                                                            \
                                     0,                                                            \
+                                    _hwnd_handle_name_ == hwnd_caret_static ? FW_NORMAL :         \
                                     (dlg_style._st_memb_.bold ? FW_BOLD : FW_NORMAL),             \
                                     false,                                                        \
                                     FALSE,                                                        \
@@ -522,10 +535,11 @@ choose_text_color(HWND hwnd, uint32_t *color)
     {                                                                                                                 \
         choose_style_font(dlg_style._st_memb_.font, &(dlg_style._st_memb_.fontsize), &(dlg_style._st_memb_.bold));    \
         DeleteObject(_font_handle_name_);                                                                             \
-        _font_handle_name_ = CreateFont(FONT_SIZE_CONVERT(dlg_style._st_memb_.fontsize),                              \
+        _font_handle_name_ = CreateFont(FONT_SIZE_DPI(dlg_style._st_memb_.fontsize),                                  \
                                         0,                                                                            \
                                         0,                                                                            \
                                         0,                                                                            \
+                                        _hwnd_handle_name_ == hwnd_caret_static ? FW_NORMAL :                         \
                                         (dlg_style._st_memb_.bold ? FW_BOLD : FW_NORMAL),                             \
                                         false,                                                                        \
                                         FALSE,                                                                        \
@@ -553,6 +567,7 @@ theme_release_handle(void)
     DeleteObject(font_text_static);
     DeleteObject(font_caretline_static);
     DeleteObject(font_indicator_static);
+    DeleteObject(font_caret_static);
     DeleteObject(font_keyword_static);
     DeleteObject(font_keyword2_static);
     DeleteObject(font_string_static);
@@ -562,7 +577,7 @@ theme_release_handle(void)
     DeleteObject(font_preprocessor_static);
     DeleteObject(font_comment_static);
     DeleteObject(font_commentline_static);
-    DeleteObject(font_commentDoc_static);
+    DeleteObject(font_commentdoc_static);
     DeleteObject(font_tags_static);
     DeleteObject(font_unknowtags_static);
     DeleteObject(font_attributes_static);
@@ -572,7 +587,9 @@ theme_release_handle(void)
     DeleteObject(font_cdata_static);
     DeleteObject(font_phpsection_static);
     DeleteObject(font_aspsection_static);
-
+    
+    DeleteObject(brush_language);
+    brush_language = NULL;
     DeleteObject(brush_linenumber);
     brush_linenumber = NULL;
     DeleteObject(brush_foldmargin);
@@ -590,10 +607,18 @@ theme_release_handle(void)
 static void
 theme_show_balloon_tip(HWND hdlg, int res_id)
 {
+    TCHAR ptxt[MAX_PATH] = {0};
     HWND hwnd_edit = GetDlgItem(hdlg, res_id);
     if (hwnd_edit)
     {
-        LOAD_I18N_RESSTR(IDS_THEME_EDIT_TIPS, ptxt);
+        if (res_id == IDC_THEME_CARET_EDT)
+        {
+            eu_i18n_load_str(IDS_THEME_CARET_TIPS, ptxt, MAX_PATH);
+        }
+        else
+        {
+            eu_i18n_load_str(IDS_THEME_EDIT_TIPS, ptxt, MAX_PATH);
+        }
         EDITBALLOONTIP tip = {sizeof(EDITBALLOONTIP)};
         tip.pszTitle = _T("");
         tip.pszText = ptxt;
@@ -629,6 +654,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(text, IDC_TEXT_STATIC, hwnd_text_static, font_text_static)
             CREATE_STYLETHEME_FONT(caretline, IDC_CARETLINE_STATIC, hwnd_caretline_static, font_caretline_static)
             CREATE_STYLETHEME_FONT(indicator, IDC_INDICATOR_STATIC, hwnd_indicator_static, font_indicator_static)
+            CREATE_STYLETHEME_FONT(caret, IDC_CARET_STATIC, hwnd_caret_static, font_caret_static)
             CREATE_STYLETHEME_FONT(keywords0, IDC_KEYWORDS_STATIC, hwnd_keyword_static, font_keyword_static)
             CREATE_STYLETHEME_FONT(keywords1, IDC_KEYWORDS2_STATIC, hwnd_keyword2_static, font_keyword2_static)
             CREATE_STYLETHEME_FONT(string, IDC_STRING_STATIC, hwnd_string_static, font_string_static)
@@ -638,7 +664,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(preprocessor, IDC_PREPROCESSOR_STATIC, hwnd_preprocessor_static, font_preprocessor_static)
             CREATE_STYLETHEME_FONT(comment, IDC_COMMENT_STATIC, hwnd_comment_static, font_comment_static)
             CREATE_STYLETHEME_FONT(commentline, IDC_COMMENTLINE_STATIC, hwnd_commentline_static, font_commentline_static)
-            CREATE_STYLETHEME_FONT(commentdoc, IDC_COMMENTDOC_STATIC, hwnd_commentDoc_static, font_commentDoc_static)
+            CREATE_STYLETHEME_FONT(commentdoc, IDC_COMMENTDOC_STATIC, hwnd_commentdoc_static, font_commentdoc_static)
             CREATE_STYLETHEME_FONT(tags, IDC_TAGS_STATIC, hwnd_tags_static, font_tags_static)
             CREATE_STYLETHEME_FONT(unknowtags, IDC_UNKNOWTAGS_STATIC, hwnd_unknowtags_static, font_unknowtags_static)
             CREATE_STYLETHEME_FONT(attributes, IDC_ATTRIBUTES_STATIC, hwnd_attributes_static, font_attributes_static)
@@ -649,10 +675,13 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(phpsection, IDC_PHPSECTION_STATIC, hwnd_phpsection_static, font_phpsection_static)
             CREATE_STYLETHEME_FONT(aspsection, IDC_ASPSECTION_STATIC, hwnd_aspsection_static, font_aspsection_static)
             CREATE_STYLETHEME_FONT(activetab, IDC_THEME_TAB_STATIC, hwnd_activetab_static, font_activetab_static)
+            CREATE_STYLETHEME_FONT(symbolic, IDC_THEME_SYMBOLIC_STATIC, hwnd_symbolic_static, font_symbolic_static)
             HWND hwnd_caretline_edt = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
             HWND hwnd_caretline_udn = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_UDN);
             HWND hwnd_indicator_edt = GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT);
             HWND hwnd_indicator_udn = GetDlgItem(hdlg, IDC_THEME_INDICATOR_UDN);
+            HWND hwnd_caret_edt = GetDlgItem(hdlg, IDC_THEME_CARET_EDT);
+            HWND hwnd_caret_udn = GetDlgItem(hdlg, IDC_THEME_CARET_UDN);
             if (hwnd_caretline_edt)
             {
                 _sntprintf(alpha, 4, _T("%d"), (dlg_style.caretline.bgcolor & 0xff000000) >> 24);
@@ -663,6 +692,11 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 _sntprintf(alpha, 4, _T("%d"), (dlg_style.indicator.bgcolor & 0xff000000) >> 24);
                 Edit_SetText(hwnd_indicator_edt, alpha);
             }
+            if (hwnd_caret_edt)
+            {
+                _sntprintf(alpha, 4, _T("%d"), (dlg_style.caret.color & 0xff000000) >> 24);
+                Edit_SetText(hwnd_caret_edt, alpha);
+            }
             if (hwnd_caretline_udn)
             {
                 SendMessage(hwnd_caretline_udn, UDM_SETRANGE, 0, MAKELPARAM(0, 255));
@@ -670,6 +704,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             if (hwnd_indicator_udn)
             {
                 SendMessage(hwnd_indicator_udn, UDM_SETRANGE, 0, MAKELPARAM(0, 255));
+            }
+            if (hwnd_caret_udn)
+            {
+                SendMessage(hwnd_caret_udn, UDM_SETRANGE, 0, MAKELPARAM(1, 9));
             }
             if (on_dark_enable())
             {
@@ -721,7 +759,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETTEXTCOLOR_LINENUMBER_BTN,
                                        IDC_SETBGCOLOR_LINENUMBER_BTN,
                                        IDC_SETBGCOLOR_FOLDMARGIN_BTN,
-                                       IDC_SETBGCOLOR_TAB_BTN
+                                       IDC_SETBGCOLOR_TAB_BTN,
+                                       IDC_SETCOLOR_CARET_BTN,
+                                       IDC_SETFONT_SYMBOLIC_BTN,
+                                       IDC_SETTEXTCOLOR_SYMBOLIC_BTN
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -791,7 +832,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETTEXTCOLOR_LINENUMBER_BTN,
                                        IDC_SETBGCOLOR_LINENUMBER_BTN,
                                        IDC_SETBGCOLOR_FOLDMARGIN_BTN,
-                                       IDC_SETBGCOLOR_TAB_BTN
+                                       IDC_SETBGCOLOR_TAB_BTN,
+                                       IDC_SETCOLOR_CARET_BTN,
+                                       IDC_SETFONT_SYMBOLIC_BTN,
+                                       IDC_SETTEXTCOLOR_SYMBOLIC_BTN
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -820,8 +864,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 return on_dark_set_contorl_color(wParam);
             }
-            SetTextColor((HDC) wParam, GetSysColor(COLOR_WINDOWTEXT));
-            SetBkColor((HDC) wParam, GetSysColor(COLOR_BTNFACE));
+            if (!brush_language)
+            {
+                brush_language = CreateSolidBrush(dlg_style.text.bgcolor);
+            }
             if ((HWND) lParam == hwnd_linenumber_static)
             {
                 SetTextColor((HDC) wParam, dlg_style.linenumber.color);
@@ -900,7 +946,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else SET_STATIC_TEXTCOLOR(hwnd_preprocessor_static, preprocessor)
             else SET_STATIC_TEXTCOLOR(hwnd_comment_static, comment)
             else SET_STATIC_TEXTCOLOR(hwnd_commentline_static, commentline)
-            else SET_STATIC_TEXTCOLOR(hwnd_commentDoc_static, commentdoc)
+            else SET_STATIC_TEXTCOLOR(hwnd_commentdoc_static, commentdoc)
             else SET_STATIC_TEXTCOLOR(hwnd_tags_static, tags)
             else SET_STATIC_TEXTCOLOR(hwnd_unknowtags_static, unknowtags)
             else SET_STATIC_TEXTCOLOR(hwnd_attributes_static, attributes)
@@ -910,12 +956,15 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else SET_STATIC_TEXTCOLOR(hwnd_cdata_static, cdata)
             else SET_STATIC_TEXTCOLOR(hwnd_phpsection_static, phpsection)
             else SET_STATIC_TEXTCOLOR(hwnd_aspsection_static, aspsection)
-            return (LRESULT) GetSysColorBrush(COLOR_BTNFACE);
+            else SET_STATIC_TEXTCOLOR(hwnd_caret_static, caret)
+            else SET_STATIC_TEXTCOLOR(hwnd_symbolic_static, symbolic)
+            return (LRESULT) brush_language;
         }
         case WM_MOUSEMOVE:
         {
             Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT));
             Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT));
+            Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_CARET_EDT));
             break;
         }
         case WM_COMMAND:
@@ -928,6 +977,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     TCHAR alpha[4] = {0};
                     HWND hwnd_caretline = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
                     HWND hwnd_indicator = GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT);
+                    HWND hwnd_caret = GetDlgItem(hdlg, IDC_THEME_CARET_EDT);
                     if (hwnd_caretline)
                     {
                         Edit_GetText(hwnd_caretline, alpha, 4);
@@ -940,6 +990,12 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         value = _tstoi(alpha) << 24 & 0xff000000;
                         dlg_style.indicator.bgcolor |= value;
                     }
+                    if (hwnd_caret)
+                    {
+                        Edit_GetText(hwnd_caret, alpha, 4);
+                        value = _tstoi(alpha) << 24 & 0xff000000;
+                        dlg_style.caret.color |= value;
+                    }
                     memcpy(&(eu_get_theme()->item), &dlg_style, sizeof(struct styletheme));
                     EndDialog(hdlg, LOWORD(wParam));
                     break;
@@ -949,6 +1005,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDC_THEME_CARTETLINE_EDT:
                 case IDC_THEME_INDICATOR_EDT:
+                case IDC_THEME_CARET_EDT:
                 {
                     if (HIWORD(wParam) == EN_SETFOCUS)
                     {
@@ -973,8 +1030,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     choose_style_font(dlg_style.text.font, &(dlg_style.text.fontsize), &(dlg_style.text.bold));
 
                     SYNC_FONT(text, hwnd_text_static, font_text_static)
-                    SYNC_FONT(caretline, hwnd_caretline_static, font_caretline_static)
-                    SYNC_FONT(indicator, hwnd_indicator_static, font_indicator_static)
 
                     SYNC_FONT(keywords0, hwnd_keyword_static, font_keyword_static)
                     SYNC_FONT(keywords1, hwnd_keyword2_static, font_keyword2_static)
@@ -985,7 +1040,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     SYNC_FONT(preprocessor, hwnd_preprocessor_static, font_preprocessor_static)
                     SYNC_FONT(comment, hwnd_comment_static, font_comment_static)
                     SYNC_FONT(commentline, hwnd_commentline_static, font_commentline_static)
-                    SYNC_FONT(commentdoc, hwnd_commentDoc_static, font_commentDoc_static)
+                    SYNC_FONT(commentdoc, hwnd_commentdoc_static, font_commentdoc_static)
 
                     SYNC_FONT(tags, hwnd_tags_static, font_tags_static)
                     SYNC_FONT(unknowtags, hwnd_unknowtags_static, font_unknowtags_static)
@@ -1022,6 +1077,12 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     InvalidateRect(hwnd_activetab_static, NULL, TRUE);
                     break;
                 }
+                case IDC_SETCOLOR_CARET_BTN:
+                {
+                    choose_text_color(hdlg, &(dlg_style.caret.color));
+                    InvalidateRect(hwnd_caret_static, NULL, TRUE);
+                    break;
+                }                
             }
             STYLE_MSG(keywords0,hwnd_keyword_static,font_keyword_static,IDC_SETFONT_KEYWORDS_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS_BTN)
             else STYLE_MSG(keywords1,hwnd_keyword2_static,font_keyword2_static,IDC_SETFONT_KEYWORDS2_BTN,IDC_SETTEXTCOLOR_KEYWORDS2_BTN)
@@ -1032,7 +1093,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else STYLE_MSG(preprocessor,hwnd_preprocessor_static,font_preprocessor_static,IDC_SETFONT_PREPRO_BTN,IDC_SETTEXTCOLOR_PREPRO_BTN)
             else STYLE_MSG(comment,hwnd_comment_static,font_comment_static,IDC_SETFONT_COMMENT_BTN,IDC_SETTEXTCOLOR_COMMENT_BTN)
             else STYLE_MSG(commentline,hwnd_commentline_static,font_commentline_static,IDC_SETFONT_COMMENTLINE_BTN,IDC_SETTEXTCOLOR_COMMENTL_BTN)
-            else STYLE_MSG(commentdoc,hwnd_commentDoc_static,font_commentDoc_static,IDC_SETFONT_COMMENTDOC_BTN,IDC_SETTEXTCOLOR_COMMENTDOC_BTN)
+            else STYLE_MSG(commentdoc,hwnd_commentdoc_static,font_commentdoc_static,IDC_SETFONT_COMMENTDOC_BTN,IDC_SETTEXTCOLOR_COMMENTDOC_BTN)
             else STYLE_MSG(tags,hwnd_tags_static,font_tags_static,IDC_SETFONT_TAGS_BTN,IDC_SETTEXTCOLOR_TAGS_BTN)
             else STYLE_MSG(unknowtags,hwnd_unknowtags_static,font_unknowtags_static,IDC_SETFONT_UNKNOWTAGS_BTN,IDC_SETTEXTCOLOR_UNKNOWTAGS_BTN)
             else STYLE_MSG(attributes,hwnd_attributes_static,font_attributes_static,IDC_SETFONT_ATTRIBUTES_BTN,IDC_SETTEXTCOLOR_ATTRIBUTES_BTN)
@@ -1042,6 +1103,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else STYLE_MSG(cdata,hwnd_cdata_static,font_cdata_static,IDC_SETFONT_CDATA_BTN,IDC_SETTEXTCOLOR_CDATA_BTN)
             else STYLE_MSG(phpsection,hwnd_phpsection_static,font_phpsection_static,IDC_SETFONT_PHPSECTION_BTN,IDC_SETTEXTCOLOR_PHPSECTION_BTN)
             else STYLE_MSG(aspsection,hwnd_aspsection_static,font_aspsection_static,IDC_SETFONT_ASPSECTION_BTN,IDC_SETTEXTCOLOR_ASPSECTION_BTN)
+            else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)    
             break;
         case WM_DESTROY:
             printf("theme dlg WM_DESTROY\n");

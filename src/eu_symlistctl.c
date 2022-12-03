@@ -166,6 +166,21 @@ on_symlist_jump_item(eu_tabpage *pnode)
     return SKYLARK_OK;
 }
 
+int
+on_symlist_update_theme(eu_tabpage *pnode)
+{
+    if (pnode && pnode->hwnd_symlist)
+    {
+        if (pnode->hwnd_font)
+        {
+            DeleteObject(pnode->hwnd_font);
+        }
+        pnode->hwnd_font = util_create_font(eu_get_theme()->item.symbolic.font, eu_get_theme()->item.symbolic.fontsize, eu_get_theme()->item.symbolic.bold);
+        SendMessage(pnode->hwnd_symlist, WM_SETFONT, (WPARAM)pnode->hwnd_font, 0);
+    }
+    return SKYLARK_OK;
+}
+
 LRESULT CALLBACK
 symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -195,15 +210,25 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
+            pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            on_symlist_update_theme(pnode);
             break;
         }
         case WM_DESTROY:
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if (pnode && pnode->pcre_id)
-            {   // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
-                util_kill_thread(pnode->pcre_id);
+            if (pnode)
+            {   
+                if (pnode->hwnd_font)
+                {
+                    DeleteObject(pnode->hwnd_font);
+                    pnode->hwnd_font = NULL;
+                }
+                // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
+                if (pnode->pcre_id)
+                {
+                    util_kill_thread(pnode->pcre_id);
+                }
             }
             printf("symlist WM_DESTROY\n");
             break;
@@ -212,16 +237,6 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
     }
     return CallWindowProc(symlist_wnd, hwnd, message, wParam, lParam);
-}
-
-static int
-update_symlist_theme(eu_tabpage *pnode)
-{
-    if (pnode && pnode->hwnd_symlist)
-    {
-        SendMessage(pnode->hwnd_symlist, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
-    }
-    return SKYLARK_OK;
 }
 
 int
@@ -259,7 +274,7 @@ on_symlist_create(eu_tabpage *pnode)
         {
             SetWindowLongPtr(pnode->hwnd_symlist, GWLP_USERDATA, (intptr_t) pnode);
         }
-        return update_symlist_theme(pnode);
+        return on_symlist_update_theme(pnode);
     }
     return SKYLARK_OK;
 }

@@ -134,6 +134,7 @@ on_view_refresh_scroll(void)
 static int
 on_view_refresh_theme(HWND hwnd)
 {
+    on_proc_destory_brush();
     on_treebar_update_theme();
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -153,11 +154,12 @@ on_view_refresh_theme(HWND hwnd)
         }
         if (p->hwnd_symlist)
         {
-            SendMessage(p->hwnd_symlist, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
+            on_symlist_update_theme(p);
             InvalidateRect(p->hwnd_symlist, NULL, true);
         }
-        if (p->hwnd_symtree)
+        else if (p->hwnd_symtree)
         {
+            on_symtree_update_theme(p);
             InvalidateRect(p->hwnd_symtree, NULL, true);
         }
         if (p->hwnd_qrtable)

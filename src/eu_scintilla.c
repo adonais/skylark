@@ -78,10 +78,10 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_SETCARETLINEFRAME, 2, 0);
     // 设置插入符样式
     eu_sci_call(pnode, SCI_SETCARETSTYLE, 1, 0);
-    eu_sci_call(pnode, SCI_SETCARETWIDTH, eu_get_config()->eu_caret.width, 0);
-    eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_config()->eu_caret.blink, 0);
-    eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_config()->eu_caret.rgb != (uint32_t)-1 ? eu_get_config()->eu_caret.rgb : eu_get_theme()->item.text.color, 0);
-    eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_config()->eu_caret.rgb != (uint32_t)-1 ? eu_get_config()->eu_caret.rgb : eu_get_theme()->item.text.color, 0);
+    eu_sci_call(pnode, SCI_SETCARETWIDTH, eu_get_theme()->item.caret.color >> 24, 0);
+    eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_theme()->item.caret.bold, 0);
+    eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
+    eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
     // 选中行背景色
     eu_sci_call(pnode, SCI_SETSELBACK, true, eu_get_theme()->item.indicator.bgcolor);
     eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
@@ -220,12 +220,23 @@ on_sci_after_file(eu_tabpage *pnode)
             {   // 设置此标签页的语法解析
                 pnode->doc_ptr->fn_init_after(pnode);
             }
-            on_sci_update_margin(pnode);            
+            on_sci_update_margin(pnode);
         }
         else if (!pnode->plugin)
         {
             on_sci_reset_zoom(pnode);
         }
+    }
+}
+
+void
+on_sci_refresh_ui(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        on_toolbar_update_button();
+        on_statusbar_update();
+        on_sci_update_margin(pnode);
     }
 }
 
@@ -340,7 +351,10 @@ on_sci_free_tab(eu_tabpage **ppnode)
             }
             on_sci_delete_file(*ppnode);
             // 销毁标签内存
-            eu_safe_free(*ppnode);
+            if (on_search_report_ok())
+            {
+                eu_safe_free(*ppnode);
+            }
         }
         else if ((*ppnode)->hwnd_sc)
         {
