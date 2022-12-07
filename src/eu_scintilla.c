@@ -332,13 +332,13 @@ on_sci_free_tab(eu_tabpage **ppnode)
         }
         if ((*ppnode)->plugin)
         {
-            np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
-            np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
             if ((*ppnode)->hwnd_sc)
             {
                 SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
                 (*ppnode)->hwnd_sc = NULL;
             }
+            np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
+            np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
             on_sci_delete_file(*ppnode);
         }
         eu_close_dll((*ppnode)->pmod);

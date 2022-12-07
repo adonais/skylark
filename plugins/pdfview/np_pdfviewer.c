@@ -61,6 +61,7 @@ typedef struct _instance_data
     WCHAR       exepath[MAX_PATH];
     float       progress, prev_progress;
     intptr_t    total_size, curr_size;
+    volatile long progress_id;
     bool        istmp;
 } instance_data;
 
@@ -81,8 +82,6 @@ typedef struct _instance_theme
     COLORREF fg;
     COLORREF bg;
 } instance_theme;
-
-#define COL_WINDOW_BG RGB(0xcc, 0xcc, 0xcc)
 
 enum {KB = 1024, MB = 1024 * KB, GB = 1024 * MB};
 
@@ -577,7 +576,12 @@ pdf_destroy(const NPP instance, nppsave **save)
         }
         if (data->hprocess)
         {
+            TerminateProcess(data->hprocess, 255);
             CloseHandle(data->hprocess);
+        }
+        if (data->progress_id)
+        {
+            PostThreadMessage(data->progress_id, WM_QUIT, 0, 0);
         }
         SetWindowLongPtr(data->npwin->window, GWLP_USERDATA, 0);
         free(instance->pdata);
@@ -768,6 +772,10 @@ launch_sumatra(instance_data *data, const char *url_utf8)
     {
         printf("sp: pdf_stream2file() error: file doesn't exist\n");
     }
+    if (data->progress_id)
+    {
+        printf("sp: pdf_stream2file() error: data->progress_id should be 0\n");
+    }
     WCHAR url[VALUE_LEN] = {0};
     int m = MultiByteToWideChar(CP_UTF8, 0, url_utf8 ? url_utf8 : "", -1, url, VALUE_LEN);
     if (m > 0 && m < VALUE_LEN)
@@ -812,9 +820,16 @@ pdf_show_progress(void *p)
     {
         uint32_t pre_size = (uint32_t)(data->total_size/50);
         HWND hchild = NULL;
+        MSG msg = {0};
         HWND hwnd = (HWND)data->npwin->window;
         for (int i = 540; !hchild && i > 0; --i)
         {
+            PeekMessage(&msg, NULL,  0, 0, PM_REMOVE);
+            if (msg.message == WM_QUIT)
+            {
+                printf("progress thread quit\n");
+                break;
+            }
             hchild = FindWindowEx(hwnd, NULL, NULL, NULL);    
             if (data->curr_size < data->total_size)
             {
@@ -832,6 +847,7 @@ pdf_show_progress(void *p)
             Sleep(500);
         }
     }
+    _InterlockedExchange(&data->progress_id, 0);
     return 0;
 }
 
@@ -858,7 +874,7 @@ pdf_stream2file(NPP instance, npstream* stream)
     if (!ret)
     {
         // 文件打开慢时, 使用一个不太精确的进度条提示
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, pdf_show_progress, (void *)data, 0, NULL));
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, pdf_show_progress, (void *)data, 0, (uint32_t *)(&data->progress_id)));
         if (data->npwin)
         {
             InvalidateRect((HWND)data->npwin->window, NULL, FALSE);
