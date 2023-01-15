@@ -46,6 +46,10 @@ public:
 		return (start != Sci::invalidPosition) && (end != Sci::invalidPosition);
 	}
 
+	[[nodiscard]] bool Empty() const noexcept {
+		return start == end;
+	}
+
 	Sci::Position First() const noexcept {
 		return (start <= end) ? start : end;
 	}
@@ -195,7 +199,7 @@ public:
 	LexInterface &operator=(const LexInterface &) = delete;
 	LexInterface &operator=(LexInterface &&) = delete;
 	virtual ~LexInterface() noexcept;
-	void SetInstance(ILexer5 *instance_);
+	void SetInstance(ILexer5 *instance_) noexcept;
 	void Colourise(Sci::Position start, Sci::Position end);
 	virtual Scintilla::LineEndType LineEndTypesSupported();
 	bool UseContainerLexing() const noexcept;
@@ -224,6 +228,29 @@ public:
 	void AddSample(size_t numberActions, double durationOfActions) noexcept;
 	double Duration() const noexcept;
 	size_t ActionsInAllowedTime(double secondsAllowed) const noexcept;
+};
+
+/**
+ * A whole character (code point) with a value and width in bytes.
+ * For UTF-8, the value is the code point value.
+ * For DBCS, its jamming the lead and trail bytes together.
+ * For 8 bit encodings, is just the byte value.
+ */
+struct CharacterExtracted {
+	unsigned int character;
+	unsigned int widthBytes;
+
+	CharacterExtracted(unsigned int character_, unsigned int widthBytes_) noexcept :
+		character(character_), widthBytes(widthBytes_) {
+	}
+
+	// For UTF-8:
+	CharacterExtracted(const unsigned char *charBytes, size_t widthCharBytes) noexcept;
+
+	// For DBCS characters turn 2 bytes into an int
+	static CharacterExtracted DBCS(unsigned char lead, unsigned char trail) noexcept {
+		return CharacterExtracted((lead << 8) | trail, 2);
+	}
 };
 
 /**
@@ -275,18 +302,6 @@ private:
 	std::unique_ptr<LexInterface> pli;
 
 public:
-
-	struct CharacterExtracted {
-		unsigned int character;
-		unsigned int widthBytes;
-		CharacterExtracted(unsigned int character_, unsigned int widthBytes_) noexcept :
-			character(character_), widthBytes(widthBytes_) {
-		}
-		// For DBCS characters turn 2 bytes into an int
-		static CharacterExtracted DBCS(unsigned char lead, unsigned char trail) noexcept {
-			return CharacterExtracted((lead << 8) | trail, 2);
-		}
-	};
 
 	Scintilla::EndOfLine eolMode;
 	/// Can also be SC_CP_UTF8 to enable UTF-8 mode
@@ -341,8 +356,8 @@ public:
 	Sci::Position MovePositionOutsideChar(Sci::Position pos, Sci::Position moveDir, bool checkLineEnd=true) const noexcept;
 	Sci::Position NextPosition(Sci::Position pos, int moveDir) const noexcept;
 	bool NextCharacter(Sci::Position &pos, int moveDir) const noexcept;	// Returns true if pos changed
-	Document::CharacterExtracted CharacterAfter(Sci::Position position) const noexcept;
-	Document::CharacterExtracted CharacterBefore(Sci::Position position) const noexcept;
+	CharacterExtracted CharacterAfter(Sci::Position position) const noexcept;
+	CharacterExtracted CharacterBefore(Sci::Position position) const noexcept;
 	Sci_Position SCI_METHOD GetRelativePosition(Sci_Position positionStart, Sci_Position characterOffset) const override;
 	Sci::Position GetRelativePositionUTF16(Sci::Position positionStart, Sci::Position characterOffset) const noexcept;
 	int SCI_METHOD GetCharacterAndWidth(Sci_Position position, Sci_Position *pWidth) const override;
@@ -358,8 +373,10 @@ public:
 	// Gateways to modifying document
 	void ModifiedAt(Sci::Position pos) noexcept;
 	void CheckReadOnly();
+	void TrimReplacement(std::string_view &text, Range &range) const noexcept;
 	bool DeleteChars(Sci::Position pos, Sci::Position len);
 	Sci::Position InsertString(Sci::Position position, const char *s, Sci::Position insertLength);
+	Sci::Position InsertString(Sci::Position position, std::string_view sv);
 	void ChangeInsertion(const char *s, Sci::Position length);
 	int SCI_METHOD AddData(const char *data, Sci_Position length) override;
 	void * SCI_METHOD ConvertToDocument() override;
@@ -396,13 +413,14 @@ public:
 	int SCI_METHOD GetLineIndentation(Sci_Position line) override;
 	Sci::Position SetLineIndentation(Sci::Line line, Sci::Position indent);
 	Sci::Position GetLineIndentPosition(Sci::Line line) const;
-	Sci::Position GetColumn(Sci::Position pos);
+	Sci::Position GetColumn(Sci::Position pos) const;
 	Sci::Position CountCharacters(Sci::Position startPos, Sci::Position endPos) const noexcept;
 	Sci::Position CountUTF16(Sci::Position startPos, Sci::Position endPos) const noexcept;
 	Sci::Position FindColumn(Sci::Line line, Sci::Position column);
 	void Indent(bool forwards, Sci::Line lineBottom, Sci::Line lineTop);
 	static std::string TransformLineEnds(const char *s, size_t len, Scintilla::EndOfLine eolModeWanted);
 	void ConvertLineEnds(Scintilla::EndOfLine eolModeSet);
+	std::string_view EOLString() const noexcept;
 	void SetReadOnly(bool set) { cb.SetReadOnly(set); }
 	bool IsReadOnly() const noexcept { return cb.IsReadOnly(); }
 	bool IsLarge() const noexcept { return cb.IsLarge(); }
@@ -416,6 +434,7 @@ public:
 		cb.GetCharRange(buffer, position, lengthRetrieve);
 	}
 	char SCI_METHOD StyleAt(Sci_Position position) const override { return cb.StyleAt(position); }
+	char StyleAtNoExcept(Sci_Position position) const noexcept { return cb.StyleAt(position); }
 	int StyleIndexAt(Sci_Position position) const noexcept { return static_cast<unsigned char>(cb.StyleAt(position)); }
 	void GetStyleRange(unsigned char *buffer, Sci::Position position, Sci::Position lengthRetrieve) const {
 		cb.GetStyleRange(buffer, position, lengthRetrieve);
@@ -443,10 +462,10 @@ public:
 
 	int SCI_METHOD SetLevel(Sci_Position line, int level) override;
 	int SCI_METHOD GetLevel(Sci_Position line) const override;
-	Scintilla::FoldLevel GetFoldLevel(Sci_Position line) const;
+	Scintilla::FoldLevel GetFoldLevel(Sci_Position line) const noexcept;
 	void ClearLevels();
 	Sci::Line GetLastChild(Sci::Line lineParent, std::optional<Scintilla::FoldLevel> level = {}, Sci::Line lastLine = -1);
-	Sci::Line GetFoldParent(Sci::Line line) const;
+	Sci::Line GetFoldParent(Sci::Line line) const noexcept;
 	void GetHighlightDelimiters(HighlightDelimiter &highlightDelimiter, Sci::Line line, Sci::Line lastLine);
 
 	Sci::Position ExtendWordSelect(Sci::Position pos, int delta, bool onlyWordCharacters=false) const;

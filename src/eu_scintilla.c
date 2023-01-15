@@ -269,7 +269,7 @@ on_sci_delete_file(const eu_tabpage *pnode)
     {
         if (!util_delete_file((pnode)->bakpath))
         {
-            printf("on on_sci_free_tab(), delete(%ls) error, cause: %u\n", (pnode)->bakpath, GetLastError());
+            printf("on on_sci_free_tab(), delete(%ls) error, cause: %lu\n", (pnode)->bakpath, GetLastError());
         }
     }
 }
