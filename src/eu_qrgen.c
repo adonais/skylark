@@ -24,10 +24,9 @@
 // Color of bmp pixels
 #define PIXEL_COLOR_R                0
 #define PIXEL_COLOR_G                0
-#define PIXEL_COLOR_B                0xff
+#define PIXEL_COLOR_B                0
 #define BI_RGB                       0L
-#define EXP_HEIGHT                   255
-#define EXP_WIDTH                    255
+#define EXP_WIDTH                    16
 
 typedef QRcode* (*qrcode_string_ptr)(const char *string, int version, QRecLevel level, QRencodeMode hint, int casesensitive);
 typedef void (*qrcode_free_ptr)(QRcode *qrcode);
@@ -72,7 +71,7 @@ static HBITMAP
 get_hbitmap(const char *text)
 {
     HBITMAP hbm = NULL;
-    BITMAPINFO bi = {0};
+    BITMAPINFO bi = {sizeof(BITMAPINFOHEADER)};
     unsigned int x, y, l, n, un_width, un_adjust_width, un_bytes;
     uint8_t *rgb_pdata = NULL;
     uint8_t *psource, *pdest;
@@ -93,7 +92,6 @@ get_hbitmap(const char *text)
         un_adjust_width = (un_adjust_width / 4 + 1) * 4;
     }
     un_bytes = un_adjust_width * un_width * OUT_FILE_PIXEL_PRESCALER;
-    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bi.bmiHeader.biWidth = un_width * OUT_FILE_PIXEL_PRESCALER;
     bi.bmiHeader.biHeight = -((int)un_width * OUT_FILE_PIXEL_PRESCALER);
     bi.bmiHeader.biPlanes = 1;
@@ -141,14 +139,17 @@ get_hbitmap(const char *text)
 static void
 on_qrgen_dpi_scale(HWND hdlg)
 {
-    RECT rc_wnd;
+    RECT rc;
     HWND hwnd_sqr = NULL;
-    GetWindowRect(hdlg, &rc_wnd);
-    MoveWindow(hdlg, rc_wnd.left, rc_wnd.top, EXP_WIDTH, EXP_HEIGHT, true);
+    GetWindowRect(hdlg, &rc);
+    MoveWindow(hdlg, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, true);
     if ((hwnd_sqr = GetDlgItem(hdlg, IDC_IMG_QR)) != NULL)
     {
-        MoveWindow(hwnd_sqr, 0, 0, EXP_WIDTH, EXP_HEIGHT, true);
-        SendMessage(hwnd_sqr, STM_SETIMAGE,(WPARAM)IMAGE_BITMAP, (LPARAM)hqr_bitmap);
+        MoveWindow(hwnd_sqr, 0, 0, rc.right - rc.left, rc.bottom - rc.top, true);
+        if (resize_hbitmap(hdlg, hqr_bitmap, rc.right - rc.left - EXP_WIDTH, rc.bottom - rc.top - EXP_WIDTH))
+        {
+            SendMessage(hwnd_sqr, STM_SETIMAGE,(WPARAM)IMAGE_BITMAP, (LPARAM)hqr_bitmap);
+        }
     }
 }
 
@@ -160,11 +161,17 @@ func_qrgen(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_INITDIALOG:
         {
+            RECT rc;
             size_t len = 0;
             char *text = NULL;
             HBITMAP hbit = NULL;
             eu_tabpage *pnode = on_tabpage_focus_at();
             if (!pnode)
+            {
+                EndDialog(hdlg, 0);
+                break;
+            }
+            if (!GetWindowRect(hdlg, &rc))
             {
                 EndDialog(hdlg, 0);
                 break;
@@ -181,7 +188,7 @@ func_qrgen(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 EndDialog(hdlg, 0);
                 break;
             }
-            if (!resize_hbitmap(hdlg, hbit, EXP_WIDTH, EXP_HEIGHT))
+            if (!resize_hbitmap(hdlg, hbit, rc.right - rc.left - EXP_WIDTH, rc.bottom - rc.top - EXP_WIDTH))
             {
                 free(text);
                 EndDialog(hdlg, 0);

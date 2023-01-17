@@ -200,16 +200,18 @@ public:
 
 	// Red, green and blue values as bytes 0..255
 	constexpr unsigned char GetRed() const noexcept {
-		return co & 0xff;
+		return co & 0xffU;
 	}
 	constexpr unsigned char GetGreen() const noexcept {
-		return (co >> 8) & 0xff;
+		return (co >> 8) & 0xffU;
 	}
 	constexpr unsigned char GetBlue() const noexcept {
-		return (co >> 16) & 0xff;
+		return (co >> 16) & 0xffU;
 	}
 	constexpr unsigned char GetAlpha() const noexcept {
-		return (co >> 24) & 0xff;
+		// Use a temporary here to prevent a 'Wconversion' warning from GCC
+		const int shifted = co >> 24;
+		return shifted & 0xffU;
 	}
 
 	// Red, green, blue, and alpha values as float 0..1.0

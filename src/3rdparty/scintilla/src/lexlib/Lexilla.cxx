@@ -11,7 +11,7 @@
 #include <vector>
 #include <initializer_list>
 
-#if _WIN32
+#if defined(_WIN32)
 #if defined(DLL_EXPORT)
 #define EXPORT_FUNCTION __declspec(dllexport)
 #else
