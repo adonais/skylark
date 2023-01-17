@@ -8,6 +8,7 @@ Compared with vs code, atom, and more editors, it can start up in less than a se
 * Encryption and decryption of common key algorithms.  
 * Perl Compatible Regular Expression.  
 * Support for many encodings, Syntax highlight for a lot of languages.  
+* Supports sumatrapdf plugin.  
 * Supports clang-format.  
 * Supports code snippet.  
 * Supports dark mode. 
@@ -24,6 +25,8 @@ Compared with vs code, atom, and more editors, it can start up in less than a se
       nmake CC=clang-cl
   ```
 # Screenshots:
+* sumatrapdf plugin
+![images/sumatrapdf-plugin.jpg](images/sumatrapdf-plugin.jpg)
 * clang-format
 ![images/clang-format.jpg](images/clang-format.jpg)
 * execute lua script
