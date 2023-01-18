@@ -2123,6 +2123,10 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
     if (reverse)
     {
         start_pos = this_page ? pos - 1 : max_pos;
+        if (start_pos > eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0))
+        {
+            start_pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        }
     }
     else
     {
@@ -3704,11 +3708,11 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                      (HWND)lParam == GetDlgItem(hdlg, IDC_SEARCH_HEX_STC)  ||
                      (HWND)lParam == GetDlgItem(hdlg, IDC_REGXP_TIPS_STC))
             {
-                    // 绘制静态控件上的文本颜色
-                    SetBkMode((HDC)wParam, TRANSPARENT);
-                    SetTextColor((HDC)wParam, RGB(255,0,0));
-                    // 不要使用GetSolidBrush, 会泄露GDI句柄.
-                    return (INT_PTR)GetSysColorBrush(COLOR_MENU);
+                // 绘制静态控件上的文本颜色
+                SetBkMode((HDC)wParam, TRANSPARENT);
+                SetTextColor((HDC)wParam, RGB(255,0,0));
+                // 不要使用GetSolidBrush, 会泄露GDI句柄.
+                return (INT_PTR)GetSysColorBrush(COLOR_MENU);
             }
             break;
         }
