@@ -457,6 +457,7 @@ menu_update_item(HMENU menu)
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON)));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_LUA, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_ICODE, !pnode->hex_mode && TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_FORMAT_PLACEHOLDE_PUNCTUATION, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
                     }
                     case IDM_EDIT_QRCODE:

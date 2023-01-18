@@ -3739,7 +3739,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 static void
-on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace)
+on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, replace_event docase)
 {
     sptr_t fpos = -1;
     sptr_t pos = 0;
@@ -3772,9 +3772,49 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace)
     eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     while (pos < max_pos && (fpos = on_search_process_find(pnode, key, pos, max_pos, flags)) >= 0)
     {
+        int re_len = 0;
+        char str[8] = {0};
         sptr_t target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
         eu_sci_call(pnode, SCI_SETSELECTION, fpos, target_end);
-        int re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str_replace);
+        if (*str_replace != 0)
+        {
+            re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str_replace);
+        }
+        else if (docase == FULL_HALF)
+        {
+            eu_sci_call(pnode, SCI_GETTAG, 1, (sptr_t)str);
+            if (strlen(str) != 3)
+            {
+                break;
+            }
+            int old = (str[0] & 0xF) << 12 | ((str[1] & 0x3F) << 6 | (str[2] & 0x3F));
+            if (old == 0x3000)
+            {   // 全角空格转半角
+                _snprintf(str, QW_SIZE, "\\x{%d}", 20);
+            }
+            else
+            {   // 全角英文字符或标点符号转半角
+                _snprintf(str, QW_SIZE, "\\x{%x}", old - 0xFEE0);
+            }
+            re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str);
+        }
+        else if (docase == HALF_FULL)
+        {
+            eu_sci_call(pnode, SCI_GETTAG, 1, (sptr_t)str);
+            if (*str == 0)
+            {
+                break;
+            }
+            if (str[0] == 0x20)
+            {   // 半角空格转全角
+                _snprintf(str, QW_SIZE, "\\x{%d}", 3000);
+            }
+            else
+            {   // 半角标点符号转全角, 不包含英文字符
+                _snprintf(str, QW_SIZE, "\\x{%x}", str[0] + 0xFEE0);
+            }
+            re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str);
+        }
         pos = fpos + re_len;
         // 替换后, 末尾位置发生了变化, 要减去或加上差值
         max_pos -= ((int)(target_end - fpos) - re_len);
@@ -3787,7 +3827,7 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace)
 }
 
 void
-on_search_tab_space(eu_tabpage *p, bool tospace)
+on_search_repalce_event(eu_tabpage *p, replace_event docase)
 {
     int number = 0;
     char key[QW_SIZE] = {0};
@@ -3814,21 +3854,43 @@ on_search_tab_space(eu_tabpage *p, bool tospace)
                     }
                     if (number < QW_SIZE)
                     {
-                        if (tospace)
+                        switch (docase)
                         {
-                            key[0] = '\t';
-                            key[1] = 0;
-                            memset(str_replace, 0x20, number);
-                            str_replace[number] = 0;
+                            case FULL_HALF:
+                            {
+                                _snprintf(key, QW_SIZE, "%s", "([\\x{FF01}-\\x{FF5E}]|\\x{3000})");
+                                printf("key = /%s/\n", key);
+                                break;
+                            }
+                            case HALF_FULL:
+                            {
+                                _snprintf(key, QW_SIZE, "%s", "([\\x{20}-\\x{2F}|\\x{3A}-\\x{40}|\\x{5B}-\\x{60}|\\x{7B}-\\x{7E}])");
+                                printf("key = /%s/\n", key);
+                                break;
+                            }
+                            case TAB_SPACE:
+                            {
+                                key[0] = '\t';
+                                key[1] = 0;
+                                memset(str_replace, 0x20, number);
+                                str_replace[number] = 0;
+                                break;
+                            }
+                            case SPACE_TAB:
+                            {
+                                memset(key, 0x20, number);
+                                key[number] = 0;
+                                str_replace[0] = '\t';
+                                str_replace[1] = 0;
+                                break;
+                            }
+                            default:
+                                break;
                         }
-                        else
+                        if (strlen(key) > 0)
                         {
-                            memset(key, 0x20, number);
-                            key[number] = 0;
-                            str_replace[0] = '\t';
-                            str_replace[1] = 0;
+                            on_search_do_space(pnode, key, str_replace, docase);
                         }
-                        on_search_do_space(pnode, key, str_replace);
                     }
                 }
             }

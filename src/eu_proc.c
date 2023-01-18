@@ -1114,10 +1114,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_edit_sentence_upper(pnode, true);
                     break;
                 case IDM_EDIT_TAB_SPACE:
-                    on_search_tab_space(pnode, true);
+                    on_search_repalce_event(pnode, TAB_SPACE);
                     break;
                 case IDM_EDIT_SPACE_TAB:
-                    on_search_tab_space(pnode, false);
+                    on_search_repalce_event(pnode, SPACE_TAB);
                     break;
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();
@@ -1127,6 +1127,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_BIG5_GB:
                     on_encoding_convert_internal_code(pnode, on_encoding_big5_gb);
+                    break;
+                case IDM_FORMAT_FULL_HALF:
+                    on_search_repalce_event(pnode, FULL_HALF);
+                    break;
+                case IDM_FORMAT_HALF_FULL:
+                    on_search_repalce_event(pnode, HALF_FULL);
                     break;
                 case IDM_EDIT_AUTO_CLOSECHAR:
                     on_code_close_char();

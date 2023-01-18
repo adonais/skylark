@@ -300,6 +300,12 @@ BEGIN
             MENUITEM "繁体转简体",                              IDM_EDIT_BIG5_GB
         END
         MENUITEM MF_SEPARATOR
+        POPUP "全角/半角转换",                                  IDM_FORMAT_PLACEHOLDE_PUNCTUATION
+        BEGIN
+            MENUITEM "全角符号转半角",                          IDM_FORMAT_FULL_HALF
+            MENUITEM "半角标点转全角",                          IDM_FORMAT_HALF_FULL
+        END
+        MENUITEM MF_SEPARATOR
         MENUITEM "自动换行(&L)",                                IDM_VIEW_WRAPLINE_MODE
         MENUITEM "生成二维码",                                  IDM_EDIT_QRCODE
     END

@@ -300,6 +300,12 @@ BEGIN
             MENUITEM "Traditional To Simplified",                      IDM_EDIT_BIG5_GB
         END
         MENUITEM MF_SEPARATOR
+        POPUP "Full-width/half-width conversion",                      IDM_FORMAT_PLACEHOLDE_PUNCTUATION
+        BEGIN
+            MENUITEM "Full-width Symbol To Half-width",                IDM_FORMAT_FULL_HALF
+            MENUITEM "Half-width Punctuation To Full-width",           IDM_FORMAT_HALF_FULL
+        END
+        MENUITEM MF_SEPARATOR
         MENUITEM "Word Wrap",                                          IDM_VIEW_WRAPLINE_MODE
         MENUITEM "QR Code Generator",                                  IDM_EDIT_QRCODE
     END

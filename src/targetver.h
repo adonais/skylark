@@ -1003,6 +1003,10 @@
 #define IDM_VIEW_TAB_RIGHT_NEW              44040
 #define IDM_VIEW_TAB_DBCLICK_NEW            44041
 
+#define IDM_FORMAT_PLACEHOLDE_PUNCTUATION   44050
+#define IDM_FORMAT_FULL_HALF                44051
+#define IDM_FORMAT_HALF_FULL                44052
+
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 
