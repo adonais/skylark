@@ -102,6 +102,7 @@ static CRITICAL_SECTION eu_curl_cs = { &critsect_debug2, -1, 0, 0, 0, 0 };
 static struct eu_config *g_config;
 static struct eu_theme  *g_theme;
 static eue_accel *g_accel;
+static eue_toolbar *g_toolbar;
 static eue_code eue_coding[] =
 {
     {IDM_UNI_UTF8    , "UTF-8"}            ,
@@ -1504,19 +1505,49 @@ eu_accel_ptr(ACCEL *accel)
     return (g_accel->accel_num>0);
 }
 
-struct eu_config *WINAPI eu_get_config(void)
+bool WINAPI
+eu_toolbar_ptr(eue_toolbar *pdata, int num)
+{
+    if (g_toolbar)
+    {
+        return true;
+    }
+    if (!pdata)
+    {
+        return false;
+    }
+    EnterCriticalSection(&eu_lua_cs);
+    g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num);
+    if (g_toolbar)
+    {
+        memcpy(g_toolbar, pdata, sizeof(eue_toolbar) * num);
+    }
+    LeaveCriticalSection(&eu_lua_cs);
+    return g_toolbar != NULL;
+}
+
+struct eu_config *WINAPI
+eu_get_config(void)
 {
     return g_config;
 }
 
-struct eu_theme *WINAPI eu_get_theme(void)
+struct eu_theme *WINAPI
+eu_get_theme(void)
 {
     return g_theme;
 }
 
-eue_accel *WINAPI eu_get_accel(void)
+eue_accel *WINAPI
+eu_get_accel(void)
 {
     return g_accel;
+}
+
+eue_toolbar *WINAPI
+eu_get_toolbar(void)
+{
+    return g_toolbar;
 }
 
 void
@@ -1535,9 +1566,14 @@ eu_free_accel(void)
             DestroyAcceleratorTable(g_accel->haccel);
             g_accel->haccel = NULL;
         }
-        free(g_accel);
-        g_accel = NULL;
+        eu_safe_free(g_accel);
     }
+}
+
+void
+eu_free_toolbar(void)
+{
+    eu_safe_free(g_toolbar);
 }
 
 TCHAR *

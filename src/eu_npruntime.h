@@ -63,6 +63,10 @@
 #define QW_SIZE     64
 #define TITLE_SZIE  512
 
+#ifndef VALUE_LEN
+#define VALUE_LEN 4096
+#endif
+
 #define NP_MAXREADY (((unsigned)(~0)<<1)>>1)
 
 typedef struct _npp_t
@@ -206,6 +210,13 @@ typedef struct eu_theme
     char name[QW_SIZE];
     struct styletheme item;
 } *npn_theme;
+
+typedef struct _eue_toolbar
+{
+    int imsg;
+    int icmd;
+    char isvg[VALUE_LEN];
+} eue_toolbar, *npn_toolbar;
 
 typedef struct  _npn_nmhdr
 {

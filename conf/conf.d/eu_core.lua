@@ -63,6 +63,13 @@ typedef struct _complete_set
     int  snippet;
 }complete_set;
 
+typedef struct _eue_toolbar
+{
+    int imsg;
+    int icmd;
+    char isvg[4096];
+}eue_toolbar;
+
 struct eu_config
 {
     int new_file_eol;
@@ -266,6 +273,7 @@ typedef struct _doc_data
 bool __stdcall eu_config_ptr(struct eu_config *pconfig);
 bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
 bool __stdcall eu_accel_ptr(ACCEL *paccel);
+bool __stdcall eu_toolbar_ptr(eue_toolbar *pdata, int num);
 bool __stdcall eu_exist_path(const char *path);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 

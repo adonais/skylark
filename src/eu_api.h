@@ -495,10 +495,12 @@ EU_EXT_CLASS void __stdcall eu_setpos_window(HWND, HWND, int,int, int, int, uint
 EU_EXT_CLASS bool __stdcall eu_config_ptr(struct eu_config *pconfig);
 EU_EXT_CLASS bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
 EU_EXT_CLASS bool __stdcall eu_accel_ptr(ACCEL *accel);
+EU_EXT_CLASS bool __stdcall eu_toolbar_ptr(eue_toolbar *pdata, int num);
 EU_EXT_CLASS HANDLE __stdcall eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o);
 EU_EXT_CLASS struct eu_theme *__stdcall eu_get_theme(void);
 EU_EXT_CLASS struct eu_config *__stdcall eu_get_config(void);
 EU_EXT_CLASS eue_accel *__stdcall eu_get_accel(void);
+EU_EXT_CLASS eue_toolbar *__stdcall eu_get_toolbar(void);
 
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
@@ -510,6 +512,7 @@ EU_EXT_CLASS void eu_save_config(void);
 EU_EXT_CLASS void eu_save_theme(void);
 EU_EXT_CLASS void eu_free_theme(void);
 EU_EXT_CLASS void eu_free_accel(void);
+EU_EXT_CLASS void eu_free_toolbar(void);
 EU_EXT_CLASS bool eu_init_calltip_tree(doctype_t *root, const char *key, const char *val);
 EU_EXT_CLASS const char *eu_query_calltip_tree(root_t *root, const char *key);
 EU_EXT_CLASS void eu_print_calltip_tree(root_t *root);

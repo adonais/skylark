@@ -40,9 +40,6 @@
 #ifndef IDM_THEME_PLUGIN
 #define IDM_THEME_PLUGIN 1225
 #endif
-#ifndef VALUE_LEN
-#define VALUE_LEN 4096
-#endif
 #ifndef HVM_SETBKCOLOR
 #define HVM_SETBKCOLOR (WM_USER + 105)
 #endif
