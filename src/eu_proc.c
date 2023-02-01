@@ -154,7 +154,7 @@ on_proc_destory_brush(void)
     {
         DeleteObject(g_control_brush);
         g_control_brush = NULL;
-    }    
+    }
 }
 
 HWND
@@ -288,7 +288,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         if (ptab)
         {
             number -= 5;
-        }   
+        }
         HDWP hdwp = BeginDeferWindowPos(number);
         if (!ptab)
         {
@@ -436,7 +436,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                     {
                         ShowWindow(p->hwnd_qrtable, SW_HIDE);
                     }
-                }       
+                }
                 if (p->hex_mode && p->hwnd_sc)
                 {
                     ShowWindow(p->hwnd_sc, SW_HIDE);
@@ -782,7 +782,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (!(pnode = on_tabpage_focus_at()))
             {
                 break;
-            }            
+            }
             if (!g_control_brush)
             {
                 if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))

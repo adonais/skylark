@@ -71,7 +71,7 @@ static HBITMAP
 get_hbitmap(const char *text)
 {
     HBITMAP hbm = NULL;
-    BITMAPINFO bi = {sizeof(BITMAPINFOHEADER)};
+    BITMAPINFO bi = {0};
     unsigned int x, y, l, n, un_width, un_adjust_width, un_bytes;
     uint8_t *rgb_pdata = NULL;
     uint8_t *psource, *pdest;
@@ -92,6 +92,7 @@ get_hbitmap(const char *text)
         un_adjust_width = (un_adjust_width / 4 + 1) * 4;
     }
     un_bytes = un_adjust_width * un_width * OUT_FILE_PIXEL_PRESCALER;
+    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bi.bmiHeader.biWidth = un_width * OUT_FILE_PIXEL_PRESCALER;
     bi.bmiHeader.biHeight = -((int)un_width * OUT_FILE_PIXEL_PRESCALER);
     bi.bmiHeader.biPlanes = 1;

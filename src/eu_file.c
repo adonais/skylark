@@ -1325,7 +1325,7 @@ on_file_remote_thread(eu_tabpage *p, file_backup *pbak, remotefs *premote)
         if (!ret)
         {
             ret = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &p->st_mtime);
-            printf("pnode->st_mtime = %zu\n", p->st_mtime);
+            printf("pnode->st_mtime = %lld\n", p->st_mtime);
         }
         eu_curl_easy_cleanup(curl);
         free((void *)p->reserved0);
