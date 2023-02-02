@@ -38,7 +38,7 @@ void on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify);
 void on_sci_send_extra(void *pdata, uint32_t code, LPNMHDR phdr);
 void on_sci_update_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
-void on_sci_free_tab(eu_tabpage **ppnode);
+void on_sci_free_tab(eu_tabpage **ppnod, eu_tabpage *p);
 void on_sci_insert_egg(eu_tabpage *pnode);
 void on_sci_refresh_ui(eu_tabpage *pnode);
 void on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);

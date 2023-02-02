@@ -567,14 +567,14 @@ pdf_destroy(const NPP instance, nppsave **save)
     instance_data *data = instance ? (instance_data *)instance->pdata : NULL;
     if (data)
     {
-        if (data->istmp)
-        {
-            DeleteFileW(data->filepath);
-        }
         if (data->hprocess)
         {
             TerminateProcess(data->hprocess, 255);
             CloseHandle(data->hprocess);
+        }
+        if (data->istmp)
+        {
+            DeleteFileW(data->filepath);
         }
         if (data->progress_id)
         {

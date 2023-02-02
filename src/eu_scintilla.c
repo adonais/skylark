@@ -20,6 +20,8 @@
 
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
+static volatile sptr_t last_sci_eusc = 0;
+static volatile sptr_t last_sci_hwnd = 0;
 
 void
 on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
@@ -274,8 +276,33 @@ on_sci_delete_file(const eu_tabpage *pnode)
     }
 }
 
+static void
+on_sci_destory(eu_tabpage **ppnode, eu_tabpage *p)
+{
+    if (STR_NOT_NUL(ppnode))
+    {
+        if (p && !p->hex_mode)
+        {   // 复用scintilla窗口
+            p->hwnd_sc = (*ppnode)->hwnd_sc;
+            p->eusc = (*ppnode)->eusc;
+        }
+        else if (!(*ppnode)->hex_mode && !(*ppnode)->plugin && TabCtrl_GetItemCount(g_tabpages) <= 0)
+        {   // 最后一个标签时, 保存scintilla窗口句柄
+            inter_atom_exchange(&last_sci_hwnd, (sptr_t)(*ppnode)->hwnd_sc);
+            inter_atom_exchange(&last_sci_eusc, (sptr_t)(*ppnode)->eusc);
+        }
+        else if ((*ppnode)->hwnd_sc)
+        {   // 销毁scintilla窗口
+            SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            (*ppnode)->hwnd_sc = NULL;
+            inter_atom_exchange(&last_sci_hwnd, 0);
+            inter_atom_exchange(&last_sci_eusc, 0);
+        }
+    }
+}
+
 void
-on_sci_free_tab(eu_tabpage **ppnode)
+on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
 {
     if (STR_NOT_NUL(ppnode))
     {
@@ -332,11 +359,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
         }
         if ((*ppnode)->plugin)
         {
-            if ((*ppnode)->hwnd_sc)
-            {
-                SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
-                (*ppnode)->hwnd_sc = NULL;
-            }
+            on_sci_destory(ppnode, p);
             np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
             np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
             on_sci_delete_file(*ppnode);
@@ -345,10 +368,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
         // 切换16进制时,销毁相关资源
         if (!(*ppnode)->phex)
         {
-            if ((*ppnode)->hwnd_sc)
-            {
-                SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
-            }
+            on_sci_destory(ppnode, p);
             on_sci_delete_file(*ppnode);
             // 销毁标签内存
             if (on_search_report_ok())
@@ -358,7 +378,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
         }
         else if ((*ppnode)->hwnd_sc)
         {
-            SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
+            on_sci_destory(ppnode, p);
             printf("hex_mode, we destroy scintilla control\n");
         }
     }
@@ -680,13 +700,25 @@ on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback)
     if (!inter_atom_compare_exchange(&ptr_scintilla, SendMessage(pnode->hwnd_sc, SCI_GETDIRECTFUNCTION, 0, 0), 0));
     pnode->eusc = SendMessage(pnode->hwnd_sc, SCI_GETDIRECTPOINTER, 0, 0);
     eu_sci_call(pnode, SCI_USEPOPUP, 0, 0);
-    return 0;
+    return SKYLARK_OK;
 }
 
 int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
-    return on_sci_create(pnode, NULL, 0, NULL);
+    if (!pnode)
+    {
+        return EUE_POINT_NULL;
+    }
+    if (last_sci_hwnd)
+    {
+        pnode->hwnd_sc = (HWND)last_sci_hwnd;
+        pnode->eusc = last_sci_eusc;
+        inter_atom_exchange(&last_sci_hwnd, 0);
+        inter_atom_exchange(&last_sci_eusc, 0);
+        return SKYLARK_OK;
+    }
+    return on_sci_create(pnode, NULL, !pnode->hex_mode && pnode->pmod ? WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING : 0, NULL);
 }
 
 void

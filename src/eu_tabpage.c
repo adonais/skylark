@@ -1216,7 +1216,7 @@ on_tabpage_remove(eu_tabpage **ppnode)
         if (p && p == *ppnode)
         {   /* 删除控件句柄与释放资源 */
             TabCtrl_DeleteItem(g_tabpages, index);
-            on_sci_free_tab(ppnode);
+            on_sci_free_tab(ppnode, NULL);
             break;
         }
     }
@@ -1224,12 +1224,12 @@ on_tabpage_remove(eu_tabpage **ppnode)
 }
 
 static int
-on_tabpage_remove_empty(void)
+on_tabpage_remove_empty(eu_tabpage *pre)
 {
     int count;
     int ret = 0;
     EU_VERIFY(g_tabpages != NULL);
-    if ((count = TabCtrl_GetItemCount(g_tabpages)) < 2)
+    if ((count = TabCtrl_GetItemCount(g_tabpages)) < 1)
     {
         return 0;
     }
@@ -1242,7 +1242,7 @@ on_tabpage_remove_empty(void)
             {
                 ret = 1;
                 TabCtrl_DeleteItem(g_tabpages, index);
-                on_sci_free_tab(&p);
+                on_sci_free_tab(&p, pre);
                 break;
             }
         }
@@ -1344,19 +1344,19 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
+    if (!pnode->is_blank)
+    {
+        on_tabpage_remove_empty(pnode);
+    }
     {
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
         pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
-    }
+    }    
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
         printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
         return SKYLARK_TABCTRL_ERR;
-    }
-    if (!pnode->is_blank)
-    {
-        pnode->tab_id -= on_tabpage_remove_empty();
     }
     if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
     {
@@ -1368,13 +1368,8 @@ on_tabpage_add(eu_tabpage *pnode)
         }
         return SKYLARK_OK;
     }
-    if (!pnode->hex_mode && pnode->pmod)
-    {
-        const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
-        printf("we execute plugins\n");
-        return on_sci_create(pnode, NULL, flags, NULL);
-    }
-    if (on_sci_init_dlg(pnode))
+    // 当复用scintilla窗口时, 不重复创建
+    if (!pnode->hwnd_sc && on_sci_init_dlg(pnode))
     {
         TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
         return EUE_INSERT_TAB_FAIL;
