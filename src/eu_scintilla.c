@@ -285,18 +285,25 @@ on_sci_destory(eu_tabpage **ppnode, eu_tabpage *p)
         {   // 复用scintilla窗口
             p->hwnd_sc = (*ppnode)->hwnd_sc;
             p->eusc = (*ppnode)->eusc;
+            printf("hwnd_sc swap\n");
         }
-        else if (!(*ppnode)->hex_mode && !(*ppnode)->plugin && TabCtrl_GetItemCount(g_tabpages) <= 0)
+        else if (!(*ppnode)->phex && !(*ppnode)->plugin && TabCtrl_GetItemCount(g_tabpages) <= 0)
         {   // 最后一个标签时, 保存scintilla窗口句柄
             inter_atom_exchange(&last_sci_hwnd, (sptr_t)(*ppnode)->hwnd_sc);
             inter_atom_exchange(&last_sci_eusc, (sptr_t)(*ppnode)->eusc);
+            printf("hwnd_sc save\n");
         }
         else if ((*ppnode)->hwnd_sc)
         {   // 销毁scintilla窗口
+            bool hex = (*ppnode)->hex_mode && (*ppnode)->phex;
             SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
-            (*ppnode)->hwnd_sc = NULL;
+            if (!hex)
+            {
+                (*ppnode)->hwnd_sc = NULL;
+            }
             inter_atom_exchange(&last_sci_hwnd, 0);
             inter_atom_exchange(&last_sci_eusc, 0);
+            printf("hwnd_sc closing\n");
         }
     }
 }
@@ -307,6 +314,7 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
     if (STR_NOT_NUL(ppnode))
     {
         HWND hwnd = eu_module_hwnd();
+        bool plugins = !!(*ppnode)->plugin;
         // 关闭数据库链接
         if ((*ppnode)->db_ptr)
         {
@@ -357,7 +365,7 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
         {
             DestroyWindow(hwnd_document_map);
         }
-        if ((*ppnode)->plugin)
+        if (plugins)
         {
             on_sci_destory(ppnode, p);
             np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
@@ -368,8 +376,11 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
         // 切换16进制时,销毁相关资源
         if (!(*ppnode)->phex)
         {
-            on_sci_destory(ppnode, p);
-            on_sci_delete_file(*ppnode);
+            if (!plugins)
+            {
+                on_sci_destory(ppnode, p);
+                on_sci_delete_file(*ppnode);
+            }
             // 销毁标签内存
             if (on_search_report_ok())
             {

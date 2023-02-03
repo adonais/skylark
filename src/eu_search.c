@@ -743,8 +743,7 @@ on_search_set_rectangle(eu_tabpage *pnode)
                 on_view_zoom_in(pnode);
                 pnode->zoom_level = SELECTION_ZOOM_LEVEEL;
             }
-            eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_THIN, 0);
-            SendMessage(eu_module_hwnd(), WM_SYSKEYDOWN, VK_SHIFT, 1<<29);
+            eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_RECTANGLE, 0);
         }
         else
         {
