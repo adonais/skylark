@@ -261,6 +261,12 @@ BEGIN
             MENUITEM "&Right-click Empty Space",                       IDM_VIEW_TAB_RIGHT_NEW
             MENUITEM "&Left-double-click Empty Space",                 IDM_VIEW_TAB_DBCLICK_NEW
         END
+        POPUP "Close Button Drawing Mode"
+        BEGIN
+            MENUITEM "&Follow The Mouse",                              IDM_TABCLOSE_FOLLOW
+            MENUITEM "&Always Draw",                                   IDM_TABCLOSE_ALWAYS
+            MENUITEM "&Never Draw",                                    IDM_TABCLOSE_NONE
+        END
         MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
         MENUITEM MF_SEPARATOR
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE_ZOOM

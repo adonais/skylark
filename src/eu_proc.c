@@ -1439,6 +1439,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case IDM_TABCLOSE_FOLLOW:
+                case IDM_TABCLOSE_ALWAYS:
+                case IDM_TABCLOSE_NONE:
+                    eu_get_config()->m_close_draw = wm_id;
+                    if (g_tabpages)
+                    {
+                        UpdateWindowEx(g_tabpages);
+                    }
+                    break;
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
                     break;

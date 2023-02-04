@@ -87,7 +87,6 @@ IDB_TOOLBAR_MIDDLING1   BITMAP                  "..\\resources\\toolbar_middling
 IDB_DARK_MIDDLING24     BITMAP                  "..\\resources\\toolbar_dark_middling_24.bmp"
 IDB_DARK_MIDDLING1      BITMAP                  "..\\resources\\toolbar_dark_middling_1.bmp"
 IDB_BUTTON_BG_BMP       BITMAP                  "..\\resources\\bg.bmp"
-IDB_AC_CLOSE_BMP        BITMAP                  "..\\resources\\at-active-close.bmp"
 IDT_BIRD                BITMAP                  "..\\resources\\img_tab.bmp"
 
 /////////////////////////////////////////////////////////////////////////////

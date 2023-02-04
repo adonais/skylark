@@ -971,6 +971,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (p->at_close)
                     {
                         on_tabpage_flush_close(hwnd, &rect);
+                        p->at_close = false;
                     }
                 }
             }

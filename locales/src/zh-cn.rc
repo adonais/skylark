@@ -261,6 +261,12 @@ BEGIN
             MENUITEM "空白区右键单击(&R)",                      IDM_VIEW_TAB_RIGHT_NEW
             MENUITEM "空白区左键双击(&L)",                      IDM_VIEW_TAB_DBCLICK_NEW
         END
+        POPUP "关闭按钮绘制方式"
+        BEGIN
+            MENUITEM "跟随鼠标(&F)",                            IDM_TABCLOSE_FOLLOW
+            MENUITEM "总是绘制(&A)",                            IDM_TABCLOSE_ALWAYS
+            MENUITEM "从不绘制(&N)",                            IDM_TABCLOSE_NONE
+        END
         MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
         MENUITEM MF_SEPARATOR
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
