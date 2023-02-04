@@ -365,6 +365,7 @@ struct eu_config
     bool m_tab_tip;
 
     int m_close_way;
+    int m_close_draw;
     int m_new_way;
     int m_tab_active;
     int m_quality;
