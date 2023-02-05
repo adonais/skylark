@@ -761,6 +761,7 @@ pdf_write(NPP instance, npstream* stream, uint32_t offset, uint32_t len, void* b
 static int
 launch_sumatra(instance_data *data, const char *url_utf8)
 {
+    int ret = NP_GENERIC_ERROR;
     if (!data)
     {
         return NP_NO_DATA;
@@ -804,9 +805,14 @@ launch_sumatra(instance_data *data, const char *url_utf8)
                 printf("sp: pdf_stream2file() error: couldn't run SumatraPDF!\n");
                 wcsncpy(data->message, L"Error: Couldn't run SumatraPDF!", MAX_PATH);
             }
+            else
+            {
+                ret = NP_NO_ERROR;
+            }
+            free(cmd_line);
         }
     }
-    return NP_NO_ERROR;
+    return ret;
 }
 
 static unsigned WINAPI
