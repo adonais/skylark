@@ -23,8 +23,6 @@
 extern "C" {
 #endif
 
-void __stdcall on_hook_proc(HINSTANCE instance);
-void __stdcall on_hook_proc_release(void);
 PIMAGE_THUNK_DATA find_delayload_thunk_by_ordinal(void *module_base, const char *dll_name, uint16_t ordinal);
 
 #ifdef __cplusplus

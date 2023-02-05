@@ -838,7 +838,7 @@ on_changes_msgbox(LPMSGBOXPARAMSW msgbox)
 /****************************************************************************
  *        eu_msgbox 模仿 MessageBoxW, 支持dark mode
  ***************************************************************************/
-int WINAPI
+int
 eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type)
 {
     MSGBOXPARAMSW msgbox;

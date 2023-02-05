@@ -20,7 +20,7 @@
 #define ascii_special_symbol(ch) \
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
-bool WINAPI
+bool
 eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
 {
     bool ret = false;
@@ -93,7 +93,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
     return ret;
 }
 
-void WINAPI
+void
 eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
 {
     LPWSTR *ptr_arg = NULL;
@@ -125,7 +125,7 @@ eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
     }
 }
 
-bool WINAPI
+bool
 eu_check_arg(const wchar_t **args, int arg_c, const wchar_t *argument, const wchar_t *pathfile)
 {
     bool ret = false;
@@ -399,7 +399,7 @@ on_config_sync_snippet(void)
     return true;
 }
 
-bool WINAPI
+bool
 eu_load_main_config(void)
 {
     bool ret = false;
@@ -423,7 +423,7 @@ eu_load_main_config(void)
     return ret;
 }
 
-bool WINAPI
+bool
 eu_load_config(void)
 {
     int  m = 0;
@@ -450,7 +450,7 @@ load_fail:
     return ret;
 }
 
-void WINAPI
+void
 eu_load_file(void)
 {
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));

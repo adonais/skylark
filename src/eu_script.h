@@ -23,11 +23,11 @@
 extern "C" {
 #endif
 
-int __stdcall do_lua_func(const char *, const char *, const char *arg);
-int __stdcall do_lua_code(const char *s);
-int __stdcall do_byte_code(eu_tabpage *pnode);
-int __stdcall do_lua_parser_doctype(const char *fname, const char *func);
-void __stdcall do_lua_parser_release(void);
+int do_lua_func(const char *, const char *, const char *arg);
+int do_lua_code(const char *s);
+int do_byte_code(eu_tabpage *pnode);
+int do_lua_parser_doctype(const char *fname, const char *func);
+void do_lua_parser_release(void);
 
 #ifdef __cplusplus
 }

@@ -805,7 +805,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void WINAPI
+void
 on_snippet_create_dlg(HWND parent)
 {
     hwnd_snippet = i18n_create_dialog(parent, IDD_SNIPPET_DLG, on_snippet_proc);
@@ -817,7 +817,7 @@ on_snippet_create_dlg(HWND parent)
     }
 }
 
-void WINAPI
+void
 on_snippet_destory(void)
 {
     if (hwnd_snippet)
@@ -826,7 +826,7 @@ on_snippet_destory(void)
     }
 }
 
-HWND WINAPI
+HWND
 eu_snippet_hwnd(void)
 {
     return hwnd_snippet;

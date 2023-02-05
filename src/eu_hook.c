@@ -89,7 +89,7 @@ error_handle_output(PEXCEPTION_POINTERS pExceptionInfo)
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-bool WINAPI
+bool
 on_hook_exception(void)
 {
     if (!util_under_wine())
@@ -391,7 +391,7 @@ comctl_thread(void *lp)
     return 0;
 }
 
-void WINAPI
+void
 on_hook_do(void)
 {
 #ifdef _M_X64
@@ -402,7 +402,7 @@ on_hook_do(void)
 #endif
 }
 
-void WINAPI
+void
 on_hook_undo(void)
 {
 #ifdef _M_X64    

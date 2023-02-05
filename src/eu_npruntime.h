@@ -278,12 +278,12 @@ typedef void (*np_init_ptr)(const NMM hmod);
 typedef void (*np_shutdown_ptr)(void);
 typedef bool (*np_mimetype_ptr)(const wchar_t *name);
 
-typedef bool      (WINAPI *npn_translation_ptr)(uint16_t id, wchar_t *str, int len);
-typedef bool      (WINAPI *npn_openfile_ptr)(const wchar_t *path, pf_stream pstream);
-typedef wchar_t*  (WINAPI *npn_utf8_utf16_ptr)(const char *utf8, size_t *out_len);
-typedef wchar_t*  (WINAPI *npn_wstr_replace_ptr)(wchar_t* in, size_t in_size, const wchar_t* pattern, const wchar_t* by);
-typedef HANDLE    (WINAPI *npn_new_process_ptr)(const wchar_t* wcmd, const wchar_t* param, const wchar_t* pcd, int flags, uint32_t *o);
-typedef npn_theme (WINAPI *npn_theme_ptr)(void);
+typedef bool      (*npn_translation_ptr)(uint16_t id, wchar_t *str, int len);
+typedef bool      (*npn_openfile_ptr)(const wchar_t *path, pf_stream pstream);
+typedef wchar_t*  (*npn_utf8_utf16_ptr)(const char *utf8, size_t *out_len);
+typedef wchar_t*  (*npn_wstr_replace_ptr)(wchar_t* in, size_t in_size, const wchar_t* pattern, const wchar_t* by);
+typedef HANDLE    (*npn_new_process_ptr)(const wchar_t* wcmd, const wchar_t* param, const wchar_t* pcd, int flags, uint32_t *o);
+typedef npn_theme (*npn_theme_ptr)(void);
 
 static bool
 npn_client_rect(HWND hwnd, npn_rect *prect)
