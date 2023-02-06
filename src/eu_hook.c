@@ -21,7 +21,9 @@
 #define __vmalloc(l) VirtualAlloc(NULL, l, MEM_COMMIT, PAGE_EXECUTE_READWRITE)
 #define __vfree(p) VirtualFree(p, 0, MEM_RELEASE)
 typedef void (*func_zrow)(void *, int i);
-typedef LPTOP_LEVEL_EXCEPTION_FILTER(WINAPI *SetUnhandledExceptionFilterPtr)(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
+typedef LPTOP_LEVEL_EXCEPTION_FILTER (WINAPI *SetUnhandledExceptionFilterPtr)(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
+typedef BOOL (WINAPI *MiniDumpWriteDumpPtr)(HANDLE hProcess, DWORD ProcessId, HANDLE hFile, MINIDUMP_TYPE DumpType, CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam, 
+                                            CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam, CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
 static func_zrow put_zrow_bottom_stub;
 
 static bool
@@ -57,6 +59,24 @@ pre_exception_filter(void)
     return ret;
 }
 
+static BOOL
+hookMiniDumpWriteDump(HANDLE hProcess, DWORD ProcessId, HANDLE hFile, MINIDUMP_TYPE DumpType, CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam, 
+                      CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam, CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam)
+{
+    BOOL ret = FALSE;
+    HMODULE hdbg = LoadLibraryW(L"dbghelp.dll");
+    if (hdbg != NULL)
+    {
+        MiniDumpWriteDumpPtr fnMiniDumpWriteDump = (MiniDumpWriteDumpPtr)GetProcAddress(hdbg, "MiniDumpWriteDump");
+        if (fnMiniDumpWriteDump)
+        {
+            ret = fnMiniDumpWriteDump(hProcess, ProcessId, hFile, DumpType, ExceptionParam, UserStreamParam, CallbackParam);
+        }
+        FreeLibrary(hdbg);
+    }
+    return ret;
+}
+
 static LONG WINAPI
 error_handle_output(PEXCEPTION_POINTERS pExceptionInfo)
 {
@@ -84,7 +104,7 @@ error_handle_output(PEXCEPTION_POINTERS pExceptionInfo)
     ExInfo.ExceptionPointers = pExceptionInfo;
     ExInfo.ClientPointers = FALSE;
     /* MiniDumpWriteDump输出dump */
-    MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hfile, MiniDumpNormal, &ExInfo, NULL, NULL);
+    hookMiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hfile, MiniDumpNormal, &ExInfo, NULL, NULL);
     CloseHandle(hfile);
     return EXCEPTION_EXECUTE_HANDLER;
 }

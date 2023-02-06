@@ -500,6 +500,7 @@ on_cmd_start(void)
 static bool
 close_stdout_redirect(FILE *console)
 {
+    /* restore original standard output handle */
     CHECK_IF(_dup2(fd_stdout, _fileno(stdout)));
     _close(fd_stdout);
     _close(fd_pipe[WRITE_FD]);
@@ -516,7 +517,7 @@ init_stdout_redirect(int size, FILE **pconsole)
     {
         *pconsole = NULL;
     }
-    if ((_fileno(stdout) != 1) && AllocConsole())
+    if (_fileno(stdout) != 1 && AllocConsole())
     {
         *pconsole = freopen("CONOUT$", "w", stdout);
         ShowWindow (FindWindow(_T("ConsoleWindowClass"), NULL), SW_HIDE);
@@ -527,9 +528,10 @@ init_stdout_redirect(int size, FILE **pconsole)
         {
             break;
         }
-        fd_stdout = _dup(_fileno(stdout));
+        int fd = _fileno(stdout);
+        fd_stdout = _dup(fd);
         fflush(stdout);
-        if ((_dup2(fd_pipe[WRITE_FD], _fileno(stdout))) == 0)
+        if ((_dup2(fd_pipe[WRITE_FD], fd)) == 0)
         {
             setvbuf(stdout, NULL, _IONBF, 0);
             ret = true;
@@ -538,6 +540,7 @@ init_stdout_redirect(int size, FILE **pconsole)
     if (!ret)
     {
         eu_close_console(*pconsole);
+        fprintf(stderr, "init_stdout_redirect failed\n");
     }
     return ret;
 }
