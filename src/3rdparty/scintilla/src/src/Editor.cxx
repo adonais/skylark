@@ -1010,6 +1010,7 @@ void Editor::VerticalCentreCaret() {
 	const Sci::Line newTop = lineDisplay - (LinesOnScreen() / 2);
 	if (topLine != newTop) {
 		SetTopLine(newTop > 0 ? newTop : 0);
+		SetVerticalScrollPos();
 		RedrawRect(GetClientRectangle());
 	}
 }
