@@ -42,7 +42,6 @@ typedef struct _file_recent
 }file_recent;
 
 void on_sql_delete_backup_row(eu_tabpage *pnode);
-void on_sql_delete_backup_row_thread(eu_tabpage *pnode);
 void on_sql_file_recent_thread(const file_recent *precent);
 int  on_sql_file_recent_clear(void);
 int  on_sql_sync_session(void);

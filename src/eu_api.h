@@ -466,7 +466,6 @@ EU_EXT_CLASS void eu_delete_replace_history(const char *key);
 EU_EXT_CLASS void eu_push_folder_history(const char *key);
 EU_EXT_CLASS void eu_delete_folder_history(const char *key);
 EU_EXT_CLASS void eu_update_backup_table(file_backup *pbak, int mode);
-EU_EXT_CLASS void eu_clear_backup_table(void);
 EU_EXT_CLASS void eu_get_find_history(sql3_callback pfunc);
 EU_EXT_CLASS void eu_get_replace_history(sql3_callback pfunc);
 EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);

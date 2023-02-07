@@ -198,6 +198,27 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
     return rc;
 }
 
+static unsigned __stdcall
+on_sql_post_func(void *lp)
+{
+    const char *sql = (const char *)lp;
+    if (sql)
+    {
+        if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+        {
+            printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        }
+        free(lp);
+    }
+    return 0;
+}
+
+static void
+on_sql_post_thread(void *sql)
+{
+    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_sql_post_func, sql, 0, NULL));
+}
+
 int
 on_sql_post(const char *sql, sql3_callback callback, void *data)
 {
@@ -518,11 +539,10 @@ on_sql_mem_post(const char *sql, sql3_callback callback, void *data)
 int
 on_sql_file_recent_clear(void)
 {
-    if (eu_memdb)
+    const char *sql = "delete from file_recent;";
+    if (on_sql_mem_post(sql, NULL, NULL) == SQLITE_OK)
     {
-        const char *sql = "delete from file_recent;";
-        sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
-        return eu_sqlite3_send(sql, NULL, NULL);
+        return on_sql_post(sql, NULL, NULL);
     }
     return SQLITE_ERROR;
 }
@@ -540,7 +560,7 @@ on_sql_file_recent_thread(const file_recent *precent)
         const char *exp = "insert into file_recent(szName,szPos,szDate,szHex) values('%s', %I64d, %I64u, %d) "
                           "on conflict (szName) do update set szPos=%I64d,szDate=%I64u,szHex=%d;";
         snprintf(sql, MAX_BUFFER-1, exp, pfile, precent->postion, result, precent->hex, precent->postion, result, precent->hex);
-        if (sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL) != 0)
+        if (on_sql_mem_post(sql, NULL, NULL) != SQLITE_OK)
         {
             printf("%s failed: %s\n", __FUNCTION__, sql);
         }
@@ -550,22 +570,22 @@ on_sql_file_recent_thread(const file_recent *precent)
 void
 eu_push_find_history(const char *key)
 {
-    char sql[MAX_BUFFER+1] = {0};
-    _snprintf(sql, MAX_BUFFER, "insert or ignore into find_his(szName) values('%s');", key);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+    char *sql = (char *)calloc(1, MAX_BUFFER);
+    if (sql)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        _snprintf(sql, MAX_BUFFER, "insert or ignore into find_his(szName) values('%s');", key);
+        on_sql_post_thread(sql);
     }
 }
 
 void
 eu_delete_find_history(const char *key)
 {
-    char sql[MAX_BUFFER+1] = {0};
-    _snprintf(sql, MAX_BUFFER, "delete from find_his where szName='%s';", key);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+    char *sql = (char *)calloc(1, MAX_BUFFER);
+    if (sql)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        _snprintf(sql, MAX_BUFFER, "delete from find_his where szName='%s';", key);
+        on_sql_post_thread(sql);
     }
 }
 
@@ -588,22 +608,22 @@ eu_get_find_history(sql3_callback pfunc)
 void
 eu_push_replace_history(const char *key)
 {
-    char sql[MAX_BUFFER+1] = {0};
-    _snprintf(sql, MAX_BUFFER, "insert or ignore into replace_his(szName) values('%s');", key);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+    char *sql = (char *)calloc(1, MAX_BUFFER);
+    if (sql)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        _snprintf(sql, MAX_BUFFER, "insert or ignore into replace_his(szName) values('%s');", key);
+        on_sql_post_thread(sql);
     }
 }
 
 void
 eu_delete_replace_history(const char *key)
 {
-    char sql[MAX_BUFFER+1] = {0};
-    _snprintf(sql, MAX_BUFFER, "delete from replace_his where szName='%s';", key);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+    char *sql = (char *)calloc(1, MAX_BUFFER);
+    if (sql)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        _snprintf(sql, MAX_BUFFER, "delete from replace_his where szName='%s';", key);
+        on_sql_post_thread(sql);
     }
 }
 
@@ -626,22 +646,22 @@ eu_get_replace_history(sql3_callback pfunc)
 void
 eu_push_folder_history(const char *key)
 {
-    char sql[MAX_BUFFER+1] = {0};
-    _snprintf(sql, MAX_BUFFER, "insert or ignore into folder_his(szName) values('%s');", key);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+    char *sql = (char *)calloc(1, MAX_BUFFER);
+    if (sql)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        _snprintf(sql, MAX_BUFFER, "insert or ignore into folder_his(szName) values('%s');", key);
+        on_sql_post_thread(sql);
     }
 }
 
 void
 eu_delete_folder_history(const char *key)
 {
-    char sql[MAX_BUFFER+1] = {0};
-    _snprintf(sql, MAX_BUFFER, "delete from folder_his where szName='%s';", key);
-    if (eu_sqlite3_send(sql, NULL, NULL) != 0)
+    char *sql = (char *)calloc(1, MAX_BUFFER);
+    if (sql)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        _snprintf(sql, MAX_BUFFER, "delete from folder_his where szName='%s';", key);
+        on_sql_post_thread(sql);
     }
 }
 
@@ -682,13 +702,13 @@ eu_update_backup_table(file_backup *pbak, DB_MODE mode)
     {
         case DB_ALL:
             sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
-            eu_sqlite3_send(sql, NULL, NULL);
+            on_sql_post(sql, NULL, NULL);
             break;
         case DB_MEM:
             sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
             break;
         case DB_FILE:
-            eu_sqlite3_send(sql, NULL, NULL);
+            on_sql_post(sql, NULL, NULL);
             break;
         default:
             break;
@@ -696,50 +716,20 @@ eu_update_backup_table(file_backup *pbak, DB_MODE mode)
 }
 
 void
-eu_clear_backup_table(void)
-{
-    if (eu_sqlite3_send("delete from skylark_session;", NULL, NULL) != 0)
-    {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
-    }
-}
-
-static unsigned __stdcall
-on_sql_execute_thread(void *lp)
-{
-    int rc = 0;
-    char sql[MAX_BUFFER+1] = {0};
-    _snprintf(sql, MAX_BUFFER, "delete from skylark_session where szRealPath='%s';", (char *)lp);
-    if (eu_memdb && (rc = sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL)))
-    {
-        printf("on_sql_execute_thread failed in %s\n", __FUNCTION__);
-    }
-    free(lp);
-    return rc;
-}
-
-void
 on_sql_delete_backup_row(eu_tabpage *pnode)
 {
     if (pnode && pnode->pathfile[0])
     {
+        char sql[MAX_BUFFER+1] = {0};
         char *path = eu_utf16_utf8(pnode->pathfile, NULL);
         if (path)
         {
-            on_sql_execute_thread(path);
-        }
-    }
-}
-
-void
-on_sql_delete_backup_row_thread(eu_tabpage *pnode)
-{
-    if (pnode && pnode->pathfile[0])
-    {
-        char *path = eu_utf16_utf8(pnode->pathfile, NULL);
-        if (path)
-        {
-            CloseHandle((HANDLE)_beginthreadex(NULL, 0, on_sql_execute_thread, (void *)path, 0, NULL));
+            _snprintf(sql, MAX_BUFFER, "delete from skylark_session where szRealPath='%s';", path);
+            if (eu_memdb)
+            {
+                sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
+            }
+            free(path);
         }
     }
 }
