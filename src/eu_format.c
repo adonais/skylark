@@ -141,7 +141,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
             {
                 js_put(the_y, pbuf, out);
             }
-            FALLTHRU_ATTR
+            FALLTHRU_ATTR;
         case 2:
             the_a = the_b;
             if (the_a == '\'' || the_a == '"' || the_a == '`')
@@ -166,7 +166,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                     }
                 }
             }
-            FALLTHRU_ATTR
+            FALLTHRU_ATTR;
         case 3:
             the_b = js_next(ptext, in);
             if (the_b == EUE_UNKOWN_ERR)

@@ -78,7 +78,7 @@ on_doc_enable_foldline(eu_tabpage *pnode)
         case DOCTYPE_XML:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.xml.allow.scripts", (sptr_t)"0");
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.xml.at.tag.open", (sptr_t)"1");
-            FALLTHRU_ATTR
+            FALLTHRU_ATTR;
         case DOCTYPE_HTML:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.compact", (sptr_t)"0");
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.html", (sptr_t)"1");
