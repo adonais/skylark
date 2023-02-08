@@ -207,7 +207,7 @@ class LexerJSON : public DefaultLexer {
 	LexerJSON() :
 		DefaultLexer("json", SCLEX_JSON),
 		setOperators(CharacterSet::setNone, "[{}]:,"),
-		setURL(CharacterSet::setAlphaNum, "-._~:/?#[]@!$&'()*+,),="),
+		setURL(CharacterSet::setAlphaNum, "-._~:/?#[]@!$&'()*+,),=%"),
 		setKeywordJSONLD(CharacterSet::setAlpha, ":@"),
 		setKeywordJSON(CharacterSet::setAlpha, "$_") {
 	}
