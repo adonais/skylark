@@ -65,8 +65,9 @@ function eu_toolbar.loading()
       local m_ptr = eu_core.ffi.cast('eue_toolbar *', m_bar[i])
       m_ptr.imsg = eu_core.ffi.cast('int', my_code[i+1][1])
       m_ptr.icmd = eu_core.ffi.cast('int', my_code[i+1][2])
-      if (my_code[i+1][3]) then
-        eu_core.ffi.copy(m_ptr.isvg, my_code[i+1][3], 4096)
+      if (my_code[i+1][3] ~= nil and #my_code[i+1][3] < 4096) then
+        -- ffi.copy没必要指明第三个参数
+        eu_core.ffi.copy(m_ptr.isvg, my_code[i+1][3])
       else
         eu_core.ffi.fill(m_ptr.isvg, 4096)
       end
