@@ -242,7 +242,7 @@ on_snippet_do_sci(const char *txt, bool sel)
 }
 
 static void
-on_snippet_do_listbox(const char *txt)
+on_snippet_do_listbox(const char *txt, const int i)
 {
     HWND hwnd_lst = GetDlgItem(hwnd_snippet, IDC_SNIPPET_LST);
     if (hwnd_lst)
@@ -254,7 +254,12 @@ on_snippet_do_listbox(const char *txt)
         else if (txt[0])
         {
             TCHAR ptxt[MAX_PATH] = {0};
-            ListBox_AddString(hwnd_lst, util_make_u16(txt, ptxt, MAX_PATH-1));
+            util_make_u16(txt, ptxt, MAX_PATH-1);
+            if (*ptxt && ListBox_FindStringExact(hwnd_lst, -1, ptxt) < 0)
+            {
+                int index = ListBox_AddString(hwnd_lst, ptxt);
+                ListBox_SetItemData(hwnd_lst, index, (LPARAM)i);
+            }
         }
     }
 }
@@ -264,11 +269,10 @@ on_snippet_write_control(snippet_t *pv)
 {
     if (pv)
     {
-        snippet_t *it;
-        on_snippet_do_listbox(NULL);
-        for (it = cvector_begin(pv); it != cvector_end(pv); ++it)
+        on_snippet_do_listbox(NULL, 0);
+        for (size_t i = 0; i < cvector_size(pv); ++i)
         {
-            on_snippet_do_listbox(it->name);
+            on_snippet_do_listbox(pv[i].name, (const int)i);
         }
     }
 }
@@ -408,7 +412,7 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
     {
         on_snippet_do_edt("");
         on_snippet_do_sci("", false);
-        on_snippet_do_listbox(NULL);
+        on_snippet_do_listbox(NULL, 0);
     }
     else if ((index = on_snippet_get_file(hself, snippet_file, MAX_PATH, &vec)) >= 0)
     {
@@ -424,7 +428,7 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
         }
         else if (!vec)
         {
-            on_snippet_do_listbox(NULL);
+            on_snippet_do_listbox(NULL, 0);
         }
         on_snippet_do_edt(NULL);
         on_snippet_do_sci(NULL, false);
@@ -432,16 +436,18 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
 }
 
 static void
-on_snippet_lst_click(HWND hwnd_lst, const char *ptxt, int index)
+on_snippet_lst_click(HWND hwnd_lst, const char *ptxt, const int index)
 {
     snippet_t *vec = NULL;
+    int n = (int) ListBox_GetItemData(hwnd_lst, index);
     HWND hwnd_cbo = GetDlgItem(hwnd_snippet, IDC_SNIPPET_CBO1);
-    if ((vec = on_snippet_get_vec(hwnd_cbo, NULL)) != NULL)
+    if (n >=0 && hwnd_cbo != NULL &&  (vec = on_snippet_get_vec(hwnd_cbo, NULL)) != NULL)
     {
+        int c = 0;
         snippet_t *it;
-        for (it = cvector_begin(vec); it != cvector_end(vec); ++it)
+        for (it = cvector_begin(vec); it != cvector_end(vec); ++it, ++c)
         {
-            if (!strcmp(it->name, ptxt))
+            if (!strcmp(it->name, ptxt) && n == c)
             {
                 char edt_str[MAX_PATH] = {0};
                 if (it->parameter[0])
@@ -469,9 +475,11 @@ on_snippet_do_modify(HWND hdlg)
     do
     {
         int index = -1;
+        int dimension = -1;
         bool add = false;
         bool edt_modify = false;
         snippet_t *vec = NULL;
+        TCHAR str[MAX_PATH] = {0};
         TCHAR snippet_file[MAX_PATH] = {0};
         HWND hwnd_edt = GetDlgItem(hdlg, IDC_SNIPPET_EDT1);
         HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
@@ -485,6 +493,10 @@ on_snippet_do_modify(HWND hdlg)
         {
             break;
         }
+        if (!Edit_GetText(hwnd_edt, str, MAX_PATH) || *str == 0)
+        {
+            break;
+        }
         if ((index = ListBox_GetCurSel(hwnd_lst)) < 0)
         {
             add = true;
@@ -494,21 +506,31 @@ on_snippet_do_modify(HWND hdlg)
         {
             SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_NEW, 0), 0);
         }
-        vec = on_snippet_get_vec(hwnd_cmb, NULL);
+        if (!(vec = on_snippet_get_vec(hwnd_cmb, NULL)))
+        {
+            break;
+        }
+        else
+        {
+            dimension = (int) ListBox_GetItemData(hwnd_lst, index);
+            if (dimension < 0)
+            {
+                dimension = !index ? 0 : cvector_size(vec) - 1;
+            }
+        }
     #ifdef _DEBUG
-        printf("listbox_count = %d, vec = %p, vec_size = %zu\n", index, (void *)vec, cvector_size(vec));
+        printf("listbox_count = %d, vec = %p, vec_size = %zu, dimension = %d\n", index, (void *)vec, cvector_size(vec), dimension);
     #endif
-        if (!vec || (int)cvector_size(vec) < index)
+        if (dimension < 0 || (int)cvector_size(vec) < index)
         {
             break;
         }
         if (add || Edit_GetModify(hwnd_edt))
         {
             int c = 0;
+            int n = 0;
             TCHAR *p = NULL;
-            TCHAR str[MAX_PATH] = {0};
             TCHAR name[QW_SIZE] = {0};
-            Edit_GetText(hwnd_edt, str, MAX_PATH);
             p = _tcstok(str, _T(","));
             while (p && _tcslen(p) < QW_SIZE)
             {
@@ -516,21 +538,21 @@ on_snippet_do_modify(HWND hdlg)
                 {
                     case 0:
                     {
-                        memset(&vec[index].name, 0, QW_SIZE);
+                        memset(&vec[dimension].name, 0, QW_SIZE);
                         _sntprintf(name, QW_SIZE - 1, _T("%s"), p);
-                        util_make_u8(p, vec[index].name, QW_SIZE);
+                        util_make_u8(p, vec[dimension].name, QW_SIZE);
                         break;
                     }
                     case 1:
                     {
-                        memset(&vec[index].comment, 0, QW_SIZE);
-                        util_make_u8(p, vec[index].comment, QW_SIZE);
+                        memset(&vec[dimension].comment, 0, QW_SIZE);
+                        util_make_u8(p, vec[dimension].comment, QW_SIZE);
                         break;
                     }
                     case 2:
                     {
-                        memset(&vec[index].parameter, 0, PARAM_LEN);
-                        util_make_u8(p, vec[index].parameter, PARAM_LEN);
+                        memset(&vec[dimension].parameter, 0, PARAM_LEN);
+                        util_make_u8(p, vec[dimension].parameter, PARAM_LEN);
                         break;
                     }
                     default:
@@ -551,9 +573,10 @@ on_snippet_do_modify(HWND hdlg)
                 printf("node exist\n");
                 break;
             }
-            if (add)
+            if (add && (n = ListBox_AddString(hwnd_lst, name)) >= 0)
             {
-                ListBox_SetCurSel(hwnd_lst, ListBox_AddString(hwnd_lst, name));
+                ListBox_SetItemData(hwnd_lst, n, (LPARAM)(cvector_size(vec) - 1));
+                ListBox_SetCurSel(hwnd_lst, n);
             }
             else
             {
@@ -561,12 +584,16 @@ on_snippet_do_modify(HWND hdlg)
                 TCHAR *ptxt = NULL;
                 if ((len = ListBox_GetTextLen(hwnd_lst, index)) > 0 && (ptxt = calloc(sizeof(TCHAR), len + 1)))
                 {
+                    int num = (int)ListBox_GetItemData(hwnd_lst, index);
                     ListBox_GetText(hwnd_lst, index, ptxt);
                     if (_tcslen(ptxt) > 0 && (_tcscmp(name, ptxt)))
                     {
                         ListBox_DeleteString(hwnd_lst, index);
-                        ListBox_InsertString(hwnd_lst, index, name);
-                        ListBox_SetCurSel(hwnd_lst, index);
+                        if ((n = (int)ListBox_InsertString(hwnd_lst, index, name)) >= 0)
+                        {
+                            ListBox_SetItemData(hwnd_lst, n, (LPARAM)num);
+                            ListBox_SetCurSel(hwnd_lst, n);
+                        }
                     }
                     free(ptxt);
                 }
@@ -579,7 +606,7 @@ on_snippet_do_modify(HWND hdlg)
             char *txt = util_strdup_content(pview, NULL);
             if (txt)
             {
-                _snprintf(vec[index].body, LARGER_LEN - 1, "%s", txt);
+                _snprintf(vec[dimension].body, LARGER_LEN - 1, "%s", txt);
                 eu_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
                 edt_modify = true;
                 free(txt);
@@ -590,17 +617,35 @@ on_snippet_do_modify(HWND hdlg)
             if (add)
             {
                 eu_touch(snippet_file);
-                if (on_parser_vector_new(snippet_file, &vec, index, (int)eu_sci_call(pview, SCI_GETEOLMODE, 0, 0)))
+                if (on_parser_vector_new(snippet_file, &vec, dimension, (int)eu_sci_call(pview, SCI_GETEOLMODE, 0, 0)))
                 {
                     _InterlockedExchange(&snippet_new, 0);
                 }
             }
             else
             {
-                on_parser_vector_modify(snippet_file, &vec, index);
+                on_parser_vector_modify(snippet_file, &vec, dimension);
             }
         }
     } while (0);
+}
+
+static void
+on_snippet_update_item(HWND hwnd_lst, const int index)
+{
+    int count = ListBox_GetCount(hwnd_lst);
+    if (index >= 0 && count > 0)
+    {
+        for (int i = index; i < count; ++i)
+        {
+            int num = (int)ListBox_GetItemData(hwnd_lst, i);
+            if (num <= 0)
+            {
+                break;
+            }
+            ListBox_SetItemData(hwnd_lst, i, num - 1);
+        }
+    }
 }
 
 static INT_PTR CALLBACK
@@ -711,16 +756,27 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                 case IDC_SNIPPET_DELETE:
                 {
                     int i = 0;
+                    int index = 0;
+                    int dimension = 0;
                     snippet_t *vec = NULL;
                     TCHAR snippet_file[MAX_PATH] = {0};
                     HWND hwnd_lst = GetDlgItem(hdlg, IDC_SNIPPET_LST);
                     HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
-                    if (ComboBox_GetCurSel(hwnd_cmb) <= 0)
+                    if (!hwnd_lst || !hwnd_cmb || ComboBox_GetCurSel(hwnd_cmb) <= 0)
                     {
                         break;
                     }
-                    int index = ListBox_GetCurSel(hwnd_lst);
-                    ListBox_DeleteString(hwnd_lst, index);
+                    if ((index = ListBox_GetCurSel(hwnd_lst)) < 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        dimension = (int) ListBox_GetItemData(hwnd_lst, index);
+                        ListBox_DeleteString(hwnd_lst, index);
+                        on_snippet_do_edt(NULL);
+                        on_snippet_do_sci(NULL, false);
+                    }
                     if (index == 0)
                     {
                         i = ListBox_GetTopIndex(hwnd_lst);
@@ -731,9 +787,10 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                     }
                     if ((on_snippet_get_file(hwnd_cmb, snippet_file, MAX_PATH, &vec)) >= 0 && vec != NULL)
                     {
-                        on_parser_vector_erase(snippet_file, &vec, index);
+                        on_parser_vector_erase(snippet_file, &vec, dimension);
                         on_snippet_set_data(-1, vec);
                         ListBox_SetCurSel(hwnd_lst, i);
+                        on_snippet_update_item(hwnd_lst, index);
                         SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_LST, LBN_SELCHANGE), (LPARAM)hwnd_lst);
                     }
                     break;
