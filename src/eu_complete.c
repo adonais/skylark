@@ -28,7 +28,8 @@
 
 #define DEFAULT_CHARS "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 #define CUSTOM_CHARS  "_!#$&/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-#define CUSTOM_CHARS_AU3 "_!#$&@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+#define CUSTOM_CHARS_CSS  ":_!#$&/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+#define CUSTOM_CHARS_AU3  "_!#$&@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 #define str_prev(p) ((p) - (psrc) > 0 ? (p[-1]) : (0))
 
@@ -1469,6 +1470,13 @@ on_complete_set_word(eu_tabpage *pnode)
                 eu_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS_AU3);
             }
         }
+        if (pnode->doc_ptr->doc_type == DOCTYPE_CSS)
+        {
+            if (strcmp(chars, CUSTOM_CHARS_CSS))
+            {
+                eu_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS_CSS);
+            }
+        }        
         else if (strcmp(chars, CUSTOM_CHARS))
         {
             eu_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS);

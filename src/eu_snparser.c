@@ -57,12 +57,7 @@ on_parser_strtok(char *s, const char *delim, char **save_ptr)
         *save_ptr = s;
         return NULL;
     }
-    if (*s == '\0')
-    {
-        *save_ptr = s;
-        return NULL;
-    }
-    /* Find the end of the token.  */
+    /* Find the end of the token. */
     p = strstr(s, delim);
     if (p)
     {
@@ -77,7 +72,7 @@ on_parser_strtok(char *s, const char *delim, char **save_ptr)
         *save_ptr = end;
         return s;
     }
-    /* Terminate the token and make *SAVE_PTR point past it.  */
+    /* Terminate the token and make *SAVE_PTR point past it. */
     *end = '\0';
     *save_ptr = end + len;
     return s;
@@ -246,7 +241,7 @@ on_parser_open_file(const TCHAR *filename, const TCHAR *mode, uint8_t **pbuf, FI
             printf("%s, fseek failed\n", __FUNCTION__);
             break;
         }
-        if (*pbuf || (*pbuf = (uint8_t *)calloc(1, size)) == NULL)
+        if (*pbuf || (*pbuf = (uint8_t *)calloc(1, size + 1)) == NULL)
         {
             printf("malloc failed\n");
             size = -1;

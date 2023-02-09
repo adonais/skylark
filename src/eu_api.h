@@ -646,12 +646,15 @@ EU_EXT_CLASS void eu_remote_list_release(void);
 EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 EU_EXT_CLASS bool eu_gui_app(void);
 
-// for eu_doctype.c
-EU_EXT_CLASS void eu_doc_ptr_free(void);
-EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);
-
 // for eu_tablectl.c
 EU_EXT_CLASS void eu_close_db_handle(void);
+
+// for eu_doctype.c
+EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);
+EU_EXT_CLASS void eu_doc_ptr_free(void);
+
+/* lua 脚本调用接口 */
+EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_init_list(eu_tabpage *pnode);
