@@ -856,7 +856,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 RECT rc;
                 TabCtrl_GetItemRect(hwnd, tab_move_from, &rc);
-                if (on_tabpage_hit_button(&rc, &g_point))
+                if (eu_get_config()->m_close_draw != IDM_TABCLOSE_NONE && on_tabpage_hit_button(&rc, &g_point))
                 {
                     PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
                     return 1;
