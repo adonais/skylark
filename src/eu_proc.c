@@ -1808,14 +1808,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
-                case SCN_AUTOCSELECTION:
+                // Scintilla 5.3.2, SCN_AUTOCCOMPLETED supports SCI_AUTOCSETCHOOSESINGLE mode
+                // So, we replace SCN_AUTOCSELECTION with SCN_AUTOCCOMPLETED
+                case SCN_AUTOCCOMPLETED:
                 {
-                    int index = (int)eu_sci_call(pnode, SCI_AUTOCGETCURRENT, 0, 0);
                     int opt = (int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0);
-                    if (((opt & SC_AUTOCOMPLETE_SNIPPET) && !index && pnode->ac_mode != AUTO_CODE) || on_complete_auto_expand(pnode, lpnotify->text, lpnotify->position))
+                    if (((opt & SC_AUTOCOMPLETE_SNIPPET) && pnode->ac_mode != AUTO_CODE) || on_complete_auto_expand(pnode, lpnotify->text, lpnotify->position))
                     {
                         on_complete_reset_focus(pnode);
-                        on_complete_delay_snippet();
+                        on_complete_snippet(pnode);
                     }
                     return 1;
                 }

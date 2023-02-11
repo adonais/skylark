@@ -56,7 +56,6 @@ extern "C"
 bool on_complete_auto_expand(eu_tabpage *pnode, const char *key, const sptr_t start_pos);
 bool on_complete_snippet(eu_tabpage *pnode);
 bool on_complete_snippet_back(eu_tabpage *pnode);
-void on_complete_delay_snippet(void);
 void on_complete_set_word(eu_tabpage *pnode);
 void on_complete_unset_word(eu_tabpage *pnode);
 void on_complete_reset_focus(eu_tabpage *pnode);

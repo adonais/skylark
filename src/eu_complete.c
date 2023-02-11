@@ -827,13 +827,6 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
     }
 }
 
-static unsigned __stdcall
-on_complete_snippet_thread(void *lp)
-{
-    Sleep(20);
-    return on_complete_snippet(on_tabpage_focus_at());
-}
-
 static int
 on_complete_sort_callback(const void* _a, const void* _b)
 {
@@ -1448,12 +1441,6 @@ on_complete_snippet(eu_tabpage *pnode)
     }
     eu_safe_free(str);
     return ret;
-}
-
-void
-on_complete_delay_snippet(void)
-{
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_complete_snippet_thread, NULL, 0, NULL));
 }
 
 void
