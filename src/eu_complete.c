@@ -121,6 +121,16 @@ on_complete_str_cmp(snippet_t *pvec, const char *value)
 {
     if (pvec && pvec->name[0])
     {
+        return strcmp(pvec->name, value);
+    }
+    return 1;
+}
+
+static int
+on_complete_str_match(snippet_t *pvec, const char *value)
+{
+    if (pvec && pvec->name[0])
+    {
         int ret = strcmp(pvec->name, value);
         if (ret && strchr(pvec->parameter, 'r'))
         {
@@ -177,7 +187,7 @@ on_complete_build_flags(eu_tabpage *pnode, const char *key)
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->ptrv)
     {
         snippet_t *it = NULL;
-        cvector_for_each_and_cmp(pnode->doc_ptr->ptrv, on_complete_str_cmp, key, &it);
+        cvector_for_each_and_cmp(pnode->doc_ptr->ptrv, on_complete_str_match, key, &it);
         if (it && strlen(it->parameter) > 0)
         {
             if (strchr(it->parameter, 'b'))
@@ -390,8 +400,9 @@ static int
 on_complete_get_key(eu_tabpage *pnode, char *key, int len, sptr_t *ptr_pos)
 {
     int m_indent = -1;
-    if (pnode)
+    if (pnode && pnode->doc_ptr && pnode->doc_ptr->ptrv)
     {
+        snippet_t *it = NULL;
         on_complete_set_word(pnode);
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t word_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
@@ -404,8 +415,16 @@ on_complete_get_key(eu_tabpage *pnode, char *key, int len, sptr_t *ptr_pos)
         }
         Sci_TextRange tr = {{word_start, word_end}, key};
         eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
-        eu_sci_call(pnode, SCI_SETSELECTION, word_start, word_end);
         on_complete_unset_word(pnode);
+        cvector_for_each_and_cmp(pnode->doc_ptr->ptrv, on_complete_str_cmp, key, &it);
+        if (!it)
+        {
+            m_indent = -1;
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_SETSELECTION, word_start, word_end);
+        }
         if (ptr_pos)
         {
             *ptr_pos = word_start;
@@ -555,6 +574,7 @@ on_complete_init_ac_vec(const char *psrc, char *p, int index, complete_t **pvec)
     if ((ret = on_complete_parser_brace(psrc, p, data.value)) > 0)
     {
         data.index = index;
+        memset(data.pos, -1, OVEC_LEN * sizeof(auto_postion));
         data.pos[0].min = eu_int_cast(p - psrc - 4);
         _snprintf(data.word, MAX_ACCELS-1, "${%d:%s}", data.index, data.value);
         data.pos[0].max = data.pos[0].min + (intptr_t)(strlen(data.word));
@@ -1121,7 +1141,7 @@ on_complete_get_func(eu_tabpage *pnode, const char *key)
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->ptrv)
     {
         snippet_t *it = NULL;
-        cvector_for_each_and_cmp(pnode->doc_ptr->ptrv, on_complete_str_cmp, key, &it);
+        cvector_for_each_and_cmp(pnode->doc_ptr->ptrv, on_complete_str_match, key, &it);
         if (it)
         {
             return key;
@@ -1387,11 +1407,13 @@ on_complete_snippet(eu_tabpage *pnode)
     {
         intptr_t pos = -1;
         char key[MAX_SIZE] = {0};
+        // 获取解析过的snippets配置文件, 替换占位符并生成ac_vec
         if (pnode->doc_ptr->ptrv && cvector_size(pnode->doc_ptr->ptrv) > 0)
-        {   // 获取解析过的snippets配置文件, 替换占位符并生成ac_vec
+        {   // 获取激活片段的关键字, 即snippet_t.name
+            // 返回的count是指明关键字前面有多少空白字符
             int count = on_complete_get_key(pnode, key, MAX_SIZE, &pos);
             if (count >= 0 && key[0])
-            {
+            {   // 通过snippet_t.name, 保存snippet_t.body到str
                 ret = on_complete_get_str(pnode, key, &str);
                 if (ret)
                 {
@@ -1400,12 +1422,18 @@ on_complete_snippet(eu_tabpage *pnode)
                     {
                         break;
                     }
-                    memset(str_space, 0x20, count);
+                    if (count > 0)
+                    {
+                        memset(str_space, 0x20, count);
+                    }
+                    // 替换所有占位符, 换行符, 正则捕获组
+                    // 解析str并生成ac_vec矢量数组
                     on_complete_replace(pnode, str, str_space);
                     free(str_space);
+                    // 在编辑器里生成干净的代码片段
                     eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)str);
                     if (pnode->ac_vec && (size = cvector_size(pnode->ac_vec)) > 0)
-                    {
+                    {   // 更新ac_vec里面(1..9..0)变量的位置信息, 即complete_t.min与complete_t.max
                         cvector_for_each_and_do(pnode->ac_vec, on_complete_update_vec, pos);
                         if (size > 1)
                         {   // 把ac_vec按1,2..9,0排序
