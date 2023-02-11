@@ -563,6 +563,23 @@ on_snippet_do_modify(HWND hdlg)
                     ++c;
                 }
             }
+            // 如果删除了注释与参数, 重写vec
+            switch (c)
+            {
+                case 0:
+                {
+                    memset(&vec[dimension].comment, 0, QW_SIZE);
+                    memset(&vec[dimension].parameter, 0, PARAM_LEN);
+                    break;
+                }
+                case 1:
+                {
+                    memset(&vec[dimension].parameter, 0, PARAM_LEN);
+                    break;
+                }
+                default:
+                    break;
+            }
             if (!name[0])
             {
                 printf("name cannot be empty\n");
