@@ -43,8 +43,8 @@ typedef struct _capture_set
 typedef struct _complete_t
 {
     int index;
-    char value[MAX_SIZE];
-    char word[MAX_ACCELS];
+    char value[MAX_BUFFER];
+    char word[MAX_BUFFER];
     auto_postion pos[OVEC_LEN];
 }complete_t;
 
