@@ -715,6 +715,7 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
         if (on_complete_multi_match(pnode, pstr) == SKYLARK_OK)
         {
             char *p = NULL;
+            char *psrc = NULL;
             char tmp[3] = {0};
             complete_t *oit = NULL;
             on_complete_do_replace(pnode, pstr);
@@ -728,7 +729,6 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
             if (pnode->re_group && cvector_size(pnode->re_group) > 0)
             {
                 complete_t *it;
-                char *psrc = NULL;
                 // 替换value里面捕获组成员
                 for (it = cvector_begin(pnode->ac_vec); it != cvector_end(pnode->ac_vec); ++it)
                 {
@@ -755,7 +755,8 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
                 }
             }
             // 如果捕获组为空, 则把 \1...\9 替换为空字符串
-            while ((p = strchr(pstr, '\\')) && str_prev(p) != '\\' && UTIL_BASE10(p[1]))
+            psrc = pstr;
+            while ((p = strchr(psrc, '\\')) && str_prev(p) != '\\' && UTIL_BASE10(p[1]))
             {
                 _snprintf(tmp, 3, "\\%c", p[1]);
                 on_complete_replace_fn(pstr, VALUE_LEN, tmp, "", on_complete_replace_group, pnode, NULL);
