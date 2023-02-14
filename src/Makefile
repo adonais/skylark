@@ -138,9 +138,7 @@ dirs:
 	@if exist "$(ROOT)\\conf" xcopy "$(ROOT)\\conf" "$(BIND)\\conf" /s /e /q /y 2>&1>NUL
 	@if exist "$(ROOT)\share" xcopy "$(ROOT)\share" "$(BIND)\share" /s /e /q /y 2>&1>NUL
 	@if exist "$(ROOT)\\README_CN.MD" copy /y "$(ROOT)\\README_CN.MD" "$(BIND)\\README_CN.MD" 2>&1>NUL
-!IF "$(BITS)" == "64"
 	@if exist "$(MAKEDIR)\\3rdparty\\plugins" xcopy "$(MAKEDIR)\\3rdparty\\plugins" "$(BIND)\\plugins" /s /e /q /y 2>&1>NUL
-!endif
 	@if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
 
 $(SHARED_LIB): $(EUAPI_OBJS) $(API_LIBS)
