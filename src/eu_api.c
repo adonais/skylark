@@ -102,6 +102,7 @@ static CRITICAL_SECTION eu_curl_cs = { &critsect_debug2, -1, 0, 0, 0, 0 };
 static struct eu_config *g_config;
 static struct eu_theme  *g_theme;
 static eue_accel *g_accel;
+static eue_toolbar *g_toolbar;
 static eue_code eue_coding[] =
 {
     {IDM_UNI_UTF8    , "UTF-8"}            ,
@@ -164,7 +165,7 @@ static eue_code eue_coding[] =
 /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * 产生一个长度为len的伪随机数字符串
  */
-LPTSTR WINAPI
+LPTSTR
 eu_rand_str(TCHAR *str, const int len)
 {
     srand((uint32_t)time(0) + GetCurrentProcessId());
@@ -181,7 +182,7 @@ eu_rand_str(TCHAR *str, const int len)
  * 直接在输入的字符串内做替换, 所以务必保证in_size有足够的空间
  * 在这里, in_size最大值为4096, 超出这个值将导致字符串被截断
  ** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-LPTSTR WINAPI
+LPTSTR
 eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
 {
     TCHAR *in_ptr = in;
@@ -202,7 +203,7 @@ eu_wstr_replace(TCHAR *in, const size_t in_size, LPCTSTR pattern, LPCTSTR by)
     return in;
 }
 
-char *WINAPI
+char*
 eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by)
 {
     char *in_ptr = in;
@@ -223,7 +224,7 @@ eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *
     return in;
 }
 
-TCHAR *WINAPI
+TCHAR*
 eu_suffix_strip(TCHAR *path)
 {
     TCHAR mark = 0;
@@ -251,7 +252,7 @@ eu_suffix_strip(TCHAR *path)
     return path;
 }
 
-bool WINAPI
+bool
 eu_exist_path(const char *path)
 {
     uint32_t attrs = (uint32_t)-1;
@@ -264,7 +265,7 @@ eu_exist_path(const char *path)
     return attrs != INVALID_FILE_ATTRIBUTES;
 }
 
-bool WINAPI
+bool
 eu_exist_dir(LPCTSTR path)
 {
     DWORD fileattr = GetFileAttributes(path);
@@ -275,7 +276,7 @@ eu_exist_dir(LPCTSTR path)
     return false;
 }
 
-bool WINAPI
+bool
 eu_exist_file(LPCTSTR path)
 {
     bool ret = false;
@@ -301,7 +302,7 @@ eu_exist_file(LPCTSTR path)
     return ret;
 }
 
-bool WINAPI
+bool
 eu_exist_libssl(void)
 {
     TCHAR ssl_path[MAX_PATH+1] = {0};
@@ -313,13 +314,13 @@ eu_exist_libssl(void)
     return eu_exist_file(ssl_path);
 }
 
-bool WINAPI
+bool
 eu_exist_libcurl(void)
 {
     return util_exist_libcurl();
 }
 
-bool WINAPI
+bool
 eu_mk_dir(LPCTSTR dir)
 {
     LPTSTR p = NULL;
@@ -341,7 +342,7 @@ eu_mk_dir(LPCTSTR dir)
     return (eu_exist_dir(tmp_name)? true: (CreateDirectory(tmp_name, NULL)));
 }
 
-bool WINAPI
+bool
 eu_touch(LPCTSTR path)
 {
     TCHAR *fullpath = NULL;
@@ -361,7 +362,7 @@ eu_touch(LPCTSTR path)
     return ret;
 }
 
-bool WINAPI
+bool
 eu_try_path(LPCTSTR dir)
 {
 #define LEN_NAME 6
@@ -924,7 +925,7 @@ is_plan_file(const uint8_t *name, const size_t len)
     return EN_CODEING_NONE;
 }
 
-HANDLE WINAPI
+HANDLE
 eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
 {
     PROCESS_INFORMATION pi;
@@ -984,7 +985,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     return pi.hProcess;
 }
 
-bool WINAPI
+bool
 eu_open_file(LPCTSTR path, pf_stream pstream)
 {
     return util_open_file(path, pstream);
@@ -1113,7 +1114,7 @@ eu_iconv_full_text(const TCHAR *file_name, const char *from_desc, const char *ds
     return ret;
 }
 
-int WINAPI
+int
 eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_name)
 {
     FILE *fp = NULL;
@@ -1269,7 +1270,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
  * 如果函数执行成功, (*out_len) 返回转换后的字符个数, 包含结束符0
  * 所以, buf =  (*out_len - 1) * sizeof(TCHAR)
  ***********************************************************************************/
-char *WINAPI
+char*
 eu_utf16_utf8(const wchar_t *utf16, size_t *out_len)
 {
     int   m, size = 0;
@@ -1298,7 +1299,7 @@ eu_utf16_utf8(const wchar_t *utf16, size_t *out_len)
     return utf8;
 }
 
-char *WINAPI
+char*
 eu_utf16_mbcs(int codepage, const wchar_t *utf16, size_t *out_len)
 {
     int   size = 0;
@@ -1329,7 +1330,7 @@ eu_utf16_mbcs(int codepage, const wchar_t *utf16, size_t *out_len)
     return a8;
 }
 
-wchar_t *WINAPI
+wchar_t*
 eu_mbcs_utf16(int codepage, const char *ansi, size_t *out_len)
 {
     int size;
@@ -1360,7 +1361,7 @@ eu_mbcs_utf16(int codepage, const char *ansi, size_t *out_len)
     return u16;
 }
 
-char *WINAPI
+char*
 eu_mbcs_utf8(int codepage, const char *ansi, size_t *out_len)
 {
 #ifdef _WIN32
@@ -1377,7 +1378,7 @@ eu_mbcs_utf8(int codepage, const char *ansi, size_t *out_len)
 #endif
 }
 
-wchar_t *WINAPI
+wchar_t*
 eu_utf8_utf16(const char *utf8, size_t *out_len)
 {
     int size;
@@ -1404,7 +1405,7 @@ eu_utf8_utf16(const char *utf8, size_t *out_len)
     return u16;
 }
 
-char *WINAPI
+char*
 eu_utf8_mbcs(int codepage, const char *utf8, size_t *out_len)
 {
 #ifdef _WIN32
@@ -1421,13 +1422,13 @@ eu_utf8_mbcs(int codepage, const char *utf8, size_t *out_len)
 #endif
 }
 
-void WINAPI
+void
 eu_setpos_window(HWND hwnd, HWND affer, int x, int y, int cx, int cy, uint32_t flags)
 {
     SetWindowPos(hwnd, affer, x, y, cx, cy, flags);
 }
 
-bool WINAPI
+bool
 eu_config_ptr(struct eu_config *pconfig)
 {
     if (g_config)
@@ -1448,7 +1449,7 @@ eu_config_ptr(struct eu_config *pconfig)
     return g_config != NULL;
 }
 
-bool WINAPI
+bool
 eu_theme_ptr(struct eu_theme *ptheme, bool init)
 {
     if (!ptheme)
@@ -1476,7 +1477,7 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
     return g_theme != NULL;
 }
 
-bool WINAPI
+bool
 eu_accel_ptr(ACCEL *accel)
 {
     if (g_accel)
@@ -1504,19 +1505,49 @@ eu_accel_ptr(ACCEL *accel)
     return (g_accel->accel_num>0);
 }
 
-struct eu_config *WINAPI eu_get_config(void)
+bool
+eu_toolbar_ptr(eue_toolbar *pdata, int num)
+{
+    if (g_toolbar)
+    {
+        return true;
+    }
+    if (!pdata)
+    {
+        return false;
+    }
+    EnterCriticalSection(&eu_lua_cs);
+    g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num);
+    if (g_toolbar)
+    {
+        memcpy(g_toolbar, pdata, sizeof(eue_toolbar) * num);
+    }
+    LeaveCriticalSection(&eu_lua_cs);
+    return g_toolbar != NULL;
+}
+
+struct eu_config*
+eu_get_config(void)
 {
     return g_config;
 }
 
-struct eu_theme *WINAPI eu_get_theme(void)
+struct eu_theme*
+eu_get_theme(void)
 {
     return g_theme;
 }
 
-eue_accel *WINAPI eu_get_accel(void)
+eue_accel*
+eu_get_accel(void)
 {
     return g_accel;
+}
+
+eue_toolbar*
+eu_get_toolbar(void)
+{
+    return g_toolbar;
 }
 
 void
@@ -1535,9 +1566,14 @@ eu_free_accel(void)
             DestroyAcceleratorTable(g_accel->haccel);
             g_accel->haccel = NULL;
         }
-        free(g_accel);
-        g_accel = NULL;
+        eu_safe_free(g_accel);
     }
+}
+
+void
+eu_free_toolbar(void)
+{
+    eu_safe_free(g_toolbar);
 }
 
 TCHAR *
@@ -1626,6 +1662,7 @@ eu_save_config(void)
         "block_fold_visiable = %s\n"
         "tabs_tip_show_enable = %s\n"
         "tab_close_way = %d\n"
+        "tab_close_draw = %d\n"
         "tab_new_way = %d\n"
         "tab_switch_forward = %d\n"
         "edit_font_quality = %d\n"
@@ -1739,6 +1776,7 @@ eu_save_config(void)
               g_config->block_fold?"true":"false",
               g_config->m_tab_tip?"true":"false",
               g_config->m_close_way,
+              g_config->m_close_draw,
               g_config->m_new_way,
               g_config->m_tab_active,
               g_config->m_quality,

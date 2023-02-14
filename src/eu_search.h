@@ -48,6 +48,14 @@ struct navigate_trace
     struct list_head ng_node;
 };
 
+typedef enum _replace_event
+{
+    FULL_HALF = 0,
+    HALF_FULL,
+    TAB_SPACE,
+    SPACE_TAB
+}replace_event;
+
 typedef struct _btn_state
 {
     int id;
@@ -118,7 +126,7 @@ void on_search_set_selection(eu_tabpage *pnode);
 void on_search_set_rectangle(eu_tabpage *pnode);
 void on_search_finish_wait(void);
 void on_search_dark_mode_release(void);
-void on_search_tab_space(eu_tabpage *p, bool tospace);
+void on_search_repalce_event(eu_tabpage *p, replace_event docase);
 void on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres);
 void on_search_turn_select(eu_tabpage *pnode);
 

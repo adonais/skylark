@@ -290,7 +290,7 @@ dobyte(lua_State *L, const char *fname, const char *save)
     return report(L, lua_pcall(L, 2, 0, 0));
 }
 
-int WINAPI
+int
 eu_lua_script_convert(const TCHAR *fname, const TCHAR *save)
 {
     int status;
@@ -352,7 +352,7 @@ eu_lua_script_convert(const TCHAR *fname, const TCHAR *save)
     return status;
 }
 
-int WINAPI
+int
 do_lua_func(const char *fname, const char *func, const char *arg)
 {
     int status;
@@ -421,7 +421,7 @@ do_lua_point(const char *fname, const char *func, void *arg)
     return status;
 }
 
-int WINAPI
+int
 do_lua_parser_doctype(const char *fname, const char *func)
 {
     int status;
@@ -457,12 +457,13 @@ do_lua_parser_doctype(const char *fname, const char *func)
     if (doc_point)
     {
         printf("doc_point = %zx\n", doc_point);
-        eu_doc_set_ptr((doctype_t *)doc_point);
+        on_doc_set_ptr((doctype_t *)doc_point);
+        on_doc_set_vec();
     }
     return status;
 }
 
-void WINAPI
+void
 do_lua_parser_release(void)
 {
     if (pstate)
@@ -472,7 +473,7 @@ do_lua_parser_release(void)
     }
 }
 
-int WINAPI
+int
 eu_lua_script_exec(const TCHAR *fname)
 {
     int status;
@@ -499,7 +500,7 @@ eu_lua_script_exec(const TCHAR *fname)
     return status;
 }
 
-bool WINAPI
+bool
 eu_lua_path_setting(eu_tabpage *pnode)
 {
     TCHAR lua_path[ENV_LEN + 1] = {0};
@@ -516,7 +517,7 @@ eu_lua_path_setting(eu_tabpage *pnode)
     return (_tputenv(lua_path) == 0);
 }
 
-int WINAPI
+int
 do_lua_code(const char *s)
 {
     int status;
@@ -567,7 +568,7 @@ do_jit_proc(const TCHAR *pname, const TCHAR *psave)
     return status;
 }
 
-int WINAPI
+int
 do_byte_code(eu_tabpage *pnode)
 {
     HANDLE pfile = NULL;

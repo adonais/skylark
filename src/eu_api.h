@@ -175,7 +175,7 @@ static inline int eu_cvector_at(int *v, int n)
 #define MEM_RESERVED ((char *)(uintptr_t)0x200)
 #define eu_safe_free(p) ((p) ? ((free((void *)(p))), ((p) = NULL)) : (void *)(p))
 #define eu_close_file(p) ((p) ? ((fclose((FILE *)(p))), ((p) = NULL)) : (void *)(p))
-#define eu_close_console(h) eu_close_file(h), FreeConsole()
+#define eu_close_console(h) ((h) ? (eu_close_file(h), FreeConsole()) : (void)(h))
 #define eu_close_handle(h)                      \
     if (NULL != h && INVALID_HANDLE_VALUE != h) \
     {                                           \
@@ -365,6 +365,7 @@ struct eu_config
     bool m_tab_tip;
 
     int m_close_way;
+    int m_close_draw;
     int m_new_way;
     int m_tab_active;
     int m_quality;
@@ -465,40 +466,41 @@ EU_EXT_CLASS void eu_delete_replace_history(const char *key);
 EU_EXT_CLASS void eu_push_folder_history(const char *key);
 EU_EXT_CLASS void eu_delete_folder_history(const char *key);
 EU_EXT_CLASS void eu_update_backup_table(file_backup *pbak, int mode);
-EU_EXT_CLASS void eu_clear_backup_table(void);
 EU_EXT_CLASS void eu_get_find_history(sql3_callback pfunc);
 EU_EXT_CLASS void eu_get_replace_history(sql3_callback pfunc);
 EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);
 
 // eu_api.c
-EU_EXT_CLASS bool __stdcall eu_touch(LPCTSTR path);
-EU_EXT_CLASS bool __stdcall eu_exist_path(const char *path);
-EU_EXT_CLASS bool __stdcall eu_mk_dir(LPCTSTR dir);
-EU_EXT_CLASS bool __stdcall eu_try_path(LPCTSTR dir);
-EU_EXT_CLASS bool __stdcall eu_exist_dir(LPCTSTR path);
-EU_EXT_CLASS bool __stdcall eu_exist_file(LPCTSTR path);
-EU_EXT_CLASS bool __stdcall eu_exist_libcurl(void);
-EU_EXT_CLASS bool __stdcall eu_exist_libssl(void);
-EU_EXT_CLASS LPTSTR __stdcall eu_suffix_strip(TCHAR *path);
-EU_EXT_CLASS LPTSTR __stdcall eu_rand_str(TCHAR *str, const int len);
-EU_EXT_CLASS char* __stdcall eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by);
-EU_EXT_CLASS LPTSTR __stdcall eu_wstr_replace(TCHAR *in, size_t in_size, LPCTSTR pattern, LPCTSTR by);
-EU_EXT_CLASS bool __stdcall eu_open_file(LPCTSTR path, pf_stream pstream);
-EU_EXT_CLASS int __stdcall eu_try_encoding(uint8_t *, size_t, bool is_file, const TCHAR *);
-EU_EXT_CLASS char *__stdcall eu_utf16_utf8(const wchar_t *utf16, size_t *out_len);
-EU_EXT_CLASS char *__stdcall eu_utf16_mbcs(int codepage, const wchar_t *utf16, size_t *out_len);
-EU_EXT_CLASS wchar_t *__stdcall eu_mbcs_utf16(int codepage, const char *ansi, size_t *out_len);
-EU_EXT_CLASS char *__stdcall eu_mbcs_utf8(int codepage, const char *ansi, size_t *out_len);
-EU_EXT_CLASS wchar_t *__stdcall eu_utf8_utf16(const char *utf8, size_t *out_len);
-EU_EXT_CLASS char *__stdcall eu_utf8_mbcs(int codepage, const char *utf8, size_t *out_len);
-EU_EXT_CLASS void __stdcall eu_setpos_window(HWND, HWND, int,int, int, int, uint32_t);
-EU_EXT_CLASS bool __stdcall eu_config_ptr(struct eu_config *pconfig);
-EU_EXT_CLASS bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
-EU_EXT_CLASS bool __stdcall eu_accel_ptr(ACCEL *accel);
-EU_EXT_CLASS HANDLE __stdcall eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o);
-EU_EXT_CLASS struct eu_theme *__stdcall eu_get_theme(void);
-EU_EXT_CLASS struct eu_config *__stdcall eu_get_config(void);
-EU_EXT_CLASS eue_accel *__stdcall eu_get_accel(void);
+EU_EXT_CLASS bool eu_touch(LPCTSTR path);
+EU_EXT_CLASS bool eu_exist_path(const char *path);
+EU_EXT_CLASS bool eu_mk_dir(LPCTSTR dir);
+EU_EXT_CLASS bool eu_try_path(LPCTSTR dir);
+EU_EXT_CLASS bool eu_exist_dir(LPCTSTR path);
+EU_EXT_CLASS bool eu_exist_file(LPCTSTR path);
+EU_EXT_CLASS bool eu_exist_libcurl(void);
+EU_EXT_CLASS bool eu_exist_libssl(void);
+EU_EXT_CLASS LPTSTR eu_suffix_strip(TCHAR *path);
+EU_EXT_CLASS LPTSTR eu_rand_str(TCHAR *str, const int len);
+EU_EXT_CLASS char *eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by);
+EU_EXT_CLASS LPTSTR eu_wstr_replace(TCHAR *in, size_t in_size, LPCTSTR pattern, LPCTSTR by);
+EU_EXT_CLASS bool eu_open_file(LPCTSTR path, pf_stream pstream);
+EU_EXT_CLASS int eu_try_encoding(uint8_t *, size_t, bool is_file, const TCHAR *);
+EU_EXT_CLASS char *eu_utf16_utf8(const wchar_t *utf16, size_t *out_len);
+EU_EXT_CLASS char *eu_utf16_mbcs(int codepage, const wchar_t *utf16, size_t *out_len);
+EU_EXT_CLASS wchar_t *eu_mbcs_utf16(int codepage, const char *ansi, size_t *out_len);
+EU_EXT_CLASS char *eu_mbcs_utf8(int codepage, const char *ansi, size_t *out_len);
+EU_EXT_CLASS wchar_t *eu_utf8_utf16(const char *utf8, size_t *out_len);
+EU_EXT_CLASS char *eu_utf8_mbcs(int codepage, const char *utf8, size_t *out_len);
+EU_EXT_CLASS void eu_setpos_window(HWND, HWND, int,int, int, int, uint32_t);
+EU_EXT_CLASS bool eu_config_ptr(struct eu_config *pconfig);
+EU_EXT_CLASS bool eu_theme_ptr(struct eu_theme *ptheme, bool init);
+EU_EXT_CLASS bool eu_accel_ptr(ACCEL *accel);
+EU_EXT_CLASS bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
+EU_EXT_CLASS HANDLE eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o);
+EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
+EU_EXT_CLASS struct eu_config *eu_get_config(void);
+EU_EXT_CLASS eue_accel *eu_get_accel(void);
+EU_EXT_CLASS eue_toolbar *eu_get_toolbar(void);
 
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
@@ -510,6 +512,7 @@ EU_EXT_CLASS void eu_save_config(void);
 EU_EXT_CLASS void eu_save_theme(void);
 EU_EXT_CLASS void eu_free_theme(void);
 EU_EXT_CLASS void eu_free_accel(void);
+EU_EXT_CLASS void eu_free_toolbar(void);
 EU_EXT_CLASS bool eu_init_calltip_tree(doctype_t *root, const char *key, const char *val);
 EU_EXT_CLASS const char *eu_query_calltip_tree(root_t *root, const char *key);
 EU_EXT_CLASS void eu_print_calltip_tree(root_t *root);
@@ -553,7 +556,7 @@ EU_EXT_CLASS void eu_curl_global_release(void);
 EU_EXT_CLASS void eu_curl_easy_cleanup(CURL *);
 
 // for eu_changes.c
-EU_EXT_CLASS int __stdcall eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
+EU_EXT_CLASS int eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
 
 // for openssl
 EU_EXT_CLASS HMODULE eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer);
@@ -564,7 +567,7 @@ extern EU_EXT_CLASS TCHAR eu_module_path[MAX_PATH+1];
 EU_EXT_CLASS HINSTANCE eu_module_handle(void);
 
 // for eu_about.c
-EU_EXT_CLASS void __stdcall eu_about_command(void);
+EU_EXT_CLASS void eu_about_command(void);
 
 // for eu_proc.h
 EU_EXT_CLASS HWND eu_module_hwnd(void);
@@ -584,24 +587,24 @@ EU_EXT_CLASS int eu_reg_file_popup_menu(void);
 EU_EXT_CLASS int eu_reg_dir_popup_menu(void);
 
 // for eu_hook.c
-EU_EXT_CLASS bool __stdcall on_hook_exception(void);
-EU_EXT_CLASS void __stdcall on_hook_do(void);
-EU_EXT_CLASS void __stdcall on_hook_undo(void);
+EU_EXT_CLASS bool on_hook_exception(void);
+EU_EXT_CLASS void on_hook_do(void);
+EU_EXT_CLASS void on_hook_undo(void);
 
 // for eu_share.c
-EU_EXT_CLASS void __stdcall share_close_lang(void);
-EU_EXT_CLASS LPVOID __stdcall share_map(HANDLE hmap, size_t bytes, uint32_t dw_access);
-EU_EXT_CLASS unsigned __stdcall share_send_msg(void *param);
-EU_EXT_CLASS HANDLE __stdcall share_load_lang(void);
-EU_EXT_CLASS HANDLE __stdcall share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name);
-EU_EXT_CLASS void __stdcall share_unmap(LPVOID memory);
-EU_EXT_CLASS void __stdcall share_close(HANDLE handle);
-EU_EXT_CLASS HANDLE __stdcall share_open(uint32_t dw_access, LPCTSTR name);
-EU_EXT_CLASS bool __stdcall share_envent_create(void);
-EU_EXT_CLASS void __stdcall share_envent_set(bool signaled);
-EU_EXT_CLASS void __stdcall share_envent_close(void);
-EU_EXT_CLASS void __stdcall share_envent_release(void);
-EU_EXT_CLASS HANDLE __stdcall share_envent_open_file_sem(void);
+EU_EXT_CLASS void share_close_lang(void);
+EU_EXT_CLASS LPVOID share_map(HANDLE hmap, size_t bytes, uint32_t dw_access);
+EU_EXT_CLASS unsigned share_send_msg(void *param);
+EU_EXT_CLASS HANDLE share_load_lang(void);
+EU_EXT_CLASS HANDLE share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name);
+EU_EXT_CLASS void share_unmap(LPVOID memory);
+EU_EXT_CLASS void share_close(HANDLE handle);
+EU_EXT_CLASS HANDLE share_open(uint32_t dw_access, LPCTSTR name);
+EU_EXT_CLASS bool share_envent_create(void);
+EU_EXT_CLASS void share_envent_set(bool signaled);
+EU_EXT_CLASS void share_envent_close(void);
+EU_EXT_CLASS void share_envent_release(void);
+EU_EXT_CLASS HANDLE share_envent_open_file_sem(void);
 
 // for eu_search.c
 EU_EXT_CLASS HWND eu_get_search_hwnd(void);
@@ -610,23 +613,23 @@ EU_EXT_CLASS HWND eu_get_search_hwnd(void);
 EU_EXT_CLASS HWND eu_result_hwnd(void);
 
 // for eu_snippet.c
-EU_EXT_CLASS HWND __stdcall eu_snippet_hwnd(void);
+EU_EXT_CLASS HWND eu_snippet_hwnd(void);
 
 // for eu_locale.c
-EU_EXT_CLASS bool __stdcall eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
+EU_EXT_CLASS bool eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
 
 // for eu_config.c
-EU_EXT_CLASS bool __stdcall eu_load_main_config(void);
-EU_EXT_CLASS bool __stdcall eu_load_config(void);
-EU_EXT_CLASS bool __stdcall eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
-EU_EXT_CLASS void __stdcall eu_load_file(void);
-EU_EXT_CLASS void __stdcall eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
-EU_EXT_CLASS bool __stdcall eu_config_parser_path(const wchar_t **args, int argc, wchar_t *path);
+EU_EXT_CLASS bool eu_load_main_config(void);
+EU_EXT_CLASS bool eu_load_config(void);
+EU_EXT_CLASS bool eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
+EU_EXT_CLASS void eu_load_file(void);
+EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
+EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, wchar_t *path);
 
 // for eu_script.c
-EU_EXT_CLASS int __stdcall eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
-EU_EXT_CLASS int __stdcall eu_lua_script_exec(const TCHAR *fname);
-EU_EXT_CLASS bool __stdcall eu_lua_path_setting(eu_tabpage *pnode);
+EU_EXT_CLASS int eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
+EU_EXT_CLASS int eu_lua_script_exec(const TCHAR *fname);
+EU_EXT_CLASS bool eu_lua_path_setting(eu_tabpage *pnode);
 EU_EXT_CLASS int luaopen_euapi(void *L);
 
 // for eu_theme.c
@@ -643,12 +646,15 @@ EU_EXT_CLASS void eu_remote_list_release(void);
 EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 EU_EXT_CLASS bool eu_gui_app(void);
 
-// for eu_doctype.c
-EU_EXT_CLASS void eu_doc_ptr_free(void);
-EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);
-
 // for eu_tablectl.c
 EU_EXT_CLASS void eu_close_db_handle(void);
+
+// for eu_doctype.c
+EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);
+EU_EXT_CLASS void eu_doc_ptr_free(void);
+
+/* lua 脚本调用接口 */
+EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 EU_EXT_CLASS int on_doc_init_list(eu_tabpage *pnode);

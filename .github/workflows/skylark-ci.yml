@@ -5,24 +5,15 @@ on:
       - release
 env:
   APP_NAME: skylark
-  MY_BITS : x64
 
 jobs:
   fx_build:
     name: skylark build
     runs-on: windows-2019
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 1
-        
-    - name: download 3rdparty dll
-      id: threeparty_dll
-      shell: cmake -P {0}
-      run: |
-        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Tools/skylark%20edit/three_party_dll.7z/download")
-        file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/three_party_dll.7z SHOW_PROGRESS)
-        execute_process(COMMAND 7z x ./three_party_dll.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)
     
     - name: set variable
       id: set_var
@@ -30,59 +21,58 @@ jobs:
         cd /d %GITHUB_WORKSPACE%
         set /p m_ver=<src\version_display.txt
         echo MY_VER=%m_ver%>>%GITHUB_ENV%
+        echo MY_BITS64=x64>>%GITHUB_ENV%
+        echo MY_BITS32=x86>>%GITHUB_ENV%
       shell: cmd
-
-    - name: Building
-      id: vs_shell
+      
+    - name: download plugins64
+      id: plugins64
+      shell: cmake -P {0}
       run: |
-        cd /d %GITHUB_WORKSPACE%
+        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Tools/skylark%20edit/plugins_64.7z/download")
+        file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/plugins_64.7z SHOW_PROGRESS)
+        execute_process(COMMAND 7z x ./plugins_64.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)      
+
+    - name: Building_x64
+      id: vs64
+      run: |
+        cd /d "%GITHUB_WORKSPACE%"
         call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64"
+        nmake clean
+        nmake CC=clang-cl ACTIONS_BUILDING=1
+        nmake package RELEASE_VERSION=-v%MY_VER%
+        if exist "%GITHUB_WORKSPACE%\src\3rdparty\plugins" rd /s/q "%GITHUB_WORKSPACE%\src\3rdparty\plugins"
+      shell: cmd
+      
+    - name: download plugins32
+      id: plugins32
+      shell: cmake -P {0}
+      run: |
+        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Tools/skylark%20edit/plugins_32.7z/download")
+        file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/plugins_32.7z SHOW_PROGRESS)
+        execute_process(COMMAND 7z x ./plugins_32.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)
+
+    - name: Building_x86
+      id: vs32
+      run: |
+        cd /d "%GITHUB_WORKSPACE%"
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32"
+        nmake clean
         nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
       shell: cmd
-      
-    - name: Upload
-      uses: actions/upload-artifact@v1
-      with:
-        path: ${{ github.workspace }}/${{ env.APP_NAME }}_${{ env.MY_BITS }}-v${{ env.MY_VER }}.7z
-        name: ${{ env.APP_NAME }}_${{ env.MY_BITS }}-v${{ env.MY_VER }}.7z
 
-    - name: Current time
-      uses: yxl0756/get-time-action@v1.0
+    - name: Get current time
+      uses: yxl0756/get-current-time@v2.0.2
       id: current-time
       with:
-        timeZone: 8
         format: YYYYMMDDHHmmss
- 
-    - name: Create Release
-      id: create_release
-      uses: yxl0756/create-release@1a72e235c178bf2ae6c51a8ae36febc24568c5fe
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        utcOffset: "+08:00"
+
+    - uses: yxl0756/release-action@v1.12.0
       with:
-        tag_name: ${{ steps.current-time.outputs.time }}
-        release_name: Release ${{ steps.current-time.outputs.time }}
-        commitish: release
-        draft: false
+        tag: ${{ steps.current-time.outputs.formattedTime }}
+        name: Release ${{ steps.current-time.outputs.formattedTime }}
+        artifacts: ${{ github.workspace }}/${{ env.APP_NAME }}_${{ env.MY_BITS64 }}-v${{ env.MY_VER }}.7z,${{ github.workspace }}/${{ env.APP_NAME }}_${{ env.MY_BITS32 }}-v${{ env.MY_VER }}.7z
         prerelease: false
-        
-    - name: Store Release url
-      run: |
-        echo "${{ steps.create_release.outputs.upload_url }}" > ./upload_url
-        
-    - uses: actions/upload-artifact@v1
-      with:
-        path: ./upload_url
-        name: upload_url
-                
-    - name: Upload Release Asset
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/${{ env.APP_NAME }}_${{ env.MY_BITS }}-v${{ env.MY_VER }}.7z
-        asset_name: ${{ env.APP_NAME }}_${{ env.MY_BITS }}-v${{ env.MY_VER }}.7z
-        asset_content_type: application/x-gtar
-        
+        token: ${{ secrets.GITHUB_TOKEN }}

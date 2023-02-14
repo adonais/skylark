@@ -78,7 +78,7 @@ on_doc_enable_foldline(eu_tabpage *pnode)
         case DOCTYPE_XML:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.xml.allow.scripts", (sptr_t)"0");
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.xml.at.tag.open", (sptr_t)"1");
-            FALLTHRU_ATTR
+            FALLTHRU_ATTR;
         case DOCTYPE_HTML:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.compact", (sptr_t)"0");
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.html", (sptr_t)"1");
@@ -2038,34 +2038,35 @@ on_doc_get_type(const TCHAR *pfile)
 #undef EXTRA_EXT
 }
 
-static unsigned __stdcall
-on_doc_set_vec(void *lp)
+void
+on_doc_set_vec(void)
 {
-    TCHAR path[MAX_PATH] = {0};
     for (doctype_t *mapper = g_doc_config; mapper && mapper->doc_type; ++mapper)
     {
         if (mapper->snippet[0])
         {
             int eol = -1;
+            TCHAR path[MAX_PATH] = {0};
             TCHAR fname[QW_SIZE] = {0};
             _sntprintf(path, MAX_PATH - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(mapper->snippet, fname, QW_SIZE-1));
             on_parser_init(path, &mapper->ptrv, &eol);
         }
     }
-    return 0;
+}
+
+void
+on_doc_set_ptr(doctype_t *ptr)
+{
+    if (!g_doc_config)
+    {
+        g_doc_config = ptr;
+    }
 }
 
 doctype_t*
 eu_doc_get_ptr(void)
 {
     return g_doc_config;
-}
-
-void
-eu_doc_set_ptr(doctype_t *ptr)
-{
-    g_doc_config = ptr;
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_doc_set_vec, NULL, 0, NULL));
 }
 
 void

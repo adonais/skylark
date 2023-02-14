@@ -318,6 +318,7 @@ _tmain(int argc, TCHAR *argv[])
 all_clean:
     eu_free_theme();
     eu_free_accel();
+    eu_free_toolbar();
     share_close(mapped);
     share_close(lang_map);
     share_close_lang();

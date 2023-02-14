@@ -559,7 +559,7 @@ int SCI_METHOD Document::GetLevel(Sci_Position line) const {
 }
 
 FoldLevel Document::GetFoldLevel(Sci_Position line) const noexcept {
-	return static_cast<FoldLevel>(Levels()->GetLevel(line));
+	return Levels()->GetFoldLevel(line);
 }
 
 void Document::ClearLevels() {
@@ -598,14 +598,7 @@ Sci::Line Document::GetLastChild(Sci::Line lineParent, std::optional<FoldLevel> 
 }
 
 Sci::Line Document::GetFoldParent(Sci::Line line) const noexcept {
-	const FoldLevel level = LevelNumberPart(GetFoldLevel(line));
-	for (Sci::Line lineLook = line - 1; lineLook >= 0; lineLook--) {
-		const FoldLevel levelTry = GetFoldLevel(lineLook);
-		if (LevelIsHeader(levelTry) && LevelNumberPart(levelTry) < level) {
-			return lineLook;
-		}
-	}
-	return -1;
+	return Levels()->GetFoldParent(line);
 }
 
 void Document::GetHighlightDelimiters(HighlightDelimiter &highlightDelimiter, Sci::Line line, Sci::Line lastLine) {

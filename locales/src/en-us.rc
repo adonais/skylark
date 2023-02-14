@@ -261,6 +261,12 @@ BEGIN
             MENUITEM "&Right-click Empty Space",                       IDM_VIEW_TAB_RIGHT_NEW
             MENUITEM "&Left-double-click Empty Space",                 IDM_VIEW_TAB_DBCLICK_NEW
         END
+        POPUP "Close Button Drawing Mode"
+        BEGIN
+            MENUITEM "&Follow The Mouse",                              IDM_TABCLOSE_FOLLOW
+            MENUITEM "&Always Draw",                                   IDM_TABCLOSE_ALWAYS
+            MENUITEM "&Never Draw",                                    IDM_TABCLOSE_NONE
+        END
         MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
         MENUITEM MF_SEPARATOR
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE_ZOOM
@@ -298,6 +304,12 @@ BEGIN
         BEGIN
             MENUITEM "Simplified To Traditional",                      IDM_EDIT_GB_BIG5
             MENUITEM "Traditional To Simplified",                      IDM_EDIT_BIG5_GB
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "Full-width/half-width conversion",                      IDM_FORMAT_PLACEHOLDE_PUNCTUATION
+        BEGIN
+            MENUITEM "Full-width Symbol To Half-width",                IDM_FORMAT_FULL_HALF
+            MENUITEM "Half-width Punctuation To Full-width",           IDM_FORMAT_HALF_FULL
         END
         MENUITEM MF_SEPARATOR
         MENUITEM "Word Wrap",                                          IDM_VIEW_WRAPLINE_MODE

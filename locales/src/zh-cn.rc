@@ -261,6 +261,12 @@ BEGIN
             MENUITEM "空白区右键单击(&R)",                      IDM_VIEW_TAB_RIGHT_NEW
             MENUITEM "空白区左键双击(&L)",                      IDM_VIEW_TAB_DBCLICK_NEW
         END
+        POPUP "关闭按钮绘制方式"
+        BEGIN
+            MENUITEM "跟随鼠标(&F)",                            IDM_TABCLOSE_FOLLOW
+            MENUITEM "总是绘制(&A)",                            IDM_TABCLOSE_ALWAYS
+            MENUITEM "从不绘制(&N)",                            IDM_TABCLOSE_NONE
+        END
         MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
         MENUITEM MF_SEPARATOR
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
@@ -298,6 +304,12 @@ BEGIN
         BEGIN
             MENUITEM "简体转繁体",                              IDM_EDIT_GB_BIG5
             MENUITEM "繁体转简体",                              IDM_EDIT_BIG5_GB
+        END
+        MENUITEM MF_SEPARATOR
+        POPUP "全角/半角转换",                                  IDM_FORMAT_PLACEHOLDE_PUNCTUATION
+        BEGIN
+            MENUITEM "全角符号转半角",                          IDM_FORMAT_FULL_HALF
+            MENUITEM "半角标点转全角",                          IDM_FORMAT_HALF_FULL
         END
         MENUITEM MF_SEPARATOR
         MENUITEM "自动换行(&L)",                                IDM_VIEW_WRAPLINE_MODE

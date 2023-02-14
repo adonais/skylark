@@ -142,7 +142,7 @@ on_symlist_jump_word(eu_tabpage *pnode)
                 {
                     on_tabpage_select_index(index);
                 }
-                sptr_t line_num = (int) SendMessage(p->hwnd_symlist, LB_GETITEMDATA, i, 0);
+                sptr_t line_num = (sptr_t) SendMessage(p->hwnd_symlist, LB_GETITEMDATA, i, 0);
                 on_search_add_navigate_list(p, pos);
                 on_search_jmp_line(p, line_num, 0);
                 break;

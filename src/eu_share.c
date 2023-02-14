@@ -27,7 +27,7 @@ HMODULE g_skylark_lang = NULL;        // 资源dll句柄
 /*****************************************************************************
  * 共享内存API的封装
  ****************************************************************************/
-HANDLE WINAPI
+HANDLE
 share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name)
 {
     DWORD hi = 0, lo = 0;
@@ -43,19 +43,19 @@ share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name)
     return CreateFileMapping(handle, NULL, dw_protect, hi, lo, name);
 }
 
-HANDLE WINAPI
+HANDLE
 share_open(uint32_t dw_access, LPCTSTR name)
 {
     return OpenFileMapping(dw_access, false, name);
 }
 
-LPVOID WINAPI
+LPVOID
 share_map(HANDLE hmap, size_t bytes, uint32_t dw_access)
 {
     return MapViewOfFile(hmap, dw_access, 0, 0, bytes);
 }
 
-void WINAPI
+void
 share_unmap(LPVOID memory)
 {
     if (memory)
@@ -65,7 +65,7 @@ share_unmap(LPVOID memory)
     }
 }
 
-void WINAPI
+void
 share_close(HANDLE handle)
 {
     if ((intptr_t)handle > 0)
@@ -78,7 +78,7 @@ share_close(HANDLE handle)
 /*****************************************************************************
  * 内存映射文件, 可分块映射
  ****************************************************************************/
-bool WINAPI
+bool
 share_open_file(LPCTSTR path, bool read_only, uint32_t dw_creation, HANDLE *phandle)
 {
     *phandle = CreateFile(path, read_only ? GENERIC_READ : (GENERIC_READ | GENERIC_WRITE),
@@ -90,7 +90,7 @@ share_open_file(LPCTSTR path, bool read_only, uint32_t dw_creation, HANDLE *phan
      return true;
 }
 
-uint8_t *WINAPI
+uint8_t*
 share_map_section(HANDLE mapping, uint64_t offset, size_t length, bool read_only)
 {
     int      adjust;
@@ -115,13 +115,13 @@ share_map_section(HANDLE mapping, uint64_t offset, size_t length, bool read_only
 /*****************************************************************************
  * 主窗口建立的信号量, 复位方式为手动恢复, 初始无信号
  ****************************************************************************/
-bool WINAPI
+bool
 share_envent_create(void)
 {
     return (g_skylark_sem = CreateEvent(NULL, TRUE, FALSE, SKYLARK_SEM_NAME)) != NULL;
 }
 
-void WINAPI
+void
 share_envent_set(bool signaled)
 {
     if (signaled)
@@ -134,19 +134,19 @@ share_envent_set(bool signaled)
     }
 }
 
-uint32_t WINAPI
+uint32_t
 share_envent_wait(uint32_t milliseconds)
 {
     return WaitForSingleObject(g_skylark_sem, milliseconds);
 }
 
-void WINAPI
+void
 share_envent_close(void)
 {
     share_close(g_skylark_sem);
 }
 
-void WINAPI
+void
 share_envent_release(void)
 {
     if (g_skylark_sem)
@@ -156,7 +156,7 @@ share_envent_release(void)
     share_envent_close();
 }
 
-HWND WINAPI
+HWND
 share_envent_get_hwnd(void)
 {
     HWND hwnd = NULL;
@@ -174,7 +174,7 @@ share_envent_get_hwnd(void)
     return hwnd;
 }
 
-void WINAPI
+void
 share_envent_set_hwnd(HWND hwnd)
 {
     HANDLE hmap = share_open(FILE_MAP_WRITE | FILE_MAP_READ, SKYLARK_LOCK_NAME);
@@ -193,19 +193,19 @@ share_envent_set_hwnd(HWND hwnd)
 /*****************************************************************************
  * 文件自动保存时设置的信号量, 复位方式为自动恢复, 初始状态为有信号
  ****************************************************************************/
-bool WINAPI
+bool
 share_envent_create_file_sem(HANDLE *phandle)
 {
     return (*phandle = CreateEvent(NULL, FALSE, TRUE, FILE_CLOSE_EVENT)) != NULL;
 }
 
-HANDLE WINAPI
+HANDLE
 share_envent_open_file_sem(void)
 {
     return OpenEvent(EVENT_ALL_ACCESS, false, FILE_CLOSE_EVENT);
 }
 
-void WINAPI
+void
 share_envent_wait_file_close_sem(HANDLE *phandle)
 {
     WaitForSingleObject(*phandle, INFINITE);
@@ -215,7 +215,7 @@ share_envent_wait_file_close_sem(HANDLE *phandle)
 /*****************************************************************************
  * 多进程共享,  以消息模式放送而不是共享内存
  ****************************************************************************/
-unsigned WINAPI
+unsigned
 share_send_msg(void *param)
 {
     HWND hwnd = eu_module_hwnd();
@@ -242,7 +242,7 @@ share_send_msg(void *param)
 /*****************************************************************************
  * 多国语言文件路径存储区, 多进程共享
  ****************************************************************************/
-HANDLE WINAPI
+HANDLE
 share_load_lang(void)
 {
     TCHAR *u16_lang = NULL;
@@ -311,7 +311,7 @@ share_load_lang(void)
     return lang_map;
 }
 
-void WINAPI
+void
 share_spinlock_wait(volatile intptr_t *plock)
 {
     uint64_t spin_count = 0;
@@ -329,7 +329,7 @@ share_spinlock_wait(volatile intptr_t *plock)
     }
 }
 
-void WINAPI
+void
 share_close_lang(void)
 {
     eu_close_dll(g_skylark_lang);

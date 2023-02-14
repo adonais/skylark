@@ -1,8 +1,8 @@
 snippet class "class ..."
 class ${1:my_class} {
 public: 
-    $1($2){$3};
-    ~$1($4){$5};
+    $1($2){$3}
+    ~$1($4){$5}
 protected:
     $6
 private:
@@ -85,7 +85,7 @@ std::map<${1:key}, ${2:value}> map$0;
 endsnippet
 
 snippet printf "printf ..."
-fprintf("${1:%s}\n", $0);
+printf("${1:%s}\n", $0);
 endsnippet
 
 snippet rd "Read File Into Vector"

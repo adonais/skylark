@@ -237,124 +237,49 @@ on_tabpage_active_one(int index)
     cvector_freep(&v);
 }
 
-static HBITMAP
-replace_color(HBITMAP hbmp, COLORREF old, COLORREF new_color, HDC bmp_dc)
+static void
+on_tabpage_draw_sign(const HDC hdc, const LPRECT lprect)
 {
-    HBITMAP ret = NULL;
-    if (hbmp)
-    {   // DC for Source Bitmap
-        HDC buffer_dc = CreateCompatibleDC(NULL);
-        if (buffer_dc)
-        {
-            HBITMAP htmp = (HBITMAP) NULL;
-            if (bmp_dc)
-            {
-                if (hbmp == (HBITMAP)GetCurrentObject(bmp_dc, OBJ_BITMAP))
-                {
-                    htmp = CreateBitmap(1, 1, 1, 1, NULL);
-                    SelectObject(bmp_dc, htmp);
-                }
-            }
-            HGDIOBJ PreviousBufferObject=SelectObject(buffer_dc,hbmp);
-            // here buffer_dc contains the bitmap
-            // DC for working
-            HDC direct_dc = CreateCompatibleDC(NULL);
-            if (direct_dc)
-            {   // Get bitmap size
-                BITMAP bm;
-                GetObject(hbmp, sizeof(bm), &bm);
-                // create a BITMAPINFO with minimal initilisation
-                // for the CreateDIBSection
-                BITMAPINFO RGB32BitsBITMAPINFO;
-                ZeroMemory(&RGB32BitsBITMAPINFO,sizeof(BITMAPINFO));
-                RGB32BitsBITMAPINFO.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
-                RGB32BitsBITMAPINFO.bmiHeader.biWidth=bm.bmWidth;
-                RGB32BitsBITMAPINFO.bmiHeader.biHeight=bm.bmHeight;
-                RGB32BitsBITMAPINFO.bmiHeader.biPlanes = 1;
-                RGB32BitsBITMAPINFO.bmiHeader.biBitCount = 32;
-                // pointer used for direct Bitmap pixels access
-                UINT * pixels;
-                HBITMAP direct_map = CreateDIBSection(direct_dc,
-                                     (BITMAPINFO *)&RGB32BitsBITMAPINFO,
-                                     DIB_RGB_COLORS,
-                                     (void **)&pixels,
-                                     NULL, 0);
-                if (direct_map)
-                {
-                    // here direct_map!=NULL so pixels!=NULL no need to test
-                    HGDIOBJ PreviousObject = SelectObject(direct_dc, direct_map);
-                    BitBlt(direct_dc, 0, 0, bm.bmWidth,bm.bmHeight, buffer_dc,0,0,SRCCOPY);
-                    // here the direct_dc contains the bitmap
-                    // Convert COLORREF to RGB (Invert RED and BLUE)
-                    old = COLORREF2RGB(old);
-                    new_color = COLORREF2RGB(new_color);
-                    // After all the inits we can do the job : Replace Color
-                    for (int i = ((bm.bmWidth*bm.bmHeight)-1); i >= 0; i--)
-                    {
-                        if (pixels[i]==old)
-                        {
-                            pixels[i]=new_color;
-                        }
-                    }
-                    // little clean up
-                    // Don't delete the result of SelectObject because it's
-                    // our modified bitmap (direct_map)
-                    SelectObject(direct_dc,PreviousObject);
-                    // finish
-                    ret = direct_map;
-                }
-                // clean up
-                DeleteDC(direct_dc);
-            }
-            if (htmp)
-            {
-                SelectObject(bmp_dc, hbmp);
-                DeleteObject(htmp);
-            }
-            SelectObject(buffer_dc,PreviousBufferObject);
-            // buffer_dc is now useless
-            DeleteDC(buffer_dc);
-        }
-    }
-    return ret;
+    HFONT hfont = CreateFont(-14, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, 
+                             CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
+    HGDIOBJ oldj = SelectObject(hdc, hfont);
+    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
+               lprect->top + 1,
+               lprect->right,
+               lprect->bottom
+              };    
+    DrawText(hdc, _T("✕"), (int)_tcslen(_T("✕")), &rc, DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+    SelectObject(hdc, oldj);
+    DeleteObject(hfont);
 }
 
 static void
 on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 {
-    HBITMAP hbmp = NULL;
     HDC hdc = GetDC(hwnd);
-    HDC hdc_mem  = CreateCompatibleDC(hdc);
-    HBITMAP hbmp_orig = LoadBitmap(eu_module_handle(), MAKEINTRESOURCE(IDB_AC_CLOSE_BMP));
-    int border = (lprect->bottom - lprect->top - CLOSEBUTTON_HEIGHT + 1) / 2;
-    int left = lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP;
-    int top = lprect->top + border;
-    uint32_t cr = eu_get_theme()->item.activetab.bgcolor;
-    if (!sel)
+    colour cr = 0;
+    if (sel)
     {
-        cr = on_dark_supports() ? rgb_dark_btn_color : GetSysColor(COLOR_BTNFACE);
+        cr = eu_get_theme()->item.activetab.bgcolor;
+        SetBkColor(hdc, cr);
     }
-    if ((hbmp = replace_color(hbmp_orig, rgb_bmp_close_color, cr, NULL)) != NULL)
+    else
     {
-        DeleteObject(hbmp_orig);
-        SelectObject(hdc_mem, hbmp);
-        StretchBlt(hdc, left, top, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, hdc_mem, 0, 0, CLOSEBUTTON_WIDTH, CLOSEBUTTON_HEIGHT, SRCCOPY);
-        DeleteDC(hdc_mem);
-        DeleteObject(hbmp);
+        cr = set_btnface_color(hdc, on_dark_enable());
     }
+    on_tabpage_draw_sign(hdc, lprect);
     ReleaseDC(hwnd, hdc);
 }
 
 static void
-on_tabpage_undraw_close(HWND hwnd, const LPRECT lprect)
+on_tabpage_flush_close(HWND hwnd, const LPRECT lprect)
 {
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
                lprect->top + 1,
                lprect->right,
-               lprect->bottom - 1
+               lprect->bottom
               };
     InvalidateRect(hwnd, &rc, true);
-    UpdateWindow(hwnd);
 }
 
 static bool
@@ -363,7 +288,7 @@ on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
                lprect->top + 1,
                lprect->right,
-               lprect->bottom - 1
+               lprect->bottom
               };
     return PtInRect(&rc, *pt);
 }
@@ -419,6 +344,21 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             if (STR_NOT_NUL(p->filename))
             {
                 DrawText(hdc, p->filename, (int)_tcslen(p->filename), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+                if (eu_get_config()->m_close_draw == IDM_TABCLOSE_ALWAYS)
+                {
+                    on_tabpage_draw_sign(hdc, &rc);
+                }
+            }
+            if (eu_get_config()->m_close_draw == IDM_TABCLOSE_FOLLOW)
+            {
+                POINT pt;
+                GetCursorPos(&pt);
+                ScreenToClient(hwnd, &pt);
+                if (on_tabpage_hit_index(&pt) == index)
+                {
+                    rc.right += 1;
+                    on_tabpage_draw_sign(hdc, &rc);
+                }
             }
         }
         SelectObject(hdc, old_font);
@@ -889,15 +829,15 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         tab_drag = true;
                     }
-                    else if (!tab_drag)
+                    else if (eu_get_config()->m_close_draw == IDM_TABCLOSE_FOLLOW && !tab_drag && !p->at_close)
                     {
                         on_tabpage_draw_close(hwnd, &rect, on_tabpage_nfocus(index));
                         p->at_close = true;
                     }
                 }
-                else if (p->at_close)
+                else if (eu_get_config()->m_close_draw == IDM_TABCLOSE_FOLLOW && p->at_close)
                 {
-                    on_tabpage_undraw_close(hwnd, &rect);
+                    on_tabpage_flush_close(hwnd, &rect);
                     p->at_close = false;
                 }
             }
@@ -916,7 +856,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 RECT rc;
                 TabCtrl_GetItemRect(hwnd, tab_move_from, &rc);
-                if (on_tabpage_hit_button(&rc, &g_point))
+                if (eu_get_config()->m_close_draw != IDM_TABCLOSE_NONE && on_tabpage_hit_button(&rc, &g_point))
                 {
                     PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
                     return 1;
@@ -1017,18 +957,22 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSELEAVE:
         {
-            RECT rect = {0};
-            count = TabCtrl_GetItemCount(hwnd);
-            for (index = 0; index < count; ++index)
+            if (eu_get_config()->m_close_draw == IDM_TABCLOSE_FOLLOW)
             {
-                if (!(p = on_tabpage_get_ptr(index)))
+                RECT rect = {0};
+                count = TabCtrl_GetItemCount(hwnd);
+                for (index = 0; index < count; ++index)
                 {
-                    break;
-                }
-                TabCtrl_GetItemRect(hwnd, index, &rect);
-                if (p->at_close)
-                {
-                    on_tabpage_undraw_close(hwnd, &rect);
+                    if (!(p = on_tabpage_get_ptr(index)))
+                    {
+                        break;
+                    }
+                    TabCtrl_GetItemRect(hwnd, index, &rect);
+                    if (p->at_close)
+                    {
+                        on_tabpage_flush_close(hwnd, &rect);
+                        p->at_close = false;
+                    }
                 }
             }
             break;
@@ -1216,7 +1160,7 @@ on_tabpage_remove(eu_tabpage **ppnode)
         if (p && p == *ppnode)
         {   /* 删除控件句柄与释放资源 */
             TabCtrl_DeleteItem(g_tabpages, index);
-            on_sci_free_tab(ppnode);
+            on_sci_free_tab(ppnode, NULL);
             break;
         }
     }
@@ -1224,12 +1168,12 @@ on_tabpage_remove(eu_tabpage **ppnode)
 }
 
 static int
-on_tabpage_remove_empty(void)
+on_tabpage_remove_empty(eu_tabpage *pre)
 {
     int count;
     int ret = 0;
     EU_VERIFY(g_tabpages != NULL);
-    if ((count = TabCtrl_GetItemCount(g_tabpages)) < 2)
+    if ((count = TabCtrl_GetItemCount(g_tabpages)) < 1)
     {
         return 0;
     }
@@ -1242,7 +1186,7 @@ on_tabpage_remove_empty(void)
             {
                 ret = 1;
                 TabCtrl_DeleteItem(g_tabpages, index);
-                on_sci_free_tab(&p);
+                on_sci_free_tab(&p, pre);
                 break;
             }
         }
@@ -1344,19 +1288,19 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
+    if (!pnode->is_blank)
+    {
+        on_tabpage_remove_empty(pnode);
+    }
     {
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
         pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
-    }
+    }    
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
         printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
         return SKYLARK_TABCTRL_ERR;
-    }
-    if (!pnode->is_blank)
-    {
-        pnode->tab_id -= on_tabpage_remove_empty();
     }
     if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
     {
@@ -1368,13 +1312,8 @@ on_tabpage_add(eu_tabpage *pnode)
         }
         return SKYLARK_OK;
     }
-    if (!pnode->hex_mode && pnode->pmod)
-    {
-        const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING;
-        printf("we execute plugins\n");
-        return on_sci_create(pnode, NULL, flags, NULL);
-    }
-    if (on_sci_init_dlg(pnode))
+    // 当复用scintilla窗口时, 不重复创建
+    if (!pnode->hwnd_sc && on_sci_init_dlg(pnode))
     {
         TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
         return EUE_INSERT_TAB_FAIL;

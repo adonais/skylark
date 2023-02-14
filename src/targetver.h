@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 3
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 3
+#define __EU_INFO_VERSION_PATCHLEVEL 4
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -195,7 +195,6 @@
 #define IDB_COPY             10116
 #define IDB_COPY_DARK        10117
 #define IDB_BUTTON_BG_BMP    10118
-#define IDB_AC_CLOSE_BMP     10119
 
 #define IDC_BUTTON0   10122
 #define IDC_BUTTON1   10123
@@ -964,6 +963,9 @@
 #define IDS_LOADLIBRARY_SQL                 43001
 #define IDM_TABPAGE_SAVE                    43002
 #define IDM_TABPAGE_FULLSCREEN              43003
+#define IDM_TABCLOSE_FOLLOW                 43004
+#define IDM_TABCLOSE_ALWAYS                 43005
+#define IDM_TABCLOSE_NONE                   43006
 
 #define IDM_VIEW_TAB_RIGHT_CLICK            43010
 #define IDM_VIEW_TAB_LEFT_DBCLICK           43011
@@ -1002,6 +1004,10 @@
 
 #define IDM_VIEW_TAB_RIGHT_NEW              44040
 #define IDM_VIEW_TAB_DBCLICK_NEW            44041
+
+#define IDM_FORMAT_PLACEHOLDE_PUNCTUATION   44050
+#define IDM_FORMAT_FULL_HALF                44051
+#define IDM_FORMAT_HALF_FULL                44052
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

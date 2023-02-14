@@ -63,6 +63,13 @@ typedef struct _complete_set
     int  snippet;
 }complete_set;
 
+typedef struct _eue_toolbar
+{
+    int imsg;
+    int icmd;
+    char isvg[4096];
+}eue_toolbar;
+
 struct eu_config
 {
     int new_file_eol;
@@ -104,6 +111,7 @@ struct eu_config
     bool m_tab_tip;
     
     int m_close_way;
+    int m_close_draw;
     int m_new_way;
     int m_tab_active;
     int m_quality;
@@ -263,10 +271,11 @@ typedef struct _doc_data
     doc_comments comment;                     // 文档注释
 } doctype_t;
 
-bool __stdcall eu_config_ptr(struct eu_config *pconfig);
-bool __stdcall eu_theme_ptr(struct eu_theme *ptheme, bool init);
-bool __stdcall eu_accel_ptr(ACCEL *paccel);
-bool __stdcall eu_exist_path(const char *path);
+bool eu_config_ptr(struct eu_config *pconfig);
+bool eu_theme_ptr(struct eu_theme *ptheme, bool init);
+bool eu_accel_ptr(ACCEL *paccel);
+bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
+bool eu_exist_path(const char *path);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
 // all doctype callbacks

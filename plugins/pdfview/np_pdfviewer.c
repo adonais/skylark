@@ -40,9 +40,6 @@
 #ifndef IDM_THEME_PLUGIN
 #define IDM_THEME_PLUGIN 1225
 #endif
-#ifndef VALUE_LEN
-#define VALUE_LEN 4096
-#endif
 #ifndef HVM_SETBKCOLOR
 #define HVM_SETBKCOLOR (WM_USER + 105)
 #endif
@@ -570,14 +567,14 @@ pdf_destroy(const NPP instance, nppsave **save)
     instance_data *data = instance ? (instance_data *)instance->pdata : NULL;
     if (data)
     {
-        if (data->istmp)
-        {
-            DeleteFileW(data->filepath);
-        }
         if (data->hprocess)
         {
             TerminateProcess(data->hprocess, 255);
             CloseHandle(data->hprocess);
+        }
+        if (data->istmp)
+        {
+            DeleteFileW(data->filepath);
         }
         if (data->progress_id)
         {
@@ -764,6 +761,7 @@ pdf_write(NPP instance, npstream* stream, uint32_t offset, uint32_t len, void* b
 static int
 launch_sumatra(instance_data *data, const char *url_utf8)
 {
+    int ret = NP_GENERIC_ERROR;
     if (!data)
     {
         return NP_NO_DATA;
@@ -807,9 +805,14 @@ launch_sumatra(instance_data *data, const char *url_utf8)
                 printf("sp: pdf_stream2file() error: couldn't run SumatraPDF!\n");
                 wcsncpy(data->message, L"Error: Couldn't run SumatraPDF!", MAX_PATH);
             }
+            else
+            {
+                ret = NP_NO_ERROR;
+            }
+            free(cmd_line);
         }
     }
-    return NP_NO_ERROR;
+    return ret;
 }
 
 static unsigned WINAPI

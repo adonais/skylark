@@ -154,7 +154,7 @@ on_proc_destory_brush(void)
     {
         DeleteObject(g_control_brush);
         g_control_brush = NULL;
-    }    
+    }
 }
 
 HWND
@@ -288,7 +288,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         if (ptab)
         {
             number -= 5;
-        }   
+        }
         HDWP hdwp = BeginDeferWindowPos(number);
         if (!ptab)
         {
@@ -436,7 +436,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                     {
                         ShowWindow(p->hwnd_qrtable, SW_HIDE);
                     }
-                }       
+                }
                 if (p->hex_mode && p->hwnd_sc)
                 {
                     ShowWindow(p->hwnd_sc, SW_HIDE);
@@ -782,7 +782,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (!(pnode = on_tabpage_focus_at()))
             {
                 break;
-            }            
+            }
             if (!g_control_brush)
             {
                 if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))
@@ -1114,10 +1114,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_edit_sentence_upper(pnode, true);
                     break;
                 case IDM_EDIT_TAB_SPACE:
-                    on_search_tab_space(pnode, true);
+                    on_search_repalce_event(pnode, TAB_SPACE);
                     break;
                 case IDM_EDIT_SPACE_TAB:
-                    on_search_tab_space(pnode, false);
+                    on_search_repalce_event(pnode, SPACE_TAB);
                     break;
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();
@@ -1127,6 +1127,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_BIG5_GB:
                     on_encoding_convert_internal_code(pnode, on_encoding_big5_gb);
+                    break;
+                case IDM_FORMAT_FULL_HALF:
+                    on_search_repalce_event(pnode, FULL_HALF);
+                    break;
+                case IDM_FORMAT_HALF_FULL:
+                    on_search_repalce_event(pnode, HALF_FULL);
                     break;
                 case IDM_EDIT_AUTO_CLOSECHAR:
                     on_code_close_char();
@@ -1433,6 +1439,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case IDM_TABCLOSE_FOLLOW:
+                case IDM_TABCLOSE_ALWAYS:
+                case IDM_TABCLOSE_NONE:
+                    eu_get_config()->m_close_draw = wm_id;
+                    if (g_tabpages)
+                    {
+                        UpdateWindowEx(g_tabpages);
+                    }
+                    break;
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
                     break;
@@ -1793,14 +1808,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
-                case SCN_AUTOCSELECTION:
+                // Scintilla 5.3.2, SCN_AUTOCCOMPLETED supports SCI_AUTOCSETCHOOSESINGLE mode
+                // So, we replace SCN_AUTOCSELECTION with SCN_AUTOCCOMPLETED
+                case SCN_AUTOCCOMPLETED:
                 {
-                    int index = (int)eu_sci_call(pnode, SCI_AUTOCGETCURRENT, 0, 0);
                     int opt = (int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0);
-                    if (((opt & SC_AUTOCOMPLETE_SNIPPET) && !index && pnode->ac_mode != AUTO_CODE) || on_complete_auto_expand(pnode, lpnotify->text, lpnotify->position))
+                    if (((opt & SC_AUTOCOMPLETE_SNIPPET) && pnode->ac_mode != AUTO_CODE) || on_complete_auto_expand(pnode, lpnotify->text, lpnotify->position))
                     {
                         on_complete_reset_focus(pnode);
-                        on_complete_delay_snippet();
+                        on_complete_snippet(pnode);
                     }
                     return 1;
                 }

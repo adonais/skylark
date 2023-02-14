@@ -27,6 +27,7 @@
 #define TAB_MENU_ACTIVE_SUB  28
 #define TAB_MENU_CLOSE_SUB   29
 #define TAB_MENU_NEW_SUB     30
+#define TAB_MENU_CBUTTON_SUB 31
 #define TAB_MENU_SNIPPET_SUB 15
 
 #ifdef __cplusplus
