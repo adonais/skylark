@@ -60,7 +60,6 @@ clean:
     @$(MAKE) /NOLOGO /$(MAKEFLAGS) clean
     cd "$(MAKEDIR)"
     -del /q /f /s *~ 2>nul
-    -del /f *.7z 2>nul
     -rmdir /q /s Release .dep 2>nul
     -rd /s/q skylark_x64 2>nul
     -rd /s/q skylark_x86 2>nul

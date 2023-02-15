@@ -515,7 +515,7 @@ on_snippet_do_modify(HWND hdlg)
             dimension = (int) ListBox_GetItemData(hwnd_lst, index);
             if (dimension < 0)
             {
-                dimension = !index ? 0 : cvector_size(vec) - 1;
+                dimension = eu_int_cast(!index ? 0 : cvector_size(vec) - 1);
             }
         }
     #ifdef _DEBUG
