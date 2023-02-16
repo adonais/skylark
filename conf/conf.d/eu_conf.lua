@@ -50,6 +50,7 @@ function eu_conf.loadconf()
         "sqlquery_result_edit_height = 80\n" ..
         "sqlquery_result_listview_height = 270\n" ..
         "file_recent_number = 29\n" ..
+        "scroll_to_cursor = false\n" ..
         "inter_reserved_0 = 0\n" ..
         "inter_reserved_1 = 0\n" ..
         "inter_reserved_2 = 0\n" ..
@@ -128,6 +129,9 @@ function eu_conf.loadconf()
     if (tab_close_draw == nil) then
         tab_close_draw = 43004
     end
+    if (scroll_to_cursor == nil) then
+        scroll_to_cursor = false
+    end    
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -156,6 +160,7 @@ function eu_conf.loadconf()
         sqlquery_result_edit_height,
         sqlquery_result_listview_height,
         file_recent_number,
+        scroll_to_cursor,
         inter_reserved_0,
         inter_reserved_1,
         inter_reserved_2,

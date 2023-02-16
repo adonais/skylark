@@ -1656,6 +1656,7 @@ eu_save_config(void)
         "sqlquery_result_edit_height = %d\n"
         "sqlquery_result_listview_height = %d\n"
         "file_recent_number = %d\n"
+        "scroll_to_cursor = %s\n"
         "inter_reserved_0 = %d\n"
         "inter_reserved_1 = %d\n"
         "inter_reserved_2 = %d\n"
@@ -1770,6 +1771,7 @@ eu_save_config(void)
               g_config->result_edit_height,
               g_config->result_list_height,
               (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
+              g_config->scroll_to_cursor?"true":"false",
               g_config->inter_reserved_0,
               g_config->inter_reserved_1,
               g_config->inter_reserved_2,

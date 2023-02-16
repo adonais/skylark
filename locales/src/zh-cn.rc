@@ -268,6 +268,7 @@ BEGIN
             MENUITEM "从不绘制(&N)",                            IDM_TABCLOSE_NONE
         END
         MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
+        MENUITEM "切换标签时滚动到光标所在",                    IDM_VIEW_SCROLLCURSOR
         MENUITEM MF_SEPARATOR
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN

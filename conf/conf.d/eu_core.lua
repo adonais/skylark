@@ -103,6 +103,7 @@ struct eu_config
     int result_edit_height;
     int result_list_height;
     int file_recent_number;
+    int scroll_to_cursor;
     int inter_reserved_0;
     int inter_reserved_1;
     int inter_reserved_2;

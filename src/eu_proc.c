@@ -483,9 +483,16 @@ static void
 on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
 {
     on_proc_msg_size(hwnd, pnode);
-    if (pnode && !pnode->hex_mode && pnode->nc_pos > 0)
+    if (pnode && pnode->nc_pos >= 0 && eu_get_config() && eu_get_config()->scroll_to_cursor)
     {
-        eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+        if (pnode->hex_mode)
+        {
+            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+        }
     }
 }
 
@@ -1447,6 +1454,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         UpdateWindowEx(g_tabpages);
                     }
+                    break;
+                case IDM_VIEW_SCROLLCURSOR:
+                    eu_get_config()->scroll_to_cursor ^= true;
                     break;
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
