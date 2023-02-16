@@ -314,7 +314,10 @@ BEGIN
         END
         MENUITEM MF_SEPARATOR
         MENUITEM "自动换行(&L)",                                IDM_VIEW_WRAPLINE_MODE
-        MENUITEM "生成二维码",                                  IDM_EDIT_QRCODE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "检测超链接(&Y)",                              IDM_FORMAT_HYPERLINKHOTSPOTS
+        MENUITEM MF_SEPARATOR
+        MENUITEM "生成二维码(&G)",                              IDM_EDIT_QRCODE
     END
     POPUP "编程(&P)",                                           IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN

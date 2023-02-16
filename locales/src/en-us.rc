@@ -314,7 +314,10 @@ BEGIN
         END
         MENUITEM MF_SEPARATOR
         MENUITEM "Word Wrap",                                          IDM_VIEW_WRAPLINE_MODE
-        MENUITEM "QR Code Generator",                                  IDM_EDIT_QRCODE
+        MENUITEM MF_SEPARATOR
+        MENUITEM "H&yperlink Hotspots",                                IDM_FORMAT_HYPERLINKHOTSPOTS
+        MENUITEM MF_SEPARATOR
+        MENUITEM "QR Code &Generator",                                 IDM_EDIT_QRCODE
     END
     POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN

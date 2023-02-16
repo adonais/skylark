@@ -104,6 +104,12 @@
                           VER_CHARSET                 \
                           TEXT(")")
 
+// 内置主题索引
+#define STYLE_THEME_ALL     0
+#define STYLE_THEME_DEFAULT 1
+#define STYLE_THEME_DARK    2
+#define STYLE_THEME_WHITE   3
+
 // 资源标识符
 #define IDR_LBREAK_MENU  10000
 #define IDR_CODEING_MENU 10001
@@ -1009,6 +1015,7 @@
 #define IDM_FORMAT_PLACEHOLDE_PUNCTUATION   44050
 #define IDM_FORMAT_FULL_HALF                44051
 #define IDM_FORMAT_HALF_FULL                44052
+#define IDM_FORMAT_HYPERLINKHOTSPOTS        44053
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

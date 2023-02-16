@@ -63,6 +63,14 @@ typedef struct _complete_set
     int  snippet;
 }complete_set;
 
+typedef struct _hyperlink_set
+{
+    bool enable;
+    int  theme_id;
+    uint32_t fg_rgb;
+    uint32_t bg_rgb;
+}hyperlink_set;
+
 typedef struct _eue_toolbar
 {
     int imsg;
@@ -131,6 +139,7 @@ struct eu_config
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
+    hyperlink_set eu_hyperlink;
     int m_limit;
     uint64_t m_id;
     char m_path[260];

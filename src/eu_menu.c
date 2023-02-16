@@ -411,7 +411,6 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_BRACE, eu_get_config()->eu_brace.matching);
                         util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
                         util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_FOLD, eu_get_config()->light_fold);
-                        util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
                         util_set_menu_item(menu, IDM_VIEW_LINENUMBER_VISIABLE, eu_get_config()->m_linenumber);
                         util_set_menu_item(menu, IDM_VIEW_BOOKMARK_VISIABLE, eu_get_config()->eu_bookmark.visable);
                         util_set_menu_item(menu, IDM_VIEW_WHITESPACE_VISIABLE, eu_get_config()->ws_visiable);
@@ -462,6 +461,12 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_LUA, (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_ICODE, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_FORMAT_PLACEHOLDE_PUNCTUATION, !pnode->hex_mode && TAB_NOT_NUL(pnode));
+                        break;
+                    }
+                    case IDM_FORMAT_HYPERLINKHOTSPOTS:
+                    {
+                        util_set_menu_item(menu, IDM_FORMAT_HYPERLINKHOTSPOTS, eu_get_config()->eu_hyperlink.enable);
+                        util_enable_menu_item(menu, IDM_FORMAT_HYPERLINKHOTSPOTS, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
                     }
                     case IDM_EDIT_QRCODE:

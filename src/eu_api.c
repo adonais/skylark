@@ -1716,6 +1716,13 @@ eu_save_config(void)
         "    margin_right = %d,\n"
         "    margin_bottom = %d\n"
         "}\n"
+        "-- hyperlink hotspot default setting\n"
+        "hyperlink_hotspot = {\n"
+        "    enable = %s,\n"
+        "    theme_id = %d,\n"
+        "    bg_rgb = 0x%08X,\n"
+        "    bg_rgb = 0x%08X\n"
+        "}\n"
         "-- automatically cached file (size < 200MB)\n"
         "cache_limit_size = %d\n"
         "app_build_id = %I64u\n"
@@ -1813,6 +1820,10 @@ eu_save_config(void)
               g_config->eu_print.rect.top,
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
+              g_config->eu_hyperlink.enable?"true":"false",
+              g_config->eu_hyperlink.theme_id,
+              g_config->eu_hyperlink.fg_rgb,
+              g_config->eu_hyperlink.bg_rgb,
               g_config->m_limit,
               on_about_build_id(),
               g_config->m_path,
