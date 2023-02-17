@@ -655,6 +655,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                 util_set_title(pnode->pathfile);
                 np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
             }
+            InvalidateRect(g_tabpages, NULL, false);
             eu_safe_free(full_path);
         }
     }
