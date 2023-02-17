@@ -2189,6 +2189,27 @@ util_which(const TCHAR *name)
     return NULL;
 }
 
+int
+eu_prepend_path(const TCHAR *dir)
+{
+    size_t bufsize;
+    TCHAR *path;
+    TCHAR *value = NULL;
+    int    rc = -1;
+    if ((path = _tgetenv(_T("PATH"))) == NULL)
+    {
+        return (-1);
+    }
+    bufsize = _tcslen(dir) + _tcslen(path) + 8;
+    value = (TCHAR *)calloc(1, bufsize * sizeof(TCHAR));
+    if (value && _sntprintf(value, bufsize, _T("PATH=%s;%s"), dir, path) > 0)
+    {
+        rc = _tputenv(value);
+    }
+    eu_safe_free(value);
+    return rc;
+}
+
 bool
 eu_gui_app(void)
 {

@@ -655,6 +655,7 @@ EU_EXT_CLASS void eu_remote_list_release(void);
 // for eu_util.c
 EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 EU_EXT_CLASS bool eu_gui_app(void);
+EU_EXT_CLASS int  eu_prepend_path(const TCHAR *dir);
 
 // for eu_tablectl.c
 EU_EXT_CLASS void eu_close_db_handle(void);

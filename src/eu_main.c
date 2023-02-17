@@ -262,6 +262,11 @@ _tmain(int argc, TCHAR *argv[])
         msg.wParam = 0;
         goto all_clean;
     }
+    if (eu_prepend_path(eu_module_path) < 0)
+    {
+        msg.wParam = -1;
+        goto all_clean;
+    }
     // 注册scintilla
     if (!eu_sci_register(instance))
     {
