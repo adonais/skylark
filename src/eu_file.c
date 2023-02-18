@@ -811,15 +811,13 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
 {
     if (pnode && pbak)
     {
-        sptr_t pos = 0;
-        if (pbak->x < 0)
+        if (pbak->x < 0 && pbak->y > 0)
         {
             pnode->nc_pos = pbak->y;
         }
         else
         {
-            pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
-
+            sptr_t pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
             sptr_t line_end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, pbak->x > 0 ? pbak->x - 1 : 0, 0);
             pos += (pbak->y > 0 ? pbak->y - 1 : 0);
             if (pos > line_end_pos)
@@ -834,7 +832,7 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
             {
                 pnode->nc_pos = pbak->postion;
             }
-            else
+            else if (pnode->nc_pos < 0)
             {
                 pnode->nc_pos = 0;
             }
@@ -871,7 +869,6 @@ on_file_before_open(eu_tabpage *pnode)
 static int
 on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
 {
-    int result = 0;
     on_sci_after_file(pnode);
     on_file_update_focus(pnode, pbak);
     if (!pnode->plugin)
@@ -879,7 +876,10 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
         on_file_update_postion(pnode, pbak);
         on_search_add_navigate_list(pnode, pnode->nc_pos);
     }
-    result = on_tabpage_selection(pnode, last_focus);
+    if (on_tabpage_selection(pnode, -1) < 0)
+    {
+        return SKYLARK_TABCTRL_ERR;
+    }
     if (!pnode->hex_mode && !pnode->pmod)
     {
         if (strlen(pbak->mark_id) > 0)
@@ -903,7 +903,7 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
     {
         on_file_push_recent(pnode);
     }
-    return result;
+    return on_tabpage_selection(pnode, last_focus);
 }
 
 static time_t
