@@ -180,7 +180,7 @@ function eu_theme.get_default(name)
           "keywords2_bold = 1\n" ..
           "string_font = \"Consolas\"\n" ..
           "string_fontsize = 11\n" ..
-          "string_color = 0x00C080FF\n" ..
+          "string_color = 0x001515A3\n" ..
           "string_bgcolor = 0x00000000\n" ..
           "string_bold = 0\n" ..
           "character_font = \"Consolas\"\n" ..
@@ -190,7 +190,7 @@ function eu_theme.get_default(name)
           "character_bold = 0\n" ..
           "number_font = \"Consolas\"\n" ..
           "number_fontsize = 11\n" ..
-          "number_color = 0x00C080FF\n" ..
+          "number_color = 0x00588609\n" ..
           "number_bgcolor = 0x00000000\n" ..
           "number_bold = 0\n" ..
           "operator_font = \"Consolas\"\n" ..
@@ -230,7 +230,7 @@ function eu_theme.get_default(name)
           "unknowtags_bold = 0\n" ..
           "attributes_font = \"Consolas\"\n" ..
           "attributes_fontsize = 11\n" ..
-          "attributes_color = 0x0080FF80\n" ..
+          "attributes_color = 0x00AD5104\n" ..
           "attributes_bgcolor = 0x00000000\n" ..
           "attributes_bold = 0\n" ..
           "unknowattributes_font = \"Consolas\"\n" ..
@@ -329,7 +329,7 @@ function eu_theme.get_default(name)
           "character_bold = 0\n" ..
           "number_font = \"Consolas\"\n" ..
           "number_fontsize = 11\n" ..
-          "number_color = 0x00C080FF\n" ..
+          "number_color = 0x00A8CE93\n" ..
           "number_bgcolor = 0x00000000\n" ..
           "number_bold = 0\n" ..
           "operator_font = \"Consolas\"\n" ..
