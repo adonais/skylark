@@ -679,7 +679,7 @@ on_view_full_sreen(HWND hwnd)
     {
         eu_get_config()->m_fullscreen = false;
         eu_get_config()->m_menubar = true;
-        eu_get_config()->m_toolbar = true;
+        eu_get_config()->m_toolbar = 1;
         eu_get_config()->m_statusbar = true;
         GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
     }
@@ -687,7 +687,7 @@ on_view_full_sreen(HWND hwnd)
     {
         eu_get_config()->m_fullscreen = true;
         eu_get_config()->m_menubar = false;
-        eu_get_config()->m_toolbar = false;
+        eu_get_config()->m_toolbar = 0;
         eu_get_config()->m_statusbar = false;
         SetMenu(hwnd, NULL);
     }

@@ -1635,7 +1635,7 @@ eu_save_config(void)
         "window_theme = \"%s\"\n"
         "window_full_screen = %s\n"
         "window_menubar_visiable = %s\n"
-        "window_toolbar_visiable = %s\n"
+        "window_toolbar_visiable = %d\n"
         "window_statusbar_visiable = %s\n"
         "line_number_visiable = %s\n"
         "last_search_flags = 0x%08X\n"
@@ -1757,7 +1757,7 @@ eu_save_config(void)
               g_config->window_theme[0]?g_config->window_theme:"default",
               g_config->m_fullscreen?"true":"false",
               g_config->m_menubar?"true":"false",
-              g_config->m_toolbar?"true":"false",
+              g_config->m_toolbar,
               g_config->m_statusbar?"true":"false",
               g_config->m_linenumber?"true":"false",
               g_config->last_flags,

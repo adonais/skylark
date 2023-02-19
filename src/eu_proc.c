@@ -966,6 +966,40 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_PRINT:
                     on_print_file(pnode);
                     break;
+                case IDM_EDIT_CLIP:
+                {
+                    HWND hcip = on_toolbar_clip_hwnd();
+                    if (hcip)
+                    {
+                        if (!IsWindowVisible(hcip))
+                        {
+                            ShowWindow(hcip, SW_SHOW);
+                            on_toolbar_setpos_clipdlg(hcip, eu_module_hwnd());
+                        }
+                        else
+                        {
+                            ShowWindow(hcip, SW_HIDE);
+                        }
+                    }
+                    break;
+                }
+                case IDM_SCRIPT_EXEC:
+                {
+                    on_toolbar_execute_script();
+                    break;
+                }
+                case IDM_CMD_TAB:
+                {   // 当前目录打开shell
+                    TCHAR *pold = NULL;
+                    util_set_working_dir(pnode->pathname, &pold);
+                    on_toolbar_cmd_start();
+                    if (pold)
+                    {
+                        SetCurrentDirectory(pold);
+                        free(pold);
+                    }
+                    break;
+                }
                 case IDM_FILE_REMOTE_FILESERVERS:
                     on_remote_manager();
                     break;
@@ -1578,8 +1612,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_proc_msg_size(hwnd, NULL);
                     break;
                 case IDM_VIEW_TOOLBAR:
-                    eu_get_config()->m_toolbar ^= true;
-                    on_proc_msg_size(hwnd, NULL);
+                    eu_get_config()->m_toolbar ^= 0x1;
+                    if (on_toolbar_refresh(hwnd))
+                    {
+                        on_proc_msg_size(hwnd, NULL);
+                    }
                     break;
                 case IDM_VIEW_STATUSBAR:
                 {

@@ -16,34 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _SKYLARK_TOOLBAR_H_
-#define _SKYLARK_TOOLBAR_H_
-
-#define EDITNUMBS             11
-#define BUFFSIZE              64
+#ifndef _EU_PIXMAP_H_
+#define _EU_PIXMAP_H_
 
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-bool on_toolbar_get_clipboard(char **ppstr);
-bool on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
-void on_toolbar_adjust_box(void);
-void on_toolbar_update_button(void);
-void on_toolbar_execute_script(void);
-void on_toolbar_lua_exec(eu_tabpage *pnode);
-void on_toolbar_setup_button(int id, int flags);
-void on_toolbar_no_highlight(void *lp);
-int  on_toolbar_height(void);
-int  on_toolbar_create(HWND hwnd);
-bool on_toolbar_refresh(HWND hwnd);
-HWND on_toolbar_clip_hwnd(void);
-HWND on_toolbar_hwnd(void);
-void on_toolbar_cmd_start(void);
+HBITMAP on_pixmap_icons(const int w, const int h, const char *color, int *pout);
+const int on_pixmap_svg_count(void);
+const int on_pixmap_vec_count(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _SKYLARK_TOOLBAR_H_
+#endif  // _EU_PIXMAP_H_

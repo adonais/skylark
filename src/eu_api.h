@@ -341,7 +341,7 @@ struct eu_config
     char window_theme[QW_SIZE];
     bool m_fullscreen;
     bool m_menubar;
-    bool m_toolbar;
+    int m_toolbar;
     bool m_statusbar;
     bool m_linenumber;
 
