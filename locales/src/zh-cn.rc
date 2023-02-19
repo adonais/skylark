@@ -222,8 +222,21 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "全屏模式(&U)",                                IDM_VIEW_FULLSCREEN
         MENUITEM "显示菜单栏",                                  IDM_VIEW_MENUBAR
-        MENUITEM "显示工具栏",                                  IDM_VIEW_TOOLBAR
         MENUITEM "显示状态栏",                                  IDM_VIEW_STATUSBAR
+        POPUP "调整工具栏"
+        BEGIN
+            MENUITEM "隐藏(&H)",                                IDB_SIZE_0
+            MENUITEM "自适应(&A)",                              IDB_SIZE_1
+            MENUITEM "16 x 16",                                 IDB_SIZE_16
+            MENUITEM "24 x 24",                                 IDB_SIZE_24
+            MENUITEM "32 x 32",                                 IDB_SIZE_32
+            MENUITEM "48 x 48",                                 IDB_SIZE_48
+            MENUITEM "64 x 64",                                 IDB_SIZE_64
+            MENUITEM "80 x 80",                                 IDB_SIZE_80
+            MENUITEM "96 x 96",                                 IDB_SIZE_96
+            MENUITEM "112 x 112",                               IDB_SIZE_112
+            MENUITEM "128 x 128",                               IDB_SIZE_128
+        END
         MENUITEM MF_SEPARATOR
         MENUITEM "制表符TAB宽度[N]个空格...",                   IDM_VIEW_TAB_WIDTH
         MENUITEM "键入制表符TAB时转换为空格集合",               IDM_TAB_CONVERT_SPACES

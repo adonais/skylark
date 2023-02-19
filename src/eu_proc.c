@@ -292,7 +292,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         HDWP hdwp = BeginDeferWindowPos(number);
         if (!ptab)
         {
-            if (eu_get_config()->m_toolbar)
+            if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 DeferWindowPos(hdwp, on_toolbar_hwnd(), HWND_TOP, 0, 0, rc.right - rc.left, on_toolbar_height(), SWP_SHOWWINDOW);
             }
@@ -1607,17 +1607,51 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 case IDM_VIEW_MENUBAR:
+                {
                     eu_get_config()->m_menubar ^= true;
                     eu_get_config()->m_menubar?(GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK))):SetMenu(hwnd, NULL);
                     on_proc_msg_size(hwnd, NULL);
                     break;
+                }
+                case IDB_SIZE_0:
+                case IDB_SIZE_1:
+                case IDB_SIZE_16:
+                case IDB_SIZE_24:
+                case IDB_SIZE_32:
+                case IDB_SIZE_48:
+                case IDB_SIZE_64:
+                case IDB_SIZE_80:
+                case IDB_SIZE_96:
+                case IDB_SIZE_112:
+                case IDB_SIZE_128:
+                {
+                    if (eu_get_config()->m_toolbar != wm_id)
+                    {
+                        eu_get_config()->m_toolbar = wm_id;
+                        if (on_toolbar_refresh(hwnd))
+                        {
+                            on_proc_msg_size(hwnd, NULL);
+                        }
+                    }
+                    break;
+                }
                 case IDM_VIEW_TOOLBAR:
-                    eu_get_config()->m_toolbar ^= 0x1;
+                {
+                    g_toolbar_size = eu_get_config()->m_toolbar;
+                    if (eu_get_config()->m_toolbar != IDB_SIZE_0)
+                    {
+                        eu_get_config()->m_toolbar = IDB_SIZE_0;
+                    }
+                    else
+                    {
+                        eu_get_config()->m_toolbar = g_toolbar_size;
+                    }
                     if (on_toolbar_refresh(hwnd))
                     {
                         on_proc_msg_size(hwnd, NULL);
                     }
                     break;
+                }
                 case IDM_VIEW_STATUSBAR:
                 {
                     if (eu_get_config() && !(eu_get_config()->m_fullscreen))
@@ -1839,10 +1873,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 on_view_editor_selection(pnode);
                             }
-                            if (eu_get_config()->m_toolbar)
+                            if (eu_get_config()->m_toolbar != IDB_SIZE_0)
                             {
-                                on_toolbar_setup_button(IDM_EDIT_CUT, util_can_selections(pnode) ? 2 : 1);
-                                on_toolbar_setup_button(IDM_EDIT_COPY, util_can_selections(pnode) ? 2 : 1);
+                                on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
+                                on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
                             }
                             on_search_turn_select(pnode);
                         }

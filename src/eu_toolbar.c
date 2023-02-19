@@ -46,6 +46,8 @@ typedef struct _toolbar_data
     char gcolor[OVEC_LEN];
 } toolbar_data;
 
+int g_toolbar_size = 0;
+
 enum {READ_FD, WRITE_FD};
 static int g_toolbar_height;
 static int fd_stdout;
@@ -66,68 +68,94 @@ on_toolbar_fill_params(toolbar_data *pdata, const int resid)
     int cx = GetSystemMetrics(SM_CXSCREEN);
     int cy = GetSystemMetrics(SM_CYSCREEN);
     const bool dark = on_dark_enable();
-    if (resid == 1)
+    pdata->res_id = (int)resid;
+    if (dark)
+    {
+        strncpy(pdata->hcolor, "#D3D3D3", OVEC_LEN - 1);
+        strncpy(pdata->gcolor, "#4E4E4E", OVEC_LEN - 1);
+    }
+    else
+    {
+        strncpy(pdata->gcolor, "#D3D3D3", OVEC_LEN - 1);
+    }
+    if (resid == IDB_SIZE_1)
     {
         const uint32_t dpi = eu_get_dpi(NULL);
-        pdata->res_id = 1;
-        if (dark)
-        {
-            strncpy(pdata->hcolor, "#D3D3D3", OVEC_LEN - 1);
-            strncpy(pdata->gcolor, "#4E4E4E", OVEC_LEN - 1);
-        }
-        else
-        {
-            strncpy(pdata->gcolor, "#D3D3D3", OVEC_LEN - 1);
-        }
         if (dpi >= DPI_PERCENT_480)
         {
             pdata->bmp_wh = 128;
-            pdata->bar_wh = 138;
         }
         else if (dpi >= DPI_PERCENT_432)
         {
             pdata->bmp_wh = 112;
-            pdata->bar_wh = 122;
         }
         else if (dpi >= DPI_PERCENT_384)
         {
             pdata->bmp_wh = 96;
-            pdata->bar_wh = 106;
         }
         else if (dpi >= DPI_PERCENT_336)
         {
             pdata->bmp_wh = 80;
-            pdata->bar_wh = 90;
         }
         else if (dpi >= DPI_PERCENT_288)
         {
             pdata->bmp_wh = 64;
-            pdata->bar_wh = 74;
         }
         else if (dpi >= DPI_PERCENT_240 || (cx >= HIGHT_8X && cy >= HIGHT_8Y))
         {
             pdata->bmp_wh = 48;
-            pdata->bar_wh = 58;
         }
         else if (dpi >= DPI_PERCENT_192 || (cx >= HIGHT_4X && cy >= HIGHT_4Y))
         {
             pdata->bmp_wh = 32;
-            pdata->bar_wh = 42;
         }
         else if (dpi >= DPI_PERCENT_144 || (cx >= HIGHT_2X && cy >= HIGHT_2Y))
         {
             pdata->bmp_wh = 24;
-            pdata->bar_wh = 34;
         }
         else
         {
             pdata->bmp_wh = 16;
-            pdata->bar_wh = 26;
         }
     }
-    else if (resid > 1)
+    else if (resid > IDB_SIZE_1)
     {
-        //
+        switch (resid)
+        {
+            case IDB_SIZE_16:
+                pdata->bmp_wh = 16;
+                break;
+            case IDB_SIZE_24:
+                pdata->bmp_wh = 24;
+                break;                
+            case IDB_SIZE_32:
+                pdata->bmp_wh = 32;
+                break;                
+            case IDB_SIZE_48:
+                pdata->bmp_wh = 48;
+                break;                
+            case IDB_SIZE_64:
+                pdata->bmp_wh = 64;
+                break;                
+            case IDB_SIZE_80:
+                pdata->bmp_wh = 80;
+                break;                
+            case IDB_SIZE_96:
+                pdata->bmp_wh = 96;
+                break;                
+            case IDB_SIZE_112:
+                pdata->bmp_wh = 112;
+                break;                
+            case IDB_SIZE_128:
+                pdata->bmp_wh = 128;
+                break;
+            default:
+                break;
+        }
+    }
+    if (pdata->bmp_wh > 0)
+    {
+        pdata->bar_wh = pdata->bmp_wh + 10;
     }
     return pdata->bar_wh;
 }
@@ -231,7 +259,7 @@ void
 on_toolbar_adjust_box(void)
 {
     int m_bar = eu_get_config()->m_toolbar;
-    if (!m_bar)
+    if (m_bar == IDB_SIZE_0)
     {
         g_toolbar_height = 0;
     }
@@ -859,7 +887,7 @@ on_toolbar_menu_callback(HMENU hpop, void *param)
     if (hpop)
     {
         util_set_menu_item(hpop, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
-        util_set_menu_item(hpop, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
+        util_set_menu_item(hpop, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar != IDB_SIZE_0);
         util_set_menu_item(hpop, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
     }
 }
@@ -948,7 +976,7 @@ on_toolbar_height(void)
 void
 on_toolbar_update_button(void)
 {
-    if (eu_get_config() && eu_get_config()->m_toolbar)
+    if (eu_get_config() && eu_get_config()->m_toolbar != IDB_SIZE_0)
     {
         eu_tabpage *pnode = on_tabpage_focus_at();
         if (pnode && pnode->hwnd_sc)
@@ -1018,7 +1046,7 @@ on_toolbar_create(HWND parent)
          * dwData(0) 应用定义的值
          * iString(0) 鼠标指向时显示的字符串
          *********************************************************************/
-        if (!eu_get_config()->m_toolbar)
+        if (eu_get_config()->m_toolbar == IDB_SIZE_0)
         {
             break;
         }

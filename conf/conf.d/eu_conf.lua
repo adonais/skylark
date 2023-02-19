@@ -35,7 +35,7 @@ function eu_conf.loadconf()
         "window_theme = \"default\"\n" ..
         "window_full_screen = false\n" ..
         "window_menubar_visiable = true\n" ..
-        "window_toolbar_visiable = 1\n" ..
+        "window_toolbar_visiable = 30031\n" ..
         "window_statusbar_visiable = true\n" ..
         "line_number_visiable = true\n" ..
         "last_search_flags = 0x000044\n" ..

@@ -332,19 +332,19 @@
 #define IDM_VIEW_ZOOMIN                 30024
 #define IDM_SCRIPT_EXEC                 30025
 #define IDM_CMD_TAB                     30026
-#define IDB_TOOLBAR1                    30030
-#define IDB_TOOLBAR16                   30031
-#define IDC_TOOLBAR                     30032
-#define IDB_DARK1                       30033
-#define IDB_DARK16                      30034
-#define IDB_TOOLBAR_LARGE1              30035
-#define IDB_TOOLBAR_LARGE32             30036
-#define IDB_DARK_LARGE1                 30037
-#define IDB_DARK_LARGE32                30038
-#define IDB_TOOLBAR_MIDDLING1           30039
-#define IDB_TOOLBAR_MIDDLING24          30040
-#define IDB_DARK_MIDDLING1              30041
-#define IDB_DARK_MIDDLING24             30042
+#define IDC_TOOLBAR                     30027
+
+#define IDB_SIZE_0                      30030
+#define IDB_SIZE_1                      30031
+#define IDB_SIZE_16                     30032
+#define IDB_SIZE_24                     30033
+#define IDB_SIZE_32                     30034
+#define IDB_SIZE_48                     30035
+#define IDB_SIZE_64                     30036
+#define IDB_SIZE_80                     30037
+#define IDB_SIZE_96                     30038
+#define IDB_SIZE_112                    30039
+#define IDB_SIZE_128                    30040
 #define IDM_VIEW_DOCUMENT_MAP           30043
 
 #define IDM_FILE_CLOSEALL               30100

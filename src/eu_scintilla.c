@@ -639,7 +639,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_THEMECHANGED:
         {
             printf("scintilla WM_THEMECHANGED\n");
-            if (eu_get_config()->m_toolbar)
+            if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 on_toolbar_update_button();
             }

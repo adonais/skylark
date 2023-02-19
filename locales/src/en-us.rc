@@ -222,8 +222,21 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "F&ull Screen Mode",                                  IDM_VIEW_FULLSCREEN
         MENUITEM "Show M&enubar",                                      IDM_VIEW_MENUBAR
-        MENUITEM "S&how Toolbar",                                      IDM_VIEW_TOOLBAR
         MENUITEM "Show Stat&usbar",                                    IDM_VIEW_STATUSBAR
+        POPUP "Adjust Toolbar"
+        BEGIN
+            MENUITEM "&Hide",                                          IDB_SIZE_0
+            MENUITEM "&Auto Fix",                                      IDB_SIZE_1
+            MENUITEM "16 x 16",                                        IDB_SIZE_16
+            MENUITEM "24 x 24",                                        IDB_SIZE_24
+            MENUITEM "32 x 32",                                        IDB_SIZE_32
+            MENUITEM "48 x 48",                                        IDB_SIZE_48
+            MENUITEM "64 x 64",                                        IDB_SIZE_64
+            MENUITEM "80 x 80",                                        IDB_SIZE_80
+            MENUITEM "96 x 96",                                        IDB_SIZE_96
+            MENUITEM "112 x 112",                                      IDB_SIZE_112
+            MENUITEM "128 x 128",                                      IDB_SIZE_128
+        END        
         MENUITEM MF_SEPARATOR
         MENUITEM "Tab Width [N] Spaces...",                            IDM_VIEW_TAB_WIDTH
         MENUITEM "Tabs As Spaces",                                     IDM_TAB_CONVERT_SPACES

@@ -406,7 +406,6 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_VIEW_SYMTREE, pnode->hwnd_symlist || pnode->hwnd_symtree);
                         util_set_menu_item(menu, IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);
                         util_set_menu_item(menu, IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
-                        util_set_menu_item(menu, IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar);
                         util_set_menu_item(menu, IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
                         util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_BRACE, eu_get_config()->eu_brace.matching);
                         util_set_menu_item(menu, IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
@@ -433,6 +432,7 @@ menu_update_item(HMENU menu)
                             util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces);
                         }
                         util_set_menu_item(menu, IDM_VIEW_TIPS_ONTAB, eu_get_config()->m_tab_tip);
+                        util_switch_menu_group(menu, TAB_MENU_TOOLBAR_SUB, IDB_SIZE_0, IDB_SIZE_128, eu_get_config()->m_toolbar);
                         util_switch_menu_group(menu, TAB_MENU_ACTIVE_SUB, IDM_VIEW_LEFT_TAB, IDM_VIEW_FAR_RIGHT_TAB, eu_get_config()->m_tab_active);
                         util_switch_menu_group(menu, TAB_MENU_CLOSE_SUB, IDM_VIEW_TAB_RIGHT_CLICK, IDM_VIEW_TAB_LEFT_DBCLICK, eu_get_config()->m_close_way);
                         util_switch_menu_group(menu, TAB_MENU_NEW_SUB, IDM_VIEW_TAB_RIGHT_NEW, IDM_VIEW_TAB_DBCLICK_NEW, eu_get_config()->m_new_way);

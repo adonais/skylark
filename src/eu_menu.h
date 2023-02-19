@@ -20,10 +20,14 @@
 #define _EU_MENU_H_
 
 /* 子菜单所在位置 */
+#define VIEW_MENU             3
 #define THEME_MENU            6
 #define THEME_MENU_SUB        7
 #define LOCALE_MENU           6
 #define LOCALE_MENU_SUB       5
+
+/* 子菜单弹出菜单位置 */
+#define TAB_MENU_TOOLBAR_SUB  7
 #define TAB_MENU_ACTIVE_SUB   28
 #define TAB_MENU_CLOSE_SUB    29
 #define TAB_MENU_NEW_SUB      30

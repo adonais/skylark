@@ -27,6 +27,7 @@
 extern "C" {
 #endif
 
+extern int g_toolbar_size;
 bool on_toolbar_get_clipboard(char **ppstr);
 bool on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
 void on_toolbar_adjust_box(void);
