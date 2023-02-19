@@ -598,8 +598,6 @@ EU_EXT_CLASS int eu_reg_dir_popup_menu(void);
 
 // for eu_hook.c
 EU_EXT_CLASS bool on_hook_exception(void);
-EU_EXT_CLASS void on_hook_do(void);
-EU_EXT_CLASS void on_hook_undo(void);
 
 // for eu_share.c
 EU_EXT_CLASS void share_close_lang(void);
@@ -630,7 +628,9 @@ EU_EXT_CLASS bool eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
 
 // for eu_config.c
 EU_EXT_CLASS bool eu_load_main_config(void);
-EU_EXT_CLASS bool eu_load_config(void);
+EU_EXT_CLASS bool eu_load_accel_config(void);
+EU_EXT_CLASS bool eu_load_toolbar_config(void);
+EU_EXT_CLASS bool eu_load_docs_config(void);
 EU_EXT_CLASS bool eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
 EU_EXT_CLASS void eu_load_file(void);
 EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);

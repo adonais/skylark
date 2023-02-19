@@ -27,6 +27,8 @@
     }                                                       \
 }
 
+#define SKY_SAFE_EXIT(n) {msg.wParam = n; goto all_clean;}
+
 /*****************************************************************************
  * 主窗口初始化之前, 先建立工具栏, 状态栏, 搜索框等顶层窗口
  ****************************************************************************/
@@ -103,23 +105,23 @@ _tmain(int argc, TCHAR *argv[])
     }  // 获取主进程所在目录
     if (!eu_process_path(eu_module_path, MAX_PATH))
     {
-        return -1;
+        SKY_SAFE_EXIT(-1);
     }  // 便携目录是否可写入
     if (_sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path) > 0)
     {
         if (!(cache_path[0] && eu_try_path(cache_path)))
         {
             MSG_BOX(IDC_MSG_DIR_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            SKY_SAFE_EXIT(-1);
         }
     }  // 设置lua脚本搜索路径
     if (!eu_lua_path_setting(NULL))
     {
-        return -1;
+        SKY_SAFE_EXIT(-1);
     }  // 加载主配置文件
     if (!eu_load_main_config())
     {
-        return -1;
+        SKY_SAFE_EXIT(-1);
     }
     if (!no_remote && (hsem = share_envent_open_file_sem()) != NULL)
     {   // 编辑器还未完全关闭
@@ -129,12 +131,12 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (!share_envent_create())
     {   // 进程同步的信号量
-        return -1;
+        SKY_SAFE_EXIT(-1);
     }
     // 建立共享内存, 里面保存第一个进程的主窗口句柄
     if ((mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME)) == NULL)
     {
-        return -1;
+        SKY_SAFE_EXIT(-1);
     }
     else if (ERROR_ALREADY_EXISTS == GetLastError())
     {
@@ -180,11 +182,7 @@ _tmain(int argc, TCHAR *argv[])
         {
             share_close(mapped);
             share_envent_close();
-            if (dark_mode)
-            {
-                eu_on_dark_release(true);
-            }
-            return 0;
+            SKY_SAFE_EXIT(0);
         }
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-lua")) == 0)
@@ -217,28 +215,29 @@ _tmain(int argc, TCHAR *argv[])
         {
             FreeConsole();
         }
-        goto all_clean;
+        SKY_SAFE_EXIT(0);
     }
 #if 0
     if (!on_hook_exception())
     {
         printf("on_hook_exception failed\n");
-        msg.wParam = -1;
-        goto all_clean;
+        SKY_SAFE_EXIT(-1);
     }
 #endif    
 #if APP_DEBUG
     eu_init_logs();
 #endif
-    if (!eu_load_config())
-    {   // 加载分类配置文件
-        msg.wParam = -1;
-        goto all_clean;
+    if (!eu_load_accel_config())
+    {   // 加载快捷键配置文件
+        SKY_SAFE_EXIT(-1);
+    }
+    if (!eu_load_docs_config())
+    {   // 加载文档分类配置文件
+        SKY_SAFE_EXIT(-1);
     }
     if (!(lang_map = share_load_lang()))
     {   // 加载语言资源文件
-        msg.wParam = -1;
-        goto all_clean;
+        SKY_SAFE_EXIT(-1);
     }
     if (eu_check_arg(argv, argc, _T("--help"), NULL))
     {
@@ -247,37 +246,35 @@ _tmain(int argc, TCHAR *argv[])
             eu_on_dark_init(true, true);
         }
         eu_about_command();
-        msg.wParam = 0;
-        goto all_clean;
+        SKY_SAFE_EXIT(0);
     }
     if (argc > 1 && _tcscmp(argv[1], REGFILE) == 0)
     {
         eu_reg_file_popup_menu();
-        msg.wParam = 0;
-        goto all_clean;
+        SKY_SAFE_EXIT(0);
     }
     if (argc > 1 && _tcscmp(argv[1], REGFOLDER) == 0)
     {
         eu_reg_dir_popup_menu();
-        msg.wParam = 0;
-        goto all_clean;
+        SKY_SAFE_EXIT(0);
     }
     if (eu_prepend_path(eu_module_path) < 0)
     {
-        msg.wParam = -1;
-        goto all_clean;
+        SKY_SAFE_EXIT(0);
     }
+    if (!eu_load_toolbar_config())
+    {   // 加载工具栏配置文件
+        SKY_SAFE_EXIT(-1);
+    }    
     // 注册scintilla
     if (!eu_sci_register(instance))
     {
         MSG_BOX(IDC_MSG_SCI_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        msg.wParam = -1;
-        goto all_clean;
+        SKY_SAFE_EXIT(-1);
     }
     if (!(hwnd = init_instance(instance)))
     {
-        msg.wParam = -1;
-        goto all_clean;
+        SKY_SAFE_EXIT(-1);
     }
     if (mapped)
     {
@@ -330,7 +327,6 @@ all_clean:
     share_envent_release();
     eu_curl_global_release();
     eu_sci_release();
-    on_hook_undo();
     eu_remote_list_release();
     eu_on_dark_release(true);
     eu_doc_ptr_free();

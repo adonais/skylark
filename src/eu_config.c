@@ -399,32 +399,41 @@ on_config_sync_snippet(void)
     return true;
 }
 
-bool
-eu_load_main_config(void)
+static bool
+eu_load_lua_function(const wchar_t *file)
 {
     bool ret = false;
     char *lua_path = NULL;
     TCHAR path[MAX_PATH+1] = {0};
-    int  m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
-    do
+    int  m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\%s"), eu_module_path, file);
+    if ((m > 0 && m < MAX_PATH) && ((lua_path = eu_utf16_utf8(path, NULL)) != NULL))
     {
-        if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
-        {
-            break;
-        }
-        if (do_lua_func(lua_path, "run", "") != 0)
-        {
-            printf("eu_main.lua exec failed\n");
-            break;
-        }
-        ret = true;
-    } while(0);
-    eu_safe_free(lua_path);
+        ret = (do_lua_func(lua_path, "run", "") == 0);
+        free(lua_path);
+    }       
     return ret;
 }
 
 bool
-eu_load_config(void)
+eu_load_accel_config(void)
+{
+    return eu_load_lua_function(_T("eu_input.lua"));
+}
+
+bool
+eu_load_toolbar_config(void)
+{
+    return eu_load_lua_function(_T("eu_gui.lua"));
+}
+
+bool
+eu_load_main_config(void)
+{
+    return eu_load_lua_function(_T("eu_main.lua"));
+}
+
+bool
+eu_load_docs_config(void)
 {
     int  m = 0;
     bool ret = false;
