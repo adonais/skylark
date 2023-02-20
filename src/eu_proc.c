@@ -1424,7 +1424,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FORMAT_HYPERLINKHOTSPOTS:
                 {
-                    eu_get_config()->eu_hyperlink.enable ^= true;
+                    eu_get_config()->m_hyperlink ^= true;
                     break;
                 }
                 case IDM_VIEW_WRAPLINE_MODE:

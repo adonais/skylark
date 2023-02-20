@@ -2,12 +2,6 @@ eu_conf = {}
 
 require("eu_core")
 
--- 内置主题索引
-STYLE_THEME_ALL     = 0
-STYLE_THEME_DEFAULT = 1
-STYLE_THEME_DARK    = 2
-STYLE_THEME_WHITE   = 3
-
 function eu_conf.fill_actions(s)
     local pconfig = eu_core.ffi.cast('struct eu_config *', s)
     if (eu_core.table_is_empty(process_actions)) then
@@ -117,12 +111,7 @@ function eu_conf.loadconf()
         "    margin_bottom = 2000\n" ..
         "}\n" ..
         "-- hyperlink hotspot default setting\n" ..
-        "hyperlink_hotspot = {\n" ..
-        "    enable = true,\n" ..
-        "    theme_id = STYLE_THEME_DEFAULT,\n" ..
-        "    fg_rgb = 0x3CFFFF80,\n" ..
-        "    bg_rgb = 0xB42F8CFF\n" ..
-        "}\n" ..
+        "hyperlink_detection = true\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
         "cache_limit_size = 200\n" ..
         "app_build_id = 0\n" ..
@@ -135,21 +124,6 @@ function eu_conf.loadconf()
         eu_code = assert(loadstring(code))()
     else
         eu_code = dofile(file)
-    end
-    if (tab_new_way == nil) then
-        tab_new_way = 0
-    end
-    if (tab_close_draw == nil) then
-        tab_close_draw = 43004
-    end
-    if (scroll_to_cursor == nil) then
-        scroll_to_cursor = false
-    end
-    if (hyperlink_hotspot == nil) then
-        hyperlink_hotspot.enable = true
-        hyperlink_hotspot.theme_id = STYLE_THEME_DEFAULT
-        hyperlink_hotspot.fg_rgb = 0x3CFFFF80
-        hyperlink_hotspot.enablebg_rgb = 0xB42F8CFF
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
@@ -205,7 +179,7 @@ function eu_conf.loadconf()
         {calltip.enable, calltip.rgb},
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
-        {hyperlink_hotspot.enable, hyperlink_hotspot.theme_id, hyperlink_hotspot.fg_rgb, hyperlink_hotspot.bg_rgb},
+        hyperlink_detection,
         cache_limit_size,
         app_build_id,
         process_path,

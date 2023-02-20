@@ -465,7 +465,7 @@ menu_update_item(HMENU menu)
                     }
                     case IDM_FORMAT_HYPERLINKHOTSPOTS:
                     {
-                        util_set_menu_item(menu, IDM_FORMAT_HYPERLINKHOTSPOTS, eu_get_config()->eu_hyperlink.enable);
+                        util_set_menu_item(menu, IDM_FORMAT_HYPERLINKHOTSPOTS, eu_get_config()->m_hyperlink);
                         util_enable_menu_item(menu, IDM_FORMAT_HYPERLINKHOTSPOTS, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
                     }

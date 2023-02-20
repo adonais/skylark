@@ -104,12 +104,6 @@
                           VER_CHARSET                 \
                           TEXT(")")
 
-// 内置主题索引
-#define STYLE_THEME_ALL     0
-#define STYLE_THEME_DEFAULT 1
-#define STYLE_THEME_DARK    2
-#define STYLE_THEME_WHITE   3
-
 // 资源标识符
 #define IDR_LBREAK_MENU  10000
 #define IDR_CODEING_MENU 10001

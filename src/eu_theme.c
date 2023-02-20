@@ -105,6 +105,9 @@ static HFONT font_phpsection_static;
 static HWND hwnd_aspsection_static;
 static HFONT font_aspsection_static;
 
+static HWND hwnd_hyperlink_static;
+static HFONT font_hyperlink_static;
+
 static HWND hwnd_activetab_static;
 static HFONT font_activetab_static;
 
@@ -452,7 +455,7 @@ choose_text_color(HWND hwnd, uint32_t *color)
     COLORREF cr = {0};
     COLORREF crs[16];
     CHOOSECOLOR cc = {sizeof(CHOOSECOLOR)};
-    cr = *(color);
+    cr = (*color) & 0x00FFFFFF;
     memset(&crs, 0, sizeof(crs));
     cc.hwndOwner = hwnd;
     cc.hInstance = (HWND)eu_module_handle();
@@ -465,8 +468,9 @@ choose_text_color(HWND hwnd, uint32_t *color)
         cc.lpfnHook = choose_color_proc;
     }
     if (ChooseColor(&cc))
-    {
-        (*color) = cc.rgbResult;
+    {   // 保留原有的alpha值
+        COLORREF tmp = (*color) & 0xFF000000;
+        (*color) = (tmp | cc.rgbResult);
     }
     return SKYLARK_OK;
 }
@@ -498,12 +502,11 @@ choose_text_color(HWND hwnd, uint32_t *color)
         SendMessage(_hwnd_handle_name_, WM_SETFONT, (WPARAM) _font_handle_name_, 0);              \
     }
 
-#define SET_STATIC_TEXTCOLOR(_hwnd_static_, _st_memb_)         \
-    if ((HWND) lParam == _hwnd_static_)                        \
-    {                                                          \
-        dlg_style._st_memb_.color &= 0x00ffffff;               \
-        SetTextColor((HDC) wParam, dlg_style._st_memb_.color); \
-        SetBkColor((HDC) wParam, dlg_style.text.bgcolor);      \
+#define SET_STATIC_TEXTCOLOR(_hwnd_static_, _st_memb_)                                            \
+    if ((HWND) lParam == _hwnd_static_)                                                           \
+    {                                                                                             \
+        SetTextColor((HDC) wParam, dlg_style._st_memb_.color & 0x00FFFFFF);                       \
+        SetBkColor((HDC) wParam, dlg_style.text.bgcolor & 0x00FFFFFF);                            \
     }
 
 // 选择新字体后更新示例字体
@@ -587,6 +590,7 @@ theme_release_handle(void)
     DeleteObject(font_cdata_static);
     DeleteObject(font_phpsection_static);
     DeleteObject(font_aspsection_static);
+    DeleteObject(font_hyperlink_static);
     
     DeleteObject(brush_language);
     brush_language = NULL;
@@ -674,6 +678,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(cdata, IDC_CDATA_STATIC, hwnd_cdata_static, font_cdata_static)
             CREATE_STYLETHEME_FONT(phpsection, IDC_PHPSECTION_STATIC, hwnd_phpsection_static, font_phpsection_static)
             CREATE_STYLETHEME_FONT(aspsection, IDC_ASPSECTION_STATIC, hwnd_aspsection_static, font_aspsection_static)
+            CREATE_STYLETHEME_FONT(hyperlink, IDC_HYPERLINKSECTION_STATIC, hwnd_hyperlink_static, font_hyperlink_static)
             CREATE_STYLETHEME_FONT(activetab, IDC_THEME_TAB_STATIC, hwnd_activetab_static, font_activetab_static)
             CREATE_STYLETHEME_FONT(symbolic, IDC_THEME_SYMBOLIC_STATIC, hwnd_symbolic_static, font_symbolic_static)
             HWND hwnd_caretline_edt = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
@@ -749,6 +754,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETTEXTCOLOR_PHPSECTION_BTN,
                                        IDC_SETFONT_ASPSECTION_BTN,
                                        IDC_SETTEXTCOLOR_ASPSECTION_BTN,
+                                       IDC_SETFONT_HYPERLINKSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN,
                                        IDC_SETFONT_TAGS_BTN,
                                        IDC_SETTEXTCOLOR_TAGS_BTN,
                                        IDC_SETFONT_CDATA_BTN,
@@ -822,6 +829,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETTEXTCOLOR_PHPSECTION_BTN,
                                        IDC_SETFONT_ASPSECTION_BTN,
                                        IDC_SETTEXTCOLOR_ASPSECTION_BTN,
+                                       IDC_SETFONT_HYPERLINKSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN,
                                        IDC_SETFONT_TAGS_BTN,
                                        IDC_SETTEXTCOLOR_TAGS_BTN,
                                        IDC_SETFONT_CDATA_BTN,
@@ -956,6 +965,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else SET_STATIC_TEXTCOLOR(hwnd_cdata_static, cdata)
             else SET_STATIC_TEXTCOLOR(hwnd_phpsection_static, phpsection)
             else SET_STATIC_TEXTCOLOR(hwnd_aspsection_static, aspsection)
+            else SET_STATIC_TEXTCOLOR(hwnd_hyperlink_static, hyperlink)
             else SET_STATIC_TEXTCOLOR(hwnd_caret_static, caret)
             else SET_STATIC_TEXTCOLOR(hwnd_symbolic_static, symbolic)
             return (LRESULT) brush_language;
@@ -1030,7 +1040,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     choose_style_font(dlg_style.text.font, &(dlg_style.text.fontsize), &(dlg_style.text.bold));
 
                     SYNC_FONT(text, hwnd_text_static, font_text_static)
-
                     SYNC_FONT(keywords0, hwnd_keyword_static, font_keyword_static)
                     SYNC_FONT(keywords1, hwnd_keyword2_static, font_keyword2_static)
                     SYNC_FONT(string, hwnd_string_static, font_string_static)
@@ -1051,6 +1060,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     SYNC_FONT(cdata, hwnd_cdata_static, font_cdata_static)
                     SYNC_FONT(phpsection, hwnd_phpsection_static, font_phpsection_static)
                     SYNC_FONT(aspsection, hwnd_aspsection_static, font_aspsection_static)
+                    SYNC_FONT(hyperlink, hwnd_hyperlink_static, font_hyperlink_static)
                     break;
                 }
                 case IDC_SETTEXTCOLOR_TEXT_BTN:
@@ -1103,7 +1113,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else STYLE_MSG(cdata,hwnd_cdata_static,font_cdata_static,IDC_SETFONT_CDATA_BTN,IDC_SETTEXTCOLOR_CDATA_BTN)
             else STYLE_MSG(phpsection,hwnd_phpsection_static,font_phpsection_static,IDC_SETFONT_PHPSECTION_BTN,IDC_SETTEXTCOLOR_PHPSECTION_BTN)
             else STYLE_MSG(aspsection,hwnd_aspsection_static,font_aspsection_static,IDC_SETFONT_ASPSECTION_BTN,IDC_SETTEXTCOLOR_ASPSECTION_BTN)
-            else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)    
+            else STYLE_MSG(hyperlink,hwnd_hyperlink_static,font_hyperlink_static,IDC_SETFONT_HYPERLINKSECTION_BTN,IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN)
+            else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)
             break;
         case WM_DESTROY:
             printf("theme dlg WM_DESTROY\n");

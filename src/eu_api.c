@@ -1717,12 +1717,7 @@ eu_save_config(void)
         "    margin_bottom = %d\n"
         "}\n"
         "-- hyperlink hotspot default setting\n"
-        "hyperlink_hotspot = {\n"
-        "    enable = %s,\n"
-        "    theme_id = %d,\n"
-        "    bg_rgb = 0x%08X,\n"
-        "    bg_rgb = 0x%08X\n"
-        "}\n"
+        "hyperlink_detection = %s\n"
         "-- automatically cached file (size < 200MB)\n"
         "cache_limit_size = %d\n"
         "app_build_id = %I64u\n"
@@ -1820,10 +1815,7 @@ eu_save_config(void)
               g_config->eu_print.rect.top,
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
-              g_config->eu_hyperlink.enable?"true":"false",
-              g_config->eu_hyperlink.theme_id,
-              g_config->eu_hyperlink.fg_rgb,
-              g_config->eu_hyperlink.bg_rgb,
+              g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
               on_about_build_id(),
               g_config->m_path,
@@ -1985,7 +1977,12 @@ eu_save_theme(void)
         "symbolic_fontsize = %d\n"
         "symbolic_color = 0x%08X\n"
         "symbolic_bgcolor = 0x%08X\n"
-        "symbolic_bold = %d";
+        "symbolic_bold = %d\n"
+        "hyperlink_font = \"%s\"\n"
+        "hyperlink_fontsize = %d\n"
+        "hyperlink_color = 0x%08X\n"
+        "hyperlink_bgcolor = 0x%08X\n"
+        "hyperlink_bold = %d";
     if (!g_theme)
     {
         return;
@@ -2025,7 +2022,8 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(aspsection),
         EXPAND_STYLETHEME(activetab),
         EXPAND_STYLETHEME(caret),
-        EXPAND_STYLETHEME(symbolic));
+        EXPAND_STYLETHEME(symbolic),
+        EXPAND_STYLETHEME(hyperlink));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)
