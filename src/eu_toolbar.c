@@ -39,7 +39,6 @@
 
 typedef struct _toolbar_data
 {
-    int res_id;
     int bmp_wh;
     int bar_wh;
     char hcolor[OVEC_LEN];
@@ -68,7 +67,6 @@ on_toolbar_fill_params(toolbar_data *pdata, const int resid)
     int cx = GetSystemMetrics(SM_CXSCREEN);
     int cy = GetSystemMetrics(SM_CYSCREEN);
     const bool dark = on_dark_enable();
-    pdata->res_id = (int)resid;
     if (dark)
     {
         strncpy(pdata->hcolor, "#D3D3D3", OVEC_LEN - 1);
@@ -127,25 +125,25 @@ on_toolbar_fill_params(toolbar_data *pdata, const int resid)
                 break;
             case IDB_SIZE_24:
                 pdata->bmp_wh = 24;
-                break;                
+                break;
             case IDB_SIZE_32:
                 pdata->bmp_wh = 32;
-                break;                
+                break;
             case IDB_SIZE_48:
                 pdata->bmp_wh = 48;
-                break;                
+                break;
             case IDB_SIZE_64:
                 pdata->bmp_wh = 64;
-                break;                
+                break;
             case IDB_SIZE_80:
                 pdata->bmp_wh = 80;
-                break;                
+                break;
             case IDB_SIZE_96:
                 pdata->bmp_wh = 96;
-                break;                
+                break;
             case IDB_SIZE_112:
                 pdata->bmp_wh = 112;
-                break;                
+                break;
             case IDB_SIZE_128:
                 pdata->bmp_wh = 128;
                 break;
@@ -184,7 +182,10 @@ on_toolbar_setup_button(int id, int flags)
     HWND h_tool = GetDlgItem(eu_module_hwnd(), IDC_TOOLBAR);
     if (h_tool)
     {
-        status = SendMessage(h_tool, TB_GETSTATE, id, 0);
+        if ((status = SendMessage(h_tool, TB_GETSTATE, id, 0)) == -1)
+        {
+            return;
+        }
         switch (flags)
         {
             case 0:
@@ -981,26 +982,26 @@ on_toolbar_update_button(void)
         eu_tabpage *pnode = on_tabpage_focus_at();
         if (pnode && pnode->hwnd_sc)
         {
-            on_toolbar_setup_button(IDM_FILE_SAVE, on_sci_doc_modified(pnode) && !eu_sci_call(pnode, SCI_GETREADONLY, 0, 0)?2:1);
+            on_toolbar_setup_button(IDM_FILE_SAVE, on_sci_doc_modified(pnode) && !eu_sci_call(pnode, SCI_GETREADONLY, 0, 0) ? 2 : 1);
             on_toolbar_setup_button(IDM_FILE_SAVEAS, 2);
             on_toolbar_setup_button(IDM_FILE_CLOSE, 2);
             on_toolbar_setup_button(IDM_FILE_PRINT, 2);
             on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_PASTE, !pnode->pmod && eu_sci_call(pnode,SCI_CANPASTE, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_PASTE, !pnode->pmod && eu_sci_call(pnode, SCI_CANPASTE, 0, 0) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FIND, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDPREV, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, !pnode->pmod ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && eu_sci_call(pnode,SCI_CANUNDO, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && eu_sci_call(pnode,SCI_CANREDO, 0, 0)?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->pmod && !pnode->hex_mode?2:1);
-            on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage!=IDM_OTHER_BIN)&& TAB_NOT_NUL(pnode)?2:1);
-            on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree)?2:1);
+            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && eu_sci_call(pnode, SCI_CANUNDO, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && eu_sci_call(pnode, SCI_CANREDO, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->pmod && !pnode->hex_mode ? 2 : 1);
+            on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->pmod && !pnode->hex_mode ? 2 : 1);
+            on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->pmod && !pnode->hex_mode ? 2 : 1);
+            on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage != IDM_OTHER_BIN) && TAB_NOT_NUL(pnode) ? 2 : 1);
+            on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
-            on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr)?2:1);
-            on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl()?2:1);
+            on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr) ? 2 : 1);
+            on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl() ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMIN, !pnode->pmod ? 2 : 1);
         }
