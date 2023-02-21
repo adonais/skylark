@@ -10,8 +10,8 @@ function eu_toolbar.loading()
     local code = {
       '--[=[\n',
       'You can edit this file to customize your toolbar.\n',
-      'The first element, string identifier displayed when the mouse is pointed, identifiers are defined in local/zh-cn[eu-us].rc.\n',
-      'The second element, command identifier associated with the button, identifiers are defined in local/zh-cn[eu-us].rc.\n',
+      'The first element, string identifier displayed when the mouse is pointed, identifiers are defined in locals/src/zh-cn[eu-us].rc.\n',
+      'The second element, command identifier associated with the button, identifiers are defined in locals/src/zh-cn[eu-us].rc.\n',
       'The third element, the svg image.\n',
       ']=]\n',
       '\n',

@@ -130,7 +130,6 @@
 #include "eu_format.h"
 #include "eu_qrgen.h"
 
-#include "resource.h"
 #include "eu_hex.h"
 #include "eu_util.h"
 #include "eu_tablectl.h"

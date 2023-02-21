@@ -185,7 +185,7 @@ $(OBJD)\eu_map.obj                         : eu_map.c eu_map.h
 $(OBJD)\eu_changes.obj                     : eu_changes.c eu_changes.h framework.h
 $(OBJD)\eu_toolbar.obj                     : eu_toolbar.c eu_toolbar.h framework.h
 $(OBJD)\eu_statusbar.obj                   : eu_statusbar.c eu_statusbar.h framework.h
-$(OBJD)\eu_about.obj                       : eu_about.c eu_about.h framework.h skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\locales\src\*
+$(OBJD)\eu_about.obj                       : eu_about.c eu_about.h framework.h skylark.rc targetver.h skylark.exe.manifest $(ROOT)\locales\src\*
 $(OBJD)\eu_qrgen.obj                       : eu_qrgen.c eu_qrgen.h framework.h
 $(OBJD)\eu_json.obj                        : eu_json.c eu_json.h framework.h
 $(OBJD)\eu_print.obj                       : eu_print.c eu_print.h eu_nphost.h eu_npruntime.h framework.h
@@ -202,5 +202,5 @@ $(OBJD)\eu_nphost.obj                      : eu_nphost.c eu_nphost.h eu_npruntim
 $(OBJD)\eu_pixmap.obj                      : eu_pixmap.c eu_pixmap.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
-$(OBJD)\resource.res                       : skylark.rc resource.h targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
+$(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
 	$(RC) $(RFLAGS) -Fo$@ skylark.rc

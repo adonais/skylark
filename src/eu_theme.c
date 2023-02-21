@@ -591,7 +591,7 @@ theme_release_handle(void)
     DeleteObject(font_phpsection_static);
     DeleteObject(font_aspsection_static);
     DeleteObject(font_hyperlink_static);
-    
+
     DeleteObject(brush_language);
     brush_language = NULL;
     DeleteObject(brush_linenumber);
@@ -1092,7 +1092,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     choose_text_color(hdlg, &(dlg_style.caret.color));
                     InvalidateRect(hwnd_caret_static, NULL, TRUE);
                     break;
-                }                
+                }
             }
             STYLE_MSG(keywords0,hwnd_keyword_static,font_keyword_static,IDC_SETFONT_KEYWORDS_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS_BTN)
             else STYLE_MSG(keywords1,hwnd_keyword2_static,font_keyword2_static,IDC_SETFONT_KEYWORDS2_BTN,IDC_SETTEXTCOLOR_KEYWORDS2_BTN)
