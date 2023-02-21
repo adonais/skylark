@@ -469,7 +469,7 @@ on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
     if ((p = strrchr(url, '/')) && strlen(p) > 1)
     {
         p[1] = 0;
-    }    
+    }
     if (!(curl = on_remote_init_socket(url, pserver)))
     {
         free(url);
@@ -869,6 +869,7 @@ on_file_before_open(eu_tabpage *pnode)
 static int
 on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
 {
+    int mtab = 0;
     on_sci_after_file(pnode);
     on_file_update_focus(pnode, pbak);
     if (!pnode->plugin)
@@ -876,7 +877,7 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
         on_file_update_postion(pnode, pbak);
         on_search_add_navigate_list(pnode, pnode->nc_pos);
     }
-    if (on_tabpage_selection(pnode, -1) < 0)
+    if ((mtab = on_tabpage_selection(pnode, -1)) < 0)
     {
         return SKYLARK_TABCTRL_ERR;
     }
@@ -902,6 +903,10 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
     if (!pnode->is_blank)
     {
         on_file_push_recent(pnode);
+    }
+    if (last_focus == (intptr_t)mtab)
+    {
+        return mtab;
     }
     return on_tabpage_selection(pnode, last_focus);
 }
@@ -1900,9 +1905,9 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
             filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             if (mode == FILE_REMOTE_CLOSE)
             {
-                filebak.sync = (int)(url_has_remote(filebak.rel_path) ? 1 : 
+                filebak.sync = (int)(url_has_remote(filebak.rel_path) ? 1 :
                                (TabCtrl_GetItemCount(g_tabpages) <= 1 && eu_get_config()->m_exit) ? 1 : 0);
-                
+
                 eu_update_backup_table(&filebak, DB_FILE);
                 on_sql_delete_backup_row(pnode);
             }

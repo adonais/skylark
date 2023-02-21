@@ -161,6 +161,8 @@ void
 on_sci_init_style(eu_tabpage *pnode)
 {
     on_sci_init_default(pnode, -1);
+    // 为超链接设置indicators样式
+    on_hyper_set_style(pnode);
 }
 
 void
@@ -200,7 +202,7 @@ on_sci_reset_zoom(eu_tabpage *pnode)
                 on_view_zoom_in(pnode);
             }
         }
-        pnode->zoom_level = 0;      
+        pnode->zoom_level = 0;
     }
 }
 
@@ -364,6 +366,10 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
         if (!on_tabpage_check_map() && hwnd_document_map)
         {
             DestroyWindow(hwnd_document_map);
+        }
+        if ((*ppnode)->hyper_id)
+        {
+            util_kill_thread((uint32_t)(*ppnode)->hyper_id);
         }
         if (plugins)
         {

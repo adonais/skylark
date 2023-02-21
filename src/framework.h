@@ -163,5 +163,6 @@
 #include "eu_snparser.h"
 #include "eu_complete.h"
 #include "eu_pixmap.h"
+#include "eu_hyperlink.h"
 
 #endif  // _EU_FRAMEWORK_H_

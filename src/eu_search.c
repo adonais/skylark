@@ -2076,7 +2076,7 @@ on_search_report_thread(eu_tabpage *pnode, int err, const int button, const bool
     if (use_thread)
     {
         HANDLE thr = NULL;
-        if (search_btn_id < LONG_MAX && 
+        if (search_btn_id < LONG_MAX &&
            (thr = (HANDLE) _beginthreadex(NULL, 0, on_search_report_result, util_struct_to_string(&rdata, sizeof(rdata)), 0, NULL)))
         {
             _InterlockedIncrement(&search_btn_id);

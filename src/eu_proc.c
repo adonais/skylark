@@ -1425,6 +1425,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FORMAT_HYPERLINKHOTSPOTS:
                 {
                     eu_get_config()->m_hyperlink ^= true;
+                    if (!eu_get_config()->m_hyperlink)
+                    {
+                        on_hyper_clear_style();
+                    }
                     break;
                 }
                 case IDM_VIEW_WRAPLINE_MODE:
@@ -1821,7 +1825,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                 {
                                     on_edit_undo_iconv(pnode);
                                 }
-                                if (!eu_sci_call(pnode,SCI_CANUNDO, 0, 0))
+                                if (!eu_sci_call(pnode, SCI_CANUNDO, 0, 0))
                                 {
                                     eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
                                 }
@@ -1851,6 +1855,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case SCN_INDICATORRELEASE:
+                {
+                    if (KEY_DOWN(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT) && KEY_UP(VK_SHIFT))
+                    {
+                        on_hyper_click(pnode, hwnd, lpnotify->position);
+                    }
+                    break;
+                }
                 case SCN_PAINTED:
                 {
                     if ((lpnotify->nmhdr.hwndFrom == pnode->hwnd_sc) && pnode->map_show && document_map_initialized)
@@ -1867,6 +1879,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if ((lpnotify->updated))
                     {
+                        if (eu_get_config()->m_hyperlink && pnode && (!(pnode->hex_mode || pnode->plugin)))
+                        {
+                            on_hyper_update_style(pnode);
+                        }
                         if (lpnotify->updated & SC_UPDATE_SELECTION)
                         {
                             if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))

@@ -144,7 +144,7 @@ function eu_theme.get_default(name)
           "hyperlink_font = \"Consolas\"\n" ..
           "hyperlink_fontsize = 11\n" ..
           "hyperlink_color = 0x3C80FFFF\n" ..
-          "hyperlink_bgcolor = 0x00000000\n" ..
+          "hyperlink_bgcolor = 0xB4FF8C2F\n" ..
           "hyperlink_bold = 1"
     elseif (name == "white") then
         theme = -- 经典白主题配置文件
@@ -285,8 +285,8 @@ function eu_theme.get_default(name)
           "symbolic_bold = 0\n" ..
           "hyperlink_font = \"Consolas\"\n" ..
           "hyperlink_fontsize = 11\n" ..
-          "hyperlink_color = 0x3CFFA54A\n" ..
-          "hyperlink_bgcolor = 0x00000000\n" ..
+          "hyperlink_color = 0x3C8C99ED\n" ..
+          "hyperlink_bgcolor = 0xB4E26941\n" ..
           "hyperlink_bold = 1"
     else
         theme = -- 默认主题配置文件
@@ -430,7 +430,7 @@ function eu_theme.get_default(name)
           "hyperlink_font = \"Consolas\"\n" ..
           "hyperlink_fontsize = 11\n" ..
           "hyperlink_color = 0x3C80FFFF\n" ..
-          "hyperlink_bgcolor = 0x00000000\n" ..
+          "hyperlink_bgcolor = 0xB4FF8C2F\n" ..
           "hyperlink_bold = 1"
     end
     return theme

@@ -50,7 +50,7 @@ pcre_match_callback(pcre_conainer *pcre_info, void *para)
     return SKYLARK_OK;
 }
 
-unsigned WINAPI
+static unsigned WINAPI
 reqular_thread(void *lp)
 {
     size_t file_size;
@@ -86,7 +86,7 @@ reqular_thread(void *lp)
     {
         eu_pcre_delete(pcre_info);
     }
-    _InterlockedExchange(&pnode->pcre_id, 0);
+    _InterlockedExchange64(&pnode->pcre_id, 0);
     printf("reqular_thread exit\n");
     return 0;
 }
@@ -218,7 +218,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
             if (pnode)
-            {   
+            {
                 if (pnode->hwnd_font)
                 {
                     DeleteObject(pnode->hwnd_font);
@@ -227,7 +227,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
                 if (pnode->pcre_id)
                 {
-                    util_kill_thread(pnode->pcre_id);
+                    util_kill_thread((uint32_t)pnode->pcre_id);
                 }
             }
             printf("symlist WM_DESTROY\n");

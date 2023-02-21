@@ -992,6 +992,7 @@ function fetch_doctype(s)
       if (m_config.fn_reload_symlist == nil) then m_config.fn_reload_symlist = eu_core.euapi.on_doc_reload_list_reqular end
       if (m_config.fn_click_symlist == nil) then m_config.fn_click_symlist = eu_core.euapi.on_doc_click_list_jmp end
     end
+    -- if (m_config.fn_parse_header == nil) then m_config.fn_parse_header = eu_core.euapi.eu_hyperlink_detection end
     if (m_req.get_autocomplete ~= nil) then
       m_set = m_req.get_autocomplete()
     end
