@@ -215,14 +215,14 @@ on_view_switch_theme(HWND hwnd, int id)
     }
     if (_tcscmp(pbuf, _T("black")) == 0)
     {
-        if (eu_on_dark_init(true, true))
+        if (eu_dark_theme_init(true, true))
         {
             SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
         }
     }
     else
     {
-        eu_on_dark_release(false);
+        eu_dark_theme_release(false);
     }
     if (on_theme_load_script(pbuf))
     {
@@ -566,6 +566,7 @@ on_view_editor_selection(eu_tabpage *pnode)
     char *select_buf = util_strdup_select(pnode, &select_len, 0);
     sptr_t total_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
     sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    eu_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
     eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
     pnode->match_count = 0;
     if (select_buf)
@@ -591,9 +592,6 @@ on_view_editor_selection(eu_tabpage *pnode)
                 break;
             }
         }
-        eu_sci_call(pnode, SCI_INDICSETSTYLE, 0, INDIC_ROUNDBOX);
-        eu_sci_call(pnode, SCI_INDICSETFORE, 0, eu_get_theme()->item.indicator.bgcolor);
-        eu_sci_call(pnode, SCI_INDICSETALPHA, 0, eu_get_theme()->item.indicator.bgcolor >> 24);
         free(select_buf);
     }
     return SKYLARK_OK;

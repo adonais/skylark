@@ -23,7 +23,7 @@
 {                                                           \
     if (_tcschr(argv[1], _T('=')))                          \
     {                                                       \
-        dark_mode = eu_on_dark_init(true, true);            \
+        dark_mode = eu_dark_theme_init(true, true);            \
     }                                                       \
 }
 
@@ -218,9 +218,9 @@ _tmain(int argc, TCHAR *argv[])
         SKY_SAFE_EXIT(0);
     }
 #if 0
-    if (!on_hook_exception())
+    if (!eu_hook_exception())
     {
-        printf("on_hook_exception failed\n");
+        printf("eu_hook_exception failed\n");
         SKY_SAFE_EXIT(-1);
     }
 #endif    
@@ -243,7 +243,7 @@ _tmain(int argc, TCHAR *argv[])
     {
         if (strcmp(eu_get_config()->window_theme, "black") == 0)
         {
-            eu_on_dark_init(true, true);
+            eu_dark_theme_init(true, true);
         }
         eu_about_command();
         SKY_SAFE_EXIT(0);
@@ -293,7 +293,7 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (strcmp(eu_get_config()->window_theme, "black") == 0)
     {
-        if (eu_on_dark_init(true, true))
+        if (eu_dark_theme_init(true, true))
         {
             SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
         }
@@ -328,7 +328,7 @@ all_clean:
     eu_curl_global_release();
     eu_sci_release();
     eu_remote_list_release();
-    eu_on_dark_release(true);
+    eu_dark_theme_release(true);
     eu_doc_ptr_free();
     eu_font_release();
     eu_close_db_handle();

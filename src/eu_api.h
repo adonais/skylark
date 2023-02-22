@@ -244,6 +244,13 @@ enum
     SKYLARK_SQL_END       = 200
 };
 
+enum
+{
+    INDIC_SKYLARK_SELECT = INDICATOR_CONTAINER + 1,
+    INDIC_SKYLARK_HYPER,
+    INDIC_SKYLARK_HYPER_U
+};
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -381,7 +388,6 @@ struct eu_config
     char m_language[QW_SIZE];
     bookmark_set eu_bookmark;
     brace_set eu_brace;
-    caret_set eu_caret;
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
@@ -422,7 +428,7 @@ typedef void (*ptr_curl_global_cleanup)(void);
 typedef void (*ptr_curl_slist_free_all)(struct curl_slist *);
 typedef struct curl_slist* (*ptr_curl_slist_append)(struct curl_slist *, const char *);
 typedef CURLcode (*ptr_curl_easy_getinfo)(CURL *data, CURLINFO info, ...);
-typedef void* (__stdcall *api_convert)(int, const void*, size_t *);
+typedef void* (*api_convert)(int, const void*, size_t *);
 typedef int (*sql3_callback)(void*, int, char**, char**);
 
 // openssl function export
@@ -560,10 +566,6 @@ EU_EXT_CLASS void eu_curl_easy_cleanup(CURL *);
 // for eu_changes.c
 EU_EXT_CLASS int eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
 
-// for openssl
-EU_EXT_CLASS HMODULE eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer);
-EU_EXT_CLASS void eu_ssl_close_symbol(HMODULE *pssl);
-
 // for main.c
 extern EU_EXT_CLASS TCHAR eu_module_path[MAX_PATH+1];
 EU_EXT_CLASS HINSTANCE eu_module_handle(void);
@@ -589,7 +591,7 @@ EU_EXT_CLASS int eu_reg_file_popup_menu(void);
 EU_EXT_CLASS int eu_reg_dir_popup_menu(void);
 
 // for eu_hook.c
-EU_EXT_CLASS bool on_hook_exception(void);
+EU_EXT_CLASS bool eu_hook_exception(void);
 
 // for eu_share.c
 EU_EXT_CLASS void share_close_lang(void);
@@ -638,8 +640,8 @@ EU_EXT_CLASS int luaopen_euapi(void *L);
 EU_EXT_CLASS void eu_font_release(void);
 
 // for eu_theme_dark.c
-EU_EXT_CLASS bool eu_on_dark_init(bool fix_scroll, bool dark);
-EU_EXT_CLASS void eu_on_dark_release(bool shutdown);
+EU_EXT_CLASS bool eu_dark_theme_init(bool fix_scroll, bool dark);
+EU_EXT_CLASS void eu_dark_theme_release(bool shutdown);
 
 // for eu_remotefs.c
 EU_EXT_CLASS void eu_remote_list_release(void);

@@ -1688,12 +1688,6 @@ eu_save_config(void)
 		"    autoc = %s,\n"
         "    rgb = 0x%08X\n"
         "}\n"
-        "-- unused settings\n"
-        "caret = {\n"
-        "    blink = %d,\n"
-        "    width = %d,\n"
-        "    rgb = 0x%08X\n"
-        "}\n"
         "-- calltip default setting\n"
         "calltip = {\n"
         "    enable = %s,\n"
@@ -1799,9 +1793,6 @@ eu_save_config(void)
               g_config->eu_brace.matching?"true":"false",
               g_config->eu_brace.autoc?"true":"false",
               g_config->eu_brace.rgb,
-              0,
-              0,
-              0,
               g_config->eu_calltip.enable?"true":"false",
               g_config->eu_calltip.rgb,
               g_config->eu_complete.enable?"true":"false",
@@ -2541,41 +2532,6 @@ eu_curl_global_release(void)
             eu_curl_slist_free_all = NULL;
         }
         _InterlockedExchange(&eu_curl_initialized, 0);
-    }
-}
-
-HMODULE
-eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
-{
-    HMODULE ssl = NULL;
-    const TCHAR *ssl_path =
-#ifdef _WIN64
-    _T("libcrypto-1_1-x64.dll");
-#else
-    _T("libcrypto-1_1.dll");
-#endif
-    if ((ssl = np_load_plugin_library(ssl_path)) != NULL)
-    {
-        for (int i = 0; i < n && s[i][0]; ++i)
-        {
-            pointer[i] = (uintptr_t)GetProcAddress(ssl, s[i]);
-            if (!pointer[i])
-            {
-                FreeLibrary(ssl);
-                ssl = NULL;
-            }
-        }
-    }
-    return ssl;
-}
-
-void
-eu_ssl_close_symbol(HMODULE *pssl)
-{
-    if (pssl && *pssl)
-    {
-        FreeLibrary(*pssl);
-        *pssl = NULL;
     }
 }
 

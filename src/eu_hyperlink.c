@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-#define HYPLNK_REGEX_VALID_STR "a-zA-Z0-9\\u00A0-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFEF+\\*\\[\\];^°+§&@#/%=~_|'"
+#define HYPLNK_REGEX_VALID_STR "a-zA-Z0-9\\u00A0-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFEF+\\*\\[\\];^°+§&@#/%=~_|$"
 #define HYPLNK_REGEX_FULL      "\\b(?:(?:https?|ftp|file)://|www\\.|ftp\\.)"                                      \
                                "(?:\\([-" HYPLNK_REGEX_VALID_STR "?!:,.]*\\)|[-" HYPLNK_REGEX_VALID_STR "?!:,.])*"\
                                "(?:\\([-" HYPLNK_REGEX_VALID_STR "?!:,.]*\\)|[-" HYPLNK_REGEX_VALID_STR "])"
@@ -47,6 +47,32 @@ on_hyper_add_indicator(eu_tabpage *pnode, const int i1, const int i2, const sptr
     }
 }
 
+static void
+on_hyper_strim(eu_tabpage *pnode, const sptr_t start_pos, int *plen)
+{
+    if (STR_NOT_NUL(plen))
+    {
+        char buffer[LARGER_LEN+1] = {0};
+        const sptr_t end_pos = *plen + start_pos;
+        if (*plen >= 4 && *plen < LARGER_LEN)
+        {
+            Sci_TextRange tr = {{start_pos, end_pos}, buffer};
+            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+        }
+        if (*buffer)
+        {
+            char *p = NULL;
+            int len = eu_int_cast(strlen(buffer));
+            while (len > 0 && (p = strchr(END_CHARACTERS, buffer[len - 1])))
+            {
+                buffer[len - 1] = 0;
+                --len;
+            }
+            *plen = len;
+        }
+    }
+}
+
 static unsigned WINAPI
 on_hyper_set(void *lp)
 {
@@ -62,8 +88,9 @@ on_hyper_set(void *lp)
             if (len > 0)
             {
                 on_hyper_clear_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
-                on_hyper_add_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
                 pos = fpos + len;
+                on_hyper_strim(pnode, fpos, &len);
+                on_hyper_add_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
             }
             else
             {
@@ -71,7 +98,7 @@ on_hyper_set(void *lp)
             }
         }
     }
-    _InterlockedExchange64(&pnode->hyper_id, 0);
+    _InterlockedExchange(&pnode->hyper_id, 0);
     printf("hyperlink_thread exit\n");
     return 0;
 }
@@ -84,7 +111,7 @@ on_hyper_clear(void *lp)
     {
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
-        if ((p = (eu_tabpage *) (tci.lParam)) && !_InterlockedCompareExchange64(&p->hyper_id, 1, 0))
+        if ((p = (eu_tabpage *) (tci.lParam)) && !_InterlockedCompareExchange(&p->hyper_id, 1, 0))
         {
             sptr_t pos = 0;
             sptr_t fpos = -1;
@@ -102,7 +129,7 @@ on_hyper_clear(void *lp)
                     pos = max_pos;
                 }
             }
-            _InterlockedExchange64(&p->hyper_id, 0);
+            _InterlockedExchange(&p->hyper_id, 0);
         }
     }
     return 0;
@@ -124,8 +151,9 @@ on_hyper_update_style(eu_tabpage *pnode)
             if (len > 0)
             {
                 on_hyper_clear_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
-                on_hyper_add_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
                 pos = fpos + len;
+                on_hyper_strim(pnode, fpos, &len);
+                on_hyper_add_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
             }
             else
             {
@@ -156,11 +184,15 @@ on_hyper_set_style(eu_tabpage *pnode)
         eu_sci_call(pnode, SCI_INDICSETHOVERFORE, INDIC_SKYLARK_HYPER, hover_color & 0x00FFFFFF);
         eu_sci_call(pnode, SCI_INDICSETHOVERSTYLE, INDIC_SKYLARK_HYPER_U, INDIC_PLAIN);
         eu_sci_call(pnode, SCI_INDICSETHOVERFORE, INDIC_SKYLARK_HYPER_U, hover_color & 0x00FFFFFF);
+        // 鼠标选中时的样式
+        eu_sci_call(pnode, SCI_INDICSETSTYLE, INDIC_SKYLARK_SELECT, INDIC_ROUNDBOX);
+        eu_sci_call(pnode, SCI_INDICSETFORE, INDIC_SKYLARK_SELECT, eu_get_theme()->item.indicator.bgcolor & 0x00FFFFFF);
+        eu_sci_call(pnode, SCI_INDICSETALPHA, INDIC_SKYLARK_SELECT, eu_get_theme()->item.indicator.bgcolor >> 24);
     }
 }
 
 void
-on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position)
+on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool execute)
 {
     if (eu_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_HYPER, position) >= 0)
     {
@@ -169,6 +201,7 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position)
         const sptr_t max_pos = eu_sci_call(pnode, SCI_INDICATOREND, INDIC_SKYLARK_HYPER, position);
         if (pos < max_pos && (fpos = on_search_process_find(pnode, HYPLNK_REGEX_FULL, pos, max_pos, SCFIND_REGEXP | SCFIND_POSIX)) >= 0)
         {
+            wchar_t *text = NULL;
             char buffer[LARGER_LEN+1] = {0};
             const sptr_t end_pos = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
             int len = eu_int_cast(end_pos - fpos);
@@ -177,11 +210,22 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position)
                 Sci_TextRange tr = {{pos, end_pos}, buffer};
                 eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             }
-            wchar_t *text = *buffer ? eu_utf8_utf16(buffer, NULL) : NULL;
+            if (*buffer)
+            {
+                util_strim_end(buffer, eu_int_cast(strlen(buffer)));
+                text = eu_utf8_utf16(buffer, NULL);
+            }
             if (text)
             {
-                SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
-                ShellExecuteW(hwnd, L"open", text, NULL, NULL, SW_SHOWNORMAL);
+                if (execute)
+                {
+                    SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
+                    ShellExecuteW(hwnd, L"open", text, NULL, NULL, SW_SHOWNORMAL);
+                }
+                else
+                {
+                    on_edit_push_clipboard(text);
+                }
             }
         }
     }

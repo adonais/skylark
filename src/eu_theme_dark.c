@@ -450,7 +450,7 @@ on_dark_tips_theme(HWND hwnd, int msg)
 }
 
 void
-eu_on_dark_release(bool shutdown)
+eu_dark_theme_release(bool shutdown)
 {
     if (shutdown)
     {
@@ -491,7 +491,7 @@ eu_on_dark_release(bool shutdown)
 }
 
 bool
-eu_on_dark_init(bool fix_scroll, bool dark)
+eu_dark_theme_init(bool fix_scroll, bool dark)
 {
     uint32_t major, minor;
     HMODULE huser32 = NULL;

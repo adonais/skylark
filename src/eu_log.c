@@ -24,7 +24,7 @@
 
 static TCHAR file_buf[MAX_PATH + 1];
 
-void __stdcall
+void __cdecl
 eu_init_logs(void)
 {
     if (*file_buf == 0 && GetEnvironmentVariable(_T("APPDATA"), file_buf, MAX_PATH) > 0)

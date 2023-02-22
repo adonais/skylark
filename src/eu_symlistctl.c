@@ -86,7 +86,7 @@ reqular_thread(void *lp)
     {
         eu_pcre_delete(pcre_info);
     }
-    _InterlockedExchange64(&pnode->pcre_id, 0);
+    _InterlockedExchange(&pnode->pcre_id, 0);
     printf("reqular_thread exit\n");
     return 0;
 }

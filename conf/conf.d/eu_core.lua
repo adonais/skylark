@@ -127,7 +127,6 @@ struct eu_config
     char m_language[64];
     bookmark_set eu_bookmark;
     brace_set eu_brace;
-    caret_set eu_caret;
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;

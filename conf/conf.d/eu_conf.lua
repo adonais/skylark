@@ -82,12 +82,6 @@ function eu_conf.loadconf()
         "    autoc = true,\n" ..
         "    rgb = 0x000000FF\n" ..
         "}\n" ..
-        "-- unused settings\n" ..
-        "caret = {\n" ..
-        "    blink = 0,\n" ..
-        "    width = 0,\n" ..
-        "    rgb = 0x0\n" ..
-        "}\n" ..
         "-- calltip default setting\n" ..
         "calltip = {\n" ..
         "    enable = true,\n" ..
@@ -175,7 +169,6 @@ function eu_conf.loadconf()
         ui_language,
         {bookmark.visable, bookmark.shape, bookmark.argb},
         {brace.matching, brace.autoc, brace.rgb},
-        {caret.blink, caret.width, caret.rgb},
         {calltip.enable, calltip.rgb},
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},

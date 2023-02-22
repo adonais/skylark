@@ -24,12 +24,6 @@
 extern "C" {
 #endif
 
-enum
-{
-    INDIC_SKYLARK_HYPER = INDICATOR_CONTAINER + 1,
-    INDIC_SKYLARK_HYPER_U
-};
-
 void on_hyper_clear_style(void);
 void on_hyper_set_style(eu_tabpage *pnode);
 void on_hyper_update_style(eu_tabpage *pnode);

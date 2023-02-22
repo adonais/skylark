@@ -716,7 +716,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {   // 系统dark模式关闭时, 动态刷新主题
                 if (strcmp(eu_get_config()->window_theme, "black") == 0 && on_dark_supports())
                 {
-                    eu_on_dark_release(false);
+                    eu_dark_theme_release(false);
                     on_proc_msg_size(hwnd, NULL);
                 }
             }
@@ -1857,9 +1857,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case SCN_INDICATORRELEASE:
                 {
-                    if (KEY_DOWN(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT) && KEY_UP(VK_SHIFT))
+                    bool up = KEY_UP(VK_MENU) && KEY_UP(VK_INSERT) && KEY_UP(VK_SHIFT);
+                    if (up)
                     {
-                        on_hyper_click(pnode, hwnd, lpnotify->position);
+                        on_hyper_click(pnode, hwnd, lpnotify->position, KEY_DOWN(VK_CONTROL));
                     }
                     break;
                 }

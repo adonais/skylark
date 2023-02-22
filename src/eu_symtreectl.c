@@ -1219,7 +1219,7 @@ cjson_thread(void *lp)
             free(text);
         }
     }
-    _InterlockedExchange64(&pnode->json_id, 0);
+    _InterlockedExchange(&pnode->json_id, 0);
     return 0;
 }
 

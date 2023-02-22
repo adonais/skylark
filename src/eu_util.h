@@ -40,6 +40,8 @@
 #endif
 
 #define util_prev(p) ((p) - (psrc) > 0 ? (p[-1]) : (0))
+    
+#define END_CHARACTERS (" \t\r\n\"']>.*")
 
 typedef struct _HANDLE_DATA
 {
@@ -51,6 +53,10 @@ typedef struct _HANDLE_DATA
 extern "C"
 {
 #endif
+
+// for openssl
+HMODULE util_ssl_open_symbol(char *s[], int n, uintptr_t *pointer);
+void util_ssl_close_symbol(HMODULE *pssl);
 
 int util_aes_enc(unsigned char *dec, unsigned char *enc, int len);
 int util_aes_dec(unsigned char *enc, unsigned char *dec, int len);
@@ -123,6 +129,7 @@ int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *sourc
 int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level);
 int util_count_number(size_t number);
 int util_split(const char *pstr, char (*pout)[QW_SIZE], char ch);
+int util_strim_end(char *pstr, int len);
 void  util_transparent(HWND hwnd, int percent);
 void  util_untransparent(HWND hwnd);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);

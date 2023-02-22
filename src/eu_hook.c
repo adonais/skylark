@@ -110,13 +110,15 @@ error_handle_output(PEXCEPTION_POINTERS pExceptionInfo)
 }
 
 bool
-on_hook_exception(void)
+eu_hook_exception(void)
 {
+#if defined(_M_IX86) || defined(_M_X64)
     if (!util_under_wine())
     {
         SetUnhandledExceptionFilter(error_handle_output);
         return pre_exception_filter();
     }
+#endif
     return true;
 }
 

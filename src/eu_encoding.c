@@ -340,7 +340,7 @@ gb2tw(const TCHAR *str_in, TCHAR **str_out, size_t *plen)
     return (len > 0);
 }
 
-char *WINAPI
+char*
 on_encoding_gb_big5(const char *gb2, size_t *out_len)
 {
     char *bg5_str = NULL;
@@ -366,7 +366,7 @@ on_encoding_gb_big5(const char *gb2, size_t *out_len)
     return bg5_str;
 }
 
-char *WINAPI
+char*
 on_encoding_big5_gb(const char *bg5, size_t *out_len)
 {
     char *gb_str = NULL;
