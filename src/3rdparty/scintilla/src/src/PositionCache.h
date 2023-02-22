@@ -107,7 +107,7 @@ public:
 	Interval Span(int start, int end) const noexcept;
 	Interval SpanByte(int index) const noexcept;
 	int EndLineStyle() const noexcept;
-	void WrapLine(const Document *pdoc, Sci::Position posLineStart, Wrap wrapState);
+	void WrapLine(const Document *pdoc, Sci::Position posLineStart, Wrap wrapState, XYPOSITION wrapWidth);
 };
 
 struct ScreenLine : public IScreenLine {
@@ -180,6 +180,9 @@ public:
 
 typedef std::map<unsigned int, Representation> MapRepresentation;
 
+const char *ControlCharacterString(unsigned char ch) noexcept;
+void Hexits(char *hexits, int ch) noexcept;
+
 class SpecialRepresentations {
 	MapRepresentation mapReprs;
 	unsigned short startByteHasReprs[0x100] {};
@@ -199,6 +202,7 @@ public:
 		return startByteHasReprs[ch] != 0;
 	}
 	void Clear();
+	void SetDefaultRepresentations(int dbcsCodePage);
 };
 
 struct TextSegment {

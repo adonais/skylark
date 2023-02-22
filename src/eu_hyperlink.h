@@ -33,7 +33,7 @@ enum
 void on_hyper_clear_style(void);
 void on_hyper_set_style(eu_tabpage *pnode);
 void on_hyper_update_style(eu_tabpage *pnode);
-void on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position);
+void on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool execute);
 
 #ifdef __cplusplus
 }
