@@ -16,7 +16,7 @@ all:
     cd "$(MAKEDIR)\locales"
     @$(MAKE) /NOLOGO /$(MAKEFLAGS)
     cd "$(MAKEDIR)"
-    
+
 package: all
 !IF "$(BITS)" == "64"
 	@if exist "$(MAKEDIR)\skylark_x64" rd /s/q "$(MAKEDIR)\skylark_x64"
@@ -42,8 +42,8 @@ package: all
 	@if exist "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\msvcp140.dll" copy /y "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\msvcp140.dll" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
 	@if exist "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\vcruntime140.dll" copy /y "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\vcruntime140*.dll" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
 	@7z a -t7z "$(MAKEDIR)\skylark_x86$(RELEASE_VERSION).7z" "$(MAKEDIR)\skylark_x86" -mx9 -r -y
-!ENDIF	
-	
+!ENDIF
+
 clean:
     @if exist "$(MAKEDIR)\src\3rdparty\sqlite3\Makefile" cd "$(MAKEDIR)\src\3rdparty\sqlite3" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
     @if exist "$(MAKEDIR)\src\3rdparty\pcre\Makefile" cd "$(MAKEDIR)\src\3rdparty\pcre" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean

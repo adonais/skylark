@@ -990,14 +990,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_CMD_TAB:
                 {   // 当前目录打开shell
-                    TCHAR *pold = NULL;
-                    util_set_working_dir(pnode->pathname, &pold);
+                    util_set_working_dir(pnode->pathname, NULL);
                     on_toolbar_cmd_start();
-                    if (pold)
-                    {
-                        SetCurrentDirectory(pold);
-                        free(pold);
-                    }
+                    util_set_working_dir(eu_module_path, NULL);
                     break;
                 }
                 case IDM_FILE_REMOTE_FILESERVERS:

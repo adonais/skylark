@@ -258,10 +258,6 @@ _tmain(int argc, TCHAR *argv[])
         eu_reg_dir_popup_menu();
         SKY_SAFE_EXIT(0);
     }
-    if (eu_prepend_path(eu_module_path) < 0)
-    {
-        SKY_SAFE_EXIT(0);
-    }
     if (!eu_load_toolbar_config())
     {   // 加载工具栏配置文件
         SKY_SAFE_EXIT(-1);

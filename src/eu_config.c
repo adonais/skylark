@@ -62,11 +62,19 @@ eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
             {
                 TCHAR *p = NULL;
                 if ((p = _tcschr(ptr_arg[i], ':')) != NULL)
-                {
+                {   // 处理以绝对路径打开的文件或目录
                     _tcsncpy(path, ptr_arg[i], MAX_PATH - 1);
+                    if (!url_has_remote(path) && eu_exist_dir(path) && _tcslen(path) < MAX_PATH - 2)
+                    {
+                        if (path[_tcslen(path) - 1] != _T('\\'));
+                        {
+                            path[_tcslen(path)] = _T('\\');
+                        }
+                        path[_tcslen(path)] = _T('*');                        
+                    }
                 }
                 else
-                {
+                {   // 处理以相对路径打开的文件或目录
                     GetFullPathName(ptr_arg[i], MAX_PATH, path, &p);
                     if (!p && _tcslen(path) < MAX_PATH - 2)
                     {

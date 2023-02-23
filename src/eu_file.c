@@ -863,6 +863,8 @@ on_file_before_open(eu_tabpage *pnode)
     {
         on_sci_before_file(pnode);
         eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+        // 把工作目录设置在进程所在地
+        util_set_working_dir(eu_module_path, NULL);
     }
 }
 
@@ -1078,13 +1080,6 @@ on_file_open_bakcup(file_backup *pbak)
         } while (FindNextFile(hfile, &st_file));
         FindClose(hfile);
         return SKYLARK_OK;
-    }
-    else if (!pbak->blank && !url_has_remote(pbak->rel_path) && pbak->rel_path[1] != _T(':'))
-    {
-
-        TCHAR path[MAX_PATH] = {0};
-        _tfullpath(path, pbak->rel_path, MAX_PATH);
-        _sntprintf(pbak->rel_path, MAX_PATH, _T("%s"), path);
     }
     return (on_file_only_open(pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
 }

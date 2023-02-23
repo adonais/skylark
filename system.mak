@@ -40,7 +40,7 @@ CFLAGS   = $(CFLAGS) -arch:SSE2 -DWIN32 -I$(INCD)
 
 !IF "$(CC)" == "cl"
 LT   = -ltcg
-AR   = lib -nologo 
+AR   = lib -nologo
 LD   = link -nologo -guard:cf
 CFLAGS   = $(CFLAGS) -nologo -GL -Gw -guard:cf
 DLLFLAGS = -nologo -debug -incremental:no -opt:ref -opt:icf -dll $(LT) -guard:cf
@@ -59,7 +59,7 @@ CFLAGS   = -nologo -Gw -flto=thin -guard:cf $(CFLAGS) -Wno-unused-variable -Wno-
 DLLFLAGS = -nologo -debug -incremental:no -opt:ref -opt:icf -dll -guard:cf
 MAVX2    = -mavx2
 !IF "$(BITS)" == "32"
-CFLAGS   = --target=i686-pc-windows-msvc $(CFLAGS) 
+CFLAGS   = --target=i686-pc-windows-msvc $(CFLAGS)
 !ENDIF
 USE_CLANG = 1
 !ELSE

@@ -1615,12 +1615,7 @@ util_to_abs(const char *path)
 {
     WCHAR *pret = NULL;
     WCHAR lpfile[MAX_PATH+1] = {0};
-    WCHAR old_folder[MAX_PATH+1] = {0};
     if (NULL == path || *path == '\0' || *path == ' ')
-    {
-        return NULL;
-    }
-    if (!GetCurrentDirectory(MAX_PATH, old_folder))
     {
         return NULL;
     }
@@ -1629,9 +1624,9 @@ util_to_abs(const char *path)
         return NULL;
     }
     util_unix2path(lpfile);
-    // 进程当前目录为基准, 得到绝对路径
-    SetCurrentDirectory(eu_module_path);
-    if (lpfile[0] == _T('%'))
+    // 如果路径有引号, 去除
+    util_wstr_unquote(lpfile, sizeof(lpfile));
+    if (lpfile[0] == L'%')
     {
         int n = 1;
         int len = (int)wcslen(lpfile);
@@ -1639,34 +1634,37 @@ util_to_abs(const char *path)
         WCHAR buf[FILESIZE + 1] = {0};
         while (lpfile[n] != 0)
         {
-            if (lpfile[n++] == _T('%'))
+            if (lpfile[n++] == L'%')
             {
                 break;
             }
         }
         if (n < len && n < FILESIZE)
         {
-            _sntprintf(buf, n, _T("%s"), &lpfile);
+            _snwprintf(buf, n, L"%s", &lpfile);
         }
-        if (wcslen(buf) > 1 && ExpandEnvironmentStringsW(buf, env, MAX_PATH) > 0)
+        if (wcslen(buf) > 1 && ExpandEnvironmentStrings(buf, env, MAX_PATH) > 0)
         {
-            if (lpfile[n] != 0 && lpfile[n] == _T('\\'))
+            if (lpfile[n] != 0 && lpfile[n] == L'\\')
             {
                 ++n;
             }
             wcsncat(env, &lpfile[n], MAX_PATH);
             pret = _wfullpath(NULL, env, MAX_PATH);
         }
-    }  // 使用unix路径.代表当前目录
-    else if (lpfile[0] == _T('.'))
-    {
+    }
+    else if (lpfile[0] == L'.')
+    {   // 使用了相对路径, 以进程目录为基准, 转为绝对路径
         pret = _wfullpath(NULL, lpfile, MAX_PATH);
+    }
+    else if (wcslen(lpfile) > 1 && lpfile[1] != L':')
+    {   // 在PATH环境变量里, 转为绝对路径
+        pret = util_which(lpfile);
     }
     else
     {
         pret = _wcsdup(lpfile);
     }
-    SetCurrentDirectory(old_folder);
     return pret;
 }
 
@@ -2052,27 +2050,22 @@ util_add_double_quotes(const TCHAR *path)
     return buf;
 }
 
-TCHAR *
-util_wstr_unquote(const TCHAR *path)
+wchar_t *
+util_wstr_unquote(wchar_t *path, const int size)
 {
-    TCHAR *buf = NULL;
-    if (path)
+    if (STR_NOT_NUL(path) && size > 0)
     {
-        if ((path[0] == _T('"') || path[0] == _T('\'')))
+        if ((path[0] == L'"') || path[0] == L'\'')
         {
-            buf = (TCHAR *)_tcsdup(&path[1]);
-            int len = buf ? eu_int_cast(_tcslen(buf)) : 0;
-            if (len > 0 && (buf[len - 1] == _T('"') || buf[len - 1] == _T('\'')))
+            memmove(path, &path[1], size - sizeof(wchar_t));
+            int len = (int)wcslen(path);
+            if (len > 0 && (path[len - 1] == L'"' || path[len - 1] == L'\''))
             {
-                buf[len - 1] = 0;
+                path[len - 1] = 0;
             }
         }
-        else
-        {
-            buf = (TCHAR *)_tcsdup(path);
-        }
     }
-    return buf;
+    return path;
 }
 
 char *
