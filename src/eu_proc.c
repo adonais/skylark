@@ -1612,7 +1612,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_proc_msg_size(hwnd, NULL);
                     break;
                 }
-                case IDB_SIZE_0:
                 case IDB_SIZE_1:
                 case IDB_SIZE_16:
                 case IDB_SIZE_24:
@@ -1627,6 +1626,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (eu_get_config()->m_toolbar != wm_id)
                     {
                         eu_get_config()->m_toolbar = wm_id;
+                        g_toolbar_size = wm_id;
                         if (on_toolbar_refresh(hwnd))
                         {
                             on_proc_msg_size(hwnd, NULL);
@@ -1635,15 +1635,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 case IDM_VIEW_TOOLBAR:
+                case IDB_SIZE_0:
                 {
-                    g_toolbar_size = eu_get_config()->m_toolbar;
                     if (eu_get_config()->m_toolbar != IDB_SIZE_0)
                     {
+                        g_toolbar_size = eu_get_config()->m_toolbar;
                         eu_get_config()->m_toolbar = IDB_SIZE_0;
                     }
                     else
                     {
-                        eu_get_config()->m_toolbar = g_toolbar_size;
+                        eu_get_config()->m_toolbar = g_toolbar_size ? g_toolbar_size : IDB_SIZE_1;
                     }
                     if (on_toolbar_refresh(hwnd))
                     {
