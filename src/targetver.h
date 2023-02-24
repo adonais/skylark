@@ -215,9 +215,6 @@
 
 #define IDC_BUFFERS_LABEL    10114
 #define IDC_LOCK_LABEL       10115
-#define IDB_COPY             10116
-#define IDB_COPY_DARK        10117
-#define IDB_BUTTON_BG_BMP    10118
 
 #define IDC_BUTTON0   10122
 #define IDC_BUTTON1   10123

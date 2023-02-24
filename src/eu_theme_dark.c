@@ -183,6 +183,7 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
         {
             if (S_OK != fnDwmSetWindowAttribute(hwnd, 20, &dark, sizeof dark))
             {   // this would be the call before Windows build 18362
+                printf("dark = %d\n", dark);
                 fnDwmSetWindowAttribute(hwnd, 19, &dark, sizeof dark);
             }
         }
@@ -225,7 +226,7 @@ void
 on_dark_refresh_titlebar(HWND hwnd)
 {
     BOOL dark = FALSE;
-    if (fnIsDarkModeAllowedForWindow(hwnd) && fnShouldAppsUseDarkMode() &&!on_dark_high_contrast())
+    if (fnIsDarkModeAllowedForWindow(hwnd) && fnShouldAppsUseDarkMode() && on_dark_enable())
     {
         dark = TRUE;
     }

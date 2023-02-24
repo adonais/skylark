@@ -969,17 +969,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_CLIP:
                 {
                     HWND hcip = on_toolbar_clip_hwnd();
-                    if (hcip)
+                    if (!hcip && (hcip = on_toolbar_create_clipbox(hwnd)))
                     {
-                        if (!IsWindowVisible(hcip))
-                        {
-                            ShowWindow(hcip, SW_SHOW);
-                            on_toolbar_setpos_clipdlg(hcip, eu_module_hwnd());
-                        }
-                        else
-                        {
-                            ShowWindow(hcip, SW_HIDE);
-                        }
+                        on_toolbar_setpos_clipdlg(hcip, hwnd);
+                        ShowWindow(hcip, SW_SHOW);
+                    }
+                    else if (!IsWindowVisible(hcip))
+                    {
+                        on_toolbar_setpos_clipdlg(hcip, hwnd);
+                        ShowWindow(hcip, SW_SHOW);
+                    }
+                    else
+                    {
+                        ShowWindow(hcip, SW_HIDE);
                     }
                     break;
                 }
@@ -989,10 +991,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 case IDM_CMD_TAB:
-                {   // 当前目录打开shell
-                    util_set_working_dir(pnode->pathname, NULL);
-                    on_toolbar_cmd_start();
-                    util_set_working_dir(eu_module_path, NULL);
+                {
+                    on_toolbar_cmd_start(pnode);
                     break;
                 }
                 case IDM_FILE_REMOTE_FILESERVERS:
@@ -2009,7 +2009,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_MOVE:
         {
             HWND hwnd_clip = on_toolbar_clip_hwnd();
-            if (hwnd_clip && IsWindow(hwnd_clip))
+            if (hwnd_clip && IsWindow(hwnd_clip) && IsWindowVisible(hwnd_clip))
             {
                 on_toolbar_setpos_clipdlg(hwnd_clip, hwnd);
             }

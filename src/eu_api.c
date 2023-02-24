@@ -933,9 +933,13 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     uint32_t dw_creat = 0;
     LPCTSTR lp_dir = NULL;
     TCHAR process[MAX_PATH+1] = {0};
-    if (pcd != NULL && _tcslen(pcd) > 1)
+    if (STR_NOT_NUL(pcd))
     {
         lp_dir = pcd;
+    }
+    else
+    {
+        lp_dir = (LPCTSTR)eu_module_path;
     }
     if (param != NULL && _tcslen(param ) > 1)
     {
@@ -981,6 +985,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
             *o = pi.dwProcessId;
         }
         CloseHandle(pi.hThread);
+        util_set_working_dir(eu_module_path, NULL);
     }
     return pi.hProcess;
 }

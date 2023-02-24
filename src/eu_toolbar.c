@@ -35,6 +35,10 @@
 #define HIGHT_8X         7680
 #define HIGHT_8Y         4320
 
+#define DARK_HOTCOLOR    "#D3D3D3"
+#define DARK_UNHOTCOLOR  "#4E4E4E"
+#define BLUE_UNHOTCOLOR  "#D3D3D3"
+
 #define CHECK_IF(a) if ((a)!= 0) return false
 
 typedef struct _toolbar_data
@@ -69,12 +73,12 @@ on_toolbar_fill_params(toolbar_data *pdata, const int resid)
     const bool dark = on_dark_enable();
     if (dark)
     {
-        strncpy(pdata->hcolor, "#D3D3D3", OVEC_LEN - 1);
-        strncpy(pdata->gcolor, "#4E4E4E", OVEC_LEN - 1);
+        strncpy(pdata->hcolor, DARK_HOTCOLOR, OVEC_LEN - 1);
+        strncpy(pdata->gcolor, DARK_UNHOTCOLOR, OVEC_LEN - 1);
     }
     else
     {
-        strncpy(pdata->gcolor, "#D3D3D3", OVEC_LEN - 1);
+        strncpy(pdata->gcolor, BLUE_UNHOTCOLOR, OVEC_LEN - 1);
     }
     if (resid == IDB_SIZE_1)
     {
@@ -271,50 +275,58 @@ on_toolbar_adjust_box(void)
     }
 }
 
-bool
+void
 on_toolbar_setpos_clipdlg(HWND hwnd, HWND hparent)
 {
-    RECT rc, rcparent;
-    int width;
-    int height;
-    if (!IsWindow(hwnd) || !IsWindow(hparent))
+    if (hwnd && IsWindow(hwnd) && IsWindow(hparent))
     {
-        return false;
+        RECT rc, rcparent;
+        int width, height, left, top;
+        int border = util_os_version() >= 1000 ? 0 : 7;
+        GetWindowRect(hwnd, &rc);
+        GetWindowRect(hparent, &rcparent);
+        width = rc.right - rc.left;
+        height = rc.bottom - rc.top;
+        left = rcparent.right - width - border - 20;
+        top = rcparent.bottom - height - on_statusbar_height() - border - 2;
+        eu_setpos_window(hwnd, HWND_TOPMOST, left, top, width, height, 0);
     }
-    GetWindowRect(hwnd, &rc);
-    GetWindowRect(hparent, &rcparent);
-    width = rc.right - rc.left;
-    height = rc.bottom - rc.top;
-    eu_setpos_window(hwnd, HWND_TOPMOST, rcparent.right - width - 20, rcparent.bottom - height - on_statusbar_height() - 2, width, height, 0);
-    return true;
 }
 
 static bool
-init_clip_dlg(HWND dialog)
+init_clip_dlg(HWND dialog, bool init)
 {
-    HICON hicon = NULL;
-    LPCTSTR name = NULL;
-    if (!on_dark_supports())
-    {
-        name = MAKEINTRESOURCE(IDB_COPY);
-    }
-    else
-    {
-        name = MAKEINTRESOURCE(IDB_COPY_DARK);
-    }
-    if (!(hicon = (HICON) LoadImage(eu_module_handle(), name, IMAGE_ICON, 16, 16, 0)))
+    int w, h;
+    RECT rc = {0};
+    HBITMAP hbmp = NULL;
+    const char* svg_icon = \
+        "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 32 32\"><g id=\"08\"><path fill=\"#455f91\" opacity=\"1.00\" d=\" M 9.81 0.00 L 21.87 0.00 C 25.02 1.37 28.18 4.20 28.00 7.92 C 27.91 13.27 28.31 18.65 27.74 23.98 C 26.58 26.98 22.64 25.70 20.17 26.05 C 20.02 28.20 20.04 30.62 18.07 32.00 L 1.67 32.00 C 1.91 30.65 1.35 30.07 0.00 30.27 L 0.00 8.06 C 1.65 5.27 5.12 6.13 7.83 5.95 C 7.94 3.80 8.10 1.54 9.81 0.00 M 11.06 3.07 C 10.94 9.71 11.03 16.36 11.00 23.00 C 15.67 23.00 20.33 23.00 25.00 23.00 C 25.00 18.67 25.00 14.34 25.00 10.00 C 23.00 10.01 20.99 10.10 19.00 9.91 C 16.99 8.32 18.38 5.21 18.00 2.99 C 15.68 3.00 13.37 3.02 11.06 3.07 M 21.04 2.66 C 21.01 4.11 21.00 5.56 20.99 7.01 C 22.44 7.00 23.89 6.99 25.34 6.96 C 24.22 5.24 22.76 3.78 21.04 2.66 M 3.07 9.07 C 2.92 15.71 3.03 22.35 3.00 29.00 C 7.67 29.00 12.33 29.00 17.00 29.00 C 17.00 28.25 17.00 26.75 17.00 26.01 C 14.18 25.62 9.80 27.26 8.26 24.05 C 7.64 19.06 8.17 14.00 8.00 8.98 C 6.36 9.00 4.71 9.04 3.07 9.07 Z\" /></g></svg>";
+    HWND hbtn = dialog ? GetDlgItem(dialog, IDC_BUTTON0) : NULL;
+    if (!hbtn)
     {
         return false;
     }
-    // 在静态控件上加载图标.
-    for (int i = 0; i < _countof(m_edit); ++i)
     {
-        Static_SetIcon(GetDlgItem(dialog, IDC_BUTTON0 + i), hicon);
+        GetWindowRect(hbtn, &rc);
+        w = rc.right - rc.left;
+        h = rc.bottom - rc.top;
+    }
+    if ((w > 0 && h > 0) && !(hbmp = on_pixmap_from_svg(svg_icon, w, h, on_dark_supports() ? DARK_HOTCOLOR : NULL)))
+    {
+        return false;
+    }
+    for (int i = 0; i < _countof(m_edit); ++i)
+    {   // 在静态控件上加载位图
+        hbtn = GetDlgItem(dialog, IDC_BUTTON0 + i);
+        SendMessage(hbtn, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
         m_edit[i] = GetDlgItem(dialog, IDC_EDIT0 + i);
     }
-    DeleteObject(hicon);
-    SetLastError(0);
-    m_chain = SetClipboardViewer(dialog);
+    DeleteObject(hbmp);
+    if (init)
+    {
+        SetLastError(0);
+        m_chain = SetClipboardViewer(dialog);
+    }
     return (GetLastError() == 0);
 }
 
@@ -369,16 +381,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_INITDIALOG:
         {
-            HICON m_icon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SKYLARK));
-            if (m_icon)
-            {
-                SetClassLongPtr(hdlg, GCLP_HICONSM, (LONG_PTR)m_icon);
-            }
-            if (!init_clip_dlg(hdlg))
-            {
-                return EndDialog(hdlg, 0);
-            }
-            if (on_dark_enable())
+            if (init_clip_dlg(hdlg, true) && on_dark_enable())
             {
                 const int buttons[] = {IDC_BUTTON0,
                                        IDC_BUTTON1,
@@ -398,33 +401,31 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 on_dark_set_theme(hdlg, L"Explorer", NULL);
             }
-            return 1;
+            break;
         }
         case WM_THEMECHANGED:
         {
-            if (on_dark_enable())
+            bool dark = on_dark_enable();
+            on_dark_allow_window(hdlg, dark);
+            on_dark_refresh_titlebar(hdlg);
+            const int buttons[] = {IDC_BUTTON0,
+                                   IDC_BUTTON1,
+                                   IDC_BUTTON2,
+                                   IDC_BUTTON3,
+                                   IDC_BUTTON4,
+                                   IDC_BUTTON5,
+                                   IDC_BUTTON6,
+                                   IDC_BUTTON7,
+                                   IDC_BUTTON8,
+                                   IDC_BUTTON9,
+                                   IDC_BUTTON10};
+            for (int id = 0; id < _countof(buttons); ++id)
             {
-                on_dark_allow_window(hdlg, true);
-                on_dark_refresh_titlebar(hdlg);
-                const int buttons[] = {IDC_BUTTON0,
-                                       IDC_BUTTON1,
-                                       IDC_BUTTON2,
-                                       IDC_BUTTON3,
-                                       IDC_BUTTON4,
-                                       IDC_BUTTON5,
-                                       IDC_BUTTON6,
-                                       IDC_BUTTON7,
-                                       IDC_BUTTON8,
-                                       IDC_BUTTON9,
-                                       IDC_BUTTON10};
-                for (int id = 0; id < _countof(buttons); ++id)
-                {
-                    HWND btn = GetDlgItem(hdlg, buttons[id]);
-                    on_dark_allow_window(btn, true);
-                    SendMessage(btn, WM_THEMECHANGED, 0, 0);
-                }
-                UpdateWindow(hdlg);
+                HWND btn = GetDlgItem(hdlg, buttons[id]);
+                on_dark_allow_window(btn, dark);
+                SendMessage(btn, WM_THEMECHANGED, 0, 0);
             }
+            init_clip_dlg(hdlg, false);
             break;
         }
     CASE_WM_CTLCOLOR_SET:
@@ -498,7 +499,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_SHOWWINDOW:
         {
-            break;
+            return 1;
         }
         case WM_CLOSE:
         {
@@ -507,11 +508,13 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            ChangeClipboardChain(hdlg, m_chain);
-            m_chain = NULL;
-            g_clip_hwnd = NULL;
-            EndDialog(hdlg, LOWORD(wParam));
-            printf("clip window WM_DESTROY\n");
+            if (g_clip_hwnd)
+            {
+                ChangeClipboardChain(hdlg, m_chain);
+                m_chain = NULL;
+                g_clip_hwnd = NULL;
+                printf("clip window WM_DESTROY\n");
+            }
             return 1;
         }
         default:
@@ -526,16 +529,11 @@ on_toolbar_clip_hwnd(void)
     return g_clip_hwnd;
 }
 
-static bool
-create_clipbox(void)
+HWND
+on_toolbar_create_clipbox(HWND hwnd)
 {
-    g_clip_hwnd = i18n_create_dialog(eu_module_hwnd(), IDD_DIALOG_CLIP, clip_proc);
-    if (!g_clip_hwnd)
-    {
-        printf("creator DialogBox failed, cause: %lu\n", GetLastError());
-        return false;
-    }
-    return EnableWindow(g_clip_hwnd, true);
+    g_clip_hwnd = i18n_create_dialog(hwnd, IDD_DIALOG_CLIP, clip_proc);
+    return g_clip_hwnd;
 }
 
 static HIMAGELIST
@@ -949,22 +947,25 @@ is_exec_file(eu_tabpage *pnode)
 }
 
 void
-on_toolbar_cmd_start(void)
+on_toolbar_cmd_start(eu_tabpage *pnode)
 {
-    HANDLE handle = NULL;
-    TCHAR cmd_exec[MAX_PATH +1] = _T("cmd.exe");
-    if (eu_get_config()->m_path[0])
+    if (pnode && eu_get_config())
     {
-        *cmd_exec = 0;
-        MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
-    }
-    if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)) != NULL)
-    {
-        CloseHandle(handle);
-    }
-    else
-    {
-        MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+        HANDLE handle = NULL;
+        TCHAR cmd_exec[MAX_PATH +1] = _T("cmd.exe");
+        if (eu_get_config()->m_path[0])
+        {
+            *cmd_exec = 0;
+            MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
+        }
+        if ((handle = eu_new_process(cmd_exec, NULL, pnode->pathname, 2, NULL)) != NULL)
+        {
+            CloseHandle(handle);
+        }
+        else
+        {
+            MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+        }
     }
 }
 
@@ -1012,10 +1013,6 @@ bool
 on_toolbar_refresh(HWND hwnd)
 {
     HWND h_tool = NULL;
-    if (g_clip_hwnd)
-    {
-        DestroyWindow(g_clip_hwnd);
-    }
     if ((h_tool = GetDlgItem(hwnd, IDC_TOOLBAR)))
     {
         DestroyWindow(h_tool);
@@ -1136,10 +1133,6 @@ on_toolbar_create(HWND parent)
         SendMessage(htool, TB_AUTOSIZE, 0, 0);
         on_dark_tips_theme(htool, TB_GETTOOLTIPS);
     } while(0);
-    if (!ret)
-    {   // 剪贴板窗口
-        ret = !create_clipbox();
-    }
     free(str);
     eu_safe_free(ptb);
     eu_safe_free(pdata);

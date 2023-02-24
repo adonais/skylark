@@ -29,7 +29,7 @@ extern "C" {
 
 extern int g_toolbar_size;
 bool on_toolbar_get_clipboard(char **ppstr);
-bool on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
+void on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
 void on_toolbar_adjust_box(void);
 void on_toolbar_update_button(void);
 void on_toolbar_execute_script(void);
@@ -39,9 +39,10 @@ void on_toolbar_no_highlight(void *lp);
 int  on_toolbar_height(void);
 int  on_toolbar_create(HWND hwnd);
 bool on_toolbar_refresh(HWND hwnd);
+HWND on_toolbar_create_clipbox(HWND hwnd);
 HWND on_toolbar_clip_hwnd(void);
 HWND on_toolbar_hwnd(void);
-void on_toolbar_cmd_start(void);
+void on_toolbar_cmd_start(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

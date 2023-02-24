@@ -24,6 +24,7 @@
 extern "C" {
 #endif
 
+HBITMAP on_pixmap_from_svg(const char *buf, const int w, const int h, const char *color);
 HBITMAP on_pixmap_icons(const int w, const int h, const char *color, int *pout);
 const int on_pixmap_svg_count(void);
 const int on_pixmap_vec_count(void);

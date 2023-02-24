@@ -74,17 +74,17 @@ on_pixmap_destory(eu_pixmap **p)
 }
 
 static bool
-on_pixmap_make_svg(char **p, const int index, const char *color)
+on_pixmap_make_svg(const char *buf, char **p, const int index, const char *color)
 {
     bool ret = false;
     if (p && index >= 0)
     {
-        eue_toolbar* ptool = eu_get_toolbar();
-        const int len = (const int)(strlen(ptool[index].isvg) + 64);
+        eue_toolbar* ptool = !buf ? eu_get_toolbar() : NULL;
+        const int len = (const int)((ptool ? strlen(ptool[index].isvg) : strlen(buf)) + 64);
         *p = len < VALUE_LEN ? (char *)calloc(1, len) : NULL;
         if (*p)
         {
-            strncpy(*p, ptool[index].isvg, len - 1);
+            strncpy(*p, ptool ? ptool[index].isvg : buf, len - 1);
             ret = true;
             if (STR_NOT_NUL(color))
             {
@@ -96,14 +96,14 @@ on_pixmap_make_svg(char **p, const int index, const char *color)
 }
 
 static eu_pixmap*
-on_pixmap_build(const int index, int w, int h, const char *color)
+on_pixmap_build(const char *buf, const int index, int w, int h, const char *color)
 {
     NSVGimage *image = NULL;
     NSVGrasterizer *rast = NULL;
-    char *filename = NULL;
     eu_pixmap *pbuf = NULL;
+    char *filename = NULL;
     float scale = 1.0f;
-    if (on_pixmap_make_svg(&filename, index, color) && filename)
+    if (on_pixmap_make_svg(buf, &filename, index, color) && filename)
     {
         image = nsvgParse(filename, "px", 96.0f);
         if (image == NULL) {
@@ -253,7 +253,7 @@ on_pixmap_icons(const int w, const int h, const char *color, int *pout)
     }
     for (int i = 0, j = 0; i < index - 1; ++i)
     {
-        if (p[i].isvg[0] && (pixmap = on_pixmap_build(i, w, h, color)) != NULL)
+        if (p[i].isvg[0] && (pixmap = on_pixmap_build(NULL, i, w, h, color)) != NULL)
         {
             on_pixmap_blit(dst, pixmap, count * w, 0);
             on_pixmap_destory(&pixmap);
@@ -266,5 +266,18 @@ on_pixmap_icons(const int w, const int h, const char *color, int *pout)
         *pout = count;
     }
     on_pixmap_destory(&dst);
+    return bmp;
+}
+
+HBITMAP
+on_pixmap_from_svg(const char *buf, const int w, const int h, const char *color)
+{
+    HBITMAP bmp = NULL;
+    eu_pixmap* pixmap = on_pixmap_build(buf, 0, w, h, color);
+    if (pixmap)
+    {
+        bmp = on_pixmap_create_bitmap(pixmap);
+        on_pixmap_destory(&pixmap);
+    }
     return bmp;
 }

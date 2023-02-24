@@ -54,8 +54,6 @@ IDB_DOC                 ICON                    "..\\resources\\txt.ico"
 IDB_DRIVE               ICON                    "..\\resources\\drive.ico"
 IDB_OPENFOLD            ICON                    "..\\resources\\folder-open.ico"
 IDB_TXT                 ICON                    "..\\resources\\doc.ico"
-IDB_COPY                ICON                    "..\\resources\\copy.ico"
-IDB_COPY_DARK           ICON                    "..\\resources\\copy_dark.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
