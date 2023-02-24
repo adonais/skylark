@@ -3353,22 +3353,25 @@ on_search_dark_mode_release(void)
 }
 
 static void
-on_search_dark_mode_init(HWND hdlg)
+on_search_dark_mode_init(HWND hdlg, bool dark)
 {
     int id;
     HWND btn = NULL;
-    on_dark_allow_window(hdlg, true);
+    on_dark_allow_window(hdlg, dark);
     on_dark_refresh_titlebar(hdlg);
     const int cbo_buttons[] = { IDC_WHAT_FOLDER_CBO,
                                 IDC_SEARCH_RP_CBO,
                                 IDC_SEARCH_FY_CBO,
                                 IDC_SEARCH_DIR_CBO
                               };
-    for (id = 0; id < _countof(cbo_buttons); ++id)
+    if (dark)
     {
-        if ((btn = GetDlgItem(hdlg, cbo_buttons[id])))
+        for (id = 0; id < _countof(cbo_buttons); ++id)
         {
-            SetWindowSubclass(btn, on_search_combo_wnd, SEARCH_COMBO_SUBID, 0);
+            if ((btn = GetDlgItem(hdlg, cbo_buttons[id])))
+            {
+                SetWindowSubclass(btn, on_search_combo_wnd, SEARCH_COMBO_SUBID, 0);
+            }
         }
     }
     const int bs_buttons[] = { IDC_MATCH_ALL_FILE,
@@ -3410,14 +3413,14 @@ on_search_dark_mode_init(HWND hdlg)
     {
         if ((btn = GetDlgItem(hdlg, buttons[id])))
         {
-            on_dark_set_theme(btn, L"Explorer", NULL);
-            on_dark_allow_window(btn, true);
+            on_dark_set_theme(btn, dark ? L"Explorer" : L"", NULL);
+            on_dark_allow_window(btn, dark);
             SendMessage(btn, WM_THEMECHANGED, 0, 0);
         }
     }
     if (hwnd_regxp_tips)
     {
-        on_dark_set_theme(hwnd_regxp_tips, L"DarkMode_Explorer", NULL);
+        on_dark_set_theme(hwnd_regxp_tips, dark ? L"DarkMode_Explorer": L"", NULL);
     }
 }
 
@@ -3717,10 +3720,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            if (on_dark_supports())
-            {
-                on_search_dark_mode_init(hdlg);
-            }
+            on_search_dark_mode_init(hdlg, on_dark_supports());
             break;
         }
         case WM_DESTROY:

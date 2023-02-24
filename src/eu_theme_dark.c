@@ -183,7 +183,6 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
         {
             if (S_OK != fnDwmSetWindowAttribute(hwnd, 20, &dark, sizeof dark))
             {   // this would be the call before Windows build 18362
-                printf("dark = %d\n", dark);
                 fnDwmSetWindowAttribute(hwnd, 19, &dark, sizeof dark);
             }
         }
@@ -487,7 +486,6 @@ eu_dark_theme_release(bool shutdown)
         on_dark_delete_hot_brush();
         on_dark_delete_brush();
         on_theme_menu_release();
-        on_search_dark_mode_release();
     }
 }
 
