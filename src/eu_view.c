@@ -134,6 +134,7 @@ on_view_refresh_scroll(void)
 static int
 on_view_refresh_theme(HWND hwnd)
 {
+    HWND snippet = NULL;
     on_proc_destory_brush();
     on_treebar_update_theme();
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
@@ -183,6 +184,14 @@ on_view_refresh_theme(HWND hwnd)
     {
         SendMessage(hwnd_document_map, WM_THEMECHANGED, 0, 0);
     }
+    if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+    {
+        eu_tabpage *pview = (eu_tabpage *)GetWindowLongPtr(snippet, GWLP_USERDATA);
+        if (pview && pview->hwnd_sc)
+        {
+            on_snippet_reload(pview);
+        }
+    }
     on_view_refresh_scroll();
     SendMessage(hwnd, WM_SIZE, 0, 0);
     return SKYLARK_OK;
@@ -213,6 +222,15 @@ on_view_switch_theme(HWND hwnd, int id)
     {
         return 0;
     }
+    if (on_theme_load_script(pbuf))
+    {
+        printf("on_theme_load_script(%ls) failed\n", pbuf);
+        return 1;
+    }
+    else
+    {
+        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
+    }
     if (_tcscmp(pbuf, _T("black")) == 0)
     {
         if (eu_dark_theme_init(true, true))
@@ -223,15 +241,6 @@ on_view_switch_theme(HWND hwnd, int id)
     else
     {
         eu_dark_theme_release(false);
-    }
-    if (on_theme_load_script(pbuf))
-    {
-        printf("on_theme_load_script(%ls) failed\n", pbuf);
-        return 1;
-    }
-    else
-    {
-        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
     }
     return on_view_refresh_theme(hwnd);
 }

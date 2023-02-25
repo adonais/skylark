@@ -311,7 +311,7 @@ init_clip_dlg(HWND dialog, bool init)
         w = rc.right - rc.left;
         h = rc.bottom - rc.top;
     }
-    if ((w > 0 && h > 0) && !(hbmp = on_pixmap_from_svg(svg_icon, w, h, on_dark_supports() ? DARK_HOTCOLOR : NULL)))
+    if ((w > 0 && h > 0) && !(hbmp = on_pixmap_from_svg(svg_icon, w, h, on_dark_enable() ? DARK_HOTCOLOR : NULL)))
     {
         return false;
     }
@@ -383,6 +383,17 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (init_clip_dlg(hdlg, true) && on_dark_enable())
             {
+                on_dark_set_theme(hdlg, L"Explorer", NULL);
+            }
+            break;
+        }
+        case WM_THEMECHANGED:
+        {
+            if (on_dark_supports())
+            {
+                bool dark = on_dark_enable();
+                on_dark_allow_window(hdlg, dark);
+                on_dark_refresh_titlebar(hdlg);
                 const int buttons[] = {IDC_BUTTON0,
                                        IDC_BUTTON1,
                                        IDC_BUTTON2,
@@ -397,36 +408,16 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
+                    on_dark_allow_window(btn, dark);
                     on_dark_set_theme(btn, L"Explorer", NULL);
                 }
-                on_dark_set_theme(hdlg, L"Explorer", NULL);
+                init_clip_dlg(hdlg, false);
+                if (IsWindowVisible(hdlg))
+                {   // 在某些平台上, 需要重绘所有界面
+                    UpdateWindowEx(hdlg);
+                }
+                break;
             }
-            break;
-        }
-        case WM_THEMECHANGED:
-        {
-            bool dark = on_dark_enable();
-            on_dark_allow_window(hdlg, dark);
-            on_dark_refresh_titlebar(hdlg);
-            const int buttons[] = {IDC_BUTTON0,
-                                   IDC_BUTTON1,
-                                   IDC_BUTTON2,
-                                   IDC_BUTTON3,
-                                   IDC_BUTTON4,
-                                   IDC_BUTTON5,
-                                   IDC_BUTTON6,
-                                   IDC_BUTTON7,
-                                   IDC_BUTTON8,
-                                   IDC_BUTTON9,
-                                   IDC_BUTTON10};
-            for (int id = 0; id < _countof(buttons); ++id)
-            {
-                HWND btn = GetDlgItem(hdlg, buttons[id]);
-                on_dark_allow_window(btn, dark);
-                SendMessage(btn, WM_THEMECHANGED, 0, 0);
-            }
-            init_clip_dlg(hdlg, false);
-            break;
         }
     CASE_WM_CTLCOLOR_SET:
         {

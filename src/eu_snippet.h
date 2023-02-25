@@ -23,6 +23,7 @@
 extern "C" {
 #endif
 
+void on_snippet_reload(eu_tabpage *pedit);
 void on_snippet_create_dlg(HWND hwnd);
 void on_snippet_destory(void);
 

@@ -716,66 +716,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (on_dark_enable())
             {
-                const int buttons[] = {IDOK,
-                                       IDCANCEL,
-                                       IDC_SETFONT_KEYWORDS_BUTTON,
-                                       IDC_SETTEXTCOLOR_KEYWORDS_BTN,
-                                       IDC_SETFONT_KEYWORDS2_BTN,
-                                       IDC_SETTEXTCOLOR_KEYWORDS2_BTN,
-                                       IDC_SETFONT_STRING_BTN,
-                                       IDC_SETTEXTCOLOR_STRING_BTN,
-                                       IDC_SETFONT_CHARACTER_BTN,
-                                       IDC_SETTEXTCOLOR_CHARACTER_BTN,
-                                       IDC_SETFONT_NUMBER_BTN,
-                                       IDC_SETTEXTCOLOR_NUMBER_BTN,
-                                       IDC_SETFONT_PREPRO_BTN,
-                                       IDC_SETTEXTCOLOR_PREPRO_BTN,
-                                       IDC_SETFONT_COMMENT_BTN,
-                                       IDC_SETTEXTCOLOR_COMMENT_BTN,
-                                       IDC_SETFONT_COMMENTLINE_BTN,
-                                       IDC_SETTEXTCOLOR_COMMENTL_BTN,
-                                       IDC_SETFONT_COMMENTDOC_BTN,
-                                       IDC_SETTEXTCOLOR_COMMENTDOC_BTN,
-                                       IDC_SETFONT_TEXT_BTN,
-                                       IDC_SETTEXTCOLOR_TEXT_BTN,
-                                       IDC_SETFONT_OPERATOR_BTN,
-                                       IDC_SETTEXTCOLOR_OPERATOR_BTN,
-                                       IDC_SETFONT_UNKNOWTAGS_BTN,
-                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BTN,
-                                       IDC_SETFONT_ATTRIBUTES_BTN,
-                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BTN,
-                                       IDC_SETFONT_UNATTRIBUTES_BTN,
-                                       IDC_SETTEXTCOLOR_UNATTRS_BTN,
-                                       IDC_SETFONT_ENTITIES_BTN,
-                                       IDC_SETTEXTCOLOR_ENTITIES_BTN,
-                                       IDC_SETFONT_TAGENDS_BTN,
-                                       IDC_SETTEXTCOLOR_TAGENDS_BTN,
-                                       IDC_SETFONT_PHPSECTION_BTN,
-                                       IDC_SETTEXTCOLOR_PHPSECTION_BTN,
-                                       IDC_SETFONT_ASPSECTION_BTN,
-                                       IDC_SETTEXTCOLOR_ASPSECTION_BTN,
-                                       IDC_SETFONT_HYPERLINKSECTION_BTN,
-                                       IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN,
-                                       IDC_SETFONT_TAGS_BTN,
-                                       IDC_SETTEXTCOLOR_TAGS_BTN,
-                                       IDC_SETFONT_CDATA_BTN,
-                                       IDC_SETTEXTCOLOR_CDATA_BTN,
-                                       IDC_SETBGCOLOR_CARETLINE_BTN,
-                                       IDC_SETBGCOLOR_TEXT_BTN,
-                                       IDC_SETBGCOLOR_INDICATOR_BTN,
-                                       IDC_SETTEXTCOLOR_LINENUMBER_BTN,
-                                       IDC_SETBGCOLOR_LINENUMBER_BTN,
-                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN,
-                                       IDC_SETBGCOLOR_TAB_BTN,
-                                       IDC_SETCOLOR_CARET_BTN,
-                                       IDC_SETFONT_SYMBOLIC_BTN,
-                                       IDC_SETTEXTCOLOR_SYMBOLIC_BTN
-                                       };
-                for (int id = 0; id < _countof(buttons); ++id)
-                {
-                    HWND btn = GetDlgItem(hdlg, buttons[id]);
-                    on_dark_set_theme(btn, L"Explorer", NULL);
-                }
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_THEME_LANGUAGE_STATIC), L"", L"");
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_THEME_MARKUP_STATIC), L"", L"");
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_THEME_EDIT_STATIC), L"", L"");
@@ -787,9 +727,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            if (on_dark_enable())
+            if (on_dark_supports())
             {
-                on_dark_allow_window(hdlg, true);
+                bool dark = on_dark_enable();
+                on_dark_allow_window(hdlg, dark);
                 on_dark_refresh_titlebar(hdlg);
                 const int buttons[] = {IDOK,
                                        IDCANCEL,
@@ -849,10 +790,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
-                    on_dark_allow_window(btn, true);
-                    SendMessage(btn, WM_THEMECHANGED, 0, 0);
+                    on_dark_allow_window(btn, dark);
+                    on_dark_set_theme(btn, L"Explorer", NULL);
                 }
-                UpdateWindow(hdlg);
+                UpdateWindowEx(hdlg);
             }
             break;
         }

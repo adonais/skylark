@@ -27,27 +27,6 @@ on_snippet_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
 }
 
-void WINAPI
-on_snippet_reload(eu_tabpage *pedit)
-{
-    if (pedit)
-    {
-        on_sci_init_style(pedit);
-        // disable margin
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, MARGIN_FOLD_WIDTH);
-        // 强制启用自动换行
-        eu_sci_call(pedit, SCI_SETWRAPMODE, 2, 0);
-        eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
-        // 启用语法解析与配色方案
-        on_doc_init_after_scilexer(pedit, "eu_demo");
-        on_doc_default_light(pedit, SCE_DEMO_CARETSTART, 0xFF8000, -1, true);
-        on_doc_default_light(pedit, SCE_DEMO_MARKNUMBER, 0x00FF8000, -1, true);
-        on_doc_default_light(pedit, SCE_DEMO_MARK0, 0x0000FF, -1, true);
-    }
-}
-
 static LRESULT CALLBACK
 on_snippet_edt_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
@@ -678,7 +657,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             {
                 return (INT_PTR)DestroyWindow(hdlg);
             }
-            const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
+            const int flags = WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_EX_RTLREADING; // WS_CLIPCHILDREN | 
             if (on_sci_create(pview, hdlg, flags, on_snippet_edit_proc) != SKYLARK_OK)
             {
                 return (INT_PTR)DestroyWindow(hdlg);
@@ -699,7 +678,17 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             on_snippet_move_edit(hdlg);
             if (on_dark_enable())
             {
-                on_dark_allow_window(hdlg, true);
+                on_dark_set_theme(hdlg, L"Explorer", NULL);
+            }
+            return (INT_PTR)SendMessage(hdlg, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
+        }
+        case WM_THEMECHANGED:
+        {
+            if (on_dark_supports())
+            {
+                bool dark = on_dark_enable();
+                HWND hwnd_lst = GetDlgItem(hdlg, IDC_SNIPPET_LST);
+                on_dark_allow_window(hdlg, dark);
                 on_dark_refresh_titlebar(hdlg);
                 const int buttons[] = {IDC_SNIPPET_DELETE,
                                        IDC_SNIPPET_NEW,
@@ -708,16 +697,15 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
-                    on_dark_allow_window(btn, true);
+                    on_dark_allow_window(btn, dark);
                     on_dark_set_theme(btn, L"Explorer", NULL);
-                    SendMessage(btn, WM_THEMECHANGED, 0, 0);
                 }
-                on_dark_set_theme(hdlg, L"Explorer", NULL);
+                if (hwnd_lst)
+                {
+                    on_dark_set_theme(hwnd_lst, L"DarkMode_Explorer", NULL);
+                }
+                UpdateWindowEx(hdlg);
             }
-            return (INT_PTR)SendMessage(hdlg, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
-        }
-        case WM_THEMECHANGED:
-        {
             break;
         }
         CASE_WM_CTLCOLOR_SET:
@@ -877,6 +865,27 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             break;
     }
     return 0;
+}
+
+void
+on_snippet_reload(eu_tabpage *pedit)
+{
+    if (pedit)
+    {
+        on_sci_init_default(pedit, -1);
+        // disable margin
+        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
+        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
+        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, MARGIN_FOLD_WIDTH);
+        // 强制启用自动换行
+        eu_sci_call(pedit, SCI_SETWRAPMODE, 2, 0);
+        eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
+        // 启用语法解析与配色方案
+        on_doc_init_after_scilexer(pedit, "eu_demo");
+        on_doc_default_light(pedit, SCE_DEMO_CARETSTART, 0xFF8000, -1, true);
+        on_doc_default_light(pedit, SCE_DEMO_MARKNUMBER, 0x00FF8000, -1, true);
+        on_doc_default_light(pedit, SCE_DEMO_MARK0, 0x0000FF, -1, true);
+    }
 }
 
 void

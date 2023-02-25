@@ -837,10 +837,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_THEMECHANGED:
-            on_snippet_destory();
             if (on_dark_supports())
             {
-                on_dark_allow_window(hwnd, true);
+                HWND snippet = NULL;
+                on_dark_allow_window(hwnd, on_dark_enable());
                 on_dark_refresh_titlebar(hwnd);
                 on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
                 on_tabpage_foreach(on_tabpage_theme_changed);
@@ -854,7 +854,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
                 }
-                on_dark_set_theme(eu_get_search_hwnd(), L"Explorer", NULL);
+                if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+                {
+                    on_dark_set_theme(snippet, L"", L"");
+                    on_dark_set_theme(snippet, L"Explorer", NULL);
+                }
             }
             break;
         case WM_SYSCOMMAND:

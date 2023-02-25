@@ -3413,15 +3413,15 @@ on_search_dark_mode_init(HWND hdlg, bool dark)
     {
         if ((btn = GetDlgItem(hdlg, buttons[id])))
         {
-            on_dark_set_theme(btn, dark ? L"Explorer" : L"", NULL);
             on_dark_allow_window(btn, dark);
-            SendMessage(btn, WM_THEMECHANGED, 0, 0);
+            on_dark_set_theme(btn, L"Explorer", NULL);
         }
     }
     if (hwnd_regxp_tips)
     {
         on_dark_set_theme(hwnd_regxp_tips, dark ? L"DarkMode_Explorer": L"", NULL);
     }
+    UpdateWindowEx(hdlg);
 }
 
 static void
@@ -3720,7 +3720,10 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            on_search_dark_mode_init(hdlg, on_dark_supports());
+            if (on_dark_supports())
+            {
+                on_search_dark_mode_init(hdlg, on_dark_enable());
+            }
             break;
         }
         case WM_DESTROY:

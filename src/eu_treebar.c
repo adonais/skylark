@@ -1505,8 +1505,8 @@ on_treebar_update_theme(void)
 {
     SendMessage(g_filetree, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
     SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
-    SendMessage(g_filetree, TVM_SETLINECOLOR, 0, eu_get_theme()->item.text.color);
     SendMessage(g_filetree, TVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
+    on_dark_set_theme(g_filetree, on_dark_enable() ? L"DarkMode_Explorer" : L"", NULL);
 }
 
 LRESULT CALLBACK
@@ -1624,7 +1624,7 @@ on_treebar_create_dlg(HWND hwnd)
     }
     g_filetree = CreateWindow(WC_TREEVIEW,
                               NULL,
-                              WS_CHILD | WS_CLIPSIBLINGS | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP | TVS_SHOWSELALWAYS | TVS_EDITLABELS,
+                              WS_CHILD | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_TABSTOP | TVS_SHOWSELALWAYS | TVS_EDITLABELS,
                               0,
                               0,
                               0,
