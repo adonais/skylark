@@ -398,9 +398,27 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     return 0;
 }
 
+static bool
+i18n_check_envent(void)
+{
+    bool ret = true;
+    HWND snippet = NULL;
+    HWND search = NULL;
+    if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+    {
+        ret = false;
+    }
+    if (ret && (search = eu_get_search_hwnd()) && IsWindowVisible(search))
+    {
+        ret = false;
+    }
+    return ret;
+}
+
 int
 i18n_switch_locale(HWND hwnd, int id)
 {
+    int msg = IDOK;
     TCHAR buf[QW_SIZE] = {0};
     TCHAR old[QW_SIZE] = {0};
     TCHAR sel[QW_SIZE] = {0};
@@ -423,6 +441,14 @@ i18n_switch_locale(HWND hwnd, int id)
         return 1;
     }
     if (_tcscmp(sel, old) == 0)
+    {
+        return 0;
+    }
+    if (!i18n_check_envent())
+    {
+        MSG_BOX_SEL(IDS_LOCALE_SWITCH_TIP, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, msg);
+    }
+    if (msg == IDCANCEL || msg == IDCLOSE)
     {
         return 0;
     }

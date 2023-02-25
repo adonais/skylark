@@ -1122,6 +1122,7 @@
 #define IDS_BUTTON_ROUTE_TIPS               44022
 
 #define IDS_PLUGINS_MSG1                    44030
+#define IDS_LOCALE_SWITCH_TIP               44031
 
 #define IDM_VIEW_TAB_RIGHT_NEW              44040
 #define IDM_VIEW_TAB_DBCLICK_NEW            44041
