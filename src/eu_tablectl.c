@@ -20,11 +20,46 @@
 
 #define SQL_EXECUTE_FAIL(p) free(p); return 1
 
+typedef struct _column_t
+{
+    char data[4000 + 1];
+    ub2 data_len;
+    sb2 data_indicator;
+} column_t, *column_ptr;
+
 db_libs db_funcs = {0};
 redis_lib redis_funcs = {0};
-LONG_PTR orgi_hearder_proc = 0;
 
-int
+static void
+on_table_draw_header(HWND hwnd)
+{
+    HWND hdr = ListView_GetHeader(hwnd);
+    if (hdr && on_dark_enable())
+    {
+        const int bdh = GetSystemMetrics(SM_CYFRAME);
+        const HDC hdc_src = GetWindowDC(hdr);
+        RECT rcf = {0};
+        int count = (int)SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
+        for (int k = 0; k < count; ++k)
+        {
+            if (SendMessage(hdr, HDM_GETITEMRECT, k, (LPARAM)&rcf))
+            {
+                for (int i = 1; i < bdh; ++i)
+                {
+                    FrameRect(hdc_src, &rcf, (HBRUSH)on_dark_theme_brush());
+                    rcf.left -= 1;
+                    rcf.top -= 1;
+                    rcf.bottom += 1;
+                    rcf.right += 1;
+                }
+                FrameRect(hdc_src, &rcf, GetSysColorBrush(COLOR_3DDKSHADOW));                        
+            }
+        }
+        ReleaseDC(hdr, hdc_src);
+    }
+}
+
+void
 on_table_update_theme(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL);
@@ -35,28 +70,75 @@ on_table_update_theme(eu_tabpage *pnode)
         SendMessage(pnode->hwnd_qrtable, LVM_SETOUTLINECOLOR, 0, eu_get_theme()->item.text.color);
         SendMessage(pnode->hwnd_qrtable, LVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
         SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
-        return 0;
+        on_dark_set_theme(pnode->hwnd_qrtable, L"Explorer", NULL);
+        HWND hdr = ListView_GetHeader(pnode->hwnd_qrtable);
+        if (hdr)
+        {
+            const intptr_t style = GetWindowLongPtr(hdr, GWL_STYLE);
+            SetWindowLongPtr(hdr, GWL_STYLE, style & ~HDS_FLAT);
+            // 移除主题渲染, 使用自绘
+            on_dark_set_theme(hdr, L"", L"");
+            on_dark_set_theme(pnode->hwnd_qrtable, L"Explorer", NULL);
+        }
     }
-    return 1;
 }
 
 static LRESULT CALLBACK
-listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
+on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
 {
     switch (msg)
     {
+        case WM_ERASEBKGND:
+        {
+            return 1;
+        }
+        case WM_PAINT:
+        {
+            on_table_draw_header(hwnd);
+            break;
+        }
         case WM_THEMECHANGED:
         {
-            const intptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
-            if (on_dark_enable())
+            UpdateWindowEx(hwnd);
+            break;
+        }
+        case WM_SIZE:
+        {
+            HWND hdr = ListView_GetHeader(hwnd);
+            if (hdr)
             {
-                SetWindowLongPtr(hwnd, GWL_STYLE, style | LVS_NOCOLUMNHEADER);
+                int count = (int) SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
+                if (count > 0)
+                {
+                    ListView_SetColumnWidth(hwnd, count - 1, LVSCW_AUTOSIZE_USEHEADER);
+                }
             }
-            else
+            break;
+        }
+        case WM_NOTIFY:
+        {
+            NMHDR *lpnmhdr = (NMHDR *) lp;
+            HWND hdr = ListView_GetHeader(hwnd);
+            if (lpnmhdr->hwndFrom == hdr && lpnmhdr->code == NM_CUSTOMDRAW)
             {
-                SetWindowLongPtr(hwnd, GWL_STYLE, style & ~LVS_NOCOLUMNHEADER);
+                NMCUSTOMDRAW *lpnm = (LPNMCUSTOMDRAW)lp;
+                switch (lpnm->dwDrawStage)
+                {
+                    case CDDS_PREPAINT:
+                    {
+                        return CDRF_NOTIFYITEMDRAW;
+                    }
+                    case CDDS_ITEMPREPAINT:
+                    {
+                        FillRect(lpnm->hdc, &lpnm->rc, (HBRUSH)on_dark_theme_brush());
+                        SetTextColor(lpnm->hdc, eu_get_theme()->item.text.color);
+                        SetBkColor(lpnm->hdc, eu_get_theme()->item.text.bgcolor);
+                        return CDRF_DODEFAULT;
+                    }
+                    default:
+                        break;
+                }
             }
-            UpdateWindow(hwnd);
             break;
         }
         case WM_DPICHANGED:
@@ -66,7 +148,7 @@ listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_
         }
         case WM_NCDESTROY:
         {
-            RemoveWindowSubclass(hwnd, listview_proc, sub_id);
+            RemoveWindowSubclass(hwnd, on_table_listview_proc, sub_id);
             printf("qrtable listview WM_DESTROY\n");
             break;
         }
@@ -90,13 +172,10 @@ on_table_create_query_box(eu_tabpage *pnode)
         MSG_BOX(IDC_MSG_QUERY_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return 1;
     }
-    SetWindowSubclass(pnode->hwnd_qrtable, listview_proc, TBCTL_LIST_SUBID, 0);
+    SetWindowSubclass(pnode->hwnd_qrtable, on_table_listview_proc, TBCTL_LIST_SUBID, 0);
     ListView_SetExtendedListViewStyle(pnode->hwnd_qrtable, LVS_EX_FLATSB | LVS_EX_DOUBLEBUFFER | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT);
-    if (on_dark_supports())
-    {
-        on_dark_set_theme(pnode->hwnd_qrtable, L"Explorer", NULL);
-    }
-    return on_table_update_theme(pnode);
+    on_table_update_theme(pnode);
+    return 0;
 }
 
 int
@@ -120,6 +199,18 @@ on_table_oci_error(eu_tabpage *pnode, OCIError *errhpp, int *err_code, char *err
         *(err_code) = err;
     }
     return 0;
+}
+
+static void
+on_table_reset_table(HWND hwnd)
+{
+    ListView_DeleteAllItems(hwnd);
+    HWND hdr = ListView_GetHeader(hwnd);
+    int view_count = (int) SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
+    for (view_count--; view_count >= 0; view_count--)
+    {
+        ListView_DeleteColumn(hwnd, view_count);
+    }
 }
 
 static bool
@@ -165,6 +256,30 @@ on_table_insert_item(HWND hwnd, int row_index, int field_index, const char *text
         free(ptr_name);
     }
     return (ret >= 0);
+}
+
+static void
+on_table_fix_columns(HWND hwnd, const int count, const unsigned int *afield)
+{
+    if (count == 0 && afield == NULL)
+    {
+        on_table_insert_columns(hwnd, 0, "Empty Table");
+        ListView_SetColumnWidth(hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
+    }
+    else
+    {
+        for (int index = 0; index < count; ++index)
+        {
+            if (index == count - 1)
+            {
+                ListView_SetColumnWidth(hwnd, index, LVSCW_AUTOSIZE_USEHEADER);
+            }
+            else
+            {
+                ListView_SetColumnWidth(hwnd, index, afield[index]);
+            }
+        }
+    }
 }
 
 static void
@@ -807,7 +922,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     int sel_len;
     int row_index;
     int nret = 0;
-    int view_count;
     int field_count;
     int field_index;
     unsigned int nfield_width;
@@ -816,7 +930,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     char *field_value = NULL;
     unsigned int *afield_width = NULL;
     TCHAR utf_str[MAX_BUFFER+1] = {0};
-    HWND hwnd_view_header;
     EU_VERIFY(pnode != NULL);
     int char_width = (int)eu_sci_call(pnode, SCI_TEXTWIDTH, STYLE_DEFAULT, (sptr_t) "X");
     eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
@@ -899,14 +1012,15 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             {
                 MYSQL_FIELD *mysql_field = NULL;
                 MYSQL_ROW mysqlrow;
-                ListView_DeleteAllItems(pnode->hwnd_qrtable);
-                hwnd_view_header = ListView_GetHeader(pnode->hwnd_qrtable);
-                view_count = (int) SendMessage(hwnd_view_header, HDM_GETITEMCOUNT, 0, 0);
-                for (view_count--; view_count >= 0; view_count--)
-                {
-                    ListView_DeleteColumn(pnode->hwnd_qrtable, view_count);
-                }
+                row_index = 0;
                 field_count = mysql_sub->fn_mysql_num_fields(presult);
+                on_table_reset_table(pnode->hwnd_qrtable);
+                if (!field_count)
+                {   // 空表
+                    on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
+                    mysql_sub->fn_mysql_free_result(presult);
+                    SQL_EXECUTE_FAIL(sel_sql);
+                }
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
                 {
@@ -930,7 +1044,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                         afield_width[field_index] = nfield_width;
                     }
                 }
-                row_index = 0;
                 while ((mysqlrow = mysql_sub->fn_mysql_fetch_row(presult)))
                 {
                     for (field_index = 0; field_index < field_count; field_index++)
@@ -953,12 +1066,9 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                     }
                     row_index++;
                 }
-                for (field_index = 0; field_index < field_count; field_index++)
-                {
-                    ListView_SetColumnWidth(pnode->hwnd_qrtable, field_index, afield_width[field_index]);
-                }
+                on_table_fix_columns(pnode->hwnd_qrtable, field_count, afield_width);
                 mysql_sub->fn_mysql_free_result(presult);
-                free(afield_width);
+                eu_safe_free(afield_width);
             }
         }
         else if (_stricmp(pnode->db_ptr->config.dbtype, "Oracle") == 0)
@@ -972,13 +1082,8 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             OCIParam *paramhpp = NULL;
             text *column_name = NULL;
             ub4 column_name_len = 0;
+            column_ptr column_data = NULL;
             OCIDefine *column_ocid = NULL;
-            struct ColumnData
-            {
-                char data[4000 + 1];
-                ub2 data_len;
-                sb2 data_indicator;
-            } *column_data;
             oci_sub->fnOCIHandleAlloc((dvoid *) (this_oci->envhpp), (dvoid **) &stmthpp, OCI_HTYPE_STMT, (size_t) 0, (dvoid **) 0);
             result = oci_sub->fnOCIStmtPrepare(stmthpp,
                                                this_oci->errhpp,
@@ -1038,19 +1143,19 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             }
             if (stmt_type == OCI_STMT_SELECT)
             {
-                ListView_DeleteAllItems(pnode->hwnd_qrtable);
-                hwnd_view_header = ListView_GetHeader(pnode->hwnd_qrtable);
-                view_count = (int) SendMessage(hwnd_view_header, HDM_GETITEMCOUNT, 0, 0);
-                for (view_count--; view_count >= 0; view_count--)
-                {
-                    ListView_DeleteColumn(pnode->hwnd_qrtable, view_count);
-                }
+                row_index = 0;
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR10, msg_str);
                 on_result_append_text(msg_str);
                 ub4 nFieldCount2;
                 oci_sub->fnOCIAttrGet((dvoid *) stmthpp, OCI_HTYPE_STMT, &nFieldCount2, 0, OCI_ATTR_PARAM_COUNT, this_oci->errhpp);
                 field_count = (int) nFieldCount2;
-
+                on_table_reset_table(pnode->hwnd_qrtable);
+                if (!field_count)
+                {   // 空表
+                    on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
+                    oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
+                    SQL_EXECUTE_FAIL(sel_sql);
+                }
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
                 {
@@ -1058,8 +1163,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                     oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }
-                column_data = (struct ColumnData *) calloc(1, sizeof(struct ColumnData) * field_count);
-                if (column_data == NULL)
+                if ((column_data = (column_ptr) calloc(1, sizeof(column_t) * field_count)) == NULL)
                 {
                     MSG_BOX(IDC_MSG_QUERY_STR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                     oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
@@ -1114,7 +1218,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                         afield_width[field_index] = nfield_width;
                     }
                 }
-                row_index = 0;
                 while (1)
                 {
                     result = oci_sub->fnOCIStmtFetch2(stmthpp, this_oci->errhpp, 1, OCI_FETCH_NEXT, 1, OCI_DEFAULT);
@@ -1150,12 +1253,9 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                     }
                     row_index++;
                 }
-                for (field_index = 0; field_index < field_count; field_index++)
-                {
-                    ListView_SetColumnWidth(pnode->hwnd_qrtable, field_index, afield_width[field_index]);
-                }
-                free(afield_width);
-                free(column_data);
+                on_table_fix_columns(pnode->hwnd_qrtable, field_count, afield_width);
+                eu_safe_free(afield_width);
+                eu_safe_free(column_data);
             }
             else
             {
@@ -1175,8 +1275,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             {
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR1, msg_str);
                 on_result_append_text(msg_str, util_make_u16(psel, utf_str, MAX_BUFFER));
-                nret = eu_sqlite3_get_table(this_sql3->sqlite3, psel, &result, &row_conut, &field_count, &errmsg);
-                if (nret)
+                if ((nret = eu_sqlite3_get_table(this_sql3->sqlite3, psel, &result, &row_conut, &field_count, &errmsg)))
                 {
                     LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR7, msg_str);
                     on_result_append_text(msg_str, nret, util_make_u16(errmsg, utf_str, MAX_BUFFER));
@@ -1192,8 +1291,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             }
             else
             {
-                nret = eu_sqlite3_exec(this_sql3->sqlite3, psel, NULL, NULL, &errmsg);
-                if (nret)
+                if ((nret = eu_sqlite3_exec(this_sql3->sqlite3, psel, NULL, NULL, &errmsg)))
                 {
                     printf("eu_sqlite3_exec failed\n");
                     LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR7, msg_str);
@@ -1207,16 +1305,17 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                     on_result_append_text(msg_str);
                 }
             }
+            if (!field_count)
+            {   // 空表
+                on_table_reset_table(pnode->hwnd_qrtable);
+                on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
+                eu_sqlite3_free_table(result);
+                SQL_EXECUTE_FAIL(sel_sql);
+            }
             if (is_select_word)
             {
                 TCHAR *ptr_index = NULL;
-                ListView_DeleteAllItems(pnode->hwnd_qrtable);
-                hwnd_view_header = ListView_GetHeader(pnode->hwnd_qrtable);
-                view_count = (int) SendMessage(hwnd_view_header, HDM_GETITEMCOUNT, 0, 0);
-                for (view_count--; view_count >= 0; view_count--)
-                {
-                    ListView_DeleteColumn(pnode->hwnd_qrtable, view_count);
-                }
+                on_table_reset_table(pnode->hwnd_qrtable);
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
                 {
@@ -1224,10 +1323,9 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                     eu_sqlite3_free_table(result);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }
-                index = 0;
-                for (field_index = 0; field_index < field_count; field_index++, index++)
+                for (field_index = 0, index = 0; field_index < field_count; field_index++, index++)
                 {
-                    if (!on_table_insert_columns(pnode->hwnd_qrtable, field_index, result[index]))
+                    if (!(on_table_insert_columns(pnode->hwnd_qrtable, field_index, result[index])))
                     {
                         MSG_BOX(IDC_MSG_QUERY_STR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                         eu_sqlite3_free_table(result);
@@ -1240,8 +1338,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                         afield_width[field_index] = nfield_width;
                     }
                 }
-                index = field_count;
-                for (row_index = 0; row_index < row_conut; row_index++)
+                for (row_index = 0, index = field_count; row_index < row_conut; row_index++)
                 {
                     for (field_index = 0; field_index < field_count; field_index++, index++)
                     {
@@ -1262,11 +1359,8 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                         }
                     }
                 }
-                for (field_index = 0; field_index < field_count; field_index++)
-                {
-                    ListView_SetColumnWidth(pnode->hwnd_qrtable, field_index, afield_width[field_index]);
-                }
-                free(afield_width);
+                on_table_fix_columns(pnode->hwnd_qrtable, field_count, afield_width);
+                eu_safe_free(afield_width);
                 eu_sqlite3_free_table(result);
             }
         }
@@ -1289,12 +1383,12 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                 field_count = pq_sub->fnPQnfields(res);
                 LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR14, msg_str);
                 on_result_append_text(msg_str, row_conut);
-                ListView_DeleteAllItems(pnode->hwnd_qrtable);
-                hwnd_view_header = ListView_GetHeader(pnode->hwnd_qrtable);
-                view_count = (int) SendMessage(hwnd_view_header, HDM_GETITEMCOUNT, 0, 0);
-                for (view_count--; view_count >= 0; view_count--)
-                {
-                    ListView_DeleteColumn(pnode->hwnd_qrtable, view_count);
+                on_table_reset_table(pnode->hwnd_qrtable);
+                if (!field_count)
+                {   // 空表
+                    on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
+                    pq_sub->fnPQclear(res);
+                    SQL_EXECUTE_FAIL(sel_sql);
                 }
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
@@ -1340,11 +1434,8 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                         }
                     }
                 }
-                for (field_index = 0; field_index < field_count; field_index++)
-                {
-                    ListView_SetColumnWidth(pnode->hwnd_qrtable, field_index, afield_width[field_index]);
-                }
-                free(afield_width);
+                on_table_fix_columns(pnode->hwnd_qrtable, field_count, afield_width);
+                eu_safe_free(afield_width);
                 pq_sub->fnPQclear(res);
             }
             else

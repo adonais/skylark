@@ -85,6 +85,8 @@ on_destory_window(HWND hwnd)
     on_search_finish_wait();
     // 销毁控件画刷
     on_proc_destory_brush();
+    // 清理主题画刷
+    on_dark_delete_theme_brush();
     // 销毁工具栏
     HWND h_tool = GetDlgItem(hwnd, IDC_TOOLBAR);
     if (h_tool)

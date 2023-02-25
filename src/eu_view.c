@@ -166,10 +166,6 @@ on_view_refresh_theme(HWND hwnd)
         if (p->hwnd_qrtable)
         {
             on_table_update_theme(p);
-            if (on_dark_enable())
-            {
-                on_dark_set_theme(p->hwnd_qrtable, L"Explorer", NULL);
-            }
         }
         if (p->be_modify)
         {
@@ -235,6 +231,8 @@ on_view_switch_theme(HWND hwnd, int id)
     else
     {
         strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
+        // 清理主题画刷
+        on_dark_delete_theme_brush();
     }
     if (_tcscmp(pbuf, _T("black")) == 0)
     {
