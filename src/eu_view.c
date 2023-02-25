@@ -179,6 +179,11 @@ on_view_refresh_theme(HWND hwnd)
         {
             np_plugins_setvalue(&p->plugin->funcs, &p->plugin->npp, NV_THEME_CHANGE, NULL);
         }
+        if (p->file_attr & FILE_READONLY_COLOR)
+        {   // 切换主题后为只读文件重新上色
+            p->file_attr &= ~FILE_READONLY_COLOR;
+            on_statusbar_btn_rw(p, true);
+        }
     }
     if (document_map_initialized && hwnd_document_map)
     {
