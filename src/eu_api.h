@@ -141,6 +141,7 @@
 #define WM_TAB_CLICK              (WM_USER+10004)
 #define WM_SKYLARK_DESC           (WM_USER+10005)
 #define WM_TAB_NCCLICK            (WM_USER+10006)
+#define WM_ABOUT_RE               (WM_USER+10007)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 

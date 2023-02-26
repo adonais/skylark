@@ -1589,7 +1589,7 @@ on_search_regxp_msg(void)
     return NULL;
 }
 
-static void
+void
 on_search_regxp_error(void)
 {
     HWND stc = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_TIPS_STC);
@@ -1964,8 +1964,8 @@ on_search_report_result(void *lp)
     }
     leave_spin_slock(rdata.thr);
     if (pnode->match_count == -2)
-    {
-        on_search_regxp_error();
+    {   // 在主线程建立提示控件
+        PostMessage(eu_module_hwnd(), WM_ABOUT_RE, 0, 0);
     }
     else
     {

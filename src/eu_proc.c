@@ -777,6 +777,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_SKYLARK_DESC:
             return WM_SKYLARK_DESC;
+        case WM_ABOUT_RE:
+            on_search_regxp_error();
+            break;
         case WM_DPICHANGED:
         {
             on_theme_setup_font(hwnd);

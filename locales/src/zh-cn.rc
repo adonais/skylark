@@ -1211,6 +1211,7 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_ROUTE_TIPS   "文件存储在服务端, 不能改变其读写属性"
     IDS_BUTTON_RW_TIPS      "文件没有写权限, 不能改变其读写属性. 你可能需要\n以管理员权限重启编辑器"
     IDS_PLUGINS_MSG1        "正在用SumatraPDF打开文件..."
+    IDS_LOCALE_SWITCH_TIP   "外部窗口可能正在工作, 切换语言时将销毁其窗口\n需要继续吗?"
 }
 
 /////////////////////////////////////////////////////////////////////////////
