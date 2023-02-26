@@ -1131,6 +1131,7 @@
 #define IDM_FORMAT_FULL_HALF                44051
 #define IDM_FORMAT_HALF_FULL                44052
 #define IDM_FORMAT_HYPERLINKHOTSPOTS        44053
+#define IDS_UPGRADE_FINISH_TIP              44054
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

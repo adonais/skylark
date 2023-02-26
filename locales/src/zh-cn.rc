@@ -1212,6 +1212,7 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_RW_TIPS      "文件没有写权限, 不能改变其读写属性. 你可能需要\n以管理员权限重启编辑器"
     IDS_PLUGINS_MSG1        "正在用SumatraPDF打开文件..."
     IDS_LOCALE_SWITCH_TIP   "外部窗口可能正在工作, 切换语言时将销毁其窗口\n需要继续吗?"
+    IDS_UPGRADE_FINISH_TIP  "下载完成! 更新将在下次启动时应用. \n我希望你感到满意^_^"
 }
 
 /////////////////////////////////////////////////////////////////////////////

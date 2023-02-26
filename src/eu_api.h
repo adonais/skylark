@@ -252,6 +252,16 @@ enum
     INDIC_SKYLARK_HYPER_U
 };
 
+typedef enum _UPDATE_STATUS
+{
+    VERSION_LATEST = 0,
+    VERSION_UPDATE_REQUIRED,
+    VERSION_UPDATE_PROGRESS,
+    VERSION_UPDATE_BREAK,
+    VERSION_UPDATE_UNKOWN,
+    VERSION_UPDATE_COMPLETED
+} UPDATE_STATUS;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -332,6 +342,14 @@ typedef struct _complete_set
     int  snippet;
 }complete_set;
 
+typedef struct _upgrade_set
+{
+    int flags;
+    int msg_id;
+    uint64_t last_check;
+    char url[MAX_BUFFER];
+}upgrade_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -394,7 +412,7 @@ struct eu_config
     print_set eu_print;
     bool m_hyperlink;
     int m_limit;
-    uint64_t m_id;
+    upgrade_set upgrade;
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
     char m_reserved_0[MAX_PATH];
@@ -530,7 +548,7 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
-EU_EXT_CLASS void eu_set_build_id(uint64_t);
+EU_EXT_CLASS void eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time);
 
 // for pcre
 EU_EXT_CLASS pcre_conainer *eu_pcre_init(const char *buf, size_t len, const char *pattern, const char *named_substring, int opt);

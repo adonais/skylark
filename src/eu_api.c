@@ -1598,9 +1598,17 @@ eu_process_path(TCHAR *path, const int len)
 }
 
 void
-eu_set_build_id(uint64_t m_time)
+eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time)
 {
-    eu_get_config()->m_id = m_time;
+    eu_get_config()->upgrade.flags = (int)flags;
+    if (last_time > 0)
+    {
+        eu_get_config()->upgrade.last_check = last_time;
+    }
+    else
+    {
+        eu_get_config()->upgrade.last_check = (uint64_t)time(NULL);
+    }
 }
 
 static char*
@@ -1719,7 +1727,12 @@ eu_save_config(void)
         "hyperlink_detection = %s\n"
         "-- automatically cached file (size < 200MB)\n"
         "cache_limit_size = %d\n"
-        "app_build_id = %I64u\n"
+        "app_upgrade = {\n"
+        "    flags = %d,\n"
+        "    msg_id = %d,\n"
+        "    last_check = %I64u,\n"
+        "    url = \"%s\"\n"
+        "}\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
         "other_editor_path = \"%s\"\n"
@@ -1813,7 +1826,10 @@ eu_save_config(void)
               g_config->eu_print.rect.bottom,
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
-              on_about_build_id(),
+              g_config->upgrade.flags,
+              g_config->upgrade.msg_id,
+              g_config->upgrade.last_check,
+              g_config->upgrade.url,
               g_config->m_path,
               g_config->editor,
               g_config->m_reserved_0,

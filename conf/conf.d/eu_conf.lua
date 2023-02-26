@@ -108,7 +108,12 @@ function eu_conf.loadconf()
         "hyperlink_detection = true\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
         "cache_limit_size = 200\n" ..
-        "app_build_id = 0\n" ..
+        "app_upgrade = {\n" ..
+        "    flags = 0,\n" ..
+        "    msg_id = 44054,\n" ..
+        "    last_check = 0,\n" ..
+        "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download',\n" ..
+        "}\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
@@ -174,7 +179,7 @@ function eu_conf.loadconf()
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         hyperlink_detection,
         cache_limit_size,
-        app_build_id,
+        {app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
         process_path,
         other_editor_path,
         m_reserved_0,

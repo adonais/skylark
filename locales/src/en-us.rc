@@ -1213,6 +1213,7 @@ STRINGTABLE DISCARDABLE
     IDS_BUTTON_RW_TIPS      "This file does not have write permission, and its r/w attribute cannot be changed. You may need to restart the editor with administrator privileges"
     IDS_PLUGINS_MSG1        "Opening document in SumatraPDF..."
     IDS_LOCALE_SWITCH_TIP   "The external window may be working, and its window will be destroyed when switching languages. Need to continue?"
+    IDS_UPGRADE_FINISH_TIP  "Download Complete! The update is being applied at the next startup. I hope you feel satisfied ^_^"
 }
 
 /////////////////////////////////////////////////////////////////////////////

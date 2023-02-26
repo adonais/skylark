@@ -70,6 +70,14 @@ typedef struct _eue_toolbar
     char isvg[4096];
 }eue_toolbar;
 
+typedef struct _upgrade_set
+{
+    int flags;
+    int msg_id;
+    uint64_t last_check;
+    char url[1024];
+}upgrade_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -132,7 +140,7 @@ struct eu_config
     print_set eu_print;
     bool m_hyperlink;
     int m_limit;
-    uint64_t m_id;
+    upgrade_set upgrade;
     char m_path[260];
     char editor[260];
     char m_reserved_0[260];
