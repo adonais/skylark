@@ -18,7 +18,8 @@
 #include "framework.h"
 #include <uxtheme.h>
 
-static HFONT  g_hfont;
+static HFONT g_hfont;
+static HWND  hwnd_edit_tips;
 static HBRUSH brush_linenumber;
 static HBRUSH brush_foldmargin;
 static HBRUSH brush_text;
@@ -609,13 +610,13 @@ theme_release_handle(void)
 }
 
 static void
-theme_show_balloon_tip(HWND hdlg, int res_id)
+theme_show_balloon_tip(HWND hdlg, const int resid)
 {
     TCHAR ptxt[MAX_PATH] = {0};
-    HWND hwnd_edit = GetDlgItem(hdlg, res_id);
+    HWND hwnd_edit = GetDlgItem(hdlg, resid);
     if (hwnd_edit)
     {
-        if (res_id == IDC_THEME_CARET_EDT)
+        if (resid == IDC_THEME_CARET_EDT)
         {
             eu_i18n_load_str(IDS_THEME_CARET_TIPS, ptxt, MAX_PATH);
         }
@@ -623,11 +624,19 @@ theme_show_balloon_tip(HWND hdlg, int res_id)
         {
             eu_i18n_load_str(IDS_THEME_EDIT_TIPS, ptxt, MAX_PATH);
         }
-        EDITBALLOONTIP tip = {sizeof(EDITBALLOONTIP)};
-        tip.pszTitle = _T("");
-        tip.pszText = ptxt;
-        tip.ttiIcon = TTI_INFO;
-        Edit_ShowBalloonTip(hwnd_edit, &tip);
+        if (hwnd_edit_tips)
+        {
+            DestroyWindow(hwnd_edit_tips);
+            hwnd_edit_tips = NULL;
+        }
+        if (!hwnd_edit_tips)
+        {
+            hwnd_edit_tips = util_create_tips(hwnd_edit, hdlg, ptxt);
+            if (hwnd_edit_tips && on_dark_enable())
+            {
+                on_dark_set_theme(hwnd_edit_tips, L"DarkMode_Explorer", NULL);
+            }
+        }
     }
 }
 
@@ -911,13 +920,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else SET_STATIC_TEXTCOLOR(hwnd_symbolic_static, symbolic)
             return (LRESULT) brush_language;
         }
-        case WM_MOUSEMOVE:
-        {
-            Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT));
-            Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT));
-            Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_CARET_EDT));
-            break;
-        }
         case WM_COMMAND:
             wm_id = LOWORD(wParam);
             switch (wm_id)
@@ -1059,6 +1061,11 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_DESTROY:
             printf("theme dlg WM_DESTROY\n");
+            if (hwnd_edit_tips)
+            {
+                DestroyWindow(hwnd_edit_tips);
+                hwnd_edit_tips = NULL;
+            }
             theme_release_handle();
             break;
         default:
