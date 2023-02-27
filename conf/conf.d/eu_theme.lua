@@ -140,7 +140,12 @@ function eu_theme.get_default(name)
           "symbolic_fontsize = 13\n" ..
           "symbolic_color = 0x00D4D4D4\n" ..
           "symbolic_bgcolor = 0x001E1E1E\n" ..
-          "symbolic_bold = 0"
+          "symbolic_bold = 0\n" ..
+          "hyperlink_font = \"Consolas\"\n" ..
+          "hyperlink_fontsize = 11\n" ..
+          "hyperlink_color = 0x3C80FFFF\n" ..
+          "hyperlink_bgcolor = 0xB4FF8C2F\n" ..
+          "hyperlink_bold = 1"
     elseif (name == "white") then
         theme = -- 经典白主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -180,7 +185,7 @@ function eu_theme.get_default(name)
           "keywords2_bold = 1\n" ..
           "string_font = \"Consolas\"\n" ..
           "string_fontsize = 11\n" ..
-          "string_color = 0x00C080FF\n" ..
+          "string_color = 0x001515A3\n" ..
           "string_bgcolor = 0x00000000\n" ..
           "string_bold = 0\n" ..
           "character_font = \"Consolas\"\n" ..
@@ -190,7 +195,7 @@ function eu_theme.get_default(name)
           "character_bold = 0\n" ..
           "number_font = \"Consolas\"\n" ..
           "number_fontsize = 11\n" ..
-          "number_color = 0x00C080FF\n" ..
+          "number_color = 0x00588609\n" ..
           "number_bgcolor = 0x00000000\n" ..
           "number_bold = 0\n" ..
           "operator_font = \"Consolas\"\n" ..
@@ -230,7 +235,7 @@ function eu_theme.get_default(name)
           "unknowtags_bold = 0\n" ..
           "attributes_font = \"Consolas\"\n" ..
           "attributes_fontsize = 11\n" ..
-          "attributes_color = 0x0080FF80\n" ..
+          "attributes_color = 0x00AD5104\n" ..
           "attributes_bgcolor = 0x00000000\n" ..
           "attributes_bold = 0\n" ..
           "unknowattributes_font = \"Consolas\"\n" ..
@@ -277,7 +282,12 @@ function eu_theme.get_default(name)
           "symbolic_fontsize = 13\n" ..
           "symbolic_color = 0x00000000\n" ..
           "symbolic_bgcolor = 0x00FFFFFF\n" ..
-          "symbolic_bold = 0"
+          "symbolic_bold = 0\n" ..
+          "hyperlink_font = \"Consolas\"\n" ..
+          "hyperlink_fontsize = 11\n" ..
+          "hyperlink_color = 0x3C8C99ED\n" ..
+          "hyperlink_bgcolor = 0xB4E26941\n" ..
+          "hyperlink_bold = 1"
     else
         theme = -- 默认主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -329,7 +339,7 @@ function eu_theme.get_default(name)
           "character_bold = 0\n" ..
           "number_font = \"Consolas\"\n" ..
           "number_fontsize = 11\n" ..
-          "number_color = 0x00C080FF\n" ..
+          "number_color = 0x00A8CE93\n" ..
           "number_bgcolor = 0x00000000\n" ..
           "number_bold = 0\n" ..
           "operator_font = \"Consolas\"\n" ..
@@ -416,7 +426,12 @@ function eu_theme.get_default(name)
           "symbolic_fontsize = 13\n" ..
           "symbolic_color = 0x00FFFFFF\n" ..
           "symbolic_bgcolor = 0x00444444\n" ..
-          "symbolic_bold = 0"
+          "symbolic_bold = 0\n" ..
+          "hyperlink_font = \"Consolas\"\n" ..
+          "hyperlink_fontsize = 11\n" ..
+          "hyperlink_color = 0x3C80FFFF\n" ..
+          "hyperlink_bgcolor = 0xB4FF8C2F\n" ..
+          "hyperlink_bold = 1"
     end
     return theme
 end
@@ -465,43 +480,6 @@ function eu_theme.load_default(name)
     end
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)
-    if (activetab_font == nil) then
-        activetab_font = "DEFAULT_GUI_FONT"
-    end
-    if (activetab_fontsize == nil) then
-        activetab_fontsize = 11
-    end
-    if (activetab_bgcolor == nil) then
-        if (name ~= "black") then
-            activetab_bgcolor = 0x00d77800
-        else
-            activetab_bgcolor = 0x00545454
-        end
-    end
-    if (activetab_color == nil) then
-        activetab_color = 0
-    end
-    if (activetab_bold == nil) then
-        activetab_bold = 0
-    end
-    if (caret_color == nil) then
-        caret_color = 0x020A99FF
-    end
-    if (caret_bold == nil) then
-        caret_bold = 500
-    end
-    if (symbolic_font == nil) then
-        symbolic_font = text_font
-    end
-    if (symbolic_fontsize == nil) then
-        symbolic_fontsize = 13
-    end
-    if (symbolic_color == nil) then
-        symbolic_color = text_color
-    end
-    if (symbolic_bold == nil) then
-        symbolic_bold = text_bold
-    end        
     local m_theme = eu_core.ffi.new("struct eu_theme", {m_file, tname,
       {
         {linenumber_font,linenumber_fontsize,linenumber_color,linenumber_bgcolor,linenumber_bold},
@@ -529,8 +507,9 @@ function eu_theme.load_default(name)
         {phpsection_font,phpsection_fontsize,phpsection_color,phpsection_bgcolor,phpsection_bold},
         {aspsection_font,aspsection_fontsize,aspsection_color,aspsection_bgcolor,aspsection_bold},
         {activetab_font,activetab_fontsize,activetab_color,activetab_bgcolor,activetab_bold},
-        {text_font,text_fontsize,caret_color,text_bgcolor,caret_bold},
-        {symbolic_font,symbolic_fontsize,symbolic_color,text_bgcolor,symbolic_bold}
+        {caret_font,caret_fontsize,caret_color,caret_bgcolor,caret_bold},
+        {symbolic_font,symbolic_fontsize,symbolic_color,symbolic_bgcolor,symbolic_bold},
+        {hyperlink_font,hyperlink_fontsize,hyperlink_color,hyperlink_bgcolor,hyperlink_bold}
       }
     })
     return eu_core.euapi.eu_theme_ptr(m_theme, true)

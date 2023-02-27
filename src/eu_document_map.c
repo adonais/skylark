@@ -451,6 +451,12 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_safe_free(map_edit);
                     SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
                 }
+                if (hwnd_document_static)
+                {   // win7上, hwnd_document_static是popup窗口, 需手动销毁
+                    DestroyWindow(hwnd_document_static);
+                    hwnd_document_static = NULL;
+                    printf("we destroy hwnd_document_static window first\n");
+                }
                 _InterlockedExchange(&document_map_initialized, 0);
                 hwnd_document_map = NULL;
                 printf("on_map_callback WM_DESTROY\n");

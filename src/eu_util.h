@@ -40,6 +40,8 @@
 #endif
 
 #define util_prev(p) ((p) - (psrc) > 0 ? (p[-1]) : (0))
+    
+#define END_CHARACTERS (" \t\r\n\"']>.*")
 
 typedef struct _HANDLE_DATA
 {
@@ -51,6 +53,10 @@ typedef struct _HANDLE_DATA
 extern "C"
 {
 #endif
+
+// for openssl
+HMODULE util_ssl_open_symbol(char *s[], int n, uintptr_t *pointer);
+void util_ssl_close_symbol(HMODULE *pssl);
 
 int util_aes_enc(unsigned char *dec, unsigned char *enc, int len);
 int util_aes_dec(unsigned char *enc, unsigned char *dec, int len);
@@ -113,16 +119,17 @@ HWND   util_get_hwnd(const uint32_t pid);
 TCHAR* util_unix2path(TCHAR *path);
 TCHAR* util_path2unix(TCHAR *path);
 TCHAR* util_add_double_quotes(const TCHAR *path);
-TCHAR* util_wstr_unquote(const TCHAR *path);
 TCHAR* util_which(const TCHAR *name);
 sptr_t util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout);
-char * util_str_unquote(const char *path);
+wchar_t* util_wstr_unquote(wchar_t *path, const int size);
+char* util_str_unquote(const char *path);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);
 int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level);
 int util_count_number(size_t number);
 int util_split(const char *pstr, char (*pout)[QW_SIZE], char ch);
+int util_strim_end(char *pstr, int len);
 void  util_transparent(HWND hwnd, int percent);
 void  util_untransparent(HWND hwnd);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);

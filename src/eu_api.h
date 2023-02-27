@@ -141,6 +141,7 @@
 #define WM_TAB_CLICK              (WM_USER+10004)
 #define WM_SKYLARK_DESC           (WM_USER+10005)
 #define WM_TAB_NCCLICK            (WM_USER+10006)
+#define WM_ABOUT_RE               (WM_USER+10007)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
@@ -244,6 +245,23 @@ enum
     SKYLARK_SQL_END       = 200
 };
 
+enum
+{
+    INDIC_SKYLARK_SELECT = INDICATOR_CONTAINER + 1,
+    INDIC_SKYLARK_HYPER,
+    INDIC_SKYLARK_HYPER_U
+};
+
+typedef enum _UPDATE_STATUS
+{
+    VERSION_LATEST = 0,
+    VERSION_UPDATE_REQUIRED,
+    VERSION_UPDATE_PROGRESS,
+    VERSION_UPDATE_BREAK,
+    VERSION_UPDATE_UNKOWN,
+    VERSION_UPDATE_COMPLETED
+} UPDATE_STATUS;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -324,6 +342,15 @@ typedef struct _complete_set
     int  snippet;
 }complete_set;
 
+typedef struct _upgrade_set
+{
+    bool enable;
+    int  flags;
+    int  msg_id;
+    uint64_t last_check;
+    char url[MAX_BUFFER];
+}upgrade_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -333,7 +360,7 @@ struct eu_config
     char window_theme[QW_SIZE];
     bool m_fullscreen;
     bool m_menubar;
-    bool m_toolbar;
+    int m_toolbar;
     bool m_statusbar;
     bool m_linenumber;
 
@@ -357,6 +384,7 @@ struct eu_config
     int result_edit_height;
     int result_list_height;
     int file_recent_number;
+    int scroll_to_cursor;
     int inter_reserved_0;
     int inter_reserved_1;
     int inter_reserved_2;
@@ -380,12 +408,12 @@ struct eu_config
     char m_language[QW_SIZE];
     bookmark_set eu_bookmark;
     brace_set eu_brace;
-    caret_set eu_caret;
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
+    bool m_hyperlink;
     int m_limit;
-    uint64_t m_id;
+    upgrade_set upgrade;
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
     char m_reserved_0[MAX_PATH];
@@ -420,7 +448,7 @@ typedef void (*ptr_curl_global_cleanup)(void);
 typedef void (*ptr_curl_slist_free_all)(struct curl_slist *);
 typedef struct curl_slist* (*ptr_curl_slist_append)(struct curl_slist *, const char *);
 typedef CURLcode (*ptr_curl_easy_getinfo)(CURL *data, CURLINFO info, ...);
-typedef void* (__stdcall *api_convert)(int, const void*, size_t *);
+typedef void* (*api_convert)(int, const void*, size_t *);
 typedef int (*sql3_callback)(void*, int, char**, char**);
 
 // openssl function export
@@ -521,7 +549,7 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
-EU_EXT_CLASS void eu_set_build_id(uint64_t);
+EU_EXT_CLASS void eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time);
 
 // for pcre
 EU_EXT_CLASS pcre_conainer *eu_pcre_init(const char *buf, size_t len, const char *pattern, const char *named_substring, int opt);
@@ -558,10 +586,6 @@ EU_EXT_CLASS void eu_curl_easy_cleanup(CURL *);
 // for eu_changes.c
 EU_EXT_CLASS int eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
 
-// for openssl
-EU_EXT_CLASS HMODULE eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer);
-EU_EXT_CLASS void eu_ssl_close_symbol(HMODULE *pssl);
-
 // for main.c
 extern EU_EXT_CLASS TCHAR eu_module_path[MAX_PATH+1];
 EU_EXT_CLASS HINSTANCE eu_module_handle(void);
@@ -587,9 +611,7 @@ EU_EXT_CLASS int eu_reg_file_popup_menu(void);
 EU_EXT_CLASS int eu_reg_dir_popup_menu(void);
 
 // for eu_hook.c
-EU_EXT_CLASS bool on_hook_exception(void);
-EU_EXT_CLASS void on_hook_do(void);
-EU_EXT_CLASS void on_hook_undo(void);
+EU_EXT_CLASS bool eu_hook_exception(void);
 
 // for eu_share.c
 EU_EXT_CLASS void share_close_lang(void);
@@ -620,7 +642,9 @@ EU_EXT_CLASS bool eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
 
 // for eu_config.c
 EU_EXT_CLASS bool eu_load_main_config(void);
-EU_EXT_CLASS bool eu_load_config(void);
+EU_EXT_CLASS bool eu_load_accel_config(void);
+EU_EXT_CLASS bool eu_load_toolbar_config(void);
+EU_EXT_CLASS bool eu_load_docs_config(void);
 EU_EXT_CLASS bool eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
 EU_EXT_CLASS void eu_load_file(void);
 EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
@@ -636,8 +660,8 @@ EU_EXT_CLASS int luaopen_euapi(void *L);
 EU_EXT_CLASS void eu_font_release(void);
 
 // for eu_theme_dark.c
-EU_EXT_CLASS bool eu_on_dark_init(bool fix_scroll, bool dark);
-EU_EXT_CLASS void eu_on_dark_release(bool shutdown);
+EU_EXT_CLASS bool eu_dark_theme_init(bool fix_scroll, bool dark);
+EU_EXT_CLASS void eu_dark_theme_release(bool shutdown);
 
 // for eu_remotefs.c
 EU_EXT_CLASS void eu_remote_list_release(void);
@@ -645,9 +669,13 @@ EU_EXT_CLASS void eu_remote_list_release(void);
 // for eu_util.c
 EU_EXT_CLASS void eu_restore_placement(HWND hwnd);
 EU_EXT_CLASS bool eu_gui_app(void);
+EU_EXT_CLASS int  eu_prepend_path(const TCHAR *dir);
 
 // for eu_tablectl.c
 EU_EXT_CLASS void eu_close_db_handle(void);
+
+// for eu_hyperlink.c
+EU_EXT_CLASS int eu_hyperlink_detection(eu_tabpage *pnode);
 
 // for eu_doctype.c
 EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);

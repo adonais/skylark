@@ -300,6 +300,41 @@ util_restore_cursor(eu_tabpage *pnode)
     }
 }
 
+HMODULE
+util_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
+{
+    HMODULE ssl = NULL;
+    const TCHAR *ssl_path =
+#ifdef _WIN64
+    _T("libcrypto-1_1-x64.dll");
+#else
+    _T("libcrypto-1_1.dll");
+#endif
+    if ((ssl = np_load_plugin_library(ssl_path)) != NULL)
+    {
+        for (int i = 0; i < n && s[i][0]; ++i)
+        {
+            pointer[i] = (uintptr_t)GetProcAddress(ssl, s[i]);
+            if (!pointer[i])
+            {
+                FreeLibrary(ssl);
+                ssl = NULL;
+            }
+        }
+    }
+    return ssl;
+}
+
+void
+util_ssl_close_symbol(HMODULE *pssl)
+{
+    if (pssl && *pssl)
+    {
+        FreeLibrary(*pssl);
+        *pssl = NULL;
+    }
+}
+
 static bool
 util_genarate_key(unsigned char *aes_key, unsigned char *aes_iv)
 {
@@ -309,7 +344,7 @@ util_genarate_key(unsigned char *aes_key, unsigned char *aes_iv)
     unsigned char sha224[SHA224_DIGEST_LENGTH + 1] = {0};
     char *fn_name[1] = {"SHA224"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl && pfunc[0])
     {
         ((eu_crypto_sha224)pfunc[0])((unsigned char *) CONFIG_KEY_MATERIAL, sizeof(CONFIG_KEY_MATERIAL) - 2, sha224);
@@ -317,7 +352,7 @@ util_genarate_key(unsigned char *aes_key, unsigned char *aes_iv)
         memset(sha224, 0, sizeof(sha224));
         ((eu_crypto_sha224)pfunc[0])((unsigned char *) AES_IV_MATERIAL, sizeof(AES_IV_MATERIAL) - 2, sha224);
         memcpy(aes_iv, sha224 + (SHA224_DIGEST_LENGTH - AES_BLOCK_SIZE), AES_BLOCK_SIZE);
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
         res = true;
     }
     return res;
@@ -338,7 +373,7 @@ util_aes_enc(unsigned char *dec, unsigned char *enc, int len)
     {
         return EUE_OPENSSL_ENC_ERR;
     }
-    if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
+    if (!util_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_ENC_ERR;
     }
@@ -355,7 +390,7 @@ util_aes_enc(unsigned char *dec, unsigned char *enc, int len)
     {
         ((eu_aes_cbc_encrypt)pfunc[1])(dec + l, enc + l, AES_BLOCK_SIZE, &k, iv, AES_ENCRYPT);
     }
-    eu_ssl_close_symbol(&hssl);
+    util_ssl_close_symbol(&hssl);
     return SKYLARK_OK;
 }
 
@@ -374,7 +409,7 @@ util_aes_dec(unsigned char *enc, unsigned char *dec, int len)
     {
         return EUE_OPENSSL_DEC_ERR;
     }
-    if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
+    if (!util_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_DEC_ERR;
     }
@@ -391,7 +426,7 @@ util_aes_dec(unsigned char *enc, unsigned char *dec, int len)
     {
         ((eu_aes_cbc_encrypt)pfunc[1])(enc + l, dec + l, AES_BLOCK_SIZE, &k, iv, AES_DECRYPT);
     }
-    eu_ssl_close_symbol(&hssl);
+    util_ssl_close_symbol(&hssl);
     return SKYLARK_OK;
 }
 
@@ -415,7 +450,7 @@ util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     {
         return EUE_OPENSSL_ENC_ERR;
     }
-    if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
+    if (!util_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_ENC_ERR;
     }
@@ -429,7 +464,7 @@ util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     {
         if ((*encrypt_len) < ((decrypt_len - 1) / 8 + 1) * 8)
         {
-            eu_ssl_close_symbol(&hssl);
+            util_ssl_close_symbol(&hssl);
             return EUE_OPENSSL_ENC_ERR;
         }
     }
@@ -458,7 +493,7 @@ util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long de
         decrypt_ptr += 8;
         encrypt_ptr += 8;
     }
-    eu_ssl_close_symbol(&hssl);
+    util_ssl_close_symbol(&hssl);
     return SKYLARK_OK;
 }
 
@@ -481,7 +516,7 @@ util_dec_des_ecb_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     {
         return EUE_OPENSSL_DEC_ERR;
     }
-    if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
+    if (!util_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_DEC_ERR;
     }
@@ -495,7 +530,7 @@ util_dec_des_ecb_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     {
         if ((*decrypt_len) < ((encrypt_len - 1) / 8 + 1) * 8)
         {
-            eu_ssl_close_symbol(&hssl);
+            util_ssl_close_symbol(&hssl);
             return EUE_OPENSSL_DEC_ERR;
         }
     }
@@ -523,7 +558,7 @@ util_dec_des_ecb_192(unsigned char *key_192bits, unsigned char *encrypt, long en
         encrypt_ptr += 8;
         decrypt_ptr += 8;
     }
-    eu_ssl_close_symbol(&hssl);
+    util_ssl_close_symbol(&hssl);
     return SKYLARK_OK;
 }
 
@@ -542,7 +577,7 @@ util_enc_des_cbc_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     {
         return EUE_OPENSSL_ENC_ERR;
     }
-    if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
+    if (!util_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_ENC_ERR;
     }
@@ -556,7 +591,7 @@ util_enc_des_cbc_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     {
         if ((*encrypt_len) < ((decrypt_len - 1) / 8 + 1) * 8)
         {
-            eu_ssl_close_symbol(&hssl);
+            util_ssl_close_symbol(&hssl);
             return EUE_OPENSSL_ENC_ERR;
         }
     }
@@ -578,7 +613,7 @@ util_enc_des_cbc_192(unsigned char *key_192bits, unsigned char *decrypt, long de
     {
         memcpy(init_vector, ivec, sizeof(ivec) - 1);
     }
-    eu_ssl_close_symbol(&hssl);
+    util_ssl_close_symbol(&hssl);
     return SKYLARK_OK;
 }
 
@@ -597,7 +632,7 @@ util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     {
         return EUE_OPENSSL_DEC_ERR;
     }
-    if (!eu_ssl_open_symbol(fn_name, 2, pfunc))
+    if (!util_ssl_open_symbol(fn_name, 2, pfunc))
     {
         return EUE_OPENSSL_DEC_ERR;
     }
@@ -611,7 +646,7 @@ util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     {
         if ((*decrypt_len) < ((encrypt_len - 1) / 8 + 1) * 8)
         {
-            eu_ssl_close_symbol(&hssl);
+            util_ssl_close_symbol(&hssl);
             return EUE_OPENSSL_DEC_ERR;
         }
     }
@@ -633,7 +668,7 @@ util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long en
     {
         memcpy(init_vector, ivec, sizeof(ivec) - 1);
     }
-    eu_ssl_close_symbol(&hssl);
+    util_ssl_close_symbol(&hssl);
     return SKYLARK_OK;
 }
 
@@ -646,7 +681,7 @@ do_fp_md5(FILE *f, TCHAR *out, int out_len)
     char text[MD5_DIGEST_LENGTH * 2 + 1] = {0};
     char *fn_name[3] = {"MD5_Init", "MD5_Update", "MD5_Final"};
     uintptr_t pfunc[3] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 3, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 3, pfunc);
     if (hssl)
     {
         ((eu_md5_init)pfunc[0])(&c);
@@ -662,7 +697,7 @@ do_fp_md5(FILE *f, TCHAR *out, int out_len)
         ((eu_md5_final)pfunc[2])(&(md[0]), &c);
         util_hex_expand((char *)md, MD5_DIGEST_LENGTH, text);
         MultiByteToWideChar(CP_UTF8, 0, text, -1, out, out_len);
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
 }
 
@@ -675,7 +710,7 @@ do_fp_sha1(FILE *f, TCHAR *out, int out_len)
     char text[SHA_DIGEST_LENGTH * 2 + 1] = {0};
     char *fn_name[3] = {"SHA1_Init", "SHA1_Update", "SHA1_Final"};
     uintptr_t pfunc[3] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 3, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 3, pfunc);
     if (hssl)
     {
         ((eu_sha1_init)pfunc[0])(&c);
@@ -691,7 +726,7 @@ do_fp_sha1(FILE *f, TCHAR *out, int out_len)
         ((eu_sha1_final)pfunc[2])(&(md[0]), &c);
         util_hex_expand((char *)md, SHA_DIGEST_LENGTH, text);
         MultiByteToWideChar(CP_UTF8, 0, text, -1, out, out_len);
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
 }
 
@@ -704,7 +739,7 @@ do_fp_sha256(FILE *f, TCHAR *out, int out_len)
     char text[SHA256_DIGEST_LENGTH * 2 + 1] = {0};
     char *fn_name[3] = {"SHA256_Init", "SHA256_Update", "SHA256_Final"};
     uintptr_t pfunc[3] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 3, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 3, pfunc);
     if (hssl)
     {
         ((eu_sha256_init)pfunc[0])(&c);
@@ -720,7 +755,7 @@ do_fp_sha256(FILE *f, TCHAR *out, int out_len)
         ((eu_sha256_final)pfunc[2])(&(md[0]), &c);
         util_hex_expand((char *)md, SHA256_DIGEST_LENGTH, text);
         MultiByteToWideChar(CP_UTF8, 0, text, -1, out, out_len);
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
 }
 
@@ -1580,12 +1615,7 @@ util_to_abs(const char *path)
 {
     WCHAR *pret = NULL;
     WCHAR lpfile[MAX_PATH+1] = {0};
-    WCHAR old_folder[MAX_PATH+1] = {0};
     if (NULL == path || *path == '\0' || *path == ' ')
-    {
-        return NULL;
-    }
-    if (!GetCurrentDirectory(MAX_PATH, old_folder))
     {
         return NULL;
     }
@@ -1594,9 +1624,9 @@ util_to_abs(const char *path)
         return NULL;
     }
     util_unix2path(lpfile);
-    // 进程当前目录为基准, 得到绝对路径
-    SetCurrentDirectory(eu_module_path);
-    if (lpfile[0] == _T('%'))
+    // 如果路径有引号, 去除
+    util_wstr_unquote(lpfile, sizeof(lpfile));
+    if (lpfile[0] == L'%')
     {
         int n = 1;
         int len = (int)wcslen(lpfile);
@@ -1604,34 +1634,37 @@ util_to_abs(const char *path)
         WCHAR buf[FILESIZE + 1] = {0};
         while (lpfile[n] != 0)
         {
-            if (lpfile[n++] == _T('%'))
+            if (lpfile[n++] == L'%')
             {
                 break;
             }
         }
         if (n < len && n < FILESIZE)
         {
-            _sntprintf(buf, n, _T("%s"), &lpfile);
+            _snwprintf(buf, n, L"%s", &lpfile);
         }
-        if (wcslen(buf) > 1 && ExpandEnvironmentStringsW(buf, env, MAX_PATH) > 0)
+        if (wcslen(buf) > 1 && ExpandEnvironmentStrings(buf, env, MAX_PATH) > 0)
         {
-            if (lpfile[n] != 0 && lpfile[n] == _T('\\'))
+            if (lpfile[n] != 0 && lpfile[n] == L'\\')
             {
                 ++n;
             }
             wcsncat(env, &lpfile[n], MAX_PATH);
             pret = _wfullpath(NULL, env, MAX_PATH);
         }
-    }  // 使用unix路径.代表当前目录
-    else if (lpfile[0] == _T('.'))
-    {
+    }
+    else if (lpfile[0] == L'.')
+    {   // 使用了相对路径, 以进程目录为基准, 转为绝对路径
         pret = _wfullpath(NULL, lpfile, MAX_PATH);
+    }
+    else if (wcslen(lpfile) > 1 && lpfile[1] != L':')
+    {   // 在PATH环境变量里, 转为绝对路径
+        pret = util_which(lpfile);
     }
     else
     {
         pret = _wcsdup(lpfile);
     }
-    SetCurrentDirectory(old_folder);
     return pret;
 }
 
@@ -2017,27 +2050,22 @@ util_add_double_quotes(const TCHAR *path)
     return buf;
 }
 
-TCHAR *
-util_wstr_unquote(const TCHAR *path)
+wchar_t *
+util_wstr_unquote(wchar_t *path, const int size)
 {
-    TCHAR *buf = NULL;
-    if (path)
+    if (STR_NOT_NUL(path) && size > 0)
     {
-        if ((path[0] == _T('"') || path[0] == _T('\'')))
+        if ((path[0] == L'"') || path[0] == L'\'')
         {
-            buf = (TCHAR *)_tcsdup(&path[1]);
-            int len = buf ? eu_int_cast(_tcslen(buf)) : 0;
-            if (len > 0 && (buf[len - 1] == _T('"') || buf[len - 1] == _T('\'')))
+            memmove(path, &path[1], size - sizeof(wchar_t));
+            int len = (int)wcslen(path);
+            if (len > 0 && (path[len - 1] == L'"' || path[len - 1] == L'\''))
             {
-                buf[len - 1] = 0;
+                path[len - 1] = 0;
             }
         }
-        else
-        {
-            buf = (TCHAR *)_tcsdup(path);
-        }
     }
-    return buf;
+    return path;
 }
 
 char *
@@ -2189,6 +2217,27 @@ util_which(const TCHAR *name)
     return NULL;
 }
 
+int
+eu_prepend_path(const TCHAR *dir)
+{
+    size_t bufsize;
+    TCHAR *path;
+    TCHAR *value = NULL;
+    int    rc = -1;
+    if ((path = _tgetenv(_T("PATH"))) == NULL)
+    {
+        return (-1);
+    }
+    bufsize = _tcslen(dir) + _tcslen(path) + 8;
+    value = (TCHAR *)calloc(1, bufsize * sizeof(TCHAR));
+    if (value && _sntprintf(value, bufsize, _T("PATH=%s;%s"), dir, path) > 0)
+    {
+        rc = _tputenv(value);
+    }
+    eu_safe_free(value);
+    return rc;
+}
+
 bool
 eu_gui_app(void)
 {
@@ -2307,6 +2356,21 @@ util_split(const char *pstr, char (*pout)[QW_SIZE], char ch)
         ret = i;
     }
     return ret;
+}
+
+int
+util_strim_end(char *pstr, int len)
+{
+    if (pstr && len > 0)
+    {
+        char *p = NULL;
+        while (len > 0 && (p = strchr(END_CHARACTERS, pstr[len - 1])))
+        {
+            pstr[len - 1] = 0;
+            --len;
+        }
+    }
+    return 0;
 }
 
 HFONT

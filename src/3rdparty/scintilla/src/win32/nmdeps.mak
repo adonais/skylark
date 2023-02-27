@@ -373,6 +373,7 @@ $(DIR_O)/PositionCache.obj: \
 	$(SRC)/CaseFolder.h \
 	$(SRC)/Document.h \
 	$(SRC)/UniConversion.h \
+	$(SRC)/DBCS.h \
 	$(SRC)/Selection.h \
 	$(SRC)/PositionCache.h
 $(DIR_O)/RESearch.obj: \

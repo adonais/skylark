@@ -133,7 +133,7 @@ extern "C" {
 #endif
 
 #if APP_DEBUG
-__declspec(dllexport) void __stdcall eu_init_logs(void);
+__declspec(dllexport) void __cdecl eu_init_logs(void);
 __declspec(dllexport) void __cdecl eu_logmsg(const char *format, ...);
 //#define printf eu_logmsg
 #else

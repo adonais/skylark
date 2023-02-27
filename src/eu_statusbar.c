@@ -23,7 +23,6 @@
 #define BTN_DEFAULT_WIDTH 60
 #define STATUS_STATIC_FOCUS (RGB(0x48, 0x27, 0x30))
 #define CAP_TOGGLED ((GetKeyState(VK_CAPITAL) & 1) != 0)
-#define FILE_READONLY_COLOR 0x00800000
 
 typedef struct _sb_borders
 {
@@ -48,21 +47,24 @@ on_statusbar_btn(eu_tabpage *pnode, bool only_read)
     {
         if (!only_read)
         {
-            if (pnode->hex_mode)
+            if (pnode->file_attr & FILE_READONLY_COLOR)
             {
-                SendMessage(pnode->hwnd_sc, HVM_SETBKCOLOR, 0, (LPARAM)eu_get_theme()->item.text.bgcolor);
+                if (pnode->hex_mode)
+                {
+                    SendMessage(pnode->hwnd_sc, HVM_SETBKCOLOR, 0, (LPARAM)eu_get_theme()->item.text.bgcolor);
+                }
+                else
+                {
+                    on_sci_init_style(pnode);
+                    on_sci_after_file(pnode);
+                }
+                eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
+                pnode->file_attr &= ~FILE_ATTRIBUTE_READONLY;
+                pnode->file_attr &= ~FILE_READONLY_COLOR;
+                InvalidateRect(g_tabpages, NULL, 0);
             }
-            else
-            {
-                on_sci_init_style(pnode);
-                on_sci_after_file(pnode);
-            }
-            eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
-            pnode->file_attr &= ~FILE_ATTRIBUTE_READONLY;
-            pnode->file_attr &= ~FILE_READONLY_COLOR;
-            InvalidateRect(g_tabpages, NULL, 0);
         }
-        else
+        else if (!(pnode->file_attr & FILE_READONLY_COLOR))
         {
             if (pnode->hex_mode)
             {
@@ -74,35 +76,9 @@ on_statusbar_btn(eu_tabpage *pnode, bool only_read)
                 on_sci_after_file(pnode);
             }
             eu_sci_call(pnode, SCI_SETREADONLY, 1, 0);
+            pnode->file_attr &= ~FILE_ATTRIBUTE_READONLY;
             pnode->file_attr |= (FILE_ATTRIBUTE_READONLY | FILE_READONLY_COLOR);
             InvalidateRect(g_tabpages, NULL, 0);
-        }
-    }
-}
-
-static void
-on_statusbar_stream(eu_tabpage *pnode, bool only_read)
-{
-    if (pnode && !pnode->plugin)
-    {
-        bool r = (bool)eu_sci_call(pnode, SCI_GETREADONLY, 0, 0);
-        if (!only_read)
-        {
-            if (r)
-            {
-                eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
-            }
-        }
-        else if (!r)
-        {
-            if (pnode->file_attr & FILE_READONLY_COLOR)
-            {
-                eu_sci_call(pnode, SCI_SETREADONLY, 1, 0);
-            }
-            else
-            {
-                on_statusbar_btn(pnode, only_read);
-            }
         }
     }
 }
@@ -151,19 +127,19 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
         if (attr & FILE_ATTRIBUTE_READONLY)
         {
             Button_SetText(hrw, rstr);
-            on_statusbar_stream(pnode, true);
+            on_statusbar_btn(pnode, true);
             ret = 1;
         }
         else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
         {
             Button_SetText(hrw, rstr);
-            on_statusbar_stream(pnode, true);
+            on_statusbar_btn(pnode, true);
             ret = 2;
         }
         else
         {
             Button_SetText(hrw, wstr);
-            on_statusbar_stream(pnode, false);
+            on_statusbar_btn(pnode, false);
             ret = 2;
         }
     }

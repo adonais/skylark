@@ -134,6 +134,7 @@ on_view_refresh_scroll(void)
 static int
 on_view_refresh_theme(HWND hwnd)
 {
+    HWND snippet = NULL;
     on_proc_destory_brush();
     on_treebar_update_theme();
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
@@ -165,10 +166,6 @@ on_view_refresh_theme(HWND hwnd)
         if (p->hwnd_qrtable)
         {
             on_table_update_theme(p);
-            if (on_dark_enable())
-            {
-                on_dark_set_theme(p->hwnd_qrtable, L"Explorer", NULL);
-            }
         }
         if (p->be_modify)
         {
@@ -178,10 +175,23 @@ on_view_refresh_theme(HWND hwnd)
         {
             np_plugins_setvalue(&p->plugin->funcs, &p->plugin->npp, NV_THEME_CHANGE, NULL);
         }
+        if (p->file_attr & FILE_READONLY_COLOR)
+        {   // 切换主题后为只读文件重新上色
+            p->file_attr &= ~FILE_READONLY_COLOR;
+            on_statusbar_btn_rw(p, true);
+        }
     }
     if (document_map_initialized && hwnd_document_map)
     {
         SendMessage(hwnd_document_map, WM_THEMECHANGED, 0, 0);
+    }
+    if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+    {
+        eu_tabpage *pview = (eu_tabpage *)GetWindowLongPtr(snippet, GWLP_USERDATA);
+        if (pview && pview->hwnd_sc)
+        {
+            on_snippet_reload(pview);
+        }
     }
     on_view_refresh_scroll();
     SendMessage(hwnd, WM_SIZE, 0, 0);
@@ -213,17 +223,6 @@ on_view_switch_theme(HWND hwnd, int id)
     {
         return 0;
     }
-    if (_tcscmp(pbuf, _T("black")) == 0)
-    {
-        if (eu_on_dark_init(true, true))
-        {
-            SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
-        }
-    }
-    else
-    {
-        eu_on_dark_release(false);
-    }
     if (on_theme_load_script(pbuf))
     {
         printf("on_theme_load_script(%ls) failed\n", pbuf);
@@ -232,6 +231,19 @@ on_view_switch_theme(HWND hwnd, int id)
     else
     {
         strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
+        // 清理主题画刷
+        on_dark_delete_theme_brush();
+    }
+    if (_tcscmp(pbuf, _T("black")) == 0)
+    {
+        if (eu_dark_theme_init(true, true))
+        {
+            SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
+        }
+    }
+    else
+    {
+        eu_dark_theme_release(false);
     }
     return on_view_refresh_theme(hwnd);
 }
@@ -566,6 +578,7 @@ on_view_editor_selection(eu_tabpage *pnode)
     char *select_buf = util_strdup_select(pnode, &select_len, 0);
     sptr_t total_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
     sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    eu_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
     eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
     pnode->match_count = 0;
     if (select_buf)
@@ -591,9 +604,6 @@ on_view_editor_selection(eu_tabpage *pnode)
                 break;
             }
         }
-        eu_sci_call(pnode, SCI_INDICSETSTYLE, 0, INDIC_ROUNDBOX);
-        eu_sci_call(pnode, SCI_INDICSETFORE, 0, eu_get_theme()->item.indicator.bgcolor);
-        eu_sci_call(pnode, SCI_INDICSETALPHA, 0, eu_get_theme()->item.indicator.bgcolor >> 24);
         free(select_buf);
     }
     return SKYLARK_OK;
@@ -679,7 +689,7 @@ on_view_full_sreen(HWND hwnd)
     {
         eu_get_config()->m_fullscreen = false;
         eu_get_config()->m_menubar = true;
-        eu_get_config()->m_toolbar = true;
+        eu_get_config()->m_toolbar = g_toolbar_size > 0 ? g_toolbar_size : IDB_SIZE_1;
         eu_get_config()->m_statusbar = true;
         GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
     }
@@ -687,7 +697,8 @@ on_view_full_sreen(HWND hwnd)
     {
         eu_get_config()->m_fullscreen = true;
         eu_get_config()->m_menubar = false;
-        eu_get_config()->m_toolbar = false;
+        g_toolbar_size = eu_get_config()->m_toolbar;
+        eu_get_config()->m_toolbar = IDB_SIZE_0;
         eu_get_config()->m_statusbar = false;
         SetMenu(hwnd, NULL);
     }

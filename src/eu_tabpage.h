@@ -31,7 +31,7 @@ typedef struct _complete_t *complete_ptr;
 typedef struct _capture_set *capture_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
 typedef void  (*tab_callback)(int index);
-typedef void (__stdcall *tab_want)(void *p);
+typedef void (__cdecl *tab_want)(void *p);
 
 struct _tabpage
 {
@@ -79,6 +79,7 @@ struct _tabpage
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
+    volatile long hyper_id;     // 解析hyperlink线程id
     size_t bytes_remaining;     // 文件变动后的大小
     size_t bytes_written;       // 文件保存时写入的长度
     uint8_t *write_buffer;      // 文件保存时写入的缓存区

@@ -18,7 +18,6 @@
 
 #pragma code_page(65001)
 
-#include "resource.h"
 #include <windows.h>
 #include <commctrl.h>
 #include <richedit.h>
@@ -55,17 +54,15 @@ IDB_DOC                 ICON                    "..\\resources\\txt.ico"
 IDB_DRIVE               ICON                    "..\\resources\\drive.ico"
 IDB_OPENFOLD            ICON                    "..\\resources\\folder-open.ico"
 IDB_TXT                 ICON                    "..\\resources\\doc.ico"
-IDB_COPY                ICON                    "..\\resources\\copy.ico"
-IDB_COPY_DARK           ICON                    "..\\resources\\copy_dark.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // cursor
 
 /////////////////////////////////////////////////////////////////////////////
-IDC_CURSOR_WE           CURSOR                    "..\\resources\\we.cur"
-IDC_CURSOR_NS           CURSOR                    "..\\resources\\ns.cur"
-IDC_CURSOR_DRAG         CURSOR                    "..\\resources\\drag.cur"
+IDC_CURSOR_WE           CURSOR                  "..\\resources\\we.cur"
+IDC_CURSOR_NS           CURSOR                  "..\\resources\\ns.cur"
+IDC_CURSOR_DRAG         CURSOR                  "..\\resources\\drag.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -74,19 +71,6 @@ IDC_CURSOR_DRAG         CURSOR                    "..\\resources\\drag.cur"
 /////////////////////////////////////////////////////////////////////////////
 //
 //
-IDB_TOOLBAR16           BITMAP                  "..\\resources\\toolbar_16.bmp"
-IDB_TOOLBAR1            BITMAP                  "..\\resources\\toolbar_1.bmp"
-IDB_DARK1               BITMAP                  "..\\resources\\toolbar_dark_1.bmp"
-IDB_DARK16              BITMAP                  "..\\resources\\toolbar_dark_16.bmp"
-IDB_TOOLBAR_LARGE32     BITMAP                  "..\\resources\\toolbar_large_32.bmp"
-IDB_TOOLBAR_LARGE1      BITMAP                  "..\\resources\\toolbar_large_1.bmp"
-IDB_DARK_LARGE32        BITMAP                  "..\\resources\\toolbar_dark_large_32.bmp"
-IDB_DARK_LARGE1         BITMAP                  "..\\resources\\toolbar_dark_large_1.bmp"
-IDB_TOOLBAR_MIDDLING24  BITMAP                  "..\\resources\\toolbar_middling_24.bmp"
-IDB_TOOLBAR_MIDDLING1   BITMAP                  "..\\resources\\toolbar_middling_1.bmp"
-IDB_DARK_MIDDLING24     BITMAP                  "..\\resources\\toolbar_dark_middling_24.bmp"
-IDB_DARK_MIDDLING1      BITMAP                  "..\\resources\\toolbar_dark_middling_1.bmp"
-IDB_BUTTON_BG_BMP       BITMAP                  "..\\resources\\bg.bmp"
 IDT_BIRD                BITMAP                  "..\\resources\\img_tab.bmp"
 
 /////////////////////////////////////////////////////////////////////////////

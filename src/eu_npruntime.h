@@ -196,6 +196,7 @@ struct styletheme
     struct styleclass activetab;
     struct styleclass caret;
     struct styleclass symbolic;
+    struct styleclass hyperlink;
 };
 
 typedef struct _npn_rect

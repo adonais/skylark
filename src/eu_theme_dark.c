@@ -225,7 +225,7 @@ void
 on_dark_refresh_titlebar(HWND hwnd)
 {
     BOOL dark = FALSE;
-    if (fnIsDarkModeAllowedForWindow(hwnd) && fnShouldAppsUseDarkMode() &&!on_dark_high_contrast())
+    if (fnIsDarkModeAllowedForWindow(hwnd) && fnShouldAppsUseDarkMode() && on_dark_enable())
     {
         dark = TRUE;
     }
@@ -411,14 +411,14 @@ on_dark_get_hot_brush(void)
 intptr_t
 on_dark_set_contorl_color(WPARAM wParam)
 {
-    if (on_dark_supports())
+    if (g_dark_supported)
     {
         HDC hdc = (HDC)wParam;
-        set_text_color(hdc, true);
-        set_bk_color(hdc, true);
-        return (intptr_t)g_dark_bkgnd;
+        set_text_color(hdc, g_dark_enabled);
+        set_bk_color(hdc, g_dark_enabled);
+        return g_dark_enabled ? (intptr_t)g_dark_bkgnd : (intptr_t)0;
     }
-    return 0;
+    return (intptr_t)0;
 }
 
 colour
@@ -450,11 +450,12 @@ on_dark_tips_theme(HWND hwnd, int msg)
 }
 
 void
-eu_on_dark_release(bool shutdown)
+eu_dark_theme_release(bool shutdown)
 {
     if (shutdown)
     {
         eu_close_dll(g_uxtheme);
+        g_dark_supported = false;
     }
     else if (g_dark_enabled)
     {
@@ -463,7 +464,6 @@ eu_on_dark_release(bool shutdown)
         on_dark_allow_app(false);
         on_dark_allow_window(hwnd, false);
         on_statusbar_dark_release(true);
-        g_dark_supported = false;
         g_dark_enabled = false;
         on_toolbar_refresh(hwnd);
         fnFlushMenuThemes();
@@ -486,12 +486,11 @@ eu_on_dark_release(bool shutdown)
         on_dark_delete_hot_brush();
         on_dark_delete_brush();
         on_theme_menu_release();
-        on_search_dark_mode_release();
     }
 }
 
 bool
-eu_on_dark_init(bool fix_scroll, bool dark)
+eu_dark_theme_init(bool fix_scroll, bool dark)
 {
     uint32_t major, minor;
     HMODULE huser32 = NULL;

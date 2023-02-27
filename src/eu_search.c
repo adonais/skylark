@@ -1589,7 +1589,7 @@ on_search_regxp_msg(void)
     return NULL;
 }
 
-static void
+void
 on_search_regxp_error(void)
 {
     HWND stc = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_TIPS_STC);
@@ -1606,6 +1606,10 @@ on_search_regxp_error(void)
             wchar_t *ll_msg = NULL;
             HFONT hfont_stc = (HFONT)SendMessage(hwnd_search_dlg, WM_GETFONT, 0,0);
             HFONT old = SelectObject(dc, hfont_stc);
+            if (util_os_version() < 603)
+            {
+                Static_SetText(hwnd_re_stc, _T(" ?"));
+            }
             GetTextExtentPoint32(dc, str, eu_int_cast(wcslen(str)), &sz);
             SelectObject(dc, old);
             ReleaseDC(stc, dc);
@@ -1964,8 +1968,8 @@ on_search_report_result(void *lp)
     }
     leave_spin_slock(rdata.thr);
     if (pnode->match_count == -2)
-    {
-        on_search_regxp_error();
+    {   // 在主线程建立提示控件
+        PostMessage(eu_module_hwnd(), WM_ABOUT_RE, 0, 0);
     }
     else
     {
@@ -2076,7 +2080,7 @@ on_search_report_thread(eu_tabpage *pnode, int err, const int button, const bool
     if (use_thread)
     {
         HANDLE thr = NULL;
-        if (search_btn_id < LONG_MAX && 
+        if (search_btn_id < LONG_MAX &&
            (thr = (HANDLE) _beginthreadex(NULL, 0, on_search_report_result, util_struct_to_string(&rdata, sizeof(rdata)), 0, NULL)))
         {
             _InterlockedIncrement(&search_btn_id);
@@ -3353,22 +3357,25 @@ on_search_dark_mode_release(void)
 }
 
 static void
-on_search_dark_mode_init(HWND hdlg)
+on_search_dark_mode_init(HWND hdlg, bool dark)
 {
     int id;
     HWND btn = NULL;
-    on_dark_allow_window(hdlg, true);
+    on_dark_allow_window(hdlg, dark);
     on_dark_refresh_titlebar(hdlg);
     const int cbo_buttons[] = { IDC_WHAT_FOLDER_CBO,
                                 IDC_SEARCH_RP_CBO,
                                 IDC_SEARCH_FY_CBO,
                                 IDC_SEARCH_DIR_CBO
                               };
-    for (id = 0; id < _countof(cbo_buttons); ++id)
+    if (dark)
     {
-        if ((btn = GetDlgItem(hdlg, cbo_buttons[id])))
+        for (id = 0; id < _countof(cbo_buttons); ++id)
         {
-            SetWindowSubclass(btn, on_search_combo_wnd, SEARCH_COMBO_SUBID, 0);
+            if ((btn = GetDlgItem(hdlg, cbo_buttons[id])))
+            {
+                SetWindowSubclass(btn, on_search_combo_wnd, SEARCH_COMBO_SUBID, 0);
+            }
         }
     }
     const int bs_buttons[] = { IDC_MATCH_ALL_FILE,
@@ -3410,15 +3417,15 @@ on_search_dark_mode_init(HWND hdlg)
     {
         if ((btn = GetDlgItem(hdlg, buttons[id])))
         {
+            on_dark_allow_window(btn, dark);
             on_dark_set_theme(btn, L"Explorer", NULL);
-            on_dark_allow_window(btn, true);
-            SendMessage(btn, WM_THEMECHANGED, 0, 0);
         }
     }
     if (hwnd_regxp_tips)
     {
-        on_dark_set_theme(hwnd_regxp_tips, L"DarkMode_Explorer", NULL);
+        on_dark_set_theme(hwnd_regxp_tips, dark ? L"DarkMode_Explorer": L"", NULL);
     }
+    UpdateWindowEx(hdlg);
 }
 
 static void
@@ -3719,7 +3726,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (on_dark_supports())
             {
-                on_search_dark_mode_init(hdlg);
+                on_search_dark_mode_init(hdlg, on_dark_enable());
             }
             break;
         }

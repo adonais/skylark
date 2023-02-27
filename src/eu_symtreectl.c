@@ -1198,7 +1198,7 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
     return ret;
 }
 
-unsigned WINAPI
+static unsigned WINAPI
 cjson_thread(void *lp)
 {
     eu_tabpage *pnode = (eu_tabpage *) lp;
@@ -1277,7 +1277,7 @@ on_symtree_update_theme(eu_tabpage *pnode)
         SendMessage(pnode->hwnd_symtree, WM_SETFONT, (WPARAM)pnode->hwnd_font, 0);
         SendMessage(pnode->hwnd_symtree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.symbolic.color);
         SendMessage(pnode->hwnd_symtree, TVM_SETLINECOLOR, 0, eu_get_theme()->item.symbolic.color);
-        SendMessage(pnode->hwnd_symtree, TVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);        
+        SendMessage(pnode->hwnd_symtree, TVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
     }
     return SKYLARK_OK;
 }
@@ -1409,7 +1409,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
             if (pnode)
-            {   
+            {
                 if (pnode->hwnd_font)
                 {
                     DeleteObject(pnode->hwnd_font);
@@ -1418,7 +1418,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
                 if (pnode->json_id)
                 {
-                    util_kill_thread(pnode->json_id);
+                    util_kill_thread((uint32_t)pnode->json_id);
                 }
             }
             printf("symtree WM_DESTROY\n");

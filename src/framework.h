@@ -111,6 +111,9 @@
 #include "eu_list.h"
 #include "eu_rbtree.h"
 
+#include "nanosvg.h"
+#include "nanosvgrast.h"
+
 #include "eu_nphost.h"
 #include "eu_api.h"
 #include "eu_hook.h"
@@ -127,7 +130,6 @@
 #include "eu_format.h"
 #include "eu_qrgen.h"
 
-#include "resource.h"
 #include "eu_hex.h"
 #include "eu_util.h"
 #include "eu_tablectl.h"
@@ -160,5 +162,7 @@
 #include "eu_snippet.h"
 #include "eu_snparser.h"
 #include "eu_complete.h"
+#include "eu_pixmap.h"
+#include "eu_hyperlink.h"
 
 #endif  // _EU_FRAMEWORK_H_

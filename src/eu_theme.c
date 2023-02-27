@@ -18,7 +18,8 @@
 #include "framework.h"
 #include <uxtheme.h>
 
-static HFONT  g_hfont;
+static HFONT g_hfont;
+static HWND  hwnd_edit_tips;
 static HBRUSH brush_linenumber;
 static HBRUSH brush_foldmargin;
 static HBRUSH brush_text;
@@ -104,6 +105,9 @@ static HFONT font_phpsection_static;
 
 static HWND hwnd_aspsection_static;
 static HFONT font_aspsection_static;
+
+static HWND hwnd_hyperlink_static;
+static HFONT font_hyperlink_static;
 
 static HWND hwnd_activetab_static;
 static HFONT font_activetab_static;
@@ -452,7 +456,7 @@ choose_text_color(HWND hwnd, uint32_t *color)
     COLORREF cr = {0};
     COLORREF crs[16];
     CHOOSECOLOR cc = {sizeof(CHOOSECOLOR)};
-    cr = *(color);
+    cr = (*color) & 0x00FFFFFF;
     memset(&crs, 0, sizeof(crs));
     cc.hwndOwner = hwnd;
     cc.hInstance = (HWND)eu_module_handle();
@@ -465,8 +469,9 @@ choose_text_color(HWND hwnd, uint32_t *color)
         cc.lpfnHook = choose_color_proc;
     }
     if (ChooseColor(&cc))
-    {
-        (*color) = cc.rgbResult;
+    {   // 保留原有的alpha值
+        COLORREF tmp = (*color) & 0xFF000000;
+        (*color) = (tmp | cc.rgbResult);
     }
     return SKYLARK_OK;
 }
@@ -498,12 +503,11 @@ choose_text_color(HWND hwnd, uint32_t *color)
         SendMessage(_hwnd_handle_name_, WM_SETFONT, (WPARAM) _font_handle_name_, 0);              \
     }
 
-#define SET_STATIC_TEXTCOLOR(_hwnd_static_, _st_memb_)         \
-    if ((HWND) lParam == _hwnd_static_)                        \
-    {                                                          \
-        dlg_style._st_memb_.color &= 0x00ffffff;               \
-        SetTextColor((HDC) wParam, dlg_style._st_memb_.color); \
-        SetBkColor((HDC) wParam, dlg_style.text.bgcolor);      \
+#define SET_STATIC_TEXTCOLOR(_hwnd_static_, _st_memb_)                                            \
+    if ((HWND) lParam == _hwnd_static_)                                                           \
+    {                                                                                             \
+        SetTextColor((HDC) wParam, dlg_style._st_memb_.color & 0x00FFFFFF);                       \
+        SetBkColor((HDC) wParam, dlg_style.text.bgcolor & 0x00FFFFFF);                            \
     }
 
 // 选择新字体后更新示例字体
@@ -587,7 +591,8 @@ theme_release_handle(void)
     DeleteObject(font_cdata_static);
     DeleteObject(font_phpsection_static);
     DeleteObject(font_aspsection_static);
-    
+    DeleteObject(font_hyperlink_static);
+
     DeleteObject(brush_language);
     brush_language = NULL;
     DeleteObject(brush_linenumber);
@@ -605,13 +610,13 @@ theme_release_handle(void)
 }
 
 static void
-theme_show_balloon_tip(HWND hdlg, int res_id)
+theme_show_balloon_tip(HWND hdlg, const int resid)
 {
     TCHAR ptxt[MAX_PATH] = {0};
-    HWND hwnd_edit = GetDlgItem(hdlg, res_id);
+    HWND hwnd_edit = GetDlgItem(hdlg, resid);
     if (hwnd_edit)
     {
-        if (res_id == IDC_THEME_CARET_EDT)
+        if (resid == IDC_THEME_CARET_EDT)
         {
             eu_i18n_load_str(IDS_THEME_CARET_TIPS, ptxt, MAX_PATH);
         }
@@ -619,11 +624,19 @@ theme_show_balloon_tip(HWND hdlg, int res_id)
         {
             eu_i18n_load_str(IDS_THEME_EDIT_TIPS, ptxt, MAX_PATH);
         }
-        EDITBALLOONTIP tip = {sizeof(EDITBALLOONTIP)};
-        tip.pszTitle = _T("");
-        tip.pszText = ptxt;
-        tip.ttiIcon = TTI_INFO;
-        Edit_ShowBalloonTip(hwnd_edit, &tip);
+        if (hwnd_edit_tips)
+        {
+            DestroyWindow(hwnd_edit_tips);
+            hwnd_edit_tips = NULL;
+        }
+        if (!hwnd_edit_tips)
+        {
+            hwnd_edit_tips = util_create_tips(hwnd_edit, hdlg, ptxt);
+            if (hwnd_edit_tips && on_dark_enable())
+            {
+                on_dark_set_theme(hwnd_edit_tips, L"DarkMode_Explorer", NULL);
+            }
+        }
     }
 }
 
@@ -674,6 +687,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(cdata, IDC_CDATA_STATIC, hwnd_cdata_static, font_cdata_static)
             CREATE_STYLETHEME_FONT(phpsection, IDC_PHPSECTION_STATIC, hwnd_phpsection_static, font_phpsection_static)
             CREATE_STYLETHEME_FONT(aspsection, IDC_ASPSECTION_STATIC, hwnd_aspsection_static, font_aspsection_static)
+            CREATE_STYLETHEME_FONT(hyperlink, IDC_HYPERLINKSECTION_STATIC, hwnd_hyperlink_static, font_hyperlink_static)
             CREATE_STYLETHEME_FONT(activetab, IDC_THEME_TAB_STATIC, hwnd_activetab_static, font_activetab_static)
             CREATE_STYLETHEME_FONT(symbolic, IDC_THEME_SYMBOLIC_STATIC, hwnd_symbolic_static, font_symbolic_static)
             HWND hwnd_caretline_edt = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
@@ -711,64 +725,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (on_dark_enable())
             {
-                const int buttons[] = {IDOK,
-                                       IDCANCEL,
-                                       IDC_SETFONT_KEYWORDS_BUTTON,
-                                       IDC_SETTEXTCOLOR_KEYWORDS_BTN,
-                                       IDC_SETFONT_KEYWORDS2_BTN,
-                                       IDC_SETTEXTCOLOR_KEYWORDS2_BTN,
-                                       IDC_SETFONT_STRING_BTN,
-                                       IDC_SETTEXTCOLOR_STRING_BTN,
-                                       IDC_SETFONT_CHARACTER_BTN,
-                                       IDC_SETTEXTCOLOR_CHARACTER_BTN,
-                                       IDC_SETFONT_NUMBER_BTN,
-                                       IDC_SETTEXTCOLOR_NUMBER_BTN,
-                                       IDC_SETFONT_PREPRO_BTN,
-                                       IDC_SETTEXTCOLOR_PREPRO_BTN,
-                                       IDC_SETFONT_COMMENT_BTN,
-                                       IDC_SETTEXTCOLOR_COMMENT_BTN,
-                                       IDC_SETFONT_COMMENTLINE_BTN,
-                                       IDC_SETTEXTCOLOR_COMMENTL_BTN,
-                                       IDC_SETFONT_COMMENTDOC_BTN,
-                                       IDC_SETTEXTCOLOR_COMMENTDOC_BTN,
-                                       IDC_SETFONT_TEXT_BTN,
-                                       IDC_SETTEXTCOLOR_TEXT_BTN,
-                                       IDC_SETFONT_OPERATOR_BTN,
-                                       IDC_SETTEXTCOLOR_OPERATOR_BTN,
-                                       IDC_SETFONT_UNKNOWTAGS_BTN,
-                                       IDC_SETTEXTCOLOR_UNKNOWTAGS_BTN,
-                                       IDC_SETFONT_ATTRIBUTES_BTN,
-                                       IDC_SETTEXTCOLOR_ATTRIBUTES_BTN,
-                                       IDC_SETFONT_UNATTRIBUTES_BTN,
-                                       IDC_SETTEXTCOLOR_UNATTRS_BTN,
-                                       IDC_SETFONT_ENTITIES_BTN,
-                                       IDC_SETTEXTCOLOR_ENTITIES_BTN,
-                                       IDC_SETFONT_TAGENDS_BTN,
-                                       IDC_SETTEXTCOLOR_TAGENDS_BTN,
-                                       IDC_SETFONT_PHPSECTION_BTN,
-                                       IDC_SETTEXTCOLOR_PHPSECTION_BTN,
-                                       IDC_SETFONT_ASPSECTION_BTN,
-                                       IDC_SETTEXTCOLOR_ASPSECTION_BTN,
-                                       IDC_SETFONT_TAGS_BTN,
-                                       IDC_SETTEXTCOLOR_TAGS_BTN,
-                                       IDC_SETFONT_CDATA_BTN,
-                                       IDC_SETTEXTCOLOR_CDATA_BTN,
-                                       IDC_SETBGCOLOR_CARETLINE_BTN,
-                                       IDC_SETBGCOLOR_TEXT_BTN,
-                                       IDC_SETBGCOLOR_INDICATOR_BTN,
-                                       IDC_SETTEXTCOLOR_LINENUMBER_BTN,
-                                       IDC_SETBGCOLOR_LINENUMBER_BTN,
-                                       IDC_SETBGCOLOR_FOLDMARGIN_BTN,
-                                       IDC_SETBGCOLOR_TAB_BTN,
-                                       IDC_SETCOLOR_CARET_BTN,
-                                       IDC_SETFONT_SYMBOLIC_BTN,
-                                       IDC_SETTEXTCOLOR_SYMBOLIC_BTN
-                                       };
-                for (int id = 0; id < _countof(buttons); ++id)
-                {
-                    HWND btn = GetDlgItem(hdlg, buttons[id]);
-                    on_dark_set_theme(btn, L"Explorer", NULL);
-                }
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_THEME_LANGUAGE_STATIC), L"", L"");
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_THEME_MARKUP_STATIC), L"", L"");
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_THEME_EDIT_STATIC), L"", L"");
@@ -780,9 +736,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            if (on_dark_enable())
+            if (on_dark_supports())
             {
-                on_dark_allow_window(hdlg, true);
+                bool dark = on_dark_enable();
+                on_dark_allow_window(hdlg, dark);
                 on_dark_refresh_titlebar(hdlg);
                 const int buttons[] = {IDOK,
                                        IDCANCEL,
@@ -822,6 +779,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETTEXTCOLOR_PHPSECTION_BTN,
                                        IDC_SETFONT_ASPSECTION_BTN,
                                        IDC_SETTEXTCOLOR_ASPSECTION_BTN,
+                                       IDC_SETFONT_HYPERLINKSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN,
                                        IDC_SETFONT_TAGS_BTN,
                                        IDC_SETTEXTCOLOR_TAGS_BTN,
                                        IDC_SETFONT_CDATA_BTN,
@@ -840,10 +799,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hdlg, buttons[id]);
-                    on_dark_allow_window(btn, true);
-                    SendMessage(btn, WM_THEMECHANGED, 0, 0);
+                    on_dark_allow_window(btn, dark);
+                    on_dark_set_theme(btn, L"Explorer", NULL);
                 }
-                UpdateWindow(hdlg);
+                UpdateWindowEx(hdlg);
             }
             break;
         }
@@ -956,16 +915,10 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else SET_STATIC_TEXTCOLOR(hwnd_cdata_static, cdata)
             else SET_STATIC_TEXTCOLOR(hwnd_phpsection_static, phpsection)
             else SET_STATIC_TEXTCOLOR(hwnd_aspsection_static, aspsection)
+            else SET_STATIC_TEXTCOLOR(hwnd_hyperlink_static, hyperlink)
             else SET_STATIC_TEXTCOLOR(hwnd_caret_static, caret)
             else SET_STATIC_TEXTCOLOR(hwnd_symbolic_static, symbolic)
             return (LRESULT) brush_language;
-        }
-        case WM_MOUSEMOVE:
-        {
-            Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT));
-            Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT));
-            Edit_HideBalloonTip(GetDlgItem(hdlg, IDC_THEME_CARET_EDT));
-            break;
         }
         case WM_COMMAND:
             wm_id = LOWORD(wParam);
@@ -1030,7 +983,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     choose_style_font(dlg_style.text.font, &(dlg_style.text.fontsize), &(dlg_style.text.bold));
 
                     SYNC_FONT(text, hwnd_text_static, font_text_static)
-
                     SYNC_FONT(keywords0, hwnd_keyword_static, font_keyword_static)
                     SYNC_FONT(keywords1, hwnd_keyword2_static, font_keyword2_static)
                     SYNC_FONT(string, hwnd_string_static, font_string_static)
@@ -1051,6 +1003,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     SYNC_FONT(cdata, hwnd_cdata_static, font_cdata_static)
                     SYNC_FONT(phpsection, hwnd_phpsection_static, font_phpsection_static)
                     SYNC_FONT(aspsection, hwnd_aspsection_static, font_aspsection_static)
+                    SYNC_FONT(hyperlink, hwnd_hyperlink_static, font_hyperlink_static)
                     break;
                 }
                 case IDC_SETTEXTCOLOR_TEXT_BTN:
@@ -1082,7 +1035,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     choose_text_color(hdlg, &(dlg_style.caret.color));
                     InvalidateRect(hwnd_caret_static, NULL, TRUE);
                     break;
-                }                
+                }
             }
             STYLE_MSG(keywords0,hwnd_keyword_static,font_keyword_static,IDC_SETFONT_KEYWORDS_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS_BTN)
             else STYLE_MSG(keywords1,hwnd_keyword2_static,font_keyword2_static,IDC_SETFONT_KEYWORDS2_BTN,IDC_SETTEXTCOLOR_KEYWORDS2_BTN)
@@ -1103,10 +1056,16 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else STYLE_MSG(cdata,hwnd_cdata_static,font_cdata_static,IDC_SETFONT_CDATA_BTN,IDC_SETTEXTCOLOR_CDATA_BTN)
             else STYLE_MSG(phpsection,hwnd_phpsection_static,font_phpsection_static,IDC_SETFONT_PHPSECTION_BTN,IDC_SETTEXTCOLOR_PHPSECTION_BTN)
             else STYLE_MSG(aspsection,hwnd_aspsection_static,font_aspsection_static,IDC_SETFONT_ASPSECTION_BTN,IDC_SETTEXTCOLOR_ASPSECTION_BTN)
-            else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)    
+            else STYLE_MSG(hyperlink,hwnd_hyperlink_static,font_hyperlink_static,IDC_SETFONT_HYPERLINKSECTION_BTN,IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN)
+            else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)
             break;
         case WM_DESTROY:
             printf("theme dlg WM_DESTROY\n");
+            if (hwnd_edit_tips)
+            {
+                DestroyWindow(hwnd_edit_tips);
+                hwnd_edit_tips = NULL;
+            }
             theme_release_handle();
             break;
         default:

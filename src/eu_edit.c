@@ -161,29 +161,21 @@ on_edit_line_down(eu_tabpage *pnode)
 bool
 on_edit_push_clipboard(const TCHAR *buf)
 {
-    TCHAR *on_edit_copy_text = NULL;
-    HGLOBAL hgl = (TCHAR *) GlobalAlloc(GMEM_MOVEABLE, (_tcslen(buf) + 1) * sizeof(TCHAR));
-    if (!hgl)
-    {
-        printf("GlobalAlloc(GMEM_MOVEABLE) failed, cause:%lu\n", GetLastError());
-        return false;
-    }
-    on_edit_copy_text = (TCHAR *) GlobalLock(hgl);
-    if (on_edit_copy_text == NULL)
-    {
-        printf("GlobalLock(hgl) failed, cause:%lu\n", GetLastError());
-        GlobalFree(hgl);
-        return false;
-    }
-    _tcscpy(on_edit_copy_text, buf);
-    GlobalUnlock(hgl);
     if (OpenClipboard(eu_module_hwnd()))
     {
+        HGLOBAL hgl = NULL;
         EmptyClipboard();
-        SetClipboardData(CF_UNICODETEXT, on_edit_copy_text);
-        CloseClipboard();
+        if ((hgl = (TCHAR *) GlobalAlloc(GMEM_MOVEABLE, (_tcslen(buf) + 1) * sizeof(TCHAR))))
+        {
+            TCHAR *on_edit_copy_text = (TCHAR *) GlobalLock(hgl);
+            on_edit_copy_text ? _tcscpy(on_edit_copy_text, buf) : (void)0;
+            GlobalUnlock(hgl);
+            SetClipboardData(CF_UNICODETEXT, hgl);
+            CloseClipboard();
+            return true;
+        }
     }
-    return true;
+    return false;
 }
 
 static void
@@ -944,14 +936,14 @@ on_edit_ssl_enc_base64(unsigned char *base64_pass, unsigned char *enc_str, int e
     bool res = false;
     char *fn_name[1] = {"EVP_EncodeBlock"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         if (((eu_evp_encodeblock)pfunc[0])(base64_pass, enc_str, enc_len) >= 0)
         {
             res = true;
         }
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
     return res;
 }
@@ -1010,14 +1002,14 @@ on_edit_ssl_dec_base64(unsigned char *base64_pass, unsigned char *enc_str, int e
     bool res = false;
     char *fn_name[1] = {"EVP_DecodeBlock"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         if (((eu_evp_decodeblock)pfunc[0])(base64_pass, enc_str, enc_len) >= 0)
         {
             res = true;
         }
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
     return res;
 }
@@ -1087,13 +1079,13 @@ on_edit_md5(eu_tabpage *pnode)
     }
     char *fn_name[1] = {"MD5"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         ((eu_md5)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
         util_hex_expand(out_text, MD5_DIGEST_LENGTH, text_exp);
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
     free(sel_text);
     return SKYLARK_OK;
@@ -1121,13 +1113,13 @@ on_edit_sha1(eu_tabpage *pnode)
     }
     char *fn_name[1] = {"SHA1"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         ((eu_sha1)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
         util_hex_expand(out_text, SHA_DIGEST_LENGTH, text_exp);
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
     free(sel_text);
     return SKYLARK_OK;
@@ -1155,13 +1147,13 @@ on_edit_sha256(eu_tabpage *pnode)
     }
     char *fn_name[1] = {"SHA256"};
     uintptr_t pfunc[1] = {0};
-    HMODULE hssl = eu_ssl_open_symbol(fn_name, 1, pfunc);
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 1, pfunc);
     if (hssl)
     {
         ((eu_sha256)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
         util_hex_expand(out_text, SHA256_DIGEST_LENGTH, text_exp);
         eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
-        eu_ssl_close_symbol(&hssl);
+        util_ssl_close_symbol(&hssl);
     }
     free(sel_text);
     return SKYLARK_OK;

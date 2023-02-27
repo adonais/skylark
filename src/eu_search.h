@@ -129,6 +129,7 @@ void on_search_dark_mode_release(void);
 void on_search_repalce_event(eu_tabpage *p, replace_event docase);
 void on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres);
 void on_search_turn_select(eu_tabpage *pnode);
+void on_search_regxp_error(void);
 
 #ifdef __cplusplus
 }

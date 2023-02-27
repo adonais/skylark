@@ -308,6 +308,8 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
 {
     HANDLE m_map = NULL;
     TCHAR *memory = NULL;
+    bool show_clip = false;
+    HWND hwnd = eu_module_hwnd();
     if (!(m_map = share_open(FILE_MAP_WRITE | FILE_MAP_READ, SKYLARK_LOCK_LANG)))
     {
         printf("share_open error in %s\n", __FUNCTION__);
@@ -318,18 +320,22 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         share_close(m_map);
         return 1;
     }
-    HMENU hmenu = GetMenu(eu_module_hwnd());
+    HMENU hmenu = GetMenu(hwnd);
     if (hmenu)
     {   // 销毁顶层菜单
         DestroyMenu(hmenu);
     }
-    HWND htool = GetDlgItem(eu_module_hwnd(), IDC_TOOLBAR);
+    HWND htool = GetDlgItem(hwnd, IDC_TOOLBAR);
     if (htool)
     {   // 销毁工具栏
         DestroyWindow(htool);
     }
     if (on_toolbar_clip_hwnd())
     {   // 销毁剪贴板
+        if (IsWindowVisible(on_toolbar_clip_hwnd()))
+        {
+            show_clip = true;
+        }
         DestroyWindow(on_toolbar_clip_hwnd());
     }
     if (g_statusbar)
@@ -354,19 +360,28 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         return 1;
     }
-    if (!SetMenu(eu_module_hwnd(), hmenu))
+    if (!SetMenu(hwnd, hmenu))
     {
         return 1;
     }
-    if (on_toolbar_create(eu_module_hwnd()) != 0)
+    if (on_toolbar_create(hwnd) != 0)
     {
         printf("on_toolbar_create return false\n");
         return 1;
     }
-    if (on_treebar_create_box(eu_module_hwnd()))
+    if (on_treebar_create_box(hwnd))
     {
         printf("on_treebar_create_box return false\n");
         return 1;
+    }
+    if (show_clip)
+    {   // 重启剪贴板窗口
+        HWND hcip = on_toolbar_create_clipbox(hwnd);
+        if (hcip)
+        {
+            on_toolbar_setpos_clipdlg(hcip, hwnd);
+            ShowWindow(hcip, SW_SHOW);
+        }
     }
     if (!on_statusbar_init(eu_module_hwnd()))
     {
@@ -383,9 +398,27 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     return 0;
 }
 
+static bool
+i18n_check_envent(void)
+{
+    bool ret = true;
+    HWND snippet = NULL;
+    HWND search = NULL;
+    if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+    {
+        ret = false;
+    }
+    if (ret && (search = eu_get_search_hwnd()) && IsWindowVisible(search))
+    {
+        ret = false;
+    }
+    return ret;
+}
+
 int
 i18n_switch_locale(HWND hwnd, int id)
 {
+    int msg = IDOK;
     TCHAR buf[QW_SIZE] = {0};
     TCHAR old[QW_SIZE] = {0};
     TCHAR sel[QW_SIZE] = {0};
@@ -408,6 +441,14 @@ i18n_switch_locale(HWND hwnd, int id)
         return 1;
     }
     if (_tcscmp(sel, old) == 0)
+    {
+        return 0;
+    }
+    if (!i18n_check_envent())
+    {
+        MSG_BOX_SEL(IDS_LOCALE_SWITCH_TIP, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, msg);
+    }
+    if (msg == IDCANCEL || msg == IDCLOSE)
     {
         return 0;
     }

@@ -29,7 +29,7 @@ jobs:
       id: plugins64
       shell: cmake -P {0}
       run: |
-        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Tools/skylark%20edit/plugins_64.7z/download")
+        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Skylark/plugins_64.7z/download")
         file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/plugins_64.7z SHOW_PROGRESS)
         execute_process(COMMAND 7z x ./plugins_64.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)      
 
@@ -48,7 +48,7 @@ jobs:
       id: plugins32
       shell: cmake -P {0}
       run: |
-        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Tools/skylark%20edit/plugins_32.7z/download")
+        set(threeparty_url "https://sourceforge.net/projects/libportable/files/Skylark/plugins_32.7z/download")
         file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/plugins_32.7z SHOW_PROGRESS)
         execute_process(COMMAND 7z x ./plugins_32.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)
 

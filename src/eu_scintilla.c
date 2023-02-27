@@ -161,6 +161,8 @@ void
 on_sci_init_style(eu_tabpage *pnode)
 {
     on_sci_init_default(pnode, -1);
+    // 为超链接设置indicators样式
+    on_hyper_set_style(pnode);
 }
 
 void
@@ -200,7 +202,7 @@ on_sci_reset_zoom(eu_tabpage *pnode)
                 on_view_zoom_in(pnode);
             }
         }
-        pnode->zoom_level = 0;      
+        pnode->zoom_level = 0;
     }
 }
 
@@ -365,6 +367,10 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
         {
             DestroyWindow(hwnd_document_map);
         }
+        if ((*ppnode)->hyper_id)
+        {
+            util_kill_thread((uint32_t)(*ppnode)->hyper_id);
+        }
         if (plugins)
         {
             on_sci_destory(ppnode, p);
@@ -398,9 +404,16 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
 void
 on_sci_insert_egg(eu_tabpage *pnode)
 {
-    unsigned char represent[]={0x0a,0x2f,0x2f,0x20, 0x53,0x6b,0x79,0x6c,0x61,0x72,0x6B,0XE6,0X98,0xAF,0xe4,0xb8,0x80,0xe4,
-                               0xb8,0xaa,0xe5,0xbe,0x88,0xe6,0xa3,0x92,0xe7,0x9a,0x84,0xe7,0xbc,0x96,0xe8,0xbe,0x91,0xe5,
-                               0x99,0xa8,0xf0,0x9f,0x98,0x80,0x0a,0x00};
+    unsigned char represent[QW_SIZE] = \
+                  {0x0a,0x2f,0x2f,0x20, 0x53,0x6b,0x79,0x6c,0x61,0x72,0x6B,0XE6,0X98,0xAF,0xe4,0xb8,0x80,0xe4,
+                   0xb8,0xaa,0xe5,0xbe,0x88,0xe6,0xa3,0x92,0xe7,0x9a,0x84,0xe7,0xbc,0x96,0xe8,0xbe,0x91,0xe5,
+                   0x99,0xa8,0xf0,0x9f,0x99,0x82,0x00};
+    if (util_os_version() < 1000)
+    {
+        represent[strlen((const char *)represent) - 4] = 0;
+        strncat((char *)represent, "\x5E\x30\x5E", QW_SIZE);
+    }
+    strncat((char *)represent, on_encoding_get_eol(pnode), QW_SIZE);
     sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     eu_sci_call(pnode, SCI_INSERTTEXT, cur_pos, (LPARAM) represent);
     eu_sci_call(pnode, SCI_GOTOPOS, cur_pos + strlen((const char *)represent), 0);
@@ -639,7 +652,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_THEMECHANGED:
         {
             printf("scintilla WM_THEMECHANGED\n");
-            if (eu_get_config()->m_toolbar)
+            if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 on_toolbar_update_button();
             }

@@ -933,9 +933,13 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     uint32_t dw_creat = 0;
     LPCTSTR lp_dir = NULL;
     TCHAR process[MAX_PATH+1] = {0};
-    if (pcd != NULL && _tcslen(pcd) > 1)
+    if (STR_NOT_NUL(pcd))
     {
         lp_dir = pcd;
+    }
+    else
+    {
+        lp_dir = (LPCTSTR)eu_module_path;
     }
     if (param != NULL && _tcslen(param ) > 1)
     {
@@ -981,6 +985,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
             *o = pi.dwProcessId;
         }
         CloseHandle(pi.hThread);
+        util_set_working_dir(eu_module_path, NULL);
     }
     return pi.hProcess;
 }
@@ -1593,9 +1598,17 @@ eu_process_path(TCHAR *path, const int len)
 }
 
 void
-eu_set_build_id(uint64_t m_time)
+eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time)
 {
-    eu_get_config()->m_id = m_time;
+    eu_get_config()->upgrade.flags = (int)flags;
+    if (last_time > 0)
+    {
+        eu_get_config()->upgrade.last_check = last_time;
+    }
+    else
+    {
+        eu_get_config()->upgrade.last_check = (uint64_t)time(NULL);
+    }
 }
 
 static char*
@@ -1635,7 +1648,7 @@ eu_save_config(void)
         "window_theme = \"%s\"\n"
         "window_full_screen = %s\n"
         "window_menubar_visiable = %s\n"
-        "window_toolbar_visiable = %s\n"
+        "window_toolbar_visiable = %d\n"
         "window_statusbar_visiable = %s\n"
         "line_number_visiable = %s\n"
         "last_search_flags = 0x%08X\n"
@@ -1656,6 +1669,7 @@ eu_save_config(void)
         "sqlquery_result_edit_height = %d\n"
         "sqlquery_result_listview_height = %d\n"
         "file_recent_number = %d\n"
+        "scroll_to_cursor = %s\n"
         "inter_reserved_0 = %d\n"
         "inter_reserved_1 = %d\n"
         "inter_reserved_2 = %d\n"
@@ -1687,12 +1701,6 @@ eu_save_config(void)
 		"    autoc = %s,\n"
         "    rgb = 0x%08X\n"
         "}\n"
-        "-- unused settings\n"
-        "caret = {\n"
-        "    blink = %d,\n"
-        "    width = %d,\n"
-        "    rgb = 0x%08X\n"
-        "}\n"
         "-- calltip default setting\n"
         "calltip = {\n"
         "    enable = %s,\n"
@@ -1715,9 +1723,17 @@ eu_save_config(void)
         "    margin_right = %d,\n"
         "    margin_bottom = %d\n"
         "}\n"
+        "-- hyperlink hotspot default setting\n"
+        "hyperlink_detection = %s\n"
         "-- automatically cached file (size < 200MB)\n"
         "cache_limit_size = %d\n"
-        "app_build_id = %I64u\n"
+        "app_upgrade = {\n"
+        "    enable = %s,\n"
+        "    flags = %d,\n"
+        "    msg_id = %d,\n"
+        "    last_check = %I64u,\n"
+        "    url = \"%s\"\n"
+        "}\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
         "other_editor_path = \"%s\"\n"
@@ -1749,7 +1765,7 @@ eu_save_config(void)
               g_config->window_theme[0]?g_config->window_theme:"default",
               g_config->m_fullscreen?"true":"false",
               g_config->m_menubar?"true":"false",
-              g_config->m_toolbar?"true":"false",
+              g_config->m_toolbar,
               g_config->m_statusbar?"true":"false",
               g_config->m_linenumber?"true":"false",
               g_config->last_flags,
@@ -1770,6 +1786,7 @@ eu_save_config(void)
               g_config->result_edit_height,
               g_config->result_list_height,
               (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
+              g_config->scroll_to_cursor?"true":"false",
               g_config->inter_reserved_0,
               g_config->inter_reserved_1,
               g_config->inter_reserved_2,
@@ -1795,9 +1812,6 @@ eu_save_config(void)
               g_config->eu_brace.matching?"true":"false",
               g_config->eu_brace.autoc?"true":"false",
               g_config->eu_brace.rgb,
-              0,
-              0,
-              0,
               g_config->eu_calltip.enable?"true":"false",
               g_config->eu_calltip.rgb,
               g_config->eu_complete.enable?"true":"false",
@@ -1811,8 +1825,13 @@ eu_save_config(void)
               g_config->eu_print.rect.top,
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
+              g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
-              on_about_build_id(),
+              g_config->upgrade.enable?"true":"false",
+              g_config->upgrade.flags,
+              g_config->upgrade.msg_id,
+              g_config->upgrade.last_check,
+              g_config->upgrade.url,
               g_config->m_path,
               g_config->editor,
               g_config->m_reserved_0,
@@ -1972,7 +1991,12 @@ eu_save_theme(void)
         "symbolic_fontsize = %d\n"
         "symbolic_color = 0x%08X\n"
         "symbolic_bgcolor = 0x%08X\n"
-        "symbolic_bold = %d";
+        "symbolic_bold = %d\n"
+        "hyperlink_font = \"%s\"\n"
+        "hyperlink_fontsize = %d\n"
+        "hyperlink_color = 0x%08X\n"
+        "hyperlink_bgcolor = 0x%08X\n"
+        "hyperlink_bold = %d";
     if (!g_theme)
     {
         return;
@@ -2012,7 +2036,8 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(aspsection),
         EXPAND_STYLETHEME(activetab),
         EXPAND_STYLETHEME(caret),
-        EXPAND_STYLETHEME(symbolic));
+        EXPAND_STYLETHEME(symbolic),
+        EXPAND_STYLETHEME(hyperlink));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)
@@ -2530,41 +2555,6 @@ eu_curl_global_release(void)
             eu_curl_slist_free_all = NULL;
         }
         _InterlockedExchange(&eu_curl_initialized, 0);
-    }
-}
-
-HMODULE
-eu_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
-{
-    HMODULE ssl = NULL;
-    const TCHAR *ssl_path =
-#ifdef _WIN64
-    _T("libcrypto-1_1-x64.dll");
-#else
-    _T("libcrypto-1_1.dll");
-#endif
-    if ((ssl = np_load_plugin_library(ssl_path)) != NULL)
-    {
-        for (int i = 0; i < n && s[i][0]; ++i)
-        {
-            pointer[i] = (uintptr_t)GetProcAddress(ssl, s[i]);
-            if (!pointer[i])
-            {
-                FreeLibrary(ssl);
-                ssl = NULL;
-            }
-        }
-    }
-    return ssl;
-}
-
-void
-eu_ssl_close_symbol(HMODULE *pssl)
-{
-    if (pssl && *pssl)
-    {
-        FreeLibrary(*pssl);
-        *pssl = NULL;
     }
 }
 

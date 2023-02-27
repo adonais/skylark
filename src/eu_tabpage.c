@@ -240,15 +240,16 @@ on_tabpage_active_one(int index)
 static void
 on_tabpage_draw_sign(const HDC hdc, const LPRECT lprect)
 {
-    HFONT hfont = CreateFont(-14, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, 
+    const TCHAR *text  = util_os_version() < 603 ? _T("x") : _T("✕");
+    HFONT hfont = CreateFont(-14, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
                              CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
     HGDIOBJ oldj = SelectObject(hdc, hfont);
     RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
                lprect->top + 1,
                lprect->right,
                lprect->bottom
-              };    
-    DrawText(hdc, _T("✕"), (int)_tcslen(_T("✕")), &rc, DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+              };
+    DrawText(hdc, text, (int)_tcslen(text), &rc, DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
     SelectObject(hdc, oldj);
     DeleteObject(hfont);
 }
@@ -1296,7 +1297,7 @@ on_tabpage_add(eu_tabpage *pnode)
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
         pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
-    }    
+    }
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
         printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);

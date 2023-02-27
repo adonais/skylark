@@ -29,7 +29,7 @@ function eu_conf.loadconf()
         "window_theme = \"default\"\n" ..
         "window_full_screen = false\n" ..
         "window_menubar_visiable = true\n" ..
-        "window_toolbar_visiable = true\n" ..
+        "window_toolbar_visiable = 30031\n" ..
         "window_statusbar_visiable = true\n" ..
         "line_number_visiable = true\n" ..
         "last_search_flags = 0x000044\n" ..
@@ -50,6 +50,7 @@ function eu_conf.loadconf()
         "sqlquery_result_edit_height = 80\n" ..
         "sqlquery_result_listview_height = 270\n" ..
         "file_recent_number = 29\n" ..
+        "scroll_to_cursor = false\n" ..
         "inter_reserved_0 = 0\n" ..
         "inter_reserved_1 = 0\n" ..
         "inter_reserved_2 = 0\n" ..
@@ -81,12 +82,6 @@ function eu_conf.loadconf()
         "    autoc = true,\n" ..
         "    rgb = 0x000000FF\n" ..
         "}\n" ..
-        "-- unused settings\n" ..
-        "caret = {\n" ..
-        "    blink = 0,\n" ..
-        "    width = 0,\n" ..
-        "    rgb = 0x0\n" ..
-        "}\n" ..
         "-- calltip default setting\n" ..
         "calltip = {\n" ..
         "    enable = true,\n" ..
@@ -109,9 +104,17 @@ function eu_conf.loadconf()
         "    margin_right = 2000,\n" ..
         "    margin_bottom = 2000\n" ..
         "}\n" ..
+        "-- hyperlink hotspot default setting\n" ..
+        "hyperlink_detection = true\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
         "cache_limit_size = 200\n" ..
-        "app_build_id = 0\n" ..
+        "app_upgrade = {\n" ..
+        "    enable = true,\n" ..
+        "    flags = 0,\n" ..
+        "    msg_id = 44054,\n" ..
+        "    last_check = 0,\n" ..
+        "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download',\n" ..
+        "}\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
@@ -121,12 +124,6 @@ function eu_conf.loadconf()
         eu_code = assert(loadstring(code))()
     else
         eu_code = dofile(file)
-    end
-    if (tab_new_way == nil) then
-        tab_new_way = 0
-    end
-    if (tab_close_draw == nil) then
-        tab_close_draw = 43004
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
@@ -156,6 +153,7 @@ function eu_conf.loadconf()
         sqlquery_result_edit_height,
         sqlquery_result_listview_height,
         file_recent_number,
+        scroll_to_cursor,
         inter_reserved_0,
         inter_reserved_1,
         inter_reserved_2,
@@ -177,12 +175,12 @@ function eu_conf.loadconf()
         ui_language,
         {bookmark.visable, bookmark.shape, bookmark.argb},
         {brace.matching, brace.autoc, brace.rgb},
-        {caret.blink, caret.width, caret.rgb},
         {calltip.enable, calltip.rgb},
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
+        hyperlink_detection,
         cache_limit_size,
-        app_build_id,
+        {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
         process_path,
         other_editor_path,
         m_reserved_0,

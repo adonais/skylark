@@ -30,8 +30,8 @@ $(SHARED_ZHCN): $(OBJD)\zh-cn.res
 $(SHARED_ENUS): $(OBJD)\en-us.res
 	$(LD) /DLL /out:$@ $(OBJD)\en-us.res /NOENTRY /MACHINE:$(PLATFORM)
 
-$(OBJD)\zh-cn.res: $(SRC)\zh-cn.rc $(ROOT)\src\resource.h $(ROOT)\src\targetver.h
-$(OBJD)\en-us.res: $(SRC)\en-us.rc $(ROOT)\src\resource.h $(ROOT)\src\targetver.h
+$(OBJD)\zh-cn.res: $(SRC)\zh-cn.rc $(ROOT)\src\targetver.h
+$(OBJD)\en-us.res: $(SRC)\en-us.rc $(ROOT)\src\targetver.h
 
 # cleanup
 clean:

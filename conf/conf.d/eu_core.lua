@@ -70,6 +70,15 @@ typedef struct _eue_toolbar
     char isvg[4096];
 }eue_toolbar;
 
+typedef struct _upgrade_set
+{
+    bool enable;
+    int  flags;
+    int  msg_id;
+    uint64_t last_check;
+    char url[1024];
+}upgrade_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -79,7 +88,7 @@ struct eu_config
     char window_theme[64];
     bool m_fullscreen;
     bool m_menubar;
-    bool m_toolbar;
+    int m_toolbar;
     bool m_statusbar;
     bool m_linenumber;
 
@@ -103,6 +112,7 @@ struct eu_config
     int result_edit_height;
     int result_list_height;
     int file_recent_number;
+    int scroll_to_cursor;
     int inter_reserved_0;
     int inter_reserved_1;
     int inter_reserved_2;
@@ -126,12 +136,12 @@ struct eu_config
     char m_language[64];
     bookmark_set eu_bookmark;
     brace_set eu_brace;
-    caret_set eu_caret;
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
+    bool m_hyperlink;
     int m_limit;
-    uint64_t m_id;
+    upgrade_set upgrade;
     char m_path[260];
     char editor[260];
     char m_reserved_0[260];
@@ -181,6 +191,7 @@ struct styletheme
     struct styleclass activetab;
     struct styleclass caret;
     struct styleclass symbolic;
+    struct styleclass hyperlink;
 };
 
 struct eu_theme
@@ -277,6 +288,9 @@ bool eu_accel_ptr(ACCEL *paccel);
 bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
 bool eu_exist_path(const char *path);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
+
+// hyperlink callback
+int eu_hyperlink_detection(void *pnode);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);
