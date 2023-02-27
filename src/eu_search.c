@@ -1606,6 +1606,10 @@ on_search_regxp_error(void)
             wchar_t *ll_msg = NULL;
             HFONT hfont_stc = (HFONT)SendMessage(hwnd_search_dlg, WM_GETFONT, 0,0);
             HFONT old = SelectObject(dc, hfont_stc);
+            if (util_os_version() < 603)
+            {
+                Static_SetText(hwnd_re_stc, _T(" ?"));
+            }
             GetTextExtentPoint32(dc, str, eu_int_cast(wcslen(str)), &sz);
             SelectObject(dc, old);
             ReleaseDC(stc, dc);
