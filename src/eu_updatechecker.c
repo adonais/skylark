@@ -59,6 +59,8 @@ on_update_init(struct curl_slist **pheaders)
         *pheaders = eu_curl_slist_append(*pheaders, "charsets: utf-8");
         eu_curl_easy_setopt(curl, CURLOPT_HTTPHEADER, *pheaders);
         eu_curl_easy_setopt(curl, CURLOPT_URL, UPDATE_URL);
+        // 但使用http/2时, 检测不到最新发布的tag
+        eu_curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         eu_curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0");
         eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);

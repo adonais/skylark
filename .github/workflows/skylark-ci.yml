@@ -75,4 +75,5 @@ jobs:
         name: Release ${{ steps.current-time.outputs.formattedTime }}
         artifacts: ${{ github.workspace }}/${{ env.APP_NAME }}_${{ env.MY_BITS64 }}-v${{ env.MY_VER }}.7z,${{ github.workspace }}/${{ env.APP_NAME }}_${{ env.MY_BITS32 }}-v${{ env.MY_VER }}.7z
         prerelease: false
+        generateReleaseNotes: true
         token: ${{ secrets.GITHUB_TOKEN }}
