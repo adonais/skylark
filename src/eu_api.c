@@ -1728,6 +1728,7 @@ eu_save_config(void)
         "-- automatically cached file (size < 200MB)\n"
         "cache_limit_size = %d\n"
         "app_upgrade = {\n"
+        "    enable = %s,\n"
         "    flags = %d,\n"
         "    msg_id = %d,\n"
         "    last_check = %I64u,\n"
@@ -1826,6 +1827,7 @@ eu_save_config(void)
               g_config->eu_print.rect.bottom,
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
+              g_config->upgrade.enable?"true":"false",
               g_config->upgrade.flags,
               g_config->upgrade.msg_id,
               g_config->upgrade.last_check,

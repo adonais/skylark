@@ -23,7 +23,7 @@
 {                                                           \
     if (_tcschr(argv[1], _T('=')))                          \
     {                                                       \
-        dark_mode = eu_dark_theme_init(true, true);            \
+        dark_mode = eu_dark_theme_init(true, true);         \
     }                                                       \
 }
 

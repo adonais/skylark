@@ -109,6 +109,7 @@ function eu_conf.loadconf()
         "-- automatically cached file (size < 200MB)\n" ..
         "cache_limit_size = 200\n" ..
         "app_upgrade = {\n" ..
+        "    enable = true,\n" ..
         "    flags = 0,\n" ..
         "    msg_id = 44054,\n" ..
         "    last_check = 0,\n" ..
@@ -179,7 +180,7 @@ function eu_conf.loadconf()
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         hyperlink_detection,
         cache_limit_size,
-        {app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
+        {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
         process_path,
         other_editor_path,
         m_reserved_0,

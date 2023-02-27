@@ -287,7 +287,7 @@ on_toolbar_setpos_clipdlg(HWND hwnd, HWND hparent)
         GetWindowRect(hparent, &rcparent);
         width = rc.right - rc.left;
         height = rc.bottom - rc.top;
-        left = rcparent.right - width - border - 20;
+        left = rcparent.right - width - border - eu_dpi_scale_xy(0, 20);
         top = rcparent.bottom - height - on_statusbar_height() - border - 2;
         eu_setpos_window(hwnd, HWND_TOPMOST, left, top, width, height, 0);
     }
@@ -374,6 +374,19 @@ draw_clipboard(void)
     m_copy = true;
 }
 
+static void
+refresh_clipboard(void)
+{
+    if (g_clip_hwnd)
+    {
+        init_clip_dlg(g_clip_hwnd, false);
+        if (IsWindowVisible(g_clip_hwnd))
+        {
+            UpdateWindowEx(g_clip_hwnd);  // 在某些平台上, 可能需要重绘所有界面
+        }
+    }
+}
+
 static intptr_t CALLBACK
 clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -411,11 +424,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     on_dark_allow_window(btn, dark);
                     on_dark_set_theme(btn, L"Explorer", NULL);
                 }
-                init_clip_dlg(hdlg, false);
-                if (IsWindowVisible(hdlg))
-                {   // 在某些平台上, 需要重绘所有界面
-                    UpdateWindowEx(hdlg);
-                }
+                refresh_clipboard();
                 break;
             }
         }
@@ -1008,6 +1017,7 @@ on_toolbar_refresh(HWND hwnd)
     {
         DestroyWindow(h_tool);
     }
+    refresh_clipboard();  // dpi改变时重新渲染图标
     return (on_toolbar_create(hwnd) == 0);
 }
 

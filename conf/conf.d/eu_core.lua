@@ -72,8 +72,9 @@ typedef struct _eue_toolbar
 
 typedef struct _upgrade_set
 {
-    int flags;
-    int msg_id;
+    bool enable;
+    int  flags;
+    int  msg_id;
     uint64_t last_check;
     char url[1024];
 }upgrade_set;
