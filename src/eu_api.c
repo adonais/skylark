@@ -2473,7 +2473,7 @@ eu_iconv_close(iconv_t cd)
  * 成功, 返回值与 curl_global_init 函数相同
  *******************************************************************/
 int
-eu_curl_init_global(long flags)
+eu_curl_global_init(long flags)
 {
     int result = CURLE_OK;
     EnterCriticalSection(&eu_curl_cs);
@@ -2514,7 +2514,7 @@ eu_curl_easy_init(void)
 {
     if (!eu_curl_initialized)
     {
-        if (eu_curl_init_global(CURL_GLOBAL_DEFAULT) != CURLE_OK)
+        if (eu_curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK)
         {
             return NULL;
         }
@@ -2532,7 +2532,7 @@ eu_curl_easy_cleanup(CURL *curl)
 }
 
 void
-eu_curl_global_release(void)
+eu_curl_global_cleanup(void)
 {
     if (eu_curl_initialized)
     {

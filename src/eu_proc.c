@@ -104,6 +104,7 @@ on_destory_window(HWND hwnd)
     }
     // 文件关闭,销毁信号量
     on_file_finish_wait();
+    eu_curl_global_cleanup();
     // 退出消息循环
     PostQuitMessage(0);
 }

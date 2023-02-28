@@ -321,7 +321,6 @@ all_clean:
     share_close(lang_map);
     share_close_lang();
     share_envent_release();
-    eu_curl_global_release();
     eu_sci_release();
     eu_remote_list_release();
     eu_dark_theme_release(true);
