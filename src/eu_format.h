@@ -20,12 +20,6 @@
 #define _SKYLARK_FORMAT_H_
 
 typedef int (*format_back)(const uint8_t *ptext, uint8_t **pbuf);
-typedef struct _rcstring
-{
-    char *text;    /*<! char c-string */
-    size_t length; /*<! put in place to avoid strlen() calls */
-    size_t max;    /*<! usable memory allocated to text minus the space for the nul character */
-} rcstring;
 
 #ifdef __cplusplus
 extern "C"
