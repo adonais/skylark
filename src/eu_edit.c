@@ -134,7 +134,17 @@ on_edit_copy_line(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode)
     {
-        eu_sci_call(pnode, SCI_LINECOPY, 0, 0);
+        char *text = util_strdup_line(pnode, -1, NULL);
+        if (text)
+        {
+            int index = strcspn(text, "\r\n");
+            if (index < eu_int_cast(strlen(text)))
+            {
+                text[index] = 0;
+            }
+            eu_sci_call(pnode, SCI_COPYTEXT, (sptr_t)strlen(text), (sptr_t)text);
+            free(text);
+        }
     }
 }
 
