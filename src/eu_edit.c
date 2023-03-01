@@ -121,7 +121,7 @@ on_edit_paste_text(eu_tabpage *pnode)
 void
 on_edit_delete_text(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_CLEAR, 0, 0);
     }
