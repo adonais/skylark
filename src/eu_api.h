@@ -478,6 +478,16 @@ typedef void (*eu_des_ede3_cbc_encrypt)(const unsigned char *input, unsigned cha
                                         long length,
                                         DES_key_schedule *ks1, DES_key_schedule *ks2,
                                         DES_key_schedule *ks3, DES_cblock *ivec, int enc);
+typedef BIO* (*eu_bio_new)(const BIO_METHOD *type);
+typedef const BIO_METHOD* (*eu_bio_f_base64)(void);
+typedef const BIO_METHOD* (*eu_bio_s_mem)(void);
+typedef void (*eu_bio_set_flags)(BIO *b, int flags);
+typedef BIO* (*eu_bio_push)(BIO *b, BIO *append);
+typedef BIO* (*eu_bio_pop)(BIO *b);
+typedef void (*eu_bio_free_all)(BIO *a);
+typedef int (*eu_bio_write)(BIO *b, const void *data, int dlen);
+typedef int (*eu_bio_test_flags)(const BIO *b, int flags);
+typedef long (*eu_bio_ctrl)(BIO *bp, int cmd, long larg, void *parg);
 
 // eu_sql.c
 EU_EXT_CLASS int eu_sqlite3_open(const char *filename, sqlite3 **ppdb);

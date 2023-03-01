@@ -468,6 +468,8 @@ BEGIN
         MENUITEM "Generate MD5 Into Clipboard",                        IDM_FILE_MD5_CLIP
         MENUITEM "Generate SHA1 Into Clipboard",                       IDM_FILE_SHA1_CLIP
         MENUITEM "Generate SHA256 Into Clipboard",                     IDM_FILE_SHA256_CLIP
+        MENUITEM SEPARATOR
+        MENUITEM "Image To Base64 To Editor",                          IDM_PIC_CONVERT_BASE64
     END
 END
 

@@ -468,6 +468,8 @@ BEGIN
         MENUITEM "生成MD5到剪贴板",                             IDM_FILE_MD5_CLIP
         MENUITEM "生成SHA1到到剪贴板",                          IDM_FILE_SHA1_CLIP
         MENUITEM "生成SHA256到到剪贴板",                        IDM_FILE_SHA256_CLIP
+        MENUITEM SEPARATOR
+        MENUITEM "图片转base64到编辑器",                        IDM_PIC_CONVERT_BASE64
     END
 END
 

@@ -65,9 +65,10 @@ int util_dec_des_ecb_192(unsigned char *key_192bits, unsigned char *encrypt, lon
 int util_enc_des_cbc_192(unsigned char *key_192bits, unsigned char *decrypt, long decrypt_len, unsigned char *encrypt, long *encrypt_len, unsigned char *init_vector);
 int util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long encrypt_len, unsigned char *decrypt, long *decrypt_len, unsigned char *init_vector);
 
-int util_file_md5(const TCHAR *path, TCHAR *out, int out_len);
-int util_file_sha1(const TCHAR *path, TCHAR *out, int out_len);
-int util_file_sha256(const TCHAR *path, TCHAR *out, int out_len);
+int util_file_md5(const TCHAR *path, TCHAR **pout);
+int util_file_sha1(const TCHAR *path, TCHAR **pout);
+int util_file_sha256(const TCHAR *path, TCHAR **pout);
+int util_file_base64(const TCHAR *path, char **pout);
 
 int util_hex_expand(char *hex_buf, int hex_len, char *asc_buf);
 int util_hex_fold(char *asc_buf, int asc_len, char *hex_buf);
@@ -135,6 +136,7 @@ void  util_untransparent(HWND hwnd);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);
+const TCHAR* util_path_ext(const TCHAR *path);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
 
 #ifdef __cplusplus

@@ -19,7 +19,7 @@
 #include "framework.h"
 
 typedef const char *(__cdecl *pwine_get_version)(void);
-typedef void (*ptr_do_enc)(FILE *f, TCHAR *out, int out_len);
+typedef void (*ptr_file_enc)(FILE *f, void **pout);
 typedef unsigned long (*ptr_compress_bound)(unsigned long source_len);
 typedef int (*ptr_compress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long, int);
 typedef int (*ptr_uncompress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long *);
@@ -673,7 +673,7 @@ util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long en
 }
 
 static void
-do_fp_md5(FILE *f, TCHAR *out, int out_len)
+do_fp_md5(FILE *f, void **pout)
 {
     MD5_CTX c;
     uint8_t buf[BUFF_64K];
@@ -696,13 +696,13 @@ do_fp_md5(FILE *f, TCHAR *out, int out_len)
         }
         ((eu_md5_final)pfunc[2])(&(md[0]), &c);
         util_hex_expand((char *)md, MD5_DIGEST_LENGTH, text);
-        MultiByteToWideChar(CP_UTF8, 0, text, -1, out, out_len);
+        *pout = eu_utf8_utf16(text, NULL);
         util_ssl_close_symbol(&hssl);
     }
 }
 
 static void
-do_fp_sha1(FILE *f, TCHAR *out, int out_len)
+do_fp_sha1(FILE *f, void **pout)
 {
     SHA_CTX c;
     uint8_t buf[BUFF_64K];
@@ -725,13 +725,13 @@ do_fp_sha1(FILE *f, TCHAR *out, int out_len)
         }
         ((eu_sha1_final)pfunc[2])(&(md[0]), &c);
         util_hex_expand((char *)md, SHA_DIGEST_LENGTH, text);
-        MultiByteToWideChar(CP_UTF8, 0, text, -1, out, out_len);
+        *pout = eu_utf8_utf16(text, NULL);
         util_ssl_close_symbol(&hssl);
     }
 }
 
 static void
-do_fp_sha256(FILE *f, TCHAR *out, int out_len)
+do_fp_sha256(FILE *f, void **pout)
 {
     SHA256_CTX c;
     uint8_t buf[BUFF_64K];
@@ -754,23 +754,78 @@ do_fp_sha256(FILE *f, TCHAR *out, int out_len)
         }
         ((eu_sha256_final)pfunc[2])(&(md[0]), &c);
         util_hex_expand((char *)md, SHA256_DIGEST_LENGTH, text);
-        MultiByteToWideChar(CP_UTF8, 0, text, -1, out, out_len);
+        *pout = eu_utf8_utf16(text, NULL);
+        util_ssl_close_symbol(&hssl);
+    }
+}
+
+static void
+do_fp_base64(FILE *f, void **pout)
+{
+    uintptr_t pfunc[10] = {0};
+    char *fn_name[10] = {"BIO_new", "BIO_f_base64", "BIO_s_mem","BIO_set_flags", "BIO_push",
+                         "BIO_write", "BIO_test_flags", "BIO_ctrl", "BIO_pop", "BIO_free_all"};
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 10, pfunc);
+    if (hssl)
+    {
+        int len = 0;
+        FILE *fp = f;
+        unsigned char *data[64*64] = {0};
+        BIO *b64 = ((eu_bio_new)pfunc[0])(((eu_bio_f_base64)pfunc[1])());
+        ((eu_bio_set_flags)pfunc[3])(b64, BIO_FLAGS_BASE64_NO_NL);
+        BIO *mem = ((eu_bio_new)pfunc[0])(((eu_bio_s_mem)pfunc[2])());
+        ((eu_bio_push)pfunc[4])(b64, mem);
+        while ((len = (int)fread(data, 1, sizeof data, fp)) > 0)
+        {   // write data
+            bool done = false;
+            int res = 0;
+            while(!done)
+            {
+                res = ((eu_bio_write)pfunc[5])(b64, data, len);
+                if(res <= 0) // if failed
+                {
+                    if(((eu_bio_test_flags)pfunc[6])(b64, BIO_FLAGS_SHOULD_RETRY))
+                    {
+                        continue;
+                    }
+                    else
+                    {   // encoding failed, Handle Error!
+                        len = -2;
+                        break;
+                    }
+                }
+                else
+                {   // success!
+                    done = true;
+                }
+            }
+            if (len == -2)
+            {
+                break;
+            }
+        }
+        ((eu_bio_ctrl)pfunc[7])(b64, BIO_CTRL_FLUSH, 0, NULL);
+        if (len > -2 && *data)
+        {
+            int out_len = ((eu_bio_ctrl)pfunc[7])(mem, BIO_CTRL_INFO, 0, (char *)(pout));
+        }
+        ((eu_bio_pop)pfunc[8])(b64);
+        ((eu_bio_free_all)pfunc[9])(b64);
         util_ssl_close_symbol(&hssl);
     }
 }
 
 static int
-do_file_enc(const TCHAR *path, ptr_do_enc fn_do_enc, TCHAR *out, int out_len)
+do_file_enc(const TCHAR *path, ptr_file_enc fn_do_enc, void **pout)
 {
     FILE *fp;
-    out[0] = 0;
     if ((fp = _tfopen(path, _T("rb"))) == NULL)
     {
         return EUE_OPEN_FILE_ERR;
     }
-    fn_do_enc(fp, out, out_len);
+    fn_do_enc(fp, pout);
     fclose(fp);
-    if (!out[0])
+    if (STR_IS_NUL(pout))
     {
         return EUE_OPENSSL_ENC_ERR;
     }
@@ -778,21 +833,27 @@ do_file_enc(const TCHAR *path, ptr_do_enc fn_do_enc, TCHAR *out, int out_len)
 }
 
 int
-util_file_md5(const TCHAR *path, TCHAR *out, int out_len)
+util_file_md5(const TCHAR *path, TCHAR **pout)
 {
-    return do_file_enc(path, do_fp_md5, out, out_len);
+    return do_file_enc(path, do_fp_md5, (void **)pout);
 }
 
 int
-util_file_sha1(const TCHAR *path, TCHAR *out, int out_len)
+util_file_sha1(const TCHAR *path, TCHAR **pout)
 {
-    return do_file_enc(path, do_fp_sha1, out, out_len);
+    return do_file_enc(path, do_fp_sha1, (void **)pout);
 }
 
 int
-util_file_sha256(const TCHAR *path, TCHAR *out, int out_len)
+util_file_sha256(const TCHAR *path, TCHAR **pout)
 {
-    return do_file_enc(path, do_fp_sha256, out, out_len);
+    return do_file_enc(path, do_fp_sha256, (void **)pout);
+}
+
+int
+util_file_base64(const TCHAR *path, char **pout)
+{
+    return do_file_enc(path, do_fp_base64, (void **)pout);
 }
 
 int
@@ -2094,12 +2155,12 @@ util_str_unquote(const char *path)
 void
 util_skip_whitespace(uint8_t **cp, int n, int term)
 {
-	uint8_t *pstr = *cp;
-	while (isspace(*pstr) && *pstr != term && n--)
-	{
-	    pstr++;
-	}
-	*cp = pstr;
+    uint8_t *pstr = *cp;
+    while (isspace(*pstr) && *pstr != term && n--)
+    {
+        pstr++;
+    }
+    *cp = pstr;
 }
 
 static inline bool
@@ -2255,22 +2316,22 @@ bool
 util_delete_file(LPCTSTR filepath)
 {
     int ret = 1;
-	int path_len = eu_int_cast(_tcslen(filepath));
-	TCHAR *psz_from = (TCHAR *)calloc(sizeof(TCHAR), path_len + 2);
-	if (psz_from)
-	{
-	    _tcscpy(psz_from, filepath);
-	    psz_from[path_len] = 0;
-	    psz_from[++path_len] = 0;
-	    SHFILEOPSTRUCT st_struct = {0};
-	    st_struct.wFunc = FO_DELETE;
-	    st_struct.pFrom = psz_from;
-	    st_struct.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR | FOF_SILENT | FOF_FILESONLY;
-	    st_struct.fAnyOperationsAborted = 0;
-	    ret = SHFileOperation(&st_struct);
-	    free(psz_from);
-	}
-	return (ret == 0);
+    int path_len = eu_int_cast(_tcslen(filepath));
+    TCHAR *psz_from = (TCHAR *)calloc(sizeof(TCHAR), path_len + 2);
+    if (psz_from)
+    {
+        _tcscpy(psz_from, filepath);
+        psz_from[path_len] = 0;
+        psz_from[++path_len] = 0;
+        SHFILEOPSTRUCT st_struct = {0};
+        st_struct.wFunc = FO_DELETE;
+        st_struct.pFrom = psz_from;
+        st_struct.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR | FOF_SILENT | FOF_FILESONLY;
+        st_struct.fAnyOperationsAborted = 0;
+        ret = SHFileOperation(&st_struct);
+        free(psz_from);
+    }
+    return (ret == 0);
 }
 
 bool
@@ -2391,4 +2452,18 @@ util_create_font(const char* name, const int font_size, const bool bold)
     lf.lfOrientation = 0;
     util_make_u16(name, lf.lfFaceName, _countof(lf.lfFaceName)-1);
     return CreateFontIndirectW(&lf);
+}
+
+const TCHAR*
+util_path_ext(const TCHAR *path)
+{
+    if (STR_NOT_NUL(path))
+    {
+        TCHAR *p = _tcsrchr(path, _T('.'));
+        if (p && _tcslen(p) > 1)
+        {
+            return (const TCHAR *)&p[1];
+        }
+    }
+    return NULL;
 }
