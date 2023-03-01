@@ -537,7 +537,7 @@ on_sci_menu_callback(HMENU hpop, void *param)
     if (p && hpop)
     {
         util_enable_menu_item(hpop, IDM_EDIT_CUT, util_can_selections(p));
-        util_enable_menu_item(hpop, IDM_EDIT_COPY, util_can_selections(p));
+        util_enable_menu_item(hpop, IDM_EDIT_COPY, !p->pmod);
         util_enable_menu_item(hpop, IDM_EDIT_PASTE, eu_sci_call(p, SCI_CANPASTE, 0, 0));
     }
 }

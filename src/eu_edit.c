@@ -98,7 +98,14 @@ on_edit_copy_text(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_COPY, 0, 0);
+        if (pnode->hex_mode)
+        {
+            eu_sci_call(pnode, WM_COPY, 0, 0);
+        }
+        else if (!pnode->plugin)
+        {
+            eu_sci_call(pnode, SCI_COPYALLOWLINE, 0, 0);
+        }
     }
 }
 

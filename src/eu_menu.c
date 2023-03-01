@@ -367,7 +367,7 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_PASTE:
                     case IDM_EDIT_DELETE:
                         util_enable_menu_item(menu, IDM_EDIT_CUT, util_can_selections(pnode));
-                        util_enable_menu_item(menu, IDM_EDIT_COPY, util_can_selections(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_COPY, !pnode->pmod);
                         util_enable_menu_item(menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
                         util_enable_menu_item(menu, IDM_EDIT_DELETE, TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE2, !pnode->hex_mode && TAB_NOT_NUL(pnode));
