@@ -514,6 +514,15 @@ BEGIN
     END
 END
 
+IDR_QTABLE_VIEW_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Copy &Line",                                         IDM_QTABLE_LINE_COPY
+        MENUITEM "Copy &Cell",                                         IDM_QTABLE_CELL_COPY
+    END
+END
+
 IDR_TOOLBAR_POPUPMENU MENU
 BEGIN
     POPUP "0"

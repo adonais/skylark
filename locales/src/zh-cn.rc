@@ -514,6 +514,15 @@ BEGIN
     END
 END
 
+IDR_QTABLE_VIEW_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "复制行(&L)",                                  IDM_QTABLE_LINE_COPY
+        MENUITEM "复制单元格(&C)",                              IDM_QTABLE_CELL_COPY
+    END
+END
+
 IDR_TOOLBAR_POPUPMENU MENU
 BEGIN
     POPUP "0"

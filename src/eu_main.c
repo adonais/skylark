@@ -326,7 +326,7 @@ all_clean:
     eu_dark_theme_release(true);
     eu_doc_ptr_free();
     eu_font_release();
-    eu_close_db_handle();
+    eu_dbase_release();
     printf("all clean\n");
     return (int) msg.wParam;
 }

@@ -681,7 +681,7 @@ EU_EXT_CLASS bool eu_gui_app(void);
 EU_EXT_CLASS int  eu_prepend_path(const TCHAR *dir);
 
 // for eu_tablectl.c
-EU_EXT_CLASS void eu_close_db_handle(void);
+EU_EXT_CLASS void eu_dbase_release(void);
 
 // for eu_hyperlink.c
 EU_EXT_CLASS int eu_hyperlink_detection(eu_tabpage *pnode);

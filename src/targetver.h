@@ -131,6 +131,9 @@
 #define IDR_LBREAK_MENU                       10005
 #define IDR_CODEING_MENU                      10006
 #define IDR_TYPES_MENU                        10007
+#define IDR_QTABLE_VIEW_POPUPMENU             10008
+#define IDM_QTABLE_LINE_COPY                  10009
+#define IDM_QTABLE_CELL_COPY                  10010
 
 #define IDM_UNI_UTF8     10014
 #define IDM_UNI_UTF8B    10015
