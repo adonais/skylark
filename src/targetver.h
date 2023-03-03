@@ -714,7 +714,6 @@
 #define IDC_MSG_REGIST_ERR34                40152
 #define IDC_MSG_REGIST_ERR35                40153
 #define IDC_MSG_REGIST_ERR36                40154
-#define IDC_MSG_REGIST_ERR37                40155
 #define IDC_MSG_JUST_HELP                   40156
 #define IDC_MSG_HELP_INF1                   40157
 #define IDC_MSG_HELP_INF2                   40158
@@ -813,6 +812,11 @@
 #define IDC_MSG_SEARCH_STR4                 40251
 #define IDC_MSG_SEARCH_STR5                 40252
 #define IDC_MSG_DO_READONLY                 40253
+#define IDC_MSG_HEX_BYTE                    40254
+#define IDC_MSG_SEARCH_TOP                  40255
+#define IDC_MSG_SEARCH_BOTTOM               40256
+#define IDC_MSG_REPLACE_NONE                40257
+#define IDC_MSG_REPLACE_ONECE               40258
 
 #define IDC_SEARCH_BTN_ON                   40300
 #define IDC_SEARCH_BTN_OFF                  40301
@@ -1073,6 +1077,8 @@
 #define IDS_RESULT_STRINGS2                 42890
 #define IDS_EDITOR_PATH                     42891
 #define IDS_EDITOR_BCOMPARE                 42892
+#define IDS_RESULT_STR_WARN                 42893
+#define IDS_RESULT_STR_TIPS                 42894
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991

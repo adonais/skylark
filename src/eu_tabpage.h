@@ -37,7 +37,6 @@ struct _tabpage
 {
     HWND hwnd_sc;               // 当前编辑器句柄
     sptr_t eusc;                // 当前编辑器类指针
-    eu_tabpage *presult;        // 文档搜索结果的节点指针
     HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
@@ -48,53 +47,55 @@ struct _tabpage
     RECT rect_map;              // 文档结构图矩形区域
     RECT rect_result;           // 文档搜索结果矩形区域
     RECT rect_sidebar;          // 侧边栏矩形区域
-    NMM pmod;                   // 插件模块地址
-    npdata *plugin;             // 插件动态数据表
-    int  match_count;           // 查找时匹配计数
-    int  tab_id;                // tab编号,用于保存会话
     bool sym_show;              // 是否显示右侧边栏
     bool map_show;              // 是否显示文档结构图
     bool result_show;           // 是否显示文档搜索结果窗口
     bool sidebar_show;          // 是否显示侧边栏窗口
     bool foldline;              // 是否存在折叠线
-    db_conn *db_ptr;            // 数据库配置
-    redis_conn *redis_ptr;      // redis配置
+    bool needpre;               // 是否需要bom    
+    bool is_blank;              // 新建文件,空白标签
+    bool at_close;              // 是否绘制了关闭按钮    
+    bool hex_mode;              // 是否处于16禁止编辑状态
+    bool be_modify;             // 文档是否修改, 同步hex模式
+    bool last_focus;            // 保存前台焦点    
     TCHAR pathfile[MAX_PATH];   // 文件带路径名
     TCHAR pathname[MAX_PATH];   // 文件所在路径名
     TCHAR filename[MAX_PATH];   // 文件名
     TCHAR extname[_MAX_EXT];    // 扩展名
     TCHAR bakpath[MAX_PATH];    // 备份后的名称
-    time_t st_mtime;            // 文件修改时间
-    uint32_t file_attr;         // 文件属性,只读/可写...
-    bool is_blank;              // 新建文件,空白标签
-    bool at_close;              // 是否绘制了关闭按钮
-    doctype_t *doc_ptr;         // 文件类型指针
-    int codepage;               // 文件编码
     char pre_context[4+1];      // 保存bom
     size_t pre_len;             // bom的长度
-    bool needpre;               // 是否需要bom
-    int eol;                    // 换行符
+    size_t bytes_remaining;     // 文件变动后的大小
+    size_t bytes_written;       // 文件保存时写入的长度    
+    time_t st_mtime;            // 文件修改时间
+    uint32_t file_attr;         // 文件属性,只读/可写...
+    intptr_t match_count;       // 查找时匹配计数
     intptr_t begin_pos;         // 开始选择位置
-    remotefs fs_server;         // SFTP
+    intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
+    intptr_t reserved0;         // 保留, 暂未使用
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
     volatile long hyper_id;     // 解析hyperlink线程id
-    size_t bytes_remaining;     // 文件变动后的大小
-    size_t bytes_written;       // 文件保存时写入的长度
-    uint8_t *write_buffer;      // 文件保存时写入的缓存区
-    PHEXVIEW phex;              // 二进制视图
-    bool hex_mode;              // 是否处于16禁止编辑状态
-    bool be_modify;             // 文档是否修改, 同步hex模式
-    bool last_focus;            // 保存前台焦点
-    intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
+    int tab_id;                 // tab编号,用于保存会话
+    int codepage;               // 文件编码
+    int eol;                    // 换行符
     int zoom_level;             // 标签页的放大倍数
     int ac_mode;                // 是否处于snippet模式
+    remotefs fs_server;         // SFTP
+    PHEXVIEW phex;              // 二进制视图
+    uint8_t *write_buffer;      // 文件保存时写入的缓存区
+    eu_tabpage *presult;        // 文档搜索结果的节点指针
+    doctype_t *doc_ptr;         // 文件类型指针
+    db_conn *db_ptr;            // 数据库配置
+    redis_conn *redis_ptr;      // redis配置        
     result_vec *ret_vec;        // 搜索结果标记
     complete_ptr ac_vec;        // snippet模式下的vec数组
     capture_ptr re_group;       // snippet正则模式下捕获组
+    NMM pmod;                   // 插件模块地址
+    npdata *plugin;             // 插件动态数据表    
     tab_want pwant;             // 回调函数, 需要时使用
-    intptr_t reserved0;         // 保留, 暂未使用
+    
 };
 
 extern HWND g_tabpages;

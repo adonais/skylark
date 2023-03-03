@@ -1158,23 +1158,26 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SEARCH_ERR2     "Enter line number: "
     IDC_MSG_SEARCH_ERR3     "There are no matching lines"
     IDC_MSG_SEARCH_ERR4     "Only the current file is supported"
-    IDC_MSG_SEARCH_ERR5     "To the end, In %d file(s), Total %d results"
-    IDC_MSG_SEARCH_ERR6     "To the top, In %d file(s), Total %d results"
-    IDC_MSG_SEARCH_ERR7     "Search finished, %d file(s) matching, Total %d results"
-    IDC_MSG_SEARCH_ERR8     "Search finished, %d file(s), %d results, no matching string"
-    IDC_MSG_SEARCH_ERR9     "In the end, Total %d file(s), Replace %d strings this time"
-    IDC_MSG_SEARCH_ERR10    "%d file(s) matching, Total %d results, But no replacement string in the specified range"
-    IDC_MSG_SEARCH_ERR11    "In %d file(s), %d results, and no strings need to be replaced"
-    IDC_MSG_SEARCH_ERR12    "Search finished, %d file(s) matching, Replaced %d strings"
+    IDC_MSG_SEARCH_ERR5     "One match, Postion (Line %I64d, Column %I64d)"
+    IDC_MSG_SEARCH_ERR6     "The search was completed and no matching string was found"
+    IDC_MSG_SEARCH_TOP      "We have got the top! "
+    IDC_MSG_SEARCH_BOTTOM   "We have got the bottom! "
+    IDC_MSG_REPLACE_NONE    "No strings are replaced this time! "
+    IDC_MSG_REPLACE_ONECE   "This time a string is replaced! "
+    IDC_MSG_SEARCH_ERR9     "Replace completed, %I64d files match, And %I64d strings are replaced"
+    IDC_MSG_SEARCH_ERR10    "No string to replace in %I64d files"
+    IDC_MSG_SEARCH_ERR11    "In the current file, Replace %I64d strings"
+    IDC_MSG_SEARCH_ERR12    "In the current file, There are no strings that need to be replaced"
     IDC_MSG_SEARCH_ERR13    "Searching in remote directory is not supported"
-    IDC_MSG_SEARCH_ERR14    "Search finished, In %d file(s) range, Total %d results"
-    IDC_MSG_SEARCH_ERR15    "There is an odd number of hexadecimal substring"
+    IDC_MSG_SEARCH_ERR14    "Search finished, In %I64d file(s) range, Total %I64d results"
+    IDC_MSG_SEARCH_ERR15    "In all search scopes, There are no matching strings"
+    IDC_MSG_HEX_BYTE        "There is an odd number of hexadecimal substring"
     IDC_MSG_SEARCH_STR1     "Tips: Use Perl syntax for regular expressions"
-    IDC_MSG_SEARCH_STR2     "%s|%s|(%d matching)"
-    IDC_MSG_SEARCH_STR3     "Initializing engine, do not close window..."
-    IDC_MSG_SEARCH_STR4     "Search finished, %I64u file(s) matching, Total %i64u results"
+    IDC_MSG_SEARCH_STR2     "%s|%s|(%I64d matching)"
+    IDC_MSG_SEARCH_STR3     "Initializing engine, Do not close window..."
+    IDC_MSG_SEARCH_STR4     "Search finished, %I64d file(s) matching, Total %I64d results"
     IDC_MSG_SEARCH_STR5     "Input Address Offset(Hex):"
-    IDC_SEARCH_BTN_ON       "Find All"
+    IDC_SEARCH_BTN_ON       "Start Searching"
     IDC_SEARCH_BTN_OFF      "Stop Searching"
     IDS_PRINT_HEADER        "Filename, Current Date and Time|Filename, Current Date|Filename|Leave blank"
     IDS_PRINT_FOOTER        "Page Number|Leave blank"
@@ -1207,6 +1210,8 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
     IDS_RE_ERROR            "Error: invalid regular expression"
     IDS_HEXVIEW_BYTES       "Number of bytes to insert (decimal): "
+    IDS_RESULT_STR_TIPS     "The number of matches has exceeded 131071 times, If the search continues, It will take a lot of time, Is it terminated?\n"
+    IDS_RESULT_STR_WARN     "» » Search '%s' keyword in '%s' file (more than %d hits, excess matches will not be shown)\n"
     IDS_RESULT_STRINGS1     "» » Search '%s' keyword in '%s' file (%d hits)\n"
     IDS_RESULT_STRINGS2     "Line %*zd: %s"
     IDS_HELP_COMMAND        "Usage :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help : This help message\n-noremote : Launch another Skylark instance\n-regfile : Register or uninstall Right-click menu for file\n-regfolder : Register or uninstall Right-click menu for directory\n-nXX : Scroll to indicated line on file_path\n-cXX : Scroll to indicated column on file_path\n-hex : Open text file in hexadecimal mode\n-lua : Run Lua script after parameters [file_path]\n-lua -b : Convert Lua script to bytecode"
@@ -1256,7 +1261,6 @@ BEGIN
   CONTROL "▼ Find Next",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
   CONTROL "Show Details",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
   CONTROL "Find All",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
-  CONTROL "Close",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,182,90,13
   CONTROL "Replace",IDC_SEARCH_RE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
   CONTROL "Replace &All",IDC_SEARCH_REALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,90,90,13
   CONTROL "&In Selection",IDC_SEARCH_SELRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
@@ -1270,8 +1274,9 @@ BEGIN
   CONTROL "",IDC_SEARCH_FOUNDLIST,"ListBox",WS_CHILDWINDOW|LBS_NOINTEGRALHEIGHT|WS_VSCROLL|WS_HSCROLL|WS_TABSTOP|LBS_NOTIFY|LBS_USETABSTOPS|LBS_HASSTRINGS,120,69,252,132,WS_EX_CLIENTEDGE
   CONTROL "Search string",IDC_SEARCH_HEX_STRINGS,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,108,100,15
   CONTROL "",IDC_SEARCH_HEX_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,40,248,44
-  CONTROL "",IDC_SEARCH_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,201,300,12
+  CONTROL "",IDC_SEARCH_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,201,268,12
   CONTROL "❓",IDC_REGXP_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_NOTIFY,264,201,12,12
+  CONTROL "Close",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,201,90,13
 END
 
 

@@ -134,6 +134,31 @@ util_gen_tstamp(void)
     return ns;
 }
 
+void
+util_lock(volatile long *gcs)
+{
+    size_t spin_count = 0;
+    // Wait until the flag is false.
+    while (_InterlockedCompareExchange(gcs, 1, 0) != 0)
+    {   // Prevent the loop from being too busy.
+        if (spin_count < 32)
+        {
+            Sleep(0);
+        }
+        else
+        {
+            Sleep(1);
+        }
+        ++spin_count;
+    }
+}
+
+void
+util_unlock(volatile long *gcs)
+{
+    _InterlockedExchange(gcs, 0);
+}
+
 HWND
 util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
 {
@@ -2466,4 +2491,23 @@ util_path_ext(const TCHAR *path)
         }
     }
     return NULL;
+}
+
+void
+util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py)
+{
+    if (pnode)
+    {
+        if (pos < 0 && (pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
+        {
+            pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+        }
+        if (pos >= 0)
+        {
+            *px = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            *py = eu_sci_call(pnode, SCI_POSITIONFROMLINE, *px, 0);
+            (*px) += 1;
+            (*py) = pos - (*py) + 1;
+        }
+    }
 }

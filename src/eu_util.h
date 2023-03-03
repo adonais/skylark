@@ -58,6 +58,9 @@ extern "C"
 HMODULE util_ssl_open_symbol(char *s[], int n, uintptr_t *pointer);
 void util_ssl_close_symbol(HMODULE *pssl);
 
+void util_lock(volatile long *gcs);
+void util_unlock(volatile long *gcs);
+
 int util_aes_enc(unsigned char *dec, unsigned char *enc, int len);
 int util_aes_dec(unsigned char *enc, unsigned char *dec, int len);
 int util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long decrypt_len, unsigned char *encrypt, long *encrypt_len);
@@ -133,6 +136,7 @@ int util_split(const char *pstr, char (*pout)[QW_SIZE], char ch);
 int util_strim_end(char *pstr, int len);
 void  util_transparent(HWND hwnd, int percent);
 void  util_untransparent(HWND hwnd);
+void  util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);

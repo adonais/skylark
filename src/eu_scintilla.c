@@ -54,12 +54,14 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     {
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
     }
+    sptr_t bgra = eu_get_theme()->item.indicator.bgcolor;
     // 自动补全窗口颜色
     eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST, eu_get_theme()->item.text.color);
     eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_BACK, eu_get_theme()->item.text.bgcolor);
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_SELECTED_BACK, bgra);
     // 函数原型窗口颜色
-	eu_sci_call(pnode, SCI_CALLTIPSETFORE, eu_get_config()->eu_calltip.rgb != (uint32_t)-1 ? eu_get_config()->eu_calltip.rgb : eu_get_theme()->item.text.color, 0);
-	eu_sci_call(pnode, SCI_CALLTIPSETBACK, eu_get_theme()->item.text.bgcolor, 0);
+    eu_sci_call(pnode, SCI_CALLTIPSETFORE, eu_get_config()->eu_calltip.rgb != (uint32_t)-1 ? eu_get_config()->eu_calltip.rgb : eu_get_theme()->item.text.color, 0);
+    eu_sci_call(pnode, SCI_CALLTIPSETBACK, eu_get_theme()->item.text.bgcolor, 0);
     // https://www.scintilla.org/ScintillaDoc.html#SCI_STYLESETCHECKMONOSPACED
     eu_sci_call(pnode, SCI_STYLESETCHECKMONOSPACED, STYLE_DEFAULT, true);
     // 书签栏样式
@@ -85,8 +87,13 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
     eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
     // 选中行背景色
-    eu_sci_call(pnode, SCI_SETSELBACK, true, eu_get_theme()->item.indicator.bgcolor);
-    eu_sci_call(pnode, SCI_SETSELALPHA, eu_get_theme()->item.indicator.bgcolor >> 24, 0);
+    eu_sci_call(pnode, SCI_SETSELECTIONLAYER, SC_LAYER_OVER_TEXT, 0);
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, bgra);
+    // 其他选中
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_ADDITIONAL_BACK, bgra);
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_SECONDARY_BACK, bgra);
+    // 窗口未激活时选中色
+    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, bgra);
     // 是否自动换行
     eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
     // 换行符样式
@@ -388,10 +395,7 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
                 on_sci_delete_file(*ppnode);
             }
             // 销毁标签内存
-            if (on_search_report_ok())
-            {
-                eu_safe_free(*ppnode);
-            }
+            eu_safe_free(*ppnode);
         }
         else if ((*ppnode)->hwnd_sc)
         {
