@@ -1094,13 +1094,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FILE_EXPLORER:
-                    if (pnode && *pnode->pathname && !pnode->is_blank)
+                    if (pnode && *pnode->pathname && !pnode->is_blank && !url_has_remote(pnode->pathfile))
                     {
-                        HANDLE handle = eu_new_process(_T("explorer.exe"), pnode->pathname, NULL, 0, NULL);
-                        if (handle)
-                        {
-                            CloseHandle(handle);
-                        }
+                        util_explorer_open(pnode);
                     }
                     break;
                 case IDM_EDIT_DELETELINE:

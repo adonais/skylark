@@ -17,6 +17,7 @@
  *******************************************************************************/
 
 #include "framework.h"
+#include <shlobj_core.h>
 
 typedef const char *(__cdecl *pwine_get_version)(void);
 typedef void (*ptr_file_enc)(FILE *f, void **pout);
@@ -2508,6 +2509,38 @@ util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py)
             *py = eu_sci_call(pnode, SCI_POSITIONFROMLINE, *px, 0);
             (*px) += 1;
             (*py) = pos - (*py) + 1;
+        }
+    }
+}
+
+void
+util_explorer_open(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        LPITEMIDLIST dir = NULL;
+        LPITEMIDLIST item = NULL;
+        do
+        {
+            if (!(dir = ILCreateFromPathW(pnode->pathname)))
+            {
+                break;
+            }
+            if (!(item = ILCreateFromPathW(pnode->pathfile)))
+            {
+                break;
+            }
+            LPCITEMIDLIST selection[] = {item};
+            uint32_t count = _countof(selection);
+            HRESULT hr = SHOpenFolderAndSelectItems(dir, count, selection, 0);
+        } while(0);
+        if (dir)
+        {
+            CoTaskMemFree(dir);
+        }
+        if (item)
+        {
+            CoTaskMemFree(item);
         }
     }
 }

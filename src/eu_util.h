@@ -137,6 +137,7 @@ int util_strim_end(char *pstr, int len);
 void  util_transparent(HWND hwnd, int percent);
 void  util_untransparent(HWND hwnd);
 void  util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py);
+void  util_explorer_open(eu_tabpage *pnode);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);
