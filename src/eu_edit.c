@@ -144,7 +144,7 @@ on_edit_copy_line(eu_tabpage *pnode)
         char *text = util_strdup_line(pnode, -1, NULL);
         if (text)
         {
-            int index = strcspn(text, "\r\n");
+            int index = (int)strcspn(text, "\r\n");
             if (index < eu_int_cast(strlen(text)))
             {
                 text[index] = 0;

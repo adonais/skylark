@@ -378,7 +378,7 @@ on_statusbar_update_btn(HWND hwnd)
 }
 
 static LRESULT CALLBACK
-on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dwRefData)
+on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dw)
 {
     eu_tabpage *pnode = NULL;
     switch (message)
@@ -725,11 +725,11 @@ on_statusbar_update_line(eu_tabpage *pnode)
     }
     else
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t lineno = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, lineno, 0);
+        sptr_t lineno = 0;
+        sptr_t row = 0;
+        util_postion_xy(pnode, -1, &lineno, &row);
         eu_i18n_load_str(IDS_STATUS_XY, m_xy, 0);
-        _sntprintf(s_xy, FILESIZE - 1, m_xy, lineno+1, pos-row+1);
+        _sntprintf(s_xy, FILESIZE - 1, m_xy, lineno, row);
     }
     on_statusbar_set_text(g_statusbar, 1, s_xy);
 }

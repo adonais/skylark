@@ -54,7 +54,7 @@ on_table_draw_header(HWND hwnd)
                     rcf.bottom += 1;
                     rcf.right += 1;
                 }
-                FrameRect(hdc_src, &rcf, GetSysColorBrush(COLOR_3DDKSHADOW));                        
+                FrameRect(hdc_src, &rcf, GetSysColorBrush(COLOR_3DDKSHADOW));
             }
         }
         ReleaseDC(hdr, hdc_src);
@@ -237,7 +237,7 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
                 return 1;
             }
             break;
-        }        
+        }
         case WM_DPICHANGED:
         {
             SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);

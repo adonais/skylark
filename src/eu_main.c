@@ -314,9 +314,6 @@ _tmain(int argc, TCHAR *argv[])
     eu_save_theme();
     eu_save_config();
 all_clean:
-    eu_free_theme();
-    eu_free_accel();
-    eu_free_toolbar();
     share_close(mapped);
     share_close(lang_map);
     share_close_lang();
@@ -324,7 +321,7 @@ all_clean:
     eu_sci_release();
     eu_remote_list_release();
     eu_dark_theme_release(true);
-    eu_doc_ptr_free();
+    eu_lua_release();
     eu_font_release();
     eu_dbase_release();
     printf("all clean\n");

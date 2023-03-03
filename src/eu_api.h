@@ -539,6 +539,7 @@ EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
 EU_EXT_CLASS struct eu_config *eu_get_config(void);
 EU_EXT_CLASS eue_accel *eu_get_accel(void);
 EU_EXT_CLASS eue_toolbar *eu_get_toolbar(void);
+EU_EXT_CLASS void eu_lua_release(void);
 
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
@@ -548,9 +549,6 @@ EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t s
 EU_EXT_CLASS TCHAR *eu_process_path(TCHAR *path, const int len);
 EU_EXT_CLASS void eu_save_config(void);
 EU_EXT_CLASS void eu_save_theme(void);
-EU_EXT_CLASS void eu_free_theme(void);
-EU_EXT_CLASS void eu_free_accel(void);
-EU_EXT_CLASS void eu_free_toolbar(void);
 EU_EXT_CLASS bool eu_init_calltip_tree(doctype_t *root, const char *key, const char *val);
 EU_EXT_CLASS const char *eu_query_calltip_tree(root_t *root, const char *key);
 EU_EXT_CLASS void eu_print_calltip_tree(root_t *root);
@@ -688,7 +686,6 @@ EU_EXT_CLASS int eu_hyperlink_detection(eu_tabpage *pnode);
 
 // for eu_doctype.c
 EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);
-EU_EXT_CLASS void eu_doc_ptr_free(void);
 
 /* lua 脚本调用接口 */
 EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);

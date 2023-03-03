@@ -932,7 +932,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     STARTUPINFOW si;
     uint32_t dw_creat = 0;
     LPCTSTR lp_dir = NULL;
-    TCHAR process[MAX_PATH+1] = {0};
+    TCHAR process[LARGER_LEN+1] = {0};
     if (STR_NOT_NUL(pcd))
     {
         lp_dir = pcd;
@@ -943,11 +943,11 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     }
     if (param != NULL && _tcslen(param ) > 1)
     {
-        _sntprintf(process, MAX_PATH, _T("%s %s"), wcmd, param);
+        _sntprintf(process, LARGER_LEN, _T("%s %s"), wcmd, param);
     }
     else
     {
-        _sntprintf(process, MAX_PATH, _T("%s"), wcmd);
+        _sntprintf(process, LARGER_LEN, _T("%s"), wcmd);
     }
     if (true)
     {
@@ -1579,6 +1579,16 @@ void
 eu_free_toolbar(void)
 {
     eu_safe_free(g_toolbar);
+}
+
+void
+eu_lua_release(void)
+{
+    eu_free_theme();
+    eu_free_accel();
+    eu_free_toolbar();
+    on_doc_ptr_free();
+    DeleteCriticalSection(&eu_lua_cs);
 }
 
 TCHAR *
@@ -2555,6 +2565,7 @@ eu_curl_global_cleanup(void)
             eu_curl_slist_free_all = NULL;
         }
         _InterlockedExchange(&eu_curl_initialized, 0);
+        DeleteCriticalSection(&eu_curl_cs);
     }
 }
 

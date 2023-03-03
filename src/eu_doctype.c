@@ -2063,14 +2063,8 @@ on_doc_set_ptr(doctype_t *ptr)
     }
 }
 
-doctype_t*
-eu_doc_get_ptr(void)
-{
-    return g_doc_config;
-}
-
 void
-eu_doc_ptr_free(void)
+on_doc_ptr_free(void)
 {
     for (doctype_t *mapper = g_doc_config; mapper && mapper->doc_type; ++mapper)
     {
@@ -2086,4 +2080,10 @@ eu_doc_ptr_free(void)
     }
     do_lua_parser_release();
     printf("we destroy hash table and Lua runtime\n");
+}
+
+doctype_t*
+eu_doc_get_ptr(void)
+{
+    return g_doc_config;
 }

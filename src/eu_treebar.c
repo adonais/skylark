@@ -1426,15 +1426,11 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONDOWN:
         {
-            POINT pt;
+            POINT pt = {GET_X_LPARAM(lParam), pt.y = GET_Y_LPARAM(lParam)};
+            TVHITTESTINFO tvhti = {0};
             tree_data *tvd = NULL;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            TVHITTESTINFO tvhti;
-            memset(&tvhti, 0, sizeof(tvhti));
             memcpy(&(tvhti.pt), &pt, sizeof(POINT));
             TreeView_HitTest(hwnd, &tvhti);
-            ClientToScreen(hwnd, &pt);
             if (tvhti.flags & TVHT_ONITEM)
             {
                 TreeView_SelectItem(hwnd, tvhti.hItem);
