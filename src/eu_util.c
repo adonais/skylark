@@ -1635,6 +1635,19 @@ util_exist_libcurl(void)
     return ret;
 }
 
+bool
+util_upcheck_exist(void)
+{
+    TCHAR name[QW_SIZE + 1] = {0};
+    TCHAR upcheck_path[MAX_PATH+1] = {0};
+    _sntprintf(upcheck_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("upcheck.exe"));
+    if (eu_exist_file(upcheck_path) && util_product_name(upcheck_path, name, QW_SIZE))
+    {
+        return (_tcscmp(name, _T("upcheck")) == 0);
+    }
+    return false;
+}
+
 unsigned long
 util_compress_bound(unsigned long source_len)
 {

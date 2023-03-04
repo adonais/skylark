@@ -391,6 +391,8 @@ BEGIN
             MENUITEM "DirectWrite",                             IDM_SET_RENDER_TECH_D2D
             MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
         END
+        MENUITEM MF_SEPARATOR
+        MENUITEM "启用自动更新(&U)",                            IDM_SKYLAR_AUTOMATIC_UPDATE
     END
     POPUP "帮助(&H)"
     BEGIN

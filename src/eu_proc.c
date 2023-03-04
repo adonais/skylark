@@ -1432,6 +1432,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case IDM_SKYLAR_AUTOMATIC_UPDATE:
+                {
+                    eu_get_config()->upgrade.enable ^= true;
+                    break;
+                }
                 case IDM_VIEW_WRAPLINE_MODE:
                     on_view_wrap_line();
                     break;

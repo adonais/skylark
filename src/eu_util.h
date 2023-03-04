@@ -110,6 +110,7 @@ bool   util_file_size(HANDLE hfile, uint64_t *psize);
 bool   util_open_file(LPCTSTR path, pf_stream pstream);
 bool   util_delete_file(LPCTSTR filepath);
 bool   util_exist_libcurl(void);
+bool   util_upcheck_exist(void);
 time_t util_last_time(const TCHAR *path);
 uint64_t util_gen_tstamp(void);
 void util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t last_id, uint32_t select);

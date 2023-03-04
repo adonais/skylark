@@ -518,6 +518,11 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
                         break;
+                    case IDM_SKYLAR_AUTOMATIC_UPDATE:
+                        enable = util_upcheck_exist();
+                        util_enable_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, enable);
+                        util_set_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, eu_get_config()->upgrade.enable && enable);
+                        break;
                     case IDM_ABOUT:                  /* Help menu */
                         util_enable_menu_item(menu, IDM_DONATION, util_exist_libcurl());
                         break;
