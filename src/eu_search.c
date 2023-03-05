@@ -1919,7 +1919,7 @@ on_search_report_result(eu_tabpage *pnode, const int button)
                 {
                     if (match_count > 0)
                     {
-                        on_search_set_result(IDC_MSG_SEARCH_ERR11, -1, match_count);
+                        on_search_set_result(IDC_MSG_SEARCH_ERR11, -1, pnode->match_count);
                     }
                     else
                     {
@@ -2937,13 +2937,10 @@ on_search_replace_all_button(const int button)
     }
     else // replaces on all page
     {
-        int count = TabCtrl_GetItemCount(g_tabpages);
-        for (int index = 0; index < count; ++index)
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            eu_tabpage *p = NULL;
-            TCITEM tci = {TCIF_PARAM};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            if ((p = (eu_tabpage *) (tci.lParam)) != NULL)
+            if ((p = on_tabpage_get_ptr(index)) != NULL)
             {
                 if (button != IDC_SEARCH_SELRE_BTN)
                 {   // clear all setletction
@@ -3237,8 +3234,8 @@ on_search_find_all_button(void* lp)
         key = _strdup(u8_key);
     }
     else
-    {   // 根据界面语言确定代码页?
-        key = eu_utf8_mbcs(CP_THREAD_ACP, u8_key, NULL);
+    {   // 使用本地代码页
+        key = eu_utf8_mbcs(CP_ACP, u8_key, NULL);
     }
     CONTROL_HANDLE(hwnd_stc, IDC_PGB_STC, SW_SHOW)
     CONTROL_HANDLE(hwnd_pgb, IDC_PGB1, SW_SHOW)
