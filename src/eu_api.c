@@ -1708,7 +1708,7 @@ eu_save_config(void)
         "-- brace default setting\n"
         "brace = {\n"
         "    matching = %s,\n"
-		"    autoc = %s,\n"
+        "    autoc = %s,\n"
         "    rgb = 0x%08X\n"
         "}\n"
         "-- calltip default setting\n"
