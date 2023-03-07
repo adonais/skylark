@@ -182,6 +182,8 @@ public:
 	bool MatchIgnoreCase(const char *s);
 	void GetCurrent(char *s, Sci_PositionU len);
 	void GetCurrentLowered(char *s, Sci_PositionU len);
+	enum class Transform { none, lower };
+	void GetCurrentString(std::string &string, Transform transform);
 };
 
 }
