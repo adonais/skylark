@@ -248,9 +248,12 @@ share_load_lang(void)
     TCHAR *u16_lang = NULL;
     HANDLE lang_map = NULL;
     TCHAR lang_path[MAX_PATH] = {0};
-
+    if (!eu_module_path[0])
+    {
+        eu_process_path();
+    }
     uint32_t cid = (uint32_t) GetSystemDefaultLCID();
-    if (!strcmp(eu_get_config()->m_language, "auto"))
+    if (!eu_get_config() || !strcmp(eu_get_config()->m_language, "auto"))
     {
         switch (cid)
         {
@@ -274,7 +277,7 @@ share_load_lang(void)
     }
     else
     {
-        u16_lang = eu_utf8_utf16(eu_get_config()->m_language, NULL);
+        u16_lang = eu_get_config() ? eu_utf8_utf16(eu_get_config()->m_language, NULL) : NULL;
         if (u16_lang)
         {
             _sntprintf(lang_path, MAX_PATH-1, _T("%s\\locales\\%s"), eu_module_path, u16_lang);

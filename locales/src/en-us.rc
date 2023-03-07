@@ -855,7 +855,7 @@ BEGIN
     LTEXT           "Project Url:", IDC_STATIC_URL_CAPTION, 33, 66, 36, 9, NOT WS_GROUP
     LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 66, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
     LTEXT           "Version Status:", IDC_STATIC_VER, 33, 79, 50, 9, NOT WS_GROUP
-    LTEXT           "Checking ...", IDC_STATIC_URL_HOMEPAGE, 84, 79, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP    
+    LTEXT           "Checking ...", IDC_STATIC_URL_HOMEPAGE, 84, 79, 148, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP    
     EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
     DEFPUSHBUTTON   "&OK", IDOK, 97, 203, 50, 14
     PUSHBUTTON      "&Copy", IDC_BUTTON_COPY, 178, 203, 60, 14
@@ -1225,6 +1225,10 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_DEC       "It Is The Latest Version☑"
     IDS_CHECK_VER_NEW       "New Version Detected Available😀"
     IDS_CHECK_VER_ERR       "Connection Failure✘"
+    IDS_CHECK_VER_BREAK     "Download Failed, Server Not Available!"
+    IDS_CHECK_VER_PROGRESS  "Downloading Updates, Please later..."
+    IDS_CHECK_VER_UNKOWN    "There are no update packages available on the server!"
+    IDS_CHECK_VER_COMPLETED "Download Complete, Restart To Apply The Update ʡ"
     IDS_SNIPPETS_STR        "☑Code Snippet Completion"
     IDS_TABPAGE_CLOSE_NUM   "&Close %d Tabs"
     IDS_BUTTON_ROUTE_TIPS   "This file is stored on the server and its read/write properties cannot be changed"
@@ -1232,6 +1236,8 @@ STRINGTABLE DISCARDABLE
     IDS_PLUGINS_MSG1        "Opening document in SumatraPDF..."
     IDS_LOCALE_SWITCH_TIP   "The external window may be working, and its window will be destroyed when switching languages. Need to continue?"
     IDS_UPGRADE_FINISH_TIP  "Download Complete! The update is being applied at the next startup. I hope you feel satisfied ^_^"
+    IDS_UPGRADE_TETILE_STR  "Skylark Update"
+    IDS_UPGRADE_CONTENT_STR "Is Installing Your Updates And Will Start In A Few Moments…"
 }
 
 /////////////////////////////////////////////////////////////////////////////

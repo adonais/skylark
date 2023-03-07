@@ -2229,7 +2229,7 @@ on_file_edit_exit(HWND hwnd)
 }
 
 void
-on_file_edit_restart(HWND hwnd)
+on_file_edit_restart(HWND hwnd, const bool admin)
 {
     HANDLE handle = NULL;
     TCHAR process[MAX_PATH +1] = {0};
@@ -2241,7 +2241,7 @@ on_file_edit_restart(HWND hwnd)
         len = (int)_tcslen(process);
         _sntprintf(process + len, MAX_PATH - len, _T("%lu"), pid);
         on_file_kill_tree(pid);
-        if (on_reg_admin())
+        if (!admin || on_reg_admin())
         {
             on_file_edit_exit(hwnd);
             CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));

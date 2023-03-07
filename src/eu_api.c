@@ -82,23 +82,6 @@ ptr_curl_slist_free_all eu_curl_slist_free_all = NULL;
 ptr_curl_easy_getinfo eu_curl_easy_getinfo = NULL;
 ptr_curl_easy_strerror eu_curl_easy_strerror = NULL;
 
-static CRITICAL_SECTION eu_lua_cs;
-static CRITICAL_SECTION_DEBUG critsect_debug1 =
-{
-    0, 0, &eu_lua_cs,
-    { &critsect_debug1.ProcessLocksList, &critsect_debug1.ProcessLocksList },
-      0, 0, (DWORD_PTR)0x1,
-};
-static CRITICAL_SECTION eu_curl_cs;
-static CRITICAL_SECTION_DEBUG critsect_debug2 =
-{
-    0, 0, &eu_curl_cs,
-    { &critsect_debug2.ProcessLocksList, &critsect_debug2.ProcessLocksList },
-      0, 0, (DWORD_PTR)0x2,
-};
-
-static CRITICAL_SECTION eu_lua_cs = { &critsect_debug1, -1, 0, 0, 0, 0 };
-static CRITICAL_SECTION eu_curl_cs = { &critsect_debug2, -1, 0, 0, 0, 0 };
 static struct eu_config *g_config;
 static struct eu_theme  *g_theme;
 static eue_accel *g_accel;
@@ -1444,13 +1427,11 @@ eu_config_ptr(struct eu_config *pconfig)
     {
         return false;
     }
-    EnterCriticalSection(&eu_lua_cs);
     g_config = (struct eu_config *)malloc(sizeof(struct eu_config));
     if (g_config)
     {
         memcpy(g_config, pconfig, sizeof(struct eu_config));
     }
-    LeaveCriticalSection(&eu_lua_cs);
     return g_config != NULL;
 }
 
@@ -1461,7 +1442,6 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
     {
         return false;
     }
-    EnterCriticalSection(&eu_lua_cs);
     if (!init)
     {
         if (g_theme)
@@ -1478,7 +1458,6 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
             memcpy(g_theme, ptheme, sizeof(struct eu_theme));
         }
     }
-    LeaveCriticalSection(&eu_lua_cs);
     return g_theme != NULL;
 }
 
@@ -1521,13 +1500,11 @@ eu_toolbar_ptr(eue_toolbar *pdata, int num)
     {
         return false;
     }
-    EnterCriticalSection(&eu_lua_cs);
     g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num);
     if (g_toolbar)
     {
         memcpy(g_toolbar, pdata, sizeof(eue_toolbar) * num);
     }
-    LeaveCriticalSection(&eu_lua_cs);
     return g_toolbar != NULL;
 }
 
@@ -1588,37 +1565,28 @@ eu_lua_release(void)
     eu_free_accel();
     eu_free_toolbar();
     on_doc_ptr_free();
-    DeleteCriticalSection(&eu_lua_cs);
 }
 
 TCHAR *
-eu_process_path(TCHAR *path, const int len)
+eu_process_path(void)
 {
-    TCHAR *p = NULL;
-    if (!GetModuleFileName(NULL , path , len - 1))
+    if (!eu_module_path[0])
     {
-        return NULL;
+        HMODULE module = NULL;
+        if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)eu_process_path, &module) && module)
+        {
+            if (GetModuleFileName(module, eu_module_path, MAX_PATH) > 0)
+            {
+                TCHAR *p = _tcsrchr(eu_module_path, _T('\\'));
+                if (p)
+                {
+                    *p = 0;
+                }
+            }
+        }
     }
-    p = _tcsrchr(path , _T('\\'));
-    if( p )
-    {
-        *p = 0 ;
-    }
-    return path;
-}
-
-void
-eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time)
-{
-    eu_get_config()->upgrade.flags = (int)flags;
-    if (last_time > 0)
-    {
-        eu_get_config()->upgrade.last_check = last_time;
-    }
-    else
-    {
-        eu_get_config()->upgrade.last_check = (uint64_t)time(NULL);
-    }
+    EU_VERIFY(eu_module_path[0]);
+    return eu_module_path;
 }
 
 static char*
@@ -2486,8 +2454,7 @@ int
 eu_curl_global_init(long flags)
 {
     int result = CURLE_OK;
-    EnterCriticalSection(&eu_curl_cs);
-    if (!eu_curl_initialized)
+    if (!InterlockedCompareExchange(&eu_curl_initialized, 1, 0))
     {
         if ((eu_curl_symbol = np_load_plugin_library(_T("libcurl.dll"))) != NULL)
         {
@@ -2508,14 +2475,13 @@ eu_curl_global_init(long flags)
         {
             result = EUE_CURL_INIT_FAIL;
             eu_close_dll(eu_curl_symbol);
+            _InterlockedExchange(&eu_curl_initialized, 0);
         }
         else
         {
             result = fn_curl_global_init(flags);
-            _InterlockedExchange(&eu_curl_initialized, 1);
         }
     }
-    LeaveCriticalSection(&eu_curl_cs);
     return result;
 }
 
@@ -2565,7 +2531,6 @@ eu_curl_global_cleanup(void)
             eu_curl_slist_free_all = NULL;
         }
         _InterlockedExchange(&eu_curl_initialized, 0);
-        DeleteCriticalSection(&eu_curl_cs);
     }
 }
 

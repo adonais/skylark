@@ -24,6 +24,9 @@
 #define PROP_ORIGINAL_PROC _T("_hyperlink_original_proc_")
 #define PROP_STATIC_HYPERLINK _T("_hyperlink_from_static_")
 #define PROP_UNDERLINE_FONT _T("_hyperlink_underline_font_")
+#define ABOUT_HOME_URL _T("https://sourceforge.net/projects/libportable/files/Skylark/")
+
+static HWND g_about_hwnd = NULL;
 
 typedef union _vlong
 {
@@ -3213,8 +3216,14 @@ hyper_paren_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             else if (LOWORD(wParam) == IDC_STATIC_URL_HOMEPAGE)
             {
-                const TCHAR *home = _T("https://sourceforge.net/projects/libportable/files/Tools/");
-                return (LRESULT)ShellExecute(hwnd, NULL, home, NULL, NULL, SW_SHOWNORMAL);
+                TCHAR buf[MAX_PATH] = {0};
+                GetWindowText(GetDlgItem(hwnd, IDC_STATIC_URL_HOMEPAGE), buf, _countof(buf));
+                if (*buf && _tcscmp(&buf[_tcslen(buf) - 1], _T("ʡ")) == 0)
+                {
+                    on_file_edit_restart(eu_hwnd_self(), false);
+                    return 1;
+                }
+                return (LRESULT)ShellExecute(hwnd, NULL, ABOUT_HOME_URL, NULL, NULL, SW_SHOWNORMAL);
             }
             break;
         }
@@ -3312,6 +3321,39 @@ hyper_link_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     return CallWindowProc(ptr_orig_proc, hwnd, message, wParam, lParam);
 }
 
+static int
+on_about_msg(const int status)
+{
+    int resid = VERSION_LATEST;
+    switch (status)
+    {
+        case VERSION_LATEST:
+            resid = IDS_CHECK_VER_DEC;
+            break;
+        case VERSION_UPCHECK_ERR:
+            resid = IDS_CHECK_VER_ERR;
+            break;
+        case VERSION_UPDATE_REQUIRED:
+            resid = IDS_CHECK_VER_NEW;
+            break;
+        case VERSION_UPDATE_PROGRESS:
+            resid = IDS_CHECK_VER_PROGRESS;
+            break;
+        case VERSION_UPDATE_BREAK:
+            resid = IDS_CHECK_VER_BREAK;
+            break;
+        case VERSION_UPDATE_UNKOWN:
+            resid = IDS_CHECK_VER_UNKOWN;
+            break;
+        case VERSION_UPDATE_COMPLETED:
+            resid = IDS_CHECK_VER_COMPLETED;
+            break;
+        default:
+            break;
+    }
+    return resid;
+}
+
 static INT_PTR CALLBACK
 func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -3333,6 +3375,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 SetWindowText(GetDlgItem(hdlg, IDC_EDIT_ABOUT), cap);
             }
+            g_about_hwnd = hdlg;
             LOAD_I18N_RESSTR(IDC_COMPILER, str);
             {
                 struct tm *p;
@@ -3362,7 +3405,11 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_BUTTON_COPY), L"Explorer", NULL);
                 SendMessage(hdlg, WM_THEMECHANGED, 0, 0);
             }
-            return (INT_PTR)util_creater_window(hdlg, eu_module_hwnd());
+            if (!on_update_thread_id())
+            {
+                PostMessage(hdlg, WM_ABOUT_STC, on_about_msg(eu_get_config()->upgrade.flags), 0);
+            }
+            return (INT_PTR)util_creater_window(hdlg, eu_hwnd_self());
         }
         CASE_WM_CTLCOLOR_SET:
         {
@@ -3422,6 +3469,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_CLOSE:
         {
             EndDialog(hdlg, LOWORD(wParam));
+            g_about_hwnd = NULL;
             return 1;
         }
         case WM_DESTROY:
@@ -3534,7 +3582,7 @@ func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 SendMessage(hdlg, WM_THEMECHANGED, 0, 0);
             }
-            return (INT_PTR)util_creater_window(hdlg, eu_module_hwnd());
+            return (INT_PTR)util_creater_window(hdlg, eu_hwnd_self());
         }
         CASE_WM_CTLCOLOR_SET:
         {
@@ -3589,14 +3637,24 @@ func_dona_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 bool
 on_about_donation(void)
 {
-    return i18n_dlgbox(eu_module_hwnd(), IDD_DONATION_BOX, func_dona_proc, 0) > 0;
+    return i18n_dlgbox(eu_hwnd_self(), IDD_DONATION_BOX, func_dona_proc, 0) > 0;
+}
+
+HWND
+on_about_hwnd(void)
+{
+    if (g_about_hwnd && IsWindowVisible(g_about_hwnd))
+    {
+        return g_about_hwnd;
+    }
+    return NULL;
 }
 
 bool
 on_about_dialog(void)
 {
-    on_update_check();
-    return i18n_dlgbox(eu_module_hwnd(), IDD_ABOUTBOX, func_about_proc, 0) > 0;
+    on_update_check(UPCHECK_INDENT_ABOUT);
+    return i18n_dlgbox(eu_hwnd_self(), IDD_ABOUTBOX, func_about_proc, 0) > 0;
 }
 
 uint64_t
@@ -3617,5 +3675,5 @@ on_about_build_id(void)
 void
 eu_about_command(void)
 {
-    eu_i18n_msgbox(eu_module_hwnd(), IDS_HELP_COMMAND, IDS_COMMAND_TITLE, MB_OK | MB_APPLMODAL);
+    eu_i18n_msgbox(eu_hwnd_self(), IDS_HELP_COMMAND, IDS_COMMAND_TITLE, MB_OK | MB_APPLMODAL);
 }

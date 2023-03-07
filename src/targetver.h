@@ -605,10 +605,15 @@
 #define IDC_SUPPORTEDEXTS_STATIC         (IDD_REGEXT_BOX + 9)
 #define IDC_REGISTEREDEXTS_STATIC        (IDD_REGEXT_BOX + 10)
 
+#define IDS_CHECK_VER_BREAK             31090
+#define IDS_CHECK_VER_PROGRESS          31091
+#define IDS_CHECK_VER_UNKOWN            31092
+#define IDS_CHECK_VER_COMPLETED         31093
 #define IDS_SNIPPETS_STR                31094
 #define IDS_CHECK_VER_ERR               31095
 #define IDS_CHECK_VER_DEC               31096
 #define IDS_CHECK_VER_NEW               31097
+
 #define IDC_STATIC_VER                  31098
 #define IDC_STATIC_URL_HOMEPAGE         31099
 #define IDC_STATIC_URL_CAPTION          31100
@@ -1144,6 +1149,8 @@
 #define IDM_SKYLAR_AUTOMATIC_UPDATE         44054
 
 #define IDS_UPGRADE_FINISH_TIP              44060
+#define IDS_UPGRADE_TETILE_STR              44061
+#define IDS_UPGRADE_CONTENT_STR             44062
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

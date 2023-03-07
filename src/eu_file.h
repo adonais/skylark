@@ -88,7 +88,7 @@ void on_file_finish_wait(void);
 void on_file_update_recent_menu(void);
 void on_file_clear_recent(void);
 void on_file_edit_exit(HWND hwnd);
-void on_file_edit_restart(HWND hwnd);
+void on_file_edit_restart(HWND hwnd, const bool admin);
 void on_file_restore_recent(void);
 void on_file_close_last_tab(void);
 uint64_t __stdcall on_file_get_avail_phys(void);

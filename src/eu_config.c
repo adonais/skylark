@@ -70,7 +70,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
                         {
                             path[_tcslen(path)] = _T('\\');
                         }
-                        path[_tcslen(path)] = _T('*');                        
+                        path[_tcslen(path)] = _T('*');
                     }
                 }
                 else
@@ -331,9 +331,10 @@ on_config_load_file(void *lp)
     return 0;
 }
 
-static void
+static bool
 on_config_create_accel(void)
 {
+    bool ret = false;
     eue_accel *p = eu_get_accel();
     if (p && p->accel_num > 0)
     {
@@ -363,12 +364,14 @@ on_config_create_accel(void)
                     p->accel_ptr[i].fVirt &= ~FVIRTKEY;
                 }
             }
+            ret = true;
         }
         else
         {
             printf("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
         }
     }
+    return ret;
 }
 
 static bool
@@ -418,7 +421,7 @@ eu_load_lua_function(const wchar_t *file)
     {
         ret = (do_lua_func(lua_path, "run", "") == 0);
         free(lua_path);
-    }       
+    }
     return ret;
 }
 
@@ -467,10 +470,34 @@ load_fail:
     return ret;
 }
 
-void
+static int
+on_config_skyver_callbak(void *data, int count, char **column, char **names)
+{
+    UNREFERENCED_PARAMETER(data);
+    UNREFERENCED_PARAMETER(count);
+    UNREFERENCED_PARAMETER(names);
+    int status = atoi(column[0]);
+    if (data)
+    {
+        *(int *)data = status;
+    }
+    return (int)(status == VERSION_UPDATE_COMPLETED);
+}
+
+bool
 eu_load_file(void)
 {
+    int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
+    if (err == SQLITE_ABORT)
+    {
+        if (on_update_do())
+        {
+            on_update_sql();
+            eu_save_config();
+            return false;
+        }
+    }
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
-    on_config_create_accel();
+    return on_config_create_accel();
 }

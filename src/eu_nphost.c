@@ -20,14 +20,14 @@
 #include "eu_nphost.h"
 
 extern TCHAR eu_module_path[MAX_PATH+1];
-extern TCHAR *eu_process_path(TCHAR *path, const int len);
+extern TCHAR *eu_process_path(void);
 
 HMODULE
 np_load_plugin_library(const TCHAR *filename)
 {
     if (!eu_module_path[0])
     {
-        eu_process_path(eu_module_path, MAX_PATH);
+        eu_process_path();
     }
     if (*eu_module_path && filename && *filename)
     {

@@ -2238,7 +2238,6 @@ util_which(const TCHAR *name)
     TCHAR *file = NULL;
     TCHAR *env_path = NULL;
     TCHAR sz_work[MAX_PATH + 1] = {0};
-    TCHAR sz_process[MAX_PATH + 1] = {0};
     const TCHAR *delimiter = _T(";");
     TCHAR *path = _tgetenv(_T("PATH"));
     TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
@@ -2249,8 +2248,7 @@ util_which(const TCHAR *name)
         return NULL;
     }
     GetSystemDirectory(sz_work, MAX_PATH);
-    eu_process_path(sz_process, MAX_PATH);
-    if (!sz_work[0] || !sz_process[0])
+    if (!sz_work[0] || !eu_module_path[0])
     {
         return NULL;
     }
@@ -2258,7 +2256,7 @@ util_which(const TCHAR *name)
     {
         return NULL;
     }
-    diff = _tcscmp(sz_work, sz_process) != 0;
+    diff = _tcscmp(sz_work, eu_module_path) != 0;
     if (dot)
     {
         for (int i = 0; av[i]; ++i)
@@ -2274,11 +2272,11 @@ util_which(const TCHAR *name)
     {
         if (diff)
         {
-            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins;%s"), path, sz_process, sz_process, sz_work);
+            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins;%s"), path, eu_module_path, eu_module_path, sz_work);
         }
         else
         {
-            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins"), path, sz_process, sz_process);
+            _sntprintf(env_path, len, _T("%s;%s;%s\\plugins"), path, eu_module_path, eu_module_path);
         }
         bool quote = false;
         wchar_t *tok = _tcstok(env_path, delimiter);

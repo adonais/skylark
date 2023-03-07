@@ -855,7 +855,7 @@ BEGIN
     LTEXT           "项目地址:", IDC_STATIC_URL_CAPTION, 33, 66, 36, 9, NOT WS_GROUP
     LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 66, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
     LTEXT           "版本状态:", IDC_STATIC_VER, 33, 79, 36, 9, NOT WS_GROUP
-    LTEXT           "正在检测 ...", IDC_STATIC_URL_HOMEPAGE, 71, 79, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "正在检测 ...", IDC_STATIC_URL_HOMEPAGE, 71, 79, 148, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
     DEFPUSHBUTTON   "确定(&O)", IDOK, 97, 203, 50, 14
     PUSHBUTTON      "复制信息(&C)", IDC_BUTTON_COPY, 178, 203, 60, 14
@@ -1223,6 +1223,10 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_DEC       "已是最新版☑"
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
+    IDS_CHECK_VER_BREAK     "下载失败, 服务端不可用!"
+    IDS_CHECK_VER_PROGRESS  "正在下载更新, 请稍后..."
+    IDS_CHECK_VER_UNKOWN    "服务端暂时没有可用更新包!"
+    IDS_CHECK_VER_COMPLETED "更新包下载完毕, 重启以应用更新 ʡ"
     IDS_SNIPPETS_STR        "☑代码片段补全模式"
     IDS_TABPAGE_CLOSE_NUM   "关闭 %d 个标签页(&C)"
     IDS_BUTTON_ROUTE_TIPS   "文件存储在服务端, 不能改变其读写属性"
@@ -1230,6 +1234,8 @@ STRINGTABLE DISCARDABLE
     IDS_PLUGINS_MSG1        "正在用SumatraPDF打开文件..."
     IDS_LOCALE_SWITCH_TIP   "外部窗口可能正在工作, 切换语言时将销毁其窗口\n需要继续吗?"
     IDS_UPGRADE_FINISH_TIP  "下载完成! 更新将在下次启动时应用. \n我希望你感到满意^_^"
+    IDS_UPGRADE_TETILE_STR  "Skylark 更新"
+    IDS_UPGRADE_CONTENT_STR "正在安装更新，将于稍后启动…"
 }
 
 /////////////////////////////////////////////////////////////////////////////

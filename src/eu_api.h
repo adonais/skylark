@@ -58,9 +58,9 @@
 #endif
 
 #if defined(__cplusplus)
-#define FALLTHRU_ATTR		[[fallthrough]]
+#define FALLTHRU_ATTR        [[fallthrough]]
 #elif (defined(__GNUC__) && __GNUC__ >= 7) || (defined(__clang__) && __clang_major__ >= 10)
-#define FALLTHRU_ATTR		__attribute__((fallthrough))
+#define FALLTHRU_ATTR        __attribute__((fallthrough))
 #else
 #define FALLTHRU_ATTR
 #endif
@@ -142,6 +142,9 @@
 #define WM_SKYLARK_DESC           (WM_USER+10005)
 #define WM_TAB_NCCLICK            (WM_USER+10006)
 #define WM_ABOUT_RE               (WM_USER+10007)
+// Upcheck message
+#define WM_UPCHECK_LAST           (WM_USER+10010)
+#define WM_UPCHECK_STATUS         (WM_USER+10011)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
@@ -255,6 +258,7 @@ enum
 typedef enum _UPDATE_STATUS
 {
     VERSION_LATEST = 0,
+    VERSION_UPCHECK_ERR,
     VERSION_UPDATE_REQUIRED,
     VERSION_UPDATE_PROGRESS,
     VERSION_UPDATE_BREAK,
@@ -546,7 +550,7 @@ EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
 EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
 EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reverse, intptr_t *pret);
-EU_EXT_CLASS TCHAR *eu_process_path(TCHAR *path, const int len);
+EU_EXT_CLASS TCHAR *eu_process_path(void);
 EU_EXT_CLASS void eu_save_config(void);
 EU_EXT_CLASS void eu_save_theme(void);
 EU_EXT_CLASS bool eu_init_calltip_tree(doctype_t *root, const char *key, const char *val);
@@ -557,7 +561,6 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
-EU_EXT_CLASS void eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time);
 
 // for pcre
 EU_EXT_CLASS pcre_conainer *eu_pcre_init(const char *buf, size_t len, const char *pattern, const char *named_substring, int opt);
@@ -652,10 +655,10 @@ EU_EXT_CLASS bool eu_load_main_config(void);
 EU_EXT_CLASS bool eu_load_accel_config(void);
 EU_EXT_CLASS bool eu_load_toolbar_config(void);
 EU_EXT_CLASS bool eu_load_docs_config(void);
+EU_EXT_CLASS bool eu_load_file(void);
 EU_EXT_CLASS bool eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
-EU_EXT_CLASS void eu_load_file(void);
-EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
 EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, wchar_t *path);
+EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
 
 // for eu_script.c
 EU_EXT_CLASS int eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
