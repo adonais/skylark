@@ -684,23 +684,25 @@ on_view_setfullscreenimpl(HWND hwnd)
 void
 on_view_full_sreen(HWND hwnd)
 {
-    uint32_t state = GetMenuState(GetMenu(hwnd), IDM_VIEW_FULLSCREEN, MF_BYCOMMAND);
-    if (state == -1 || state == MF_CHECKED)
+    eu_get_config()->m_fullscreen ^= true;
+    if (!eu_get_config()->m_fullscreen)
     {
-        eu_get_config()->m_fullscreen = false;
         eu_get_config()->m_menubar = true;
         eu_get_config()->m_toolbar = g_toolbar_size > 0 ? g_toolbar_size : IDB_SIZE_1;
         eu_get_config()->m_statusbar = true;
         GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
+        if (!GetDlgItem(hwnd, IDC_TOOLBAR))
+        {
+            on_toolbar_create(hwnd);
+        }
     }
     else
     {
-        eu_get_config()->m_fullscreen = true;
         eu_get_config()->m_menubar = false;
         g_toolbar_size = eu_get_config()->m_toolbar;
         eu_get_config()->m_toolbar = IDB_SIZE_0;
         eu_get_config()->m_statusbar = false;
-        SetMenu(hwnd, NULL);
+        GetMenu(hwnd)?SetMenu(hwnd, NULL):(void)0;
     }
     on_view_setfullscreenimpl(hwnd);
     eu_window_resize(hwnd);
