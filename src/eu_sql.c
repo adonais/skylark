@@ -43,15 +43,7 @@ int  n = eu_get_config()->file_recent_number;         \
 n = n > 0 && n < 100 ? n : 29;                        \
 _snprintf(buf, MAX_BUFFER - 1, RECENT_FORMAT, n, n)
 
-static CRITICAL_SECTION eu_sql_cs;
-static CRITICAL_SECTION_DEBUG critsect_sqlite3 =
-{
-    0, 0, &eu_sql_cs,
-    { &critsect_sqlite3.ProcessLocksList, &critsect_sqlite3.ProcessLocksList },
-      0, 0, (DWORD_PTR)0x1,
-};
-static CRITICAL_SECTION eu_sql_cs = { &critsect_sqlite3, -1, 0, 0, 0, 0 };
-
+static volatile long eu_sql_cs = 0;
 static volatile intptr_t eu_memdb = 0;
 
 static bool
@@ -162,8 +154,6 @@ mem_clean:
 }
 
 /**************************************************************************************
- * 多线程并发时, 开启用户线程锁, 不使用sqlite3本身的多线程模式, 它的内部实现太繁琐
- * 所以, 尽量使用子线程调用本函数, 防止在多线程模式下一些奇怪的死锁问题
  * sql参数, 为sql查询语句
  * callback参数, 为回调函数
  * data参数, 为回调函数参数
@@ -175,7 +165,7 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
     int rc = SQLITE_ERROR;
     char pfile[MAX_PATH] = {0};
     TCHAR path[MAX_PATH] = {0};
-    EnterCriticalSection(&eu_sql_cs);
+    util_lock(&eu_sql_cs);
     _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
     if (util_make_u8(path, pfile, MAX_PATH-1)[0])
     {
@@ -194,7 +184,7 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
         }
         sqlite3_close((sqlite3 *)db);
     }
-    LeaveCriticalSection(&eu_sql_cs);
+    util_unlock(&eu_sql_cs);
     return rc;
 }
 
@@ -427,7 +417,7 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
     int rc = SQLITE_ERROR;
     char pfile[MAX_PATH];
     TCHAR path[MAX_PATH] = {0};
-    EnterCriticalSection(&eu_sql_cs);
+    util_lock(&eu_sql_cs);
     _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
     if (util_make_u8(path, pfile, MAX_PATH-1)[0])
     {
@@ -479,7 +469,7 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
         sqlite3_close((sqlite3 *)db);
         eu_safe_free(psql);
     }
-    LeaveCriticalSection(&eu_sql_cs);
+    util_unlock(&eu_sql_cs);
     return rc;
 }
 
@@ -489,7 +479,7 @@ on_sql_sync_session(void)
     int rc = SQLITE_ERROR;
     TCHAR path[MAX_PATH] = {0};
     char *sql_path = NULL;
-    EnterCriticalSection(&eu_sql_cs);
+    util_lock(&eu_sql_cs);
     _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
     if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
     {
@@ -522,7 +512,7 @@ on_sql_sync_session(void)
         sqlite3_close((sqlite3 *)eu_memdb);
         inter_atom_exchange(&eu_memdb, 0);
     }
-    LeaveCriticalSection(&eu_sql_cs);
+    util_unlock(&eu_sql_cs);
     return rc;
 }
 

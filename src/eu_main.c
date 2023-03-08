@@ -102,24 +102,24 @@ _tmain(int argc, TCHAR *argv[])
         {
             no_remote = true;
         }
-    }  // 获取主进程所在目录
-    if (!eu_process_path(eu_module_path, MAX_PATH))
-    {
+    }
+    if (!eu_process_path()[0])
+    {   // 获取主进程所在目录
         SKY_SAFE_EXIT(-1);
-    }  // 便携目录是否可写入
+    }
     if (_sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path) > 0)
-    {
+    {   // 便携目录是否可写入
         if (!(cache_path[0] && eu_try_path(cache_path)))
         {
             MSG_BOX(IDC_MSG_DIR_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             SKY_SAFE_EXIT(-1);
         }
-    }  // 设置lua脚本搜索路径
-    if (!eu_lua_path_setting(NULL))
+    }
+    if (!eu_lua_path_setting(NULL))   // 设置lua脚本搜索路径
     {
         SKY_SAFE_EXIT(-1);
-    }  // 加载主配置文件
-    if (!eu_load_main_config())
+    }
+    if (!eu_load_main_config())      // 加载主配置文件
     {
         SKY_SAFE_EXIT(-1);
     }
@@ -223,7 +223,7 @@ _tmain(int argc, TCHAR *argv[])
         printf("eu_hook_exception failed\n");
         SKY_SAFE_EXIT(-1);
     }
-#endif    
+#endif
 #if APP_DEBUG
     eu_init_logs();
 #endif
@@ -261,7 +261,7 @@ _tmain(int argc, TCHAR *argv[])
     if (!eu_load_toolbar_config())
     {   // 加载工具栏配置文件
         SKY_SAFE_EXIT(-1);
-    }    
+    }
     // 注册scintilla
     if (!eu_sci_register(instance))
     {
@@ -270,6 +270,7 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (!(hwnd = init_instance(instance)))
     {
+        printf("init_instance failed\n");
         SKY_SAFE_EXIT(-1);
     }
     if (mapped)
@@ -282,10 +283,14 @@ _tmain(int argc, TCHAR *argv[])
                 memcpy(phandle, &hwnd, sizeof(HWND));
                 share_unmap(phandle);
             }
-        }  // 主窗口初始化完成, 可以发送消息了
-        share_envent_set(true);
+        }
+        share_envent_set(true);  // 主窗口初始化完成, 可以发送消息了
         eu_get_config()->m_instance = no_remote ? true : eu_get_config()->m_instance;
-        eu_load_file();
+        if (!eu_load_file())
+        {
+            printf("eu_load_file failed\n");
+            SKY_SAFE_EXIT(-1);
+        }
     }
     if (strcmp(eu_get_config()->window_theme, "black") == 0)
     {
@@ -314,20 +319,16 @@ _tmain(int argc, TCHAR *argv[])
     eu_save_theme();
     eu_save_config();
 all_clean:
-    eu_free_theme();
-    eu_free_accel();
-    eu_free_toolbar();
     share_close(mapped);
     share_close(lang_map);
     share_close_lang();
     share_envent_release();
-    eu_curl_global_release();
     eu_sci_release();
     eu_remote_list_release();
     eu_dark_theme_release(true);
-    eu_doc_ptr_free();
+    eu_lua_release();
     eu_font_release();
-    eu_close_db_handle();
+    eu_dbase_release();
     printf("all clean\n");
     return (int) msg.wParam;
 }

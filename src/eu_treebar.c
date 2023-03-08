@@ -18,6 +18,14 @@
 
 #include "framework.h"
 
+typedef enum _GENERATE_TYPE
+{
+    MD5_GENERATE,
+    SHA1_GENERATE,
+    SHA256_GENERATE,
+    BASE64_GENERATE
+} GENERATE_TYPE;
+
 HWND g_treebar = NULL;
 HWND g_filetree = NULL;
 
@@ -1002,109 +1010,98 @@ on_treebar_download_file(const TCHAR *path, remotefs *pserver, TCHAR *out_path)
     return pfile;
 }
 
-static int
-on_node_generate_md5(void)
+static void
+on_treebar_insert_edit(const TCHAR *ext, const char *str)
 {
-    HTREEITEM hti;
-    tree_data *tvd = NULL;
-    TCHAR md[MD5_DIGEST_LENGTH * 2 + 1] = {0};
-    if ((hti = on_treebar_get_path(&tvd)) == NULL)
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    if (pnode && STR_NOT_NUL(ext) && STR_NOT_NUL(str))
     {
-        return EUE_POINT_NULL;
-    }
-    if (tvd->server)
-    {
-        int err = 0;
-        TCHAR temp_path[MAX_PATH+1] = {0};
-        HANDLE pfile = on_treebar_download_file(tvd->filepath, tvd->server, temp_path);
-        if (!pfile)
+        sptr_t cur_pos = -1;
+        if ((cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
         {
-            return EUE_LOCAL_FILE_ERR;
+            cur_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
         }
-        share_close(pfile);
-        err = util_file_md5(temp_path, md, MD5_DIGEST_LENGTH * 2 + 1);
-        DeleteFile(temp_path);
-        if (err)
+        if (cur_pos >= 0)
         {
-            return EUE_OPENSSL_ENC_ERR;
+            sptr_t len = (sptr_t)strlen(str) + 32;
+            char *text = (char *)calloc(1, len + 1);
+            if (text)
+            {
+                char *u8_ext = eu_utf16_utf8(ext, NULL);
+                _snprintf(text, len, "data:image/%s;base64,%s", STR_NOT_NUL(u8_ext) ? u8_ext : "jpeg", str);
+                eu_sci_call(pnode, SCI_INSERTTEXT, cur_pos, (sptr_t)text);
+                eu_sci_call(pnode, SCI_GOTOPOS, cur_pos, 0);
+                free(text);
+                eu_safe_free(u8_ext);
+            }
         }
     }
-    else if (util_file_md5(tvd->filepath, md, MD5_DIGEST_LENGTH * 2 + 1))
-    {
-        return EUE_OPENSSL_ENC_ERR;
-    }
-    on_edit_push_clipboard(md);
-    return SKYLARK_OK;
 }
 
 static int
-on_node_generate_sha1(void)
+on_node_generate_enc(GENERATE_TYPE type)
 {
+    int err = 0;
     HTREEITEM hti;
     tree_data *tvd = NULL;
-    TCHAR md[SHA_DIGEST_LENGTH * 2 + 1] = {0};
-    if ((hti = on_treebar_get_path(&tvd)) == NULL)
+    TCHAR *p = NULL, *out = NULL;
+    char *u8_out = NULL;
+    TCHAR temp_path[MAX_PATH+1] = {0};
+    if ((hti = on_treebar_get_path(&tvd)) == NULL || tvd == NULL)
     {
         return EUE_POINT_NULL;
     }
     if (tvd->server)
     {
-        int err = 0;
-        TCHAR temp_path[MAX_PATH+1] = {0};
+        
         HANDLE pfile = on_treebar_download_file(tvd->filepath, tvd->server, temp_path);
         if (!pfile)
         {
             return EUE_LOCAL_FILE_ERR;
         }
         share_close(pfile);
-        err = util_file_sha1(temp_path, md, SHA_DIGEST_LENGTH * 2 + 1);
+        p = temp_path;
+    }
+    else
+    {
+        p = tvd->filepath;
+    }
+    switch (type) 
+    {
+        case MD5_GENERATE:
+            err = util_file_md5(p, &out);
+            break;
+        case SHA1_GENERATE:
+            err = util_file_sha1(p, &out);
+            break;
+        case SHA256_GENERATE:
+            err = util_file_sha256(p, &out);
+            break;
+        case BASE64_GENERATE:
+            err = util_file_base64(p, &u8_out);
+            break;
+        default:
+            err = EUE_OPENSSL_ENC_ERR;
+            break;
+    }
+    if (out || u8_out)
+    {
+        if (type != BASE64_GENERATE)
+        {
+            on_edit_push_clipboard(out);
+        }
+        else
+        {
+            on_treebar_insert_edit(util_path_ext(tvd->filename), (const char *)u8_out);
+        }
+        eu_safe_free(out);
+        eu_safe_free(u8_out);
+    }
+    if (temp_path[0])
+    {
         DeleteFile(temp_path);
-        if (err)
-        {
-            return EUE_OPENSSL_ENC_ERR;
-        }
     }
-    else if (util_file_sha1(tvd->filepath, md, SHA_DIGEST_LENGTH * 2 + 1))
-    {
-        return EUE_OPENSSL_ENC_ERR;
-    }
-    on_edit_push_clipboard(md);
-    return SKYLARK_OK;
-}
-
-static int
-on_node_generate_sha256(void)
-{
-    HTREEITEM hti;
-    tree_data *tvd = NULL;
-    TCHAR md[SHA256_DIGEST_LENGTH * 2 + 1] = {0};
-    if ((hti = on_treebar_get_path(&tvd)) == NULL)
-    {
-        return EUE_POINT_NULL;
-    }
-    if (tvd->server)
-    {
-        int err = 0;
-        TCHAR temp_path[MAX_PATH+1] = {0};
-        HANDLE pfile = on_treebar_download_file(tvd->filepath, tvd->server, temp_path);
-        if (!pfile)
-        {
-            return EUE_LOCAL_FILE_ERR;
-        }
-        share_close(pfile);
-        err = util_file_sha256(temp_path, md, SHA256_DIGEST_LENGTH * 2 + 1);
-        DeleteFile(temp_path);
-        if (err)
-        {
-            return EUE_OPENSSL_ENC_ERR;
-        }
-    }
-    else if (util_file_sha256(tvd->filepath, md, SHA256_DIGEST_LENGTH * 2 + 1))
-    {
-        return EUE_OPENSSL_ENC_ERR;
-    }
-    on_edit_push_clipboard(md);
-    return SKYLARK_OK;
+    return err;
 }
 
 unsigned WINAPI
@@ -1287,6 +1284,23 @@ on_filetree_menu_callback(HMENU hpop, void *param)
     }
 }
 
+static void
+on_filetree_menu_callback2(HMENU hpop, void *param)
+{
+    tree_data *tvd = (tree_data *)param;
+    if (hpop && tvd)
+    {
+        const TCHAR *ext = util_path_ext(tvd->filename);
+        bool ssl = eu_exist_libssl();
+        bool enable = !(_tcsicmp(ext, _T("jpg")) && _tcsicmp(ext, _T("jpeg")) && _tcsicmp(ext, _T("gif")) && _tcsicmp(ext, _T("png")) && 
+                        _tcsicmp(ext, _T("bmp")) && _tcsicmp(ext, _T("ico")) && _tcsicmp(ext, _T("webp")) && _tcsicmp(ext, _T("svg")));
+        util_enable_menu_item(hpop, IDM_FILE_MD5_CLIP, ssl);
+        util_enable_menu_item(hpop, IDM_FILE_SHA1_CLIP, ssl);
+        util_enable_menu_item(hpop, IDM_FILE_SHA256_CLIP, ssl);
+        util_enable_menu_item(hpop, IDM_PIC_CONVERT_BASE64, enable && ssl);
+    }
+}
+
 LRESULT CALLBACK
 filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1394,13 +1408,16 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_node_delete();
                     break;
                 case IDM_FILE_MD5_CLIP:
-                    on_node_generate_md5();
+                    on_node_generate_enc(MD5_GENERATE);
                     break;
                 case IDM_FILE_SHA1_CLIP:
-                    on_node_generate_sha1();
+                    on_node_generate_enc(SHA1_GENERATE);
                     break;
                 case IDM_FILE_SHA256_CLIP:
-                    on_node_generate_sha256();
+                    on_node_generate_enc(SHA256_GENERATE);
+                    break;
+                case IDM_PIC_CONVERT_BASE64:
+                    on_node_generate_enc(BASE64_GENERATE);
                     break;
                 default:
                     break;
@@ -1409,15 +1426,11 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONDOWN:
         {
-            POINT pt;
+            POINT pt = {GET_X_LPARAM(lParam), pt.y = GET_Y_LPARAM(lParam)};
+            TVHITTESTINFO tvhti = {0};
             tree_data *tvd = NULL;
-            pt.x = GET_X_LPARAM(lParam);
-            pt.y = GET_Y_LPARAM(lParam);
-            TVHITTESTINFO tvhti;
-            memset(&tvhti, 0, sizeof(tvhti));
             memcpy(&(tvhti.pt), &pt, sizeof(POINT));
             TreeView_HitTest(hwnd, &tvhti);
-            ClientToScreen(hwnd, &pt);
             if (tvhti.flags & TVHT_ONITEM)
             {
                 TreeView_SelectItem(hwnd, tvhti.hItem);
@@ -1432,7 +1445,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 else
                 {
-                    menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0, -1, NULL, NULL);
+                    menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0, -1, on_filetree_menu_callback2, tvd);
                 }
             }
             else if (tvhti.flags > 0x1 && tvhti.flags < 0x41)

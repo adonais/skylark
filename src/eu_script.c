@@ -507,7 +507,7 @@ eu_lua_path_setting(eu_tabpage *pnode)
     if (!pnode)
     {
         _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua"),
-                   eu_module_path, eu_module_path, eu_module_path);        
+                   eu_module_path, eu_module_path, eu_module_path);
     }
     else
     {
@@ -683,15 +683,9 @@ static int
 script_config_dir(lua_State *L)
 {
     int usz = 0;
-    wchar_t path[MAX_PATH + 1] = {0};
     char *utf8path = NULL;
-    if (STR_IS_NUL(eu_process_path(path, MAX_PATH)))
-    {
-        printf("lua lconfdir error\n");
-        lua_pushnil(L);
-        return 2;
-    }
-    wcsncat(path, L"\\conf", MAX_PATH);
+    wchar_t path[MAX_PATH + 1] = {0};
+    _snwprintf(path, MAX_PATH, _T("%s\\conf"), eu_module_path);
     if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
         lua_pushnil(L);

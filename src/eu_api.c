@@ -82,23 +82,6 @@ ptr_curl_slist_free_all eu_curl_slist_free_all = NULL;
 ptr_curl_easy_getinfo eu_curl_easy_getinfo = NULL;
 ptr_curl_easy_strerror eu_curl_easy_strerror = NULL;
 
-static CRITICAL_SECTION eu_lua_cs;
-static CRITICAL_SECTION_DEBUG critsect_debug1 =
-{
-    0, 0, &eu_lua_cs,
-    { &critsect_debug1.ProcessLocksList, &critsect_debug1.ProcessLocksList },
-      0, 0, (DWORD_PTR)0x1,
-};
-static CRITICAL_SECTION eu_curl_cs;
-static CRITICAL_SECTION_DEBUG critsect_debug2 =
-{
-    0, 0, &eu_curl_cs,
-    { &critsect_debug2.ProcessLocksList, &critsect_debug2.ProcessLocksList },
-      0, 0, (DWORD_PTR)0x2,
-};
-
-static CRITICAL_SECTION eu_lua_cs = { &critsect_debug1, -1, 0, 0, 0, 0 };
-static CRITICAL_SECTION eu_curl_cs = { &critsect_debug2, -1, 0, 0, 0, 0 };
 static struct eu_config *g_config;
 static struct eu_theme  *g_theme;
 static eue_accel *g_accel;
@@ -932,7 +915,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     STARTUPINFOW si;
     uint32_t dw_creat = 0;
     LPCTSTR lp_dir = NULL;
-    TCHAR process[MAX_PATH+1] = {0};
+    TCHAR process[LARGER_LEN+1] = {0};
     if (STR_NOT_NUL(pcd))
     {
         lp_dir = pcd;
@@ -943,11 +926,11 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
     }
     if (param != NULL && _tcslen(param ) > 1)
     {
-        _sntprintf(process, MAX_PATH, _T("%s %s"), wcmd, param);
+        _sntprintf(process, LARGER_LEN, _T("%s %s"), wcmd, param);
     }
     else
     {
-        _sntprintf(process, MAX_PATH, _T("%s"), wcmd);
+        _sntprintf(process, LARGER_LEN, _T("%s"), wcmd);
     }
     if (true)
     {
@@ -1444,13 +1427,11 @@ eu_config_ptr(struct eu_config *pconfig)
     {
         return false;
     }
-    EnterCriticalSection(&eu_lua_cs);
     g_config = (struct eu_config *)malloc(sizeof(struct eu_config));
     if (g_config)
     {
         memcpy(g_config, pconfig, sizeof(struct eu_config));
     }
-    LeaveCriticalSection(&eu_lua_cs);
     return g_config != NULL;
 }
 
@@ -1461,7 +1442,6 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
     {
         return false;
     }
-    EnterCriticalSection(&eu_lua_cs);
     if (!init)
     {
         if (g_theme)
@@ -1478,7 +1458,6 @@ eu_theme_ptr(struct eu_theme *ptheme, bool init)
             memcpy(g_theme, ptheme, sizeof(struct eu_theme));
         }
     }
-    LeaveCriticalSection(&eu_lua_cs);
     return g_theme != NULL;
 }
 
@@ -1521,13 +1500,11 @@ eu_toolbar_ptr(eue_toolbar *pdata, int num)
     {
         return false;
     }
-    EnterCriticalSection(&eu_lua_cs);
     g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num);
     if (g_toolbar)
     {
         memcpy(g_toolbar, pdata, sizeof(eue_toolbar) * num);
     }
-    LeaveCriticalSection(&eu_lua_cs);
     return g_toolbar != NULL;
 }
 
@@ -1581,34 +1558,35 @@ eu_free_toolbar(void)
     eu_safe_free(g_toolbar);
 }
 
-TCHAR *
-eu_process_path(TCHAR *path, const int len)
+void
+eu_lua_release(void)
 {
-    TCHAR *p = NULL;
-    if (!GetModuleFileName(NULL , path , len - 1))
-    {
-        return NULL;
-    }
-    p = _tcsrchr(path , _T('\\'));
-    if( p )
-    {
-        *p = 0 ;
-    }
-    return path;
+    eu_free_theme();
+    eu_free_accel();
+    eu_free_toolbar();
+    on_doc_ptr_free();
 }
 
-void
-eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time)
+TCHAR *
+eu_process_path(void)
 {
-    eu_get_config()->upgrade.flags = (int)flags;
-    if (last_time > 0)
+    if (!eu_module_path[0])
     {
-        eu_get_config()->upgrade.last_check = last_time;
+        HMODULE module = NULL;
+        if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)eu_process_path, &module) && module)
+        {
+            if (GetModuleFileName(module, eu_module_path, MAX_PATH) > 0)
+            {
+                TCHAR *p = _tcsrchr(eu_module_path, _T('\\'));
+                if (p)
+                {
+                    *p = 0;
+                }
+            }
+        }
     }
-    else
-    {
-        eu_get_config()->upgrade.last_check = (uint64_t)time(NULL);
-    }
+    EU_VERIFY(eu_module_path[0]);
+    return eu_module_path;
 }
 
 static char*
@@ -1698,7 +1676,7 @@ eu_save_config(void)
         "-- brace default setting\n"
         "brace = {\n"
         "    matching = %s,\n"
-		"    autoc = %s,\n"
+        "    autoc = %s,\n"
         "    rgb = 0x%08X\n"
         "}\n"
         "-- calltip default setting\n"
@@ -2473,11 +2451,10 @@ eu_iconv_close(iconv_t cd)
  * 成功, 返回值与 curl_global_init 函数相同
  *******************************************************************/
 int
-eu_curl_init_global(long flags)
+eu_curl_global_init(long flags)
 {
     int result = CURLE_OK;
-    EnterCriticalSection(&eu_curl_cs);
-    if (!eu_curl_initialized)
+    if (!InterlockedCompareExchange(&eu_curl_initialized, 1, 0))
     {
         if ((eu_curl_symbol = np_load_plugin_library(_T("libcurl.dll"))) != NULL)
         {
@@ -2498,14 +2475,13 @@ eu_curl_init_global(long flags)
         {
             result = EUE_CURL_INIT_FAIL;
             eu_close_dll(eu_curl_symbol);
+            _InterlockedExchange(&eu_curl_initialized, 0);
         }
         else
         {
             result = fn_curl_global_init(flags);
-            _InterlockedExchange(&eu_curl_initialized, 1);
         }
     }
-    LeaveCriticalSection(&eu_curl_cs);
     return result;
 }
 
@@ -2514,7 +2490,7 @@ eu_curl_easy_init(void)
 {
     if (!eu_curl_initialized)
     {
-        if (eu_curl_init_global(CURL_GLOBAL_DEFAULT) != CURLE_OK)
+        if (eu_curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK)
         {
             return NULL;
         }
@@ -2532,7 +2508,7 @@ eu_curl_easy_cleanup(CURL *curl)
 }
 
 void
-eu_curl_global_release(void)
+eu_curl_global_cleanup(void)
 {
     if (eu_curl_initialized)
     {

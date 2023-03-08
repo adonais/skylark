@@ -27,6 +27,7 @@ extern "C" {
 bool on_about_dialog(void);
 bool on_about_donation(void);
 uint64_t on_about_build_id(void);
+HWND on_about_hwnd(void);
 
 #ifdef __cplusplus
 }

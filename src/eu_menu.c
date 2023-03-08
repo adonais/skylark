@@ -367,7 +367,7 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_PASTE:
                     case IDM_EDIT_DELETE:
                         util_enable_menu_item(menu, IDM_EDIT_CUT, util_can_selections(pnode));
-                        util_enable_menu_item(menu, IDM_EDIT_COPY, util_can_selections(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_COPY, !pnode->pmod);
                         util_enable_menu_item(menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
                         util_enable_menu_item(menu, IDM_EDIT_DELETE, TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE2, !pnode->hex_mode && TAB_NOT_NUL(pnode));
@@ -517,6 +517,11 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_GDI, IDM_SET_RENDER_TECH_GDI == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
+                        break;
+                    case IDM_SKYLAR_AUTOMATIC_UPDATE:
+                        enable = util_upcheck_exist();
+                        util_enable_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, enable);
+                        util_set_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, eu_get_config()->upgrade.enable && enable);
                         break;
                     case IDM_ABOUT:                  /* Help menu */
                         util_enable_menu_item(menu, IDM_DONATION, util_exist_libcurl());

@@ -1202,6 +1202,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case SCI_CUT:
         case WM_CUT:
         {
             if (hexview->total_items > 0 && !(hexview->ex_style & HVS_READONLY))
@@ -1231,6 +1232,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case SCI_CLEAR:
         case WM_CLEAR:
         {
             if (hexview->total_items > 0 && !(hexview->ex_style & HVS_READONLY))

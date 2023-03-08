@@ -18,14 +18,18 @@
 #include "framework.h"
 
 #define EU_TIMER_ID 1
+#define EU_UPTIMES 600
 #define MAYBE100MS 100
+#define ERROR_CALLBACK_ABORT 0x3e80
 
 typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
-static HBRUSH g_control_brush;
-static HWND g_hwndmain;  // 主窗口句柄
-static volatile long undo_off;
+static HWND g_hwndmain;                    // 主窗口句柄
+static HBRUSH g_control_brush;             // 全局子控件画刷
+static volatile long undo_off;             // 状态栏按钮撤销信号量
+
+volatile long g_interval_count = 0;        // 启动自动更新的时间间隔
 
 static int
 on_create_window(HWND hwnd)
@@ -66,6 +70,7 @@ enum_skylark_proc(HWND hwnd, LPARAM lParam)
                 {
                     printf("we get other hwnd = %p\n", (void *)hwnd);
                     share_envent_set_hwnd(hwnd);
+                    SetLastError(ERROR_CALLBACK_ABORT);
                     return 0;
                 }
             }
@@ -81,8 +86,10 @@ on_destory_window(HWND hwnd)
     util_save_placement(hwnd);
     // 销毁定时器
     KillTimer(hwnd, EU_TIMER_ID);
-    // 等待搜索完成
+    // 等待搜索线程完成
     on_search_finish_wait();
+    // 等待更新线程完成
+    on_update_thread_wait();
     // 销毁控件画刷
     on_proc_destory_brush();
     // 清理主题画刷
@@ -100,10 +107,20 @@ on_destory_window(HWND hwnd)
     }
     if (g_hwndmain == share_envent_get_hwnd())
     {
-        EnumWindows(enum_skylark_proc, 0);
+        if (!EnumWindows(enum_skylark_proc, 0) && GetLastError() == ERROR_CALLBACK_ABORT)
+        {
+            if (eu_get_config()->upgrade.flags == VERSION_UPDATE_COMPLETED)
+            {
+                SendMessage(share_envent_get_hwnd(), WM_UPCHECK_STATUS, VERSION_UPDATE_COMPLETED, 0);
+            }
+        }
     }
     // 文件关闭,销毁信号量
     on_file_finish_wait();
+    eu_curl_global_cleanup();
+    // 全局变量清零
+    _InterlockedExchange(&undo_off, 0);
+    _InterlockedExchange(&g_interval_count, 0);
     // 退出消息循环
     PostQuitMessage(0);
 }
@@ -762,6 +779,30 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_TAB_CLICK:
             on_proc_tab_click(hwnd, (void *)wParam);
             return 1;
+        case WM_UPCHECK_STATUS:
+        {
+            if ((intptr_t)wParam < 0)
+            {
+                eu_get_config()->upgrade.flags = VERSION_LATEST;
+            }
+            else
+            {
+                eu_get_config()->upgrade.flags = (int)wParam;
+            }
+            return 1;
+        }
+        case WM_UPCHECK_LAST:
+        {
+            if ((intptr_t)wParam < 0)
+            {
+                eu_get_config()->upgrade.last_check = (uint64_t)time(NULL);
+            }
+            else
+            {
+                eu_get_config()->upgrade.last_check = (uint64_t)wParam;
+            }
+            return 1;
+        }
         case WM_TIMER:
             if (on_qrgen_hwnd() && KEY_DOWN(VK_ESCAPE))
             {
@@ -770,6 +811,19 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (g_hwndmain == GetForegroundWindow())
             {
                 ONCE_RUN(on_changes_window(hwnd));
+            }
+            if (eu_get_config()->upgrade.enable)
+            {
+                if (g_interval_count == EU_UPTIMES)
+                {   // 启动更新进程
+                    _InterlockedIncrement(&g_interval_count);
+                    on_update_check(UPCHECK_INDENT_MAIN);
+                    printf("g_interval_count = %ld\n", g_interval_count);
+                }
+                else if (g_interval_count < EU_UPTIMES)
+                {
+                    _InterlockedIncrement(&g_interval_count);
+                }
             }
             break;
         case WM_INITMENUPOPUP:
@@ -967,7 +1021,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_close_last_tab();
                     break;
                 case IDM_FILE_RESTART_ADMIN:
-                    on_file_edit_restart(hwnd);
+                    on_file_edit_restart(hwnd, true);
                     break;
                 case IDM_FILE_PAGESETUP:
                     on_print_setup(g_hwndmain);
@@ -1093,13 +1147,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FILE_EXPLORER:
-                    if (pnode && *pnode->pathname && !pnode->is_blank)
+                    if (pnode && *pnode->pathname && !pnode->is_blank && !url_has_remote(pnode->pathfile))
                     {
-                        HANDLE handle = eu_new_process(_T("explorer.exe"), pnode->pathname, NULL, 0, NULL);
-                        if (handle)
-                        {
-                            CloseHandle(handle);
-                        }
+                        util_explorer_open(pnode);
                     }
                     break;
                 case IDM_EDIT_DELETELINE:
@@ -1433,6 +1483,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         on_hyper_clear_style();
                     }
+                    break;
+                }
+                case IDM_SKYLAR_AUTOMATIC_UPDATE:
+                {
+                    eu_get_config()->upgrade.enable ^= true;
                     break;
                 }
                 case IDM_VIEW_WRAPLINE_MODE:

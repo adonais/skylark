@@ -391,6 +391,8 @@ BEGIN
             MENUITEM "DirectWrite",                             IDM_SET_RENDER_TECH_D2D
             MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
         END
+        MENUITEM MF_SEPARATOR
+        MENUITEM "启用自动更新(&U)",                            IDM_SKYLAR_AUTOMATIC_UPDATE
     END
     POPUP "帮助(&H)"
     BEGIN
@@ -468,6 +470,8 @@ BEGIN
         MENUITEM "生成MD5到剪贴板",                             IDM_FILE_MD5_CLIP
         MENUITEM "生成SHA1到到剪贴板",                          IDM_FILE_SHA1_CLIP
         MENUITEM "生成SHA256到到剪贴板",                        IDM_FILE_SHA256_CLIP
+        MENUITEM SEPARATOR
+        MENUITEM "图片转base64到编辑器",                        IDM_PIC_CONVERT_BASE64
     END
 END
 
@@ -509,6 +513,15 @@ BEGIN
     POPUP "0"
     BEGIN
         MENUITEM "查询字段",                                    IDM_SELECT_ROW_SYMBOLTREE
+    END
+END
+
+IDR_QTABLE_VIEW_POPUPMENU MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "复制行(&L)",                                  IDM_QTABLE_LINE_COPY
+        MENUITEM "复制单元格(&C)",                              IDM_QTABLE_CELL_COPY
     END
 END
 
@@ -842,7 +855,7 @@ BEGIN
     LTEXT           "项目地址:", IDC_STATIC_URL_CAPTION, 33, 66, 36, 9, NOT WS_GROUP
     LTEXT           "https://github.com/adonais", IDC_STATIC_URL_UR, 71, 66, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
     LTEXT           "版本状态:", IDC_STATIC_VER, 33, 79, 36, 9, NOT WS_GROUP
-    LTEXT           "正在检测 ...", IDC_STATIC_URL_HOMEPAGE, 71, 79, 88, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
+    LTEXT           "正在检测 ...", IDC_STATIC_URL_HOMEPAGE, 71, 79, 148, 9, SS_NOTIFY | NOT WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_ABOUT, 5, 93, 233, 104, ES_MULTILINE | ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
     DEFPUSHBUTTON   "确定(&O)", IDOK, 97, 203, 50, 14
     PUSHBUTTON      "复制信息(&C)", IDC_BUTTON_COPY, 178, 203, 60, 14
@@ -1071,7 +1084,6 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_REGIST_ERR34    "不能在注册表删除项 Drive\\shell\\skylark "
     IDC_MSG_REGIST_ERR35    "不能在注册表删除项 Drive\\shell\\skylark2 "
     IDC_MSG_REGIST_ERR36    "不能在注册表删除项 Drive\\shell\\skylark2 "
-    IDC_MSG_REGIST_ERR37    "在资源管理器卸载右键弹出菜单成功"
     IDC_MSG_JUST_HELP       "即时帮助"
     IDC_MSG_HELP_INF1       "使用快捷键 'Ctrl+鼠标点选' 进行多个位置选择, 支持多行的输入,删除,复制等操作"
     IDC_MSG_EXEC_ERR1       "进程启动失败, 请检测进程路径是否正确!"
@@ -1147,23 +1159,26 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SEARCH_ERR2     "请输入行号: "
     IDC_MSG_SEARCH_ERR3     "没有匹配的行"
     IDC_MSG_SEARCH_ERR4     "只支持处理当前文件"
-    IDC_MSG_SEARCH_ERR5     "搜到底了, 在 %d 个文件中, 共获得 %d 条结果"
-    IDC_MSG_SEARCH_ERR6     "搜到顶了, 在 %d 个文件中, 共获得 %d 条结果"
-    IDC_MSG_SEARCH_ERR7     "搜索完成, 共 %d 个文件匹配, 共获得 %d 条结果"
-    IDC_MSG_SEARCH_ERR8     "搜索完成, 在 %d 个文件中, %d 条结果, 没有匹配的字符串"
-    IDC_MSG_SEARCH_ERR9     "到底了, 在 %d 个文件中, 本次替换 %d 条字符串"
-    IDC_MSG_SEARCH_ERR10    "%d 个文件匹配, 共获得 %d 条结果, 但在指定范围内没有替换字符串"
-    IDC_MSG_SEARCH_ERR11    "在 %d 个文件中, %d 条结果, 没找到需要替换的字符串"
-    IDC_MSG_SEARCH_ERR12    "替换完成, %d 个文件匹配, 替换了 %d 条字符串"
+    IDC_MSG_SEARCH_ERR5     "匹配的字符串，位置 (行：%I64d，列：%I64d)"
+    IDC_MSG_SEARCH_ERR6     "搜索完成, 没找到匹配的字符串"
+    IDC_MSG_SEARCH_TOP      "已经搜到顶部了！"
+    IDC_MSG_SEARCH_BOTTOM   "已经搜到底部了！"
+    IDC_MSG_REPLACE_NONE    "本次没有字符串被替换！"
+    IDC_MSG_REPLACE_ONECE   "本次替换了一个字符串！"
+    IDC_MSG_SEARCH_ERR9     "替换完成, %I64d 个文件匹配, 替换了 %I64d 条字符串"
+    IDC_MSG_SEARCH_ERR10    "在 %I64d 个文件中, 没找到需要替换的字符串"
+    IDC_MSG_SEARCH_ERR11    "在当前文件中, 共替换 %I64d 条字符串"
+    IDC_MSG_SEARCH_ERR12    "在当前文件中, 没找到需要替换的字符串"
     IDC_MSG_SEARCH_ERR13    "不支持在远程目录搜索"
-    IDC_MSG_SEARCH_ERR14    "搜索完成, 在 %d 个文件的当前范围内, 共获得 %d 条结果"
-    IDC_MSG_SEARCH_ERR15    "要搜索的16进制子串不能是单数"
+    IDC_MSG_SEARCH_ERR14    "搜索完成, 在 %I64d 个文件的当前范围内, 共获得 %I64d 条结果"
+    IDC_MSG_SEARCH_ERR15    "在所有搜索范围内, 没找到匹配的字符串"
+    IDC_MSG_HEX_BYTE        "要搜索的16进制子串不能是单数"
     IDC_MSG_SEARCH_STR1     "提示: 正则表达式请使用perl正则语法"
-    IDC_MSG_SEARCH_STR2     "%s|%s|(%d 次匹配)"
+    IDC_MSG_SEARCH_STR2     "%s|%s|(%I64d 次匹配)"
     IDC_MSG_SEARCH_STR3     "正在初始化引擎,不要关闭窗口......"
-    IDC_MSG_SEARCH_STR4     "搜索完成, %zu 个文件匹配, 共 %zu 条结果"
+    IDC_MSG_SEARCH_STR4     "搜索完成, %I64d 个文件匹配, 共获得 %I64d 条结果"
     IDC_MSG_SEARCH_STR5     "输入地址偏移量(Hex):"
-    IDC_SEARCH_BTN_ON       "查找全部"
+    IDC_SEARCH_BTN_ON       "开始搜索"
     IDC_SEARCH_BTN_OFF      "停止搜索"
     IDS_PRINT_HEADER        "文件名，当前日期和时间|文件名，当前日期|文件名|留空"
     IDS_PRINT_FOOTER        "页码|留空"
@@ -1195,6 +1210,8 @@ STRINGTABLE DISCARDABLE
     IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
+    IDS_RESULT_STR_TIPS     "匹配数量已经超过 131071 次, 如果继续搜索, 将耗费大量时间, 是否终止?\n"
+    IDS_RESULT_STR_WARN     "» » 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配超过%d次, 将不展示超出的匹配项)\n"
     IDS_RESULT_STRINGS1     "» » 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配%d次)\n"
     IDS_RESULT_STRINGS2     "行 %*zd: %s"
     IDS_HELP_COMMAND        "用法 :\n\nskylark [--help] [-noremote] [-regfile] [-regfolder] [file_path] \n\n--help  : 显示此帮助信息\n-noremote  : 打开另一个Skylark实例\n-regfile  : 注册或卸载文件右键菜单\n-regfolder : 注册或卸载目录右键菜单\n-nXX : 打开文件时滚动到指定行\n-cXX : 打开文件时滚动到指定列\n-hex : 以16进制模式打开文本文件\n-lua : 运行后面参数里的Lua脚本文件\n-lua -b : 转换Lua脚本为字节码文件"
@@ -1206,6 +1223,10 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_DEC       "已是最新版☑"
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
+    IDS_CHECK_VER_BREAK     "下载失败, 服务端不可用!"
+    IDS_CHECK_VER_PROGRESS  "正在下载更新, 请稍后..."
+    IDS_CHECK_VER_UNKOWN    "服务端暂时没有可用更新包!"
+    IDS_CHECK_VER_COMPLETED "更新包下载完毕, 重启以应用更新 ʡ"
     IDS_SNIPPETS_STR        "☑代码片段补全模式"
     IDS_TABPAGE_CLOSE_NUM   "关闭 %d 个标签页(&C)"
     IDS_BUTTON_ROUTE_TIPS   "文件存储在服务端, 不能改变其读写属性"
@@ -1213,6 +1234,8 @@ STRINGTABLE DISCARDABLE
     IDS_PLUGINS_MSG1        "正在用SumatraPDF打开文件..."
     IDS_LOCALE_SWITCH_TIP   "外部窗口可能正在工作, 切换语言时将销毁其窗口\n需要继续吗?"
     IDS_UPGRADE_FINISH_TIP  "下载完成! 更新将在下次启动时应用. \n我希望你感到满意^_^"
+    IDS_UPGRADE_TETILE_STR  "Skylark 更新"
+    IDS_UPGRADE_CONTENT_STR "正在安装更新，将于稍后启动…"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1244,7 +1267,6 @@ BEGIN
   CONTROL "▼ 查找下一个",IDC_SEARCH_NEXT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,20,90,13
   CONTROL "显示详情",IDC_SEARCH_COUNT_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,36,90,13
   CONTROL "查找全部",IDC_SEARCH_ALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,54,90,13
-  CONTROL "关闭",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,182,90,13
   CONTROL "替换",IDC_SEARCH_RE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
   CONTROL "全部替换",IDC_SEARCH_REALL_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,90,90,13
   CONTROL "选区替换",IDC_SEARCH_SELRE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|WS_TABSTOP,282,72,90,13
@@ -1258,8 +1280,9 @@ BEGIN
   CONTROL "",IDC_SEARCH_FOUNDLIST,"ListBox",WS_CHILDWINDOW|LBS_NOINTEGRALHEIGHT|WS_VSCROLL|WS_HSCROLL|WS_TABSTOP|LBS_NOTIFY|LBS_USETABSTOPS|LBS_HASSTRINGS,120,69,252,132,WS_EX_CLIENTEDGE
   CONTROL "搜索字符串",IDC_SEARCH_HEX_STRINGS,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,12,108,100,15
   CONTROL "",IDC_SEARCH_HEX_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,40,248,44
-  CONTROL "",IDC_SEARCH_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,201,300,12
+  CONTROL "",IDC_SEARCH_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP,12,201,268,12
   CONTROL "❓",IDC_REGXP_TIPS_STC,"Static",WS_CHILDWINDOW|WS_VISIBLE|WS_GROUP|SS_NOTIFY,264,201,12,12
+  CONTROL "关闭",IDC_SEARCH_CLOSE_BTN,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,282,201,90,13
 END
 
 

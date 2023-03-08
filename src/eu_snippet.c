@@ -28,7 +28,7 @@ on_snippet_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 static LRESULT CALLBACK
-on_snippet_edt_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
+on_snippet_edt_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dw)
 {
     switch(msg)
     {
@@ -54,7 +54,7 @@ on_snippet_edt_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, 
 }
 
 static LRESULT CALLBACK
-on_snippet_cmb_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
+on_snippet_cmb_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dw)
 {
     switch(msg)
     {

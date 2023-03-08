@@ -20,6 +20,8 @@
 
 #define SQL_EXECUTE_FAIL(p) free(p); return 1
 
+static volatile long last_hot_item = -1;
+
 typedef struct _column_t
 {
     char data[4000 + 1];
@@ -52,7 +54,7 @@ on_table_draw_header(HWND hwnd)
                     rcf.bottom += 1;
                     rcf.right += 1;
                 }
-                FrameRect(hdc_src, &rcf, GetSysColorBrush(COLOR_3DDKSHADOW));                        
+                FrameRect(hdc_src, &rcf, GetSysColorBrush(COLOR_3DDKSHADOW));
             }
         }
         ReleaseDC(hdr, hdc_src);
@@ -84,7 +86,7 @@ on_table_update_theme(eu_tabpage *pnode)
 }
 
 static LRESULT CALLBACK
-on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dwRefData)
+on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dw)
 {
     switch (msg)
     {
@@ -141,6 +143,101 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
             }
             break;
         }
+        case WM_COMMAND:
+        {
+            uint16_t wid = LOWORD(wp);
+            TCHAR text[LARGER_LEN] = {0};
+            switch (wid)
+            {
+                case IDM_QTABLE_LINE_COPY:
+                {
+                    if (last_hot_item >= 0)
+                    {
+                        int  column_count = (int) SendMessage(ListView_GetHeader(hwnd), HDM_GETITEMCOUNT, 0, 0);
+                        TCHAR *pstr = column_count > 0 ? (TCHAR *)calloc(1, sizeof(TCHAR) * LARGER_LEN * column_count) : NULL;
+                        if (pstr)
+                        {
+                            for (int i = 0; i < column_count; ++i)
+                            {
+                                ListView_GetItemText(hwnd, (int)last_hot_item, i, text, LARGER_LEN);
+                                if (*text)
+                                {
+                                    _tcsncat(pstr, text, LARGER_LEN * column_count - 1);
+                                    if (i < column_count - 1)
+                                    {
+                                        _tcsncat(pstr, _T("\t"), LARGER_LEN * column_count - 1);
+                                    }
+                                }
+                            }
+                            if (*pstr)
+                            {
+                                on_edit_push_clipboard(pstr);
+                            }
+                            free(pstr);
+                        }
+                    }
+                    break;
+                }
+                case IDM_QTABLE_CELL_COPY:
+                {
+                    if (last_hot_item >= 0)
+                    {
+                        int index = ListView_GetSelectedColumn(hwnd);
+                        ListView_GetItemText(hwnd, (int)last_hot_item, index, text, LARGER_LEN);
+                        on_edit_push_clipboard(text);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case WM_RBUTTONDOWN:
+        {
+            POINT pt = {GET_X_LPARAM(lp), pt.y = GET_Y_LPARAM(lp)};
+            LVHITTESTINFO lvhti = {0};
+            memcpy(&(lvhti.pt), &pt, sizeof(POINT));
+            ListView_HitTest(hwnd, &lvhti);
+            if (lvhti.flags & LVHT_ONITEMLABEL)
+            {
+                RECT rc;
+                int col = - 1;
+                int hpos = GetScrollPos(hwnd, SB_HORZ);
+                HWND hdr = ListView_GetHeader(hwnd);
+                int column_count = (int) SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
+                for (int i = 0; i < column_count; ++i)
+                {
+                    if (!i)
+                    {
+                        ListView_GetItemRect(hwnd, lvhti.iItem, &rc, LVIR_LABEL);
+                        rc.left -= hpos;
+                        rc.right -= hpos;
+                    }
+                    else
+                    {
+                        RECT rc_header;
+                        Header_GetItemRect(hdr, i, &rc_header);
+                        // 光标相对位置 = 光标位置 - 水平滚动条位置
+                        rc.left = rc_header.left - hpos;
+                        rc.right = rc_header.right - hpos;
+                    }
+                    if (PtInRect(&rc, pt))
+                    {
+                        col = i;
+                        break;
+                    }
+                }
+                // 使当前行成为焦点
+                SendMessage(hwnd, WM_LBUTTONDOWN, 0, lp);
+                _InterlockedExchange(&last_hot_item, (long)lvhti.iItem);
+                // 弹出右键菜单
+                menu_pop_track(hwnd, IDR_QTABLE_VIEW_POPUPMENU, 0, -1, NULL, NULL);
+                ListView_SetSelectedColumn(hwnd, col);
+                return 1;
+            }
+            break;
+        }
         case WM_DPICHANGED:
         {
             SendMessage(hwnd, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
@@ -149,6 +246,7 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
         case WM_NCDESTROY:
         {
             RemoveWindowSubclass(hwnd, on_table_listview_proc, sub_id);
+            _InterlockedExchange(&last_hot_item, -1);
             printf("qrtable listview WM_DESTROY\n");
             break;
         }
@@ -317,7 +415,7 @@ oci_database_cleanup(oci_handle *poci)
 }
 
 void
-eu_close_db_handle(void)
+eu_dbase_release(void)
 {
     eu_close_dll(db_funcs.m_mysql.mysql_dll);
     eu_close_dll(db_funcs.m_oci.oci_dll);

@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 3
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 5
+#define __EU_INFO_VERSION_PATCHLEVEL 6
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -131,6 +131,9 @@
 #define IDR_LBREAK_MENU                       10005
 #define IDR_CODEING_MENU                      10006
 #define IDR_TYPES_MENU                        10007
+#define IDR_QTABLE_VIEW_POPUPMENU             10008
+#define IDM_QTABLE_LINE_COPY                  10009
+#define IDM_QTABLE_CELL_COPY                  10010
 
 #define IDM_UNI_UTF8     10014
 #define IDM_UNI_UTF8B    10015
@@ -602,10 +605,15 @@
 #define IDC_SUPPORTEDEXTS_STATIC         (IDD_REGEXT_BOX + 9)
 #define IDC_REGISTEREDEXTS_STATIC        (IDD_REGEXT_BOX + 10)
 
+#define IDS_CHECK_VER_BREAK             31090
+#define IDS_CHECK_VER_PROGRESS          31091
+#define IDS_CHECK_VER_UNKOWN            31092
+#define IDS_CHECK_VER_COMPLETED         31093
 #define IDS_SNIPPETS_STR                31094
 #define IDS_CHECK_VER_ERR               31095
 #define IDS_CHECK_VER_DEC               31096
 #define IDS_CHECK_VER_NEW               31097
+
 #define IDC_STATIC_VER                  31098
 #define IDC_STATIC_URL_HOMEPAGE         31099
 #define IDC_STATIC_URL_CAPTION          31100
@@ -711,7 +719,6 @@
 #define IDC_MSG_REGIST_ERR34                40152
 #define IDC_MSG_REGIST_ERR35                40153
 #define IDC_MSG_REGIST_ERR36                40154
-#define IDC_MSG_REGIST_ERR37                40155
 #define IDC_MSG_JUST_HELP                   40156
 #define IDC_MSG_HELP_INF1                   40157
 #define IDC_MSG_HELP_INF2                   40158
@@ -810,6 +817,11 @@
 #define IDC_MSG_SEARCH_STR4                 40251
 #define IDC_MSG_SEARCH_STR5                 40252
 #define IDC_MSG_DO_READONLY                 40253
+#define IDC_MSG_HEX_BYTE                    40254
+#define IDC_MSG_SEARCH_TOP                  40255
+#define IDC_MSG_SEARCH_BOTTOM               40256
+#define IDC_MSG_REPLACE_NONE                40257
+#define IDC_MSG_REPLACE_ONECE               40258
 
 #define IDC_SEARCH_BTN_ON                   40300
 #define IDC_SEARCH_BTN_OFF                  40301
@@ -1044,6 +1056,7 @@
 #define IDM_TABPAGE_BAR                     42856
 #define IDM_TABLE_BAR                       42857
 #define IDM_FILE_EXPLORER                   42858
+#define IDM_PIC_CONVERT_BASE64              42859
 
 #define IDS_STATUSBAR_TIPS1                 42860
 #define IDS_STATUSBAR_TIPS2                 42861
@@ -1069,6 +1082,8 @@
 #define IDS_RESULT_STRINGS2                 42890
 #define IDS_EDITOR_PATH                     42891
 #define IDS_EDITOR_BCOMPARE                 42892
+#define IDS_RESULT_STR_WARN                 42893
+#define IDS_RESULT_STR_TIPS                 42894
 
 #define IDM_VIEW_LEFT_TAB                   42990
 #define IDM_VIEW_RIGHT_TAB                  42991
@@ -1131,7 +1146,11 @@
 #define IDM_FORMAT_FULL_HALF                44051
 #define IDM_FORMAT_HALF_FULL                44052
 #define IDM_FORMAT_HYPERLINKHOTSPOTS        44053
-#define IDS_UPGRADE_FINISH_TIP              44054
+#define IDM_SKYLAR_AUTOMATIC_UPDATE         44054
+
+#define IDS_UPGRADE_FINISH_TIP              44060
+#define IDS_UPGRADE_TETILE_STR              44061
+#define IDS_UPGRADE_CONTENT_STR             44062
 
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff

@@ -362,7 +362,7 @@ on_format_json_callback(const uint8_t *text, uint8_t **pbuf)
     size_t out = 0;
     size_t length;
     int state = 0;
-    char *output = NULL;
+    uint8_t *output = NULL;
     /* check if pre-conditions are met */
     if (!text || !pbuf)
     {
@@ -373,6 +373,10 @@ on_format_json_callback(const uint8_t *text, uint8_t **pbuf)
     if (*pbuf == NULL)
     {
         return 1;
+    }
+    else
+    {
+        output = *pbuf;
     }
     while (in < length)
     {
@@ -398,7 +402,6 @@ on_format_json_callback(const uint8_t *text, uint8_t **pbuf)
                 }
                 output[out++] = text[in];
                 break;
-
             default:
                 output[out++] = text[in];
         }

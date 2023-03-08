@@ -18,6 +18,7 @@
 
 #include <fcntl.h>
 #include "framework.h"
+#include <tlhelp32.h>
 
 #define TWO_DISM 10
 
@@ -120,6 +121,52 @@ on_file_get_filename_dlg(TCHAR *file_name, int name_len)
     err = !GetSaveFileName(&ofn);
     free(filter);
     return err;
+}
+
+static void
+on_file_kill_tree(const uint32_t self)
+{
+    bool more;
+    volatile int i = 1;
+    static uint32_t edit_pid[MAX_SIZE] = {0};
+    PROCESSENTRY32W pe32 = {sizeof(PROCESSENTRY32W)};
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE)
+    {
+        printf("CreateToolhelp32Snapshot (of processes) error %lu\n", GetLastError());
+        return;
+    }
+    edit_pid[0] = self;
+    more = Process32FirstW(snapshot,&pe32);
+    while (more)
+    {
+        if (pe32.th32ParentProcessID > 4 && pe32.th32ProcessID != self && (wcscmp(__ORIGINAL_NAME, (LPCWSTR)pe32.szExeFile) == 0))
+        {
+            edit_pid[i++] = pe32.th32ProcessID;
+            if (i >= MAX_SIZE)
+            {
+                break;
+            }
+        }
+        more = Process32NextW(snapshot,&pe32);
+    }
+    CloseHandle(snapshot);
+    if (edit_pid[1] > 0)
+    {
+        for (int i = 0; i < MAX_SIZE && edit_pid[i] > 0 ; ++i)
+        {
+            if (edit_pid[i] != edit_pid[0])
+            {
+                HANDLE handle = OpenProcess(PROCESS_TERMINATE, false, edit_pid[i]);
+                if (handle)
+                {
+                    TerminateProcess(handle, (DWORD)-1);
+                    CloseHandle(handle);
+                    edit_pid[i] = 0;
+                }
+            }
+        }
+    }
 }
 
 void
@@ -2182,17 +2229,19 @@ on_file_edit_exit(HWND hwnd)
 }
 
 void
-on_file_edit_restart(HWND hwnd)
+on_file_edit_restart(HWND hwnd, const bool admin)
 {
     HANDLE handle = NULL;
     TCHAR process[MAX_PATH +1] = {0};
     if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
     {
         int len = 0;
+        uint32_t pid = GetCurrentProcessId();
         _tcsncat(process, _T(" -restart "), MAX_PATH);
         len = (int)_tcslen(process);
-        _sntprintf(process + len, MAX_PATH - len, _T("%lu"), GetCurrentProcessId());
-        if (on_reg_admin())
+        _sntprintf(process + len, MAX_PATH - len, _T("%lu"), pid);
+        on_file_kill_tree(pid);
+        if (!admin || on_reg_admin())
         {
             on_file_edit_exit(hwnd);
             CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));

@@ -58,9 +58,9 @@
 #endif
 
 #if defined(__cplusplus)
-#define FALLTHRU_ATTR		[[fallthrough]]
+#define FALLTHRU_ATTR        [[fallthrough]]
 #elif (defined(__GNUC__) && __GNUC__ >= 7) || (defined(__clang__) && __clang_major__ >= 10)
-#define FALLTHRU_ATTR		__attribute__((fallthrough))
+#define FALLTHRU_ATTR        __attribute__((fallthrough))
 #else
 #define FALLTHRU_ATTR
 #endif
@@ -142,6 +142,9 @@
 #define WM_SKYLARK_DESC           (WM_USER+10005)
 #define WM_TAB_NCCLICK            (WM_USER+10006)
 #define WM_ABOUT_RE               (WM_USER+10007)
+// Upcheck message
+#define WM_UPCHECK_LAST           (WM_USER+10010)
+#define WM_UPCHECK_STATUS         (WM_USER+10011)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
@@ -255,6 +258,7 @@ enum
 typedef enum _UPDATE_STATUS
 {
     VERSION_LATEST = 0,
+    VERSION_UPCHECK_ERR,
     VERSION_UPDATE_REQUIRED,
     VERSION_UPDATE_PROGRESS,
     VERSION_UPDATE_BREAK,
@@ -478,6 +482,16 @@ typedef void (*eu_des_ede3_cbc_encrypt)(const unsigned char *input, unsigned cha
                                         long length,
                                         DES_key_schedule *ks1, DES_key_schedule *ks2,
                                         DES_key_schedule *ks3, DES_cblock *ivec, int enc);
+typedef BIO* (*eu_bio_new)(const BIO_METHOD *type);
+typedef const BIO_METHOD* (*eu_bio_f_base64)(void);
+typedef const BIO_METHOD* (*eu_bio_s_mem)(void);
+typedef void (*eu_bio_set_flags)(BIO *b, int flags);
+typedef BIO* (*eu_bio_push)(BIO *b, BIO *append);
+typedef BIO* (*eu_bio_pop)(BIO *b);
+typedef void (*eu_bio_free_all)(BIO *a);
+typedef int (*eu_bio_write)(BIO *b, const void *data, int dlen);
+typedef int (*eu_bio_test_flags)(const BIO *b, int flags);
+typedef long (*eu_bio_ctrl)(BIO *bp, int cmd, long larg, void *parg);
 
 // eu_sql.c
 EU_EXT_CLASS int eu_sqlite3_open(const char *filename, sqlite3 **ppdb);
@@ -529,18 +543,16 @@ EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
 EU_EXT_CLASS struct eu_config *eu_get_config(void);
 EU_EXT_CLASS eue_accel *eu_get_accel(void);
 EU_EXT_CLASS eue_toolbar *eu_get_toolbar(void);
+EU_EXT_CLASS void eu_lua_release(void);
 
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
 EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
 EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reverse, intptr_t *pret);
-EU_EXT_CLASS TCHAR *eu_process_path(TCHAR *path, const int len);
+EU_EXT_CLASS TCHAR *eu_process_path(void);
 EU_EXT_CLASS void eu_save_config(void);
 EU_EXT_CLASS void eu_save_theme(void);
-EU_EXT_CLASS void eu_free_theme(void);
-EU_EXT_CLASS void eu_free_accel(void);
-EU_EXT_CLASS void eu_free_toolbar(void);
 EU_EXT_CLASS bool eu_init_calltip_tree(doctype_t *root, const char *key, const char *val);
 EU_EXT_CLASS const char *eu_query_calltip_tree(root_t *root, const char *key);
 EU_EXT_CLASS void eu_print_calltip_tree(root_t *root);
@@ -549,7 +561,6 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
-EU_EXT_CLASS void eu_set_upgrade_info(UPDATE_STATUS flags, uint64_t last_time);
 
 // for pcre
 EU_EXT_CLASS pcre_conainer *eu_pcre_init(const char *buf, size_t len, const char *pattern, const char *named_substring, int opt);
@@ -570,18 +581,17 @@ EU_EXT_CLASS iconv_t eu_iconv_open(const char* tocode, const char* fromcode);
 EU_EXT_CLASS size_t eu_iconv(iconv_t cd, char** inbuf, size_t *inbytesleft, char** outbuf, size_t *outbytesleft);
 EU_EXT_CLASS int eu_iconv_close(iconv_t cd);
 
-// for curl
-extern EU_EXT_CLASS ptr_curl_easy_strerror eu_curl_easy_strerror;
-extern EU_EXT_CLASS ptr_curl_easy_setopt eu_curl_easy_setopt;
-extern EU_EXT_CLASS ptr_curl_easy_perform eu_curl_easy_perform;
-extern EU_EXT_CLASS ptr_curl_easy_getinfo eu_curl_easy_getinfo;
-extern EU_EXT_CLASS ptr_curl_slist_append eu_curl_slist_append;
-extern EU_EXT_CLASS ptr_curl_slist_free_all eu_curl_slist_free_all;
-
-EU_EXT_CLASS int eu_curl_init_global(long flags);
-EU_EXT_CLASS CURL* eu_curl_easy_init(void);
-EU_EXT_CLASS void eu_curl_global_release(void);
-EU_EXT_CLASS void eu_curl_easy_cleanup(CURL *);
+// for curl, don't export
+extern ptr_curl_easy_strerror eu_curl_easy_strerror;
+extern ptr_curl_easy_setopt eu_curl_easy_setopt;
+extern ptr_curl_easy_perform eu_curl_easy_perform;
+extern ptr_curl_easy_getinfo eu_curl_easy_getinfo;
+extern ptr_curl_slist_append eu_curl_slist_append;
+extern ptr_curl_slist_free_all eu_curl_slist_free_all;
+extern int eu_curl_global_init(long flags);
+extern void eu_curl_global_cleanup(void);
+extern CURL* eu_curl_easy_init(void);
+extern void eu_curl_easy_cleanup(CURL *);
 
 // for eu_changes.c
 EU_EXT_CLASS int eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
@@ -645,10 +655,10 @@ EU_EXT_CLASS bool eu_load_main_config(void);
 EU_EXT_CLASS bool eu_load_accel_config(void);
 EU_EXT_CLASS bool eu_load_toolbar_config(void);
 EU_EXT_CLASS bool eu_load_docs_config(void);
+EU_EXT_CLASS bool eu_load_file(void);
 EU_EXT_CLASS bool eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
-EU_EXT_CLASS void eu_load_file(void);
-EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
 EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, wchar_t *path);
+EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
 
 // for eu_script.c
 EU_EXT_CLASS int eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
@@ -672,14 +682,13 @@ EU_EXT_CLASS bool eu_gui_app(void);
 EU_EXT_CLASS int  eu_prepend_path(const TCHAR *dir);
 
 // for eu_tablectl.c
-EU_EXT_CLASS void eu_close_db_handle(void);
+EU_EXT_CLASS void eu_dbase_release(void);
 
 // for eu_hyperlink.c
 EU_EXT_CLASS int eu_hyperlink_detection(eu_tabpage *pnode);
 
 // for eu_doctype.c
 EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);
-EU_EXT_CLASS void eu_doc_ptr_free(void);
 
 /* lua 脚本调用接口 */
 EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);

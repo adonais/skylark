@@ -20,11 +20,16 @@
 #include "eu_nphost.h"
 
 extern TCHAR eu_module_path[MAX_PATH+1];
+extern TCHAR *eu_process_path(void);
 
 HMODULE
 np_load_plugin_library(const TCHAR *filename)
 {
-    if (filename && *filename)
+    if (!eu_module_path[0])
+    {
+        eu_process_path();
+    }
+    if (*eu_module_path && filename && *filename)
     {
         TCHAR dll[MAX_PATH + 1] = {0};
         int n = _sntprintf(dll, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, filename);

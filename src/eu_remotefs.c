@@ -303,7 +303,7 @@ on_remotefs_draw_combo(HWND hwnd, const HDC hdc, RECT rc)
 }
 
 static LRESULT CALLBACK
-remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dwRefData)
+remotefs_combox_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR sub_id, DWORD_PTR dw)
 {
     switch(msg)
     {

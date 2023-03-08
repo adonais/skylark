@@ -988,7 +988,7 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_FILE_CLOSE, 2);
             on_toolbar_setup_button(IDM_FILE_PRINT, 2);
             on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod);
             on_toolbar_setup_button(IDM_EDIT_PASTE, !pnode->pmod && eu_sci_call(pnode, SCI_CANPASTE, 0, 0) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FIND, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDPREV, !pnode->pmod ? 2 : 1);

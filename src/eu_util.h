@@ -58,6 +58,9 @@ extern "C"
 HMODULE util_ssl_open_symbol(char *s[], int n, uintptr_t *pointer);
 void util_ssl_close_symbol(HMODULE *pssl);
 
+void util_lock(volatile long *gcs);
+void util_unlock(volatile long *gcs);
+
 int util_aes_enc(unsigned char *dec, unsigned char *enc, int len);
 int util_aes_dec(unsigned char *enc, unsigned char *dec, int len);
 int util_enc_des_ecb_192(unsigned char *key_192bits, unsigned char *decrypt, long decrypt_len, unsigned char *encrypt, long *encrypt_len);
@@ -65,9 +68,10 @@ int util_dec_des_ecb_192(unsigned char *key_192bits, unsigned char *encrypt, lon
 int util_enc_des_cbc_192(unsigned char *key_192bits, unsigned char *decrypt, long decrypt_len, unsigned char *encrypt, long *encrypt_len, unsigned char *init_vector);
 int util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, long encrypt_len, unsigned char *decrypt, long *decrypt_len, unsigned char *init_vector);
 
-int util_file_md5(const TCHAR *path, TCHAR *out, int out_len);
-int util_file_sha1(const TCHAR *path, TCHAR *out, int out_len);
-int util_file_sha256(const TCHAR *path, TCHAR *out, int out_len);
+int util_file_md5(const TCHAR *path, TCHAR **pout);
+int util_file_sha1(const TCHAR *path, TCHAR **pout);
+int util_file_sha256(const TCHAR *path, TCHAR **pout);
+int util_file_base64(const TCHAR *path, char **pout);
 
 int util_hex_expand(char *hex_buf, int hex_len, char *asc_buf);
 int util_hex_fold(char *asc_buf, int asc_len, char *hex_buf);
@@ -106,6 +110,7 @@ bool   util_file_size(HANDLE hfile, uint64_t *psize);
 bool   util_open_file(LPCTSTR path, pf_stream pstream);
 bool   util_delete_file(LPCTSTR filepath);
 bool   util_exist_libcurl(void);
+bool   util_upcheck_exist(void);
 time_t util_last_time(const TCHAR *path);
 uint64_t util_gen_tstamp(void);
 void util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t last_id, uint32_t select);
@@ -132,9 +137,12 @@ int util_split(const char *pstr, char (*pout)[QW_SIZE], char ch);
 int util_strim_end(char *pstr, int len);
 void  util_transparent(HWND hwnd, int percent);
 void  util_untransparent(HWND hwnd);
+void  util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py);
+void  util_explorer_open(eu_tabpage *pnode);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);
+const TCHAR* util_path_ext(const TCHAR *path);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
 
 #ifdef __cplusplus
