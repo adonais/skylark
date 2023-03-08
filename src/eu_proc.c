@@ -20,6 +20,7 @@
 #define EU_TIMER_ID 1
 #define EU_UPTIMES 600
 #define MAYBE100MS 100
+#define ERROR_CALLBACK_ABORT 0x3e80
 
 typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
@@ -69,6 +70,7 @@ enum_skylark_proc(HWND hwnd, LPARAM lParam)
                 {
                     printf("we get other hwnd = %p\n", (void *)hwnd);
                     share_envent_set_hwnd(hwnd);
+                    SetLastError(ERROR_CALLBACK_ABORT);
                     return 0;
                 }
             }
@@ -105,7 +107,13 @@ on_destory_window(HWND hwnd)
     }
     if (g_hwndmain == share_envent_get_hwnd())
     {
-        EnumWindows(enum_skylark_proc, 0);
+        if (!EnumWindows(enum_skylark_proc, 0) && GetLastError() == ERROR_CALLBACK_ABORT)
+        {
+            if (eu_get_config()->upgrade.flags == VERSION_UPDATE_COMPLETED)
+            {
+                SendMessage(share_envent_get_hwnd(), WM_UPCHECK_STATUS, VERSION_UPDATE_COMPLETED, 0);
+            }
+        }
     }
     // 文件关闭,销毁信号量
     on_file_finish_wait();

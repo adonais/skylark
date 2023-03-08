@@ -306,10 +306,11 @@ on_update_do(void)
     int arg_c = 0;
     bool ret = false;
     WCHAR wcmd[LARGER_LEN] = {0};
+    WCHAR self[MAX_PATH] = {0};
     WCHAR conf_path[MAX_PATH] = {0};
     WCHAR *param = NULL;
     WCHAR **ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
-    if (ptr_arg)
+    if (ptr_arg && GetModuleFileNameW(NULL, self, MAX_PATH - 1) > 0)
     {
         HANDLE handle = NULL;
         param = arg_c > 1 ? (WCHAR *)calloc(sizeof(WCHAR), MAX_PATH * (arg_c - 1)) : NULL;
@@ -334,7 +335,7 @@ on_update_do(void)
         }
         _snwprintf(conf_path, MAX_PATH - 1, L"%s\\conf\\cache", eu_module_path);
         _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -k %lu -e \"%s\" -s \"%s\" -u 1 -param \"%s\"",
-                   eu_module_path, UPDATE_EXE, GetCurrentProcessId(), conf_path, ptr_arg[0], param ? param : _T(""));
+                   eu_module_path, UPDATE_EXE, GetCurrentProcessId(), conf_path, self, param ? param : _T(""));
         LocalFree(ptr_arg);
         eu_safe_free(param);
         if ((handle = eu_new_process(wcmd, NULL, NULL, 0, NULL)))
@@ -377,18 +378,26 @@ on_update_thread_wait(void)
 void
 on_update_check(const int ident)
 {
-    if (!_InterlockedCompareExchange(&g_upcheck_id, 1, 0))
+    HWND hwnd = eu_hwnd_self();
+    if (hwnd == share_envent_get_hwnd())
     {
-        unsigned id = 0;
-        HANDLE handle = ((HANDLE)_beginthreadex(NULL, 0, on_update_send_request, (void *)(intptr_t)ident, 0, (unsigned *)&id));
-        if (handle)
+        if (!_InterlockedCompareExchange(&g_upcheck_id, 1, 0))
         {
-            CloseHandle(handle);
-            _InterlockedExchange(&g_upcheck_id, (long)id);
+            unsigned id = 0;
+            HANDLE handle = ((HANDLE)_beginthreadex(NULL, 0, on_update_send_request, (void *)(intptr_t)ident, 0, (unsigned *)&id));
+            if (handle)
+            {
+                CloseHandle(handle);
+                _InterlockedExchange(&g_upcheck_id, (long)id);
+            }
+            else
+            {
+                _InterlockedExchange(&g_upcheck_id, 0);
+            }
         }
-        else
-        {
-            _InterlockedExchange(&g_upcheck_id, 0);
-        }
+    }
+    else
+    {
+        SendMessage(hwnd, WM_UPCHECK_STATUS, -1, 0);
     }
 }

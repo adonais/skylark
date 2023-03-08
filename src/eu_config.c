@@ -487,14 +487,24 @@ on_config_skyver_callbak(void *data, int count, char **column, char **names)
 bool
 eu_load_file(void)
 {
-    int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
-    if (err == SQLITE_ABORT)
+    HWND hwnd = eu_hwnd_self();
+    HWND share = share_envent_get_hwnd();
+    if (hwnd == share)
     {
-        if (on_update_do())
+        int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
+        if (err == SQLITE_ABORT)
         {
-            on_update_sql();
-            eu_save_config();
-            return false;
+            _tputenv(_T("OPEN_FROM_SQL="));
+            if (on_update_do())
+            {
+                on_update_sql();
+                eu_save_config();
+                return false;
+            }
+            else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
+            {
+                on_update_sql();
+            }
         }
     }
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
