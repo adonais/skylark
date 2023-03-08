@@ -1231,7 +1231,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_repalce_event(pnode, HALF_FULL);
                     break;
                 case IDM_EDIT_AUTO_CLOSECHAR:
-                    on_code_close_char();
+                    eu_get_config()->eu_brace.autoc ^= true;
                     break;
                 case IDM_EDIT_AUTO_INDENTATION:
                     on_view_identation();
@@ -1592,13 +1592,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_SOURCEE_ENABLE_ACSHOW:
-                    on_code_block_complete();
+                    eu_get_config()->eu_complete.enable ^= true;
                     break;
                 case IDM_SOURCEE_ACSHOW_CHARS:
                     on_code_set_complete_chars(pnode);
                     break;
                 case IDM_SOURCE_ENABLE_CTSHOW:
-                    on_code_block_calltip();
+                    eu_get_config()->eu_calltip.enable ^= true;
                     break;
                 case IDM_VIEW_FONTQUALITY_NONE:
                 case IDM_VIEW_FONTQUALITY_STANDARD:

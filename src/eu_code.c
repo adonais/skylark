@@ -189,32 +189,6 @@ on_code_block_expand_all(eu_tabpage *pnode)
 }
 
 void
-on_code_block_complete(void)
-{
-    HMENU hmenu = NULL;
-    HWND hwnd = eu_module_hwnd();
-    hmenu = hwnd ? GetMenu(hwnd) : NULL;
-    if (hmenu)
-    {
-        uint32_t state = GetMenuState(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, MF_BYCOMMAND);
-        if (state == -1)
-        {
-            return;
-        }
-        else if (state == MF_CHECKED)
-        {
-            util_set_menu_item(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, false);
-            eu_get_config()->eu_complete.enable = false;
-        }
-        else
-        {
-            util_set_menu_item(hmenu, IDM_SOURCEE_ENABLE_ACSHOW, true);
-            eu_get_config()->eu_complete.enable = true;
-        }
-    }
-}
-
-void
 on_code_set_complete_chars(eu_tabpage *pnode)
 {
     TCHAR input_chars[3] = {0};
@@ -226,32 +200,6 @@ on_code_set_complete_chars(eu_tabpage *pnode)
         {
             eu_get_config()->eu_complete.characters = _tstoi(input_chars);
             on_toolbar_update_button();
-        }
-    }
-}
-
-void
-on_code_block_calltip(void)
-{
-    HMENU hmenu = NULL;
-    HWND hwnd = eu_module_hwnd();
-    hmenu = hwnd ? GetMenu(hwnd) : NULL;
-    if (hmenu)
-    {
-        uint32_t state = GetMenuState(hmenu, IDM_SOURCE_ENABLE_CTSHOW, MF_BYCOMMAND);
-        if (state == -1)
-        {
-            return;
-        }
-        else if (state == MF_CHECKED)
-        {
-            util_set_menu_item(hmenu, IDM_SOURCE_ENABLE_CTSHOW, false);
-            eu_get_config()->eu_calltip.enable = false;
-        }
-        else
-        {
-            util_set_menu_item(hmenu, IDM_SOURCE_ENABLE_CTSHOW, true);
-            eu_get_config()->eu_calltip.enable = true;
         }
     }
 }
@@ -272,11 +220,4 @@ on_code_insert_config(eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) on_doc_redis_config(dbase_config, MAX_BUFFER, eol_str));
         }
     }
-}
-
-void
-on_code_close_char(void)
-{
-    eu_get_config()->eu_brace.autoc ^= true;
-    on_toolbar_update_button();
 }
