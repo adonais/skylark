@@ -38,29 +38,6 @@ typedef int (*ptr_re_callback)(eu_tabpage *pnode, const char *pstr, int start, i
 
 static int on_complete_pcre_match(eu_tabpage *pnode, const char *pstr, const char *pattern, ptr_re_callback fn);
 static volatile long last_snippet_focus = 0;
-static char *auto_xpm[] = {
-    /* columns rows colors chars-per-pixel */
-    "14 14 3 1 ",
-    "  c None",
-    ". c #407F40",
-    "X c #408040",
-    /* pixels */
-    "              ",
-    "              ",
-    "     XXXXX    ",
-    "    XXXXXX    ",
-    "   XXXX  X    ",
-    "   XXXX       ",
-    "    .XXXX     ",
-    "     XXXXX    ",
-    "       XXXX   ",
-    "   XX   XXX   ",
-    "   XXXXXXX    ",
-    "    XXXX.X    ",
-    "              ",
-    "              "
-};
-
 static inline void
 on_complete_vec_init(complete_t *vec)
 {
@@ -1092,7 +1069,6 @@ on_complete_call_autocshow(eu_tabpage *pnode, const char *word_buffer, const spt
         if (snippet_str)
         {
             flags |= SC_AUTOCOMPLETE_SNIPPET;
-            eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
         }
         eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, flags, 0);
         eu_sci_call(pnode, SCI_AUTOCSHOW, current_pos - start_pos, (sptr_t)key);
@@ -1106,7 +1082,7 @@ on_complete_any_autocshow(eu_tabpage *pnode)
     if (pnode && pnode->doc_ptr && eu_get_config()->eu_complete.enable)
     {
         char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL);
-        if ((key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL)) && key[0])
+        if (STR_NOT_NUL(key))
         {
             eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, SC_AUTOCOMPLETE_FIXED_SIZE, 0);
             eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);

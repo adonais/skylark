@@ -23,6 +23,29 @@ static volatile sptr_t ptr_scintilla = 0;
 static volatile sptr_t last_sci_eusc = 0;
 static volatile sptr_t last_sci_hwnd = 0;
 
+static const char *auto_xpm[] = {
+    /* columns rows colors chars-per-pixel */
+    "14 14 3 1 ",
+    "  c None",
+    ". c #407F40",
+    "X c #408040",
+    /* pixels */
+    "              ",
+    "              ",
+    "     XXXXX    ",
+    "    XXXXXX    ",
+    "   XXXX  X    ",
+    "   XXXX       ",
+    "    .XXXX     ",
+    "     XXXXX    ",
+    "       XXXX   ",
+    "   XX   XXX   ",
+    "   XXXXXXX    ",
+    "    XXXX.X    ",
+    "              ",
+    "              "
+};
+
 void
 on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
 {
@@ -162,6 +185,8 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
     // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
     eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
+    // 注册补全列表图标
+    eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
 }
 
 void
