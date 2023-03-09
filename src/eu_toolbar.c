@@ -952,13 +952,22 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
     if (pnode && eu_get_config())
     {
         HANDLE handle = NULL;
-        TCHAR cmd_exec[MAX_PATH +1] = _T("cmd.exe");
+        TCHAR pcd[MAX_PATH] = {0};
+        TCHAR cmd_exec[MAX_PATH] = _T("cmd.exe");
+        if (pnode->is_blank || url_has_remote(pnode->pathfile))
+        {
+            GetEnvironmentVariable(_T("USERPROFILE"), pcd, MAX_PATH);
+        }
+        else
+        {
+            _tcsncpy(pcd, pnode->pathname, MAX_PATH);
+        }
         if (eu_get_config()->m_path[0])
         {
             *cmd_exec = 0;
             MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
         }
-        if ((handle = eu_new_process(cmd_exec, NULL, pnode->pathname, 2, NULL)) != NULL)
+        if ((handle = eu_new_process(cmd_exec, NULL, pcd, 2, NULL)) != NULL)
         {
             CloseHandle(handle);
         }
