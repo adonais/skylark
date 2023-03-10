@@ -1368,26 +1368,18 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
             on_file_close(pnode, FILE_ONLY_CLOSE);
             break;
-        case 2: // 重载
+        case 2: // 重载, 滚动到末尾行
         {
-            sptr_t max_line;
-            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
             if (on_file_load(pnode, NULL, true))
             {
                 return 1;
             }
-            max_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-            if (current_line > max_line - 1)
-            {
-                current_line = max_line - 1;
-            }
             eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
             eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
             eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
-            on_search_jmp_line(pnode, current_line, 0);
             pnode->st_mtime = util_last_time(pnode->pathfile);
+            SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
             break;
         }
         default:
