@@ -420,7 +420,7 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, size_t nbyte)
 }
 
 static int
-on_file_set_codepage(eu_tabpage *pnode, const HANDLE hfile)
+on_file_set_codepage(eu_tabpage *pnode, const HANDLE hfile, const TCHAR *pfull)
 {
     int check_len = 0;
     int bytesread = 0;
@@ -448,7 +448,7 @@ on_file_set_codepage(eu_tabpage *pnode, const HANDLE hfile)
         }
         else // 如果是utf8编码, 获取换行符, 否则, 等编码转换后再获取换行符
         {
-            pnode->codepage = eu_try_encoding(buf, bytesread, false, NULL);
+            pnode->codepage = eu_try_encoding(buf, bytesread, false, pfull);
             if (pnode->codepage < IDM_UNI_UTF16LE)
             {
                 pnode->eol = on_encoding_line_mode((const char *)buf, bytesread);
@@ -552,7 +552,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
 {
     int err = SKYLARK_OK;
     HANDLE hfile = NULL;
-    TCHAR *pfull = pbak ? pbak->rel_path : NULL;
+    const TCHAR *pfull = (const TCHAR *)(pbak ? pbak->rel_path : NULL);
     if (!pnode || !pbak)
     {
         return EUE_TAB_NULL;
@@ -618,7 +618,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         else
         {
             pnode->phex->hex_ascii = true;
-            err = on_file_set_codepage(pnode, hfile);
+            err = on_file_set_codepage(pnode, hfile, pfull);
         }
         goto pre_clean;
     }
@@ -632,7 +632,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
         on_encoding_set_bom_from_cp(pnode);
         goto pre_clean;
     }
-    if ((err = on_file_set_codepage(pnode, hfile)) == SKYLARK_OK && !TAB_NOT_BIN(pnode))
+    if ((err = on_file_set_codepage(pnode, hfile, pfull)) == SKYLARK_OK && !TAB_NOT_BIN(pnode))
     {   // 不在备份中打开, 测试是否16进制文件?
         pnode->hex_mode = true;
         if (!on_file_map_hex(pnode, hfile, 0))
@@ -1288,7 +1288,7 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
     {
         if (pnode->hex_mode || !pnode->pmod)
         {
-            pnode->codepage = eu_try_encoding(buffer, len, false, NULL);
+            pnode->codepage = eu_try_encoding(buffer, len, false, pnode->filename);
             if (pnode->codepage < IDM_UNI_UTF16LE)
             {
                 pnode->eol = on_encoding_line_mode(buffer, len);
