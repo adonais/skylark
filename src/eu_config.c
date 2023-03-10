@@ -192,11 +192,20 @@ on_config_file_args(void)
     {
         return 1;
     }
-    else if (arg_c >= 2 && eu_config_parser_path(args, arg_c, bak.rel_path))
+    else if (arg_c >= 2)
     {
-        eu_postion_setup(args, arg_c, &bak);
-        share_send_msg(&bak);
-        ret = 0;
+        for (int i = 0; i < arg_c; ++i)
+        {
+            if (eu_config_parser_path(&args[i], arg_c - i, bak.rel_path))
+            {
+                eu_postion_setup(&args[i], arg_c - i, &bak);
+                share_send_msg(&bak);
+                if (ret)
+                {
+                    ret = 0;
+                }
+            }
+        }
     }
     LocalFree(args);
     return ret;
@@ -322,7 +331,7 @@ on_config_load_file(void *lp)
             return 1;
         }
     }
-    printf("open_sql = %ls, err = %d, is_blank = %d\n", open_sql, err, is_blank);
+    printf("open_sql = %d, err = %d, is_blank = %d\n", open_sql ? 1 : 0, err, is_blank);
     if ((open_sql  || on_config_file_args()) && is_blank)
     {   // 没有参数, 也没有缓存文件, 新建空白标签
         file_backup bak = {0};
