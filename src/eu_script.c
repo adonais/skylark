@@ -658,11 +658,6 @@ allclean:
     return status;
 }
 
-// when clang compiles, lua_pcall fails
-#ifdef __clang__
-#pragma clang optimize off
-#endif
-
 static int
 script_process_dir(lua_State *L)
 {
@@ -697,19 +692,19 @@ script_config_dir(lua_State *L)
 }
 
 static int
-script_mkdir(lua_State *L) {
-    size_t sz;
-    const char * utf8path = luaL_checklstring(L, 1, &sz);
-    wchar_t *path = eu_utf8_utf16(utf8path, &sz);
-    if (!CreateDirectoryW(path, NULL))
+script_mkdir(lua_State *L)
+{
+    int ret = 0;
+    size_t sz = 0;
+    const char *utf8path = luaL_checklstring(L, 1, &sz);
+    wchar_t *path = utf8path ? eu_utf8_utf16(utf8path, &sz) : NULL;
+    if (path)
     {
-        printf("lua CreateDirectoryW error\n");
+        ret = CreateDirectoryW(path, NULL);
         free(path);
-        return 2;
     }
-    lua_pushboolean(L, 1);
-    free(path);
-    return 1;
+    lua_pushinteger(L, ret);
+    return ret;
 }
 
 static const struct
@@ -721,7 +716,3 @@ luaopen_euapi(void *L)
     luaL_register(L, "euapi", cb);
     return 0;
 }
-
-#ifdef __clang__
-#pragma clang optimize on
-#endif

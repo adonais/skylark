@@ -41,9 +41,8 @@ CFLAGS   = $(CFLAGS) -arch:SSE2 -DWIN32 -I$(INCD)
 !IF "$(CC)" == "cl"
 LT   = -ltcg
 AR   = lib -nologo
-LD   = link -nologo -guard:cf
+LD   = link -nologo
 CFLAGS   = $(CFLAGS) -nologo -GL -Gw -guard:cf
-DLLFLAGS = -nologo -debug -incremental:no -opt:ref -opt:icf -dll $(LT) -guard:cf
 MAVX2    =
 !IF "$(BITS)" == "64"
 CFLAGS   = $(CFLAGS) -favor:blend
@@ -52,11 +51,10 @@ USE_CL = 1
 !ELSEIF "$(CC)" == "clang-cl"
 LT   =
 AR   = llvm-lib -nologo -llvmlibthin
-LD   = lld-link -nologo -guard:cf
+LD   = lld-link -nologo
 CXX  = clang-cl
 CFLAGS   = -nologo -Gw -flto=thin -guard:cf $(CFLAGS) -Wno-unused-variable -Wno-unused-function -Wno-parentheses-equality \
            -Wno-incompatible-pointer-types -Wno-deprecated-declarations -Wno-unused-value -Wno-empty-body -Wno-unused-but-set-variable
-DLLFLAGS = -nologo -debug -incremental:no -opt:ref -opt:icf -dll -guard:cf
 MAVX2    = -mavx2
 !IF "$(BITS)" == "32"
 CFLAGS   = --target=i686-pc-windows-msvc $(CFLAGS)
@@ -64,6 +62,13 @@ CFLAGS   = --target=i686-pc-windows-msvc $(CFLAGS)
 USE_CLANG = 1
 !ELSE
 !ERROR Unknown compiler
+!ENDIF
+
+LDFLAGS = -debug -incremental:no -guard:cf -opt:ref,icf $(LT)
+DLLFLAGS = -debug -incremental:no -guard:cf -opt:ref,icf $(LT) -dll
+!IF "$(BITS)" == "32"
+LDFLAGS = $(LDFLAGS) -largeaddressaware
+DLLFLAGS = $(DLLFLAGS) -largeaddressaware
 !ENDIF
 
 RFLAGS   = -nologo -D "_UNICODE" -D "UNICODE"

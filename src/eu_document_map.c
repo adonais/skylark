@@ -191,18 +191,18 @@ on_map_draw_static_zone(DRAWITEMSTRUCT *pdis)
 static LRESULT CALLBACK
 on_map_canvas_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	switch (message)
+    switch (message)
     {
-		case WM_DESTROY:
-		{
-			return 1;
-		}
-		case WM_KEYDOWN:
-		{
-		    if (!hwnd_document_map)
-		    {
-		        break;
-		    }
+        case WM_DESTROY:
+        {
+            return 1;
+        }
+        case WM_KEYDOWN:
+        {
+            if (!hwnd_document_map)
+            {
+                break;
+            }
             if (wParam == VK_UP)
             {
                 SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 0);
@@ -219,20 +219,20 @@ on_map_canvas_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
             }
-			break;
+            break;
         }
         case WM_SIZE:
         {
             break;
         }
-		case WM_NOTIFY:
-		{
-		    return 1;
-		}
+        case WM_NOTIFY:
+        {
+            return 1;
+        }
         default :
             break;
     }
-	return canvas_default_proc(hwnd, message, wParam, lParam);
+    return canvas_default_proc(hwnd, message, wParam, lParam);
 }
 
 static intptr_t CALLBACK
@@ -241,17 +241,17 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     switch (msg)
     {
         case WM_INITDIALOG:
-		{
-			HWND hwnd_canvas = GetDlgItem(hwnd, IDC_VIEWZONE_CANVAS);
-			if (NULL != hwnd_canvas)
-			{
-				canvas_default_proc = (WNDPROC)SetWindowLongPtr(hwnd_canvas, GWLP_WNDPROC, (LONG_PTR)on_map_canvas_proc);
-				BringWindowToTop(hwnd);
-				util_transparent(hwnd, 50);
-				return 1;
-			}
-			break;
-		}
+        {
+            HWND hwnd_canvas = GetDlgItem(hwnd, IDC_VIEWZONE_CANVAS);
+            if (NULL != hwnd_canvas)
+            {
+                canvas_default_proc = (WNDPROC)SetWindowLongPtr(hwnd_canvas, GWLP_WNDPROC, (LONG_PTR)on_map_canvas_proc);
+                BringWindowToTop(hwnd);
+                util_transparent(hwnd, 50);
+                return 1;
+            }
+            break;
+        }
         case WM_DRAWITEM :
         {
             on_map_draw_static_zone((DRAWITEMSTRUCT *)lParam);
@@ -261,11 +261,11 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             int width = LOWORD(lParam);
             int height = HIWORD(lParam);
-			HWND hwnd_canvas = GetDlgItem(hwnd, IDC_VIEWZONE_CANVAS);
-			if (NULL != hwnd_canvas)
-			{
-				MoveWindow(hwnd_canvas, 0, 0, width, height, TRUE);
-			}
+            HWND hwnd_canvas = GetDlgItem(hwnd, IDC_VIEWZONE_CANVAS);
+            if (NULL != hwnd_canvas)
+            {
+                MoveWindow(hwnd_canvas, 0, 0, width, height, TRUE);
+            }
             break;
         }
         case WM_LBUTTONDOWN:
@@ -339,19 +339,19 @@ on_map_reload(eu_tabpage *pedit)
 static bool
 on_map_create_static_dlg(HWND parent)
 {
-	if (!hwnd_document_static)
-	{
-		bool win10 = util_os_version() >= 1000;
-		if (win10)
-		{
-		    hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE), parent, on_map_static_proc, 0);
-		}
-		else
-		{
-		    hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE_CLASSIC), parent, on_map_static_proc, 0);
-		}
-	}
-	return (hwnd_document_static != NULL);
+    if (!hwnd_document_static)
+    {
+        bool win10 = util_os_version() >= 1000;
+        if (win10)
+        {
+            hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE), parent, on_map_static_proc, 0);
+        }
+        else
+        {
+            hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE_CLASSIC), parent, on_map_static_proc, 0);
+        }
+    }
+    return (hwnd_document_static != NULL);
 }
 
 static intptr_t CALLBACK
@@ -472,11 +472,11 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 static bool
 on_map_create_dlg(LPARAM ptr)
 {
-	if (!hwnd_document_map)
-	{
-		hwnd_document_map = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_DOCUMENTMAP), eu_module_hwnd(), on_map_callback, ptr);
-	}
-	return (hwnd_document_map != NULL);
+    if (!hwnd_document_map)
+    {
+        hwnd_document_map = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_DOCUMENTMAP), eu_module_hwnd(), on_map_callback, ptr);
+    }
+    return (hwnd_document_map != NULL);
 }
 
 eu_tabpage *WINAPI
