@@ -2491,6 +2491,7 @@ on_search_find_next_button(const int button)
                 intptr_t match = 0;
                 if (!all_file)
                 {
+                    on_search_node_init(pnode, true);
                     match = on_search_process_count(pnode, key, false, true);
                 }
                 else
@@ -2500,6 +2501,7 @@ on_search_find_next_button(const int button)
                     {
                         if ((p = on_tabpage_get_ptr(i)))
                         {
+                            on_search_node_init(p, true);
                             sptr_t c = on_search_process_count(p, key, false, true);
                             if (c > 0)
                             {
