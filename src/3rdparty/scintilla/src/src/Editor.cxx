@@ -1510,7 +1510,7 @@ bool Editor::WrapBlock(Surface *surface, Sci::Line lineToWrap, Sci::Line lineToW
 	// Lines that are less likely to be re-examined should not be read from or written to the cache.
 	const SignificantLines significantLines {
 		pdoc->SciLineFromPosition(sel.MainCaret()),
-		topLine,
+		pcs->DocFromDisplay(topLine),
 		LinesOnScreen() + 1,
 		view.llc.GetLevel(),
 	};
