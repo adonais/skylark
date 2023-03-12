@@ -61,6 +61,9 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor >= 0 ? bgcolor : eu_get_theme()->item.text.bgcolor);
     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
     eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
+    // scintilla 5.3.4, DirectWrite on Win32, Can text measurement be safely performed concurrently on multiple threads?
+    eu_sci_call(pnode, SCI_SUPPORTSFEATURE, SC_SUPPORTS_THREAD_SAFE_MEASURE_WIDTHS, 0);
+    eu_sci_call(pnode, SCI_SETLAYOUTTHREADS, (sptr_t)util_num_cores(), 0);
     // 页边区设置
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
     // 行号显示以及样式设置
@@ -162,7 +165,7 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     {
         eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
     }
-    if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
+    else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
     {
         eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITE, 0);
     }
