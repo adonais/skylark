@@ -684,9 +684,6 @@ EU_EXT_CLASS int  eu_prepend_path(const TCHAR *dir);
 // for eu_tablectl.c
 EU_EXT_CLASS void eu_dbase_release(void);
 
-// for eu_hyperlink.c
-EU_EXT_CLASS int eu_hyperlink_detection(eu_tabpage *pnode);
-
 // for eu_doctype.c
 EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);
 

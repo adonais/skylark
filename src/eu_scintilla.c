@@ -402,10 +402,6 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
         {
             DestroyWindow(hwnd_document_map);
         }
-        if ((*ppnode)->hyper_id)
-        {
-            util_kill_thread((uint32_t)(*ppnode)->hyper_id);
-        }
         if (plugins)
         {
             on_sci_destory(ppnode, p);

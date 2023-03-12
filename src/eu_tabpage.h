@@ -76,7 +76,6 @@ struct _tabpage
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
-    volatile long hyper_id;     // 解析hyperlink线程id
     int tab_id;                 // tab编号,用于保存会话
     int codepage;               // 文件编码
     int eol;                    // 换行符

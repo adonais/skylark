@@ -135,6 +135,7 @@ int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source,
 int util_count_number(size_t number);
 int util_split(const char *pstr, char (*pout)[QW_SIZE], char ch);
 int util_strim_end(char *pstr, int len);
+int util_num_cores(void);
 void  util_transparent(HWND hwnd, int percent);
 void  util_untransparent(HWND hwnd);
 void  util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py);

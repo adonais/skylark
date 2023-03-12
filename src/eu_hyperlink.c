@@ -73,72 +73,10 @@ on_hyper_strim(eu_tabpage *pnode, const sptr_t start_pos, int *plen)
     }
 }
 
-static unsigned WINAPI
-on_hyper_set(void *lp)
-{
-    eu_tabpage *pnode = (eu_tabpage *) lp;
-    if (pnode)
-    {
-        sptr_t pos = 0;
-        sptr_t fpos = -1;
-        sptr_t max_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
-        while (pos < max_pos && (fpos = on_search_process_find(pnode, HYPLNK_REGEX_FULL, pos, max_pos, SCFIND_REGEXP | SCFIND_POSIX)) >= 0)
-        {
-            int len = eu_int_cast(eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0) - fpos);
-            if (len > 0)
-            {
-                on_hyper_clear_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
-                pos = fpos + len;
-                on_hyper_strim(pnode, fpos, &len);
-                on_hyper_add_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
-            }
-            else
-            {
-                pos = max_pos;
-            }
-        }
-    }
-    _InterlockedExchange(&pnode->hyper_id, 0);
-    printf("hyperlink_thread exit\n");
-    return 0;
-}
-
-static unsigned WINAPI
-on_hyper_clear(void *lp)
-{
-    eu_tabpage *p = NULL;
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
-    {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        if ((p = (eu_tabpage *) (tci.lParam)) && !_InterlockedCompareExchange(&p->hyper_id, 1, 0))
-        {
-            sptr_t pos = 0;
-            sptr_t fpos = -1;
-            sptr_t max_pos = eu_sci_call(p, SCI_GETTEXTLENGTH, 0, 0);
-            while (pos < max_pos && (fpos = on_search_process_find(p, HYPLNK_REGEX_FULL, pos, max_pos, SCFIND_REGEXP | SCFIND_POSIX)) >= 0)
-            {
-                int len = eu_int_cast(eu_sci_call(p, SCI_GETTARGETEND, 0, 0) - fpos);
-                if (len > 0)
-                {
-                    on_hyper_clear_indicator(p, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
-                    pos = fpos + len;
-                }
-                else
-                {
-                    pos = max_pos;
-                }
-            }
-            _InterlockedExchange(&p->hyper_id, 0);
-        }
-    }
-    return 0;
-}
-
 void
 on_hyper_update_style(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hyper_id)
+    if (pnode)
     {
         const sptr_t start_line = eu_sci_call(pnode, SCI_DOCLINEFROMVISIBLE, (eu_sci_call(pnode, SCI_GETFIRSTVISIBLELINE, 0, 0)), 0);
         const sptr_t end_line = min(start_line + eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0), eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0) - 1);
@@ -229,20 +167,4 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool e
             }
         }
     }
-}
-
-void
-on_hyper_clear_style(void)
-{
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, &on_hyper_clear, NULL, 0, NULL));
-}
-
-int
-eu_hyperlink_detection(eu_tabpage *pnode)
-{
-    if (pnode && !pnode->hyper_id)
-    {
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, &on_hyper_set, pnode, 0, (uint32_t *)&pnode->hyper_id));
-    }
-    return 0;
 }

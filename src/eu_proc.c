@@ -1483,10 +1483,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FORMAT_HYPERLINKHOTSPOTS:
                 {
                     eu_get_config()->m_hyperlink ^= true;
-                    if (!eu_get_config()->m_hyperlink)
-                    {
-                        on_hyper_clear_style();
-                    }
                     break;
                 }
                 case IDM_SKYLAR_AUTOMATIC_UPDATE:

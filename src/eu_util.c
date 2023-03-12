@@ -2555,3 +2555,11 @@ util_explorer_open(eu_tabpage *pnode)
         }
     }
 }
+
+int
+util_num_cores(void)
+{
+    SYSTEM_INFO sysinfo;
+    GetNativeSystemInfo(&sysinfo);
+    return (int)sysinfo.dwNumberOfProcessors;
+}
