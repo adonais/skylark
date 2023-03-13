@@ -38,6 +38,8 @@ BEGIN
         MENUITEM "Close Other Documents",                              IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
         MENUITEM "Restore Recent Closed File",                         IDM_FILE_RESTORE_RECENT
+        MENUITEM "Reload The Current File",                            IDM_FILE_RELOAD_CURRENT
+        MENUITEM MF_SEPARATOR
         MENUITEM "Backup On File Save",                                IDM_FILE_WRITE_COPY
         MENUITEM "Save Last Session",                                  IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
@@ -1238,6 +1240,7 @@ STRINGTABLE DISCARDABLE
     IDS_UPGRADE_FINISH_TIP  "Download Complete! The update is being applied at the next startup. I hope you feel satisfied ^_^"
     IDS_UPGRADE_TETILE_STR  "Skylark Update"
     IDS_UPGRADE_CONTENT_STR "Is Installing Your Updates And Will Start In A Few Moments…"
+    IDS_FILE_RELOAD_STR     "The file has not been saved, reloading will discard all changes, continue?"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1345,7 +1348,8 @@ BEGIN
     PUSHBUTTON "&Ignore", IDIGNORE, 364, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "&Try Again", IDTRYAGAIN, 422, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "&Continue", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
-    PUSHBUTTON "Help", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "Alway&s", IDALWAYS, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "Help", IDHELP, 596, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
 END
 

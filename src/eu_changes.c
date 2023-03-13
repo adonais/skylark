@@ -442,7 +442,7 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
     WCHAR *buffer = NULL;
     const WCHAR *ptr;
     /* Index the order the buttons need to appear to an ID* constant */
-    static const int buttonOrder[10] = { IDYES, IDNO, IDOK, IDABORT, IDRETRY, IDCANCEL, IDIGNORE, IDTRYAGAIN, IDCONTINUE, IDHELP };
+    static const int buttonOrder[11] = {IDYES, IDNO, IDOK, IDABORT, IDRETRY, IDCANCEL, IDIGNORE, IDTRYAGAIN, IDCONTINUE, IDALWAYS, IDHELP};
     if (!(g_skylark_lang || i18n_reload_lang()))
     {
         return;
@@ -503,6 +503,7 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
             DestroyWindow(GetDlgItem(hwnd, IDNO));
             DestroyWindow(GetDlgItem(hwnd, IDTRYAGAIN));
             DestroyWindow(GetDlgItem(hwnd, IDCONTINUE));
+            DestroyWindow(GetDlgItem(hwnd, IDALWAYS));
             break;
         case MB_ABORTRETRYIGNORE:
             hItem = GetDlgItem(hwnd, IDABORT);
@@ -512,6 +513,7 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
             DestroyWindow(GetDlgItem(hwnd, IDNO));
             DestroyWindow(GetDlgItem(hwnd, IDCONTINUE));
             DestroyWindow(GetDlgItem(hwnd, IDTRYAGAIN));
+            DestroyWindow(GetDlgItem(hwnd, IDALWAYS));
             break;
         case MB_YESNO:
             DestroyWindow(GetDlgItem(hwnd, IDCANCEL));
@@ -524,6 +526,17 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
             DestroyWindow(GetDlgItem(hwnd, IDIGNORE));
             DestroyWindow(GetDlgItem(hwnd, IDCONTINUE));
             DestroyWindow(GetDlgItem(hwnd, IDTRYAGAIN));
+            DestroyWindow(GetDlgItem(hwnd, IDALWAYS));
+            break;
+        case MB_YESNOALWAYS:
+            hItem = GetDlgItem(hwnd, IDALWAYS);
+            DestroyWindow(GetDlgItem(hwnd, IDOK));
+            DestroyWindow(GetDlgItem(hwnd, IDABORT));
+            DestroyWindow(GetDlgItem(hwnd, IDRETRY));
+            DestroyWindow(GetDlgItem(hwnd, IDIGNORE));
+            DestroyWindow(GetDlgItem(hwnd, IDCONTINUE));
+            DestroyWindow(GetDlgItem(hwnd, IDTRYAGAIN));
+            DestroyWindow(GetDlgItem(hwnd, IDCANCEL));
             break;
         case MB_RETRYCANCEL:
             hItem = GetDlgItem(hwnd, IDRETRY);
@@ -534,6 +547,7 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
             DestroyWindow(GetDlgItem(hwnd, IDNO));
             DestroyWindow(GetDlgItem(hwnd, IDCONTINUE));
             DestroyWindow(GetDlgItem(hwnd, IDTRYAGAIN));
+            DestroyWindow(GetDlgItem(hwnd, IDALWAYS));
             break;
         case MB_CANCELTRYCONTINUE:
             hItem = GetDlgItem(hwnd, IDCANCEL);
@@ -543,6 +557,7 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
             DestroyWindow(GetDlgItem(hwnd, IDYES));
             DestroyWindow(GetDlgItem(hwnd, IDNO));
             DestroyWindow(GetDlgItem(hwnd, IDRETRY));
+            DestroyWindow(GetDlgItem(hwnd, IDALWAYS));
     }
 
     if (hItem)
@@ -605,16 +620,16 @@ on_msgbox_init(HWND hwnd, LPMSGBOXPARAMSW lpmb)
 
     /* Get the number of visible buttons and their size */
     bh = bw = 1; /* Minimum button sizes */
-    for (buttons = 0, i = IDOK; i <= IDCONTINUE; i++)
+    for (buttons = 0, i = IDOK; i <= IDALWAYS; ++i)
     {
         if (i == IDCLOSE) continue; /* No CLOSE button */
         hItem = GetDlgItem(hwnd, i);
         if (GetWindowLongPtr(hItem, GWL_STYLE) & WS_VISIBLE)
         {
             int w, h;
-            WCHAR buttonText[MAX_BUFFER] = {0};
+            WCHAR buttonText[QW_SIZE] = {0};
             buttons++;
-            if (GetWindowText(hItem, buttonText, MAX_BUFFER-1))
+            if (GetWindowText(hItem, buttonText, QW_SIZE-1))
             {
                 DrawText(hdc, buttonText, -1, &rect, DT_LEFT | DT_EXPANDTABS | DT_CALCRECT);
                 h = rect.bottom - rect.top;
@@ -706,7 +721,7 @@ msgbox_dlg_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             SetPropA(hwnd, "WINE_MSGBOX_HELPCALLBACK", mbp->lpfnMsgBoxCallback);
             if (on_dark_enable())
             {
-                const int buttons[] = { IDOK, IDCANCEL, IDABORT, IDRETRY, IDYES, IDNO, IDTRYAGAIN, IDIGNORE, IDCONTINUE, IDHELP };
+                const int buttons[] = { IDOK, IDCANCEL, IDABORT, IDRETRY, IDYES, IDNO, IDTRYAGAIN, IDIGNORE, IDCONTINUE, IDALWAYS, IDHELP };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
                     HWND btn = GetDlgItem(hwnd, buttons[id]);
@@ -716,6 +731,18 @@ msgbox_dlg_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                     }
                 }
                 SendMessage(hwnd, WM_THEMECHANGED, 0, 0);
+            }
+            if (GetDlgItem(hwnd, IDOK))
+            {
+                SendMessage(hwnd, DM_SETDEFID, IDOK, 0);
+            }
+            else if (GetDlgItem(hwnd, IDYES))
+            {
+                SendMessage(hwnd, DM_SETDEFID, IDYES, 0);
+            }
+            else if (GetDlgItem(hwnd, IDNO))
+            {
+                SendMessage(hwnd, DM_SETDEFID, IDNO, 0);
             }
             return (LONG_PTR)util_creater_window(hwnd, mbp->hwndOwner);
         }
@@ -735,7 +762,7 @@ msgbox_dlg_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             on_dark_allow_window(hwnd, true);
             on_dark_refresh_titlebar(hwnd);
-            const int buttons[] = { IDOK, IDCANCEL, IDABORT, IDRETRY, IDYES, IDNO, IDTRYAGAIN, IDIGNORE, IDCONTINUE, IDHELP };
+            const int buttons[] = {IDOK, IDCANCEL, IDABORT, IDRETRY, IDYES, IDNO, IDTRYAGAIN, IDIGNORE, IDCONTINUE, IDALWAYS, IDHELP};
             for (int id = 0; id < _countof(buttons); ++id)
             {
                 HWND btn = GetDlgItem(hwnd, buttons[id]);
@@ -759,6 +786,7 @@ msgbox_dlg_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDNO:
                 case IDTRYAGAIN:
                 case IDCONTINUE:
+                case IDALWAYS:
                     EndDialog(hwnd, wParam);
                     break;
                 case IDHELP:

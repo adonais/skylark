@@ -1015,6 +1015,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_RESTORE_RECENT:
                     on_file_restore_recent();
                     break;
+                case IDM_FILE_RELOAD_CURRENT:
+                    on_file_reload_current(pnode);
+                    break;
                 case IDM_FILE_WRITE_COPY:
                     on_file_backup_menu();
                     break;
