@@ -2146,7 +2146,6 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
     if (match > 0)
     {
         eu_push_find_history(pattern);
-        eu_safe_free(pattern);
     }
     on_search_set_result(IDC_MSG_SEARCH_ERR14, 1, match);
     return match;

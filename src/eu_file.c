@@ -2350,17 +2350,14 @@ on_file_reload_current(eu_tabpage *pnode)
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, title);
             LOAD_I18N_RESSTR(IDS_FILE_RELOAD_STR, msg);
-            int dec = eu_msgbox(eu_module_hwnd(), msg, title, MB_YESNOALWAYS|MB_DEFBUTTON1);
+            int dec = eu_msgbox(eu_module_hwnd(), msg, title, MB_YESNOALWAYS);
             switch (dec) {
                 case IDALWAYS:
-                    printf("IDALWAYS\n");
                     eu_get_config()->inter_reserved_0 = 1;
                     break;
                 case IDYES:
-                    printf("IDYES\n");
                     break;
                 default:
-                    printf("IDNO or IDCANCEL\n");
                     reload = false;
                     break;
             }
