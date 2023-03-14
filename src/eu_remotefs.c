@@ -701,7 +701,7 @@ on_remote_list_find(const TCHAR *url)
             return NULL;
         }
     }
-	printf("addr = %s, port = %s\n", addr, port);
+    printf("addr = %s, port = %s\n", addr, port);
     if (list_empty(&list_server))
     {
         on_sql_post("SELECT * FROM file_remote;", on_remote_parser_callback, NULL);

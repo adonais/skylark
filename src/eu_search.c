@@ -2146,7 +2146,6 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
     if (match > 0)
     {
         eu_push_find_history(pattern);
-        eu_safe_free(pattern);
     }
     on_search_set_result(IDC_MSG_SEARCH_ERR14, 1, match);
     return match;
@@ -2491,6 +2490,7 @@ on_search_find_next_button(const int button)
                 intptr_t match = 0;
                 if (!all_file)
                 {
+                    on_search_node_init(pnode, true);
                     match = on_search_process_count(pnode, key, false, true);
                 }
                 else
@@ -2500,6 +2500,7 @@ on_search_find_next_button(const int button)
                     {
                         if ((p = on_tabpage_get_ptr(i)))
                         {
+                            on_search_node_init(p, true);
                             sptr_t c = on_search_process_count(p, key, false, true);
                             if (c > 0)
                             {

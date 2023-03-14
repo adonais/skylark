@@ -22,6 +22,7 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), VK_F4, IDM_FILE_CLOSEALL},\n",
       "                 {0, 0, IDM_FILE_CLOSEALL_EXCLUDE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"T\"), IDM_FILE_RESTORE_RECENT},\n",
+      "                 {bit.bor(FVIRTKEY,FSHIFT), VK_F5, IDM_FILE_RELOAD_CURRENT},\n",
       "                 {0, 0, IDM_FILE_PAGESETUP},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"P\"), IDM_FILE_PRINT},\n",
       "                 {0, 0, IDM_FILE_RESTART_ADMIN},\n",

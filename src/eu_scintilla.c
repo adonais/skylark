@@ -23,6 +23,29 @@ static volatile sptr_t ptr_scintilla = 0;
 static volatile sptr_t last_sci_eusc = 0;
 static volatile sptr_t last_sci_hwnd = 0;
 
+static const char *auto_xpm[] = {
+    /* columns rows colors chars-per-pixel */
+    "14 14 3 1 ",
+    "  c None",
+    ". c #407F40",
+    "X c #408040",
+    /* pixels */
+    "              ",
+    "              ",
+    "     XXXXX    ",
+    "    XXXXXX    ",
+    "   XXXX  X    ",
+    "   XXXX       ",
+    "    .XXXX     ",
+    "     XXXXX    ",
+    "       XXXX   ",
+    "   XX   XXX   ",
+    "   XXXXXXX    ",
+    "    XXXX.X    ",
+    "              ",
+    "              "
+};
+
 void
 on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
 {
@@ -38,6 +61,9 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor >= 0 ? bgcolor : eu_get_theme()->item.text.bgcolor);
     eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
     eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
+    // scintilla 5.3.4, DirectWrite on Win32, Can text measurement be safely performed concurrently on multiple threads?
+    eu_sci_call(pnode, SCI_SUPPORTSFEATURE, SC_SUPPORTS_THREAD_SAFE_MEASURE_WIDTHS, 0);
+    eu_sci_call(pnode, SCI_SETLAYOUTTHREADS, (sptr_t)util_num_cores(), 0);
     // 页边区设置
     eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
     // 行号显示以及样式设置
@@ -139,7 +165,7 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     {
         eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
     }
-    if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
+    else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
     {
         eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITE, 0);
     }
@@ -162,6 +188,8 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
     // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
     eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
+    // 注册补全列表图标
+    eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
 }
 
 void
@@ -373,10 +401,6 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
         if (!on_tabpage_check_map() && hwnd_document_map)
         {
             DestroyWindow(hwnd_document_map);
-        }
-        if ((*ppnode)->hyper_id)
-        {
-            util_kill_thread((uint32_t)(*ppnode)->hyper_id);
         }
         if (plugins)
         {

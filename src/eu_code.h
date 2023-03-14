@@ -28,13 +28,10 @@
 extern "C" {
 #endif
 
-void on_code_close_char(void);
 void on_code_switch_fold(eu_tabpage *pnode, sptr_t line_number);
 void on_code_block_contract_all(eu_tabpage *pnode);
 void on_code_block_expand_all(eu_tabpage *pnode);
 void on_code_set_complete_chars(eu_tabpage *pnode);
-void on_code_block_complete(void);
-void on_code_block_calltip(void);
 void on_code_insert_config(eu_tabpage *pnode);
 void on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap);
 

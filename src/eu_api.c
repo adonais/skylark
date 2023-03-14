@@ -842,10 +842,9 @@ eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool i
 }
 
 static int
-is_plan_file(const uint8_t *name, const size_t len)
+is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
 {
     int ret = 0;
-    uint32_t white_list = 0;
     const bom_type file_bom[] = {
         {3, "\xEF\xBB\xBF"},        // BOM_UTF8
         {4, "\xFF\xFE\x00\x00"},    // BOM_UTF32_LE
@@ -879,31 +878,35 @@ is_plan_file(const uint8_t *name, const size_t len)
     {
         return ret;
     }
-    for (size_t i = 0; i < len; ++i)
+    if (!nobinary)
     {
-        // Check for textual ("white-listed") bytes.
-        if (name[i] == 9 || (name[i] >= 10 && name[i] <= 15) || (name[i] >= 32 && name[i] <= 255))
+        uint32_t white_list = 0;
+        for (size_t i = 0; i < len; ++i)
         {
-            ++white_list;
-        }
-        else
-        {
-            int n;
-            uint32_t black_mask = 0xf3ffc07fUL;
-            // Check for non-textual ("black-listed") bytes.
-            for (n = 0; n <= 31; n++, black_mask >>= 1)
+            // Check for textual ("white-listed") bytes.
+            if (name[i] == 9 || (name[i] >= 10 && name[i] <= 15) || (name[i] >= 32 && name[i] <= 255))
             {
-                if ((black_mask & 1) && (name[i] == n))
+                ++white_list;
+            }
+            else
+            {
+                int n;
+                uint32_t black_mask = 0xf3ffc07fUL;
+                // Check for non-textual ("black-listed") bytes.
+                for (n = 0; n <= 31; n++, black_mask >>= 1)
                 {
-                    printf("\nwe return true, name[%zu] = %.02x\n", i, name[i]);
-                    return EN_CODEING_BINARY;
+                    if ((black_mask & 1) && (name[i] == n))
+                    {
+                        printf("\nwe return true, name[%zu] = %.02x\n", i, name[i]);
+                        return EN_CODEING_BINARY;
+                    }
                 }
             }
         }
-    }
-    if (white_list < 1)
-    {
-        return EN_CODEING_BINARY;
+        if (white_list < 1)
+        {
+            return EN_CODEING_BINARY;
+        }
     }
     return EN_CODEING_NONE;
 }
@@ -1109,6 +1112,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     size_t read_len;
     DetectObj *obj = NULL;
     int type = IDM_UNKNOWN;
+    bool nobinary = false;
     uint8_t *checkstr = buffer;
     if (!(buffer || is_file))
     {
@@ -1116,6 +1120,10 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     if (is_file)
     {
+        if (STR_IS_NUL(file_name))
+        {
+            return type;
+        }
         if ((fp = _tfopen(file_name, _T("rb"))) == NULL)
         {
             fprintf(stderr, "_tfopen failed in %s\n", __FUNCTION__);
@@ -1124,11 +1132,16 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         read_len = fread(checkstr, 1, len - 1, fp);
         fclose(fp);
     }
+    else if (STR_NOT_NUL(file_name) && on_doc_get_type(file_name))
+    {   // 如果是支持高亮的文件类型, 跳过二进制检测
+        nobinary = true;
+        read_len = eu_int_cast(len > BUFF_SIZE ? BUFF_SIZE : len); 
+    }
     else
     {
         read_len = eu_int_cast(len > BUFF_SIZE ? BUFF_SIZE : len);
     }
-    if (!(type = is_plan_file(checkstr, read_len)))
+    if (!(type = is_plan_file(checkstr, read_len, nobinary)))
     {
         // BINARY file
         printf("this is BINARY file\n");
@@ -1765,7 +1778,7 @@ eu_save_config(void)
               g_config->result_list_height,
               (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
               g_config->scroll_to_cursor?"true":"false",
-              g_config->inter_reserved_0,
+              0,
               g_config->inter_reserved_1,
               g_config->inter_reserved_2,
               g_config->block_fold?"true":"false",

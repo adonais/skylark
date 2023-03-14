@@ -46,7 +46,7 @@ function eu_conf.loadconf()
         "symbol_list_width = 210\n" ..
         "symbol_tree_width = 210\n" ..
         "sidebar_width = 320\n" ..
-        "document_map_width = 210\n" ..
+        "document_map_width = 140\n" ..
         "sqlquery_result_edit_height = 80\n" ..
         "sqlquery_result_listview_height = 270\n" ..
         "file_recent_number = 29\n" ..

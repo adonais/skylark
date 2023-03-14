@@ -30,14 +30,14 @@ typedef enum _auto_state
 
 typedef struct _auto_postion
 {
-	intptr_t min;
-	intptr_t max;
+    intptr_t min;
+    intptr_t max;
 }auto_postion;
 
 typedef struct _capture_set
 {
-	char cap[GROUP_SIZE];
-	char str[MAX_SIZE];
+    char cap[GROUP_SIZE];
+    char str[MAX_SIZE];
 }capture_set;
 
 typedef struct _complete_t

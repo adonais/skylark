@@ -37,7 +37,9 @@ BEGIN
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭除当前外所有文件",                        IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
-        MENUITEM "恢复最近关闭的文件",                          IDM_FILE_RESTORE_RECENT
+        MENUITEM "恢复最近关闭文件",                            IDM_FILE_RESTORE_RECENT
+        MENUITEM "重新载入当前文件",                            IDM_FILE_RELOAD_CURRENT
+        MENUITEM MF_SEPARATOR
         MENUITEM "文件保存时备份",                              IDM_FILE_WRITE_COPY
         MENUITEM "保存最后一次对话",                            IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
@@ -1236,6 +1238,7 @@ STRINGTABLE DISCARDABLE
     IDS_UPGRADE_FINISH_TIP  "下载完成! 更新将在下次启动时应用. \n我希望你感到满意^_^"
     IDS_UPGRADE_TETILE_STR  "Skylark 更新"
     IDS_UPGRADE_CONTENT_STR "正在安装更新，将于稍后启动…"
+    IDS_FILE_RELOAD_STR     "文件还未保存, 重新载入将会丢弃所有更改, 继续吗?"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1343,7 +1346,8 @@ BEGIN
     PUSHBUTTON "忽略(&I)", IDIGNORE, 364, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "再试一次(&T)", IDTRYAGAIN, 422, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     PUSHBUTTON "继续(&C)", IDCONTINUE, 480, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
-    PUSHBUTTON "帮助", IDHELP, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "一直都是(&S)", IDALWAYS, 538, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
+    PUSHBUTTON "帮助", IDHELP, 596, 56, 50, 14, WS_CHILD | WS_VISIBLE | WS_TABSTOP
     LTEXT "", MSGBOX_IDTEXT, 32, 4, 176, 48, WS_CHILD | WS_VISIBLE | WS_GROUP | SS_NOPREFIX
 END
 

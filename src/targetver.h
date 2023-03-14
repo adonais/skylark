@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 3
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 6
+#define __EU_INFO_VERSION_PATCHLEVEL 7
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -486,6 +486,7 @@
 #define IDM_FILE_RESTORE_RECENT              30114
 #define IDM_FILE_EXIT_WHEN_LAST_TAB          30115
 #define IDM_FILE_RESTART_ADMIN               30116
+#define IDM_FILE_RELOAD_CURRENT              30117
 
 #define IDM_EDIT_BASE64_ENCODING             30200
 #define IDM_EDIT_BASE64_DECODING             30201
@@ -1151,7 +1152,11 @@
 #define IDS_UPGRADE_FINISH_TIP              44060
 #define IDS_UPGRADE_TETILE_STR              44061
 #define IDS_UPGRADE_CONTENT_STR             44062
+#define IDS_FILE_RELOAD_STR                 44063
 
+// For MessageBox
+#define IDALWAYS                            12
+#define MB_YESNOALWAYS                      0x0007
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 

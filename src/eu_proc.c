@@ -284,6 +284,46 @@ eu_create_fullscreen(HWND hwnd)
     on_view_setfullscreenimpl(hwnd);
 }
 
+static void
+on_proc_move_sidebar(eu_tabpage *pnode)
+{
+    if (pnode->sym_show)
+    {
+        eu_setpos_window(g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_sym.top,
+                         SPLIT_WIDTH, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+        if (pnode->hwnd_symlist)
+        {
+            eu_setpos_window(pnode->hwnd_symlist, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
+                             pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+
+        }
+        else if (pnode->hwnd_symtree)
+        {
+            eu_setpos_window(pnode->hwnd_symtree, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
+                             pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
+        }
+        if (document_map_initialized && hwnd_document_map)
+        {
+            eu_setpos_window(hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+    }
+    else if (pnode->map_show && document_map_initialized)
+    {
+        eu_tabpage *pedit = NULL;
+        eu_setpos_window(g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_map.top,
+                         SPLIT_WIDTH, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
+        if (hwnd_document_map)
+        {
+            eu_setpos_window(hwnd_document_map, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
+                             pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
+        }
+        if ((pedit = on_map_edit()) && pedit->hwnd_sc)
+        {
+            on_map_reload(pedit);
+        }
+    }
+}
+
 /*****************************************************************************
  * 主窗口缩放处理函数
  * 一次性处理所有窗口, 不在每个窗口处理WM_SIZE消息了
@@ -361,44 +401,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         {
             DeferWindowPos(hdwp, pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
                            pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-        }
-        if (pnode->sym_show)
-        {
-            DeferWindowPos(hdwp, g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_sym.top,
-                           SPLIT_WIDTH, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
-            if (pnode->hwnd_symlist)
-            {
-                DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
-                               pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
-
-            }
-            else if (pnode->hwnd_symtree)
-            {
-                DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_TOP, pnode->rect_sym.left, pnode->rect_sym.top,
-                               pnode->rect_sym.right - pnode->rect_sym.left, pnode->rect_sym.bottom - pnode->rect_sym.top, SWP_SHOWWINDOW);
-            }
-            if (document_map_initialized && hwnd_document_map)
-            {
-                DeferWindowPos(hdwp, hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
-        }
-        else if (pnode->map_show && document_map_initialized)
-        {
-            eu_tabpage *pedit = NULL;
-            DeferWindowPos(hdwp, g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_map.top,
-                           SPLIT_WIDTH, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
-            if (hwnd_document_map)
-            {
-                DeferWindowPos(hdwp, hwnd_document_map, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
-                               pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
-            }
-            if ((pedit = on_map_edit()) && pedit->hwnd_sc)
-            {
-                on_map_reload(pedit);
-            }
-        }
-        else
-        {
+            // 先隐藏右边侧边栏
             DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             if (pnode->hwnd_symlist)
             {
@@ -441,7 +444,8 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 UpdateWindowEx(g_tabpages);
                 UpdateWindowEx(pnode->hwnd_sc);
             }
-            pnode->hwnd_symlist ? UpdateWindowEx(pnode->hwnd_symlist) : (pnode->hwnd_symtree ? UpdateWindowEx(pnode->hwnd_symtree) : (void)0);
+            // 重新加上位置后显示
+            on_proc_move_sidebar(pnode);
         }
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
@@ -1011,6 +1015,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_RESTORE_RECENT:
                     on_file_restore_recent();
                     break;
+                case IDM_FILE_RELOAD_CURRENT:
+                    on_file_reload_current(pnode);
+                    break;
                 case IDM_FILE_WRITE_COPY:
                     on_file_backup_menu();
                     break;
@@ -1231,7 +1238,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_repalce_event(pnode, HALF_FULL);
                     break;
                 case IDM_EDIT_AUTO_CLOSECHAR:
-                    on_code_close_char();
+                    eu_get_config()->eu_brace.autoc ^= true;
                     break;
                 case IDM_EDIT_AUTO_INDENTATION:
                     on_view_identation();
@@ -1479,10 +1486,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FORMAT_HYPERLINKHOTSPOTS:
                 {
                     eu_get_config()->m_hyperlink ^= true;
-                    if (!eu_get_config()->m_hyperlink)
-                    {
-                        on_hyper_clear_style();
-                    }
                     break;
                 }
                 case IDM_SKYLAR_AUTOMATIC_UPDATE:
@@ -1592,13 +1595,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_SOURCEE_ENABLE_ACSHOW:
-                    on_code_block_complete();
+                    eu_get_config()->eu_complete.enable ^= true;
                     break;
                 case IDM_SOURCEE_ACSHOW_CHARS:
                     on_code_set_complete_chars(pnode);
                     break;
                 case IDM_SOURCE_ENABLE_CTSHOW:
-                    on_code_block_calltip();
+                    eu_get_config()->eu_calltip.enable ^= true;
                     break;
                 case IDM_VIEW_FONTQUALITY_NONE:
                 case IDM_VIEW_FONTQUALITY_STANDARD:
