@@ -165,7 +165,7 @@ static inline void assert_in_release(const char *fmt, const char *exp, const cha
 }
 #define EU_VERIFY(x) (void)((x) || (assert_in_release("failed assert(%s): %s:%d", #x, __FILE__, __LINE__), 0))
 #endif
-static inline int eu_cvector_at(int *v, int n)
+static inline int eu_cvector_at(const int *v, const int n)
 {
     for (int i = 0; i < eu_int_cast(cvector_size(v)); ++i)
     {
@@ -651,14 +651,13 @@ EU_EXT_CLASS HWND eu_snippet_hwnd(void);
 EU_EXT_CLASS bool eu_i18n_load_str(uint16_t id, TCHAR *str, int len);
 
 // for eu_config.c
-EU_EXT_CLASS bool eu_load_main_config(void);
-EU_EXT_CLASS bool eu_load_accel_config(void);
-EU_EXT_CLASS bool eu_load_toolbar_config(void);
-EU_EXT_CLASS bool eu_load_docs_config(void);
-EU_EXT_CLASS bool eu_load_file(void);
-EU_EXT_CLASS bool eu_check_arg(const wchar_t **args, int argc, const wchar_t *, const wchar_t *);
-EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, wchar_t *path);
-EU_EXT_CLASS void eu_postion_setup(const wchar_t **args, int argc, file_backup *pbak);
+EU_EXT_CLASS bool eu_config_load_main(void);
+EU_EXT_CLASS bool eu_config_load_accel(void);
+EU_EXT_CLASS bool eu_config_load_toolbar(void);
+EU_EXT_CLASS bool eu_config_load_docs(void);
+EU_EXT_CLASS bool eu_config_load_files(void);
+EU_EXT_CLASS bool eu_config_check_arg(const wchar_t **args, int argc, const wchar_t *);
+EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, file_backup **pbak);
 
 // for eu_script.c
 EU_EXT_CLASS int eu_lua_script_convert(const TCHAR *file, const TCHAR *save);

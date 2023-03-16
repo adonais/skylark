@@ -1794,6 +1794,14 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             return 0;
         }
+        case SCI_POSITIONFROMLINE:
+        {
+            if (wParam >= 0)
+            {
+                return min(wParam * 16 + 1, hexview->total_items);
+            }
+            return 0;
+        }
         case SCI_GETLINECOUNT:
         {
             return hexview->totallines - 2;

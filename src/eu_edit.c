@@ -284,10 +284,11 @@ on_edit_push_editor(eu_tabpage *pnode)
     }
     else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
     {
+        int len = eu_int_cast(_tcslen(path));
         LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
-        if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+        if (eu_input(m_input, path, MAX_PATH - 1) && len > 1)
         {
-            WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
+            WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path, len), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
         }
     }
     if (STR_NOT_NUL(path))
@@ -320,10 +321,11 @@ on_edit_push_compare(void)
         }
         else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
         {
+            int len = eu_int_cast(_tcslen(path));
             LOAD_I18N_RESSTR(IDS_EDITOR_BCOMPARE, m_input);
-            if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+            if (eu_input(m_input, path, MAX_PATH - 1) && len > 1)
             {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->m_reserved_0, MAX_PATH-1, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path, len), -1, eu_get_config()->m_reserved_0, MAX_PATH-1, NULL, NULL);
             }
         }
         if (STR_NOT_NUL(path))

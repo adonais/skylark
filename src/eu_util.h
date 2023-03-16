@@ -121,8 +121,8 @@ char*  util_string_match(const char *str, const char *pattern, bool incase, bool
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 HWND   util_get_hwnd(const uint32_t pid);
-TCHAR* util_unix2path(TCHAR *path);
-TCHAR* util_path2unix(TCHAR *path);
+TCHAR* util_unix2path(TCHAR *path, int len);
+TCHAR* util_path2unix(TCHAR *path, int len);
 TCHAR* util_add_double_quotes(const TCHAR *path);
 TCHAR* util_which(const TCHAR *name);
 sptr_t util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout);

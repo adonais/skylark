@@ -1416,37 +1416,37 @@ util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
 }
 
 TCHAR *
-util_path2unix(TCHAR *path)
+util_path2unix(TCHAR *path, int len)
 {
-    TCHAR *lp = NULL;
-    intptr_t pos;
-    do
+    if (path)
     {
-        lp = _tcschr(path, _T('\\'));
-        if (lp)
+        for (int i = 0; i < len; ++i)
         {
-            pos = lp - path;
-            path[pos] = _T('/');
+            if (path[i] == L'\\')
+            {
+                path[i] = L'/';
+            }
         }
-    } while (lp != NULL);
-    return path;
+        return path;
+    }
+    return NULL;
 }
 
 TCHAR *
-util_unix2path(TCHAR *path)
+util_unix2path(TCHAR *path, int len)
 {
-    TCHAR *lp = NULL;
-    intptr_t pos;
-    do
+    if (path)
     {
-        lp = _tcschr(path, _T('/'));
-        if (lp)
+        for (int i = 0; i < len; ++i)
         {
-            pos = lp - path;
-            path[pos] = _T('\\');
+            if (path[i] == L'/')
+            {
+                path[i] = L'\\';
+            }
         }
-    } while (lp != NULL);
-    return path;
+        return path;
+    }
+    return NULL;
 }
 
 char *
@@ -1719,11 +1719,11 @@ util_to_abs(const char *path)
     {
         return NULL;
     }
-    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, lpfile, MAX_PATH))
+    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, lpfile, MAX_PATH) || !lpfile[0])
     {
         return NULL;
     }
-    util_unix2path(lpfile);
+    util_unix2path(lpfile, eu_int_cast(_tcslen(lpfile)));
     // 如果路径有引号, 去除
     util_wstr_unquote(lpfile, sizeof(lpfile));
     if (lpfile[0] == L'%')

@@ -42,12 +42,9 @@ typedef enum _CLOSE_MODE
 
 typedef struct _file_backup
 {
-    TCHAR rel_path[MAX_PATH];
-    TCHAR bak_path[MAX_PATH];
-    char mark_id[MAX_BUFFER];
-    char fold_id[MAX_BUFFER];
-    intptr_t postion;
     intptr_t x;
+    intptr_t y;
+    intptr_t postion;
     int tab_id;
     int cp;
     int bakcp;
@@ -57,8 +54,11 @@ typedef struct _file_backup
     int focus;
     int zoom;
     int status;
-    int y;
     int sync;
+    TCHAR rel_path[MAX_PATH];
+    TCHAR bak_path[MAX_PATH];
+    char mark_id[MAX_BUFFER];
+    char fold_id[MAX_BUFFER];
 }file_backup;
 
 int on_file_new(void);

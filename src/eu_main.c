@@ -119,7 +119,7 @@ _tmain(int argc, TCHAR *argv[])
     {
         SKY_SAFE_EXIT(-1);
     }
-    if (!eu_load_main_config())      // 加载主配置文件
+    if (!eu_config_load_main())      // 加载主配置文件
     {
         SKY_SAFE_EXIT(-1);
     }
@@ -147,11 +147,11 @@ _tmain(int argc, TCHAR *argv[])
         bool dark_mode = false;
         if (argc > 1)
         {
-            file_backup bak = {0};
             if (!_tcsncmp(argv[1], REGFILE, _tcslen(REGFILE)))
             {   // 注册或卸载文件右键菜单
                 REG_ON_DARK_MODE
                 eu_undo_file_popup();
+                file_backup bak = {0};
                 _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
                 share_send_msg(&bak);
             }
@@ -159,6 +159,7 @@ _tmain(int argc, TCHAR *argv[])
             {   // 注册或卸载目录右键菜单
                 REG_ON_DARK_MODE
                 eu_undo_dir_popup();
+                file_backup bak = {0};
                 _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
                 share_send_msg(&bak);
             }
@@ -167,21 +168,32 @@ _tmain(int argc, TCHAR *argv[])
                 REG_ON_DARK_MODE
                 eu_create_registry_dlg();
             }
-            else if (!no_remote && eu_config_parser_path(argv, argc, bak.rel_path))
-            {   // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
-                eu_postion_setup(argv, argc, &bak);
-                share_send_msg(&bak);
+            else if (!no_remote)
+            {
+                cvector_vector_type(file_backup) vpath = NULL;
+                if (eu_config_parser_path(argv, argc, &vpath))
+                {
+                    for (size_t i = 0; i < cvector_size(vpath); ++i)
+                    {
+                        if (vpath[i].rel_path[0])
+                        {   // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
+                            share_send_msg(&vpath[i]);
+                        }
+                    }
+                }
+                cvector_free(vpath);
             }
-            share_close_lang();
         }
         else
         {   // 没有参数, 则恢复窗口
             share_send_msg(NULL);
         }
-        if (!no_remote)
+        if (no_remote)
         {
-            share_close(mapped);
-            share_envent_close();
+            eu_get_config()->m_instance = true;
+        }
+        else
+        {
             SKY_SAFE_EXIT(0);
         }
     }
@@ -227,11 +239,11 @@ _tmain(int argc, TCHAR *argv[])
 #if APP_DEBUG
     eu_init_logs();
 #endif
-    if (!eu_load_accel_config())
+    if (!eu_config_load_accel())
     {   // 加载快捷键配置文件
         SKY_SAFE_EXIT(-1);
     }
-    if (!eu_load_docs_config())
+    if (!eu_config_load_docs())
     {   // 加载文档分类配置文件
         SKY_SAFE_EXIT(-1);
     }
@@ -239,7 +251,7 @@ _tmain(int argc, TCHAR *argv[])
     {   // 加载语言资源文件
         SKY_SAFE_EXIT(-1);
     }
-    if (eu_check_arg(argv, argc, _T("--help"), NULL))
+    if (eu_config_check_arg(argv, argc, _T("--help")))
     {
         if (strcmp(eu_get_config()->window_theme, "black") == 0)
         {
@@ -258,7 +270,7 @@ _tmain(int argc, TCHAR *argv[])
         eu_reg_dir_popup_menu();
         SKY_SAFE_EXIT(0);
     }
-    if (!eu_load_toolbar_config())
+    if (!eu_config_load_toolbar())
     {   // 加载工具栏配置文件
         SKY_SAFE_EXIT(-1);
     }
@@ -285,10 +297,13 @@ _tmain(int argc, TCHAR *argv[])
             }
         }
         share_envent_set(true);  // 主窗口初始化完成, 可以发送消息了
-        eu_get_config()->m_instance = no_remote ? true : eu_get_config()->m_instance;
-        if (!eu_load_file())
+        if (no_remote)
         {
-            printf("eu_load_file failed\n");
+            eu_get_config()->m_instance = true;
+        }
+        if (!eu_config_load_files())
+        {
+            printf("eu_config_load_files failed\n");
             SKY_SAFE_EXIT(-1);
         }
     }

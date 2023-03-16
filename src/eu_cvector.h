@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of c-vector project
- * From https://https://github.com/eteran/c-vector/list.h
+ * From https://github.com/eteran/c-vector
  * The MIT License (MIT)
  * Copyright (c) 2015 Evan Teran
  *
@@ -216,6 +216,22 @@
     } while (0)
 
 /**
+ * @brief cvector_put - put element at position pos to the vector
+ * @param vec - the vector
+ * @param pos - position in the vector where the new elements are put
+ * @param val - value to be put to the inserted elements.
+ * @return void
+ */
+#define cvector_put(vec, pos, val)                                                                         \
+    do {                                                                                                   \
+        if ((pos) >= cvector_size(vec) + 1) {                                                              \
+            cvector_grow((vec), (pos) + 1);                                                                \
+            cvector_set_size((vec), (pos));                                                                \
+        }                                                                                                  \
+        (vec)[(pos)] = (val);                                                                              \
+    } while (0)
+
+/**
  * @brief cvector_pop_back - removes the last element from the vector
  * @param vec - the vector
  * @return void
@@ -300,6 +316,24 @@
         }                                                                       \
     } while (0)
 
+/*
+ * @brief cvector_init - Initialize a vector.  The vector must be NULL for this to do anything.
+ * @param vec - the vector
+ * @param capacity - vector capacity to reserve
+ * @return void
+ */
+#define cvector_init(vec, count)                                                \
+    do {                                                                        \
+        const size_t cv_sz__ = (count) * sizeof(*(vec)) + (sizeof(size_t) * 2); \
+        if (!(vec)) {                                                           \
+            size_t *cv_p__ = cvector_clib_calloc(1, cv_sz__);                   \
+            assert(cv_p__);                                                     \
+            (vec) = (void *)(&cv_p__[2]);                                       \
+            cvector_set_capacity((vec), (count) + 1);                           \
+            cvector_set_size((vec), ((count)));                                 \
+        }                                                                       \
+    } while (0)
+
 /**
  * @brief cvector_for_each - call function func on each element of the vector
  * @param vec - the vector
@@ -314,7 +348,7 @@
             }                                                \
         }                                                    \
     } while (0)
-    
+
 /**
  * @brief cvector_for_each - call function with param on each element of the vector
  * @param vec - the vector
@@ -328,7 +362,7 @@
                 func(&(vec)[i], (param));                    \
             }                                                \
         }                                                    \
-    } while (0)    
+    } while (0)
 
 /**
  * @brief cvector_for_each_and_cmp - call function func on each element of the vector
@@ -337,7 +371,7 @@
  * @param param - function param
  * @param it_ - the vector pointer
  * @return void
- */    
+ */
 #define cvector_for_each_and_cmp(vec, func, param, it_)      \
     do {                                                     \
         if ((vec) && (func) && (it_)) {                      \

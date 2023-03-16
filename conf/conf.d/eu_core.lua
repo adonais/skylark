@@ -289,13 +289,10 @@ bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
 bool eu_exist_path(const char *path);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
-// hyperlink callback
-int eu_hyperlink_detection(void *pnode);
-
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);
 bool eu_init_completed_tree(doctype_t *p, const char *val);
-int64_t eu_sci_call(void *p, int m, int64_t w, int64_t l);
+intptr_t eu_sci_call(void *p, int m, intptr_t w, intptr_t l);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 int on_doc_init_list(void *pnode);
