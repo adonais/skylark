@@ -1948,6 +1948,26 @@ util_count_number(size_t number)
     return length;
 }
 
+sptr_t
+util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
+{
+    sptr_t len = 0;
+    char *buffer = (char *)calloc(1, end - start + 2);
+    if (buffer)
+    {
+        wchar_t *pbuf = NULL;
+        Sci_TextRangeFull tr = {{start, end}, buffer};
+        eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
+        if (*buffer && (pbuf = eu_utf8_utf16(buffer, NULL)))
+        {
+            len = (sptr_t)wcslen(pbuf);
+            free(pbuf);
+        }
+        free(buffer);
+    }
+    return len;
+}
+
 /* 初始化version.dll里面的三个函数 */
 static HMODULE
 util_init_verinfo(void)

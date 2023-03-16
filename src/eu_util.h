@@ -145,6 +145,7 @@ bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);
 const TCHAR* util_path_ext(const TCHAR *path);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
+sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 
 #ifdef __cplusplus
 }

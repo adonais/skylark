@@ -762,7 +762,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     if (ns_end - ns_start > 0)
     {
         LOAD_I18N_RESSTR(IDS_STATUS_LD, s_ld);
-        _sntprintf(file_size, FILESIZE, s_ld, ns_end - ns_start, line);
+        _sntprintf(file_size, FILESIZE, s_ld, util_select_characters(pnode, ns_start, ns_end), line);
     }
     else
     {
