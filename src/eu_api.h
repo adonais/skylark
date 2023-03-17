@@ -145,6 +145,8 @@
 // Upcheck message
 #define WM_UPCHECK_LAST           (WM_USER+10010)
 #define WM_UPCHECK_STATUS         (WM_USER+10011)
+// User clip message
+#define WM_CLEAN_CHAIN            (WM_USER+10020)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 

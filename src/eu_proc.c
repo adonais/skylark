@@ -1140,6 +1140,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_SWAP_CLIPBOARD:
                     on_edit_swap_clipborad(pnode);
                     break;
+                case IDM_EDIT_CLEAR_CLIPBOARD:
+                    on_edit_clear_clipborad(hwnd);
+                    break;
                 case IDM_EDIT_OTHER_EDITOR:
                     {
                         on_tabpage_do_file(on_tabpage_push_editor);

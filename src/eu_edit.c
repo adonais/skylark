@@ -246,6 +246,24 @@ on_edit_swap_clipborad(eu_tabpage *pnode)
     }
 }
 
+void
+on_edit_clear_clipborad(HWND hwnd)
+{
+    if (OpenClipboard(hwnd))
+    {
+        if (CountClipboardFormats() > 0)
+        {
+            EmptyClipboard();
+            on_toolbar_update_button();
+            if (on_toolbar_clip_hwnd())
+            {
+                PostMessage(on_toolbar_clip_hwnd(), WM_CLEAN_CHAIN, 0, 0);
+            }
+        }
+        CloseClipboard();
+    }
+}
+
 static void
 on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
 {

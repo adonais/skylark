@@ -486,6 +486,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_CHANGECBCHAIN:
+        {
             if ((HWND) wParam == m_chain)
             {
                 m_chain = (HWND) lParam;
@@ -495,8 +496,19 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 SendMessage(m_chain, message, wParam, lParam);
             }
             break;
-        case WM_NOTIFY:
+        }
+        case WM_CLEAN_CHAIN:
+        {
+            for (int id = IDC_EDIT0; id <= IDC_EDIT10; ++id)
+            {
+                HWND edt = GetDlgItem(hdlg, id);
+                if (edt)
+                {
+                    Edit_SetText(edt, _T(""));
+                }
+            }
             break;
+        }
         case WM_SHOWWINDOW:
         {
             return 1;

@@ -86,6 +86,7 @@ BEGIN
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
         END
         MENUITEM "Swap To Clipboard",                                  IDM_EDIT_SWAP_CLIPBOARD
+        MENUITEM "Clear Clip&board",                                   IDM_EDIT_CLEAR_CLIPBOARD
         MENUITEM MF_SEPARATOR
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
         MENUITEM "Send To External App For Comparison",                IDM_EDIT_OTHER_BCOMPARE

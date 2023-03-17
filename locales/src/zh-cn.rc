@@ -86,6 +86,7 @@ BEGIN
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
         END
         MENUITEM "交换到到剪贴板",                              IDM_EDIT_SWAP_CLIPBOARD
+        MENUITEM "清空剪贴板(&B)",                              IDM_EDIT_CLEAR_CLIPBOARD
         MENUITEM MF_SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM "发送到外部应用进行比较",                      IDM_EDIT_OTHER_BCOMPARE
