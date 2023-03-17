@@ -60,6 +60,7 @@ void on_edit_delete_line_header_all(eu_tabpage *pnode);
 void on_edit_delete_line_tail_all(eu_tabpage *pnode);
 bool on_edit_push_clipboard(const TCHAR *buf);
 
+void on_edit_swap_clipborad(eu_tabpage *pnode);
 void on_edit_push_editor(eu_tabpage *pnode);
 void on_edit_join_line(eu_tabpage *pnode);
 void on_edit_lower(eu_tabpage *pnode);

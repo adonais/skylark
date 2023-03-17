@@ -128,9 +128,6 @@ menu_update_hexview(HMENU root_menu, bool hex_mode)
     {
         util_enable_menu_item(root_menu, IDM_EDIT_UNDO, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_REDO, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_DELETE, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PASTE, !hex_mode);
-        util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE1, !hex_mode);
         util_enable_menu_item(root_menu, IDM_UPDATE_SELECTION, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE10, !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_PLACEHOLDE11, !hex_mode);
@@ -366,10 +363,10 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_COPY:
                     case IDM_EDIT_PASTE:
                     case IDM_EDIT_DELETE:
-                        util_enable_menu_item(menu, IDM_EDIT_CUT, util_can_selections(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_CUT, !pnode->plugin && (pnode->hex_mode || util_can_selections(pnode)));
                         util_enable_menu_item(menu, IDM_EDIT_COPY, !pnode->pmod);
-                        util_enable_menu_item(menu, IDM_EDIT_PASTE, eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
-                        util_enable_menu_item(menu, IDM_EDIT_DELETE, TAB_NOT_NUL(pnode));
+                        util_enable_menu_item(menu, IDM_EDIT_PASTE, !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode,SCI_CANPASTE, 0, 0));
+                        util_enable_menu_item(menu, IDM_EDIT_DELETE, !pnode->plugin && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE2, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE5, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE6, !pnode->hex_mode && TAB_NOT_NUL(pnode));
@@ -377,6 +374,9 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE7, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE8, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE9, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
+                        break;
+                    case IDM_EDIT_SWAP_CLIPBOARD:
+                        util_enable_menu_item(menu, IDM_EDIT_SWAP_CLIPBOARD, !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0));
                         break;
                     case IDM_EDIT_OTHER_EDITOR:
                         util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);

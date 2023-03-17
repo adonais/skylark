@@ -195,6 +195,57 @@ on_edit_push_clipboard(const TCHAR *buf)
     return false;
 }
 
+void
+on_edit_swap_clipborad(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0))
+    {
+        char *buf = NULL;
+        wchar_t *pbuf = NULL;
+        bool has_selection = false;
+        sptr_t start = 0, end = 0;
+        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+        {
+            on_edit_paste_text(pnode);
+            return;
+        }
+        if ((has_selection = sel_start != sel_end))
+        {
+            start = sel_start;
+            end = sel_end;
+        }
+        else
+        {
+            sptr_t m_indent = 0;
+            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+            sptr_t current_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+            end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
+            m_indent = util_line_header(pnode, current_line_start, end, NULL);
+            start = current_line_start + m_indent;
+        }
+        if ((buf = on_sci_range_text(pnode, start, end)))
+        {
+            char *replace = NULL;
+            if (on_toolbar_get_clipboard(&replace) && replace)
+            {
+                eu_sci_call(pnode, SCI_SETTARGETSTART, start, 0);
+                eu_sci_call(pnode, SCI_SETTARGETEND, end, 0);
+                eu_sci_call(pnode, SCI_REPLACETARGET,-1, (sptr_t)replace);
+                if ((pbuf = eu_utf8_utf16(buf, NULL)))
+                {
+                    on_edit_push_clipboard(pbuf);
+                    free(pbuf);
+                }
+                free(replace);
+            }
+            free(buf);
+        }
+    }
+}
+
 static void
 on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
 {

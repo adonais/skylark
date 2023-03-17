@@ -39,6 +39,7 @@ function eu_accel.loadaccel()
       "                 {0, 0, IDM_EDIT_COPY_FILENAME},\n",
       "                 {0, 0, IDM_EDIT_COPY_PATHNAME},\n",
       "                 {0, 0, IDM_EDIT_COPY_PATHFILENAME},\n",
+      "                 {bit.bor(FCONTROL), string.byte(\"^\"), IDM_EDIT_SWAP_CLIPBOARD},\n",
       "                 {0, 0, IDM_EDIT_OTHER_EDITOR},\n",
       "                 {0, 0, IDM_EDIT_OTHER_BCOMPARE},\n",
       "                 {bit.bor(FVIRTKEY,FALT), string.byte(\"D\"), IDM_EDIT_DELETELINE},\n",
