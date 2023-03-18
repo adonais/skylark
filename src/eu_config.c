@@ -52,7 +52,7 @@ on_config_setup_postion(const wchar_t **args, int arg_c, file_backup *pbak)
     }
 }
 
-static inline int 
+static inline int
 on_config_cvector_at(const file_backup *pbak, const TCHAR *pfile)
 {
     for (int i = 0; i < eu_int_cast(cvector_size(pbak)); ++i)
@@ -325,7 +325,7 @@ on_config_skyver_callbak(void *data, int count, char **column, char **names)
 void
 on_config_file_url(wchar_t *path, int len, const wchar_t *p)
 {
-    if (STR_NOT_NUL(path) && p && len > 0)
+    if (STR_NOT_NUL(path) && url_has_file(path) && p && len > 0)
     {
         if (wcslen(p) > 4 && wcsncmp(p, L":///", 4) == 0)
         {   // 加1, 是要把字符串结束符0也拷贝进去
@@ -423,7 +423,6 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 size_t len = 0;
                 if ((p = wcschr(ptr_arg[i], L':')) != NULL)
                 {   // 处理以绝对路径打开的文件或目录
-                    
                     wcsncpy(data.rel_path, ptr_arg[i], MAX_PATH);
                     on_config_file_url(data.rel_path, (int)wcslen(data.rel_path), p);
                     len = wcslen(data.rel_path);

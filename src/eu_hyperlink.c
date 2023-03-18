@@ -158,7 +158,7 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool e
                 if (execute)
                 {
                     SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
-                    if (wcsnicmp(text, L"file:///", 8) == 0)
+                    if (url_has_file(text))
                     {
                         file_backup bak = {0};
                         on_config_file_url(text, (int)wcslen(text), &text[4]);

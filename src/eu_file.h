@@ -25,6 +25,7 @@
 #define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
 #define file_click_close(m) (m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
+#define url_has_file(ll) (_tcslen(ll) > (URL_MIN+1) && _tcsnicmp(ll, _T("file:///"), (URL_MIN+1)) == 0)
 
 #ifdef __cplusplus
 extern "C"
