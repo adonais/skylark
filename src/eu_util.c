@@ -1094,7 +1094,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
 }
 
 sptr_t
-util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout)
+util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout)
 {
     sptr_t len = 0;
     if (pnode && end > start)
@@ -1118,7 +1118,7 @@ util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout)
 }
 
 char *
-util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen)
+util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
 {
     sptr_t line;
     sptr_t text_len;
@@ -1135,7 +1135,7 @@ util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen)
     }
     else
     {
-        line = line_number;
+        line = (sptr_t)line_number;
     }
     if (line < 0)
     {

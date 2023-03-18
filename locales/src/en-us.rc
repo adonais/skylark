@@ -334,7 +334,9 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "H&yperlink Hotspots",                                IDM_FORMAT_HYPERLINKHOTSPOTS
         MENUITEM MF_SEPARATOR
-        MENUITEM "QR Code &Generator",                                 IDM_EDIT_QRCODE
+        MENUITEM "Check I&ndentation",                                 IDM_FORMAT_CHECK_INDENTATION
+        MENUITEM MF_SEPARATOR
+        MENUITEM "&QR Code Generator",                                 IDM_EDIT_QRCODE
     END
     POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
@@ -367,10 +369,10 @@ BEGIN
     END
     POPUP "Se&ttings"
     BEGIN
-        MENUITEM "Popup Menu On WINDOWS File Right-Click",             IDM_ENV_FILE_POPUPMENU
-        MENUITEM "Popup Menu On WINDOWS Directory Right-Click",        IDM_ENV_DIRECTORY_POPUPMENU
+        MENUITEM "Windows Right Click Menu For Files",                 IDM_ENV_FILE_POPUPMENU
+        MENUITEM "Windows Right Click Menu For Folders",               IDM_ENV_DIRECTORY_POPUPMENU
         MENUITEM MF_SEPARATOR
-        MENUITEM "File Association For Skylark Editor",                IDM_ENV_SET_ASSOCIATED_WITH
+        MENUITEM "Register Skylark File Associations",                 IDM_ENV_SET_ASSOCIATED_WITH
         MENUITEM MF_SEPARATOR
         POPUP "UI Language"
         BEGIN
@@ -1004,6 +1006,7 @@ STRINGTABLE DISCARDABLE
 
 STRINGTABLE DISCARDABLE
 {
+    IDS_APP_TITLE           "Skylark Editor: "
     IDC_MSG_ERROR           "Error:"
     IDC_MSG_WARN            "Warning:"
     IDC_MSG_TIPS            "Tips:"
@@ -1244,6 +1247,13 @@ STRINGTABLE DISCARDABLE
     IDS_UPGRADE_TETILE_STR  "Skylark Update"
     IDS_UPGRADE_CONTENT_STR "Is Installing Your Updates And Will Start In A Few Moments…"
     IDS_FILE_RELOAD_STR     "The file has not been saved, reloading will discard all changes, continue?"
+    IDS_INDENT_CONSISTENT   "The file has a consistent indentation!"
+    IDS_INDENT_SPACE_STR    "The file is indented with spaces by default, but: \n"
+    IDS_INDENT_TAB_STR      "The file is indented with tab by default, but: \n"
+    IDS_INDENT_SPACE_OPPS   "[%s] %zd line(s) are indented using space character\n"
+    IDS_INDENT_TAB_OPPS     "[%s] %zd line(s) are indented with tab character\n"
+    IDS_INDENT_TAB_SPACE    "[%s] %zd line(s) are indented with space + tab characters\n"
+    IDS_INDENT_PROPOSE      "We recommend formatting the document using clang-format or the 'Edit->Convert' function"
 }
 
 /////////////////////////////////////////////////////////////////////////////

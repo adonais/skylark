@@ -84,7 +84,7 @@ int util_strnspace(const char *s1, const char *s2, int *plen);
 
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
-char*  util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen);
+char*  util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen);
 char*  util_strdup_content(eu_tabpage *pnode, size_t *plen);
 void   util_set_undo(eu_tabpage *p);
 void   util_push_text_dlg(eu_tabpage *pnode, HWND hwnd);
@@ -125,7 +125,7 @@ TCHAR* util_unix2path(TCHAR *path, int len);
 TCHAR* util_path2unix(TCHAR *path, int len);
 TCHAR* util_add_double_quotes(const TCHAR *path);
 TCHAR* util_which(const TCHAR *name);
-sptr_t util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout);
+sptr_t util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout);
 wchar_t* util_wstr_unquote(wchar_t *path, const int size);
 char* util_str_unquote(const char *path);
 const char* util_trim_left_white(const char *str, int *length);

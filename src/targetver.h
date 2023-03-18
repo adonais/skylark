@@ -1150,11 +1150,20 @@
 #define IDM_FORMAT_HALF_FULL                44052
 #define IDM_FORMAT_HYPERLINKHOTSPOTS        44053
 #define IDM_SKYLAR_AUTOMATIC_UPDATE         44054
+#define IDM_FORMAT_CHECK_INDENTATION        44055
 
 #define IDS_UPGRADE_FINISH_TIP              44060
 #define IDS_UPGRADE_TETILE_STR              44061
 #define IDS_UPGRADE_CONTENT_STR             44062
 #define IDS_FILE_RELOAD_STR                 44063
+
+#define IDS_INDENT_CONSISTENT               44070
+#define IDS_INDENT_SPACE_STR                44071
+#define IDS_INDENT_TAB_STR                  44072
+#define IDS_INDENT_SPACE_OPPS               44073
+#define IDS_INDENT_TAB_OPPS                 44074
+#define IDS_INDENT_TAB_SPACE                44075
+#define IDS_INDENT_PROPOSE                  44076
 
 // For MessageBox
 #define IDALWAYS                            12

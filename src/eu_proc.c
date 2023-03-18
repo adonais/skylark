@@ -1494,14 +1494,21 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_get_config()->m_hyperlink ^= true;
                     break;
                 }
+                case IDM_FORMAT_CHECK_INDENTATION:
+                {
+                    on_format_check_indentation(pnode);
+                    break;
+                }
                 case IDM_SKYLAR_AUTOMATIC_UPDATE:
                 {
                     eu_get_config()->upgrade.enable ^= true;
                     break;
                 }
                 case IDM_VIEW_WRAPLINE_MODE:
+                {
                     on_view_wrap_line();
                     break;
+                }
                 case IDM_VIEW_TAB_WIDTH:
                     on_view_tab_width(hwnd, pnode);
                     break;

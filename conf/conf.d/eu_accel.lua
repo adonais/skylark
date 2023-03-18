@@ -155,6 +155,7 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"9\"), IDM_FORMAT_HALF_FULL},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"L\"), IDM_VIEW_WRAPLINE_MODE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"Y\"), IDM_FORMAT_HYPERLINKHOTSPOTS},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), string.byte(\"N\"), IDM_FORMAT_CHECK_INDENTATION},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"Q\"), IDM_EDIT_QRCODE},\n",
       "                 -- Programming menu\n",
       "                 {bit.bor(FALT), string.byte(\"|\"), IDM_SOURCE_BLOCKFOLD_TOGGLE},\n",

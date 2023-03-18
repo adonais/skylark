@@ -334,7 +334,9 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "检测超链接(&Y)",                              IDM_FORMAT_HYPERLINKHOTSPOTS
         MENUITEM MF_SEPARATOR
-        MENUITEM "生成二维码(&G)",                              IDM_EDIT_QRCODE
+        MENUITEM "检查缩进...(&N)",                             IDM_FORMAT_CHECK_INDENTATION
+        MENUITEM MF_SEPARATOR
+        MENUITEM "生成二维码(&Q)",                              IDM_EDIT_QRCODE
     END
     POPUP "编程(&P)",                                           IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
@@ -367,8 +369,8 @@ BEGIN
     END
     POPUP "设置(&T)"
     BEGIN
-        MENUITEM "WINDOWS文件右键弹出菜单",                     IDM_ENV_FILE_POPUPMENU
-        MENUITEM "WINDOWS目录右键弹出菜单",                     IDM_ENV_DIRECTORY_POPUPMENU
+        MENUITEM "Windows文件右键弹出菜单",                     IDM_ENV_FILE_POPUPMENU
+        MENUITEM "Windows目录右键弹出菜单",                     IDM_ENV_DIRECTORY_POPUPMENU
         MENUITEM MF_SEPARATOR
         MENUITEM "配置Skylark编辑器的文件关联",                 IDM_ENV_SET_ASSOCIATED_WITH
         MENUITEM MF_SEPARATOR
@@ -1004,6 +1006,7 @@ STRINGTABLE DISCARDABLE
 
 STRINGTABLE DISCARDABLE
 {
+    IDS_APP_TITLE           "Skylark Editor："
     IDC_MSG_ERROR           "错误:"
     IDC_MSG_WARN            "警告:"
     IDC_MSG_TIPS            "提示:"
@@ -1242,6 +1245,13 @@ STRINGTABLE DISCARDABLE
     IDS_UPGRADE_TETILE_STR  "Skylark 更新"
     IDS_UPGRADE_CONTENT_STR "正在安装更新，将于稍后启动…"
     IDS_FILE_RELOAD_STR     "文件还未保存, 重新载入将会丢弃所有更改, 继续吗?"
+    IDS_INDENT_CONSISTENT   "该文件的缩进全部一致！"
+    IDS_INDENT_SPACE_STR    "该文件默认使用空格缩进，但是：\n"
+    IDS_INDENT_TAB_STR      "该文件默认使用水平制表符缩进，但是：\n"
+    IDS_INDENT_SPACE_OPPS   "[%s] %zd 行使用了空格缩进\n"
+    IDS_INDENT_TAB_OPPS     "[%s] %zd 行使用了水平制表符缩进\n"
+    IDS_INDENT_TAB_SPACE    "[%s] %zd 行使用了空格 + 制表符混合缩进\n"
+    IDS_INDENT_PROPOSE      "我们建议使用clang-format或者 '编辑->转换' 功能格式化文档"
 }
 
 /////////////////////////////////////////////////////////////////////////////

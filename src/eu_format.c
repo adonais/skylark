@@ -554,3 +554,123 @@ on_format_file_style(eu_tabpage *pnode)
         on_format_clang_file(pnode, true);
     }
 }
+
+static int
+on_format_cmp_header(const char *pheader, const int len, const bool use_tab)
+{
+    int ret = 0;
+    char *str = (char *) calloc(1, len + 1);
+    if (str)
+    {
+        use_tab ? memset(str, 0x09, len) : memset(str, 0x20, len);
+        if ((ret = strcmp(pheader, str)) != 0)
+        {
+            use_tab ? memset(str, 0x20, len) : memset(str, 0x09, len);
+            if (!(ret = strcmp(pheader, str)))
+            {
+                ret = 1;
+            }
+            else
+            {
+                ret = -1;
+            }
+        }
+    }
+    return ret;
+}
+
+static void
+on_format_get_lines(sptr_t *vec, const int vec_size, wchar_t *pstr, const int len)
+{
+    int offset = 0;
+    int count = min(10, (int)vec_size);
+    memset(pstr, 0, sizeof(wchar_t) * len);
+    for (int i = 0; i < count; ++i)
+    {
+        _snwprintf(pstr + offset, len - offset - 1, L"%zd, ", vec[i]);
+        offset = (int)wcslen(pstr);
+    }
+    if (count > 0)
+    {
+        pstr[wcslen(pstr) - 2] = L'\0';
+    }
+    if (vec_size > 10)
+    {
+        wcsncat(pstr, L"...", len - 1);
+    }
+}
+
+void
+on_format_check_indentation(eu_tabpage *pnode)
+{
+    size_t vec_size = 0;
+    wchar_t *pmsg = NULL;
+    wchar_t line_str[ENV_LEN];
+    wchar_t opps_str[ENV_LEN] = {0};
+    cvector_vector_type(sptr_t) opposite = NULL;
+    cvector_vector_type(sptr_t) jumble = NULL;
+    bool use_tab = (bool)eu_sci_call(pnode, SCI_GETUSETABS, 0, 0);
+    const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+    for (sptr_t i = 0; i < line; ++i)
+    {
+        char *pheader = NULL;
+        const sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
+        const sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
+        int indent = (int)util_line_header(pnode, line_start, line_end, &pheader);
+        if (indent > 0 && pheader)
+        {
+            int ret = on_format_cmp_header(pheader, indent, use_tab);
+            if (ret > 0)
+            {
+                cvector_push_back(opposite, i + 1);
+            }
+            else if (ret < 0)
+            {
+                cvector_push_back(jumble, i + 1);
+            }
+        }
+        eu_safe_free(pheader);
+    }
+    if ((vec_size = cvector_size(opposite)) > 0 && (pmsg = (wchar_t *)calloc(sizeof(wchar_t), MAX_BUFFER)))
+    {
+        LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_TAB_STR : IDS_INDENT_SPACE_STR, var);
+        LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_SPACE_OPPS : IDS_INDENT_TAB_OPPS, opps);
+        on_format_get_lines(opposite, (const int)vec_size, line_str, ENV_LEN);
+        _snwprintf(opps_str, ENV_LEN - 1, opps, line_str, vec_size);
+        if (!cvector_size(jumble))
+        {
+            LOAD_I18N_RESSTR(IDS_INDENT_PROPOSE, propose);
+            _snwprintf(pmsg, MAX_BUFFER - 1, L"%s%s%s", var, opps_str, propose);
+        }
+        else
+        {
+            _snwprintf(pmsg, MAX_BUFFER - 1, L"%s%s", var, opps_str);
+        }
+    }
+    if ((vec_size = cvector_size(jumble)) > 0)
+    {
+        LOAD_I18N_RESSTR(IDS_INDENT_TAB_SPACE, jumb);
+        LOAD_I18N_RESSTR(IDS_INDENT_PROPOSE, propose);
+        on_format_get_lines(jumble, (const int)vec_size, line_str, ENV_LEN);
+        _snwprintf(opps_str, ENV_LEN - 1, jumb, line_str, vec_size);
+        if (!pmsg && (pmsg = (wchar_t *)calloc(sizeof(wchar_t), MAX_BUFFER)))
+        {
+            LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_TAB_STR : IDS_INDENT_SPACE_STR, var);
+            _snwprintf(pmsg, MAX_BUFFER - 1, L"%s", var);
+        }
+        wcsncat(pmsg, opps_str, MAX_BUFFER - 1);
+        wcsncat(pmsg, propose, MAX_BUFFER - 1);
+    }
+    if (pmsg)
+    {
+        LOAD_I18N_RESSTR(IDS_APP_TITLE, title);
+        eu_msgbox(eu_module_hwnd(), pmsg, title, MB_ICONWARNING | MB_OK);
+    }
+    else
+    {
+        MSG_BOX(IDS_INDENT_CONSISTENT, IDS_APP_TITLE, MB_ICONINFORMATION | MB_OK);
+    }
+    cvector_free(opposite);
+    cvector_free(jumble);
+    eu_safe_free(pmsg);
+}
