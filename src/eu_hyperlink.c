@@ -158,7 +158,17 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool e
                 if (execute)
                 {
                     SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
-                    ShellExecuteW(hwnd, L"open", text, NULL, NULL, SW_SHOWNORMAL);
+                    if (wcsnicmp(text, L"file:///", 8) == 0)
+                    {
+                        file_backup bak = {0};
+                        on_config_file_url(text, (int)wcslen(text), &text[4]);
+                        wcsncpy(bak.rel_path, text, MAX_PATH - 1);
+                        on_file_only_open(&bak, true);
+                    }
+                    else
+                    {
+                        ShellExecuteW(hwnd, L"open", text, NULL, NULL, SW_SHOWNORMAL);
+                    }
                 }
                 else
                 {

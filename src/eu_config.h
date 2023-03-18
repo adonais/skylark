@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-//
+void on_config_file_url(wchar_t *path, int len, const wchar_t *p);
 
 #ifdef __cplusplus
 }

@@ -603,19 +603,19 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 if (wParam == VK_UP)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 0);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 0);
                 }
                 if (wParam == VK_DOWN)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 0);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 0);
                 }
                 if (wParam == VK_PRIOR)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 1);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 1);
                 }
                 if (wParam == VK_NEXT)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 1);
                 }
             }
             break;

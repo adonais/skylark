@@ -322,6 +322,31 @@ on_config_skyver_callbak(void *data, int count, char **column, char **names)
     return (int)(status == VERSION_UPDATE_COMPLETED);
 }
 
+void
+on_config_file_url(wchar_t *path, int len, const wchar_t *p)
+{
+    if (STR_NOT_NUL(path) && p && len > 0)
+    {
+        if (wcslen(p) > 4 && wcsncmp(p, L":///", 4) == 0)
+        {   // 加1, 是要把字符串结束符0也拷贝进去
+            memmove(path, &p[4], sizeof(wchar_t) * (wcslen(&p[4]) + 1));
+            len = (int)wcslen(path);
+            while (--len > 0)
+            {
+                if (path[len] == L'/' || path[len] == L'!')
+                {
+                    path[len] = L'\0';
+                }
+                else
+                {
+                    break;
+                }
+            }
+            util_unix2path(path, (int)wcslen(path));
+        }
+    }
+}
+
 bool
 eu_config_check_arg(const wchar_t **args, int arg_c, const wchar_t *argument)
 {
@@ -398,7 +423,9 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 size_t len = 0;
                 if ((p = wcschr(ptr_arg[i], L':')) != NULL)
                 {   // 处理以绝对路径打开的文件或目录
+                    
                     wcsncpy(data.rel_path, ptr_arg[i], MAX_PATH);
+                    on_config_file_url(data.rel_path, (int)wcslen(data.rel_path), p);
                     len = wcslen(data.rel_path);
                     if (!url_has_remote(data.rel_path) && eu_exist_dir(data.rel_path) && len < MAX_PATH - 2)
                     {
