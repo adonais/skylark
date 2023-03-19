@@ -116,7 +116,6 @@
 #define IDC_SKYLARK                           102
 
 #define IDB_CLSDFOLD                          110
-#define IDB_DOC                               111
 #define IDB_DRIVE                             112
 #define IDB_OPENFOLD                          113
 #define IDB_TXT                               114
