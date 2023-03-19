@@ -325,25 +325,28 @@ on_config_skyver_callbak(void *data, int count, char **column, char **names)
 void
 on_config_file_url(wchar_t *path, int len, const wchar_t *p)
 {
-    if (STR_NOT_NUL(path) && url_has_file(path) && p && len > 0)
+    if (STR_NOT_NUL(path) && p && len > 0)
     {
-        if (wcslen(p) > 4 && wcsncmp(p, L":///", 4) == 0)
-        {   // 加1, 是要把字符串结束符0也拷贝进去
-            memmove(path, &p[4], sizeof(wchar_t) * (wcslen(&p[4]) + 1));
-            len = (int)wcslen(path);
-            while (--len > 0)
-            {
-                if (path[len] == L'/' || path[len] == L'!')
+        if (url_has_file(path))
+        {
+            if (wcslen(p) > 4 && wcsncmp(p, L":///", 4) == 0)
+            {   // 加1, 是要把字符串结束符0也拷贝进去
+                memmove(path, &p[4], sizeof(wchar_t) * (wcslen(&p[4]) + 1));
+                len = (int)wcslen(path);
+                while (--len > 0)
                 {
-                    path[len] = L'\0';
-                }
-                else
-                {
-                    break;
+                    if (path[len] == L'/' || path[len] == L'!')
+                    {
+                        path[len] = L'\0';
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
-            util_unix2path(path, (int)wcslen(path));
         }
+        util_unix2path(path, (int)wcslen(path));
     }
 }
 
