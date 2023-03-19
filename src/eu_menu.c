@@ -378,6 +378,9 @@ menu_update_item(HMENU menu)
                     case IDM_EDIT_SWAP_CLIPBOARD:
                         util_enable_menu_item(menu, IDM_EDIT_SWAP_CLIPBOARD, !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0));
                         break;
+                    case IDM_EDIT_CLEAR_CLIPBOARD:
+                        util_enable_menu_item(menu, IDM_EDIT_CLEAR_CLIPBOARD, on_edit_can_paste());
+                        break;
                     case IDM_EDIT_OTHER_EDITOR:
                         util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);
                         break;

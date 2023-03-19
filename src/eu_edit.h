@@ -84,6 +84,7 @@ int on_edit_comment_line(eu_tabpage *pnode);
 int on_edit_comment_stream(eu_tabpage *pnode);
 int on_edit_convert_eols(eu_tabpage *pnode, int new_eol);
 
+bool on_edit_can_paste(void);
 bool on_edit_ssl_enc_base64(unsigned char *base64_pass, unsigned char *enc_str, int enc_len);
 bool on_edit_ssl_dec_base64(unsigned char *base64_pass, unsigned char *enc_str, int enc_len);
 

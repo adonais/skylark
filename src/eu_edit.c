@@ -246,6 +246,18 @@ on_edit_swap_clipborad(eu_tabpage *pnode)
     }
 }
 
+bool
+on_edit_can_paste(void)
+{
+    bool ret = false;
+    if (OpenClipboard(eu_module_hwnd()))
+    {
+        ret = CountClipboardFormats() > 0;
+        CloseClipboard();
+    }
+    return ret;
+}
+
 void
 on_edit_clear_clipborad(HWND hwnd)
 {
