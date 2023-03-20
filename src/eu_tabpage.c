@@ -872,6 +872,11 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     return 1;
                 }
+                // TLS_BUTTONS is already captured on Windows but WINE/ReactOS must SetCapture
+                if (GetCapture() != hwnd && util_under_wine())
+                {
+                    SetCapture(hwnd);
+                }
             }
             break;
         }
@@ -880,6 +885,10 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             RECT rect = {0};
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             GetClientRect(hwnd, &rect);
+            if (util_under_wine() && GetCapture() == hwnd)
+            {
+                ReleaseCapture();
+            }
             if (tab_move_from >= 0)
             {
                 int count = TabCtrl_GetItemCount(hwnd);
