@@ -980,7 +980,7 @@ int
 util_set_title(const TCHAR *filename)
 {
     TCHAR title[100 + MAX_PATH];
-    bool admin = on_reg_admin();
+    bool admin = !util_under_wine() && on_reg_admin();
     LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
     if (filename && filename[0])
     {

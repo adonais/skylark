@@ -354,6 +354,9 @@ menu_update_item(HMENU menu)
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_UTF16BE, (eu_get_config()->new_file_enc == IDM_UNI_UTF16BEB));
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_ANSI, (eu_get_config()->new_file_enc == IDM_OTHER_ANSI));
                         break;
+                    case IDM_FILE_RESTART_ADMIN:
+                        util_enable_menu_item(menu, IDM_FILE_RESTART_ADMIN, !util_under_wine());
+                        break;
                     case IDM_EDIT_UNDO:                       /* Edit menu */
                     case IDM_EDIT_REDO:
                         util_enable_menu_item(menu, IDM_EDIT_UNDO, eu_sci_call(pnode,SCI_CANUNDO, 0, 0));
