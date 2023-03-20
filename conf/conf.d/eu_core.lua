@@ -364,9 +364,9 @@ int on_doc_click_tree_json(void *pnode);
 int on_doc_click_tree_redis(void *pnode);
 
 /* lua脚本接口支持, 对各类关键字着色 */
-int on_doc_init_after_scilexer(void *p, const  char *name);
+int on_doc_init_after_scilexer(void *p, const char *name);
 void on_doc_enable_foldline(void *p);
-void on_doc_default_light(void *p, int lex, intptr_t bg_rgb, intptr_t bk_rgb, bool force);
+void on_doc_default_light(void *p, int lex, intptr_t bg_rgb, intptr_t bk_rgb, const bool force);
 void on_doc_keyword_light(void *p, int lex, int index, intptr_t rgb);
 void on_doc_function_light(void *p, int lex, int index, intptr_t rgb);
 void on_doc_preprocessor_light(void *p, int lex, int index, intptr_t rgb);

@@ -308,7 +308,7 @@ on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
 }
 
 void
-on_doc_default_light(eu_tabpage *pnode, int lex, intptr_t fg_rgb, intptr_t bk_rgb, bool force)
+on_doc_default_light(eu_tabpage *pnode, int lex, intptr_t fg_rgb, intptr_t bk_rgb, const bool force)
 {
     if (pnode)
     {

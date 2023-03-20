@@ -4091,7 +4091,7 @@ void Editor::Indent(bool forwards) {
 						const Sci::Position lengthInserted = pdoc->InsertString(caretPosition, "\t", 1);
 						sel.Range(r) = SelectionRange(caretPosition + lengthInserted);
 					} else {
-					    // There is no need to align when replacing with spaces
+						// There is no need to align when replacing with spaces
 						const std::string spaceText(pdoc->tabInChars, ' ');
 						const Sci::Position lengthInserted = pdoc->InsertString(caretPosition, spaceText);
 						sel.Range(r) = SelectionRange(caretPosition + lengthInserted);

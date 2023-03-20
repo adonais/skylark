@@ -84,14 +84,13 @@ on_view_switch_type(int m_type)
         {
             pnode->doc_ptr = eu_doc_get_ptr() + m_type;
         }
-        HWND hwnd = eu_module_hwnd();
-        on_sci_before_file(pnode);
-        on_sci_after_file(pnode);
+		on_sci_before_file(pnode);
+		on_sci_after_file(pnode);
         if (pnode->be_modify)
         {
             on_tabpage_editor_modify(pnode, "X");
         }
-        eu_window_resize(hwnd);
+        eu_window_resize(eu_hwnd_self());
         return 0;
     }
     return 1;
