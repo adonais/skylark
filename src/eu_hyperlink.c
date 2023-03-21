@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -158,7 +158,17 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool e
                 if (execute)
                 {
                     SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
-                    ShellExecuteW(hwnd, L"open", text, NULL, NULL, SW_SHOWNORMAL);
+                    if (url_has_file(text))
+                    {
+                        file_backup bak = {0};
+                        on_config_file_url(text, (int)wcslen(text), &text[4]);
+                        wcsncpy(bak.rel_path, text, MAX_PATH - 1);
+                        on_file_only_open(&bak, true);
+                    }
+                    else
+                    {
+                        ShellExecuteW(hwnd, L"open", text, NULL, NULL, SW_SHOWNORMAL);
+                    }
                 }
                 else
                 {

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 3
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 7
+#define __EU_INFO_VERSION_PATCHLEVEL 8
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -41,7 +41,7 @@
 
 #define __EU_INFO_RELEASE_VERSION MAKE_VERSION_NUM(__EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL,".")
 
-#define EU_DESCRIPTION TEXT("Copyright © 2020-2022, Skylark project authors. All rights reserved. \r\n\r\n") \
+#define EU_DESCRIPTION TEXT("Copyright © 2020-2023, Skylark project authors. All rights reserved. \r\n\r\n") \
                        TEXT("Note that the GPL places important restrictions on 'derived works', \r\n") \
                        TEXT("yet it does not provide a detailed definition of that term. ") \
                        TEXT("To avoid misunderstandings, we consider an application to constitute a 'derivative work' for ") \
@@ -116,7 +116,6 @@
 #define IDC_SKYLARK                           102
 
 #define IDB_CLSDFOLD                          110
-#define IDB_DOC                               111
 #define IDB_DRIVE                             112
 #define IDB_OPENFOLD                          113
 #define IDB_TXT                               114
@@ -571,6 +570,8 @@
 #define IDM_EDIT_WORD_UPPERCASE              30452
 #define IDM_EDIT_SENTENCE_UPPERCASE          30453
 #define IDM_VIEW_SCROLLCURSOR                30454
+#define IDM_EDIT_SWAP_CLIPBOARD              30455
+#define IDM_EDIT_CLEAR_CLIPBOARD             30456
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -1148,11 +1149,20 @@
 #define IDM_FORMAT_HALF_FULL                44052
 #define IDM_FORMAT_HYPERLINKHOTSPOTS        44053
 #define IDM_SKYLAR_AUTOMATIC_UPDATE         44054
+#define IDM_FORMAT_CHECK_INDENTATION        44055
 
 #define IDS_UPGRADE_FINISH_TIP              44060
 #define IDS_UPGRADE_TETILE_STR              44061
 #define IDS_UPGRADE_CONTENT_STR             44062
 #define IDS_FILE_RELOAD_STR                 44063
+
+#define IDS_INDENT_CONSISTENT               44070
+#define IDS_INDENT_SPACE_STR                44071
+#define IDS_INDENT_TAB_STR                  44072
+#define IDS_INDENT_SPACE_OPPS               44073
+#define IDS_INDENT_TAB_OPPS                 44074
+#define IDS_INDENT_TAB_SPACE                44075
+#define IDS_INDENT_PROPOSE                  44076
 
 // For MessageBox
 #define IDALWAYS                            12

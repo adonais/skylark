@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1137,6 +1137,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_edit_push_clipboard(pnode->pathfile);
                     }
                     break;
+                case IDM_EDIT_SWAP_CLIPBOARD:
+                    on_edit_swap_clipborad(pnode);
+                    break;
+                case IDM_EDIT_CLEAR_CLIPBOARD:
+                    on_edit_clear_clipborad(hwnd);
+                    break;
                 case IDM_EDIT_OTHER_EDITOR:
                     {
                         on_tabpage_do_file(on_tabpage_push_editor);
@@ -1488,14 +1494,21 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_get_config()->m_hyperlink ^= true;
                     break;
                 }
+                case IDM_FORMAT_CHECK_INDENTATION:
+                {
+                    on_format_check_indentation(pnode);
+                    break;
+                }
                 case IDM_SKYLAR_AUTOMATIC_UPDATE:
                 {
                     eu_get_config()->upgrade.enable ^= true;
                     break;
                 }
                 case IDM_VIEW_WRAPLINE_MODE:
+                {
                     on_view_wrap_line();
                     break;
+                }
                 case IDM_VIEW_TAB_WIDTH:
                     on_view_tab_width(hwnd, pnode);
                     break;
@@ -1956,7 +1969,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
                             {
                                 on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
-                                on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
+                                on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod && TAB_NOT_NUL(pnode) ? 2 : 1);
                             }
                             on_search_turn_select(pnode);
                         }

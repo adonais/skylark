@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ int util_strnspace(const char *s1, const char *s2, int *plen);
 
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
-char*  util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen);
+char*  util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen);
 char*  util_strdup_content(eu_tabpage *pnode, size_t *plen);
 void   util_set_undo(eu_tabpage *p);
 void   util_push_text_dlg(eu_tabpage *pnode, HWND hwnd);
@@ -121,11 +121,11 @@ char*  util_string_match(const char *str, const char *pattern, bool incase, bool
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 HWND   util_get_hwnd(const uint32_t pid);
-TCHAR* util_unix2path(TCHAR *path);
-TCHAR* util_path2unix(TCHAR *path);
+TCHAR* util_unix2path(TCHAR *path, int len);
+TCHAR* util_path2unix(TCHAR *path, int len);
 TCHAR* util_add_double_quotes(const TCHAR *path);
 TCHAR* util_which(const TCHAR *name);
-sptr_t util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout);
+sptr_t util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout);
 wchar_t* util_wstr_unquote(wchar_t *path, const int size);
 char* util_str_unquote(const char *path);
 const char* util_trim_left_white(const char *str, int *length);
@@ -145,6 +145,7 @@ bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 const uint32_t util_os_version(void);
 const TCHAR* util_path_ext(const TCHAR *path);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
+sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 
 #ifdef __cplusplus
 }

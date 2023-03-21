@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -980,7 +980,7 @@ int
 util_set_title(const TCHAR *filename)
 {
     TCHAR title[100 + MAX_PATH];
-    bool admin = on_reg_admin();
+    bool admin = !util_under_wine() && on_reg_admin();
     LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
     if (filename && filename[0])
     {
@@ -1094,7 +1094,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
 }
 
 sptr_t
-util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout)
+util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout)
 {
     sptr_t len = 0;
     if (pnode && end > start)
@@ -1118,7 +1118,7 @@ util_line_header(eu_tabpage *pnode, sptr_t start, sptr_t end, char **pout)
 }
 
 char *
-util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen)
+util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
 {
     sptr_t line;
     sptr_t text_len;
@@ -1135,7 +1135,7 @@ util_strdup_line(eu_tabpage *pnode, sptr_t line_number, size_t *plen)
     }
     else
     {
-        line = line_number;
+        line = (sptr_t)line_number;
     }
     if (line < 0)
     {
@@ -1416,37 +1416,37 @@ util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
 }
 
 TCHAR *
-util_path2unix(TCHAR *path)
+util_path2unix(TCHAR *path, int len)
 {
-    TCHAR *lp = NULL;
-    intptr_t pos;
-    do
+    if (path)
     {
-        lp = _tcschr(path, _T('\\'));
-        if (lp)
+        for (int i = 0; i < len; ++i)
         {
-            pos = lp - path;
-            path[pos] = _T('/');
+            if (path[i] == L'\\')
+            {
+                path[i] = L'/';
+            }
         }
-    } while (lp != NULL);
-    return path;
+        return path;
+    }
+    return NULL;
 }
 
 TCHAR *
-util_unix2path(TCHAR *path)
+util_unix2path(TCHAR *path, int len)
 {
-    TCHAR *lp = NULL;
-    intptr_t pos;
-    do
+    if (path)
     {
-        lp = _tcschr(path, _T('/'));
-        if (lp)
+        for (int i = 0; i < len; ++i)
         {
-            pos = lp - path;
-            path[pos] = _T('\\');
+            if (path[i] == L'/')
+            {
+                path[i] = L'\\';
+            }
         }
-    } while (lp != NULL);
-    return path;
+        return path;
+    }
+    return NULL;
 }
 
 char *
@@ -1719,11 +1719,11 @@ util_to_abs(const char *path)
     {
         return NULL;
     }
-    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, lpfile, MAX_PATH))
+    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, lpfile, MAX_PATH) || !lpfile[0])
     {
         return NULL;
     }
-    util_unix2path(lpfile);
+    util_unix2path(lpfile, eu_int_cast(_tcslen(lpfile)));
     // 如果路径有引号, 去除
     util_wstr_unquote(lpfile, sizeof(lpfile));
     if (lpfile[0] == L'%')
@@ -1946,6 +1946,26 @@ util_count_number(size_t number)
         ++length;
     }
     return length;
+}
+
+sptr_t
+util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
+{
+    sptr_t len = 0;
+    char *buffer = (char *)calloc(1, end - start + 2);
+    if (buffer)
+    {
+        wchar_t *pbuf = NULL;
+        Sci_TextRangeFull tr = {{start, end}, buffer};
+        eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
+        if (*buffer && (pbuf = eu_utf8_utf16(buffer, NULL)))
+        {
+            len = (sptr_t)wcslen(pbuf);
+            free(pbuf);
+        }
+        free(buffer);
+    }
+    return len;
 }
 
 /* 初始化version.dll里面的三个函数 */

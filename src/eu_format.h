@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ int  on_format_json_callback(const uint8_t *text, uint8_t **pbuf);
 void on_format_file_style(eu_tabpage *pnode);
 void on_format_do_compress(eu_tabpage *pnode, format_back fn); 
 void on_format_clang_file(eu_tabpage *p, const bool whole);
+void on_format_check_indentation(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

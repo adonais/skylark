@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,8 @@ void on_edit_delete_line_header_all(eu_tabpage *pnode);
 void on_edit_delete_line_tail_all(eu_tabpage *pnode);
 bool on_edit_push_clipboard(const TCHAR *buf);
 
+void on_edit_swap_clipborad(eu_tabpage *pnode);
+void on_edit_clear_clipborad(HWND hwnd);
 void on_edit_push_editor(eu_tabpage *pnode);
 void on_edit_join_line(eu_tabpage *pnode);
 void on_edit_lower(eu_tabpage *pnode);
@@ -82,6 +84,7 @@ int on_edit_comment_line(eu_tabpage *pnode);
 int on_edit_comment_stream(eu_tabpage *pnode);
 int on_edit_convert_eols(eu_tabpage *pnode, int new_eol);
 
+bool on_edit_can_paste(void);
 bool on_edit_ssl_enc_base64(unsigned char *base64_pass, unsigned char *enc_str, int enc_len);
 bool on_edit_ssl_dec_base64(unsigned char *base64_pass, unsigned char *enc_str, int enc_len);
 

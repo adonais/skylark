@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -565,7 +565,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     {
         return EUE_PATH_NULL;
     }
-    if (eu_check_arg(NULL, 0, _T("-hex"), pfull))
+    if (pbak->hex)
     {
         pnode->hex_mode = true;
     }
@@ -862,6 +862,24 @@ on_file_update_postion(eu_tabpage *pnode, file_backup *pbak)
         {
             pnode->nc_pos = pbak->y;
         }
+        else if (pbak->hex)
+        {
+            if (pbak->postion > 0)
+            {
+                pnode->nc_pos = pbak->postion;
+            }
+            else
+            {
+                if (pbak->x >= 0)
+                {
+                    pnode->nc_pos = (pbak->x > 0 ? pbak->x - 1 : pbak->x) * 16;
+                }
+                if (pbak->y >= 0)
+                {
+                    pnode->nc_pos += pbak->y % 16;
+                }
+            }
+        }
         else
         {
             sptr_t pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, pbak->x > 0 ? pbak->x - 1 : 0, 0);
@@ -1056,7 +1074,16 @@ on_file_only_open(file_backup *pbak, const bool selection)
         on_file_update_postion(pnode, pbak);
         if (pnode->nc_pos >= 0)
         {
+            printf("we jump to %zd\n", pnode->nc_pos);
             on_search_jmp_pos(pnode);
+        }
+        if (!pnode->hex_mode)
+        {
+            res = pbak && pbak->hex ? hexview_switch_mode(pnode) : res;
+        }
+        else if (pbak && !pbak->hex && !eu_get_config()->m_instance)
+        {
+            res = hexview_switch_mode(pnode);
         }
         return res;
     }
@@ -1204,19 +1231,17 @@ on_file_out_open(const int index, uint32_t *pid)
                     sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
                     sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
                     _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%zd -c%zd"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
-                    if (!(err = on_file_close(p, FILE_ONLY_CLOSE)))
+                    if (!p->plugin && p->hex_mode)
                     {
-                        err = _tputenv(_T("OPEN_FROM_SQL="));
+                        _tcsncat(process, _T(" -hex"), MAX_BUFFER - 1);
                     }
+                    err = on_file_close(p, FILE_ONLY_CLOSE);
                 }
             }
             else
             {
-                _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\""), process, _T(" -noremote "), p->pathfile);
-                if (!(err = on_file_close(p, FILE_REMOTE_CLOSE)))
-                {
-                    err = _tputenv(_T("OPEN_FROM_SQL=1"));
-                }
+                _sntprintf(process, MAX_BUFFER - 1, _T("%s%s"), process, _T(" -noremote "));
+                err = on_file_close(p, FILE_REMOTE_CLOSE);
             }
             if (err == SKYLARK_OK)
             {

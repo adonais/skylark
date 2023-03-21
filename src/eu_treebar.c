@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@ static int img_drive;
 static int img_fold;
 static int img_close;
 static int img_text;
-static int img_general;
 static int img_exe;
 static WNDPROC filetree_wnd;
 static WNDPROC treebar_wnd;
@@ -1495,15 +1494,11 @@ load_tree_imglist(HWND hwnd)
     DestroyIcon(hicon);
 
     hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_TXT));
-    img_general = ImageList_AddIcon(himl, hicon);
-    DestroyIcon(hicon);
-
-    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_DOC));
     img_text = ImageList_AddIcon(himl, hicon);
     DestroyIcon(hicon);
 
     // Fail if not all of the images were added.
-    if (ImageList_GetImageCount(himl) < 5)
+    if (ImageList_GetImageCount(himl) < 4)
     {
         ImageList_Destroy(himl);
         return NULL;

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -565,7 +565,7 @@ on_sci_menu_callback(HMENU hpop, void *param)
     if (p && hpop)
     {
         util_enable_menu_item(hpop, IDM_EDIT_CUT, util_can_selections(p));
-        util_enable_menu_item(hpop, IDM_EDIT_COPY, !p->pmod);
+        util_enable_menu_item(hpop, IDM_EDIT_COPY, !p->pmod && TAB_NOT_NUL(p));
         util_enable_menu_item(hpop, IDM_EDIT_PASTE, eu_sci_call(p, SCI_CANPASTE, 0, 0));
     }
 }
@@ -603,19 +603,19 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 if (wParam == VK_UP)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 0);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 0);
                 }
                 if (wParam == VK_DOWN)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 0);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 0);
                 }
                 if (wParam == VK_PRIOR)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 1);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 1);
                 }
                 if (wParam == VK_NEXT)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
+                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 1);
                 }
             }
             break;

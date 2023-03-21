@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -504,22 +504,20 @@ on_tabpage_send_file(const HWND hwin, const int index)
                     sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
                     bak.x = lineno + 1;
                     bak.y = eu_int_cast(pos - row + 1);
+                    bak.hex = p->hex_mode;
                 }
-                _tputenv(_T("OPEN_FROM_SQL="));
                 err = on_file_close(p, FILE_ONLY_CLOSE);
             }
         }
         else
         {
-            err = on_file_close(p, FILE_REMOTE_CLOSE);
-            if (!err && !_tputenv(_T("OPEN_FROM_SQL=1")))
+            if (!(err = on_file_close(p, FILE_REMOTE_CLOSE)))
             {
                 const char *sql = "SELECT * FROM skylark_session;";
-                err = eu_sqlite3_send(sql, on_tabpage_parser_bakup, &bak);
+                err = on_sql_post(sql, on_tabpage_parser_bakup, &bak);
                 if (err != SKYLARK_OK && err != SQLITE_ABORT)
                 {
-                    printf("eu_sqlite3_send failed in %s, cause: %d\n", __FUNCTION__, err);
-                    _tputenv(_T("OPEN_FROM_SQL="));
+                    printf("on_sql_post failed in %s, cause: %d\n", __FUNCTION__, err);
                 }
                 else
                 {
@@ -874,6 +872,11 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     return 1;
                 }
+                // TLS_BUTTONS is already captured on Windows but WINE/ReactOS must SetCapture
+                if (GetCapture() != hwnd && util_under_wine())
+                {
+                    SetCapture(hwnd);
+                }
             }
             break;
         }
@@ -882,6 +885,10 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             RECT rect = {0};
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             GetClientRect(hwnd, &rect);
+            if (util_under_wine() && GetCapture() == hwnd)
+            {
+                ReleaseCapture();
+            }
             if (tab_move_from >= 0)
             {
                 int count = TabCtrl_GetItemCount(hwnd);

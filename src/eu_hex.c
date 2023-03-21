@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1121,6 +1121,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_PASTE:
+        case SCI_PASTE:
         {
             if (hexview->total_items > 0 && !(hexview->ex_style & HVS_READONLY))
             {
@@ -1791,6 +1792,14 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             if (wParam >= 0)
             {
                 return wParam/16;
+            }
+            return 0;
+        }
+        case SCI_POSITIONFROMLINE:
+        {
+            if (wParam >= 0)
+            {
+                return min(wParam * 16 + 1, hexview->total_items);
             }
             return 0;
         }

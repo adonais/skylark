@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #define DARK_HOTCOLOR    "#D3D3D3"
 #define DARK_UNHOTCOLOR  "#4E4E4E"
 #define BLUE_UNHOTCOLOR  "#D3D3D3"
+#define WINE_UNHOTCOLOR  "#696969"
 
 #define CHECK_IF(a) if ((a)!= 0) return false
 
@@ -78,7 +79,7 @@ on_toolbar_fill_params(toolbar_data *pdata, const int resid)
     }
     else
     {
-        strncpy(pdata->gcolor, BLUE_UNHOTCOLOR, OVEC_LEN - 1);
+        strncpy(pdata->gcolor, util_under_wine() ? WINE_UNHOTCOLOR : BLUE_UNHOTCOLOR, OVEC_LEN - 1);
     }
     if (resid == IDB_SIZE_1)
     {
@@ -297,31 +298,62 @@ static bool
 init_clip_dlg(HWND dialog, bool init)
 {
     int w, h;
-    RECT rc = {0};
+    HICON hicon = NULL;
     HBITMAP hbmp = NULL;
     const char* svg_icon = \
-        "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 32 32\"><g id=\"08\"><path fill=\"#455f91\" opacity=\"1.00\" d=\" M 9.81 0.00 L 21.87 0.00 C 25.02 1.37 28.18 4.20 28.00 7.92 C 27.91 13.27 28.31 18.65 27.74 23.98 C 26.58 26.98 22.64 25.70 20.17 26.05 C 20.02 28.20 20.04 30.62 18.07 32.00 L 1.67 32.00 C 1.91 30.65 1.35 30.07 0.00 30.27 L 0.00 8.06 C 1.65 5.27 5.12 6.13 7.83 5.95 C 7.94 3.80 8.10 1.54 9.81 0.00 M 11.06 3.07 C 10.94 9.71 11.03 16.36 11.00 23.00 C 15.67 23.00 20.33 23.00 25.00 23.00 C 25.00 18.67 25.00 14.34 25.00 10.00 C 23.00 10.01 20.99 10.10 19.00 9.91 C 16.99 8.32 18.38 5.21 18.00 2.99 C 15.68 3.00 13.37 3.02 11.06 3.07 M 21.04 2.66 C 21.01 4.11 21.00 5.56 20.99 7.01 C 22.44 7.00 23.89 6.99 25.34 6.96 C 24.22 5.24 22.76 3.78 21.04 2.66 M 3.07 9.07 C 2.92 15.71 3.03 22.35 3.00 29.00 C 7.67 29.00 12.33 29.00 17.00 29.00 C 17.00 28.25 17.00 26.75 17.00 26.01 C 14.18 25.62 9.80 27.26 8.26 24.05 C 7.64 19.06 8.17 14.00 8.00 8.98 C 6.36 9.00 4.71 9.04 3.07 9.07 Z\" /></g></svg>";
+        "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 32 32\"><g id=\"c01\"><path fill=\"#455f91\" opacity=\"1.00\" d=\" M 9.81 0.00 L 21.87 0.00 C 25.02 1.37 28.18 4.20 28.00 7.92 C 27.91 13.27 28.31 18.65 27.74 23.98 C 26.58 26.98 22.64 25.70 20.17 26.05 C 20.02 28.20 20.04 30.62 18.07 32.00 L 1.67 32.00 C 1.91 30.65 1.35 30.07 0.00 30.27 L 0.00 8.06 C 1.65 5.27 5.12 6.13 7.83 5.95 C 7.94 3.80 8.10 1.54 9.81 0.00 M 11.06 3.07 C 10.94 9.71 11.03 16.36 11.00 23.00 C 15.67 23.00 20.33 23.00 25.00 23.00 C 25.00 18.67 25.00 14.34 25.00 10.00 C 23.00 10.01 20.99 10.10 19.00 9.91 C 16.99 8.32 18.38 5.21 18.00 2.99 C 15.68 3.00 13.37 3.02 11.06 3.07 M 21.04 2.66 C 21.01 4.11 21.00 5.56 20.99 7.01 C 22.44 7.00 23.89 6.99 25.34 6.96 C 24.22 5.24 22.76 3.78 21.04 2.66 M 3.07 9.07 C 2.92 15.71 3.03 22.35 3.00 29.00 C 7.67 29.00 12.33 29.00 17.00 29.00 C 17.00 28.25 17.00 26.75 17.00 26.01 C 14.18 25.62 9.80 27.26 8.26 24.05 C 7.64 19.06 8.17 14.00 8.00 8.98 C 6.36 9.00 4.71 9.04 3.07 9.07 Z\" /></g></svg>";
     HWND hbtn = dialog ? GetDlgItem(dialog, IDC_BUTTON0) : NULL;
     if (!hbtn)
     {
         return false;
     }
+    else
     {
+        RECT rc;
         GetWindowRect(hbtn, &rc);
         w = rc.right - rc.left;
         h = rc.bottom - rc.top;
     }
-    if ((w > 0 && h > 0) && !(hbmp = on_pixmap_from_svg(svg_icon, w, h, on_dark_enable() ? DARK_HOTCOLOR : NULL)))
+    if (!(w > 0 && h > 0))
     {
         return false;
     }
+    if (util_under_wine())
+    {
+        if (!(hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_TXT))))
+        {
+            printf("%s, LoadIcon failed\n", __FUNCTION__);
+            return false;
+        }
+    }
+    else if (!(hbmp = on_pixmap_from_svg(svg_icon, w, w, on_dark_enable() ? DARK_HOTCOLOR : NULL)))
+    {   // nsvgRasterize不支持纵横比缩放, 在这里按宽度缩放
+        printf("%s, on_pixmap_from_svg failed\n", __FUNCTION__);
+        return false;
+    }
     for (int i = 0; i < _countof(m_edit); ++i)
-    {   // 在静态控件上加载位图
+    {
         hbtn = GetDlgItem(dialog, IDC_BUTTON0 + i);
-        SendMessage(hbtn, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
+        if (hicon)
+        {   // wine bug 15505
+            LONG_PTR style = GetWindowLongPtr(hbtn, GWL_STYLE);
+            SetWindowLongPtr(hbtn, GWL_STYLE, (style & ~SS_BITMAP) | SS_ICON);
+            Static_SetIcon(hbtn, hicon);
+        }
+        else if (hbmp)
+        {   // 在静态控件上加载位图
+            SendMessage(hbtn, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
+        }
         m_edit[i] = GetDlgItem(dialog, IDC_EDIT0 + i);
     }
-    DeleteObject(hbmp);
+    if (hicon)
+    {
+        DeleteObject(hicon);
+    }
+    if (hbmp)
+    {
+        DeleteObject(hbmp);
+    }
     if (init)
     {
         SetLastError(0);
@@ -486,6 +518,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_CHANGECBCHAIN:
+        {
             if ((HWND) wParam == m_chain)
             {
                 m_chain = (HWND) lParam;
@@ -495,8 +528,19 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 SendMessage(m_chain, message, wParam, lParam);
             }
             break;
-        case WM_NOTIFY:
+        }
+        case WM_CLEAN_CHAIN:
+        {
+            for (int id = IDC_EDIT0; id <= IDC_EDIT10; ++id)
+            {
+                HWND edt = GetDlgItem(hdlg, id);
+                if (edt)
+                {
+                    Edit_SetText(edt, _T(""));
+                }
+            }
             break;
+        }
         case WM_SHOWWINDOW:
         {
             return 1;
@@ -871,7 +915,7 @@ on_toolbar_execute_script(void)
             int len = (int)_tcslen(process);
             if (len > 1 && len < MAX_PATH)
             {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process), -1, eu_get_config()->m_actions[param], MAX_PATH-1, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process, len), -1, eu_get_config()->m_actions[param], MAX_PATH-1, NULL, NULL);
                 on_toolbar_update_env(p);
                 CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
             }
@@ -996,9 +1040,9 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_FILE_SAVEAS, 2);
             on_toolbar_setup_button(IDM_FILE_CLOSE, 2);
             on_toolbar_setup_button(IDM_FILE_PRINT, 2);
-            on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod && util_can_selections(pnode) ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod);
-            on_toolbar_setup_button(IDM_EDIT_PASTE, !pnode->pmod && eu_sci_call(pnode, SCI_CANPASTE, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_CUT, !pnode->pmod && (pnode->hex_mode || util_can_selections(pnode)) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_COPY, !pnode->pmod && TAB_NOT_NUL(pnode) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_PASTE, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FIND, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDPREV, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, !pnode->pmod ? 2 : 1);
@@ -1010,10 +1054,11 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, (pnode->codepage != IDM_OTHER_BIN) && TAB_NOT_NUL(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
-            on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr) ? 2 : 1);
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl() ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMIN, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && !util_under_wine() && pnode->doc_ptr) ? 2 : 1);
+            on_toolbar_setup_button(IDM_CMD_TAB, !util_under_wine() ? 2 : 1);
         }
     }
 }

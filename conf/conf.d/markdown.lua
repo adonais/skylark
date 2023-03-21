@@ -5,7 +5,11 @@ require("eu_core")
 
 function markdown.init_after_callback(p)
   local pnode = eu_core.ffi.cast("void *", p)
-  return eu_core.euapi.on_doc_init_after_scilexer(pnode, "markdown")
+  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, "markdown")  -- enable markdown lex
+  if (res == 0) then
+    eu_core.euapi.on_doc_enable_foldline(pnode)                            -- enable fold line
+  end
+  return res
 end
 
 function markdown.get_styles()
@@ -52,7 +56,11 @@ function markdown.create_bakup(path)
     "\n",
     "function user_markdown.init_after_callback(p)\n",
     "  local pnode = eu_core.ffi.cast(\"void *\", p)\n",
-    "  return eu_core.euapi.on_doc_init_after_scilexer(pnode, \"markdown\")\n",
+    "  local res = eu_core.euapi.on_doc_init_after_scilexer(pnode, \"markdown\")  -- enable markdown lex\n",
+    "  if (res == 0) then\n",
+    "    eu_core.euapi.on_doc_enable_foldline(pnode)                            -- enable fold line\n",
+    "  end\n",
+    "  return res\n",
     "end\n",
     "\n",
     "function user_markdown.get_styles()\n",

@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
 #define file_click_close(m) (m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
+#define url_has_file(ll) (_tcslen(ll) > (URL_MIN+1) && _tcsnicmp(ll, _T("file:///"), (URL_MIN+1)) == 0)
 
 #ifdef __cplusplus
 extern "C"
@@ -42,12 +43,9 @@ typedef enum _CLOSE_MODE
 
 typedef struct _file_backup
 {
-    TCHAR rel_path[MAX_PATH];
-    TCHAR bak_path[MAX_PATH];
-    char mark_id[MAX_BUFFER];
-    char fold_id[MAX_BUFFER];
-    intptr_t postion;
     intptr_t x;
+    intptr_t y;
+    intptr_t postion;
     int tab_id;
     int cp;
     int bakcp;
@@ -57,8 +55,11 @@ typedef struct _file_backup
     int focus;
     int zoom;
     int status;
-    int y;
     int sync;
+    TCHAR rel_path[MAX_PATH];
+    TCHAR bak_path[MAX_PATH];
+    char mark_id[MAX_BUFFER];
+    char fold_id[MAX_BUFFER];
 }file_backup;
 
 int on_file_new(void);

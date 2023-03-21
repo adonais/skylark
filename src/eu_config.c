@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,89 +20,8 @@
 #define ascii_special_symbol(ch) \
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
-bool
-eu_config_parser_path(const wchar_t **args, int arg_c, wchar_t *path)
-{
-    bool ret = false;
-    LPWSTR *ptr_arg = NULL;
-    if (args)
-    {
-        ptr_arg = (LPWSTR *)args;
-    }
-    else
-    {
-        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
-    }
-    if (ptr_arg)
-    {
-        for (int i = 1; i < arg_c; ++i)
-        {
-            if (_tcsncmp(ptr_arg[i], _T("-restart"), 8) == 0)
-            {
-                i += 2;
-                continue;
-            }
-            if (_tcsncmp(ptr_arg[i], _T("-lua"), 4) == 0)
-            {
-                if ((i + 1) < arg_c && _tcsncmp(ptr_arg[i+1], _T("-b"), 2) == 0)
-                {
-                    i += 3;
-                }
-                else
-                {
-                    ++i;
-                }
-                continue;
-            }
-            if (_tcsncmp(ptr_arg[i], _T("-"), 1) == 0)
-            {
-                continue;
-            }
-            if (_tcslen(ptr_arg[i]) > 0)
-            {
-                TCHAR *p = NULL;
-                if ((p = _tcschr(ptr_arg[i], ':')) != NULL)
-                {   // 处理以绝对路径打开的文件或目录
-                    _tcsncpy(path, ptr_arg[i], MAX_PATH - 1);
-                    if (!url_has_remote(path) && eu_exist_dir(path) && _tcslen(path) < MAX_PATH - 2)
-                    {
-                        if (path[_tcslen(path) - 1] != _T('\\'));
-                        {
-                            path[_tcslen(path)] = _T('\\');
-                        }
-                        path[_tcslen(path)] = _T('*');
-                    }
-                }
-                else
-                {   // 处理以相对路径打开的文件或目录
-                    GetFullPathName(ptr_arg[i], MAX_PATH, path, &p);
-                    if (!p && _tcslen(path) < MAX_PATH - 2)
-                    {
-                        path[_tcslen(path)] = _T('*');
-                    }
-                    else if (eu_exist_dir(path) && _tcslen(path) < MAX_PATH - 2)
-                    {
-                        if (path[_tcslen(path) - 1] != _T('\\'));
-                        {
-                            path[_tcslen(path)] = _T('\\');
-                        }
-                        path[_tcslen(path)] = _T('*');
-                    }
-                }
-                ret = true;
-                break;
-            }
-        }
-        if (args != (const wchar_t **)ptr_arg)
-        {
-            LocalFree(ptr_arg);
-        }
-    }
-    return ret;
-}
-
-void
-eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
+static void
+on_config_setup_postion(const wchar_t **args, int arg_c, file_backup *pbak)
 {
     LPWSTR *ptr_arg = NULL;
     if (args)
@@ -133,96 +52,59 @@ eu_postion_setup(const wchar_t **args, int arg_c, file_backup *pbak)
     }
 }
 
-bool
-eu_check_arg(const wchar_t **args, int arg_c, const wchar_t *argument, const wchar_t *pathfile)
+static inline int
+on_config_cvector_at(const file_backup *pbak, const TCHAR *pfile)
 {
-    bool ret = false;
-    LPWSTR *ptr_arg = NULL;
-    if (!argument)
+    for (int i = 0; i < eu_int_cast(cvector_size(pbak)); ++i)
     {
-        return false;
-    }
-    if (args)
-    {
-        ptr_arg = (LPWSTR *)args;
-    }
-    else
-    {
-        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
-    }
-    if (ptr_arg)
-    {
-        for (int i = 1; i < arg_c; ++i)
+        if (pbak[i].rel_path[0] && _tcsicmp(pbak[i].rel_path, pfile) == 0)
         {
-            if (!_tcscmp(ptr_arg[i], argument))
-            {
-                ret = true;
-                break;
-            }
-        }
-        if (pathfile)
-        {   // 参数前后的文件名称是否一致
-            wchar_t tmp_file[MAX_PATH] = {0};
-            bool exist = eu_config_parser_path(args, arg_c, tmp_file);
-            if (exist)
-            {
-                exist = wcsicmp(tmp_file, pathfile) == 0;
-            }
-            if (!exist)
-            {
-                ret = false;
-            }
-        }
-        if (ptr_arg != (LPWSTR *)args)
-        {
-            LocalFree(ptr_arg);
+            return i;
         }
     }
-    return ret;
+    return -1;
 }
 
-static int
-on_config_file_args(void)
+static void
+on_config_open_args(file_backup **pbak)
 {
-    int  ret = 1;
     int  arg_c = 0;
-    file_backup bak = {0};
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &arg_c);
-    if (args == NULL)
+    if (args == NULL || pbak == NULL)
     {
-        return 1;
+        return;
     }
-    else if (arg_c >= 2)
+    if (arg_c >= 2)
     {
-        for (int i = 0; i < arg_c; ++i)
+        cvector_vector_type(file_backup) vpath = NULL;
+        if (eu_config_parser_path(args, arg_c, &vpath))
         {
-            if (eu_config_parser_path(&args[i], arg_c - i, bak.rel_path))
+            for (size_t i = 0; i < cvector_size(vpath); ++i)
             {
-                eu_postion_setup(&args[i], arg_c - i, &bak);
-                share_send_msg(&bak);
-                if (ret)
+                if (vpath[i].rel_path[0])
                 {
-                    ret = 0;
+                    int at = on_config_cvector_at(*pbak, vpath[i].rel_path);
+                    if (at >= 0 && (vpath[i].x > 0 || vpath[i].y > 0 || vpath[i].hex))
+                    {
+                        cvector_erase(*pbak, at);
+                    }
+                    cvector_push_back(*pbak, vpath[i]);
                 }
             }
         }
+        cvector_free(vpath);
     }
     LocalFree(args);
-    return ret;
 }
 
 static int
 on_config_parser_bakup(void *data, int count, char **column, char **names)
 {
-    int index = -1;
-    *(int *)data = 0;
+    file_backup *pbak = NULL;
     file_backup filebak = {0};
-    wchar_t path[MAX_PATH] = {0};
-    wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
-    if (open_sql && !eu_config_parser_path(NULL, 0, path))
+    if (data)
     {
-        printf("eu_config_parser_path return false\n");
-        return 1;
+        pbak = *(file_backup **)data;
     }
     for (int i = 0; i < count; ++i)
     {
@@ -287,24 +169,13 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
             filebak.status = atoi(column[i]);
         }
     }
-    if (open_sql)
+    if (filebak.rel_path[0] || filebak.bak_path[0])
     {
-        if (_tcslen(path) > 0 && !_tcsicmp(filebak.rel_path, path))
-        {
-            share_send_msg(&filebak);
-            return 1;
-        }
+        cvector_push_back(pbak, filebak);
     }
-    else
+    if (data)
     {
-        if (filebak.rel_path[0] || filebak.bak_path[0])
-        {
-            if (!_tcsicmp(filebak.rel_path, path))
-            {
-                eu_postion_setup(NULL, 0, &filebak);
-            }
-            share_send_msg(&filebak);
-        }
+        *(file_backup **)data = pbak;
     }
     return 0;
 }
@@ -313,30 +184,33 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int err = 0;
-    int is_blank = 1;
-    wchar_t *open_sql = _tgetenv(_T("OPEN_FROM_SQL"));
-    if (open_sql || eu_get_config()->m_session || !eu_get_config()->m_instance)
+    cvector_vector_type(file_backup) vbak = NULL;
+    if (eu_get_config()->m_session)
     {
-        if (eu_get_config()->m_session)
-        {
-            err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, &is_blank);
-        }
-        else
-        {
-            err = on_sql_do_session("SELECT * FROM skylar_ver;", NULL, NULL);
-        }
-        if (err == SQLITE_ABORT)
-        {
-            printf("callback abort in %s, cause: %d\n", __FUNCTION__, err);
-            return 1;
-        }
+        err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, (void *)&vbak); // 这里又导致工作目录变更了
     }
-    printf("open_sql = %d, err = %d, is_blank = %d\n", open_sql ? 1 : 0, err, is_blank);
-    if ((open_sql  || on_config_file_args()) && is_blank)
-    {   // 没有参数, 也没有缓存文件, 新建空白标签
+    else
+    {
+        err = on_sql_do_session("SELECT * FROM skylar_ver;", NULL, NULL);
+    }
+    on_config_open_args(&vbak);
+    printf("vbak size = %zu\n", cvector_size(vbak));
+    if (cvector_size(vbak) < 1)
+    {
         file_backup bak = {0};
         share_send_msg(&bak);
     }
+    else
+    {
+        for (size_t i = 0; i < cvector_size(vbak); ++i)
+        {
+            if (vbak[i].rel_path[0] || vbak[i].bak_path[0])
+            {
+                share_send_msg(&vbak[i]);
+            }
+        }
+    }
+    cvector_free(vbak);
     return 0;
 }
 
@@ -420,7 +294,7 @@ on_config_sync_snippet(void)
 }
 
 static bool
-eu_load_lua_function(const wchar_t *file)
+on_config_lua_execute(const wchar_t *file)
 {
     bool ret = false;
     char *lua_path = NULL;
@@ -434,26 +308,192 @@ eu_load_lua_function(const wchar_t *file)
     return ret;
 }
 
-bool
-eu_load_accel_config(void)
+static int
+on_config_skyver_callbak(void *data, int count, char **column, char **names)
 {
-    return eu_load_lua_function(_T("eu_input.lua"));
+    UNREFERENCED_PARAMETER(data);
+    UNREFERENCED_PARAMETER(count);
+    UNREFERENCED_PARAMETER(names);
+    int status = atoi(column[0]);
+    if (data)
+    {
+        *(int *)data = status;
+    }
+    return (int)(status == VERSION_UPDATE_COMPLETED);
+}
+
+void
+on_config_file_url(wchar_t *path, int len, const wchar_t *p)
+{
+    if (STR_NOT_NUL(path) && p && len > 0)
+    {
+        if (url_has_file(path))
+        {
+            if (wcslen(p) > 4 && wcsncmp(p, L":///", 4) == 0)
+            {   // 加1, 是要把字符串结束符0也拷贝进去
+                memmove(path, &p[4], sizeof(wchar_t) * (wcslen(&p[4]) + 1));
+                len = (int)wcslen(path);
+                while (--len > 0)
+                {
+                    if (path[len] == L'/' || path[len] == L'!')
+                    {
+                        path[len] = L'\0';
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+        util_unix2path(path, (int)wcslen(path));
+    }
 }
 
 bool
-eu_load_toolbar_config(void)
+eu_config_check_arg(const wchar_t **args, int arg_c, const wchar_t *argument)
 {
-    return eu_load_lua_function(_T("eu_gui.lua"));
+    bool ret = false;
+    LPWSTR *ptr_arg = NULL;
+    if (!argument)
+    {
+        return false;
+    }
+    if (args)
+    {
+        ptr_arg = (LPWSTR *)args;
+    }
+    else
+    {
+        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
+    }
+    if (ptr_arg)
+    {
+        for (int i = 1; i < arg_c; ++i)
+        {
+            if (!_tcscmp(ptr_arg[i], argument))
+            {
+                ret = true;
+                break;
+            }
+        }
+        if (ptr_arg != (LPWSTR *)args)
+        {
+            LocalFree(ptr_arg);
+        }
+    }
+    return ret;
 }
 
 bool
-eu_load_main_config(void)
+eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
 {
-    return eu_load_lua_function(_T("eu_main.lua"));
+    bool ret = false;
+    LPWSTR *ptr_arg = NULL;
+    if (args)
+    {
+        ptr_arg = (LPWSTR *)args;
+    }
+    else
+    {
+        ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
+    }
+    if (ptr_arg && pbak)
+    {
+        for (int i = 1; i < arg_c; ++i)
+        {
+            file_backup data = {-1, -1};
+            if (wcsncmp(ptr_arg[i], L"-restart", 8) == 0)
+            {
+                i += 2;
+                continue;
+            }
+            if (wcsncmp(ptr_arg[i], L"-lua", 4) == 0)
+            {
+                if ((i + 1) < arg_c && wcsncmp(ptr_arg[i+1], L"-b", 2) == 0)
+                {
+                    i += 3;
+                }
+                else
+                {
+                    ++i;
+                }
+                continue;
+            }
+            if (ptr_arg[i][0] != L'-' && wcslen(ptr_arg[i]) > 0)
+            {
+                WCHAR *p = NULL;
+                size_t len = 0;
+                if ((p = wcschr(ptr_arg[i], L':')) != NULL)
+                {   // 处理以绝对路径打开的文件或目录
+                    wcsncpy(data.rel_path, ptr_arg[i], MAX_PATH);
+                    on_config_file_url(data.rel_path, (int)wcslen(data.rel_path), p);
+                    len = wcslen(data.rel_path);
+                    if (!url_has_remote(data.rel_path) && eu_exist_dir(data.rel_path) && len < MAX_PATH - 2)
+                    {
+                        if (data.rel_path[len - 1] != L'\\')
+                        {
+                            data.rel_path[len++] = L'\\';
+                        }
+                        data.rel_path[len] = L'*';
+                    }
+                }
+                else
+                {   // 处理以相对路径打开的文件或目录
+                    GetFullPathNameW(ptr_arg[i], MAX_PATH, data.rel_path, &p);
+                    len = wcslen(data.rel_path);
+                    if (eu_exist_dir(data.rel_path) && len < MAX_PATH - 2)
+                    {
+                        if (data.rel_path[len - 1] != L'\\')
+                        {
+                            data.rel_path[len++] = L'\\';
+                        }
+                        data.rel_path[len] = L'*';
+                    }
+                }
+                if (eu_config_check_arg(ptr_arg, arg_c, L"-hex"))
+                {
+                    data.hex = 1;
+                }
+                if (true)
+                {
+                    on_config_setup_postion(ptr_arg, arg_c, &data);
+                    cvector_push_back(*pbak, data);
+                }
+                if (!ret)
+                {
+                    ret = true;
+                }
+            }
+        }
+    }
+    if (ptr_arg && args != (const wchar_t **)ptr_arg)
+    {
+        LocalFree(ptr_arg);
+    }
+    return ret;
 }
 
 bool
-eu_load_docs_config(void)
+eu_config_load_accel(void)
+{
+    return on_config_lua_execute(_T("eu_input.lua"));
+}
+
+bool
+eu_config_load_toolbar(void)
+{
+    return on_config_lua_execute(_T("eu_gui.lua"));
+}
+
+bool
+eu_config_load_main(void)
+{
+    return on_config_lua_execute(_T("eu_main.lua"));
+}
+
+bool
+eu_config_load_docs(void)
 {
     int  m = 0;
     bool ret = false;
@@ -479,22 +519,8 @@ load_fail:
     return ret;
 }
 
-static int
-on_config_skyver_callbak(void *data, int count, char **column, char **names)
-{
-    UNREFERENCED_PARAMETER(data);
-    UNREFERENCED_PARAMETER(count);
-    UNREFERENCED_PARAMETER(names);
-    int status = atoi(column[0]);
-    if (data)
-    {
-        *(int *)data = status;
-    }
-    return (int)(status == VERSION_UPDATE_COMPLETED);
-}
-
 bool
-eu_load_file(void)
+eu_config_load_files(void)
 {
     HWND hwnd = eu_hwnd_self();
     HWND share = share_envent_get_hwnd();

@@ -85,6 +85,9 @@ BEGIN
             MENUITEM "Copy File Path",                                 IDM_EDIT_COPY_PATHNAME
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
         END
+        MENUITEM "Swap To Clipboard",                                  IDM_EDIT_SWAP_CLIPBOARD
+        MENUITEM "Clear Clip&board",                                   IDM_EDIT_CLEAR_CLIPBOARD
+        MENUITEM MF_SEPARATOR
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
         MENUITEM "Send To External App For Comparison",                IDM_EDIT_OTHER_BCOMPARE
         MENUITEM MF_SEPARATOR
@@ -331,7 +334,9 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "H&yperlink Hotspots",                                IDM_FORMAT_HYPERLINKHOTSPOTS
         MENUITEM MF_SEPARATOR
-        MENUITEM "QR Code &Generator",                                 IDM_EDIT_QRCODE
+        MENUITEM "Check I&ndentation",                                 IDM_FORMAT_CHECK_INDENTATION
+        MENUITEM MF_SEPARATOR
+        MENUITEM "&QR Code Generator",                                 IDM_EDIT_QRCODE
     END
     POPUP "&Programming",                                              IDM_EDIT_PLACEHOLDE_PROGRAM
     BEGIN
@@ -364,10 +369,10 @@ BEGIN
     END
     POPUP "Se&ttings"
     BEGIN
-        MENUITEM "Popup Menu On WINDOWS File Right-Click",             IDM_ENV_FILE_POPUPMENU
-        MENUITEM "Popup Menu On WINDOWS Directory Right-Click",        IDM_ENV_DIRECTORY_POPUPMENU
+        MENUITEM "Windows Right Click Menu For Files",                 IDM_ENV_FILE_POPUPMENU
+        MENUITEM "Windows Right Click Menu For Folders",               IDM_ENV_DIRECTORY_POPUPMENU
         MENUITEM MF_SEPARATOR
-        MENUITEM "File Association For Skylark Editor",                IDM_ENV_SET_ASSOCIATED_WITH
+        MENUITEM "Register Skylark File Associations",                 IDM_ENV_SET_ASSOCIATED_WITH
         MENUITEM MF_SEPARATOR
         POPUP "UI Language"
         BEGIN
@@ -778,17 +783,17 @@ FONT 8,"MS Shell Dlg",0,0,0
 STYLE WS_CLIPSIBLINGS|WS_CLIPCHILDREN|DS_SHELLFONT|WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 BEGIN
-    CONTROL      "",IDC_BUTTON0,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,19,16,12
-    CONTROL      "",IDC_BUTTON1,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,35,16,12
-    CONTROL      "",IDC_BUTTON2,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,51,16,12
-    CONTROL      "",IDC_BUTTON3,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,67,16,12
-    CONTROL      "",IDC_BUTTON4,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,83,16,12
-    CONTROL      "",IDC_BUTTON5,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,99,16,12
-    CONTROL      "",IDC_BUTTON6,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,115,16,12
-    CONTROL      "",IDC_BUTTON7,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,131,16,12
-    CONTROL      "",IDC_BUTTON8,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,147,16,12
-    CONTROL      "",IDC_BUTTON9,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,163,16,12
-    CONTROL      "",IDC_BUTTON10,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,7,179,16,12
+    CONTROL      "",IDC_BUTTON0,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,19,12,12
+    CONTROL      "",IDC_BUTTON1,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,35,12,12
+    CONTROL      "",IDC_BUTTON2,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,51,12,12
+    CONTROL      "",IDC_BUTTON3,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,67,12,12
+    CONTROL      "",IDC_BUTTON4,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,83,12,12
+    CONTROL      "",IDC_BUTTON5,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,99,12,12
+    CONTROL      "",IDC_BUTTON6,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,115,12,12
+    CONTROL      "",IDC_BUTTON7,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,131,12,12
+    CONTROL      "",IDC_BUTTON8,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,147,12,12
+    CONTROL      "",IDC_BUTTON9,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,163,12,12
+    CONTROL      "",IDC_BUTTON10,"Static",WS_CHILD|WS_VISIBLE|SS_NOTIFY|SS_BITMAP|SS_CENTERIMAGE|WS_TABSTOP,8,179,12,12
     EDITTEXT     IDC_EDIT0,32,19,128,12,WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
     EDITTEXT     IDC_EDIT1,32,35,128,12,WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
     EDITTEXT     IDC_EDIT2,32,51,128,12,WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_MULTILINE|ES_AUTOHSCROLL|ES_WANTRETURN
@@ -840,7 +845,7 @@ BEGIN
 END
 
 /////////////////////////////////////////////////////////////////////////////
-#define    __EU_COPYRIGHT_TRANSLATION    "Copyright © 2022 by ualy123"
+#define    __EU_COPYRIGHT_TRANSLATION    "Copyright © 2023 by ualy123"
 /////////////////////////////////////////////////////////////////////////////
 
 //
@@ -989,7 +994,7 @@ STRINGTABLE DISCARDABLE
     IDS_STATUS_F1                    "%d File(s), Timestamp: %s"
     IDS_STATUS_XY                    "Cursor (Line %zu, Column %zu)"
     IDS_STATUS_LC                    "File: %zd/%zd (Byte)"
-    IDS_STATUS_LD                    "Select: %zd/%zu (Byte/Line)"
+    IDS_STATUS_LD                    "Select: %zd/%zu (Tchars/Line)"
     IDS_STATUS_HLC                   "File: %zd (Byte)"
     IDS_STATUS_HXY                   "Cursor (0x%zX)"
 }
@@ -1001,6 +1006,7 @@ STRINGTABLE DISCARDABLE
 
 STRINGTABLE DISCARDABLE
 {
+    IDS_APP_TITLE           "Skylark Editor: "
     IDC_MSG_ERROR           "Error:"
     IDC_MSG_WARN            "Warning:"
     IDC_MSG_TIPS            "Tips:"
@@ -1241,6 +1247,13 @@ STRINGTABLE DISCARDABLE
     IDS_UPGRADE_TETILE_STR  "Skylark Update"
     IDS_UPGRADE_CONTENT_STR "Is Installing Your Updates And Will Start In A Few Moments…"
     IDS_FILE_RELOAD_STR     "The file has not been saved, reloading will discard all changes, continue?"
+    IDS_INDENT_CONSISTENT   "The file has a consistent indentation!"
+    IDS_INDENT_SPACE_STR    "The file is indented with spaces by default, but: \n"
+    IDS_INDENT_TAB_STR      "The file is indented with tab by default, but: \n"
+    IDS_INDENT_SPACE_OPPS   "[%s] %zd line(s) are indented using space character\n"
+    IDS_INDENT_TAB_OPPS     "[%s] %zd line(s) are indented with tab character\n"
+    IDS_INDENT_TAB_SPACE    "[%s] %zd line(s) are indented with space + tab characters\n"
+    IDS_INDENT_PROPOSE      "We recommend formatting the document using clang-format or the 'Edit->Convert' function"
 }
 
 /////////////////////////////////////////////////////////////////////////////

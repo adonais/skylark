@@ -289,13 +289,10 @@ bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
 bool eu_exist_path(const char *path);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
-// hyperlink callback
-int eu_hyperlink_detection(void *pnode);
-
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);
 bool eu_init_completed_tree(doctype_t *p, const char *val);
-int64_t eu_sci_call(void *p, int m, int64_t w, int64_t l);
+intptr_t eu_sci_call(void *p, int m, intptr_t w, intptr_t l);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 int on_doc_init_list(void *pnode);
@@ -367,9 +364,9 @@ int on_doc_click_tree_json(void *pnode);
 int on_doc_click_tree_redis(void *pnode);
 
 /* lua脚本接口支持, 对各类关键字着色 */
-int on_doc_init_after_scilexer(void *p, const  char *name);
+int on_doc_init_after_scilexer(void *p, const char *name);
 void on_doc_enable_foldline(void *p);
-void on_doc_default_light(void *p, int lex, intptr_t bg_rgb, intptr_t bk_rgb, bool force);
+void on_doc_default_light(void *p, int lex, intptr_t bg_rgb, intptr_t bk_rgb, const bool force);
 void on_doc_keyword_light(void *p, int lex, int index, intptr_t rgb);
 void on_doc_function_light(void *p, int lex, int index, intptr_t rgb);
 void on_doc_preprocessor_light(void *p, int lex, int index, intptr_t rgb);

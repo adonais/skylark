@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -159,7 +159,7 @@ on_remote_save_config(remotefs* pserver, const char *oldname)
         _snprintf(sql, MAX_BUFFER-1, exec, pserver->servername, pserver->protocol, pserver->networkaddr,
                   pserver->port, pserver->accesss, pserver->user, base64_pass, pserver->key_path, pserver->passphrase, oldname);
     }
-    return eu_sqlite3_send(sql, NULL, NULL);
+    return on_sql_post(sql, NULL, NULL);
 }
 
 static int
@@ -172,7 +172,7 @@ on_remote_remove_config(remotefs* pserver)
     }
     // 从数据库中删除该行
     _snprintf(sql, MAX_PATH-1, "DELETE FROM file_remote WHERE szName='%s';", pserver->servername);
-    if (!eu_sqlite3_send(sql, NULL, NULL))
+    if (!on_sql_post(sql, NULL, NULL))
     {
         // 从链表中删除该节点
         struct list_head *pos, *n;

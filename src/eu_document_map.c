@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@ on_map_model_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map, bool direction, move
 {
     sptr_t nb_line = eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
     sptr_t line2go = (mode == per_line ? 1 : nb_line);
-    eu_sci_call(pnode, SCI_LINESCROLL, 0, (direction == move_down) ? line2go : -line2go);
+    eu_sci_call(pnode, SCI_LINESCROLL, 0, (direction == (bool)MOVE_DOWN) ? line2go : -line2go);
     on_map_scroll(pnode, ptr_map);
 }
 
@@ -205,19 +205,19 @@ on_map_canvas_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (wParam == VK_UP)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 0);
+                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 0);
             }
             if (wParam == VK_DOWN)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 0);
+                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 0);
             }
             if (wParam == VK_PRIOR)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_up, 1);
+                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 1);
             }
             if (wParam == VK_NEXT)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)move_down, 1);
+                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 1);
             }
             break;
         }

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,13 @@
 #ifndef _H_DOCUMENT_MAP_
 #define _H_DOCUMENT_MAP_
 
+#define MOVE_DOWN 1
+#define MOVE_UP 0
+
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-static bool move_down = true;
-static bool move_up = false;
 
 extern volatile long document_map_initialized;
 extern HWND hwnd_document_map;

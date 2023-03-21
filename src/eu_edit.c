@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2022 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ on_edit_copy_text(eu_tabpage *pnode)
 void
 on_edit_paste_text(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->plugin)
     {
         eu_sci_call(pnode, SCI_PASTE, 0, 0);
     }
@@ -193,6 +193,87 @@ on_edit_push_clipboard(const TCHAR *buf)
         }
     }
     return false;
+}
+
+void
+on_edit_swap_clipborad(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0))
+    {
+        char *buf = NULL;
+        wchar_t *pbuf = NULL;
+        bool has_selection = false;
+        sptr_t start = 0, end = 0;
+        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+        {
+            on_edit_paste_text(pnode);
+            return;
+        }
+        if ((has_selection = sel_start != sel_end))
+        {
+            start = sel_start;
+            end = sel_end;
+        }
+        else
+        {
+            sptr_t m_indent = 0;
+            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+            sptr_t current_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+            end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
+            m_indent = util_line_header(pnode, current_line_start, end, NULL);
+            start = current_line_start + m_indent;
+        }
+        if ((buf = on_sci_range_text(pnode, start, end)))
+        {
+            char *replace = NULL;
+            if (on_toolbar_get_clipboard(&replace) && replace)
+            {
+                eu_sci_call(pnode, SCI_SETTARGETSTART, start, 0);
+                eu_sci_call(pnode, SCI_SETTARGETEND, end, 0);
+                eu_sci_call(pnode, SCI_REPLACETARGET,-1, (sptr_t)replace);
+                if ((pbuf = eu_utf8_utf16(buf, NULL)))
+                {
+                    on_edit_push_clipboard(pbuf);
+                    free(pbuf);
+                }
+                free(replace);
+            }
+            free(buf);
+        }
+    }
+}
+
+bool
+on_edit_can_paste(void)
+{
+    bool ret = false;
+    if (OpenClipboard(eu_module_hwnd()))
+    {
+        ret = CountClipboardFormats() > 0;
+        CloseClipboard();
+    }
+    return ret;
+}
+
+void
+on_edit_clear_clipborad(HWND hwnd)
+{
+    if (OpenClipboard(hwnd))
+    {
+        if (CountClipboardFormats() > 0)
+        {
+            EmptyClipboard();
+            on_toolbar_update_button();
+            if (on_toolbar_clip_hwnd())
+            {
+                PostMessage(on_toolbar_clip_hwnd(), WM_CLEAN_CHAIN, 0, 0);
+            }
+        }
+        CloseClipboard();
+    }
 }
 
 static void
@@ -284,10 +365,11 @@ on_edit_push_editor(eu_tabpage *pnode)
     }
     else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
     {
+        int len = eu_int_cast(_tcslen(path));
         LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
-        if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+        if (eu_input(m_input, path, MAX_PATH - 1) && len > 1)
         {
-            WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
+            WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path, len), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
         }
     }
     if (STR_NOT_NUL(path))
@@ -320,10 +402,11 @@ on_edit_push_compare(void)
         }
         else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
         {
+            int len = eu_int_cast(_tcslen(path));
             LOAD_I18N_RESSTR(IDS_EDITOR_BCOMPARE, m_input);
-            if (eu_input(m_input, path, MAX_PATH - 1) && _tcslen(path) > 1)
+            if (eu_input(m_input, path, MAX_PATH - 1) && len > 1)
             {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path), -1, eu_get_config()->m_reserved_0, MAX_PATH-1, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path, len), -1, eu_get_config()->m_reserved_0, MAX_PATH-1, NULL, NULL);
             }
         }
         if (STR_NOT_NUL(path))
