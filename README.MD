@@ -37,3 +37,5 @@ Compared with vs code, atom, and more editors, it can start up in less than a se
 ![images/json_search.jpg](images/json_search.jpg)
 * hex view
 ![images/hex_view.jpg](images/hex_view.jpg)
+* linux wine
+![images/skylark_wine.jpg](images/skylark_wine.jpg)
