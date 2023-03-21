@@ -112,7 +112,7 @@ on_edit_copy_text(eu_tabpage *pnode)
 void
 on_edit_paste_text(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->plugin)
     {
         eu_sci_call(pnode, SCI_PASTE, 0, 0);
     }

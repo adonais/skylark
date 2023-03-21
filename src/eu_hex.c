@@ -1121,6 +1121,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_PASTE:
+        case SCI_PASTE:
         {
             if (hexview->total_items > 0 && !(hexview->ex_style & HVS_READONLY))
             {
