@@ -1694,12 +1694,12 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
     TCHAR temp_path[MAX_PATH+1];
     if (!GetTempPath(MAX_PATH, temp_path))
     {
-        return NULL;
+        return INVALID_HANDLE_VALUE;
     }
     if (!GetTempFileName(temp_path, _T("lua"), 0, file_path))
     {
         printf("GetTempFileName return false\n");
-        return NULL;
+        return INVALID_HANDLE_VALUE;
     }
     if (STR_NOT_NUL(ext))
     {

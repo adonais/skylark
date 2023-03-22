@@ -712,33 +712,43 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
     }
 }
 
+static void
+on_toolbar_create_file(const int *pv, const int size, wchar_t ***plist)
+{
+    size_t buf_len = 0;
+    eu_tabpage *p = NULL;
+    for (int i = 0; i < size; ++i)
+    {
+        wchar_t *pname = NULL;
+        p = on_tabpage_get_ptr(pv[i]);
+        if (p && p->doc_ptr && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+        {
+            HANDLE pfile = NULL;
+            if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
+            {
+                char *pbuffer = NULL;
+                if ((pbuffer = util_strdup_content(p, &buf_len)) != NULL)
+                {
+                    uint32_t written;
+                    WriteFile(pfile, pbuffer, buf_len, &written, NULL);
+                    cvector_push_back(*plist, pname);
+                    free(pbuffer);
+                }
+                CloseHandle(pfile);
+            }
+        }
+    }
+}
+
 static bool
 on_toolbar_mk_temp(wchar_t ***vec)
 {
     cvector_vector_type(int) v = NULL;
-    if (on_tabpage_sel_number(&v, true) > 0)
+    if (on_tabpage_sel_number(&v, true) > 0 && v)
     {
-        for (size_t i = 0; i < cvector_size(v); ++i)
-        {
-            HANDLE pfile = NULL;
-            char *pbuffer = NULL;
-            wchar_t *pname = NULL;
-            uint32_t buf_len = 0;
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && p->doc_ptr && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
-            {
-                if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
-                {
-                    if ((pbuffer = util_strdup_content(p, (size_t *)&buf_len)) != NULL)
-                    {
-                        uint32_t written;
-                        WriteFile(pfile, pbuffer, buf_len, &written, NULL);
-                        cvector_push_back(*vec, pname);
-                    }
-                }
-            }
-            eu_close_handle(pfile);
-        }
+        const int size = (int)cvector_size(v);
+        // 改成函数调用, cvector宏定义在一个函数里, 导致clang瞎优化
+        on_toolbar_create_file(v, size, vec);
     }
     cvector_freep(&v);
     return (*vec != NULL && cvector_size(*vec) > 0);
