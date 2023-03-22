@@ -20,6 +20,7 @@
 #include <shlobj_core.h>
 
 typedef const char *(__cdecl *pwine_get_version)(void);
+typedef char *(__cdecl *pwine_get_unix_file_name)(LPCWSTR dos);
 typedef void (*ptr_file_enc)(FILE *f, void **pout);
 typedef unsigned long (*ptr_compress_bound)(unsigned long source_len);
 typedef int (*ptr_compress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long, int);
@@ -202,14 +203,45 @@ util_under_wine(void)
     {
         return true;
     }
-    if(!(hntdll = GetModuleHandle(_T("ntdll.dll"))))
+    if (!(hntdll = GetModuleHandle(_T("ntdll.dll"))))
     {
         return false;
     }
-    if((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
+    if ((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
     {
         printf("Running on Wine... %s\n", fn_wine_get_version());
         return true;
+    }
+    return false;
+}
+
+bool
+util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len)
+{
+    HMODULE kernel32 = NULL;
+    pwine_get_unix_file_name fn_wine_get_unix_file_name = NULL;
+    if (!(kernel32 = GetModuleHandle(_T("kernel32.dll"))))
+    {
+        return false;
+    }
+    if (!(fn_wine_get_unix_file_name = (pwine_get_unix_file_name)GetProcAddress(kernel32, "wine_get_unix_file_name")))
+    {
+        return false;
+    }
+    if (fn_wine_get_unix_file_name)
+    {
+        char *unix_path = fn_wine_get_unix_file_name(path);
+        if (unix_path)
+        {
+            util_make_u16(unix_path, out, len);
+            util_free(unix_path);
+            const wchar_t *p = wcsstr(out, L":");
+            if (p && wcslen(p) > 1 && wcsncmp(&p[1], L"/users/", 7) != 0)
+            {
+                memmove(out, &p[1], (wcslen(p) + 1) * sizeof(wchar_t));
+            }
+            return !!out[0];
+        }
     }
     return false;
 }
