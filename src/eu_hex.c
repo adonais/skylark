@@ -18,13 +18,13 @@
 
 #include "framework.h"
 
-#define HEXEDIT_MODE_FIRST32LINE1 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \n")
-#define HEXEDIT_MODE_FIRST32LINE2 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \n")
-#define HEXEDIT_MODE_SECOND32LINE _T("---------+------------------------------------------------+----------------\n")
+#define HEXEDIT_MODE_FIRST32LINE1 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \0")
+#define HEXEDIT_MODE_FIRST32LINE2 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \0")
+#define HEXEDIT_MODE_SECOND32LINE _T("---------+------------------------------------------------+----------------\0")
 
-#define HEXEDIT_MODE_FIRST64LINE1 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \n")
-#define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \n")
-#define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\n")
+#define HEXEDIT_MODE_FIRST64LINE1 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \0")
+#define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \0")
+#define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\0")
 
 static volatile long hex_zoom;
 static int hex_area;
@@ -968,7 +968,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                 hexview_srollinfo(hwnd, hexview);
             }
             hexview_caret(hwnd, hexview);
-            InvalidateRect(hwnd, NULL, false);
             on_statusbar_update_line(pnode);
         }
     } while(0);
@@ -1280,17 +1279,12 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             int num = 0;
             int offset = -1;
-            if (hwnd == GetCapture())
-            {
-                ReleaseCapture();
-            }
             if (hexview->select_end == hexview->select_start)
             {
                 if (!hexview->hex_ascii && (offset = hexview_postion_offset(hexview, hexview->number_items, &num)) >= 0)
                 {
                     hexview->select_start = hexview->number_items - offset;
                     hexview->select_end = hexview->select_start + num - 1;
-                    InvalidateRect(hwnd, NULL, false);
                 }
             }
             else
@@ -1314,12 +1308,23 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 {
                     UTIL_SWAP(size_t, hexview->select_start, hexview->select_end);
                 }
-                InvalidateRect(hwnd, NULL, false);
             }
             if (pnode != NULL)
             {
                 on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                 on_statusbar_update_line(pnode);
+            }
+            if (util_under_wine())
+            {   // wine上鼠标点击不产生mousemove消息, 所以
+                SendMessage(hwnd, WM_MOUSEMOVE, wParam , lParam);
+            }
+            else
+            {
+                InvalidateRect(hwnd, NULL, false);
+            }
+            if (hwnd == GetCapture())
+            {
+                ReleaseCapture();
             }
             break;
         }
@@ -1343,7 +1348,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                         hexview->ct_flags |= HVF_SELECTED;
                     }
                     hexview_caret(hwnd, hexview);
-                    InvalidateRect(hwnd, NULL, false);
+                    InvalidateRect(hwnd, NULL, util_under_wine() ? true : false);
                 }
             }
             break;
@@ -1406,6 +1411,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:
         {
             hexview_on_keydown(hwnd, hexview, wParam, lParam);
+            InvalidateRect(hwnd, NULL, util_under_wine() ? true : false);
             break;
         }
         case HVM_GOPOS:
