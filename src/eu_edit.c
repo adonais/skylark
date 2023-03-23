@@ -299,6 +299,14 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
             _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, pnode->pathfile);
         }
     }
+    else if (util_under_wine())
+    {
+        TCHAR file_wine[MAX_PATH + 1] = {0};
+        if (util_get_unix_file_name(pnode->pathfile, file_wine, MAX_PATH))
+        {
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, file_wine);
+        }
+    }
     else
     {
         _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, pnode->pathfile);
@@ -313,6 +321,8 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
     {
         wchar_t *cmd_exec = NULL;
         wchar_t name[MAX_PATH] = {0};
+        wchar_t unix_path[MAX_PATH] = {0};
+        bool wine = util_under_wine();
         int count = eu_int_cast(cvector_size(pvec));
         const int len = (count + 1) * (MAX_PATH + 1);
         util_product_name(path, name, MAX_PATH - 1);
@@ -339,13 +349,29 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
                 if (i == count - 1)
                 {
                     wcsncat(cmd_exec, _T("\""), len);
-                    wcsncat(cmd_exec, pvec[i], len);
+                    if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
+                    {
+                        wcsncat(cmd_exec, unix_path, len);
+                        memset(unix_path, 0, sizeof(unix_path));
+                    }
+                    else
+                    {
+                        wcsncat(cmd_exec, pvec[i], len);
+                    }
                     wcsncat(cmd_exec, _T("\""), len);
                 }
                 else
                 {
                     wcsncat(cmd_exec, _T("\""), len);
-                    wcsncat(cmd_exec, pvec[i], len);
+                    if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
+                    {
+                        wcsncat(cmd_exec, unix_path, len);
+                        memset(unix_path, 0, sizeof(unix_path));
+                    }
+                    else
+                    {
+                        wcsncat(cmd_exec, pvec[i], len);
+                    }
                     wcsncat(cmd_exec, _T("\" "), len);
                 }
             }
@@ -365,11 +391,11 @@ on_edit_push_editor(eu_tabpage *pnode)
     }
     else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
     {
-        int len = eu_int_cast(_tcslen(path));
+        int len = 0;
         LOAD_I18N_RESSTR(IDS_EDITOR_PATH, m_input);
-        if (eu_input(m_input, path, MAX_PATH - 1) && len > 1)
+        if (eu_input(m_input, path, MAX_PATH - 1) && (len = eu_int_cast(_tcslen(path))) > 1)
         {
-            WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path, len), -1, eu_get_config()->editor, MAX_PATH-1, NULL, NULL);
+            util_make_u8(util_path2unix(path, len), eu_get_config()->editor, MAX_PATH-1);
         }
     }
     if (STR_NOT_NUL(path))
@@ -402,11 +428,11 @@ on_edit_push_compare(void)
         }
         else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
         {
-            int len = eu_int_cast(_tcslen(path));
+            int len = 0;
             LOAD_I18N_RESSTR(IDS_EDITOR_BCOMPARE, m_input);
-            if (eu_input(m_input, path, MAX_PATH - 1) && len > 1)
+            if (eu_input(m_input, path, MAX_PATH - 1) && (len = eu_int_cast(_tcslen(path))) > 1)
             {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(path, len), -1, eu_get_config()->m_reserved_0, MAX_PATH-1, NULL, NULL);
+                util_make_u8(util_path2unix(path, len), eu_get_config()->m_reserved_0, MAX_PATH-1);
             }
         }
         if (STR_NOT_NUL(path))
@@ -951,7 +977,7 @@ on_edit_selection(eu_tabpage *pnode, int type)
         case 1:
         {
             TCHAR pfile[MAX_PATH] = {0};
-            if (!MultiByteToWideChar(CP_UTF8, 0, text, -1, pfile, MAX_PATH - 1))
+            if (!util_make_u16(text, pfile, MAX_PATH - 1)[0])
             {
                 break;
             }
