@@ -2581,29 +2581,49 @@ util_explorer_open(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        LPITEMIDLIST dir = NULL;
-        LPITEMIDLIST item = NULL;
-        do
+        if (!util_under_wine())
         {
-            if (!(dir = ILCreateFromPathW(pnode->pathname)))
+            LPITEMIDLIST dir = NULL;
+            LPITEMIDLIST item = NULL;
+            do
             {
-                break;
-            }
-            if (!(item = ILCreateFromPathW(pnode->pathfile)))
+                if (!(dir = ILCreateFromPathW(pnode->pathname)))
+                {
+                    break;
+                }
+                if (!(item = ILCreateFromPathW(pnode->pathfile)))
+                {
+                    break;
+                }
+                LPCITEMIDLIST selection[] = {item};
+                uint32_t count = _countof(selection);
+                HRESULT hr = SHOpenFolderAndSelectItems(dir, count, selection, 0);
+            } while(0);
+            if (dir)
             {
-                break;
+                CoTaskMemFree(dir);
             }
-            LPCITEMIDLIST selection[] = {item};
-            uint32_t count = _countof(selection);
-            HRESULT hr = SHOpenFolderAndSelectItems(dir, count, selection, 0);
-        } while(0);
-        if (dir)
-        {
-            CoTaskMemFree(dir);
+            if (item)
+            {
+                CoTaskMemFree(item);
+            }
         }
-        if (item)
+        else
         {
-            CoTaskMemFree(item);
+            wchar_t cmd_exec[MAX_BUFFER] = {0};
+            wchar_t plugin[MAX_PATH] = {0};
+            wchar_t unix_path[MAX_PATH] = {0};
+            if (util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH - 1))
+            {
+                _sntprintf(plugin, MAX_PATH - 1, L"%s\\plugins\\np_winexy.dll", eu_module_path);
+                util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+            #if (defined _M_X64) || (defined __x86_64__)
+                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s \"%s\" %s \"%s\"", L"/bin/wine64", plugin, L"explorer.exe", unix_path);
+            #else
+                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s \"%s\" %s \"%s\"", L"/bin/wine", plugin, L"explorer.exe", unix_path);
+            #endif
+                CloseHandle(eu_new_process(cmd_exec, NULL, pnode->pathname, 2, NULL));
+            }
         }
     }
 }
