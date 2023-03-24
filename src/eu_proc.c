@@ -1128,12 +1128,24 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_COPY_PATHNAME:
                     if (pnode && *pnode->pathname)
                     {
+                        TCHAR unix_path[MAX_PATH] = {0};
+                        if (util_under_wine() && util_get_unix_file_name(pnode->pathname, unix_path, MAX_PATH))
+                        {
+                            on_edit_push_clipboard(unix_path);
+                            break;
+                        }
                         on_edit_push_clipboard(pnode->pathname);
                     }
                     break;
                 case IDM_EDIT_COPY_PATHFILENAME:
                     if (pnode && *pnode->pathfile)
                     {
+                        TCHAR unix_path[MAX_PATH] = {0};
+                        if (util_under_wine() && util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH))
+                        {
+                            on_edit_push_clipboard(unix_path);
+                            break;
+                        }
                         on_edit_push_clipboard(pnode->pathfile);
                     }
                     break;
