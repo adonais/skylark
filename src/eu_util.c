@@ -21,6 +21,7 @@
 
 typedef const char *(__cdecl *pwine_get_version)(void);
 typedef char *(__cdecl *pwine_get_unix_file_name)(LPCWSTR dos);
+typedef wchar_t *(__cdecl *pwine_get_nt_file_name)(LPCSTR str);
 typedef void (*ptr_file_enc)(FILE *f, void **pout);
 typedef unsigned long (*ptr_compress_bound)(unsigned long source_len);
 typedef int (*ptr_compress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long, int);
@@ -244,6 +245,32 @@ util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len)
         }
     }
     return false;
+}
+
+wchar_t*
+util_get_nt_file_name(LPCWSTR path)
+{
+    wchar_t *nt_path = NULL;
+    HMODULE kernel32 = NULL;
+    pwine_get_nt_file_name fn_wine_get_nt_file_name = NULL;
+    if (!(kernel32 = GetModuleHandle(_T("kernel32.dll"))))
+    {
+        return NULL;
+    }
+    if (!(fn_wine_get_nt_file_name = (pwine_get_nt_file_name)GetProcAddress(kernel32, "wine_get_dos_file_name")))
+    {
+        return NULL;
+    }
+    if (fn_wine_get_nt_file_name)
+    {
+        char *unix_path = eu_utf16_utf8(path, NULL);
+        if (unix_path)
+        {
+            nt_path = fn_wine_get_nt_file_name(unix_path);
+            free(unix_path);
+        }
+    }
+    return nt_path;
 }
 
 int

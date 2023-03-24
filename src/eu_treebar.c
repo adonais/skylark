@@ -1446,6 +1446,7 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0, -1, on_filetree_menu_callback2, tvd);
                 }
+                return 1;  // 不返回, linux/wine上input窗口无法获取鼠标焦点
             }
             else if (tvhti.flags > 0x1 && tvhti.flags < 0x41)
             {
@@ -1778,14 +1779,14 @@ on_treebar_load_remote(HWND hwnd, remotefs *pserver)
 }
 
 static int
-locate_remote_path(TCHAR *pathname)
+locate_remote_path(const TCHAR *pathname)
 {
     TCHAR *m_dup = NULL;
     TCHAR *pdir = NULL;
     tree_data *tvd = NULL;
     HTREEITEM hti_child = NULL;
     HTREEITEM hti = NULL;
-    if ((m_dup = _tcsdup(pathname)) == NULL)
+    if ((m_dup = _tcsdup((TCHAR *)pathname)) == NULL)
     {
         return EUE_POINT_NULL;
     }
@@ -1866,21 +1867,35 @@ locate_remote_path(TCHAR *pathname)
 }
 
 int
-on_treebar_locate_path(TCHAR *pathname)
+on_treebar_locate_path(const TCHAR *pathname)
 {
     TCHAR *m_dup = NULL;
     TCHAR *pdir = NULL;
     tree_data *tvd = NULL;
     HTREEITEM hti = NULL, hti_child = NULL;
+    int len = pathname ? eu_int_cast(_tcslen(pathname)) + 1 : 0;
+    if (!len)
+    {
+        return EUE_PATH_NULL;
+    }
     if (url_has_remote(pathname))
     {
         return locate_remote_path(pathname);
     }
-    if ((m_dup = _tcsdup(pathname)) == NULL)
+    hti_child = TreeView_GetRoot(g_filetree);
+    // linux目录以'/'开始
+    if (pathname[0] == _T('/') && pathname[1] != _T('/'))
+    {
+        m_dup = util_get_nt_file_name(pathname);
+    }
+    else if ((m_dup = (TCHAR *)util_malloc(sizeof(TCHAR) * (len + 1))))
+    {
+        _sntprintf(m_dup, len, _T("%s"), pathname);
+    }
+    if (!m_dup)
     {
         return EUE_POINT_NULL;
     }
-    hti_child = TreeView_GetRoot(g_filetree);
     pdir = _tcstok(m_dup, _T("\\/"));
     while (pdir)
     {
@@ -1922,6 +1937,6 @@ on_treebar_locate_path(TCHAR *pathname)
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
         eu_window_resize(eu_module_hwnd());
     }
-    free(m_dup);
+    util_free(m_dup);
     return SKYLARK_OK;
 }
