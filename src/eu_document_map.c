@@ -20,6 +20,7 @@
 
 #define DLG_FOCUS (RGB(0xFF, 0x80, 0x00))
 #define DLG_FROST (RGB(0xFF, 0xFF, 0xFF))
+#define WINE_BACK_COLOR 0x1E1E1E
 
 HWND hwnd_document_map = NULL;
 HWND hwnd_document_static = NULL;
@@ -312,7 +313,14 @@ on_map_reload(eu_tabpage *pedit)
     if (pedit && pnode)
     {
         sptr_t pdoc = eu_sci_call(pnode, SCI_GETDOCPOINTER, 0, 0);
-        on_sci_init_style(pedit);
+        if (strcmp(eu_get_config()->window_theme, "default") == 0)
+        {
+            on_sci_init_default(pedit, util_under_wine() ? WINE_BACK_COLOR : -1);
+        }
+        else
+        {
+            on_sci_init_default(pedit, -1);
+        }
         eu_sci_call(pedit, SCI_SETZOOM, -10, 0);
         eu_sci_call(pedit, SCI_SETVSCROLLBAR, 0, 0);
         eu_sci_call(pedit, SCI_SETHSCROLLBAR, 0, 0);
