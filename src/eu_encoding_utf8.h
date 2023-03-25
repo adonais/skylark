@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-bool __stdcall on_encoding_validate_utf8(const char *data, size_t len);
+bool on_encoding_validate_utf8(const char *data, size_t len);
 
 #ifdef __cplusplus
 }

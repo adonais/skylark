@@ -444,7 +444,7 @@ on_parser_vec_printer(snippet_t *pv)
 }
 #endif
 
-bool WINAPI
+bool
 on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int eol)
 {
     bool ret = false;
@@ -525,7 +525,7 @@ on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int 
     return ret;
 }
 
-bool WINAPI
+bool
 on_parser_vector_erase(const TCHAR *path, snippet_t **ptr_vec, int dimension)
 {
     bool ret = false;
@@ -545,7 +545,7 @@ on_parser_vector_erase(const TCHAR *path, snippet_t **ptr_vec, int dimension)
     return ret;
 }
 
-bool WINAPI
+bool
 on_parser_vector_modify(const TCHAR *path, snippet_t **ptr_vec, int dimension)
 {
     bool ret = false;
@@ -604,7 +604,7 @@ on_parser_vector_modify(const TCHAR *path, snippet_t **ptr_vec, int dimension)
     return ret;
 }
 
-bool WINAPI
+bool
 on_parser_init(const TCHAR *path, snippet_t **ptr_vec, int *peol)
 {
     bool ret = true;

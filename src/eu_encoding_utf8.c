@@ -371,7 +371,7 @@ check_utf8(const uint8_t *str)
     return true;
 }
 
-bool WINAPI
+bool
 on_encoding_validate_utf8(const char *data, size_t len)
 {
     if (cpu_has_avx2())

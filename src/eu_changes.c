@@ -377,7 +377,7 @@ on_changes_click_sci(eu_tabpage *p)
     }
 }
 
-void WINAPI
+void
 on_changes_window(HWND hwnd)
 {
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
@@ -888,7 +888,7 @@ eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type)
     return on_changes_msgbox(&msgbox);
 }
 
-int WINAPI
+int
 eu_i18n_msgbox(HWND hwnd, uint16_t contents_id, uint16_t title_id, uint32_t type)
 {
     wchar_t *pstr = NULL;

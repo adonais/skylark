@@ -93,7 +93,7 @@ void on_file_edit_restart(HWND hwnd, const bool admin);
 void on_file_restore_recent(void);
 void on_file_reload_current(eu_tabpage *pnode);
 void on_file_close_last_tab(void);
-uint64_t __stdcall on_file_get_avail_phys(void);
+uint64_t on_file_get_avail_phys(void);
 
 #ifdef __cplusplus
 }

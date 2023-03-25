@@ -120,7 +120,7 @@ on_map_print(sptr_t *plines)
 }
 #endif
 
-void WINAPI
+void
 on_map_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map)
 {
     if (pnode && ptr_map)
@@ -306,7 +306,7 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void WINAPI
+void
 on_map_reload(eu_tabpage *pedit)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
@@ -487,7 +487,7 @@ on_map_create_dlg(LPARAM ptr)
     return (hwnd_document_map != NULL);
 }
 
-eu_tabpage *WINAPI
+eu_tabpage*
 on_map_edit(void)
 {
     if (document_map_initialized && hwnd_document_map)
@@ -497,7 +497,7 @@ on_map_edit(void)
     return NULL;
 }
 
-eu_tabpage *WINAPI
+eu_tabpage*
 on_map_launch(void)
 {
     eu_tabpage *map_edit = NULL;

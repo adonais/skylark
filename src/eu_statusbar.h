@@ -41,20 +41,20 @@ extern "C" {
 extern HWND g_statusbar;
 extern char iconv_undo_str[QW_SIZE];
 
-bool __stdcall on_statusbar_init(HWND hwnd);
-int  __stdcall on_statusbar_height(void);
-int  __stdcall on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto);
-void __stdcall on_statusbar_refresh(void);
-void __stdcall on_statusbar_update(void);
-void __stdcall on_statusbar_adjust_box(void);
-void __stdcall on_statusbar_update_eol(eu_tabpage *pnode);
-void __stdcall on_statusbar_update_line(eu_tabpage *pnode);
-void __stdcall on_statusbar_update_filesize(eu_tabpage *pnode);
-void __stdcall on_statusbar_update_coding(eu_tabpage *pnode, const int res_id);
-void __stdcall on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str);
-void __stdcall on_statusbar_dark_mode(void);
-void __stdcall on_statusbar_dark_release(bool off);
-void __stdcall on_statusbar_pop_menu(int parts, LPPOINT pt);
+bool on_statusbar_init(HWND hwnd);
+int  on_statusbar_height(void);
+int  on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto);
+void on_statusbar_refresh(void);
+void on_statusbar_update(void);
+void on_statusbar_adjust_box(void);
+void on_statusbar_update_eol(eu_tabpage *pnode);
+void on_statusbar_update_line(eu_tabpage *pnode);
+void on_statusbar_update_filesize(eu_tabpage *pnode);
+void on_statusbar_update_coding(eu_tabpage *pnode, const int res_id);
+void on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str);
+void on_statusbar_dark_mode(void);
+void on_statusbar_dark_release(bool off);
+void on_statusbar_pop_menu(int parts, LPPOINT pt);
 
 #ifdef __cplusplus
 }

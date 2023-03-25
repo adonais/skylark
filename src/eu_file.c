@@ -375,7 +375,7 @@ on_file_new(void)
     return SKYLARK_OK;
 }
 
-uint64_t WINAPI
+uint64_t
 on_file_get_avail_phys(void)
 {
     MEMORYSTATUSEX statex;
