@@ -1109,6 +1109,37 @@ util_creater_window(HWND hwnd, HWND hwnd_parent)
     return MoveWindow(hwnd, pt_new.x, pt_new.y, width, height, false);
 }
 
+/***********************************************************
+ * 获得系统剪贴板数据, 调用后需要释放指针
+ ***********************************************************/
+bool
+util_get_clipboard(char **ppstr)
+{
+    bool ret = false;
+    if (!ppstr)
+    {
+        return ret;
+    }
+    if (OpenClipboard(NULL))
+    {
+        HGLOBAL hmem = GetClipboardData(CF_UNICODETEXT);
+        if (NULL != hmem)
+        {
+            wchar_t *lpstr = (wchar_t *) GlobalLock(hmem);
+            if (NULL != lpstr)
+            {
+                if ((*ppstr = eu_utf16_utf8(lpstr, NULL)) != NULL)
+                {
+                    ret = true;
+                }
+                GlobalUnlock(hmem);
+            }
+        }
+        CloseClipboard();
+    }
+    return ret;
+}
+
 char *
 util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
 {

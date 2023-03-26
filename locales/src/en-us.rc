@@ -84,6 +84,8 @@ BEGIN
             MENUITEM "Copy File Name",                                 IDM_EDIT_COPY_FILENAME
             MENUITEM "Copy File Path",                                 IDM_EDIT_COPY_PATHNAME
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Incr&emental Copy",                              IDM_EDIT_COPY_INCREMENTAL
         END
         MENUITEM "Swap To Clipboard",                                  IDM_EDIT_SWAP_CLIPBOARD
         MENUITEM "Clear Clip&board",                                   IDM_EDIT_CLEAR_CLIPBOARD
@@ -1197,6 +1199,7 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_ERROR         "%s File printing error"
     IDS_PRINT_HEX_WARNS     "Printing in hex mode is not currently supported"
     IDS_SELRECT             "This operation cannot be performed in column edit mode."
+    IDS_SELRECT_MULTI       "This operation can't be performed within a rectangular or multi-selection."
     IDS_LUA_CONV_SUCCESS    "» » Conversion of bytecode succeeded, file saved [%s]"
     IDS_LUA_CONV_FAIL       "» » Conversion of bytecode failed."
     IDS_THEME_DESC_DEFAULT  "Default Theme"

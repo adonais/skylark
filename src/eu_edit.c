@@ -178,7 +178,7 @@ on_edit_line_down(eu_tabpage *pnode)
 bool
 on_edit_push_clipboard(const TCHAR *buf)
 {
-    if (OpenClipboard(eu_module_hwnd()))
+    if (buf && OpenClipboard(eu_module_hwnd()))
     {
         HGLOBAL hgl = NULL;
         EmptyClipboard();
@@ -193,6 +193,43 @@ on_edit_push_clipboard(const TCHAR *buf)
         }
     }
     return false;
+}
+
+void
+on_edit_incremental_clipborad(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->pmod)
+    {
+        size_t len = 0;
+        char *buf0 = NULL;
+        char *buf1 = NULL;
+        wchar_t *text = NULL;
+        const sptr_t n = eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0);
+        if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+        {
+            MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            return;
+        }
+        if (!util_get_clipboard(&buf0))
+        {
+            buf0 = _strdup("");
+        }
+        if (buf0 && (buf1 = util_strdup_select(pnode, &len, n)) != NULL && len > 0)
+        {
+            char *buf = NULL;
+            len += (strlen(buf0) + 8);
+            if ((buf = (char *)calloc(1, len + 1)))
+            {
+                _snprintf(buf, len, "%s%s%s", buf0, *buf0 ? on_encoding_get_eol(pnode) : "", buf1);
+                text = eu_utf8_utf16(buf, NULL);
+                free(buf);
+                on_edit_push_clipboard(text);
+            }
+        }
+        eu_safe_free(buf0);
+        eu_safe_free(buf1);
+        eu_safe_free(text);
+    }
 }
 
 void
@@ -229,7 +266,7 @@ on_edit_swap_clipborad(eu_tabpage *pnode)
         if ((buf = on_sci_range_text(pnode, start, end)))
         {
             char *replace = NULL;
-            if (on_toolbar_get_clipboard(&replace) && replace)
+            if (util_get_clipboard(&replace) && replace)
             {
                 eu_sci_call(pnode, SCI_SETTARGETSTART, start, 0);
                 eu_sci_call(pnode, SCI_SETTARGETEND, end, 0);

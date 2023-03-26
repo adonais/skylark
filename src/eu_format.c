@@ -506,6 +506,11 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                         break;
                     }
                 }
+                else if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
+                {
+                    MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                    break;
+                }
                 else if (!(text = util_strdup_select(pnode, &text_len, 0)))
                 {
                     break;

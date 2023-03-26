@@ -1126,7 +1126,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             {
                 int txt_len = 0;
                 char *ptext = NULL;
-                if (!on_toolbar_get_clipboard(&ptext))
+                if (!util_get_clipboard(&ptext))
                 {
                     break;
                 }

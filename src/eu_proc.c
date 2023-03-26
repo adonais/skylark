@@ -1149,6 +1149,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_edit_push_clipboard(pnode->pathfile);
                     }
                     break;
+                case IDM_EDIT_COPY_INCREMENTAL:
+                    on_edit_incremental_clipborad(pnode);
+                    break;
                 case IDM_EDIT_SWAP_CLIPBOARD:
                     on_edit_swap_clipborad(pnode);
                     break;

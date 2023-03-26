@@ -572,6 +572,7 @@
 #define IDM_VIEW_SCROLLCURSOR                30454
 #define IDM_EDIT_SWAP_CLIPBOARD              30455
 #define IDM_EDIT_CLEAR_CLIPBOARD             30456
+#define IDM_EDIT_COPY_INCREMENTAL            30457
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -926,6 +927,7 @@
 #define IDS_PRINT_ERROR                     42105
 #define IDS_SELRECT                         42106
 #define IDS_PRINT_HEX_WARNS                 42107
+#define IDS_SELRECT_MULTI                   42108
 
 #define IDM_THEME_CANCEL                    42200
 

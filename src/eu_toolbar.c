@@ -222,37 +222,6 @@ on_toolbar_setup_button(int id, int flags)
     }
 }
 
-/***********************************************************
- * 获得系统剪贴板数据, 调用后需要释放指针
- ***********************************************************/
-bool
-on_toolbar_get_clipboard(char **ppstr)
-{
-    bool ret = false;
-    if (!ppstr)
-    {
-        return ret;
-    }
-    if (OpenClipboard(NULL))
-    {
-        HGLOBAL hmem = GetClipboardData(CF_UNICODETEXT);
-        if (NULL != hmem)
-        {
-            wchar_t *lpstr = (wchar_t *) GlobalLock(hmem);
-            if (NULL != lpstr)
-            {
-                if ((*ppstr = eu_utf16_utf8(lpstr, NULL)) != NULL)
-                {
-                    ret = true;
-                }
-                GlobalUnlock(hmem);
-            }
-        }
-        CloseClipboard();
-    }
-    return ret;
-}
-
 HWND
 on_toolbar_hwnd(void)
 {
