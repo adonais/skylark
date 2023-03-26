@@ -86,6 +86,7 @@ BEGIN
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
             MENUITEM MF_SEPARATOR
             MENUITEM "增量复制(&E)",                            IDM_EDIT_COPY_INCREMENTAL
+            MENUITEM "复制为富文本(&R)",                        IDM_EDIT_COPY_RTF
         END
         MENUITEM "交换到到剪贴板",                              IDM_EDIT_SWAP_CLIPBOARD
         MENUITEM "清空剪贴板(&B)",                              IDM_EDIT_CLEAR_CLIPBOARD

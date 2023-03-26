@@ -233,6 +233,50 @@ on_edit_incremental_clipborad(eu_tabpage *pnode)
 }
 
 void
+on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        char *prtf = NULL;
+        const sptr_t start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        const sptr_t end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if (!(start < end))
+        {
+            printf("start >= end\n");
+            return;
+        }
+        if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
+        {
+            MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            return;
+        }
+        if (!(prtf = on_exporter_rtf(pnode, start, end)))
+        {
+            return;
+        }
+        if (true)
+        {
+            char *ptr = NULL;
+            const size_t len = strlen(prtf) + 1;
+            HGLOBAL handle = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, len);
+            if (handle) 
+            {
+                OpenClipboard(hwnd);
+                EmptyClipboard();
+                if ((ptr = (char *)(GlobalLock(handle))))
+                {
+                    memcpy(ptr, prtf, len);
+                    GlobalUnlock(handle);
+                }
+                SetClipboardData(RegisterClipboardFormat(CF_RTF), handle);
+                CloseClipboard();
+            }
+            eu_safe_free(prtf);
+        }
+    }
+}
+
+void
 on_edit_swap_clipborad(eu_tabpage *pnode)
 {
     if (pnode && !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0))

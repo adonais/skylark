@@ -86,6 +86,7 @@ BEGIN
             MENUITEM "Copy File Path And Name",                        IDM_EDIT_COPY_PATHFILENAME
             MENUITEM MF_SEPARATOR
             MENUITEM "Incr&emental Copy",                              IDM_EDIT_COPY_INCREMENTAL
+            MENUITEM "Copy As &RTF",                                   IDM_EDIT_COPY_RTF
         END
         MENUITEM "Swap To Clipboard",                                  IDM_EDIT_SWAP_CLIPBOARD
         MENUITEM "Clear Clip&board",                                   IDM_EDIT_CLEAR_CLIPBOARD

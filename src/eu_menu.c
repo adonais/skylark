@@ -378,6 +378,11 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE8, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE9, !pnode->hex_mode && eu_exist_libssl() && util_can_selections(pnode));
                         break;
+                    case IDM_EDIT_COPY_INCREMENTAL:
+                        util_enable_menu_item(menu, IDM_EDIT_COPY_INCREMENTAL, !pnode->plugin && TAB_NOT_NUL(pnode));
+                    case IDM_EDIT_COPY_RTF:
+                        util_enable_menu_item(menu, IDM_EDIT_COPY_RTF, !pnode->hex_mode && !pnode->plugin && TAB_NOT_NUL(pnode));
+                        break;
                     case IDM_EDIT_SWAP_CLIPBOARD:
                         util_enable_menu_item(menu, IDM_EDIT_SWAP_CLIPBOARD, !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0));
                         break;
@@ -385,7 +390,7 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_EDIT_CLEAR_CLIPBOARD, on_edit_can_paste());
                         break;
                     case IDM_EDIT_OTHER_EDITOR:
-                        util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->is_blank);
+                        util_enable_menu_item(menu, IDM_EDIT_OTHER_EDITOR, !pnode->plugin && !pnode->is_blank);
                         break;
                     case IDM_EDIT_OTHER_BCOMPARE:
                     {
@@ -475,11 +480,18 @@ menu_update_item(HMENU menu)
                         util_enable_menu_item(menu, IDM_FORMAT_HYPERLINKHOTSPOTS, !pnode->hex_mode && TAB_NOT_NUL(pnode));
                         break;
                     }
+                    case IDM_FORMAT_CHECK_INDENTATION:
+                    {
+                        util_enable_menu_item(menu, IDM_FORMAT_CHECK_INDENTATION, !pnode->hex_mode && !pnode->plugin && TAB_NOT_NUL(pnode));
+                        break;
+                    }
                     case IDM_EDIT_QRCODE:
                         util_enable_menu_item(menu, IDM_EDIT_QRCODE, util_can_selections(pnode));
                         break;
                     case IDM_SOURCE_BLOCKFOLD_TOGGLE: /* Programming menu */
-                        enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && TAB_NOT_NUL(pnode);
+                    case IDM_SOURCE_BLOCKFOLD_CONTRACTALL:
+                    case IDM_SOURCE_BLOCKFOLD_EXPANDALL:
+                        enable = eu_get_config()->block_fold && pnode->foldline && !pnode->hex_mode && !pnode->plugin && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_TOGGLE, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_CONTRACTALL, enable);
                         util_enable_menu_item(menu, IDM_SOURCE_BLOCKFOLD_EXPANDALL, enable);

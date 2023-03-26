@@ -1152,6 +1152,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_COPY_INCREMENTAL:
                     on_edit_incremental_clipborad(pnode);
                     break;
+                case IDM_EDIT_COPY_RTF:
+                    on_edit_rtf_clipborad(hwnd, pnode);
+                    break;
                 case IDM_EDIT_SWAP_CLIPBOARD:
                     on_edit_swap_clipborad(pnode);
                     break;
