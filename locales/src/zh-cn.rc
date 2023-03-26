@@ -35,7 +35,7 @@ BEGIN
         MENUITEM "全部保存",                                    IDM_FILE_SAVEALL
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
-        MENUITEM "关闭除当前外所有文件",                        IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭其他文件",                                IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
         MENUITEM "恢复最近关闭文件",                            IDM_FILE_RESTORE_RECENT
         MENUITEM "重新载入当前文件",                            IDM_FILE_RELOAD_CURRENT
@@ -419,8 +419,8 @@ BEGIN
     POPUP "0"
     BEGIN
         MENUITEM "关闭标签页(&C)",                              IDM_FILE_CLOSE
+        MENUITEM "关闭其他标签页(&S)",                          IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "关闭所有标签页",                              IDM_FILE_CLOSEALL
-        MENUITEM "关闭除当前标签外所有标签",                    IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
         MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
@@ -1236,7 +1236,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
     IDS_CHECK_VER_BREAK     "下载失败, 服务端不可用!"
-    IDS_CHECK_VER_PROGRESS  "正在下载更新, 请稍后..."
+    IDS_CHECK_VER_PROGRESS  "正在下载更新, 请稍候..."
     IDS_CHECK_VER_UNKOWN    "服务端暂时没有可用更新包!"
     IDS_CHECK_VER_COMPLETED "更新包下载完毕, 重启以应用更新 ʡ"
     IDS_SNIPPETS_STR        "☑代码片段补全模式"

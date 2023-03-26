@@ -2144,23 +2144,25 @@ int
 on_file_exclude_close(eu_tabpage *pnode)
 {
     int this_index = 0;
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    cvector_vector_type(int) v = NULL;
+    if ((on_tabpage_sel_number(&v, false)) > 0)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(this_index);
-        if (p)
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            if (p == pnode)
+            if (eu_cvector_at(v, index) >= 0)
             {
                 ++this_index;
                 continue;
             }
-            if (on_file_close(p, FILE_EXCLUDE_CLOSE))
+            if ((p = on_tabpage_get_ptr(this_index)) && on_file_close(p, FILE_EXCLUDE_CLOSE))
             {
                 ++this_index;
             }
         }
+        on_tabpage_selection(pnode, -1);
     }
-    on_tabpage_selection(pnode, -1);
+    cvector_freep(&v);
     return SKYLARK_OK;
 }
 
