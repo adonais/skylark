@@ -1103,7 +1103,7 @@
 #define IDM_HELP_COMMAND                    43000
 #define IDS_LOADLIBRARY_SQL                 43001
 #define IDM_TABPAGE_SAVE                    43002
-#define IDM_TABPAGE_FULLSCREEN              43003
+#define IDM_TABPAGE_LOCKED                  43003
 #define IDM_TABCLOSE_FOLLOW                 43004
 #define IDM_TABCLOSE_ALWAYS                 43005
 #define IDM_TABCLOSE_NONE                   43006

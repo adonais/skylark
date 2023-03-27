@@ -208,6 +208,11 @@ on_config_load_file(void *lp)
                 share_send_msg(&vbak[i]);
             }
         }
+        if (util_under_wine() && g_tabpages && TabCtrl_GetItemCount(g_tabpages) < 1)
+        {   // 启动器启动时
+            file_backup bak = {0};
+            share_send_msg(&bak);
+        }
     }
     printf("vbak size = %zu\n", cvector_size(vbak));
     cvector_free(vbak);

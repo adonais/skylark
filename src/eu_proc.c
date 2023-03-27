@@ -1716,9 +1716,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_about_command();
                     break;
                 case IDM_VIEW_FULLSCREEN:
-                case IDM_TABPAGE_FULLSCREEN:
                 {
                     on_view_full_sreen(hwnd);
+                    break;
+                }
+                case IDM_TABPAGE_LOCKED:
+                {
+                    eu_get_config()->inter_reserved_1 ^= true;
                     break;
                 }
                 case IDM_VIEW_MENUBAR:
@@ -1820,6 +1824,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             switch (lpnmhdr->code)
             {
+                case EU_SAVE_CONFIG:
+                {
+                    eu_save_config();
+                    eu_save_theme();
+                    break;
+                }
                 case NM_CLICK:
                     if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {
