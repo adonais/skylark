@@ -808,9 +808,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 1;
         }
         case WM_TIMER:
-            if (on_qrgen_hwnd() && KEY_DOWN(VK_ESCAPE))
+            if (KEY_DOWN(VK_ESCAPE))
             {
-                EndDialog(on_qrgen_hwnd(), 0);
+                if (on_qrgen_hwnd())
+                {
+                    EndDialog(on_qrgen_hwnd(), 0);
+                }
+                else if (eu_get_config()->m_fullscreen)
+                {
+                    on_view_full_sreen(eu_hwnd_self());
+                }
             }
             if (g_hwndmain == GetForegroundWindow())
             {

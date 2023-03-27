@@ -702,6 +702,10 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
+            if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)))
+            {
+                break;
+            }
             switch (wParam)
             {
                 case VK_TAB:
@@ -1482,6 +1486,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             else
             {   // caret invisible, show it!
                 hexview_caret(hwnd, hexview);
+            }
+            if (GetFocus() != hwnd)
+            {   // 可能被plugin窗口强占了键盘焦点
+                on_proc_resize(NULL);
             }
             break;
         }

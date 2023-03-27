@@ -194,7 +194,6 @@ on_config_load_file(void *lp)
         err = on_sql_do_session("SELECT * FROM skylar_ver;", NULL, NULL);
     }
     on_config_open_args(&vbak);
-    printf("vbak size = %zu\n", cvector_size(vbak));
     if (cvector_size(vbak) < 1)
     {
         file_backup bak = {0};
@@ -210,6 +209,7 @@ on_config_load_file(void *lp)
             }
         }
     }
+    printf("vbak size = %zu\n", cvector_size(vbak));
     cvector_free(vbak);
     return 0;
 }
