@@ -44,7 +44,7 @@ on_edit_undo(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode)
+            if (p && !p->hex_mode && !p->pmod)
             {
                 on_proc_undo_off();
                 eu_sci_call(p, SCI_UNDO, 0, 0);
@@ -69,7 +69,7 @@ on_edit_redo(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode)
+            if (p && !p->hex_mode && !p->pmod)
             {
                 on_proc_undo_off();
                 eu_sci_call(p, SCI_REDO, 0, 0);
@@ -87,7 +87,7 @@ on_edit_redo(eu_tabpage *pnode)
 void
 on_edit_cut(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_CUT, 0, 0);
     }
@@ -130,7 +130,7 @@ on_edit_delete_text(eu_tabpage *pnode)
 void
 on_edit_cut_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_LINECUT, 0, 0);
     }
@@ -139,7 +139,7 @@ on_edit_cut_line(eu_tabpage *pnode)
 void
 on_edit_copy_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         char *text = util_strdup_line(pnode, -1, NULL);
         if (text)
@@ -158,7 +158,7 @@ on_edit_copy_line(eu_tabpage *pnode)
 void
 on_edit_line_up(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_MOVESELECTEDLINESUP, 0, 0);
     }
@@ -167,7 +167,7 @@ on_edit_line_up(eu_tabpage *pnode)
 void
 on_edit_line_down(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_MOVESELECTEDLINESDOWN, 0, 0);
         // 确保所选内容在视图中可见
@@ -529,9 +529,62 @@ on_edit_push_compare(void)
 }
 
 void
+on_edit_convert_slash(eu_tabpage *pnode, const bool slash)
+{
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        char *buf = NULL;
+        const sptr_t start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        const sptr_t end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0) ||
+           (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1))
+        {
+            MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            return;
+        }
+        if (end > start && (buf = on_sci_range_text(pnode, start, end)))
+        {
+            char *str = NULL;
+            const char *ch = "\\\\";
+            const char *rch = "/";
+            if (!slash)
+            {
+                str = util_str_replace(buf, rch, ch);
+            }
+            else
+            {
+                str = util_str_replace(buf, ch, rch);
+            }
+            if (str)
+            {
+                if (slash)
+                {
+                    for (int i = 0; i < eu_int_cast(strlen(str)); ++i)
+                    {
+                        if (str[i] == '\\')
+                        {
+                            str[i] = '/';
+                        }
+                    }
+                }
+                if (strcmp(buf, str))
+                {
+                    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                    eu_sci_call(pnode, SCI_SETTARGETRANGE, start, end);
+                    eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)str);
+                    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                }
+                free(str);
+            }
+        }
+        eu_safe_free(buf);
+    }
+}
+
+void
 on_edit_delete_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_LINEDELETE, 0, 0);
     }
@@ -568,15 +621,15 @@ on_edit_add_array(eu_tabpage *pnode, char *pbuf, char *strarray[], int count)
 void
 on_edit_delete_dups(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         char *buf = NULL;
         char **ptext = NULL;
         sptr_t from_line = 0, to_line = 0;
         bool has_selection = false;
         bool has_last_empty = false;
-        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        const sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        const sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         sptr_t total_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
         const char *eol_str = on_encoding_get_eol(pnode);
         if ((has_selection = sel_start != sel_end))
@@ -658,7 +711,10 @@ on_edit_delete_dups(eu_tabpage *pnode)
 void
 on_edit_line_transpose(eu_tabpage *pnode)
 {
-    eu_sci_call(pnode, SCI_LINETRANSPOSE, 0, 0);
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        eu_sci_call(pnode, SCI_LINETRANSPOSE, 0, 0);
+    }
 }
 
 static sptr_t
@@ -732,7 +788,7 @@ do_delete_space(eu_tabpage *pnode, sptr_t start, sptr_t end, bool header)
 void
 on_edit_delete_line_header_white(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t start_line, end_line;
         util_effect_line(pnode, &start_line, &end_line);
@@ -743,7 +799,7 @@ on_edit_delete_line_header_white(eu_tabpage *pnode)
 void
 on_edit_delete_line_tail_white(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t start_line, end_line;
         util_effect_line(pnode, &start_line, &end_line);
@@ -762,7 +818,7 @@ on_edit_delete_line_header_all(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode)
+            if (p && !p->hex_mode && !p->pmod)
             {
                 do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
             }
@@ -782,7 +838,7 @@ on_edit_delete_line_tail_all(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode)
+            if (p && !p->hex_mode && !p->pmod)
             {
                 do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
             }
@@ -814,10 +870,6 @@ space_in_line(eu_tabpage *pnode, sptr_t start, sptr_t end)
 static bool
 do_delete_lines(eu_tabpage *pnode, sptr_t start, sptr_t end, bool white_chars)
 {
-    if (!pnode || pnode->hex_mode)
-    {
-        return false;
-    }
     eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     for (sptr_t line = start; line <= end; ++line)
     {
@@ -848,7 +900,7 @@ on_edit_delete_all_empty_lines(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode)
+            if (p && !p->hex_mode && !p->pmod)
             {
                 do_delete_lines(p, 0, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
             }
@@ -860,7 +912,7 @@ on_edit_delete_all_empty_lines(eu_tabpage *pnode)
 void
 on_edit_join_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -928,7 +980,7 @@ do_toggle_case(eu_tabpage *pnode, bool do_uppercase, bool do_line, bool first)
 void
 on_edit_lower(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         bool has_selection = false;
         sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
@@ -947,7 +999,7 @@ on_edit_lower(eu_tabpage *pnode)
 void
 on_edit_upper(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         bool has_selection = false;
         sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
@@ -1018,7 +1070,7 @@ do_selection_case(eu_tabpage *pnode, bool sentence)
 void
 on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence)
 {
-    if (pnode && !eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    if (pnode && !pnode->hex_mode && !pnode->pmod && !eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
     {
         if (!eu_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0))
         {
@@ -1036,105 +1088,108 @@ on_edit_selection(eu_tabpage *pnode, int type)
 {
     size_t len = 0;
     char *text = NULL;
-    if (!(text = util_strdup_select(pnode, &len, 0)))
+    if (pnode && !pnode->pmod)
     {
-        return;
-    }
-    switch (type)
-    {
-        case 0:
+        if (!(text = util_strdup_select(pnode, &len, 0)))
         {
-            file_backup file = {0};
-            if (eu_exist_path(text) && MultiByteToWideChar(CP_UTF8, 0, text, -1, file.rel_path, MAX_PATH - 1) > 0)
-            {
-                uint32_t attr = GetFileAttributes(file.rel_path);
-                if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
-                {
-                    on_file_only_open(&file, true);
-                }
-            }
-            break;
+            return;
         }
-        case 1:
+        switch (type)
         {
-            TCHAR pfile[MAX_PATH] = {0};
-            if (!util_make_u16(text, pfile, MAX_PATH - 1)[0])
+            case 0:
             {
+                file_backup file = {0};
+                if (eu_exist_path(text) && MultiByteToWideChar(CP_UTF8, 0, text, -1, file.rel_path, MAX_PATH - 1) > 0)
+                {
+                    uint32_t attr = GetFileAttributes(file.rel_path);
+                    if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
+                    {
+                        on_file_only_open(&file, true);
+                    }
+                }
                 break;
             }
-            if (eu_exist_dir(pfile))
+            case 1:
             {
-                on_treebar_locate_path(pfile);
+                TCHAR pfile[MAX_PATH] = {0};
+                if (!util_make_u16(text, pfile, MAX_PATH - 1)[0])
+                {
+                    break;
+                }
+                if (eu_exist_dir(pfile))
+                {
+                    on_treebar_locate_path(pfile);
+                    break;
+                }
+                eu_suffix_strip(pfile);
+                if (eu_exist_dir(pfile))
+                {
+                    on_treebar_locate_path(pfile);
+                }
                 break;
             }
-            eu_suffix_strip(pfile);
-            if (eu_exist_dir(pfile))
+            case 2:
             {
-                on_treebar_locate_path(pfile);
-            }
-            break;
-        }
-        case 2:
-        {
-            char *url = NULL;
-            const char *google = "https://www.google.com/search?q=%s";
-            size_t url_len = strlen(google) + len + 3;
-            url = (char *)calloc(1, url_len);
-            if (url)
-            {
-                _snprintf(url, url_len-1, google, text);
-                TCHAR *wurl = eu_utf8_utf16(url, NULL);
-                if (wurl)
+                char *url = NULL;
+                const char *google = "https://www.google.com/search?q=%s";
+                size_t url_len = strlen(google) + len + 3;
+                url = (char *)calloc(1, url_len);
+                if (url)
                 {
-                    ShellExecute(eu_module_hwnd(), NULL, wurl, NULL, NULL, SW_SHOWNORMAL);
-                    free(wurl);
+                    _snprintf(url, url_len-1, google, text);
+                    TCHAR *wurl = eu_utf8_utf16(url, NULL);
+                    if (wurl)
+                    {
+                        ShellExecute(eu_module_hwnd(), NULL, wurl, NULL, NULL, SW_SHOWNORMAL);
+                        free(wurl);
+                    }
+                    free(url);
                 }
-                free(url);
+                break;
             }
-            break;
-        }
-        case 3:
-        {
-            char *url = NULL;
-            const char *baidu = "https://www.baidu.com/s?wd=%s&ie=utf-8";
-            size_t url_len = strlen(baidu) + len + 3;
-            url = (char *)calloc(1, url_len);
-            if (url)
+            case 3:
             {
-                _snprintf(url, url_len-1, baidu, text);
-                TCHAR *wurl = eu_utf8_utf16(url, NULL);
-                if (wurl)
+                char *url = NULL;
+                const char *baidu = "https://www.baidu.com/s?wd=%s&ie=utf-8";
+                size_t url_len = strlen(baidu) + len + 3;
+                url = (char *)calloc(1, url_len);
+                if (url)
                 {
-                    ShellExecute(eu_module_hwnd(), NULL, wurl, NULL, NULL, SW_SHOWNORMAL);
-                    free(wurl);
+                    _snprintf(url, url_len-1, baidu, text);
+                    TCHAR *wurl = eu_utf8_utf16(url, NULL);
+                    if (wurl)
+                    {
+                        ShellExecute(eu_module_hwnd(), NULL, wurl, NULL, NULL, SW_SHOWNORMAL);
+                        free(wurl);
+                    }
+                    free(url);
                 }
-                free(url);
+                break;
             }
-            break;
-        }
-        case 4:
-        {
-            char *url = NULL;
-            const char *bing = "https://www.bing.com/search?q=%s";
-            size_t url_len = strlen(bing) + len + 3;
-            url = (char *)calloc(1, url_len);
-            if (url)
+            case 4:
             {
-                _snprintf(url, url_len-1, bing, text);
-                TCHAR *wurl = eu_utf8_utf16(url, NULL);
-                if (wurl)
+                char *url = NULL;
+                const char *bing = "https://www.bing.com/search?q=%s";
+                size_t url_len = strlen(bing) + len + 3;
+                url = (char *)calloc(1, url_len);
+                if (url)
                 {
-                    ShellExecute(eu_module_hwnd(), NULL, wurl, NULL, NULL, SW_SHOWNORMAL);
-                    free(wurl);
+                    _snprintf(url, url_len-1, bing, text);
+                    TCHAR *wurl = eu_utf8_utf16(url, NULL);
+                    if (wurl)
+                    {
+                        ShellExecute(eu_module_hwnd(), NULL, wurl, NULL, NULL, SW_SHOWNORMAL);
+                        free(wurl);
+                    }
+                    free(url);
                 }
-                free(url);
+                break;
             }
-            break;
+            default:
+                break;
         }
-        default:
-            break;
+        eu_safe_free(text);
     }
-    eu_safe_free(text);
 }
 
 bool
@@ -1163,11 +1218,7 @@ on_edit_base64_enc(eu_tabpage *pnode)
     size_t out_len;
     char *sel_text = NULL;
     char *out_text = NULL;
-    if (!pnode)
-    {
-        return 0;
-    }
-    if (pnode->hex_mode)
+    if (!pnode || pnode->hex_mode || pnode->plugin)
     {
         return 0;
     }
@@ -1234,7 +1285,7 @@ on_edit_base64_dec(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode)
+    if (pnode->hex_mode || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1275,7 +1326,7 @@ on_edit_md5(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode)
+    if (pnode->hex_mode || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1309,7 +1360,7 @@ on_edit_sha1(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode)
+    if (pnode->hex_mode || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1343,7 +1394,7 @@ on_edit_sha256(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode)
+    if (pnode->hex_mode || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1376,11 +1427,7 @@ on_edit_descbc_enc(eu_tabpage *pnode)
     char *out_text = NULL;
     char *text_exp = NULL;
     char key[24 + 1] = { 0 };
-    if (!pnode)
-    {
-        return 0;
-    }
-    if (pnode->hex_mode)
+    if (!pnode || pnode->hex_mode || pnode->plugin)
     {
         return 0;
     }
@@ -1439,11 +1486,7 @@ on_edit_descbc_dec(eu_tabpage *pnode)
     char *input_text = NULL;
     char *out_text = NULL;
     char key[24 + 1] = { 0 };
-    if (!pnode)
-    {
-        return 0;
-    }
-    if (pnode->hex_mode)
+    if (!pnode || pnode->hex_mode || pnode->plugin)
     {
         return 0;
     }
@@ -1818,7 +1861,7 @@ on_edit_comment_line(eu_tabpage *pnode)
     {
         return 1;
     }
-    if (pnode->hex_mode)
+    if (pnode->hex_mode || pnode->plugin)
     {
         return 0;
     }
@@ -1917,7 +1960,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
     {
         return 1;
     }
-    if (pnode->hex_mode)
+    if (pnode->hex_mode || pnode->plugin)
     {
         return 0;
     }
@@ -2008,7 +2051,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
 int
 on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
 {
-    if (pnode && (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
+    if (pnode && !pnode->hex_mode && !pnode->pmod && (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
     {
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         eu_sci_call(pnode, SCI_CONVERTEOLS, eol_mode, 0);
@@ -2026,27 +2069,33 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
 void
 on_edit_undo_iconv(eu_tabpage *pnode)
 {
-    int old_codepage = IDM_UNKNOWN;
-    int new_codepage = IDM_UNKNOWN;
-    if (sscanf(iconv_undo_str, "%*[^0-9]%i=%i", &old_codepage, &new_codepage) == 2)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
-        pnode->codepage = old_codepage;
-        memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
-        on_encoding_set_bom_from_cp(pnode);
-        on_statusbar_update_coding(pnode, 0);
+        int old_codepage = IDM_UNKNOWN;
+        int new_codepage = IDM_UNKNOWN;
+        if (sscanf(iconv_undo_str, "%*[^0-9]%i=%i", &old_codepage, &new_codepage) == 2)
+        {
+            pnode->codepage = old_codepage;
+            memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
+            on_encoding_set_bom_from_cp(pnode);
+            on_statusbar_update_coding(pnode, 0);
+        }
     }
 }
 
 void
 on_edit_undo_eol(eu_tabpage *pnode)
 {
-    int old_eol = -1;
-    int new_eol = -1;
-    if (sscanf(eols_undo_str, "%*[^0-9]%i=%i", &old_eol, &new_eol) == 2)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
-        pnode->eol = old_eol;
-        eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
-        on_statusbar_update_eol(pnode);
+        int old_eol = -1;
+        int new_eol = -1;
+        if (sscanf(eols_undo_str, "%*[^0-9]%i=%i", &old_eol, &new_eol) == 2)
+        {
+            pnode->eol = old_eol;
+            eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+            on_statusbar_update_eol(pnode);
+        }
     }
 }
 
@@ -2085,7 +2134,7 @@ on_edit_sorting(eu_tabpage *p, int wm_id)
         for (int k = 0; k < count; ++k)
         {
             eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
-            if (pnode && !pnode->hex_mode)
+            if (pnode && !pnode->hex_mode && !pnode->pmod)
             {
                 int i = 0;
                 int count = 0;

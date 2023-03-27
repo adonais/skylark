@@ -130,6 +130,9 @@ BEGIN
             MENUITEM MF_SEPARATOR
             MENUITEM "TAB To Space",                                   IDM_EDIT_TAB_SPACE
             MENUITEM "Space To TAB",                                   IDM_EDIT_SPACE_TAB
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Slash To Backslash(Path Format)",                IDM_EDIT_SLASH_BACKSLASH
+            MENUITEM "Backlash To Slash(Path Format)",                 IDM_EDIT_BACKSLASH_SLASH
         END
         MENUITEM MF_SEPARATOR
         POPUP "Action &On Selection",                                  IDM_EDIT_SELECT_GROUP

@@ -66,6 +66,8 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), string.byte(\"U\"), IDM_EDIT_SENTENCE_UPPERCASE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), VK_SPACE, IDM_EDIT_TAB_SPACE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), string.byte(\"T\"), IDM_EDIT_SPACE_TAB},\n",
+      "                 {bit.bor(FCONTROL,FSHIFT), string.byte(\"/\"), IDM_EDIT_SLASH_BACKSLASH},\n",
+      "                 {bit.bor(FCONTROL,FSHIFT), string.byte(\"\\\\\"), IDM_EDIT_BACKSLASH_SLASH},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"F\"), IDM_OPEN_FILE_PATH},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"D\"), IDM_OPEN_CONTAINING_FOLDER},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"G\"), IDM_ONLINE_SEARCH_GOOGLE},\n",

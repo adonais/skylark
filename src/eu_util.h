@@ -122,6 +122,7 @@ WCHAR* util_to_abs(const char *path);
 TCHAR* util_make_u16(const char *utf8, TCHAR *utf16, int len);
 char*  util_make_u8(const TCHAR *utf16, char *utf8, int len);
 char*  util_string_match(const char *str, const char *pattern, bool incase, bool match_start, bool whole);
+char*  util_str_replace(const char *in, const char *pattern, const char *by);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 HWND   util_get_hwnd(const uint32_t pid);

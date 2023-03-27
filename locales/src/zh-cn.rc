@@ -130,6 +130,9 @@ BEGIN
             MENUITEM MF_SEPARATOR
             MENUITEM "制表符转空格",                            IDM_EDIT_TAB_SPACE
             MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB
+            MENUITEM MF_SEPARATOR
+            MENUITEM "斜线转反斜线(路径格式)",                  IDM_EDIT_SLASH_BACKSLASH
+            MENUITEM "反斜线转斜线(路径格式)",                  IDM_EDIT_BACKSLASH_SLASH
         END
         MENUITEM MF_SEPARATOR
         POPUP "选区操作(&O)",                                   IDM_EDIT_SELECT_GROUP

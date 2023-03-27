@@ -2693,3 +2693,31 @@ util_num_cores(void)
     GetNativeSystemInfo(&sysinfo);
     return (int)sysinfo.dwNumberOfProcessors;
 }
+
+/** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * c风格的字符串替换函数, 字符串长度不限
+ * 返回值是替换后的字符串, 失败返回空指针
+ ** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+char*
+util_str_replace(const char *in, const char *pattern, const char *by)
+{
+    size_t offset = 0;
+    char *needle = NULL;
+    char *in_ptr = (char *)in;
+    const int diff = (int)strlen(by) - (int)strlen(pattern);
+    const size_t in_size = (strlen(in) * (size_t)(diff > 0 ? diff + 1 : 1) + 2);
+    char *res = (char *)calloc(1, in_size + 1);
+    if (res)
+    {
+        while ((needle = strstr(in_ptr, pattern)) && offset < in_size)
+        {
+            strncpy(res + offset, in_ptr, needle - in_ptr);
+            offset += needle - in_ptr;
+            in_ptr = needle + (int) strlen(pattern);
+            strncpy(res + offset, by, in_size - offset);
+            offset += (int) strlen(by);
+        }
+        strncpy(res + offset, in_ptr, in_size - offset);
+    }
+    return res;
+}

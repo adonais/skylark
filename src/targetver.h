@@ -1167,6 +1167,9 @@
 #define IDS_INDENT_TAB_SPACE                44075
 #define IDS_INDENT_PROPOSE                  44076
 
+#define IDM_EDIT_SLASH_BACKSLASH            44100
+#define IDM_EDIT_BACKSLASH_SLASH            44101
+
 // For MessageBox
 #define IDALWAYS                            12
 #define MB_YESNOALWAYS                      0x0007

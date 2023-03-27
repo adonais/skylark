@@ -831,7 +831,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_INITMENUPOPUP:
-            menu_update_item((HMENU)wParam);
+            // 展开时, 显示菜单状态
+            menu_update_item((HMENU)wParam, false);
+            break;
+        case WM_UNINITMENUPOPUP:
+            // 合拢时, 启用所有菜单项
+            menu_update_item((HMENU)wParam, true);
             break;
         case WM_SKYLARK_DESC:
             return WM_SKYLARK_DESC;
@@ -1245,6 +1250,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_SPACE_TAB:
                     on_search_repalce_event(pnode, SPACE_TAB);
+                    break;
+                case IDM_EDIT_SLASH_BACKSLASH:
+                    on_edit_convert_slash(pnode, true);
+                    break;
+                case IDM_EDIT_BACKSLASH_SLASH:
+                    on_edit_convert_slash(pnode, false);
                     break;
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();
