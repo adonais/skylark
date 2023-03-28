@@ -72,6 +72,9 @@ void on_edit_undo_eol(eu_tabpage *pnode);
 void on_edit_undo_iconv(eu_tabpage *pnode);
 void on_edit_sorting(eu_tabpage *p, int wm_id);
 void on_edit_push_compare(void);
+void on_edit_incremental_clipborad(eu_tabpage *pnode);
+void on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode);
+void on_edit_convert_slash(eu_tabpage *pnode, const bool slash);
 
 int on_edit_base64_enc(eu_tabpage *pnode);
 int on_edit_base64_dec(eu_tabpage *pnode);

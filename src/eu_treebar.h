@@ -53,7 +53,7 @@ void on_treebar_update_theme(void);
 void on_treebar_adjust_box(RECT *ptf);
 void on_treebar_adjust_filetree(RECT *treebar, RECT *rect);
 int  on_treebar_load_remote(HWND hwnd, remotefs *pserver);
-int  on_treebar_locate_path(TCHAR *pathname);
+int  on_treebar_locate_path(const TCHAR *pathname);
 int  on_treebar_create_box(HWND hwnd);
 int  on_treebar_create_dlg(HWND hwnd);
 int  on_treebar_refresh_node(HTREEITEM hti_parent);

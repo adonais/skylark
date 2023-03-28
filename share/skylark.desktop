@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Skylark Edit
-Exec=wine64 /home/adonais/works/skylark_x64/skylark.exe Z:%F
+Name=Skylark Editor
+Exec=wine /home/adonais/works/skylark_x64/skylark.exe Z:%F
 Type=Application
 MimeType=text/plain;
 Icon=/home/adonais/works/skylark_x64/share/skylark.png
@@ -15,5 +15,5 @@ Name=Open a New Document
 Name[zh_CN]=打开新文档
 Name[zh_HK]=開啟新的文件
 Name[zh_TW]=開啟新的文件
-Exec=wine64 /home/adonais/works/skylark_x64/skylark.exe Z:%F
+Exec=wine /home/adonais/works/skylark_x64/skylark.exe Z:%F
 OnlyShowIn=Unity;

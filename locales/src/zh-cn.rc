@@ -35,7 +35,7 @@ BEGIN
         MENUITEM "全部保存",                                    IDM_FILE_SAVEALL
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
-        MENUITEM "关闭除当前外所有文件",                        IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭其他文件",                                IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM MF_SEPARATOR
         MENUITEM "恢复最近关闭文件",                            IDM_FILE_RESTORE_RECENT
         MENUITEM "重新载入当前文件",                            IDM_FILE_RELOAD_CURRENT
@@ -84,6 +84,9 @@ BEGIN
             MENUITEM "复制文件名",                              IDM_EDIT_COPY_FILENAME
             MENUITEM "复制路径名",                              IDM_EDIT_COPY_PATHNAME
             MENUITEM "复制路径文件名",                          IDM_EDIT_COPY_PATHFILENAME
+            MENUITEM MF_SEPARATOR
+            MENUITEM "增量复制(&E)",                            IDM_EDIT_COPY_INCREMENTAL
+            MENUITEM "复制为富文本(&R)",                        IDM_EDIT_COPY_RTF
         END
         MENUITEM "交换到到剪贴板",                              IDM_EDIT_SWAP_CLIPBOARD
         MENUITEM "清空剪贴板(&B)",                              IDM_EDIT_CLEAR_CLIPBOARD
@@ -127,6 +130,9 @@ BEGIN
             MENUITEM MF_SEPARATOR
             MENUITEM "制表符转空格",                            IDM_EDIT_TAB_SPACE
             MENUITEM "空格转制表符",                            IDM_EDIT_SPACE_TAB
+            MENUITEM MF_SEPARATOR
+            MENUITEM "斜线转反斜线(路径格式)",                  IDM_EDIT_SLASH_BACKSLASH
+            MENUITEM "反斜线转斜线(路径格式)",                  IDM_EDIT_BACKSLASH_SLASH
         END
         MENUITEM MF_SEPARATOR
         POPUP "选区操作(&O)",                                   IDM_EDIT_SELECT_GROUP
@@ -416,8 +422,8 @@ BEGIN
     POPUP "0"
     BEGIN
         MENUITEM "关闭标签页(&C)",                              IDM_FILE_CLOSE
+        MENUITEM "关闭其他标签页(&S)",                          IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "关闭所有标签页",                              IDM_FILE_CLOSEALL
-        MENUITEM "关闭除当前标签外所有标签",                    IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
         MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
         MENUITEM SEPARATOR
@@ -426,7 +432,7 @@ BEGIN
         MENUITEM "复制文件名(包含路径)",                        IDM_EDIT_COPY_PATHFILENAME
         MENUITEM SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_TABPAGE_SAVE
-        MENUITEM "退出全屏(&U)",                                IDM_TABPAGE_FULLSCREEN
+        MENUITEM "锁定(不允许拖放)",                            IDM_TABPAGE_LOCKED
         MENUITEM SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM "发送到外部应用进行比较",                      IDM_EDIT_OTHER_BCOMPARE
@@ -1195,7 +1201,8 @@ STRINGTABLE DISCARDABLE
     IDS_PRINT_EMPTY         "此文档不包含任何要打印的文本."
     IDS_PRINT_ERROR         "%s 文件打印错误"
     IDS_PRINT_HEX_WARNS     "暂时不支持在16进制模式下打印"
-    IDS_SELRECT             "不能在列编辑模式下进行此操作."
+    IDS_SELRECT             "不能在列编辑模式进行此操作."
+    IDS_SELRECT_MULTI       "不能在列编辑模式或多选模式下进行此操作."
     IDS_LUA_CONV_SUCCESS    "» » 转换字节码成功, 文件保存在 [%s]"
     IDS_LUA_CONV_FAIL       "» » 转换字节码失败."
     IDS_THEME_DESC_DEFAULT  "默认主题"
@@ -1232,7 +1239,7 @@ STRINGTABLE DISCARDABLE
     IDS_CHECK_VER_NEW       "检测到新版本发布😀"
     IDS_CHECK_VER_ERR       "连接服务器失败✘"
     IDS_CHECK_VER_BREAK     "下载失败, 服务端不可用!"
-    IDS_CHECK_VER_PROGRESS  "正在下载更新, 请稍后..."
+    IDS_CHECK_VER_PROGRESS  "正在下载更新, 请稍候..."
     IDS_CHECK_VER_UNKOWN    "服务端暂时没有可用更新包!"
     IDS_CHECK_VER_COMPLETED "更新包下载完毕, 重启以应用更新 ʡ"
     IDS_SNIPPETS_STR        "☑代码片段补全模式"

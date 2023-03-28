@@ -1545,13 +1545,19 @@ eu_get_toolbar(void)
     return g_toolbar;
 }
 
-void
+static void
+eu_free_config(void)
+{
+    eu_safe_free(g_config);
+}
+
+static void
 eu_free_theme(void)
 {
     eu_safe_free(g_theme);
 }
 
-void
+static void
 eu_free_accel(void)
 {
     if (g_accel)
@@ -1565,7 +1571,7 @@ eu_free_accel(void)
     }
 }
 
-void
+static void
 eu_free_toolbar(void)
 {
     eu_safe_free(g_toolbar);
@@ -1575,6 +1581,7 @@ void
 eu_lua_release(void)
 {
     eu_free_theme();
+    eu_free_config();
     eu_free_accel();
     eu_free_toolbar();
     on_doc_ptr_free();
@@ -1661,8 +1668,11 @@ eu_save_config(void)
         "sqlquery_result_listview_height = %d\n"
         "file_recent_number = %d\n"
         "scroll_to_cursor = %s\n"
+        "-- always reload the current file?\n"
         "inter_reserved_0 = %d\n"
+        "-- lock the tabbar?\n"
         "inter_reserved_1 = %d\n"
+        "-- not used\n"
         "inter_reserved_2 = %d\n"
         "block_fold_visiable = %s\n"
         "tabs_tip_show_enable = %s\n"
@@ -1835,7 +1845,6 @@ eu_save_config(void)
     }
     free(save);
     free(pactions);
-    free(g_config);
 }
 
 void

@@ -419,7 +419,7 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
     size_t txt_len = 0;
     do
     {
-        if (!pnode || !pnode->doc_ptr)
+        if (!pnode || !pnode->doc_ptr || pnode->hex_mode || pnode->plugin)
         {
             break;
         }
@@ -506,6 +506,11 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                         break;
                     }
                 }
+                else if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
+                {
+                    MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                    break;
+                }
                 else if (!(text = util_strdup_select(pnode, &text_len, 0)))
                 {
                     break;
@@ -549,7 +554,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
 void
 on_format_file_style(eu_tabpage *pnode)
 {
-    if (pnode && pnode->doc_ptr && (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT))
+    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr && (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT))
     {
         on_format_clang_file(pnode, true);
     }
@@ -603,74 +608,77 @@ on_format_get_lines(sptr_t *vec, const int vec_size, wchar_t *pstr, const int le
 void
 on_format_check_indentation(eu_tabpage *pnode)
 {
-    size_t vec_size = 0;
-    wchar_t *pmsg = NULL;
-    wchar_t line_str[ENV_LEN];
-    wchar_t opps_str[ENV_LEN] = {0};
-    cvector_vector_type(sptr_t) opposite = NULL;
-    cvector_vector_type(sptr_t) jumble = NULL;
-    bool use_tab = (bool)eu_sci_call(pnode, SCI_GETUSETABS, 0, 0);
-    const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-    for (sptr_t i = 0; i < line; ++i)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
-        char *pheader = NULL;
-        const sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
-        const sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
-        int indent = (int)util_line_header(pnode, line_start, line_end, &pheader);
-        if (indent > 0 && pheader)
+        size_t vec_size = 0;
+        wchar_t *pmsg = NULL;
+        wchar_t line_str[ENV_LEN];
+        wchar_t opps_str[ENV_LEN] = {0};
+        cvector_vector_type(sptr_t) opposite = NULL;
+        cvector_vector_type(sptr_t) jumble = NULL;
+        bool use_tab = (bool)eu_sci_call(pnode, SCI_GETUSETABS, 0, 0);
+        const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        for (sptr_t i = 0; i < line; ++i)
         {
-            int ret = on_format_cmp_header(pheader, indent, use_tab);
-            if (ret > 0)
+            char *pheader = NULL;
+            const sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
+            const sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
+            int indent = (int)util_line_header(pnode, line_start, line_end, &pheader);
+            if (indent > 0 && pheader)
             {
-                cvector_push_back(opposite, i + 1);
+                int ret = on_format_cmp_header(pheader, indent, use_tab);
+                if (ret > 0)
+                {
+                    cvector_push_back(opposite, i + 1);
+                }
+                else if (ret < 0)
+                {
+                    cvector_push_back(jumble, i + 1);
+                }
             }
-            else if (ret < 0)
+            eu_safe_free(pheader);
+        }
+        if ((vec_size = cvector_size(opposite)) > 0 && (pmsg = (wchar_t *)calloc(sizeof(wchar_t), MAX_BUFFER)))
+        {
+            LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_TAB_STR : IDS_INDENT_SPACE_STR, var);
+            LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_SPACE_OPPS : IDS_INDENT_TAB_OPPS, opps);
+            on_format_get_lines(opposite, (const int)vec_size, line_str, ENV_LEN);
+            _snwprintf(opps_str, ENV_LEN - 1, opps, line_str, vec_size);
+            if (!cvector_size(jumble))
             {
-                cvector_push_back(jumble, i + 1);
+                LOAD_I18N_RESSTR(IDS_INDENT_PROPOSE, propose);
+                _snwprintf(pmsg, MAX_BUFFER - 1, L"%s%s%s", var, opps_str, propose);
+            }
+            else
+            {
+                _snwprintf(pmsg, MAX_BUFFER - 1, L"%s%s", var, opps_str);
             }
         }
-        eu_safe_free(pheader);
-    }
-    if ((vec_size = cvector_size(opposite)) > 0 && (pmsg = (wchar_t *)calloc(sizeof(wchar_t), MAX_BUFFER)))
-    {
-        LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_TAB_STR : IDS_INDENT_SPACE_STR, var);
-        LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_SPACE_OPPS : IDS_INDENT_TAB_OPPS, opps);
-        on_format_get_lines(opposite, (const int)vec_size, line_str, ENV_LEN);
-        _snwprintf(opps_str, ENV_LEN - 1, opps, line_str, vec_size);
-        if (!cvector_size(jumble))
+        if ((vec_size = cvector_size(jumble)) > 0)
         {
+            LOAD_I18N_RESSTR(IDS_INDENT_TAB_SPACE, jumb);
             LOAD_I18N_RESSTR(IDS_INDENT_PROPOSE, propose);
-            _snwprintf(pmsg, MAX_BUFFER - 1, L"%s%s%s", var, opps_str, propose);
+            on_format_get_lines(jumble, (const int)vec_size, line_str, ENV_LEN);
+            _snwprintf(opps_str, ENV_LEN - 1, jumb, line_str, vec_size);
+            if (!pmsg && (pmsg = (wchar_t *)calloc(sizeof(wchar_t), MAX_BUFFER)))
+            {
+                LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_TAB_STR : IDS_INDENT_SPACE_STR, var);
+                _snwprintf(pmsg, MAX_BUFFER - 1, L"%s", var);
+            }
+            wcsncat(pmsg, opps_str, MAX_BUFFER - 1);
+            wcsncat(pmsg, propose, MAX_BUFFER - 1);
+        }
+        if (pmsg)
+        {
+            LOAD_I18N_RESSTR(IDS_APP_TITLE, title);
+            eu_msgbox(eu_module_hwnd(), pmsg, title, MB_ICONWARNING | MB_OK);
         }
         else
         {
-            _snwprintf(pmsg, MAX_BUFFER - 1, L"%s%s", var, opps_str);
+            MSG_BOX(IDS_INDENT_CONSISTENT, IDS_APP_TITLE, MB_ICONINFORMATION | MB_OK);
         }
+        cvector_free(opposite);
+        cvector_free(jumble);
+        eu_safe_free(pmsg);
     }
-    if ((vec_size = cvector_size(jumble)) > 0)
-    {
-        LOAD_I18N_RESSTR(IDS_INDENT_TAB_SPACE, jumb);
-        LOAD_I18N_RESSTR(IDS_INDENT_PROPOSE, propose);
-        on_format_get_lines(jumble, (const int)vec_size, line_str, ENV_LEN);
-        _snwprintf(opps_str, ENV_LEN - 1, jumb, line_str, vec_size);
-        if (!pmsg && (pmsg = (wchar_t *)calloc(sizeof(wchar_t), MAX_BUFFER)))
-        {
-            LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_TAB_STR : IDS_INDENT_SPACE_STR, var);
-            _snwprintf(pmsg, MAX_BUFFER - 1, L"%s", var);
-        }
-        wcsncat(pmsg, opps_str, MAX_BUFFER - 1);
-        wcsncat(pmsg, propose, MAX_BUFFER - 1);
-    }
-    if (pmsg)
-    {
-        LOAD_I18N_RESSTR(IDS_APP_TITLE, title);
-        eu_msgbox(eu_module_hwnd(), pmsg, title, MB_ICONWARNING | MB_OK);
-    }
-    else
-    {
-        MSG_BOX(IDS_INDENT_CONSISTENT, IDS_APP_TITLE, MB_ICONINFORMATION | MB_OK);
-    }
-    cvector_free(opposite);
-    cvector_free(jumble);
-    eu_safe_free(pmsg);
 }

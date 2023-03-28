@@ -28,7 +28,7 @@ on_view_filetree(void)
 void
 on_view_symtree(eu_tabpage *pnode)
 {
-    if (pnode && (pnode->hwnd_symlist || pnode->hwnd_symtree))
+    if (pnode && !pnode->hex_mode && !pnode->pmod && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
         if ((pnode->sym_show ^= true))
         {
@@ -41,7 +41,7 @@ on_view_symtree(eu_tabpage *pnode)
 void
 on_view_document_map(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         if ((pnode->map_show ^= true) && on_map_launch())
         {
@@ -54,7 +54,7 @@ on_view_document_map(eu_tabpage *pnode)
 void
 on_view_result_show(eu_tabpage *pnode, int key)
 {
-    if (pnode && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
+    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
     {
         if (!pnode->result_show)
         {
@@ -73,7 +73,7 @@ int
 on_view_switch_type(int m_type)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         on_sci_resever_tab(pnode);
         if (m_type < 0)
@@ -84,8 +84,8 @@ on_view_switch_type(int m_type)
         {
             pnode->doc_ptr = eu_doc_get_ptr() + m_type;
         }
-		on_sci_before_file(pnode);
-		on_sci_after_file(pnode);
+        on_sci_before_file(pnode);
+        on_sci_after_file(pnode);
         if (pnode->be_modify)
         {
             on_tabpage_editor_modify(pnode, "X");
@@ -329,7 +329,7 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
             {
                 TCITEM tci = {TCIF_PARAM};
                 TabCtrl_GetItem(g_tabpages, index, &tci);
-                if ((p = (eu_tabpage *) (tci.lParam)) != NULL)
+                if ((p = (eu_tabpage *) (tci.lParam)) != NULL && !p->hex_mode && !p->pmod)
                 {
                     if (p->doc_ptr)
                     {
@@ -360,7 +360,7 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
         eu_tabpage *p = NULL;
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
-        if ((p = (eu_tabpage *) (tci.lParam)) != NULL)
+        if ((p = (eu_tabpage *) (tci.lParam)) != NULL && !p->hex_mode && !p->pmod)
         {
             if (p->doc_ptr)
             {
@@ -395,7 +395,7 @@ on_view_light_fold(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && !p->hex_mode && !p->pmod)
         {   // 是否高亮显示当前折叠块
             eu_sci_call(p, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
         }
@@ -411,7 +411,7 @@ on_view_wrap_line(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
         }
@@ -427,7 +427,7 @@ on_view_line_num(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? MARGIN_LINENUMBER_WIDTH : 0));
         }
@@ -443,7 +443,7 @@ on_view_bookmark(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
         }
@@ -458,7 +458,7 @@ on_view_update_fold(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p && p->doc_ptr && p->foldline)
+        if (p && !p->hex_mode && !p->pmod && p->doc_ptr && p->foldline)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0);
         }
@@ -488,7 +488,7 @@ on_view_white_space(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWWS, (eu_get_config()->ws_visiable == true ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
         }
@@ -504,7 +504,7 @@ on_view_line_visiable(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
         }
@@ -520,7 +520,7 @@ on_view_indent_visiable(void)
         TCITEM tci = {TCIF_PARAM};
         TabCtrl_GetItem(g_tabpages, index, &tci);
         eu_tabpage *p = (eu_tabpage *) (tci.lParam);
-        if (p)
+        if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
         }
@@ -561,11 +561,7 @@ on_view_zoom_reset(eu_tabpage *pnode)
 int
 on_view_editor_selection(eu_tabpage *pnode)
 {
-    if (!pnode)
-    {
-        return SKYLARK_OK;
-    }
-    if (pnode->hex_mode)
+    if (!pnode || pnode->hex_mode || pnode->pmod)
     {
         return SKYLARK_OK;
     }

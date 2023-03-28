@@ -81,7 +81,6 @@
 #define DOCUMENTMAP_WIDTH_MIN        32
 
 #define SPLIT_WIDTH                  2
-#define MAX_TRACE_COUNT              100
 
 // 第三方依赖的头文件
 #include "Scintilla.h"
@@ -163,5 +162,6 @@
 #include "eu_complete.h"
 #include "eu_pixmap.h"
 #include "eu_hyperlink.h"
+#include "eu_exporter.h"
 
 #endif  // _EU_FRAMEWORK_H_

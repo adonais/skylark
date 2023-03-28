@@ -43,7 +43,6 @@ extern "C"
 struct navigate_trace
 {
     eu_tabpage *pnode;
-    HWND hwnd_sc;
     int64_t last_pos;
     struct list_head ng_node;
 };
@@ -83,7 +82,7 @@ int on_search_file_thread(const TCHAR *path);
 int on_search_jmp_premark_all(eu_tabpage *pnode);
 int on_search_jmp_next_mark_all(eu_tabpage *pnode);
 int on_search_update_navigate_list(eu_tabpage *pnode, int64_t pos);
-int on_search_back_navigate_this(void);
+int on_search_back_navigate_this(const eu_tabpage *pnode);
 int on_search_back_navigate_all(void);
 int on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos);
 int on_search_combo_callback(void *data, int count, char **column, char **names);

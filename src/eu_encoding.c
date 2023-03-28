@@ -395,50 +395,53 @@ int
 on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn)
 {
     int ret = 1;
-    bool whole = false;
     size_t len = 0;
     char *dst = NULL;
-    char *ptxt = util_strdup_select(pnode, &len, 0);
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-    do
+    if (pnode && !pnode->hex_mode && !pnode->pmod && fn)
     {
-        if (len < 2)
+        bool whole = false;
+        char *ptxt = util_strdup_select(pnode, &len, 0);
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        do
         {
-            eu_safe_free(ptxt);
-            if ((ptxt = util_strdup_content(pnode, &len)) == NULL)
+            if (len < 2)
             {
-                break;
+                eu_safe_free(ptxt);
+                if ((ptxt = util_strdup_content(pnode, &len)) == NULL)
+                {
+                    break;
+                }
+                whole = true;
             }
-            whole = true;
-        }
+            if (ptxt)
+            {
+                if (!(dst = fn(ptxt, NULL)))
+                {
+                    break;
+                }
+                if (!whole)
+                {
+                    // 替换所选文本内容
+                    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) dst);
+                }
+                else
+                {
+                    // 替换整个文本内容
+                    eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                    eu_sci_call(pnode, SCI_ADDTEXT, strlen(dst), (LPARAM) dst);
+                }
+                ret = 0;
+            }
+        } while(0);
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         if (ptxt)
         {
-            if (!(dst = fn(ptxt, NULL)))
-            {
-                break;
-            }
-            if (!whole)
-            {
-                // 替换所选文本内容
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) dst);
-            }
-            else
-            {
-                // 替换整个文本内容
-                eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                eu_sci_call(pnode, SCI_ADDTEXT, strlen(dst), (LPARAM) dst);
-            }
-            ret = 0;
+            free(ptxt);
         }
-    } while(0);
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-    if (ptxt)
-    {
-        free(ptxt);
-    }
-    if (dst)
-    {
-        free(dst);
+        if (dst)
+        {
+            free(dst);
+        }
     }
     return ret;
 }

@@ -90,7 +90,7 @@ on_statusbar_btn(eu_tabpage *pnode, bool only_read)
  *1, 只读,
  *2, 可写.
  *******************************************/
-int WINAPI
+int
 on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
 {
     int ret = 0;
@@ -184,7 +184,7 @@ on_statusbar_set_text(HWND hwnd, const uint8_t part, LPCTSTR lpsz)
     }
 }
 
-void WINAPI
+void
 on_statusbar_adjust_box(void)
 {
     if (!eu_get_config()->m_statusbar)
@@ -217,7 +217,7 @@ on_statusbar_adjust_btn(int left, int right)
     }
 }
 
-void WINAPI
+void
 on_statusbar_refresh(void)
 {
     if (g_statusbar && eu_get_config()->m_statusbar)
@@ -329,7 +329,7 @@ on_statusbar_convert_coding(eu_tabpage *pnode, int encoding)
     return on_tabpage_editor_modify(pnode, iconv_undo_str);
 }
 
-void WINAPI
+void
 on_statusbar_pop_menu(int parts, LPPOINT pt)
 {
     if (!(g_statusbar && pt))
@@ -695,7 +695,7 @@ on_statusbar_file_info(time_t filetime)
     }
 }
 
-void __stdcall
+void
 on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
 {
     if (g_statusbar && pnode && eu_get_config()->m_statusbar)
@@ -704,7 +704,7 @@ on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str)
     }
 }
 
-void WINAPI
+void
 on_statusbar_update_line(eu_tabpage *pnode)
 {
     int  count = 0;
@@ -734,7 +734,7 @@ on_statusbar_update_line(eu_tabpage *pnode)
     on_statusbar_set_text(g_statusbar, 1, s_xy);
 }
 
-void WINAPI
+void
 on_statusbar_update_filesize(eu_tabpage *pnode)
 {
     sptr_t nsize = 0;
@@ -782,7 +782,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     }
 }
 
-void WINAPI
+void
 on_statusbar_update_eol(eu_tabpage *pnode)
 {
     if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
@@ -838,7 +838,7 @@ on_statusbar_update_filetype_menu(eu_tabpage *pnode)
     }
 }
 
-void WINAPI
+void
 on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
 {
     int type = IDM_UNKNOWN;
@@ -945,13 +945,13 @@ on_statusbar_create_filetype_menu(void)
     }
 }
 
-int WINAPI
+int
 on_statusbar_height(void)
 {
     return g_status_height;
 }
 
-void WINAPI
+void
 on_statusbar_update(void)
 {
     if (g_statusbar && eu_get_config()->m_statusbar)
@@ -972,7 +972,7 @@ on_statusbar_update(void)
     }
 }
 
-void WINAPI
+void
 on_statusbar_dark_mode(void)
 {
     if (g_statusbar && on_dark_enable())
@@ -987,7 +987,7 @@ on_statusbar_dark_mode(void)
     }
 }
 
-void WINAPI
+void
 on_statusbar_dark_release(bool off)
 {
     const int buttons[] = {IDM_BTN_RW};
@@ -999,7 +999,7 @@ on_statusbar_dark_release(bool off)
     }
 }
 
-bool WINAPI
+bool
 on_statusbar_init(HWND hwnd)
 {
     bool ret = false;

@@ -808,9 +808,16 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 1;
         }
         case WM_TIMER:
-            if (on_qrgen_hwnd() && KEY_DOWN(VK_ESCAPE))
+            if (KEY_DOWN(VK_ESCAPE))
             {
-                EndDialog(on_qrgen_hwnd(), 0);
+                if (on_qrgen_hwnd())
+                {
+                    EndDialog(on_qrgen_hwnd(), 0);
+                }
+                else if (eu_get_config()->m_fullscreen)
+                {
+                    on_view_full_sreen(eu_hwnd_self());
+                }
             }
             if (g_hwndmain == GetForegroundWindow())
             {
@@ -831,7 +838,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         case WM_INITMENUPOPUP:
-            menu_update_item((HMENU)wParam);
+            // 展开时, 显示菜单状态
+            menu_update_item((HMENU)wParam, false);
+            break;
+        case WM_UNINITMENUPOPUP:
+            // 合拢时, 启用所有菜单项
+            menu_update_item((HMENU)wParam, true);
             break;
         case WM_SKYLARK_DESC:
             return WM_SKYLARK_DESC;
@@ -1128,14 +1140,32 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_COPY_PATHNAME:
                     if (pnode && *pnode->pathname)
                     {
+                        TCHAR unix_path[MAX_PATH] = {0};
+                        if (util_under_wine() && util_get_unix_file_name(pnode->pathname, unix_path, MAX_PATH))
+                        {
+                            on_edit_push_clipboard(unix_path);
+                            break;
+                        }
                         on_edit_push_clipboard(pnode->pathname);
                     }
                     break;
                 case IDM_EDIT_COPY_PATHFILENAME:
                     if (pnode && *pnode->pathfile)
                     {
+                        TCHAR unix_path[MAX_PATH] = {0};
+                        if (util_under_wine() && util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH))
+                        {
+                            on_edit_push_clipboard(unix_path);
+                            break;
+                        }
                         on_edit_push_clipboard(pnode->pathfile);
                     }
+                    break;
+                case IDM_EDIT_COPY_INCREMENTAL:
+                    on_edit_incremental_clipborad(pnode);
+                    break;
+                case IDM_EDIT_COPY_RTF:
+                    on_edit_rtf_clipborad(hwnd, pnode);
                     break;
                 case IDM_EDIT_SWAP_CLIPBOARD:
                     on_edit_swap_clipborad(pnode);
@@ -1227,6 +1257,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_SPACE_TAB:
                     on_search_repalce_event(pnode, SPACE_TAB);
+                    break;
+                case IDM_EDIT_SLASH_BACKSLASH:
+                    on_edit_convert_slash(pnode, true);
+                    break;
+                case IDM_EDIT_BACKSLASH_SLASH:
+                    on_edit_convert_slash(pnode, false);
                     break;
                 case IDM_EDIT_QRCODE:
                     on_qrgen_create_dialog();
@@ -1402,7 +1438,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_jmp_matching_brace(pnode, &wm_id);
                     break;
                 case IDM_SEARCH_NAVIGATE_PREV_THIS:
-                    on_search_back_navigate_this();
+                    on_search_back_navigate_this(pnode);
                     break;
                 case IDM_SEARCH_NAVIGATE_PREV_INALL:
                     on_search_back_navigate_all();
@@ -1680,9 +1716,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_about_command();
                     break;
                 case IDM_VIEW_FULLSCREEN:
-                case IDM_TABPAGE_FULLSCREEN:
                 {
                     on_view_full_sreen(hwnd);
+                    break;
+                }
+                case IDM_TABPAGE_LOCKED:
+                {
+                    eu_get_config()->inter_reserved_1 ^= true;
                     break;
                 }
                 case IDM_VIEW_MENUBAR:
@@ -1784,6 +1824,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             switch (lpnmhdr->code)
             {
+                case EU_SAVE_CONFIG:
+                {
+                    eu_save_config();
+                    eu_save_theme();
+                    break;
+                }
                 case NM_CLICK:
                     if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {

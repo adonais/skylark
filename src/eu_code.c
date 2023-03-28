@@ -57,7 +57,7 @@ on_doc_redis_config(char *out, int len, const char *str)
 void
 on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t fold_line, line = 0;
         if (line_number >= 0)
@@ -129,7 +129,7 @@ on_code_do_fold(eu_tabpage *pnode, int code, sptr_t line_number, bool do_wrap)
 void
 on_code_switch_fold(eu_tabpage *pnode, sptr_t line_number)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         const sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t line = line_number >= 0 ? line_number : eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -151,7 +151,7 @@ on_code_switch_fold(eu_tabpage *pnode, sptr_t line_number)
 void
 on_code_block_contract_all(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_FOLDALL, SC_FOLDACTION_CONTRACT, 0);
         if (document_map_initialized && pnode->map_show)
@@ -171,7 +171,7 @@ on_code_block_contract_all(eu_tabpage *pnode)
 void
 on_code_block_expand_all(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_FOLDALL, SC_FOLDACTION_EXPAND, 0);
         if (document_map_initialized && pnode->map_show)
@@ -207,7 +207,7 @@ on_code_set_complete_chars(eu_tabpage *pnode)
 void
 on_code_insert_config(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         const char *eol_str = on_encoding_get_eol(pnode);
         char dbase_config[MAX_BUFFER+1] = {0};

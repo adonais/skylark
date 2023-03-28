@@ -97,7 +97,7 @@ do                                                                              
 }                                                                                                 \
 while(0)
 
-CURL* WINAPI
+CURL*
 on_remote_init_socket(const char *url, remotefs *pserver)
 {
     bool oneway_certification = false;
@@ -269,7 +269,7 @@ on_remote_server_browser(HWND hdlg)
     return 0;
 }
 
-void WINAPI
+void
 on_remotefs_draw_combo(HWND hwnd, const HDC hdc, RECT rc)
 {
     HBRUSH brush = CreateSolidBrush(on_dark_enable() ? rgb_dark_btn_color : GetSysColor(COLOR_BTNFACE));

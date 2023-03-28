@@ -18,13 +18,13 @@
 
 #include "framework.h"
 
-#define HEXEDIT_MODE_FIRST32LINE1 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \n")
-#define HEXEDIT_MODE_FIRST32LINE2 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \n")
-#define HEXEDIT_MODE_SECOND32LINE _T("---------+------------------------------------------------+----------------\n")
+#define HEXEDIT_MODE_FIRST32LINE1 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \0")
+#define HEXEDIT_MODE_FIRST32LINE2 _T("Offset(H)| 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \0")
+#define HEXEDIT_MODE_SECOND32LINE _T("---------+------------------------------------------------+----------------\0")
 
-#define HEXEDIT_MODE_FIRST64LINE1 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \n")
-#define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \n")
-#define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\n")
+#define HEXEDIT_MODE_FIRST64LINE1 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |     UTF-8      \0")
+#define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \0")
+#define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\0")
 
 static volatile long hex_zoom;
 static int hex_area;
@@ -702,6 +702,10 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
+            if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)))
+            {
+                break;
+            }
             switch (wParam)
             {
                 case VK_TAB:
@@ -769,6 +773,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             break;
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_RIGHT:
@@ -822,6 +827,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             break;
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_UP:
@@ -840,6 +846,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_DOWN:
@@ -858,6 +865,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_PRIOR:
@@ -872,6 +880,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         hexview->number_items -= 16 * NumberOfLines;
                     }
                     SendMessage(hwnd, WM_VSCROLL, SB_PAGEUP, 0);
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_NEXT:
@@ -886,6 +895,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         hexview->number_items += 16 * lines_number;
                     }
                     SendMessage(hwnd, WM_VSCROLL, SB_PAGEDOWN, 0);
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_HOME:
@@ -905,6 +915,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_HSCROLL, SB_LEFT, 0);
                         }
                     }
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_END:
@@ -925,6 +936,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         }
                         SendMessage(hwnd, WM_HSCROLL, SB_RIGHT, 0);
                     }
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
             }
@@ -968,7 +980,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                 hexview_srollinfo(hwnd, hexview);
             }
             hexview_caret(hwnd, hexview);
-            InvalidateRect(hwnd, NULL, false);
             on_statusbar_update_line(pnode);
         }
     } while(0);
@@ -1127,7 +1138,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             {
                 int txt_len = 0;
                 char *ptext = NULL;
-                if (!on_toolbar_get_clipboard(&ptext))
+                if (!util_get_clipboard(&ptext))
                 {
                     break;
                 }
@@ -1280,17 +1291,12 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             int num = 0;
             int offset = -1;
-            if (hwnd == GetCapture())
-            {
-                ReleaseCapture();
-            }
             if (hexview->select_end == hexview->select_start)
             {
                 if (!hexview->hex_ascii && (offset = hexview_postion_offset(hexview, hexview->number_items, &num)) >= 0)
                 {
                     hexview->select_start = hexview->number_items - offset;
                     hexview->select_end = hexview->select_start + num - 1;
-                    InvalidateRect(hwnd, NULL, false);
                 }
             }
             else
@@ -1314,12 +1320,23 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 {
                     UTIL_SWAP(size_t, hexview->select_start, hexview->select_end);
                 }
-                InvalidateRect(hwnd, NULL, false);
             }
             if (pnode != NULL)
             {
-                on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+                on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                 on_statusbar_update_line(pnode);
+            }
+            if (util_under_wine())
+            {   // wine上鼠标点击不产生mousemove消息, 所以
+                SendMessage(hwnd, WM_MOUSEMOVE, wParam , lParam);
+            }
+            else
+            {
+                InvalidateRect(hwnd, NULL, false);
+            }
+            if (hwnd == GetCapture())
+            {
+                ReleaseCapture();
             }
             break;
         }
@@ -1343,7 +1360,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                         hexview->ct_flags |= HVF_SELECTED;
                     }
                     hexview_caret(hwnd, hexview);
-                    InvalidateRect(hwnd, NULL, false);
+                    InvalidateRect(hwnd, NULL, util_under_wine() ? true : false);
                 }
             }
             break;
@@ -1406,6 +1423,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:
         {
             hexview_on_keydown(hwnd, hexview, wParam, lParam);
+            InvalidateRect(hwnd, NULL, util_under_wine() ? true : false);
             break;
         }
         case HVM_GOPOS:
@@ -1476,6 +1494,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             else
             {   // caret invisible, show it!
                 hexview_caret(hwnd, hexview);
+            }
+            if (GetFocus() != hwnd)
+            {   // 可能被plugin窗口强占了键盘焦点
+                on_proc_resize(NULL);
             }
             break;
         }
@@ -2173,6 +2195,8 @@ hexview_switch_mode(eu_tabpage *pnode)
             {
                 eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
             }
+            // 清理文本模式下的导航信息
+            on_search_clean_navigate_this(pnode);
             ShowWindow(eu_get_search_hwnd(), SW_HIDE);
         }
     }
@@ -2263,6 +2287,8 @@ hexview_switch_mode(eu_tabpage *pnode)
             err = EUE_POINT_NULL;
             goto HEX_ERROR;
         }
+        // 清理16进制编辑器下的导航信息
+        on_search_clean_navigate_this(pnode);
         TCITEM tci = {TCIF_TEXT | TCIF_PARAM};
         tci.pszText = pnew->filename;
         tci.lParam = (LPARAM) pnew;

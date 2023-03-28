@@ -222,37 +222,6 @@ on_toolbar_setup_button(int id, int flags)
     }
 }
 
-/***********************************************************
- * 获得系统剪贴板数据, 调用后需要释放指针
- ***********************************************************/
-bool
-on_toolbar_get_clipboard(char **ppstr)
-{
-    bool ret = false;
-    if (!ppstr)
-    {
-        return ret;
-    }
-    if (OpenClipboard(NULL))
-    {
-        HGLOBAL hmem = GetClipboardData(CF_UNICODETEXT);
-        if (NULL != hmem)
-        {
-            wchar_t *lpstr = (wchar_t *) GlobalLock(hmem);
-            if (NULL != lpstr)
-            {
-                if ((*ppstr = eu_utf16_utf8(lpstr, NULL)) != NULL)
-                {
-                    ret = true;
-                }
-                GlobalUnlock(hmem);
-            }
-        }
-        CloseClipboard();
-    }
-    return ret;
-}
-
 HWND
 on_toolbar_hwnd(void)
 {
@@ -712,33 +681,43 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
     }
 }
 
+static void
+on_toolbar_create_file(const int *pv, const int size, wchar_t ***plist)
+{
+    uint32_t buf_len = 0;
+    eu_tabpage *p = NULL;
+    for (int i = 0; i < size; ++i)
+    {
+        wchar_t *pname = NULL;
+        p = on_tabpage_get_ptr(pv[i]);
+        if (p && p->doc_ptr && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+        {
+            HANDLE pfile = NULL;
+            if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
+            {
+                char *pbuffer = NULL;
+                if ((pbuffer = util_strdup_content(p, (size_t *)&buf_len)) != NULL)
+                {
+                    uint32_t written;
+                    WriteFile(pfile, pbuffer, buf_len, &written, NULL);
+                    cvector_push_back(*plist, pname);
+                    free(pbuffer);
+                }
+                CloseHandle(pfile);
+            }
+        }
+    }
+}
+
 static bool
 on_toolbar_mk_temp(wchar_t ***vec)
 {
     cvector_vector_type(int) v = NULL;
-    if (on_tabpage_sel_number(&v, true) > 0)
+    if (on_tabpage_sel_number(&v, true) > 0 && v)
     {
-        for (size_t i = 0; i < cvector_size(v); ++i)
-        {
-            HANDLE pfile = NULL;
-            char *pbuffer = NULL;
-            wchar_t *pname = NULL;
-            uint32_t buf_len = 0;
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && p->doc_ptr && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
-            {
-                if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
-                {
-                    if ((pbuffer = util_strdup_content(p, (size_t *)&buf_len)) != NULL)
-                    {
-                        uint32_t written;
-                        WriteFile(pfile, pbuffer, buf_len, &written, NULL);
-                        cvector_push_back(*vec, pname);
-                    }
-                }
-            }
-            eu_close_handle(pfile);
-        }
+        const int size = (int)cvector_size(v);
+        // 改成函数调用, cvector宏定义在一个函数里, 导致clang瞎优化
+        on_toolbar_create_file(v, size, vec);
     }
     cvector_freep(&v);
     return (*vec != NULL && cvector_size(*vec) > 0);
@@ -760,39 +739,80 @@ do_extra_actions(void *lp)
     }
     if ((abs_path = util_to_abs(pactions)) != NULL)
     {
+        bool wine = util_under_wine();
         int count = eu_int_cast(cvector_size(vec));
         const int len = (count + 1) * (MAX_PATH + 1);
         wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
         if (cmd_exec != NULL)
         {
             HANDLE handle = NULL;
-            _snwprintf(cmd_exec, len, _T("\"%s\" "), abs_path);
+            WCHAR unix_path[MAX_PATH] = {0};
+            if (wine)
+            {
+                WCHAR plugin[MAX_PATH] = {0};
+                _snwprintf(plugin, MAX_PATH - 1, L"%s\\plugins\\np_winexy.dll", eu_module_path);
+                util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+            #if (defined _M_X64) || (defined __x86_64__)
+                _snwprintf(cmd_exec, len, L"%s \"%s\" ", _T("/bin/wine64"), plugin);
+            #else
+                _snwprintf(cmd_exec, len, L"%s \"%s\" ", _T("/bin/wine"), plugin);
+            #endif
+                if (util_get_unix_file_name(abs_path, unix_path, MAX_PATH))
+                {
+                    wcsncat(cmd_exec, unix_path, len);
+                    wcsncat(cmd_exec, L" ", len);
+                }
+                memset(unix_path, 0, sizeof(unix_path));
+            }
+            else
+            {
+                _snwprintf(cmd_exec, len, L"\"%s\" ", abs_path);
+            }
             for (int i = 0; i < count; ++i)
             {
                 if (i == count - 1)
                 {
-                    wcsncat(cmd_exec, _T("\""), len);
-                    wcsncat(cmd_exec, vec[i], len);
-                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, L"\"", len);
+                    if (wine && util_get_unix_file_name(vec[i], unix_path, MAX_PATH))
+                    {
+                        wcsncat(cmd_exec, unix_path, len);
+                        memset(unix_path, 0, sizeof(unix_path));
+                    }
+                    else
+                    {
+                        wcsncat(cmd_exec, vec[i], len);
+                    }
+                    wcsncat(cmd_exec, L"\"", len);
                 }
                 else
                 {
-                    wcsncat(cmd_exec, _T("\""), len);
-                    wcsncat(cmd_exec, vec[i], len);
-                    wcsncat(cmd_exec, _T("\" "), len);
+                    wcsncat(cmd_exec, L"\"", len);
+                    if (wine && util_get_unix_file_name(vec[i], unix_path, MAX_PATH))
+                    {
+                        wcsncat(cmd_exec, unix_path, len);
+                        memset(unix_path, 0, sizeof(unix_path));
+                    }
+                    else
+                    {
+                        wcsncat(cmd_exec, vec[i], len);
+                    }
+                    wcsncat(cmd_exec, L"\" ", len);
                 }
             }
             if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)))
             {
                 WaitForSingleObject(handle, INFINITE);
             }
-            else
+            else if (!wine)
             {
                 *pactions = 0;
                 MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
             }
             eu_close_handle(handle);
-            cvector_for_each(vec, DeleteFile);
+            if (!wine)
+            {
+                cvector_for_each(vec, DeleteFile);
+            }
             free(cmd_exec);
         }
         free(abs_path);
@@ -823,6 +843,8 @@ on_toolbar_update_env(eu_tabpage *pnode)
         TCHAR *pline = NULL;
         TCHAR *psel = NULL;
         TCHAR file_part[_MAX_FNAME] = {0};
+        TCHAR file_wine[MAX_PATH + 1] = {0};
+        bool wine = util_under_wine();
         char *line_str = util_strdup_line(pnode, -1, &out1);
         char *sel_str = util_strdup_select(pnode, &out2, 0);
         if (line_str && out1 > 0 && out1 < _MAX_ENV)
@@ -840,12 +862,28 @@ on_toolbar_update_env(eu_tabpage *pnode)
             {
                 case 0:
                 {
-                    SetEnvironmentVariable(env_name[i], pnode->pathfile);
+                    if (wine && util_get_unix_file_name(pnode->pathfile, file_wine, MAX_PATH))
+                    {
+                        SetEnvironmentVariable(env_name[i], file_wine);
+                        memset(file_wine, 0, sizeof(file_wine));
+                    }
+                    else
+                    {
+                        SetEnvironmentVariable(env_name[i], pnode->pathfile);
+                    }
                     break;
                 }
                 case 1:
                 {
-                    SetEnvironmentVariable(env_name[i], pnode->pathname);
+                    if (wine && util_get_unix_file_name(pnode->pathname, file_wine, MAX_PATH))
+                    {
+                        SetEnvironmentVariable(env_name[i], file_wine);
+                        memset(file_wine, 0, sizeof(file_wine));
+                    }
+                    else
+                    {
+                        SetEnvironmentVariable(env_name[i], pnode->pathname);
+                    }
                     break;
                 }
                 case 2:
@@ -908,14 +946,21 @@ on_toolbar_execute_script(void)
         {   // 预设动作
             LOAD_I18N_RESSTR(IDS_EXTRA_PATH, m_input);
             TCHAR process[MAX_PATH] = _T("./share/example_build.bat");
+            if (util_under_wine())
+            {
+                _sntprintf(process, MAX_PATH - 1, _T("%s"), _T("./share/example_build.sh"));
+            }
+            else
+            {
+                _sntprintf(process, MAX_PATH - 1, _T("%s"), _T("./share/example_build.bat"));
+            }
             if (!eu_input(m_input, process, MAX_PATH - 1))
             {
                 return;
             }
             int len = (int)_tcslen(process);
-            if (len > 1 && len < MAX_PATH)
+            if (len > 1 && len < MAX_PATH && util_make_u8(util_path2unix(process, len), eu_get_config()->m_actions[param], MAX_PATH-1))
             {
-                WideCharToMultiByte(CP_UTF8, 0, util_path2unix(process, len), -1, eu_get_config()->m_actions[param], MAX_PATH-1, NULL, NULL);
                 on_toolbar_update_env(p);
                 CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
             }
@@ -995,6 +1040,7 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
 {
     if (pnode && eu_get_config())
     {
+        bool wine = false;
         HANDLE handle = NULL;
         TCHAR pcd[MAX_PATH] = {0};
         TCHAR cmd_exec[MAX_PATH] = _T("cmd.exe");
@@ -1011,11 +1057,27 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
             *cmd_exec = 0;
             MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
         }
+        if ((wine = util_under_wine()))
+        {
+            TCHAR plugin[MAX_PATH] = {0};
+            TCHAR unix_path[MAX_PATH] = {0};
+            if (strlen(eu_get_config()->m_path) > 1 && (eu_get_config()->m_path[0] == '/') && (eu_get_config()->m_path[1] != '/'))
+            {
+                util_make_u16(eu_get_config()->m_path, unix_path, MAX_PATH - 1);
+            }
+            _sntprintf(plugin, MAX_PATH - 1, _T("%s\\plugins\\np_winexy.dll"), eu_module_path);
+            util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+        #if (defined _M_X64) || (defined __x86_64__)
+            _sntprintf(cmd_exec, MAX_PATH - 1, _T("%s \"%s\" %s"), _T("/bin/wine64"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
+        #else
+            _sntprintf(cmd_exec, MAX_PATH - 1, _T("%s \"%s\" %s"), _T("/bin/wine"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
+        #endif
+        }
         if ((handle = eu_new_process(cmd_exec, NULL, pcd, 2, NULL)) != NULL)
         {
             CloseHandle(handle);
         }
-        else
+        else if (!wine)
         {
             MSG_BOX(IDC_MSG_EXEC_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
         }
@@ -1057,8 +1119,7 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl() ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMIN, !pnode->pmod ? 2 : 1);
-            on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && !util_under_wine() && pnode->doc_ptr) ? 2 : 1);
-            on_toolbar_setup_button(IDM_CMD_TAB, !util_under_wine() ? 2 : 1);
+            on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr) ? 2 : 1);
         }
     }
 }

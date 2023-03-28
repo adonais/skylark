@@ -147,6 +147,7 @@
 #define WM_UPCHECK_STATUS         (WM_USER+10011)
 // User clip message
 #define WM_CLEAN_CHAIN            (WM_USER+10020)
+#define EU_SAVE_CONFIG            (WM_USER+10021)
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 

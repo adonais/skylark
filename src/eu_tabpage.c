@@ -580,36 +580,41 @@ on_tabpage_new_hinst(void)
 static void
 on_tabpage_drag_mouse(const HWND hwin)
 {
-    int fn = 0;
-    TCHAR name[FILESIZE] = {0};
-    HWND parent = GetParent(hwin);
-    GetClassName(hwin, name, FILESIZE - 1);
-    if (parent == eu_hwnd_self() || hwin == eu_hwnd_self())
-    {   // 拖放在skylark编辑器本身界面上, 启动新实例
-        on_tabpage_new_hinst();
-    }
-    else if (!(fn = _tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, HEX_CLASS)) || (!_tcscmp(name, WC_TABCONTROL)))
+    if (hwin && !eu_get_config()->inter_reserved_1)
     {
-        int code = fn ? (int)SendMessage(parent, WM_SKYLARK_DESC, 0, 0) : (int)SendMessage(hwin, WM_SKYLARK_DESC, 0, 0);
-        if (code != eu_int_cast(WM_SKYLARK_DESC))
-        {   // 确认不是skylark编辑器, 启动新实例
+        int fn = 0;
+        TCHAR name[FILESIZE] = {0};
+        HWND parent = GetParent(hwin);
+        GetClassName(hwin, name, FILESIZE - 1);
+        NMHDR nmhdr = {0};
+        eu_send_notify(g_tabpages, EU_SAVE_CONFIG, &nmhdr);
+        if (parent == eu_hwnd_self() || hwin == eu_hwnd_self())
+        {   // 拖放在skylark编辑器本身界面上, 启动新实例
             on_tabpage_new_hinst();
         }
-        else
-        {   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
-            if (!_tcscmp(name, APP_CLASS))
-            {
-                on_tabpage_send_group(hwin);
+        else if (!(fn = _tcscmp(name, APP_CLASS)) || (!_tcscmp(name, TEXT("Scintilla"))) || (!_tcscmp(name, HEX_CLASS)) || (!_tcscmp(name, WC_TABCONTROL)))
+        {
+            int code = fn ? (int)SendMessage(parent, WM_SKYLARK_DESC, 0, 0) : (int)SendMessage(hwin, WM_SKYLARK_DESC, 0, 0);
+            if (code != eu_int_cast(WM_SKYLARK_DESC))
+            {   // 确认不是skylark编辑器, 启动新实例
+                on_tabpage_new_hinst();
             }
             else
-            {
-                on_tabpage_send_group(parent);
+            {   // 拖放在另一个skylark编辑器上, 发送文件到窗口句柄
+                if (!_tcscmp(name, APP_CLASS))
+                {
+                    on_tabpage_send_group(hwin);
+                }
+                else
+                {
+                    on_tabpage_send_group(parent);
+                }
             }
         }
-    }
-    else
-    {   // 拖放在空白处, 启动新实例
-        on_tabpage_new_hinst();
+        else
+        {   // 拖放在空白处, 启动新实例
+            on_tabpage_new_hinst();
+        }
     }
 }
 
@@ -628,11 +633,11 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
             ModifyMenu(hpop, 0, MF_BYPOSITION | MF_STRING, IDM_FILE_CLOSE, sub_str);
         }
         util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !eu_sci_call(p,SCI_GETREADONLY, 0, 0));
+        util_set_menu_item(hpop, IDM_TABPAGE_LOCKED, eu_get_config()->inter_reserved_1);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
         util_enable_menu_item(hpop, IDM_FILE_WORKSPACE, !p->is_blank);
         util_enable_menu_item(hpop, IDM_FILE_EXPLORER, !p->is_blank);
-        util_enable_menu_item(hpop, IDM_TABPAGE_FULLSCREEN, eu_get_config()->m_fullscreen);
     }
 }
 
@@ -710,42 +715,45 @@ on_tabpage_arr_drag(const int index)
 static void
 on_tabpage_arr_drag2(const int from, const int dest)
 {
-    int num = 0;
-    cvector_vector_type(int) v = NULL;
-    cvector_vector_type(int) out = NULL;
-    if ((num = on_tabpage_sel_number(&v, true)) > 1)
+    if (eu_get_config() && !eu_get_config()->inter_reserved_1)
     {
-        int i, c = 0;
-        int end = eu_int_cast(cvector_size(v));
-        if (eu_cvector_at(v, dest) < 0)
+        int num = 0;
+        cvector_vector_type(int) v = NULL;
+        cvector_vector_type(int) out = NULL;
+        if ((num = on_tabpage_sel_number(&v, true)) > 1)
         {
-            if (from > dest)
+            int i, c = 0;
+            int end = eu_int_cast(cvector_size(v));
+            if (eu_cvector_at(v, dest) < 0)
             {
-                for (i = 0, c = 0; i < end; ++i, ++c)
+                if (from > dest)
                 {
-                    cvector_push_back(out, dest + c);
-                    on_tabpage_exchange_item(v[i], dest + c, false);
+                    for (i = 0, c = 0; i < end; ++i, ++c)
+                    {
+                        cvector_push_back(out, dest + c);
+                        on_tabpage_exchange_item(v[i], dest + c, false);
+                    }
                 }
-            }
-            else
-            {
-                for (i = end - 1, c = 0; i >= 0; --i, ++c)
+                else
                 {
-                    cvector_push_back(out, dest - c);
-                    on_tabpage_exchange_item(v[i], dest - c, false);
+                    for (i = end - 1, c = 0; i >= 0; --i, ++c)
+                    {
+                        cvector_push_back(out, dest - c);
+                        on_tabpage_exchange_item(v[i], dest - c, false);
+                    }
                 }
+                on_tabpage_select_index(dest);
+                cvector_for_each(out, on_tabpage_pressed);
+                on_tabpage_set_cursor(dest);
             }
-            on_tabpage_select_index(dest);
-            cvector_for_each(out, on_tabpage_pressed);
-            on_tabpage_set_cursor(dest);
         }
+        else if (eu_cvector_at(v, dest) < 0)
+        {
+            on_tabpage_exchange_item(from, dest, true);
+        }
+        cvector_freep(&v);
+        cvector_freep(&out);
     }
-    else if (eu_cvector_at(v, dest) < 0)
-    {
-        on_tabpage_exchange_item(from, dest, true);
-    }
-    cvector_freep(&v);
-    cvector_freep(&out);
 }
 
 LRESULT CALLBACK
@@ -892,7 +900,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (tab_move_from >= 0)
             {
                 int count = TabCtrl_GetItemCount(hwnd);
-                if (!PtInRect(&rect, point))
+                if (!PtInRect(&rect, point) && !eu_get_config()->inter_reserved_1)
                 {   // Get cursor position of "Screen"
                     GetCursorPos(&point);
                     on_tabpage_drag_mouse(WindowFromPoint(point));

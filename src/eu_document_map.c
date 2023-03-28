@@ -20,6 +20,7 @@
 
 #define DLG_FOCUS (RGB(0xFF, 0x80, 0x00))
 #define DLG_FROST (RGB(0xFF, 0xFF, 0xFF))
+#define WINE_BACK_COLOR 0x1E1E1E
 
 HWND hwnd_document_map = NULL;
 HWND hwnd_document_static = NULL;
@@ -119,7 +120,7 @@ on_map_print(sptr_t *plines)
 }
 #endif
 
-void WINAPI
+void
 on_map_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map)
 {
     if (pnode && ptr_map)
@@ -305,14 +306,21 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void WINAPI
+void
 on_map_reload(eu_tabpage *pedit)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
     if (pedit && pnode)
     {
         sptr_t pdoc = eu_sci_call(pnode, SCI_GETDOCPOINTER, 0, 0);
-        on_sci_init_style(pedit);
+        if (strcmp(eu_get_config()->window_theme, "default") == 0)
+        {
+            on_sci_init_default(pedit, util_under_wine() ? WINE_BACK_COLOR : -1);
+        }
+        else
+        {
+            on_sci_init_default(pedit, -1);
+        }
         eu_sci_call(pedit, SCI_SETZOOM, -10, 0);
         eu_sci_call(pedit, SCI_SETVSCROLLBAR, 0, 0);
         eu_sci_call(pedit, SCI_SETHSCROLLBAR, 0, 0);
@@ -479,7 +487,7 @@ on_map_create_dlg(LPARAM ptr)
     return (hwnd_document_map != NULL);
 }
 
-eu_tabpage *WINAPI
+eu_tabpage*
 on_map_edit(void)
 {
     if (document_map_initialized && hwnd_document_map)
@@ -489,7 +497,7 @@ on_map_edit(void)
     return NULL;
 }
 
-eu_tabpage *WINAPI
+eu_tabpage*
 on_map_launch(void)
 {
     eu_tabpage *map_edit = NULL;

@@ -18,6 +18,7 @@
 #include "framework.h"
 #include <shlobj.h>
 
+#define MAX_TRACE_COUNT 8192
 #define RESULAT_MAX_MATCH (UINT16_MAX * 2 + 1)
 
 static int max_nav_count;
@@ -424,7 +425,7 @@ on_search_jmp_pos(eu_tabpage *pnode)
 void
 on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres)
 {
-    if (pnode && pres)
+    if (pnode && pres && !pnode->hex_mode && !pnode->plugin)
     {
         int char_before = 0;
         sptr_t brace_caret = -1;
@@ -648,7 +649,7 @@ on_search_find_next(eu_tabpage *pnode)
 int
 on_search_replace_thread(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         HWND hwnd_what = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO);
         HWND hwnd_tab = GetDlgItem(hwnd_search_dlg, IDD_SEARCH_TAB_1);
@@ -700,7 +701,7 @@ on_search_file_thread(const TCHAR *path)
 void
 on_search_set_selection(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         if (pnode->begin_pos == -1)
         {
@@ -717,7 +718,7 @@ on_search_set_selection(eu_tabpage *pnode)
 void
 on_search_set_rectangle(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         if (eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) == SC_SEL_STREAM)
         {
@@ -739,7 +740,7 @@ on_search_set_rectangle(eu_tabpage *pnode)
 void
 on_search_select_all(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_SELECTALL, 0, 0);
     }
@@ -748,7 +749,7 @@ on_search_select_all(eu_tabpage *pnode)
 void
 on_search_select_word(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t wd_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
@@ -760,7 +761,7 @@ on_search_select_word(eu_tabpage *pnode)
 void
 on_search_select_line(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         // 支持类似visual studio的单行操作
         // TAB键增加缩进, Shift+TAB减少缩进
@@ -771,7 +772,7 @@ on_search_select_line(eu_tabpage *pnode)
 void
 on_search_select_se(eu_tabpage *pnode, uint16_t id)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t sel_start = 0;
         sptr_t sel_end = 0;
@@ -793,7 +794,7 @@ on_search_select_se(eu_tabpage *pnode, uint16_t id)
 void
 on_search_select_left_word(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTLEFTEXTEND, 0, 0);
     }
@@ -802,7 +803,7 @@ on_search_select_left_word(eu_tabpage *pnode)
 void
 on_search_select_right_word(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTRIGHTEXTEND, 0, 0);
     }
@@ -811,7 +812,7 @@ on_search_select_right_word(eu_tabpage *pnode)
 void
 on_search_select_left_group(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDLEFTEXTEND, 0, 0);
     }
@@ -820,7 +821,7 @@ on_search_select_left_group(eu_tabpage *pnode)
 void
 on_search_select_right_group(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDRIGHTEXTEND, 0, 0);
     }
@@ -829,7 +830,7 @@ on_search_select_right_group(eu_tabpage *pnode)
 void
 on_search_cumulative_previous_block(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARAUPEXTEND, 0, 0);
     }
@@ -838,7 +839,7 @@ on_search_cumulative_previous_block(eu_tabpage *pnode)
 void
 on_search_cumulative_next_block(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARADOWNEXTEND, 0, 0);
     }
@@ -847,7 +848,7 @@ on_search_cumulative_next_block(eu_tabpage *pnode)
 void
 on_search_move_to_lgroup(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTLEFT, 0, 0);
     }
@@ -856,7 +857,7 @@ on_search_move_to_lgroup(eu_tabpage *pnode)
 void
 on_search_move_to_rgroup(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTRIGHT, 0, 0);
     }
@@ -865,7 +866,7 @@ on_search_move_to_rgroup(eu_tabpage *pnode)
 void
 on_search_move_to_lword(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDLEFT, 0, 0);
     }
@@ -874,7 +875,7 @@ on_search_move_to_lword(eu_tabpage *pnode)
 void
 on_search_move_to_rword(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDRIGHT, 0, 0);
     }
@@ -883,7 +884,7 @@ on_search_move_to_rword(eu_tabpage *pnode)
 void
 on_search_move_to_top_block(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARAUP, 0, 0);
     }
@@ -892,7 +893,7 @@ on_search_move_to_top_block(eu_tabpage *pnode)
 void
 on_search_move_to_bottom_block(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARADOWN, 0, 0);
     }
@@ -901,7 +902,7 @@ on_search_move_to_bottom_block(eu_tabpage *pnode)
 void
 on_search_jmp_home(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->pmod)
     {
         if (pnode->hex_mode)
         {
@@ -922,7 +923,7 @@ on_search_jmp_home(eu_tabpage *pnode)
 void
 on_search_jmp_end(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->pmod)
     {
         if (pnode->hex_mode)
         {
@@ -947,7 +948,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
     sptr_t line = 0;
     TCHAR lineno[32] = {0};
     TCHAR tip_str[MAX_LOADSTRING]  = {0};
-    if (pnode)
+    if (pnode && !pnode->pmod)
     {
         if (pnode->hex_mode)
         {
@@ -984,7 +985,7 @@ on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
 {
     sptr_t mark_num;
     sptr_t current_line;
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         if (lineno < 0)
         {
@@ -1011,7 +1012,7 @@ static void
 on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
 {
     sptr_t current_line = lineno;
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         if (current_line < 0)
         {
@@ -1025,7 +1026,7 @@ on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
 static void
 on_search_remove_marks_this(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -1039,7 +1040,7 @@ on_search_remove_marks_all(eu_tabpage *pnode)
     eu_tabpage *p = NULL;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        if ((p = on_tabpage_get_ptr(index)))
+        if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_MARKERDELETEALL, MARGIN_BOOKMARK_VALUE, 0);
         }
@@ -1049,7 +1050,7 @@ on_search_remove_marks_all(eu_tabpage *pnode)
 void
 on_search_jmp_premark_this(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -1064,7 +1065,7 @@ on_search_jmp_premark_this(eu_tabpage *pnode)
 void
 on_search_jmp_next_mark_this(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -1084,10 +1085,6 @@ on_search_jmp_premark_all(eu_tabpage *pnode)
     sptr_t find_line;
     sptr_t max_line;
     eu_tabpage *p = NULL;
-    if (!pnode)
-    {
-        return EUE_TAB_NULL;
-    }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         if ((p = on_tabpage_get_ptr(index)) && (p == pnode))
@@ -1130,10 +1127,6 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
     sptr_t current_line;
     sptr_t find_line;
     eu_tabpage *p = NULL;
-    if (!pnode)
-    {
-        return EUE_TAB_NULL;
-    }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         if ((p = on_tabpage_get_ptr(index)) && (p == pnode))
@@ -1150,7 +1143,7 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
             {
                 for (index++; index < count; index++)
                 {
-                    if ((p = on_tabpage_get_ptr(index)))
+                    if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
                     {
                         find_line = eu_sci_call(p, SCI_MARKERNEXT, 0, MARGIN_BOOKMARK_MASKN);
                         if (find_line != -1)
@@ -1174,24 +1167,23 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
     int offset = 0;
     sptr_t find_line = 0;
     sptr_t current_line = 0;
-    if (!pnode || pnode->hex_mode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
-        return;
-    }
-    const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-    *szmark = 0;
-    while (find_line != -1 && find_line <= line)
-    {
-        find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
-        if (find_line >= 0)
+        const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        *szmark = 0;
+        while (find_line != -1 && find_line <= line)
         {
-            offset = eu_int_cast(strlen(szmark));
-            if (offset >= size)
+            find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
+            if (find_line >= 0)
             {
-                break;
+                offset = eu_int_cast(strlen(szmark));
+                if (offset >= size)
+                {
+                    break;
+                }
+                _snprintf(szmark+offset, size-offset, "%zd;", find_line);
+                current_line = find_line + 1;
             }
-            _snprintf(szmark+offset, size-offset, "%zd;", find_line);
-            current_line = find_line + 1;
         }
     }
 }
@@ -1199,7 +1191,7 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
 void
 on_search_update_mark(eu_tabpage *pnode, char *szmark)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         char *p = strtok(szmark, ";");
         while (p)
@@ -1213,29 +1205,32 @@ on_search_update_mark(eu_tabpage *pnode, char *szmark)
 void
 on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
 {
-    int offset = 0;
-    sptr_t header_line = 0;
-    *szfold = 0;
-    do
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
-        header_line = eu_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
-        if (header_line != -1)
+        int offset = 0;
+        sptr_t header_line = 0;
+        *szfold = 0;
+        do
         {
-            offset = eu_int_cast(strlen(szfold));
-            if (offset >= size)
+            header_line = eu_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
+            if (header_line != -1)
             {
-                break;
+                offset = eu_int_cast(strlen(szfold));
+                if (offset >= size)
+                {
+                    break;
+                }
+                _snprintf(szfold+offset, size-offset, "%zd;", header_line);
+                ++header_line;
             }
-            _snprintf(szfold+offset, size-offset, "%zd;", header_line);
-            ++header_line;
-        }
-    } while (header_line != -1);
+        } while (header_line != -1);
+    }
 }
 
 void
 on_search_update_fold(eu_tabpage *pnode, char *szfold)
 {
-    if (pnode)
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         char *p = strtok(szfold, ";");
         while (p)
@@ -1256,7 +1251,7 @@ int
 on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos)
 {
     struct navigate_trace *curr = NULL;
-    if (!pnode)
+    if (!pnode || pnode->pmod)
     {
         return EUE_TAB_NULL;
     }
@@ -1274,7 +1269,6 @@ on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos)
         return EUE_OUT_OF_MEMORY;
     }
     curr->pnode = pnode;
-    curr->hwnd_sc = pnode->hwnd_sc;
     curr->last_pos = pos;
     list_add_tail(&(curr->ng_node), &list_trace);
     ++max_nav_count;
@@ -1297,36 +1291,61 @@ on_search_update_navigate_list(eu_tabpage *pnode, int64_t pos)
     return SKYLARK_OK;
 }
 
-int
-on_search_back_navigate_this(void)
+static int
+on_search_list_lenght(const eu_tabpage *pnode)
 {
-    struct navigate_trace *curr = NULL;
-    struct navigate_trace *prev = NULL;
-
-    list_for_each_entry_safe_reverse(curr, prev, &list_trace, struct navigate_trace, ng_node)
+    int i = 0;
+    if (pnode)
     {
-        eu_tabpage *pnode = on_tabpage_focus_at();
-        if (!pnode)
+        struct list_head *pos, *n;
+        struct navigate_trace *curr = NULL;
+        list_for_each_safe(pos, n, &list_trace)
         {
-            return EUE_TAB_NULL;
-        }
-        if (curr->hwnd_sc != pnode->hwnd_sc)
-        {
-            continue;
-        }
-        list_del(&(curr->ng_node));
-        free(curr);
-        --max_nav_count;
-        if (&(prev->ng_node) != &list_trace)
-        {
-            if (prev->hwnd_sc == pnode->hwnd_sc)
+            curr = list_entry(pos, struct navigate_trace, ng_node);
+            if (curr && curr->pnode == pnode)
             {
-                sptr_t text_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : (sptr_t)prev->last_pos;
-                eu_sci_call(pnode, SCI_GOTOPOS, go_pos, 0);
+                ++i;
             }
         }
-        return SKYLARK_OK;
+    }
+    return i;
+}
+
+int
+on_search_back_navigate_this(const eu_tabpage *pnode)
+{
+    int64_t pos = -1;
+    eu_tabpage *p = NULL;
+    struct navigate_trace *curr = NULL;
+    struct navigate_trace *prev = NULL;
+    if (pnode && !list_empty(&list_trace))
+    {
+        list_for_each_entry_safe_reverse(curr, prev, &list_trace, struct navigate_trace, ng_node)
+        {
+            if (curr->pnode != (eu_tabpage *)pnode)
+            {
+                continue;
+            }
+            if (curr->last_pos == (int64_t)eu_sci_call((eu_tabpage *)pnode, SCI_GETCURRENTPOS, 0, 0))
+            {
+                continue;
+            }
+            pos = curr->last_pos;
+            p = curr->pnode;
+            if (on_search_list_lenght(pnode) > 1)
+            {
+                list_del(&(curr->ng_node));
+                free(curr);
+                --max_nav_count;
+            }
+            if (p == pnode)
+            {
+                sptr_t text_len = eu_sci_call((eu_tabpage *)pnode, SCI_GETLENGTH, 0, 0);
+                sptr_t go_pos = pos > text_len - 1 ? text_len - 1 : (sptr_t)(pos > 0 ? pos : 0);
+                eu_sci_call((eu_tabpage *)pnode, SCI_GOTOPOS, go_pos, 0);
+            }
+            return SKYLARK_OK;
+        }
     }
     return EUE_UNKOWN_ERR;
 }
@@ -1334,12 +1353,12 @@ on_search_back_navigate_this(void)
 int
 on_search_back_navigate_all(void)
 {
+    eu_tabpage *pnode = NULL;
     struct navigate_trace *curr = NULL;
     struct navigate_trace *prev = NULL;
     list_for_each_entry_safe_reverse(curr, prev, &list_trace, struct navigate_trace, ng_node)
     {
-        eu_tabpage *pnode = on_tabpage_focus_at();
-        if (!pnode)
+        if (!(pnode = on_tabpage_focus_at()))
         {
             return EUE_TAB_NULL;
         }
@@ -1369,19 +1388,18 @@ on_search_back_navigate_all(void)
 void
 on_search_clean_navigate_this(eu_tabpage *pnode)
 {
-    if (!pnode)
+    if (pnode)
     {
-        return;
-    }
-    struct navigate_trace *curr = NULL;
-    struct navigate_trace *next = NULL;
-    list_for_each_entry_safe(curr, next, &list_trace, struct navigate_trace, ng_node)
-    {
-        if (curr->hwnd_sc == pnode->hwnd_sc)
+        struct navigate_trace *curr = NULL;
+        struct navigate_trace *next = NULL;
+        list_for_each_entry_safe(curr, next, &list_trace, struct navigate_trace, ng_node)
         {
-            list_del(&(curr->ng_node));
-            free(curr);
-            --max_nav_count;
+            if (curr->pnode == pnode)
+            {
+                list_del(&(curr->ng_node));
+                free(curr);
+                --max_nav_count;
+            }
         }
     }
 }
@@ -3862,57 +3880,54 @@ on_search_repalce_event(eu_tabpage *p, replace_event docase)
         for (int k = 0; k < count; ++k)
         {
             eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
-            if (pnode && !pnode->hex_mode)
+            if (pnode && !pnode->hex_mode && !pnode->plugin)
             {
-                if (pnode)
+                if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
                 {
-                    if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
+                    number = pnode->doc_ptr->tab_width;
+                }
+                else
+                {
+                    number = eu_get_config()->tab_width;
+                }
+                if (number < QW_SIZE)
+                {
+                    switch (docase)
                     {
-                        number = pnode->doc_ptr->tab_width;
-                    }
-                    else
-                    {
-                        number = eu_get_config()->tab_width;
-                    }
-                    if (number < QW_SIZE)
-                    {
-                        switch (docase)
+                        case FULL_HALF:
                         {
-                            case FULL_HALF:
-                            {
-                                _snprintf(key, QW_SIZE, "%s", "([\\x{FF01}-\\x{FF5E}]|\\x{3000})");
-                                printf("key = /%s/\n", key);
-                                break;
-                            }
-                            case HALF_FULL:
-                            {
-                                _snprintf(key, QW_SIZE, "%s", "([\\x{20}-\\x{2F}|\\x{3A}-\\x{40}|\\x{5B}-\\x{60}|\\x{7B}-\\x{7E}])");
-                                printf("key = /%s/\n", key);
-                                break;
-                            }
-                            case TAB_SPACE:
-                            {
-                                key[0] = '\t';
-                                key[1] = 0;
-                                memset(str_replace, 0x20, number);
-                                str_replace[number] = 0;
-                                break;
-                            }
-                            case SPACE_TAB:
-                            {
-                                memset(key, 0x20, number);
-                                key[number] = 0;
-                                str_replace[0] = '\t';
-                                str_replace[1] = 0;
-                                break;
-                            }
-                            default:
-                                break;
+                            _snprintf(key, QW_SIZE, "%s", "([\\x{FF01}-\\x{FF5E}]|\\x{3000})");
+                            printf("key = /%s/\n", key);
+                            break;
                         }
-                        if (strlen(key) > 0)
+                        case HALF_FULL:
                         {
-                            on_search_do_space(pnode, key, str_replace, docase);
+                            _snprintf(key, QW_SIZE, "%s", "([\\x{20}-\\x{2F}|\\x{3A}-\\x{40}|\\x{5B}-\\x{60}|\\x{7B}-\\x{7E}])");
+                            printf("key = /%s/\n", key);
+                            break;
                         }
+                        case TAB_SPACE:
+                        {
+                            key[0] = '\t';
+                            key[1] = 0;
+                            memset(str_replace, 0x20, number);
+                            str_replace[number] = 0;
+                            break;
+                        }
+                        case SPACE_TAB:
+                        {
+                            memset(key, 0x20, number);
+                            key[number] = 0;
+                            str_replace[0] = '\t';
+                            str_replace[1] = 0;
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                    if (strlen(key) > 0)
+                    {
+                        on_search_do_space(pnode, key, str_replace, docase);
                     }
                 }
             }

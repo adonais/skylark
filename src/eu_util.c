@@ -20,6 +20,8 @@
 #include <shlobj_core.h>
 
 typedef const char *(__cdecl *pwine_get_version)(void);
+typedef char *(__cdecl *pwine_get_unix_file_name)(LPCWSTR dos);
+typedef wchar_t *(__cdecl *pwine_get_nt_file_name)(LPCSTR str);
 typedef void (*ptr_file_enc)(FILE *f, void **pout);
 typedef unsigned long (*ptr_compress_bound)(unsigned long source_len);
 typedef int (*ptr_compress)(uint8_t *, unsigned long *, const uint8_t *, unsigned long, int);
@@ -202,16 +204,73 @@ util_under_wine(void)
     {
         return true;
     }
-    if(!(hntdll = GetModuleHandle(_T("ntdll.dll"))))
+    if (!(hntdll = GetModuleHandle(_T("ntdll.dll"))))
     {
         return false;
     }
-    if((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
+    if ((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
     {
         printf("Running on Wine... %s\n", fn_wine_get_version());
         return true;
     }
     return false;
+}
+
+bool
+util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len)
+{
+    HMODULE kernel32 = NULL;
+    pwine_get_unix_file_name fn_wine_get_unix_file_name = NULL;
+    if (!(kernel32 = GetModuleHandle(_T("kernel32.dll"))))
+    {
+        return false;
+    }
+    if (!(fn_wine_get_unix_file_name = (pwine_get_unix_file_name)GetProcAddress(kernel32, "wine_get_unix_file_name")))
+    {
+        return false;
+    }
+    if (fn_wine_get_unix_file_name)
+    {
+        char *unix_path = fn_wine_get_unix_file_name(path);
+        if (unix_path)
+        {
+            util_make_u16(unix_path, out, len);
+            util_free(unix_path);
+            const wchar_t *p = wcsstr(out, L":");
+            if (p && wcslen(p) > 1 && wcsncmp(&p[1], L"/users/", 7) != 0)
+            {
+                memmove(out, &p[1], (wcslen(p) + 1) * sizeof(wchar_t));
+            }
+            return !!out[0];
+        }
+    }
+    return false;
+}
+
+wchar_t*
+util_get_nt_file_name(LPCWSTR path)
+{
+    wchar_t *nt_path = NULL;
+    HMODULE kernel32 = NULL;
+    pwine_get_nt_file_name fn_wine_get_nt_file_name = NULL;
+    if (!(kernel32 = GetModuleHandle(_T("kernel32.dll"))))
+    {
+        return NULL;
+    }
+    if (!(fn_wine_get_nt_file_name = (pwine_get_nt_file_name)GetProcAddress(kernel32, "wine_get_dos_file_name")))
+    {
+        return NULL;
+    }
+    if (fn_wine_get_nt_file_name)
+    {
+        char *unix_path = eu_utf16_utf8(path, NULL);
+        if (unix_path)
+        {
+            nt_path = fn_wine_get_nt_file_name(unix_path);
+            free(unix_path);
+        }
+    }
+    return nt_path;
 }
 
 int
@@ -1050,6 +1109,37 @@ util_creater_window(HWND hwnd, HWND hwnd_parent)
     return MoveWindow(hwnd, pt_new.x, pt_new.y, width, height, false);
 }
 
+/***********************************************************
+ * 获得系统剪贴板数据, 调用后需要释放指针
+ ***********************************************************/
+bool
+util_get_clipboard(char **ppstr)
+{
+    bool ret = false;
+    if (!ppstr)
+    {
+        return ret;
+    }
+    if (OpenClipboard(NULL))
+    {
+        HGLOBAL hmem = GetClipboardData(CF_UNICODETEXT);
+        if (NULL != hmem)
+        {
+            wchar_t *lpstr = (wchar_t *) GlobalLock(hmem);
+            if (NULL != lpstr)
+            {
+                if ((*ppstr = eu_utf16_utf8(lpstr, NULL)) != NULL)
+                {
+                    ret = true;
+                }
+                GlobalUnlock(hmem);
+            }
+        }
+        CloseClipboard();
+    }
+    return ret;
+}
+
 char *
 util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
 {
@@ -1694,12 +1784,12 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
     TCHAR temp_path[MAX_PATH+1];
     if (!GetTempPath(MAX_PATH, temp_path))
     {
-        return NULL;
+        return INVALID_HANDLE_VALUE;
     }
     if (!GetTempFileName(temp_path, _T("lua"), 0, file_path))
     {
         printf("GetTempFileName return false\n");
-        return NULL;
+        return INVALID_HANDLE_VALUE;
     }
     if (STR_NOT_NUL(ext))
     {
@@ -2549,29 +2639,49 @@ util_explorer_open(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        LPITEMIDLIST dir = NULL;
-        LPITEMIDLIST item = NULL;
-        do
+        if (!util_under_wine())
         {
-            if (!(dir = ILCreateFromPathW(pnode->pathname)))
+            LPITEMIDLIST dir = NULL;
+            LPITEMIDLIST item = NULL;
+            do
             {
-                break;
-            }
-            if (!(item = ILCreateFromPathW(pnode->pathfile)))
+                if (!(dir = ILCreateFromPathW(pnode->pathname)))
+                {
+                    break;
+                }
+                if (!(item = ILCreateFromPathW(pnode->pathfile)))
+                {
+                    break;
+                }
+                LPCITEMIDLIST selection[] = {item};
+                uint32_t count = _countof(selection);
+                HRESULT hr = SHOpenFolderAndSelectItems(dir, count, selection, 0);
+            } while(0);
+            if (dir)
             {
-                break;
+                CoTaskMemFree(dir);
             }
-            LPCITEMIDLIST selection[] = {item};
-            uint32_t count = _countof(selection);
-            HRESULT hr = SHOpenFolderAndSelectItems(dir, count, selection, 0);
-        } while(0);
-        if (dir)
-        {
-            CoTaskMemFree(dir);
+            if (item)
+            {
+                CoTaskMemFree(item);
+            }
         }
-        if (item)
+        else
         {
-            CoTaskMemFree(item);
+            wchar_t cmd_exec[MAX_BUFFER] = {0};
+            wchar_t plugin[MAX_PATH] = {0};
+            wchar_t unix_path[MAX_PATH] = {0};
+            if (util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH - 1))
+            {
+                _sntprintf(plugin, MAX_PATH - 1, L"%s\\plugins\\np_winexy.dll", eu_module_path);
+                util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+            #if (defined _M_X64) || (defined __x86_64__)
+                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s \"%s\" %s \"%s\"", L"/bin/wine64", plugin, L"explorer.exe", unix_path);
+            #else
+                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s \"%s\" %s \"%s\"", L"/bin/wine", plugin, L"explorer.exe", unix_path);
+            #endif
+                CloseHandle(eu_new_process(cmd_exec, NULL, pnode->pathname, 2, NULL));
+            }
         }
     }
 }
@@ -2582,4 +2692,32 @@ util_num_cores(void)
     SYSTEM_INFO sysinfo;
     GetNativeSystemInfo(&sysinfo);
     return (int)sysinfo.dwNumberOfProcessors;
+}
+
+/** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * c风格的字符串替换函数, 字符串长度不限
+ * 返回值是替换后的字符串, 失败返回空指针
+ ** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+char*
+util_str_replace(const char *in, const char *pattern, const char *by)
+{
+    size_t offset = 0;
+    char *needle = NULL;
+    char *in_ptr = (char *)in;
+    const int diff = (int)strlen(by) - (int)strlen(pattern);
+    const size_t in_size = (strlen(in) * (size_t)(diff > 0 ? diff + 1 : 1) + 2);
+    char *res = (char *)calloc(1, in_size + 1);
+    if (res)
+    {
+        while ((needle = strstr(in_ptr, pattern)) && offset < in_size)
+        {
+            strncpy(res + offset, in_ptr, needle - in_ptr);
+            offset += needle - in_ptr;
+            in_ptr = needle + (int) strlen(pattern);
+            strncpy(res + offset, by, in_size - offset);
+            offset += (int) strlen(by);
+        }
+        strncpy(res + offset, in_ptr, in_size - offset);
+    }
+    return res;
 }

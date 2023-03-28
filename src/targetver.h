@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 3
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 8
+#define __EU_INFO_VERSION_PATCHLEVEL 9
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -572,6 +572,8 @@
 #define IDM_VIEW_SCROLLCURSOR                30454
 #define IDM_EDIT_SWAP_CLIPBOARD              30455
 #define IDM_EDIT_CLEAR_CLIPBOARD             30456
+#define IDM_EDIT_COPY_INCREMENTAL            30457
+#define IDM_EDIT_COPY_RTF                    30458
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -926,6 +928,7 @@
 #define IDS_PRINT_ERROR                     42105
 #define IDS_SELRECT                         42106
 #define IDS_PRINT_HEX_WARNS                 42107
+#define IDS_SELRECT_MULTI                   42108
 
 #define IDM_THEME_CANCEL                    42200
 
@@ -1100,7 +1103,7 @@
 #define IDM_HELP_COMMAND                    43000
 #define IDS_LOADLIBRARY_SQL                 43001
 #define IDM_TABPAGE_SAVE                    43002
-#define IDM_TABPAGE_FULLSCREEN              43003
+#define IDM_TABPAGE_LOCKED                  43003
 #define IDM_TABCLOSE_FOLLOW                 43004
 #define IDM_TABCLOSE_ALWAYS                 43005
 #define IDM_TABCLOSE_NONE                   43006
@@ -1163,6 +1166,9 @@
 #define IDS_INDENT_TAB_OPPS                 44074
 #define IDS_INDENT_TAB_SPACE                44075
 #define IDS_INDENT_PROPOSE                  44076
+
+#define IDM_EDIT_SLASH_BACKSLASH            44100
+#define IDM_EDIT_BACKSLASH_SLASH            44101
 
 // For MessageBox
 #define IDALWAYS                            12
