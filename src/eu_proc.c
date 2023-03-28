@@ -1438,7 +1438,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_jmp_matching_brace(pnode, &wm_id);
                     break;
                 case IDM_SEARCH_NAVIGATE_PREV_THIS:
-                    on_search_back_navigate_this();
+                    on_search_back_navigate_this(pnode);
                     break;
                 case IDM_SEARCH_NAVIGATE_PREV_INALL:
                     on_search_back_navigate_all();

@@ -773,6 +773,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             break;
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_RIGHT:
@@ -826,6 +827,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             break;
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_UP:
@@ -844,6 +846,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_DOWN:
@@ -862,6 +865,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
                         }
                     }
+                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_PRIOR:
@@ -876,6 +880,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         hexview->number_items -= 16 * NumberOfLines;
                     }
                     SendMessage(hwnd, WM_VSCROLL, SB_PAGEUP, 0);
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_NEXT:
@@ -890,6 +895,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         hexview->number_items += 16 * lines_number;
                     }
                     SendMessage(hwnd, WM_VSCROLL, SB_PAGEDOWN, 0);
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_HOME:
@@ -909,6 +915,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_HSCROLL, SB_LEFT, 0);
                         }
                     }
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_END:
@@ -929,6 +936,7 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         }
                         SendMessage(hwnd, WM_HSCROLL, SB_RIGHT, 0);
                     }
+                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
             }
@@ -1315,7 +1323,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             if (pnode != NULL)
             {
-                on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+                on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                 on_statusbar_update_line(pnode);
             }
             if (util_under_wine())
@@ -2187,6 +2195,8 @@ hexview_switch_mode(eu_tabpage *pnode)
             {
                 eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
             }
+            // 清理文本模式下的导航信息
+            on_search_clean_navigate_this(pnode);
             ShowWindow(eu_get_search_hwnd(), SW_HIDE);
         }
     }
@@ -2277,6 +2287,8 @@ hexview_switch_mode(eu_tabpage *pnode)
             err = EUE_POINT_NULL;
             goto HEX_ERROR;
         }
+        // 清理16进制编辑器下的导航信息
+        on_search_clean_navigate_this(pnode);
         TCITEM tci = {TCIF_TEXT | TCIF_PARAM};
         tci.pszText = pnew->filename;
         tci.lParam = (LPARAM) pnew;

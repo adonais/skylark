@@ -18,6 +18,7 @@
 #include "framework.h"
 #include <shlobj.h>
 
+#define MAX_TRACE_COUNT 8192
 #define RESULAT_MAX_MATCH (UINT16_MAX * 2 + 1)
 
 static int max_nav_count;
@@ -1268,7 +1269,6 @@ on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos)
         return EUE_OUT_OF_MEMORY;
     }
     curr->pnode = pnode;
-    curr->hwnd_sc = pnode->hwnd_sc;
     curr->last_pos = pos;
     list_add_tail(&(curr->ng_node), &list_trace);
     ++max_nav_count;
@@ -1291,36 +1291,61 @@ on_search_update_navigate_list(eu_tabpage *pnode, int64_t pos)
     return SKYLARK_OK;
 }
 
-int
-on_search_back_navigate_this(void)
+static int
+on_search_list_lenght(const eu_tabpage *pnode)
 {
-    struct navigate_trace *curr = NULL;
-    struct navigate_trace *prev = NULL;
-
-    list_for_each_entry_safe_reverse(curr, prev, &list_trace, struct navigate_trace, ng_node)
+    int i = 0;
+    if (pnode)
     {
-        eu_tabpage *pnode = on_tabpage_focus_at();
-        if (!pnode)
+        struct list_head *pos, *n;
+        struct navigate_trace *curr = NULL;
+        list_for_each_safe(pos, n, &list_trace)
         {
-            return EUE_TAB_NULL;
-        }
-        if (curr->hwnd_sc != pnode->hwnd_sc)
-        {
-            continue;
-        }
-        list_del(&(curr->ng_node));
-        free(curr);
-        --max_nav_count;
-        if (&(prev->ng_node) != &list_trace)
-        {
-            if (prev->hwnd_sc == pnode->hwnd_sc)
+            curr = list_entry(pos, struct navigate_trace, ng_node);
+            if (curr && curr->pnode == pnode)
             {
-                sptr_t text_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : (sptr_t)prev->last_pos;
-                eu_sci_call(pnode, SCI_GOTOPOS, go_pos, 0);
+                ++i;
             }
         }
-        return SKYLARK_OK;
+    }
+    return i;
+}
+
+int
+on_search_back_navigate_this(const eu_tabpage *pnode)
+{
+    int64_t pos = -1;
+    eu_tabpage *p = NULL;
+    struct navigate_trace *curr = NULL;
+    struct navigate_trace *prev = NULL;
+    if (pnode && !list_empty(&list_trace))
+    {
+        list_for_each_entry_safe_reverse(curr, prev, &list_trace, struct navigate_trace, ng_node)
+        {
+            if (curr->pnode != (eu_tabpage *)pnode)
+            {
+                continue;
+            }
+            if (curr->last_pos == (int64_t)eu_sci_call((eu_tabpage *)pnode, SCI_GETCURRENTPOS, 0, 0))
+            {
+                continue;
+            }
+            pos = curr->last_pos;
+            p = curr->pnode;
+            if (on_search_list_lenght(pnode) > 1)
+            {
+                list_del(&(curr->ng_node));
+                free(curr);
+                --max_nav_count;
+            }
+            if (p == pnode)
+            {
+                sptr_t text_len = eu_sci_call((eu_tabpage *)pnode, SCI_GETLENGTH, 0, 0);
+                sptr_t go_pos = pos > text_len - 1 ? text_len - 1 : (sptr_t)(pos > 0 ? pos : 0);
+                eu_sci_call((eu_tabpage *)pnode, SCI_GOTOPOS, go_pos, 0);
+            }
+            return SKYLARK_OK;
+        }
     }
     return EUE_UNKOWN_ERR;
 }
@@ -1328,12 +1353,12 @@ on_search_back_navigate_this(void)
 int
 on_search_back_navigate_all(void)
 {
+    eu_tabpage *pnode = NULL;
     struct navigate_trace *curr = NULL;
     struct navigate_trace *prev = NULL;
     list_for_each_entry_safe_reverse(curr, prev, &list_trace, struct navigate_trace, ng_node)
     {
-        eu_tabpage *pnode = on_tabpage_focus_at();
-        if (!pnode)
+        if (!(pnode = on_tabpage_focus_at()))
         {
             return EUE_TAB_NULL;
         }
@@ -1369,7 +1394,7 @@ on_search_clean_navigate_this(eu_tabpage *pnode)
         struct navigate_trace *next = NULL;
         list_for_each_entry_safe(curr, next, &list_trace, struct navigate_trace, ng_node)
         {
-            if (curr->hwnd_sc == pnode->hwnd_sc)
+            if (curr->pnode == pnode)
             {
                 list_del(&(curr->ng_node));
                 free(curr);
