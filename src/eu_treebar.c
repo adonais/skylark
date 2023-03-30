@@ -1196,9 +1196,11 @@ on_refresh_tree(HWND hwnd)
 static int
 on_search_tree(HWND hwnd)
 {
-    HTREEITEM hti_select = NULL;
+    int ret = SKYLARK_OK;
+    TCHAR *path = NULL;
     tree_data *tvd = NULL;
-    if ((hti_select = on_treebar_get_path(&tvd)) == NULL)
+    HTREEITEM hti_select = on_treebar_get_path(&tvd);
+    if (!hti_select || !tvd)
     {
         return EUE_POINT_NULL;
     }
@@ -1207,14 +1209,25 @@ on_search_tree(HWND hwnd)
         MSG_BOX(IDC_MSG_SEARCH_ERR13, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
         return EUE_UNKOWN_ERR;
     }
-    TCHAR path[MAX_PATH+1] = {0};
-    _tcscpy(path, tvd->filepath);
-    eu_wstr_replace(path, MAX_PATH, _T("/"), _T("\\"));
-    if (!eu_exist_dir(path))
+    if ((path = _tcsdup(tvd->filepath)))
     {
-        eu_suffix_strip(path);
+        const size_t len = _tcslen(path);
+        if (len > 0 && len < VALUE_LEN)
+        {
+            eu_wstr_replace(path, len, _T("/"), _T("\\"));
+            if (!eu_exist_dir(path))
+            {
+                eu_suffix_strip(path);
+            }
+            if (!eu_get_search_hwnd())
+            {
+                on_search_create_box();
+            }
+            ret = on_search_file_thread(path);
+        }
+        free(path);
     }
-    return on_search_file_thread(path);
+    return ret;
 }
 
 void

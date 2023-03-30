@@ -579,6 +579,16 @@ on_search_set_focus(eu_tabpage *pnode, HWND hwnd_what)
     }
 }
 
+static void
+on_search_set_folder_path(LPCTSTR path)
+{
+    HWND hwnd_cbo = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_DIR_CBO);
+    if (hwnd_cbo)
+    {
+        ComboBox_SetText(hwnd_cbo, path);
+    }
+}
+
 void
 on_search_turn_select(eu_tabpage *pnode)
 {
@@ -675,24 +685,28 @@ on_search_file_thread(const TCHAR *path)
 {
     HWND hwnd_what = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO);
     HWND hwnd_tab = GetDlgItem(hwnd_search_dlg, IDD_SEARCH_TAB_1);
-    HWND hwnd_folder = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_DIR_CBO);
-    if (hwnd_what && hwnd_tab && hwnd_folder)
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    if (hwnd_what && hwnd_tab && pnode)
     {
-        eu_tabpage *pnode = on_tabpage_focus_at();
+        HWND chk = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_CD_CHK);
         util_push_text_dlg(pnode, hwnd_what);
         TabCtrl_SetCurSel(hwnd_tab, 2);
         on_search_tab_ui(2);
         on_search_init_option();
         util_creater_window(hwnd_search_dlg, eu_module_hwnd());
-        if (path)
-        {
-            SendMessage(hwnd_folder, WM_SETTEXT, 0, (LPARAM) path);
-        }
         ShowWindow(hwnd_search_dlg, SW_SHOW);
+        if (STR_NOT_NUL(path))
+        {
+            Button_SetCheck(chk, BST_UNCHECKED);
+            on_search_set_folder_path(path);
+        }
+        else
+        {
+            SendMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_SEARCH_CD_CHK, 0), (LPARAM)chk);
+        }
         SendMessage(hwnd_search_dlg, DM_SETDEFID, IDC_SEARCH_START_ENGINE, 0);
         eu_get_find_history(on_search_combo_callback);
         eu_get_folder_history(on_search_combo_callback);
-        SendMessage(hwnd_search_dlg, WM_COMMAND, MAKEWPARAM(IDC_SEARCH_CD_CHK, 0), (LPARAM)GetDlgItem(hwnd_search_dlg, IDC_SEARCH_CD_CHK));
         on_search_set_focus(pnode, hwnd_what);
     }
     return 0;
@@ -2982,16 +2996,6 @@ on_search_browse_folder_proc(HWND hwnd, UINT msg, LPARAM lParam, LPARAM pdata)
     return 0;
 }
 
-static void
-on_search_set_folder_path(LPCTSTR path)
-{
-    HWND hwnd_cbo = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_DIR_CBO);
-    if (hwnd_cbo)
-    {
-        ComboBox_SetText(hwnd_cbo, path);
-    }
-}
-
 static int
 on_search_folder_browser(void)
 {
@@ -3668,7 +3672,19 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         else if ((pnode = on_tabpage_focus_at()))
                         {
-                            on_search_set_folder_path(pnode->pathname);
+                            if (pnode->pathname && pnode->pathname[0] && eu_exist_dir(pnode->pathname))
+                            {
+                                on_search_set_folder_path(pnode->pathname);
+                            }
+                            else
+                            {
+                                TCHAR home_path[MAX_PATH+1] = {0};
+                                uint32_t len = GetEnvironmentVariable(_T("USERPROFILE"), home_path, MAX_PATH);
+                                if (len > 0 && len < MAX_PATH)
+                                {
+                                    on_search_set_folder_path(home_path);
+                                }
+                            }
                         }
                         break;
                     }
