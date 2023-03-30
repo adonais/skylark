@@ -1291,8 +1291,9 @@ on_filetree_menu_callback2(HMENU hpop, void *param)
     {
         const TCHAR *ext = util_path_ext(tvd->filename);
         bool ssl = eu_exist_libssl();
-        bool enable = !(_tcsicmp(ext, _T("jpg")) && _tcsicmp(ext, _T("jpeg")) && _tcsicmp(ext, _T("gif")) && _tcsicmp(ext, _T("png")) && 
-                        _tcsicmp(ext, _T("bmp")) && _tcsicmp(ext, _T("ico")) && _tcsicmp(ext, _T("webp")) && _tcsicmp(ext, _T("svg")));
+        bool enable = ext &&
+                      !(_tcsicmp(ext, _T("jpg")) && _tcsicmp(ext, _T("jpeg")) && _tcsicmp(ext, _T("gif")) && _tcsicmp(ext, _T("png")) && 
+                      _tcsicmp(ext, _T("bmp")) && _tcsicmp(ext, _T("ico")) && _tcsicmp(ext, _T("webp")) && _tcsicmp(ext, _T("svg")));
         util_enable_menu_item(hpop, IDM_FILE_MD5_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA1_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA256_CLIP, ssl);

@@ -274,6 +274,7 @@ on_update_send_request(void *lp)
         }
         if ((dtag = on_update_build_time()) > 0 && dtag < tag)
         {
+            printf("curerent_version = %I64d, tag = %I64d\n", dtag, tag);
             on_update_msg(VERSION_UPDATE_REQUIRED, true);
             if (!eu_get_config()->upgrade.enable)
             {
