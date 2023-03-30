@@ -39,6 +39,10 @@
 #define UTIL_BASE10(ch) ((ch) >= 0x30 && (ch) <= 0x39)
 #endif
 
+#ifndef TWO_DISM
+#define TWO_DISM 10
+#endif
+
 #define util_malloc(x) (HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (x)))
 #define util_free(x)   (HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, (x)),(x = NULL))
 
@@ -138,7 +142,7 @@ unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);
 int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level);
 int util_count_number(size_t number);
-int util_split(const char *pstr, char (*pout)[QW_SIZE], char ch);
+int util_split(const char *pstr, char (*pout)[MAX_PATH], int ch);
 int util_strim_end(char *pstr, int len);
 int util_num_cores(void);
 void  util_transparent(HWND hwnd, int percent);

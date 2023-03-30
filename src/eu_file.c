@@ -20,8 +20,6 @@
 #include "framework.h"
 #include <tlhelp32.h>
 
-#define TWO_DISM 10
-
 static volatile long file_close_id = 0;
 static volatile long last_focus = -1;
 static HANDLE file_event_final = NULL;
@@ -470,9 +468,10 @@ on_file_header_parser(void *hdr, size_t size, size_t nmemb, void *userdata)
     if (hdr && userdata)
     {
         char *p = NULL;
-        char *u8_file = ((char (*)[QW_SIZE])userdata)[0];
-        if (u8_file[0] && (p = strstr(hdr, u8_file)) && (p[strlen(u8_file)] == '\r' || p[strlen(u8_file)] == '\n'))
+        char *u8_file = ((char (*)[MAX_PATH])userdata)[0];
+        if (u8_file[0] && (p = strstr(hdr, u8_file)) && (p[strlen(p) - 1] == '\r' || p[strlen(p) - 1] == '\n'))
         {
+            printf("we do util_split, hdr = [%s]\n", (const char*)hdr);
             util_split(hdr, userdata, ' ');
             return 0;
         }
@@ -481,16 +480,16 @@ on_file_header_parser(void *hdr, size_t size, size_t nmemb, void *userdata)
 }
 
 static void
-on_file_attr_parser(eu_tabpage *pnode, char (*pstr)[QW_SIZE])
+on_file_attr_parser(eu_tabpage *pnode, char (*pstr)[MAX_PATH])
 {
     if (pnode && pstr)
     {
         for (int i = 0; i < TWO_DISM; ++i)
-        {
+        {   // 第四列, 是文件尺寸
             if (i == 4 && pstr[i][0])
             {   // 预先获取文件大小
                 pnode->raw_size = _atoi64(pstr[i]);
-                printf("%I64u\n", pnode->raw_size);
+                printf("%s, %I64u\n", __FUNCTION__, pnode->raw_size);
             }
         }
     }
@@ -503,7 +502,7 @@ on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
     char *url = NULL;
     CURL *curl = NULL;
     CURLcode res = EUE_CURL_INIT_FAIL;
-    char data[TWO_DISM][QW_SIZE] = {0};
+    char data[TWO_DISM][MAX_PATH] = {0};
     remotefs *pserver = on_remote_list_find(path);
     if (!pserver)
     {
@@ -522,10 +521,9 @@ on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
         free(url);
         return res;
     }
-    {   // INOUT, 传送一个文件名, 返回一个数组指针
-        data[0][0] = ' ';
-        util_make_u8(pnode->filename, &data[0][1], QW_SIZE - 2);
-    }
+    // INOUT, 传送一个文件名, 返回一个数组指针
+    data[0][0] = ' ';
+    util_make_u8(pnode->filename, &data[0][1], MAX_PATH - 2);
     eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
     eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
     eu_curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "sftp");
@@ -1373,35 +1371,38 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
 static int
 on_file_remote_thread(eu_tabpage *p, file_backup *pbak, remotefs *premote)
 {
-    CURL *curl = NULL;
-    CURLcode ret = EUE_CURL_INIT_FAIL;
+    int ret = EUE_CURL_INIT_FAIL;
     if (p->fs_server.networkaddr[0] == 0 && premote)
     {
         memcpy(&(p->fs_server), premote, sizeof(remotefs));
     }
     if ((p->reserved0 = (intptr_t)eu_utf16_utf8(pbak->rel_path, NULL)) != 0)
     {
-        if (!(curl = on_remote_init_socket((const char *)p->reserved0, &p->fs_server)))
+        char *url = NULL;
+        CURL *curl = NULL;
+        // 没有做更多的url解码, 我们这里只替换空格
+        if ((url = util_str_replace((const char *)p->reserved0, " ", "%20")) &&
+            (curl = on_remote_init_socket(url, &p->fs_server)))
         {
-            return EUE_CURL_INIT_FAIL;
+            eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_read_remote);
+            eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, p);
+        #if APP_DEBUG
+            eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        #endif
+            eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
+            eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
+            eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+            ret = eu_curl_easy_perform(curl);
+            if (!ret)
+            {
+                ret = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &p->st_mtime);
+                printf("pnode->st_mtime = %lld\n", p->st_mtime);
+            }
+            eu_curl_easy_cleanup(curl);
         }
-        eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_read_remote);
-        eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, p);
-    #if APP_DEBUG
-        eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    #endif
-        eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
-        eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
-        eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-        ret = eu_curl_easy_perform(curl);
-        if (!ret)
-        {
-            ret = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &p->st_mtime);
-            printf("pnode->st_mtime = %lld\n", p->st_mtime);
-        }
-        eu_curl_easy_cleanup(curl);
         free((void *)p->reserved0);
         p->reserved0 = 0;
+        eu_safe_free(url);
     }
     return ret;
 }

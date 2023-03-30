@@ -2525,45 +2525,42 @@ util_file_access(LPCTSTR filename, uint32_t *pgranted)
 }
 
 int
-util_split(const char *pstr, char (*pout)[QW_SIZE], char ch)
+util_split(const char *pstr, char (*pout)[MAX_PATH], int ch)
 {
-    int ret = 0;
-    if (NULL != pstr && NULL != pout)
+    if (STR_NOT_NUL(pstr) && NULL != pout)
     {
-        char *tmp = (char *)pstr;
-        // i为行，j为列. 每行为一个字符串
-        int i = 0, j = 0;
-        int countrow = 0;
-        while (*tmp)
-        {   // 遇到分隔符，字符串结束，加0
-            if (ch == *tmp)
+        const int len = (int)strlen(pstr);
+        if (len < MAX_PATH)
+        {
+            bool split = false;
+            char *tmp = (char *)pstr;
+            int i = 0, j = 0, row = 0;
+            for (; i < TWO_DISM && j < len; ++j)
             {
-                *(*(pout + i) + j) = '\0';
-            }
-            else if ((ch == *(tmp - 1)) && (ch != *tmp))
-            {   // 上一个是分隔符，这一个不是分隔符行 行增长
-                if (countrow != 0)
+                if (ch == tmp[j])
                 {
-                    i++;
+                    if (!split)
+                    {
+                        *(*(pout + i) + row) = '\0';
+                        split = true;
+                        row = 0;
+                        ++i;
+                    }
                 }
-                j = 0;
-                *(*(pout + i) + j) = *tmp;
-                j++;
-            }
-            else
-            {   // 非空格写入字符
-                if (0 == i)
+                else
                 {
-                    countrow = 1;
+                    if (!row)
+                    {
+                        memset(pout[i], 0, MAX_PATH);
+                    }
+                    *(*(pout + i) + row) = tmp[j];
+                    split = false;
+                    ++row;
                 }
-                *(*(pout + i) + j) = *tmp;
-                j++;
             }
-            tmp++;
         }
-        ret = i;
     }
-    return ret;
+    return 0;
 }
 
 int
