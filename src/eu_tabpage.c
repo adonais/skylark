@@ -138,7 +138,7 @@ on_tabpage_changing(int index)
     if((p = on_tabpage_get_ptr(index)) != NULL)
     {
         util_set_undo(p);
-        util_set_title(p->pathfile);
+        util_set_title(p);
         on_toolbar_update_button();
         SendMessage(eu_module_hwnd(), WM_TAB_CLICK, (WPARAM)p, 0);
         if (p->pmod)
@@ -416,7 +416,7 @@ on_tabpage_exchange_item(const int old_index, const int new_index, const bool ac
 static int
 on_tabpage_parser_bakup(void *data, int count, char **column, char **names)
 {
-    wchar_t path[MAX_PATH] = {0};
+    wchar_t path[MAX_BUFFER] = {0};
     file_backup *pbak = (file_backup *)data;
     for (int i = 0; i < count; ++i)
     {
@@ -426,11 +426,11 @@ on_tabpage_parser_bakup(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szRealPath"))
         {
-            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, path, MAX_PATH);
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, path, MAX_BUFFER);
         }
         else if (STRCMP(names[i], ==, "szBakPath"))
         {
-            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, pbak->bak_path, MAX_PATH);
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, pbak->bak_path, _countof(pbak->bak_path));
         }
         else if (STRCMP(names[i], ==, "szMark"))
         {
@@ -492,7 +492,7 @@ on_tabpage_send_file(const HWND hwin, const int index)
     {
         file_backup bak = {0};
         int err = SKYLARK_NOT_OPENED;
-        _tcscpy(bak.rel_path, p->pathfile);
+        _tcsncpy(bak.rel_path, p->pathfile, _countof(bak.rel_path));
         if (!eu_get_config()->m_session)
         {
             if (!p->is_blank)
@@ -1277,7 +1277,7 @@ on_tabpage_newdoc_reload(void)
             eu_tabpage *p = on_tabpage_get_ptr(index);
             if (p && p->is_blank)
             {
-                TCHAR old[MAX_PATH] = {0};
+                TCHAR old[MAX_BUFFER] = {0};
                 if ((pstr = _tcsrchr(p->pathfile, ch)) != NULL && (pstr - p->pathfile) > 0 && _tcslen(pstr) > 0 &&
                     _tcsspn(pstr + 1, _T("0123456789")) == _tcslen(pstr + 1))
                 {
@@ -1287,7 +1287,7 @@ on_tabpage_newdoc_reload(void)
                         _sntprintf(filename, MAX_PATH-1, m_file, _tstoi(pstr + 1));
                         _tcscpy(p->pathfile, filename);
                         _tcscpy(p->filename, filename);
-                        util_set_title(p->pathfile);
+                        util_set_title(p);
                     }
                 }
             }
@@ -1507,7 +1507,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
             TabCtrl_SetCurFocus(g_tabpages, index);
             TabCtrl_SetCurSel(g_tabpages, index);
             on_toolbar_update_button();
-            util_set_title(p->pathfile);
+            util_set_title(p);
         }
     }
     return (index >= 0 && index < count ? index : SKYLARK_TABCTRL_ERR);

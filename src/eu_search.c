@@ -559,9 +559,9 @@ static char *
 on_search_get_combo_str(int resid)
 {
     HWND hwnd_cb = NULL;
-    TCHAR text[MAX_PATH+1]= {0};
+    TCHAR text[MAX_BUFFER]= {0};
     hwnd_cb = GetDlgItem(hwnd_search_dlg, resid);
-    ComboBox_GetText(hwnd_cb, text, MAX_PATH);
+    ComboBox_GetText(hwnd_cb, text, MAX_BUFFER);
     if (_tcslen(text) < 1)
     {
         return NULL;
@@ -1650,8 +1650,8 @@ on_search_delete_lword(HWND hedit)
 {
     WORD cursor;
     WORD wordstart;
-    TCHAR str[MAX_PATH + 1];
-    SendMessage(hedit, WM_GETTEXT, MAX_PATH, (LPARAM)str);
+    TCHAR str[MAX_BUFFER];
+    SendMessage(hedit, WM_GETTEXT, MAX_BUFFER, (LPARAM)str);
     SendMessage(hedit, EM_GETSEL, (WPARAM)&cursor, 0);
     wordstart = cursor;
     while (wordstart > 0)
@@ -1682,13 +1682,17 @@ on_search_delete_lword(HWND hedit)
 static char *
 on_search_get_combo_list(HWND hcombo, int index)
 {
-    TCHAR buf[MAX_PATH+1] = {0};
-    ComboBox_GetLBText(hcombo, index, buf);
-    if (*buf)
+    char *text = NULL;
+    TCHAR *buf = NULL;
+    const int len = (const int)ComboBox_GetLBTextLen(hcombo, index);
+    buf = len > 0 ? (TCHAR *)calloc(sizeof(TCHAR), len + 1) : NULL;
+    if (STR_NOT_NUL(buf))
     {
-        return eu_utf16_utf8(buf, NULL);
+        ComboBox_GetLBText(hcombo, index, buf);
+        text = eu_utf16_utf8(buf, NULL);
     }
-    return NULL;
+    eu_safe_free(buf);
+    return text;
 }
 
 static LRESULT FAR PASCAL
@@ -1808,12 +1812,12 @@ static void
 on_search_push_string_listbox(const TCHAR *path, const char *key, const intptr_t num)
 {
     TCHAR *u16 = NULL;
-    TCHAR msg_str[MAX_PATH*2+1] = {0};
+    TCHAR msg_str[MAX_BUFFER] = {0};
     int index = ListBox_FindString(hwnd_found_box, -1, path);
     if ((u16 = eu_utf8_utf16(key, NULL)))
     {
         LOAD_I18N_RESSTR(IDC_MSG_SEARCH_STR2, format);
-        _sntprintf(msg_str, MAX_PATH*2, format, path, u16, num);
+        _sntprintf(msg_str, MAX_BUFFER, format, path, u16, num);
         if (index >= 0)
         {
             ListBox_DeleteString(hwnd_found_box, index);
@@ -2688,7 +2692,7 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
     if (tab_find < 0)
     {
         file_backup bak = {0};
-        _tcscpy(bak.rel_path, path);
+        _tcsncpy(bak.rel_path, path, _countof(bak.rel_path));
         tab_find = on_file_only_open(&bak, true);
         if (tab_find > SKYLARK_OPENED && (p = on_tabpage_get_ptr(tab_find)))
         {
@@ -2707,8 +2711,8 @@ static void
 on_search_found_list(HWND hwnd)
 {
     int listno = (int)SendMessage(hwnd, LB_GETCURSEL ,0 , 0);
-    int buf_len = ListBox_GetTextLen(hwnd, listno) + 1;
-    TCHAR *buf = (TCHAR *)calloc(sizeof(TCHAR), buf_len);
+    int buf_len = ListBox_GetTextLen(hwnd, listno);
+    TCHAR *buf = (TCHAR *)calloc(sizeof(TCHAR), buf_len + 1);
     if (buf)
     {
         ListBox_GetText(hwnd, listno, buf);
@@ -3006,7 +3010,7 @@ on_search_folder_browser(void)
     {
         return 1;
     }
-    if (!(path = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH+1)))
+    if (!(path = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)))
     {
         return 1;
     }
@@ -3043,11 +3047,11 @@ on_search_make_file_list(const TCHAR *path, const TCHAR *name)
     }
     if (path[_tcslen(path) - 1] == _T('\\'))
     {
-        _sntprintf(pfile->path, MAX_PATH, _T("%s%s"), path, name);
+        _sntprintf(pfile->path, MAX_BUFFER, _T("%s%s"), path, name);
     }
     else
     {
-        _sntprintf(pfile->path, MAX_PATH, _T("%s\\%s"), path, name);
+        _sntprintf(pfile->path, MAX_BUFFER, _T("%s\\%s"), path, name);
     }
     pfile->count = 0;
     list_add_tail(&(pfile->node_file), &list_files);
@@ -3106,7 +3110,7 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
     {
         return index;
     }
-    _sntprintf(folderstart->dir, MAX_PATH, _T("%s\\*"), parent);
+    _sntprintf(folderstart->dir, MAX_BUFFER, _T("%s\\*"), parent);
     list_add_tail(&(folderstart->node_folder), &list_folders);
     list_for_each_entry(folderlast, &list_folders, folder_trace, node_folder)
     {
@@ -3141,8 +3145,8 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
                 // 包含子目录时, 子目录加入链表
                 if ((opt & INCLUDE_FOLDER_SUB))
                 {
-                    TCHAR sub[MAX_PATH+1] = {0};
-                    _sntprintf(sub, MAX_PATH, _T("%s"), folderlast->dir);
+                    TCHAR sub[MAX_BUFFER] = {0};
+                    _sntprintf(sub, MAX_BUFFER, _T("%s"), folderlast->dir);
                     p = _tcsrchr(sub, _T('\\'));
                     if (p)
                     {
@@ -3153,7 +3157,7 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
                     {
                         goto search_err;
                     }
-                    _sntprintf(folderstart->dir, MAX_PATH, _T("%s\\%s\\*"), sub, fd.cFileName);
+                    _sntprintf(folderstart->dir, MAX_BUFFER, _T("%s\\%s\\*"), sub, fd.cFileName);
                     list_add_tail(&(folderstart->node_folder), &list_folders);
                 }
             }   /* 后缀名是否匹配 */
@@ -3162,8 +3166,8 @@ on_search_folder_files(const TCHAR *parent, const TCHAR *type, size_t opt)
                 p = _tcsrchr(fd.cFileName, _T('.'));
                 if ((p && _tcsicmp(p, type) == 0) || type[_tcslen(type)-1] == _T('*'))
                 {
-                    TCHAR sub[MAX_PATH+1] = {0};
-                    _sntprintf(sub, MAX_PATH, _T("%s"), folderlast->dir);
+                    TCHAR sub[MAX_BUFFER] = {0};
+                    _sntprintf(sub, MAX_BUFFER, _T("%s"), folderlast->dir);
                     p = _tcsrchr(sub, _T('\\'));
                     if (p)
                     {
@@ -3226,7 +3230,7 @@ on_search_find_all_button(void* lp)
     file_trace *pfile = NULL;
     uint8_t *data = NULL;
     TCHAR filetype[DW_SIZE+1] = {0};
-    TCHAR text[MAX_PATH+1] = {0};
+    TCHAR text[MAX_BUFFER] = {0};
     TCHAR result_str[MAX_PATH+1] = {0};
     uint64_t file_count = 0;
     uint64_t key_match = 0;
@@ -3241,7 +3245,7 @@ on_search_find_all_button(void* lp)
         goto res_clean;
     }
     hwnd_cb = GetDlgItem(hwnd_search_dlg, IDC_SEARCH_DIR_CBO);
-    ComboBox_GetText(hwnd_cb, text, MAX_PATH);
+    ComboBox_GetText(hwnd_cb, text, MAX_BUFFER);
     if (!text[0])
     {
         goto res_clean;

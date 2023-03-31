@@ -20,7 +20,6 @@
 #define _H_SKYLARK_FILETREEBAR_
 
 #define CONFIG_KEY_MATERIAL_FILETREE "EU_FILETR"
-#define REMOTE_FILE_BUFFER 1024 * 1024
 
 #ifdef __cplusplus
 extern "C"
@@ -30,19 +29,18 @@ extern "C"
 typedef struct _tree_data
 {
     remotefs *server;
-    TCHAR pathname[MAX_PATH];
-    TCHAR filepath[MAX_PATH];
-    TCHAR filename[MAX_PATH];
     HTREEITEM hti;
+    TCHAR *pathname;
+    TCHAR *filepath;
+    TCHAR *filename;
     int img_index;
     bool is_load;
 }tree_data;
 
 typedef struct _remotefb
 {
-    char buf[REMOTE_FILE_BUFFER];
-    size_t str_len;
-    size_t remain_len;
+    char* pbuf;
+    size_t size;
 }remotefb;
 
 extern HWND g_treebar;
@@ -60,6 +58,7 @@ int  on_treebar_refresh_node(HTREEITEM hti_parent);
 bool on_treebar_variable_initialized(HWND *pd);
 void on_treebar_wait_hwnd(void);
 void on_treebar_update_addr(remotefs *pserver);
+void on_treebar_data_destoy(tree_data **ptvd);
 
 #ifdef __cplusplus
 }

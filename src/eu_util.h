@@ -82,7 +82,7 @@ int util_file_base64(const TCHAR *path, char **pout);
 
 int util_hex_expand(char *hex_buf, int hex_len, char *asc_buf);
 int util_hex_fold(char *asc_buf, int asc_len, char *hex_buf);
-int util_set_title(const TCHAR *filename);
+int util_set_title(const eu_tabpage *pnode);
 int util_set_working_dir(const TCHAR *path, TCHAR **old);
 int util_query_hostname(char *hostname, char *ip, int bufsize);
 int util_effect_line(eu_tabpage *pnode, sptr_t *, sptr_t *);
@@ -137,6 +137,7 @@ TCHAR* util_which(const TCHAR *name);
 sptr_t util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout);
 wchar_t* util_wstr_unquote(wchar_t *path, const int size);
 char* util_str_unquote(const char *path);
+char* util_url_escape(const char *url);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);

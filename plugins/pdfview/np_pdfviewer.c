@@ -52,10 +52,10 @@ typedef struct _instance_data
 {
     npwindow    *npwin;
     WCHAR       message[MAX_PATH];
-    WCHAR       filepath[MAX_PATH];
+    WCHAR       exepath[MAX_PATH];
+    WCHAR       filepath[MAX_BUFFER];
     HANDLE      hfile;
     HANDLE      hprocess;
-    WCHAR       exepath[MAX_PATH];
     float       progress, prev_progress;
     intptr_t    total_size, curr_size;
     volatile long progress_id;
@@ -785,18 +785,18 @@ launch_sumatra(instance_data *data, const char *url_utf8)
             url[wcslen(url) - 1] = 0;
             wcsncat(url, L"%5c", VALUE_LEN);
         }
-        if ((cmd_line = (WCHAR *)calloc(sizeof(WCHAR), VALUE_LEN + MAX_PATH)) != NULL)
+        if ((cmd_line = (WCHAR *)calloc(sizeof(WCHAR), VALUE_LEN + MAX_BUFFER)) != NULL)
         {
             if (pdf_get_theme())
             {
                 uint32_t fg = pdf_get_theme()->item.text.color;
                 uint32_t bg = pdf_get_theme()->item.text.bgcolor;
-                _snwprintf(cmd_line, VALUE_LEN + MAX_PATH - 1, L"\"%s\" -plugin \"%s\" %zd \"%s\" -bgcolor #%08x -set-color-range #%08x #%08x",
+                _snwprintf(cmd_line, VALUE_LEN + MAX_BUFFER - 1, L"\"%s\" -plugin \"%s\" %zd \"%s\" -bgcolor #%08x -set-color-range #%08x #%08x",
                            data->exepath, url, data->npwin ? (intptr_t)data->npwin->window : (intptr_t)0, data->filepath, bg, fg, bg);
             }
             else
             {
-                _snwprintf(cmd_line, VALUE_LEN + MAX_PATH - 1, L"\"%s\" -plugin \"%s\" %zd \"%s\"",
+                _snwprintf(cmd_line, VALUE_LEN + MAX_BUFFER - 1, L"\"%s\" -plugin \"%s\" %zd \"%s\"",
                            data->exepath, url, data->npwin ? (intptr_t)data->npwin->window : (intptr_t)0, data->filepath);                
             }
             data->hprocess = pdf_new_process(cmd_line, NULL, NULL, 2, NULL);
@@ -871,7 +871,7 @@ pdf_stream2file(NPP instance, npstream* stream)
     data->progress = 1.0f;
     data->prev_progress = 0.0f; // force update
     pdf_progress_repaint(data);
-    MultiByteToWideChar(CP_UTF8, 0, stream->url, -1, data->filepath, MAX_PATH);
+    MultiByteToWideChar(CP_UTF8, 0, stream->url, -1, data->filepath, MAX_BUFFER);
     data->total_size = stream->end;
     ret = launch_sumatra(data, "");
     if (!ret)
@@ -992,11 +992,11 @@ pdf_getvalue(NPP instance, npp_variable variable, void **value)
             }
             else if (variable == NV_TMPNAME)
             {
-                size_t bytes_value = MAX_PATH * sizeof(wchar_t);
+                size_t bytes_value = MAX_BUFFER * sizeof(wchar_t);
                 *value = calloc(1, bytes_value);
                 if (*value)
                 {
-                    wcsncpy((wchar_t *)(*value), data->filepath, MAX_PATH - 1);
+                    wcsncpy((wchar_t *)(*value), data->filepath, MAX_BUFFER - 1);
                     ret = NP_NO_ERROR;
                 }
             }
@@ -1028,7 +1028,7 @@ pdf_setvalue(NPP instance, npp_variable variable, void *value)
                     DeleteFileW(data->filepath);
                     data->istmp = false;
                 }
-                wcsncpy(data->filepath, (const wchar_t *)value, MAX_PATH-1);
+                wcsncpy(data->filepath, (const wchar_t *)value, MAX_BUFFER-1);
             }
             else
             {

@@ -462,7 +462,7 @@ on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int 
         intptr_t start;
         intptr_t end;
         const char *peol = NULL;
-        const int txt_len = LARGER_LEN + MAX_PATH;
+        const int txt_len = LARGER_LEN + MAX_BUFFER;
         if (!(txt = (char *)calloc(1, txt_len + 1)))
         {
             break;
@@ -558,7 +558,7 @@ on_parser_vector_modify(const TCHAR *path, snippet_t **ptr_vec, int dimension)
     {
         int eols = -1;
         const char *peol = NULL;
-        const int txt_len = LARGER_LEN + MAX_PATH;
+        const int txt_len = LARGER_LEN + MAX_BUFFER;
         intptr_t start = (*ptr_vec)[dimension].start;
         intptr_t end = (*ptr_vec)[dimension].end;
         if ((eols = on_encoding_line_eol((const char *)buf, size)) == -1)

@@ -58,11 +58,11 @@ struct _tabpage
     bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool last_focus;            // 保存前台焦点    
-    TCHAR pathfile[MAX_PATH];   // 文件带路径名
-    TCHAR pathname[MAX_PATH];   // 文件所在路径名
+    TCHAR pathfile[MAX_BUFFER]; // 文件带路径名
+    TCHAR pathname[MAX_BUFFER]; // 文件所在路径名
+    TCHAR bakpath[MAX_BUFFER];  // 备份后的名称
     TCHAR filename[MAX_PATH];   // 文件名
     TCHAR extname[_MAX_EXT];    // 扩展名
-    TCHAR bakpath[MAX_PATH];    // 备份后的名称
     char pre_context[4+1];      // 保存bom
     size_t pre_len;             // bom的长度
     size_t bytes_remaining;     // 文件变动后的大小

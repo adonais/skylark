@@ -42,6 +42,9 @@
     <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">permonitorv2,permonitor</dpiAwareness>
     <!-- enables GDI DPI scaling -->
     <!-- <gdiScaling xmlns="http://schemas.microsoft.com/SMI/2017/WindowsSettings">true</gdiScaling> -->
+    <!-- supports long path -->
+    <ws2:longPathAware xmlns:ws2="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</ws2:longPathAware>
   </ms_asmv3:windowsSettings>
 </ms_asmv3:application>
+
 </assembly>

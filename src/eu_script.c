@@ -579,7 +579,7 @@ do_byte_code(eu_tabpage *pnode)
     char *utf8 = NULL;
     TCHAR filename[FILESIZE+1]= {0};
     TCHAR pname[MAX_PATH+1] = {0};
-    TCHAR psave[MAX_PATH+1] = {0};
+    TCHAR psave[MAX_BUFFER] = {0};
     if (!pnode)
     {
         return 1;
@@ -612,13 +612,13 @@ do_byte_code(eu_tabpage *pnode)
     _sntprintf(filename, FILESIZE, _T("%s"), pnode->filename);
     if (pnode->pathname[1] == L':')
     {
-        _sntprintf(psave, MAX_PATH, _T("%s%s.bin"), pnode->pathname, filename);
+        _sntprintf(psave, MAX_BUFFER, _T("%s%s.bin"), pnode->pathname, filename);
     }
-    else if (GetEnvironmentVariable(_T("USERPROFILE"), psave, MAX_PATH) > 0)
+    else if (GetEnvironmentVariable(_T("USERPROFILE"), psave, MAX_BUFFER) > 0)
     {
-        _tcsncat(psave, _T("\\"), MAX_PATH);
-        _tcsncat(psave, filename, MAX_PATH);
-        _tcsncat(psave, _T(".bin"), MAX_PATH);
+        _tcsncat(psave, _T("\\"), MAX_BUFFER);
+        _tcsncat(psave, filename, MAX_BUFFER);
+        _tcsncat(psave, _T(".bin"), MAX_BUFFER);
     }
     if (psave[0])
     {
@@ -629,11 +629,11 @@ allclean:
     on_proc_resize(NULL);
     if (!status)
     {
-        char u8_path[MAX_PATH] = {0};
+        char u8_path[MAX_BUFFER] = {0};
         LOAD_I18N_RESSTR(IDS_LUA_CONV_SUCCESS, m_format);
         if ((utf8 = eu_utf16_utf8(m_format, NULL)) != NULL)
         {
-            on_result_append_text_utf8(utf8, util_make_u8(psave, u8_path, MAX_PATH));
+            on_result_append_text_utf8(utf8, util_make_u8(psave, u8_path, MAX_BUFFER));
             free(utf8);
         }
     }
@@ -679,8 +679,8 @@ script_config_dir(lua_State *L)
 {
     int usz = 0;
     char *utf8path = NULL;
-    wchar_t path[MAX_PATH + 1] = {0};
-    _snwprintf(path, MAX_PATH, _T("%s\\conf"), eu_module_path);
+    wchar_t path[MAX_BUFFER] = {0};
+    _snwprintf(path, MAX_BUFFER, _T("%s\\conf"), eu_module_path);
     if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
         lua_pushnil(L);

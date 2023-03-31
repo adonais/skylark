@@ -114,11 +114,11 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szRealPath"))
         {
-            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.rel_path, MAX_PATH);
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.rel_path, MAX_BUFFER);
         }
         else if (STRCMP(names[i], ==, "szBakPath"))
         {
-            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.bak_path, MAX_PATH);
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.bak_path, MAX_BUFFER);
         }
         else if (STRCMP(names[i], ==, "szMark"))
         {
@@ -265,8 +265,8 @@ on_config_create_accel(void)
 static bool
 on_config_sync_snippet(void)
 {
-    TCHAR p1[MAX_PATH+1] = {0};
-    TCHAR p2[MAX_PATH+1] = {0};
+    TCHAR p1[MAX_BUFFER] = {0};
+    TCHAR p2[MAX_BUFFER] = {0};
     TCHAR *snippets[] = {_T("cpp.snippets"),
                          _T("cshape.snippets"),
                          _T("css.snippets"),
@@ -281,7 +281,7 @@ on_config_sync_snippet(void)
                          _T("text.snippets"),
                          _T("verilog.snippets"),
                          NULL};
-    _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets"), eu_module_path);
+    _sntprintf(p2, MAX_BUFFER, _T("%s\\conf\\snippets"), eu_module_path);
     if (!eu_exist_dir(p2))
     {
         if (!eu_mk_dir(p2))
@@ -291,8 +291,8 @@ on_config_sync_snippet(void)
     }
     for (int i = 0; snippets[i]; ++i)
     {
-        _sntprintf(p1, MAX_PATH, _T("%s\\conf\\conf.d\\snippets\\%s"), eu_module_path, snippets[i]);
-        _sntprintf(p2, MAX_PATH, _T("%s\\conf\\snippets\\%s"), eu_module_path, snippets[i]);
+        _sntprintf(p1, MAX_BUFFER, _T("%s\\conf\\conf.d\\snippets\\%s"), eu_module_path, snippets[i]);
+        _sntprintf(p2, MAX_BUFFER, _T("%s\\conf\\snippets\\%s"), eu_module_path, snippets[i]);
         CopyFile(p1, p2, TRUE);
     }
     return true;
@@ -303,9 +303,9 @@ on_config_lua_execute(const wchar_t *file)
 {
     bool ret = false;
     char *lua_path = NULL;
-    TCHAR path[MAX_PATH+1] = {0};
-    int  m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\%s"), eu_module_path, file);
-    if ((m > 0 && m < MAX_PATH) && ((lua_path = eu_utf16_utf8(path, NULL)) != NULL))
+    TCHAR path[MAX_BUFFER] = {0};
+    int  m = _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\conf.d\\%s"), eu_module_path, file);
+    if ((m > 0 && m < MAX_BUFFER) && ((lua_path = eu_utf16_utf8(path, NULL)) != NULL))
     {
         ret = (do_lua_func(lua_path, "run", "") == 0);
         free(lua_path);
@@ -431,10 +431,10 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 size_t len = 0;
                 if ((p = wcschr(ptr_arg[i], L':')) != NULL)
                 {   // 处理以绝对路径打开的文件或目录
-                    wcsncpy(data.rel_path, ptr_arg[i], MAX_PATH);
+                    wcsncpy(data.rel_path, ptr_arg[i], MAX_BUFFER);
                     on_config_file_url(data.rel_path, (int)wcslen(data.rel_path), p);
                     len = wcslen(data.rel_path);
-                    if (!url_has_remote(data.rel_path) && eu_exist_dir(data.rel_path) && len < MAX_PATH - 2)
+                    if (!url_has_remote(data.rel_path) && eu_exist_dir(data.rel_path) && len < MAX_BUFFER - 2)
                     {
                         if (data.rel_path[len - 1] != L'\\')
                         {
@@ -445,9 +445,9 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 }
                 else
                 {   // 处理以相对路径打开的文件或目录
-                    GetFullPathNameW(ptr_arg[i], MAX_PATH, data.rel_path, &p);
+                    GetFullPathNameW(ptr_arg[i], MAX_BUFFER, data.rel_path, &p);
                     len = wcslen(data.rel_path);
-                    if (eu_exist_dir(data.rel_path) && len < MAX_PATH - 2)
+                    if (eu_exist_dir(data.rel_path) && len < MAX_BUFFER - 2)
                     {
                         if (data.rel_path[len - 1] != L'\\')
                         {
@@ -503,9 +503,9 @@ eu_config_load_docs(void)
     int  m = 0;
     bool ret = false;
     char *lua_path = NULL;
-    TCHAR path[MAX_PATH+1] = {0};
-    m = _sntprintf(path, MAX_PATH, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
-    if (!(m > 0 && m < MAX_PATH) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
+    TCHAR path[MAX_BUFFER] = {0};
+    m = _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\conf.d\\eu_docs.lua"), eu_module_path);
+    if (!(m > 0 && m < MAX_BUFFER) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
     {
         goto load_fail;
     }

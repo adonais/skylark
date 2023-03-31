@@ -152,7 +152,7 @@ _tmain(int argc, TCHAR *argv[])
                 REG_ON_DARK_MODE
                 eu_undo_file_popup();
                 file_backup bak = {0};
-                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
+                _tcsncpy(bak.rel_path, argv[1], MAX_BUFFER);
                 share_send_msg(&bak);
             }
             else if (!_tcsncmp(argv[1], REGFOLDER, _tcslen(REGFOLDER)))
@@ -160,7 +160,7 @@ _tmain(int argc, TCHAR *argv[])
                 REG_ON_DARK_MODE
                 eu_undo_dir_popup();
                 file_backup bak = {0};
-                _tcsncpy(bak.rel_path, argv[1], MAX_PATH - 1);
+                _tcsncpy(bak.rel_path, argv[1], MAX_BUFFER);
                 share_send_msg(&bak);
             }
             else if (!_tcsncmp(argv[1], REGASSOC, _tcslen(REGASSOC)))

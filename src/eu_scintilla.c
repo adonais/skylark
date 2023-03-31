@@ -515,7 +515,7 @@ on_sci_status_setup(eu_tabpage *pnode, bool revise)
         return index;
     }
     on_tabpage_set_title(index, pnode->filename);
-    util_set_title(pnode->pathfile);
+    util_set_title(pnode);
     pnode->be_modify = revise;
     on_toolbar_update_button();
     return SKYLARK_OK;

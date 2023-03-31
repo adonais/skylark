@@ -162,7 +162,7 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool e
                     {
                         file_backup bak = {0};
                         on_config_file_url(text, (int)wcslen(text), &text[4]);
-                        wcsncpy(bak.rel_path, text, MAX_PATH - 1);
+                        wcsncpy(bak.rel_path, text, _countof(bak.rel_path));
                         on_file_only_open(&bak, true);
                     }
                     else

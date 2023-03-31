@@ -56,8 +56,8 @@ typedef struct _file_backup
     int zoom;
     int status;
     int sync;
-    TCHAR rel_path[MAX_PATH];
-    TCHAR bak_path[MAX_PATH];
+    TCHAR rel_path[MAX_BUFFER];
+    TCHAR bak_path[MAX_BUFFER];
     char mark_id[MAX_BUFFER];
     char fold_id[MAX_BUFFER];
 }file_backup;

@@ -61,11 +61,11 @@ enum_skylark_proc(HWND hwnd, LPARAM lParam)
             HANDLE hprocess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, m_pid);
             if (hprocess)
             {
-                wchar_t m_path[MAX_PATH] = {0};
-                wchar_t m_buffer[MAX_PATH] = {0};
-                DWORD bufferLen = _countof(m_buffer);
-                GetModuleFileName(NULL , m_path, bufferLen - 1);
-                QueryFullProcessImageName(hprocess, 0, m_buffer, &bufferLen);
+                wchar_t m_path[MAX_BUFFER] = {0};
+                wchar_t m_buffer[MAX_BUFFER] = {0};
+                uint32_t buffer_len = MAX_BUFFER;
+                GetModuleFileName(NULL , m_path, buffer_len);
+                QueryFullProcessImageName(hprocess, 0, m_buffer, &buffer_len);
                 if (_tcsnicmp(m_buffer, m_path, _tcslen(m_buffer)) == 0)
                 {
                     printf("we get other hwnd = %p\n", (void *)hwnd);
@@ -668,14 +668,14 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                     pnode->bakpath[0] = 0;
                 }
                 on_sql_delete_backup_row(pnode);
-                _tcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
+                _tcsncpy(pnode->pathfile, full_path, MAX_BUFFER);
                 _wsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
                 if (wcslen(pnode->extname) > 0)
                 {
                     wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
                 }
                 on_file_update_time(pnode, 0);
-                util_set_title(pnode->pathfile);
+                util_set_title(pnode);
                 np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
             }
             InvalidateRect(g_tabpages, NULL, false);
@@ -962,18 +962,18 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 file_backup bak = {0};
                 file_menu = root_menu ? GetSubMenu(root_menu, 0) : NULL;
                 hpop = file_menu ? GetSubMenu(file_menu, 2) : NULL;
-                len = hpop ? GetMenuString(hpop, wm_id, bak.rel_path, MAX_PATH, MF_BYCOMMAND) : 0;
+                len = hpop ? GetMenuString(hpop, wm_id, bak.rel_path, MAX_BUFFER, MF_BYCOMMAND) : 0;
                 if (len > 0)
                 {
                     if (_tcsrchr(bak.rel_path, _T('&')))
                     {
-                        eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&&"), _T("&"));
+                        eu_wstr_replace(bak.rel_path, MAX_BUFFER, _T("&&"), _T("&"));
                     }
                     if (!url_has_remote(bak.rel_path))
                     {
                         if (_tcsrchr(bak.rel_path, _T('/')))
                         {
-                            eu_wstr_replace(bak.rel_path, MAX_PATH, _T("/"), _T("\\"));
+                            eu_wstr_replace(bak.rel_path, MAX_BUFFER, _T("/"), _T("\\"));
                         }
                         on_file_only_open(&bak, true);
                     }
@@ -1140,8 +1140,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_COPY_PATHNAME:
                     if (pnode && *pnode->pathname)
                     {
-                        TCHAR unix_path[MAX_PATH] = {0};
-                        if (util_under_wine() && util_get_unix_file_name(pnode->pathname, unix_path, MAX_PATH))
+                        TCHAR unix_path[MAX_BUFFER] = {0};
+                        if (util_under_wine() && util_get_unix_file_name(pnode->pathname, unix_path, MAX_BUFFER))
                         {
                             on_edit_push_clipboard(unix_path);
                             break;
@@ -1152,8 +1152,8 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_COPY_PATHFILENAME:
                     if (pnode && *pnode->pathfile)
                     {
-                        TCHAR unix_path[MAX_PATH] = {0};
-                        if (util_under_wine() && util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH))
+                        TCHAR unix_path[MAX_BUFFER] = {0};
+                        if (util_under_wine() && util_get_unix_file_name(pnode->pathfile, unix_path, MAX_BUFFER))
                         {
                             on_edit_push_clipboard(unix_path);
                             break;
@@ -1701,14 +1701,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_INTRODUTION:
                 {
                     file_backup bak = {0};
-                    _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\README_CN.MD"), eu_module_path);
+                    _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\README_CN.MD"), eu_module_path);
                     on_file_only_open(&bak, true);
                     break;
                 }
                 case IDM_CHANGELOG:
                 {
                     file_backup bak = {0};
-                    _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\share\\changelog"), eu_module_path);
+                    _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\share\\changelog"), eu_module_path);
                     on_file_only_open(&bak, true);
                     break;
                 }

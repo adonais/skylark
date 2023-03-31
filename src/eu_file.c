@@ -28,7 +28,7 @@ static bool
 on_file_set_filter(const TCHAR *ext, TCHAR **pfilter)
 {
     TCHAR p_all[] = {'A','l','l',' ','F','i','e','s','(','*','.','*',')','\0','*','.','*','\0','\0'};
-    if (!(*pfilter = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH+1)))
+    if (!(*pfilter = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER + 1)))
     {
         return false;
     }
@@ -55,7 +55,7 @@ on_file_set_filter(const TCHAR *ext, TCHAR **pfilter)
         }
         if (pext && pdesc)
         {
-            int l = _sntprintf(*pfilter, MAX_PATH, _T("%s(%s)"), pdesc, pext);
+            int l = _sntprintf(*pfilter, MAX_BUFFER, _T("%s(%s)"), pdesc, pext);
             int ext_len = _tcslen(exts) > 0 ? (int)_tcslen(exts) - 1 : 0;
             exts[ext_len] = 0;   // strip ';'
             memcpy(*pfilter + l + 1, exts, ext_len * sizeof(TCHAR));
@@ -191,12 +191,12 @@ on_file_refresh_recent_menu(void *data, int count, char **column, char **names)
     {
         if (column[i][0] != 0)
         {
-            TCHAR ptr_row[MAX_PATH + 1] = {0};
-            if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, ptr_row, MAX_PATH))
+            TCHAR ptr_row[MAX_BUFFER] = {0};
+            if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, ptr_row, MAX_BUFFER))
             {
                if (_tcsrchr(ptr_row, _T('&')))
                {
-                   eu_wstr_replace(ptr_row, MAX_PATH, _T("&"), _T("&&"));
+                   eu_wstr_replace(ptr_row, MAX_BUFFER, _T("&"), _T("&&"));
                }
                AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE + index, ptr_row);
             }
@@ -244,7 +244,7 @@ on_file_push_recent(const eu_tabpage *pnode)
     file_recent *precent = (file_recent *)calloc(1, sizeof(file_recent));
     if (precent)
     {
-        if (pnode && util_make_u8(pnode->pathfile, precent->path, MAX_PATH-1)[0])
+        if (pnode && util_make_u8(pnode->pathfile, precent->path, MAX_BUFFER)[0])
         {   // 也支持16进制编辑器获取实时位置
             precent->postion = eu_sci_call((eu_tabpage *)pnode, SCI_GETCURRENTPOS, 0, 0);
             precent->hex = !(pnode->pmod && pnode->plugin) ? pnode->hex_mode : 0;
@@ -286,22 +286,116 @@ on_file_clear_recent(void)
     }
 }
 
+/******************************************************************
+ * _tsplitpath_s (MSVCRT for wine)
+ *
+ * Secure version of _tsplitpath
+ */
+static int
+on_file_tsplitpath(const TCHAR *inpath, TCHAR *drive, size_t sz_drive, TCHAR *dir, size_t sz_dir, 
+                   TCHAR *fname, size_t sz_fname, TCHAR *ext, size_t sz_ext)
+{
+    const TCHAR *p, *end;
+    if (!inpath || (!drive && sz_drive) || (drive && !sz_drive) || (!dir && sz_dir) || (dir && !sz_dir) ||
+        (!fname && sz_fname) || (fname && !sz_fname) || (!ext && sz_ext) || (ext && !sz_ext))
+    {
+        *_errno() = EINVAL;
+        return EINVAL;
+    }
+    if (inpath[0] && inpath[1] == ':')
+    {
+        if (drive)
+        {
+            if (sz_drive <= 2)
+            {
+                goto do_error;
+            }
+            drive[0] = inpath[0];
+            drive[1] = inpath[1];
+            drive[2] = 0;
+        }
+        inpath += 2;
+    }
+    else if (drive)
+    {
+        drive[0] = '\0';
+    }
+    /* look for end of directory part */
+    end = NULL;
+    for (p = inpath; *p; p++)
+    {
+        if (*p == '/' || *p == '\\') end = p + 1;
+    }
+    if (end) /* got a directory */
+    {
+        if (dir)
+        {
+            if (sz_dir <= (size_t)(end - inpath))
+            {
+                goto do_error;
+            }
+            memcpy(dir, inpath, (end - inpath) * sizeof(wchar_t));
+            dir[end - inpath] = 0;
+        }
+        inpath = end;
+    }
+    else if (dir)
+    {
+        dir[0] = 0;
+    }
+    /* look for extension: what's after the last dot */
+    end = NULL;
+    for (p = inpath; *p; p++)
+    {
+        if (*p == '.') end = p;
+    }
+    if (!end)
+    {
+        end = p; /* there's no extension */
+    }
+    if (fname)
+    {
+        if (sz_fname <= (size_t)(end - inpath))
+        {
+            goto do_error;
+        }
+        memcpy(fname, inpath, (end - inpath) * sizeof(wchar_t));
+        fname[end - inpath] = 0;
+    }
+    if (ext)
+    {
+        if (sz_ext <= _tcslen(end))
+        {
+            goto do_error;
+        }
+        _tcscpy(ext, end);
+    }
+    return 0;
+do_error:
+    if (drive) drive[0] = '\0';
+    if (dir) dir[0] = '\0';
+    if (fname) fname[0] = '\0';
+    if (ext) ext[0] = '\0';
+    *_errno() = ERANGE;
+    return ERANGE;
+}
+
 static void
 on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname)
 {
     TCHAR drv[_MAX_DRIVE];
-    TCHAR path[_MAX_DIR];
     TCHAR ext[_MAX_EXT] = {0};
-    TCHAR part[_MAX_FNAME] = {0};
+    TCHAR path[MAX_BUFFER] = {0};
+    TCHAR part[MAX_PATH] = {0};
     TCHAR *ptr_part = mainname ? mainname : part;
     TCHAR *ptr_ext = extname ? extname : ext;
-    _tsplitpath(full_path, drv, path, ptr_part, ptr_ext);
+    on_file_tsplitpath(full_path, drv, _MAX_DRIVE, path, MAX_BUFFER, ptr_part, MAX_PATH, ptr_ext, _MAX_EXT);
     if (pathname)
     {
         *pathname = 0;
         if (_tcslen(drv) > 0 && _tcslen(path) > 0)
         {
-            _sntprintf(pathname, _MAX_DIR, _T("%s%s"), drv, path);
+            _sntprintf(pathname, MAX_BUFFER, _T("%s%s"), drv, path);
         }
     }
     if (filename)
@@ -309,7 +403,7 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TC
         *filename = 0;
         if (_tcslen(ptr_part) > 0 || _tcslen(ptr_ext) > 0)
         {
-            _sntprintf(filename, _MAX_FNAME, _T("%s%s"), ptr_part, ptr_ext);
+            _sntprintf(filename, MAX_PATH, _T("%s%s"), ptr_part, ptr_ext);
         }
     }
 }
@@ -498,7 +592,6 @@ on_file_attr_parser(eu_tabpage *pnode, char (*pstr)[MAX_PATH])
 static int
 on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
 {
-    char *p = NULL;
     char *url = NULL;
     CURL *curl = NULL;
     CURLcode res = EUE_CURL_INIT_FAIL;
@@ -512,35 +605,41 @@ on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
     {
         return res;
     }
-    if ((p = strrchr(url, '/')) && strlen(p) > 1)
+    do
     {
-        p[1] = 0;
-    }
-    if (!(curl = on_remote_init_socket(url, pserver)))
+        char *p = NULL;
+        if ((p = strrchr(url, '/')) && strlen(p) > 1)
+        {
+            p[1] = 0;
+        }
+        if (!(curl = on_remote_init_socket(url, pserver)))
+        {
+            break;
+        }
+        // INOUT, 传送一个文件名, 返回一个数组指针
+        data[0][0] = ' ';
+        util_make_u8(pnode->filename, &data[0][1], MAX_PATH - 2);
+        eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+        eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
+        eu_curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "sftp");
+        eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_header_parser);
+        eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
+        if ((res = eu_curl_easy_perform(curl)) == CURLE_OK || res == CURLE_WRITE_ERROR)
+        {
+            res = CURLE_OK;
+            on_file_attr_parser(pnode, data);
+        }
+        else
+        {
+            const char *err_string = eu_curl_easy_strerror(res);
+            printf("%s error[%d]: %s\n", __FUNCTION__, res, err_string);
+            pnode->raw_size = 0;
+        }
+    } while(0);
+    if (curl)
     {
-        free(url);
-        return res;
+        eu_curl_easy_cleanup(curl);
     }
-    // INOUT, 传送一个文件名, 返回一个数组指针
-    data[0][0] = ' ';
-    util_make_u8(pnode->filename, &data[0][1], MAX_PATH - 2);
-    eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
-    eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
-    eu_curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "sftp");
-    eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_header_parser);
-    eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, data);
-    if ((res = eu_curl_easy_perform(curl)) == CURLE_OK || res == CURLE_WRITE_ERROR)
-    {
-        res = CURLE_OK;
-        on_file_attr_parser(pnode, data);
-    }
-    else
-    {
-        const char *err_string = eu_curl_easy_strerror(res);
-        printf("%s error[%d]: %s\n", __FUNCTION__, res, err_string);
-        pnode->raw_size = 0;
-    }
-    eu_curl_easy_cleanup(curl);
     free(url);
     return res;
 }
@@ -559,7 +658,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     {
         pfull = pbak->bak_path;
     }
-    if (*pfull == 0)
+    if (STR_IS_NUL(pfull))
     {
         return EUE_PATH_NULL;
     }
@@ -657,8 +756,8 @@ on_file_load_plugins(eu_tabpage *pnode, bool route_open)
             pnode->plugin->funcs.setwindow(&pnode->plugin->npp, &pnode->plugin->win);
             if (!route_open)
             {
-                char u8_file[MAX_PATH] = {0};
-                util_make_u8(pnode->bakpath[0] ? pnode->bakpath : pnode->pathfile, u8_file, MAX_PATH);
+                char u8_file[MAX_BUFFER] = {0};
+                util_make_u8(pnode->bakpath[0] ? pnode->bakpath : pnode->pathfile, u8_file, MAX_BUFFER);
                 pnode->plugin->stream.url = (const char *)u8_file;
                 pnode->plugin->stream.end = (intptr_t)pnode->raw_size;
                 ret = pnode->plugin->funcs.asfile(&pnode->plugin->npp, &pnode->plugin->stream);
@@ -709,7 +808,7 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
         pfull = pbak->bak_path;
         is_utf8 = true;
     }
-    if (*pfull == 0)
+    if (STR_IS_NUL(pfull))
     {
         return EUE_PATH_NULL;
     }
@@ -782,6 +881,10 @@ on_file_open_if(const TCHAR *pfile, bool selection)
 {
     int res = SKYLARK_NOT_OPENED;
     eu_tabpage *pnode = NULL;
+    if (!pfile)
+    {
+        return EUE_PATH_NULL;
+    }
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         TCITEM tci = {TCIF_PARAM};
@@ -800,9 +903,9 @@ on_file_open_if(const TCHAR *pfile, bool selection)
             }
             else if (!url_has_remote(pfile) && _tcsrchr(pfile, _T('/')))
             {
-                TCHAR temp[MAX_PATH+1] = {0};
-                _sntprintf(temp, MAX_PATH, _T("%s"), pfile);
-                eu_wstr_replace(temp, MAX_PATH, _T("/"), _T("\\"));
+                TCHAR temp[MAX_BUFFER] = {0};
+                _sntprintf(temp, MAX_BUFFER, _T("%s"), pfile);
+                eu_wstr_replace(temp, MAX_BUFFER, _T("/"), _T("\\"));
                 if (_tcscmp(pnode->pathfile, temp) == 0)
                 {
                     res = selection ? on_tabpage_selection(pnode, index) : SKYLARK_OPENED;
@@ -981,18 +1084,21 @@ on_file_max_date(file_backup *pbak)
 {
     if (pbak)
     {
-         struct _stat rel_t = {0};
-         struct _stat bak_t = {0};
-         _tstat(pbak->rel_path, &rel_t);
-         if (pbak->bak_path[0])
-         {
-             _tstat(pbak->bak_path, &bak_t);
-         }
-         if (rel_t.st_mtime > bak_t.st_mtime)
-         {
-             pbak->status = 0;
-         }
-         return rel_t.st_mtime > 0 ? rel_t.st_mtime : bak_t.st_mtime;
+        struct _stat rel_t = {0};
+        struct _stat bak_t = {0};
+        if (STR_NOT_NUL(pbak->rel_path))
+        {
+            _tstat(pbak->rel_path, &rel_t);
+        }
+        if (STR_NOT_NUL(pbak->bak_path))
+        {
+            _tstat(pbak->bak_path, &bak_t);
+        }
+        if (rel_t.st_mtime > bak_t.st_mtime)
+        {
+            pbak->status = 0;
+        }
+        return rel_t.st_mtime > 0 ? rel_t.st_mtime : bak_t.st_mtime;
     }
     return 0;
 }
@@ -1015,29 +1121,31 @@ on_file_node_initialize(eu_tabpage **p, file_backup *pbak)
         (*p)->hex_mode = !!pbak->hex;
         (*p)->is_blank = pbak->blank;
         (*p)->be_modify = !!pbak->status;
-        // 有可能是远程文件
-        if (url_has_remote(pbak->rel_path))
-        {
-            remotefs *pserver = on_remote_list_find(pbak->rel_path);
-            if (pserver)
+        if (STR_NOT_NUL(pbak->rel_path))
+        {   // 有可能是远程文件
+            if (url_has_remote(pbak->rel_path))
             {
-                memcpy(&((*p)->fs_server), pserver, sizeof(remotefs));
+                remotefs *pserver = on_remote_list_find(pbak->rel_path);
+                if (pserver)
+                {
+                    memcpy(&((*p)->fs_server), pserver, sizeof(remotefs));
+                }
+                _tsplitpath(pbak->rel_path, NULL, NULL, (*p)->filename, (*p)->extname);
+                if (_tcslen((*p)->extname) > 0)
+                {
+                    _tcsncat((*p)->filename, (*p)->extname, MAX_PATH);
+                }
+                _tcsncpy((*p)->pathfile, pbak->rel_path, MAX_BUFFER);
             }
-            _tsplitpath(pbak->rel_path, NULL, NULL, (*p)->filename, (*p)->extname);
-            if (_tcslen((*p)->extname) > 0)
+            else
             {
-                _tcsncat((*p)->filename, (*p)->extname, MAX_PATH-1);
+                on_file_splite_path(pbak->rel_path, (*p)->pathname, (*p)->filename, NULL, (*p)->extname);
+                _tcsncpy((*p)->pathfile, pbak->rel_path, MAX_BUFFER);
             }
-            _tcsncpy((*p)->pathfile, pbak->rel_path, MAX_PATH - 1);
         }
-        else
+        if (STR_NOT_NUL(pbak->bak_path))
         {
-            on_file_splite_path(pbak->rel_path, (*p)->pathname, (*p)->filename, NULL, (*p)->extname);
-            _tcsncpy((*p)->pathfile, pbak->rel_path, MAX_PATH - 1);
-        }
-        if (pbak->bak_path[0])
-        {
-            _tcsncpy((*p)->bakpath, pbak->bak_path, MAX_PATH - 1);
+            _tcsncpy((*p)->bakpath, pbak->bak_path, MAX_BUFFER);
         }
         if (!(*p)->is_blank)
         {
@@ -1115,7 +1223,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
 static int
 on_file_open_bakcup(file_backup *pbak)
 {
-    if (!(pbak->rel_path[0] || pbak->bak_path[0]))
+    if (!pbak || (STR_IS_NUL(pbak->rel_path)))
     {
         return on_file_new();
     }
@@ -1123,8 +1231,8 @@ on_file_open_bakcup(file_backup *pbak)
     {
         HANDLE hfile = NULL;
         WIN32_FIND_DATA st_file = {0};
-        TCHAR base_path[MAX_PATH+1] = {0};
-        _tcsncpy(base_path, pbak->rel_path, MAX_PATH);
+        TCHAR base_path[MAX_BUFFER] = {0};
+        _tcsncpy(base_path, pbak->rel_path, MAX_BUFFER);
         if (*base_path != 0)
         {
             if (_tcsrchr(base_path, _T('\\')))
@@ -1146,7 +1254,7 @@ on_file_open_bakcup(file_backup *pbak)
             if (!(st_file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
             {
                 file_backup bak = {0};
-                _sntprintf(bak.rel_path, MAX_PATH - 1, _T("%s\\%s"), base_path, st_file.cFileName);
+                _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\%s"), base_path, st_file.cFileName);
                 on_file_only_open(&bak, true);
             }
         } while (FindNextFile(hfile, &st_file));
@@ -1178,19 +1286,19 @@ on_file_open(void)
     if (!(GetFileAttributes(file_list) & FILE_ATTRIBUTE_DIRECTORY))
     {
         file_backup bak = {0};
-        _tcsncpy(bak.rel_path, file_list, MAX_PATH);
+        _tcsncpy(bak.rel_path, file_list, MAX_BUFFER);
         err = (on_file_only_open(&bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
     else
     {
-        TCHAR pathname[MAX_PATH + 1] = {0};
-        _tcsncpy(pathname, file_list, MAX_PATH);
+        TCHAR pathname[MAX_BUFFER] = {0};
+        _tcsncpy(pathname, file_list, MAX_BUFFER - 1);
         int path_len = (int) _tcslen(pathname);
         TCHAR *p = file_list + path_len + 1;
         while (*p)
         {
             file_backup bak = {0};
-            _sntprintf(bak.rel_path, MAX_PATH, _T("%s\\%s"), pathname, p);
+            _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\%s"), pathname, p);
             err = (on_file_only_open(&bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
             if (err != SKYLARK_OK)
             {
@@ -1218,7 +1326,7 @@ on_file_out_open(const int index, uint32_t *pid)
     if (p && (!p->is_blank  || TAB_NOT_NUL(p)))
     {
         TCHAR process[MAX_BUFFER] = {0};
-        if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
+        if (GetModuleFileName(NULL , process , MAX_BUFFER) > 0)
         {
             int err = SKYLARK_NOT_OPENED;
             if (!eu_get_config()->m_session)
@@ -1228,17 +1336,17 @@ on_file_out_open(const int index, uint32_t *pid)
                     sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
                     sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
                     sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
-                    _sntprintf(process, MAX_BUFFER - 1, _T("%s%s\"%s\" -n%zd -c%zd"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
+                    _sntprintf(process, MAX_BUFFER, _T("%s%s\"%s\" -n%zd -c%zd"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
                     if (!p->plugin && p->hex_mode)
                     {
-                        _tcsncat(process, _T(" -hex"), MAX_BUFFER - 1);
+                        _tcsncat(process, _T(" -hex"), MAX_BUFFER);
                     }
                     err = on_file_close(p, FILE_ONLY_CLOSE);
                 }
             }
             else
             {
-                _sntprintf(process, MAX_BUFFER - 1, _T("%s%s"), process, _T(" -noremote "));
+                _sntprintf(process, MAX_BUFFER, _T("%s%s"), process, _T(" -noremote "));
                 err = on_file_close(p, FILE_REMOTE_CLOSE);
             }
             if (err == SKYLARK_OK)
@@ -1259,13 +1367,16 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
 {
     UNREFERENCED_PARAMETER(hwnd);
     int err = SKYLARK_NOT_OPENED;
-    if (pbak->status || (_tcslen(pbak->rel_path) > 0 && !url_has_remote(pbak->rel_path)))
+    if (pbak && pbak->rel_path)
     {
-        err = on_file_open_bakcup(pbak);
-    }
-    else if (url_has_remote(pbak->rel_path))
-    {
-        err = (on_file_open_remote(NULL, pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+        if (pbak->status || (_tcslen(pbak->rel_path) > 0 && !url_has_remote(pbak->rel_path)))
+        {
+            err = on_file_open_bakcup(pbak);
+        }
+        else if (url_has_remote(pbak->rel_path))
+        {
+            err = (on_file_open_remote(NULL, pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+        }
     }
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败且标签小于1,则建立一个空白标签页
@@ -1282,7 +1393,7 @@ on_file_drop(HDROP hdrop)
     for (int index = 0; index < count; ++index)
     {
         memset(bak.rel_path, 0, sizeof(bak.rel_path));
-        DragQueryFile(hdrop, index, bak.rel_path, MAX_PATH);
+        DragQueryFile(hdrop, index, bak.rel_path, MAX_BUFFER);
         uint32_t attr = GetFileAttributes(bak.rel_path);
         if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
         {
@@ -1290,7 +1401,7 @@ on_file_drop(HDROP hdrop)
         }
         else
         {
-            _tcsncat(bak.rel_path, _T("\\*"), MAX_PATH);
+            _tcsncat(bak.rel_path, _T("\\*"), MAX_BUFFER);
             on_file_open_bakcup(&bak);
             break;
         }
@@ -1372,37 +1483,36 @@ static int
 on_file_remote_thread(eu_tabpage *p, file_backup *pbak, remotefs *premote)
 {
     int ret = EUE_CURL_INIT_FAIL;
-    if (p->fs_server.networkaddr[0] == 0 && premote)
+    if (pbak && STR_NOT_NUL(pbak->rel_path))
     {
-        memcpy(&(p->fs_server), premote, sizeof(remotefs));
-    }
-    if ((p->reserved0 = (intptr_t)eu_utf16_utf8(pbak->rel_path, NULL)) != 0)
-    {
-        char *url = NULL;
-        CURL *curl = NULL;
-        // 没有做更多的url解码, 我们这里只替换空格
-        if ((url = util_str_replace((const char *)p->reserved0, " ", "%20")) &&
-            (curl = on_remote_init_socket(url, &p->fs_server)))
+        if (p->fs_server.networkaddr[0] == 0 && premote)
         {
-            eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_read_remote);
-            eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, p);
-        #if APP_DEBUG
-            eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        #endif
-            eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
-            eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
-            eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-            ret = eu_curl_easy_perform(curl);
-            if (!ret)
-            {
-                ret = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &p->st_mtime);
-                printf("pnode->st_mtime = %lld\n", p->st_mtime);
-            }
-            eu_curl_easy_cleanup(curl);
+            memcpy(&(p->fs_server), premote, sizeof(remotefs));
         }
-        free((void *)p->reserved0);
-        p->reserved0 = 0;
-        eu_safe_free(url);
+        if ((p->reserved0 = (intptr_t)eu_utf16_utf8(pbak->rel_path, NULL)) != 0)
+        {
+            CURL *curl = NULL;
+            if ((curl = on_remote_init_socket((const char *)p->reserved0, &p->fs_server)))
+            {
+                eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_file_read_remote);
+                eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, p);
+            #if APP_DEBUG
+                eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+            #endif
+                eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
+                eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
+                eu_curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+                ret = eu_curl_easy_perform(curl);
+                if (!ret)
+                {
+                    ret = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &p->st_mtime);
+                    printf("pnode->st_mtime = %lld\n", p->st_mtime);
+                }
+                eu_curl_easy_cleanup(curl);
+            }
+            free((void *)p->reserved0);
+            p->reserved0 = 0;
+        }
     }
     return ret;
 }
@@ -1710,8 +1820,8 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     }  // 编辑器文件另存为
     if (pnode->is_blank || save_as)
     {
-        TCHAR full_path[MAX_PATH] = {0};
-        _tcsncpy(full_path, pnode->filename, MAX_PATH);
+        TCHAR full_path[MAX_BUFFER] = {0};
+        _tcsncpy(full_path, pnode->filename, MAX_BUFFER);
         if (on_file_get_filename_dlg(full_path, _countof(full_path)))
         {
             err = EUE_LOCAL_FILE_ERR;
@@ -1720,7 +1830,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
         _tsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
         if (_tcslen(pnode->extname) > 0)
         {
-            _tcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+            _tcsncat(pnode->filename, pnode->extname, MAX_BUFFER);
         }
         if (!pnode->pmod)
         {   // 非插件另存为
@@ -1729,11 +1839,11 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
                 err = EUE_WRITE_FILE_ERR;
                 goto SAVE_FINAL;
             }
-            _tcsncpy(pnode->pathfile, full_path, MAX_PATH - 1);
+            _tcsncpy(pnode->pathfile, full_path, MAX_BUFFER);
             // 有可能是远程服务器文件, 清除网址
             pnode->fs_server.networkaddr[0] = 0;
             on_file_update_time(pnode, 0);
-            util_set_title(pnode->pathfile);
+            util_set_title(pnode);
             pnode->doc_ptr = on_doc_get_type(pnode->filename);
             on_sci_before_file(pnode);
             on_sci_after_file(pnode);
@@ -1902,11 +2012,11 @@ on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
     {   // 保存本地文件, 并移动到cache_path
         int ret = 0;
         wchar_t *tmp_path = NULL;
-        wchar_t pathfile[MAX_PATH] = {0};
+        wchar_t pathfile[MAX_BUFFER] = {0};
         if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && tmp_path)
         {
-            _snwprintf(pathfile, MAX_PATH - 1 , L"%s", tmp_path);
-            wcsncat(tmp_path, TMP_SUFFX, MAX_PATH - 1);
+            _snwprintf(pathfile, MAX_BUFFER, L"%s", tmp_path);
+            wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
             ret = CopyFileW(pathfile, tmp_path, false);
         }
         if (ret)
@@ -1947,12 +2057,12 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 on_file_guid(buf, QW_SIZE - 1);
                 if (!pnode->pmod)
                 {
-                    _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
                     on_file_do_write(pnode, filebak.bak_path, true, false);
                 }
                 else
                 {
-                    _sntprintf(filebak.bak_path, MAX_PATH, _T("%s\\conf\\cache\\%s%s"), eu_module_path, buf, pnode->extname);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\conf\\cache\\%s%s"), eu_module_path, buf, pnode->extname);
                     on_file_npp_write(pnode, filebak.bak_path, true);
                 }
                 filebak.status = 1;
@@ -2017,7 +2127,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     }
     else if (on_sci_doc_modified(pnode))
     {
-        TCHAR msg[100 + MAX_PATH];
+        TCHAR msg[100 + MAX_BUFFER];
         if (pnode->pathfile[0] == 0)
         {
             LOAD_I18N_RESSTR(IDC_MSG_SAVE_STR1, save_str);
@@ -2260,14 +2370,14 @@ void
 on_file_edit_restart(HWND hwnd, const bool admin)
 {
     HANDLE handle = NULL;
-    TCHAR process[MAX_PATH +1] = {0};
-    if (GetModuleFileName(NULL , process , MAX_PATH) > 0)
+    TCHAR process[MAX_BUFFER] = {0};
+    if (GetModuleFileName(NULL , process , MAX_BUFFER) > 0)
     {
         int len = 0;
         uint32_t pid = GetCurrentProcessId();
-        _tcsncat(process, _T(" -restart "), MAX_PATH);
+        _tcsncat(process, _T(" -restart "), MAX_BUFFER);
         len = (int)_tcslen(process);
-        _sntprintf(process + len, MAX_PATH - len, _T("%lu"), pid);
+        _sntprintf(process + len, MAX_BUFFER - len, _T("%lu"), pid);
         on_file_kill_tree(pid);
         if (!admin || on_reg_admin())
         {
@@ -2322,11 +2432,11 @@ on_file_do_restore(void *data, int count, char **column, char **names)
     {
         if (STRCMP(names[i], ==, "szName"))
         {
-            if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, bak.rel_path, MAX_PATH))
+            if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, bak.rel_path, _countof(bak.rel_path)))
             {
                 if (_tcsrchr(bak.rel_path, _T('&')))
                 {
-                    eu_wstr_replace(bak.rel_path, MAX_PATH, _T("&"), _T("&&"));
+                    eu_wstr_replace(bak.rel_path, _countof(bak.rel_path), _T("&"), _T("&&"));
                 }
             }
         }

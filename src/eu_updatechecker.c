@@ -95,9 +95,9 @@ static HANDLE
 on_update_download(const int64_t dtag)
 {
     WCHAR uri[MAX_SIZE] = {0};
-    WCHAR path[MAX_PATH] = {0};
+    WCHAR path[MAX_BUFFER] = {0};
     WCHAR wcmd[LARGER_LEN] = {0};
-    _snwprintf(path, MAX_PATH - 1, L"%s\\conf\\cache", eu_module_path);
+    _snwprintf(path, MAX_BUFFER, L"%s\\conf\\cache", eu_module_path);
     _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -uri \"%s\" -e \"%s\" -k %u -hwnd %Id -dt %I64d", eu_module_path,
                UPDATE_EXE, util_make_u16(eu_get_config()->upgrade.url, uri, MAX_SIZE - 1), path, GetCurrentProcessId(), (intptr_t)eu_module_hwnd(), dtag);
     printf("wcmd = [[%ls]]\n", wcmd);

@@ -843,7 +843,7 @@ on_toolbar_update_env(eu_tabpage *pnode)
         TCHAR *pline = NULL;
         TCHAR *psel = NULL;
         TCHAR file_part[_MAX_FNAME] = {0};
-        TCHAR file_wine[MAX_PATH + 1] = {0};
+        TCHAR file_wine[MAX_BUFFER] = {0};
         bool wine = util_under_wine();
         char *line_str = util_strdup_line(pnode, -1, &out1);
         char *sel_str = util_strdup_select(pnode, &out2, 0);
@@ -862,7 +862,7 @@ on_toolbar_update_env(eu_tabpage *pnode)
             {
                 case 0:
                 {
-                    if (wine && util_get_unix_file_name(pnode->pathfile, file_wine, MAX_PATH))
+                    if (wine && util_get_unix_file_name(pnode->pathfile, file_wine, MAX_BUFFER))
                     {
                         SetEnvironmentVariable(env_name[i], file_wine);
                         memset(file_wine, 0, sizeof(file_wine));
@@ -875,7 +875,7 @@ on_toolbar_update_env(eu_tabpage *pnode)
                 }
                 case 1:
                 {
-                    if (wine && util_get_unix_file_name(pnode->pathname, file_wine, MAX_PATH))
+                    if (wine && util_get_unix_file_name(pnode->pathname, file_wine, MAX_BUFFER))
                     {
                         SetEnvironmentVariable(env_name[i], file_wine);
                         memset(file_wine, 0, sizeof(file_wine));
@@ -1042,20 +1042,20 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
     {
         bool wine = false;
         HANDLE handle = NULL;
-        TCHAR pcd[MAX_PATH] = {0};
-        TCHAR cmd_exec[MAX_PATH] = _T("cmd.exe");
+        TCHAR pcd[MAX_BUFFER] = {0};
+        TCHAR cmd_exec[MAX_BUFFER] = _T("cmd.exe");
         if (pnode->is_blank || url_has_remote(pnode->pathfile))
         {
-            GetEnvironmentVariable(_T("USERPROFILE"), pcd, MAX_PATH);
+            GetEnvironmentVariable(_T("USERPROFILE"), pcd, MAX_BUFFER);
         }
         else
         {
-            _tcsncpy(pcd, pnode->pathname, MAX_PATH);
+            _tcsncpy(pcd, pnode->pathname, MAX_BUFFER);
         }
         if (eu_get_config()->m_path[0])
         {
             *cmd_exec = 0;
-            MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_PATH);
+            MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_BUFFER);
         }
         if ((wine = util_under_wine()))
         {
@@ -1068,9 +1068,9 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
             _sntprintf(plugin, MAX_PATH - 1, _T("%s\\plugins\\np_winexy.dll"), eu_module_path);
             util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
         #if (defined _M_X64) || (defined __x86_64__)
-            _sntprintf(cmd_exec, MAX_PATH - 1, _T("%s \"%s\" %s"), _T("/bin/wine64"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
+            _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\" %s"), _T("/bin/wine64"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
         #else
-            _sntprintf(cmd_exec, MAX_PATH - 1, _T("%s \"%s\" %s"), _T("/bin/wine"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
+            _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\" %s"), _T("/bin/wine"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
         #endif
         }
         if ((handle = eu_new_process(cmd_exec, NULL, pcd, 2, NULL)) != NULL)
