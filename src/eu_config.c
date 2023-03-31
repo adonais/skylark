@@ -534,7 +534,6 @@ eu_config_load_files(void)
         int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
         if (err == SQLITE_ABORT)
         {
-            _tputenv(_T("OPEN_FROM_SQL="));
             if (on_update_do())
             {
                 on_update_sql();

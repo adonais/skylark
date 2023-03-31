@@ -94,18 +94,18 @@ on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len)
 }
 
 static int
-on_file_get_filename_dlg(TCHAR *file_name, int name_len)
+on_file_get_filename_dlg(TCHAR *file_name, int name_len, const TCHAR *pcd)
 {
     int err = SKYLARK_OK;
     TCHAR *filter = NULL;
     OPENFILENAME ofn = {sizeof(ofn),};
-    if (!file_name)
+    if (!file_name ||!pcd)
     {
         return EUE_POINT_NULL;
     }
     LOAD_I18N_RESSTR(IDS_TOOLBAR_2, lptext);
     TCHAR *p = _tcsrchr(file_name, _T('.'));
-    if (!on_file_set_filter(p, &filter))
+    if (!on_file_set_filter(p, &filter) || !filter)
     {
         return EUE_EXT_FILTER_ERR;
     }
@@ -115,9 +115,12 @@ on_file_get_filename_dlg(TCHAR *file_name, int name_len)
     ofn.nMaxFile = name_len;
     ofn.lpstrFilter = filter;
     ofn.lpstrTitle = lptext;
-    ofn.Flags = OFN_ENABLESIZING | OFN_HIDEREADONLY;
+    ofn.lpstrInitialDir = pcd;
+    ofn.Flags = OFN_ENABLESIZING | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
     err = !GetSaveFileName(&ofn);
     free(filter);
+    // 重置默认工作目录
+    SetCurrentDirectory(eu_module_path);
     return err;
 }
 
@@ -194,11 +197,11 @@ on_file_refresh_recent_menu(void *data, int count, char **column, char **names)
             TCHAR ptr_row[MAX_BUFFER] = {0};
             if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, ptr_row, MAX_BUFFER))
             {
-               if (_tcsrchr(ptr_row, _T('&')))
-               {
-                   eu_wstr_replace(ptr_row, MAX_BUFFER, _T("&"), _T("&&"));
-               }
-               AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE + index, ptr_row);
+                if (_tcsrchr(ptr_row, _T('&')))
+                {
+                    eu_wstr_replace(ptr_row, MAX_BUFFER, _T("&"), _T("&&"));
+                }
+                AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE + index, ptr_row);
             }
         }
     }
@@ -1820,9 +1823,14 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     }  // 编辑器文件另存为
     if (pnode->is_blank || save_as)
     {
+        TCHAR pcd[MAX_PATH] = {0};
         TCHAR full_path[MAX_BUFFER] = {0};
         _tcsncpy(full_path, pnode->filename, MAX_BUFFER);
-        if (on_file_get_filename_dlg(full_path, _countof(full_path)))
+        if (pnode->is_blank || url_has_remote(pnode->pathfile))
+        {
+            GetEnvironmentVariable(_T("USERPROFILE"), pcd, MAX_PATH - 1);
+        }
+        if (on_file_get_filename_dlg(full_path, _countof(full_path), STR_NOT_NUL(pcd) ? pcd : pnode->pathname))
         {
             err = EUE_LOCAL_FILE_ERR;
             goto SAVE_FINAL;
