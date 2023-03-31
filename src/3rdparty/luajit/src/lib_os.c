@@ -52,10 +52,14 @@ LJLIB_CF(os_execute)
   return 1;
 #endif
 #else
-  wchar_t u_cmd[MAX_PATH+1] = {0};
+  wchar_t *u_cmd = NULL;
   const char *cmd = luaL_optstring(L, 1, NULL);
-  MultiByteToWideChar(CP_UTF8, 0, cmd, -1, u_cmd, MAX_PATH);
+  u_cmd = lj_utf8_utf16(cmd, NULL);
   int stat = _wsystem(u_cmd);
+  if (u_cmd)
+  {
+    free(u_cmd);
+  }
 #if LJ_52
   if (cmd)
     return luaL_execresult(L, stat);
@@ -69,21 +73,35 @@ LJLIB_CF(os_execute)
 
 LJLIB_CF(os_remove)
 {
-  wchar_t u_filename[MAX_PATH+1] = {0};
+  wchar_t *u_filename = NULL;
   const char *filename = luaL_checkstring(L, 1);
-  MultiByteToWideChar(CP_UTF8, 0, filename, -1, u_filename, MAX_PATH);
-  return luaL_fileresult(L, _wremove(u_filename) == 0, filename);
+  u_filename = lj_utf8_utf16(filename, NULL);
+  int stat = u_filename ? _wremove(u_filename) : -1;
+  if (u_filename)
+  {
+    free(u_filename);
+  }
+  return luaL_fileresult(L, stat == 0, filename);
 }
 
 LJLIB_CF(os_rename)
 {
-  wchar_t u_fromname[MAX_PATH+1] = {0};
-  wchar_t u_toname[MAX_PATH+1] = {0}; 
+  wchar_t *u_fromname = NULL;
+  wchar_t *u_toname = NULL;
   const char *fromname = luaL_checkstring(L, 1);
   const char *toname = luaL_checkstring(L, 2);
-  MultiByteToWideChar(CP_UTF8, 0, fromname, -1, u_fromname, MAX_PATH);
-  MultiByteToWideChar(CP_UTF8, 0, toname, -1, u_toname, MAX_PATH);
-  return luaL_fileresult(L, _wrename(u_fromname, u_toname) == 0, fromname);
+  u_fromname = lj_utf8_utf16(fromname, NULL);
+  u_toname = lj_utf8_utf16(toname, NULL);
+  int stat = (u_fromname && u_toname) ? _wrename(u_fromname, u_toname) : -1;
+  if (u_fromname)
+  {
+    free(u_fromname);
+  }
+  if (u_toname)
+  {
+    free(u_toname);
+  }
+  return luaL_fileresult(L, stat == 0, fromname);
 }
 
 LJLIB_CF(os_tmpname)
@@ -119,17 +137,23 @@ LJLIB_CF(os_getenv)
 #if LJ_TARGET_CONSOLE
   lua_pushnil(L);
 #else
-  char u8_var[1024+1] = {0};
+  char *u8_var = NULL;
   const char *envname = luaL_checkstring(L, 1);
   if (envname)
   {
-    wchar_t w_env[128+1] = {0}; 
-    MultiByteToWideChar(CP_UTF8, 0, envname, -1, w_env, 128);
-    const wchar_t *w_var = _wgetenv(w_env);
-    if (w_var)
-      WideCharToMultiByte(CP_UTF8, 0, w_var, -1, u8_var, 1024, NULL, NULL);    
+    wchar_t *w_env = lj_utf8_utf16(envname, NULL);
+    const wchar_t *w_var = w_env ? _wgetenv(w_env) : NULL;
+    u8_var = w_var ? lj_utf16_utf8(w_var, NULL) : NULL;
+    if (w_env)
+    {
+      free(w_env);
+    }
   }
   lua_pushstring(L, *u8_var?u8_var:NULL);  /* if NULL push nil */
+  if (u8_var)
+  {
+    free(u8_var);
+  }
 #endif
   return 1;
 }

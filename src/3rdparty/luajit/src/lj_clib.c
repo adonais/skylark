@@ -94,12 +94,12 @@ static const char *clib_check_lds(lua_State *L, const char *buf)
 /* Quick and dirty solution to resolve shared library name from ld script. */
 static const char *clib_resolve_lds(lua_State *L, const char *name)
 {
+  wchar_t *wname = NULL;
   FILE *fp = NULL;
   const char *p = NULL;
 #ifdef _WIN32
-  wchar_t wname[260+1] = {0};
-  MultiByteToWideChar(CP_UTF8, 0, name, -1, wname, 260);
-  fp = _wfopen(wname, L"r");
+  wname = lj_utf8_utf16(name, NULL);
+  fp = wname ? _wfopen(wname, L"r") : NULL;
 #else
   fp = fopen(name, "r");
 #endif
@@ -107,15 +107,19 @@ static const char *clib_resolve_lds(lua_State *L, const char *name)
     char buf[256];
     if (fgets(buf, sizeof(buf), fp)) {
       if (!strncmp(buf, "/* GNU ld script", 16)) {  /* ld script magic? */
-	while (fgets(buf, sizeof(buf), fp)) {  /* Check all lines. */
-	  p = clib_check_lds(L, buf);
-	  if (p) break;
-	}
+        while (fgets(buf, sizeof(buf), fp)) {  /* Check all lines. */
+          p = clib_check_lds(L, buf);
+          if (p) break;
+        }
       } else {  /* Otherwise check only the first line. */
-	p = clib_check_lds(L, buf);
+        p = clib_check_lds(L, buf);
       }
     }
     fclose(fp);
+  }
+  if (wname)
+  {
+    free(wname);
   }
   return p;
 }

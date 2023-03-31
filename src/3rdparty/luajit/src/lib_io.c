@@ -82,19 +82,23 @@ static IOFileUD *io_file_new(lua_State *L)
 
 static IOFileUD *io_file_open(lua_State *L, const char *mode)
 {
+  wchar_t *wfname = NULL;
   const char *fname = strdata(lj_lib_checkstr(L, 1));
   IOFileUD *iof = io_file_new(L);
 #ifdef _WIN32
-  wchar_t wfname[260+1] = {0};
-  wchar_t wmode[8+1] = {0};
-  MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 8);  
-  MultiByteToWideChar(CP_UTF8, 0, fname, -1, wfname, 260);
-  iof->fp = _wfopen(wfname, wmode);
+  wchar_t wmode[16+1] = {0};
+  MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 16);
+  wfname = lj_utf8_utf16(fname, NULL);
+  iof->fp = wfname ? _wfopen(wfname, wmode) : NULL;
 #else
   iof->fp = fopen(fname, mode);
 #endif
   if (iof->fp == NULL)
     luaL_argerror(L, 1, lj_strfmt_pushf(L, "%s: %s", fname, strerror(errno)));
+  if (wfname)
+  {
+    free(wfname);
+  }
   return iof;
 }
 
@@ -118,7 +122,7 @@ static int io_file_close(lua_State *L, IOFileUD *iof)
 #endif
   } else {
     lj_assertL((iof->type & IOFILE_TYPE_MASK) == IOFILE_TYPE_STDF,
-	       "close of unknown FILE* type");
+           "close of unknown FILE* type");
     setnilV(L->top++);
     lua_pushliteral(L, "cannot close standard file");
     return 2;
@@ -136,8 +140,8 @@ static int io_file_readnum(lua_State *L, FILE *fp)
     if (LJ_DUALNUM) {
       int32_t i = lj_num2int(d);
       if (d == (lua_Number)i && !tvismzero((cTValue *)&d)) {
-	setintV(L->top++, i);
-	return 1;
+    setintV(L->top++, i);
+    return 1;
       }
     }
     setnumV(L->top++, d);
@@ -416,19 +420,23 @@ LJLIB_PUSH(top-2) LJLIB_SET(!)  /* Set environment. */
 
 LJLIB_CF(io_open)
 {
+  wchar_t *wfname = NULL;
   const char *fname = strdata(lj_lib_checkstr(L, 1));
   GCstr *s = lj_lib_optstr(L, 2);
   const char *mode = s ? strdata(s) : "r";
   IOFileUD *iof = io_file_new(L);
 #ifdef _WIN32
-  wchar_t wfname[260+1] = {0};
-  wchar_t wmode[8+1] = {0};
-  MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 8);
-  MultiByteToWideChar(CP_UTF8, 0, fname, -1, wfname, 260);
-  iof->fp = _wfopen(wfname, wmode);
+  wchar_t wmode[16+1] = {0};
+  MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 16);
+  wfname = lj_utf8_utf16(fname, NULL);
+  iof->fp = wfname ? _wfopen(wfname, wmode) : NULL;
 #else
   iof->fp = fopen(fname, mode);
 #endif
+  if (wfname)
+  {
+    free(wfname);
+  }
   return iof->fp != NULL ? 1 : luaL_fileresult(L, 0, fname);
 }
 
@@ -444,11 +452,15 @@ LJLIB_CF(io_popen)
   fflush(NULL);
   iof->fp = popen(fname, mode);
 #else
-  wchar_t wfname[260+1] = {0};
-  wchar_t wmode[8+1] = {0};
-  MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 8);  
-  MultiByteToWideChar(CP_UTF8, 0, fname, -1, wfname, 260);
-  iof->fp = _wpopen(wfname, wmode);
+  wchar_t *wfname = NULL;
+  wchar_t wmode[16+1] = {0};
+  MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 16);  
+  wfname = lj_utf8_utf16(fname, NULL);
+  iof->fp = wfname ? _wpopen(wfname, wmode) : NULL;
+  if (wfname)
+  {
+    free(wfname);
+  }
 #endif
   return iof->fp != NULL ? 1 : luaL_fileresult(L, 0, fname);
 #else

@@ -81,17 +81,19 @@ static const char *reader_file(lua_State *L, void *ud, size_t *size)
   return *size > 0 ? ctx->buf : NULL;
 }
 
-LUALIB_API int luaL_loadfilex(lua_State *L, const char *filename,
-			      const char *mode)
+LUALIB_API int luaL_loadfilex(lua_State *L, const char *filename, const char *mode)
 {
   FileReaderCtx ctx;
   int status;
   const char *chunkname;
   if (filename) {
   #ifdef _WIN32
-    wchar_t wfname[260+1] = {0};
-    MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfname, 260);
-    ctx.fp = _wfopen(wfname, L"rb");
+    wchar_t *wfname = lj_utf8_utf16(filename, NULL);
+    ctx.fp = wfname ? _wfopen(wfname, L"rb") : NULL;
+    if (wfname)
+    {
+      free(wfname);
+    }
   #else
     ctx.fp = fopen(filename, "rb");
   #endif
