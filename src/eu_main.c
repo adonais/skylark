@@ -23,7 +23,7 @@
 {                                                           \
     if (_tcschr(argv[1], _T('=')))                          \
     {                                                       \
-        dark_mode = eu_dark_theme_init(true, true);         \
+        eu_dark_theme_init(true, true);                     \
     }                                                       \
 }
 
@@ -144,24 +144,17 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (muti)
     {
-        bool dark_mode = false;
         if (argc > 1)
         {
             if (!_tcsncmp(argv[1], REGFILE, _tcslen(REGFILE)))
             {   // 注册或卸载文件右键菜单
                 REG_ON_DARK_MODE
-                eu_undo_file_popup();
-                file_backup bak = {0};
-                _tcsncpy(bak.rel_path, argv[1], MAX_BUFFER);
-                share_send_msg(&bak);
+                eu_reg_file_popup_menu();
             }
             else if (!_tcsncmp(argv[1], REGFOLDER, _tcslen(REGFOLDER)))
             {   // 注册或卸载目录右键菜单
                 REG_ON_DARK_MODE
-                eu_undo_dir_popup();
-                file_backup bak = {0};
-                _tcsncpy(bak.rel_path, argv[1], MAX_BUFFER);
-                share_send_msg(&bak);
+                eu_reg_dir_popup_menu();
             }
             else if (!_tcsncmp(argv[1], REGASSOC, _tcslen(REGASSOC)))
             {   // 注册文件关联

@@ -445,7 +445,7 @@ eu_undo_dir_popup(void)
                 MSG_BOX(IDC_MSG_REGIST_ERR17, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                 break;
             }
-            _sntprintf(cmd_str, _countof(cmd_str) - 1, _T("\"%s\" \"%%1\\\\\""), process);
+            _sntprintf(cmd_str, _countof(cmd_str) - 1, _T("\"%s\" \"%%1\\#\""), process);
             lsret = RegSetValue(regkey_cmd, NULL, REG_SZ, cmd_str, (DWORD) sizeof(cmd_str));
             if (lsret != ERROR_SUCCESS)
             {

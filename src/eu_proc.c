@@ -2093,26 +2093,25 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_COPYDATA:
         {
-            size_t rel_len = 0;
-            file_backup *pm = NULL;
             COPYDATASTRUCT *cpd = (COPYDATASTRUCT *) lParam;
-            if (!cpd)
+            if (cpd)
             {
-                break;
-            }
-            pm = (file_backup *) (cpd->lpData);
-            rel_len = _tcslen(pm->rel_path);
-            if (_tcsncmp(pm->rel_path, _T("-reg"), 4) == 0)
-            {
-                ;
-            }
-            else if (rel_len > 0 && pm->rel_path[rel_len - 1] == _T('\\'))
-            {
-                on_treebar_locate_path(pm->rel_path);
-            }
-            else
-            {   // 文件可能被重定向
-                on_file_redirect(hwnd, pm);
+                file_backup *pm = (file_backup *) (cpd->lpData);
+                size_t rel_len = (pm && pm->rel_path) ? _tcslen(pm->rel_path) : 0;
+                if (rel_len > 0 && pm->rel_path[rel_len - 1] == _T('#'))
+                {
+                    pm->rel_path[rel_len - 1] = 0;
+                    // 先打开空白标签, 然后打开文件管理器
+                    if (g_tabpages && TabCtrl_GetItemCount(g_tabpages) < 1)
+                    {
+                        on_file_redirect(hwnd, NULL);
+                    }
+                    on_treebar_locate_path(pm->rel_path);
+                }
+                else
+                {   // 文件可能被重定向
+                    on_file_redirect(hwnd, pm);
+                }
             }
             break;
         }
