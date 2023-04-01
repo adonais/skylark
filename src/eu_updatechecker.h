@@ -29,10 +29,9 @@ extern "C" {
 #endif
 
 void on_update_check(const int ident);
-void on_update_thread_wait(void);
 void on_update_sql(void);
-long on_update_thread_id(void);
 bool on_update_do(void);
+bool on_update_thread_wait(void);
 
 #ifdef __cplusplus
 }

@@ -3405,7 +3405,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_BUTTON_COPY), L"Explorer", NULL);
                 SendMessage(hdlg, WM_THEMECHANGED, 0, 0);
             }
-            if (!on_update_thread_id())
+            if (eu_get_config()->upgrade.enable)
             {
                 PostMessage(hdlg, WM_ABOUT_STC, on_about_msg(eu_get_config()->upgrade.flags), 0);
             }

@@ -88,8 +88,11 @@ on_destory_window(HWND hwnd)
     KillTimer(hwnd, EU_TIMER_ID);
     // 等待搜索线程完成
     on_search_finish_wait();
-    // 等待更新线程完成
-    on_update_thread_wait();
+    // 等待更新线程完成并响应
+    if (on_update_thread_wait())
+    {
+        Sleep(200);
+    }
     // 销毁控件画刷
     on_proc_destory_brush();
     // 清理主题画刷
