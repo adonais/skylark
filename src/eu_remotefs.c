@@ -102,6 +102,7 @@ on_remote_init_socket(const char *url, remotefs *pserver)
 {
     bool oneway_certification = false;
     CURL *curl = NULL;
+    char *enc_url = NULL;
     if (!url || !pserver || !util_availed_char(pserver->user[0]))
     {
         return NULL;
@@ -111,7 +112,14 @@ on_remote_init_socket(const char *url, remotefs *pserver)
         printf("eu_curl_easy_init failed!\n");
         return NULL;
     }
-    eu_curl_easy_setopt(curl, CURLOPT_URL, url);
+    // 加入url编码, 防止路径上出现空格等字符
+    if (!(enc_url = util_url_escape(url)))
+    {
+        printf("util_url_escape failed!\n");
+        eu_curl_easy_cleanup(curl);
+        return NULL;
+    }
+    eu_curl_easy_setopt(curl, CURLOPT_URL, enc_url);
     oneway_certification = pserver->key_path[0] && eu_exist_path(pserver->key_path);
     if(!oneway_certification)
     {   // 使用账号, 密码登录
@@ -130,6 +138,7 @@ on_remote_init_socket(const char *url, remotefs *pserver)
             eu_curl_easy_setopt(curl, CURLOPT_KEYPASSWD, pserver->passphrase);
         }
     }
+    free(enc_url);
     return curl;
 }
 
@@ -252,11 +261,11 @@ on_remote_server_browser(HWND hdlg)
     {
         return 1;
     }
-    if (!(path = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH+1)))
+    if (!(path = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER+1)))
     {
         return 1;
     }
-    if (on_file_open_filename_dlg(hdlg, path, MAX_PATH))
+    if (on_file_open_filename_dlg(hdlg, path, MAX_BUFFER))
     {
         free(path);
         return 1;
@@ -511,12 +520,13 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         while (htiRoot)
                         {
                             tvd = on_treebar_get_treeview(htiRoot);
-                            if (tvd->server && pserver == tvd->server)
+                            if (tvd && tvd->server && pserver == tvd->server)
                             {
-                                eu_safe_free(tvd);
+                                on_treebar_data_destoy(&tvd);
                                 TreeView_DeleteItem(g_filetree, htiRoot);
                                 break;
                             }
+                            on_treebar_data_destoy(&tvd);
                             htiRoot = TreeView_GetNextSibling(g_filetree, htiRoot);
                         }
                         on_remote_remove_config(pserver);

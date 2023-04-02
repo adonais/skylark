@@ -2119,8 +2119,8 @@ hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile)
     }
     else
     {  // 文件已存在, 写入备份后替换
-        TCHAR path[MAX_PATH] = {0};
-        _sntprintf(path, MAX_PATH-1, _T("%s.bakcup"), pnode->pathfile);
+        TCHAR path[MAX_BUFFER] = {0};
+        _sntprintf(path, MAX_BUFFER, _T("%s.bakcup"), pnode->pathfile);
         if (hexview_map_write(pnode->phex->pbase, pnode->phex->total_items, path, CREATE_ALWAYS) == SKYLARK_OK)
         {
             if (!MoveFileEx(path, pnode->pathfile, MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING))
@@ -2212,9 +2212,9 @@ hexview_switch_mode(eu_tabpage *pnode)
             err = EUE_POINT_NULL;
             goto HEX_ERROR;
         }
-        _sntprintf(pnew->pathfile, MAX_PATH - 1, _T("%s"), pnode->pathfile);
-        _sntprintf(pnew->pathname, MAX_PATH - 1, _T("%s"), pnode->pathname);
-        _sntprintf(pnew->filename, MAX_PATH - 1, _T("%s"), pnode->filename);
+        _sntprintf(pnew->pathfile, MAX_BUFFER, _T("%s"), pnode->pathfile);
+        _sntprintf(pnew->pathname, MAX_BUFFER, _T("%s"), pnode->pathname);
+        _sntprintf(pnew->filename, MAX_PATH, _T("%s"), pnode->filename);
         pnew->codepage = pnode->codepage;
         pnew->eol = pnode->eol;
         pnew->begin_pos = -1;
@@ -2242,7 +2242,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         }
         if (pnode->bakpath[0])
         {
-            _tcsncpy(pnew->bakpath, pnode->bakpath, MAX_PATH - 1);
+            _tcsncpy(pnew->bakpath, pnode->bakpath, MAX_BUFFER);
         }
         if (pnode->pre_len > 0)
         {

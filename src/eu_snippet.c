@@ -358,8 +358,8 @@ on_snippet_get_file(HWND hwnd_cmb, TCHAR *path, int len, snippet_t **pvec)
         {
             if (doc_ptr->filedesc && doc_ptr->snippet && !strcmp(pname, doc_ptr->filedesc))
             {
-                TCHAR fname[MAX_PATH] = {0};
-                int n = _sntprintf(path, len - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(doc_ptr->snippet, fname, MAX_PATH-1));
+                TCHAR fname[MAX_BUFFER] = {0};
+                int n = _sntprintf(path, len - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(doc_ptr->snippet, fname, MAX_BUFFER));
                 if (doc_ptr->ptrv && pvec)
                 {
                     *pvec = doc_ptr->ptrv;
@@ -381,7 +381,7 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
 {
     int index = -1;
     snippet_t *vec = NULL;
-    TCHAR snippet_file[MAX_PATH] = {0};
+    TCHAR snippet_file[MAX_BUFFER] = {0};
     TCHAR first[QW_SIZE] = {0};
     TCHAR str[QW_SIZE] = {0};
     ComboBox_GetText(hself, str, QW_SIZE - 1);
@@ -393,7 +393,7 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
         on_snippet_do_sci("", false);
         on_snippet_do_listbox(NULL, 0);
     }
-    else if ((index = on_snippet_get_file(hself, snippet_file, MAX_PATH, &vec)) >= 0)
+    else if ((index = on_snippet_get_file(hself, snippet_file, MAX_BUFFER, &vec)) >= 0)
     {
         if (vec)
         {
@@ -459,7 +459,7 @@ on_snippet_do_modify(HWND hdlg)
         bool edt_modify = false;
         snippet_t *vec = NULL;
         TCHAR str[MAX_PATH] = {0};
-        TCHAR snippet_file[MAX_PATH] = {0};
+        TCHAR snippet_file[MAX_BUFFER] = {0};
         HWND hwnd_edt = GetDlgItem(hdlg, IDC_SNIPPET_EDT1);
         HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
         HWND hwnd_lst = GetDlgItem(hdlg, IDC_SNIPPET_LST);
@@ -608,7 +608,7 @@ on_snippet_do_modify(HWND hdlg)
                 free(txt);
             }
         }
-        if (edt_modify && index >= 0 && on_snippet_get_file(hwnd_cmb, snippet_file, MAX_PATH, NULL) >= 0)
+        if (edt_modify && index >= 0 && on_snippet_get_file(hwnd_cmb, snippet_file, MAX_BUFFER, NULL) >= 0)
         {
             if (add)
             {
@@ -764,7 +764,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                     int index = 0;
                     int dimension = 0;
                     snippet_t *vec = NULL;
-                    TCHAR snippet_file[MAX_PATH] = {0};
+                    TCHAR snippet_file[MAX_BUFFER] = {0};
                     HWND hwnd_lst = GetDlgItem(hdlg, IDC_SNIPPET_LST);
                     HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
                     if (!hwnd_lst || !hwnd_cmb || ComboBox_GetCurSel(hwnd_cmb) <= 0)
@@ -790,7 +790,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                     {
                         i = index - 1;
                     }
-                    if ((on_snippet_get_file(hwnd_cmb, snippet_file, MAX_PATH, &vec)) >= 0 && vec != NULL)
+                    if ((on_snippet_get_file(hwnd_cmb, snippet_file, MAX_BUFFER, &vec)) >= 0 && vec != NULL)
                     {
                         on_parser_vector_erase(snippet_file, &vec, dimension);
                         on_snippet_set_data(-1, vec);

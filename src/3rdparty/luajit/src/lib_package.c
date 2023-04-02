@@ -20,17 +20,17 @@
 /* ------------------------------------------------------------------------ */
 
 /* Error codes for ll_loadfunc. */
-#define PACKAGE_ERR_LIB		1
-#define PACKAGE_ERR_FUNC	2
-#define PACKAGE_ERR_LOAD	3
+#define PACKAGE_ERR_LIB     1
+#define PACKAGE_ERR_FUNC    2
+#define PACKAGE_ERR_LOAD    3
 
 /* Redefined in platform specific part. */
-#define PACKAGE_LIB_FAIL	"open"
-#define setprogdir(L)		((void)0)
+#define PACKAGE_LIB_FAIL    "open"
+#define setprogdir(L)        ((void)0)
 
 /* Symbol name prefixes. */
-#define SYMPREFIX_CF		"luaopen_%s"
-#define SYMPREFIX_BC		"luaJIT_BC_%s"
+#define SYMPREFIX_CF        "luaopen_%s"
+#define SYMPREFIX_BC        "luaJIT_BC_%s"
 
 #if LJ_TARGET_DLOPEN
 
@@ -76,17 +76,74 @@ static const char *ll_bcsym(void *lib, const char *sym)
 BOOL WINAPI GetModuleHandleExA(DWORD, LPCSTR, HMODULE*);
 #endif
 
+wchar_t*
+lj_utf8_utf16(const char *utf8, size_t *out_len)
+{
+    int size;
+    wchar_t *u16 = NULL;
+    size = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+    u16 = size > 0 ? (wchar_t*) malloc(sizeof(wchar_t) * (size + 1)) : 0;
+    if (!u16)
+    {
+        return NULL;
+    }
+    size = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, u16, size);
+    if (size > 0)
+    {
+        if (out_len)
+        {
+            *out_len = (size_t)size;
+        }
+    }
+    else
+    {
+        free(u16);
+        return NULL;
+    }
+    return u16;
+}
+
+char*
+lj_utf16_utf8(const wchar_t *utf16, size_t *out_len)
+{
+    int   m, size = 0;
+    char *utf8 = NULL;
+
+    size = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, NULL, 0, NULL, NULL);
+    utf8 = size > 0 ? (char*) malloc(size+1) : 0;
+    if (NULL == utf8 )
+    {
+        return NULL;
+    }
+    m = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, utf8, size, NULL, NULL);
+    if (m > 0 && m <= size)
+    {
+        if (out_len)
+        {
+            *out_len = (size_t)m;
+        }
+        utf8[m-1] = 0;
+    }
+    else
+    {
+        free(utf8);
+        utf8 = NULL;
+    }
+    return utf8;
+}
+
 void *LJ_WIN_LOADLIBA(const char *path)
 {
   DWORD err = GetLastError();
-  wchar_t wpath[260+1] = {0};
   HANDLE lib = NULL;
-  if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 260) > 0) {
+  wchar_t *wpath = lj_utf8_utf16(path, NULL);
+  if (wpath) {
   #if LJ_TARGET_UWP  
     lib = LoadPackagedLibrary(wpath, 0);
   #else
     lib = LoadLibraryW(wpath);
   #endif
+    free(wpath);
   }
   SetLastError(err);
   return lib;
@@ -97,9 +154,9 @@ void *LJ_WIN_LOADLIBA(const char *path)
 static void setprogdir(lua_State *L)
 {
   wchar_t *lb;  
-  wchar_t wpath[MAX_PATH + 1];  
-  char buff[MAX_PATH + 1] = {0};
-  DWORD nsize = MAX_PATH;
+  wchar_t wpath[1024 + 1];  
+  char buff[1024 + 1] = {0};
+  DWORD nsize = 1024;
   DWORD n = GetModuleFileNameW(NULL, wpath, nsize);
   if (n == 0 || n == nsize || (lb = wcsrchr(wpath, L'\\')) == NULL) {
     luaL_error(L, "unable to get ModuleFileName");
@@ -113,17 +170,17 @@ static void setprogdir(lua_State *L)
 
 static void pusherror(lua_State *L)
 {
-  DWORD error = GetLastError();
-#if LJ_TARGET_XBOXONE
   wchar_t wbuffer[128];
   char buffer[128*2];
+  DWORD error = GetLastError();
+#if LJ_TARGET_XBOXONE
   if (FormatMessageW(FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
       NULL, error, 0, wbuffer, sizeof(wbuffer)/sizeof(wchar_t), NULL) &&
       WideCharToMultiByte(CP_ACP, 0, wbuffer, 128, buffer, 128*2, NULL, NULL))
 #else
-  char buffer[128];
-  if (FormatMessageA(FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
-      NULL, error, 0, buffer, sizeof(buffer), NULL))
+  if (FormatMessageW(FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
+      NULL, error, 0, wbuffer, sizeof(wbuffer)/sizeof(wchar_t), NULL) &&
+      WideCharToMultiByte(CP_UTF8, 0, wbuffer, 128, buffer, 128*2, NULL, NULL))
 #endif
     lua_pushstring(L, buffer);
   else
@@ -164,8 +221,7 @@ static const char *ll_bcsym(void *lib, const char *sym)
 #else
     HINSTANCE h = GetModuleHandleA(NULL);
     const char *p = (const char *)GetProcAddress(h, sym);
-    if (p == NULL && GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-					(const char *)ll_bcsym, &h))
+    if (p == NULL && GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (const char *)ll_bcsym, &h))
       p = (const char *)GetProcAddress(h, sym);
     return p;
 #endif
@@ -175,9 +231,9 @@ static const char *ll_bcsym(void *lib, const char *sym)
 #else
 
 #undef PACKAGE_LIB_FAIL
-#define PACKAGE_LIB_FAIL	"absent"
+#define PACKAGE_LIB_FAIL    "absent"
 
-#define DLMSG	"dynamic libraries not enabled; no support for target OS"
+#define DLMSG    "dynamic libraries not enabled; no support for target OS"
 
 static void ll_unloadlib(void *lib)
 {
@@ -227,8 +283,7 @@ static void **ll_register(lua_State *L, const char *path)
   return plib;
 }
 
-static const char *mksymname(lua_State *L, const char *modname,
-			     const char *prefix)
+static const char *mksymname(lua_State *L, const char *modname, const char *prefix)
 {
   const char *funcname;
   const char *mark = strchr(modname, *LUA_IGMARK);
@@ -264,9 +319,9 @@ static int ll_loadfunc(lua_State *L, const char *path, const char *name, int r)
       const char *bcdata = ll_bcsym(*reg, mksymname(L, name, SYMPREFIX_BC));
       lua_pop(L, 1);
       if (bcdata) {
-	if (luaL_loadbuffer(L, bcdata, ~(size_t)0, name) != 0)
-	  return PACKAGE_ERR_LOAD;
-	return 0;
+        if (luaL_loadbuffer(L, bcdata, ~(size_t)0, name) != 0)
+          return PACKAGE_ERR_LOAD;
+        return 0;
       }
     }
     return PACKAGE_ERR_FUNC;  /* Unable to find function. */
@@ -300,17 +355,30 @@ static int lj_cf_package_unloadlib(lua_State *L)
 
 static int readable(const char *filename)
 {
+  int ret = 1;
   FILE *f = NULL;
-  wchar_t wfname[260+1] = {0};
+  wchar_t *wfname = NULL;
 #ifdef _WIN32
-  MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfname, 260);
-  f = _wfopen(wfname, L"r");
+  if ((wfname = lj_utf8_utf16(filename, NULL)))
+  {
+    f = _wfopen(wfname, L"r");  
+  }
 #else
   f = fopen(filename, "r");  /* try to open file */
 #endif  
-  if (f == NULL) return 0;  /* open failed */
-  fclose(f);
-  return 1;
+  if (f == NULL)
+  {
+    ret = 0;  /* open failed */
+  }
+  else
+  {
+    fclose(f);  
+  }
+  if (wfname)
+  {
+    free(wfname);
+  }
+  return ret;
 }
 
 static const char *pushnexttemplate(lua_State *L, const char *path)
@@ -325,8 +393,8 @@ static const char *pushnexttemplate(lua_State *L, const char *path)
 }
 
 static const char *searchpath (lua_State *L, const char *name,
-			       const char *path, const char *sep,
-			       const char *dirsep)
+                   const char *path, const char *sep,
+                   const char *dirsep)
 {
   luaL_Buffer msg;  /* to build error message */
   luaL_buffinit(L, &msg);
@@ -334,7 +402,7 @@ static const char *searchpath (lua_State *L, const char *name,
     name = luaL_gsub(L, name, sep, dirsep);  /* replace it by 'dirsep' */
   while ((path = pushnexttemplate(L, path)) != NULL) {
     const char *filename = luaL_gsub(L, lua_tostring(L, -1),
-				     LUA_PATH_MARK, name);
+                     LUA_PATH_MARK, name);
     lua_remove(L, -2);  /* remove path template */
     if (readable(filename))  /* does file exist and is readable? */
       return filename;  /* return that file name */
@@ -349,9 +417,9 @@ static const char *searchpath (lua_State *L, const char *name,
 static int lj_cf_package_searchpath(lua_State *L)
 {
   const char *f = searchpath(L, luaL_checkstring(L, 1),
-				luaL_checkstring(L, 2),
-				luaL_optstring(L, 3, "."),
-				luaL_optstring(L, 4, LUA_DIRSEP));
+                luaL_checkstring(L, 2),
+                luaL_optstring(L, 3, "."),
+                luaL_optstring(L, 4, LUA_DIRSEP));
   if (f != NULL) {
     return 1;
   } else {  /* error message is on top of the stack */
@@ -362,7 +430,7 @@ static int lj_cf_package_searchpath(lua_State *L)
 }
 
 static const char *findfile(lua_State *L, const char *name,
-			    const char *pname)
+                const char *pname)
 {
   const char *path;
   lua_getfield(L, LUA_ENVIRONINDEX, pname);
@@ -375,7 +443,7 @@ static const char *findfile(lua_State *L, const char *name,
 static void loaderror(lua_State *L, const char *filename)
 {
   luaL_error(L, "error loading module " LUA_QS " from file " LUA_QS ":\n\t%s",
-	     lua_tostring(L, 1), filename, lua_tostring(L, -1));
+         lua_tostring(L, 1), filename, lua_tostring(L, -1));
 }
 
 static int lj_cf_package_loader_lua(lua_State *L)
@@ -412,7 +480,7 @@ static int lj_cf_package_loader_croot(lua_State *L)
   if ((st = ll_loadfunc(L, filename, name, 0)) != 0) {
     if (st != PACKAGE_ERR_FUNC) loaderror(L, filename);  /* real error */
     lua_pushfstring(L, "\n\tno module " LUA_QS " in file " LUA_QS,
-		    name, filename);
+            name, filename);
     return 1;  /* function not found */
   }
   return 1;
@@ -436,7 +504,7 @@ static int lj_cf_package_loader_preload(lua_State *L)
 
 /* ------------------------------------------------------------------------ */
 
-#define KEY_SENTINEL	(U64x(80000000,00000000)|'s')
+#define KEY_SENTINEL    (U64x(80000000,00000000)|'s')
 
 static int lj_cf_package_require(lua_State *L)
 {
@@ -459,7 +527,7 @@ static int lj_cf_package_require(lua_State *L)
     lua_rawgeti(L, -2, i);  /* get a loader */
     if (lua_isnil(L, -1))
       luaL_error(L, "module " LUA_QS " not found:%s",
-		 name, lua_tostring(L, -2));
+         name, lua_tostring(L, -2));
     lua_pushstring(L, name);
     lua_call(L, 1, 1);  /* call it */
     if (lua_isfunction(L, -1))  /* did it find module? */
@@ -556,43 +624,50 @@ static int lj_cf_package_seeall(lua_State *L)
 
 /* ------------------------------------------------------------------------ */
 
-#define AUXMARK		"\1"
+#define AUXMARK "\1"
 
-static void setpath(lua_State *L, const char *fieldname, const char *envname,
-		    const char *def, int noenv)
+static void setpath(lua_State *L, const char *fieldname, const char *envname, const char *def, int noenv)
 {
-  char path[2048+1] = {0};    
+  char *path = NULL;
+  wchar_t *w_env = NULL;
+  const wchar_t *wpath = NULL;
 #if LJ_TARGET_CONSOLE
   UNUSED(envname);
 #else
-  wchar_t w_env[128+1] = {0}; 
-  MultiByteToWideChar(CP_UTF8, 0, envname, -1, w_env, 128);
-  const wchar_t *wpath = _wgetenv(w_env);
-  if (wpath)
-    WideCharToMultiByte(CP_UTF8, 0, wpath, -1, path, 2048, NULL, NULL);
+  w_env = lj_utf8_utf16(envname, NULL);
+  wpath = w_env ? _wgetenv(w_env) : NULL;
+  path = wpath ? lj_utf16_utf8(wpath, NULL) : NULL;
 #endif
-  if (*path == 0 || noenv) {
+  if (path == NULL || noenv) {
     lua_pushstring(L, def);
   } else {
-    const char *lpath = luaL_gsub(L, path, LUA_PATHSEP LUA_PATHSEP,
-			      LUA_PATHSEP AUXMARK LUA_PATHSEP);
+    const char *lpath = luaL_gsub(L, path, LUA_PATHSEP LUA_PATHSEP, LUA_PATHSEP AUXMARK LUA_PATHSEP);
     luaL_gsub(L, lpath, AUXMARK, def);
     lua_remove(L, -2);
   }
   setprogdir(L);
   lua_setfield(L, -2, fieldname);
+  if (path)
+  {
+    free(path);
+  }
+  if (w_env)
+  {
+    free(w_env);
+  }
 }
 
+
 static const luaL_Reg package_lib[] = {
-  { "loadlib",	lj_cf_package_loadlib },
+  { "loadlib",    lj_cf_package_loadlib },
   { "searchpath",  lj_cf_package_searchpath },
-  { "seeall",	lj_cf_package_seeall },
+  { "seeall",    lj_cf_package_seeall },
   { NULL, NULL }
 };
 
 static const luaL_Reg package_global[] = {
-  { "module",	lj_cf_package_module },
-  { "require",	lj_cf_package_require },
+  { "module",    lj_cf_package_module },
+  { "require",    lj_cf_package_require },
   { NULL, NULL }
 };
 

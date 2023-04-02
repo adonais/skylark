@@ -239,9 +239,9 @@ bool
 eu_exist_path(const char *path)
 {
     uint32_t attrs = (uint32_t)-1;
-    TCHAR wide_dir[MAX_PATH+1] = {0};
-    int m = MultiByteToWideChar(CP_UTF8, 0, path, -1, wide_dir, MAX_PATH);
-    if (m > 0 && m < MAX_PATH)
+    TCHAR wide_dir[MAX_BUFFER] = {0};
+    int m = MultiByteToWideChar(CP_UTF8, 0, path, -1, wide_dir, MAX_BUFFER);
+    if (m > 0 && m < MAX_BUFFER)
     {
         attrs = GetFileAttributes(wide_dir);
     }
@@ -274,8 +274,8 @@ eu_exist_file(LPCTSTR path)
     }
     else
     {
-        TCHAR file_path[MAX_PATH+1] = {0};
-        _sntprintf(file_path, MAX_PATH, _T("%s\\%s"), eu_module_path, path);
+        TCHAR file_path[MAX_BUFFER] = {0};
+        _sntprintf(file_path, MAX_BUFFER, _T("%s\\%s"), eu_module_path, path);
         fileattr = GetFileAttributes(file_path);
     }
     if (fileattr != INVALID_FILE_ATTRIBUTES)
@@ -288,11 +288,11 @@ eu_exist_file(LPCTSTR path)
 bool
 eu_exist_libssl(void)
 {
-    TCHAR ssl_path[MAX_PATH+1] = {0};
+    TCHAR ssl_path[MAX_BUFFER] = {0};
 #ifdef _WIN64
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
+    _sntprintf(ssl_path, MAX_BUFFER, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1-x64.dll"));
 #else
-    _sntprintf(ssl_path, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
+    _sntprintf(ssl_path, MAX_BUFFER, _T("%s\\plugins\\%s"), eu_module_path, _T("libcrypto-1_1.dll"));
 #endif
     return eu_exist_file(ssl_path);
 }
@@ -307,8 +307,8 @@ bool
 eu_mk_dir(LPCTSTR dir)
 {
     LPTSTR p = NULL;
-    TCHAR tmp_name[MAX_PATH];
-    _tcscpy(tmp_name, dir);
+    TCHAR tmp_name[MAX_BUFFER] = {0};
+    _tcsncpy(tmp_name, dir, MAX_BUFFER);
     p = _tcschr(tmp_name, _T('\\'));
     for (; p != NULL; *p = _T('\\'), p = _tcschr(p + 1, _T('\\')))
     {
@@ -350,11 +350,11 @@ eu_try_path(LPCTSTR dir)
 {
 #define LEN_NAME 6
     HANDLE pfile = INVALID_HANDLE_VALUE;
-    TCHAR dist_path[MAX_PATH + 1] = {0};
+    TCHAR dist_path[MAX_BUFFER] = {0};
     TCHAR temp[LEN_NAME + 1] =  {0};
     if (eu_exist_dir(dir) || eu_mk_dir(dir))
     {
-        _sntprintf(dist_path,MAX_PATH, _T("%s\\%s"), dir, eu_rand_str(temp, LEN_NAME));
+        _sntprintf(dist_path, MAX_BUFFER, _T("%s\\%s"), dir, eu_rand_str(temp, LEN_NAME));
         pfile = CreateFile(dist_path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS,
                            FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
         if (pfile == INVALID_HANDLE_VALUE)
@@ -1618,7 +1618,7 @@ eu_cat_process(void)
     {
         int offset = 0;
         size_t len = (size_t)(count * MAX_PATH);
-        if ((pactions = (char *)calloc(1, len)) != NULL)
+        if ((pactions = (char *)calloc(1, len + 1)) != NULL)
         {
             for (int i = 1; i <= count && len > (size_t)offset; ++i)
             {
@@ -1636,7 +1636,7 @@ eu_save_config(void)
     FILE *fp = NULL;
     char *save = NULL;
     char *pactions = NULL;
-    TCHAR path[MAX_PATH+1] = {0};
+    TCHAR path[MAX_BUFFER+1] = {0};
     const char *pconfig =
         "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n"
         "newfile_eols = %d\n"
@@ -1758,7 +1758,7 @@ eu_save_config(void)
         free(save);
         return;
     }
-    _sntprintf(path, MAX_PATH, _T("%s\\conf\\skylark.conf"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark.conf"), eu_module_path);
     _snprintf(save, BUFF_32K - 1, pconfig,
               g_config->new_file_eol,
               g_config->new_file_enc,

@@ -1036,20 +1036,33 @@ util_last_time(const TCHAR *path)
 }
 
 int
-util_set_title(const TCHAR *filename)
+util_set_title(const eu_tabpage *pnode)
 {
-    TCHAR title[100 + MAX_PATH];
-    bool admin = !util_under_wine() && on_reg_admin();
-    LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
-    if (filename && filename[0])
+    if (pnode && pnode->pathfile[0])
     {
-        _sntprintf(title, _countof(title) - 1, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
+        size_t len = 0;
+        TCHAR *title = NULL;
+        const TCHAR *filename = pnode->pathfile;
+        bool admin = !util_under_wine() && on_reg_admin();
+        if ((len = _tcslen(pnode->pathfile)) > FILESIZE && pnode->filename[0])
+        {
+            filename = pnode->filename;
+        }
+        len = _tcslen(filename) + FILESIZE;
+        if ((title = (TCHAR *)calloc(sizeof(TCHAR), len + 1)))
+        {
+            LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
+            if (!filename[0])
+            {
+                _sntprintf(title, len, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
+            }
+            else
+            {
+                _sntprintf(title, len, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
+            }
+        }
+        SetWindowText(eu_module_hwnd(), title);
     }
-    else
-    {
-        _sntprintf(title, _countof(title) - 1, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
-    }
-    SetWindowText(eu_module_hwnd(), title);
     return SKYLARK_OK;
 }
 
@@ -2525,45 +2538,42 @@ util_file_access(LPCTSTR filename, uint32_t *pgranted)
 }
 
 int
-util_split(const char *pstr, char (*pout)[QW_SIZE], char ch)
+util_split(const char *pstr, char (*pout)[MAX_PATH], int ch)
 {
-    int ret = 0;
-    if (NULL != pstr && NULL != pout)
+    if (STR_NOT_NUL(pstr) && NULL != pout)
     {
-        char *tmp = (char *)pstr;
-        // i为行，j为列. 每行为一个字符串
-        int i = 0, j = 0;
-        int countrow = 0;
-        while (*tmp)
-        {   // 遇到分隔符，字符串结束，加0
-            if (ch == *tmp)
+        const int len = (int)strlen(pstr);
+        if (len < MAX_PATH)
+        {
+            bool split = false;
+            char *tmp = (char *)pstr;
+            int i = 0, j = 0, row = 0;
+            for (; i < TWO_DISM && j < len; ++j)
             {
-                *(*(pout + i) + j) = '\0';
-            }
-            else if ((ch == *(tmp - 1)) && (ch != *tmp))
-            {   // 上一个是分隔符，这一个不是分隔符行 行增长
-                if (countrow != 0)
+                if (ch == tmp[j])
                 {
-                    i++;
+                    if (!split)
+                    {
+                        *(*(pout + i) + row) = '\0';
+                        split = true;
+                        row = 0;
+                        ++i;
+                    }
                 }
-                j = 0;
-                *(*(pout + i) + j) = *tmp;
-                j++;
-            }
-            else
-            {   // 非空格写入字符
-                if (0 == i)
+                else
                 {
-                    countrow = 1;
+                    if (!row)
+                    {
+                        memset(pout[i], 0, MAX_PATH);
+                    }
+                    *(*(pout + i) + row) = tmp[j];
+                    split = false;
+                    ++row;
                 }
-                *(*(pout + i) + j) = *tmp;
-                j++;
             }
-            tmp++;
         }
-        ret = i;
     }
-    return ret;
+    return 0;
 }
 
 int
@@ -2720,4 +2730,35 @@ util_str_replace(const char *in, const char *pattern, const char *by)
         strncpy(res + offset, in_ptr, in_size - offset);
     }
     return res;
+}
+
+char*
+util_url_escape(const char *url)
+{
+    char *result = NULL;
+    if (url)
+    {
+        int j = 0;
+        const int m_size = (int)strlen(url);
+        if ((result = (char *) malloc(3 * m_size + 1)) == NULL)
+        {
+            return NULL;
+        }
+        for (int i = 0; i < m_size; ++i)
+        {
+            uint8_t ch = (uint8_t)url[i];
+            if (ch == ' ' || ch == '#' || ch == '?' || ch == '&' || ch == '=' || ch == '+' || ch == '$' ||
+                ch == ',' || ch == '%' || ch == '<' || ch == '>' || ch == '~' || ch == ';')
+            {
+                _snprintf(result + j, 3 * m_size - j, "%%%02X", ch);
+                j += 3;
+            }
+            else
+            {
+                result[j++] = ch;
+            }
+        }
+        result[j] = '\0';
+    }
+    return result;
 }

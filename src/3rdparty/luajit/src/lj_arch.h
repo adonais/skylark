@@ -653,6 +653,8 @@
 #define LJ_WIN_VALLOC	VirtualAlloc
 #define LJ_WIN_VPROTECT	VirtualProtect
 #endif
+extern wchar_t* lj_utf8_utf16(const char *utf8, size_t *out_len);
+extern char* lj_utf16_utf8(const wchar_t *utf16, size_t *out_len);
 extern void *LJ_WIN_LOADLIBA(const char *path);
 #endif
 

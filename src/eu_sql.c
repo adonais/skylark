@@ -163,11 +163,11 @@ int
 eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
 {
     int rc = SQLITE_ERROR;
-    char pfile[MAX_PATH] = {0};
-    TCHAR path[MAX_PATH] = {0};
+    char pfile[MAX_BUFFER] = {0};
+    TCHAR path[MAX_BUFFER] = {0};
     util_lock(&eu_sql_cs);
-    _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
-    if (util_make_u8(path, pfile, MAX_PATH-1)[0])
+    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    if (util_make_u8(path, pfile, MAX_BUFFER)[0])
     {
         uintptr_t db = 0;
         if ((rc = init_sql_file(pfile, &db)) == SQLITE_OK && db)
@@ -213,9 +213,9 @@ int
 on_sql_post(const char *sql, sql3_callback callback, void *data)
 {
     int rc = SQLITE_ERROR;
-    TCHAR path[MAX_PATH] = {0};
+    TCHAR path[MAX_BUFFER] = {0};
     char *sql_path = NULL;
-    _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
     if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
     {
         uintptr_t db = 0;
@@ -253,11 +253,11 @@ on_sqlite3_session_callback(void *data, int count, char **column, char **names)
         }
         else if (STRCMP(names[i], ==, "szRealPath"))
         {
-            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.rel_path, MAX_PATH);
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.rel_path, _countof(filebak.rel_path));
         }
         else if (STRCMP(names[i], ==, "szBakPath"))
         {
-            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.bak_path, MAX_PATH);
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, filebak.bak_path, _countof(filebak.rel_path));
         }
         else if (STRCMP(names[i], ==, "szSync"))
         {
@@ -415,11 +415,11 @@ int
 on_sql_do_session(const char *s, sql3_callback callback, void *data)
 {
     int rc = SQLITE_ERROR;
-    char pfile[MAX_PATH];
-    TCHAR path[MAX_PATH] = {0};
+    char pfile[MAX_BUFFER];
+    TCHAR path[MAX_BUFFER] = {0};
     util_lock(&eu_sql_cs);
-    _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
-    if (util_make_u8(path, pfile, MAX_PATH-1)[0])
+    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    if (util_make_u8(path, pfile, MAX_BUFFER)[0])
     {
         char *psql = NULL;
         uintptr_t db = 0;
@@ -477,10 +477,10 @@ int
 on_sql_sync_session(void)
 {
     int rc = SQLITE_ERROR;
-    TCHAR path[MAX_PATH] = {0};
+    TCHAR path[MAX_BUFFER] = {0};
     char *sql_path = NULL;
     util_lock(&eu_sql_cs);
-    _sntprintf(path, MAX_PATH-1, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
     if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
     {
         uintptr_t db = 0;
@@ -543,13 +543,13 @@ on_sql_file_recent_thread(const file_recent *precent)
     uint64_t result = util_gen_tstamp();
     if (result && precent)
     {
-        char pfile[MAX_PATH+1] = {0};
-        char sql[MAX_BUFFER] = {0};
+        char pfile[MAX_BUFFER] = {0};
+        char sql[MAX_BUFFER * 2] = {0};
         snprintf(pfile, MAX_BUFFER-1, "%s", precent->path);
-        eu_str_replace(pfile, MAX_PATH, "'", "''");
+        eu_str_replace(pfile, MAX_BUFFER, "'", "''");
         const char *exp = "insert into file_recent(szName,szPos,szDate,szHex) values('%s', %I64d, %I64u, %d) "
                           "on conflict (szName) do update set szPos=%I64d,szDate=%I64u,szHex=%d;";
-        snprintf(sql, MAX_BUFFER-1, exp, pfile, precent->postion, result, precent->hex, precent->postion, result, precent->hex);
+        snprintf(sql, MAX_BUFFER * 2 - 1, exp, pfile, precent->postion, result, precent->hex, precent->postion, result, precent->hex);
         if (on_sql_mem_post(sql, NULL, NULL) != SQLITE_OK)
         {
             printf("%s failed: %s\n", __FUNCTION__, sql);
@@ -674,34 +674,38 @@ eu_get_folder_history(sql3_callback pfunc)
 void
 eu_update_backup_table(file_backup *pbak, DB_MODE mode)
 {
-    char rel_path[MAX_PATH+1] = {0};
-    char bak_path[MAX_PATH+1] = {0};
-    char sql[MAX_BUFFER*4] = {0};
-    const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync) "
-                      "values(%d, '%s', '%s', '%s', '%s', %zd, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
-                      "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%zd,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d,szSync=%d;";
-    WideCharToMultiByte(CP_UTF8, 0, pbak->rel_path, -1, rel_path, MAX_PATH, NULL, NULL);
-    WideCharToMultiByte(CP_UTF8, 0, pbak->bak_path, -1, bak_path, MAX_PATH, NULL, NULL);
-    // 文件路径存在特殊符号时进行转义
-    eu_str_replace(rel_path, MAX_PATH, "'", "''");
-    eu_str_replace(bak_path, MAX_PATH, "'", "''");
-    _snprintf(sql, MAX_BUFFER*4-1, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->fold_id, pbak->postion, pbak->cp, pbak->bakcp,
-              pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync, pbak->tab_id,bak_path,pbak->mark_id,pbak->fold_id,pbak->postion,
-              pbak->cp, pbak->bakcp,pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync);
-    switch (mode)
+    char rel_path[MAX_BUFFER] = {0};
+    char bak_path[MAX_BUFFER] = {0};
+    char *sql = (char *)calloc(1, MAX_BUFFER*5 + 1);
+    if (sql)
     {
-        case DB_ALL:
-            sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
-            on_sql_post(sql, NULL, NULL);
-            break;
-        case DB_MEM:
-            sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
-            break;
-        case DB_FILE:
-            on_sql_post(sql, NULL, NULL);
-            break;
-        default:
-            break;
+        const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync) "
+                          "values(%d, '%s', '%s', '%s', '%s', %zd, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
+                          "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%zd,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d,szSync=%d;";
+        WideCharToMultiByte(CP_UTF8, 0, pbak->rel_path, -1, rel_path, MAX_BUFFER - 1, NULL, NULL);
+        WideCharToMultiByte(CP_UTF8, 0, pbak->bak_path, -1, bak_path, MAX_BUFFER - 1, NULL, NULL);
+        // 文件路径存在特殊符号时进行转义
+        eu_str_replace(rel_path, MAX_BUFFER - 1, "'", "''");
+        eu_str_replace(bak_path, MAX_BUFFER - 1, "'", "''");
+        _snprintf(sql, MAX_BUFFER*5, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->fold_id, pbak->postion, pbak->cp, pbak->bakcp,
+                  pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync, pbak->tab_id,bak_path,pbak->mark_id,pbak->fold_id,pbak->postion,
+                  pbak->cp, pbak->bakcp,pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync);
+        switch (mode)
+        {
+            case DB_ALL:
+                sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
+                on_sql_post(sql, NULL, NULL);
+                break;
+            case DB_MEM:
+                sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);
+                break;
+            case DB_FILE:
+                on_sql_post(sql, NULL, NULL);
+                break;
+            default:
+                break;
+        }
+        free(sql);
     }
 }
 
@@ -710,11 +714,11 @@ on_sql_delete_backup_row(eu_tabpage *pnode)
 {
     if (pnode && pnode->pathfile[0])
     {
-        char sql[MAX_BUFFER+1] = {0};
+        char sql[MAX_BUFFER + 32] = {0};
         char *path = eu_utf16_utf8(pnode->pathfile, NULL);
         if (path)
         {
-            _snprintf(sql, MAX_BUFFER, "delete from skylark_session where szRealPath='%s';", path);
+            _snprintf(sql, MAX_BUFFER + 32, "delete from skylark_session where szRealPath='%s';", path);
             if (eu_memdb)
             {
                 sqlite3_exec((sqlite3 *)eu_memdb, sql, NULL, NULL, NULL);

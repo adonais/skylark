@@ -21,10 +21,10 @@
 static WNDPROC symlist_wnd;
 
 static int
-pcre_match_callback(pcre_conainer *pcre_info, void *para)
+pcre_match_callback(pcre_conainer *pcre_info, void *param)
 {
     MSG msg = {0};
-    eu_tabpage *pnode = (eu_tabpage *) para;
+    eu_tabpage *pnode = (eu_tabpage *)param;
     if (!pnode)
     {
         return EUE_TAB_NULL;

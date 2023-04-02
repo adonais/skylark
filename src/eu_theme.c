@@ -147,11 +147,11 @@ on_theme_query_name(TCHAR *str)
 int
 on_theme_load_script(const TCHAR *ac_name)
 {
-    TCHAR script[MAX_PATH];
-    char script_name[MAX_PATH] = {0};
+    TCHAR script[MAX_BUFFER];
+    char script_name[MAX_BUFFER] = {0};
     char name[QW_SIZE+1] = {0};
-    _sntprintf(script, MAX_PATH - 1, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
-    if (!WideCharToMultiByte(CP_UTF8, 0, script, -1, script_name, MAX_PATH-1, NULL, NULL))
+    _sntprintf(script, MAX_BUFFER, _T("%s\\conf\\conf.d\\eu_main.lua"), eu_module_path);
+    if (!WideCharToMultiByte(CP_UTF8, 0, script, -1, script_name, MAX_BUFFER, NULL, NULL))
     {
         return EUE_API_CONV_FAIL;
     }
@@ -166,10 +166,10 @@ static bool
 search_theme_files(theme_desc *lptheme, int m)
 {
     WIN32_FIND_DATA data;
-    TCHAR filepath[MAX_PATH];
+    TCHAR filepath[MAX_BUFFER];
     HANDLE hfile;
     int index = 0;
-    _sntprintf(filepath, MAX_PATH - 1, _T("%s\\conf\\styletheme*.conf"), eu_module_path);
+    _sntprintf(filepath, MAX_BUFFER, _T("%s\\conf\\styletheme*.conf"), eu_module_path);
     hfile = FindFirstFile(filepath, &data);
     if (hfile == INVALID_HANDLE_VALUE)
     {
@@ -285,13 +285,13 @@ eu_font_release(void)
 int
 on_theme_copy_style(TCHAR *ac_theme)
 {
-    TCHAR pathfile[MAX_PATH] = { 0 };
-    TCHAR old_path[MAX_PATH] = { 0 };
-    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->pathfile, -1, old_path, MAX_PATH))
+    TCHAR pathfile[MAX_BUFFER] = { 0 };
+    TCHAR old_path[MAX_BUFFER] = { 0 };
+    if (!MultiByteToWideChar(CP_UTF8, 0, eu_get_theme()->pathfile, -1, old_path, MAX_BUFFER))
     {
         return EUE_API_CONV_FAIL;
     }
-    _sntprintf(pathfile, MAX_PATH - 1, _T("%s\\conf\\styletheme_%s.conf"), eu_module_path, ac_theme);
+    _sntprintf(pathfile, MAX_BUFFER, _T("%s\\conf\\styletheme_%s.conf"), eu_module_path, ac_theme);
     if (!CopyFile(old_path, pathfile, true))
     {
         MSG_BOX(IDC_MSG_THEME_ERR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);

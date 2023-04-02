@@ -3210,14 +3210,14 @@ hyper_paren_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (LOWORD(wParam) == IDC_STATIC_URL_UR)
             {
-                TCHAR buf[MAX_PATH];
-                GetWindowText(GetDlgItem(hwnd, IDC_STATIC_URL_UR), buf, _countof(buf));
+                TCHAR buf[MAX_BUFFER];
+                GetWindowText(GetDlgItem(hwnd, IDC_STATIC_URL_UR), buf, MAX_BUFFER);
                 return (LRESULT)ShellExecute(hwnd, NULL, buf, NULL, NULL, SW_SHOWNORMAL);
             }
             else if (LOWORD(wParam) == IDC_STATIC_URL_HOMEPAGE)
             {
-                TCHAR buf[MAX_PATH] = {0};
-                GetWindowText(GetDlgItem(hwnd, IDC_STATIC_URL_HOMEPAGE), buf, _countof(buf));
+                TCHAR buf[MAX_BUFFER] = {0};
+                GetWindowText(GetDlgItem(hwnd, IDC_STATIC_URL_HOMEPAGE), buf, MAX_BUFFER);
                 if (*buf && _tcscmp(&buf[_tcslen(buf) - 1], _T("ʡ")) == 0)
                 {
                     on_file_edit_restart(eu_hwnd_self(), false);
@@ -3405,7 +3405,7 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_set_theme(GetDlgItem(hdlg, IDC_BUTTON_COPY), L"Explorer", NULL);
                 SendMessage(hdlg, WM_THEMECHANGED, 0, 0);
             }
-            if (!on_update_thread_id())
+            if (eu_get_config()->upgrade.enable)
             {
                 PostMessage(hdlg, WM_ABOUT_STC, on_about_msg(eu_get_config()->upgrade.flags), 0);
             }

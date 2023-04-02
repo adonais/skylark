@@ -95,9 +95,9 @@ static HANDLE
 on_update_download(const int64_t dtag)
 {
     WCHAR uri[MAX_SIZE] = {0};
-    WCHAR path[MAX_PATH] = {0};
+    WCHAR path[MAX_BUFFER] = {0};
     WCHAR wcmd[LARGER_LEN] = {0};
-    _snwprintf(path, MAX_PATH - 1, L"%s\\conf\\cache", eu_module_path);
+    _snwprintf(path, MAX_BUFFER, L"%s\\conf\\cache", eu_module_path);
     _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -uri \"%s\" -e \"%s\" -k %u -hwnd %Id -dt %I64d", eu_module_path,
                UPDATE_EXE, util_make_u16(eu_get_config()->upgrade.url, uri, MAX_SIZE - 1), path, GetCurrentProcessId(), (intptr_t)eu_module_hwnd(), dtag);
     printf("wcmd = [[%ls]]\n", wcmd);
@@ -167,49 +167,60 @@ on_update_msg(UPDATE_STATUS status, bool msg)
 static void
 on_update_loop(HANDLE handle)
 {
-    MSG msg;
     if (handle)
     {
+        MSG msg;
         on_update_msg(VERSION_UPDATE_PROGRESS, true);
         while (true)
         {
-            uint32_t ret = WaitForSingleObject(handle, INFINITE);
-            if (ret == (WAIT_OBJECT_0))
-            {   //进程运行完成并且退出了
-                uint32_t result = 256;
-                if (!GetExitCodeProcess(handle, &result))
+            switch ((int)WaitForSingleObject(handle, 200))
+            {   
+                case WAIT_OBJECT_0:
                 {
-                    printf("GetExitCodeProcess failed\n");
+                    //进程运行完成并且退出了
+                    uint32_t result = 256;
+                    if (!GetExitCodeProcess(handle, &result))
+                    {
+                        printf("GetExitCodeProcess failed\n");
+                        break;
+                    }
+                    printf("result == %u\n", result);
+                    if (result == 0)
+                    {
+                        char sql[MAX_PATH] = {0};
+                        on_update_msg(VERSION_UPDATE_COMPLETED, true);
+                        _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", eu_get_config()->upgrade.flags);
+                        eu_sqlite3_send(sql, NULL, NULL);
+                    }
+                    else if (result == (uint32_t)-1)
+                    {
+                        on_update_msg(VERSION_UPDATE_BREAK, true);
+                    }
+                    else if (result > 0)
+                    {
+                        on_update_msg(VERSION_UPDATE_UNKOWN, true);
+                    }
                     break;
                 }
-                printf("result == %u\n", result);
-                if (result == 0)
+                case WAIT_TIMEOUT:
                 {
-                    char sql[MAX_PATH] = {0};
-                    on_update_msg(VERSION_UPDATE_COMPLETED, true);
-                    _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", eu_get_config()->upgrade.flags);
-                    eu_sqlite3_send(sql, NULL, NULL);
+                    // 有消息需要处理
+                    PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+                    if (msg.message == WM_QUIT)
+                    {
+                        TerminateProcess(handle, -1);
+                        on_update_msg(IDS_CHECK_VER_UNKOWN, true);
+                        printf("process force quit...\n");
+                        break;
+                    }
+                    continue; 
                 }
-                else if (result == (uint32_t)-1)
+                default:
                 {
-                    on_update_msg(VERSION_UPDATE_BREAK, true);
-                }
-                else if (result > 0)
-                {
-                    on_update_msg(VERSION_UPDATE_UNKOWN, true);
-                }
-                break;
-            }
-            else
-            {   // 有消息需要处理
-                PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
-                if (msg.message == WM_QUIT)
-                {
-                    TerminateProcess(handle, -1);
-                    on_update_msg(IDS_CHECK_VER_UNKOWN, true);
                     break;
                 }
             }
+            break;
         }
     }
 }
@@ -274,6 +285,7 @@ on_update_send_request(void *lp)
         }
         if ((dtag = on_update_build_time()) > 0 && dtag < tag)
         {
+            printf("curerent_version = %I64d, tag = %I64d\n", dtag, tag);
             on_update_msg(VERSION_UPDATE_REQUIRED, true);
             if (!eu_get_config()->upgrade.enable)
             {
@@ -360,19 +372,15 @@ on_update_sql(void)
     }
 }
 
-long
-on_update_thread_id(void)
-{
-    return g_upcheck_id;
-}
-
-void
+bool
 on_update_thread_wait(void)
 {
     if (g_upcheck_id)
     {
         PostThreadMessage(g_upcheck_id, WM_QUIT, 0, 0);
+        return true;
     }
+    return false;
 }
 
 void

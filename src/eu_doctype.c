@@ -2046,9 +2046,9 @@ on_doc_set_vec(void)
         if (mapper->snippet[0])
         {
             int eol = -1;
-            TCHAR path[MAX_PATH] = {0};
+            TCHAR path[MAX_BUFFER] = {0};
             TCHAR fname[QW_SIZE] = {0};
-            _sntprintf(path, MAX_PATH - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(mapper->snippet, fname, QW_SIZE-1));
+            _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(mapper->snippet, fname, QW_SIZE-1));
             on_parser_init(path, &mapper->ptrv, &eol);
         }
     }

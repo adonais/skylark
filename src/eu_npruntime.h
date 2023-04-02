@@ -59,12 +59,16 @@
 #define NP_ASFILE     3
 #define NP_ASFILEONLY 4
 
-#define DW_SIZE     32
-#define QW_SIZE     64
-#define TITLE_SZIE  512
+#define DW_SIZE       32
+#define QW_SIZE       64
+#define TITLE_SZIE    512
+
+#ifndef MAX_BUFFER
+#define MAX_BUFFER    1024
+#endif
 
 #ifndef VALUE_LEN
-#define VALUE_LEN 4096
+#define VALUE_LEN     4096
 #endif
 
 #define NP_MAXREADY (((unsigned)(~0)<<1)>>1)

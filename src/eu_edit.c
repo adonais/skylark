@@ -1099,7 +1099,7 @@ on_edit_selection(eu_tabpage *pnode, int type)
             case 0:
             {
                 file_backup file = {0};
-                if (eu_exist_path(text) && MultiByteToWideChar(CP_UTF8, 0, text, -1, file.rel_path, MAX_PATH - 1) > 0)
+                if (eu_exist_path(text) && MultiByteToWideChar(CP_UTF8, 0, text, -1, file.rel_path, MAX_BUFFER) > 0)
                 {
                     uint32_t attr = GetFileAttributes(file.rel_path);
                     if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
@@ -1111,8 +1111,8 @@ on_edit_selection(eu_tabpage *pnode, int type)
             }
             case 1:
             {
-                TCHAR pfile[MAX_PATH] = {0};
-                if (!util_make_u16(text, pfile, MAX_PATH - 1)[0])
+                TCHAR pfile[MAX_BUFFER] = {0};
+                if (!util_make_u16(text, pfile, MAX_BUFFER)[0])
                 {
                     break;
                 }

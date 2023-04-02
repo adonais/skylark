@@ -63,14 +63,14 @@ typedef struct _btn_state
 
 typedef struct _file_trace
 {
-    TCHAR path[MAX_PATH+1];
+    TCHAR path[MAX_BUFFER];
     int count;
     struct list_head node_file;
 }file_trace;
 
 typedef struct _folder_trace
 {
-    TCHAR dir[MAX_PATH+1];
+    TCHAR dir[MAX_BUFFER];
     struct list_head node_folder;
 }folder_trace;
 
