@@ -287,7 +287,7 @@ on_view_copy_theme(void)
         {
             MSG_BOX(IDC_MSG_THEME_ERR2, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         }
-        else if (_tcschr(theme_name, _T(' ')) || _tcschr(theme_name, _T('\t')) || _tcschr(theme_name, _T('.')))
+        else if (_tcschr(theme_name, _T(' ')) || _tcschr(theme_name, _T('\t')))
         {
             MSG_BOX(IDC_MSG_THEME_ERR3, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         }
