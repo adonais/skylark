@@ -2065,12 +2065,12 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 on_file_guid(buf, QW_SIZE - 1);
                 if (!pnode->pmod)
                 {
-                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
                     on_file_do_write(pnode, filebak.bak_path, true, false);
                 }
                 else
                 {
-                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\conf\\cache\\%s%s"), eu_module_path, buf, pnode->extname);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s%s"), eu_config_path, buf, pnode->extname);
                     on_file_npp_write(pnode, filebak.bak_path, true);
                 }
                 filebak.status = 1;

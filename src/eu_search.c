@@ -2118,7 +2118,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
     }
     else
     {
-        if (!(pmark = (char *) calloc(1, len)))
+        if (!(pmark = (char *) calloc(1, len + 1)))
         {
             return EUE_OUT_OF_MEMORY;
         }

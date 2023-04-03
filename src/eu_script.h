@@ -28,6 +28,7 @@ int do_lua_code(const char *s);
 int do_byte_code(eu_tabpage *pnode);
 int do_lua_parser_doctype(const char *fname, const char *func);
 void do_lua_parser_release(void);
+TCHAR* do_lua_parser_path(const char *file);
 
 #ifdef __cplusplus
 }

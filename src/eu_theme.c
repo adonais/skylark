@@ -169,7 +169,7 @@ search_theme_files(theme_desc *lptheme, int m)
     TCHAR filepath[MAX_BUFFER];
     HANDLE hfile;
     int index = 0;
-    _sntprintf(filepath, MAX_BUFFER, _T("%s\\conf\\styletheme*.conf"), eu_module_path);
+    _sntprintf(filepath, MAX_BUFFER, _T("%s\\styletheme*.conf"), eu_config_path);
     hfile = FindFirstFile(filepath, &data);
     if (hfile == INVALID_HANDLE_VALUE)
     {
@@ -291,7 +291,7 @@ on_theme_copy_style(TCHAR *ac_theme)
     {
         return EUE_API_CONV_FAIL;
     }
-    _sntprintf(pathfile, MAX_BUFFER, _T("%s\\conf\\styletheme_%s.conf"), eu_module_path, ac_theme);
+    _sntprintf(pathfile, MAX_BUFFER, _T("%s\\styletheme_%s.conf"), eu_config_path, ac_theme);
     if (!CopyFile(old_path, pathfile, true))
     {
         MSG_BOX(IDC_MSG_THEME_ERR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);

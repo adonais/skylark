@@ -39,7 +39,8 @@
 #define IS_3RD_BYTE(c) (CHAR_IN_RANGE((c), 0x81, 0xFE))
 #define IS_4TH_BYTE(c) (CHAR_IN_RANGE((c), 0x30, 0x39))
 
-WCHAR eu_module_path[MAX_PATH+1] = {0};
+wchar_t eu_module_path[MAX_PATH+1] = {0};
+wchar_t eu_config_path[MAX_BUFFER] = {0};
 static volatile long eu_curl_initialized;
 static HINSTANCE eu_instance;   // 当前实例
 
@@ -343,28 +344,6 @@ eu_touch(LPCTSTR path)
         eu_safe_free(fullpath);
     }
     return ret;
-}
-
-bool
-eu_try_path(LPCTSTR dir)
-{
-#define LEN_NAME 6
-    HANDLE pfile = INVALID_HANDLE_VALUE;
-    TCHAR dist_path[MAX_BUFFER] = {0};
-    TCHAR temp[LEN_NAME + 1] =  {0};
-    if (eu_exist_dir(dir) || eu_mk_dir(dir))
-    {
-        _sntprintf(dist_path, MAX_BUFFER, _T("%s\\%s"), dir, eu_rand_str(temp, LEN_NAME));
-        pfile = CreateFile(dist_path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS,
-                           FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
-        if (pfile == INVALID_HANDLE_VALUE)
-        {
-            printf("create %ls failed\n", dist_path);
-        }
-        CloseHandle(pfile);
-    }
-    return (pfile != INVALID_HANDLE_VALUE);
-#undef LEN_NAME
 }
 
 static int

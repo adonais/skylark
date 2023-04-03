@@ -151,6 +151,8 @@
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
+#define EU_CONFIG_DIR             _T("__skylakr_user_config_path__")
+
 #define eu_int_cast(n) ((int)((intptr_t)(n)))
 #define eu_uint_cast(n) ((uint32_t)((uintptr_t)(n)))
 #define FONT_SIZE_DPI(fontsize) (-MulDiv((fontsize), eu_get_dpi(NULL), USER_DEFAULT_SCREEN_DPI))
@@ -519,7 +521,6 @@ EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);
 EU_EXT_CLASS bool eu_touch(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_path(const char *path);
 EU_EXT_CLASS bool eu_mk_dir(LPCTSTR dir);
-EU_EXT_CLASS bool eu_try_path(LPCTSTR dir);
 EU_EXT_CLASS bool eu_exist_dir(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_file(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_libcurl(void);
@@ -602,6 +603,7 @@ EU_EXT_CLASS int eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type
 
 // for main.c
 extern EU_EXT_CLASS TCHAR eu_module_path[MAX_PATH+1];
+extern EU_EXT_CLASS TCHAR eu_config_path[MAX_BUFFER];
 EU_EXT_CLASS HINSTANCE eu_module_handle(void);
 
 // for eu_about.c
@@ -660,6 +662,7 @@ EU_EXT_CLASS bool eu_config_load_accel(void);
 EU_EXT_CLASS bool eu_config_load_toolbar(void);
 EU_EXT_CLASS bool eu_config_load_docs(void);
 EU_EXT_CLASS bool eu_config_load_files(void);
+EU_EXT_CLASS bool eu_config_init_path(void);
 EU_EXT_CLASS bool eu_config_check_arg(const wchar_t **args, int argc, const wchar_t *);
 EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, file_backup **pbak);
 
