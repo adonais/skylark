@@ -3676,7 +3676,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         else if ((pnode = on_tabpage_focus_at()))
                         {
-                            if (pnode->pathname && pnode->pathname[0] && eu_exist_dir(pnode->pathname))
+                            if (pnode->pathname[0] && eu_exist_dir(pnode->pathname))
                             {
                                 on_search_set_folder_path(pnode->pathname);
                             }

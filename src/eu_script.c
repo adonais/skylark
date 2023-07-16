@@ -695,7 +695,11 @@ script_process_dir(lua_State *L)
 {
     int usz = 0;
     char *utf8path = NULL;
-    if (!(utf8path = eu_utf16_utf8(eu_module_path, (size_t *)&usz)))
+    wchar_t path[MAX_BUFFER] = {0};
+    // 使用中间变量保存路径
+    // 使用clang编译时, 直接转换eu_module_path导致lua crash, why?
+    _snwprintf(path, MAX_BUFFER, _T("%s"), eu_module_path);
+    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
         printf("lua lprocessdir error\n");
         lua_pushnil(L);
@@ -711,7 +715,10 @@ script_config_dir(lua_State *L)
 {
     int usz = 0;
     char *utf8path = NULL;
-    if (!(utf8path = eu_utf16_utf8(eu_config_path, (size_t *)&usz)))
+    wchar_t path[MAX_BUFFER] = {0};
+    // 使用中间变量保存路径
+    _snwprintf(path, MAX_BUFFER, _T("%s"), eu_config_path);
+    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
         lua_pushnil(L);
         return 2;

@@ -1370,15 +1370,15 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
 {
     UNREFERENCED_PARAMETER(hwnd);
     int err = SKYLARK_NOT_OPENED;
-    if (pbak && pbak->rel_path)
+    if (pbak && pbak->rel_path[0])
     {
-        if (pbak->status || (_tcslen(pbak->rel_path) > 0 && !url_has_remote(pbak->rel_path)))
-        {
-            err = on_file_open_bakcup(pbak);
-        }
-        else if (url_has_remote(pbak->rel_path))
+        if (!pbak->status && url_has_remote(pbak->rel_path))
         {
             err = (on_file_open_remote(NULL, pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+        }
+        else 
+        {
+            err = on_file_open_bakcup(pbak);
         }
     }
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
