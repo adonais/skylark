@@ -85,7 +85,7 @@ BEGIN
     BLOCK "080404B0"
     BEGIN
       VALUE "CompanyName", "zh-CN NetWork\0"
-      VALUE "FileDescription", "Skylark is a text editor for Windows with built-in sftp capabilities\0"
+      VALUE "FileDescription", "Skylark Text/Hex Editor\0"
       VALUE "FileVersion", __EU_INFO_RELEASE_VERSION
       VALUE "InternalName", "Skylark\0"
       VALUE "LegalCopyright", "License: GNU GPL v3\0"
