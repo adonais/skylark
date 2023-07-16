@@ -1737,7 +1737,7 @@ eu_save_config(void)
         free(save);
         return;
     }
-    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark.conf"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark.conf"), eu_config_path);
     _snprintf(save, BUFF_32K - 1, pconfig,
               g_config->new_file_eol,
               g_config->new_file_enc,
