@@ -1173,6 +1173,11 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             // GB18030!
             type = IDM_ANSI_12;
         }
+        else if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        {
+            printf("Maybe UTF-8!\n");
+            type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
+        }
         else
         {
             type = IDM_OTHER_ANSI;
@@ -1187,6 +1192,18 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         else
         {
             type = IDM_UNI_UTF8;
+        }
+    }
+    else if (_strnicmp(obj->encoding, "ISO-8859-", 9) == 0)
+    {
+        if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        {
+            printf("not iso encode, it's maybe UTF-8!\n");
+            type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
+        }
+        else
+        {
+            type = query_encode(obj->encoding);
         }
     }
     else if (strcmp(obj->encoding, "ISO-2022-JP") == 0 && obj->confidence > CHECK_1ST)
