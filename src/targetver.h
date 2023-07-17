@@ -94,7 +94,7 @@
 #define VC_BUILDER TEXT("VC")
 #endif
 
-#define __EU_INFO_RELEASE TEXT("Skylark Edit v")      \
+#define __EU_INFO_RELEASE TEXT("Skylark Editor v")    \
                           __EU_INFO_RELEASE_VERSION   \
                           TEXT(" ")                   \
                           VER_PLATFORM                \

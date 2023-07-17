@@ -719,8 +719,10 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             {
                 case IDCANCEL:
                 case IDC_SNIPPET_BTN_CLOSE:
-                    SendMessage(hdlg, WM_CLOSE, 0, 0);
-                    return 1;
+                {
+                    on_snippet_destory();
+                    break;
+                }
                 case IDC_SNIPPET_CBO1:
                 {
                     if (HIWORD(wParam) == CBN_SELCHANGE)
@@ -858,9 +860,6 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_CLOSE:
-            DestroyWindow(hdlg);
-            break;
         default:
             break;
     }
