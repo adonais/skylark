@@ -580,17 +580,7 @@ eu_config_init_path(void)
     }
     else if ((path = on_config_lua_execute(_T("eu_portable.lua"))) && path[0])
     {
-        _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s=%s"), EU_CONFIG_DIR, path);
-        if (_wputenv(eu_config_path))
-        {
-            *eu_config_path = 0;
-        }
-        else
-        {
-            _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s"), path);
-            util_unix2path(eu_config_path, (int)_tcslen(eu_config_path));
-            ret = true;
-        }
+        ret = true;
     }
     else if (path || (path = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)))
     {
@@ -601,8 +591,12 @@ eu_config_init_path(void)
             _tcsncat(path, _T("\\skylark_editor"), MAX_BUFFER);
             ret = true;
         }
-        if (ret)
+    }
+    if (ret)
+    {
+        if (STR_NOT_NUL(path))
         {
+            util_unix2path(path, (int)_tcslen(path));
             _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s=%s"), EU_CONFIG_DIR, path);
             if (_wputenv(eu_config_path))
             {
@@ -615,14 +609,14 @@ eu_config_init_path(void)
                 ret = true;
             }
         }
-    }
-    if (ret)
-    {
-        if (!eu_exist_dir(eu_config_path))
+        if (ret)
         {
-            ret = eu_mk_dir(eu_config_path);
+            if (!eu_exist_dir(eu_config_path))
+            {
+                ret = eu_mk_dir(eu_config_path);
+            }
+            ret = on_config_create_cache();
         }
-        ret = on_config_create_cache();
     }
     eu_safe_free(path);
     return ret;
