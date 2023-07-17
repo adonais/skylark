@@ -281,7 +281,7 @@ on_config_sync_snippet(void)
                          _T("text.snippets"),
                          _T("verilog.snippets"),
                          NULL};
-    _sntprintf(p2, MAX_BUFFER, _T("%s\\conf\\snippets"), eu_module_path);
+    _sntprintf(p2, MAX_BUFFER, _T("%s\\snippets"), eu_config_path);
     if (!eu_exist_dir(p2))
     {
         if (!eu_mk_dir(p2))
@@ -292,25 +292,49 @@ on_config_sync_snippet(void)
     for (int i = 0; snippets[i]; ++i)
     {
         _sntprintf(p1, MAX_BUFFER, _T("%s\\conf\\conf.d\\snippets\\%s"), eu_module_path, snippets[i]);
-        _sntprintf(p2, MAX_BUFFER, _T("%s\\conf\\snippets\\%s"), eu_module_path, snippets[i]);
+        _sntprintf(p2, MAX_BUFFER, _T("%s\\snippets\\%s"), eu_config_path, snippets[i]);
         CopyFile(p1, p2, TRUE);
     }
     return true;
 }
 
-static bool
-on_config_lua_execute(const wchar_t *file)
+static char*
+on_config_lua_get(const wchar_t *file)
 {
-    bool ret = false;
     char *lua_path = NULL;
     TCHAR path[MAX_BUFFER] = {0};
     int  m = _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\conf.d\\%s"), eu_module_path, file);
     if ((m > 0 && m < MAX_BUFFER) && ((lua_path = eu_utf16_utf8(path, NULL)) != NULL))
     {
+        return lua_path;
+    }
+    return NULL;
+}
+
+static bool
+on_config_lua_run(const wchar_t *file)
+{
+    bool ret = false;
+    char *lua_path = on_config_lua_get(file);
+    if (lua_path)
+    {
         ret = (do_lua_func(lua_path, "run", "") == 0);
         free(lua_path);
     }
     return ret;
+}
+
+static wchar_t*
+on_config_lua_execute(const wchar_t *file)
+{
+    TCHAR *path = NULL;
+    char *lua_path = on_config_lua_get(file);
+    if (lua_path)
+    {
+        path = do_lua_parser_path(lua_path);
+        free(lua_path);
+    }
+    return path;
 }
 
 static int
@@ -482,19 +506,19 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
 bool
 eu_config_load_accel(void)
 {
-    return on_config_lua_execute(_T("eu_input.lua"));
+    return on_config_lua_run(_T("eu_input.lua"));
 }
 
 bool
 eu_config_load_toolbar(void)
 {
-    return on_config_lua_execute(_T("eu_gui.lua"));
+    return on_config_lua_run(_T("eu_gui.lua"));
 }
 
 bool
 eu_config_load_main(void)
 {
-    return on_config_lua_execute(_T("eu_main.lua"));
+    return on_config_lua_run(_T("eu_main.lua"));
 }
 
 bool
@@ -521,6 +545,80 @@ eu_config_load_docs(void)
     ret = true;
 load_fail:
     eu_safe_free(lua_path);
+    return ret;
+}
+
+static bool
+on_config_create_cache(void)
+{
+    bool ret = false;
+    TCHAR cache_path[MAX_BUFFER] = {0};
+    if (_sntprintf(cache_path, MAX_BUFFER, _T("%s\\cache"), eu_config_path) > 0)
+    {
+        if (!eu_exist_dir(cache_path))
+        {
+            ret = eu_mk_dir(cache_path);
+        }
+        else
+        {
+            ret = true;
+        }
+    }
+    return ret;
+}
+
+bool
+eu_config_init_path(void)
+{
+    bool ret = false;
+    TCHAR *path = NULL;
+    const TCHAR *p = _wgetenv(EU_CONFIG_DIR);
+    if (p)
+    {
+        _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s"), p);
+        ret = true;
+    }
+    else if ((path = on_config_lua_execute(_T("eu_portable.lua"))) && path[0])
+    {
+        ret = true;
+    }
+    else if (path || (path = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)))
+    {
+        const GUID fid = FOLDERID_RoamingAppData;
+        _sntprintf(path, MAX_BUFFER - 1, _T("%s\\conf"), eu_module_path);
+        if (!(ret = util_try_path(path)) && util_shell_path(&fid, path, MAX_BUFFER))
+        {
+            _tcsncat(path, _T("\\skylark_editor"), MAX_BUFFER);
+            ret = true;
+        }
+    }
+    if (ret)
+    {
+        if (STR_NOT_NUL(path))
+        {
+            util_unix2path(path, (int)_tcslen(path));
+            _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s=%s"), EU_CONFIG_DIR, path);
+            if (_wputenv(eu_config_path))
+            {
+                *eu_config_path = 0;
+                ret = false;
+            }
+            else
+            {
+                _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s"), path);
+                ret = true;
+            }
+        }
+        if (ret)
+        {
+            if (!eu_exist_dir(eu_config_path))
+            {
+                ret = eu_mk_dir(eu_config_path);
+            }
+            ret = on_config_create_cache();
+        }
+    }
+    eu_safe_free(path);
     return ret;
 }
 

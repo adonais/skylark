@@ -473,6 +473,40 @@ do_lua_parser_release(void)
     }
 }
 
+/** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * 成功, 返回一个长度为1024的宽字符串, 使用后需要释放内存
+ * 失败, 返回空
+ */
+TCHAR*
+do_lua_parser_path(const char *file)
+{
+    TCHAR *path = NULL;
+    lua_State *L = lua_open();
+    if (L == NULL)
+    {
+        printf("cannot create state: not enough memory\n");
+        return NULL;
+    }
+    /* Stop collector during library initialization. */
+    lua_gc(L, LUA_GCSTOP, 0);
+    luaL_openlibs(L);
+    lua_gc(L, LUA_GCRESTART, -1);
+    if (dofile(L, file) == LUA_OK)
+    {
+        lua_getglobal(L, "profile_dir");
+        if (lua_isstring(L, -1))
+        {
+            const char *value = lua_tostring(L, -1);
+            if (STR_NOT_NUL(value) && (path = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)))
+            {
+                util_make_u16(value, path, MAX_BUFFER - 1);
+            }
+        }
+    }
+    lua_close(L);
+    return path;
+}
+
 int
 eu_lua_script_exec(const TCHAR *fname)
 {
@@ -506,13 +540,11 @@ eu_lua_path_setting(eu_tabpage *pnode)
     TCHAR lua_path[ENV_LEN + 1] = {0};
     if (!pnode)
     {
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua"),
-                   eu_module_path, eu_module_path, eu_module_path);
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua"), eu_module_path, eu_config_path);
     }
     else
     {
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\conf\\scripts\\?.lua;%s\\conf\\script-opts\\?.lua;%s?.lua"),
-                   eu_module_path, eu_module_path, eu_module_path, pnode->pathname);
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua;%s?.lua"), eu_module_path, eu_config_path, pnode->pathname);
     }
     return (_tputenv(lua_path) == 0);
 }
@@ -663,7 +695,11 @@ script_process_dir(lua_State *L)
 {
     int usz = 0;
     char *utf8path = NULL;
-    if (!(utf8path = eu_utf16_utf8(eu_module_path, (size_t *)&usz)))
+    wchar_t path[MAX_BUFFER] = {0};
+    // 使用中间变量保存路径
+    // 使用clang编译时, 直接转换eu_module_path导致lua crash, why?
+    _snwprintf(path, MAX_BUFFER, _T("%s"), eu_module_path);
+    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
         printf("lua lprocessdir error\n");
         lua_pushnil(L);
@@ -680,7 +716,8 @@ script_config_dir(lua_State *L)
     int usz = 0;
     char *utf8path = NULL;
     wchar_t path[MAX_BUFFER] = {0};
-    _snwprintf(path, MAX_BUFFER, _T("%s\\conf"), eu_module_path);
+    // 使用中间变量保存路径
+    _snwprintf(path, MAX_BUFFER, _T("%s"), eu_config_path);
     if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
         lua_pushnil(L);

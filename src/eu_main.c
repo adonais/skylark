@@ -89,7 +89,6 @@ _tmain(int argc, TCHAR *argv[])
     HWND hwnd = NULL;
     HANDLE mapped = NULL;
     HANDLE lang_map = NULL;
-    TCHAR cache_path[MAX_PATH + 1] = {0};
     HANDLE hsem = NULL;
     HINSTANCE instance = eu_module_handle();
     if (argc > 1)
@@ -107,13 +106,10 @@ _tmain(int argc, TCHAR *argv[])
     {   // 获取主进程所在目录
         SKY_SAFE_EXIT(-1);
     }
-    if (_sntprintf(cache_path, MAX_PATH, _T("%s\\conf\\cache"), eu_module_path) > 0)
-    {   // 便携目录是否可写入
-        if (!(cache_path[0] && eu_try_path(cache_path)))
-        {
-            MSG_BOX(IDC_MSG_DIR_WRITE_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            SKY_SAFE_EXIT(-1);
-        }
+    if (!eu_config_init_path())
+    {   // 获取配置文件所在目录
+        printf("eu_config_init_path failed\n");
+        SKY_SAFE_EXIT(-1);
     }
     if (!eu_lua_path_setting(NULL))   // 设置lua脚本搜索路径
     {

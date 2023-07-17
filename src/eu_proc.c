@@ -2100,7 +2100,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (cpd)
             {
                 file_backup *pm = (file_backup *) (cpd->lpData);
-                size_t rel_len = (pm && pm->rel_path) ? _tcslen(pm->rel_path) : 0;
+                size_t rel_len = pm ? _tcslen(pm->rel_path) : 0;
                 if (rel_len > 0 && pm->rel_path[rel_len - 1] == _T('#'))
                 {
                     pm->rel_path[rel_len - 1] = 0;

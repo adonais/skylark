@@ -166,7 +166,7 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
     char pfile[MAX_BUFFER] = {0};
     TCHAR path[MAX_BUFFER] = {0};
     util_lock(&eu_sql_cs);
-    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
     if (util_make_u8(path, pfile, MAX_BUFFER)[0])
     {
         uintptr_t db = 0;
@@ -215,7 +215,7 @@ on_sql_post(const char *sql, sql3_callback callback, void *data)
     int rc = SQLITE_ERROR;
     TCHAR path[MAX_BUFFER] = {0};
     char *sql_path = NULL;
-    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
     if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
     {
         uintptr_t db = 0;
@@ -418,7 +418,7 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
     char pfile[MAX_BUFFER];
     TCHAR path[MAX_BUFFER] = {0};
     util_lock(&eu_sql_cs);
-    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
     if (util_make_u8(path, pfile, MAX_BUFFER)[0])
     {
         char *psql = NULL;
@@ -480,7 +480,7 @@ on_sql_sync_session(void)
     TCHAR path[MAX_BUFFER] = {0};
     char *sql_path = NULL;
     util_lock(&eu_sql_cs);
-    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark_prefs.sqlite3"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
     if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
     {
         uintptr_t db = 0;

@@ -359,7 +359,7 @@ on_snippet_get_file(HWND hwnd_cmb, TCHAR *path, int len, snippet_t **pvec)
             if (doc_ptr->filedesc && doc_ptr->snippet && !strcmp(pname, doc_ptr->filedesc))
             {
                 TCHAR fname[MAX_BUFFER] = {0};
-                int n = _sntprintf(path, len - 1, _T("%s\\conf\\snippets\\%s"), eu_module_path, util_make_u16(doc_ptr->snippet, fname, MAX_BUFFER));
+                int n = _sntprintf(path, len - 1, _T("%s\\snippets\\%s"), eu_config_path, util_make_u16(doc_ptr->snippet, fname, MAX_BUFFER));
                 if (doc_ptr->ptrv && pvec)
                 {
                     *pvec = doc_ptr->ptrv;
@@ -719,8 +719,10 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             {
                 case IDCANCEL:
                 case IDC_SNIPPET_BTN_CLOSE:
-                    SendMessage(hdlg, WM_CLOSE, 0, 0);
-                    return 1;
+                {
+                    on_snippet_destory();
+                    break;
+                }
                 case IDC_SNIPPET_CBO1:
                 {
                     if (HIWORD(wParam) == CBN_SELCHANGE)
@@ -858,9 +860,6 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_CLOSE:
-            DestroyWindow(hdlg);
-            break;
         default:
             break;
     }

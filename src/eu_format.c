@@ -252,6 +252,59 @@ init_stderr_redirect(FILE** pout, FILE **perr)
     }
 }
 
+static char*
+append_ext(eu_tabpage *pnode)
+{
+    char *pname = NULL;
+    if (pnode && pnode->doc_ptr)
+    {
+        TCHAR filename[MAX_BUFFER + 1] = {0};
+        const TCHAR *tmp = pnode->filename[0] ? pnode->filename : _T("a");
+        switch (pnode->doc_ptr->doc_type)
+        {
+            case DOCTYPE_CPP:
+            {
+                _sntprintf(filename, MAX_BUFFER, _T("%s%s"), tmp, _T(".cpp"));
+                break;
+            }
+            case DOCTYPE_CS:
+            {
+                _sntprintf(filename, MAX_BUFFER, _T("%s%s"), tmp, _T(".cs"));
+                break;
+            }
+            case DOCTYPE_VERILOG:
+            {
+                _sntprintf(filename, MAX_BUFFER, _T("%s%s"), tmp, _T(".v"));
+                break;
+            }
+            case DOCTYPE_JAVA:
+            {
+                _sntprintf(filename, MAX_BUFFER, _T("%s%s"), tmp, _T(".java"));
+                break;
+            }
+            case DOCTYPE_JAVASCRIPT:
+            {
+                _sntprintf(filename, MAX_BUFFER, _T("%s%s"), tmp, _T(".js"));
+                break;
+            }
+            case DOCTYPE_JSON:
+            {
+                _sntprintf(filename, MAX_BUFFER, _T("%s%s"), tmp, _T(".json"));
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+        if (filename[0])
+        {
+            pname = eu_utf16_utf8(filename, NULL);
+        }
+    }
+    return pname;
+}
+
 static bool
 init_lib_format(const char *filename, const char *data, size_t size, char **pout)
 {
@@ -495,7 +548,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                 {
                     break;
                 }
-                if (!(filename = eu_utf16_utf8(pnode->filename, NULL)))
+                if (!(filename = append_ext(pnode)))
                 {
                     break;
                 }

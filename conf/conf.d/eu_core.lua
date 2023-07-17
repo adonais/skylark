@@ -385,6 +385,10 @@ void on_doc_commentdoc_light(void *, int lex, intptr_t rgb);
 
 ]]
 
+function eu_core.process_path()
+    return eu_core.eulib.lprocessdir()
+end
+
 function eu_core.script_path()
     return eu_core.eulib.lconfdir()
 end

@@ -39,7 +39,8 @@
 #define IS_3RD_BYTE(c) (CHAR_IN_RANGE((c), 0x81, 0xFE))
 #define IS_4TH_BYTE(c) (CHAR_IN_RANGE((c), 0x30, 0x39))
 
-WCHAR eu_module_path[MAX_PATH+1] = {0};
+wchar_t eu_module_path[MAX_PATH+1] = {0};
+wchar_t eu_config_path[MAX_BUFFER] = {0};
 static volatile long eu_curl_initialized;
 static HINSTANCE eu_instance;   // 当前实例
 
@@ -343,28 +344,6 @@ eu_touch(LPCTSTR path)
         eu_safe_free(fullpath);
     }
     return ret;
-}
-
-bool
-eu_try_path(LPCTSTR dir)
-{
-#define LEN_NAME 6
-    HANDLE pfile = INVALID_HANDLE_VALUE;
-    TCHAR dist_path[MAX_BUFFER] = {0};
-    TCHAR temp[LEN_NAME + 1] =  {0};
-    if (eu_exist_dir(dir) || eu_mk_dir(dir))
-    {
-        _sntprintf(dist_path, MAX_BUFFER, _T("%s\\%s"), dir, eu_rand_str(temp, LEN_NAME));
-        pfile = CreateFile(dist_path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS,
-                           FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
-        if (pfile == INVALID_HANDLE_VALUE)
-        {
-            printf("create %ls failed\n", dist_path);
-        }
-        CloseHandle(pfile);
-    }
-    return (pfile != INVALID_HANDLE_VALUE);
-#undef LEN_NAME
 }
 
 static int
@@ -1194,6 +1173,11 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             // GB18030!
             type = IDM_ANSI_12;
         }
+        else if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        {
+            printf("Maybe UTF-8!\n");
+            type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
+        }
         else
         {
             type = IDM_OTHER_ANSI;
@@ -1208,6 +1192,18 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         else
         {
             type = IDM_UNI_UTF8;
+        }
+    }
+    else if (_strnicmp(obj->encoding, "ISO-8859-", 9) == 0)
+    {
+        if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        {
+            printf("not iso encode, it's maybe UTF-8!\n");
+            type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
+        }
+        else
+        {
+            type = query_encode(obj->encoding);
         }
     }
     else if (strcmp(obj->encoding, "ISO-2022-JP") == 0 && obj->confidence > CHECK_1ST)
@@ -1758,7 +1754,7 @@ eu_save_config(void)
         free(save);
         return;
     }
-    _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\skylark.conf"), eu_module_path);
+    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark.conf"), eu_config_path);
     _snprintf(save, BUFF_32K - 1, pconfig,
               g_config->new_file_eol,
               g_config->new_file_enc,

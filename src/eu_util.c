@@ -2762,3 +2762,44 @@ util_url_escape(const char *url)
     }
     return result;
 }
+
+bool
+util_try_path(LPCTSTR dir)
+{
+#define LEN_NAME 6
+    HANDLE pfile = INVALID_HANDLE_VALUE;
+    TCHAR dist_path[MAX_BUFFER] = {0};
+    TCHAR temp[LEN_NAME + 1] =  {0};
+    if (eu_exist_dir(dir) || eu_mk_dir(dir))
+    {
+        _sntprintf(dist_path, MAX_BUFFER, _T("%s\\%s"), dir, eu_rand_str(temp, LEN_NAME));
+        pfile = CreateFile(dist_path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS,
+                           FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
+        if (pfile == INVALID_HANDLE_VALUE)
+        {
+            printf("%s, create folder failed\n", __FUNCTION__);
+        }
+        CloseHandle(pfile);
+    }
+    return (pfile != INVALID_HANDLE_VALUE);
+#undef LEN_NAME
+}
+
+bool
+util_shell_path(const GUID *folder, TCHAR *path, const int len)
+{
+    if (path && len > 0)
+    {
+        int m = 0;
+        TCHAR *tmp = NULL;
+        uint32_t flags = KF_FLAG_SIMPLE_IDLIST | KF_FLAG_DONT_VERIFY | KF_FLAG_NO_ALIAS;
+        if (!SUCCEEDED(SHGetKnownFolderPath(folder, flags, NULL, &tmp)))
+        {
+            return false;
+        }
+        m = _sntprintf(path, len, _T("%s"), tmp);
+        CoTaskMemFree(tmp);
+        return (m > 0 && m < len);
+    }
+    return false;
+}

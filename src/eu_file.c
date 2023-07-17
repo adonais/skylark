@@ -1370,15 +1370,15 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
 {
     UNREFERENCED_PARAMETER(hwnd);
     int err = SKYLARK_NOT_OPENED;
-    if (pbak && pbak->rel_path)
+    if (pbak && pbak->rel_path[0])
     {
-        if (pbak->status || (_tcslen(pbak->rel_path) > 0 && !url_has_remote(pbak->rel_path)))
-        {
-            err = on_file_open_bakcup(pbak);
-        }
-        else if (url_has_remote(pbak->rel_path))
+        if (!pbak->status && url_has_remote(pbak->rel_path))
         {
             err = (on_file_open_remote(NULL, pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+        }
+        else 
+        {
+            err = on_file_open_bakcup(pbak);
         }
     }
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
@@ -2065,12 +2065,12 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 on_file_guid(buf, QW_SIZE - 1);
                 if (!pnode->pmod)
                 {
-                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\conf\\cache\\%s"), eu_module_path, buf);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
                     on_file_do_write(pnode, filebak.bak_path, true, false);
                 }
                 else
                 {
-                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\conf\\cache\\%s%s"), eu_module_path, buf, pnode->extname);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s%s"), eu_config_path, buf, pnode->extname);
                     on_file_npp_write(pnode, filebak.bak_path, true);
                 }
                 filebak.status = 1;
