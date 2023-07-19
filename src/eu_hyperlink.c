@@ -63,6 +63,10 @@ on_hyper_strim(eu_tabpage *pnode, const sptr_t start_pos, int *plen)
         {
             char *p = NULL;
             int len = eu_int_cast(strlen(buffer));
+            if ((p = strstr(buffer, BAD_CHARACTERS)) != NULL)
+            {
+                len = eu_int_cast(p - buffer);
+            }
             while (len > 0 && (p = strchr(END_CHARACTERS, buffer[len - 1])))
             {
                 buffer[len - 1] = 0;
