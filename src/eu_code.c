@@ -191,7 +191,7 @@ on_code_block_expand_all(eu_tabpage *pnode)
 void
 on_code_set_complete_chars(eu_tabpage *pnode)
 {
-    TCHAR input_chars[3] = {0};
+    TCHAR input_chars[4] = {0};
     _sntprintf(input_chars, _countof(input_chars)-1, _T("%d"), eu_get_config()->eu_complete.characters);
     LOAD_I18N_RESSTR(IDC_MSG_AC_STR, ac_str);
     if (eu_input(ac_str, input_chars, _countof(input_chars)))
@@ -199,6 +199,10 @@ on_code_set_complete_chars(eu_tabpage *pnode)
         if (input_chars[0])
         {
             eu_get_config()->eu_complete.characters = _tstoi(input_chars);
+            if (!eu_get_config()->eu_complete.characters)
+            {
+                ++eu_get_config()->eu_complete.characters;
+            }
             on_toolbar_update_button();
         }
     }
