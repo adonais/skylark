@@ -428,7 +428,7 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
         {   // 根据配置重建触发器
             int tri = 0;
             DO_TRIGGER(buf, n);
-            const char *sql = "select szid,szrealpath,szbakpath,szSync from skylark_session;";
+            const char *sql = "select szId,szRealPath,szBakPath,szSync from skylark_session;";
             rc = sqlite3_exec((sqlite3 *)db, "select szTrigger from skylar_ver;", on_sql_skyver_callbak, (void *)&tri, NULL);
             if (tri != n)
             {

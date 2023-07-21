@@ -2582,6 +2582,11 @@ util_strim_end(char *pstr, int len)
     if (pstr && len > 0)
     {
         char *p = NULL;
+        if ((p = strstr(pstr, BAD_CHARACTERS)) != NULL)
+        {
+            len = eu_int_cast(p - pstr);
+            pstr[len] = 0;
+        }
         while (len > 0 && (p = strchr(END_CHARACTERS, pstr[len - 1])))
         {
             pstr[len - 1] = 0;
