@@ -90,7 +90,7 @@ function eu_conf.loadconf()
         "-- auto complete default setting\n" ..
         "complete = {\n" ..
         "    enable = true,\n" ..
-        "    characters = 0,\n" ..
+        "    characters = 1,\n" ..
         "    snippet = 44014\n" ..
         "}\n" ..
         "-- printer default setting\n" ..
@@ -186,6 +186,10 @@ function eu_conf.loadconf()
         m_reserved_0,
         m_reserved_1
     })
+    -- Compatible with previous versions
+    if (m_config ~= nil and m_config.eu_complete.characters == 0) then
+        m_config.eu_complete.characters = 1
+    end
     eu_conf.fill_actions(m_config)
     if (not eu_core.euapi.eu_config_ptr(m_config)) then
         do return nil end

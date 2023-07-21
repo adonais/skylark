@@ -1133,7 +1133,7 @@ on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify)
                 on_complete_reset_focus(pnode);
                 on_complete_snippet(pnode);
             }
-            else if (eu_get_config()->eu_complete.enable && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)) && end_pos - start_pos > eu_get_config()->eu_complete.characters)
+            else if (eu_get_config()->eu_complete.enable && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)) && end_pos - start_pos >= eu_get_config()->eu_complete.characters)
             {
                 on_complete_call_autocshow(pnode, word_buffer, current_pos, start_pos);
             }
