@@ -354,7 +354,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "启用括号补全",                                IDM_EDIT_AUTO_CLOSECHAR
         MENUITEM "启用关键字补全",                              IDM_SOURCEE_ENABLE_ACSHOW
-        MENUITEM "输入[N]个字符后弹出自动完成框...",            IDM_SOURCEE_ACSHOW_CHARS
+        MENUITEM "输入[N]个字符后弹出补全框",                   IDM_SOURCEE_ACSHOW_CHARS
         MENUITEM "启用原型提示框",                              IDM_SOURCE_ENABLE_CTSHOW
         MENUITEM MF_SEPARATOR
         MENUITEM "插入数据库自动连接配置头",                    IDM_DATABASE_INSERT_CONFIG
