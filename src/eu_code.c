@@ -203,7 +203,6 @@ on_code_set_complete_chars(eu_tabpage *pnode)
             {
                 ++eu_get_config()->eu_complete.characters;
             }
-            on_toolbar_update_button();
         }
     }
 }

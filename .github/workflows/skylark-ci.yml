@@ -67,7 +67,6 @@ jobs:
       id: current-time
       with:
         format: YYYYMMDDHHmmss
-        utcOffset: "+08:00"
 
     - uses: yxl0756/release-action@v1.12.0
       with:
