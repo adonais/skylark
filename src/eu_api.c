@@ -2567,3 +2567,51 @@ eu_restore_placement(HWND hwnd)
 {
     util_restore_placement(hwnd);
 }
+const uint32_t
+eu_win10_or_later(void)
+{
+    uint32_t major, minor, patch = (uint32_t)-1;
+    RtlGetNtVersionNumbersPtr fnRtlGetNtVersionNumbers = NULL;
+    if (!(fnRtlGetNtVersionNumbers = (RtlGetNtVersionNumbersPtr)GetProcAddress(GetModuleHandle(_T("ntdll.dll")), "RtlGetNtVersionNumbers")))
+    {
+        return (uint32_t)-1;
+    }
+    fnRtlGetNtVersionNumbers(&major, &minor, &patch);
+    patch &= ~0xf0000000;
+    if (major == 10 && minor == 0 && patch >= 10240)
+    {
+        return patch;
+    }
+    return (uint32_t)-1;
+}
+
+const int
+eu_theme_index(void)
+{
+    TCHAR pname[QW_SIZE+1] = {0};
+    if (!g_config)
+    {
+        return (const int)THEME_UNUSABLE;
+    }
+    if (!MultiByteToWideChar(CP_UTF8, 0, g_config->window_theme, -1, pname, QW_SIZE) || !pname[0])
+    {
+        return (const int)THEME_UNUSABLE;
+    }
+    if (_tcscmp(pname, _T("default")) == 0)
+    {
+        return (const int)THEME_DEFAULT;
+    }
+    else if (_tcscmp(pname, _T("white")) == 0)
+    {
+        return (const int)THEME_WHITE;
+    }
+    else if (_tcscmp(pname, _T("black")) == 0)
+    {
+        return (const int)THEME_BLACK;
+    }
+    else
+    {
+        return (const int)THEME_OTHER;
+    }
+    return (const int)THEME_UNUSABLE;
+}

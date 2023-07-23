@@ -2153,7 +2153,6 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
 const uint32_t
 util_os_version(void)
 {
-    typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(DWORD*, DWORD*, DWORD*);
     RtlGetNtVersionNumbersPtr fnRtlGetNtVersionNumbers = NULL;
     uint32_t major_ver, minor_ver, build_num;
     uint32_t ver = 0;

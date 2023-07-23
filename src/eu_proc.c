@@ -26,9 +26,7 @@ typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
 static HWND g_hwndmain;                    // 主窗口句柄
-static HBRUSH g_control_brush;             // 全局子控件画刷
 static volatile long undo_off;             // 状态栏按钮撤销信号量
-
 volatile long g_interval_count = 0;        // 启动自动更新的时间间隔
 
 static int
@@ -80,34 +78,8 @@ enum_skylark_proc(HWND hwnd, LPARAM lParam)
 }
 
 static void
-on_destory_window(HWND hwnd)
+on_proc_send_notify(void)
 {
-    // 保存主窗口位置
-    util_save_placement(hwnd);
-    // 销毁定时器
-    KillTimer(hwnd, EU_TIMER_ID);
-    // 等待搜索线程完成
-    on_search_finish_wait();
-    // 等待更新线程完成并响应
-    if (on_update_thread_wait())
-    {
-        Sleep(200);
-    }
-    // 销毁控件画刷
-    on_proc_destory_brush();
-    // 清理主题画刷
-    on_dark_delete_theme_brush();
-    // 销毁工具栏
-    HWND h_tool = GetDlgItem(hwnd, IDC_TOOLBAR);
-    if (h_tool)
-    {
-        DestroyWindow(h_tool);
-    }
-    // 销毁状态栏
-    if (g_statusbar)
-    {
-        DestroyWindow(g_statusbar);
-    }
     if (g_hwndmain == share_envent_get_hwnd())
     {
         if (!EnumWindows(enum_skylark_proc, 0) && GetLastError() == ERROR_CALLBACK_ABORT)
@@ -118,8 +90,34 @@ on_destory_window(HWND hwnd)
             }
         }
     }
+}
+
+static void
+on_destory_window(HWND hwnd)
+{
+    // 保存主窗口位置
+    util_save_placement(hwnd);
+    // 销毁定时器
+    KillTimer(hwnd, EU_TIMER_ID);
+    // 等待搜索线程完成
+    on_search_finish_wait();
+    // 等待更新线程完成并响应
+    on_update_thread_wait();
+    // 等待保存会话线程结束
+    on_session_thread_wait();
+    // 销毁菜单栏
+    menu_destroy(hwnd);
+    // 销毁工具栏
+    on_toolbar_destroy(hwnd);
+    // 销毁状态栏
+    on_statusbar_destroy();
+    // 清理画刷
+    on_dark_delete_brush();
+    // 通知其他窗口完成更新
+    on_proc_send_notify();
     // 文件关闭,销毁信号量
     on_file_finish_wait();
+    // 释放libcurl资源
     eu_curl_global_cleanup();
     // 全局变量清零
     _InterlockedExchange(&undo_off, 0);
@@ -167,16 +165,6 @@ void
 on_proc_undo_off(void)
 {
     _InterlockedExchange(&undo_off, 0);
-}
-
-void
-on_proc_destory_brush(void)
-{
-    if (g_control_brush)
-    {
-        DeleteObject(g_control_brush);
-        g_control_brush = NULL;
-    }
 }
 
 HWND
@@ -449,6 +437,10 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             }
             // 重新加上位置后显示
             on_proc_move_sidebar(pnode);
+            if (g_splitter_treebar)
+            {
+                UpdateWindowEx(g_splitter_treebar);
+            }
         }
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
@@ -695,7 +687,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     TOOLTIPTEXT *p_tips = NULL;
     eu_tabpage *pnode = NULL;
     LRESULT result = 0;
-    if (eu_get_config()->m_menubar && on_dark_enable() && on_theme_menu_proc(hwnd, message, wParam, lParam, &result))
+    if (eu_get_config()->m_menubar && eu_win10_or_later() != (uint32_t)-1 && on_theme_menu_proc(hwnd, message, wParam, lParam, &result))
     {
         return result;
     }
@@ -737,21 +729,35 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_NCPAINT:
         {
+            RECT r = {0};
+            HDC hdc = NULL;
             LRESULT result = DefWindowProc(hwnd, WM_NCPAINT, wParam, lParam);
             if (!on_dark_enable())
             {   // 系统dark模式关闭时, 动态刷新主题
-                if (strcmp(eu_get_config()->window_theme, "black") == 0 && on_dark_supports())
+                const int i = eu_theme_index();
+                if (i == THEME_BLACK)
                 {
-                    eu_dark_theme_release(false);
-                    on_proc_msg_size(hwnd, NULL);
+                    if (on_dark_supports())
+                    {
+                        eu_dark_theme_release(false);
+                        on_proc_msg_size(hwnd, NULL);
+                    }
+                }
+                else if (i == THEME_WHITE)
+                {
+                    hdc = GetWindowDC(hwnd);
+                    get_menu_border_rect(hwnd, &r);
+                    FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
                 }
             }
             else
             {
-                HDC hdc = GetWindowDC(hwnd);
-                RECT r = {0};
+                hdc = GetWindowDC(hwnd);
                 get_menu_border_rect(hwnd, &r);
-                FillRect(hdc, &r, (HBRUSH)on_dark_get_brush());
+                FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
+            }
+            if (hdc)
+            {
                 ReleaseDC(hwnd, hdc);
             }
             return result;
@@ -869,11 +875,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            if (!g_control_brush)
-            {
-                if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))
-                    break;
-            }
             if (pnode->hwnd_symlist == (HWND)lParam)
             {
                 SetTextColor(hdc, eu_get_theme()->item.symbolic.color & 0xFFFFFF);
@@ -884,20 +885,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             SetBkColor(hdc, eu_get_theme()->item.text.bgcolor);
             SetBkMode(hdc, TRANSPARENT);
-            return (LRESULT)g_control_brush;
+            return (LRESULT)on_dark_theme_brush();
         }
         case WM_CTLCOLOREDIT:
         {   // 为edit控件创建画刷,用来绘制背景色
             HDC hdc = (HDC)wParam;
-            if (!g_control_brush)
-            {
-                if (NULL == (g_control_brush = CreateSolidBrush(eu_get_theme()->item.text.bgcolor)))
-                    break;
-            }
             SetTextColor(hdc, eu_get_theme()->item.text.color);
             SetBkColor(hdc, eu_get_theme()->item.text.bgcolor);
             SetBkMode(hdc, TRANSPARENT);
-            return (LRESULT)g_control_brush;
+            return (LRESULT)on_dark_theme_brush();
         }
         case WM_DRAWITEM:
         {
@@ -1844,33 +1840,30 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case NM_CUSTOMDRAW:
                 {
-                    if (on_dark_enable())
+                    if (eu_get_config() && eu_get_config()->m_toolbar && GetDlgItem(hwnd, IDC_TOOLBAR) == lpnmhdr->hwndFrom)
                     {
-                        if (GetDlgItem(hwnd, IDC_TOOLBAR) == lpnmhdr->hwndFrom)
+                        LPNMTBCUSTOMDRAW lptoolbar = (LPNMTBCUSTOMDRAW)lParam;
+                        if (lptoolbar)
                         {
-                            LPNMTBCUSTOMDRAW lptoolbar = (LPNMTBCUSTOMDRAW)lParam;
-                            if (lptoolbar)
-                            {
-                                FillRect(lptoolbar->nmcd.hdc, &lptoolbar->nmcd.rc, (HBRUSH)on_dark_get_brush());
-                            }
+                            FillRect(lptoolbar->nmcd.hdc, &lptoolbar->nmcd.rc, (HBRUSH)on_dark_get_bgbrush());
                         }
-                        else if (GetDlgItem(hwnd, IDM_TABLE_BAR) == lpnmhdr->hwndFrom)
+                    }
+                    if (on_dark_enable() && GetDlgItem(hwnd, IDM_TABLE_BAR) == lpnmhdr->hwndFrom)
+                    {
+                        LPNMLVCUSTOMDRAW lpvcd = (LPNMLVCUSTOMDRAW)lParam;
+                        if (lpvcd)
                         {
-                            LPNMLVCUSTOMDRAW lpvcd = (LPNMLVCUSTOMDRAW)lParam;
-                            if (lpvcd)
+                            if (lpvcd->nmcd.dwDrawStage == CDDS_PREPAINT)
                             {
-                                if (lpvcd->nmcd.dwDrawStage == CDDS_PREPAINT)
-                                {
-                                    return CDRF_NOTIFYITEMDRAW;
-                                }
-                                if (lpvcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
-                                {
-                                    return CDRF_NOTIFYSUBITEMDRAW;
-                                }
-                                else if (lpvcd->nmcd.dwDrawStage == (CDDS_ITEMPREPAINT|CDDS_SUBITEM))
-                                {
-                                    return CDRF_DODEFAULT;
-                                }
+                                return CDRF_NOTIFYITEMDRAW;
+                            }
+                            if (lpvcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
+                            {
+                                return CDRF_NOTIFYSUBITEMDRAW;
+                            }
+                            else if (lpvcd->nmcd.dwDrawStage == (CDDS_ITEMPREPAINT|CDDS_SUBITEM))
+                            {
+                                return CDRF_DODEFAULT;
                             }
                         }
                     }

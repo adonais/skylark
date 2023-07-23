@@ -391,7 +391,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             }
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
+            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_bgbrush());
             return 1;
         }
         case WM_PAINT:
@@ -410,7 +410,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             HPEN hpen = CreatePen(PS_SOLID, 1, edge_color);
             HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
             HFONT hold_font = (HFONT)SelectObject(hdc, on_statusbar_default_font());
-            FillRect(hdc, &ps.rcPaint, (HBRUSH)on_dark_get_brush());
+            FillRect(hdc, &ps.rcPaint, (HBRUSH)on_dark_get_bgbrush());
             wchar_t str[MAX_PATH] = {0};
             int nparts = (int)SendMessage(hwnd, SB_GETPARTS, 0, 0);
             for (int i = 0; i < nparts; ++i)
@@ -969,6 +969,16 @@ on_statusbar_update(void)
             SendMessage(g_statusbar, WM_SETREDRAW, TRUE, 0);
             RedrawWindow(g_statusbar, NULL, NULL, RDW_ERASE | RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN);
         }
+    }
+}
+
+void
+on_statusbar_destroy(void)
+{
+    if (g_statusbar)
+    {
+        DestroyWindow(g_statusbar);
+        g_statusbar = NULL;
     }
 }
 

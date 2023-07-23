@@ -134,7 +134,7 @@ static int
 on_view_refresh_theme(HWND hwnd)
 {
     HWND snippet = NULL;
-    on_proc_destory_brush();
+    on_dark_delete_theme_brush();
     on_treebar_update_theme();
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -194,6 +194,7 @@ on_view_refresh_theme(HWND hwnd)
     }
     on_view_refresh_scroll();
     SendMessage(hwnd, WM_SIZE, 0, 0);
+    UpdateWindowEx(hwnd);
     return SKYLARK_OK;
 }
 
@@ -227,11 +228,9 @@ on_view_switch_theme(HWND hwnd, int id)
         printf("on_theme_load_script(%ls) failed\n", pbuf);
         return 1;
     }
-    else
+    if (strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE))
     {
-        strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE);
-        // 清理主题画刷
-        on_dark_delete_theme_brush();
+        on_dark_delete_brush();
     }
     if (_tcscmp(pbuf, _T("black")) == 0)
     {

@@ -38,6 +38,15 @@ menu_height(void)
     return m_height;
 }
 
+void
+menu_destroy(HWND hwnd)
+{
+    HMENU hmenu = GetMenu(hwnd);
+    if(hmenu)
+    {
+        DestroyMenu(hmenu);
+    }
+}
 HMENU
 menu_load(uint16_t mid)
 {

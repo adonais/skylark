@@ -271,6 +271,14 @@ typedef enum _UPDATE_STATUS
     VERSION_UPDATE_COMPLETED
 } UPDATE_STATUS;
 
+typedef enum _THEME_INDEX
+{
+    THEME_UNUSABLE = 0,
+    THEME_DEFAULT = 1,
+    THEME_WHITE = 2,
+    THEME_BLACK = 3,
+    THEME_OTHER
+} THEME_INDEX;
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -445,6 +453,7 @@ typedef struct _pcre_conainer
     int match;                   // 匹配次数
     int ovector[OVECCOUNT];      // 匹配偏移量数组
 } pcre_conainer;
+typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(LPDWORD major, LPDWORD minor, LPDWORD build);
 
 typedef int (*ptr_recallback)(pcre_conainer *, void *);
 typedef const char* (*ptr_curl_easy_strerror)(CURLcode);
@@ -549,6 +558,8 @@ EU_EXT_CLASS eue_accel *eu_get_accel(void);
 EU_EXT_CLASS eue_toolbar *eu_get_toolbar(void);
 EU_EXT_CLASS void eu_lua_release(void);
 
+EU_EXT_CLASS const int eu_theme_index(void);
+EU_EXT_CLASS const uint32_t eu_win10_or_later(void);
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);

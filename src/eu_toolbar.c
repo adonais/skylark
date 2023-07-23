@@ -226,8 +226,17 @@ HWND
 on_toolbar_hwnd(void)
 {
     HWND hwnd = eu_module_hwnd();
+    return hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
+}
+
+void
+on_toolbar_destroy(HWND hwnd)
+{
     HWND htool = hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
-    return htool;
+    if (htool)
+    {
+        DestroyWindow(htool);
+    }
 }
 
 void

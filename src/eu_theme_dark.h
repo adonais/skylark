@@ -61,7 +61,6 @@ typedef struct tagWINDOWCOMPOSITIONATTRIBDATA
     SIZE_T cbData;
 }WINDOWCOMPOSITIONATTRIBDATA;
 
-typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(LPDWORD major, LPDWORD minor, LPDWORD build);
 typedef BOOL (WINAPI *SetWindowCompositionAttributePtr)(HWND hwnd, WINDOWCOMPOSITIONATTRIBDATA*);
 // 1809 17763
 typedef bool (WINAPI *ShouldAppsUseDarkModePtr)(void); // ordinal 132
@@ -103,11 +102,14 @@ typedef HRESULT (WINAPI *DwmGetColorizationColorPtr)(DWORD *pcrColorization, BOO
 #define rgb_alpha(rgb, a)                                                                  \
   ((int)(((colour)((rgb)&0xffffff)) | (((colour)(uint8_t)((a)&0xff)) << 24)))              \
 
-#define rgb_dark_bk_color    (0x383838)
+#define rgb_dark_bk11_color  (0x202020)
+#define rgb_dark_bk_color    (0x2B2B2B)
 #define rgb_dark_btn_color   (0x333333)
 #define rgb_dark_txt_color   (0xFFFFFF)
 #define rgb_dark_hot_color   (0x404040)
 #define rgb_bmp_close_color  (0xd77800)
+#define rgb_memu_hot1_color  (0xF7C991)
+#define rgb_memu_hot2_color  (0xFFF3E5)
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,6 +127,9 @@ bool on_dark_color_scheme_change_msg(UINT message, LPARAM lParam);
 void on_dark_allow_app(bool allow);
 void on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list);
 void on_dark_delete_theme_brush(void);
+void on_dark_delete_hot_brush(void);
+void on_dark_delete_bgbrush(void);
+void on_dark_delete_brush(void);
 void on_dark_border(HWND hwnd, bool border);
 void on_dark_tips_theme(HWND hwnd, int msg);
 colour on_dark_get_sys_colour(HWND hwnd, int colid);
@@ -136,7 +141,7 @@ HRESULT on_dark_draw_background(void *hTheme, HDC hdc, int iPartId, int iStateId
 HRESULT on_dark_get_partsize(void *hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz);
 intptr_t on_dark_get_hot_brush(void);
 intptr_t on_dark_set_contorl_color(WPARAM wParam);
-intptr_t on_dark_get_brush(void);
+intptr_t on_dark_get_bgbrush(void);
 intptr_t on_dark_theme_brush(void);
 
 static inline uint32_t

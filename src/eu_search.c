@@ -1468,7 +1468,7 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             RECT rc = { 0 };
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
+            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_bgbrush());
             return 1;
         case WM_PAINT:
         {
@@ -1476,7 +1476,7 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PAINTSTRUCT    ps;
                 HDC hdc = BeginPaint(hwnd, & ps);
-                HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_brush();
+                HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_bgbrush();
                 // 绘制标签
                 HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
                 if (old_font)

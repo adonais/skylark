@@ -768,7 +768,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
+            FillRect((HDC)wParam, &rc, eu_theme_index() == THEME_WHITE ? GetSysColorBrush(COLOR_MENU) : (HBRUSH)on_dark_get_bgbrush());
             return 1;
         }
         case WM_PAINT:
@@ -1196,7 +1196,7 @@ on_tabpage_remove_empty(eu_tabpage *pre)
     for (int index = 0; index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->is_blank && !eu_sci_call(p, SCI_GETLENGTH, 0, 0))
+        if (p && p->is_blank && !TAB_NOT_NUL(p))
         {
             if (!on_sci_doc_modified(p))
             {
