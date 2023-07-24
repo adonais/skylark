@@ -39,7 +39,7 @@ function verilog.get_autocomplete()
 end
 
 function verilog.get_reqular()
-  local symbol_reqular_exp = "[ \\t]*module[ \\t]+([_a-zA-Z]+[_a-zA-Z0-9]*)\\("
+  local symbol_reqular_exp = "[ \\t]*module[ \\t]+([_a-zA-Z]+[_a-zA-Z0-9]*)[ \\t]*\\("
   return symbol_reqular_exp
 end
 
@@ -86,7 +86,7 @@ function verilog.create_bakup(path)
     "end\n",
     "\n",
     "function user_verilog.get_reqular()\n",
-    "  local symbol_reqular_exp = \"[ \\\\t]*module[ \\\\t]+([_a-zA-Z]+[_a-zA-Z0-9]*)\\\\(\"\n",
+    "  local symbol_reqular_exp = \"[ \\\\t]*module[ \\\\t]+([_a-zA-Z]+[_a-zA-Z0-9]*)[ \\\\t]*\\\\(\"\n",
     "  return symbol_reqular_exp\n",
     "end\n",
     "return user_verilog",
