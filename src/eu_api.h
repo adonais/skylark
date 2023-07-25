@@ -147,7 +147,12 @@
 #define WM_UPCHECK_STATUS         (WM_USER+10011)
 // User clip message
 #define WM_CLEAN_CHAIN            (WM_USER+10020)
-#define EU_SAVE_CONFIG            (WM_USER+10021)
+
+#define WM_BACKUP_THEME           (WM_USER+10030)
+#define WM_BACKUP_CONFIG          (WM_USER+10031)
+#define WM_BACKUP_BOTH            (WM_USER+10032)
+#define WM_BACKUP_ALL             (WM_USER+10033)
+
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
@@ -279,6 +284,7 @@ typedef enum _THEME_INDEX
     THEME_BLACK = 3,
     THEME_OTHER
 } THEME_INDEX;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -416,6 +422,7 @@ struct eu_config
     int m_quality;
     int m_render;
     int  m_upfile;
+    int  m_up_notify;
     bool m_light_str;
     bool m_write_copy;
     bool m_session;
@@ -453,6 +460,7 @@ typedef struct _pcre_conainer
     int match;                   // 匹配次数
     int ovector[OVECCOUNT];      // 匹配偏移量数组
 } pcre_conainer;
+
 typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(LPDWORD major, LPDWORD minor, LPDWORD build);
 
 typedef int (*ptr_recallback)(pcre_conainer *, void *);
@@ -700,6 +708,9 @@ EU_EXT_CLASS int  eu_prepend_path(const TCHAR *dir);
 
 // for eu_tablectl.c
 EU_EXT_CLASS void eu_dbase_release(void);
+
+// for eu_session.c
+EU_EXT_CLASS void eu_session_backup(const int status);
 
 // for eu_doctype.c
 EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);

@@ -320,8 +320,7 @@ _tmain(int argc, TCHAR *argv[])
             }
         }
     }
-    eu_save_theme();
-    eu_save_config();
+    eu_session_backup(SESSION_BOTH);
 all_clean:
     share_close(mapped);
     share_close(lang_map);

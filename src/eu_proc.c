@@ -845,6 +845,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     _InterlockedIncrement(&g_interval_count);
                 }
             }
+            if (eu_get_config()->m_session)
+            {
+                on_session_do(hwnd);
+            }
             break;
         case WM_INITMENUPOPUP:
             // 展开时, 显示菜单状态
@@ -1030,13 +1034,13 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_reload_current(pnode);
                     break;
                 case IDM_FILE_WRITE_COPY:
-                    on_file_backup_menu();
+                    eu_get_config()->m_write_copy ^= true;
                     break;
                 case IDM_FILE_SESSION:
-                    on_file_session_menu();
+                    eu_get_config()->m_session ^= true;
                     break;
                 case IDM_FILE_EXIT_WHEN_LAST_TAB:
-                    on_file_close_last_tab();
+                    eu_get_config()->m_exit ^= true;
                     break;
                 case IDM_FILE_RESTART_ADMIN:
                     on_file_edit_restart(hwnd, true);
@@ -1046,6 +1050,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_PRINT:
                     on_print_file(pnode);
+                    break;
+                case IDM_FILE_SAVE_NOTIFY:
+                    on_file_auto_notify();
                     break;
                 case IDM_EDIT_CLIP:
                 {
@@ -1823,12 +1830,6 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             switch (lpnmhdr->code)
             {
-                case EU_SAVE_CONFIG:
-                {
-                    eu_save_config();
-                    eu_save_theme();
-                    break;
-                }
                 case NM_CLICK:
                     if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {

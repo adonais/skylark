@@ -405,6 +405,8 @@ BEGIN
             MENUITEM "DirectWrite &Retain",                            IDM_SET_RENDER_TECH_D2DRETAIN
         END
         MENUITEM MF_SEPARATOR
+        MENUITEM "Files Interval [N] Seconds Auto-save",               IDM_FILE_SAVE_NOTIFY
+        MENUITEM MF_SEPARATOR
         MENUITEM "Enable Automatic &Update",                           IDM_SKYLAR_AUTOMATIC_UPDATE
     END
     POPUP "&Help"
@@ -1119,6 +1121,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SYMTREE_ERR14   "Failed to switch REDIS server data bucket. Please confirm the correctness of data bucket configuration value"
     IDC_MSG_SYMTREE_ERR15   "Failed to send Ping message to redis server"
     IDC_MSG_AC_STR          "Number of chars for autocomplete:"
+    IDC_MSG_INTERVAL_STR    "Auto save interval seconds:"
     IDC_MSG_SCI_ERR1        "load scilexer.dll fail"
     IDC_MSG_ENC_ERR1        "BASE64 encoding failed"
     IDC_MSG_ENC_ERR2        "BASE64 decoding failed"

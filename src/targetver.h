@@ -486,6 +486,7 @@
 #define IDM_FILE_EXIT_WHEN_LAST_TAB          30115
 #define IDM_FILE_RESTART_ADMIN               30116
 #define IDM_FILE_RELOAD_CURRENT              30117
+#define IDM_FILE_SAVE_NOTIFY                 30118
 
 #define IDM_EDIT_BASE64_ENCODING             30200
 #define IDM_EDIT_BASE64_DECODING             30201
@@ -826,6 +827,7 @@
 #define IDC_MSG_SEARCH_BOTTOM               40256
 #define IDC_MSG_REPLACE_NONE                40257
 #define IDC_MSG_REPLACE_ONECE               40258
+#define IDC_MSG_INTERVAL_STR                40259
 
 #define IDC_SEARCH_BTN_ON                   40300
 #define IDC_SEARCH_BTN_OFF                  40301

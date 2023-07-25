@@ -163,5 +163,6 @@
 #include "eu_pixmap.h"
 #include "eu_hyperlink.h"
 #include "eu_exporter.h"
+#include "eu_session.h"
 
 #endif  // _EU_FRAMEWORK_H_

@@ -63,6 +63,7 @@ function eu_conf.loadconf()
         "edit_font_quality = 42552\n" ..
         "edit_rendering_technology = 42560\n" ..
         "update_file_mask = 0\n" ..
+        "update_file_notify = 0\n" ..
         "light_all_find_str = true\n" ..
         "backup_on_file_write = false\n" ..
         "save_last_session = true\n" ..
@@ -125,6 +126,10 @@ function eu_conf.loadconf()
     else
         eu_code = dofile(file)
     end
+    -- Add new preference
+    if (update_file_notify == nil) then
+        update_file_notify = 0
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -166,6 +171,7 @@ function eu_conf.loadconf()
         edit_font_quality,
         edit_rendering_technology,
         update_file_mask,
+        update_file_notify,
         light_all_find_str,
         backup_on_file_write,
         save_last_session,

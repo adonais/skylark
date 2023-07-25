@@ -105,6 +105,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_pixmap.obj                      \
     $(OBJD)\eu_hyperlink.obj                   \
     $(OBJD)\eu_exporter.obj                    \
+    $(OBJD)\eu_session.obj                     \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -204,6 +205,7 @@ $(OBJD)\eu_nphost.obj                      : eu_nphost.c eu_nphost.h eu_npruntim
 $(OBJD)\eu_pixmap.obj                      : eu_pixmap.c eu_pixmap.h framework.h
 $(OBJD)\eu_hyperlink.obj                   : eu_hyperlink.c eu_hyperlink.h framework.h
 $(OBJD)\eu_exporter.obj                    : eu_exporter.c eu_exporter.h framework.h
+$(OBJD)\eu_session.obj                     : eu_session.c eu_session.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp

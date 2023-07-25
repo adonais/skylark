@@ -47,6 +47,7 @@ menu_destroy(HWND hwnd)
         DestroyMenu(hmenu);
     }
 }
+
 HMENU
 menu_load(uint16_t mid)
 {
@@ -551,6 +552,10 @@ menu_update_item(HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_GDI, IDM_SET_RENDER_TECH_GDI == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
+                        break;
+                    case IDM_FILE_SAVE_NOTIFY:
+                        util_update_menu_chars(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_up_notify);
+                        util_set_menu_item(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_up_notify > 0);
                         break;
                     case IDM_SKYLAR_AUTOMATIC_UPDATE:
                         enable = util_upcheck_exist();

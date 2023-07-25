@@ -405,6 +405,8 @@ BEGIN
             MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
         END
         MENUITEM MF_SEPARATOR
+        MENUITEM "文件间隔[N]秒自动保存",                       IDM_FILE_SAVE_NOTIFY
+        MENUITEM MF_SEPARATOR
         MENUITEM "启用自动更新(&U)",                            IDM_SKYLAR_AUTOMATIC_UPDATE
     END
     POPUP "帮助(&H)"
@@ -1118,6 +1120,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SYMTREE_ERR14   "切换Redis服务器数据桶失败, 请确认数据桶配置值正确性"
     IDC_MSG_SYMTREE_ERR15   "向Redis服务器发送PING失败"
     IDC_MSG_AC_STR          "自动完成需要的字符数:"
+    IDC_MSG_INTERVAL_STR    "自动保存间隔秒数:"
     IDC_MSG_SCI_ERR1        "加载scilexer.dll失败"
     IDC_MSG_ENC_ERR1        "BASE64编码失败"
     IDC_MSG_ENC_ERR2        "BASE64解码失败"

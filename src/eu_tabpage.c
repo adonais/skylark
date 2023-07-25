@@ -586,8 +586,7 @@ on_tabpage_drag_mouse(const HWND hwin)
         TCHAR name[FILESIZE] = {0};
         HWND parent = GetParent(hwin);
         GetClassName(hwin, name, FILESIZE - 1);
-        NMHDR nmhdr = {0};
-        eu_send_notify(g_tabpages, EU_SAVE_CONFIG, &nmhdr);
+        eu_session_backup(SESSION_BOTH);
         if (parent == eu_hwnd_self() || hwin == eu_hwnd_self())
         {   // 拖放在skylark编辑器本身界面上, 启动新实例
             on_tabpage_new_hinst();

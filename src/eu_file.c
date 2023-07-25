@@ -1976,12 +1976,10 @@ on_file_save_as(eu_tabpage *pnode)
 int
 on_file_all_save(void)
 {
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    EU_VERIFY(g_tabpages != NULL);
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *pnode = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *pnode = on_tabpage_get_ptr(index);
         if (pnode)
         {
             on_file_save(pnode, false);
@@ -2009,6 +2007,52 @@ on_file_guid(TCHAR *buf, int len)
     {
         eu_rand_str(buf, 32);
     }
+}
+
+static int
+on_file_query_callback(void *data, int count, char **column, char **names)
+{
+    file_backup fbak = {0};
+    for (int i = 0; i < count; ++i)
+    {
+        if (STRCMP(names[i], ==, "szBakPath"))
+        {
+            MultiByteToWideChar(CP_UTF8, 0, column[i], -1, fbak.bak_path, MAX_BUFFER);
+        }
+        else if (STRCMP(names[i], ==, "szStatus"))
+        {
+            fbak.status = atoi(column[i]);
+        }
+    }
+    if (fbak.bak_path[0] && fbak.status)
+    {
+        TCHAR *p = _tcsrchr(fbak.bak_path, _T('\\'));
+        if (p)
+        {
+            _sntprintf((wchar_t *)data, QW_SIZE - 1, _T("%s"), p + 1);
+            printf("we found [%ls]!!!\n", (wchar_t *)data);
+        }
+    }
+    return 0;
+}
+
+static bool
+on_file_backup_name(const wchar_t *rel_path, wchar_t *pout)
+{
+    bool ret = false;
+    char *path = eu_utf16_utf8(rel_path, NULL);
+    if (STR_NOT_NUL(path) && pout)
+    {
+        char sql[MAX_BUFFER+1] = {0};
+        *pout = 0;
+        _snprintf(sql, MAX_BUFFER, "select szBakpath,szStatus from skylark_session where szRealpath='%s';", path);
+        if (on_sql_mem_post(sql, on_file_query_callback, pout) == SKYLARK_OK)
+        {
+            ret = *pout ? true : false;
+        }
+    }
+    eu_safe_free(path);
+    return ret;
 }
 
 static void
@@ -2052,7 +2096,6 @@ on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
 static void
 on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
 {
-    TCHAR buf[QW_SIZE] = {0};
     file_backup filebak = {0};
     filebak.cp = pnode->codepage;
     filebak.bakcp = !TAB_NOT_BIN(pnode) ? IDM_OTHER_BIN : IDM_UNI_UTF8;
@@ -2062,7 +2105,12 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
         {
             if (pnode->be_modify)
             {
-                on_file_guid(buf, QW_SIZE - 1);
+                TCHAR buf[QW_SIZE] = {0};
+                if (!on_file_backup_name(pnode->pathfile, buf))
+                {
+                    on_file_guid(buf, QW_SIZE - 1);
+                }
+                printf("buf = [%ls]\n", buf);
                 if (!pnode->pmod)
                 {
                     _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
@@ -2073,11 +2121,11 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                     _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s%s"), eu_config_path, buf, pnode->extname);
                     on_file_npp_write(pnode, filebak.bak_path, true);
                 }
-                filebak.status = 1;
                 if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
                 {
                     filebak.bakcp = pnode->codepage;
                 }
+                filebak.status = 1;
             }
             _tcscpy(filebak.rel_path, pnode->pathfile);
             filebak.tab_id = pnode->tab_id;
@@ -2107,6 +2155,20 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
     else
     {
         on_sql_delete_backup_row(pnode);
+    }
+}
+
+void
+on_file_auto_backup(void)
+{
+    EU_VERIFY(g_tabpages != NULL);
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && p->be_modify && !p->pmod)
+        {
+            on_file_save_backup(p, FILE_AUTO_SAVE);
+        }
     }
 }
 
@@ -2403,24 +2465,6 @@ on_file_edit_restart(HWND hwnd, const bool admin)
 }
 
 void
-on_file_backup_menu(void)
-{
-    eu_get_config()->m_write_copy ^= true;
-}
-
-void
-on_file_session_menu(void)
-{
-    eu_get_config()->m_session ^= true;
-}
-
-void
-on_file_close_last_tab(void)
-{
-    eu_get_config()->m_exit ^= true;
-}
-
-void
 on_file_new_eols(eu_tabpage *pnode, const int eol_mode)
 {
     eu_get_config()->new_file_eol = eol_mode;
@@ -2430,6 +2474,29 @@ void
 on_file_new_encoding(eu_tabpage *pnode, const int new_enc)
 {
     eu_get_config()->new_file_enc = new_enc;
+}
+
+void
+on_file_auto_notify(void)
+{
+    TCHAR input_chars[8] = {0};
+    _sntprintf(input_chars, _countof(input_chars)-1, _T("%d"), eu_get_config()->m_up_notify);
+    LOAD_I18N_RESSTR(IDC_MSG_INTERVAL_STR, ac_str);
+    if (eu_input(ac_str, input_chars, _countof(input_chars)))
+    {
+        if (input_chars[0])
+        {
+            int intervar = _tstoi(input_chars);
+            if (intervar > 0 && intervar < 5)
+            {
+                eu_get_config()->m_up_notify = 5;
+            }
+            else
+            {
+                eu_get_config()->m_up_notify = intervar;
+            }
+        }
+    }
 }
 
 static int

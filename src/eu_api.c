@@ -1679,6 +1679,7 @@ eu_save_config(void)
         "edit_font_quality = %d\n"
         "edit_rendering_technology = %d\n"
         "update_file_mask = %d\n"
+        "update_file_notify = %d\n"
         "light_all_find_str = %s\n"
         "backup_on_file_write = %s\n"
         "save_last_session = %s\n"
@@ -1796,6 +1797,7 @@ eu_save_config(void)
               g_config->m_quality,
               g_config->m_render,
               0,
+              g_config->m_up_notify,
               g_config->m_light_str?"true":"false",
               g_config->m_write_copy?"true":"false",
               g_config->m_session?"true":"false",
@@ -2567,6 +2569,7 @@ eu_restore_placement(HWND hwnd)
 {
     util_restore_placement(hwnd);
 }
+
 const uint32_t
 eu_win10_or_later(void)
 {

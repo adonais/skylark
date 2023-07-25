@@ -625,9 +625,7 @@ eu_config_init_path(void)
 bool
 eu_config_load_files(void)
 {
-    HWND hwnd = eu_hwnd_self();
-    HWND share = share_envent_get_hwnd();
-    if (hwnd == share)
+    if (eu_hwnd_self() == share_envent_get_hwnd())
     {
         int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
         if (err == SQLITE_ABORT)
@@ -635,7 +633,7 @@ eu_config_load_files(void)
             if (on_update_do())
             {
                 on_update_sql();
-                eu_save_config();
+                eu_session_backup(SESSION_CONFIG);
                 return false;
             }
             else if (eu_get_config()->upgrade.flags != VERSION_LATEST)

@@ -127,6 +127,7 @@ struct eu_config
     int m_quality;
     int m_render;
     int  m_upfile;
+    int  m_up_notify;
     bool m_light_str;
     bool m_write_copy;
     bool m_session;

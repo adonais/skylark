@@ -18,6 +18,7 @@
 
 #include "framework.h"
 
+#define MAYBE200MS 200
 #define UPDATE_EXE L"upcheck.exe"
 #define UPDATE_URL "https://api.github.com/repos/adonais/skylark/releases"
 
@@ -174,7 +175,7 @@ on_update_loop(HANDLE handle)
         on_update_msg(VERSION_UPDATE_PROGRESS, true);
         while (true)
         {
-            switch ((int)WaitForSingleObject(handle, 200))
+            switch ((int)WaitForSingleObject(handle, MAYBE200MS))
             {   
                 case WAIT_OBJECT_0:
                 {
@@ -379,6 +380,7 @@ on_update_thread_wait(void)
     if (g_upcheck_id)
     {
         PostThreadMessage(g_upcheck_id, WM_QUIT, 0, 0);
+        Sleep(MAYBE200MS);
         return true;
     }
     return false;
