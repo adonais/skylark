@@ -90,6 +90,12 @@ on_doc_enable_foldline(eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.less.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".less")) == 0)? "1" : "0"));
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.hss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".hss")) == 0)? "1" : "0"));
             break;
+        case DOCTYPE_JSON:
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.json.allow.comments", (sptr_t)"1");
+            break;
+        case DOCTYPE_PASCAL:
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.pascal.smart.highlighting", (sptr_t)"1");
+            break;
         default:
             break;
         }
