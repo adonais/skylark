@@ -90,6 +90,9 @@ on_doc_enable_foldline(eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.less.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".less")) == 0)? "1" : "0"));
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.hss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".hss")) == 0)? "1" : "0"));
             break;
+        case DOCTYPE_JSON:
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.json.allow.comments", (sptr_t)"1");
+            break;
         default:
             break;
         }
@@ -285,6 +288,15 @@ on_doc_color_customizes(eu_tabpage *pnode)
 }
 
 static void
+on_doc_enable_regexp(eu_tabpage *pnode)
+{
+    if (pnode && pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
+    {
+        pnode->doc_ptr->fn_reload_symlist(pnode);
+    }
+}
+
+static void
 on_doc_key_scilexer(eu_tabpage *pnode, const  char *name)
 {
     // 加载文档解析器
@@ -302,6 +314,7 @@ on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
     if (pnode)
     {
         on_doc_key_scilexer(pnode, name);
+        on_doc_enable_regexp(pnode);
         return 0;
     }
     return 1;
@@ -703,10 +716,7 @@ on_doc_init_after_cpp(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_C_PREPROCESSORCOMMENT, 0);
     on_doc_commentblock_light(pnode, SCE_C_PREPROCESSORCOMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -723,10 +733,7 @@ on_doc_init_after_cs(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -743,10 +750,7 @@ on_doc_init_after_java(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -763,10 +767,7 @@ on_doc_init_after_go(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -783,10 +784,7 @@ on_doc_init_after_swift(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -831,10 +829,7 @@ on_doc_init_after_python(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_P_TRIPLE, 0);
     on_doc_string_light(pnode, SCE_P_TRIPLEDOUBLE, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -851,10 +846,7 @@ on_doc_init_after_lua(eu_tabpage *pnode)
     on_doc_commentdoc_light(pnode, SCE_LUA_COMMENTDOC, 0);
     on_doc_operator_light(pnode, SCE_LUA_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -869,10 +861,7 @@ on_doc_init_after_perl(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_PL_COMMENTLINE, 0);
     on_doc_operator_light(pnode, SCE_PL_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -902,10 +891,7 @@ on_doc_init_after_shell(eu_tabpage *pnode)
         on_doc_operator_light(pnode, SCE_SH_OPERATOR, 0);
     }
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -967,10 +953,7 @@ on_doc_init_after_rust(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_RUST_COMMENTLINEDOC, 0);
     on_doc_commentdoc_light(pnode, SCE_RUST_COMMENTBLOCKDOC, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -986,10 +969,7 @@ on_doc_init_after_ruby(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_RB_COMMENTLINE, 0);
     on_doc_operator_light(pnode, SCE_RB_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1004,10 +984,7 @@ on_doc_init_after_lisp(eu_tabpage *pnode)
     on_doc_commentdoc_light(pnode, SCE_LISP_MULTI_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_LISP_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1025,10 +1002,7 @@ on_doc_init_after_asm(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_ASM_COMMENTDIRECTIVE, 0);
     on_doc_operator_light(pnode, SCE_ASM_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1052,10 +1026,7 @@ on_doc_init_after_nim(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_NIM_STRINGEOL, 0);
     on_doc_tags_light(pnode, SCE_NIM_FUNCNAME, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1074,10 +1045,7 @@ on_doc_init_after_cobol(eu_tabpage *pnode)
     on_doc_operator_light(pnode, SCE_C_OPERATOR, 0);
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1207,10 +1175,7 @@ on_doc_init_after_js(eu_tabpage *pnode)
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symlist)
-    {
-        return pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -2043,7 +2008,7 @@ on_doc_set_vec(void)
 {
     for (doctype_t *mapper = g_doc_config; mapper && mapper->doc_type; ++mapper)
     {
-        if (mapper->snippet[0])
+        if (mapper->snippet && mapper->snippet[0])
         {
             int eol = -1;
             TCHAR path[MAX_BUFFER] = {0};
