@@ -1880,7 +1880,6 @@ on_doc_keyup_general_sh(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 int
 on_doc_reload_list_reqular(eu_tabpage *pnode)
 {
-    printf("on_doc_reload_list_reqular runing\n");
     return on_symlist_reqular(pnode);
 }
 
