@@ -661,7 +661,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
             char *std_buffer = NULL;
             pnode->presult->pwant = on_toolbar_no_highlight;
             on_proc_resize(NULL);
-            eu_lua_path_setting(pnode);
+            do_lua_setting_path(pnode);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
                 if (do_lua_code((const char *)buffer) == 0)
@@ -685,7 +685,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 free(std_buffer);
             }
             free(buffer);
-            eu_lua_path_setting(NULL);
+            do_lua_setting_path(NULL);
         }
     }
 }

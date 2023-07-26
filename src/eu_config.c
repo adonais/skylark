@@ -568,31 +568,46 @@ on_config_create_cache(void)
     return ret;
 }
 
+/**************************************************************************************
+ * 调用euapi导出函数之前, 应该先初始化euapi路径变量, 可以写入dllmain
+ * eu_module_path是主进程路径, eu_config_path是配置文件夹路径
+ * euapi.dll大量函数依赖这两个全局变量, 所以应该最先初始化
+ **************************************************************************************/
 bool
 eu_config_init_path(void)
 {
     bool ret = false;
     TCHAR *path = NULL;
-    const TCHAR *p = _wgetenv(EU_CONFIG_DIR);
-    if (p)
+    const TCHAR *p = NULL;
+    do
     {
-        _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s"), p);
-        ret = true;
-    }
-    else if ((path = on_config_lua_execute(_T("eu_portable.lua"))) && path[0])
-    {
-        ret = true;
-    }
-    else if (path || (path = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)))
-    {
-        const GUID fid = FOLDERID_RoamingAppData;
-        _sntprintf(path, MAX_BUFFER - 1, _T("%s\\conf"), eu_module_path);
-        if (!(ret = util_try_path(path)) && util_shell_path(&fid, path, MAX_BUFFER))
+        if (!eu_process_path()[0])
         {
-            _tcsncat(path, _T("\\skylark_editor"), MAX_BUFFER);
-            ret = true;
+            break;
         }
-    }
+        if ((p = _wgetenv(EU_CONFIG_DIR)))
+        {
+            _sntprintf(eu_config_path, MAX_BUFFER - 1, _T("%s"), p);
+            ret = true;
+            break;
+        }
+        if ((path = on_config_lua_execute(_T("eu_portable.lua"))) && path[0])
+        {
+            ret = true;
+            break;
+        }
+        if (path || (path = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)))
+        {
+            const GUID fid = FOLDERID_RoamingAppData;
+            _sntprintf(path, MAX_BUFFER - 1, _T("%s\\conf"), eu_module_path);
+            if (!(ret = util_try_path(path)) && util_shell_path(&fid, path, MAX_BUFFER))
+            {
+                _tcsncat(path, _T("\\skylark_editor"), MAX_BUFFER);
+                ret = true;
+                break;
+            }
+        }
+    } while(0);
     if (ret)
     {
         if (STR_NOT_NUL(path))
@@ -616,7 +631,10 @@ eu_config_init_path(void)
             {
                 ret = eu_mk_dir(eu_config_path);
             }
-            ret = on_config_create_cache();
+            if ((ret = on_config_create_cache()))
+            {
+                ret = do_lua_setting_path(NULL);
+            }
         }
     }
     eu_safe_free(path);

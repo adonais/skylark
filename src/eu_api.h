@@ -617,12 +617,13 @@ extern void eu_curl_global_cleanup(void);
 extern CURL* eu_curl_easy_init(void);
 extern void eu_curl_easy_cleanup(CURL *);
 
+extern TCHAR eu_module_path[MAX_PATH+1];
+extern TCHAR eu_config_path[MAX_BUFFER];
+
 // for eu_changes.c
 EU_EXT_CLASS int eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
 
 // for main.c
-extern EU_EXT_CLASS TCHAR eu_module_path[MAX_PATH+1];
-extern EU_EXT_CLASS TCHAR eu_config_path[MAX_BUFFER];
 EU_EXT_CLASS HINSTANCE eu_module_handle(void);
 
 // for eu_about.c
@@ -688,7 +689,6 @@ EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, file_bac
 // for eu_script.c
 EU_EXT_CLASS int eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
 EU_EXT_CLASS int eu_lua_script_exec(const TCHAR *fname);
-EU_EXT_CLASS bool eu_lua_path_setting(eu_tabpage *pnode);
 EU_EXT_CLASS int luaopen_euapi(void *L);
 
 // for eu_theme.c
