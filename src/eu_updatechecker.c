@@ -85,8 +85,9 @@ on_update_build_time(void)
     struct tm *p;
     char chunk[QW_SIZE] = {0};
     time_t t = on_about_build_id();
-    t += 3600;  // 编译时间 + 1小时, 消除云端编译与上传的间隔
-    p = localtime(&t);
+    t += 3600;
+    // UTC时间, 编译时间 + 1小时, 消除云端编译与上传的间隔
+    p = gmtime(&t);
     _snprintf(chunk, QW_SIZE - 1, "%d%02d%02d%02d%02d%02d", (1900+p->tm_year), (1+p->tm_mon),p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
     return _atoi64(chunk);
 }

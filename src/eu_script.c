@@ -75,7 +75,6 @@ report_gui(lua_State *L, int status)
     if (status && !lua_isnil(L, -1))
     {
         char *gui_msg = NULL;
-        TCHAR *cnv = NULL;
         const char *msg = lua_tostring(L, -1);
         if (msg == NULL)
         {
@@ -83,11 +82,7 @@ report_gui(lua_State *L, int status)
         }
         if ((gui_msg = util_unix_newline(msg, strlen(msg))))
         {
-            if ((cnv = eu_utf8_utf16(gui_msg, NULL)) != NULL)
-            {
-                on_result_append_text(_T("%s: %s"), __ORIGINAL_NAME, cnv);
-                free(cnv);
-            }
+            on_result_append_text_utf8("%s", gui_msg);
             free(gui_msg);
         }
         lua_pop(L, 1);
@@ -535,7 +530,7 @@ eu_lua_script_exec(const TCHAR *fname)
 }
 
 bool
-eu_lua_path_setting(eu_tabpage *pnode)
+do_lua_setting_path(eu_tabpage *pnode)
 {
     TCHAR lua_path[ENV_LEN + 1] = {0};
     if (!pnode)

@@ -3382,9 +3382,9 @@ func_about_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 TCHAR chunk[QW_SIZE] = {0};
                 TCHAR build_str[MAX_PATH + 1] = {0};
                 time_t t = on_about_build_id();
-                p = localtime(&t);
+                p = gmtime(&t);
                 _sntprintf(chunk, QW_SIZE-1, _T("%d-%02d-%02d %02d:%02d:%02d"), (1900+p->tm_year), (1+p->tm_mon),p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec);
-                _sntprintf(build_str, MAX_PATH, _T("%s\r\n\r\n%s: %s (%s)\r\n"),
+                _sntprintf(build_str, MAX_PATH, _T("%s\r\n\r\n%s: %s (%s UTC)\r\n"),
                            __EU_INFO_RELEASE,
                            str,
                            VC_BUILDER,
@@ -3660,15 +3660,6 @@ on_about_dialog(void)
 uint64_t
 on_about_build_id(void)
 {
-#ifdef ACTIONS_BUILDING
-    int zone = 0;
-    TIME_ZONE_INFORMATION tzi;
-    GetTimeZoneInformation(&tzi);
-    if ((zone = tzi.Bias/(-60)))
-    {
-        return (zone * 3600 + get_compiler_time(__DATE__, __TIME__));
-    }
-#endif
     return get_compiler_time(__DATE__, __TIME__);
 }
 

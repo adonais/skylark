@@ -102,21 +102,13 @@ _tmain(int argc, TCHAR *argv[])
             no_remote = true;
         }
     }
-    if (!eu_process_path()[0])
-    {   // 获取主进程所在目录
-        SKY_SAFE_EXIT(-1);
-    }
     if (!eu_config_init_path())
     {   // 获取配置文件所在目录
         printf("eu_config_init_path failed\n");
         SKY_SAFE_EXIT(-1);
     }
-    if (!eu_lua_path_setting(NULL))   // 设置lua脚本搜索路径
-    {
-        SKY_SAFE_EXIT(-1);
-    }
-    if (!eu_config_load_main())      // 加载主配置文件
-    {
+    if (!eu_config_load_main())
+    {   // 加载主配置文件
         SKY_SAFE_EXIT(-1);
     }
     if (!no_remote && (hsem = share_envent_open_file_sem()) != NULL)
