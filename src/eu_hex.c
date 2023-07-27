@@ -466,7 +466,7 @@ hexview_update_theme(eu_tabpage *p)
     return 0;
 }
 
-void
+static void
 hexview_destoy(eu_tabpage *pnode)
 {
     if (pnode && pnode->phex)
@@ -490,6 +490,7 @@ hexview_destoy(eu_tabpage *pnode)
                 printf("on hexview_destoy, Delete(%ls) error, cause: %lu\n", pnode->bakpath, GetLastError());
             }
         }
+        _InterlockedExchange(&pnode->busy_id, 0);
         eu_safe_free(pnode->phex);
     }
 }
@@ -2090,7 +2091,7 @@ hexview_map_write(const uint8_t *pbuf, const size_t buf_len, const TCHAR *dst_pa
     return err;
 }
 
-void
+static void
 hexview_updata(intptr_t *arr, intptr_t m)
 {
     for (int i = 0; i < BUFF_32K; ++i)
@@ -2109,17 +2110,31 @@ hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile)
     int len = 0;
     HANDLE hmap = NULL;
     uintptr_t pbase = 0;
+    TCHAR path[MAX_BUFFER] = {0};
     if (!(pnode && pnode->phex && pnode->phex->pbase))
     {
         return EUE_TAB_NULL;
     }
     if (bakfile)
-    {  // 文件备份, CREATE_ALWAYS
-        return hexview_map_write(pnode->phex->pbase, pnode->phex->total_items, bakfile, CREATE_ALWAYS);
+    {
+        if (eu_exist_file(bakfile))
+        {
+            _sntprintf(path, MAX_BUFFER, _T("%s.bakcup"), bakfile);
+            if (hexview_map_write(pnode->phex->pbase, pnode->phex->total_items, path, CREATE_ALWAYS) == SKYLARK_OK)
+            {
+                if (!MoveFileEx(path, bakfile, MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING))
+                {
+                    return EUE_MOVE_FILE_ERR;
+                }
+            }
+        }
+        else
+        {
+            return hexview_map_write(pnode->phex->pbase, pnode->phex->total_items, bakfile, CREATE_ALWAYS);
+        }
     }
     else
     {  // 文件已存在, 写入备份后替换
-        TCHAR path[MAX_BUFFER] = {0};
         _sntprintf(path, MAX_BUFFER, _T("%s.bakcup"), pnode->pathfile);
         if (hexview_map_write(pnode->phex->pbase, pnode->phex->total_items, path, CREATE_ALWAYS) == SKYLARK_OK)
         {
@@ -2164,6 +2179,7 @@ hexview_switch_mode(eu_tabpage *pnode)
     {
         on_tabpage_active_tab(pnode);
     }
+    _InterlockedExchange(&pnode->busy_id, 1);
     if (!pnode->hex_mode)
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
@@ -2227,6 +2243,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnew->doc_ptr = on_doc_get_type(pnew->filename);
         pnew->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
         pnew->zoom_level = hex_zoom > SELECTION_ZOOM_LEVEEL ? hex_zoom : 0;
+        pnew->busy_id = pnode->busy_id;    
         if (pnode->phex && pnode->phex->hex_ascii)
         {
             is_utf8 = false;
@@ -2334,6 +2351,14 @@ HEX_ERROR:
     if (err < SKYLARK_TABCTRL_ERR)
     {
         eu_safe_free(pnew);
+    }
+    else if (pnew)
+    {
+        _InterlockedExchange(&pnew->busy_id, 0);
+    }
+    if (pnode)
+    {
+        _InterlockedExchange(&pnode->busy_id, 0);
     }
     return err;
 }

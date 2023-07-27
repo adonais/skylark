@@ -1169,10 +1169,7 @@ on_tabpage_remove(eu_tabpage **ppnode)
     EU_VERIFY(ppnode != NULL && *ppnode != NULL && g_tabpages != NULL);
     for (int count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
-        if (p && p == *ppnode)
+        if ((p = on_tabpage_get_ptr(index)) && p == *ppnode)
         {   /* 删除控件句柄与释放资源 */
             TabCtrl_DeleteItem(g_tabpages, index);
             on_sci_free_tab(ppnode, NULL);

@@ -304,7 +304,7 @@ on_sci_resever_tab(eu_tabpage *pnode)
 static void
 on_sci_delete_file(const eu_tabpage *pnode)
 {
-    if (pnode && (pnode)->bakpath[0] && (_taccess((pnode)->bakpath, 0 ) != -1))
+    if (pnode && pnode->bakpath[0] && eu_exist_file(pnode->bakpath))
     {
         if (!util_delete_file((pnode)->bakpath))
         {
@@ -418,6 +418,8 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
                 on_sci_destory(ppnode, p);
                 on_sci_delete_file(*ppnode);
             }
+            // 清除标签状态
+            _InterlockedExchange(&(*ppnode)->busy_id, 0);
             // 销毁标签内存
             eu_safe_free(*ppnode);
         }

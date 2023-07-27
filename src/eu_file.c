@@ -1619,17 +1619,16 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
         goto FILE_FINAL;
     }
     else
-    {   // 以流打开的16进制视图
+    {   // 超过文件大小限制, 不保存临时文件
         bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->phex->total_items/1024/1024));
-        // hex_ascii为真,是原始的二进制,非utf8转码后的二进制
+        // hex_ascii为真,是原始的二进制,内存映射打开方式
         if (pnode->phex->hex_ascii && pnode->phex->hmap)
         {
             printf("do not convert this code\n");
-            //isbak = true;
             ret = hexview_save_data(pnode, save_as || is_cache ? pathfilename : NULL);
             goto FILE_FINAL;
         }
-        // 转码utf8后生成的二进制编码, 保存时需要转换回去
+        // 转码utf8后生成的二进制编码, 流打开方式, 保存时需要转换回去
         pnode->write_buffer = hexview_strdup_data(pnode, &pnode->bytes_remaining);
         if (pnode->write_buffer == NULL)
         {   // 文件过大,没有足够内存
@@ -1805,6 +1804,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     {
         return EUE_TAB_NULL;
     }
+    _InterlockedCompareExchange(&pnode->busy_id, 1, 0);
     if (!on_sci_doc_modified(pnode) && !save_as)
     {
         err = EUE_UNEXPECTED_SAVE;
@@ -1949,6 +1949,10 @@ SAVE_FINAL:
     {
         free(ptext);
     }
+    if (pnode)
+    {
+        _InterlockedExchange(&pnode->busy_id, 0);
+    }
     if (!err)
     {
         if (!pnode->pmod)
@@ -2030,25 +2034,36 @@ on_file_query_callback(void *data, int count, char **column, char **names)
         if (p)
         {
             _sntprintf((wchar_t *)data, QW_SIZE - 1, _T("%s"), p + 1);
-            printf("we found [%ls]!!!\n", (wchar_t *)data);
         }
     }
     return 0;
 }
 
 static bool
-on_file_backup_name(const wchar_t *rel_path, wchar_t *pout)
+on_file_backup_name(eu_tabpage *pnode, wchar_t *pout)
 {
     bool ret = false;
-    char *path = eu_utf16_utf8(rel_path, NULL);
-    if (STR_NOT_NUL(path) && pout)
+    char *path = NULL;
+    if (pnode && pout)
     {
-        char sql[MAX_BUFFER+1] = {0};
         *pout = 0;
-        _snprintf(sql, MAX_BUFFER, "select szBakpath,szStatus from skylark_session where szRealpath='%s';", path);
-        if (on_sql_mem_post(sql, on_file_query_callback, pout) == SKYLARK_OK)
+        if (pnode->bakpath[0] && eu_exist_file(pnode->bakpath))
         {
-            ret = *pout ? true : false;
+            TCHAR *p = _tcsrchr(pnode->bakpath, _T('\\'));
+            if (p)
+            {
+                _sntprintf(pout, QW_SIZE - 1, _T("%s"), p + 1);
+                ret = true;
+            }
+        }
+        else if ((path = eu_utf16_utf8(pnode->pathfile, NULL)) && path[0])
+        {
+            char sql[MAX_BUFFER+1] = {0};
+            _snprintf(sql, MAX_BUFFER, "select szBakpath,szStatus from skylark_session where szRealpath='%s';", path);
+            if (on_sql_mem_post(sql, on_file_query_callback, pout) == SKYLARK_OK)
+            {
+                ret = *pout ? true : false;
+            }
         }
     }
     eu_safe_free(path);
@@ -2106,7 +2121,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
             if (pnode->be_modify)
             {
                 TCHAR buf[QW_SIZE] = {0};
-                if (!on_file_backup_name(pnode->pathfile, buf))
+                if (!on_file_backup_name(pnode, buf))
                 {
                     on_file_guid(buf, QW_SIZE - 1);
                 }
@@ -2144,10 +2159,28 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
 
                 eu_update_backup_table(&filebak, DB_FILE);
                 on_sql_delete_backup_row(pnode);
+                if (filebak.status && pnode->bakpath[0])
+                {
+                    pnode->bakpath[0] = 0;
+                }
             }
             else
             {
-                filebak.sync = 1;
+                if (mode == FILE_AUTO_SAVE)
+                {
+                    if (!pnode->bakpath[0] && filebak.bak_path[0])
+                    {
+                        _sntprintf(pnode->bakpath, MAX_BUFFER, _T("%s"), filebak.bak_path);
+                    }
+                }
+                else
+                {
+                    filebak.sync = 1;
+                }
+                if (mode == FILE_SHUTDOWN && filebak.status && pnode->bakpath[0])
+                {
+                    pnode->bakpath[0] = 0;
+                }
                 eu_update_backup_table(&filebak, DB_MEM);
             }
         }
@@ -2165,7 +2198,7 @@ on_file_auto_backup(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->be_modify && !p->pmod)
+        if (p && p->be_modify && !p->hex_mode && !p->busy_id && !p->pmod)
         {
             on_file_save_backup(p, FILE_AUTO_SAVE);
         }
@@ -2177,20 +2210,14 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
 {
     EU_VERIFY(g_tabpages != NULL);
     int index = -1;
+    int err = SKYLARK_OK;
     int ifocus = TabCtrl_GetCurSel(g_tabpages);
     eu_tabpage *p = on_tabpage_get_ptr(ifocus);
     if (!pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (eu_get_config()->m_session)
-    {
-        on_file_save_backup(pnode, mode);
-    }
-    else
-    {
-        on_sql_delete_backup_row(pnode);
-    }
+    _InterlockedExchange(&pnode->busy_id, 1);
     if (!file_click_close(mode) && eu_get_config()->m_session)
     {
         // do nothing
@@ -2215,33 +2242,48 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
         if (decision == IDCANCEL)
         {
             printf("abort closing file\n");
-            return SKYLARK_OPENED;
+            err = SKYLARK_OPENED;
         }
         else if (decision == IDYES)
         {
-            on_file_save(pnode, false);
+            err = on_file_save(pnode, false);
         }
     }
-    /* 清理该文件的位置导航信息 */
-    on_search_clean_navigate_this(pnode);
-    /* 排序最近关闭文件的列表 */
-    if (file_click_close(mode) && !pnode->is_blank)
+    if (!err)
     {
-        on_file_push_recent(pnode);
+        if (eu_get_config()->m_session)
+        {
+            on_file_save_backup(pnode, mode);
+        }
+        else
+        {
+            on_sql_delete_backup_row(pnode);
+        }
+        /* 清理该文件的位置导航信息 */
+        on_search_clean_navigate_this(pnode);
+        /* 排序最近关闭文件的列表 */
+        if (file_click_close(mode) && !pnode->is_blank)
+        {
+            on_file_push_recent(pnode);
+        }
+        /* 关闭标签后需要激活其他标签 */
+        if ((index = on_tabpage_remove(&pnode)) >= 0 && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))
+        {
+            if (index == ifocus || mode == FILE_REMOTE_CLOSE)
+            {
+                on_file_active_other(index);
+            }
+            else if (p)
+            {
+                on_tabpage_selection(p, -1);
+            }
+        }
     }
-    /* 关闭标签后需要激活其他标签 */
-    if ((index = on_tabpage_remove(&pnode)) >= 0 && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))
+    else if (pnode)
     {
-        if (index == ifocus || mode == FILE_REMOTE_CLOSE)
-        {
-            on_file_active_other(index);
-        }
-        else if (p)
-        {
-            on_tabpage_selection(p, -1);
-        }
+        _InterlockedExchange(&pnode->busy_id, 0);
     }
-    return SKYLARK_OK;
+    return err;
 }
 
 int

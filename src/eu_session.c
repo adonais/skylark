@@ -63,7 +63,6 @@ on_session_set_signal(void)
 static unsigned __stdcall
 on_session_thead(void *lp)
 {
-    printf("on_session_thead start, eu_get_config()->m_session = %d\n", eu_get_config()->m_session);
     MSG msg;
     while (eu_get_config()->m_session && eu_get_config()->m_up_notify > 0)
     {

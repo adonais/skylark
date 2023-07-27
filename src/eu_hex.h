@@ -135,8 +135,6 @@ extern "C"
 int hexview_switch_mode(eu_tabpage *pnode);
 int hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile);
 int hexview_update_theme(eu_tabpage *pnode);
-void hexview_updata(intptr_t *p, intptr_t m);
-void hexview_destoy(eu_tabpage *pnode);
 void hexview_set_area(int value);
 void hexview_switch_item(eu_tabpage *pnode);
 bool hexview_init(eu_tabpage *pnode);
