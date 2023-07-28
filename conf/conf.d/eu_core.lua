@@ -133,6 +133,7 @@ struct eu_config
     bool m_session;
     bool m_exit;
     bool m_instance;
+    bool m_logging;
     char m_placement[1024];
     char m_language[64];
     bookmark_set eu_bookmark;

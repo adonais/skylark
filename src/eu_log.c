@@ -16,49 +16,54 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#if APP_DEBUG
-
 #include "framework.h"
 
-#define LOG_FILE _T("skylark.log")
+static TCHAR logfile_path[MAX_BUFFER];
 
-static TCHAR file_buf[MAX_PATH + 1];
-
-void __cdecl
-eu_init_logs(void)
+bool __cdecl
+eu_init_logs(const bool turn)
 {
-    if (*file_buf == 0 && GetEnvironmentVariable(_T("APPDATA"), file_buf, MAX_PATH) > 0)
+    if (eu_get_config())
     {
-        _tcsncat(file_buf, _T("\\"), MAX_PATH);
-        _tcsncat(file_buf, LOG_FILE, MAX_PATH);
-        if (eu_exist_file(file_buf))
+        if (turn)
         {
-            DeleteFile(file_buf);
+            eu_get_config()->m_logging ^= true;
         }
+        if (*logfile_path == 0)
+        {
+            _sntprintf(logfile_path, MAX_BUFFER - 1, _T("%s\\skylark.log"), eu_config_path);
+        }
+        if (eu_exist_file(logfile_path))
+        {
+            util_delete_file(logfile_path);
+        }
+        return (*logfile_path != 0);
     }
+    return false;
 }
 
 void __cdecl
 eu_logmsg(const char *format, ...)
 {
-    va_list args;
-    char buffer[MAX_BUFFER] = {0};
-    va_start(args, format);
-    if (_tcslen(file_buf) > 0)
+    va_list args = NULL;
+    char buffer[MAX_BUFFER + 1] = {0};
+    if (eu_get_config() && eu_get_config()->m_logging && logfile_path[0])
     {
         FILE *pfile = NULL;
-        int len = vsnprintf(buffer, MAX_BUFFER - 1, format, args);
+        va_start(args, format);
+        int len = vsnprintf(buffer, MAX_BUFFER, format, args);
         if (len > 0 && len < MAX_BUFFER)
         {
             buffer[len] = '\0';
-            if ((pfile = _tfopen(file_buf, _T("a+"))) != NULL)
+            if ((pfile = _tfopen(logfile_path, _T("a+b"))) != NULL)
             {
                 fwrite(buffer, strlen(buffer), 1, pfile);
                 fclose(pfile);
             }
         }
     }
-    va_end(args);
-    return;
+    if (args)
+    {
+        va_end(args);
+    }
 }
-#endif

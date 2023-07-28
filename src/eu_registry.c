@@ -167,7 +167,7 @@ run_as_admin(int argc, TCHAR **argv)
         else
         {
             result = false;
-            printf("Run by administrative privileges failed. cause: %lu", GetLastError());
+            eu_logmsg("Run by administrative privileges failed. cause: %lu", GetLastError());
         }
         fnCoUninitialize();
     }
@@ -1047,7 +1047,7 @@ eu_create_registry_dlg(void)
     m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_NAME);
     if (!m_map)
     {
-        printf("share_open return false in %s\n", __FUNCTION__);
+        eu_logmsg("%s: share_open return false\n", __FUNCTION__);
         return 1;
     }
     do
@@ -1055,7 +1055,7 @@ eu_create_registry_dlg(void)
         memory = (HWND *) share_map(m_map, sizeof(HANDLE), FILE_MAP_READ);
         if (!memory)
         {
-            printf("share_map return false in %s\n", __FUNCTION__);
+            eu_logmsg("%s: share_map return false\n", __FUNCTION__);
             break;
         }
         if (i18n_dlgbox(*memory, IDD_REGEXT_BOX, reg_proc, 0) > 0)

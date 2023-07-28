@@ -247,7 +247,6 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
         {
             RemoveWindowSubclass(hwnd, on_table_listview_proc, sub_id);
             _InterlockedExchange(&last_hot_item, -1);
-            printf("qrtable listview WM_DESTROY\n");
             break;
         }
     }
@@ -492,7 +491,7 @@ on_table_connect_database(eu_tabpage *pnode)
     }
     if (util_query_hostname(pnode->db_ptr->config.dbhost, ip, QW_SIZE))
     {
-        printf("util_query_hostname error\n");
+        eu_logmsg("%s: util_query_hostname error\n", __FUNCTION__);
         return 1;
     }
     if (_stricmp(pnode->db_ptr->config.dbtype, "MySQL") == 0)
@@ -1042,12 +1041,12 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     }
     if (!on_table_sql_header(pnode))
     {
-        printf("on_table_sql_header failed\n");
+        eu_logmsg("%s: on_table_sql_header failed\n", __FUNCTION__);
         goto table_clean;
     }
     if (vcontrol && on_symtree_do_sql(pnode, false))
     {
-        printf("on_symtree_do_sql failed\n");
+        eu_logmsg("%s: on_symtree_do_sql failed\n", __FUNCTION__);
         goto table_clean;
     }
     if (!pq)
@@ -1070,19 +1069,17 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     }
     if (sel_sql == NULL)
     {
-        printf("failed to allocate memory\n");
+        eu_logmsg("%s: failed to allocate memory\n", __FUNCTION__);
         goto table_clean;
     }
     psel = strtok(sel_sql, ";");
     while (psel)
     {
-        printf("befor, psel = %s\n", psel);
         if (!on_table_skip_comment(pnode, &psel))
         {
             psel = strtok(NULL, ";");
             continue;
         }
-        printf("after, psel = %s\n", psel);
         bool is_select_word = _strnicmp(psel, "SELECT", strlen("SELECT")) == 0;
         if (_stricmp(pnode->db_ptr->config.dbtype, "MySQL") == 0)
         {
@@ -1122,7 +1119,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
                 {
-                    printf("Failed to allocate memory\n");
+                    eu_logmsg("%s: Failed to allocate memory\n", __FUNCTION__);
                     mysql_sub->fn_mysql_free_result(presult);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }
@@ -1391,7 +1388,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             {
                 if ((nret = eu_sqlite3_exec(this_sql3->sqlite3, psel, NULL, NULL, &errmsg)))
                 {
-                    printf("eu_sqlite3_exec failed\n");
+                    eu_logmsg("%s: eu_sqlite3_exec failed\n", __FUNCTION__);
                     LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR7, msg_str);
                     on_result_append_text(msg_str, nret, util_make_u16(errmsg, utf_str, MAX_BUFFER));
                     eu_sqlite3_free(errmsg);

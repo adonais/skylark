@@ -242,7 +242,7 @@ on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode)
         const sptr_t end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         if (!(start < end))
         {
-            printf("start >= end\n");
+            eu_logmsg("%s: start >= end\n", __FUNCTION__);
             return;
         }
         if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
@@ -501,11 +501,11 @@ on_edit_push_compare(void)
         }
         else if ((path = util_which(_T("bcompare"))) != NULL)
         {
-            printf("path = %ls\n", path);
+            eu_logmsg("found bcompare\n");
         }
         else if ((path = util_which(_T("winmergeu"))) != NULL)
         {
-            printf("path = %ls\n", path);
+            eu_logmsg("found winmergeu\n");
         }
         else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
         {
@@ -1332,7 +1332,7 @@ on_edit_md5(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        printf("memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n");
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"MD5"};
@@ -1366,7 +1366,7 @@ on_edit_sha1(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        printf("memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n");
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA1"};
@@ -1400,7 +1400,7 @@ on_edit_sha256(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        printf("memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n");
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA256"};

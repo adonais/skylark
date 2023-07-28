@@ -1172,6 +1172,8 @@
 #define IDM_EDIT_SLASH_BACKSLASH            44100
 #define IDM_EDIT_BACKSLASH_SLASH            44101
 
+#define IDM_SET_LOGGING_ENABLE              44200
+
 // For MessageBox
 #define IDALWAYS                            12
 #define MB_YESNOALWAYS                      0x0007

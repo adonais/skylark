@@ -487,7 +487,8 @@ hexview_destoy(eu_tabpage *pnode)
         {   // 清理上一次的备份
             if (!DeleteFile(pnode->bakpath))
             {
-                printf("on hexview_destoy, Delete(%ls) error, cause: %lu\n", pnode->bakpath, GetLastError());
+                char u8[MAX_BUFFER] = {0};
+                eu_logmsg("%s: Delete(%s) error, cause: %lu\n", __FUNCTION__, util_make_u8(pnode->bakpath, u8, MAX_BUFFER - 1), GetLastError());
             }
         }
         _InterlockedExchange(&pnode->busy_id, 0);
@@ -1020,7 +1021,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             pnode = (eu_tabpage *)((LPCREATESTRUCTW)lParam)->lpCreateParams;
             if (!(pnode && pnode->phex))
             {
-                printf("pnode or pnode->phex is null\n");
+                eu_logmsg("pnode or pnode->phex is null\n");
                 return -1;
             }
             hexview = pnode->phex;
@@ -1190,7 +1191,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                         {
                             if (!util_hex_fold(ptext, txt_len, pstr))
                             {
-                                printf("pstr = %s\n", pstr);
+                                eu_logmsg("hex convert, pstr = %s\n", pstr);
                                 txt_len = eu_int_cast(strlen(pstr));
                                 if (hexview->number_items + txt_len < hexview->total_items)
                                 {
@@ -1232,7 +1233,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                         uint8_t *poffset = &hexview->pbase[select_start];
                         memmove(poffset, poffset + len, hexview->total_items - select_end);
                         hexview->total_items -= len;
-                        printf("len = %zu, select_start = %zu, select_end = %zu\n", len, select_start, select_end);
+                        eu_logmsg("len = %zu, select_start = %zu, select_end = %zu\n", len, select_start, select_end);
                         on_edit_push_clipboard(u16_text);
                         SendMessage(hwnd, HVM_SETLINECOUNT, 0, 0);
                         InvalidateRect(hwnd, NULL, false);
@@ -1919,7 +1920,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 hexview_destoy(pnode);
                 eu_safe_free (pnode);
                 SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
-                printf("HEXVIEW WM_DESTROY\n");
+                eu_logmsg("HEXVIEW WM_DESTROY\n");
             }
             break;
         }
@@ -1970,7 +1971,7 @@ hexview_init(eu_tabpage *pnode)
         tci.lParam = (LPARAM) pnode;
         if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
         {
-            printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
+            eu_logmsg("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
             return false;
         }
         pnode->eusc = 0;
@@ -1984,7 +1985,7 @@ hexview_init(eu_tabpage *pnode)
     pnode->hwnd_sc = hexview_create_dlg(hwnd, pnode);
     if (!pnode->hwnd_sc)
     {
-        printf("hexview_create_dlg failed on %s:%d\n", __FILE__, __LINE__);
+        eu_logmsg("hexview_create_dlg failed on %s:%d\n", __FILE__, __LINE__);
         return false;
     }
     if ((pnode->file_attr & FILE_ATTRIBUTE_READONLY))
@@ -2027,7 +2028,7 @@ hexview_map_read(const TCHAR *filepath, uintptr_t *ppbase)
             *ppbase = (uintptr_t)MapViewOfFile(hmap, FILE_MAP_WRITE, 0, 0, 0);
             if (!*ppbase)
             {
-                printf("MapViewOfFile failed, cause %lu\n", GetLastError());
+                eu_logmsg("%s: MapViewOfFile failed, cause %lu\n", __FUNCTION__, GetLastError());
                 CloseHandle(hmap);
                 hmap = NULL;
             }
@@ -2050,7 +2051,7 @@ hexview_map_write(const uint8_t *pbuf, const size_t buf_len, const TCHAR *dst_pa
     uint64_t offset = 0;
     if (!share_open_file(dst_path, false, dw_create, &hfile))
     {
-        printf("on %s share_open_file failed, cause: %lu\n", __FUNCTION__, GetLastError());
+        eu_logmsg("%s: share_open_file failed, cause: %lu\n", __FUNCTION__, GetLastError());
         return EUE_API_OPEN_FILE_ERR;
     }
     if (!(hmap = share_create(hfile, PAGE_READWRITE, buf_len, NULL)))
@@ -2071,7 +2072,7 @@ hexview_map_write(const uint8_t *pbuf, const size_t buf_len, const TCHAR *dst_pa
         data = share_map_section(hmap, offset, (size_t)block, false);
         if (!data)
         {
-            printf("create_file_mem error, cause : %lu\n", GetLastError());
+            eu_logmsg("%s: create_file_mem error, cause : %lu\n", __FUNCTION__, GetLastError());
             err = EUE_MAPPING_MEM_ERR;
             break;
         }
@@ -2140,7 +2141,7 @@ hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile)
         {
             if (!MoveFileEx(path, pnode->pathfile, MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING))
             {
-                printf("move %ls failed, cause: %lu\n", path, GetLastError());
+                eu_logmsg("%s: movefile failed, cause: %lu\n", __FUNCTION__, GetLastError());
                 return EUE_MOVE_FILE_ERR;
             }
         }
@@ -2194,7 +2195,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             }
             if (!(pnode->phex->pbase = (uint8_t *) util_strdup_content(pnode, &pnode->bytes_remaining)))
             {
-                printf("txt maybe null\n");
+                eu_logmsg("%s: txt maybe null\n", __FUNCTION__);
                 err = EUE_POINT_NULL;
                 eu_safe_free(pnode->phex);
                 goto HEX_ERROR;
@@ -2282,11 +2283,11 @@ hexview_switch_mode(eu_tabpage *pnode)
             {
                 evd.src_from = "utf-8";
             }
-            printf("on_encoding_do_iconv, from %s to %s\n", evd.src_from, evd.dst_to);
+            eu_logmsg("%s: on_encoding_do_iconv, from %s to %s\n", __FUNCTION__, evd.src_from, evd.dst_to);
             size_t res = on_encoding_do_iconv(&evd, (char *) (data), &src_len, &pdst, &dst_len);
             if (res == (size_t) -1)
             {
-                printf("on_encoding_do_iconv error in %s\n", __FUNCTION__);
+                eu_logmsg("%s: on_encoding_do_iconv error\n", __FUNCTION__);
                 err = EUE_ICONV_FAIL;
                 goto HEX_ERROR;
             }
@@ -2296,7 +2297,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             {   // 因为pbase带bom情况下转换为utf8, 会产生bom
                 // 而我们不需要, 因为前面已经保存了原始文本的bom
                 offset = 3;
-                printf("offset = %zu\n", offset);
+                eu_logmsg("we save utf8 bom, offset = 3\n");
             }
         }
         if (!pdst)
@@ -2313,13 +2314,13 @@ hexview_switch_mode(eu_tabpage *pnode)
         SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0);
         if (TabCtrl_InsertItem(g_tabpages, pnew->tab_id, &tci) == -1)
         {
-            printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
+            eu_logmsg("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
             err = EUE_INSERT_TAB_FAIL;
             goto HEX_ERROR;
         }
         if (on_sci_init_dlg(pnew))
         {
-            printf("on_sci_init_dlg return failed on %s:%d\n", __FILE__, __LINE__);
+            eu_logmsg("on_sci_init_dlg return failed on %s:%d\n", __FILE__, __LINE__);
             err = EUE_UNKOWN_ERR;
             goto HEX_ERROR;
         }

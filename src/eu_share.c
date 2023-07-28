@@ -290,18 +290,18 @@ share_load_lang(void)
         g_skylark_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE);
         if (!g_skylark_lang)
         {
-            printf("can not load lang library\n");
+            eu_logmsg("%s: can not load lang library\n", __FUNCTION__);
             return NULL;
         }
     }
     if (!(lang_map = share_create(NULL, PAGE_READWRITE, sizeof(lang_path), SKYLARK_LOCK_LANG)))
     {
-        printf("share_create error in %s\n", __FUNCTION__);
+        eu_logmsg("%s: share_create error\n", __FUNCTION__);
         return NULL;
     }
     else if (ERROR_ALREADY_EXISTS == GetLastError())
     {
-        printf("lang_map_lock exist\n");
+        eu_logmsg("%s: lang_map_lock exist\n", __FUNCTION__);
         return lang_map;
     }
     LPVOID pmodule = share_map(lang_map, sizeof(lang_path), FILE_MAP_WRITE | FILE_MAP_READ);

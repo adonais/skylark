@@ -1279,7 +1279,7 @@ on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos)
     curr = (struct navigate_trace *) calloc(1, sizeof(struct navigate_trace));
     if (curr == NULL)
     {
-        printf("memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     curr->pnode = pnode;
@@ -1526,7 +1526,6 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            printf("search tabs WM_THEMECHANGED\n");
             uintptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
             if (on_dark_enable())
             {
@@ -1540,7 +1539,6 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            printf("search tabs WM_DESTROY\n");
             break;
         }
         default:
@@ -1888,7 +1886,7 @@ on_search_process_count(eu_tabpage *pnode, const char *key, const bool sel, cons
             {
                 if (need_vec)
                 {
-                    printf("We only show %d results\n", RESULAT_MAX_MATCH);
+                    eu_logmsg("We only show %d results\n", RESULAT_MAX_MATCH);
                     break;
                 }
                 else if (on_search_msg_tips(IDS_RESULT_STR_TIPS) == IDOK)
@@ -2020,7 +2018,6 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
     DO_SEARCH_LOOP:
     {
         found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags);
-        printf("start_pos = %zd, end_pos = %zd, found_pos = %zd\n", start_pos, end_pos, found_pos);
         if (found_pos >= 0)
         {
             target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
@@ -2028,7 +2025,7 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
         }
         else if (found_pos == -2)
         {
-            printf("re error\n");
+            eu_logmsg("%s: re error\n", __FUNCTION__);
             PostMessage(eu_module_hwnd(), WM_ABOUT_RE, 0, 0);
             return false;
         }
@@ -2806,7 +2803,7 @@ DO_COMMON_LOOP:
         }
         else if (found_pos == -2)
         {
-            printf("re error\n");
+            eu_logmsg("%s: re error\n", __FUNCTION__);
             PostMessage(eu_module_hwnd(), WM_ABOUT_RE, 0, 0);
             return false;
         }
@@ -2851,7 +2848,7 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
     char *find_str = on_search_get_combo_str(IDC_WHAT_FOLDER_CBO);
     if (!(pnode && find_str))
     {
-        printf("get find_str && replace_str failed\n");
+        eu_logmsg("%s: point error\n", __FUNCTION__);
         return false;
     }
     if (opt & ON_REPLACE_SELECTION)
@@ -3072,7 +3069,6 @@ on_search_clean_file_list(void)
             ++i;
         }
     }
-    printf("list_free(%d)\n", i);
 }
 
 static void
@@ -3253,7 +3249,7 @@ on_search_find_all_button(void* lp)
     flags = on_search_folder_flags(hwnd_search_dlg);
     if (!(u8_key = on_search_get_combo_str(IDC_WHAT_FOLDER_CBO)))
     {
-        printf("key not exist!\n");
+        eu_logmsg("%s: key not exist\n", __FUNCTION__);
         goto res_clean;
     }
     if (flags & INCLUDE_FILE_UTF8)
@@ -3283,7 +3279,7 @@ on_search_find_all_button(void* lp)
         PeekMessage(&msg, NULL,  0, 0, PM_REMOVE);
         if (msg.message == WM_QUIT)
         {
-            printf("we recv WM_QUIT\n");
+            eu_logmsg("%s: we recv WM_QUIT\n", __FUNCTION__);
             break;
         }
         Static_SetText(hwnd_stc, pfile->path);
@@ -3710,7 +3706,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         else
                         {
-                            printf("one search thread runing...\n");
+                            eu_logmsg("one search thread runing...\n");
                             PostThreadMessage(search_btn_id, WM_QUIT, 0, 0);
                             on_search_change_button(IDC_SEARCH_BTN_ON);
                         }
@@ -3786,7 +3782,6 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            printf("Search window WM_DESTROY\n");
             if (hwnd_regxp_tips)
             {
                 DestroyWindow(hwnd_regxp_tips);
@@ -3917,13 +3912,13 @@ on_search_repalce_event(eu_tabpage *p, replace_event docase)
                         case FULL_HALF:
                         {
                             _snprintf(key, QW_SIZE, "%s", "([\\x{FF01}-\\x{FF5E}]|\\x{3000})");
-                            printf("key = /%s/\n", key);
+                            eu_logmsg("key = /%s/\n", key);
                             break;
                         }
                         case HALF_FULL:
                         {
                             _snprintf(key, QW_SIZE, "%s", "([\\x{20}-\\x{2F}|\\x{3A}-\\x{40}|\\x{5B}-\\x{60}|\\x{7B}-\\x{7E}])");
-                            printf("key = /%s/\n", key);
+                            eu_logmsg("key = /%s/\n", key);
                             break;
                         }
                         case TAB_SPACE:
@@ -3963,7 +3958,7 @@ on_search_create_box(void)
     {
         if (!(hwnd_search_dlg = i18n_create_dialog(eu_module_hwnd(), IDD_SEARCH_TAB_DLG, on_search_orig_find_proc)))
         {
-            printf("i18n_create_dialog return false in %s\n", __FUNCTION__);
+            eu_logmsg("%s: i18n_create_dialog return false\n", __FUNCTION__);
             return false;
         }
     }

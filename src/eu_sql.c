@@ -130,7 +130,7 @@ init_sql_file(const char *sql_path, uintptr_t *pdb)
             }
             if (rc != SQLITE_OK)
             {
-                printf("create table, sql[%d] = [%s] error: %d\n", i, sql[i], rc);
+                eu_logmsg("%s: create table, sql[%d] = [%s] error: %d\n", __FUNCTION__, i, sql[i], rc);
                 break;
             }
         }
@@ -177,7 +177,7 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
             {
                 if (err)
                 {
-                    printf("%s failed, cause: %s\n", __FUNCTION__, err);
+                    eu_logmsg("%s: failed, cause: %s\n", __FUNCTION__, err);
                     sqlite3_free(err);
                 }
             }
@@ -196,7 +196,7 @@ on_sql_post_func(void *lp)
     {
         if (eu_sqlite3_send(sql, NULL, NULL) != 0)
         {
-            printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+            eu_logmsg("%s: eu_sqlite3_send failed\n", __FUNCTION__);
         }
         free(lp);
     }
@@ -226,7 +226,7 @@ on_sql_post(const char *sql, sql3_callback callback, void *data)
             {
                 if (err)
                 {
-                    printf("%s failed, cause: %s\n", __FUNCTION__, err);
+                    eu_logmsg("%s: failed, cause: %s\n", __FUNCTION__, err);
                     sqlite3_free(err);
                 }
             }
@@ -364,27 +364,27 @@ on_sqlite3_create_memdb(const char *pfile)
         }
         if ((rc = sqlite3_exec(memdb, buf, NULL, NULL, NULL)))
         {
-            printf("create trigger error: %d\n", rc);
+            eu_logmsg("%s: create trigger error: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, sql, NULL, NULL, NULL)))
         {
-            fprintf(stderr, "attach database error: %d\n", rc);
+            eu_logmsg("%s: attach database error: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, SESSION_INSERT(skylark_session, filedb.skylark_session), NULL, NULL, NULL)))
         {
-            fprintf(stderr, "sql_transfer_session: %d\n", rc);
+            eu_logmsg("%s: sql_transfer_session: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, RECENT_INSERT(file_recent, filedb.file_recent), NULL, NULL, NULL)))
         {
-            fprintf(stderr, "sql_transfer_recent[%s]: %d\n", RECENT_INSERT(file_recent, filedb.file_recent), rc);
+            eu_logmsg("%s: sql_transfer_recent[%s]: %d\n", __FUNCTION__, RECENT_INSERT(file_recent, filedb.file_recent), rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, "detach database 'filedb';", NULL, NULL, NULL)))
         {
-            fprintf(stderr, "detach database error: %d\n", rc);
+            eu_logmsg("%s: detach database error: %d\n", __FUNCTION__, rc);
             break;
         }
     } while (0);
@@ -440,7 +440,7 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
                 sqlite3_exec((sqlite3 *)db, "DROP TRIGGER delete_till_30;", 0, 0, NULL);
                 if ((rc = sqlite3_exec((sqlite3 *)db, buf, 0, 0, NULL)))
                 {
-                    printf("create trigger error: %d\n", rc);
+                    eu_logmsg("%s: create trigger error: %d\n", __FUNCTION__, rc);
                 }
             }
             rc = sqlite3_exec((sqlite3 *)db, sql, on_sqlite3_session_callback, (void *)(intptr_t)&v, NULL);
@@ -552,7 +552,7 @@ on_sql_file_recent_thread(const file_recent *precent)
         snprintf(sql, MAX_BUFFER * 2 - 1, exp, pfile, precent->postion, result, precent->hex, precent->postion, result, precent->hex);
         if (on_sql_mem_post(sql, NULL, NULL) != SQLITE_OK)
         {
-            printf("%s failed: %s\n", __FUNCTION__, sql);
+            eu_logmsg("%s: failed[%s]\n", __FUNCTION__, sql);
         }
     }
 }
@@ -584,7 +584,7 @@ sql_search_history(void *lp)
 {
     if (eu_sqlite3_send("SELECT szName FROM find_his;", (sql3_callback)lp, (void *)IDC_WHAT_FOLDER_CBO) != 0)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
     }
     return 0;
 }
@@ -622,7 +622,7 @@ sql_replace_history(void *lp)
 {
     if (eu_sqlite3_send("SELECT szName FROM replace_his;", (sql3_callback)lp, (void *)IDC_SEARCH_RP_CBO) != 0)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
     }
     return 0;
 }
@@ -660,7 +660,7 @@ sql_folder_history(void *lp)
 {
     if (eu_sqlite3_send("SELECT szName FROM folder_his;", (sql3_callback)lp, (void *)IDC_SEARCH_DIR_CBO) != 0)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
     }
     return 0;
 }

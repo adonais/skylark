@@ -68,7 +68,6 @@
 
 #ifndef snprintf
 #define snprintf c99_snprintf
-
 static inline int
 c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
 {
@@ -124,26 +123,8 @@ c99_snwprintf(wchar_t* str, size_t size, const wchar_t* format, ...)
 #define sntprintf c99_snwprintf
 #else
 #define sntprintf c99_snprintf
-#endif
+#endif // _UNICODE
 
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if APP_DEBUG
-__declspec(dllexport) void __cdecl eu_init_logs(void);
-__declspec(dllexport) void __cdecl eu_logmsg(const char *format, ...);
-//#define printf eu_logmsg
-#else
-#define eu_init_logs(...) (__noop)
-#define eu_logmsg(...) (__noop)
-#define printf(...) (__noop)
-#endif // _DEBUG
-
-#ifdef __cplusplus
-}
-#endif  // __cplusplus
+#endif // _MSC_VER
 
 #endif // _EU_LOG_H_

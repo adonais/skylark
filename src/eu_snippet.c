@@ -497,7 +497,7 @@ on_snippet_do_modify(HWND hdlg)
                 dimension = eu_int_cast(!index ? 0 : cvector_size(vec) - 1);
             }
         }
-    #ifdef _DEBUG
+    #ifdef APP_DEBUG
         printf("listbox_count = %d, vec = %p, vec_size = %zu, dimension = %d\n", index, (void *)vec, cvector_size(vec), dimension);
     #endif
         if (dimension < 0 || (int)cvector_size(vec) < index)
@@ -561,12 +561,12 @@ on_snippet_do_modify(HWND hdlg)
             }
             if (!name[0])
             {
-                printf("name cannot be empty\n");
+                eu_logmsg("%s: name cannot be empty\n", __FUNCTION__);
                 break;
             }
             if ((c = ListBox_FindStringExact(hwnd_lst, -1, name)) >= 0 && c != index)
             {
-                printf("node exist\n");
+                eu_logmsg("%s: node exist\n", __FUNCTION__);
                 break;
             }
             if (add && (n = ListBox_AddString(hwnd_lst, name)) >= 0)
@@ -854,7 +854,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                 last_index = 0;
                 _InterlockedExchange(&snippet_new, 0);
                 hwnd_snippet = NULL;
-            #ifdef _DEBUG
+            #ifdef APP_DEBUG
                 printf("hwnd_snippet WM_DESTROY\n");
             #endif
             }
@@ -893,9 +893,7 @@ on_snippet_create_dlg(HWND parent)
     hwnd_snippet = i18n_create_dialog(parent, IDD_SNIPPET_DLG, on_snippet_proc);
     if (!hwnd_snippet)
     {
-    #ifdef _DEBUG
-        printf("hwnd_snippet is null\n");
-    #endif
+        eu_logmsg("%s: hwnd_snippet is null\n", __FUNCTION__);
     }
 }
 

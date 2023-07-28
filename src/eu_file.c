@@ -134,7 +134,7 @@ on_file_kill_tree(const uint32_t self)
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (snapshot == INVALID_HANDLE_VALUE)
     {
-        printf("CreateToolhelp32Snapshot (of processes) error %lu\n", GetLastError());
+        eu_logmsg("CreateToolhelp32Snapshot (of processes) error %lu\n", GetLastError());
         return;
     }
     edit_pid[0] = self;
@@ -227,7 +227,7 @@ on_file_update_recent_menu(void)
             }
             if (on_sql_mem_post("SELECT szName FROM file_recent ORDER BY szDate DESC;", on_file_refresh_recent_menu, (void *)hre) != 0)
             {
-                printf("on_sql_mem_post failed in %s\n", __FUNCTION__);
+                eu_logmsg("%s: on_sql_mem_post failed\n", __FUNCTION__);
             }
             if ((count = GetMenuItemCount(hre)) == 0)
             {
@@ -496,7 +496,7 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, size_t nbyte)
     pnode->phex->hmap = share_create(hfile, PAGE_WRITECOPY, nbyte, NULL);
     if (pnode->phex->hmap == NULL)
     {
-        printf("share_create failed, cause %lu\n", GetLastError());
+        eu_logmsg("%s: share_create failed, cause %lu\n", __FUNCTION__, GetLastError());
         eu_safe_free(pnode->phex);
         return false;
     }
@@ -504,7 +504,7 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, size_t nbyte)
     pnode->phex->pbase = (uint8_t *)share_map(pnode->phex->hmap, nbyte, FILE_MAP_COPY);
     if (pnode->phex->pbase == NULL)
     {
-        printf("share_map failed, cause %lu\n", GetLastError());
+        eu_logmsg("%s: share_map failed, cause %lu\n", __FUNCTION__, GetLastError());
         share_close(pnode->phex->hmap);
         eu_safe_free(pnode->phex);
         return false;
@@ -568,7 +568,7 @@ on_file_header_parser(void *hdr, size_t size, size_t nmemb, void *userdata)
         char *u8_file = ((char (*)[MAX_PATH])userdata)[0];
         if (u8_file[0] && (p = strstr(hdr, u8_file)) && (p[strlen(p) - 1] == '\r' || p[strlen(p) - 1] == '\n'))
         {
-            printf("we do util_split, hdr = [%s]\n", (const char*)hdr);
+            eu_logmsg("we do util_split, hdr = [%s]\n", (const char*)hdr);
             util_split(hdr, userdata, ' ');
             return 0;
         }
@@ -586,7 +586,7 @@ on_file_attr_parser(eu_tabpage *pnode, char (*pstr)[MAX_PATH])
             if (i == 4 && pstr[i][0])
             {   // 预先获取文件大小
                 pnode->raw_size = _atoi64(pstr[i]);
-                printf("%s, %I64u\n", __FUNCTION__, pnode->raw_size);
+                eu_logmsg("%s: raw_size = %I64u\n", __FUNCTION__, pnode->raw_size);
             }
         }
     }
@@ -635,7 +635,7 @@ on_file_remote_lenght(eu_tabpage *pnode, const wchar_t *path)
         else
         {
             const char *err_string = eu_curl_easy_strerror(res);
-            printf("%s error[%d]: %s\n", __FUNCTION__, res, err_string);
+            eu_logmsg("%s: error[%d]: %s\n", __FUNCTION__, res, err_string);
             pnode->raw_size = 0;
         }
     } while(0);
@@ -751,7 +751,7 @@ on_file_load_plugins(eu_tabpage *pnode, bool route_open)
     int ret = np_plugins_initialize(pnode->pmod, &pnode->plugin);
     if (ret == NP_NO_ERROR && pnode->plugin)
     {
-        printf("np_plugins_initialize ok!\n");
+        eu_logmsg("np_plugins_initialize ok!\n");
         ret = pnode->plugin->funcs.newp(&pnode->plugin->npp, NULL);
         if (ret == 0)
         {
@@ -847,7 +847,7 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
         err = on_encoding_do_iconv(&evd, (char *) (uf_stream.base+pnode->pre_len), &len, &pdst, &dst_len);
         if (err == (size_t) -1)
         {
-            printf("on_encoding_do_iconv error in %s\n", __FUNCTION__);
+            eu_logmsg("%s: on_encoding_do_iconv error\n", __FUNCTION__);
             err = EUE_ICONV_FAIL;
             MSG_BOX(IDC_MSG_ICONV_FAIL2, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         }
@@ -893,7 +893,7 @@ on_file_open_if(const TCHAR *pfile, bool selection)
         TCITEM tci = {TCIF_PARAM};
         if (!TabCtrl_GetItem(g_tabpages, index, &tci))
         {
-            printf("TabCtrl_GetItem return failed on %s:%d\n", __FILE__, __LINE__);
+            eu_logmsg("TabCtrl_GetItem return failed on %s:%d\n", __FILE__, __LINE__);
             res = SKYLARK_TABCTRL_ERR;
             break;
         }
@@ -933,7 +933,7 @@ on_file_active_other(int index)
         }
         else if (on_sql_sync_session() == SKYLARK_OK)
         {
-            printf("close last tab, skylark exit ...\n");
+            eu_logmsg("close last tab, skylark exit ...\n");
             SendMessage(eu_module_hwnd(), WM_BACKUP_OVER, 0, 0);
         }
         return;
@@ -1113,7 +1113,7 @@ on_file_node_initialize(eu_tabpage **p, file_backup *pbak)
     {
         if (*p)
         {
-            printf("Waning: node != NULL (should be NULL)\n");
+            eu_logmsg("Waning: node != NULL (should be NULL)\n");
         }
         if ((*p = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))) == NULL)
         {
@@ -1183,7 +1183,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
         on_file_update_postion(pnode, pbak);
         if (pnode->nc_pos >= 0)
         {
-            printf("we jump to %zd\n", pnode->nc_pos);
+            eu_logmsg("we jump to %zd\n", pnode->nc_pos);
             on_search_jmp_pos(pnode);
         }
         if (!pnode->hex_mode)
@@ -1203,13 +1203,13 @@ on_file_only_open(file_backup *pbak, const bool selection)
     if ((res = on_file_preload(pnode, pbak)) != SKYLARK_OK)
     {
         eu_safe_free(pnode);
-        printf("on_file_preload failed, err = %d\n", res);
+        eu_logmsg("%s: on_file_preload failed, err = %d\n", __FUNCTION__, res);
         return res;
     }
     if ((res = on_tabpage_add(pnode)) != SKYLARK_OK)
     {
         eu_safe_free(pnode);
-        printf("on_tabpage_add failed, err = %d\n", res);
+        eu_logmsg("%s: on_tabpage_add failed, err = %d\n", __FUNCTION__, res);
         return res;
     }
     on_file_before_open(pnode);
@@ -1279,7 +1279,7 @@ on_file_open(void)
     TCHAR *file_list = (TCHAR *) calloc(sizeof(TCHAR), BUFF_32K);
     if (file_list == NULL)
     {
-        printf("memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     if ((err = on_file_open_filename_dlg(NULL, file_list, BUFF_32K)) != SKYLARK_OK)
@@ -1438,7 +1438,7 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
         }
         else if (on_file_load_plugins(pnode, true))
         {
-            printf("on_file_load_plugins failed\n");
+            eu_logmsg("%s: on_file_load_plugins failed\n", __FUNCTION__);
             return 0;
         }
     }
@@ -1509,7 +1509,7 @@ on_file_remote_thread(eu_tabpage *p, file_backup *pbak, remotefs *premote)
                 if (!ret)
                 {
                     ret = eu_curl_easy_getinfo(curl, CURLINFO_FILETIME_T, &p->st_mtime);
-                    printf("pnode->st_mtime = %lld\n", p->st_mtime);
+                    eu_logmsg("pnode->st_mtime = %lld\n", p->st_mtime);
                 }
                 eu_curl_easy_cleanup(curl);
             }
@@ -1552,7 +1552,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     if ((result = on_file_preload(pnode, pbak)) != SKYLARK_OK)
     {
         eu_safe_free(pnode);
-        printf("on_file_preload failed, err = %d\n", result);
+        eu_logmsg("%s: on_file_preload failed, err = %d\n", __FUNCTION__, result);
         return result;
     }
     if (on_tabpage_add(pnode))
@@ -1624,7 +1624,7 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
         // hex_ascii为真,是原始的二进制,内存映射打开方式
         if (pnode->phex->hex_ascii && pnode->phex->hmap)
         {
-            printf("do not convert this code\n");
+            eu_logmsg("maybe binary encoding, do not convert this code\n");
             ret = hexview_save_data(pnode, save_as || is_cache ? pathfilename : NULL);
             goto FILE_FINAL;
         }
@@ -1637,7 +1637,6 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
         }
         if (!is_cache)
         {
-            printf("convert this code\n");
             isbak = false;
         }
         pathfilename = save_as || is_cache ? pathfilename : pnode->pathfile;
@@ -1651,7 +1650,7 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
         euconv_t evd = {0};
         evd.src_from = "utf-8";
         evd.dst_to = eu_query_encoding_name(pnode->codepage);
-        printf("convert(%s) to (%s)\n", evd.src_from, evd.dst_to);
+        eu_logmsg("convert(%s) to (%s)\n", evd.src_from, evd.dst_to);
         size_t res = on_encoding_do_iconv(&evd, pbuf, &src_len, &pdst, &dst_len);
         if (res != (size_t) -1)
         {  // 释放之前的内存, 指向新的内存块
@@ -1770,7 +1769,7 @@ on_file_stream_upload(eu_tabpage *pnode, wchar_t *pmsg)
             }
             if (!(curl = on_remote_init_socket(cnv, &pnode->fs_server)))
             {
-                printf("on_remote_init_socket return false\n");
+                eu_logmsg("on_remote_init_socket return false\n");
                 err = EUE_CURL_INIT_FAIL;
                 break;
             }
@@ -2125,7 +2124,10 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 {
                     on_file_guid(buf, QW_SIZE - 1);
                 }
-                printf("buf = [%ls]\n", buf);
+                if (!buf[0])
+                {
+                    eu_logmsg("%s: error, buf is null\n", __FUNCTION__);
+                }
                 if (!pnode->pmod)
                 {
                     _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
@@ -2241,7 +2243,7 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
         int decision = eu_msgbox(eu_module_hwnd(), msg, title, MB_YESNOCANCEL);
         if (decision == IDCANCEL)
         {
-            printf("abort closing file\n");
+            eu_logmsg("abort closing file\n");
             err = SKYLARK_OPENED;
         }
         else if (decision == IDYES)
@@ -2421,7 +2423,7 @@ on_file_check_save(void *lp)
     }
     if (on_sql_sync_session())
     {
-        printf("on_sql_sync_session return false in %s\n", __FUNCTION__);
+        eu_logmsg("%s: on_sql_sync_session return false\n", __FUNCTION__);
     }
     if (!err)
     {

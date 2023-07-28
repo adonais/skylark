@@ -107,12 +107,12 @@ on_pixmap_build(const char *buf, const int index, int w, int h, const char *colo
     {
         image = nsvgParse(filename, "px", 96.0f);
         if (image == NULL) {
-            printf("Could not open SVG image.\n");
+            eu_logmsg("Could not open SVG image.\n");
             goto error;
         }
         if (image->width == 0 && image->height == 0 && !image->shapes)
         {
-            printf("The data is not SVG at all.\n");
+            eu_logmsg("The data is not SVG at all.\n");
             goto error;
         }
         if (w != (int)image->width)
@@ -121,13 +121,13 @@ on_pixmap_build(const char *buf, const int index, int w, int h, const char *colo
         }
         rast = nsvgCreateRasterizer();
         if (rast == NULL) {
-            printf("Could not init rasterizer.\n");
+            eu_logmsg("Could not init rasterizer.\n");
             goto error;
         }
         pbuf = on_pixmap_alloc(w*h*4);
         if (pbuf == NULL)
         {
-            printf("Could not alloc image buffer.\n");
+            eu_logmsg("Could not alloc image buffer.\n");
             goto error;
         }
         nsvgRasterize(rast, image, 0, 0, scale, pbuf->img, w, h, w*4);

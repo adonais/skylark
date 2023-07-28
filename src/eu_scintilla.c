@@ -308,7 +308,8 @@ on_sci_delete_file(const eu_tabpage *pnode)
     {
         if (!util_delete_file((pnode)->bakpath))
         {
-            printf("on on_sci_free_tab(), delete(%ls) error, cause: %lu\n", (pnode)->bakpath, GetLastError());
+            char u8[MAX_BUFFER] = {0};
+            eu_logmsg("%s: delete(%s) error, cause: %lu\n", __FUNCTION__, util_make_u8(pnode->bakpath, u8, MAX_BUFFER - 1), GetLastError());
         }
     }
 }
@@ -322,13 +323,11 @@ on_sci_destory(eu_tabpage **ppnode, eu_tabpage *p)
         {   // 复用scintilla窗口
             p->hwnd_sc = (*ppnode)->hwnd_sc;
             p->eusc = (*ppnode)->eusc;
-            printf("hwnd_sc swap\n");
         }
         else if (!(*ppnode)->phex && !(*ppnode)->plugin && TabCtrl_GetItemCount(g_tabpages) <= 0)
         {   // 最后一个标签时, 保存scintilla窗口句柄
             inter_atom_exchange(&last_sci_hwnd, (sptr_t)(*ppnode)->hwnd_sc);
             inter_atom_exchange(&last_sci_eusc, (sptr_t)(*ppnode)->eusc);
-            printf("hwnd_sc save\n");
         }
         else if ((*ppnode)->hwnd_sc)
         {   // 销毁scintilla窗口
@@ -340,7 +339,6 @@ on_sci_destory(eu_tabpage **ppnode, eu_tabpage *p)
             }
             inter_atom_exchange(&last_sci_hwnd, 0);
             inter_atom_exchange(&last_sci_eusc, 0);
-            printf("hwnd_sc closing\n");
         }
     }
 }
@@ -426,7 +424,7 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
         else if ((*ppnode)->hwnd_sc)
         {
             on_sci_destory(ppnode, p);
-            printf("hex_mode, we destroy scintilla control\n");
+            eu_logmsg("hex_mode, we destroy scintilla control\n");
         }
     }
 }
@@ -681,7 +679,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            printf("scintilla WM_THEMECHANGED\n");
+            eu_logmsg("scintilla WM_THEMECHANGED\n");
             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 on_toolbar_update_button();
@@ -692,7 +690,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = (eu_tabpage *) lParam) != NULL)
             {
-                printf("scintilla WM_DPICHANGED\n");
+                eu_logmsg("scintilla WM_DPICHANGED\n");
             }
             break;
         }
@@ -700,7 +698,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
             {
-                printf("scintilla WM_DPICHANGED_AFTERPARENT\n");
+                eu_logmsg("scintilla WM_DPICHANGED_AFTERPARENT\n");
                 on_sci_update_margin(pnode);
             }
             break;
@@ -713,7 +711,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            printf("scintilla WM_DESTROY\n");
             break;
         }
         default:

@@ -48,7 +48,7 @@ init_instance(HINSTANCE instance)
         }
         if (eu_get_config()->m_fullscreen)
         {
-            printf("we create fullsrceen window\n");
+            eu_logmsg("we create fullsrceen window\n");
         }
         else if (strlen(eu_get_config()->m_placement) < 1)
         {
@@ -104,27 +104,33 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (!eu_config_init_path())
     {   // 获取配置文件所在目录
-        printf("eu_config_init_path failed\n");
-        SKY_SAFE_EXIT(-1);
+        SKY_SAFE_EXIT(SKYLARK_NOT_OPENED);
     }
     if (!eu_config_load_main())
     {   // 加载主配置文件
-        SKY_SAFE_EXIT(-1);
+        SKY_SAFE_EXIT(SKYLARK_NOT_OPENED);
     }
+    if (!eu_init_logs(false))
+    {   // 初始化日志文件路径
+        SKY_SAFE_EXIT(SKYLARK_NOT_OPENED);
+    }
+    eu_logmsg("Enable logging, process startup\n");
     if (!no_remote && (hsem = share_envent_open_file_sem()) != NULL)
     {   // 编辑器还未完全关闭
         share_close(hsem);
         MSG_BOX(IDS_USER32_UNFINISHED, IDC_MSG_TIPS, MB_OK);
-        return 0;
+        return SKYLARK_OK;
     }
     if (!share_envent_create())
     {   // 进程同步的信号量
-        SKY_SAFE_EXIT(-1);
+        eu_logmsg("share_envent_create failed\n");
+        SKY_SAFE_EXIT(SKYLARK_ENVENT_FAILED);
     }
     // 建立共享内存, 里面保存第一个进程的主窗口句柄
     if ((mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME)) == NULL)
     {
-        SKY_SAFE_EXIT(-1);
+        eu_logmsg("share_create failed\n");
+        SKY_SAFE_EXIT(SKYLARK_MEMAP_FAILED);
     }
     else if (ERROR_ALREADY_EXISTS == GetLastError())
     {
@@ -175,7 +181,7 @@ _tmain(int argc, TCHAR *argv[])
         }
         else
         {
-            SKY_SAFE_EXIT(0);
+            SKY_SAFE_EXIT(SKYLARK_OK);
         }
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-lua")) == 0)
@@ -208,29 +214,26 @@ _tmain(int argc, TCHAR *argv[])
         {
             FreeConsole();
         }
-        SKY_SAFE_EXIT(0);
+        SKY_SAFE_EXIT(SKYLARK_OK);
     }
 #if 0
     if (!eu_hook_exception())
     {
-        printf("eu_hook_exception failed\n");
-        SKY_SAFE_EXIT(-1);
+        eu_logmsg("eu_hook_exception failed\n");
+        SKY_SAFE_EXIT(SKYLARK_HOOK_FAILED);
     }
-#endif
-#if APP_DEBUG
-    eu_init_logs();
 #endif
     if (!eu_config_load_accel())
     {   // 加载快捷键配置文件
-        SKY_SAFE_EXIT(-1);
+        SKY_SAFE_EXIT(SKYLARK_ACCEL_FAILED);
     }
     if (!eu_config_load_docs())
     {   // 加载文档分类配置文件
-        SKY_SAFE_EXIT(-1);
+        SKY_SAFE_EXIT(SKYLARK_DOCS_FAILED);
     }
     if (!(lang_map = share_load_lang()))
     {   // 加载语言资源文件
-        SKY_SAFE_EXIT(-1);
+        SKY_SAFE_EXIT(SKYLARK_RESID_FAILED);
     }
     if (eu_config_check_arg(argv, argc, _T("--help")))
     {
@@ -239,32 +242,33 @@ _tmain(int argc, TCHAR *argv[])
             eu_dark_theme_init(true, true);
         }
         eu_about_command();
-        SKY_SAFE_EXIT(0);
+        SKY_SAFE_EXIT(SKYLARK_OK);
     }
     if (argc > 1 && _tcscmp(argv[1], REGFILE) == 0)
     {
         eu_reg_file_popup_menu();
-        SKY_SAFE_EXIT(0);
+        SKY_SAFE_EXIT(SKYLARK_OK);
     }
     if (argc > 1 && _tcscmp(argv[1], REGFOLDER) == 0)
     {
         eu_reg_dir_popup_menu();
-        SKY_SAFE_EXIT(0);
+        SKY_SAFE_EXIT(SKYLARK_OK);
     }
     if (!eu_config_load_toolbar())
     {   // 加载工具栏配置文件
-        SKY_SAFE_EXIT(-1);
+        eu_logmsg("eu_config_load_toolbar failed\n");
+        SKY_SAFE_EXIT(SKYLARK_TB_FAILED);
     }
     // 注册scintilla
     if (!eu_sci_register(instance))
     {
-        MSG_BOX(IDC_MSG_SCI_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        SKY_SAFE_EXIT(-1);
+        eu_logmsg("eu_sci_register failed\n");
+        SKY_SAFE_EXIT(SKYLARK_SCI_FAILED);
     }
     if (!(hwnd = init_instance(instance)))
     {
-        printf("init_instance failed\n");
-        SKY_SAFE_EXIT(-1);
+        eu_logmsg("init_instance failed\n");
+        SKY_SAFE_EXIT(SKYLARK_INST_FAILED);
     }
     if (mapped)
     {
@@ -284,8 +288,8 @@ _tmain(int argc, TCHAR *argv[])
         }
         if (!eu_config_load_files())
         {
-            printf("eu_config_load_files failed\n");
-            SKY_SAFE_EXIT(-1);
+            eu_logmsg("eu_config_load_files failed\n");
+            SKY_SAFE_EXIT(SKYLARK_CONF_FAILED);
         }
     }
     if (strcmp(eu_get_config()->window_theme, "black") == 0)
@@ -321,9 +325,9 @@ all_clean:
     eu_sci_release();
     eu_remote_list_release();
     eu_dark_theme_release(true);
-    eu_lua_release();
     eu_font_release();
     eu_dbase_release();
-    printf("all clean\n");
+    eu_logmsg("All cleanup, process exit code [%d]\n", (int) msg.wParam);
+    eu_config_api_release();
     return (int) msg.wParam;
 }

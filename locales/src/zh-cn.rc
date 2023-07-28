@@ -405,6 +405,8 @@ BEGIN
             MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
         END
         MENUITEM MF_SEPARATOR
+        MENUITEM "启用运行时日志",                              IDM_SET_LOGGING_ENABLE
+        MENUITEM MF_SEPARATOR
         MENUITEM "文件间隔[N]秒自动保存",                       IDM_FILE_SAVE_NOTIFY
         MENUITEM MF_SEPARATOR
         MENUITEM "启用自动更新(&U)",                            IDM_SKYLAR_AUTOMATIC_UPDATE

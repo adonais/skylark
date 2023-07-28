@@ -214,7 +214,6 @@ on_config_load_file(void *lp)
             share_send_msg(&bak);
         }
     }
-    printf("vbak size = %zu\n", cvector_size(vbak));
     cvector_free(vbak);
     return 0;
 }
@@ -256,7 +255,7 @@ on_config_create_accel(void)
         }
         else
         {
-            printf("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
+            eu_logmsg("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
         }
     }
     return ret;
@@ -540,7 +539,7 @@ eu_config_load_docs(void)
     }
     if (do_lua_parser_doctype(lua_path, "fill_my_docs"))
     {
-        printf("eu_docs exec failed\n");
+        eu_logmsg("eu_docs exec failed\n");
         goto load_fail;
     }
     ret = true;

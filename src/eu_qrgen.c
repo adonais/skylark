@@ -106,7 +106,6 @@ get_hbitmap(const char *text)
     hbm = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, (VOID **)&rgb_pdata,  NULL, 0);
     if (hbm && rgb_pdata)
     {
-        printf("bi.bmiHeader.biWidth = %ld, bi.bmiHeader.biHeight = %ld\n", bi.bmiHeader.biWidth, bi.bmiHeader.biHeight);
         // Preset to white
         memset(rgb_pdata, 0xff, un_bytes);
         // Convert QrCode bits to bmp pixels
@@ -228,7 +227,6 @@ func_qrgen(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         if (hqr_bitmap)
         {
-            printf("DeleteObject(hqr_bitmap)\n");
             DeleteObject(hqr_bitmap);
         }
         set_hwnd_qr(NULL);

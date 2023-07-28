@@ -147,7 +147,7 @@ on_complete_postion_cmp(complete_t *pvec, intptr_t pos)
         {
             if (pos >= pvec->pos[j].min && pos < pvec->pos[j].max)
             {
-            #ifdef _DEBUG
+            #if APP_DEBUG
                 printf("prev_pos = %Id, pvec->pos[%d].min = %Id, pvec->pos[%d].max = %Id\n", pos, j, pvec->pos[j].min, j, pvec->pos[j].max);
             #endif
                 return 0;
@@ -406,14 +406,14 @@ on_complete_pcre_match(eu_tabpage *pnode, const char *pstr, const char *exp, ptr
     }
     if (NULL == (re = pcre_compile(pattern, PCRE_NO_UTF8_CHECK|PCRE_MULTILINE|PCRE_DOTALL, &err, &erroffset, NULL)))
     {
-        printf("pcre compile error[%s]: %s\n", pattern, err);
+        eu_logmsg("pcre: compile error[%s], %s\n", pattern, err);
         free(pattern);
         return EUE_PCRE_EXP_ERR;
     }
     rc = pcre_exec(re, NULL, src, src_len, 0, 0, ovector, OVECCOUNT);
     if (rc < 0)
     {
-        printf("[%s] didn't match [%s]\n", pattern, pstr);
+        eu_logmsg("pcre: [%s] didn't match [%s]\n", pattern, pstr);
         free(pattern);
         pcre_free(re);
         return EUE_PCRE_NO_MATCHING;
@@ -424,7 +424,7 @@ on_complete_pcre_match(eu_tabpage *pnode, const char *pstr, const char *exp, ptr
         {
             if (fn(pnode, src, ovector[2*i], ovector[2*i + 1]))
             {
-                printf("callback abort\n");
+                eu_logmsg("pcre: callback abort\n");
                 break;
             }
         }
@@ -494,12 +494,16 @@ on_complete_vec_printer(complete_t *pv)
         int i = 0;
         for (it = cvector_begin(pv); it != cvector_end(pv); ++it, ++i)
         {
+        #if APP_DEBUG
             printf("pv[%d] = %d, %s, %s,", i, it->index, it->value, it->word);
+        #endif
             for (int j = 0; j < OVEC_LEN; ++j)
             {
                 if (it->pos[j].min >= 0)
                 {
+                #if APP_DEBUG
                     printf("it->pos[%d].min = %Id, it->pos[%d].max = %Id\n", j, it->pos[j].min, j, it->pos[j].max);
+                #endif
                 }
             }
         }
@@ -698,7 +702,7 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
             on_complete_do_replace(pnode, pstr);
             on_complete_parser_value(pnode);
             on_complete_parser_postion(pnode);
-        #ifdef _DEBUG
+        #ifdef APP_DEBUG
             printf("============ ac_vec start ===========\n");
             on_complete_vec_printer(pnode->ac_vec);
         #endif
@@ -887,7 +891,7 @@ on_complete_update_part(eu_tabpage *pnode, complete_t *pvec, int offset)
                         it->pos[j].min + (intptr_t)strlen(it->value) >= pvec->pos[i].max)
                     {
                         msub = true;
-                        printf("we can affirm that %s include %s\n", it->value, pvec->value);
+                        eu_logmsg("we can affirm that %s include %s\n", it->value, pvec->value);
                         break;
                     }
                 }
@@ -1274,7 +1278,7 @@ on_complete_snippet(eu_tabpage *pnode)
     {   // 光标跳转前, 先更新前一个操作受影响变量的位置信息
         if (!on_complete_update_postion(pnode, &it, false))
         {
-            printf("on_complete_update_postion failed\n");
+            eu_logmsg("on_complete_update_postion failed\n");
             on_complete_reset_focus(pnode);
             return false;
         }
@@ -1339,7 +1343,7 @@ on_complete_snippet(eu_tabpage *pnode)
                                 cvector_push_back(pnode->ac_vec, data);
                             }
                         }
-                    #ifdef _DEBUG
+                    #ifdef APP_DEBUG
                         printf("============ac_vec===========\n");
                         on_complete_vec_printer(pnode->ac_vec);
                     #endif

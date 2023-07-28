@@ -210,7 +210,7 @@ util_under_wine(void)
     }
     if ((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
     {
-        printf("Running on Wine... %s\n", fn_wine_get_version());
+        eu_logmsg("Running on Wine... %s\n", fn_wine_get_version());
         return true;
     }
     return false;
@@ -1801,7 +1801,7 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
     }
     if (!GetTempFileName(temp_path, _T("lua"), 0, file_path))
     {
-        printf("GetTempFileName return false\n");
+        eu_logmsg("GetTempFileName return false\n");
         return INVALID_HANDLE_VALUE;
     }
     if (STR_NOT_NUL(ext))
@@ -1885,7 +1885,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
     if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
     {
         *psize = 0;
-        printf("GetFileSizeEx fail, case: %lu\n", GetLastError());
+        eu_logmsg("GetFileSizeEx fail, case: %lu\n", GetLastError());
         return false;
     }
     return true;
@@ -1939,7 +1939,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 {
                     pstream->close = util_close_stream_by_munmap;
                     ret = true;
-                    printf("we open file use MapViewOfFile API\n");
+                    eu_logmsg("we open file use MapViewOfFile API\n");
                 }
             }
         }
@@ -1951,7 +1951,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                printf("we open file use ReadFile API, bytesread = %u\n", bytesread);
+                eu_logmsg("we open file use ReadFile API, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -2110,7 +2110,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if ((dw_size = pfnGetFileVersionInfoSizeW(filepath, &dw_handle)) == 0)
         {
-            printf("pfnGetFileVersionInfoSizeW return false\n");
+            eu_logmsg("pfnGetFileVersionInfoSizeW return false\n");
             break;
         }
         if ((pbuffer = (LPWSTR) calloc(1, dw_size * sizeof(WCHAR))) == NULL)
@@ -2119,7 +2119,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if (!pfnGetFileVersionInfoW(filepath, 0, dw_size, (LPVOID) pbuffer))
         {
-            printf("pfnpfnGetFileVersionInfoW return false\n");
+            eu_logmsg("pfnpfnGetFileVersionInfoW return false\n");
             break;
         }
         pfnVerQueryValueW((LPCVOID) pbuffer, L"\\VarFileInfo\\Translation", (LPVOID *) &lptranslate, &cb_translate);
@@ -2781,7 +2781,7 @@ util_try_path(LPCTSTR dir)
                            FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
         if (pfile == INVALID_HANDLE_VALUE)
         {
-            printf("%s, create folder failed\n", __FUNCTION__);
+            eu_logmsg("%s: create folder failed\n", __FUNCTION__);
         }
         CloseHandle(pfile);
     }

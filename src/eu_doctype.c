@@ -2047,7 +2047,6 @@ on_doc_ptr_free(void)
         }
     }
     do_lua_parser_release();
-    printf("we destroy hash table and Lua runtime\n");
 }
 
 doctype_t*

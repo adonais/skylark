@@ -214,6 +214,16 @@ static inline int eu_cvector_at(const int *v, const int n)
 
 enum
 {
+    SKYLARK_HOOK_FAILED   = -50,
+    SKYLARK_TB_FAILED     = -49,
+    SKYLARK_SCI_FAILED    = -48,
+    SKYLARK_RESID_FAILED  = -47,
+    SKYLARK_ACCEL_FAILED  = -46,
+    SKYLARK_DOCS_FAILED   = -45,
+    SKYLARK_CONF_FAILED   = -44,
+    SKYLARK_INST_FAILED   = -43,
+    SKYLARK_ENVENT_FAILED = -42,
+    SKYLARK_MEMAP_FAILED  = -41,
     EUE_PCRE_BACK_ABORT   = -40,
     EUE_PCRE_NO_MATCHING  = -39,
     EUE_PCRE_EXP_ERR      = -38,
@@ -428,6 +438,7 @@ struct eu_config
     bool m_session;
     bool m_exit;
     bool m_instance;
+    bool m_logging;
     char m_placement[MAX_BUFFER];
     char m_language[QW_SIZE];
     bookmark_set eu_bookmark;
@@ -564,7 +575,7 @@ EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
 EU_EXT_CLASS struct eu_config *eu_get_config(void);
 EU_EXT_CLASS eue_accel *eu_get_accel(void);
 EU_EXT_CLASS eue_toolbar *eu_get_toolbar(void);
-EU_EXT_CLASS void eu_lua_release(void);
+EU_EXT_CLASS void eu_config_api_release(void);
 
 EU_EXT_CLASS const int eu_theme_index(void);
 EU_EXT_CLASS const uint32_t eu_win10_or_later(void);
@@ -714,6 +725,10 @@ EU_EXT_CLASS void eu_session_backup(const int status);
 
 // for eu_doctype.c
 EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);
+
+// for eu_log.c
+EU_EXT_CLASS bool __cdecl eu_init_logs(const bool turn);
+EU_EXT_CLASS void __cdecl eu_logmsg(const char *format, ...);
 
 /* lua 脚本调用接口 */
 EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);

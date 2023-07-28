@@ -171,7 +171,7 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
         {
             if (fnSetWindowTheme(hwnd, psz_name, psz_list) != S_OK)
             {
-                printf("fnSetWindowTheme failed\n");
+                eu_logmsg("%s: fnSetWindowTheme failed\n", __FUNCTION__);
             }
         }
         eu_close_dll(uxtheme);
@@ -219,14 +219,13 @@ on_dark_set_caption(void)
     if ((ret = number != (uint32_t)-1) && number >= 22000)
     {
     #if USE_DWMAPI
-        printf("on_dark_set_caption runing\n");
         HMODULE dwm = LoadLibraryEx(_T("dwmapi.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
         DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
         if ((ret = fnDwmSetWindowAttribute != NULL))
         {
             colour mycolor = eu_theme_index() == THEME_WHITE ? rgb_dark_txt_color : DWMWA_COLOR_DEFAULT;
             ret = S_OK == fnDwmSetWindowAttribute(eu_module_hwnd(), DWMWA_CAPTION_COLOR, &mycolor, sizeof mycolor);
-            printf("ret = %d\n", ret);
+            eu_logmsg("%s: ret = %d\n", __FUNCTION__, ret);
         }
         eu_close_dll(dwm);
     #endif // USE_DWMAPI

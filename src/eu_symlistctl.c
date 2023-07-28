@@ -87,7 +87,6 @@ reqular_thread(void *lp)
         eu_pcre_delete(pcre_info);
     }
     _InterlockedExchange(&pnode->pcre_id, 0);
-    printf("reqular_thread exit\n");
     return 0;
 }
 
@@ -230,7 +229,6 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     util_kill_thread((uint32_t)pnode->pcre_id);
                 }
             }
-            printf("symlist WM_DESTROY\n");
             break;
         }
         default:
@@ -267,7 +265,7 @@ on_symlist_create(eu_tabpage *pnode)
         }
         if (!(symlist_wnd = (WNDPROC) SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc)))
         {
-            printf("SetWindowLongPtr(pnode->hwnd_symlist) failed\n");
+            eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symlist) failed\n", __FUNCTION__);
             return 1;
         }
         else

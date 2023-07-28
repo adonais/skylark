@@ -299,7 +299,7 @@ on_theme_copy_style(TCHAR *ac_theme)
     }
     if (on_theme_load_script(ac_theme))
     {
-        printf("on_theme_load_script(%ls) failed\n", ac_theme);
+        eu_logmsg("%s: on_theme_load_script return false\n", __FUNCTION__);
         return EUE_LOAD_SCRIPT_ERR;
     }
     strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE - 1);
@@ -1060,7 +1060,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)
             break;
         case WM_DESTROY:
-            printf("theme dlg WM_DESTROY\n");
             if (hwnd_edit_tips)
             {
                 DestroyWindow(hwnd_edit_tips);

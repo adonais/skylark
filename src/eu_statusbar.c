@@ -247,7 +247,7 @@ on_statusbar_create_button(HWND hstatus)
     hrw = CreateWindowEx(0, _T("button"), wstr, WS_CHILD | WS_CLIPSIBLINGS | BS_FLAT, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_RW, eu_module_handle(), NULL);
     if (!hrw)
     {
-        printf("CreateWindowEx IDM_BTN_RW failed\n");
+        eu_logmsg("%s: CreateWindowEx IDM_BTN_RW failed\n", __FUNCTION__);
     }
     return (hrw != NULL);
 }
@@ -629,7 +629,6 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
         }
         case WM_THEMECHANGED:
         {
-            printf("status WM_THEMECHANGED\n");
             if (on_dark_enable())
             {
                 on_dark_allow_window(hwnd, true);
@@ -666,7 +665,6 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                     hfont_btn = NULL;
                 }
                 g_statusbar = NULL;
-                printf("statusbar WM_DESTROY\n");
             }
             break;
         }
@@ -1034,7 +1032,7 @@ on_statusbar_init(HWND hwnd)
         g_menu_type = menu_load(IDR_TYPES_MENU);
         if (!(g_menu_break && g_menu_code && g_menu_type))
         {
-            printf("create menu failed\n");
+            eu_logmsg("%s: create menu failed\n", __FUNCTION__);
             break;
         }
         on_statusbar_create_filetype_menu();

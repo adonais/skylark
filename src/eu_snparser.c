@@ -89,7 +89,7 @@ on_parser_header(const char *pstr, match_status *pstate, snippet_t *pdata, const
     char buf[QW_SIZE] = {'s', 'n', 'i', 'p', 'p', 'e', 't', 0};
     if (!(pstr && pstate && pdata && !strncasecmp(pstr, buf, strlen(buf))))
     {
-        printf("pointer is null in %s\n", __FUNCTION__);
+        eu_logmsg("%s: pointer is null\n", __FUNCTION__);
         return 1;
     }
     else
@@ -238,12 +238,12 @@ on_parser_open_file(const TCHAR *filename, const TCHAR *mode, uint8_t **pbuf, FI
         }
         if (fseek(*ptr_file, 0, SEEK_SET) == -1)
         {
-            printf("%s, fseek failed\n", __FUNCTION__);
+            eu_logmsg("%s: fseek failed\n", __FUNCTION__);
             break;
         }
         if (*pbuf || (*pbuf = (uint8_t *)calloc(1, size + 1)) == NULL)
         {
-            printf("malloc failed\n");
+            eu_logmsg("%s: malloc failed\n", __FUNCTION__);
             size = -1;
             break;
         }
@@ -287,7 +287,7 @@ on_parser_filter_text(const TCHAR *filename, char **pbuf, intptr_t start, intptr
             int result = ftruncate(_fileno(fp), 0);
             if (result != 0)
             {
-                printf( "problem in changing the size\n" );
+                eu_logmsg("%s: problem in changing the size\n", __FUNCTION__);
             }
             rewind(fp);
             if (strlen(*pbuf) > 0)
@@ -428,7 +428,7 @@ on_parser_frequency(const char *str, const char *substr)
     return n;
 }
 
-#if defined(_DEBUG)
+#if APP_DEBUG
 static void
 on_parser_vec_printer(snippet_t *pv)
 {
@@ -453,7 +453,7 @@ on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int 
     FILE *fp = NULL;
     int size = on_parser_open_file(path, _T("r+b"), &buf, &fp);
     size = size > 0 ? (int)fread((char *) buf, 1, size, fp) : 0;
-#if defined(_DEBUG)
+#if APP_DEBUG
     on_parser_vec_printer(*ptr_vec);
 #endif
     while (size >= 0 && buf && fp)
@@ -471,7 +471,6 @@ on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int 
         if (strlen(buf) > 3 * strlen(peol))
         {
             n = on_parser_frequency(&buf[strlen(buf) - 1] - 3 * strlen(peol), peol);
-            printf("n = %d\n", n);
         }
         if (n == 0 || n == 1)
         {

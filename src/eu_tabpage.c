@@ -517,7 +517,7 @@ on_tabpage_send_file(const HWND hwin, const int index)
                 err = on_sql_post(sql, on_tabpage_parser_bakup, &bak);
                 if (err != SKYLARK_OK && err != SQLITE_ABORT)
                 {
-                    printf("on_sql_post failed in %s, cause: %d\n", __FUNCTION__, err);
+                    eu_logmsg("%s: on_sql_post return false, cause: %d\n", __FUNCTION__, err);
                 }
                 else
                 {
@@ -1020,7 +1020,7 @@ on_tabpage_create_dlg(HWND hwnd)
         }
         if (!init_icon_img_list(g_tabpages))
         {
-            printf("init_icon_img_list return false\n");
+            eu_logmsg("%s: init_icon_img_list return false\n", __FUNCTION__);
             err = 1;
             break;
         }
@@ -1311,7 +1311,7 @@ on_tabpage_add(eu_tabpage *pnode)
     }
     if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
     {
-        printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
+        eu_logmsg("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
         return SKYLARK_TABCTRL_ERR;
     }
     if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)

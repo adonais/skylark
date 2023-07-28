@@ -360,6 +360,7 @@ query_encode(const char *coding)
     return IDM_UNKNOWN;
 }
 
+#if APP_DEBUG
 static void
 printf_bytes(const char *str, size_t len, const char *name)
 {
@@ -390,6 +391,7 @@ printf_bytes(const char *str, size_t len, const char *name)
         printf("\n");
     }
 }
+#endif
 
 /*******************************************************************************************************
  * 功能, 调用libiconv转换编码.
@@ -413,12 +415,12 @@ eu_iconv_converter(char *src, size_t *src_len, char **pout, const char *from_des
     cd = eu_iconv_open(dst_desc, from_desc);
     if (cd == (iconv_t) -1)
     {
-        printf("eu_iconv_open error!\n");
+        eu_logmsg("eu_iconv_open error!\n");
         goto iconv_err;
     }
     if (eu_iconvctl(cd, ICONV_SET_DISCARD_ILSEQ, &argument) != 0)
     {
-        printf("can't enable illegal feature!\n");
+        eu_logmsg("can't enable illegal feature!\n");
         goto iconv_err;
     }
     ptmp = pdst = (char *) calloc(1, ldst + 1);
@@ -442,7 +444,7 @@ iconv_err:
     eu_iconv_close(cd);
     if (ret != (size_t)-1)
     {
-        printf("%s->%s ok, ret = %zu!\n", from_desc, dst_desc, ret);
+        eu_logmsg("%s->%s ok, ret = %zu!\n", from_desc, dst_desc, ret);
     }
     return (ret == 0);
 }
@@ -512,7 +514,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     }   // 如果通过utf-16le静态分析, 测试一下编码转换, 因为可能为二进制文件
     if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_le) && (result_le & IS_TEXT_UNICODE_STATISTICS))
     {
-        printf("result_le = %d\n", result_le);
+        eu_logmsg("result_le = %d\n", result_le);
         if (eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16LE", "GBK"))
         {
             return UTF16_LE_NOBOM;
@@ -520,7 +522,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     }   // 如果通过utf-16be静态分析, 测试一下编码转换, 因为可能为二进制文件
     else if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_be) && eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16BE", "GBK"))
     {
-        printf("result_be = %d\n", result_be);
+        eu_logmsg("result_be = %d\n", result_be);
         return UTF16_BE_NOBOM;
     }
     return EN_CODEING_NONE;
@@ -597,18 +599,14 @@ eu_memstr(const uint8_t *haystack, const char *needle, size_t size)
 {
     int i = 0;
     const uint8_t *p;
+    uint8_t *need = NULL;
     size_t needlesize = strlen(needle);
     if (needlesize%2 !=0 )
     {
-        printf("not double byte\n");
+        eu_logmsg("not double byte\n");
         return NULL;
     }
-    else
-    {
-        printf("needlesize = %zu\n", needlesize);
-    }
-    uint8_t *need = (uint8_t *)malloc(needlesize/2);
-    if (!need)
+    if (!(need = (uint8_t *)malloc(needlesize/2)))
     {
         return NULL;
     }
@@ -625,8 +623,10 @@ eu_memstr(const uint8_t *haystack, const char *needle, size_t size)
             break;
         }
     }
+#if APP_DEBUG
     printf("need[0] = %.2x\n", need[0]);
     printf("need[1] = %.2x\n", need[1]);
+#endif
     for (p = haystack; p <= (haystack-needlesize+size); p++)
     {
         if (memcmp(p, need, needlesize/2) == 0)
@@ -876,7 +876,7 @@ is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
                 {
                     if ((black_mask & 1) && (name[i] == n))
                     {
-                        printf("\nwe return true, name[%zu] = %.02x\n", i, name[i]);
+                        eu_logmsg("\nbinary char, name[%zu] = %.02x\n", i, name[i]);
                         return EN_CODEING_BINARY;
                     }
                 }
@@ -942,7 +942,8 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
                           lp_dir,
                           &si,&pi))
         {
-            printf("CreateProcessW %ls error, cause: %lu\n", wcmd, GetLastError());
+            char u8[MAX_BUFFER] = {0};
+            eu_logmsg("CreateProcessW [%s] error, cause: %lu\n", util_make_u8(wcmd, u8, MAX_BUFFER - 1), GetLastError());
             return NULL;
         }
         if (NULL != o)
@@ -1105,7 +1106,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         if ((fp = _tfopen(file_name, _T("rb"))) == NULL)
         {
-            fprintf(stderr, "_tfopen failed in %s\n", __FUNCTION__);
+            eu_logmsg("_tfopen failed in %s\n", __FUNCTION__);
             return type;
         }
         read_len = fread(checkstr, 1, len - 1, fp);
@@ -1123,7 +1124,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     if (!(type = is_plan_file(checkstr, read_len, nobinary)))
     {
         // BINARY file
-        printf("this is BINARY file\n");
+        eu_logmsg("this is BINARY file\n");
         return IDM_OTHER_BIN;
     }
     switch (type)
@@ -1148,24 +1149,22 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     if ((obj = detect_obj_init()) == NULL)
     {
-        fprintf(stderr, "Memory Allocation failed\\n");
+        eu_logmsg("Memory Allocation failed in %s\n", __FUNCTION__);
         return type;
     }
     switch (detect_r((const char *)checkstr, read_len, &obj))
     {
         case CHARDET_OUT_OF_MEMORY:
-            fprintf(stderr, "On handle processing, occured out of memory\n");
+            eu_logmsg("On handle processing, occured out of memory\n");
             detect_obj_free(&obj);
             return type;
         case CHARDET_NULL_OBJECT:
-            fprintf(stderr,
-                    "2st argument of chardet() is must memory allocation "
-                    "with detect_obj_init API\n");
+            eu_logmsg("2st argument of chardet() is must memory allocation with detect_obj_init API\n");
             return type;
         default:
             break;
     }
-    printf("%s, confidence: %f, exists bom: %d\n", obj->encoding, obj->confidence, obj->bom);
+    eu_logmsg("%s, confidence: %f, exists bom: %d\n", obj->encoding, obj->confidence, obj->bom);
     if (!obj->encoding || DET_EPSILON > obj->confidence)
     {
         if (is_mbcs_gb18030((const char *)checkstr, read_len))
@@ -1175,7 +1174,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (on_encoding_validate_utf8((const char *)checkstr, read_len))
         {
-            printf("Maybe UTF-8!\n");
+            eu_logmsg("Maybe UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else
@@ -1198,7 +1197,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     {
         if (on_encoding_validate_utf8((const char *)checkstr, read_len))
         {
-            printf("not iso encode, it's maybe UTF-8!\n");
+            eu_logmsg("not iso encode, it's maybe UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else
@@ -1229,7 +1228,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     {
         if (on_encoding_validate_utf8((const char *)checkstr, read_len))
         {
-            printf("we reconfirm that's UTF-8!\n");
+            eu_logmsg("we reconfirm that's UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else if (obj->confidence > CHECK_1ST && is_exclude_char(obj->encoding))
@@ -1238,16 +1237,16 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (is_mbcs_gb18030((const char *)checkstr, read_len))
         {
-            printf("MAYBA GB18030!\n");
+            eu_logmsg("MAYBA GB18030!\n");
             type = IDM_ANSI_12;
         }
         else
         {
             type = query_encode(obj->encoding);
-            printf("Blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
+            eu_logmsg("Blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
             if ((file_name != NULL) && !eu_iconv_full_text(file_name, obj->encoding, "utf-8"))
             {
-                printf("It doesn't look like %s, We think of it as binary coding\n", obj->encoding);
+                eu_logmsg("It doesn't look like %s, We think of it as binary coding\n", obj->encoding);
                 type = IDM_OTHER_BIN;
             }
         }
@@ -1574,7 +1573,7 @@ eu_free_toolbar(void)
 }
 
 void
-eu_lua_release(void)
+eu_config_api_release(void)
 {
     eu_free_theme();
     eu_free_config();
@@ -1685,6 +1684,7 @@ eu_save_config(void)
         "save_last_session = %s\n"
         "exit_when_close_last_tab = %s\n"
         "allow_multiple_instance = %s\n"
+        "enable_runtime_logging = %s\n"
         "save_last_placement = \"%s\"\n"
         "ui_language = \"%s\"\n"
         "-- bookmark default setting\n"
@@ -1803,6 +1803,7 @@ eu_save_config(void)
               g_config->m_session?"true":"false",
               g_config->m_exit?"true":"false",
               "false",
+              g_config->m_logging?"true":"false",
               g_config->m_placement,
               g_config->m_language[0]?g_config->m_language:"auto",
               g_config->eu_bookmark.visable?"true":"false",
@@ -2075,7 +2076,6 @@ eu_print_calltip_tree(root_t *root)
     map_t *node = NULL;
     for (node = map_first(root); node != NULL;)
     {
-        printf("%s=%s\n", node->key, node->val);
         node = map_next(&(node->node));
         if (!node)
         {
@@ -2107,14 +2107,12 @@ eu_print_completed_tree(root_t *acshow_root)
     acshow_t *node = NULL;
     for (node = ac_first(acshow_root); node != NULL;)
     {
-        printf("%s ", node->str);
         node = ac_next(&(node->node));
         if (!node)
         {
             break;
         }
     }
-    printf("\n");
 }
 
 char *
@@ -2209,7 +2207,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     {   // 正则表达式预编译失败
         if (pcre_info->error)
         {
-            printf("PCRE compilation failed at offset %d: %s\n", pcre_info->erroroffset, pcre_info->error);
+            eu_logmsg("PCRE compilation failed at offset %d: %s\n", pcre_info->erroroffset, pcre_info->error);
         }
         return 1;
     }
@@ -2227,10 +2225,10 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
         switch (pcre_info->rc)
         {
             case PCRE_ERROR_NOMATCH:
-                printf("No match.\n");
+                eu_logmsg("pcre: no match.\n");
                 break;
             default:
-                printf("error: matching error.\n");
+                eu_logmsg("pcre: matching error.\n");
                 break;
         }
         return 1;
@@ -2239,7 +2237,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     if (pcre_info->rc == 0)
     {   // 处理偏移量的数组不够大, 输出错误
         pcre_info->rc = OVECCOUNT / 3;
-        printf("error: ovector only has room for %d substrings\n", (pcre_info->rc) - 1);
+        eu_logmsg("error: ovector only has room for %d substrings\n", (pcre_info->rc) - 1);
         return 1;
     }
 
@@ -2363,13 +2361,13 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
         }
         if (pcre_info->rc < 0)
         {
-            printf("Matching error %d\n", pcre_info->rc);
+            eu_logmsg("pcre: Matching error %d\n", pcre_info->rc);
             return 1;
         }
         if (pcre_info->rc == 0)
         {
             pcre_info->rc = OVECCOUNT / 3;
-            printf("ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
+            eu_logmsg("pcre: ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
         }
 
     #if PCRE_DEBUG
@@ -2425,7 +2423,7 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
                 tabptr += name_entry_size;
             }
         }
-#endif
+    #endif
     }
     return 0;
 }

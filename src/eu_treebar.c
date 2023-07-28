@@ -229,7 +229,7 @@ on_filetree_file_rename(TVITEM *ptvi)
     {
         if (!old)
         {
-            printf("GetWindowLongPtr(g_filetree) failed\n");
+            eu_logmsg("%s: GetWindowLongPtr(g_filetree) failed\n", __FUNCTION__);
             ret = EUE_POINT_NULL;
             break;
         }
@@ -242,7 +242,7 @@ on_filetree_file_rename(TVITEM *ptvi)
                 _sntprintf(pname, len, _T("%s/%s"), old->pathname, ptvi->pszText);
                 if (!MoveFile(old->filepath, pname))
                 {
-                    printf("MoveFile failed, cause:%lu\n", GetLastError());
+                    eu_logmsg("%s: MoveFile failed, cause:%lu\n", __FUNCTION__, GetLastError());
                     ret = EUE_MOVE_FILE_ERR;
                 }
                 else
@@ -281,7 +281,7 @@ on_filetree_file_rename(TVITEM *ptvi)
             }
             if (!p)
             {
-                printf("maybe path error\n");
+                eu_logmsg("%s: maybe path error\n", __FUNCTION__);
                 ret = EUE_FILE_ATTR_ERR;
                 break;
             }
@@ -299,7 +299,7 @@ on_filetree_file_rename(TVITEM *ptvi)
             eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
             if (eu_curl_easy_perform(curl) != CURLE_OK)
             {
-                printf("rename [%s] to [%s] failed\n", filename, newname);
+                eu_logmsg("%s: rename [%s] to [%s] failed\n", __FUNCTION__, filename, newname);
                 ret = EUE_CURL_NETWORK_ERR;
                 break;
             }
@@ -383,7 +383,7 @@ on_filetree_file_delete(void)
             }
             if (!m_del)
             {
-                printf("delete node failed, cause:%lu\n", GetLastError());
+                eu_logmsg("%s: delete node failed, cause:%lu\n", __FUNCTION__, GetLastError());
                 ret = EUE_DELETE_FILE_ERR;
             }
             else
@@ -420,7 +420,7 @@ on_filetree_file_delete(void)
             }
             if (!p)
             {
-                printf("maybe path error\n");
+                eu_logmsg("%s: maybe path error\n", __FUNCTION__);
                 ret = EUE_FILE_ATTR_ERR;
                 break;
             }
@@ -456,7 +456,7 @@ on_filetree_file_delete(void)
             eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
             if ((eu_curl_easy_perform(curl)) != CURLE_OK)
             {
-                printf("deletel file failed\n");
+                eu_logmsg("%s: deletel file failed\n", __FUNCTION__);
                 ret = EUE_CURL_NETWORK_ERR;
             }
             else
@@ -554,7 +554,7 @@ on_filetree_new_directory(void)
             }
             if (!p)
             {
-                printf("maybe path error\n");
+                eu_logmsg("%s: maybe path error\n", __FUNCTION__);
                 ret = EUE_FILE_ATTR_ERR;
                 break;
             }
@@ -1684,7 +1684,6 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ImageList_Destroy(img_list);
             }
             on_filetree_destroy_node();
-            printf("filetree WM_DESTROY\n");
             break;
         }
         default:
@@ -1784,13 +1783,11 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            printf("g_treebar WM_DPICHANGED\n");
             on_treebar_update_theme();
             break;
         }
         case WM_THEMECHANGED:
         {
-            printf("g_treebar WM_THEMECHANGED\n");
             uintptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
             if (on_dark_enable())
             {
@@ -1805,7 +1802,9 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
         {
             g_treebar = NULL;
+        #if APP_DEBUG
             printf("g_treebar WM_DESTROY\n");
+        #endif
             break;
         }
         default:
@@ -1832,13 +1831,13 @@ on_treebar_create_box(HWND hwnd)
     tci.pszText = m_text;
     if (TabCtrl_InsertItem(g_treebar, 0, &tci) == -1)
     {
-        printf("TabCtrl_InsertItem failed\n");
+        eu_logmsg("%s: TabCtrl_InsertItem failed\n", __FUNCTION__);
         DestroyWindow(g_treebar);
         return EUE_INSERT_TAB_FAIL;
     }
     if (!(treebar_wnd = (WNDPROC) SetWindowLongPtr(g_treebar, GWLP_WNDPROC, (LONG_PTR) treebar_proc)))
     {
-        printf("SetWindowLongPtr(g_filetree) failed on %s\n", __FUNCTION__);
+        eu_logmsg("%s: SetWindowLongPtr(g_filetree) failed\n", __FUNCTION__);
         DestroyWindow(g_treebar);
         return EUE_POINT_NULL;
     }
@@ -2036,7 +2035,7 @@ on_treebar_locate_remote(const TCHAR *pathname)
             MultiByteToWideChar(CP_UTF8, 0, tvd->server->servername, -1, servername, 100);
             if (_tcsicmp(tvd->filename, servername) == 0)
             {
-                printf("tvd->filename = servername = %s\n", tvd->server->servername);
+                eu_logmsg("%s: tvd->filename = servername = %s\n", __FUNCTION__, tvd->server->servername);
                 break;
             }
         }
@@ -2133,7 +2132,7 @@ on_treebar_locate_path(const TCHAR *pathname)
                 if (on_filetree_append_file_child(g_filetree, tvd))
                 {
                     free(m_dup);
-                    printf("on_filetree_append_file_child failed\n");
+                    eu_logmsg("%s: on_filetree_append_file_child failed\n", __FUNCTION__);
                     return EUE_UNKOWN_ERR;
                 }
             }

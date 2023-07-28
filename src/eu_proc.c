@@ -34,12 +34,12 @@ on_create_window(HWND hwnd)
 {
     if (on_treebar_create_dlg(hwnd))
     {
-        printf("on_treebar_create_dlg return false\n");
+        eu_logmsg("on_treebar_create_dlg return false\n");
         return 1;
     }
     if (on_tabpage_create_dlg(hwnd))
     {
-        printf("on_tabpage_create_dlg return false\n");
+        eu_logmsg("on_tabpage_create_dlg return false\n");
         return 1;
     }
     return SKYLARK_OK;
@@ -66,7 +66,7 @@ enum_skylark_proc(HWND hwnd, LPARAM lParam)
                 QueryFullProcessImageName(hprocess, 0, m_buffer, &buffer_len);
                 if (_tcsnicmp(m_buffer, m_path, _tcslen(m_buffer)) == 0)
                 {
-                    printf("we get other hwnd = %p\n", (void *)hwnd);
+                    eu_logmsg("we get other hwnd = %p\n", (void *)hwnd);
                     share_envent_set_hwnd(hwnd);
                     SetLastError(ERROR_CALLBACK_ABORT);
                     return 0;
@@ -612,7 +612,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
             pnode->be_modify = true;
             on_toolbar_update_button();
             InvalidateRect(g_tabpages, NULL, false);
-            printf("skylark: doc has been modified\n");
+            eu_logmsg("skylark: doc has been modified\n");
         }
     }
     if (flags && !lpnmhdr->modified && pnode->plugin)
@@ -621,10 +621,9 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
         bool backup = false;
         wchar_t *full_path = NULL;
         pnode->be_modify = false;
-        printf("skylark: doc has been saved\n");
+        eu_logmsg("skylark: doc has been saved\n");
         if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&full_path) && STR_NOT_NUL(full_path))
         {
-            printf("full_path = %ls, pnode->pathfile = %ls, pnode->bakpath = %ls\n", full_path, pnode->pathfile, pnode->bakpath);
             if (url_has_remote(pnode->pathfile))
             {
                 remote = true;
@@ -838,7 +837,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {   // 启动更新进程
                     _InterlockedIncrement(&g_interval_count);
                     on_update_check(UPCHECK_INDENT_MAIN);
-                    printf("g_interval_count = %ld\n", g_interval_count);
+                    eu_logmsg("g_interval_count = %ld, upcheck start\n", g_interval_count);
                 }
                 else if (g_interval_count < EU_UPTIMES)
                 {
@@ -1658,6 +1657,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SOURCE_ENABLE_CTSHOW:
                     eu_get_config()->eu_calltip.enable ^= true;
                     break;
+                case IDM_SET_LOGGING_ENABLE:
+                    eu_init_logs(true);
+                    break;
                 case IDM_VIEW_FONTQUALITY_NONE:
                 case IDM_VIEW_FONTQUALITY_STANDARD:
                 case IDM_VIEW_FONTQUALITY_CLEARTYPE:
@@ -2161,7 +2163,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
             {
                 on_destory_window(hwnd);
-                printf("main window WM_DESTROY\n");
+                eu_logmsg("main window WM_DESTROY\n");
                 break;
             }
         default:

@@ -70,7 +70,7 @@ on_session_thead(void *lp)
         {
             if(msg.message == WM_QUIT)
             {
-                printf("on_session_thead recv WM_QUIT\n");
+                eu_logmsg("%s: recv WM_QUIT\n", __FUNCTION__);
                 break;
             }
             switch (msg.message)
@@ -100,7 +100,9 @@ on_session_thead(void *lp)
             const long count = eu_get_config()->m_up_notify * 1000;
             if (g_session_total >= count)
             {   // 间隔时间内, 自动备份
+            #if APP_DEBUG
                 printf("we start auto backup\n");
+            #endif
                 on_session_backup(SESSION_ALL);
                 _InterlockedExchange(&g_session_total, 0);
             }
@@ -116,7 +118,7 @@ on_session_thead(void *lp)
         CloseHandle((HANDLE)g_session_sem);
         inter_atom_exchange(&g_session_sem, 0);
     }
-    printf("on_session_thead exit\n");
+    eu_logmsg("on_session_thead exit\n");
     return 0;
 }
 

@@ -260,7 +260,6 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            printf("on_result_edit_proc WM_DESTROY\n");
             break;
         }
     }
@@ -282,7 +281,6 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 hwnd_rst = NULL;
             }
-            printf("on_result_callback WM_DESTROY\n");
             break;
         }
         default:

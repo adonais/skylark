@@ -110,7 +110,7 @@ js_next(const uint8_t *ptext, size_t *in)
                             }
                             break;
                         case -1:
-                            printf("Error: JSMIN Unterminated comment.\n");
+                            eu_logmsg("Error: JSMIN Unterminated comment.\n");
                             return EUE_UNKOWN_ERR;
                     }
                 }
@@ -161,7 +161,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                     }
                     if (the_a == -1)
                     {
-                        printf("Error: JSMIN unterminated string literal\n");
+                        eu_logmsg("Error: JSMIN unterminated string literal\n");
                         return EUE_UNKOWN_ERR;
                     }
                 }
@@ -203,7 +203,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                             }
                             if (the_a == -1)
                             {
-                                printf("Unterminated set in Regular Expression literal.\n");
+                                eu_logmsg("Unterminated set in Regular Expression literal.\n");
                                 return EUE_UNKOWN_ERR;
                             }
                         }
@@ -214,7 +214,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                         {
                             case '/':
                             case '*':
-                                printf("Unterminated set in Regular Expression literal.\n");
+                                eu_logmsg("Unterminated set in Regular Expression literal.\n");
                                 return EUE_UNKOWN_ERR;
                         }
                         break;
@@ -226,7 +226,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                     }
                     if (the_a == -1)
                     {
-                        printf("Unterminated Regular Expression literal.\n");
+                        eu_logmsg("Unterminated Regular Expression literal.\n");
                         return EUE_UNKOWN_ERR;
                     }
                     js_put(the_a, pbuf, out);

@@ -69,6 +69,7 @@ function eu_conf.loadconf()
         "save_last_session = true\n" ..
         "exit_when_close_last_tab = false\n" ..
         "allow_multiple_instance = false\n" ..
+        "enable_runtime_logging = false\n" ..
         "save_last_placement = \"\"\n" ..
         "ui_language = \"auto\"\n" ..
         "-- bookmark default setting\n" ..
@@ -130,6 +131,9 @@ function eu_conf.loadconf()
     if (update_file_notify == nil) then
         update_file_notify = 0
     end
+    if (enable_runtime_logging == nil) then
+        enable_runtime_logging = false
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -177,6 +181,7 @@ function eu_conf.loadconf()
         save_last_session,
         exit_when_close_last_tab,
         allow_multiple_instance,
+        enable_runtime_logging,
         save_last_placement,
         ui_language,
         {bookmark.visable, bookmark.shape, bookmark.argb},
