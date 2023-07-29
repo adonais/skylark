@@ -28,7 +28,7 @@ static HRESULT
 on_theme_drawex_text(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCWSTR pszText,int cchText, DWORD dwTextFlags, LPRECT pRect, const DTTOPTS *pOptions)
 {
     HRESULT ret = 1;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     DrawThemeTextExPtr fnDrawThemeTextEx = uxtheme ? (DrawThemeTextExPtr)GetProcAddress(uxtheme, "DrawThemeTextEx") : NULL;
     if (fnDrawThemeTextEx)
     {

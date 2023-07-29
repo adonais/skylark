@@ -395,7 +395,7 @@ util_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
 #else
     _T("libcrypto-1_1.dll");
 #endif
-    if ((ssl = np_load_plugin_library(ssl_path)) != NULL)
+    if ((ssl = np_load_plugin_library(ssl_path, false)) != NULL)
     {
         for (int i = 0; i < n && s[i][0]; ++i)
         {
@@ -1725,7 +1725,7 @@ bool
 util_exist_libcurl(void)
 {
     bool ret = false;
-    HMODULE lib_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    HMODULE lib_symbol = np_load_plugin_library(_T("libcurl.dll"), false);
     if (lib_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(lib_symbol,"zlib_compress2");
@@ -1760,8 +1760,8 @@ util_compress_bound(unsigned long source_len)
 int
 util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level)
 {
-    int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    int ret = SKYLARK_NOT_OPENED;      // STREAM_ERROR
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"), false);
     if (curl_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(curl_symbol,"zlib_compress2");
@@ -1777,8 +1777,8 @@ util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, uns
 int
 util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len)
 {
-    int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    int ret = SKYLARK_NOT_OPENED;      // STREAM_ERROR
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"), false);
     if (curl_symbol)
     {
         ptr_uncompress fn_uncompress = (ptr_uncompress)GetProcAddress(curl_symbol,"zlib_uncompress2");

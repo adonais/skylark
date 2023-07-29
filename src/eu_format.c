@@ -18,7 +18,9 @@
 
 #include "framework.h"
 
-#define FORMAT_MAX_LEN  (4 * 1024 * 1024)
+#define FORMAT_MAX_LEN (4 * 1024 * 1024)
+#define FORMAT_DLL _T("clang-format.dll")
+
 typedef bool (*ptr_format)(const char *filename, const char *data, size_t size, char **pout);
 
 static int the_a;
@@ -309,7 +311,7 @@ static bool
 init_lib_format(const char *filename, const char *data, size_t size, char **pout)
 {
     bool ret = false;
-    HMODULE m_dll = np_load_plugin_library(_T("clang-format.dll"));
+    HMODULE m_dll = np_load_plugin_library(FORMAT_DLL, false);
     if (m_dll)
     {
         ptr_format fn_lib_format = (ptr_format)GetProcAddress(m_dll, "lib_format");

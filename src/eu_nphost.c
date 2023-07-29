@@ -23,22 +23,19 @@ extern TCHAR eu_module_path[MAX_PATH+1];
 extern TCHAR *eu_process_path(void);
 
 HMODULE
-np_load_plugin_library(const TCHAR *filename)
+np_load_plugin_library(const TCHAR *filename, const bool sys)
 {
-    if (!eu_module_path[0])
-    {
-        eu_process_path();
-    }
-    if (*eu_module_path && filename && *filename)
+    HMODULE mod = NULL;
+    if ((eu_module_path[0] || eu_process_path()[0]) && filename && *filename)
     {
         TCHAR dll[MAX_PATH + 1] = {0};
-        int n = _sntprintf(dll, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, filename);
+        int n = sys ? 1 : _sntprintf(dll, MAX_PATH, _T("%s\\plugins\\%s"), eu_module_path, filename);
         if (n > 0 && n < MAX_PATH)
         {
-            return LoadLibraryEx(dll, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+            mod = sys ? LoadLibraryEx(filename, NULL, LOAD_LIBRARY_SEARCH_SYSTEM32) : LoadLibraryEx(dll, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
         }
     }
-    return NULL;
+    return mod;
 }
 
 void
@@ -65,7 +62,7 @@ np_plugins_lookup(const wchar_t *file, const wchar_t *name, NMM *hmod)
     bool ret = false;
     if (file && name && name[0] && hmod)
     {
-        if ((*hmod = np_load_plugin_library(file)) != NULL)
+        if ((*hmod = np_load_plugin_library(file, false)) != NULL)
         {
             np_mimetype_ptr fn_mimetype = (np_mimetype_ptr)GetProcAddress(*hmod, "npp_mime_type");
             if (fn_mimetype)

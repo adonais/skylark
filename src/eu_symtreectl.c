@@ -706,7 +706,7 @@ on_sysmtree_init_hredis(void)
     {
         return true;
     }
-    redis_funcs.dll = np_load_plugin_library(_T("hiredis.dll"));
+    redis_funcs.dll = np_load_plugin_library(_T("hiredis.dll"), false);
     if (redis_funcs.dll == NULL)
     {
         MSG_BOX(IDC_MSG_SYMTREE_ERR10, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);

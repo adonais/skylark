@@ -2474,7 +2474,7 @@ eu_curl_global_init(long flags)
     int result = CURLE_OK;
     if (!InterlockedCompareExchange(&eu_curl_initialized, 1, 0))
     {
-        if ((eu_curl_symbol = np_load_plugin_library(_T("libcurl.dll"))) != NULL)
+        if ((eu_curl_symbol = np_load_plugin_library(_T("libcurl.dll"), false)) != NULL)
         {
             fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(eu_curl_symbol,"curl_global_init");
             fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(eu_curl_symbol,"curl_easy_init");

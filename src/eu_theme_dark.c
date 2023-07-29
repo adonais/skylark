@@ -82,7 +82,7 @@ HRESULT
 on_dark_draw_background(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect)
 {
     HRESULT ret = 1;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     DrawThemeBackgroundPtr fnDrawThemeBackground = uxtheme ? (DrawThemeBackgroundPtr)GetProcAddress(uxtheme, "DrawThemeBackground") : NULL;
     if (hTheme && fnDrawThemeBackground)
     {
@@ -96,7 +96,7 @@ HRESULT
 on_dark_get_partsize(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz)
 {
     HRESULT ret = 1;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     GetThemePartSizePtr fnGetThemePartSize = uxtheme ? (GetThemePartSizePtr)GetProcAddress(uxtheme, "GetThemePartSize") : NULL;
     if (hTheme && fnGetThemePartSize)
     {
@@ -110,7 +110,7 @@ intptr_t
 on_dark_open_data(HWND hwnd, LPCWSTR class_list)
 {
     intptr_t hth = 0;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     OpenThemeDataPtr fnOpenThemeData = uxtheme ? (OpenThemeDataPtr)GetProcAddress(uxtheme, "OpenThemeData") : NULL;
     if (class_list && fnOpenThemeData)
     {
@@ -124,7 +124,7 @@ HRESULT
 on_dark_close_data(void *hth)
 {
     HRESULT ret = 1;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     CloseThemeDataPtr fnCloseThemeData = uxtheme ? (CloseThemeDataPtr)GetProcAddress(uxtheme, "CloseThemeData") : NULL;
     if ((HTHEME)hth && fnCloseThemeData)
     {
@@ -139,7 +139,7 @@ on_dark_get_sys_colour(HWND hwnd, int colid)
 {
     colour col = 0;
     HTHEME hth = NULL;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     OpenThemeDataPtr fnOpenThemeData = uxtheme ? (OpenThemeDataPtr)GetProcAddress(uxtheme, "OpenThemeData") : NULL;
     CloseThemeDataPtr fnCloseThemeData = uxtheme ? (CloseThemeDataPtr)GetProcAddress(uxtheme, "CloseThemeData") : NULL;
     GetThemeSysColorPtr fnGetThemeSysColor = uxtheme ? (GetThemeSysColorPtr)GetProcAddress(uxtheme, "GetThemeSysColor") : NULL;
@@ -165,7 +165,7 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
 {
     if (hwnd)
     {
-        HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
         SetWindowThemePtr fnSetWindowTheme = uxtheme ? (SetWindowThemePtr)GetProcAddress(uxtheme, "SetWindowTheme") : NULL;
         if (fnSetWindowTheme)
         {
@@ -184,7 +184,7 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
     if (eu_win10_or_later() < 18362)
     {
     #if USE_DWMAPI
-        HMODULE dwm = LoadLibraryEx(_T("dwmapi.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
         DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
         if (fnDwmSetWindowAttribute)
         {
@@ -219,7 +219,7 @@ on_dark_set_caption(void)
     if ((ret = number != (uint32_t)-1) && number >= 22000)
     {
     #if USE_DWMAPI
-        HMODULE dwm = LoadLibraryEx(_T("dwmapi.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
         DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
         if ((ret = fnDwmSetWindowAttribute != NULL))
         {
@@ -237,7 +237,7 @@ colour
 on_dark_get_colorization_color(void)
 {
     colour theme_color = 0;
-    HMODULE dwm = LoadLibraryEx(_T("dwmapi.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
     DwmGetColorizationColorPtr fnDwmGetColorizationColor = dwm ? (DwmGetColorizationColorPtr)GetProcAddress(dwm, "DwmGetColorizationColor") : NULL;
     if (fnDwmGetColorizationColor)
     {
@@ -313,7 +313,7 @@ OpenNcThemeDataStub(HWND hwnd, LPCTSTR classList)
 static void
 on_dark_fix_scrollbar(bool fixed)
 {
-    HMODULE comctl = LoadLibraryEx(_T("comctl32.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE comctl = np_load_plugin_library(_T("comctl32.dll"), true);
     if (comctl)
     {
         PIMAGE_THUNK_DATA addr = find_delayload_thunk_by_ordinal(comctl, "uxtheme.dll", 49); // OpenNcThemeData
@@ -558,7 +558,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
     }
     if ((build_number = eu_win10_or_later()) != (uint32_t)-1)
     {
-        if ((g_uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32)) != NULL)
+        if ((g_uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true)) != NULL)
         {
             fnOpenNcThemeData = (OpenNcThemeDataPtr)GetProcAddress(g_uxtheme, MAKEINTRESOURCEA(49));
             fnRefreshImmersiveColorPolicyState = (RefreshImmersiveColorPolicyStatePtr)GetProcAddress(g_uxtheme, MAKEINTRESOURCEA(104));

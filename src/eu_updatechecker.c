@@ -73,7 +73,7 @@ on_update_init(struct curl_slist **pheaders)
         eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_update_read_json);
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
         eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
-    #if defined(APP_DEBUG) && (APP_DEBUG > 0)
+    #if APP_DEBUG
         eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     #endif
     }
