@@ -198,6 +198,14 @@ on_remote_remove_config(remotefs* pserver)
     return 0;
 }
 
+/**************************************************************************************
+ * 必须设置一个回调函数, 要不在GUI模式下返回错误码[23]
+ **************************************************************************************/
+static size_t
+on_remote_fw_back(void *buffer, size_t size, size_t nmemb, void *stream)
+{
+    return size * nmemb;
+}
 static unsigned WINAPI
 on_remote_server_testing(void * lp)
 {
@@ -219,8 +227,10 @@ on_remote_server_testing(void * lp)
             free(pserver);
             return 1;
         }
-    #if defined(APP_DEBUG) && (APP_DEBUG > 0)
+    #if APP_DEBUG
         eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    #else
+        eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_remote_fw_back);
     #endif
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
         CURLcode res = eu_curl_easy_perform(curl);
@@ -240,7 +250,7 @@ on_remote_server_testing(void * lp)
             }
             else
             {
-                MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_OK);
+                MSG_BOX_NUM(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, res);
             }
         }
         else
