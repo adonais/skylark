@@ -1530,7 +1530,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FORMAT_HYPERLINKHOTSPOTS:
                 {
-                    eu_get_config()->m_hyperlink ^= true;
+                    on_hyper_menu(pnode);
                     break;
                 }
                 case IDM_FORMAT_CHECK_INDENTATION:
@@ -2005,7 +2005,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if ((lpnotify->updated))
                     {
-                        if (eu_get_config()->m_hyperlink && pnode && (!(pnode->hex_mode || pnode->plugin)))
+                        if (pnode && (!(pnode->hex_mode || pnode->plugin)))
                         {
                             on_hyper_update_style(pnode);
                         }

@@ -80,7 +80,7 @@ on_hyper_strim(eu_tabpage *pnode, const sptr_t start_pos, int *plen)
 void
 on_hyper_update_style(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && eu_get_config())
     {
         const sptr_t start_line = eu_sci_call(pnode, SCI_DOCLINEFROMVISIBLE, (eu_sci_call(pnode, SCI_GETFIRSTVISIBLELINE, 0, 0)), 0);
         const sptr_t end_line = min(start_line + eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0), eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0) - 1);
@@ -92,10 +92,13 @@ on_hyper_update_style(eu_tabpage *pnode)
             int len = eu_int_cast(eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0) - fpos);
             if (len > 0)
             {
-                on_hyper_clear_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
                 pos = fpos + len;
                 on_hyper_strim(pnode, fpos, &len);
-                on_hyper_add_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
+                on_hyper_clear_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
+                if (eu_get_config()->m_hyperlink)
+                {
+                    on_hyper_add_indicator(pnode, INDIC_SKYLARK_HYPER, INDIC_SKYLARK_HYPER_U, fpos, len);
+                }
             }
             else
             {
@@ -180,5 +183,18 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool e
                 }
             }
         }
+    }
+}
+
+void
+on_hyper_menu(eu_tabpage *pnode)
+{
+    if (pnode && eu_get_config())
+    {
+        eu_get_config()->m_hyperlink ^= true;
+        // Make it generate SCN_UPDATEUI message
+        const sptr_t pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+        eu_sci_call(pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
+        eu_sci_call(pnode, SCI_SETANCHOR, pos, 0);
     }
 }
