@@ -802,7 +802,7 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode)
+    if (pnode->hex_mode || pnode->is_blank)
     {
         return SKYLARK_OK;
     }
@@ -2611,7 +2611,7 @@ on_file_restore_recent(void)
 void
 on_file_reload_current(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !url_has_remote(pnode->pathfile))
     {
         bool reload = true;
         bool modified = pnode->be_modify;
@@ -2646,8 +2646,11 @@ on_file_reload_current(eu_tabpage *pnode)
                 eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
                 eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
                 eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
-                on_search_jmp_line(pnode, current_line, 0);
-                pnode->st_mtime = util_last_time(pnode->pathfile);
+                if (!pnode->is_blank)
+                {
+                    on_search_jmp_line(pnode, current_line, 0);
+                    pnode->st_mtime = util_last_time(pnode->pathfile);
+                }
             }
         }
     }

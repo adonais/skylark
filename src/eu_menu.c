@@ -364,6 +364,9 @@ menu_update_item(HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_UTF16BE, (eu_get_config()->new_file_enc == IDM_UNI_UTF16BEB));
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_ANSI, (eu_get_config()->new_file_enc == IDM_OTHER_ANSI));
                         break;
+                    case IDM_FILE_RELOAD_CURRENT:
+                        util_enable_menu_item(menu, IDM_FILE_RELOAD_CURRENT, pnode && !url_has_remote(pnode->pathfile));
+                        break;
                     case IDM_FILE_RESTART_ADMIN:
                         util_enable_menu_item(menu, IDM_FILE_RESTART_ADMIN, init || !util_under_wine());
                         break;

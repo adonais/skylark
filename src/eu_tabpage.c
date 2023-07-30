@@ -1381,6 +1381,10 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             break;
         case 2: // 重载, 滚动到末尾行
         {
+            if (url_has_remote(pnode->pathfile))
+            {
+                break;
+            }
             eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
             if (on_file_load(pnode, NULL, true))
             {
@@ -1389,8 +1393,11 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
             eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
             eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
-            pnode->st_mtime = util_last_time(pnode->pathfile);
-            SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
+            if (!pnode->is_blank)
+            {
+                pnode->st_mtime = util_last_time(pnode->pathfile);
+                SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
+            }
             break;
         }
         default:
