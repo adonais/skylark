@@ -127,4 +127,8 @@ c99_snwprintf(wchar_t* str, size_t size, const wchar_t* format, ...)
 
 #endif // _MSC_VER
 
+#if APP_DEBUG
+#define eu_logmsg printf
+#endif // APP_DEBUG
+
 #endif // _EU_LOG_H_

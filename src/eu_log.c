@@ -42,6 +42,7 @@ eu_init_logs(const bool turn)
     return false;
 }
 
+#if !APP_DEBUG
 void __cdecl
 eu_logmsg(const char *format, ...)
 {
@@ -67,3 +68,4 @@ eu_logmsg(const char *format, ...)
         va_end(args);
     }
 }
+#endif

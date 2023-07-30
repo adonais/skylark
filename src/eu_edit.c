@@ -1332,7 +1332,7 @@ on_edit_md5(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"MD5"};
@@ -1366,7 +1366,7 @@ on_edit_sha1(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA1"};
@@ -1400,7 +1400,7 @@ on_edit_sha256(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA256"};
