@@ -671,7 +671,12 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     }
     if (url_has_remote(pfull))
     {
-        return on_file_remote_lenght(pnode, pfull);
+        if ((err = on_file_remote_lenght(pnode, pfull)) != SKYLARK_OK)
+        {
+            eu_logmsg("%s: on_file_remote_lenght return false, case: %d\n", __FUNCTION__, err);
+            err = EUE_CURL_NETWORK_ERR;
+        }
+        return err;
     }
     else if ((pnode->file_attr = GetFileAttributes(pfull)) == INVALID_FILE_ATTRIBUTES)
     {
@@ -1380,6 +1385,11 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
         {
             err = on_file_open_bakcup(pbak);
         }
+        if (err)
+        {  // 在数据库清理打开错误的文件
+            pbak->sync = 0;
+            eu_update_backup_table(pbak, DB_MEM);
+        }
     }
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败且标签小于1,则建立一个空白标签页
@@ -1689,6 +1699,10 @@ FILE_FINAL:
     eu_safe_free(pnode->write_buffer);
     if (fp)
     {
+        if (!ret && isbak)
+        {
+            fflush(fp);
+        }
         fclose(fp);
     }
     if (!save_as)
