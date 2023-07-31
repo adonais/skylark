@@ -124,6 +124,8 @@ bool   util_upcheck_exist(void);
 bool   util_get_clipboard(char **ppstr);
 bool   util_try_path(LPCTSTR dir);
 bool   util_shell_path(const GUID *folder, TCHAR *path, const int len);
+bool   util_copy_file(LPCWSTR source, LPCWSTR dest, const bool fail_exist);
+bool   util_isxdigit_string(LPCTSTR str, const int len);
 time_t util_last_time(const TCHAR *path);
 uint64_t util_gen_tstamp(void);
 void util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t last_id, uint32_t select);

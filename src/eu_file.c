@@ -1080,6 +1080,19 @@ on_file_after_open(eu_tabpage *pnode, file_backup *pbak)
     {
         on_file_push_recent(pnode);
     }
+    if (_InterlockedCompareExchange(&pnode->busy_id, 0, 1))
+    {
+        TCHAR *p = _tcsrchr(pnode->bakpath, _T('\\'));
+        if (p++)
+        {
+            const int len = (const int)_tcslen(p);
+            if (util_isxdigit_string(p, len - 2) && p[len - 1] == _T('~') && p[len - 2] == _T('~'))
+            {
+                eu_logmsg("%s: differential backup, recovering\n", __FUNCTION__);
+                pnode->bakpath[_tcslen(pnode->bakpath) - 2] = 0;
+            }
+        }
+    }
     if (last_focus == (intptr_t)mtab)
     {
         return mtab;
@@ -1129,6 +1142,7 @@ on_file_node_initialize(eu_tabpage **p, file_backup *pbak)
         (*p)->hex_mode = !!pbak->hex;
         (*p)->is_blank = pbak->blank;
         (*p)->be_modify = !!pbak->status;
+        _InterlockedExchange(&(*p)->busy_id, 1);
         if (STR_NOT_NUL(pbak->rel_path))
         {   // 有可能是远程文件
             if (url_has_remote(pbak->rel_path))
@@ -1601,41 +1615,47 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
 }
 
 static int
-on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_as)
+on_file_do_write(eu_tabpage *pnode, const TCHAR *pathfilename, const bool isbak, const bool save_as)
 {
-    int ret = SKYLARK_OK;
     FILE *fp = NULL;
+    int ret = SKYLARK_OK;
+    bool be_ignore = false;
+    bool be_cache = (bool)isbak;
     if (!pnode->hex_mode)
     {
         pnode->bytes_remaining = (size_t) eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+        be_ignore = pnode->bytes_remaining > BUFF_200M && on_session_thread_id() == GetCurrentThreadId();
+        if (be_ignore)
+        {
+            eu_logmsg("Files are too large and are not backed up automatically\n");
+            goto FILE_FINAL;
+        }
+        be_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->bytes_remaining/1024/1024));
         if ((pnode->write_buffer = (uint8_t *)(on_sci_range_text(pnode, 0, pnode->bytes_remaining))) == NULL)
         {
             ret = EUE_POINT_NULL;
             goto FILE_FINAL;
         }
-        if (!save_as && eu_get_config()->m_limit && eu_get_config()->m_limit <= eu_int_cast(pnode->bytes_remaining/1024/1024))
+        if (isbak && !save_as && !be_cache)
         {   // 非二进制文件, 不产生备份, 直接写入原文件
-            isbak = false;
-            pathfilename = (pnode->pathfile[0]?pnode->pathfile:pathfilename);
+            pathfilename = pnode->pathfile;
         }
     }
-    else if (!TAB_NOT_BIN(pnode))
-    {
-        // 原生的16进制视图
-        // 是否自动cache
-        bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->phex->total_items/1024/1024));
+    else if (!TAB_NOT_BIN(pnode))  // 原生的16进制视图
+    {   // 是否自动cache
+        be_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->phex->total_items/1024/1024));
         // 既不另存为,又不产生缓存, 则直接写入源文件
-        ret = hexview_save_data(pnode, save_as || is_cache ? pathfilename : NULL);
+        ret = hexview_save_data(pnode, save_as || be_cache ? pathfilename : NULL);
         goto FILE_FINAL;
     }
     else
     {   // 超过文件大小限制, 不保存临时文件
-        bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->phex->total_items/1024/1024));
+        be_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->phex->total_items/1024/1024));
         // hex_ascii为真,是原始的二进制,内存映射打开方式
         if (pnode->phex->hex_ascii && pnode->phex->hmap)
         {
             eu_logmsg("maybe binary encoding, do not convert this code\n");
-            ret = hexview_save_data(pnode, save_as || is_cache ? pathfilename : NULL);
+            ret = hexview_save_data(pnode, save_as || be_cache ? pathfilename : NULL);
             goto FILE_FINAL;
         }
         // 转码utf8后生成的二进制编码, 流打开方式, 保存时需要转换回去
@@ -1645,13 +1665,9 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
             ret = EUE_POINT_NULL;
             goto FILE_FINAL;
         }
-        if (!is_cache)
-        {
-            isbak = false;
-        }
-        pathfilename = save_as || is_cache ? pathfilename : pnode->pathfile;
+        pathfilename = save_as || be_cache ? pathfilename : pnode->pathfile;
     }
-    if (!isbak && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
+    if (!be_cache && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
     {
         char *pdst = NULL;
         char *pbuf = (char *)pnode->write_buffer;
@@ -1681,7 +1697,7 @@ on_file_do_write(eu_tabpage *pnode, TCHAR *pathfilename, bool isbak, bool save_a
         MSG_BOX_ERR(IDC_MSG_OPEN_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         goto FILE_FINAL;
     }   // 文件备份时, 不转换回原编码
-    if (!isbak && pnode->pre_len > 0)
+    if (!be_cache && pnode->pre_len > 0)
     {
         if (fwrite(pnode->pre_context, 1, pnode->pre_len, fp) < pnode->pre_len)
         {
@@ -1699,15 +1715,35 @@ FILE_FINAL:
     eu_safe_free(pnode->write_buffer);
     if (fp)
     {
-        if (!ret && isbak)
+        if (!ret && be_cache)
         {
             fflush(fp);
         }
         fclose(fp);
     }
-    if (!save_as)
+    if (!ret && !be_ignore)
     {
-        on_file_update_time(pnode, 0);
+        wchar_t tmp[MAX_BUFFER] = {0};
+        if (!be_cache)
+        {
+            if (pnode->bakpath[0])
+            {
+                _sntprintf(tmp, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
+                if (eu_exist_file(pnode->bakpath))
+                {
+                    util_delete_file(pnode->bakpath);
+                }
+                pnode->bakpath[0] = 0;
+            }
+        }
+        if (eu_exist_file(tmp))
+        {
+            util_delete_file(tmp);
+        }
+        if (!save_as && !be_cache)
+        {
+            on_file_update_time(pnode, 0);
+        }
     }
     return ret;
 }
@@ -2142,6 +2178,15 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 {
                     eu_logmsg("%s: error, buf is null\n", __FUNCTION__);
                 }
+                else if (util_isxdigit_string(buf, eu_int_cast(_tcslen(buf) - 2)))
+                {
+                    size_t buf_len = _tcslen(buf);
+                    if (buf_len > 2 && buf[buf_len - 1] == _T('~') && buf[buf_len - 2] == _T('~'))
+                    {
+                        eu_logmsg("%s: File name may be incorrect\n", __FUNCTION__);
+                        buf[buf_len - 2] = 0;
+                    }
+                }
                 if (!pnode->pmod)
                 {
                     _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
@@ -2175,28 +2220,30 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
 
                 eu_update_backup_table(&filebak, DB_FILE);
                 on_sql_delete_backup_row(pnode);
-                if (filebak.status && pnode->bakpath[0])
+            }
+            else if (mode == FILE_AUTO_SAVE)
+            {
+                if (!pnode->bakpath[0] && filebak.bak_path[0])
                 {
-                    pnode->bakpath[0] = 0;
+                    _sntprintf(pnode->bakpath, MAX_BUFFER, _T("%s"), filebak.bak_path);
                 }
+                if (eu_exist_file(filebak.bak_path))
+                {
+                    TCHAR tmp[MAX_BUFFER] = {0};
+                    _sntprintf(tmp, MAX_BUFFER, _T("%s~~"), filebak.bak_path);
+                    util_copy_file(filebak.bak_path, tmp, false);
+                    if (!_InterlockedCompareExchange(&pnode->lock_id, 1, 0))
+                    {
+                        _tcsncat(filebak.bak_path, _T("~~"), MAX_BUFFER);
+                        eu_update_backup_table(&filebak, DB_FILE);
+                        filebak.bak_path[_tcslen(filebak.bak_path) - 2] = 0;
+                    }
+                }
+                eu_update_backup_table(&filebak, DB_MEM);
             }
             else
             {
-                if (mode == FILE_AUTO_SAVE)
-                {
-                    if (!pnode->bakpath[0] && filebak.bak_path[0])
-                    {
-                        _sntprintf(pnode->bakpath, MAX_BUFFER, _T("%s"), filebak.bak_path);
-                    }
-                }
-                else
-                {
-                    filebak.sync = 1;
-                }
-                if (mode == FILE_SHUTDOWN && filebak.status && pnode->bakpath[0])
-                {
-                    pnode->bakpath[0] = 0;
-                }
+                filebak.sync = 1;
                 eu_update_backup_table(&filebak, DB_MEM);
             }
         }
@@ -2263,6 +2310,10 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
         else if (decision == IDYES)
         {
             err = on_file_save(pnode, false);
+        }
+        else
+        {
+            pnode->be_modify = false;
         }
     }
     if (!err)

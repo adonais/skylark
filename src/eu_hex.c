@@ -483,14 +483,6 @@ hexview_destoy(eu_tabpage *pnode)
         {
             eu_safe_free(pnode->phex->pbase);
         }
-        if (pnode->bakpath[0] && (_taccess(pnode->bakpath, 0 ) != -1))
-        {   // 清理上一次的备份
-            if (!DeleteFile(pnode->bakpath))
-            {
-                char u8[MAX_BUFFER] = {0};
-                eu_logmsg("%s: Delete(%s) error, cause: %lu\n", __FUNCTION__, util_make_u8(pnode->bakpath, u8, MAX_BUFFER - 1), GetLastError());
-            }
-        }
         _InterlockedExchange(&pnode->busy_id, 0);
         eu_safe_free(pnode->phex);
     }

@@ -41,8 +41,6 @@ on_session_backup(const int status)
             eu_save_config();
             break;
         case SESSION_ALL:
-            eu_save_theme();
-            eu_save_config();
             on_file_auto_backup();
             break;
         default:
@@ -57,6 +55,48 @@ on_session_set_signal(void)
     if (g_session_sem)
     {
         SetEvent((HANDLE)g_session_sem);
+    }
+}
+
+static void
+on_session_delete_backup(void)
+{
+    EU_VERIFY(g_tabpages != NULL);
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    {
+        eu_tabpage *pnode = on_tabpage_get_ptr(index);
+        if (pnode && eu_exist_file(pnode->bakpath))
+        {
+            wchar_t buf[MAX_BUFFER] = {0};
+            TCHAR *p = _tcsrchr(pnode->bakpath, _T('\\'));
+            if (p++)
+            {
+                int len = eu_int_cast(_tcslen(p));
+                if (util_isxdigit_string(p, len - 2))
+                {
+                    if (p[len - 1] == _T('~') && p[len - 2] == _T('~'))
+                    {
+                        _sntprintf(buf, MAX_BUFFER, _T("%s"), pnode->bakpath);
+                        len = eu_int_cast(_tcslen(buf));
+                        buf[len - 2] = 0;
+                    }
+                    else
+                    {
+                        _sntprintf(buf, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
+                    }
+                }
+            }
+            if (!DeleteFile(pnode->bakpath))
+            {
+                eu_logmsg("%s: delete(pnode->bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
+            }
+            if (eu_exist_file(buf) && !DeleteFile(buf))
+            {
+                eu_logmsg("%s: delete(backup~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
+            }
+            _InterlockedCompareExchange(&pnode->lock_id, 0, 1);
+            _InterlockedCompareExchange(&pnode->busy_id, 0, 1);
+        }
     }
 }
 
@@ -117,6 +157,10 @@ on_session_thead(void *lp)
         ResetEvent((HANDLE)g_session_sem);
         CloseHandle((HANDLE)g_session_sem);
         inter_atom_exchange(&g_session_sem, 0);
+    }
+    if (!eu_get_config()->m_session || eu_get_config()->m_up_notify <= 0)
+    {
+        on_session_delete_backup();
     }
     eu_logmsg("on_session_thead exit\n");
     return 0;
@@ -230,4 +274,10 @@ eu_session_backup(const int status)
             }
         }
     }
+}
+
+unsigned long
+on_session_thread_id(void)
+{
+    return (unsigned long)g_session_id;
 }

@@ -77,6 +77,7 @@ struct _tabpage
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
     volatile long busy_id;      // 标签是否空闲状态
+    volatile long lock_id;      // 自动保存时使用的锁
     int tab_id;                 // tab编号,用于保存会话
     int codepage;               // 文件编码
     int eol;                    // 换行符

@@ -34,6 +34,7 @@ extern "C" {
 
 void on_session_do(const HWND hwnd);
 void on_session_thread_wait(void);
+unsigned long on_session_thread_id(void);
 
 #ifdef __cplusplus
 }

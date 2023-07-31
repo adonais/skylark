@@ -304,12 +304,17 @@ on_sci_resever_tab(eu_tabpage *pnode)
 static void
 on_sci_delete_file(const eu_tabpage *pnode)
 {
-    if (pnode && pnode->bakpath[0] && eu_exist_file(pnode->bakpath))
+    if (pnode && !pnode->be_modify && eu_exist_file(pnode->bakpath))
     {
-        if (!util_delete_file((pnode)->bakpath))
+        wchar_t tmp[MAX_BUFFER] = {0};
+        _sntprintf(tmp, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
+        if (!util_delete_file(pnode->bakpath))
         {
-            char u8[MAX_BUFFER] = {0};
-            eu_logmsg("%s: delete(%s) error, cause: %lu\n", __FUNCTION__, util_make_u8(pnode->bakpath, u8, MAX_BUFFER - 1), GetLastError());
+            eu_logmsg("%s: delete(pnode->bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
+        }
+        if (eu_exist_file(tmp) && !DeleteFile(tmp))
+        {
+            eu_logmsg("%s: delete(pnode->bakpath~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
         }
     }
 }
@@ -418,6 +423,7 @@ on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
             }
             // 清除标签状态
             _InterlockedExchange(&(*ppnode)->busy_id, 0);
+            _InterlockedExchange(&(*ppnode)->lock_id, 0);
             // 销毁标签内存
             eu_safe_free(*ppnode);
         }

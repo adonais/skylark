@@ -2807,3 +2807,60 @@ util_shell_path(const GUID *folder, TCHAR *path, const int len)
     }
     return false;
 }
+
+static uint32_t
+util_flush_callback(LARGE_INTEGER total_size, LARGE_INTEGER total_bytes, LARGE_INTEGER stream_size, LARGE_INTEGER stream_bytes,
+                    DWORD stream_id, DWORD reason, HANDLE srchandle, HANDLE dsthandle, LPVOID refdata)
+{
+    HANDLE recent_stream = *(HANDLE *)refdata;
+    if (reason == CALLBACK_STREAM_SWITCH)
+    {
+        if (recent_stream)
+        {
+            FlushFileBuffers(recent_stream);
+            CloseHandle(recent_stream);
+        }
+        DuplicateHandle(GetCurrentProcess(), dsthandle, GetCurrentProcess(), (HANDLE *)refdata, 0, false, DUPLICATE_SAME_ACCESS);
+    }
+    return PROGRESS_CONTINUE;
+}
+
+bool
+util_copy_file(LPCWSTR source, LPCWSTR dest, const bool fail_exist)
+{
+    HANDLE recent_stream = NULL;
+    int result = CopyFileEx(source, dest, util_flush_callback, &recent_stream, NULL, fail_exist ? COPY_FILE_FAIL_IF_EXISTS : 0);
+    if (recent_stream)
+    {
+        if (result)
+        {
+            if (!FlushFileBuffers(recent_stream))
+            {
+                eu_logmsg("FlushFileBuffers error\n");
+            }
+        }
+        CloseHandle(recent_stream);
+    }
+    return (result != 0);
+}
+
+bool
+util_isxdigit_string(LPCTSTR str, const int len)
+{
+    if (STR_NOT_NUL(str) && len > 0 && len <= eu_int_cast(_tcslen(str)))
+    {
+        for (int i = 0; i < len; ++i)
+        {
+            if ((str[i] >= _T('0') && str[i] <= _T('9')) || (str[i] >= _T('a') && str[i] <= _T('f')) || (str[i] >= _T('A') && str[i] <= _T('F')))
+            {
+                continue;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
