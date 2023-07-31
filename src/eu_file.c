@@ -765,7 +765,7 @@ on_file_load_plugins(eu_tabpage *pnode, bool route_open)
             if (!route_open)
             {
                 char u8_file[MAX_BUFFER] = {0};
-                util_make_u8(pnode->bakpath[0] ? pnode->bakpath : pnode->pathfile, u8_file, MAX_BUFFER);
+                util_make_u8(eu_exist_file(pnode->bakpath) ? pnode->bakpath : pnode->pathfile, u8_file, MAX_BUFFER);
                 pnode->plugin->stream.url = (const char *)u8_file;
                 pnode->plugin->stream.end = (intptr_t)pnode->raw_size;
                 ret = pnode->plugin->funcs.asfile(&pnode->plugin->npp, &pnode->plugin->stream);
@@ -2060,7 +2060,7 @@ on_file_backup_name(eu_tabpage *pnode, wchar_t *pout)
     if (pnode && pout)
     {
         *pout = 0;
-        if (pnode->bakpath[0] && eu_exist_file(pnode->bakpath))
+        if (eu_exist_file(pnode->bakpath))
         {
             TCHAR *p = _tcsrchr(pnode->bakpath, _T('\\'));
             if (p)
