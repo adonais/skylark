@@ -94,8 +94,6 @@ on_session_delete_backup(void)
             {
                 eu_logmsg("%s: delete(backup~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
             }
-            _InterlockedCompareExchange(&pnode->lock_id, 0, 1);
-            _InterlockedCompareExchange(&pnode->busy_id, 0, 1);
         }
     }
 }

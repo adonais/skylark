@@ -26,7 +26,6 @@ extern "C"
 
 extern volatile sptr_t eu_edit_wnd;
 int on_sci_init_dlg(eu_tabpage *pnode);
-int on_sci_query_tab(eu_tabpage *pnode);
 int on_sci_point_reached(eu_tabpage *pnode);
 int on_sci_point_left(eu_tabpage *pnode);
 int on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback);
@@ -38,12 +37,13 @@ void on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify);
 void on_sci_send_extra(void *pdata, uint32_t code, LPNMHDR phdr);
 void on_sci_update_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
-void on_sci_free_tab(eu_tabpage **ppnod, eu_tabpage *p);
+void on_sci_free_tab(eu_tabpage **ppnod);
 void on_sci_insert_egg(eu_tabpage *pnode);
 void on_sci_refresh_ui(eu_tabpage *pnode);
 void on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 bool on_sci_doc_modified(eu_tabpage *pnode);
 bool on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len);
+void on_sci_destroy_control(eu_tabpage *pnode);
 char *on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end);
 
 #ifdef __cplusplus

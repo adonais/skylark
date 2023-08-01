@@ -2214,14 +2214,8 @@ on_search_find_button(eu_tabpage *pnode, const char *dlg_text, const int button)
         }
         for (; index < count; ++index)
         {
-            eu_tabpage *p = NULL;
-            TCITEM tci = {TCIF_PARAM,};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            if (!(p = (eu_tabpage *) (tci.lParam)))
-            {
-                break;
-            }
-            if (p == pnode)
+            eu_tabpage *p = on_tabpage_get_ptr(index);
+            if (!p || p == pnode)
             {
                 break;
             }
@@ -2923,14 +2917,11 @@ on_search_replace_button(void)
         }
         for (int index = 0; index < count; ++index)
         {
-            eu_tabpage *p = NULL;
-            TCITEM tci = {TCIF_PARAM};
             if (index == c_index)
             {
                 continue;
             }
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            p = (eu_tabpage *) (tci.lParam);
+            eu_tabpage *p = on_tabpage_get_ptr(index);
             if (p && (result = on_search_at_replace_page(p, opt)))
             {
                 on_tabpage_select_index(index);

@@ -2095,9 +2095,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             COPYDATASTRUCT *cpd = (COPYDATASTRUCT *) lParam;
             if (cpd)
             {
+                size_t rel_len = 0;
                 file_backup *pm = (file_backup *) (cpd->lpData);
-                size_t rel_len = pm ? _tcslen(pm->rel_path) : 0;
-                if (rel_len > 0 && pm->rel_path[rel_len - 1] == _T('#'))
+                if (cpd->cbData != (DWORD)sizeof(file_backup))
+                {
+                    eu_logmsg("bad WM_COPYDATA data\n");
+                    return 1;
+                }
+                if ((rel_len = pm ? _tcslen(pm->rel_path) : 0) > 0 && pm->rel_path[rel_len - 1] == _T('#'))
                 {
                     pm->rel_path[rel_len - 1] = 0;
                     // 先打开空白标签, 然后打开文件管理器

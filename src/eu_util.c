@@ -140,19 +140,10 @@ util_gen_tstamp(void)
 void
 util_lock(volatile long *gcs)
 {
-    size_t spin_count = 0;
     // Wait until the flag is false.
     while (_InterlockedCompareExchange(gcs, 1, 0) != 0)
     {   // Prevent the loop from being too busy.
-        if (spin_count < 32)
-        {
-            Sleep(0);
-        }
-        else
-        {
-            Sleep(1);
-        }
-        ++spin_count;
+        Sleep(1);
     }
 }
 

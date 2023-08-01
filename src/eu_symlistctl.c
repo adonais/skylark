@@ -128,10 +128,7 @@ on_symlist_jump_word(eu_tabpage *pnode)
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
-        eu_tabpage *p = NULL;
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && p->doc_ptr && p->doc_ptr->doc_type == DOCTYPE_CPP)
         {
             int i = ListBox_FindStringExact(p->hwnd_symlist, -1, ptext);

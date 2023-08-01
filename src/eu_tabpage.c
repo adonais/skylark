@@ -975,8 +975,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (eu_get_config()->m_close_draw == IDM_TABCLOSE_FOLLOW)
             {
                 RECT rect = {0};
-                count = TabCtrl_GetItemCount(hwnd);
-                for (index = 0; index < count; ++index)
+                for (index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
                 {
                     if (!(p = on_tabpage_get_ptr(index)))
                     {
@@ -1164,46 +1163,44 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
 int
 on_tabpage_remove(eu_tabpage **ppnode)
 {
-    int index = 0;
     eu_tabpage *p = NULL;
     EU_VERIFY(ppnode != NULL && *ppnode != NULL && g_tabpages != NULL);
-    for (int count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         if ((p = on_tabpage_get_ptr(index)) && p == *ppnode)
         {   /* 删除控件句柄与释放资源 */
             TabCtrl_DeleteItem(g_tabpages, index);
-            on_sci_free_tab(ppnode, NULL);
-            break;
+            on_sci_free_tab(ppnode);
+            return index;
         }
     }
-    return index;
+    return EUE_TAB_NULL;
 }
 
 static int
-on_tabpage_remove_empty(eu_tabpage *pre)
+on_tabpage_replace_empty(eu_tabpage *pre)
 {
-    int count;
-    int ret = 0;
     EU_VERIFY(g_tabpages != NULL);
-    if ((count = TabCtrl_GetItemCount(g_tabpages)) < 1)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        return 0;
-    }
-    for (int index = 0; index < count; ++index)
-    {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->is_blank && !TAB_NOT_NUL(p))
+        eu_tabpage *p = NULL;
+        TCITEM tci = {TCIF_TEXT | TCIF_PARAM};
+        if (TabCtrl_GetItem(g_tabpages, index, &tci) && (p = (eu_tabpage *) (tci.lParam)))
         {
-            if (!on_sci_doc_modified(p))
+            if (p->is_blank && !TAB_NOT_NUL(p) && !on_sci_doc_modified(p))
             {
-                ret = 1;
-                TabCtrl_DeleteItem(g_tabpages, index);
-                on_sci_free_tab(&p, pre);
-                break;
+                pre->hwnd_sc = p->hwnd_sc;
+                pre->eusc = p->eusc;
+                tci.pszText = pre->filename;
+                tci.lParam = (LPARAM)pre;
+                TabCtrl_SetItem(g_tabpages, index, &tci);
+                on_sci_destroy_control(p);
+                free(p);
+                return index;
             }
         }
     }
-    return ret;
+    return SKYLARK_TABCTRL_ERR;
 }
 
 TCHAR *
@@ -1295,24 +1292,29 @@ int
 on_tabpage_add(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
     if (TAB_NOT_BIN(pnode) && !pnode->hex_mode && !pnode->pmod)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
     if (!pnode->is_blank)
     {
-        on_tabpage_remove_empty(pnode);
+        pnode->tab_id = on_tabpage_replace_empty(pnode);
     }
+    if (pnode->tab_id < 0)
     {
+        TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
         pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
+        if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
+        {
+            eu_logmsg("%s: TabCtrl_InsertItem return false\n", __FUNCTION__);
+            return SKYLARK_TABCTRL_ERR;
+        }
     }
-    if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
+    else
     {
-        eu_logmsg("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
-        return SKYLARK_TABCTRL_ERR;
+        eu_logmsg("%s: Replacing empty Tab, pnode->tab_id = %d\n", __FUNCTION__, pnode->tab_id);
     }
     if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
     {

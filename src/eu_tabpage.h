@@ -94,7 +94,7 @@ struct _tabpage
     complete_ptr ac_vec;        // snippet模式下的vec数组
     capture_ptr re_group;       // snippet正则模式下捕获组
     NMM pmod;                   // 插件模块地址
-    npdata *plugin;             // 插件动态数据表    
+    npdata *plugin;             // 插件动态数据表
     tab_want pwant;             // 回调函数, 需要时使用
 };
 
