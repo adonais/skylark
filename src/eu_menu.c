@@ -183,11 +183,11 @@ menu_default_keys(HMENU hmenu, int id, int pos)
         {
             _tcsncat(mdata, _T("\t"), FILESIZE);
         }
-        if (id == IDM_VIEW_ZOOMOUT)
+        if (id == IDM_VIEW_ZOOMIN)
         {
             _tcsncat(mdata, _T("Ctrl+MouseWheelUP"), FILESIZE);
         }
-        else if (id == IDM_VIEW_ZOOMIN)
+        else if (id == IDM_VIEW_ZOOMOUT)
         {
             _tcsncat(mdata, _T("Ctrl+MouseWheelDown"), FILESIZE);
         }

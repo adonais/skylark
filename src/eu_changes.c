@@ -382,9 +382,7 @@ on_changes_window(HWND hwnd)
 {
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = { TCIF_PARAM };
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
         {
             on_changes_click_sci(on_tabpage_focus_at());

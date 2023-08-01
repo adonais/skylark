@@ -295,8 +295,8 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN
-            MENUITEM "放大",                                    IDM_VIEW_ZOOMOUT
-            MENUITEM "缩小",                                    IDM_VIEW_ZOOMIN
+            MENUITEM "放大",                                    IDM_VIEW_ZOOMIN
+            MENUITEM "缩小",                                    IDM_VIEW_ZOOMOUT
             MENUITEM "重置缩放",                                IDM_VIEW_ZOOMRESET
         END
     END

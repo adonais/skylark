@@ -22,6 +22,15 @@
 #include "eu_npruntime.h"
 
 #define NPP_PDFVIEW (L"np_pdfviewer.dll")
+#ifndef IDM_ZOOMFIT_PLUGIN
+#define IDM_ZOOMFIT_PLUGIN 265
+#endif
+#ifndef IDM_ZOOMIN_PLUGIN
+#define IDM_ZOOMIN_PLUGIN 282
+#endif
+#ifndef IDM_ZOOMOUT_PLUGIN
+#define IDM_ZOOMOUT_PLUGIN 283
+#endif
 
 typedef struct _npdata
 {

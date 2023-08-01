@@ -326,9 +326,7 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
             }
             for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
-                TCITEM tci = {TCIF_PARAM};
-                TabCtrl_GetItem(g_tabpages, index, &tci);
-                if ((p = (eu_tabpage *) (tci.lParam)) != NULL && !p->hex_mode && !p->pmod)
+                if ((p = on_tabpage_get_ptr(index)) != NULL && !p->hex_mode && !p->pmod)
                 {
                     if (p->doc_ptr)
                     {
@@ -356,10 +354,8 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
     eu_get_config()->tab2spaces ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        eu_tabpage *p = NULL;
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        if ((p = (eu_tabpage *) (tci.lParam)) != NULL && !p->hex_mode && !p->pmod)
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p != NULL && !p->hex_mode && !p->pmod)
         {
             if (p->doc_ptr)
             {
@@ -391,9 +387,7 @@ on_view_light_fold(void)
     eu_get_config()->light_fold ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod)
         {   // 是否高亮显示当前折叠块
             eu_sci_call(p, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
@@ -407,9 +401,7 @@ on_view_wrap_line(void)
     eu_get_config()->line_mode ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
@@ -423,9 +415,7 @@ on_view_line_num(void)
     eu_get_config()->m_linenumber ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? MARGIN_LINENUMBER_WIDTH : 0));
@@ -439,9 +429,7 @@ on_view_bookmark(void)
     eu_get_config()->eu_bookmark.visable ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
@@ -454,9 +442,7 @@ on_view_update_fold(void)
 {
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod && p->doc_ptr && p->foldline)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0);
@@ -484,9 +470,7 @@ on_view_white_space(void)
     eu_get_config()->ws_visiable ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWWS, (eu_get_config()->ws_visiable == true ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
@@ -500,9 +484,7 @@ on_view_line_visiable(void)
     eu_get_config()->newline_visialbe ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
@@ -516,9 +498,7 @@ on_view_indent_visiable(void)
     eu_get_config()->m_indentation ^= true;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        eu_tabpage *p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !p->hex_mode && !p->pmod)
         {
             eu_sci_call(p, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
@@ -531,8 +511,15 @@ on_view_zoom_out(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_ZOOMIN, 0, 0);
-        on_sci_update_margin(pnode);
+        if (pnode->plugin && pnode->plugin->funcs.event)
+        {
+            pnode->plugin->funcs.event(&pnode->plugin->npp, (void *)IDM_ZOOMOUT_PLUGIN);
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_ZOOMOUT, 0, 0);
+            on_sci_update_margin(pnode);
+        }
     }
 }
 
@@ -541,8 +528,15 @@ on_view_zoom_in(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_ZOOMOUT, 0, 0);
-        on_sci_update_margin(pnode);
+        if (pnode->plugin && pnode->plugin->funcs.event)
+        {
+            pnode->plugin->funcs.event(&pnode->plugin->npp, (void *)IDM_ZOOMIN_PLUGIN);
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_ZOOMIN, 0, 0);
+            on_sci_update_margin(pnode);
+        }
     }
 }
 
@@ -551,9 +545,16 @@ on_view_zoom_reset(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_SETZOOM, 0, 0);
-        on_sci_update_margin(pnode);
-        pnode->zoom_level = 0;
+        if (pnode->plugin && pnode->plugin->funcs.event)
+        {
+            pnode->plugin->funcs.event(&pnode->plugin->npp, (void *)IDM_ZOOMFIT_PLUGIN);
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_SETZOOM, 0, 0);
+            on_sci_update_margin(pnode);
+            pnode->zoom_level = 0;
+        }
     }
 }
 
@@ -715,12 +716,9 @@ on_view_font_quality(HWND hwnd, int res_id)
             eu_get_config()->m_quality = old_id;
             return;
         }
-        eu_tabpage *p = NULL;
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            TCITEM tci = {TCIF_PARAM};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            p = (eu_tabpage *) (tci.lParam);
+            eu_tabpage *p = on_tabpage_get_ptr(index);
             if (p)
             {
                 on_sci_init_style(p);
@@ -737,12 +735,9 @@ on_view_enable_rendering(HWND hwnd, int res_id)
     if (!util_under_wine() && eu_get_config()->m_render != res_id)
     {
         eu_get_config()->m_render = res_id;
-        eu_tabpage *p = NULL;
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            TCITEM tci = {TCIF_PARAM};
-            TabCtrl_GetItem(g_tabpages, index, &tci);
-            p = (eu_tabpage *) (tci.lParam);
+            eu_tabpage *p = on_tabpage_get_ptr(index);
             if (p)
             {
                 on_sci_init_style(p);
