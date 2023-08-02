@@ -23,6 +23,7 @@
 #define UPDATE_URL "https://api.github.com/repos/adonais/skylark/releases"
 
 static volatile long g_upcheck_id = 0;
+static volatile sptr_t g_upcheck_handle = 0;
 
 static size_t
 on_update_read_json(void *buffer, size_t size, size_t nmemb, void *stream)
@@ -312,6 +313,16 @@ on_update_send_request(void *lp)
     return res;
 }
 
+static void
+on_update_close_handle(void)
+{
+    if (g_upcheck_handle)
+    {
+        CloseHandle((HANDLE)g_upcheck_handle);
+        inter_atom_exchange(&g_upcheck_handle, 0);
+    }
+}
+
 bool
 on_update_do(void)
 {
@@ -372,16 +383,18 @@ on_update_sql(void)
     }
 }
 
-bool
+void
 on_update_thread_wait(void)
 {
     if (g_upcheck_id)
     {
         PostThreadMessage(g_upcheck_id, WM_QUIT, 0, 0);
-        Sleep(MAYBE200MS);
-        return true;
+        if (g_upcheck_handle)
+        {
+            WaitForSingleObject((HANDLE)g_upcheck_handle, INFINITE);
+        }
     }
-    return false;
+    on_update_close_handle();
 }
 
 void
@@ -392,15 +405,15 @@ on_update_check(const int ident)
     {
         if (!_InterlockedCompareExchange(&g_upcheck_id, 1, 0))
         {
-            unsigned id = 0;
-            HANDLE handle = ((HANDLE)_beginthreadex(NULL, 0, on_update_send_request, (void *)(intptr_t)ident, 0, (unsigned *)&id));
-            if (handle)
+            HANDLE handle = NULL;
+            on_update_close_handle();
+            if ((handle = ((HANDLE)_beginthreadex(NULL, 0, on_update_send_request, (void *)(intptr_t)ident, 0, (unsigned *)&g_upcheck_id))))
             {
-                CloseHandle(handle);
-                _InterlockedExchange(&g_upcheck_id, (long)id);
+                inter_atom_exchange(&g_upcheck_handle, (sptr_t)handle);
             }
             else
             {
+                eu_logmsg("%s: on_update_send_request start failed\n", __FUNCTION__);
                 _InterlockedExchange(&g_upcheck_id, 0);
             }
         }

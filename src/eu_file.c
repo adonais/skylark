@@ -2486,6 +2486,7 @@ on_file_check_save(void *lp)
     int err = 0;
     int at_focus = -1;
     int count = TabCtrl_GetItemCount(g_tabpages);
+    on_proc_sync_wait();
     if (eu_get_config()->m_session)
     {
         at_focus = TabCtrl_GetCurSel(g_tabpages);

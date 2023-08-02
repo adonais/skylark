@@ -97,14 +97,6 @@ on_destory_window(HWND hwnd)
 {
     // 保存主窗口位置
     util_save_placement(hwnd);
-    // 销毁定时器
-    KillTimer(hwnd, EU_TIMER_ID);
-    // 等待搜索线程完成
-    on_search_finish_wait();
-    // 等待更新线程完成并响应
-    on_update_thread_wait();
-    // 等待保存会话线程结束
-    on_session_thread_wait();
     // 销毁菜单栏
     menu_destroy(hwnd);
     // 销毁工具栏
@@ -2207,6 +2199,18 @@ do_calss_drop(void* lp)
         do_drop_fix();
     }
     return 0;
+}
+
+void
+on_proc_sync_wait(void)
+{   // 销毁定时器
+    KillTimer(g_hwndmain, EU_TIMER_ID);
+    // 等待搜索线程完成
+    on_search_finish_wait();
+    // 等待更新线程完成并响应
+    on_update_thread_wait();
+    // 等待保存会话线程结束
+    on_session_thread_wait();
 }
 
 void

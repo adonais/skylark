@@ -561,11 +561,12 @@ menu_update_item(HMENU menu, const bool init)
                         break;
                     case IDM_FILE_SAVE_NOTIFY:
                         util_update_menu_chars(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_up_notify);
-                        util_set_menu_item(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_up_notify > 0);
+                        util_set_menu_item(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_session && eu_get_config()->m_up_notify > 0);
+                        util_enable_menu_item(menu, IDM_FILE_SAVE_NOTIFY,  init || eu_hwnd_self() == share_envent_get_hwnd());
                         break;
                     case IDM_SKYLAR_AUTOMATIC_UPDATE:
                         enable = util_upcheck_exist();
-                        util_enable_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, init || enable);
+                        util_enable_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, init || (eu_hwnd_self() == share_envent_get_hwnd() && enable));
                         util_set_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, eu_get_config()->upgrade.enable && enable);
                         break;
                     case IDM_ABOUT:                  /* Help menu */

@@ -19,7 +19,6 @@
 #include "framework.h"
 
 #define EU_SESSION_INTERVAL 400
-#define SESSION_ENVENT_NAME _T("__session_backup_thread__")
 
 static volatile long g_session_id = 0;
 static volatile long g_session_total = 0;
@@ -148,20 +147,28 @@ on_session_thead(void *lp)
         }
         _InterlockedExchangeAdd(&g_session_total, EU_SESSION_INTERVAL);
     }
-    _InterlockedExchange(&g_session_id, 0);
-    _InterlockedExchange(&g_session_total, 0);
-    if (g_session_sem)
-    {
-        ResetEvent((HANDLE)g_session_sem);
-        CloseHandle((HANDLE)g_session_sem);
-        inter_atom_exchange(&g_session_sem, 0);
-    }
     if (!eu_get_config()->m_session || eu_get_config()->m_up_notify <= 0)
     {
         on_session_delete_backup();
     }
+    _InterlockedExchange(&g_session_total, 0);
+    _InterlockedExchange(&g_session_id, 0);
     eu_logmsg("on_session_thead exit\n");
+    if (g_session_sem)
+    {
+        SetEvent((HANDLE)g_session_sem);
+    }
     return 0;
+}
+
+static void
+on_session_close_sem(void)
+{
+    if (g_session_sem)
+    {
+        CloseHandle((HANDLE)g_session_sem);
+        inter_atom_exchange(&g_session_sem, 0);
+    }
 }
 
 static void
@@ -180,17 +187,14 @@ on_session_thread_msg(const uint32_t msg)
 void
 on_session_thread_wait(void)
 {
-    if (g_session_id)
-    {
-        PostThreadMessage(g_session_id, WM_QUIT, 0, 0);
-        Sleep(EU_SESSION_INTERVAL);
-    }
+    on_session_thread_msg(WM_QUIT);
+    on_session_close_sem();
 }
 
 void
 on_session_do(const HWND hwnd)
 {
-    if (hwnd && hwnd == share_envent_get_hwnd() && eu_get_config()->m_up_notify > 0)
+    if (hwnd && hwnd == share_envent_get_hwnd() && eu_get_config() && eu_get_config()->m_up_notify > 0)
     {
         if (!_InterlockedCompareExchange(&g_session_id, 1, 0))
         {
@@ -200,10 +204,14 @@ on_session_do(const HWND hwnd)
             {
                 _InterlockedExchange(&g_session_id, (long)id);
                 CloseHandle(handle);
-                if (!g_session_sem)
-                {
-                    g_session_sem = (intptr_t)CreateEvent(NULL, FALSE, FALSE, SESSION_ENVENT_NAME);
-                }
+                on_session_close_sem();
+                g_session_sem = (intptr_t)CreateEvent(NULL, FALSE, FALSE, NULL);
+            }
+            else
+            {
+                eu_logmsg("%s: on_session_thead start failed\n", __FUNCTION__);
+                eu_get_config()->m_up_notify = 0;
+                _InterlockedExchange(&g_session_id, 0);
             }
         }
     }

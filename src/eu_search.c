@@ -3345,6 +3345,7 @@ res_clean:
     // 有信号时, 代表搜索结束
     SetEvent(search_event_final);
     on_search_change_button(IDC_SEARCH_BTN_ON);
+    eu_logmsg("%s: on_search_file thread exit\n", __FUNCTION__);
     return 0;
 }
 
