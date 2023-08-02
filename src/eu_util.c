@@ -2835,6 +2835,38 @@ util_copy_file(LPCWSTR source, LPCWSTR dest, const bool fail_exist)
     return (result != 0);
 }
 
+void
+util_redraw(const HWND hwnd, const bool force)
+{
+    if (hwnd)
+    {
+        InvalidateRect(hwnd, NULL, force);
+        UpdateWindow(hwnd);
+    }
+}
+
+void
+util_symlink_destroy(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        if (pnode->hwnd_font)
+        {
+            DeleteObject(pnode->hwnd_font);
+            pnode->hwnd_font = NULL;
+        }
+        // 强制终止后台线程, 当软链接未解析完成时会导致泄露
+        if (_InterlockedCompareExchange(&pnode->pcre_id, 0, 1L))
+        {
+            util_kill_thread((uint32_t)pnode->pcre_id);
+        }
+        if (_InterlockedCompareExchange(&pnode->json_id, 0, 1L))
+        {
+            util_kill_thread((uint32_t)pnode->json_id);
+        }
+    }
+}
+
 bool
 util_isxdigit_string(LPCTSTR str, const int len)
 {

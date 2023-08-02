@@ -1407,20 +1407,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if (pnode)
-            {
-                if (pnode->hwnd_font)
-                {
-                    DeleteObject(pnode->hwnd_font);
-                    pnode->hwnd_font = NULL;
-                }
-                // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
-                if (pnode->json_id)
-                {
-                    util_kill_thread((uint32_t)pnode->json_id);
-                }
-            }
+            util_symlink_destroy((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             break;
         }
         default:

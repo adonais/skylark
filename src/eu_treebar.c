@@ -472,7 +472,7 @@ on_filetree_file_delete(void)
     if (ret == SKYLARK_OK)
     {
         TreeView_DeleteItem(g_filetree, hti_select);
-        free(tvd);
+        on_treebar_data_destoy(&tvd);
         UpdateWindow(g_filetree);
     }
     eu_safe_free(pathname);
@@ -1084,8 +1084,7 @@ on_filetree_node_update(void *lp)
         }
         else
         {
-            InvalidateRect(g_filetree, NULL, true);
-            UpdateWindow(g_filetree);
+            util_redraw(g_filetree, false);
         }
     }
     hti_child = TreeView_GetChild(g_filetree, hti_parent);
@@ -1109,8 +1108,7 @@ on_filetree_node_update(void *lp)
             }
             else
             {
-                InvalidateRect(g_filetree, NULL, true);
-                UpdateWindow(g_filetree);
+                util_redraw(g_filetree, false);
             }
         }
         hti_child = TreeView_GetNextSibling(g_filetree, hti_child);
@@ -1354,7 +1352,7 @@ on_treebar_refresh_node(HTREEITEM hti_parent)
         hti_first = TreeView_GetChild(g_filetree, hti_parent);
         if (hti_first == NULL) break;
         tvd = on_treebar_get_treeview(hti_first);
-        free(tvd);
+        on_treebar_data_destoy(tvd);
         TreeView_DeleteItem(g_filetree, hti_first);
     }
     if (tpnode->server == NULL)
