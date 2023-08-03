@@ -36,12 +36,11 @@
                        "END;"
 #define SKYVER_FORMAT  "insert or replace into skylar_ver(szName,szVersion,szBUildId,szTrigger,szExtra) values('%s', '%s', %I64u, %d, %I64u);"
 
-
-#define DO_TRIGGER(f, n)                              \
-char f[MAX_BUFFER] = {0};                             \
-int  n = eu_get_config()->file_recent_number;         \
-n = n > 0 && n < 100 ? n : 29;                        \
-_snprintf(buf, MAX_BUFFER - 1, RECENT_FORMAT, n, n)
+#define DO_TRIGGER(_f, _n)                             \
+char _f[MAX_BUFFER] = {0};                             \
+int  _n = eu_get_config()->file_recent_number;         \
+_n = _n > 0 && _n < 100 ? _n : 29;                     \
+_snprintf(_f, MAX_BUFFER - 1, RECENT_FORMAT, _n, _n)
 
 static volatile long eu_sql_cs = 0;
 static volatile intptr_t eu_memdb = 0;

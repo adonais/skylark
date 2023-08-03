@@ -426,7 +426,7 @@ BEGIN
     POPUP "0"
     BEGIN
         MENUITEM "&Close Tab",                                         IDM_FILE_CLOSE
-        MENUITEM "Close Other Tab&s",                                  IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close &Other Tabs",                                  IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "Close All Tabs",                                     IDM_FILE_CLOSEALL
         MENUITEM "Close The Left Tabs",                                IDM_TAB_CLOSE_LEFT
         MENUITEM "Close The Right Tabs",                               IDM_TAB_CLOSE_RIGHT

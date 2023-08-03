@@ -28,7 +28,7 @@
 
 #define LOAD_I18N_RESSTR(tid, var)                             \
     TCHAR var[MAX_PATH] = {0};                                 \
-    eu_i18n_load_str(tid, var, MAX_PATH);
+    eu_i18n_load_str(tid, var, MAX_PATH)
 
 #define MSG_BOX(tid, cid, mb)                                   \
     do                                                          \

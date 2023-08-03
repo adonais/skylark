@@ -426,7 +426,7 @@ BEGIN
     POPUP "0"
     BEGIN
         MENUITEM "关闭标签页(&C)",                              IDM_FILE_CLOSE
-        MENUITEM "关闭其他标签页(&S)",                          IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭其他标签页(&O)",                          IDM_FILE_CLOSEALL_EXCLUDE
         MENUITEM "关闭所有标签页",                              IDM_FILE_CLOSEALL
         MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
         MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
