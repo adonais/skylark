@@ -298,18 +298,6 @@ on_table_oci_error(eu_tabpage *pnode, OCIError *errhpp, int *err_code, char *err
     return 0;
 }
 
-static void
-on_table_reset_table(HWND hwnd)
-{
-    ListView_DeleteAllItems(hwnd);
-    HWND hdr = ListView_GetHeader(hwnd);
-    int view_count = (int) SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
-    for (view_count--; view_count >= 0; view_count--)
-    {
-        ListView_DeleteColumn(hwnd, view_count);
-    }
-}
-
 static bool
 on_table_insert_columns(HWND hwnd, int index, const char *text)
 {
@@ -326,6 +314,43 @@ on_table_insert_columns(HWND hwnd, int index, const char *text)
         free(ptr_name);
     }
     return (ret >= 0);
+}
+
+static void
+on_table_fix_columns(HWND hwnd, const int count, const unsigned int *afield)
+{
+    if (count == 0 || afield == NULL)
+    {
+        on_table_insert_columns(hwnd, 0, "Empty Table");
+        ListView_SetColumnWidth(hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
+    }
+    else
+    {
+        for (int index = 0; index < count; ++index)
+        {
+            if (index == count - 1)
+            {
+                ListView_SetColumnWidth(hwnd, index, LVSCW_AUTOSIZE_USEHEADER);
+            }
+            else
+            {
+                ListView_SetColumnWidth(hwnd, index, afield[index]);
+            }
+        }
+    }
+}
+
+static void
+on_table_reset_table(HWND hwnd)
+{
+    ListView_DeleteAllItems(hwnd);
+    HWND hdr = ListView_GetHeader(hwnd);
+    int view_count = (int) SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
+    for (view_count--; view_count >= 0; view_count--)
+    {
+        ListView_DeleteColumn(hwnd, view_count);
+    }
+    on_table_fix_columns(hwnd, 0, NULL);
 }
 
 static bool
@@ -353,30 +378,6 @@ on_table_insert_item(HWND hwnd, int row_index, int field_index, const char *text
         free(ptr_name);
     }
     return (ret >= 0);
-}
-
-static void
-on_table_fix_columns(HWND hwnd, const int count, const unsigned int *afield)
-{
-    if (count == 0 && afield == NULL)
-    {
-        on_table_insert_columns(hwnd, 0, "Empty Table");
-        ListView_SetColumnWidth(hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
-    }
-    else
-    {
-        for (int index = 0; index < count; ++index)
-        {
-            if (index == count - 1)
-            {
-                ListView_SetColumnWidth(hwnd, index, LVSCW_AUTOSIZE_USEHEADER);
-            }
-            else
-            {
-                ListView_SetColumnWidth(hwnd, index, afield[index]);
-            }
-        }
-    }
 }
 
 static void
@@ -489,7 +490,8 @@ on_table_connect_database(eu_tabpage *pnode)
     {
         return 0;
     }
-    if (util_query_hostname(pnode->db_ptr->config.dbhost, ip, QW_SIZE))
+    if (_stricmp(pnode->db_ptr->config.dbtype, "Sqlite3") != 0 &&
+        util_query_hostname(pnode->db_ptr->config.dbhost, ip, QW_SIZE))
     {
         eu_logmsg("%s: util_query_hostname error\n", __FUNCTION__);
         return 1;
@@ -922,7 +924,7 @@ on_table_sql_header(eu_tabpage *pnode)
                     {
                         m_change = true;
                     }
-                    if (dbconfig.dbpass[0])
+                    if (dbconfig.dbpass[0] || _stricmp(pnode->db_ptr->config.dbtype, "Sqlite3") == 0)
                     {
                         dbconfig.config_pass = true;
                     }
@@ -1014,14 +1016,14 @@ on_table_skip_comment(eu_tabpage *pnode, char **psql)
 int
 on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
 {
-    int sel_start;
-    int sel_end;
-    int sel_len;
-    int row_index;
+    int sel_start = 0;
+    int sel_end = 0;
+    int sel_len = 0;
+    int row_index = 0;
     int nret = 0;
-    int field_count;
-    int field_index;
-    unsigned int nfield_width;
+    int field_count = 0;
+    int field_index = 0;
+    unsigned int nfield_width = 0;
     char *sel_sql = NULL;
     char *psel = NULL;
     char *field_value = NULL;
@@ -1072,6 +1074,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
         eu_logmsg("%s: failed to allocate memory\n", __FUNCTION__);
         goto table_clean;
     }
+    on_table_reset_table(pnode->hwnd_qrtable);
     psel = strtok(sel_sql, ";");
     while (psel)
     {
@@ -1247,7 +1250,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                 on_table_reset_table(pnode->hwnd_qrtable);
                 if (!field_count)
                 {   // 空表
-                    on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
                     oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }
@@ -1402,15 +1404,14 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             }
             if (!field_count)
             {   // 空表
+                eu_logmsg("%s: field_count = %d, afield_width = %p\n", __FUNCTION__, field_count, afield_width);
                 on_table_reset_table(pnode->hwnd_qrtable);
-                on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
                 eu_sqlite3_free_table(result);
                 SQL_EXECUTE_FAIL(sel_sql);
             }
             if (is_select_word)
             {
                 TCHAR *ptr_index = NULL;
-                on_table_reset_table(pnode->hwnd_qrtable);
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
                 {
@@ -1481,7 +1482,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                 on_table_reset_table(pnode->hwnd_qrtable);
                 if (!field_count)
                 {   // 空表
-                    on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
                     pq_sub->fnPQclear(res);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }
