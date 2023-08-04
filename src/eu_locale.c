@@ -343,11 +343,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {   // 销毁状态栏
         DestroyWindow(g_statusbar);
     }
-    // 销毁文件管理器
-    if (g_treebar)
-    {
-        DestroyWindow(g_treebar);
-    }
     if (true)
     {   // 更新全局变量与共享内存
         FreeLibrary(g_skylark_lang);
@@ -374,6 +369,10 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         eu_logmsg("on_treebar_create_box return false\n");
         return 1;
+    }
+    if (g_treebar)
+    {
+        SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
     }
     if (show_clip)
     {   // 重启剪贴板窗口
