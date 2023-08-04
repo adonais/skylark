@@ -164,5 +164,6 @@
 #include "eu_hyperlink.h"
 #include "eu_exporter.h"
 #include "eu_session.h"
+#include "eu_favorites.h"
 
 #endif  // _EU_FRAMEWORK_H_

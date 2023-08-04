@@ -278,7 +278,6 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     {
         pdst = *dst;
     }
-    eu_logmsg("lsrc = %zu, ldst = %zu\n", lsrc, ldst);
     ret = eu_iconv(icv->cd, &psrc, &lsrc, &pdst, &ldst);
     if (ret != (size_t) -1)
     {
@@ -288,7 +287,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     else
     {
         eu_safe_free(*dst);
-        eu_logmsg("eu_iconv convert[%s->%s] failed! lsrc = %zu, ldst = %zu, ret = %d\n", icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
+        eu_logmsg("%s: [%s->%s] failed! lsrc = %zu, ldst = %zu, ret = %d\n", __FUNCTION__, icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
     }
     close_conv_handle(icv);
     return ret;

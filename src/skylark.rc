@@ -54,6 +54,9 @@ IDB_OPENFOLD            ICON                    "..\\resources\\folder-open.ico"
 IDB_TXT                 ICON                    "..\\resources\\txt.ico"
 IDB_DRIVE               ICON                    "..\\resources\\drive.ico"
 IDB_CLOUD               ICON                    "..\\resources\\cloud.ico"
+IDB_FAVORITES           ICON                    "..\\resources\\favorites.ico"
+IDB_BULB                ICON                    "..\\resources\\bulb.ico"
+IDB_SHORTCUT            ICON                    "..\\resources\\shortcut.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

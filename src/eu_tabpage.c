@@ -633,6 +633,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
         }
         util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !eu_sci_call(p,SCI_GETREADONLY, 0, 0));
         util_set_menu_item(hpop, IDM_TABPAGE_LOCKED, eu_get_config()->inter_reserved_1);
+        util_enable_menu_item(hpop, IDM_FILE_ADD_FAVORITES, !p->is_blank);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
         util_enable_menu_item(hpop, IDM_FILE_WORKSPACE, !p->is_blank);

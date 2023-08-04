@@ -393,6 +393,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
         on_statusbar_update();
     }
+    on_favorite_reload_root();
     on_search_dark_mode_release();
     on_snippet_destory();
     return 0;

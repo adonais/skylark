@@ -1077,6 +1077,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_REMOTE_FILESERVERS:
                     on_remote_manager();
                     break;
+                case IDM_FILE_ADD_FAVORITES:
+                    on_favorite_add(pnode);
+                    break;
                 case IDM_FILE_NEWFILE_WINDOWS_EOLS:
                     on_file_new_eols(pnode, 0);
                     break;
