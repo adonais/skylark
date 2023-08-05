@@ -28,7 +28,7 @@ on_favorite_get_root(void)
 {
     if (g_filetree)
     {
-        return TreeView_GetFirstVisible(g_filetree);
+        return TreeView_GetRoot(g_filetree);
     }
     return NULL;
 }

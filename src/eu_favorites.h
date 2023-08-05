@@ -19,7 +19,7 @@
 #ifndef _EU_FAVORITES_H_
 #define _EU_FAVORITES_H_
 
-#define FAV_STORAGE _T("skylark_ptfav.sqlite3")
+#define FAV_STORAGE _T("skylark_pfavs.sqlite3")
 
 #ifdef __cplusplus
 extern "C" {

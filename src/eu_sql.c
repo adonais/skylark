@@ -332,7 +332,7 @@ on_sql_favotrite_select(sql3_callback callback, void *data)
 }
 
 int
-on_sql_favotrite_insert(favorite_data *pdata)
+on_sql_favotrite_insert(void *pdata)
 {
     const int len = MAX_BUFFER * 2 ;
     favorite_data *pfa = (favorite_data *)pdata;
@@ -343,7 +343,7 @@ on_sql_favotrite_insert(favorite_data *pdata)
         char *path = pfa->szpath[0] ? eu_utf16_utf8(pfa->szpath, NULL) : NULL;
         char *tag = pfa->sztag[0] ? eu_utf16_utf8(pfa->sztag, NULL) : NULL;
         char *group = pfa->szgroup[0] ? eu_utf16_utf8(pfa->szgroup, NULL) : NULL;
-        _snprintf(sql, len - 1, FAVORITE_INSE, name ? name : "", path ? path : "", tag ? tag : "", group ? group : "", pdata->szstatus);
+        _snprintf(sql, len - 1, FAVORITE_INSE, name ? name : "", path ? path : "", tag ? tag : "", group ? group : "", pfa->szstatus);
         eu_safe_free(name);
         eu_safe_free(path);
         eu_safe_free(tag);
