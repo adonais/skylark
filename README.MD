@@ -26,16 +26,16 @@ Compared with vs code, atom, and more editors, it can start up in less than a se
   ```
 # Screenshots:
 * sumatrapdf plugin
-![images/sumatrapdf-plugin.jpg](images/sumatrapdf-plugin.jpg)
+![images/sumatrapdf-plugin.png](images/sumatrapdf-plugin.png)
 * clang-format
-![images/clang-format.jpg](images/clang-format.jpg)
+![images/clang-format.png](images/clang-format.png)
 * execute lua script
-![images/lua-engine.jpg](images/lua-engine.jpg)
+![images/lua-engine.png](images/lua-engine.png)
 * execute sql
-![images/sql_clinet.jpg](images/sql_client.jpg)
+![images/sql_clinet.png](images/sql_client.png)
 * json parsing
-![images/json_search.jpg](images/json_search.jpg)
+![images/json_search.png](images/json_search.png)
 * hex view
-![images/hex_view.jpg](images/hex_view.jpg)
+![images/hex_view.png](images/hex_view.png)
 * linux wine
-![images/skylark_wine.jpg](images/skylark_wine.jpg)
+![images/skylark_wine.png](images/skylark_wine.png)
