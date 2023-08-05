@@ -57,6 +57,13 @@
 #define _atoz atoi
 #endif
 
+#define MAIN_CONFIG_MASK  0x0001
+#define SQLS_CONFIG_MASK  0x0002
+#define DOCS_CONFIG_MASK  0x0004
+#define ACCS_CONFIG_MASK  0x0008
+#define SNIP_CONFIG_MASK  0x0010
+#define EAPI_RSTART_MASK  0x80000000
+
 #if defined(__cplusplus)
 #define FALLTHRU_ATTR        [[fallthrough]]
 #elif (defined(__GNUC__) && __GNUC__ >= 7) || (defined(__clang__) && __clang_major__ >= 10)
@@ -595,6 +602,14 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
+
+// for lua scripts
+EU_EXT_CLASS void eu_reset_main_mask(void);
+EU_EXT_CLASS void eu_reset_sqls_mask(void);
+EU_EXT_CLASS void eu_reset_docs_mask(void);
+EU_EXT_CLASS void eu_reset_accs_mask(void);
+EU_EXT_CLASS void eu_reset_snip_mask(void);
+EU_EXT_CLASS void eu_reset_config(void);
 
 // for pcre
 EU_EXT_CLASS pcre_conainer *eu_pcre_init(const char *buf, size_t len, const char *pattern, const char *named_substring, int opt);

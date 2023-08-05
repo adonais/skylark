@@ -1,4 +1,5 @@
 require("eu_core")
+
 local conf_path = eu_core.script_path()
 local user_file = (conf_path.. "\\script-opts\\user_docs.lua")
 if (not eu_core.file_exists(user_file)) then
@@ -919,6 +920,7 @@ if (not eu_core.file_exists(user_file)) then
   shell_code = nil
   user_code = nil
 end
+
 require("user_docs")
 
 function string:split(delimiter)
@@ -1072,6 +1074,9 @@ end
 function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
+  if (my_size < 43) then
+    eu_core.euapi.eu_reset_docs_mask()
+  end
   for i=0,my_size-1 do
     fetch_doctype(my_doc_config[i])
   end

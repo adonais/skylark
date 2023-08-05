@@ -43,6 +43,7 @@ wchar_t eu_module_path[MAX_PATH+1] = {0};
 wchar_t eu_config_path[MAX_BUFFER] = {0};
 static volatile long eu_curl_initialized;
 static HINSTANCE eu_instance;   // 当前实例
+static uint32_t fn_config_mask = 0x0;
 
 /* generic implementation */
 #define FOREACH(node, collection)                      \
@@ -146,6 +147,12 @@ static eue_code eue_coding[] =
     {0               , NULL}
 };
 
+static bool
+eu_exist_wpath(const wchar_t *path)
+{
+    return (GetFileAttributes(path) != INVALID_FILE_ATTRIBUTES);
+}
+
 /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * 产生一个长度为len的伪随机数字符串
  */
@@ -239,14 +246,13 @@ eu_suffix_strip(TCHAR *path)
 bool
 eu_exist_path(const char *path)
 {
-    uint32_t attrs = (uint32_t)-1;
     TCHAR wide_dir[MAX_BUFFER] = {0};
     int m = MultiByteToWideChar(CP_UTF8, 0, path, -1, wide_dir, MAX_BUFFER);
     if (m > 0 && m < MAX_BUFFER)
     {
-        attrs = GetFileAttributes(wide_dir);
+        return eu_exist_wpath(wide_dir);
     }
-    return attrs != INVALID_FILE_ATTRIBUTES;
+    return false;
 }
 
 bool
@@ -344,6 +350,111 @@ eu_touch(LPCTSTR path)
         eu_safe_free(fullpath);
     }
     return ret;
+}
+
+static bool
+do_rename_operation(TCHAR *porig, TCHAR *pold)
+{
+    if (porig && pold)
+    {
+        const int old_len = (const int)_tcslen(pold);
+        for (int i = 1; i < 99; ++i)
+        {
+            _sntprintf(&pold[old_len], MAX_BUFFER - old_len - 1, _T(".%d"), i);
+            if (!eu_exist_wpath(pold))
+            {
+                break;
+            }
+        }
+        if (pold[0] && porig[0])
+        {
+            return (_wrename(porig, pold) == 0);
+        }
+    }
+    return false;
+}
+
+static bool
+rename_configs(uint32_t mask)
+{
+    bool result = false;
+    TCHAR conf_old[MAX_BUFFER] = {0};
+    TCHAR conf_orig[MAX_BUFFER] = {0};
+    if (mask != 0)
+    {
+        if (mask & SNIP_CONFIG_MASK)
+        {
+            _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\snippets"), eu_config_path);
+            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\snippets.old"), eu_config_path);
+            result = do_rename_operation(conf_orig, conf_old);
+        }
+        if (mask & ACCS_CONFIG_MASK)
+        {
+            _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark_input.conf"), eu_config_path);
+            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\skylark_input.conf.old"), eu_config_path);
+            result = do_rename_operation(conf_orig, conf_old);
+        }
+        if (mask & DOCS_CONFIG_MASK)
+        {
+            _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\script-opts"), eu_config_path);
+            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\script-opts.old"), eu_config_path);
+            result = do_rename_operation(conf_orig, conf_old);
+        }
+        if (mask & SQLS_CONFIG_MASK)
+        {
+            _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
+            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\skylark_prefs.sqlite3.old"), eu_config_path);
+            result = do_rename_operation(conf_orig, conf_old);
+        }
+        if (mask & MAIN_CONFIG_MASK)
+        {
+            _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark.conf"), eu_config_path);
+            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\skylark.conf.old"), eu_config_path);
+            result = do_rename_operation(conf_orig, conf_old);
+        }
+    }
+    return result;
+}
+
+void
+eu_reset_main_mask(void)
+{
+    fn_config_mask |= MAIN_CONFIG_MASK;
+}
+
+void
+eu_reset_sqls_mask(void)
+{
+    fn_config_mask |= SQLS_CONFIG_MASK;
+}
+
+void
+eu_reset_docs_mask(void)
+{
+    fn_config_mask |= DOCS_CONFIG_MASK;
+}
+
+void
+eu_reset_accs_mask(void)
+{
+    fn_config_mask |= ACCS_CONFIG_MASK;
+}
+
+void
+eu_reset_snip_mask(void)
+{
+    fn_config_mask |= SNIP_CONFIG_MASK;
+}
+
+void
+eu_reset_config(void)
+{
+    if (rename_configs(fn_config_mask))
+    {
+    #if APP_DEBUG
+        printf("%s: we have reset the configuration files\n", __FUNCTION__);
+    #endif
+    }
 }
 
 static int

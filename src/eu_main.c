@@ -329,5 +329,6 @@ all_clean:
     eu_dbase_release();
     eu_logmsg("All cleanup, process exit code [%d]\n", (int) msg.wParam);
     eu_config_api_release();
+    eu_reset_config();
     return (int) msg.wParam;
 }

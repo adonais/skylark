@@ -198,6 +198,9 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
+    if (m_len < 167) then
+      eu_core.euapi.eu_reset_accs_mask()
+    end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})
     for i = 0, m_len - 1 do
       local m_ptr = eu_core.ffi.cast('ACCEL *', m_accel[i])

@@ -385,6 +385,13 @@ void on_doc_comment_light(void *, int lex, intptr_t rgb);
 void on_doc_commentblock_light(void *, int lex, intptr_t rgb);
 void on_doc_commentdoc_light(void *, int lex, intptr_t rgb);
 
+/* 配置文件重置函数 */
+void eu_reset_main_mask(void);
+void eu_reset_sqls_mask(void);
+void eu_reset_docs_mask(void);
+void eu_reset_accs_mask(void);
+void eu_reset_snip_mask(void);
+
 ]]
 
 function eu_core.process_path()
