@@ -82,7 +82,8 @@ enum dctype
     DOCTYPE_VB = 38,
     DOCTYPE_VBS = 39,
     DOCTYPE_LATEX = 40,
-    DOCTYPE_VERILOG = 41
+    DOCTYPE_VERILOG = 41,
+    DOCTYPE_PASCAL = 42
 };
 
 typedef struct _doc_styles

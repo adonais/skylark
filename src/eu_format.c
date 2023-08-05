@@ -18,7 +18,9 @@
 
 #include "framework.h"
 
-#define FORMAT_MAX_LEN  (4 * 1024 * 1024)
+#define FORMAT_MAX_LEN (4 * 1024 * 1024)
+#define FORMAT_DLL _T("clang-format.dll")
+
 typedef bool (*ptr_format)(const char *filename, const char *data, size_t size, char **pout);
 
 static int the_a;
@@ -110,7 +112,7 @@ js_next(const uint8_t *ptext, size_t *in)
                             }
                             break;
                         case -1:
-                            printf("Error: JSMIN Unterminated comment.\n");
+                            eu_logmsg("Error: JSMIN Unterminated comment.\n");
                             return EUE_UNKOWN_ERR;
                     }
                 }
@@ -161,7 +163,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                     }
                     if (the_a == -1)
                     {
-                        printf("Error: JSMIN unterminated string literal\n");
+                        eu_logmsg("Error: JSMIN unterminated string literal\n");
                         return EUE_UNKOWN_ERR;
                     }
                 }
@@ -203,7 +205,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                             }
                             if (the_a == -1)
                             {
-                                printf("Unterminated set in Regular Expression literal.\n");
+                                eu_logmsg("Unterminated set in Regular Expression literal.\n");
                                 return EUE_UNKOWN_ERR;
                             }
                         }
@@ -214,7 +216,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                         {
                             case '/':
                             case '*':
-                                printf("Unterminated set in Regular Expression literal.\n");
+                                eu_logmsg("Unterminated set in Regular Expression literal.\n");
                                 return EUE_UNKOWN_ERR;
                         }
                         break;
@@ -226,7 +228,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                     }
                     if (the_a == -1)
                     {
-                        printf("Unterminated Regular Expression literal.\n");
+                        eu_logmsg("Unterminated Regular Expression literal.\n");
                         return EUE_UNKOWN_ERR;
                     }
                     js_put(the_a, pbuf, out);
@@ -309,7 +311,7 @@ static bool
 init_lib_format(const char *filename, const char *data, size_t size, char **pout)
 {
     bool ret = false;
-    HMODULE m_dll = np_load_plugin_library(_T("clang-format.dll"));
+    HMODULE m_dll = np_load_plugin_library(FORMAT_DLL, false);
     if (m_dll)
     {
         ptr_format fn_lib_format = (ptr_format)GetProcAddress(m_dll, "lib_format");

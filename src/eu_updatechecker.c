@@ -18,10 +18,12 @@
 
 #include "framework.h"
 
+#define MAYBE200MS 200
 #define UPDATE_EXE L"upcheck.exe"
 #define UPDATE_URL "https://api.github.com/repos/adonais/skylark/releases"
 
 static volatile long g_upcheck_id = 0;
+static volatile sptr_t g_upcheck_handle = 0;
 
 static size_t
 on_update_read_json(void *buffer, size_t size, size_t nmemb, void *stream)
@@ -72,7 +74,7 @@ on_update_init(struct curl_slist **pheaders)
         eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_update_read_json);
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 6L);
         eu_curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
-    #if defined(APP_DEBUG) && (APP_DEBUG > 0)
+    #if APP_DEBUG
         eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     #endif
     }
@@ -101,7 +103,6 @@ on_update_download(const int64_t dtag)
     _snwprintf(path, MAX_BUFFER, L"%s\\cache", eu_config_path);
     _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -uri \"%s\" -e \"%s\" -k %u -hwnd %Id -dt %I64d", eu_module_path,
                UPDATE_EXE, util_make_u16(eu_get_config()->upgrade.url, uri, MAX_SIZE - 1), path, GetCurrentProcessId(), (intptr_t)eu_module_hwnd(), dtag);
-    printf("wcmd = [[%ls]]\n", wcmd);
     return eu_new_process(wcmd, NULL, NULL, 0, NULL);
 }
 
@@ -174,7 +175,7 @@ on_update_loop(HANDLE handle)
         on_update_msg(VERSION_UPDATE_PROGRESS, true);
         while (true)
         {
-            switch ((int)WaitForSingleObject(handle, 200))
+            switch ((int)WaitForSingleObject(handle, MAYBE200MS))
             {   
                 case WAIT_OBJECT_0:
                 {
@@ -182,10 +183,10 @@ on_update_loop(HANDLE handle)
                     uint32_t result = 256;
                     if (!GetExitCodeProcess(handle, &result))
                     {
-                        printf("GetExitCodeProcess failed\n");
+                        eu_logmsg("%s: GetExitCodeProcess failed\n", __FUNCTION__);
                         break;
                     }
-                    printf("result == %u\n", result);
+                    eu_logmsg("%s: result == %u\n", __FUNCTION__, result);
                     if (result == 0)
                     {
                         char sql[MAX_PATH] = {0};
@@ -211,7 +212,7 @@ on_update_loop(HANDLE handle)
                     {
                         TerminateProcess(handle, -1);
                         on_update_msg(IDS_CHECK_VER_UNKOWN, true);
-                        printf("process force quit...\n");
+                        eu_logmsg("process force quit...\n");
                         break;
                     }
                     continue; 
@@ -259,7 +260,7 @@ on_update_send_request(void *lp)
         }
         if (ident == 1 && !on_update_diff_days())
         {
-            printf("It's not time yet\n");
+            eu_logmsg("It's not time yet\n");
             break;
         }
         if ((curl = on_update_init(&headers)))
@@ -269,7 +270,7 @@ on_update_send_request(void *lp)
             eu_curl_easy_cleanup(curl);
             if (res != CURLE_OK)
             {
-                printf("curl failed, cause:%d\n", res);
+                eu_logmsg("curl failed, cause:%d\n", res);
             }
         }
         else
@@ -286,7 +287,7 @@ on_update_send_request(void *lp)
         }
         if ((dtag = on_update_build_time()) > 0 && dtag < tag)
         {
-            printf("curerent_version = %I64d, tag = %I64d\n", dtag, tag);
+            eu_logmsg("curerent_version = %I64d, tag = %I64d\n", dtag, tag);
             on_update_msg(VERSION_UPDATE_REQUIRED, true);
             if (!eu_get_config()->upgrade.enable)
             {
@@ -309,8 +310,17 @@ on_update_send_request(void *lp)
         }
     } while(0);
     _InterlockedExchange(&g_upcheck_id, 0);
-    printf("on_update_thread_exit\n");
     return res;
+}
+
+static void
+on_update_close_handle(void)
+{
+    if (g_upcheck_handle)
+    {
+        CloseHandle((HANDLE)g_upcheck_handle);
+        inter_atom_exchange(&g_upcheck_handle, 0);
+    }
 }
 
 bool
@@ -373,15 +383,18 @@ on_update_sql(void)
     }
 }
 
-bool
+void
 on_update_thread_wait(void)
 {
     if (g_upcheck_id)
     {
         PostThreadMessage(g_upcheck_id, WM_QUIT, 0, 0);
-        return true;
+        if (g_upcheck_handle)
+        {
+            WaitForSingleObject((HANDLE)g_upcheck_handle, INFINITE);
+        }
     }
-    return false;
+    on_update_close_handle();
 }
 
 void
@@ -392,15 +405,15 @@ on_update_check(const int ident)
     {
         if (!_InterlockedCompareExchange(&g_upcheck_id, 1, 0))
         {
-            unsigned id = 0;
-            HANDLE handle = ((HANDLE)_beginthreadex(NULL, 0, on_update_send_request, (void *)(intptr_t)ident, 0, (unsigned *)&id));
-            if (handle)
+            HANDLE handle = NULL;
+            on_update_close_handle();
+            if ((handle = ((HANDLE)_beginthreadex(NULL, 0, on_update_send_request, (void *)(intptr_t)ident, 0, (unsigned *)&g_upcheck_id))))
             {
-                CloseHandle(handle);
-                _InterlockedExchange(&g_upcheck_id, (long)id);
+                inter_atom_exchange(&g_upcheck_handle, (sptr_t)handle);
             }
             else
             {
+                eu_logmsg("%s: on_update_send_request start failed\n", __FUNCTION__);
                 _InterlockedExchange(&g_upcheck_id, 0);
             }
         }

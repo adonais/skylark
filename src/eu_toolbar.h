@@ -30,6 +30,7 @@ extern "C" {
 extern int g_toolbar_size;
 void on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
 void on_toolbar_adjust_box(void);
+void on_toolbar_destroy(HWND hwnd);
 void on_toolbar_update_button(void);
 void on_toolbar_execute_script(void);
 void on_toolbar_lua_exec(eu_tabpage *pnode);

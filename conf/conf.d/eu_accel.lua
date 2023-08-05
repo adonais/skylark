@@ -23,6 +23,8 @@ function eu_accel.loadaccel()
       "                 {0, 0, IDM_FILE_CLOSEALL_EXCLUDE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"T\"), IDM_FILE_RESTORE_RECENT},\n",
       "                 {bit.bor(FVIRTKEY,FSHIFT), VK_F5, IDM_FILE_RELOAD_CURRENT},\n",
+      "                 {0, 0, IDM_FILE_REMOTE_FILESERVERS},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"D\"), IDM_FILE_ADD_FAVORITES},\n",
       "                 {0, 0, IDM_FILE_PAGESETUP},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"P\"), IDM_FILE_PRINT},\n",
       "                 {0, 0, IDM_FILE_RESTART_ADMIN},\n",
@@ -138,10 +140,10 @@ function eu_accel.loadaccel()
       "                 {0, 0, IDM_TABCLOSE_NONE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_TAB, IDM_VIEW_SWITCH_TAB},\n",
       "                 {0, 0, IDM_VIEW_SCROLLCURSOR},\n",
-      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_ADD, IDM_VIEW_ZOOMOUT},\n",
-      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_OEM_PLUS, IDM_VIEW_ZOOMOUT},\n",
-      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_SUBTRACT, IDM_VIEW_ZOOMIN},\n",
-      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_OEM_MINUS, IDM_VIEW_ZOOMIN},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_OEM_MINUS, IDM_VIEW_ZOOMOUT},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_SUBTRACT, IDM_VIEW_ZOOMOUT},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_OEM_PLUS, IDM_VIEW_ZOOMIN},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_ADD, IDM_VIEW_ZOOMIN},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"0\"), IDM_VIEW_ZOOMRESET},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_NUMPAD0, IDM_VIEW_ZOOMRESET},\n",
       "                 -- Format menu\n",
@@ -177,7 +179,8 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F5, IDM_PROGRAM_EXECUTE_ACTION},\n",
       "                 -- Settings menu\n",
       "                 {0, 0, IDM_VIEW_MODIFY_STYLETHEME},\n",
-      "                 -- Settings menu\n",
+      "                 {0, 0, IDM_FILE_SAVE_NOTIFY},\n",
+      "                 -- Help menu\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F1, IDM_DONATION},\n",
       "                 {0, 0, IDM_INTRODUTION},\n",
       "                 {0, 0, IDM_CHANGELOG},\n",
@@ -195,6 +198,9 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
+    if (m_len < 167) then
+      eu_core.euapi.eu_reset_accs_mask()
+    end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})
     for i = 0, m_len - 1 do
       local m_ptr = eu_core.ffi.cast('ACCEL *', m_accel[i])

@@ -1,4 +1,5 @@
 require("eu_core")
+
 local conf_path = eu_core.script_path()
 local user_file = (conf_path.. "\\script-opts\\user_docs.lua")
 if (not eu_core.file_exists(user_file)) then
@@ -59,6 +60,7 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_VBS = 39,\n",
     "    DOCTYPE_LATEX = 40,\n",
     "    DOCTYPE_VERILOG = 41,\n",
+    "    DOCTYPE_PASCAL = 42,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -604,6 +606,26 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "      },\n",
     "      {\n",
+    "          e.DOCTYPE_PASCAL,\n",
+    "          \"pascal\",\n",
+    "          \";*.pas;*.inc;*.dpr;*.dpk;*.dfm;*.pp;*.lfm;*.lpr;*.fpd;\",\n",
+    "          \"Pascal\",\n",
+    "          \"pascal.snippets\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_cpp_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
     "          e.DOCTYPE_PERL,\n",
     "          \"perl\",\n",
     "          \";*.pl;*.perl;\",\n",
@@ -898,6 +920,7 @@ if (not eu_core.file_exists(user_file)) then
   shell_code = nil
   user_code = nil
 end
+
 require("user_docs")
 
 function string:split(delimiter)
@@ -1051,6 +1074,9 @@ end
 function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
+  if (my_size < 43) then
+    eu_core.euapi.eu_reset_docs_mask()
+  end
   for i=0,my_size-1 do
     fetch_doctype(my_doc_config[i])
   end

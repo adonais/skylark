@@ -1,0 +1,98 @@
+snippet begin "begin...end"
+begin
+    $0
+end
+endsnippet
+
+snippet var "# var"
+var
+    ${1:variablename}: ${2:integer}
+    $0
+endsnippet
+
+snippet const "# const"
+const
+    ${1:CONST_NAME} = ${2:value}
+    $0
+endsnippet
+
+snippet while "while...do"
+while ${1:expression} do
+$0
+endsnippet
+
+snippet case "# case..."
+case ${1:expression} of
+    ${2:value}: ${3:statement}
+    $0
+endsnippet
+
+snippet for "# for loop"
+for ${1:i} := ${2:1} ${3:to} ${4:high} do
+    $0
+endsnippet
+
+snippet function "function define"
+function ${1:functionnme}(${2:args}): ${3:integer}
+    $0
+endsnippet
+
+snippet if "# if..."
+if ${1:expression} then $0
+endsnippet
+
+snippet label "# label"
+label
+    ${1:label_name}
+    $0
+endsnippet
+
+snippet procedure "procedure define"
+procedure ${1:procedurename}(${2:args})
+    $0
+endsnippet
+
+snippet program "program entry point "
+program ${1:untitled};
+    $2
+begin
+    $3
+end.
+$0
+endsnippet
+
+snippet record "# record"
+record
+    ${1:fieldname} : ${2:integer};$0
+end
+endsnippet
+
+snippet repeat "# repeat"
+repeat
+    $2
+until ${1:condition} $0
+endsnippet
+
+snippet try "try...finally"
+try
+    $1
+finally
+    $0
+end
+endsnippet
+
+snippet type "# type"
+type
+    ${1:typename} = ${3:integer}
+    $0
+endsnippet
+
+snippet unit "# unit"
+unit ${1:unitname};
+interface
+$2
+implementation
+$3
+end.
+$0
+endsnippet

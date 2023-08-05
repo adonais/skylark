@@ -57,6 +57,13 @@
 #define _atoz atoi
 #endif
 
+#define MAIN_CONFIG_MASK  0x0001
+#define SQLS_CONFIG_MASK  0x0002
+#define DOCS_CONFIG_MASK  0x0004
+#define ACCS_CONFIG_MASK  0x0008
+#define SNIP_CONFIG_MASK  0x0010
+#define EAPI_RSTART_MASK  0x80000000
+
 #if defined(__cplusplus)
 #define FALLTHRU_ATTR        [[fallthrough]]
 #elif (defined(__GNUC__) && __GNUC__ >= 7) || (defined(__clang__) && __clang_major__ >= 10)
@@ -147,7 +154,12 @@
 #define WM_UPCHECK_STATUS         (WM_USER+10011)
 // User clip message
 #define WM_CLEAN_CHAIN            (WM_USER+10020)
-#define EU_SAVE_CONFIG            (WM_USER+10021)
+
+#define WM_BACKUP_THEME           (WM_USER+10030)
+#define WM_BACKUP_CONFIG          (WM_USER+10031)
+#define WM_BACKUP_BOTH            (WM_USER+10032)
+#define WM_BACKUP_ALL             (WM_USER+10033)
+
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
 
@@ -209,6 +221,16 @@ static inline int eu_cvector_at(const int *v, const int n)
 
 enum
 {
+    SKYLARK_HOOK_FAILED   = -50,
+    SKYLARK_TB_FAILED     = -49,
+    SKYLARK_SCI_FAILED    = -48,
+    SKYLARK_RESID_FAILED  = -47,
+    SKYLARK_ACCEL_FAILED  = -46,
+    SKYLARK_DOCS_FAILED   = -45,
+    SKYLARK_CONF_FAILED   = -44,
+    SKYLARK_INST_FAILED   = -43,
+    SKYLARK_ENVENT_FAILED = -42,
+    SKYLARK_MEMAP_FAILED  = -41,
     EUE_PCRE_BACK_ABORT   = -40,
     EUE_PCRE_NO_MATCHING  = -39,
     EUE_PCRE_EXP_ERR      = -38,
@@ -270,6 +292,15 @@ typedef enum _UPDATE_STATUS
     VERSION_UPDATE_UNKOWN,
     VERSION_UPDATE_COMPLETED
 } UPDATE_STATUS;
+
+typedef enum _THEME_INDEX
+{
+    THEME_UNUSABLE = 0,
+    THEME_DEFAULT = 1,
+    THEME_WHITE = 2,
+    THEME_BLACK = 3,
+    THEME_OTHER
+} THEME_INDEX;
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -408,11 +439,13 @@ struct eu_config
     int m_quality;
     int m_render;
     int  m_upfile;
+    int  m_up_notify;
     bool m_light_str;
     bool m_write_copy;
     bool m_session;
     bool m_exit;
     bool m_instance;
+    bool m_logging;
     char m_placement[MAX_BUFFER];
     char m_language[QW_SIZE];
     bookmark_set eu_bookmark;
@@ -445,6 +478,8 @@ typedef struct _pcre_conainer
     int match;                   // 匹配次数
     int ovector[OVECCOUNT];      // 匹配偏移量数组
 } pcre_conainer;
+
+typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(LPDWORD major, LPDWORD minor, LPDWORD build);
 
 typedef int (*ptr_recallback)(pcre_conainer *, void *);
 typedef const char* (*ptr_curl_easy_strerror)(CURLcode);
@@ -547,8 +582,10 @@ EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
 EU_EXT_CLASS struct eu_config *eu_get_config(void);
 EU_EXT_CLASS eue_accel *eu_get_accel(void);
 EU_EXT_CLASS eue_toolbar *eu_get_toolbar(void);
-EU_EXT_CLASS void eu_lua_release(void);
+EU_EXT_CLASS void eu_config_api_release(void);
 
+EU_EXT_CLASS const int eu_theme_index(void);
+EU_EXT_CLASS const uint32_t eu_win10_or_later(void);
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
@@ -565,6 +602,14 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
+
+// for lua scripts
+EU_EXT_CLASS void eu_reset_main_mask(void);
+EU_EXT_CLASS void eu_reset_sqls_mask(void);
+EU_EXT_CLASS void eu_reset_docs_mask(void);
+EU_EXT_CLASS void eu_reset_accs_mask(void);
+EU_EXT_CLASS void eu_reset_snip_mask(void);
+EU_EXT_CLASS void eu_reset_config(void);
 
 // for pcre
 EU_EXT_CLASS pcre_conainer *eu_pcre_init(const char *buf, size_t len, const char *pattern, const char *named_substring, int opt);
@@ -600,6 +645,7 @@ extern void eu_curl_easy_cleanup(CURL *);
 
 extern TCHAR eu_module_path[MAX_PATH+1];
 extern TCHAR eu_config_path[MAX_BUFFER];
+
 // for eu_changes.c
 EU_EXT_CLASS int eu_msgbox(HWND hwnd, LPCWSTR text, LPCWSTR title, uint32_t type);
 
@@ -689,8 +735,15 @@ EU_EXT_CLASS int  eu_prepend_path(const TCHAR *dir);
 // for eu_tablectl.c
 EU_EXT_CLASS void eu_dbase_release(void);
 
+// for eu_session.c
+EU_EXT_CLASS void eu_session_backup(const int status);
+
 // for eu_doctype.c
 EU_EXT_CLASS doctype_t *eu_doc_get_ptr(void);
+
+// for eu_log.c
+EU_EXT_CLASS bool __cdecl eu_init_logs(const bool turn);
+EU_EXT_CLASS void __cdecl eu_logmsg(const char *format, ...);
 
 /* lua 脚本调用接口 */
 EU_EXT_CLASS void on_doc_enable_foldline(eu_tabpage *pnode);

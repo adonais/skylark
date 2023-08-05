@@ -140,19 +140,10 @@ util_gen_tstamp(void)
 void
 util_lock(volatile long *gcs)
 {
-    size_t spin_count = 0;
     // Wait until the flag is false.
     while (_InterlockedCompareExchange(gcs, 1, 0) != 0)
     {   // Prevent the loop from being too busy.
-        if (spin_count < 32)
-        {
-            Sleep(0);
-        }
-        else
-        {
-            Sleep(1);
-        }
-        ++spin_count;
+        Sleep(1);
     }
 }
 
@@ -210,7 +201,7 @@ util_under_wine(void)
     }
     if ((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
     {
-        printf("Running on Wine... %s\n", fn_wine_get_version());
+        eu_logmsg("Running on Wine... %s\n", fn_wine_get_version());
         return true;
     }
     return false;
@@ -395,7 +386,7 @@ util_ssl_open_symbol(char *s[], int n, uintptr_t *pointer)
 #else
     _T("libcrypto-1_1.dll");
 #endif
-    if ((ssl = np_load_plugin_library(ssl_path)) != NULL)
+    if ((ssl = np_load_plugin_library(ssl_path, false)) != NULL)
     {
         for (int i = 0; i < n && s[i][0]; ++i)
         {
@@ -1725,7 +1716,7 @@ bool
 util_exist_libcurl(void)
 {
     bool ret = false;
-    HMODULE lib_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    HMODULE lib_symbol = np_load_plugin_library(_T("libcurl.dll"), false);
     if (lib_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(lib_symbol,"zlib_compress2");
@@ -1760,8 +1751,8 @@ util_compress_bound(unsigned long source_len)
 int
 util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level)
 {
-    int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    int ret = SKYLARK_NOT_OPENED;      // STREAM_ERROR
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"), false);
     if (curl_symbol)
     {
         ptr_compress fn_compress = (ptr_compress)GetProcAddress(curl_symbol,"zlib_compress2");
@@ -1777,8 +1768,8 @@ util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, uns
 int
 util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len)
 {
-    int ret = -2;      // STREAM_ERROR
-    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"));
+    int ret = SKYLARK_NOT_OPENED;      // STREAM_ERROR
+    HMODULE curl_symbol = np_load_plugin_library(_T("libcurl.dll"), false);
     if (curl_symbol)
     {
         ptr_uncompress fn_uncompress = (ptr_uncompress)GetProcAddress(curl_symbol,"zlib_uncompress2");
@@ -1801,7 +1792,7 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
     }
     if (!GetTempFileName(temp_path, _T("lua"), 0, file_path))
     {
-        printf("GetTempFileName return false\n");
+        eu_logmsg("GetTempFileName return false\n");
         return INVALID_HANDLE_VALUE;
     }
     if (STR_NOT_NUL(ext))
@@ -1885,7 +1876,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
     if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
     {
         *psize = 0;
-        printf("GetFileSizeEx fail, case: %lu\n", GetLastError());
+        eu_logmsg("GetFileSizeEx fail, case: %lu\n", GetLastError());
         return false;
     }
     return true;
@@ -1939,7 +1930,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 {
                     pstream->close = util_close_stream_by_munmap;
                     ret = true;
-                    printf("we open file use MapViewOfFile API\n");
+                    eu_logmsg("we open file use MapViewOfFile API\n");
                 }
             }
         }
@@ -1951,7 +1942,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                printf("we open file use ReadFile API, bytesread = %u\n", bytesread);
+                eu_logmsg("we open file use ReadFile API, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -2110,7 +2101,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if ((dw_size = pfnGetFileVersionInfoSizeW(filepath, &dw_handle)) == 0)
         {
-            printf("pfnGetFileVersionInfoSizeW return false\n");
+            eu_logmsg("pfnGetFileVersionInfoSizeW return false\n");
             break;
         }
         if ((pbuffer = (LPWSTR) calloc(1, dw_size * sizeof(WCHAR))) == NULL)
@@ -2119,7 +2110,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if (!pfnGetFileVersionInfoW(filepath, 0, dw_size, (LPVOID) pbuffer))
         {
-            printf("pfnpfnGetFileVersionInfoW return false\n");
+            eu_logmsg("pfnpfnGetFileVersionInfoW return false\n");
             break;
         }
         pfnVerQueryValueW((LPCVOID) pbuffer, L"\\VarFileInfo\\Translation", (LPVOID *) &lptranslate, &cb_translate);
@@ -2153,7 +2144,6 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
 const uint32_t
 util_os_version(void)
 {
-    typedef void (WINAPI *RtlGetNtVersionNumbersPtr)(DWORD*, DWORD*, DWORD*);
     RtlGetNtVersionNumbersPtr fnRtlGetNtVersionNumbers = NULL;
     uint32_t major_ver, minor_ver, build_num;
     uint32_t ver = 0;
@@ -2782,7 +2772,7 @@ util_try_path(LPCTSTR dir)
                            FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
         if (pfile == INVALID_HANDLE_VALUE)
         {
-            printf("%s, create folder failed\n", __FUNCTION__);
+            eu_logmsg("%s: create folder failed\n", __FUNCTION__);
         }
         CloseHandle(pfile);
     }
@@ -2805,6 +2795,95 @@ util_shell_path(const GUID *folder, TCHAR *path, const int len)
         m = _sntprintf(path, len, _T("%s"), tmp);
         CoTaskMemFree(tmp);
         return (m > 0 && m < len);
+    }
+    return false;
+}
+
+static uint32_t
+util_flush_callback(LARGE_INTEGER total_size, LARGE_INTEGER total_bytes, LARGE_INTEGER stream_size, LARGE_INTEGER stream_bytes,
+                    DWORD stream_id, DWORD reason, HANDLE srchandle, HANDLE dsthandle, LPVOID refdata)
+{
+    HANDLE recent_stream = *(HANDLE *)refdata;
+    if (reason == CALLBACK_STREAM_SWITCH)
+    {
+        if (recent_stream)
+        {
+            FlushFileBuffers(recent_stream);
+            CloseHandle(recent_stream);
+        }
+        DuplicateHandle(GetCurrentProcess(), dsthandle, GetCurrentProcess(), (HANDLE *)refdata, 0, false, DUPLICATE_SAME_ACCESS);
+    }
+    return PROGRESS_CONTINUE;
+}
+
+bool
+util_copy_file(LPCWSTR source, LPCWSTR dest, const bool fail_exist)
+{
+    HANDLE recent_stream = NULL;
+    int result = CopyFileEx(source, dest, util_flush_callback, &recent_stream, NULL, fail_exist ? COPY_FILE_FAIL_IF_EXISTS : 0);
+    if (recent_stream)
+    {
+        if (result)
+        {
+            if (!FlushFileBuffers(recent_stream))
+            {
+                eu_logmsg("FlushFileBuffers error\n");
+            }
+        }
+        CloseHandle(recent_stream);
+    }
+    return (result != 0);
+}
+
+void
+util_redraw(const HWND hwnd, const bool force)
+{
+    if (hwnd)
+    {
+        InvalidateRect(hwnd, NULL, force);
+        UpdateWindow(hwnd);
+    }
+}
+
+void
+util_symlink_destroy(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        if (pnode->hwnd_font)
+        {
+            DeleteObject(pnode->hwnd_font);
+            pnode->hwnd_font = NULL;
+        }
+        // 强制终止后台线程, 当软链接未解析完成时会导致泄露
+        if (_InterlockedCompareExchange(&pnode->pcre_id, 0, 1L))
+        {
+            util_kill_thread((uint32_t)pnode->pcre_id);
+        }
+        if (_InterlockedCompareExchange(&pnode->json_id, 0, 1L))
+        {
+            util_kill_thread((uint32_t)pnode->json_id);
+        }
+    }
+}
+
+bool
+util_isxdigit_string(LPCTSTR str, const int len)
+{
+    if (STR_NOT_NUL(str) && len > 0 && len <= eu_int_cast(_tcslen(str)))
+    {
+        for (int i = 0; i < len; ++i)
+        {
+            if ((str[i] >= _T('0') && str[i] <= _T('9')) || (str[i] >= _T('a') && str[i] <= _T('f')) || (str[i] >= _T('A') && str[i] <= _T('F')))
+            {
+                continue;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
     }
     return false;
 }

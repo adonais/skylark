@@ -226,8 +226,17 @@ HWND
 on_toolbar_hwnd(void)
 {
     HWND hwnd = eu_module_hwnd();
+    return hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
+}
+
+void
+on_toolbar_destroy(HWND hwnd)
+{
     HWND htool = hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
-    return htool;
+    if (htool)
+    {
+        DestroyWindow(htool);
+    }
 }
 
 void
@@ -291,13 +300,13 @@ init_clip_dlg(HWND dialog, bool init)
     {
         if (!(hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDB_TXT))))
         {
-            printf("%s, LoadIcon failed\n", __FUNCTION__);
+            eu_logmsg("%s: LoadIcon failed\n", __FUNCTION__);
             return false;
         }
     }
     else if (!(hbmp = on_pixmap_from_svg(svg_icon, w, w, on_dark_enable() ? DARK_HOTCOLOR : NULL)))
     {   // nsvgRasterize不支持纵横比缩放, 在这里按宽度缩放
-        printf("%s, on_pixmap_from_svg failed\n", __FUNCTION__);
+        eu_logmsg("%s: on_pixmap_from_svg failed\n", __FUNCTION__);
         return false;
     }
     for (int i = 0; i < _countof(m_edit); ++i)
@@ -526,7 +535,6 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 ChangeClipboardChain(hdlg, m_chain);
                 m_chain = NULL;
                 g_clip_hwnd = NULL;
-                printf("clip window WM_DESTROY\n");
             }
             return 1;
         }
@@ -1014,7 +1022,6 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 ImageList_Destroy(img_list2);
                 img_list2 = NULL;
             }
-            printf("toolbar WM_DESTROY\n");
             break;
         }
         default:
@@ -1117,8 +1124,8 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl() ? 2 : 1);
-            on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, !pnode->pmod ? 2 : 1);
-            on_toolbar_setup_button(IDM_VIEW_ZOOMIN, !pnode->pmod ? 2 : 1);
+            on_toolbar_setup_button(IDM_VIEW_ZOOMIN, 2);
+            on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr) ? 2 : 1);
         }
     }
@@ -1236,7 +1243,7 @@ on_toolbar_create(HWND parent)
         }
         if (!(tool_proc = (intptr_t)SetWindowLongPtr(htool, GWLP_WNDPROC, (intptr_t)toolbar_proc)))
         {
-            printf("SetWindowLongPtr(htool) failed\n");
+            eu_logmsg("%s: SetWindowLongPtr(htool) failed\n", __FUNCTION__);
             ret = 1;
             break;
         }

@@ -46,6 +46,7 @@ int  on_statusbar_height(void);
 int  on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto);
 void on_statusbar_refresh(void);
 void on_statusbar_update(void);
+void on_statusbar_destroy(void);
 void on_statusbar_adjust_box(void);
 void on_statusbar_update_eol(eu_tabpage *pnode);
 void on_statusbar_update_line(eu_tabpage *pnode);

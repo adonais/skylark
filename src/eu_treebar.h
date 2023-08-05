@@ -33,6 +33,7 @@ typedef struct _tree_data
     TCHAR *pathname;
     TCHAR *filepath;
     TCHAR *filename;
+    TCHAR *tagdesc;
     int img_index;
     bool is_load;
 }tree_data;
@@ -43,10 +44,24 @@ typedef struct _remotefb
     size_t size;
 }remotefb;
 
+typedef enum _IMG_MOUNT
+{
+    IMG_FAVORITES = 0,
+    IMG_CLOUD,
+    IMG_DRIVE,
+    IMG_FOLD,
+    IMG_CLOSE,
+    IMG_TEXT,
+    IMG_BULB,
+    IMG_SHORTCUT,
+    IMG_DBMAX
+} IMG_MOUNT;
+
 extern HWND g_treebar;
 extern HWND g_filetree;
 
 tree_data *on_treebar_get_treeview(HTREEITEM hti);
+tree_data *on_treebar_add_favorite(HTREEITEM parent, const int index, void *pdata);
 void on_treebar_update_theme(void);
 void on_treebar_adjust_box(RECT *ptf);
 void on_treebar_adjust_filetree(RECT *treebar, RECT *rect);
@@ -59,6 +74,7 @@ bool on_treebar_variable_initialized(HWND *pd);
 void on_treebar_wait_hwnd(void);
 void on_treebar_update_addr(remotefs *pserver);
 void on_treebar_data_destoy(tree_data **ptvd);
+HTREEITEM on_treebar_get_path(tree_data **ptvd);
 
 #ifdef __cplusplus
 }

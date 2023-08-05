@@ -304,128 +304,125 @@ on_sci_resever_tab(eu_tabpage *pnode)
 static void
 on_sci_delete_file(const eu_tabpage *pnode)
 {
-    if (pnode && (pnode)->bakpath[0] && (_taccess((pnode)->bakpath, 0 ) != -1))
+    if (pnode && !pnode->be_modify && eu_exist_file(pnode->bakpath))
     {
-        if (!util_delete_file((pnode)->bakpath))
+        wchar_t tmp[MAX_BUFFER] = {0};
+        _sntprintf(tmp, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
+        if (!util_delete_file(pnode->bakpath))
         {
-            printf("on on_sci_free_tab(), delete(%ls) error, cause: %lu\n", (pnode)->bakpath, GetLastError());
+            eu_logmsg("%s: delete(pnode->bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
+        }
+        if (eu_exist_file(tmp) && !DeleteFile(tmp))
+        {
+            eu_logmsg("%s: delete(pnode->bakpath~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
         }
     }
 }
 
 static void
-on_sci_destory(eu_tabpage **ppnode, eu_tabpage *p)
+on_sci_swap_hwnd(eu_tabpage *pnode)
 {
-    if (STR_NOT_NUL(ppnode))
+    if (pnode)
     {
-        if (p && !p->hex_mode)
-        {   // 复用scintilla窗口
-            p->hwnd_sc = (*ppnode)->hwnd_sc;
-            p->eusc = (*ppnode)->eusc;
-            printf("hwnd_sc swap\n");
-        }
-        else if (!(*ppnode)->phex && !(*ppnode)->plugin && TabCtrl_GetItemCount(g_tabpages) <= 0)
+        if (!pnode->phex && !pnode->pmod && TabCtrl_GetItemCount(g_tabpages) <= 0 && pnode->hwnd_sc && pnode->eusc)
         {   // 最后一个标签时, 保存scintilla窗口句柄
-            inter_atom_exchange(&last_sci_hwnd, (sptr_t)(*ppnode)->hwnd_sc);
-            inter_atom_exchange(&last_sci_eusc, (sptr_t)(*ppnode)->eusc);
-            printf("hwnd_sc save\n");
+            inter_atom_exchange(&last_sci_hwnd, (sptr_t)pnode->hwnd_sc);
+            inter_atom_exchange(&last_sci_eusc, (sptr_t)pnode->eusc);
         }
-        else if ((*ppnode)->hwnd_sc)
+        else if (pnode->hwnd_sc)
         {   // 销毁scintilla窗口
-            bool hex = (*ppnode)->hex_mode && (*ppnode)->phex;
-            SendMessage((*ppnode)->hwnd_sc, WM_CLOSE, 0, 0);
-            if (!hex)
-            {
-                (*ppnode)->hwnd_sc = NULL;
-            }
+            SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0);
             inter_atom_exchange(&last_sci_hwnd, 0);
             inter_atom_exchange(&last_sci_eusc, 0);
-            printf("hwnd_sc closing\n");
         }
     }
 }
 
 void
-on_sci_free_tab(eu_tabpage **ppnode, eu_tabpage *p)
+on_sci_destroy_control(eu_tabpage *pnode)
 {
-    if (STR_NOT_NUL(ppnode))
-    {
-        HWND hwnd = eu_module_hwnd();
-        bool plugins = !!(*ppnode)->plugin;
-        // 关闭数据库链接
-        if ((*ppnode)->db_ptr)
+    if (pnode)
+    {   // 关闭数据库链接
+        if (pnode->db_ptr)
         {
-            on_table_disconnect_database(*ppnode, true);
+            on_table_disconnect_database(pnode, true);
         }
-        if ((*ppnode)->redis_ptr)
+        if (pnode->redis_ptr)
         {
-            on_symtree_disconnect_redis(*ppnode);
+            on_symtree_disconnect_redis(pnode);
         }
         // 销毁控件句柄
-        if ((*ppnode)->hwnd_symlist)
+        if (pnode->hwnd_symlist)
         {
-            SendMessage((*ppnode)->hwnd_symlist, WM_CLOSE, 0, 0);
-            (*ppnode)->hwnd_symlist = NULL;
+            SendMessage(pnode->hwnd_symlist, WM_CLOSE, 0, 0);
+            pnode->hwnd_symlist = NULL;
+            pnode->sym_show = false;
         }
-        if ((*ppnode)->hwnd_symtree)
+        else if (pnode->hwnd_symtree)
         {
-            SendMessage((*ppnode)->hwnd_symtree, WM_CLOSE, 0, 0);
-            (*ppnode)->hwnd_symtree = NULL;
+            SendMessage(pnode->hwnd_symtree, WM_CLOSE, 0, 0);
+            pnode->hwnd_symtree = NULL;
+            pnode->sym_show = false;
         }
-        if ((*ppnode)->hwnd_qrtable)
+        if (pnode->hwnd_qrtable)
         {
-            SendMessage((*ppnode)->hwnd_qrtable, WM_CLOSE, 0, 0);
-            (*ppnode)->hwnd_qrtable = NULL;
+            SendMessage(pnode->hwnd_qrtable, WM_CLOSE, 0, 0);
+            pnode->hwnd_qrtable = NULL;
         }
-        if ((*ppnode)->presult && (*ppnode)->presult->hwnd_sc)
+        if (pnode->presult && pnode->presult->hwnd_sc)
         {
-            SendMessage((*ppnode)->presult->hwnd_sc, WM_CLOSE, 0, 0);
-            (*ppnode)->presult->hwnd_sc = NULL;
-            (*ppnode)->result_show = false;
-            eu_safe_free((*ppnode)->presult);
+            SendMessage(pnode->presult->hwnd_sc, WM_CLOSE, 0, 0);
+            pnode->presult->hwnd_sc = NULL;
+            pnode->result_show = false;
+            eu_safe_free(pnode->presult);
         }
         // 释放保存结果的vec数组
-        if ((*ppnode)->ret_vec)
+        if (pnode->ret_vec)
         {
-            cvector_freep(&(*ppnode)->ret_vec);
+            cvector_freep(&pnode->ret_vec);
         }
-        if ((*ppnode)->ac_vec)
+        if (pnode->ac_vec)
         {
-            cvector_freep(&(*ppnode)->ac_vec);
+            cvector_freep(&pnode->ac_vec);
         }
-        if ((*ppnode)->re_group)
+        if (pnode->re_group)
         {
-            cvector_freep(&(*ppnode)->re_group);
+            cvector_freep(&pnode->re_group);
         }
         // 关闭minimap窗口
         if (!on_tabpage_check_map() && hwnd_document_map)
         {
             DestroyWindow(hwnd_document_map);
+            pnode->map_show = false;
         }
-        if (plugins)
+    }
+}
+
+void
+on_sci_free_tab(eu_tabpage **ppnode)
+{
+    if (STR_NOT_NUL(ppnode))
+    {
+        util_lock(&(*ppnode)->busy_id);
+        // 销毁子窗口资源
+        on_sci_destroy_control(*ppnode);
+        // 销毁插件窗口资源
+        if ((*ppnode)->plugin)
         {
-            on_sci_destory(ppnode, p);
             np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
             np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
-            on_sci_delete_file(*ppnode);
         }
-        eu_close_dll((*ppnode)->pmod);
         // 切换16进制时,销毁相关资源
-        if (!(*ppnode)->phex)
-        {
-            if (!plugins)
-            {
-                on_sci_destory(ppnode, p);
-                on_sci_delete_file(*ppnode);
-            }
-            // 销毁标签内存
-            eu_safe_free(*ppnode);
-        }
-        else if ((*ppnode)->hwnd_sc)
-        {
-            on_sci_destory(ppnode, p);
-            printf("hex_mode, we destroy scintilla control\n");
-        }
+        on_sci_swap_hwnd(*ppnode);
+        // 关闭可能加载的动态库
+        eu_close_dll((*ppnode)->pmod);
+        // 清理缓存文件
+        on_sci_delete_file(*ppnode);
+        // 清除标签单次运行锁状态
+        _InterlockedExchange(&(*ppnode)->lock_id, 0);
+        util_unlock(&(*ppnode)->busy_id);
+        eu_safe_free(*ppnode);
+        eu_logmsg("%s: we free the node's memory\n", __FUNCTION__);
     }
 }
 
@@ -486,22 +483,6 @@ on_sci_doc_modified(eu_tabpage *pnode)
     return (pnode ? pnode->be_modify : false);
 }
 
-int
-on_sci_query_tab(eu_tabpage *pnode)
-{
-    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
-    {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        if (pnode == (eu_tabpage *) (tci.lParam))
-        {
-            return index;
-        }
-    }
-    return SKYLARK_TABCTRL_ERR;
-}
-
 static int
 on_sci_status_setup(eu_tabpage *pnode, bool revise)
 {
@@ -510,7 +491,7 @@ on_sci_status_setup(eu_tabpage *pnode, bool revise)
     {
         return EUE_POINT_NULL;
     }
-    if ((index = on_sci_query_tab(pnode)) < SKYLARK_OK)
+    if ((index = on_tabpage_get_index(pnode)) < SKYLARK_OK)
     {
         return index;
     }
@@ -679,7 +660,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            printf("scintilla WM_THEMECHANGED\n");
+            eu_logmsg("scintilla WM_THEMECHANGED\n");
             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 on_toolbar_update_button();
@@ -690,7 +671,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = (eu_tabpage *) lParam) != NULL)
             {
-                printf("scintilla WM_DPICHANGED\n");
+                eu_logmsg("scintilla WM_DPICHANGED\n");
             }
             break;
         }
@@ -698,7 +679,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
             {
-                printf("scintilla WM_DPICHANGED_AFTERPARENT\n");
+                eu_logmsg("scintilla WM_DPICHANGED_AFTERPARENT\n");
                 on_sci_update_margin(pnode);
             }
             break;
@@ -711,7 +692,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            printf("scintilla WM_DESTROY\n");
+            eu_logmsg("scintilla WM_DESTROY\n");
             break;
         }
         default:

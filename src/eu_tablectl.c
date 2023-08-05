@@ -247,7 +247,6 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
         {
             RemoveWindowSubclass(hwnd, on_table_listview_proc, sub_id);
             _InterlockedExchange(&last_hot_item, -1);
-            printf("qrtable listview WM_DESTROY\n");
             break;
         }
     }
@@ -299,18 +298,6 @@ on_table_oci_error(eu_tabpage *pnode, OCIError *errhpp, int *err_code, char *err
     return 0;
 }
 
-static void
-on_table_reset_table(HWND hwnd)
-{
-    ListView_DeleteAllItems(hwnd);
-    HWND hdr = ListView_GetHeader(hwnd);
-    int view_count = (int) SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
-    for (view_count--; view_count >= 0; view_count--)
-    {
-        ListView_DeleteColumn(hwnd, view_count);
-    }
-}
-
 static bool
 on_table_insert_columns(HWND hwnd, int index, const char *text)
 {
@@ -327,6 +314,43 @@ on_table_insert_columns(HWND hwnd, int index, const char *text)
         free(ptr_name);
     }
     return (ret >= 0);
+}
+
+static void
+on_table_fix_columns(HWND hwnd, const int count, const unsigned int *afield)
+{
+    if (count == 0 || afield == NULL)
+    {
+        on_table_insert_columns(hwnd, 0, "Empty Table");
+        ListView_SetColumnWidth(hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
+    }
+    else
+    {
+        for (int index = 0; index < count; ++index)
+        {
+            if (index == count - 1)
+            {
+                ListView_SetColumnWidth(hwnd, index, LVSCW_AUTOSIZE_USEHEADER);
+            }
+            else
+            {
+                ListView_SetColumnWidth(hwnd, index, afield[index]);
+            }
+        }
+    }
+}
+
+static void
+on_table_reset_table(HWND hwnd)
+{
+    ListView_DeleteAllItems(hwnd);
+    HWND hdr = ListView_GetHeader(hwnd);
+    int view_count = (int) SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
+    for (view_count--; view_count >= 0; view_count--)
+    {
+        ListView_DeleteColumn(hwnd, view_count);
+    }
+    on_table_fix_columns(hwnd, 0, NULL);
 }
 
 static bool
@@ -354,30 +378,6 @@ on_table_insert_item(HWND hwnd, int row_index, int field_index, const char *text
         free(ptr_name);
     }
     return (ret >= 0);
-}
-
-static void
-on_table_fix_columns(HWND hwnd, const int count, const unsigned int *afield)
-{
-    if (count == 0 && afield == NULL)
-    {
-        on_table_insert_columns(hwnd, 0, "Empty Table");
-        ListView_SetColumnWidth(hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
-    }
-    else
-    {
-        for (int index = 0; index < count; ++index)
-        {
-            if (index == count - 1)
-            {
-                ListView_SetColumnWidth(hwnd, index, LVSCW_AUTOSIZE_USEHEADER);
-            }
-            else
-            {
-                ListView_SetColumnWidth(hwnd, index, afield[index]);
-            }
-        }
-    }
 }
 
 static void
@@ -490,9 +490,10 @@ on_table_connect_database(eu_tabpage *pnode)
     {
         return 0;
     }
-    if (util_query_hostname(pnode->db_ptr->config.dbhost, ip, QW_SIZE))
+    if (_stricmp(pnode->db_ptr->config.dbtype, "Sqlite3") != 0 &&
+        util_query_hostname(pnode->db_ptr->config.dbhost, ip, QW_SIZE))
     {
-        printf("util_query_hostname error\n");
+        eu_logmsg("%s: util_query_hostname error\n", __FUNCTION__);
         return 1;
     }
     if (_stricmp(pnode->db_ptr->config.dbtype, "MySQL") == 0)
@@ -501,7 +502,7 @@ on_table_connect_database(eu_tabpage *pnode)
         mysql_handle *this_mysql = &(pnode->db_ptr->handles.h_mysql);
         if (mysql_sub->mysql_dll == NULL)
         {
-            mysql_sub->mysql_dll = np_load_plugin_library(_T("libmysql.dll"));
+            mysql_sub->mysql_dll = np_load_plugin_library(_T("libmysql.dll"), false);
             if (mysql_sub->mysql_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR4, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -617,7 +618,7 @@ on_table_connect_database(eu_tabpage *pnode)
         sword result;
         if (oci_sub->oci_dll == NULL)
         {
-            oci_sub->oci_dll = np_load_plugin_library(_T("oci.dll"));
+            oci_sub->oci_dll = np_load_plugin_library(_T("oci.dll"), false);
             if (oci_sub->oci_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR12, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -794,7 +795,7 @@ on_table_connect_database(eu_tabpage *pnode)
         pq_handle *this_pq = &(pnode->db_ptr->handles.h_pq);
         if (pq_sub->libpq_dll == NULL)
         {
-            pq_sub->libpq_dll = np_load_plugin_library(_T("libpq.dll"));
+            pq_sub->libpq_dll = np_load_plugin_library(_T("libpq.dll"), false);
             if (pq_sub->libpq_dll == NULL)
             {
                 MSG_BOX(IDC_MSG_QUERY_ERR21, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -923,7 +924,7 @@ on_table_sql_header(eu_tabpage *pnode)
                     {
                         m_change = true;
                     }
-                    if (dbconfig.dbpass[0])
+                    if (dbconfig.dbpass[0] || _stricmp(pnode->db_ptr->config.dbtype, "Sqlite3") == 0)
                     {
                         dbconfig.config_pass = true;
                     }
@@ -1015,14 +1016,14 @@ on_table_skip_comment(eu_tabpage *pnode, char **psql)
 int
 on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
 {
-    int sel_start;
-    int sel_end;
-    int sel_len;
-    int row_index;
+    int sel_start = 0;
+    int sel_end = 0;
+    int sel_len = 0;
+    int row_index = 0;
     int nret = 0;
-    int field_count;
-    int field_index;
-    unsigned int nfield_width;
+    int field_count = 0;
+    int field_index = 0;
+    unsigned int nfield_width = 0;
     char *sel_sql = NULL;
     char *psel = NULL;
     char *field_value = NULL;
@@ -1042,12 +1043,12 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     }
     if (!on_table_sql_header(pnode))
     {
-        printf("on_table_sql_header failed\n");
+        eu_logmsg("%s: on_table_sql_header failed\n", __FUNCTION__);
         goto table_clean;
     }
     if (vcontrol && on_symtree_do_sql(pnode, false))
     {
-        printf("on_symtree_do_sql failed\n");
+        eu_logmsg("%s: on_symtree_do_sql failed\n", __FUNCTION__);
         goto table_clean;
     }
     if (!pq)
@@ -1070,19 +1071,18 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     }
     if (sel_sql == NULL)
     {
-        printf("failed to allocate memory\n");
+        eu_logmsg("%s: failed to allocate memory\n", __FUNCTION__);
         goto table_clean;
     }
+    on_table_reset_table(pnode->hwnd_qrtable);
     psel = strtok(sel_sql, ";");
     while (psel)
     {
-        printf("befor, psel = %s\n", psel);
         if (!on_table_skip_comment(pnode, &psel))
         {
             psel = strtok(NULL, ";");
             continue;
         }
-        printf("after, psel = %s\n", psel);
         bool is_select_word = _strnicmp(psel, "SELECT", strlen("SELECT")) == 0;
         if (_stricmp(pnode->db_ptr->config.dbtype, "MySQL") == 0)
         {
@@ -1122,7 +1122,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
                 {
-                    printf("Failed to allocate memory\n");
+                    eu_logmsg("%s: Failed to allocate memory\n", __FUNCTION__);
                     mysql_sub->fn_mysql_free_result(presult);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }
@@ -1250,7 +1250,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                 on_table_reset_table(pnode->hwnd_qrtable);
                 if (!field_count)
                 {   // 空表
-                    on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
                     oci_sub->fnOCIHandleFree((dvoid *) stmthpp, OCI_HTYPE_STMT);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }
@@ -1391,7 +1390,7 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             {
                 if ((nret = eu_sqlite3_exec(this_sql3->sqlite3, psel, NULL, NULL, &errmsg)))
                 {
-                    printf("eu_sqlite3_exec failed\n");
+                    eu_logmsg("%s: eu_sqlite3_exec failed\n", __FUNCTION__);
                     LOAD_I18N_RESSTR(IDC_MSG_QUERY_STR7, msg_str);
                     on_result_append_text(msg_str, nret, util_make_u16(errmsg, utf_str, MAX_BUFFER));
                     eu_sqlite3_free(errmsg);
@@ -1405,15 +1404,14 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
             }
             if (!field_count)
             {   // 空表
+                eu_logmsg("%s: field_count = %d, afield_width = %p\n", __FUNCTION__, field_count, afield_width);
                 on_table_reset_table(pnode->hwnd_qrtable);
-                on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
                 eu_sqlite3_free_table(result);
                 SQL_EXECUTE_FAIL(sel_sql);
             }
             if (is_select_word)
             {
                 TCHAR *ptr_index = NULL;
-                on_table_reset_table(pnode->hwnd_qrtable);
                 afield_width = (unsigned int *) calloc(1, sizeof(unsigned int) * field_count);
                 if (afield_width == NULL)
                 {
@@ -1484,7 +1482,6 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
                 on_table_reset_table(pnode->hwnd_qrtable);
                 if (!field_count)
                 {   // 空表
-                    on_table_fix_columns(pnode->hwnd_qrtable, field_count, NULL);
                     pq_sub->fnPQclear(res);
                     SQL_EXECUTE_FAIL(sel_sql);
                 }

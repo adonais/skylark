@@ -50,9 +50,13 @@ IDI_SKYLARK             ICON                    "..\\resources\\skylark.ico"
 IDI_SMALL               ICON                    "..\\resources\\txt32.ico"
 IDI_DEFAULT             ICON                    "..\\resources\\txt48.ico"
 IDB_CLSDFOLD            ICON                    "..\\resources\\folder-closed.ico"
-IDB_DRIVE               ICON                    "..\\resources\\drive.ico"
 IDB_OPENFOLD            ICON                    "..\\resources\\folder-open.ico"
 IDB_TXT                 ICON                    "..\\resources\\txt.ico"
+IDB_DRIVE               ICON                    "..\\resources\\drive.ico"
+IDB_CLOUD               ICON                    "..\\resources\\cloud.ico"
+IDB_FAVORITES           ICON                    "..\\resources\\favorites.ico"
+IDB_BULB                ICON                    "..\\resources\\bulb.ico"
+IDB_SHORTCUT            ICON                    "..\\resources\\shortcut.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

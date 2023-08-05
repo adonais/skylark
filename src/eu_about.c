@@ -3666,7 +3666,7 @@ on_about_build_id(void)
     GetTimeZoneInformation(&tzi);
     if ((zone = (int)tzi.Bias/60))
     {
-        printf("If it is a local compilation, add this time offset, zone = %d\n", zone);
+        eu_logmsg("If it is a local compilation, add this time offset, zone = %d\n", zone);
         return (zone * 3600 + get_compiler_time(__DATE__, __TIME__));
     }
 #endif

@@ -28,7 +28,7 @@ on_splitter_drawing(HWND hwnd, HDC hdc)
 {
     RECT rc = {0};
     GetClientRect(hwnd, &rc);
-    FillRect(hdc, &rc, (HBRUSH)on_dark_get_brush());
+    FillRect(hdc, &rc, eu_theme_index() == THEME_WHITE ? GetSysColorBrush(COLOR_MENU) : (HBRUSH)on_dark_get_bgbrush());
 }
 
 static void

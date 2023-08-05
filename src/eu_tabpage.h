@@ -76,6 +76,8 @@ struct _tabpage
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
+    volatile long busy_id;      // 标签是否空闲状态
+    volatile long lock_id;      // 自动保存时使用的锁
     int tab_id;                 // tab编号,用于保存会话
     int codepage;               // 文件编码
     int eol;                    // 换行符
@@ -92,9 +94,8 @@ struct _tabpage
     complete_ptr ac_vec;        // snippet模式下的vec数组
     capture_ptr re_group;       // snippet正则模式下捕获组
     NMM pmod;                   // 插件模块地址
-    npdata *plugin;             // 插件动态数据表    
+    npdata *plugin;             // 插件动态数据表
     tab_want pwant;             // 回调函数, 需要时使用
-    
 };
 
 extern HWND g_tabpages;

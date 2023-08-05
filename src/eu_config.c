@@ -214,7 +214,6 @@ on_config_load_file(void *lp)
             share_send_msg(&bak);
         }
     }
-    printf("vbak size = %zu\n", cvector_size(vbak));
     cvector_free(vbak);
     return 0;
 }
@@ -256,7 +255,7 @@ on_config_create_accel(void)
         }
         else
         {
-            printf("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
+            eu_logmsg("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
         }
     }
     return ret;
@@ -280,6 +279,7 @@ on_config_sync_snippet(void)
                          _T("rust.snippets"),
                          _T("text.snippets"),
                          _T("verilog.snippets"),
+                         _T("pascal.snippets"),
                          NULL};
     _sntprintf(p2, MAX_BUFFER, _T("%s\\snippets"), eu_config_path);
     if (!eu_exist_dir(p2))
@@ -539,7 +539,7 @@ eu_config_load_docs(void)
     }
     if (do_lua_parser_doctype(lua_path, "fill_my_docs"))
     {
-        printf("eu_docs exec failed\n");
+        eu_logmsg("eu_docs exec failed\n");
         goto load_fail;
     }
     ret = true;
@@ -643,9 +643,7 @@ eu_config_init_path(void)
 bool
 eu_config_load_files(void)
 {
-    HWND hwnd = eu_hwnd_self();
-    HWND share = share_envent_get_hwnd();
-    if (hwnd == share)
+    if (eu_hwnd_self() == share_envent_get_hwnd())
     {
         int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
         if (err == SQLITE_ABORT)
@@ -653,7 +651,7 @@ eu_config_load_files(void)
             if (on_update_do())
             {
                 on_update_sql();
-                eu_save_config();
+                eu_session_backup(SESSION_CONFIG);
                 return false;
             }
             else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
@@ -662,6 +660,7 @@ eu_config_load_files(void)
             }
         }
     }
+    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_favorite_up_config, NULL, 0, NULL));
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
     return on_config_create_accel();

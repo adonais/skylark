@@ -103,7 +103,7 @@ on_map_sync_fold(eu_tabpage *pnode, eu_tabpage *pedit)
     }
 }
 
-#ifdef _DEBUG
+#ifdef APP_DEBUG
 static void
 on_map_print(sptr_t *plines)
 {
@@ -296,7 +296,7 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (hwnd_document_static)
             {
                 hwnd_document_static = NULL;
-                printf("on_map_static_proc recv WM_DESTROY\n");
+                eu_logmsg("on_map_static_proc recv WM_DESTROY\n");
             }
             break;
         }
@@ -463,11 +463,10 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {   // win7上, hwnd_document_static是popup窗口, 需手动销毁
                     DestroyWindow(hwnd_document_static);
                     hwnd_document_static = NULL;
-                    printf("we destroy hwnd_document_static window first\n");
+                    eu_logmsg("we destroy hwnd_document_static window first\n");
                 }
                 _InterlockedExchange(&document_map_initialized, 0);
                 hwnd_document_map = NULL;
-                printf("on_map_callback WM_DESTROY\n");
             }
             break;
         }

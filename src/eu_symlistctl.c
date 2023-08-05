@@ -87,7 +87,6 @@ reqular_thread(void *lp)
         eu_pcre_delete(pcre_info);
     }
     _InterlockedExchange(&pnode->pcre_id, 0);
-    printf("reqular_thread exit\n");
     return 0;
 }
 
@@ -129,10 +128,7 @@ on_symlist_jump_word(eu_tabpage *pnode)
     int count = TabCtrl_GetItemCount(g_tabpages);
     for (int index = 0; index < count; ++index)
     {
-        eu_tabpage *p = NULL;
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
+        eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && p->doc_ptr && p->doc_ptr->doc_type == DOCTYPE_CPP)
         {
             int i = ListBox_FindStringExact(p->hwnd_symlist, -1, ptext);
@@ -216,21 +212,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if (pnode)
-            {
-                if (pnode->hwnd_font)
-                {
-                    DeleteObject(pnode->hwnd_font);
-                    pnode->hwnd_font = NULL;
-                }
-                // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
-                if (pnode->pcre_id)
-                {
-                    util_kill_thread((uint32_t)pnode->pcre_id);
-                }
-            }
-            printf("symlist WM_DESTROY\n");
+            util_symlink_destroy((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             break;
         }
         default:
@@ -267,7 +249,7 @@ on_symlist_create(eu_tabpage *pnode)
         }
         if (!(symlist_wnd = (WNDPROC) SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc)))
         {
-            printf("SetWindowLongPtr(pnode->hwnd_symlist) failed\n");
+            eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symlist) failed\n", __FUNCTION__);
             return 1;
         }
         else

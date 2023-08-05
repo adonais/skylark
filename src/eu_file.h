@@ -23,7 +23,7 @@
 #define BUFF_SIZE (8 * 1024 * 1024)                // 8M
 #define BUFF_32K (32 * 1024)                       // 32K
 #define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
-#define file_click_close(m) (m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
+#define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define url_has_file(ll) (_tcslen(ll) > (URL_MIN+1) && _tcsnicmp(ll, _T("file:///"), (URL_MIN+1)) == 0)
 
@@ -38,7 +38,8 @@ typedef enum _CLOSE_MODE
     FILE_ONLY_CLOSE,
     FILE_EXCLUDE_CLOSE,
     FILE_ALL_CLOSE,
-    FILE_REMOTE_CLOSE
+    FILE_REMOTE_CLOSE,
+    FILE_AUTO_SAVE
 }CLOSE_MODE;
 
 typedef struct _file_backup
@@ -81,8 +82,6 @@ int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
 int on_file_redirect(HWND hwnd, file_backup *pm);
 int on_file_stream_upload(eu_tabpage *pnode, TCHAR *pmsg);
 void on_file_update_time(eu_tabpage *pnode, time_t m);
-void on_file_backup_menu(void);
-void on_file_session_menu(void);
 void on_file_new_eols(eu_tabpage *pnode, const int new_eol);
 void on_file_new_encoding(eu_tabpage *pnode, const int new_enc);
 void on_file_finish_wait(void);
@@ -92,7 +91,8 @@ void on_file_edit_exit(HWND hwnd);
 void on_file_edit_restart(HWND hwnd, const bool admin);
 void on_file_restore_recent(void);
 void on_file_reload_current(eu_tabpage *pnode);
-void on_file_close_last_tab(void);
+void on_file_auto_backup(void);
+void on_file_auto_notify(void);
 uint64_t on_file_get_avail_phys(void);
 
 #ifdef __cplusplus

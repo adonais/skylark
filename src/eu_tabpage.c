@@ -517,7 +517,7 @@ on_tabpage_send_file(const HWND hwin, const int index)
                 err = on_sql_post(sql, on_tabpage_parser_bakup, &bak);
                 if (err != SKYLARK_OK && err != SQLITE_ABORT)
                 {
-                    printf("on_sql_post failed in %s, cause: %d\n", __FUNCTION__, err);
+                    eu_logmsg("%s: on_sql_post return false, cause: %d\n", __FUNCTION__, err);
                 }
                 else
                 {
@@ -586,8 +586,7 @@ on_tabpage_drag_mouse(const HWND hwin)
         TCHAR name[FILESIZE] = {0};
         HWND parent = GetParent(hwin);
         GetClassName(hwin, name, FILESIZE - 1);
-        NMHDR nmhdr = {0};
-        eu_send_notify(g_tabpages, EU_SAVE_CONFIG, &nmhdr);
+        eu_session_backup(SESSION_BOTH);
         if (parent == eu_hwnd_self() || hwin == eu_hwnd_self())
         {   // 拖放在skylark编辑器本身界面上, 启动新实例
             on_tabpage_new_hinst();
@@ -634,6 +633,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
         }
         util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !eu_sci_call(p,SCI_GETREADONLY, 0, 0));
         util_set_menu_item(hpop, IDM_TABPAGE_LOCKED, eu_get_config()->inter_reserved_1);
+        util_enable_menu_item(hpop, IDM_FILE_ADD_FAVORITES, !p->is_blank);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
         util_enable_menu_item(hpop, IDM_FILE_WORKSPACE, !p->is_blank);
@@ -768,7 +768,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
+            FillRect((HDC)wParam, &rc, eu_theme_index() == THEME_WHITE ? GetSysColorBrush(COLOR_MENU) : (HBRUSH)on_dark_get_bgbrush());
             return 1;
         }
         case WM_PAINT:
@@ -976,8 +976,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (eu_get_config()->m_close_draw == IDM_TABCLOSE_FOLLOW)
             {
                 RECT rect = {0};
-                count = TabCtrl_GetItemCount(hwnd);
-                for (index = 0; index < count; ++index)
+                for (index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
                 {
                     if (!(p = on_tabpage_get_ptr(index)))
                     {
@@ -1021,7 +1020,7 @@ on_tabpage_create_dlg(HWND hwnd)
         }
         if (!init_icon_img_list(g_tabpages))
         {
-            printf("init_icon_img_list return false\n");
+            eu_logmsg("%s: init_icon_img_list return false\n", __FUNCTION__);
             err = 1;
             break;
         }
@@ -1165,49 +1164,44 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
 int
 on_tabpage_remove(eu_tabpage **ppnode)
 {
-    int index = 0;
     eu_tabpage *p = NULL;
     EU_VERIFY(ppnode != NULL && *ppnode != NULL && g_tabpages != NULL);
-    for (int count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        TCITEM tci = {TCIF_PARAM};
-        TabCtrl_GetItem(g_tabpages, index, &tci);
-        p = (eu_tabpage *) (tci.lParam);
-        if (p && p == *ppnode)
+        if ((p = on_tabpage_get_ptr(index)) && p == *ppnode)
         {   /* 删除控件句柄与释放资源 */
             TabCtrl_DeleteItem(g_tabpages, index);
-            on_sci_free_tab(ppnode, NULL);
-            break;
+            on_sci_free_tab(ppnode);
+            return index;
         }
     }
-    return index;
+    return EUE_TAB_NULL;
 }
 
 static int
-on_tabpage_remove_empty(eu_tabpage *pre)
+on_tabpage_replace_empty(eu_tabpage *pre)
 {
-    int count;
-    int ret = 0;
     EU_VERIFY(g_tabpages != NULL);
-    if ((count = TabCtrl_GetItemCount(g_tabpages)) < 1)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        return 0;
-    }
-    for (int index = 0; index < count; ++index)
-    {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->is_blank && !eu_sci_call(p, SCI_GETLENGTH, 0, 0))
+        eu_tabpage *p = NULL;
+        TCITEM tci = {TCIF_TEXT | TCIF_PARAM};
+        if (TabCtrl_GetItem(g_tabpages, index, &tci) && (p = (eu_tabpage *) (tci.lParam)))
         {
-            if (!on_sci_doc_modified(p))
+            if (p->is_blank && !TAB_NOT_NUL(p) && !on_sci_doc_modified(p))
             {
-                ret = 1;
-                TabCtrl_DeleteItem(g_tabpages, index);
-                on_sci_free_tab(&p, pre);
-                break;
+                pre->hwnd_sc = p->hwnd_sc;
+                pre->eusc = p->eusc;
+                tci.pszText = pre->filename;
+                tci.lParam = (LPARAM)pre;
+                TabCtrl_SetItem(g_tabpages, index, &tci);
+                on_sci_destroy_control(p);
+                free(p);
+                return index;
             }
         }
     }
-    return ret;
+    return SKYLARK_TABCTRL_ERR;
 }
 
 TCHAR *
@@ -1299,24 +1293,29 @@ int
 on_tabpage_add(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
     if (TAB_NOT_BIN(pnode) && !pnode->hex_mode && !pnode->pmod)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
     if (!pnode->is_blank)
     {
-        on_tabpage_remove_empty(pnode);
+        pnode->tab_id = on_tabpage_replace_empty(pnode);
     }
+    if (pnode->tab_id < 0)
     {
+        TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
         tci.pszText = pnode->filename;
         tci.lParam = (LPARAM) pnode;
         pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
+        if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
+        {
+            eu_logmsg("%s: TabCtrl_InsertItem return false\n", __FUNCTION__);
+            return SKYLARK_TABCTRL_ERR;
+        }
     }
-    if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
+    else
     {
-        printf("TabCtrl_InsertItem return failed on %s:%d\n", __FILE__, __LINE__);
-        return SKYLARK_TABCTRL_ERR;
+        eu_logmsg("%s: Replacing empty Tab, pnode->tab_id = %d\n", __FUNCTION__, pnode->tab_id);
     }
     if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
     {
@@ -1385,6 +1384,10 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             break;
         case 2: // 重载, 滚动到末尾行
         {
+            if (url_has_remote(pnode->pathfile))
+            {
+                break;
+            }
             eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
             if (on_file_load(pnode, NULL, true))
             {
@@ -1393,8 +1396,11 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
             eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
             eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
             eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
-            pnode->st_mtime = util_last_time(pnode->pathfile);
-            SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
+            if (!pnode->is_blank)
+            {
+                pnode->st_mtime = util_last_time(pnode->pathfile);
+                SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
+            }
             break;
         }
         default:

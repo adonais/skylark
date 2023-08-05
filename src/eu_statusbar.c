@@ -247,7 +247,7 @@ on_statusbar_create_button(HWND hstatus)
     hrw = CreateWindowEx(0, _T("button"), wstr, WS_CHILD | WS_CLIPSIBLINGS | BS_FLAT, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_RW, eu_module_handle(), NULL);
     if (!hrw)
     {
-        printf("CreateWindowEx IDM_BTN_RW failed\n");
+        eu_logmsg("%s: CreateWindowEx IDM_BTN_RW failed\n", __FUNCTION__);
     }
     return (hrw != NULL);
 }
@@ -391,7 +391,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             }
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
+            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_bgbrush());
             return 1;
         }
         case WM_PAINT:
@@ -410,7 +410,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             HPEN hpen = CreatePen(PS_SOLID, 1, edge_color);
             HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
             HFONT hold_font = (HFONT)SelectObject(hdc, on_statusbar_default_font());
-            FillRect(hdc, &ps.rcPaint, (HBRUSH)on_dark_get_brush());
+            FillRect(hdc, &ps.rcPaint, (HBRUSH)on_dark_get_bgbrush());
             wchar_t str[MAX_PATH] = {0};
             int nparts = (int)SendMessage(hwnd, SB_GETPARTS, 0, 0);
             for (int i = 0; i < nparts; ++i)
@@ -629,7 +629,6 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
         }
         case WM_THEMECHANGED:
         {
-            printf("status WM_THEMECHANGED\n");
             if (on_dark_enable())
             {
                 on_dark_allow_window(hwnd, true);
@@ -666,7 +665,6 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                     hfont_btn = NULL;
                 }
                 g_statusbar = NULL;
-                printf("statusbar WM_DESTROY\n");
             }
             break;
         }
@@ -973,6 +971,16 @@ on_statusbar_update(void)
 }
 
 void
+on_statusbar_destroy(void)
+{
+    if (g_statusbar)
+    {
+        DestroyWindow(g_statusbar);
+        g_statusbar = NULL;
+    }
+}
+
+void
 on_statusbar_dark_mode(void)
 {
     if (g_statusbar && on_dark_enable())
@@ -1024,7 +1032,7 @@ on_statusbar_init(HWND hwnd)
         g_menu_type = menu_load(IDR_TYPES_MENU);
         if (!(g_menu_break && g_menu_code && g_menu_type))
         {
-            printf("create menu failed\n");
+            eu_logmsg("%s: create menu failed\n", __FUNCTION__);
             break;
         }
         on_statusbar_create_filetype_menu();

@@ -63,11 +63,13 @@ function eu_conf.loadconf()
         "edit_font_quality = 42552\n" ..
         "edit_rendering_technology = 42560\n" ..
         "update_file_mask = 0\n" ..
+        "update_file_notify = 0\n" ..
         "light_all_find_str = true\n" ..
         "backup_on_file_write = false\n" ..
         "save_last_session = true\n" ..
         "exit_when_close_last_tab = false\n" ..
         "allow_multiple_instance = false\n" ..
+        "enable_runtime_logging = false\n" ..
         "save_last_placement = \"\"\n" ..
         "ui_language = \"auto\"\n" ..
         "-- bookmark default setting\n" ..
@@ -125,6 +127,13 @@ function eu_conf.loadconf()
     else
         eu_code = dofile(file)
     end
+    -- Add new preference
+    if (update_file_notify == nil) then
+        update_file_notify = 0
+    end
+    if (enable_runtime_logging == nil) then
+        enable_runtime_logging = false
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -166,11 +175,13 @@ function eu_conf.loadconf()
         edit_font_quality,
         edit_rendering_technology,
         update_file_mask,
+        update_file_notify,
         light_all_find_str,
         backup_on_file_write,
         save_last_session,
         exit_when_close_last_tab,
         allow_multiple_instance,
+        enable_runtime_logging,
         save_last_placement,
         ui_language,
         {bookmark.visable, bookmark.shape, bookmark.argb},

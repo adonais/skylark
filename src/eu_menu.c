@@ -38,6 +38,16 @@ menu_height(void)
     return m_height;
 }
 
+void
+menu_destroy(HWND hwnd)
+{
+    HMENU hmenu = GetMenu(hwnd);
+    if(hmenu)
+    {
+        DestroyMenu(hmenu);
+    }
+}
+
 HMENU
 menu_load(uint16_t mid)
 {
@@ -173,11 +183,11 @@ menu_default_keys(HMENU hmenu, int id, int pos)
         {
             _tcsncat(mdata, _T("\t"), FILESIZE);
         }
-        if (id == IDM_VIEW_ZOOMOUT)
+        if (id == IDM_VIEW_ZOOMIN)
         {
             _tcsncat(mdata, _T("Ctrl+MouseWheelUP"), FILESIZE);
         }
-        else if (id == IDM_VIEW_ZOOMIN)
+        else if (id == IDM_VIEW_ZOOMOUT)
         {
             _tcsncat(mdata, _T("Ctrl+MouseWheelDown"), FILESIZE);
         }
@@ -354,6 +364,11 @@ menu_update_item(HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_UTF16BE, (eu_get_config()->new_file_enc == IDM_UNI_UTF16BEB));
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_ANSI, (eu_get_config()->new_file_enc == IDM_OTHER_ANSI));
                         break;
+                    case IDM_FILE_RELOAD_CURRENT:
+                        util_enable_menu_item(menu, IDM_FILE_RELOAD_CURRENT, pnode && !url_has_remote(pnode->pathfile));
+                        break;
+                    case IDM_FILE_ADD_FAVORITES:
+                        util_enable_menu_item(menu, IDM_FILE_ADD_FAVORITES, init || !pnode->is_blank);
                     case IDM_FILE_RESTART_ADMIN:
                         util_enable_menu_item(menu, IDM_FILE_RESTART_ADMIN, init || !util_under_wine());
                         break;
@@ -543,9 +558,17 @@ menu_update_item(HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
                         break;
+                    case IDM_SET_LOGGING_ENABLE:
+                        util_set_menu_item(menu, IDM_SET_LOGGING_ENABLE, eu_get_config()->m_logging);
+                        break;
+                    case IDM_FILE_SAVE_NOTIFY:
+                        util_update_menu_chars(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_up_notify);
+                        util_set_menu_item(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_session && eu_get_config()->m_up_notify > 0);
+                        util_enable_menu_item(menu, IDM_FILE_SAVE_NOTIFY,  init || eu_hwnd_self() == share_envent_get_hwnd());
+                        break;
                     case IDM_SKYLAR_AUTOMATIC_UPDATE:
                         enable = util_upcheck_exist();
-                        util_enable_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, init || enable);
+                        util_enable_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, init || (eu_hwnd_self() == share_envent_get_hwnd() && enable));
                         util_set_menu_item(menu, IDM_SKYLAR_AUTOMATIC_UPDATE, eu_get_config()->upgrade.enable && enable);
                         break;
                     case IDM_ABOUT:                  /* Help menu */

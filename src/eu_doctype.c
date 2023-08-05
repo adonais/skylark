@@ -93,6 +93,9 @@ on_doc_enable_foldline(eu_tabpage *pnode)
         case DOCTYPE_JSON:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.json.allow.comments", (sptr_t)"1");
             break;
+        case DOCTYPE_PASCAL:
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.pascal.smart.highlighting", (sptr_t)"1");
+            break;
         default:
             break;
         }
@@ -2044,7 +2047,6 @@ on_doc_ptr_free(void)
         }
     }
     do_lua_parser_release();
-    printf("we destroy hash table and Lua runtime\n");
 }
 
 doctype_t*

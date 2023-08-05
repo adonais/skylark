@@ -31,7 +31,8 @@ typedef enum _DB_MODE
 {
     DB_ALL = 0,
     DB_MEM,
-    DB_FILE
+    DB_FILE,
+    DB_FAVS
 }DB_MODE;
 
 typedef struct _file_recent
@@ -48,6 +49,10 @@ int  on_sql_sync_session(void);
 int  on_sql_do_session(const char *s, sql3_callback callback, void *data);
 int  on_sql_post(const char *sql, sql3_callback callback, void *data);
 int  on_sql_mem_post(const char *sql, sql3_callback callback, void *data);
+int  on_sql_favotrite_post(const char *sql, sql3_callback callback, void *data);
+int  on_sql_favotrite_select(sql3_callback callback, void *data);
+int  on_sql_favotrite_insert(void *pdata);
+int  on_sql_favotrite_delete(const wchar_t *pathfile);
 
 #ifdef __cplusplus
 }

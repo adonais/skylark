@@ -245,7 +245,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     }
     if (msg == IDCANCEL || msg == IDCLOSE)
     {
-        printf("we cancel the converter\n");
+        eu_logmsg("we cancel the converter\n");
         close_conv_handle(icv);
         return 255;
     }
@@ -264,7 +264,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     *plen = ldst;
     if (eu_iconvctl(icv->cd, ICONV_SET_DISCARD_ILSEQ, &argument) != 0)
     {
-        printf("can't enable illegal feature!\n");
+        eu_logmsg("can't enable illegal feature!\n");
         close_conv_handle(icv);
         return (size_t) -1;
     }
@@ -278,7 +278,6 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     {
         pdst = *dst;
     }
-    printf("lsrc = %zu, ldst = %zu\n", lsrc, ldst);
     ret = eu_iconv(icv->cd, &psrc, &lsrc, &pdst, &ldst);
     if (ret != (size_t) -1)
     {
@@ -288,7 +287,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     else
     {
         eu_safe_free(*dst);
-        printf("eu_iconv convert[%s->%s] failed! lsrc = %zu, ldst = %zu, ret = %d\n", icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
+        eu_logmsg("%s: [%s->%s] failed! lsrc = %zu, ldst = %zu, ret = %d\n", __FUNCTION__, icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
     }
     close_conv_handle(icv);
     return ret;
@@ -353,7 +352,7 @@ on_encoding_gb_big5(const char *gb2, size_t *out_len)
     }
     if (!gb2tw(gb_str, &szbuf, out_len))
     {
-        printf("failed to get internal code table\n");
+        eu_logmsg("failed to get internal code table\n");
         free(gb_str);
         return NULL;
     }
@@ -378,7 +377,7 @@ on_encoding_big5_gb(const char *bg5, size_t *out_len)
     }
     if (!tw2gb(bg5_str, &szbuf, out_len))
     {
-        printf("failed to get internal code table\n");
+        eu_logmsg("failed to get internal code table\n");
         free(bg5_str);
         szbuf = NULL;
     }

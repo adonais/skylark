@@ -28,7 +28,7 @@
 
 #define LOAD_I18N_RESSTR(tid, var)                             \
     TCHAR var[MAX_PATH] = {0};                                 \
-    eu_i18n_load_str(tid, var, MAX_PATH);
+    eu_i18n_load_str(tid, var, MAX_PATH)
 
 #define MSG_BOX(tid, cid, mb)                                   \
     do                                                          \
@@ -48,6 +48,17 @@
         LOAD_I18N_RESSTR(tid, _msg);                             \
         _sntprintf(_txt, MAX_LOADSTRING, _msg, _tcserror(errno));\
         eu_msgbox(eu_module_hwnd(), _txt, _cap, mb);             \
+    } while (0)
+    
+#define MSG_BOX_NUM(tid, cid, num)                                      \
+    do                                                                  \
+    {                                                                   \
+        TCHAR _txt[MAX_LOADSTRING] = {0};                               \
+        TCHAR _cap[MAX_LOADSTRING] = {0};                               \
+        eu_i18n_load_str(tid, _txt, 0);                                 \
+        eu_i18n_load_str(cid, _cap, 0);                                 \
+        _sntprintf(_txt, MAX_LOADSTRING, _T("%s, error:%d"), _txt, num);\
+        eu_msgbox(eu_module_hwnd(), _txt, _cap, MB_OK);                 \
     } while (0)
 
 #define MSG_BOX_SEL(tid, cid, mb, var)                           \

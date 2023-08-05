@@ -109,13 +109,13 @@ on_remote_init_socket(const char *url, remotefs *pserver)
     }
     if (!(curl = eu_curl_easy_init()))
     {
-        printf("eu_curl_easy_init failed!\n");
+        eu_logmsg("eu_curl_easy_init failed!\n");
         return NULL;
     }
     // 加入url编码, 防止路径上出现空格等字符
     if (!(enc_url = util_url_escape(url)))
     {
-        printf("util_url_escape failed!\n");
+        eu_logmsg("util_url_escape failed!\n");
         eu_curl_easy_cleanup(curl);
         return NULL;
     }
@@ -130,7 +130,7 @@ on_remote_init_socket(const char *url, remotefs *pserver)
     }
     else
     {   // 客户端证书私钥，用于双向认证
-        printf("we user pkey login\n");
+        eu_logmsg("we user pkey login\n");
         eu_curl_easy_setopt(curl, CURLOPT_USERNAME, pserver->user);
         eu_curl_easy_setopt(curl, CURLOPT_SSH_PRIVATE_KEYFILE, pserver->key_path);
         if (strlen(pserver->passphrase) > 0)
@@ -198,6 +198,15 @@ on_remote_remove_config(remotefs* pserver)
     return 0;
 }
 
+/**************************************************************************************
+ * 必须设置一个回调函数, 要不在GUI模式下返回错误码[23]
+ **************************************************************************************/
+static size_t
+on_remote_fw_back(void *buffer, size_t size, size_t nmemb, void *stream)
+{
+    return size * nmemb;
+}
+
 static unsigned WINAPI
 on_remote_server_testing(void * lp)
 {
@@ -219,8 +228,10 @@ on_remote_server_testing(void * lp)
             free(pserver);
             return 1;
         }
-    #if defined(APP_DEBUG) && (APP_DEBUG > 0)
+    #if APP_DEBUG
         eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    #else
+        eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_remote_fw_back);
     #endif
         eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
         CURLcode res = eu_curl_easy_perform(curl);
@@ -240,7 +251,7 @@ on_remote_server_testing(void * lp)
             }
             else
             {
-                MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_OK);
+                MSG_BOX_NUM(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, res);
             }
         }
         else
@@ -711,7 +722,7 @@ on_remote_list_find(const TCHAR *url)
             return NULL;
         }
     }
-    printf("addr = %s, port = %s\n", addr, port);
+    eu_logmsg("addr = %s, port = %s\n", addr, port);
     if (list_empty(&list_server))
     {
         on_sql_post("SELECT * FROM file_remote;", on_remote_parser_callback, NULL);

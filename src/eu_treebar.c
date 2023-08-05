@@ -29,11 +29,6 @@ typedef enum _GENERATE_TYPE
 HWND g_treebar = NULL;
 HWND g_filetree = NULL;
 
-static int img_drive;
-static int img_fold;
-static int img_close;
-static int img_text;
-static int img_exe;
 static WNDPROC filetree_wnd;
 static WNDPROC treebar_wnd;
 
@@ -63,7 +58,7 @@ on_filetree_get_child_node(HTREEITEM hitem)
     tree_data *tvd = NULL;
     if (!hitem)
     {
-        root = TreeView_GetFirstVisible(g_filetree);
+        root = TreeView_GetRoot(g_filetree);
     }
     while (root)
     {
@@ -118,7 +113,7 @@ on_filetree_curl_read_callback(void *buffer, size_t size, size_t nmemb, void *st
 }
 
 static tree_data *
-on_treebar_data_alloc(remotefs *server, TCHAR *pathname, TCHAR *filepath, TCHAR *filename, bool is_load, int img_index)
+on_treebar_data_alloc(remotefs *server, TCHAR *pathname, TCHAR *filepath, TCHAR *filename, TCHAR *tagdesc, bool is_load, int img_index)
 {
     tree_data *tvd = NULL;
     if ((tvd = (tree_data *)calloc(1, sizeof(tree_data))) != NULL)
@@ -141,6 +136,12 @@ on_treebar_data_alloc(remotefs *server, TCHAR *pathname, TCHAR *filepath, TCHAR 
             EU_VERIFY(tvd->filename != NULL);
             _tcscpy(tvd->filename, filename);
         }
+        if (STR_NOT_NUL(tagdesc))
+        {
+            tvd->tagdesc = (TCHAR *)calloc(sizeof(TCHAR), _tcslen(tagdesc) + 1);
+            EU_VERIFY(tvd->tagdesc != NULL);
+            _tcscpy(tvd->tagdesc, tagdesc);
+        }
         tvd->server = server;
         tvd->is_load = is_load;
         tvd->img_index = img_index;
@@ -156,11 +157,12 @@ on_treebar_data_destoy(tree_data **ptvd)
         eu_safe_free((*ptvd)->pathname);
         eu_safe_free((*ptvd)->filepath);
         eu_safe_free((*ptvd)->filename);
+        eu_safe_free((*ptvd)->tagdesc);
         eu_safe_free((*ptvd));
     }
 }
 
-static HTREEITEM
+HTREEITEM
 on_treebar_get_path(tree_data **ptvd)
 {
     HTREEITEM hti_select = TreeView_GetSelection(g_filetree);
@@ -176,9 +178,10 @@ on_treebar_get_path(tree_data **ptvd)
 }
 
 static tree_data *
-on_filetree_add_node(HWND hwnd, HTREEITEM parent, int img_index, remotefs *server, TCHAR *pathname, TCHAR *filepath, TCHAR *filename, bool is_load)
+on_filetree_add_node(HWND hwnd, HTREEITEM parent, int img_index, remotefs *server, 
+                    TCHAR *pathname, TCHAR *filepath, TCHAR *filename, TCHAR *tagdesc, bool is_load)
 {
-    tree_data *tvd = on_treebar_data_alloc(server, pathname, filepath, filename, is_load, img_index);
+    tree_data *tvd = on_treebar_data_alloc(server, pathname, filepath, filename, tagdesc, is_load, img_index);
     if (tvd != NULL)
     {
         TVITEM tvi = {TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_DI_SETITEM | TVIF_PARAM};
@@ -191,6 +194,17 @@ on_filetree_add_node(HWND hwnd, HTREEITEM parent, int img_index, remotefs *serve
         tvd->hti = TreeView_InsertItem(hwnd, &tvis);
     }
     return tvd;
+}
+
+tree_data *
+on_treebar_add_favorite(HTREEITEM parent, const int index, void *pdata)
+{
+    favorite_data *pfa = (favorite_data *)pdata;
+    if (pfa && pfa->szname[0])
+    {
+        return on_filetree_add_node(g_filetree, parent, index, NULL, NULL, pfa->szpath, pfa->szname, pfa->sztag, false);
+    }
+    return NULL;
 }
 
 static void CALLBACK
@@ -227,9 +241,9 @@ on_filetree_file_rename(TVITEM *ptvi)
     tree_data *old = (tree_data *) GetWindowLongPtr(g_filetree, GWLP_USERDATA);
     do
     {
-        if (!old)
+        if (!old || !old->pathname)
         {
-            printf("GetWindowLongPtr(g_filetree) failed\n");
+            eu_logmsg("%s: exist null pointer\n", __FUNCTION__);
             ret = EUE_POINT_NULL;
             break;
         }
@@ -242,7 +256,7 @@ on_filetree_file_rename(TVITEM *ptvi)
                 _sntprintf(pname, len, _T("%s/%s"), old->pathname, ptvi->pszText);
                 if (!MoveFile(old->filepath, pname))
                 {
-                    printf("MoveFile failed, cause:%lu\n", GetLastError());
+                    eu_logmsg("%s: MoveFile failed, cause:%lu\n", __FUNCTION__, GetLastError());
                     ret = EUE_MOVE_FILE_ERR;
                 }
                 else
@@ -281,17 +295,17 @@ on_filetree_file_rename(TVITEM *ptvi)
             }
             if (!p)
             {
-                printf("maybe path error\n");
+                eu_logmsg("%s: maybe path error\n", __FUNCTION__);
                 ret = EUE_FILE_ATTR_ERR;
                 break;
             }
             if (old->server->accesss == 0)
             {
-                _snprintf(postquote, len, "rename %s%s %s%s", p + 1, filename, p + 1, newname);
+                _snprintf(postquote, len, "rename \"%s%s\" \"%s%s\"", p + 1, filename, p + 1, newname);
             }
             else
             {
-                _snprintf(postquote, len, "rename /%s%s /%s%s", p + 1, filename, p + 1, newname);
+                _snprintf(postquote, len, "rename \"/%s%s\" \"/%s%s\"", p + 1, filename, p + 1, newname);
             }
             headerlist = eu_curl_slist_append(headerlist, postquote);
             eu_curl_easy_setopt(curl, CURLOPT_POSTQUOTE, headerlist);
@@ -299,7 +313,7 @@ on_filetree_file_rename(TVITEM *ptvi)
             eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
             if (eu_curl_easy_perform(curl) != CURLE_OK)
             {
-                printf("rename [%s] to [%s] failed\n", filename, newname);
+                eu_logmsg("%s: rename [%s] to [%s] failed\n", __FUNCTION__, filename, newname);
                 ret = EUE_CURL_NETWORK_ERR;
                 break;
             }
@@ -383,7 +397,7 @@ on_filetree_file_delete(void)
             }
             if (!m_del)
             {
-                printf("delete node failed, cause:%lu\n", GetLastError());
+                eu_logmsg("%s: delete node failed, cause:%lu\n", __FUNCTION__, GetLastError());
                 ret = EUE_DELETE_FILE_ERR;
             }
             else
@@ -420,7 +434,7 @@ on_filetree_file_delete(void)
             }
             if (!p)
             {
-                printf("maybe path error\n");
+                eu_logmsg("%s: maybe path error\n", __FUNCTION__);
                 ret = EUE_FILE_ATTR_ERR;
                 break;
             }
@@ -432,22 +446,22 @@ on_filetree_file_delete(void)
             {
                 if (is_file)
                 {
-                    snprintf(postquote, len, "rm %.*s", strlen(p + 1), p + 1);
+                    snprintf(postquote, len, "rm \"%.*s\"", strlen(p + 1), p + 1);
                 }
                 else
                 {
-                    snprintf(postquote, len, "rmdir %.*s", strlen(p + 1) - 1, p + 1);
+                    snprintf(postquote, len, "rmdir \"%.*s\"", strlen(p + 1) - 1, p + 1);
                 }
             }
             else
             {
                 if (is_file)
                 {
-                    snprintf(postquote, len, "rm /%.*s", strlen(p + 1), p + 1);
+                    snprintf(postquote, len, "rm \"/%.*s\"", strlen(p + 1), p + 1);
                 }
                 else
                 {
-                    snprintf(postquote, len, "rmdir /%.*s", strlen(p + 1) - 1, p + 1);
+                    snprintf(postquote, len, "rmdir \"/%.*s\"", strlen(p + 1) - 1, p + 1);
                 }
             }
             headerlist = eu_curl_slist_append(headerlist, postquote);
@@ -456,7 +470,7 @@ on_filetree_file_delete(void)
             eu_curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
             if ((eu_curl_easy_perform(curl)) != CURLE_OK)
             {
-                printf("deletel file failed\n");
+                eu_logmsg("%s: deletel file failed\n", __FUNCTION__);
                 ret = EUE_CURL_NETWORK_ERR;
             }
             else
@@ -468,7 +482,7 @@ on_filetree_file_delete(void)
     if (ret == SKYLARK_OK)
     {
         TreeView_DeleteItem(g_filetree, hti_select);
-        free(tvd);
+        on_treebar_data_destoy(&tvd);
         UpdateWindow(g_filetree);
     }
     eu_safe_free(pathname);
@@ -554,17 +568,17 @@ on_filetree_new_directory(void)
             }
             if (!p)
             {
-                printf("maybe path error\n");
+                eu_logmsg("%s: maybe path error\n", __FUNCTION__);
                 ret = EUE_FILE_ATTR_ERR;
                 break;
             }
             if (tvd->server->accesss == 0)
             {
-                snprintf(postquote, len, "mkdir %s%s", p + 1, u8_dir);
+                snprintf(postquote, len, "mkdir \"%s%s/\"", p + 1, u8_dir);
             }
             else
             {
-                snprintf(postquote, len, "mkdir /%s%s", p + 1, u8_dir);
+                snprintf(postquote, len, "mkdir \"/%s%s/\"", p + 1, u8_dir);
             }
             headerlist = eu_curl_slist_append(headerlist, postquote);
             eu_curl_easy_setopt(curl, CURLOPT_POSTQUOTE, headerlist);
@@ -583,7 +597,7 @@ on_filetree_new_directory(void)
     } while(0);
     if (ret == SKYLARK_OK)
     {
-        on_filetree_add_node(g_filetree, hti_select, img_close, tvd->server ? tvd->server : NULL, tvd->filepath, full_dir_path, dir_name, false);
+        on_filetree_add_node(g_filetree, hti_select, IMG_CLOSE, tvd->server ? tvd->server : NULL, tvd->filepath, full_dir_path, dir_name, NULL, false);
         UpdateWindow(g_filetree);
     }
     eu_safe_free(full_dir_path);
@@ -665,7 +679,7 @@ on_filetree_new_file(void)
             eu_curl_easy_setopt(curl, CURLOPT_READFUNCTION, on_filetree_curl_write_callback);
             eu_curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
             eu_curl_easy_setopt(curl, CURLOPT_READDATA, NULL);
-        #if defined(APP_DEBUG) && (APP_DEBUG > 0)
+        #if APP_DEBUG
             eu_curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         #endif
             eu_curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
@@ -682,8 +696,8 @@ on_filetree_new_file(void)
     } while(0);
     if (ret == SKYLARK_OK)
     {
-        tree_data *tvd_new = on_filetree_add_node(g_filetree, hti_select, img_text, tvd->server ? tvd->server : NULL,
-                                           tvd->filepath, filepath, ac_file, true);
+        tree_data *tvd_new = on_filetree_add_node(g_filetree, hti_select, IMG_TEXT, tvd->server ? tvd->server : NULL,
+                                           tvd->filepath, filepath, ac_file, NULL, true);
         if (tvd_new)
         {
             TreeView_SelectItem(g_filetree, tvd_new->hti);
@@ -739,7 +753,7 @@ on_filetree_file_copy(void)
             else
             {
                 tvd_new = on_filetree_add_node(g_filetree, TreeView_GetParent(g_filetree, hti_select),
-                          img_text, NULL, tvd->pathname, new_path_name, new_file_name, true);
+                          IMG_TEXT, NULL, tvd->pathname, new_path_name, new_file_name, NULL, true);
                 if (tvd_new)
                 {
                     TreeView_SelectItem(g_filetree, tvd_new->hti);
@@ -797,7 +811,7 @@ on_filetree_append_file_child(HWND hwnd, tree_data *tpnode)
             if (st_file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
             {
                 _sntprintf(filepath, size, _T("%s/%s"), tpnode->filepath, st_file.cFileName);
-                if (on_filetree_add_node(hwnd, tpnode->hti, img_close, NULL, tpnode->filepath, filepath, st_file.cFileName, false) == NULL)
+                if (on_filetree_add_node(hwnd, tpnode->hti, IMG_CLOSE, NULL, tpnode->filepath, filepath, st_file.cFileName, NULL, false) == NULL)
                 {
                     ret = EUE_POINT_NULL;
                     break;
@@ -806,7 +820,7 @@ on_filetree_append_file_child(HWND hwnd, tree_data *tpnode)
             else
             {
                 _sntprintf(filepath, size, _T("%s/%s"), tpnode->filepath, st_file.cFileName);
-                if (on_filetree_add_node(hwnd, tpnode->hti, img_text, NULL, tpnode->filepath, filepath, st_file.cFileName, true) == NULL)
+                if (on_filetree_add_node(hwnd, tpnode->hti, IMG_TEXT, NULL, tpnode->filepath, filepath, st_file.cFileName, NULL, true) == NULL)
                 {
                     ret = EUE_POINT_NULL;
                     break;
@@ -838,7 +852,7 @@ on_filetree_load_drives(HWND hwnd)
         {
             *(_tcschr(pdri, _T('\\'))) = '\0';
         }
-        tvd = on_filetree_add_node(hwnd, TVI_ROOT, img_drive, NULL, pdri, pdri, pdri, true);
+        tvd = on_filetree_add_node(hwnd, TVI_ROOT, IMG_DRIVE, NULL, pdri, pdri, pdri, NULL, true);
         if (tvd == NULL)
         {
             return EUE_POINT_NULL;
@@ -974,7 +988,7 @@ on_filetree_append_remote_child(tree_data *tpnode)
                     break;
                 }
                 util_make_u16(u8_filename, filename, MAX_PATH - 1);
-                if (on_filetree_add_node(g_filetree, tpnode->hti, img_close, tpnode->server, tpnode->filepath, filepath, filename, false) == NULL)
+                if (on_filetree_add_node(g_filetree, tpnode->hti, IMG_CLOSE, tpnode->server, tpnode->filepath, filepath, filename, NULL, false) == NULL)
                 {
                     ret = EUE_POINT_NULL;
                     break;
@@ -999,7 +1013,7 @@ on_filetree_append_remote_child(tree_data *tpnode)
                     break;
                 }
                 util_make_u16(u8_filename, filename, MAX_PATH - 1);
-                if (on_filetree_add_node(g_filetree, tpnode->hti, img_text, tpnode->server, tpnode->filepath, filepath, filename, true) == NULL)
+                if (on_filetree_add_node(g_filetree, tpnode->hti, IMG_TEXT, tpnode->server, tpnode->filepath, filepath, filename, NULL, true) == NULL)
                 {
                     ret = EUE_POINT_NULL;
                     break;
@@ -1032,7 +1046,7 @@ on_treebar_node_exist(remotefs *pserver)
 {
     HTREEITEM hti_root = NULL;
     tree_data *tvd = NULL;
-    if (pserver && (hti_root = TreeView_GetFirstVisible(g_filetree)))
+    if (pserver && (hti_root = TreeView_GetRoot(g_filetree)))
     {
         while ((hti_root = TreeView_GetNextSibling(g_filetree, hti_root)))
         {
@@ -1071,7 +1085,7 @@ on_filetree_node_update(void *lp)
     int ret = SKYLARK_OK;
     SetCursor(LoadCursor(NULL, IDC_WAIT));
     tpnode = on_treebar_get_treeview(hti_parent);
-    if (tpnode->server && tpnode->img_index == img_drive && !tpnode->is_load)
+    if (tpnode->server && tpnode->img_index <= IMG_DRIVE && !tpnode->is_load)
     {
         tpnode->server->curl_opt = on_filetree_curl_opt;
         if (on_filetree_append_remote_child(tpnode))
@@ -1080,8 +1094,7 @@ on_filetree_node_update(void *lp)
         }
         else
         {
-            InvalidateRect(g_filetree, NULL, true);
-            UpdateWindow(g_filetree);
+            util_redraw(g_filetree, false);
         }
     }
     hti_child = TreeView_GetChild(g_filetree, hti_parent);
@@ -1105,8 +1118,7 @@ on_filetree_node_update(void *lp)
             }
             else
             {
-                InvalidateRect(g_filetree, NULL, true);
-                UpdateWindow(g_filetree);
+                util_redraw(g_filetree, false);
             }
         }
         hti_child = TreeView_GetNextSibling(g_filetree, hti_child);
@@ -1131,20 +1143,20 @@ on_filetree_node_dbclick(void)
     int err = SKYLARK_OK;
     tree_data *tvd = NULL;
     file_backup bak = {0};
-    if (!(hti = on_treebar_get_path(&tvd)) || !tvd)
+    if (!(hti = on_treebar_get_path(&tvd)) || !tvd || !tvd->filepath)
     {
         return EUE_POINT_NULL;
     }
-    if (!tvd->is_load)
+    if (tvd->img_index != IMG_SHORTCUT && !tvd->is_load)
     {
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_filetree_node_update, (void *) hti, 0, NULL));
         return 0;
     }
-    if (tvd->img_index != img_text)
+    if (tvd->img_index != IMG_SHORTCUT && tvd->img_index != IMG_TEXT)
     {
         return 0;
     }
-    if (tvd->server != NULL)
+    if ((tvd->img_index == IMG_SHORTCUT && url_has_remote(tvd->filepath)) || tvd->server != NULL)
     {
         _tcsncpy(bak.rel_path, tvd->filepath, _countof(bak.rel_path));
         err = (on_file_open_remote(tvd->server, &bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
@@ -1347,15 +1359,23 @@ on_treebar_refresh_node(HTREEITEM hti_parent)
     while (1)
     {
         tree_data *tvd = NULL;
-        hti_first = TreeView_GetChild(g_filetree, hti_parent);
-        if (hti_first == NULL) break;
-        tvd = on_treebar_get_treeview(hti_first);
-        free(tvd);
-        TreeView_DeleteItem(g_filetree, hti_first);
+        if ((hti_first = TreeView_GetChild(g_filetree, hti_parent)) == NULL)
+        {
+            break;
+        }
+        if ((tvd = on_treebar_get_treeview(hti_first)) != NULL)
+        {
+            TreeView_DeleteItem(g_filetree, hti_first);
+            on_treebar_data_destoy(&tvd);
+        }
     }
     if (tpnode->server == NULL)
     {
-        if (!(ret = on_filetree_append_file_child(g_filetree, tpnode)))
+        if (tpnode->img_index == IMG_FAVORITES)
+        {
+            CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_favorite_up_config, NULL, 0, NULL));
+        }
+        else if (!(ret = on_filetree_append_file_child(g_filetree, tpnode)))
         {
             ret = on_filetree_node_update(hti_parent);
         }
@@ -1384,7 +1404,7 @@ on_treebar_refresh(HWND hwnd)
     hti_parent = TreeView_GetParent(g_filetree, tvhti.hItem);
     if (hti_parent == NULL)
     {
-        hti_parent = TreeView_GetFirstVisible(g_filetree);
+        hti_parent = TreeView_GetRoot(g_filetree);
         while (hti_parent)
         {
             TreeView_SelectItem(hwnd, hti_parent);
@@ -1447,7 +1467,7 @@ on_treebar_update_addr(remotefs *pserver)
     {
         return;
     }
-    if (!(hti_root = TreeView_GetFirstVisible(g_filetree)))
+    if (!(hti_root = TreeView_GetRoot(g_filetree)))
     {
         return;
     }
@@ -1499,8 +1519,8 @@ on_filetree_menu_callback(HMENU hpop, void *param)
     int number = eu_int_cast((intptr_t)param);
     if (hpop)
     {
-        util_enable_menu_item(hpop, IDM_RENAME_DIRECTORY, number != img_drive);
-        util_enable_menu_item(hpop, IDM_DELETE_DIRECTORY, number != img_drive);
+        util_enable_menu_item(hpop, IDM_RENAME_DIRECTORY, number == IMG_FOLD || number == IMG_CLOSE);
+        util_enable_menu_item(hpop, IDM_DELETE_DIRECTORY, number == IMG_FOLD || number == IMG_CLOSE);
     }
 }
 
@@ -1515,11 +1535,32 @@ on_filetree_menu_callback2(HMENU hpop, void *param)
         bool enable = ext &&
                       !(_tcsicmp(ext, _T("jpg")) && _tcsicmp(ext, _T("jpeg")) && _tcsicmp(ext, _T("gif")) && _tcsicmp(ext, _T("png")) && 
                       _tcsicmp(ext, _T("bmp")) && _tcsicmp(ext, _T("ico")) && _tcsicmp(ext, _T("webp")) && _tcsicmp(ext, _T("svg")));
+        util_enable_menu_item(hpop, IDM_COPY_FILE, tvd->server == NULL);
         util_enable_menu_item(hpop, IDM_FILE_MD5_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA1_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA256_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_PIC_CONVERT_BASE64, enable && ssl);
     }
+}
+
+static int
+on_treebar_init_favorites(HWND hwnd)
+{
+    TCHAR sql_path[MAX_BUFFER] = {0};
+    TCHAR name[MAX_LOADSTRING] = {0};
+    if (!eu_i18n_load_str(IDS_USER_FAVORITES, name, MAX_LOADSTRING - 1))
+    {
+        return EUE_UNKOWN_ERR;
+    }
+    if (eu_config_path[0])
+    {
+        _sntprintf(sql_path, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, FAV_STORAGE);
+        if (on_filetree_add_node(hwnd, TVI_ROOT, IMG_FAVORITES, NULL, NULL, sql_path, name, NULL, false))
+        {
+            return SKYLARK_OK;
+        }
+    }
+    return EUE_UNKOWN_ERR;
 }
 
 LRESULT CALLBACK
@@ -1552,16 +1593,16 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_filetree_node_expand(lpnmtv);
                     if (lpnmtv->action == TVE_COLLAPSE)
                     {
-                        if ((item.iSelectedImage) != img_drive)
+                        if (item.iSelectedImage == IMG_FOLD)
                         {
-                            item.iSelectedImage = img_close;
+                            item.iSelectedImage = IMG_CLOSE;
                         }
                     }
                     else if (lpnmtv->action == TVE_EXPAND)
                     {
-                        if ((item.iSelectedImage) != img_drive)
+                        if (item.iSelectedImage == IMG_CLOSE)
                         {
-                            item.iSelectedImage = img_fold;
+                            item.iSelectedImage = IMG_FOLD;
                         }
                     }
                     TreeView_SetItem(hwnd, &item);
@@ -1640,6 +1681,15 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_PIC_CONVERT_BASE64:
                     on_filetree_generate_enc(BASE64_GENERATE);
                     break;
+                case IDM_FAVORITE_OPEN:
+                    on_filetree_node_dbclick();
+                    break;
+                case IDM_FAVORITE_REMOVE:
+                    on_favorite_remove_node();
+                    break;
+                case IDM_FAVORITE_ATTR:
+                    on_favorite_manager();
+                    break;
                 default:
                     break;
             }
@@ -1660,13 +1710,20 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     break;
                 }
-                if (tvd->img_index == img_drive || tvd->img_index == img_fold || tvd->img_index == img_close)
+                if (tvd->img_index < IMG_TEXT)
                 {
-                    menu_pop_track(hwnd, IDR_FILETREE_DIR_POPUPMENU, 0, -1, on_filetree_menu_callback, (void *)(intptr_t)tvd->img_index);
+                    if (tvd->img_index != IMG_FAVORITES)
+                    {
+                        menu_pop_track(hwnd, IDR_FILETREE_DIR_POPUPMENU, 0, -1, on_filetree_menu_callback, (void *)(intptr_t)tvd->img_index);
+                    }
                 }
-                else
+                else if (tvd->img_index < IMG_BULB)
                 {
                     menu_pop_track(hwnd, IDR_FILETREE_FILE_POPUPMENU, 0, -1, on_filetree_menu_callback2, tvd);
+                }
+                else if (tvd->img_index == IMG_SHORTCUT)
+                {
+                    menu_pop_track(hwnd, IDR_FILETREE_FAVORITE_POPUP, 0, -1, NULL, NULL);
                 }
                 return 1;  // 不返回, linux/wine上input窗口无法获取鼠标焦点
             }
@@ -1684,7 +1741,6 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ImageList_Destroy(img_list);
             }
             on_filetree_destroy_node();
-            printf("filetree WM_DESTROY\n");
             break;
         }
         default:
@@ -1699,29 +1755,21 @@ on_treebar_load_imglist(HWND hwnd)
     HIMAGELIST himl; // handle to image list
     HICON hicon;     // handle to icon
     HINSTANCE hinst = eu_module_handle();
-    if ((himl = ImageList_Create(16, 16, ILC_COLOR32, 6, 0)) == NULL)
+    if ((himl = ImageList_Create(16, 16, ILC_COLOR32, IMG_DBMAX, 0)) == NULL)
     {
         return NULL;
     }
-    // Add the open file, closed file, and document bitmaps.
-    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_DRIVE));
-    img_drive = ImageList_AddIcon(himl, hicon);
-    DestroyIcon(hicon);
-
-    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_OPENFOLD));
-    img_fold = ImageList_AddIcon(himl, hicon);
-    DestroyIcon(hicon);
-
-    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_CLSDFOLD));
-    img_close = ImageList_AddIcon(himl, hicon);
-    DestroyIcon(hicon);
-
-    hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_TXT));
-    img_text = ImageList_AddIcon(himl, hicon);
-    DestroyIcon(hicon);
-
+    for (int i = 0; i < IMG_DBMAX; ++i)
+    {
+        hicon = LoadIcon(hinst, MAKEINTRESOURCE(IDB_FAVORITES + i));
+        if (hicon)
+        {
+            ImageList_AddIcon(himl, hicon);
+            DestroyIcon(hicon);
+        }
+    }
     // Fail if not all of the images were added.
-    if (ImageList_GetImageCount(himl) < 4)
+    if (ImageList_GetImageCount(himl) < IMG_DBMAX)
     {
         ImageList_Destroy(himl);
         return NULL;
@@ -1753,7 +1801,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_brush());
+            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_bgbrush());
             return 1;
         case WM_PAINT:
         {
@@ -1761,7 +1809,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PAINTSTRUCT    ps;
                 HDC hdc = BeginPaint(hwnd, & ps);
-                HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_brush();
+                HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_bgbrush();
                 // 绘制管理器标签
                 HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
                 if (old_font)
@@ -1784,13 +1832,11 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            printf("g_treebar WM_DPICHANGED\n");
             on_treebar_update_theme();
             break;
         }
         case WM_THEMECHANGED:
         {
-            printf("g_treebar WM_THEMECHANGED\n");
             uintptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
             if (on_dark_enable())
             {
@@ -1805,7 +1851,9 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
         {
             g_treebar = NULL;
+        #if APP_DEBUG
             printf("g_treebar WM_DESTROY\n");
+        #endif
             break;
         }
         default:
@@ -1832,13 +1880,13 @@ on_treebar_create_box(HWND hwnd)
     tci.pszText = m_text;
     if (TabCtrl_InsertItem(g_treebar, 0, &tci) == -1)
     {
-        printf("TabCtrl_InsertItem failed\n");
+        eu_logmsg("%s: TabCtrl_InsertItem failed\n", __FUNCTION__);
         DestroyWindow(g_treebar);
         return EUE_INSERT_TAB_FAIL;
     }
     if (!(treebar_wnd = (WNDPROC) SetWindowLongPtr(g_treebar, GWLP_WNDPROC, (LONG_PTR) treebar_proc)))
     {
-        printf("SetWindowLongPtr(g_filetree) failed on %s\n", __FUNCTION__);
+        eu_logmsg("%s: SetWindowLongPtr(g_filetree) failed\n", __FUNCTION__);
         DestroyWindow(g_treebar);
         return EUE_POINT_NULL;
     }
@@ -1876,6 +1924,10 @@ on_treebar_create_dlg(HWND hwnd)
         if (!img_list)
         {
             err = EUE_POINT_NULL;
+            break;
+        }
+        if ((err = on_treebar_init_favorites(g_filetree)) != SKYLARK_OK)
+        {
             break;
         }
         on_filetree_load_drives(g_filetree);
@@ -1992,7 +2044,7 @@ on_treebar_load_remote(HWND hwnd, remotefs *pserver)
     {
         _sntprintf(filepath, MAX_PATH - 1, _T("sftp://%s:%d/"), networkaddr, pserver->port);
     }
-    if (!on_filetree_add_node(hwnd, TVI_ROOT, img_drive, pserver, filepath, filepath, servername, false))
+    if (!on_filetree_add_node(hwnd, TVI_ROOT, IMG_CLOUD, pserver, filepath, filepath, servername, NULL, false))
     {
         return EUE_UNKOWN_ERR;
     }
@@ -2036,7 +2088,7 @@ on_treebar_locate_remote(const TCHAR *pathname)
             MultiByteToWideChar(CP_UTF8, 0, tvd->server->servername, -1, servername, 100);
             if (_tcsicmp(tvd->filename, servername) == 0)
             {
-                printf("tvd->filename = servername = %s\n", tvd->server->servername);
+                eu_logmsg("%s: tvd->filename = servername = %s\n", __FUNCTION__, tvd->server->servername);
                 break;
             }
         }
@@ -2133,7 +2185,7 @@ on_treebar_locate_path(const TCHAR *pathname)
                 if (on_filetree_append_file_child(g_filetree, tvd))
                 {
                     free(m_dup);
-                    printf("on_filetree_append_file_child failed\n");
+                    eu_logmsg("%s: on_filetree_append_file_child failed\n", __FUNCTION__);
                     return EUE_UNKOWN_ERR;
                 }
             }

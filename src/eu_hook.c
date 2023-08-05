@@ -39,7 +39,9 @@ pre_exception_filter(void)
         (SetUnhandledExceptionFilterPtr) GetProcAddress(m_kernel, "SetUnhandledExceptionFilter");
     if (fnSetUnhandledExceptionFilter == NULL)
     {
+    #if APP_DEBUG
         printf("GetProcAddress error\n");
+    #endif
         return false;
     }
 #ifdef _M_IX86
@@ -173,7 +175,9 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
         }
     }
     len = strlen(mark_code);
+#if APP_DEBUG
     printf("addr = 0x%zx, endaddr = 0x%zx, mark_code.length = %zu, mark_code = %s\n", addr, endaddr, len, mark_code);
+#endif
     // 特征码长度不能为单数
     if (len % 2 != 0)
     {
@@ -294,7 +298,9 @@ find_matching_code(HANDLE hps, const char *mark, uintptr_t addr,uintptr_t endadd
                     {
                         ret[count] += temp;
                     }
+                #if APP_DEBUG
                     printf("ret[%d] = 0x%zx\n", count, ret[count]);
+                #endif
                 }
                 if (++count >= n_size)
                 {
@@ -388,7 +394,9 @@ do_hook(void *func, void *hook_func, void **orig_func)
 static void
 put_zrow_bottom_hook(void *ptc, int moving)
 {
-    // printf("put_zrow_bottom run\n");
+#if APP_DEBUG
+    printf("put_zrow_bottom run\n");
+#endif
     return;
 }
 

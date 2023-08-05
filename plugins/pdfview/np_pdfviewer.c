@@ -956,6 +956,19 @@ pdf_print(NPP instance, npprint *platform)
 static int
 pdf_event(NPP instance, void *event)
 {
+    if (instance && event)
+    {
+        instance_data *data = (instance_data *)instance->pdata;
+        if (data && data->npwin)
+        {
+            HWND hwnd = (HWND)data->npwin->window;
+            HWND hchild = hwnd ? FindWindowEx(hwnd, NULL, NULL, NULL) : NULL;
+            if (hchild)
+            {
+                PostMessage(hchild, WM_COMMAND, (WPARAM)event, 0);
+            }
+        }
+    }
     return NP_NO_ERROR;
 }
 

@@ -18,6 +18,7 @@
 #include "framework.h"
 
 #define EXEC_VERSION 7
+#define FAVORITE_VERSION 2
 #define SKYLARK_SQLITE_BUSY_TIMEOUT 2000
 #define START_TRANSACTION(db) sqlite3_exec(db, "begin transaction;", NULL, NULL, NULL)
 #define END_TRANSACTION(db)   sqlite3_exec(db, "commit transaction;", NULL, NULL, NULL)
@@ -36,12 +37,17 @@
                        "END;"
 #define SKYVER_FORMAT  "insert or replace into skylar_ver(szName,szVersion,szBUildId,szTrigger,szExtra) values('%s', '%s', %I64u, %d, %I64u);"
 
+#define FAVORITE_TABLE "create table file_favorite(szId INTEGER PRIMARY KEY, szName char(260), szPath char(1024), szTag char(260)," \
+                       "szGroup char(260), szStatus SMALLINT, UNIQUE(szPath));"
+#define FAVORITE_INFO  "create table info_favorite(szFile char(1024), szVersion char(64), szMax SMALLINT, szExtra BIGINT);"
+#define FAVORITE_CONF  "insert or replace into info_favorite(szFile,szVersion,szMax,szExtra) values('%s', '%s', %d, %I64u);"
+#define FAVORITE_INSE  "insert or replace into file_favorite(szName,szPath,szTag,szGroup,szStatus) values('%s', '%s', '%s','%s', %d);"
 
-#define DO_TRIGGER(f, n)                              \
-char f[MAX_BUFFER] = {0};                             \
-int  n = eu_get_config()->file_recent_number;         \
-n = n > 0 && n < 100 ? n : 29;                        \
-_snprintf(buf, MAX_BUFFER - 1, RECENT_FORMAT, n, n)
+#define DO_TRIGGER(_f, _n)                             \
+char _f[MAX_BUFFER] = {0};                             \
+int  _n = eu_get_config()->file_recent_number;         \
+_n = _n > 0 && _n < 100 ? _n : 29;                     \
+_snprintf(_f, MAX_BUFFER - 1, RECENT_FORMAT, _n, _n)
 
 static volatile long eu_sql_cs = 0;
 static volatile intptr_t eu_memdb = 0;
@@ -52,19 +58,11 @@ sql_format_execute(char *buf, int len, int tirgger, int64_t extra)
     bool ret = false;
     char *pname = eu_utf16_utf8(__ORIGINAL_NAME, NULL);
     char *pver = eu_utf16_utf8(__EU_INFO_RELEASE_VERSION, NULL);
-    do
+    if (pname && pver)
     {
-        if (!pname)
-        {
-            break;
-        }
-        if (!pver)
-        {
-            break;
-        }
-        int m = snprintf(buf, len, SKYVER_FORMAT, pname, pver, on_about_build_id(), tirgger, extra);
+        int m = _snprintf(buf, len, SKYVER_FORMAT, pname, pver, on_about_build_id(), tirgger, extra);
         ret = (m > 0 && m < len);
-    } while(0);
+    }
     eu_safe_free(pname);
     eu_safe_free(pver);
     return ret;
@@ -130,7 +128,7 @@ init_sql_file(const char *sql_path, uintptr_t *pdb)
             }
             if (rc != SQLITE_OK)
             {
-                printf("create table, sql[%d] = [%s] error: %d\n", i, sql[i], rc);
+                eu_logmsg("%s: create table, sql[%d] = [%s] error: %d\n", __FUNCTION__, i, sql[i], rc);
                 break;
             }
         }
@@ -141,6 +139,69 @@ init_sql_file(const char *sql_path, uintptr_t *pdb)
         }
     }
 mem_clean:
+    if (rc != SQLITE_OK)
+    {
+        sqlite3_close(db);
+        db = NULL;
+    }
+    if (pdb)
+    {
+        *pdb = (uintptr_t)db;
+    }
+    return rc;
+}
+
+static int
+init_favorite_file(const char *sql_path, uintptr_t *pdb)
+{
+    int rc = 0;
+    int m_table = 0;
+    sqlite3 *db = NULL;
+    const char *test = "SELECT szMax FROM info_favorite;";
+    const char *sql[] = \
+    {
+        FAVORITE_TABLE,
+        FAVORITE_INFO,
+        FAVORITE_CONF,
+        NULL
+    };
+    if ((rc = sqlite3_open(sql_path, &db)) != SQLITE_OK)
+    {
+        goto favorite_clean;
+    }
+    if ((rc = sqlite3_busy_timeout(db, SKYLARK_SQLITE_BUSY_TIMEOUT)) != SQLITE_OK)
+    {
+        goto favorite_clean;
+    }
+    // 测试表是否存在
+    if ((rc = sqlite3_exec(db, test, NULL, NULL, NULL)) != SQLITE_OK)
+    {
+        START_TRANSACTION(db);
+        for (int i = 0; sql[i]; ++i)
+        {
+            if (FAVORITE_VERSION == i)
+            {
+                char buffer[MAX_BUFFER] = {0};
+                _snprintf(buffer, MAX_BUFFER - 1, FAVORITE_CONF, sql_path, "1", INT16_MAX, (uintptr_t)0);
+                rc = sqlite3_exec(db, buffer, 0, 0, NULL);
+            }
+            else
+            {
+                rc = sqlite3_exec(db, sql[i], 0, 0, NULL);
+            }
+            if (rc != SQLITE_OK)
+            {
+                eu_logmsg("%s: create table, sql[%d] = [%s] error: %d\n", __FUNCTION__, i, sql[i], rc);
+                break;
+            }
+        }
+        END_TRANSACTION(db);
+        if (!rc)
+        {
+            rc = SKYLARK_SQL_END;
+        }
+    }
+favorite_clean:
     if (rc != SQLITE_OK)
     {
         sqlite3_close(db);
@@ -177,7 +238,7 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
             {
                 if (err)
                 {
-                    printf("%s failed, cause: %s\n", __FUNCTION__, err);
+                    eu_logmsg("%s: failed, cause: %s\n", __FUNCTION__, err);
                     sqlite3_free(err);
                 }
             }
@@ -196,7 +257,7 @@ on_sql_post_func(void *lp)
     {
         if (eu_sqlite3_send(sql, NULL, NULL) != 0)
         {
-            printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+            eu_logmsg("%s: eu_sqlite3_send failed\n", __FUNCTION__);
         }
         free(lp);
     }
@@ -209,30 +270,103 @@ on_sql_post_thread(void *sql)
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_sql_post_func, sql, 0, NULL));
 }
 
-int
-on_sql_post(const char *sql, sql3_callback callback, void *data)
+static int
+on_sql_post_db(DB_MODE index, const char *sql, sql3_callback callback, void *data)
 {
     int rc = SQLITE_ERROR;
     TCHAR path[MAX_BUFFER] = {0};
     char *sql_path = NULL;
-    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
+    if (index == DB_FILE)
+    {
+        _sntprintf(path, MAX_BUFFER, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
+    }
+    else if (index == DB_FAVS)
+    {
+        _sntprintf(path, MAX_BUFFER, _T("%s\\%s"), eu_config_path, FAV_STORAGE);
+    }
     if ((sql_path = eu_utf16_utf8(path, NULL)) != NULL)
     {
         uintptr_t db = 0;
-        if ((rc = init_sql_file(sql_path, &db)) == SQLITE_OK && db)
+        if (index == DB_FILE)
+        {
+            rc = init_sql_file(sql_path, &db);
+        }
+        else if (index == DB_FAVS)
+        {
+            rc = init_favorite_file(sql_path, &db);
+        }
+        if ((rc == SQLITE_OK) && db)
         {
             char *err = NULL;
             if ((rc = sqlite3_exec((sqlite3 *)db, sql, callback, data, &err)))
             {
                 if (err)
                 {
-                    printf("%s failed, cause: %s\n", __FUNCTION__, err);
+                    eu_logmsg("%s: failed, cause: %s\n", __FUNCTION__, err);
                     sqlite3_free(err);
                 }
             }
         }
         free(sql_path);
         sqlite3_close((sqlite3 *)db);
+    }
+    return rc;
+}
+
+int
+on_sql_post(const char *sql, sql3_callback callback, void *data)
+{
+    return on_sql_post_db(DB_FILE, sql, callback, data);
+}
+
+int
+on_sql_favotrite_post(const char *sql, sql3_callback callback, void *data)
+{
+    return on_sql_post_db(DB_FAVS, sql, callback, data);
+}
+
+int
+on_sql_favotrite_select(sql3_callback callback, void *data)
+{
+    return on_sql_post_db(DB_FAVS, "select * from file_favorite;", callback, data);
+}
+
+int
+on_sql_favotrite_insert(void *pdata)
+{
+    const int len = MAX_BUFFER * 2 ;
+    favorite_data *pfa = (favorite_data *)pdata;
+    char *sql = (char *)malloc(len);
+    if (sql && pfa)
+    {
+        char *name = pfa->szname[0] ? eu_utf16_utf8(pfa->szname, NULL) : NULL;
+        char *path = pfa->szpath[0] ? eu_utf16_utf8(pfa->szpath, NULL) : NULL;
+        char *tag = pfa->sztag[0] ? eu_utf16_utf8(pfa->sztag, NULL) : NULL;
+        char *group = pfa->szgroup[0] ? eu_utf16_utf8(pfa->szgroup, NULL) : NULL;
+        _snprintf(sql, len - 1, FAVORITE_INSE, name ? name : "", path ? path : "", tag ? tag : "", group ? group : "", pfa->szstatus);
+        eu_safe_free(name);
+        eu_safe_free(path);
+        eu_safe_free(tag);
+        eu_safe_free(group);
+        return on_sql_post_db(DB_FAVS, sql, NULL, NULL);
+    }
+    return SQLITE_ERROR;
+}
+
+int
+on_sql_favotrite_delete(const wchar_t *pathfile)
+{
+    int rc = SQLITE_ERROR;
+    if (STR_NOT_NUL(pathfile))
+    {
+        char sql[MAX_BUFFER + 32] = {0};
+        char *path = eu_utf16_utf8(pathfile, NULL);
+        if (path)
+        {
+            _snprintf(sql, MAX_BUFFER + 32, "delete from file_favorite where szPath='%s';", path);
+            free(path);
+            rc = on_sql_post_db(DB_FAVS, sql, NULL, NULL);
+        }
     }
     return rc;
 }
@@ -364,27 +498,27 @@ on_sqlite3_create_memdb(const char *pfile)
         }
         if ((rc = sqlite3_exec(memdb, buf, NULL, NULL, NULL)))
         {
-            printf("create trigger error: %d\n", rc);
+            eu_logmsg("%s: create trigger error: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, sql, NULL, NULL, NULL)))
         {
-            fprintf(stderr, "attach database error: %d\n", rc);
+            eu_logmsg("%s: attach database error: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, SESSION_INSERT(skylark_session, filedb.skylark_session), NULL, NULL, NULL)))
         {
-            fprintf(stderr, "sql_transfer_session: %d\n", rc);
+            eu_logmsg("%s: sql_transfer_session: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, RECENT_INSERT(file_recent, filedb.file_recent), NULL, NULL, NULL)))
         {
-            fprintf(stderr, "sql_transfer_recent[%s]: %d\n", RECENT_INSERT(file_recent, filedb.file_recent), rc);
+            eu_logmsg("%s: sql_transfer_recent[%s]: %d\n", __FUNCTION__, RECENT_INSERT(file_recent, filedb.file_recent), rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, "detach database 'filedb';", NULL, NULL, NULL)))
         {
-            fprintf(stderr, "detach database error: %d\n", rc);
+            eu_logmsg("%s: detach database error: %d\n", __FUNCTION__, rc);
             break;
         }
     } while (0);
@@ -440,7 +574,7 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
                 sqlite3_exec((sqlite3 *)db, "DROP TRIGGER delete_till_30;", 0, 0, NULL);
                 if ((rc = sqlite3_exec((sqlite3 *)db, buf, 0, 0, NULL)))
                 {
-                    printf("create trigger error: %d\n", rc);
+                    eu_logmsg("%s: create trigger error: %d\n", __FUNCTION__, rc);
                 }
             }
             rc = sqlite3_exec((sqlite3 *)db, sql, on_sqlite3_session_callback, (void *)(intptr_t)&v, NULL);
@@ -552,7 +686,7 @@ on_sql_file_recent_thread(const file_recent *precent)
         snprintf(sql, MAX_BUFFER * 2 - 1, exp, pfile, precent->postion, result, precent->hex, precent->postion, result, precent->hex);
         if (on_sql_mem_post(sql, NULL, NULL) != SQLITE_OK)
         {
-            printf("%s failed: %s\n", __FUNCTION__, sql);
+            eu_logmsg("%s: failed[%s]\n", __FUNCTION__, sql);
         }
     }
 }
@@ -584,7 +718,7 @@ sql_search_history(void *lp)
 {
     if (eu_sqlite3_send("SELECT szName FROM find_his;", (sql3_callback)lp, (void *)IDC_WHAT_FOLDER_CBO) != 0)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
     }
     return 0;
 }
@@ -622,7 +756,7 @@ sql_replace_history(void *lp)
 {
     if (eu_sqlite3_send("SELECT szName FROM replace_his;", (sql3_callback)lp, (void *)IDC_SEARCH_RP_CBO) != 0)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
     }
     return 0;
 }
@@ -660,7 +794,7 @@ sql_folder_history(void *lp)
 {
     if (eu_sqlite3_send("SELECT szName FROM folder_his;", (sql3_callback)lp, (void *)IDC_SEARCH_DIR_CBO) != 0)
     {
-        printf("eu_sqlite3_send failed in %s\n", __FUNCTION__);
+        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
     }
     return 0;
 }

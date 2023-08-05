@@ -298,7 +298,7 @@ eu_lua_script_convert(const TCHAR *fname, const TCHAR *save)
     lua_State *L = lua_open();
     if (L == NULL)
     {
-        printf("cannot create state: not enough memory\n");
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
         return -1;
     }
     /* Stop collector during library initialization. */
@@ -308,7 +308,7 @@ eu_lua_script_convert(const TCHAR *fname, const TCHAR *save)
 #ifdef _UNICODE
     if ((filepath = eu_utf16_utf8(fname, NULL)) == NULL)
     {
-        printf("eu_utf16_utf8 convert failed\n");
+        eu_logmsg("%s: eu_utf16_utf8 convert failed\n", __FUNCTION__);
         lua_close(L);
         return -1;
     }
@@ -324,7 +324,7 @@ eu_lua_script_convert(const TCHAR *fname, const TCHAR *save)
     #ifdef _UNICODE
         if ((savepath = eu_utf16_utf8(save, NULL)) == NULL)
         {
-            printf("eu_utf16_utf8 convert failed\n");
+            eu_logmsg("%s: eu_utf16_utf8 convert failed\n", __FUNCTION__);
             lua_close(L);
             return -1;
         }
@@ -358,7 +358,7 @@ do_lua_func(const char *fname, const char *func, const char *arg)
     lua_State *L = lua_open();
     if (L == NULL)
     {
-        printf("cannot create state: not enough memory\n");
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
         return -1;
     }
     /* Stop collector during library initialization. */
@@ -377,7 +377,7 @@ do_lua_func(const char *fname, const char *func, const char *arg)
         }
         else
         {
-            printf("lua_pcall failed\n");
+            eu_logmsg("%s: lua_pcall failed\n", __FUNCTION__);
         }
     }
     lua_close(L);
@@ -395,7 +395,7 @@ do_lua_point(const char *fname, const char *func, void *arg)
     lua_State *L = lua_open();
     if (L == NULL)
     {
-        printf("cannot create state: not enough memory\n");
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
         return -1;
     }
     lua_gc(L, LUA_GCSTOP, 0);
@@ -424,7 +424,7 @@ do_lua_parser_doctype(const char *fname, const char *func)
     pstate = lua_open();
     if (pstate == NULL)
     {
-        printf("cannot create state: not enough memory\n");
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
         return -1;
     }
     /* Stop collector during library initialization. */
@@ -439,7 +439,7 @@ do_lua_parser_doctype(const char *fname, const char *func)
         status = lua_pcall(pstate, 0, 1, 0);
         if (status != LUA_OK)
         {
-            printf("lua_pcall failed\n");
+            eu_logmsg("%s: lua_pcall failed\n", __FUNCTION__);
             lua_close(pstate);
             pstate = NULL;
         }
@@ -451,7 +451,6 @@ do_lua_parser_doctype(const char *fname, const char *func)
     }
     if (doc_point)
     {
-        printf("doc_point = %zx\n", doc_point);
         on_doc_set_ptr((doctype_t *)doc_point);
         on_doc_set_vec();
     }
@@ -479,7 +478,7 @@ do_lua_parser_path(const char *file)
     lua_State *L = lua_open();
     if (L == NULL)
     {
-        printf("cannot create state: not enough memory\n");
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
         return NULL;
     }
     /* Stop collector during library initialization. */
@@ -510,12 +509,12 @@ eu_lua_script_exec(const TCHAR *fname)
     lua_State *L = lua_open();
     if (L == NULL)
     {
-        printf("cannot create state: not enough memory\n");
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
         return -1;
     }
     if ((path = eu_utf16_utf8(fname, NULL)) == NULL)
     {
-        printf("eu_utf16_utf8 convert failed\n");
+        eu_logmsg("%s: eu_utf16_utf8 convert failed\n", __FUNCTION__);
         lua_close(L);
         return -1;
     }
@@ -555,7 +554,7 @@ do_lua_code(const char *s)
     lua_State *L = lua_open();
     if (L == NULL)
     {
-        printf("cannot create state: not enough memory\n");
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
         return -1;
     }
     print_version();
@@ -566,7 +565,7 @@ do_lua_code(const char *s)
     status = dostring(L, s, "line");
     if (status)
     {
-        printf("dostring return false\n");
+        eu_logmsg("%s: dostring return false\n", __FUNCTION__);
     }
     lua_close(L);
     return status;
@@ -621,17 +620,17 @@ do_byte_code(eu_tabpage *pnode)
     }
     if ((pfile = util_mk_temp(pname, NULL)) == INVALID_HANDLE_VALUE)
     {
-        printf("util_mk_temp return failed, cause:%lu\n", GetLastError());
+        eu_logmsg("util_mk_temp return failed, cause:%lu\n", GetLastError());
         goto allclean;
     }
     if (!(pbuffer = util_strdup_content(pnode, &buf_len)))
     {
-        printf("util_strdup_content failed\n");
+        eu_logmsg("util_strdup_content failed\n");
         goto allclean;
     }
     if (!WriteFile(pfile, pbuffer, eu_uint_cast(buf_len), &written, NULL))
     {
-        printf("WriteFile failed\n");
+        eu_logmsg("WriteFile failed\n");
         goto allclean;
     }
     FlushFileBuffers(pfile);
@@ -696,7 +695,6 @@ script_process_dir(lua_State *L)
     _snwprintf(path, MAX_BUFFER, _T("%s"), eu_module_path);
     if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
     {
-        printf("lua lprocessdir error\n");
         lua_pushnil(L);
         return 2;
     }

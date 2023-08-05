@@ -91,7 +91,7 @@ get_locale_path(TCHAR *path, int len)
     TCHAR *p = NULL;
     if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG)))
     {
-        printf("share_open error in %s\n", __FUNCTION__);
+        eu_logmsg("%s: share_open error\n", __FUNCTION__);
         return false;
     }
     if ((memory = (TCHAR *) share_map(m_map, MAX_PATH*sizeof(TCHAR), FILE_MAP_READ)))
@@ -113,7 +113,7 @@ get_locale_file(TCHAR *path, int len)
     TCHAR *p = NULL;
     if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG)))
     {
-        printf("share_open error in %s\n", __FUNCTION__);
+        eu_logmsg("%s: share_open error\n", __FUNCTION__);
         return false;
     }
     if ((memory = (TCHAR *) share_map(m_map, MAX_PATH*sizeof(TCHAR), FILE_MAP_READ)))
@@ -143,18 +143,19 @@ eu_i18n_load_str(uint16_t id, TCHAR *str, int len)
     {
         if (!get_locale_path(lang_path, MAX_PATH-1))
         {
-            printf("get_locale_path return false\n");
+            eu_logmsg("%s: get_locale_path return false\n", __FUNCTION__);
             return false;
         }
         if (!(g_skylark_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE)))
         {
-            printf("LoadLibraryEx return false, lang_path = %ls\n", lang_path);
+            char u8[MAX_BUFFER] = {0};
+            eu_logmsg("%s: LoadLibraryEx[%s] failed\n", __FUNCTION__, util_make_u8(lang_path, u8, MAX_BUFFER - 1));
             return false;
         }
     }
     if (!LoadString(g_skylark_lang, id, str, buf_len))
     {
-        printf("LoadString %d return false\n", id);
+        eu_logmsg("%s: LoadString %d return false\n", __FUNCTION__, id);
         ret = false;
     }
     return ret;
@@ -172,12 +173,12 @@ i18n_create_dialog(HWND hwnd, int res_id, DLGPROC fn)
     HRSRC hr = NULL;
     if (g_skylark_lang == NULL)
     {
-        printf("g_skylark_lang is null\n");
+        eu_logmsg("%s: g_skylark_lang is null\n", __FUNCTION__);
         return NULL;
     }
     if ((hr = FindResource(g_skylark_lang, MAKEINTRESOURCE(res_id), RT_DIALOG)) == NULL)
     {
-        printf("FindResource failed\n");
+        eu_logmsg("%s: FindResource failed\n", __FUNCTION__);
         return NULL;
     }
     return CreateDialog(g_skylark_lang, MAKEINTRESOURCE(res_id), hwnd, fn);
@@ -192,17 +193,17 @@ i18n_reload_lang(void)
     {
         if (!(m_map = share_open(FILE_MAP_READ, SKYLARK_LOCK_LANG)))
         {
-            printf("share_open error in %s\n", __FUNCTION__);
+            eu_logmsg("%s: share_open error\n", __FUNCTION__);
             break;
         }
         if (!(memory = (TCHAR *) share_map(m_map, MAX_PATH*sizeof(TCHAR), FILE_MAP_READ)))
         {
-            printf("share_map error in %s\n", __FUNCTION__);
+            eu_logmsg("%s: share_map error\n", __FUNCTION__);
             break;
         }
         if (!(g_skylark_lang = LoadLibraryEx(memory, NULL, LOAD_LIBRARY_AS_DATAFILE)))
         {
-            printf("LoadLibraryEx error, cause: %lu\n", GetLastError());
+            eu_logmsg("%s: LoadLibraryEx error, cause: %lu\n", __FUNCTION__, GetLastError());
             break;
         }
     } while(0);
@@ -228,7 +229,7 @@ i18n_dlgbox(HWND hwnd, int res_id, DLGPROC fn, LPARAM param)
     }
     if ((hr = FindResource(g_skylark_lang, MAKEINTRESOURCE(res_id), RT_DIALOG)) == NULL)
     {
-        printf("FindResource failed, cause: %lu\n", GetLastError());
+        eu_logmsg("%s: FindResource failed, cause: %lu\n", __FUNCTION__, GetLastError());
         return 0;
     }
     return (intptr_t)DialogBoxParam(g_skylark_lang, MAKEINTRESOURCE(res_id), hwnd, fn, param);
@@ -243,7 +244,7 @@ i18n_update_multi_lang(HMENU root_menu)
         HMENU menu_lang = NULL;
         if (!(menu_lang = GetSubMenu(root_menu, LOCALE_MENU_SUB)))
         {
-            printf("menu_lang is null\n");
+            eu_logmsg("%s: menu_lang is null\n", __FUNCTION__);
             return;
         }
         int count = GetMenuItemCount(menu_lang);
@@ -272,7 +273,7 @@ i18n_update_menu(HMENU root_menu)
     }
     if (!get_locale_file(lang_name, QW_SIZE))
     {
-        printf("get_locale_file return false\n");
+        eu_logmsg("%s: get_locale_file return false\n", __FUNCTION__);
         return;
     }
     for (index = 0; index < MAX_MULTI_LANG && sz_localization[index].desc[0]; ++index)
@@ -312,7 +313,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     HWND hwnd = eu_module_hwnd();
     if (!(m_map = share_open(FILE_MAP_WRITE | FILE_MAP_READ, SKYLARK_LOCK_LANG)))
     {
-        printf("share_open error in %s\n", __FUNCTION__);
+        eu_logmsg("%s: share_open error\n", __FUNCTION__);
         return 1;
     }
     if (!(memory = (TCHAR *) share_map(m_map, MAX_PATH*sizeof(TCHAR), FILE_MAP_WRITE | FILE_MAP_READ)))
@@ -342,11 +343,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {   // 销毁状态栏
         DestroyWindow(g_statusbar);
     }
-    // 销毁文件管理器
-    if (g_treebar)
-    {
-        DestroyWindow(g_treebar);
-    }
     if (true)
     {   // 更新全局变量与共享内存
         FreeLibrary(g_skylark_lang);
@@ -366,13 +362,17 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     }
     if (on_toolbar_create(hwnd) != 0)
     {
-        printf("on_toolbar_create return false\n");
+        eu_logmsg("on_toolbar_create return false\n");
         return 1;
     }
     if (on_treebar_create_box(hwnd))
     {
-        printf("on_treebar_create_box return false\n");
+        eu_logmsg("on_treebar_create_box return false\n");
         return 1;
+    }
+    if (g_treebar)
+    {
+        SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
     }
     if (show_clip)
     {   // 重启剪贴板窗口
@@ -385,7 +385,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     }
     if (!on_statusbar_init(eu_module_hwnd()))
     {
-        printf("on_statusbar_init return false\n");
+        eu_logmsg("on_statusbar_init return false\n");
         return 1;
     }
     else if (!on_dark_enable())
@@ -393,6 +393,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
         on_statusbar_update();
     }
+    on_favorite_reload_root();
     on_search_dark_mode_release();
     on_snippet_destory();
     return 0;

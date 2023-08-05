@@ -28,9 +28,9 @@
 #define MAKE_VERSION_STR(a, b, c, d, sep)  (TO_STR(a)TEXT(" ")TO_STR(b) sep TO_STR(c) sep TO_STR(d))
 
 // 定义版本信息
-#define __EU_INFO_VERSION 3
+#define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 13
+#define __EU_INFO_VERSION_PATCHLEVEL 0
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -115,10 +115,14 @@
 #define IDM_EXIT                              101
 #define IDC_SKYLARK                           102
 
-#define IDB_CLSDFOLD                          110
+#define IDB_FAVORITES                         110
+#define IDB_CLOUD                             111
 #define IDB_DRIVE                             112
 #define IDB_OPENFOLD                          113
-#define IDB_TXT                               114
+#define IDB_CLSDFOLD                          114
+#define IDB_TXT                               115
+#define IDB_BULB                              116
+#define IDB_SHORTCUT                          117
 #define IDT_BIRD                              200
 
 // 右键菜单
@@ -486,6 +490,8 @@
 #define IDM_FILE_EXIT_WHEN_LAST_TAB          30115
 #define IDM_FILE_RESTART_ADMIN               30116
 #define IDM_FILE_RELOAD_CURRENT              30117
+#define IDM_FILE_SAVE_NOTIFY                 30118
+#define IDM_FILE_ADD_FAVORITES               30119
 
 #define IDM_EDIT_BASE64_ENCODING             30200
 #define IDM_EDIT_BASE64_DECODING             30201
@@ -826,6 +832,7 @@
 #define IDC_MSG_SEARCH_BOTTOM               40256
 #define IDC_MSG_REPLACE_NONE                40257
 #define IDC_MSG_REPLACE_ONECE               40258
+#define IDC_MSG_INTERVAL_STR                40259
 
 #define IDC_SEARCH_BTN_ON                   40300
 #define IDC_SEARCH_BTN_OFF                  40301
@@ -1166,9 +1173,23 @@
 #define IDS_INDENT_TAB_OPPS                 44074
 #define IDS_INDENT_TAB_SPACE                44075
 #define IDS_INDENT_PROPOSE                  44076
+#define IDS_USER_FAVORITES                  44080
+#define IDS_FAVORITE_ADD_TIPS               44081
 
 #define IDM_EDIT_SLASH_BACKSLASH            44100
 #define IDM_EDIT_BACKSLASH_SLASH            44101
+
+#define IDM_SET_LOGGING_ENABLE              44200
+
+#define IDR_FILETREE_FAVORITE_POPUP         44300
+#define IDM_FAVORITE_OPEN                   44301
+#define IDM_FAVORITE_REMOVE                 44302
+#define IDM_FAVORITE_ATTR                   44303
+
+#define IDD_FAVORITE_DIALOG                 44400
+#define IDC_FAVORITE_NAME_EDIT              44401
+#define IDC_FAVORITE_PATH_EDIT              44402
+#define IDC_FAVORITE_TAG_EDIT               44403
 
 // For MessageBox
 #define IDALWAYS                            12

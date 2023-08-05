@@ -20,6 +20,14 @@
 
 #define USE_DWMAPI 1  // 启用DWM绘制标题栏
 
+#ifndef DWMWA_CAPTION_COLOR
+#define DWMWA_CAPTION_COLOR 0x23
+#endif
+
+#ifndef DWMWA_COLOR_DEFAULT
+#define DWMWA_COLOR_DEFAULT 0xFFFFFFFF
+#endif
+
 static SetWindowCompositionAttributePtr fnSetWindowCompositionAttribute;
 static ShouldAppsUseDarkModePtr fnShouldAppsUseDarkMode;
 static AllowDarkModeForWindowPtr fnAllowDarkModeForWindow;
@@ -35,7 +43,6 @@ static SetPreferredAppModePtr fnSetPreferredAppMode;
 
 static bool g_dark_supported;
 static bool g_dark_enabled;
-static uint32_t g_build_number;
 static HMODULE g_uxtheme;
 static HBRUSH g_dark_bkgnd;
 static HBRUSH g_dark_hot_bkgnd;
@@ -75,7 +82,7 @@ HRESULT
 on_dark_draw_background(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect)
 {
     HRESULT ret = 1;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     DrawThemeBackgroundPtr fnDrawThemeBackground = uxtheme ? (DrawThemeBackgroundPtr)GetProcAddress(uxtheme, "DrawThemeBackground") : NULL;
     if (hTheme && fnDrawThemeBackground)
     {
@@ -89,7 +96,7 @@ HRESULT
 on_dark_get_partsize(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz)
 {
     HRESULT ret = 1;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     GetThemePartSizePtr fnGetThemePartSize = uxtheme ? (GetThemePartSizePtr)GetProcAddress(uxtheme, "GetThemePartSize") : NULL;
     if (hTheme && fnGetThemePartSize)
     {
@@ -103,7 +110,7 @@ intptr_t
 on_dark_open_data(HWND hwnd, LPCWSTR class_list)
 {
     intptr_t hth = 0;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     OpenThemeDataPtr fnOpenThemeData = uxtheme ? (OpenThemeDataPtr)GetProcAddress(uxtheme, "OpenThemeData") : NULL;
     if (class_list && fnOpenThemeData)
     {
@@ -117,7 +124,7 @@ HRESULT
 on_dark_close_data(void *hth)
 {
     HRESULT ret = 1;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     CloseThemeDataPtr fnCloseThemeData = uxtheme ? (CloseThemeDataPtr)GetProcAddress(uxtheme, "CloseThemeData") : NULL;
     if ((HTHEME)hth && fnCloseThemeData)
     {
@@ -132,7 +139,7 @@ on_dark_get_sys_colour(HWND hwnd, int colid)
 {
     colour col = 0;
     HTHEME hth = NULL;
-    HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
     OpenThemeDataPtr fnOpenThemeData = uxtheme ? (OpenThemeDataPtr)GetProcAddress(uxtheme, "OpenThemeData") : NULL;
     CloseThemeDataPtr fnCloseThemeData = uxtheme ? (CloseThemeDataPtr)GetProcAddress(uxtheme, "CloseThemeData") : NULL;
     GetThemeSysColorPtr fnGetThemeSysColor = uxtheme ? (GetThemeSysColorPtr)GetProcAddress(uxtheme, "GetThemeSysColor") : NULL;
@@ -158,13 +165,13 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
 {
     if (hwnd)
     {
-        HMODULE uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        HMODULE uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true);
         SetWindowThemePtr fnSetWindowTheme = uxtheme ? (SetWindowThemePtr)GetProcAddress(uxtheme, "SetWindowTheme") : NULL;
         if (fnSetWindowTheme)
         {
             if (fnSetWindowTheme(hwnd, psz_name, psz_list) != S_OK)
             {
-                printf("fnSetWindowTheme failed\n");
+                eu_logmsg("%s: fnSetWindowTheme failed\n", __FUNCTION__);
             }
         }
         eu_close_dll(uxtheme);
@@ -174,10 +181,10 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
 void
 on_dark_set_titlebar(HWND hwnd, BOOL dark)
 {
-    if (g_build_number < 18362)
+    if (eu_win10_or_later() < 18362)
     {
     #if USE_DWMAPI
-        HMODULE dwm = LoadLibraryEx(_T("dwmapi.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
         DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
         if (fnDwmSetWindowAttribute)
         {
@@ -193,16 +200,44 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
     }
     else if (fnSetWindowCompositionAttribute)
     {
-        WINDOWCOMPOSITIONATTRIBDATA data = { WCA_USEDARKMODECOLORS, &dark, sizeof(dark) };
+        WINDOWCOMPOSITIONATTRIBDATA data = {WCA_USEDARKMODECOLORS, &dark, sizeof(dark)};
         fnSetWindowCompositionAttribute(hwnd, &data);
     }
+}
+
+/**************************************************************************************
+ * 在win11上设置标题栏颜色
+ * 如果是win10或以上系统返回true
+ * win11设置成功返回true
+ * 其他返回false
+ **************************************************************************************/
+static bool
+on_dark_set_caption(void)
+{
+    bool ret = false;
+    const uint32_t number = eu_win10_or_later();
+    if ((ret = number != (uint32_t)-1) && number >= 22000)
+    {
+    #if USE_DWMAPI
+        HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
+        DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
+        if ((ret = fnDwmSetWindowAttribute != NULL))
+        {
+            colour mycolor = eu_theme_index() == THEME_WHITE ? rgb_dark_txt_color : DWMWA_COLOR_DEFAULT;
+            ret = S_OK == fnDwmSetWindowAttribute(eu_module_hwnd(), DWMWA_CAPTION_COLOR, &mycolor, sizeof mycolor);
+            eu_logmsg("%s: ret = %d\n", __FUNCTION__, ret);
+        }
+        eu_close_dll(dwm);
+    #endif // USE_DWMAPI
+    }
+    return ret;
 }
 
 colour
 on_dark_get_colorization_color(void)
 {
     colour theme_color = 0;
-    HMODULE dwm = LoadLibraryEx(_T("dwmapi.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
     DwmGetColorizationColorPtr fnDwmGetColorizationColor = dwm ? (DwmGetColorizationColorPtr)GetProcAddress(dwm, "DwmGetColorizationColor") : NULL;
     if (fnDwmGetColorizationColor)
     {
@@ -278,7 +313,7 @@ OpenNcThemeDataStub(HWND hwnd, LPCTSTR classList)
 static void
 on_dark_fix_scrollbar(bool fixed)
 {
-    HMODULE comctl = LoadLibraryEx(_T("comctl32.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE comctl = np_load_plugin_library(_T("comctl32.dll"), true);
     if (comctl)
     {
         PIMAGE_THUNK_DATA addr = find_delayload_thunk_by_ordinal(comctl, "uxtheme.dll", 49); // OpenNcThemeData
@@ -302,24 +337,19 @@ on_dark_fix_scrollbar(bool fixed)
     }
 }
 
-static inline bool
-check_system_build_number(const uint32_t build_number)
-{
-    return (build_number >= 17763);
-}
-
 static bool
-on_dark_create_brush(void)
+on_dark_create_bgbrush(void)
 {
+    const uint32_t number = eu_win10_or_later();
     if (g_dark_bkgnd)
     {
         DeleteObject(g_dark_bkgnd);
     }
-    return ((g_dark_bkgnd = CreateSolidBrush(rgb_dark_bk_color)) != NULL);
+    return ((g_dark_bkgnd = ((number != (uint32_t)-1) && number >= 22000) ? CreateSolidBrush(rgb_dark_bk11_color) : CreateSolidBrush(rgb_dark_bk_color)) != NULL);
 }
 
-static void
-on_dark_delete_brush(void)
+void
+on_dark_delete_bgbrush(void)
 {
     if (g_dark_bkgnd)
     {
@@ -329,11 +359,20 @@ on_dark_delete_brush(void)
 }
 
 intptr_t
-on_dark_get_brush(void)
+on_dark_get_bgbrush(void)
 {
     if (!g_dark_bkgnd)
     {   // not dark mode
-        g_dark_bkgnd = GetSysColorBrush(COLOR_MENU);
+        if (on_dark_set_caption())
+        {
+            g_dark_bkgnd = eu_theme_index() == THEME_WHITE ?
+                           GetSysColorBrush(COLOR_WINDOW) :
+                           GetSysColorBrush(COLOR_MENU);
+        }
+        else
+        {
+            g_dark_bkgnd = GetSysColorBrush(COLOR_MENU);
+        }
     }
     return (intptr_t)g_dark_bkgnd;
 }
@@ -392,7 +431,7 @@ on_dark_create_hot_brush(void)
     return (g_dark_hot_bkgnd != NULL);
 }
 
-static void
+void
 on_dark_delete_hot_brush(void)
 {
     if (g_dark_hot_bkgnd)
@@ -405,7 +444,19 @@ on_dark_delete_hot_brush(void)
 intptr_t
 on_dark_get_hot_brush(void)
 {
+    if (!g_dark_hot_bkgnd)
+    {   // not dark mode
+        g_dark_hot_bkgnd = CreateSolidBrush(rgb_memu_hot2_color);
+    }
     return (intptr_t)g_dark_hot_bkgnd;
+}
+
+void
+on_dark_delete_brush(void)
+{   // 清理画刷
+    on_dark_delete_theme_brush();
+    on_dark_delete_bgbrush();
+    on_dark_delete_hot_brush();
 }
 
 intptr_t
@@ -483,7 +534,6 @@ eu_dark_theme_release(bool shutdown)
         {
             SendMessage(g_tabpages, WM_THEMECHANGED, 0, 0);
         }
-        on_dark_delete_hot_brush();
         on_dark_delete_brush();
         on_theme_menu_release();
     }
@@ -492,14 +542,9 @@ eu_dark_theme_release(bool shutdown)
 bool
 eu_dark_theme_init(bool fix_scroll, bool dark)
 {
-    uint32_t major, minor;
     HMODULE huser32 = NULL;
-    RtlGetNtVersionNumbersPtr fnRtlGetNtVersionNumbers = NULL;
+    uint32_t build_number = 0;
     if (util_under_wine())
-    {
-        return false;
-    }
-    if (!(fnRtlGetNtVersionNumbers = (RtlGetNtVersionNumbersPtr)GetProcAddress(GetModuleHandle(_T("ntdll.dll")), "RtlGetNtVersionNumbers")))
     {
         return false;
     }
@@ -511,11 +556,9 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
     {
         return false;
     }
-    fnRtlGetNtVersionNumbers(&major, &minor, &g_build_number);
-    g_build_number &= ~0xf0000000;
-    if (major == 10 && minor == 0 && check_system_build_number(g_build_number))
+    if ((build_number = eu_win10_or_later()) != (uint32_t)-1)
     {
-        if ((g_uxtheme = LoadLibraryEx(_T("uxtheme.dll"), NULL, LOAD_LIBRARY_SEARCH_SYSTEM32)) != NULL)
+        if ((g_uxtheme = np_load_plugin_library(_T("uxtheme.dll"), true)) != NULL)
         {
             fnOpenNcThemeData = (OpenNcThemeDataPtr)GetProcAddress(g_uxtheme, MAKEINTRESOURCEA(49));
             fnRefreshImmersiveColorPolicyState = (RefreshImmersiveColorPolicyStatePtr)GetProcAddress(g_uxtheme, MAKEINTRESOURCEA(104));
@@ -523,7 +566,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
             fnShouldAppsUseDarkMode = (ShouldAppsUseDarkModePtr)GetProcAddress(g_uxtheme, MAKEINTRESOURCEA(132));
             fnAllowDarkModeForWindow = (AllowDarkModeForWindowPtr)GetProcAddress(g_uxtheme, MAKEINTRESOURCEA(133));
             uintptr_t ord135 = (uintptr_t)GetProcAddress(g_uxtheme, MAKEINTRESOURCEA(135));
-            if (g_build_number < 18362)
+            if (build_number < 18362)
             {
                 fnAllowDarkModeForApp = (AllowDarkModeForAppPtr)(ord135);
             }
@@ -550,9 +593,9 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
                     on_dark_fix_scrollbar(fix_scroll);
                 }
             }
-            if (g_dark_enabled && on_dark_create_hot_brush())
+            if (g_dark_enabled && on_dark_create_hot_brush() && on_dark_set_caption())
             {
-                return on_dark_create_brush();
+                return on_dark_create_bgbrush();
             }
             else
             {

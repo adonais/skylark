@@ -454,7 +454,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                 snprintf(sql, _countof(sql) - 1, "pragma table_info ('%s')", result[index]);
                 if ((err = eu_sqlite3_get_table(this_sql3->sqlite3, sql, &result2, &nrow2, &ncolumn2, &errmsg)) != 0)
                 {
-                    printf("sqlite3_get_table2 failed\n");
+                    eu_logmsg("%s: sqlite3_get_table2 failed\n", __FUNCTION__);
                     if (errmsg)
                     {
                         LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR8, errbox);
@@ -706,7 +706,7 @@ on_sysmtree_init_hredis(void)
     {
         return true;
     }
-    redis_funcs.dll = np_load_plugin_library(_T("hiredis.dll"));
+    redis_funcs.dll = np_load_plugin_library(_T("hiredis.dll"), false);
     if (redis_funcs.dll == NULL)
     {
         MSG_BOX(IDC_MSG_SYMTREE_ERR10, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
@@ -917,7 +917,7 @@ on_symtree_query_redis(eu_tabpage *pnode)
     HTREEITEM hti = NULL;
     if (!on_symtree_parse_redis_header(pnode))
     {
-        printf("parse_redis_header return false\n");
+        eu_logmsg("%s: parse_redis_header return false\n", __FUNCTION__);
         return 1;
     }
     start_pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
@@ -933,7 +933,7 @@ on_symtree_query_redis(eu_tabpage *pnode)
     }
     if (sel_cmd == NULL)
     {
-        printf("memory allocation failed\n");
+        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
         return 1;
     }
     sel_event = strtok(sel_cmd, ";");
@@ -1104,7 +1104,7 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
     switch (json_root->type)
     {
         case json_none:
-            printf("none\n");
+            eu_logmsg("%s: json_none\n", __FUNCTION__);
             break;
         case json_object:
             process_object(pnode, new_tvi, json_root, x, pos);
@@ -1214,7 +1214,7 @@ cjson_thread(void *lp)
         {
             if (!init_json_tree(pnode, text, text_len))
             {
-                printf("json parser failed\n");
+                eu_logmsg("%s: json parser failed\n", __FUNCTION__);
             }
             free(text);
         }
@@ -1407,21 +1407,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            if (pnode)
-            {
-                if (pnode->hwnd_font)
-                {
-                    DeleteObject(pnode->hwnd_font);
-                    pnode->hwnd_font = NULL;
-                }
-                // 强制终止后台线程, 当软链接未解析完成时会导致资源泄露
-                if (pnode->json_id)
-                {
-                    util_kill_thread((uint32_t)pnode->json_id);
-                }
-            }
-            printf("symtree WM_DESTROY\n");
+            util_symlink_destroy((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             break;
         }
         default:
@@ -1446,7 +1432,7 @@ on_symtree_create(eu_tabpage *pnode)
     }
     if (!(symtree_wnd = (WNDPROC) SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR) symtree_proc)))
     {
-        printf("SetWindowLongPtr(pnode->hwnd_symtree) failed\n");
+        eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symtree) failed\n", __FUNCTION__);
         DestroyWindow(pnode->hwnd_symtree);
         pnode->hwnd_symtree = NULL;
         return 1;
