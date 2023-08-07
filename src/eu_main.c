@@ -27,6 +27,9 @@
     }                                                       \
 }
 
+#define EU_REENTRANT_PARAM                                  \
+((argc > 1) ? ((_tcscmp(argv[1], _T("--help")) == 0) || (_tcscmp(argv[1], _T("-lua")) == 0)) : (false))
+
 #define SKY_SAFE_EXIT(n) {msg.wParam = n; goto all_clean;}
 
 /*****************************************************************************
@@ -61,6 +64,48 @@ init_instance(HINSTANCE instance)
         }
     }
     return hwnd;
+}
+
+static int
+init_lua_runtime(int args, TCHAR **pargv)
+{
+    int ret = SKYLARK_OK;
+    const TCHAR *fname = NULL;
+    const TCHAR *save = NULL;
+    bool cinit = false;
+    bool is_cui = !eu_gui_app();
+    if (args > 2)
+    {
+        fname = pargv[2];
+    }
+    if (!is_cui)
+    {
+        cinit = (bool)AllocConsole();
+        freopen("conin$","r",stdin);
+        freopen("conout$","w", stdout);
+        freopen("conout$","w", stderr);
+    }
+    if ((is_cui || cinit) && fname)
+    {
+        if (args > 4 && _tcscmp(fname, _T("-b")) == 0)
+        {
+            fname = pargv[3];
+            save = pargv[4];
+            _tputenv(_T("LUA_PATH="));
+            ret = eu_lua_script_convert(fname, save);
+            fprintf(stderr, "End-of-Conversion.\n");
+        }
+        else
+        {
+            ret = eu_lua_script_exec(fname);
+        }
+        system("pause");
+    }
+    if (cinit)
+    {
+        FreeConsole();
+    }
+    return ret;
 }
 
 /*****************************************************************************
@@ -179,42 +224,14 @@ _tmain(int argc, TCHAR *argv[])
         {
             eu_get_config()->m_instance = true;
         }
-        else
+        else if (!EU_REENTRANT_PARAM)
         {
             SKY_SAFE_EXIT(SKYLARK_OK);
         }
     }
     if (argc > 1 && _tcscmp(argv[1], _T("-lua")) == 0)
     {
-        bool cinit = false;
-        const TCHAR *fname = NULL;
-        const TCHAR *save = NULL;
-        bool is_cui = !eu_gui_app();
-        if (argc > 2)
-        {
-            fname = argv[2];
-        }
-        if (!is_cui)
-        {
-            cinit = (bool)AllocConsole();
-            freopen("conin$","r",stdin);
-            freopen("conout$","w", stdout);
-            freopen("conout$","w", stderr);
-        }
-        if ((is_cui || cinit) && argc > 4 && fname && _tcscmp(fname, _T("-b")) == 0)
-        {
-            fname = argv[3];
-            save = argv[4];
-            _tputenv(_T("LUA_PATH="));
-            fprintf(stderr, "End-of-Conversion.\n");
-            msg.wParam = eu_lua_script_convert(fname, save);
-            system("pause");
-        }
-        if (cinit)
-        {
-            FreeConsole();
-        }
-        SKY_SAFE_EXIT(SKYLARK_OK);
+        SKY_SAFE_EXIT(init_lua_runtime(argc, argv));
     }
 #if 0
     if (!eu_hook_exception())
