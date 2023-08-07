@@ -1308,8 +1308,13 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     {
         if (on_encoding_validate_utf8((const char *)checkstr, read_len))
         {
-            eu_logmsg("not iso encode, it's maybe UTF-8!\n");
+            eu_logmsg("Not iso encode, it's maybe UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
+        }
+        else if (CHECK_1ST > obj->confidence && is_mbcs_gb18030((const char *)checkstr, read_len))
+        {
+            eu_logmsg("Confidence[%f] < %f, Maybe GB18030!\n", obj->confidence, CHECK_1ST);
+            type = IDM_ANSI_12;
         }
         else
         {
@@ -1348,7 +1353,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (is_mbcs_gb18030((const char *)checkstr, read_len))
         {
-            eu_logmsg("MAYBA GB18030!\n");
+            eu_logmsg("Maybe GB18030!\n");
             type = IDM_ANSI_12;
         }
         else
