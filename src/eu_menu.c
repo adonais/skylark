@@ -345,7 +345,7 @@ menu_update_item(HMENU menu, const bool init)
                         on_file_update_recent_menu();
                         break;
                     case IDM_FILE_EXIT_WHEN_LAST_TAB:          /* File menu */
-                        util_enable_menu_item(menu, IDM_FILE_SAVE, init || (on_sci_doc_modified(pnode) && !eu_sci_call(pnode,SCI_GETREADONLY, 0, 0)));
+                        util_enable_menu_item(menu, IDM_FILE_SAVE, init || (on_sci_doc_modified(pnode) && !(pnode->file_attr & FILE_ATTRIBUTE_READONLY)));
                         util_enable_menu_item(menu, IDM_FILE_SAVEAS, init || pnode->filename[0]);
                         util_enable_menu_item(menu, IDM_FILE_REMOTE_FILESERVERS, init || util_exist_libcurl());
                         util_set_menu_item(menu, IDM_FILE_WRITE_COPY, eu_get_config()->m_write_copy);

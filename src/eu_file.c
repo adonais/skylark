@@ -2145,23 +2145,26 @@ on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
 #define TMP_SUFFX (L".$bak~")
     bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->raw_size/1024/1024));
     if (is_cache)
-    {   // 保存本地文件, 并移动到cache_path
+    {
         int ret = 0;
         wchar_t *tmp_path = NULL;
         wchar_t pathfile[MAX_BUFFER] = {0};
-        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && tmp_path)
-        {
+        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && STR_NOT_NUL(tmp_path))
+        {   // 未保存之前, 先复制到临时文件
             _snwprintf(pathfile, MAX_BUFFER, L"%s", tmp_path);
             wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
             ret = CopyFileW(pathfile, tmp_path, false);
         }
         if (ret)
-        {
+        {   // 保存本地文件, 并移动到cache_path
             np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
-            ret = MoveFileW(pathfile, cache_path);
+            if (_tcsicmp(pathfile, cache_path))
+            {
+                ret = MoveFileW(pathfile, cache_path);
+            }
         }
-        if (ret)
-        {
+        if (ret && STR_NOT_NUL(tmp_path))
+        {   // 让本地文件恢复未修改之前的状态
             ret = MoveFileExW(tmp_path, pathfile, MOVEFILE_REPLACE_EXISTING|MOVEFILE_COPY_ALLOWED);
         }
         eu_safe_free(tmp_path);
@@ -2214,7 +2217,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 }
                 else
                 {
-                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s%s"), eu_config_path, buf, pnode->extname);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
                     on_file_npp_write(pnode, filebak.bak_path, true);
                 }
                 if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
