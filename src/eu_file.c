@@ -2569,7 +2569,7 @@ on_file_edit_exit(HWND hwnd)
 }
 
 void
-on_file_edit_restart(HWND hwnd, const bool admin)
+on_file_edit_restart(HWND hwnd, const bool admin, const bool wait)
 {
     HANDLE handle = NULL;
     TCHAR process[MAX_BUFFER] = {0};
@@ -2583,12 +2583,15 @@ on_file_edit_restart(HWND hwnd, const bool admin)
         on_file_kill_tree(pid);
         if (!admin || on_reg_admin())
         {
-            on_file_edit_exit(hwnd);
+            if (wait)
+            {
+                on_file_edit_exit(hwnd);
+            }
             CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
         }
         else
         {
-            if (on_reg_admin_execute(process))
+            if (on_reg_admin_execute(process) && wait)
             {
                 on_file_edit_exit(hwnd);
             }

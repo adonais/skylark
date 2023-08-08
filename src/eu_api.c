@@ -38,6 +38,7 @@
 #define IS_2ND_BYTE(c) (IS_2NDBYTE_16(c) || IS_2NDBYTE_32(c))
 #define IS_3RD_BYTE(c) (CHAR_IN_RANGE((c), 0x81, 0xFE))
 #define IS_4TH_BYTE(c) (CHAR_IN_RANGE((c), 0x30, 0x39))
+#define EU_RESET_BACKUP_NAME _T("conf_old_backup")
 
 wchar_t eu_module_path[MAX_PATH+1] = {0};
 wchar_t eu_config_path[MAX_BUFFER] = {0};
@@ -353,14 +354,14 @@ eu_touch(LPCTSTR path)
 }
 
 static bool
-do_rename_operation(TCHAR *porig, TCHAR *pold)
+do_rename_operation(const TCHAR *porig)
 {
-    if (porig && pold)
+    if (STR_NOT_NUL(porig))
     {
-        const int old_len = (const int)_tcslen(pold);
+        TCHAR pold[MAX_BUFFER] = {0};
         for (int i = 1; i < 99; ++i)
         {
-            _sntprintf(&pold[old_len], MAX_BUFFER - old_len - 1, _T(".%d"), i);
+            _sntprintf(pold, MAX_BUFFER - 1, _T("%s.old.%d"), porig, i);
             if (!eu_exist_wpath(pold))
             {
                 break;
@@ -374,43 +375,139 @@ do_rename_operation(TCHAR *porig, TCHAR *pold)
     return false;
 }
 
+static void
+do_move_operation(const TCHAR *pname)
+{
+    if (STR_NOT_NUL(pname))
+    {
+        TCHAR porig[MAX_BUFFER] = {0};
+        TCHAR pback[MAX_BUFFER] = {0};
+        _sntprintf(porig, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, pname);
+        _sntprintf(pback, MAX_BUFFER - 1, _T("%s\\%s\\%s"), eu_config_path, EU_RESET_BACKUP_NAME, pname);
+        MoveFileEx(porig, pback, MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING);
+    }
+}
+
+static bool
+do_rename_thmem(void)
+{
+    WIN32_FIND_DATA data;
+    TCHAR filepath[MAX_BUFFER];
+    HANDLE hfile;
+    _sntprintf(filepath, MAX_BUFFER, _T("%s\\styletheme*.conf"), eu_config_path);
+    hfile = FindFirstFile(filepath, &data);
+    if (hfile == INVALID_HANDLE_VALUE)
+    {
+        return false;
+    }
+    do
+    {
+        if (_tcscmp(data.cFileName, _T(".")) == 0 || _tcscmp(data.cFileName, _T("..")) == 0)
+        {
+            continue;
+        }
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            continue;
+        }
+        _sntprintf(filepath, MAX_BUFFER, _T("%s\\%s"), eu_config_path, data.cFileName);
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+        {
+            SetFileAttributes(filepath, data.dwFileAttributes & (~FILE_ATTRIBUTE_READONLY));
+        }
+        do_rename_operation(filepath);
+    } while (FindNextFile(hfile, &data));
+    FindClose(hfile);
+    return true;
+}
+
+static bool
+do_configs_backup(void)
+{
+    TCHAR filepath[MAX_BUFFER];
+    TCHAR backpath[MAX_BUFFER];
+    _sntprintf(filepath, MAX_BUFFER, _T("%s\\*.old.*"), eu_config_path);
+    _sntprintf(backpath, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, EU_RESET_BACKUP_NAME);
+    if (eu_exist_wpath(backpath))
+    {
+        util_delete_file(backpath);
+    }
+    if (eu_mk_dir(backpath))
+    {
+        WIN32_FIND_DATA data;
+        HANDLE hfile = FindFirstFile(filepath, &data);
+        if (hfile == INVALID_HANDLE_VALUE)
+        {
+            return false;
+        }
+        do
+        {
+            if (_tcscmp(data.cFileName, _T(".")) == 0 || _tcscmp(data.cFileName, _T("..")) == 0)
+            {
+                continue;
+            }
+            _sntprintf(filepath, MAX_BUFFER, _T("%s\\%s"), eu_config_path, data.cFileName);
+            if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+            {
+                SetFileAttributes(filepath, data.dwFileAttributes & (~FILE_ATTRIBUTE_READONLY));
+            }
+            do_move_operation(data.cFileName);
+        } while (FindNextFile(hfile, &data));
+        FindClose(hfile);
+        return true;
+    }
+    return false;
+}
+
 static bool
 rename_configs(uint32_t mask)
 {
     bool result = false;
-    TCHAR conf_old[MAX_BUFFER] = {0};
-    TCHAR conf_orig[MAX_BUFFER] = {0};
     if (mask != 0)
     {
+        TCHAR conf_orig[MAX_BUFFER] = {0};
         if (mask & SNIP_CONFIG_MASK)
         {
             _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\snippets"), eu_config_path);
-            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\snippets.old"), eu_config_path);
-            result = do_rename_operation(conf_orig, conf_old);
+            result = do_rename_operation(conf_orig);
         }
         if (mask & ACCS_CONFIG_MASK)
         {
             _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark_input.conf"), eu_config_path);
-            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\skylark_input.conf.old"), eu_config_path);
-            result = do_rename_operation(conf_orig, conf_old);
+            result = do_rename_operation(conf_orig);
         }
         if (mask & DOCS_CONFIG_MASK)
         {
             _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\script-opts"), eu_config_path);
-            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\script-opts.old"), eu_config_path);
-            result = do_rename_operation(conf_orig, conf_old);
+            result = do_rename_operation(conf_orig);
         }
         if (mask & SQLS_CONFIG_MASK)
         {
             _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark_prefs.sqlite3"), eu_config_path);
-            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\skylark_prefs.sqlite3.old"), eu_config_path);
-            result = do_rename_operation(conf_orig, conf_old);
+            result = do_rename_operation(conf_orig);
+            if (result)
+            {
+                _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\cache"), eu_config_path);
+                result = do_rename_operation(conf_orig);
+            }
+            _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark_pfavs.sqlite3"), eu_config_path);
+            result = do_rename_operation(conf_orig);
         }
         if (mask & MAIN_CONFIG_MASK)
         {
             _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark.conf"), eu_config_path);
-            _sntprintf(conf_old, MAX_BUFFER - 1, _T("%s\\skylark.conf.old"), eu_config_path);
-            result = do_rename_operation(conf_orig, conf_old);
+            result = do_rename_operation(conf_orig);
+            _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark_toolbar.conf"), eu_config_path);
+            result = do_rename_operation(conf_orig);
+        }
+        if (mask & THEM_CONFIG_MASK)
+        {
+            result = do_rename_thmem();
+            if (!(mask & MAIN_CONFIG_MASK))
+            {
+                _sntprintf(conf_orig, MAX_BUFFER - 1, _T("%s\\skylark.conf"), eu_config_path);
+                result = do_rename_operation(conf_orig);
+            }
         }
     }
     return result;
@@ -447,13 +544,26 @@ eu_reset_snip_mask(void)
 }
 
 void
+eu_reset_theme_mask(void)
+{
+    fn_config_mask |= THEM_CONFIG_MASK;
+}
+
+void
+eu_reset_all_mask(void)
+{
+    fn_config_mask |= EAPI_RSTART_MASK;
+}
+
+void
 eu_reset_config(void)
 {
-    if (rename_configs(fn_config_mask))
+    if (rename_configs(fn_config_mask) && fn_config_mask == EAPI_RSTART_MASK)
     {
-    #if APP_DEBUG
-        printf("%s: we have reset the configuration files\n", __FUNCTION__);
-    #endif
+        if (do_configs_backup())
+        {
+            eu_logmsg("%s: We will reset all configuration files and restart the editor\n", __FUNCTION__);
+        }
     }
 }
 

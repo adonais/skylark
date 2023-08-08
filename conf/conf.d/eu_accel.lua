@@ -179,6 +179,7 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F5, IDM_PROGRAM_EXECUTE_ACTION},\n",
       "                 -- Settings menu\n",
       "                 {0, 0, IDM_VIEW_MODIFY_STYLETHEME},\n",
+      "                 {0, 0, IDM_SET_RESET_CONFIG},\n",
       "                 {0, 0, IDM_FILE_SAVE_NOTIFY},\n",
       "                 -- Help menu\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F1, IDM_DONATION},\n",

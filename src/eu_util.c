@@ -2466,20 +2466,27 @@ bool
 util_delete_file(LPCTSTR filepath)
 {
     int ret = 1;
-    int path_len = eu_int_cast(_tcslen(filepath));
-    TCHAR *psz_from = (TCHAR *)calloc(sizeof(TCHAR), path_len + 2);
-    if (psz_from)
+    if (STR_NOT_NUL(filepath))
     {
-        _tcscpy(psz_from, filepath);
-        psz_from[path_len] = 0;
-        psz_from[++path_len] = 0;
-        SHFILEOPSTRUCT st_struct = {0};
-        st_struct.wFunc = FO_DELETE;
-        st_struct.pFrom = psz_from;
-        st_struct.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR | FOF_SILENT | FOF_FILESONLY;
-        st_struct.fAnyOperationsAborted = 0;
-        ret = SHFileOperation(&st_struct);
-        free(psz_from);
+        int path_len = eu_int_cast(_tcslen(filepath));
+        TCHAR *psz_from = (TCHAR *)calloc(sizeof(TCHAR), path_len + 2);
+        if (psz_from)
+        {
+            _tcscpy(psz_from, filepath);
+            psz_from[path_len] = 0;
+            psz_from[++path_len] = 0;
+            SHFILEOPSTRUCT st_struct = {0};
+            st_struct.wFunc = FO_DELETE;
+            st_struct.pFrom = psz_from;
+            st_struct.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR;
+            st_struct.fAnyOperationsAborted = 0;
+            if ((GetFileAttributes(filepath) & FILE_ATTRIBUTE_DIRECTORY) == 0)
+            {
+                st_struct.fFlags |= FOF_FILESONLY;
+            }
+            ret = SHFileOperation(&st_struct);
+            free(psz_from);
+        }
     }
     return (ret == 0);
 }

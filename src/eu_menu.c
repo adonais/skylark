@@ -558,6 +558,9 @@ menu_update_item(HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
                         break;
+                    case IDM_SET_RESET_CONFIG:
+                        util_enable_menu_item(menu, IDM_SET_RESET_CONFIG, init || (eu_hwnd_self() == share_envent_get_hwnd()));
+                        break;
                     case IDM_SET_LOGGING_ENABLE:
                         util_set_menu_item(menu, IDM_SET_LOGGING_ENABLE, eu_get_config()->m_logging);
                         break;
