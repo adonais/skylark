@@ -216,7 +216,7 @@ BEGIN
             MENUITEM "删除所有书签",                            IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "跳到上一个书签 (当前文件)",               IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "跳到下一个书签 (当前文件)",               IDM_SEARCH_GOTO_NEXT_BOOKMARK
-            MENUITEM "跳上一个书签 (所有打开的文件)",           IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
+            MENUITEM "跳到上一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
             MENUITEM "跳到下一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
         END
         POPUP "导航",                                           IDM_EDIT_PLACEHOLDE14
