@@ -24,14 +24,14 @@ BEGIN
     POPUP "文件(&F)"
     BEGIN
         MENUITEM "新建(&N)",                                    IDM_FILE_NEW
-        MENUITEM "打开(&O)...",                                 IDM_FILE_OPEN
+        MENUITEM "打开(&O) ...",                                IDM_FILE_OPEN
         POPUP "打开最近"
         BEGIN
             MENUITEM "...",                                     IDM_HISTORY_BASE
         END
         MENUITEM "清理打开文件历史",                            IDM_HISTORY_CLEAN
         MENUITEM "保存(&S)",                                    IDM_FILE_SAVE
-        MENUITEM "另存为...",                                   IDM_FILE_SAVEAS
+        MENUITEM "另存为 ...",                                  IDM_FILE_SAVEAS
         MENUITEM "全部保存",                                    IDM_FILE_SAVEALL
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
@@ -44,10 +44,10 @@ BEGIN
         MENUITEM "保存最后一次对话",                            IDM_FILE_SESSION
         MENUITEM MF_SEPARATOR
         MENUITEM "打印设置",                                    IDM_FILE_PAGESETUP
-        MENUITEM "打印...(&P)",                                 IDM_FILE_PRINT
+        MENUITEM "打印(&P) ...",                                IDM_FILE_PRINT
         MENUITEM MF_SEPARATOR
-        MENUITEM "远程文件管理器...(&M)",                       IDM_FILE_REMOTE_FILESERVERS
-        MENUITEM "将文件加入收藏夹...",                         IDM_FILE_ADD_FAVORITES
+        MENUITEM "远程文件管理器(&M) ...",                      IDM_FILE_REMOTE_FILESERVERS
+        MENUITEM "将文件加入收藏夹 ...",                        IDM_FILE_ADD_FAVORITES
         MENUITEM MF_SEPARATOR
         POPUP "新建文件换行符"
         BEGIN
@@ -158,17 +158,17 @@ BEGIN
         END
         POPUP "3DES加密/解密",                                  IDM_EDIT_PLACEHOLDE9
         BEGIN
-            MENUITEM "3DES(CBC)加密...",                        IDM_EDIT_3DES_CBC_ENCRYPTO
-            MENUITEM "3DES(CBC)解密...",                        IDM_EDIT_3DES_CBC_DECRYPTO
+            MENUITEM "3DES(CBC)加密 ...",                       IDM_EDIT_3DES_CBC_ENCRYPTO
+            MENUITEM "3DES(CBC)解密 ...",                       IDM_EDIT_3DES_CBC_DECRYPTO
         END
     END
     POPUP "搜索(&S)"
     BEGIN
-        MENUITEM "查找(&F)...",                                 IDM_SEARCH_FIND
+        MENUITEM "查找(&F) ...",                                IDM_SEARCH_FIND
         MENUITEM "查找上一个",                                  IDM_SEARCH_FINDPREV
         MENUITEM "查找下一个",                                  IDM_SEARCH_FINDNEXT
-        MENUITEM "替换(&R)...",                                 IDM_SEARCH_REPLACE
-        MENUITEM "文件搜索...",                                 IDM_SEARCH_FILES
+        MENUITEM "替换(&R) ...",                                IDM_SEARCH_REPLACE
+        MENUITEM "文件搜索 ...",                                IDM_SEARCH_FILES
         MENUITEM MF_SEPARATOR
         MENUITEM "开始/结束 选择",                              IDM_UPDATE_SELECTION
         MENUITEM "多重选择 (说明)",                             IDM_SEARCH_MULTISELECT_README
@@ -201,7 +201,7 @@ BEGIN
             MENUITEM "移动到下一个语句块首行",                  IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "行定位(&G)..."
+        POPUP "行定位(&G) ..."
         BEGIN
             MENUITEM "跳到首行",                                IDM_SEARCH_GOTOHOME
             MENUITEM "跳到末行",                                IDM_SEARCH_GOTOEND
@@ -216,7 +216,7 @@ BEGIN
             MENUITEM "删除所有书签",                            IDM_SEARCH_REMOVE_ALL_BOOKMARKS
             MENUITEM "跳到上一个书签 (当前文件)",               IDM_SEARCH_GOTO_PREV_BOOKMARK
             MENUITEM "跳到下一个书签 (当前文件)",               IDM_SEARCH_GOTO_NEXT_BOOKMARK
-            MENUITEM "跳上一个书签 (所有打开的文件)",           IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
+            MENUITEM "跳到上一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
             MENUITEM "跳到下一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
         END
         POPUP "导航",                                           IDM_EDIT_PLACEHOLDE14
@@ -249,7 +249,7 @@ BEGIN
             MENUITEM "128 x 128",                               IDB_SIZE_128
         END
         MENUITEM MF_SEPARATOR
-        MENUITEM "制表符TAB宽度[N]个空格...",                   IDM_VIEW_TAB_WIDTH
+        MENUITEM "制表符TAB宽度[N]个空格 ...",                  IDM_VIEW_TAB_WIDTH
         MENUITEM "键入制表符TAB时转换为空格集合",               IDM_TAB_CONVERT_SPACES
         MENUITEM MF_SEPARATOR
         MENUITEM "十六进制视图(&H)",                            IDM_VIEW_HEXEDIT_MODE
@@ -341,7 +341,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "检测超链接(&Y)",                              IDM_FORMAT_HYPERLINKHOTSPOTS
         MENUITEM MF_SEPARATOR
-        MENUITEM "检查缩进...(&N)",                             IDM_FORMAT_CHECK_INDENTATION
+        MENUITEM "检查缩进(&N) ...",                            IDM_FORMAT_CHECK_INDENTATION
         MENUITEM MF_SEPARATOR
         MENUITEM "生成二维码(&Q)",                              IDM_EDIT_QRCODE
     END
@@ -390,8 +390,8 @@ BEGIN
         BEGIN
             MENUITEM "...",                                     IDM_STYLETHEME_BASE
         END
-        MENUITEM "修改主题方案...",                             IDM_VIEW_MODIFY_STYLETHEME
-        MENUITEM "复制创建主题...",                             IDM_VIEW_COPYNEW_STYLETHEME
+        MENUITEM "修改主题方案 ...",                            IDM_VIEW_MODIFY_STYLETHEME
+        MENUITEM "复制创建主题 ...",                            IDM_VIEW_COPYNEW_STYLETHEME
         MENUITEM MF_SEPARATOR
         POPUP "字体质量(&Q)",                                   IDM_SETTING_FONTQUALITY
         BEGIN
@@ -406,7 +406,9 @@ BEGIN
             MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
         END
         MENUITEM MF_SEPARATOR
-        MENUITEM "启用运行时日志",                              IDM_SET_LOGGING_ENABLE
+        MENUITEM "翻新Skylark ...",                             IDM_SET_RESET_CONFIG
+        MENUITEM MF_SEPARATOR
+        MENUITEM "启用运行时日志(&L)",                          IDM_SET_LOGGING_ENABLE
         MENUITEM MF_SEPARATOR
         MENUITEM "文件间隔[N]秒自动保存",                       IDM_FILE_SAVE_NOTIFY
         MENUITEM MF_SEPARATOR

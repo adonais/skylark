@@ -1034,7 +1034,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_get_config()->m_exit ^= true;
                     break;
                 case IDM_FILE_RESTART_ADMIN:
-                    on_file_edit_restart(hwnd, true);
+                    on_file_edit_restart(hwnd, true, true);
                     break;
                 case IDM_FILE_PAGESETUP:
                     on_print_setup(g_hwndmain);
@@ -1651,6 +1651,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_SOURCE_ENABLE_CTSHOW:
                     eu_get_config()->eu_calltip.enable ^= true;
+                    break;
+                case IDM_SET_RESET_CONFIG:
+                    eu_reset_all_mask();
+                    on_file_edit_restart(hwnd, false, true);
                     break;
                 case IDM_SET_LOGGING_ENABLE:
                     eu_init_logs(true);

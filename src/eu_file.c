@@ -1640,7 +1640,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
 }
 
 static int
-on_file_do_write(eu_tabpage *pnode, const TCHAR *pathfilename, const bool isbak, const bool save_as)
+on_file_do_write(eu_tabpage *pnode, const TCHAR *pathfilename, const bool isbak, const bool save_as, int *pstatus)
 {
     FILE *fp = NULL;
     int ret = SKYLARK_OK;
@@ -1759,6 +1759,10 @@ FILE_FINAL:
                     util_delete_file(pnode->bakpath);
                 }
                 pnode->bakpath[0] = 0;
+            }
+            if (pstatus)
+            {
+                *pstatus = 0;
             }
         }
         if (eu_exist_file(tmp))
@@ -1915,7 +1919,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
         }
         if (!pnode->pmod)
         {   // 非插件另存为
-            if (on_file_do_write(pnode, full_path, false, true))
+            if (on_file_do_write(pnode, full_path, false, true, NULL))
             {
                 err = EUE_WRITE_FILE_ERR;
                 goto SAVE_FINAL;
@@ -2006,7 +2010,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
             err = EUE_WRITE_FILE_ERR;
             goto SAVE_FINAL;
         }
-        if (on_file_do_write(pnode, pnode->pathfile, false, false))
+        if (on_file_do_write(pnode, pnode->pathfile, false, false, NULL))
         {
             err = EUE_WRITE_FILE_ERR;
         }
@@ -2140,35 +2144,46 @@ on_file_backup_name(eu_tabpage *pnode, wchar_t *pout)
 }
 
 static void
-on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
+on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak, int *pstatus)
 {
 #define TMP_SUFFX (L".$bak~")
     bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->raw_size/1024/1024));
     if (is_cache)
-    {   // 保存本地文件, 并移动到cache_path
+    {
         int ret = 0;
+        bool is_same = false;
         wchar_t *tmp_path = NULL;
         wchar_t pathfile[MAX_BUFFER] = {0};
-        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && tmp_path)
-        {
+        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && STR_NOT_NUL(tmp_path))
+        {   // 未保存之前, 把本地文件先复制到临时文件
             _snwprintf(pathfile, MAX_BUFFER, L"%s", tmp_path);
-            wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
-            ret = CopyFileW(pathfile, tmp_path, false);
+            // 本地文件也可能是之前的备份, 不用复制
+            is_same = (STR_NOT_NUL(cache_path) && wcsicmp(pathfile, cache_path) == 0);
+            if (!is_same)
+            {
+                wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
+                ret = CopyFileW(pathfile, tmp_path, false);
+            }
         }
-        if (ret)
-        {
+        if ((ret || is_same) && STR_NOT_NUL(tmp_path))
+        {   // 保存本地文件
             np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
-            ret = MoveFileW(pathfile, cache_path);
-        }
-        if (ret)
-        {
-            ret = MoveFileExW(tmp_path, pathfile, MOVEFILE_REPLACE_EXISTING|MOVEFILE_COPY_ALLOWED);
+            if (!is_same)
+            {   // 并移动到cache_path
+                ret = MoveFileW(pathfile, cache_path);
+                // 本地文件恢复未修改之前的状态
+                ret = MoveFileExW(tmp_path, pathfile, MOVEFILE_REPLACE_EXISTING|MOVEFILE_COPY_ALLOWED);
+            }
         }
         eu_safe_free(tmp_path);
     }
     else if (!url_has_remote(pnode->pathfile))
     {   // no cache, 则自动保存
         np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+        if (pstatus)
+        {
+            *pstatus = 0;
+        }
     }
     else
     {   // 网络流文件的修改丢弃
@@ -2177,19 +2192,32 @@ on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak)
 #undef TMP_SUFFX
 }
 
+static bool
+on_file_cache_protect(eu_tabpage *pnode)
+{
+    if (pnode && pnode->pathfile[0])
+    {
+        TCHAR cache[MAX_BUFFER] = {0};
+        _sntprintf(cache, MAX_BUFFER - 1, _T("%s\\cache"), eu_config_path);
+        return (_tcsnicmp(pnode->pathfile, cache, _tcslen(cache)) == 0);
+    }
+    return false;
+}
+
 static void
 on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
 {
     file_backup filebak = {0};
     filebak.cp = pnode->codepage;
     filebak.bakcp = !TAB_NOT_BIN(pnode) ? IDM_OTHER_BIN : IDM_UNI_UTF8;
-    if (!file_click_close(mode))
+    if (!file_click_close(mode) && !on_file_cache_protect(pnode))
     {
         if (!pnode->is_blank || TAB_NOT_NUL(pnode))
         {
             if (pnode->be_modify)
             {
                 TCHAR buf[QW_SIZE] = {0};
+                filebak.status = 1;
                 if (!on_file_backup_name(pnode, buf))
                 {
                     on_file_guid(buf, QW_SIZE - 1);
@@ -2210,18 +2238,17 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 if (!pnode->pmod)
                 {
                     _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
-                    on_file_do_write(pnode, filebak.bak_path, true, false);
+                    on_file_do_write(pnode, filebak.bak_path, true, false, &filebak.status);
                 }
                 else
                 {
-                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s%s"), eu_config_path, buf, pnode->extname);
-                    on_file_npp_write(pnode, filebak.bak_path, true);
+                    _sntprintf(filebak.bak_path, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
+                    on_file_npp_write(pnode, filebak.bak_path, true, &filebak.status);
                 }
                 if (pnode->hex_mode && pnode->phex && pnode->phex->hex_ascii)
                 {
                     filebak.bakcp = pnode->codepage;
                 }
-                filebak.status = 1;
             }
             _tcscpy(filebak.rel_path, pnode->pathfile);
             filebak.tab_id = pnode->tab_id;
@@ -2282,7 +2309,7 @@ on_file_auto_backup(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->be_modify && !p->hex_mode && !p->pmod)
+        if (p && p->be_modify && !p->hex_mode && !p->pmod && !on_file_cache_protect(p))
         {
             if (need_lock)
             {
@@ -2569,7 +2596,7 @@ on_file_edit_exit(HWND hwnd)
 }
 
 void
-on_file_edit_restart(HWND hwnd, const bool admin)
+on_file_edit_restart(HWND hwnd, const bool admin, const bool wait)
 {
     HANDLE handle = NULL;
     TCHAR process[MAX_BUFFER] = {0};
@@ -2583,12 +2610,15 @@ on_file_edit_restart(HWND hwnd, const bool admin)
         on_file_kill_tree(pid);
         if (!admin || on_reg_admin())
         {
-            on_file_edit_exit(hwnd);
+            if (wait)
+            {
+                on_file_edit_exit(hwnd);
+            }
             CloseHandle(eu_new_process(process, NULL, NULL, 0, NULL));
         }
         else
         {
-            if (on_reg_admin_execute(process))
+            if (on_reg_admin_execute(process) && wait)
             {
                 on_file_edit_exit(hwnd);
             }

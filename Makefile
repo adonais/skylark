@@ -2,20 +2,20 @@ ROOT = .
 !include "$(ROOT)\system.mak"
 
 all:
-    @if exist "$(MAKEDIR)\src\3rdparty\sqlite3\Makefile" cd "$(MAKEDIR)\src\3rdparty\sqlite3" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\src\3rdparty\pcre\Makefile" cd "$(MAKEDIR)\src\3rdparty\pcre" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\src\3rdparty\libiconv\Makefile" cd "$(MAKEDIR)\src\3rdparty\libiconv" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\src\3rdparty\luajit\Makefile" cd "$(MAKEDIR)\src\3rdparty\luajit" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\src\3rdparty\chardet\Makefile" cd "$(MAKEDIR)\src\3rdparty\chardet" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\src\3rdparty\qrencode\Makefile" cd "$(MAKEDIR)\src\3rdparty\qrencode" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\src\3rdparty\boost\Makefile" cd "$(MAKEDIR)\src\3rdparty\boost" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    cd "$(MAKEDIR)\src"
-    @$(MAKE) /NOLOGO /$(MAKEFLAGS)
-    @if exist "$(MAKEDIR)\plugins\pdfview\Makefile" cd "$(MAKEDIR)\plugins\pdfview" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
-    cd "$(MAKEDIR)\locales"
-    @$(MAKE) /NOLOGO /$(MAKEFLAGS)
-    cd "$(MAKEDIR)"
+	@if exist "$(MAKEDIR)\src\3rdparty\sqlite3\Makefile" cd "$(MAKEDIR)\src\3rdparty\sqlite3" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\pcre\Makefile" cd "$(MAKEDIR)\src\3rdparty\pcre" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\libiconv\Makefile" cd "$(MAKEDIR)\src\3rdparty\libiconv" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\luajit\Makefile" cd "$(MAKEDIR)\src\3rdparty\luajit" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\chardet\Makefile" cd "$(MAKEDIR)\src\3rdparty\chardet" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\qrencode\Makefile" cd "$(MAKEDIR)\src\3rdparty\qrencode" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\boost\Makefile" cd "$(MAKEDIR)\src\3rdparty\boost" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	cd "$(MAKEDIR)\src"
+	@$(MAKE) /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\plugins\pdfview\Makefile" cd "$(MAKEDIR)\plugins\pdfview" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	cd "$(MAKEDIR)\locales"
+	@$(MAKE) /NOLOGO /$(MAKEFLAGS)
+	cd "$(MAKEDIR)"
 
 package: all
 !IF "$(BITS)" == "64"
@@ -45,21 +45,21 @@ package: all
 !ENDIF
 
 clean:
-    @if exist "$(MAKEDIR)\src\3rdparty\sqlite3\Makefile" cd "$(MAKEDIR)\src\3rdparty\sqlite3" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\src\3rdparty\pcre\Makefile" cd "$(MAKEDIR)\src\3rdparty\pcre" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\src\3rdparty\libiconv\Makefile" cd "$(MAKEDIR)\src\3rdparty\libiconv" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\src\3rdparty\luajit\Makefile" cd "$(MAKEDIR)\src\3rdparty\luajit" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\src\3rdparty\chardet\Makefile" cd "$(MAKEDIR)\src\3rdparty\chardet" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\src\3rdparty\qrencode\Makefile" cd "$(MAKEDIR)\src\3rdparty\qrencode" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\src\3rdparty\boost\Makefile" cd "$(MAKEDIR)\src\3rdparty\boost" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    @if exist "$(MAKEDIR)\plugins\pdfview\Makefile" cd "$(MAKEDIR)\plugins\pdfview" && $(MAKE)  /NOLOGO /$(MAKEFLAGS) clean
-    cd "$(MAKEDIR)\src"
-    @$(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    cd "$(MAKEDIR)\locales"
-    @$(MAKE) /NOLOGO /$(MAKEFLAGS) clean
-    cd "$(MAKEDIR)"
-    -del /q /f /s *~ 2>nul
-    -rmdir /q /s Release .dep 2>nul
-    -rd /s/q skylark_x64 2>nul
-    -rd /s/q skylark_x86 2>nul
+	@if exist "$(MAKEDIR)\src\3rdparty\sqlite3\Makefile" cd "$(MAKEDIR)\src\3rdparty\sqlite3" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\pcre\Makefile" cd "$(MAKEDIR)\src\3rdparty\pcre" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\libiconv\Makefile" cd "$(MAKEDIR)\src\3rdparty\libiconv" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\luajit\Makefile" cd "$(MAKEDIR)\src\3rdparty\luajit" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\chardet\Makefile" cd "$(MAKEDIR)\src\3rdparty\chardet" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\qrencode\Makefile" cd "$(MAKEDIR)\src\3rdparty\qrencode" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\boost\Makefile" cd "$(MAKEDIR)\src\3rdparty\boost" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\plugins\pdfview\Makefile" cd "$(MAKEDIR)\plugins\pdfview" && $(MAKE)  /NOLOGO /$(MAKEFLAGS) clean
+	cd "$(MAKEDIR)\src"
+	@$(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	cd "$(MAKEDIR)\locales"
+	@$(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	cd "$(MAKEDIR)"
+	-del /q /f /s *~ 2>nul
+	-rmdir /q /s Release .dep 2>nul
+	-rd /s/q skylark_x64 2>nul
+	-rd /s/q skylark_x86 2>nul

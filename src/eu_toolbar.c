@@ -1105,7 +1105,7 @@ on_toolbar_update_button(void)
         eu_tabpage *pnode = on_tabpage_focus_at();
         if (pnode && pnode->hwnd_sc)
         {
-            on_toolbar_setup_button(IDM_FILE_SAVE, on_sci_doc_modified(pnode) && !eu_sci_call(pnode, SCI_GETREADONLY, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_FILE_SAVE, on_sci_doc_modified(pnode) && !(pnode->file_attr & FILE_ATTRIBUTE_READONLY) ? 2 : 1);
             on_toolbar_setup_button(IDM_FILE_SAVEAS, 2);
             on_toolbar_setup_button(IDM_FILE_CLOSE, 2);
             on_toolbar_setup_button(IDM_FILE_PRINT, 2);

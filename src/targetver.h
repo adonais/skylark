@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 0
+#define __EU_INFO_VERSION_PATCHLEVEL 1
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -1185,6 +1185,7 @@
 #define IDM_FAVORITE_OPEN                   44301
 #define IDM_FAVORITE_REMOVE                 44302
 #define IDM_FAVORITE_ATTR                   44303
+#define IDM_SET_RESET_CONFIG                44304
 
 #define IDD_FAVORITE_DIALOG                 44400
 #define IDC_FAVORITE_NAME_EDIT              44401

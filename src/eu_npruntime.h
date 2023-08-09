@@ -89,7 +89,8 @@ typedef enum
     NV_STREAM,
     NV_THEME_CHANGE,
     NV_PATH_CHANGE,
-    NV_OBJETCT
+    NV_OBJETCT,
+    NV_ATTRIB_CHANGE
 } npp_variable;
 
 typedef enum
@@ -98,6 +99,12 @@ typedef enum
     OPERATE_SAVE,
     OPERATE_SAVEAS
 } wparam_variable;
+
+typedef struct _instance_theme
+{
+    COLORREF fg;
+    COLORREF bg;
+} instance_theme;
 
 typedef struct _npstream
 {

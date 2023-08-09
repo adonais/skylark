@@ -391,6 +391,7 @@ void eu_reset_sqls_mask(void);
 void eu_reset_docs_mask(void);
 void eu_reset_accs_mask(void);
 void eu_reset_snip_mask(void);
+void eu_reset_theme_mask(void);
 
 ]]
 

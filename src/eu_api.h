@@ -62,7 +62,8 @@
 #define DOCS_CONFIG_MASK  0x0004
 #define ACCS_CONFIG_MASK  0x0008
 #define SNIP_CONFIG_MASK  0x0010
-#define EAPI_RSTART_MASK  0x80000000
+#define THEM_CONFIG_MASK  0x0020
+#define EAPI_RSTART_MASK  0xFFFF
 
 #if defined(__cplusplus)
 #define FALLTHRU_ATTR        [[fallthrough]]
@@ -609,6 +610,8 @@ EU_EXT_CLASS void eu_reset_sqls_mask(void);
 EU_EXT_CLASS void eu_reset_docs_mask(void);
 EU_EXT_CLASS void eu_reset_accs_mask(void);
 EU_EXT_CLASS void eu_reset_snip_mask(void);
+EU_EXT_CLASS void eu_reset_theme_mask(void);
+EU_EXT_CLASS void eu_reset_all_mask(void);
 EU_EXT_CLASS void eu_reset_config(void);
 
 // for pcre

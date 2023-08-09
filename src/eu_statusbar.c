@@ -40,16 +40,21 @@ static int g_status_height;
 
 char iconv_undo_str[QW_SIZE] = {0};
 
-static void
-on_statusbar_btn(eu_tabpage *pnode, bool only_read)
+void
+on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
 {
-    if (pnode && !pnode->plugin)
+    if (g_tabpages && pnode)
     {
         if (!only_read)
         {
             if (pnode->file_attr & FILE_READONLY_COLOR)
             {
-                if (pnode->hex_mode)
+                if (pnode->plugin)
+                {
+                    instance_theme theme = {0, (uint32_t)eu_get_theme()->item.text.bgcolor};
+                    np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_ATTRIB_CHANGE, &theme);
+                }
+                else if (pnode->hex_mode)
                 {
                     SendMessage(pnode->hwnd_sc, HVM_SETBKCOLOR, 0, (LPARAM)eu_get_theme()->item.text.bgcolor);
                 }
@@ -66,7 +71,12 @@ on_statusbar_btn(eu_tabpage *pnode, bool only_read)
         }
         else if (!(pnode->file_attr & FILE_READONLY_COLOR))
         {
-            if (pnode->hex_mode)
+            if (pnode->plugin)
+            {
+                instance_theme theme = {1, 0x482730  /* STATUS_STATIC_FOCUS convert BGR */};
+                np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_ATTRIB_CHANGE, &theme);
+            }
+            else if (pnode->hex_mode)
             {
                 SendMessage(pnode->hwnd_sc, HVM_SETBKCOLOR, 0, (LPARAM)STATUS_STATIC_FOCUS);
             }
@@ -104,11 +114,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
     HWND hrw = GetDlgItem(g_statusbar, IDM_BTN_RW);
     LOAD_I18N_RESSTR(IDS_BUTTON_R, rstr);
     LOAD_I18N_RESSTR(IDS_BUTTON_W, wstr);
-    if (!hrw)
-    {
-        return 0;
-    }
-    if (!(pnode && *pnode->pathfile))
+    if (!hrw || !pnode || !pnode->pathfile[0])
     {
         return 0;
     }
@@ -127,19 +133,19 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
         if (attr & FILE_ATTRIBUTE_READONLY)
         {
             Button_SetText(hrw, rstr);
-            on_statusbar_btn(pnode, true);
+            on_statusbar_btn_colour(pnode, true);
             ret = 1;
         }
         else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
         {
             Button_SetText(hrw, rstr);
-            on_statusbar_btn(pnode, true);
+            on_statusbar_btn_colour(pnode, true);
             ret = 2;
         }
         else
         {
             Button_SetText(hrw, wstr);
-            on_statusbar_btn(pnode, false);
+            on_statusbar_btn_colour(pnode, false);
             ret = 2;
         }
     }
@@ -156,7 +162,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
             SetFileAttributes(pnode->pathfile, attr);
         }
         Button_SetText(hrw, wstr);
-        on_statusbar_btn(pnode, false);
+        on_statusbar_btn_colour(pnode, false);
         ret = 2;
     }
     else if (_tcscmp(lpch, wstr) == 0)
@@ -166,7 +172,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
             attr |= FILE_ATTRIBUTE_READONLY;
             SetFileAttributes(pnode->pathfile, attr);
             Button_SetText(hrw, rstr);
-            on_statusbar_btn(pnode, true);
+            on_statusbar_btn_colour(pnode, true);
         }
         ret = 1;
     }

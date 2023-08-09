@@ -88,7 +88,7 @@ void on_file_finish_wait(void);
 void on_file_update_recent_menu(void);
 void on_file_clear_recent(void);
 void on_file_edit_exit(HWND hwnd);
-void on_file_edit_restart(HWND hwnd, const bool admin);
+void on_file_edit_restart(HWND hwnd, const bool admin, const bool wait);
 void on_file_restore_recent(void);
 void on_file_reload_current(eu_tabpage *pnode);
 void on_file_auto_backup(void);

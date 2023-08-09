@@ -56,6 +56,7 @@ void on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str);
 void on_statusbar_dark_mode(void);
 void on_statusbar_dark_release(bool off);
 void on_statusbar_pop_menu(int parts, LPPOINT pt);
+void on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read);
 
 #ifdef __cplusplus
 }

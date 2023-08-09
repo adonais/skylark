@@ -1975,6 +1975,8 @@ hexview_init(eu_tabpage *pnode)
         {
             pnode->phex->ex_style |= HVS_READONLY;
         }
+        pnode->file_attr &= ~FILE_READONLY_COLOR;
+        on_statusbar_btn_colour(pnode, true);
     }
     if (pnode->codepage == IDM_OTHER_BIN && pnode->phex)
     {
@@ -2271,6 +2273,11 @@ hexview_switch_mode(eu_tabpage *pnode)
             if (pnode->nc_pos >= 0)
             {
                 on_search_jmp_pos(pnode);
+            }
+            if ((pnode->file_attr & FILE_ATTRIBUTE_READONLY))
+            {
+                pnode->file_attr &= ~FILE_READONLY_COLOR;
+                on_statusbar_btn_colour(pnode, true);
             }
             PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
         }

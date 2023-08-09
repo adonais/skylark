@@ -40,6 +40,9 @@
 #ifndef IDM_THEME_PLUGIN
 #define IDM_THEME_PLUGIN 1225
 #endif
+#ifndef IDM_ATTRIB_PLUGIN
+#define IDM_ATTRIB_PLUGIN 1226
+#endif
 #ifndef HVM_SETBKCOLOR
 #define HVM_SETBKCOLOR (WM_USER + 105)
 #endif
@@ -73,12 +76,6 @@ typedef struct _double_buffer
     HDC (*getdc)(struct _double_buffer *_this);
     void (*flush)(struct _double_buffer *_this, HDC hdc);
 } double_buffer;
-
-typedef struct _instance_theme
-{
-    COLORREF fg;
-    COLORREF bg;
-} instance_theme;
 
 enum {KB = 1024, MB = 1024 * KB, GB = 1024 * MB};
 
@@ -533,7 +530,7 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         COPYDATASTRUCT *cds = (COPYDATASTRUCT *)lparam;
         if (cds && 0x4C5255 == cds->dwData)  // URL
         {
-            printf("sp: npn_geturl %s", (const char *)cds->lpData);
+            printf("sp: npn_geturl %s\n", (const char *)cds->lpData);
             return TRUE;
         }
     }
@@ -1025,6 +1022,22 @@ pdf_getvalue(NPP instance, npp_variable variable, void **value)
     return ret;
 }
 
+static HWND
+pdf_wait_hwnd(const HWND parent)
+{
+    HWND hchild = NULL;
+    int i = 10;
+    while (parent && i--)
+    {
+        if ((hchild = FindWindowEx(parent, NULL, NULL, NULL)))
+        {
+            break;
+        }
+        SleepEx(400, false);
+    }
+    return hchild;
+}
+
 static int
 pdf_setvalue(NPP instance, npp_variable variable, void *value)
 {
@@ -1047,23 +1060,50 @@ pdf_setvalue(NPP instance, npp_variable variable, void *value)
             {
                 HWND hwnd = (HWND)data->npwin->window;
                 HWND hchild = hwnd ? FindWindowEx(hwnd, NULL, NULL, NULL) : NULL;
-                if (variable == NV_THEME_CHANGE && hchild && pdf_get_theme())
-                {             
-                    instance_theme theme = {0};
-                    size_t bytes_value = sizeof(instance_theme);
-                    theme.fg = pdf_get_theme()->item.text.color;
-                    theme.bg = pdf_get_theme()->item.text.bgcolor;
-                    void *remote_ptr = VirtualAllocEx(data->hprocess, 0, bytes_value, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-                    if (remote_ptr)
+                if (variable == NV_THEME_CHANGE)
+                {
+                    if (hchild && pdf_get_theme())
                     {
-                        size_t bytes_written = 0;
-                        bool w = WriteProcessMemory(data->hprocess, remote_ptr, (void *)&theme, bytes_value, &bytes_written);
-                        if (w)
+                        instance_theme theme = {0};
+                        size_t bytes_value = sizeof(instance_theme);
+                        theme.fg = pdf_get_theme()->item.text.color;
+                        theme.bg = pdf_get_theme()->item.text.bgcolor;
+                        void *remote_ptr = VirtualAllocEx(data->hprocess, 0, bytes_value, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                        if (remote_ptr)
                         {
-                            SendMessage(hchild, WM_COMMAND, IDM_THEME_PLUGIN, (LPARAM)remote_ptr);
-                            ret = NP_NO_ERROR;
+                            size_t bytes_written = 0;
+                            bool w = WriteProcessMemory(data->hprocess, remote_ptr, (void *)&theme, bytes_value, &bytes_written);
+                            if (w)
+                            {
+                                SendMessage(hchild, WM_COMMAND, IDM_THEME_PLUGIN, (LPARAM)remote_ptr);
+                                ret = NP_NO_ERROR;
+                            }
+                            VirtualFreeEx(data->hprocess, remote_ptr, 0, MEM_RELEASE);
                         }
-                        VirtualFreeEx(data->hprocess, remote_ptr, 0, MEM_RELEASE);
+                    }
+                }
+                else if (variable == NV_ATTRIB_CHANGE && value)
+                {
+                    instance_theme theme = *(instance_theme*)value;
+                    size_t bytes_value = sizeof(instance_theme);
+                    if (!hchild)
+                    {
+                        hchild = pdf_wait_hwnd(hwnd);
+                    }
+                    if (hchild)
+                    {
+                        void *remote_ptr = VirtualAllocEx(data->hprocess, 0, bytes_value, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                        if (remote_ptr)
+                        {
+                            size_t bytes_written = 0;
+                            bool w = WriteProcessMemory(data->hprocess, remote_ptr, (void *)&theme, bytes_value, &bytes_written);
+                            if (w)
+                            {
+                                SendMessage(hchild, WM_COMMAND, IDM_ATTRIB_PLUGIN, (LPARAM)remote_ptr);
+                                ret = NP_NO_ERROR;
+                            }
+                            VirtualFreeEx(data->hprocess, remote_ptr, 0, MEM_RELEASE);
+                        }
                     }
                 }
             }

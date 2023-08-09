@@ -3220,7 +3220,7 @@ hyper_paren_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 GetWindowText(GetDlgItem(hwnd, IDC_STATIC_URL_HOMEPAGE), buf, MAX_BUFFER);
                 if (*buf && _tcscmp(&buf[_tcslen(buf) - 1], _T("ʡ")) == 0)
                 {
-                    on_file_edit_restart(eu_hwnd_self(), false);
+                    on_file_edit_restart(eu_hwnd_self(), false, true);
                     return 1;
                 }
                 return (LRESULT)ShellExecute(hwnd, NULL, ABOUT_HOME_URL, NULL, NULL, SW_SHOWNORMAL);
