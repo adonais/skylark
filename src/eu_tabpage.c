@@ -1272,6 +1272,8 @@ on_tabpage_newdoc_reload(void)
             if (p && p->is_blank)
             {
                 TCHAR old[MAX_BUFFER] = {0};
+                // 防止locale切换时出现不同语种的空标签
+                on_sql_delete_backup_row(p);
                 if ((pstr = _tcsrchr(p->pathfile, ch)) != NULL && (pstr - p->pathfile) > 0 && _tcslen(pstr) > 0 &&
                     _tcsspn(pstr + 1, _T("0123456789")) == _tcslen(pstr + 1))
                 {

@@ -658,7 +658,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     {
         return EUE_TAB_NULL;
     }
-    if (pbak->status)
+    if (pbak->status && eu_exist_file(pbak->bak_path))
     {
         pfull = pbak->bak_path;
     }
@@ -803,19 +803,22 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode || pnode->is_blank)
+    if (pbak && pbak->status && eu_exist_file(pbak->bak_path))
+    {
+        pfull = pbak->bak_path;
+        is_utf8 = true;
+    }
+    else
+    {
+        pfull = pnode->pathfile;
+    }
+    if (pnode->hex_mode || (pnode->is_blank && !is_utf8))
     {
         return SKYLARK_OK;
     }
     if (pnode->pmod)
     {
         return on_file_load_plugins(pnode, false);
-    }
-    pfull = pnode->pathfile;
-    if (pbak && pbak->status)
-    {
-        pfull = pbak->bak_path;
-        is_utf8 = true;
     }
     if (STR_IS_NUL(pfull))
     {
