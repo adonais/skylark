@@ -1820,6 +1820,9 @@ on_doc_brace_handling(eu_tabpage *pnode)
     return on_doc_brace_light(pnode, true);
 }
 
+/**************************************************************************************
+ * fn_keydown的回调函数, 通过右侧边栏软连接查找并跳转到函数定义
+ **************************************************************************************/
 int
 on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
@@ -1830,6 +1833,9 @@ on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+/**************************************************************************************
+ * fn_keydown的回调函数, 连接数据库头和执行其中的sql语句
+ **************************************************************************************/
 int
 on_doc_keydown_sql(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
@@ -1860,6 +1866,9 @@ on_doc_keydown_redis(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+/**************************************************************************************
+ * fn_keyup的回调函数, 处理括号对齐
+ **************************************************************************************/
 int
 on_doc_keyup_general(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
