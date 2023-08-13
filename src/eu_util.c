@@ -1412,7 +1412,7 @@ util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
 }
 
 void
-util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable)
+util_enable_menu_item(const HMENU hmenu, const uint32_t m_id, const bool enable)
 {
     if (hmenu)
     {
@@ -1442,7 +1442,25 @@ util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable)
 }
 
 void
-util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked)
+util_icons_menu_item(const HMENU hmenu, const uint32_t m_id, const HBITMAP hbmp)
+{
+    if (hmenu && hbmp && m_id > 0)
+    {
+        MENUITEMINFO mii = {sizeof(MENUITEMINFO), MIIM_BITMAP};
+        if (GetMenuItemInfo(hmenu, m_id, false, &mii))
+        {
+            if (mii.hbmpItem != hbmp)
+            {
+                mii.hbmpItem ? DeleteObject(mii.hbmpItem) : (void)0;
+                mii.hbmpItem = hbmp;
+                SetMenuItemInfo(hmenu, m_id, false, &mii);
+            }
+        }
+    }
+}
+
+void
+util_set_menu_item(const HMENU hmenu, const uint32_t m_id, const bool checked)
 {
     if (hmenu)
     {
@@ -1471,7 +1489,7 @@ util_switch_menu_group(HMENU hmenu, int pop_id, uint32_t first_id, uint32_t last
 }
 
 void
-util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width)
+util_update_menu_chars(const HMENU hmenu, const uint32_t m_id, const int width)
 {
     if (hmenu)
     {
@@ -2893,4 +2911,109 @@ util_isxdigit_string(LPCTSTR str, const int len)
         return true;
     }
     return false;
+}
+
+static HBITMAP
+util_icon_bitmap(HICON hicon, const int width, const int height)
+{
+    bool ok = false;
+    bool has_alpha = false;
+    bool *popaque = NULL;
+    int *pdata = NULL;
+    HDC dc_mem = NULL;
+    HBITMAP hold = NULL;
+    HBITMAP dib = NULL;
+    int npixel = width * height;
+    HDC dc = GetDC(NULL);
+    if (hicon == NULL || dc == NULL || width <= 0 || height <= 0)
+    {
+        return NULL;
+    }
+    do
+    {
+        BITMAPINFOHEADER bi = {sizeof(BITMAPINFOHEADER)};
+        bi.biWidth = width;
+        bi.biHeight = -height;
+        bi.biPlanes = 1;
+        bi.biBitCount = 32;
+        bi.biCompression = BI_RGB;
+        if ((dib = CreateDIBSection(dc, (BITMAPINFO *) &bi, DIB_RGB_COLORS, (void **) &pdata, NULL, 0)) == NULL)
+        {
+            break;
+        }
+        memset(pdata, 0, npixel * 4);
+        if ((dc_mem = CreateCompatibleDC(dc)) == NULL)
+        {
+            break;
+        }
+        hold = (HBITMAP) SelectObject(dc_mem, dib);
+        DrawIconEx(dc_mem, 0, 0, hicon, width, height, 0, NULL, DI_MASK);
+        if ((popaque = (bool *) calloc(sizeof(bool), npixel)) == NULL)
+        {
+            break;
+        }
+        for (int i = 0; i < npixel; ++i)
+        {
+            popaque[i] = !pdata[i];
+        }
+        memset(pdata, 0, npixel * 4);
+        DrawIconEx(dc_mem, 0, 0, hicon, width, height, 0, NULL, DI_NORMAL);
+        unsigned *ptr_pixel = (unsigned *) pdata;
+        for (int i = 0; i < npixel; ++i, ++ptr_pixel)
+        {
+            if ((*ptr_pixel & 0xFF000000) != 0)
+            {
+                has_alpha = true;
+                break;
+            }
+        }
+        if (!has_alpha)
+        {
+            ptr_pixel = (unsigned *) pdata;
+            for (int i = 0; i < npixel; ++i, ++ptr_pixel)
+            {
+                if (popaque[i])
+                {
+                    *ptr_pixel |= 0xFF000000;
+                }
+                else
+                {
+                    *ptr_pixel &= 0x00FFFFFF;
+                }
+            }
+        }
+        ok = true;
+    } while (0);
+    eu_safe_free(popaque);
+    if (dc_mem != NULL)
+    {
+        SelectObject(dc_mem, hold);
+        DeleteDC(dc_mem);
+    }
+    ReleaseDC(NULL, dc);
+    if (!ok)
+    {
+        if (dib != NULL)
+        {
+            DeleteObject(dib);
+            dib = NULL;
+        }
+    }
+    return dib;
+}
+
+HBITMAP
+util_shield_icon(HINSTANCE hinst, LPCTSTR name)
+{
+    HBITMAP hmap = NULL;
+    const uint32_t dpi = eu_get_dpi(NULL);
+    const int scx = Scintilla_GetSystemMetricsForDpi(SM_CXSMICON, dpi);
+    const int scy = Scintilla_GetSystemMetricsForDpi(SM_CYSMICON, dpi);
+    HICON hicon = (HICON)LoadImage(hinst, name, IMAGE_ICON, scx, scy, LR_DEFAULTCOLOR | LR_SHARED);
+    if (hicon)
+    {
+        hmap = util_icon_bitmap(hicon, scx, scy);
+        DestroyIcon(hicon);
+    }
+    return hmap;
 }

@@ -98,9 +98,10 @@ char*  util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *ple
 char*  util_strdup_content(eu_tabpage *pnode, size_t *plen);
 void   util_set_undo(eu_tabpage *p);
 void   util_push_text_dlg(eu_tabpage *pnode, HWND hwnd);
-void   util_enable_menu_item(HMENU hmenu, uint32_t m_id, bool enable);
-void   util_set_menu_item(HMENU hmenu, uint32_t m_id, bool checked);
-void   util_update_menu_chars(HMENU hmenu, uint32_t m_id, int width);
+void   util_enable_menu_item(const HMENU hmenu, const uint32_t m_id, const bool enable);
+void   util_set_menu_item(const HMENU hmenu, const uint32_t m_id, const bool checked);
+void   util_icons_menu_item(const HMENU hmenu, const uint32_t m_id, const HBITMAP hbmp);
+void   util_update_menu_chars(const HMENU hmenu, const uint32_t m_id, const int width);
 void   util_upper_string(char *str);
 void   util_kill_thread(uint32_t pid);
 void   util_wait_cursor(eu_tabpage *pnode);
@@ -167,6 +168,7 @@ const uint32_t util_os_version(void);
 const TCHAR* util_path_ext(const TCHAR *path);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
 sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
+HBITMAP util_shield_icon(HINSTANCE hinst, LPCTSTR name);
 
 #ifdef __cplusplus
 }
