@@ -167,7 +167,7 @@ run_as_admin(int argc, TCHAR **argv)
         else
         {
             result = false;
-            eu_logmsg("Run by administrative privileges failed. cause: %lu", GetLastError());
+            eu_logmsg("Run by administrative privileges failed. cause: %lu\n", GetLastError());
         }
         fnCoUninitialize();
     }
