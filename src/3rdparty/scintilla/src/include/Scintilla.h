@@ -19,6 +19,7 @@ extern "C" {
 /* Return false on failure: */
 int Scintilla_RegisterClasses(void *hInstance);
 int Scintilla_ReleaseResources(void);
+int Scintilla_GetSystemMetricsForDpi(int nIndex, unsigned dpi);
 #endif
 
 #ifdef __cplusplus

@@ -146,15 +146,6 @@ menu_switch_theme(void)
 }
 
 static void
-menu_setting_icons(const HMENU menu)
-{
-    if (g_settings_hbmp || (g_settings_hbmp = (HBITMAP)LoadImage(eu_module_handle(), MAKEINTRESOURCE(IDM_SETTING_ICON), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION)))
-    {
-        util_icons_menu_item(menu, IDM_SET_SETTINGS_CONFIG, g_settings_hbmp);
-    }
-}
-
-static void
 menu_shield_icons(const HMENU menu, const uint32_t res_min, const uint32_t res_max)
 {
     if (!on_reg_admin())
