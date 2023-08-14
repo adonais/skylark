@@ -34,6 +34,12 @@
 #ifndef IDM_SAVE_PLUGIN
 #define IDM_SAVE_PLUGIN 260
 #endif
+#ifndef IDM_FULLSCREEN_PLUGIN
+#define IDM_FULLSCREEN_PLUGIN 221
+#endif
+#ifndef IDM_VIEW_FULLSCREEN
+#define IDM_VIEW_FULLSCREEN 42602
+#endif
 #ifndef IDM_TITLE_PLUGIN
 #define IDM_TITLE_PLUGIN 1224
 #endif
@@ -524,6 +530,10 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         npn_nmhdr nphdr = {0};
         nphdr.nm.idFrom = (intptr_t)FindWindowEx(hwnd, NULL, NULL, NULL);
         return npn_send_notify(hwnd, NPP_DOC_STATUS, OPERATE_NONE, &nphdr);
+    }
+    else if (msg == WM_COMMAND && LOWORD(wparam) == IDM_FULLSCREEN_PLUGIN)
+    {
+        return npn_send_command(hwnd, IDM_VIEW_FULLSCREEN);
     }
     else if (msg == WM_COPYDATA)
     {

@@ -321,14 +321,12 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         share_close(m_map);
         return 1;
     }
-    HMENU hmenu = GetMenu(hwnd);
-    if (hmenu)
-    {   // 销毁顶层菜单
-        DestroyMenu(hmenu);
-    }
+    // 销毁顶层菜单
+    menu_destroy(hwnd);
+    // 销毁工具栏
     HWND htool = GetDlgItem(hwnd, IDC_TOOLBAR);
     if (htool)
-    {   // 销毁工具栏
+    {
         DestroyWindow(htool);
     }
     if (on_toolbar_clip_hwnd())
@@ -351,12 +349,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         share_unmap(memory);
         share_close(m_map);
     }
-    hmenu = i18n_load_menu(IDC_SKYLARK);
-    if (!hmenu)
-    {
-        return 1;
-    }
-    if (!SetMenu(hwnd, hmenu))
+    if (!SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK)))
     {
         return 1;
     }

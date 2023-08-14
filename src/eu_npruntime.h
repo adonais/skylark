@@ -334,6 +334,12 @@ npn_send_notify(HWND hwnd, uint32_t code, WPARAM local, npn_nmhdr *phdr)
     return (intptr_t)SendMessage(GetParent(hwnd), WM_NOTIFY, local, (LPARAM) phdr);
 }
 
+static intptr_t
+npn_send_command(HWND hwnd, WPARAM cmd_id)
+{
+    return (intptr_t)SendMessage(GetParent(hwnd), WM_COMMAND, cmd_id, 0);
+}
+
 #ifdef __cplusplus
 }
 #endif

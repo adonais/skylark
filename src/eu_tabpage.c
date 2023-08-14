@@ -34,6 +34,7 @@ static bool tab_drag = false;
 static bool tab_mutil_select = false;
 static volatile bool tab_do_drag;
 static volatile int tab_move_from = -1;
+static HCURSOR g_drag_hcursor = NULL;
 
 int
 on_tabpage_get_height(void)
@@ -72,6 +73,11 @@ on_tabpage_destroy_tabbar(void)
     if (himg)
     {
         ImageList_Destroy(himg);
+    }
+    if (g_drag_hcursor)
+    {
+        DestroyCursor(g_drag_hcursor);
+        g_drag_hcursor = NULL;
     }
     if (g_tabpages)
     {
@@ -813,7 +819,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetClientRect(hwnd, &rect);
             if (!PtInRect(&rect, point))
             {
-                SetCursor(LoadCursor(eu_module_handle(), MAKEINTRESOURCE(IDC_CURSOR_DRAG)));
+                g_drag_hcursor ? SetCursor(g_drag_hcursor) : (void *)0;
                 break;
             }
             count = TabCtrl_GetItemCount(hwnd);
@@ -1021,6 +1027,12 @@ on_tabpage_create_dlg(HWND hwnd)
         if (!init_icon_img_list(g_tabpages))
         {
             eu_logmsg("%s: init_icon_img_list return false\n", __FUNCTION__);
+            err = 1;
+            break;
+        }
+        if (!g_drag_hcursor && (g_drag_hcursor = LoadCursor(eu_module_handle(), MAKEINTRESOURCE(IDC_CURSOR_DRAG))) == NULL)
+        {
+            eu_logmsg("%s: LoadCursor return false\n", __FUNCTION__);
             err = 1;
             break;
         }
@@ -1272,6 +1284,8 @@ on_tabpage_newdoc_reload(void)
             if (p && p->is_blank)
             {
                 TCHAR old[MAX_BUFFER] = {0};
+                // 防止locale切换时出现不同语种的空标签
+                on_sql_delete_backup_row(p);
                 if ((pstr = _tcsrchr(p->pathfile, ch)) != NULL && (pstr - p->pathfile) > 0 && _tcslen(pstr) > 0 &&
                     _tcsspn(pstr + 1, _T("0123456789")) == _tcslen(pstr + 1))
                 {

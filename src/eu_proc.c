@@ -860,6 +860,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             on_tabpage_foreach(hexview_update_theme);
             on_toolbar_refresh(hwnd);
             on_statusbar_init(hwnd);
+            menu_bmp_destroy();
             SendMessage(g_treebar, WM_DPICHANGED, 0, 0);
             break;
         }

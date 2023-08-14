@@ -192,6 +192,7 @@ on_view_refresh_theme(HWND hwnd)
             on_snippet_reload(pview);
         }
     }
+    menu_bmp_destroy();
     on_view_refresh_scroll();
     SendMessage(hwnd, WM_SIZE, 0, 0);
     UpdateWindowEx(hwnd);

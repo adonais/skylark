@@ -3797,13 +3797,6 @@ LRESULT PASCAL ScintillaWin::SWndProc(
 	}
 }
 
-// This function is externally visible so it can be called from container when building statically.
-// Must be called once only.
-extern "C" int Scintilla_RegisterClasses(void *hInstance) {
-	const bool result = ScintillaWin::Register(static_cast<HINSTANCE>(hInstance));
-	return result;
-}
-
 namespace Scintilla::Internal {
 
 int ResourcesRelease(bool fromDllMain) noexcept {
@@ -3820,6 +3813,17 @@ int RegisterClasses(void *hInstance) noexcept {
 }
 
 // This function is externally visible so it can be called from container when building statically.
+// Must be called once only.
+extern "C" int Scintilla_RegisterClasses(void *hInstance) {
+	const bool result = ScintillaWin::Register(static_cast<HINSTANCE>(hInstance));
+	return result;
+}
+
+// This function is externally visible so it can be called from container when building statically.
 extern "C" int Scintilla_ReleaseResources() {
 	return Scintilla::Internal::ResourcesRelease(false);
+}
+
+extern "C" int Scintilla_GetSystemMetricsForDpi(int nIndex, unsigned dpi) {
+	return Scintilla::Internal::SystemMetricsForDpi(nIndex, dpi);
 }

@@ -20,6 +20,8 @@
 
 #define CLANGDLL _T("plugins\\clang-format.dll")
 
+static HBITMAP g_shield_hbmp = NULL;
+
 int
 menu_height(void)
 {
@@ -39,6 +41,17 @@ menu_height(void)
 }
 
 void
+menu_bmp_destroy(void)
+{
+    if (g_shield_hbmp)
+    {
+        DeleteObject(g_shield_hbmp);
+        g_shield_hbmp = NULL;
+    }
+    eu_logmsg("menu_bmp_destroy\n");
+}
+
+void
 menu_destroy(HWND hwnd)
 {
     HMENU hmenu = GetMenu(hwnd);
@@ -46,6 +59,7 @@ menu_destroy(HWND hwnd)
     {
         DestroyMenu(hmenu);
     }
+    menu_bmp_destroy();
 }
 
 HMENU
@@ -126,6 +140,21 @@ menu_switch_theme(void)
                     }
                 }
                 util_set_menu_item(root_menu, IDM_STYLETHEME_BASE + index, select);
+            }
+        }
+    }
+}
+
+static void
+menu_shield_icons(const HMENU menu, const uint32_t res_min, const uint32_t res_max)
+{
+    if (!on_reg_admin())
+    {
+        if (g_shield_hbmp || (g_shield_hbmp = util_shield_icon(NULL, IDI_SHIELD)) != NULL)
+        {
+            for (uint32_t i = (uint32_t)res_min; i <= res_max; ++i)
+            {
+                util_icons_menu_item(menu, i, g_shield_hbmp);
             }
         }
     }
@@ -370,6 +399,7 @@ menu_update_item(HMENU menu, const bool init)
                     case IDM_FILE_ADD_FAVORITES:
                         util_enable_menu_item(menu, IDM_FILE_ADD_FAVORITES, init || !pnode->is_blank);
                     case IDM_FILE_RESTART_ADMIN:
+                        menu_shield_icons(menu, IDM_FILE_RESTART_ADMIN, IDM_FILE_RESTART_ADMIN);
                         util_enable_menu_item(menu, IDM_FILE_RESTART_ADMIN, init || !util_under_wine());
                         break;
                     case IDM_EDIT_UNDO:                       /* Edit menu */
@@ -547,6 +577,7 @@ menu_update_item(HMENU menu, const bool init)
                         i18n_update_menu(menu);
                         on_theme_update_item();
                         menu_switch_theme();
+                        menu_shield_icons(menu, IDM_ENV_FILE_POPUPMENU, IDM_ENV_SET_ASSOCIATED_WITH);
                         break;
                     case IDM_VIEW_FONTQUALITY_NONE:
                         util_set_menu_item(menu, IDM_VIEW_FONTQUALITY_NONE, IDM_VIEW_FONTQUALITY_NONE == eu_get_config()->m_quality);
