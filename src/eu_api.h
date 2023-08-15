@@ -604,6 +604,12 @@ EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
 
+// for tinyexpr.c
+EU_EXT_CLASS double eu_te_eval(const te_expr *n);
+EU_EXT_CLASS double eu_te_interp(const char *expression, int *error);
+EU_EXT_CLASS void eu_te_print(const te_expr *n);
+EU_EXT_CLASS void eu_te_free(te_expr *n);
+EU_EXT_CLASS te_expr *eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error);
 // for lua scripts
 EU_EXT_CLASS void eu_reset_main_mask(void);
 EU_EXT_CLASS void eu_reset_sqls_mask(void);

@@ -2842,3 +2842,32 @@ eu_theme_index(void)
     }
     return (const int)THEME_UNUSABLE;
 }
+double
+eu_te_eval(const te_expr *n)
+{
+    return te_eval(n);
+}
+
+double
+eu_te_interp(const char *expression, int *error)
+{
+    return te_interp(expression, error);
+}
+
+void
+eu_te_print(const te_expr *n)
+{
+    te_print(n);
+}
+
+void
+eu_te_free(te_expr *n)
+{
+    te_free(n);
+}
+
+te_expr *
+eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error)
+{
+    return (void *)te_compile(expression, variables, var_count, error);
+}

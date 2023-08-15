@@ -103,6 +103,7 @@
 #include "sqlite3.h"
 #include "libpq-fe.h"
 #include "chardet.h"
+#include "tinyexpr.h"
 
 // skylark 源目录下的头文件
 #include "eu_cvector.h"
