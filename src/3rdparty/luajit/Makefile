@@ -13,7 +13,7 @@ MINILUA = $(BIN_O)\minilua.exe
 BUILDVM = $(BIN_O)\buildvm.exe
 
 CFLAGS  = -Zi -Oy -Ob1 -DHAVE_CONFIG_H -I$(SRC) -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS \
-          -DLUA_BUILD_AS_DLL $(RELEASE) $(CFLAGS)
+          $(RELEASE) $(CFLAGS)
           
 MIN_OBJS =                          \
     $(DIR_O)\minilua.obj            \
