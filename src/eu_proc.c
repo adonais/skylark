@@ -708,9 +708,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostQuitMessage(0);
             }
-            if (eu_get_config()->m_menubar)
+            if (!menu_setup(hwnd))
             {
-                SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
+                PostQuitMessage(0);
             }
             if (eu_get_config()->m_fullscreen)
             {
@@ -987,6 +987,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (IDM_LOCALES_BASE <= wm_id && wm_id <= IDM_LOCALES_BASE + MAX_MULTI_LANG - 1)
             {
                 i18n_switch_locale(g_hwndmain, wm_id);
+                break;
+            }
+            if (IDM_SET_LUAJIT_EXECUTE <= wm_id && wm_id <= IDM_SET_LUAJIT_EXECUTE + DW_SIZE - 1)
+            {
+                on_setting_execute(g_hwndmain, wm_id);
                 break;
             }
             switch (wm_id)
@@ -1652,6 +1657,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_SOURCE_ENABLE_CTSHOW:
                     eu_get_config()->eu_calltip.enable ^= true;
+                    break;
+                case IDM_SET_SETTINGS_CONFIG:
+                    on_setting_manager();
                     break;
                 case IDM_SET_RESET_CONFIG:
                     eu_reset_all_mask();

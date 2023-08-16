@@ -1186,11 +1186,26 @@
 #define IDM_FAVORITE_REMOVE                 44302
 #define IDM_FAVORITE_ATTR                   44303
 #define IDM_SET_RESET_CONFIG                44304
+#define IDM_LUAJIT_ICON                     44305
+#define IDM_SETTING_ICON                    44306
+#define IDM_SET_PLACEHOLDE_CUSTOMIZED       44307
+#define IDM_SET_SETTINGS_CONFIG             44308
+#define IDM_SET_LUAJIT_EXECUTE              44310
 
 #define IDD_FAVORITE_DIALOG                 44400
 #define IDC_FAVORITE_NAME_EDIT              44401
 #define IDC_FAVORITE_PATH_EDIT              44402
 #define IDC_FAVORITE_TAG_EDIT               44403
+
+#define IDS_LUAJIT_EVALUATION               44500
+#define IDS_WIN32CALC_DESC                  44501
+
+#define IDD_SETTING_DIALOG                  44600
+#define IDC_SETTING_NAME_EDIT               44601
+#define IDC_SETTING_PATH_EDIT               44602
+#define IDC_SETTING_PARAM_EDIT              44603
+#define IDC_SETTING_BROWSER_BTN             44604
+#define IDC_SETTING_HIDE_RUN                44605
 
 // For MessageBox
 #define IDALWAYS                            12

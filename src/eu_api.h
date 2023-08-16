@@ -392,6 +392,17 @@ typedef struct _upgrade_set
     char url[MAX_BUFFER];
 }upgrade_set;
 
+typedef struct _customize_set
+{
+    bool hide;
+    char name[QW_SIZE];
+    char path[MAX_PATH];
+    char param[MAX_PATH];
+    int  micon;
+    int  posid;
+    uintptr_t hbmp;
+}customize_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -462,6 +473,7 @@ struct eu_config
     char m_reserved_0[MAX_PATH];
     char m_reserved_1[MAX_PATH];
     char m_actions[100][MAX_PATH];
+    customize_set m_customize[DW_SIZE];
 };
 
 typedef struct _pcre_conainer
@@ -610,6 +622,7 @@ EU_EXT_CLASS double eu_te_interp(const char *expression, int *error);
 EU_EXT_CLASS void eu_te_print(const te_expr *n);
 EU_EXT_CLASS void eu_te_free(te_expr *n);
 EU_EXT_CLASS te_expr *eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error);
+
 // for lua scripts
 EU_EXT_CLASS void eu_reset_main_mask(void);
 EU_EXT_CLASS void eu_reset_sqls_mask(void);
@@ -619,6 +632,7 @@ EU_EXT_CLASS void eu_reset_snip_mask(void);
 EU_EXT_CLASS void eu_reset_theme_mask(void);
 EU_EXT_CLASS void eu_reset_all_mask(void);
 EU_EXT_CLASS void eu_reset_config(void);
+EU_EXT_CLASS void eu_lua_calltip(const char *pstr);
 
 // for pcre
 EU_EXT_CLASS pcre_conainer *eu_pcre_init(const char *buf, size_t len, const char *pattern, const char *named_substring, int opt);
@@ -724,6 +738,7 @@ EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, file_bac
 // for eu_script.c
 EU_EXT_CLASS int eu_lua_script_convert(const TCHAR *file, const TCHAR *save);
 EU_EXT_CLASS int eu_lua_script_exec(const TCHAR *fname);
+EU_EXT_CLASS int eu_lua_script_evp(const int argc, char **argv);
 EU_EXT_CLASS int luaopen_euapi(void *L);
 
 // for eu_theme.c

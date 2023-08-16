@@ -181,6 +181,8 @@ function eu_accel.loadaccel()
       "                 {0, 0, IDM_VIEW_MODIFY_STYLETHEME},\n",
       "                 {0, 0, IDM_SET_RESET_CONFIG},\n",
       "                 {0, 0, IDM_FILE_SAVE_NOTIFY},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"V\"), IDM_SET_LUAJIT_EXECUTE},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"Z\"), IDM_SET_LUAJIT_EXECUTE + 1},\n",
       "                 -- Help menu\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F1, IDM_DONATION},\n",
       "                 {0, 0, IDM_INTRODUTION},\n",

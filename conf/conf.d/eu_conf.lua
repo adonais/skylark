@@ -18,6 +18,50 @@ function eu_conf.fill_actions(s)
     end
 end
 
+function eu_conf.fill_customize(s)
+    local pconfig = eu_core.ffi.cast('struct eu_config *', s)
+    local msize = eu_core.ffi.sizeof(pconfig.m_customize)/eu_core.ffi.sizeof(pconfig.m_customize[0]);
+    if (eu_core.table_is_empty(process_customized)) then
+        process_customized[1] = {['hide'] = false, ['name'] = "44500", ['path'] = "conf/conf.d/eu_evaluation.lua",
+                                 ['param'] = "%CURRENT_SELSTR% %NUM_SELSTR%", ['micon'] = 44305, ['posid'] = 0, ['hbmp'] = 0}
+        process_customized[2] = {['hide'] = false, ['name'] = "44501", ['path'] = "%windir%/system32/win32calc.exe",
+                                 ['param'] = "", ['micon'] = 0, ['posid'] = 0, ['hbmp'] = 0}
+    end
+    for i=0,msize-1 do
+      if process_customized[i+1] ~= nil then
+        if process_customized[i+1].hide ~= nil then
+          pconfig.m_customize[i].hide = process_customized[i+1].hide
+        else
+          pconfig.m_customize[i].hide = false
+        end
+        if process_customized[i+1].name ~= nil then
+          eu_core.ffi.copy(pconfig.m_customize[i].name, process_customized[i+1].name, 64)
+        else
+          eu_core.ffi.fill(pconfig.m_customize[i].name, 64)
+        end
+        if process_customized[i+1].path ~= nil then
+          eu_core.ffi.copy(pconfig.m_customize[i].path, process_customized[i+1].path, 260)
+        else
+          eu_core.ffi.fill(pconfig.m_customize[i].path, 260)
+        end
+        if process_customized[i+1].param ~= nil then
+          eu_core.ffi.copy(pconfig.m_customize[i].param, process_customized[i+1].param, 260)
+        else
+          eu_core.ffi.fill(pconfig.m_customize[i].param, 260)
+        end
+        if process_customized[i+1].micon ~= nil then
+          pconfig.m_customize[i].micon = process_customized[i+1].micon
+        else
+          pconfig.m_customize[i].micon = 0
+        end
+        pconfig.m_customize[i].posid = 0
+        pconfig.m_customize[i].hbmp = 0
+      else
+        eu_core.ffi.fill(pconfig.m_customize[i], eu_core.ffi.sizeof(pconfig.m_customize)/32)
+      end
+    end
+end
+
 function eu_conf.loadconf()
     local file = (eu_core.script_path() .. "\\skylark.conf")
     if (not eu_core.file_exists(file)) then
@@ -122,7 +166,9 @@ function eu_conf.loadconf()
         "other_editor_path = \"\"\n" ..
         "m_reserved_0 = \"\"\n" ..
         "m_reserved_1 = \"\"\n" ..
-        "process_actions = {}\n"
+        "process_actions = {}\n" ..
+        "-- setup custom processes\n" ..
+        "process_customized = {}\n"
         eu_code = assert(loadstring(code))()
     else
         eu_code = dofile(file)
@@ -133,6 +179,9 @@ function eu_conf.loadconf()
     end
     if (enable_runtime_logging == nil) then
         enable_runtime_logging = false
+    end
+    if (process_customized == nil) then
+        process_customized = {}
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
@@ -202,6 +251,7 @@ function eu_conf.loadconf()
         m_config.eu_complete.characters = 1
     end
     eu_conf.fill_actions(m_config)
+    eu_conf.fill_customize(m_config)
     if (not eu_core.euapi.eu_config_ptr(m_config)) then
         do return nil end
     end

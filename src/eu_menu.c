@@ -20,6 +20,7 @@
 
 #define CLANGDLL _T("plugins\\clang-format.dll")
 
+static HBITMAP g_settings_hbmp = NULL;
 static HBITMAP g_shield_hbmp = NULL;
 
 int
@@ -43,6 +44,11 @@ menu_height(void)
 void
 menu_bmp_destroy(void)
 {
+    if (g_settings_hbmp)
+    {
+        DeleteObject(g_settings_hbmp);
+        g_settings_hbmp = NULL;
+    }
     if (g_shield_hbmp)
     {
         DeleteObject(g_shield_hbmp);
@@ -52,7 +58,7 @@ menu_bmp_destroy(void)
 }
 
 void
-menu_destroy(HWND hwnd)
+menu_destroy(const HWND hwnd)
 {
     HMENU hmenu = GetMenu(hwnd);
     if(hmenu)
@@ -63,7 +69,7 @@ menu_destroy(HWND hwnd)
 }
 
 HMENU
-menu_load(uint16_t mid)
+menu_load(const uint16_t mid)
 {
     HMENU hpop = NULL;
     HMENU hmenu = i18n_load_menu(mid);
@@ -77,7 +83,7 @@ menu_load(uint16_t mid)
 }
 
 int
-menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam, const uint32_t flags, ptr_menu_callback fn, void *param)
+menu_pop_track(const HWND hwnd, const uint16_t mid, LPARAM lparam, const uint32_t flags, ptr_menu_callback fn, void *param)
 {
     HMENU hpop = menu_load(mid);
     if(hpop)
@@ -146,6 +152,15 @@ menu_switch_theme(void)
 }
 
 static void
+menu_setting_icons(const HMENU menu)
+{
+    if (g_settings_hbmp || (g_settings_hbmp = on_setting_customize_icon()))
+    {
+        util_icons_menu_item(menu, IDM_SET_SETTINGS_CONFIG, g_settings_hbmp);
+    }
+}
+
+static void
 menu_shield_icons(const HMENU menu, const uint32_t res_min, const uint32_t res_max)
 {
     if (!on_reg_admin())
@@ -161,7 +176,7 @@ menu_shield_icons(const HMENU menu, const uint32_t res_min, const uint32_t res_m
 }
 
 static void
-menu_update_hexview(HMENU root_menu, bool hex_mode, const bool init)
+menu_update_hexview(const HMENU root_menu, const bool hex_mode, const bool init)
 {
     if (root_menu)
     {
@@ -199,7 +214,7 @@ menu_update_hexview(HMENU root_menu, bool hex_mode, const bool init)
 }
 
 static void
-menu_default_keys(HMENU hmenu, int id, int pos)
+menu_default_keys(const HMENU hmenu, const int id, const int pos)
 {
     wchar_t mdata[FILESIZE+1] = {0};
     if (GetMenuString(hmenu, id, mdata, FILESIZE, MF_BYCOMMAND) > 0)
@@ -228,8 +243,20 @@ menu_default_keys(HMENU hmenu, int id, int pos)
     }
 }
 
+static void
+menu_modify_string(const HMENU hmenu, const uint32_t id, const TCHAR *mdata)
+{
+    MENUITEMINFO mii = {sizeof(MENUITEMINFO), MIIM_STRING|MIIM_BITMAP};
+    if (GetMenuItemInfo(hmenu, id, false, &mii))
+    {   // 不使用ModifyMenu, 它破坏了菜单栏图标
+        mii.dwTypeData = (TCHAR *)mdata;
+        mii.cch = (uint32_t)_tcslen(mdata);
+        SetMenuItemInfo(hmenu, id, false, &mii);
+    }
+}
+
 static uint32_t
-menu_update_string(HMENU hmenu, int pos)
+menu_update_string(const HMENU hmenu, const int pos)
 {
     uint32_t id = 0;
     if ((id = GetMenuItemID(hmenu, pos)) > 0)
@@ -334,7 +361,7 @@ menu_update_string(HMENU hmenu, int pos)
                             default:            _tcsncat(mdata, _T("Unkown"),  FILESIZE); break;
                         }
                     }
-                    ModifyMenu(hmenu, pos, MF_BYPOSITION|MF_STRING, id, mdata);
+                    menu_modify_string(hmenu, id, mdata);
                 }
             }
             if (id == IDM_VIEW_ZOOMOUT)
@@ -354,8 +381,25 @@ menu_update_string(HMENU hmenu, int pos)
     return id;
 }
 
+bool
+menu_setup(HWND hwnd)
+{
+    if (eu_get_config() && SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK)))
+    {
+        HMENU root_menu = GetMenu(hwnd);
+        HMENU setting_menu = root_menu ? GetSubMenu(root_menu, THEME_MENU) : NULL;
+        setting_menu ? on_setting_update_menu(setting_menu) : (void)0;
+        if (!eu_get_config()->m_menubar)
+        {
+            SetMenu(hwnd, NULL);
+        }
+        return true;
+    }
+    return false;
+}
+
 void
-menu_update_item(HMENU menu, const bool init)
+menu_update_item(const HMENU menu, const bool init)
 {
     if (menu)
     {
@@ -399,7 +443,7 @@ menu_update_item(HMENU menu, const bool init)
                     case IDM_FILE_ADD_FAVORITES:
                         util_enable_menu_item(menu, IDM_FILE_ADD_FAVORITES, init || !pnode->is_blank);
                     case IDM_FILE_RESTART_ADMIN:
-                        menu_shield_icons(menu, IDM_FILE_RESTART_ADMIN, IDM_FILE_RESTART_ADMIN);
+                        init ? (void)0 : menu_shield_icons(menu, IDM_FILE_RESTART_ADMIN, IDM_FILE_RESTART_ADMIN);
                         util_enable_menu_item(menu, IDM_FILE_RESTART_ADMIN, init || !util_under_wine());
                         break;
                     case IDM_EDIT_UNDO:                       /* Edit menu */
@@ -577,7 +621,12 @@ menu_update_item(HMENU menu, const bool init)
                         i18n_update_menu(menu);
                         on_theme_update_item();
                         menu_switch_theme();
-                        menu_shield_icons(menu, IDM_ENV_FILE_POPUPMENU, IDM_ENV_SET_ASSOCIATED_WITH);
+                        if (!init)
+                        {
+                            menu_shield_icons(menu, IDM_ENV_FILE_POPUPMENU, IDM_ENV_SET_ASSOCIATED_WITH);
+                            menu_setting_icons(menu);
+                            on_setting_update_menu(menu);
+                        }
                         break;
                     case IDM_VIEW_FONTQUALITY_NONE:
                         util_set_menu_item(menu, IDM_VIEW_FONTQUALITY_NONE, IDM_VIEW_FONTQUALITY_NONE == eu_get_config()->m_quality);

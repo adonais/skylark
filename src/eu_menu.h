@@ -34,19 +34,21 @@
 #define TAB_MENU_CBUTTON_SUB  31
 #define TAB_MENU_SCROLLCURSOR 33
 #define TAB_MENU_SNIPPET_SUB  15
+#define CUSTOMIZED_CMD_SUB    14
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef void (*ptr_menu_callback)(HMENU hpop, void *p);
-int  menu_height();
-int  menu_pop_track(HWND hwnd, uint16_t mid, LPARAM lparam, const uint32_t, ptr_menu_callback fn, void *param);
+int  menu_height(void);
+int  menu_pop_track(const HWND hwnd, const uint16_t mid, LPARAM lparam, const uint32_t, ptr_menu_callback fn, void *param);
 void menu_switch_theme(void);
-void menu_destroy(HWND hwnd);
+void menu_destroy(const HWND hwnd);
 void menu_bmp_destroy(void);
-void menu_update_item(HMENU menu, const bool init);
-HMENU menu_load(uint16_t mid);
+void menu_update_item(const HMENU menu, const bool init);
+bool menu_setup(HWND hwnd);
+HMENU menu_load(const uint16_t mid);
 
 #ifdef __cplusplus
 }

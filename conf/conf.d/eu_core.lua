@@ -79,6 +79,17 @@ typedef struct _upgrade_set
     char url[1024];
 }upgrade_set;
 
+typedef struct _customize_set
+{
+    bool hide;
+    char name[64];
+    char path[260];
+    char param[260];
+    int  micon;
+    int  posid;
+    uintptr_t hbmp;
+}customize_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -149,8 +160,9 @@ struct eu_config
     char m_reserved_0[260];
     char m_reserved_1[260];
     char m_actions[100][260];
+    customize_set m_customize[32];
 };
-    
+
 struct styleclass
 {
     char font[32];
@@ -284,6 +296,30 @@ typedef struct _doc_data
     doc_comments comment;                     // 文档注释
 } doctype_t;
 
+// for tinyexpr
+typedef struct te_expr
+{
+    int type;
+    union {double value; const double *bound; const void *function;};
+    void *parameters[1];
+} te_expr;
+
+typedef struct te_variable
+{
+    const char *name;
+    const void *address;
+    int type;
+    void *context;
+} te_variable;
+
+double eu_te_eval(const te_expr *n);
+double eu_te_interp(const char *expression, int *error);
+void eu_te_print(const te_expr *n);
+void eu_te_free(te_expr *n);
+te_expr *eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error);
+void eu_lua_calltip(const char *pstr);
+
+// 获取配置文件指针
 bool eu_config_ptr(struct eu_config *pconfig);
 bool eu_theme_ptr(struct eu_theme *ptheme, bool init);
 bool eu_accel_ptr(ACCEL *paccel);
