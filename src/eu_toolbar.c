@@ -832,104 +832,6 @@ do_extra_actions(void *lp)
     return 0;
 }
 
-static void
-on_toolbar_update_env(eu_tabpage *pnode)
-{
-    TCHAR *env_name[] = {_T("FULL_CURRENT_PATH"),
-                         _T("CURRENT_DIRECTORY"),
-                         _T("FILE_NAME"),
-                         _T("NAME_PART"),
-                         _T("EXT_PART"),
-                         _T("CURRENT_LINESTR"),
-                         _T("CURRENT_SELSTR"),
-                         NULL
-                         };
-    if (pnode && !pnode->is_blank && pnode->filename[0])
-    {
-        size_t out1 = 0;
-        size_t out2 = 0;
-        TCHAR *pline = NULL;
-        TCHAR *psel = NULL;
-        TCHAR file_part[_MAX_FNAME] = {0};
-        TCHAR file_wine[MAX_BUFFER] = {0};
-        bool wine = util_under_wine();
-        char *line_str = util_strdup_line(pnode, -1, &out1);
-        char *sel_str = util_strdup_select(pnode, &out2, 0);
-        if (line_str && out1 > 0 && out1 < _MAX_ENV)
-        {
-            pline = eu_utf8_utf16(line_str, &out1);
-        }
-        if (sel_str && out2 > 0 && out2 < _MAX_ENV)
-        {
-            psel = eu_utf8_utf16(sel_str, &out2);
-        }
-        _tsplitpath(pnode->filename, NULL, NULL, file_part, NULL);
-        for (int i = 0; env_name[i]; ++i)
-        {
-            switch (i)
-            {
-                case 0:
-                {
-                    if (wine && util_get_unix_file_name(pnode->pathfile, file_wine, MAX_BUFFER))
-                    {
-                        SetEnvironmentVariable(env_name[i], file_wine);
-                        memset(file_wine, 0, sizeof(file_wine));
-                    }
-                    else
-                    {
-                        SetEnvironmentVariable(env_name[i], pnode->pathfile);
-                    }
-                    break;
-                }
-                case 1:
-                {
-                    if (wine && util_get_unix_file_name(pnode->pathname, file_wine, MAX_BUFFER))
-                    {
-                        SetEnvironmentVariable(env_name[i], file_wine);
-                        memset(file_wine, 0, sizeof(file_wine));
-                    }
-                    else
-                    {
-                        SetEnvironmentVariable(env_name[i], pnode->pathname);
-                    }
-                    break;
-                }
-                case 2:
-                {
-                    SetEnvironmentVariable(env_name[i], pnode->filename);
-                    break;
-                }
-                case 3:
-                {
-                    SetEnvironmentVariable(env_name[i], file_part);
-                    break;
-                }
-                case 4:
-                {
-                    SetEnvironmentVariable(env_name[i], pnode->extname);
-                    break;
-                }
-                case 5:
-                {
-                    SetEnvironmentVariable(env_name[i], pline ? pline : _T(""));
-                    break;
-                }
-                case 6:
-                {
-                    SetEnvironmentVariable(env_name[i], psel ? psel : _T(""));
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-        eu_safe_free(line_str);
-        eu_safe_free(pline);
-        eu_safe_free(sel_str);
-        eu_safe_free(psel);
-    }
-}
-
 void
 on_toolbar_execute_script(void)
 {
@@ -939,7 +841,7 @@ on_toolbar_execute_script(void)
         intptr_t param = (intptr_t)p->doc_ptr->doc_type;
         if (strlen(eu_get_config()->m_actions[param]) > 1)
         {
-            on_toolbar_update_env(p);
+            util_update_env(p);
             CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
         }
         else if (param == DOCTYPE_LUA)
@@ -969,7 +871,7 @@ on_toolbar_execute_script(void)
             int len = (int)_tcslen(process);
             if (len > 1 && len < MAX_PATH && util_make_u8(util_path2unix(process, len), eu_get_config()->m_actions[param], MAX_PATH-1))
             {
-                on_toolbar_update_env(p);
+                util_update_env(p);
                 CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_extra_actions, (void *)param, 0, NULL));
             }
         }

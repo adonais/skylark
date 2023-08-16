@@ -63,6 +63,7 @@ static PFNVQVW pfnVerQueryValueW;
 #endif
 
 static pwine_get_version fn_wine_get_version;
+static char const out_of_mem[] = "no memory for %zu byte allocation\n";
 
 static int
 clock_gettime_monotonic(struct timespec *tv)
@@ -123,6 +124,30 @@ util_clock_gettime(int type, struct timespec *tp)
     }
     errno = ENOTSUP;
     return -1;
+}
+
+static void *
+util_xmalloc(const size_t sz)
+{
+    void *res = malloc(sz);
+    if (res == NULL)
+    {
+        eu_logmsg(out_of_mem, sz);
+        exit(EXIT_FAILURE);
+    }
+    return res;
+}
+
+static void *
+util_xrealloc(void * ptr, const size_t sz)
+{
+    void *res = realloc(ptr, sz);
+    if (res == NULL)
+    {
+        eu_logmsg(out_of_mem, sz);
+        exit(EXIT_FAILURE);
+    }
+    return res;
 }
 
 uint64_t
@@ -1826,12 +1851,12 @@ WCHAR *
 util_to_abs(const char *path)
 {
     WCHAR *pret = NULL;
-    WCHAR lpfile[MAX_PATH+1] = {0};
+    WCHAR lpfile[MAX_BUFFER+1] = {0};
     if (NULL == path || *path == '\0' || *path == ' ')
     {
         return NULL;
     }
-    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, lpfile, MAX_PATH) || !lpfile[0])
+    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, lpfile, MAX_BUFFER) || !lpfile[0])
     {
         return NULL;
     }
@@ -1842,36 +1867,41 @@ util_to_abs(const char *path)
     {
         int n = 1;
         int len = (int)wcslen(lpfile);
-        WCHAR env[MAX_PATH + 1] = {0};
+        WCHAR env[MAX_BUFFER + 1] = {0};
         WCHAR buf[FILESIZE + 1] = {0};
-        while (lpfile[n] != 0)
+        while (lpfile[n++] != 0)
         {
-            if (lpfile[n++] == L'%')
+            if (lpfile[n] == L'%')
             {
                 break;
             }
         }
         if (n < len && n < FILESIZE)
         {
-            _snwprintf(buf, n, L"%s", &lpfile);
+            _snwprintf(buf, n + 1, L"%s", lpfile);
         }
-        if (wcslen(buf) > 1 && ExpandEnvironmentStrings(buf, env, MAX_PATH) > 0)
+        if (wcslen(buf) > 1 && ExpandEnvironmentStrings(buf, env, MAX_BUFFER) > 0)
         {
-            if (lpfile[n] != 0 && lpfile[n] == L'\\')
+            len = (int)wcslen(env);
+            if (env[len - 1] == L'\\')
             {
                 ++n;
             }
-            wcsncat(env, &lpfile[n], MAX_PATH);
-            pret = _wfullpath(NULL, env, MAX_PATH);
+            wcsncat(env, &lpfile[n + 1], MAX_BUFFER);
+            pret = _wfullpath(NULL, env, MAX_BUFFER);
         }
     }
     else if (lpfile[0] == L'.')
-    {   // 使用了相对路径, 以进程目录为基准, 转为绝对路径
-        pret = _wfullpath(NULL, lpfile, MAX_PATH);
+    {   // 使用了相对路径, 以进程工作目录为基准, 转为绝对路径
+        pret = _wfullpath(NULL, lpfile, MAX_BUFFER);
     }
     else if (wcslen(lpfile) > 1 && lpfile[1] != L':')
     {   // 在PATH环境变量里, 转为绝对路径
         pret = util_which(lpfile);
+        if (!pret && ((pret = (WCHAR *)calloc(sizeof(WCHAR), MAX_BUFFER + 1))))
+        {  // 不存在, 以进程目录为基准, 转为绝对路径
+            _snwprintf(pret, MAX_BUFFER, L"%s\\%s", eu_module_path, lpfile);
+        }
     }
     else
     {
@@ -2553,7 +2583,7 @@ util_file_access(LPCTSTR filename, uint32_t *pgranted)
 }
 
 int
-util_split(const char *pstr, char (*pout)[MAX_PATH], int ch)
+util_split_attr(const char *pstr, char (*pout)[MAX_PATH], int ch)
 {
     if (STR_NOT_NUL(pstr) && NULL != pout)
     {
@@ -2609,6 +2639,62 @@ util_strim_end(char *pstr, int len)
         }
     }
     return 0;
+}
+
+void
+util_split(const char *pstr, const char *sep, char ***ppvec, const bool out_vec)
+{
+    char *psrc = pstr ? strdup((void *)pstr) : NULL;
+    char **ptr_argv = psrc && sep && ppvec ? util_xmalloc(sizeof(char*)) : NULL;
+    if (ptr_argv)
+    {
+        int flag = 0;
+        int arg_c = 0;
+        for (char *token = strtok(psrc, sep); token != NULL; token = strtok(NULL, sep))
+        {
+            if (1 == flag)
+            {
+                const int len = (const int)strlen(token);
+                 //This token ends with quotes
+                if ('\'' == token[len-1] || '\"' == token[len-1])
+                {
+                    flag = 0;
+                }
+                //Enlarge the previous token
+                ptr_argv[arg_c-1] = util_xrealloc(ptr_argv[arg_c-1], strlen(ptr_argv[arg_c-1]) + strlen(token) + 2);
+                strcat(ptr_argv[arg_c-1], " ");
+                strcat(ptr_argv[arg_c-1], token);
+            }
+            else
+            {
+                //This token starts with quotes
+                if ('\'' == token[0] || '\"' == token[0])
+                {
+                    flag = 1;
+                }
+                //Add one element to the array of strings
+                ptr_argv = util_xrealloc(ptr_argv, (arg_c + 1) * sizeof(char*));
+                //Allocate the memory for the Nth element
+                ptr_argv[arg_c] = util_xmalloc(strlen(token) + 1);
+                //Copy the token in the array
+                strcpy(ptr_argv[arg_c], token);
+                arg_c++;
+            }
+        }
+        if (out_vec)
+        {
+            for (int i = 0; i < arg_c; ++i)
+            {
+                cvector_push_back(*ppvec, ptr_argv[i]);
+            }
+            free(ptr_argv);
+        }
+        else if (arg_c > 0)
+        {
+            *ppvec = ptr_argv;
+        }
+    }
+    eu_safe_free(psrc);
 }
 
 HFONT
@@ -2913,7 +2999,7 @@ util_isxdigit_string(LPCTSTR str, const int len)
     return false;
 }
 
-static HBITMAP
+HBITMAP
 util_icon_bitmap(HICON hicon, const int width, const int height)
 {
     bool ok = false;
@@ -3016,4 +3102,115 @@ util_shield_icon(HINSTANCE hinst, LPCTSTR name)
         DestroyIcon(hicon);
     }
     return hmap;
+}
+
+void
+util_update_env(eu_tabpage *pnode)
+{
+    TCHAR *env_name[] = {_T("FULL_CURRENT_PATH"),
+                         _T("CURRENT_DIRECTORY"),
+                         _T("FILE_NAME"),
+                         _T("NAME_PART"),
+                         _T("EXT_PART"),
+                         _T("CURRENT_LINESTR"),
+                         _T("CURRENT_SELSTR"),
+                         _T("NUM_SELSTR"),
+                         NULL
+                         };
+    if (pnode && !pnode->pmod)
+    {
+        size_t out1 = 0;
+        size_t out2 = 0;
+        TCHAR *pline = NULL;
+        TCHAR *psel = NULL;
+        TCHAR file_part[_MAX_FNAME] = {0};
+        TCHAR file_wine[MAX_BUFFER] = {0};
+        bool wine = util_under_wine();
+        char *line_str = util_strdup_line(pnode, -1, &out1);
+        char *sel_str = util_strdup_select(pnode, &out2, 0);
+        if (line_str && out1 > 0 && out1 < _MAX_ENV)
+        {   // 去除行末尾存在的换行符
+            int index = (int)strcspn(line_str, "\r\n");
+            if (index < eu_int_cast(strlen(line_str)))
+            {
+                line_str[index] = 0;
+            }
+            pline = eu_utf8_utf16(line_str, NULL);
+        }
+        if (sel_str && out2 > 0 && out2 < _MAX_ENV)
+        {
+            psel = eu_utf8_utf16(sel_str, &out2);
+        }
+        _tsplitpath(pnode->filename, NULL, NULL, file_part, NULL);
+        for (int i = 0; env_name[i]; ++i)
+        {
+            switch (i)
+            {
+                case 0:
+                {
+                    if (wine && util_get_unix_file_name(pnode->pathfile, file_wine, MAX_BUFFER))
+                    {
+                        SetEnvironmentVariable(env_name[i], file_wine);
+                        memset(file_wine, 0, sizeof(file_wine));
+                    }
+                    else
+                    {
+                        SetEnvironmentVariable(env_name[i], pnode->pathfile);
+                    }
+                    break;
+                }
+                case 1:
+                {
+                    if (wine && util_get_unix_file_name(pnode->pathname, file_wine, MAX_BUFFER))
+                    {
+                        SetEnvironmentVariable(env_name[i], file_wine);
+                        memset(file_wine, 0, sizeof(file_wine));
+                    }
+                    else
+                    {
+                        SetEnvironmentVariable(env_name[i], pnode->pathname);
+                    }
+                    break;
+                }
+                case 2:
+                {
+                    SetEnvironmentVariable(env_name[i], pnode->filename);
+                    break;
+                }
+                case 3:
+                {
+                    SetEnvironmentVariable(env_name[i], file_part);
+                    break;
+                }
+                case 4:
+                {
+                    SetEnvironmentVariable(env_name[i], pnode->extname);
+                    break;
+                }
+                case 5:
+                {
+                    SetEnvironmentVariable(env_name[i], pline ? pline : _T(""));
+                    break;
+                }
+                case 6:
+                {
+                    SetEnvironmentVariable(env_name[i], psel ? psel : _T(""));
+                    break;
+                }
+                case 7:
+                {
+                    TCHAR num[DW_SIZE] = {0};
+                    const int nlen = psel ? (const int)_tcslen(psel) : 0;
+                    SetEnvironmentVariable(env_name[i], _ltow(nlen, num, 10));
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        eu_safe_free(line_str);
+        eu_safe_free(pline);
+        eu_safe_free(sel_str);
+        eu_safe_free(psel);
+    }
 }

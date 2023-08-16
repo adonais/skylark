@@ -151,15 +151,17 @@ unsigned long util_compress_bound(unsigned long source_len);
 int util_uncompress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long *source_len);
 int util_compress(uint8_t *dest, unsigned long *dest_len, const uint8_t *source, unsigned long source_len, int level);
 int util_count_number(size_t number);
-int util_split(const char *pstr, char (*pout)[MAX_PATH], int ch);
+int util_split_attr(const char *pstr, char (*pout)[MAX_PATH], int ch);
 int util_strim_end(char *pstr, int len);
 int util_num_cores(void);
+void  util_split(const char *pstr, const char *sep, char ***ppvec, const bool out_vec);
 void  util_transparent(HWND hwnd, int percent);
 void  util_untransparent(HWND hwnd);
 void  util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py);
 void  util_explorer_open(eu_tabpage *pnode);
 void  util_redraw(const HWND hwnd, const bool force);
 void  util_symlink_destroy(eu_tabpage *pnode);
+void  util_update_env(eu_tabpage *pnode);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 bool  util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len);
@@ -168,6 +170,7 @@ const uint32_t util_os_version(void);
 const TCHAR* util_path_ext(const TCHAR *path);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
 sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
+HBITMAP util_icon_bitmap(HICON hicon, const int width, const int height);
 HBITMAP util_shield_icon(HINSTANCE hinst, LPCTSTR name);
 
 #ifdef __cplusplus

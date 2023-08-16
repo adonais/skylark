@@ -19,8 +19,8 @@
 #ifndef _SKYLARK_TOOLBAR_H_
 #define _SKYLARK_TOOLBAR_H_
 
-#define EDITNUMBS             11
-#define BUFFSIZE              64
+#define EDITNUMBS       11
+#define BUFFSIZE        64
 
 // c++ compiler
 #ifdef __cplusplus
