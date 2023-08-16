@@ -22,6 +22,7 @@ echo NAME_PART = "$NAME_PART"
 echo EXT_PART = "$EXT_PART"
 echo CURRENT_LINESTR = "$CURRENT_LINESTR"
 echo CURRENT_SELSTR = "$CURRENT_SELSTR"
+echo NUM_SELSTR = "$NUM_SELSTR"
 gcc --version
 g++ "$*" -g -o "/tmp/$NAME_PART.out"
 if [ "$?" == "0" ]; then
