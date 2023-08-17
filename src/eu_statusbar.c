@@ -38,8 +38,6 @@ static HMENU g_menu_type;
 static HFONT hfont_btn;
 static int g_status_height;
 
-char iconv_undo_str[QW_SIZE] = {0};
-
 void
 on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
 {
@@ -329,10 +327,9 @@ on_statusbar_convert_coding(eu_tabpage *pnode, int encoding)
     }
     free(file_buf);
     // we set new codepage
-    _snprintf(iconv_undo_str, QW_SIZE-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, encoding);
-    pnode->codepage = encoding;
+    on_edit_convert_coding(pnode, encoding);
     on_encoding_set_bom_from_cp(pnode);
-    return on_tabpage_editor_modify(pnode, iconv_undo_str);
+    return 0;
 }
 
 void
@@ -521,18 +518,14 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_UNI_UTF8:
                     pnode->pre_len = 0;
                     memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
-                    _snprintf(iconv_undo_str, QW_SIZE-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8);
-                    pnode->codepage = IDM_UNI_UTF8;
-                    on_tabpage_editor_modify(pnode, iconv_undo_str);
+                    on_edit_convert_coding(pnode, IDM_UNI_UTF8);
                     on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF8B:
                     pnode->pre_len = 3;
                     memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
                     memcpy(pnode->pre_context, "\xEF\xBB\xBF", 3);
-                    _snprintf(iconv_undo_str, QW_SIZE-1, "%s=%d=%d", "_iconv/?@#$%^&*()`/~", pnode->codepage, IDM_UNI_UTF8B);
-                    pnode->codepage = IDM_UNI_UTF8B;
-                    on_tabpage_editor_modify(pnode, iconv_undo_str);
+                    on_edit_convert_coding(pnode, IDM_UNI_UTF8B);
                     on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF16LE:
@@ -787,7 +780,7 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
 }
 
 void
-on_statusbar_update_eol(eu_tabpage *pnode)
+on_statusbar_update_eol(eu_tabpage *pnode, const int eol)
 {
     if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
     {
@@ -799,15 +792,15 @@ on_statusbar_update_eol(eu_tabpage *pnode)
         on_statusbar_set_text(g_statusbar, STATUSBAR_DOC_EOLS, buf);
         return;
     }
-    switch (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0))
+    switch (eol >= 0 ? eol : eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0))
     {
-        case 0:
+        case SC_EOL_CRLF:
             on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_1, STATUSBAR_DOC_EOLS);
             break;
-        case 1:
+        case SC_EOL_CR:
             on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_2, STATUSBAR_DOC_EOLS);
             break;
-        case 2:
+        case SC_EOL_LF:
             on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
             break;
         default:
@@ -967,7 +960,7 @@ on_statusbar_update(void)
             on_statusbar_update_fileinfo(pnode, NULL);
             on_statusbar_update_line(pnode);
             on_statusbar_update_filesize(pnode);
-            on_statusbar_update_eol(pnode);
+            on_statusbar_update_eol(pnode, -1);
             on_statusbar_update_filetype_menu(pnode);
             on_statusbar_update_coding(pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
             SendMessage(g_statusbar, WM_SETREDRAW, TRUE, 0);

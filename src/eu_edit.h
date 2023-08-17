@@ -32,13 +32,13 @@
 #define STR_NOT_NUL(s) (s != NULL && *s != 0)
 #define TAB_NOT_NUL(p) (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0)
 #define TAB_NOT_BIN(p) (p->codepage != IDM_OTHER_BIN)
+#define EOLS_UNDO   101
+#define ICONV_UNDO  102
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-extern char eols_undo_str[QW_SIZE];
 
 void on_edit_undo(eu_tabpage *pnode);
 void on_edit_redo(eu_tabpage *pnode);
@@ -86,6 +86,7 @@ int on_edit_descbc_dec(eu_tabpage *pnode);
 int on_edit_comment_line(eu_tabpage *pnode);
 int on_edit_comment_stream(eu_tabpage *pnode);
 int on_edit_convert_eols(eu_tabpage *pnode, int new_eol);
+int on_edit_convert_coding(eu_tabpage *pnode, int new_code);
 
 bool on_edit_can_paste(void);
 bool on_edit_ssl_enc_base64(unsigned char *base64_pass, unsigned char *enc_str, int enc_len);

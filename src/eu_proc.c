@@ -26,7 +26,6 @@ typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
 static HWND g_hwndmain;                    // 主窗口句柄
-static volatile long undo_off;             // 状态栏按钮撤销信号量
 volatile long g_interval_count = 0;        // 启动自动更新的时间间隔
 
 static int
@@ -112,7 +111,6 @@ on_destory_window(HWND hwnd)
     // 释放libcurl资源
     eu_curl_global_cleanup();
     // 全局变量清零
-    _InterlockedExchange(&undo_off, 0);
     _InterlockedExchange(&g_interval_count, 0);
     // 退出消息循环
     PostQuitMessage(0);
@@ -151,12 +149,6 @@ do_drop_fix(void)
         }
         FreeLibrary(usr32);
     }
-}
-
-void
-on_proc_undo_off(void)
-{
-    _InterlockedExchange(&undo_off, 0);
 }
 
 HWND
@@ -1930,35 +1922,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_sci_character(on_tabpage_focus_at(), 0);
                     break;
                 case SCN_MODIFIED:
-                    if (lpnotify->modificationType & SC_PERFORMED_UNDO)
+                    if ((lpnotify->modificationType & SC_MOD_CONTAINER))
                     {
-                        if (lpnotify->text)
+                        if (lpnotify->token == EOLS_UNDO)
                         {
-                            if (strcmp(lpnotify->text, eols_undo_str) == 0)
-                            {
-                                if (!_InterlockedCompareExchange(&undo_off, 1, 0))
-                                {
-                                    on_edit_undo_eol(pnode);
-                                }
-                            }
-                            else if ((strlen(lpnotify->text) <= 2) && (lpnotify->text[0] == 0x0d || lpnotify->text[0] == 0x0a))
-                            {
-                                if (!eu_sci_call(pnode,SCI_CANUNDO, 0, 0))
-                                {
-                                    eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
-                                }
-                            }
-                            else if (strcmp(lpnotify->text, iconv_undo_str) == 0)
-                            {
-                                if (!_InterlockedCompareExchange(&undo_off, 1, 0))
-                                {
-                                    on_edit_undo_iconv(pnode);
-                                }
-                                if (!eu_sci_call(pnode, SCI_CANUNDO, 0, 0))
-                                {
-                                    eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
-                                }
-                            }
+                            on_edit_undo_eol(pnode);
+                        }
+                        else if (lpnotify->token == ICONV_UNDO)
+                        {
+                            on_edit_undo_iconv(pnode);
                         }
                     }
                     break;

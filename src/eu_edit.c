@@ -19,6 +19,8 @@
 #include "framework.h"
 
 #define COMMENT_LEN 16
+#define EOLS_UNDO_DESC "_eol/?@#$%^&*()`/~"
+#define ICON_UNDO_DESC "_iconv/?@#$%^&*()`/~"
 
 enum htmlblock
 {
@@ -32,8 +34,6 @@ enum htmlblock
     HTML_TEXT_BLOCK_SGML
 };
 
-char eols_undo_str[QW_SIZE] = {0};
-
 void
 on_edit_undo(eu_tabpage *pnode)
 {
@@ -46,15 +46,9 @@ on_edit_undo(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !p->hex_mode && !p->pmod)
             {
-                on_proc_undo_off();
                 eu_sci_call(p, SCI_UNDO, 0, 0);
             }
         }
-    }
-    if (pnode)
-    {
-        util_setforce_eol(pnode);
-        on_statusbar_update_eol(pnode);
     }
     cvector_freep(&v);
 }
@@ -71,15 +65,9 @@ on_edit_redo(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !p->hex_mode && !p->pmod)
             {
-                on_proc_undo_off();
                 eu_sci_call(p, SCI_REDO, 0, 0);
             }
         }
-    }
-    if (pnode)
-    {
-        util_setforce_eol(pnode);
-        on_statusbar_update_eol(pnode);
     }
     cvector_freep(&v);
 }
@@ -2053,13 +2041,31 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
 {
     if (pnode && !pnode->hex_mode && !pnode->pmod && (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
     {
+        eu_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         eu_sci_call(pnode, SCI_CONVERTEOLS, eol_mode, 0);
-        eu_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
-        _snprintf(eols_undo_str, QW_SIZE-1, "%s=%d=%d", "_eol/?@#$%^&*()`/~", pnode->eol, eol_mode);
+        eu_sci_call(pnode, SCI_ADDUNDOACTION, EOLS_UNDO, 0);
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        _snprintf(pnode->eols_undo_str, QW_SIZE-1, "%s=%d=%d", EOLS_UNDO_DESC, pnode->eol, eol_mode);
         pnode->eol = eol_mode;
-        eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) eols_undo_str);
-        eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(eols_undo_str));
+        pnode->undo_id = 1;
+        return 0;
+    }
+    return 1;
+}
+
+int
+on_edit_convert_coding(eu_tabpage *pnode, int new_code)
+{
+    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->codepage != new_code)
+    {
+        _snprintf(pnode->icon_undo_str, QW_SIZE-1, "%s=%d=%d", ICON_UNDO_DESC, pnode->codepage, new_code);
+        pnode->codepage = new_code;
+        pnode->undo_id = 1;
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) pnode->icon_undo_str);
+        eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(pnode->icon_undo_str));
+        eu_sci_call(pnode, SCI_ADDUNDOACTION, ICONV_UNDO, 0);
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         return 0;
     }
@@ -2073,10 +2079,11 @@ on_edit_undo_iconv(eu_tabpage *pnode)
     {
         int old_codepage = IDM_UNKNOWN;
         int new_codepage = IDM_UNKNOWN;
-        if (sscanf(iconv_undo_str, "%*[^0-9]%i=%i", &old_codepage, &new_codepage) == 2)
+        if (sscanf(pnode->icon_undo_str, "%*[^0-9]%i=%i", &old_codepage, &new_codepage) == 2)
         {
             pnode->codepage = old_codepage;
             memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
+            _snprintf(pnode->icon_undo_str, QW_SIZE-1, "%s=%d=%d", ICON_UNDO_DESC, new_codepage, old_codepage);
             on_encoding_set_bom_from_cp(pnode);
             on_statusbar_update_coding(pnode, 0);
         }
@@ -2090,11 +2097,12 @@ on_edit_undo_eol(eu_tabpage *pnode)
     {
         int old_eol = -1;
         int new_eol = -1;
-        if (sscanf(eols_undo_str, "%*[^0-9]%i=%i", &old_eol, &new_eol) == 2)
+        if (sscanf(pnode->eols_undo_str, "%*[^0-9]%i=%i", &old_eol, &new_eol) == 2)
         {
             pnode->eol = old_eol;
-            eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
-            on_statusbar_update_eol(pnode);
+            _snprintf(pnode->eols_undo_str, QW_SIZE-1, "%s=%d=%d", EOLS_UNDO_DESC, new_eol, old_eol);
+            eu_sci_call(pnode, SCI_SETEOLMODE, old_eol, 0);
+            on_statusbar_update_eol(pnode, old_eol);
         }
     }
 }

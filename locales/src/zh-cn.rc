@@ -1327,6 +1327,7 @@ STRINGTABLE DISCARDABLE
     IDS_INDENT_TAB_SPACE    "[%s] %zd 行使用了空格 + 制表符混合缩进\n"
     IDS_INDENT_PROPOSE      "我们建议使用clang-format或者 '编辑->转换' 功能格式化文档"
     IDS_FAVORITE_ADD_TIPS   "收藏夹内的文件具有相同的别名, 会难以分辨, 你确认继续吗?"
+    IDS_UNDO_UNCLOSE_TIPS   "文件曾执行过编码转换或换行符转换, 你应该尽快保存文件以免'撤销/重做'操作影响到文件状态"
 }
 
 /////////////////////////////////////////////////////////////////////////////

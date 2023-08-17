@@ -1329,6 +1329,7 @@ STRINGTABLE DISCARDABLE
     IDS_INDENT_TAB_SPACE    "[%s] %zd line(s) are indented with space + tab characters\n"
     IDS_INDENT_PROPOSE      "We recommend formatting the document using clang-format or the 'Edit->Convert' function"
     IDS_FAVORITE_ADD_TIPS   "It's hard to tell when files in your favorites have the same alias, Are you sure you want to continue?"
+    IDS_UNDO_UNCLOSE_TIPS   "The file has been converted to encoding or line breaks, you should save the file as soon as possible to avoid 'undo/redo' operations affecting the file state."
 }
 
 /////////////////////////////////////////////////////////////////////////////
