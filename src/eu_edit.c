@@ -370,10 +370,12 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
     }
     else if (util_under_wine())
     {
+        TCHAR *plugin = NULL;
         TCHAR file_wine[MAX_PATH + 1] = {0};
-        if (util_get_unix_file_name(pnode->pathfile, file_wine, MAX_PATH))
+        if ((plugin = util_winexy_get()) && util_get_unix_file_name(pnode->pathfile, file_wine, MAX_PATH))
         {
-            _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\""), path, file_wine);
+            _sntprintf(cmd, MAX_BUFFER - 1, _T("%s \"%s\" \"%s\""), plugin, path, file_wine);
+            free(plugin);
         }
     }
     else
@@ -388,6 +390,7 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
 {
     if (path && pvec)
     {
+        wchar_t *plugin = NULL;
         wchar_t *cmd_exec = NULL;
         wchar_t name[MAX_PATH] = {0};
         wchar_t unix_path[MAX_PATH] = {0};
@@ -395,29 +398,34 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
         int count = eu_int_cast(cvector_size(pvec));
         const int len = (count + 1) * (MAX_PATH + 1);
         util_product_name(path, name, MAX_PATH - 1);
-        if ((cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1)) != NULL)
+        if ((plugin = util_winexy_get()) && (cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1)))
         {
             if (!hex)
             {
-                _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
+                _snwprintf(cmd_exec, len, L"%s \"%s\" ", plugin, path);
             }
-            else if (_tcsnicmp(name, _T("Beyond Compare"), _tcslen(_T("Beyond Compare"))) == 0)
+            else if (wcsnicmp(name, L"Beyond Compare", wcslen(L"Beyond Compare")) == 0)
             {
-                _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/fv=\"Hex Compare\""));
+                _snwprintf(cmd_exec, len, L"%s \"%s\" %s ", plugin, path, L"/fv=\"Hex Compare\"");
             }
-            else if (_tcsnicmp(name, _T("WinMerge"), _tcslen(_T("WinMerge"))) == 0)
+            else if (wcsnicmp(name, L"WinMerge", wcslen(L"WinMerge")) == 0)
             {
-                _snwprintf(cmd_exec, len, _T("\"%s\" %s "), path, _T("/m Binary /t Binary"));
+                _snwprintf(cmd_exec, len, L"%s \"%s\" %s ", plugin, path, L"/m Binary /t Binary");
             }
             else
             {
-                _snwprintf(cmd_exec, len, _T("\"%s\" "), path);
+                _snwprintf(cmd_exec, len, L"%s \"%s\" ", plugin, path);
+            }
+            if (!wine)
+            {
+                const int in_len = (const int)wcslen(plugin);
+                memmove(cmd_exec, &cmd_exec[in_len + 1], (wcslen(&cmd_exec[in_len]) + 1) * sizeof(wchar_t));
             }
             for (int i = 0; i < count; ++i)
             {
                 if (i == count - 1)
                 {
-                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, L"\"", len);
                     if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
@@ -427,11 +435,11 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
                     {
                         wcsncat(cmd_exec, pvec[i], len);
                     }
-                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, L"\"", len);
                 }
                 else
                 {
-                    wcsncat(cmd_exec, _T("\""), len);
+                    wcsncat(cmd_exec, L"\"", len);
                     if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
@@ -441,10 +449,11 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
                     {
                         wcsncat(cmd_exec, pvec[i], len);
                     }
-                    wcsncat(cmd_exec, _T("\" "), len);
+                    wcsncat(cmd_exec, L"\" ", len);
                 }
             }
             CloseHandle(eu_new_process(cmd_exec, NULL, NULL, 2, NULL));
+            free(plugin);
             free(cmd_exec);
         }
     }

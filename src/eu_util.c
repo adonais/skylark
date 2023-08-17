@@ -252,11 +252,6 @@ util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len)
         {
             util_make_u16(unix_path, out, len);
             util_free(unix_path);
-            const wchar_t *p = wcsstr(out, L":");
-            if (p && wcslen(p) > 1 && wcsncmp(&p[1], L"/users/", 7) != 0)
-            {
-                memmove(out, &p[1], (wcslen(p) + 1) * sizeof(wchar_t));
-            }
             return !!out[0];
         }
     }
@@ -1553,7 +1548,7 @@ util_update_menu_chars(const HMENU hmenu, const uint32_t m_id, const int width)
 }
 
 TCHAR *
-util_path2unix(TCHAR *path, int len)
+util_path2unix(TCHAR *path, const int len)
 {
     if (path)
     {
@@ -1570,7 +1565,7 @@ util_path2unix(TCHAR *path, int len)
 }
 
 TCHAR *
-util_unix2path(TCHAR *path, int len)
+util_unix2path(TCHAR *path, const int len)
 {
     if (path)
     {
@@ -1848,10 +1843,23 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
 }
 
 WCHAR *
+util_winexy_get(void)
+{
+    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_PATH+1));
+    if (plugin && STR_NOT_NUL(eu_module_path))
+    {
+        _snwprintf(plugin, MAX_PATH, L"/bin/wine \"%s\\plugins\\np_winexy.dll\"", eu_module_path);
+        util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+    }
+    return plugin;
+}
+
+WCHAR *
 util_to_abs(const char *path)
 {
     WCHAR *pret = NULL;
     WCHAR lpfile[MAX_BUFFER+1] = {0};
+    bool wine = util_under_wine();
     if (NULL == path || *path == '\0' || *path == ' ')
     {
         return NULL;
@@ -1860,13 +1868,13 @@ util_to_abs(const char *path)
     {
         return NULL;
     }
-    util_unix2path(lpfile, eu_int_cast(_tcslen(lpfile)));
+    util_unix2path(lpfile, (const int)_tcslen(lpfile));
     // 如果路径有引号, 去除
     util_wstr_unquote(lpfile, sizeof(lpfile));
     if (lpfile[0] == L'%')
     {
         int n = 1;
-        int len = (int)wcslen(lpfile);
+        int len = (const int)wcslen(lpfile);
         WCHAR env[MAX_BUFFER + 1] = {0};
         WCHAR buf[FILESIZE + 1] = {0};
         while (lpfile[n++] != 0)
@@ -1895,17 +1903,27 @@ util_to_abs(const char *path)
     {   // 使用了相对路径, 以进程工作目录为基准, 转为绝对路径
         pret = _wfullpath(NULL, lpfile, MAX_BUFFER);
     }
-    else if (wcslen(lpfile) > 1 && lpfile[1] != L':')
+    else if (wcslen(lpfile) > 1 && lpfile[0] != L'/' && lpfile[1] != L':')
     {   // 在PATH环境变量里, 转为绝对路径
         pret = util_which(lpfile);
         if (!pret && ((pret = (WCHAR *)calloc(sizeof(WCHAR), MAX_BUFFER + 1))))
-        {  // 不存在, 以进程目录为基准, 转为绝对路径
+        {    // 不存在, 以进程目录为基准, 转为绝对路径
             _snwprintf(pret, MAX_BUFFER, L"%s\\%s", eu_module_path, lpfile);
+            if (!eu_exist_file(pret))
+            {
+                _snwprintf(pret, MAX_BUFFER, L"%s", lpfile);
+                // 没有路径名
+                wine = false;
+            }
         }
     }
     else
     {
         pret = _wcsdup(lpfile);
+    }
+    if (wine && pret && util_get_unix_file_name(pret, lpfile, MAX_BUFFER))
+    {
+        _snwprintf(pret, MAX_BUFFER, L"%s", lpfile);
     }
     return pret;
 }
@@ -2319,7 +2337,7 @@ util_wstr_unquote(wchar_t *path, const int size)
         if ((path[0] == L'"') || path[0] == L'\'')
         {
             memmove(path, &path[1], size - sizeof(wchar_t));
-            int len = (int)wcslen(path);
+            const int len = (const int)wcslen(path);
             if (len > 0 && (path[len - 1] == L'"' || path[len - 1] == L'\''))
             {
                 path[len - 1] = 0;
@@ -2418,7 +2436,11 @@ util_which(const TCHAR *name)
         return NULL;
     }
     diff = _tcscmp(sz_work, eu_module_path) != 0;
-    if (dot)
+    if (util_under_wine())
+    {
+        add_suf = false;
+    }
+    else if (dot)
     {
         for (int i = 0; av[i]; ++i)
         {
@@ -2784,18 +2806,13 @@ util_explorer_open(eu_tabpage *pnode)
         }
         else
         {
+            wchar_t *plugin = NULL;
             wchar_t cmd_exec[MAX_BUFFER] = {0};
-            wchar_t plugin[MAX_PATH] = {0};
             wchar_t unix_path[MAX_PATH] = {0};
-            if (util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH - 1))
+            if (util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH - 1) && (plugin = util_winexy_get()))
             {
-                _sntprintf(plugin, MAX_PATH - 1, L"%s\\plugins\\np_winexy.dll", eu_module_path);
-                util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
-            #if (defined _M_X64) || (defined __x86_64__)
-                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s \"%s\" %s \"%s\"", L"/bin/wine64", plugin, L"explorer.exe", unix_path);
-            #else
-                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s \"%s\" %s \"%s\"", L"/bin/wine", plugin, L"explorer.exe", unix_path);
-            #endif
+                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s %s \"%s\"", plugin, L"explorer.exe", unix_path);
+                free(plugin);
                 CloseHandle(eu_new_process(cmd_exec, NULL, pnode->pathname, 2, NULL));
             }
         }

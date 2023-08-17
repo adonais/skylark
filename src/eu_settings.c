@@ -213,6 +213,7 @@ on_setting_update_menu(const HMENU setting_menu)
 void
 on_setting_execute(HWND hwnd, const int wm_id)
 {
+    bool wine = util_under_wine();
     struct eu_config *pconf = eu_get_config();
     if (pconf && hwnd && wm_id >= IDM_SET_LUAJIT_EXECUTE)
     {
@@ -224,6 +225,7 @@ on_setting_execute(HWND hwnd, const int wm_id)
             if (pconf->m_customize[i].posid == wm_id && pconf->m_customize[i].path[0] && ((cmd_exec = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER + 1))))
             {
                 TCHAR *p = NULL;
+                TCHAR *plugin = NULL;
                 TCHAR *path = util_to_abs(pconf->m_customize[i].path);
                 if (path)
                 {
@@ -243,7 +245,14 @@ on_setting_execute(HWND hwnd, const int wm_id)
                     {
                         util_update_env(on_tabpage_focus_at());
                         on_setting_parser_args(pconf->m_customize[i].param, &cmd_vec);
-                        _sntprintf(cmd_exec, MAX_BUFFER, _T("%s"), path);
+                        if (wine && (plugin = util_winexy_get()))
+                        {
+                            _sntprintf(cmd_exec, MAX_BUFFER, L"%s \"%s\"", plugin, path);
+                        }
+                        else
+                        {
+                            _sntprintf(cmd_exec, MAX_BUFFER, _T("%s"), path);
+                        }
                         size_t vec_len = cvector_size(cmd_vec);
                         if (vec_len > 0)
                         {
@@ -261,7 +270,14 @@ on_setting_execute(HWND hwnd, const int wm_id)
                     }
                     else
                     {
-                        _sntprintf(cmd_exec, MAX_BUFFER, _T("%s"), path);
+                        if (wine && (plugin = util_winexy_get()))
+                        {
+                            _sntprintf(cmd_exec, MAX_BUFFER, L"%s \"%s\"", plugin, path);
+                        }
+                        else
+                        {
+                            _sntprintf(cmd_exec, MAX_BUFFER, _T("%s"), path);
+                        }
                     }
                     if (true)
                     {
@@ -272,6 +288,7 @@ on_setting_execute(HWND hwnd, const int wm_id)
                         CloseHandle(eu_new_process(cmd_exec, NULL, NULL, pconf->m_customize[i].hide ? 0 : 2, NULL));
                     }
                 }
+                eu_safe_free(plugin);
             }
             eu_safe_free(cmd_exec);
             cvector_free_each_and_free(cmd_vec, free);

@@ -754,23 +754,11 @@ do_extra_actions(void *lp)
         if (cmd_exec != NULL)
         {
             HANDLE handle = NULL;
-            WCHAR unix_path[MAX_PATH] = {0};
-            if (wine)
+            WCHAR *plugin = NULL;
+            if (wine && (plugin = util_winexy_get()))
             {
-                WCHAR plugin[MAX_PATH] = {0};
-                _snwprintf(plugin, MAX_PATH - 1, L"%s\\plugins\\np_winexy.dll", eu_module_path);
-                util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
-            #if (defined _M_X64) || (defined __x86_64__)
-                _snwprintf(cmd_exec, len, L"%s \"%s\" ", _T("/bin/wine64"), plugin);
-            #else
-                _snwprintf(cmd_exec, len, L"%s \"%s\" ", _T("/bin/wine"), plugin);
-            #endif
-                if (util_get_unix_file_name(abs_path, unix_path, MAX_PATH))
-                {
-                    wcsncat(cmd_exec, unix_path, len);
-                    wcsncat(cmd_exec, L" ", len);
-                }
-                memset(unix_path, 0, sizeof(unix_path));
+                _snwprintf(cmd_exec, len, L"%s \"%s\" ", plugin, abs_path);
+                free(plugin);
             }
             else
             {
@@ -778,13 +766,13 @@ do_extra_actions(void *lp)
             }
             for (int i = 0; i < count; ++i)
             {
+                WCHAR unix_path[MAX_PATH] = {0};
                 if (i == count - 1)
                 {
                     wcsncat(cmd_exec, L"\"", len);
                     if (wine && util_get_unix_file_name(vec[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
-                        memset(unix_path, 0, sizeof(unix_path));
                     }
                     else
                     {
@@ -798,7 +786,6 @@ do_extra_actions(void *lp)
                     if (wine && util_get_unix_file_name(vec[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
-                        memset(unix_path, 0, sizeof(unix_path));
                     }
                     else
                     {
@@ -951,6 +938,7 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
     {
         bool wine = false;
         HANDLE handle = NULL;
+        WCHAR *plugin = NULL;
         TCHAR pcd[MAX_BUFFER] = {0};
         TCHAR cmd_exec[MAX_BUFFER] = _T("cmd.exe");
         if (pnode->is_blank || url_has_remote(pnode->pathfile))
@@ -966,21 +954,15 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
             *cmd_exec = 0;
             MultiByteToWideChar(CP_UTF8, 0, eu_get_config()->m_path, -1, cmd_exec, MAX_BUFFER);
         }
-        if ((wine = util_under_wine()))
+        if ((wine = util_under_wine()) && (plugin = util_winexy_get()))
         {
-            TCHAR plugin[MAX_PATH] = {0};
             TCHAR unix_path[MAX_PATH] = {0};
             if (strlen(eu_get_config()->m_path) > 1 && (eu_get_config()->m_path[0] == '/') && (eu_get_config()->m_path[1] != '/'))
             {
                 util_make_u16(eu_get_config()->m_path, unix_path, MAX_PATH - 1);
             }
-            _sntprintf(plugin, MAX_PATH - 1, _T("%s\\plugins\\np_winexy.dll"), eu_module_path);
-            util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
-        #if (defined _M_X64) || (defined __x86_64__)
-            _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\" %s"), _T("/bin/wine64"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
-        #else
-            _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\" %s"), _T("/bin/wine"), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
-        #endif
+            _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\""), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
+            free(plugin);
         }
         if ((handle = eu_new_process(cmd_exec, NULL, pcd, 2, NULL)) != NULL)
         {
