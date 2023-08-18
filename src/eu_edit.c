@@ -49,6 +49,7 @@ on_edit_undo(eu_tabpage *pnode)
                 eu_sci_call(p, SCI_UNDO, 0, 0);
             }
         }
+        on_toolbar_update_button();
     }
     cvector_freep(&v);
 }
@@ -68,6 +69,7 @@ on_edit_redo(eu_tabpage *pnode)
                 eu_sci_call(p, SCI_REDO, 0, 0);
             }
         }
+        on_toolbar_update_button();
     }
     cvector_freep(&v);
 }
