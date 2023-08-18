@@ -128,7 +128,7 @@ if (not eu_core.file_exists(user_file)) then
     "      {\n",
     "          e.DOCTYPE_CS,\n",
     "          \"cshape\",\n",
-    "          \";*.cs;*.ci;*.csx;*.vala;*.vapi;\",\n",
+    "          \";*.cs;*.ci;*.csx;*.fu;*.vala;*.vapi;\",\n",
     "          \"C#\",\n",
     "          \"cshape.snippets\",\n",
     "          0,\n",
