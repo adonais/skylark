@@ -1418,6 +1418,53 @@ on_search_clean_navigate_this(eu_tabpage *pnode)
     }
 }
 
+void
+on_search_select_matching_all(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        sptr_t i = 0;
+        sptr_t len = 0;
+        sptr_t total_len = 0;
+        sptr_t current_pos = 0;
+        cvector_vector_type(sci_range_t) v = NULL;
+        sci_range_t pos = {eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0)};
+        if (pos.cpMax - pos.cpMin > 0)
+        {
+            sptr_t ins = 0;
+            sptr_t diff = 0;
+            current_pos = pos.cpMax;
+            cvector_push_back(v, pos);
+            total_len = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+            eu_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
+            for (i = 1; i < total_len; ++i)
+            {
+                if ((ins = eu_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_SELECT, i)) > 0)
+                {
+                    pos.cpMin = eu_sci_call(pnode, SCI_INDICATORSTART, INDIC_SKYLARK_SELECT, i);
+                    pos.cpMax = eu_sci_call(pnode, SCI_INDICATOREND, INDIC_SKYLARK_SELECT, i);
+                    if ((diff = pos.cpMax - pos.cpMin) > 0)
+                    {
+                        i += diff;
+                        cvector_push_back(v, pos);
+                    }
+                }
+            }
+        }
+        if ((len = (sptr_t)cvector_size(v)) > 1)
+        {
+            eu_sci_call(pnode, SCI_SETEMPTYSELECTION, current_pos, 0);
+            eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
+            for (i = 1; i < len; ++i)
+            {
+                eu_sci_call(pnode, SCI_ADDSELECTION, v[i].cpMin, v[i].cpMax);
+            }
+            eu_sci_call(pnode, SCI_ADDSELECTION, v[0].cpMin, v[0].cpMax);
+        }
+        cvector_free(v);
+    }
+}
+
 static void
 on_search_tab_draw(HWND hwnd, HDC hdc, int tab)
 {

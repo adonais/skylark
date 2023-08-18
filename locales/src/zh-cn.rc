@@ -190,6 +190,7 @@ BEGIN
             MENUITEM "累积选择到上一个语句块首行",              IDM_SEARCH_SELECTTOP_FIRSTLINE
             MENUITEM "累积选择到下一个语句块首行",              IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
         END
+        MENUITEM "选择所有匹配结果",                            IDM_SEARCH_SELECT_MATCHING_ALL
         MENUITEM MF_SEPARATOR
         POPUP "高级移动光标",                                   IDM_EDIT_PLACEHOLDE12
         BEGIN

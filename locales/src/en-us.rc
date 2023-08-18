@@ -190,6 +190,7 @@ BEGIN
             MENUITEM "Select Block To Previous Line",                  IDM_SEARCH_SELECTTOP_FIRSTLINE
             MENUITEM "Select Block To Next Line",                      IDM_SEARCH_SELECTBOTTOM_FIRSTLINE
         END
+        MENUITEM "Select All Matching Results",                        IDM_SEARCH_SELECT_MATCHING_ALL
         MENUITEM MF_SEPARATOR
         POPUP "Advanced Move Cursor",                                  IDM_EDIT_PLACEHOLDE12
         BEGIN

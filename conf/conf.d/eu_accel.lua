@@ -120,6 +120,7 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FSHIFT), VK_F2, IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_BACK, IDM_SEARCH_NAVIGATE_PREV_THIS},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), VK_BACK, IDM_SEARCH_NAVIGATE_PREV_INALL},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"A\"), IDM_SEARCH_SELECT_MATCHING_ALL},\n",
       "                 -- View menu\n",
       "                 {0, 0, IDM_VIEW_FILETREE},\n",
       "                 {0, 0, IDM_VIEW_SYMTREE},\n",

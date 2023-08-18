@@ -1441,6 +1441,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_NAVIGATE_PREV_INALL:
                     on_search_back_navigate_all();
                     break;
+                case IDM_SEARCH_SELECT_MATCHING_ALL:
+                    on_search_select_matching_all(pnode);
+                    break;
                 case IDM_SEARCH_MULTISELECT_README:
                     MSG_BOX(IDC_MSG_HELP_INF1, IDC_MSG_JUST_HELP, MB_OK);
                     break;

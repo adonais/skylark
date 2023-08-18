@@ -1208,6 +1208,8 @@
 #define IDC_SETTING_BROWSER_BTN             44604
 #define IDC_SETTING_HIDE_RUN                44605
 
+#define IDM_SEARCH_SELECT_MATCHING_ALL      44700
+
 // For MessageBox
 #define IDALWAYS                            12
 #define MB_YESNOALWAYS                      0x0007
