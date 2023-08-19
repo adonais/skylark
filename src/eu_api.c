@@ -2274,7 +2274,12 @@ eu_save_theme(void)
         "hyperlink_fontsize = %d\n"
         "hyperlink_color = 0x%08X\n"
         "hyperlink_bgcolor = 0x%08X\n"
-        "hyperlink_bold = %d";
+        "hyperlink_bold = %d\n"
+        "results_font = \"%s\"\n"
+        "results_fontsize = %d\n"
+        "results_color = 0x%08X\n"
+        "results_bgcolor = 0x%08X\n"
+        "results_bold = %d";
     if (!g_theme)
     {
         return;
@@ -2315,7 +2320,8 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(activetab),
         EXPAND_STYLETHEME(caret),
         EXPAND_STYLETHEME(symbolic),
-        EXPAND_STYLETHEME(hyperlink));
+        EXPAND_STYLETHEME(hyperlink),
+        EXPAND_STYLETHEME(results));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)

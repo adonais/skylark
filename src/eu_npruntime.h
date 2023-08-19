@@ -208,6 +208,7 @@ struct styletheme
     struct styleclass caret;
     struct styleclass symbolic;
     struct styleclass hyperlink;
+    struct styleclass results;
 };
 
 typedef struct _npn_rect

@@ -145,7 +145,12 @@ function eu_theme.get_default(name)
           "hyperlink_fontsize = 11\n" ..
           "hyperlink_color = 0x3C80FFFF\n" ..
           "hyperlink_bgcolor = 0xB4FF8C2F\n" ..
-          "hyperlink_bold = 1"
+          "hyperlink_bold = 1\n" ..
+          "results_font = \"Consolas\"\n" ..
+          "results_fontsize = 11\n" ..
+          "results_color = 0x00FF8000\n" ..
+          "results_bgcolor = 0x00C080FF\n" ..
+          "results_bold = 0"
     elseif (name == "white") then
         theme = -- 经典白主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -287,7 +292,12 @@ function eu_theme.get_default(name)
           "hyperlink_fontsize = 11\n" ..
           "hyperlink_color = 0x3C8C99ED\n" ..
           "hyperlink_bgcolor = 0xB4E26941\n" ..
-          "hyperlink_bold = 1"
+          "hyperlink_bold = 1\n" ..
+          "results_font = \"Consolas\"\n" ..
+          "results_fontsize = 11\n" ..
+          "results_color = 0x00FF8000\n" ..
+          "results_bgcolor = 0x00588609\n" ..
+          "results_bold = 0"
     else
         theme = -- 默认主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -431,7 +441,12 @@ function eu_theme.get_default(name)
           "hyperlink_fontsize = 11\n" ..
           "hyperlink_color = 0x3C80FFFF\n" ..
           "hyperlink_bgcolor = 0xB4FF8C2F\n" ..
-          "hyperlink_bold = 1"
+          "hyperlink_bold = 1\n" ..
+          "results_font = \"Consolas\"\n" ..
+          "results_fontsize = 11\n" ..
+          "results_color = 0x000000B050\n" ..
+          "results_bgcolor = 0x00A8CE93\n" ..
+          "results_bold = 0"
     end
     return theme
 end
@@ -478,6 +493,14 @@ function eu_theme.load_default(name)
         dofile(file)
         tname = name
     end
+    if (results_font == nil) then
+      results_font = "Consola"
+      results_fontsize = 11
+      results_color = keywords_color
+      results_bgcolor = number_color
+      results_bold = 0
+    end
+    print("results_fontsize  = " .. results_fontsize)
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)
     local m_theme = eu_core.ffi.new("struct eu_theme", {m_file, tname,
@@ -509,7 +532,8 @@ function eu_theme.load_default(name)
         {activetab_font,activetab_fontsize,activetab_color,activetab_bgcolor,activetab_bold},
         {caret_font,caret_fontsize,caret_color,caret_bgcolor,caret_bold},
         {symbolic_font,symbolic_fontsize,symbolic_color,symbolic_bgcolor,symbolic_bold},
-        {hyperlink_font,hyperlink_fontsize,hyperlink_color,hyperlink_bgcolor,hyperlink_bold}
+        {hyperlink_font,hyperlink_fontsize,hyperlink_color,hyperlink_bgcolor,hyperlink_bold},
+        {results_font,results_fontsize,results_color,results_bgcolor,results_bold}
       }
     })
     return eu_core.euapi.eu_theme_ptr(m_theme, true)

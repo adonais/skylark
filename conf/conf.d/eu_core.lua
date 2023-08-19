@@ -206,6 +206,7 @@ struct styletheme
     struct styleclass caret;
     struct styleclass symbolic;
     struct styleclass hyperlink;
+    struct styleclass results;
 };
 
 struct eu_theme

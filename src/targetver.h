@@ -420,6 +420,10 @@
 #define IDC_THEME_MARGIN_STATIC               21132
 #define IDC_THEME_TAB_STATIC                  21133
 #define IDC_SETBGCOLOR_TAB_BTN                21134
+#define IDC_SETTEXTCOLOR_LINENO_BTN           21135
+#define IDC_SETTEXTCOLOR_LINEKEY_BTN          21136
+#define IDC_THEME_LINENO_STATIC               21137
+#define IDC_THEME_LINEKEY_STATIC              21138
 
 #define IDD_ABOUTBOX                          21200
 #define IDM_ABOUT                             21201
