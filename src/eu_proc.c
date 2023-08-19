@@ -454,7 +454,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
             on_result_move_sci(pnode, pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top);
             on_result_reload(pnode->presult);
-            if (pnode->hwnd_qrtable)
+            if (QRTABLE_SHOW(pnode))
             {
                 eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
                                  pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);

@@ -53,7 +53,7 @@ on_splitter_rect_box(HWND hwnd, LPRECT r, int offset)
 static int
 on_splitter_absolute_height(int y)
 {
-    return y+ menu_height() + on_toolbar_height() + 5;
+    return y + menu_height() + on_toolbar_height() + 5;
 }
 
 static HDC
@@ -323,14 +323,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             ReleaseCapture();
             if (RESULT_SHOW(pnode) && eu_result_hwnd())
             {
-                if (pnode->hwnd_qrtable)
-                {
-                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH/2;
-                }
-                else
-                {
-                    eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH - eu_get_config()->result_list_height;
-                }
+                eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH;
             }
             if (eu_get_config()->result_edit_height < SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
             {
