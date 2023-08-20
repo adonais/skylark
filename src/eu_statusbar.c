@@ -792,7 +792,7 @@ on_statusbar_update_eol(eu_tabpage *pnode, const int eol)
         on_statusbar_set_text(g_statusbar, STATUSBAR_DOC_EOLS, buf);
         return;
     }
-    switch (eol >= 0 ? eol : eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0))
+    switch (eol >= 0 ? eol : (pnode->eol >= 0 ? pnode->eol : eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0)))
     {
         case SC_EOL_CRLF:
             on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_1, STATUSBAR_DOC_EOLS);

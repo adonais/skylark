@@ -2279,6 +2279,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             {
                 MSG_BOX(IDS_UNDO_UNCLOSE_TIPS, IDC_MSG_WARN, MB_ICONWARNING | MB_OK);
             }
+            eu_logmsg("%s: pnode->eol = %d\n", __FUNCTION__, pnode->eol);
             PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
         }
     }
