@@ -1114,74 +1114,123 @@ on_complete_auto_expand(eu_tabpage *pnode, const char *key, const sptr_t start_p
     return false;
 }
 
-void
-on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify)
-{   /* 自动补全提示 */
-    if (pnode && pnode->doc_ptr)
+static bool
+on_complete_get_word(eu_tabpage *pnode, char *buffer, sptr_t *pcur, sptr_t *pstart, sptr_t *pend, const bool push)
+{
+    if (pnode && buffer && pcur)
     {
-        char word_buffer[MAX_SIZE+1] = {0};
-        on_complete_set_word(pnode);
-        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
-        sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+        *buffer = 0;
+        int ch = 0;
+        while ((*pcur) > 0 && isspace(ch = (int)eu_sci_call(pnode, SCI_GETCHARAT, (*pcur) - 1, 0)))
+        {
+            --(*pcur);
+        }
+        sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, (*pcur), true);
+        sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, (*pcur), true);
         if (end_pos - start_pos >= MAX_SIZE)
         {
             end_pos = start_pos + MAX_SIZE;
         }
-        Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
-        eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
-        if (word_buffer[0])
+        Sci_TextRangeFull tr = {{start_pos, end_pos}, buffer};
+        eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
+        if (pstart)
         {
-            if (on_complete_auto_expand(pnode, word_buffer, start_pos))
+            *pstart = start_pos;
+        }
+        if (pend)
+        {
+            *pend = end_pos;
+        }
+        return (push ? strlen(buffer) > 1 : buffer[0]);
+    }
+    return false;
+}
+
+void
+on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify)
+{   /* 自动补全提示 */
+    if (pnode && pnode->doc_ptr && lpnotify)
+    {
+        char word_buffer[MAX_SIZE+1] = {0};
+        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        if (isspace(lpnotify->ch))
+        {
+            --current_pos;
+            if (on_complete_get_word(pnode, word_buffer, &current_pos, NULL, NULL, true))
             {
-                on_complete_reset_focus(pnode);
-                on_complete_snippet(pnode);
-            }
-            else if (eu_get_config()->eu_complete.enable && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)) && end_pos - start_pos >= eu_get_config()->eu_complete.characters)
-            {
-                on_complete_call_autocshow(pnode, word_buffer, current_pos, start_pos);
+                eu_init_completed_tree(pnode->doc_ptr, word_buffer);
             }
         }
-        on_complete_unset_word(pnode);
+        else
+        {
+            sptr_t start_pos = 0;
+            sptr_t end_pos = 0;
+            on_complete_set_word(pnode);
+            if (on_complete_get_word(pnode, word_buffer, &current_pos, &start_pos, &end_pos, false))
+            {
+                if (on_complete_auto_expand(pnode, word_buffer, start_pos))
+                {
+                    on_complete_reset_focus(pnode);
+                    on_complete_snippet(pnode);
+                }
+                else if (eu_get_config()->eu_complete.enable && !RB_EMPTY_ROOT(&(pnode->doc_ptr->acshow_tree)) && end_pos - start_pos >= eu_get_config()->eu_complete.characters)
+                {
+                    on_complete_call_autocshow(pnode, word_buffer, current_pos, start_pos);
+                }
+            }
+            on_complete_unset_word(pnode);
+        }
     }
 }
 
 void
 on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
-{
-    sptr_t n_pos = 0;
-    sptr_t current_pos = 0;
+{   /* html类文档自动补全提示 */
     if (pnode && pnode->doc_ptr && lpnotify && lpnotify->ch > 0)
-    {   /* html类文档自动补全提示 */
+    {
         int ch = 0;
         int ch_pre = 0;
+        sptr_t n_pos = 0;
+        char word_buffer[MAX_SIZE+1] = {0};
+        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         if (lpnotify->ch == '<')
         {
             on_complete_any_autocshow(pnode);
         }
-        else if (lpnotify->ch == ' ')
+        else if (isspace(lpnotify->ch))
         {
-            current_pos = (int) eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            for (n_pos = current_pos - 1; n_pos >= 0; n_pos--)
+            bool b_ok = false;
+            if (lpnotify->ch == ' ')
             {
-                ch_pre = ch;
-                ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
-                if (ch == '<' || ch == '>')
+                for (n_pos = current_pos - 1; n_pos >= 0; n_pos--)
                 {
-                    break;
+                    ch_pre = ch;
+                    ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
+                    if (ch == '<' || ch == '>')
+                    {
+                        break;
+                    }
+                }
+                if (n_pos >= 0 && ch == '<' && ch_pre != '?' && ch_pre != '%')
+                {
+                    on_complete_any_autocshow(pnode);
+                    b_ok = true;
                 }
             }
-            if (n_pos >= 0 && ch == '<' && ch_pre != '?' && ch_pre != '%')
+            if (!b_ok)
             {
-                on_complete_any_autocshow(pnode);
+                --current_pos;
+                if (on_complete_get_word(pnode, word_buffer, &current_pos, NULL, NULL, true))
+                {
+                    eu_init_completed_tree(pnode->doc_ptr, word_buffer);
+                }
             }
         }
-        else if (isalpha(lpnotify->ch))
+        else if (isalpha(lpnotify->ch) || lpnotify->ch > 0x7F)
         {
             on_complete_set_word(pnode);
-            current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
-            sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+            sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, true);
+            sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, true);
             if (end_pos - start_pos >= MAX_SIZE)
             {
                 end_pos = start_pos + MAX_SIZE;
@@ -1189,7 +1238,6 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
             if (start_pos > 0 && end_pos - start_pos >= eu_get_config()->eu_complete.characters)
             {
                 bool is_attr = false;
-                char word_buffer[MAX_SIZE+1];
                 for (ch = 0, n_pos = current_pos; n_pos >= 0; n_pos--)
                 {
                     ch_pre = ch;

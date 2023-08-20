@@ -1715,32 +1715,27 @@ on_doc_css_like(eu_tabpage *pnode, ptr_notify lpnotify)
 int
 on_doc_json_like(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    if (pnode)
-    {
-        on_doc_identation(pnode, lpnotify);
-        on_doc_auto_brackets(pnode, lpnotify);
-    }
-    return 0;
+    return on_doc_css_like(pnode, lpnotify);
 }
 
 int
 on_doc_makefile_like(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    if (pnode)
-    {
-        on_doc_identation(pnode, lpnotify);
-        on_doc_auto_brackets(pnode, lpnotify);
-    }
-    return 0;
+    return on_doc_css_like(pnode, lpnotify);
 }
 
 int
 on_doc_cmake_like(eu_tabpage *pnode, ptr_notify lpnotify)
 {
+    return on_doc_css_like(pnode, lpnotify);
+}
+
+int
+on_doc_text_like(eu_tabpage *pnode, ptr_notify lpnotify)
+{
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        on_doc_auto_brackets(pnode, lpnotify);
         on_complete_doc(pnode, lpnotify);
     }
     return 0;

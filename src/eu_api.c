@@ -2410,7 +2410,7 @@ eu_lua_calltip(const char *pstr)
 bool
 eu_init_completed_tree(doctype_t *p, const char *str)
 {
-    if (!(str))
+    if (!p || STR_IS_NUL(str))
     {
         return false;
     }

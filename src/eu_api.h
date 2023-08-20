@@ -827,6 +827,7 @@ EU_EXT_CLASS int on_doc_css_like(eu_tabpage *pnode, ptr_notify lpnotify);
 EU_EXT_CLASS int on_doc_json_like(eu_tabpage *pnode, ptr_notify lpnotify);
 EU_EXT_CLASS int on_doc_makefile_like(eu_tabpage *pnode, ptr_notify lpnotify);
 EU_EXT_CLASS int on_doc_cmake_like(eu_tabpage *pnode, ptr_notify lpnotify);
+EU_EXT_CLASS int on_doc_text_like(eu_tabpage *pnode, ptr_notify lpnotify);
 
 /* 默认的 reload_list_ptr,reload_tree_ptr  回调函数入口 */
 EU_EXT_CLASS int on_doc_reload_list_reqular(eu_tabpage *pnode);

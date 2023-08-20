@@ -798,7 +798,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
-    "          eu_core.euapi.on_doc_identation,\n",
+    "          eu_core.euapi.on_doc_text_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",

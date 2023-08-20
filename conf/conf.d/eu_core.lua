@@ -388,6 +388,7 @@ int on_doc_css_like(void *pnode, void *lpnotify);
 int on_doc_json_like(void *pnode, void *lpnotify);
 int on_doc_makefile_like(void *pnode, void *lpnotify);
 int on_doc_cmake_like(void *pnode, void *lpnotify);
+int on_doc_text_like(void *pnode, void *lpnotify);
 
 /* 默认的 reload_list_ptr,reload_tree_ptr 回调函数入口 */
 int on_doc_reload_list_reqular(void *pnode);
