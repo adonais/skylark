@@ -57,6 +57,8 @@ IDB_CLOUD               ICON                    "..\\resources\\cloud.ico"
 IDB_FAVORITES           ICON                    "..\\resources\\favorites.ico"
 IDB_BULB                ICON                    "..\\resources\\bulb.ico"
 IDB_SHORTCUT            ICON                    "..\\resources\\shortcut.ico"
+IDM_SETTING_ICON        ICON                    "..\\resources\\settings.ico"
+IDM_LUAJIT_ICON         ICON                    "..\\resources\\luajit.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

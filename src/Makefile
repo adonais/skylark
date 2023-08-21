@@ -6,7 +6,8 @@ CDEP    =  -I3rdparty\libcurl\include -I3rdparty\libopenssl\include -I3rdparty\l
            -I3rdparty\libmysql\include -I3rdparty\liboci\include -I3rdparty\libhiredis\include \
            -I3rdparty\libiconv\include -I3rdparty\luajit\src -I3rdparty\nanosvg\include \
            -I3rdparty\pcre\src -I3rdparty\sqlite3\src -I3rdparty\chardet\src \
-           -I3rdparty\qrencode\src -I3rdparty\scintilla\src\include
+           -I3rdparty\qrencode\src -I3rdparty\tinyexpr\src \
+           -I3rdparty\scintilla\src\include
 
 CFLAGS  = -W3 -WX- -wd4996 -wd4819 -Zi -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" \
           -utf-8 -D "JSON_TRACK_SOURCE" -D "PCRE_STATIC" $(CFLAGS) $(CDEP)
@@ -36,7 +37,8 @@ WINLIBS = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.l
 
 LIBS = $(LDEP) $(WINLIBS)
 
-API_LIBS = $(BIND)\libchardet.lib $(BIND)\qrencode.lib $(BIND)\sqlite3.lib $(BIND)\pcre.lib $(BIND)\luajit.lib $(BIND)\iconv.lib $(BIND)\scilexer.lib
+API_LIBS = $(BIND)\libchardet.lib $(BIND)\qrencode.lib $(BIND)\sqlite3.lib $(BIND)\pcre.lib \
+           $(BIND)\luajit.lib $(BIND)\iconv.lib $(BIND)\scilexer.lib $(BIND)\tinyexpr.lib
 
 
 API_DEPS = $(API_LIBS) -LIBPATH:$(BIND) $(WINLIBS)
@@ -107,6 +109,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_exporter.obj                    \
     $(OBJD)\eu_session.obj                     \
     $(OBJD)\eu_favorites.obj                   \
+    $(OBJD)\eu_settings.obj                    \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -208,6 +211,7 @@ $(OBJD)\eu_hyperlink.obj                   : eu_hyperlink.c eu_hyperlink.h frame
 $(OBJD)\eu_exporter.obj                    : eu_exporter.c eu_exporter.h framework.h
 $(OBJD)\eu_session.obj                     : eu_session.c eu_session.h framework.h
 $(OBJD)\eu_favorites.obj                   : eu_favorites.c eu_favorites.h framework.h
+$(OBJD)\eu_settings.obj                    : eu_settings.c eu_settings.h framework.h
 $(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
 	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp

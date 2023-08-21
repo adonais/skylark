@@ -64,6 +64,8 @@ struct _tabpage
     TCHAR filename[MAX_PATH];   // 文件名
     TCHAR extname[_MAX_EXT];    // 扩展名
     char pre_context[4+1];      // 保存bom
+    char eols_undo_str[QW_SIZE];// eols转换保存的数据,用于undo操作
+    char icon_undo_str[QW_SIZE];// 编码转换时保存的数据,用于undo操作
     size_t pre_len;             // bom的长度
     size_t bytes_remaining;     // 文件变动后的大小
     size_t bytes_written;       // 文件保存时写入的长度    
@@ -78,6 +80,7 @@ struct _tabpage
     volatile long json_id;      // 解析json线程id
     volatile long busy_id;      // 标签是否空闲状态
     volatile long lock_id;      // 自动保存时使用的锁
+    int undo_id;                // eols或编码转换后, 16进制相互转换时, 用于提示
     int tab_id;                 // tab编号,用于保存会话
     int codepage;               // 文件编码
     int eol;                    // 换行符

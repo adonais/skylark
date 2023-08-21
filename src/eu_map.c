@@ -188,6 +188,18 @@ map_destory(root_t *root)
     }
 }
 
+static acshow_t *
+ac_alloc(const char *str)
+{
+    acshow_t *data = (acshow_t *) malloc(sizeof(acshow_t));
+    if (data && (data->str = (char *) malloc((strlen(str) + 1) * sizeof(char))))
+    {
+        strcpy(data->str, str);
+        return data;
+    }
+    return NULL;
+}
+
 int
 ac_get(root_t *root, const char *val, char *buf, int buf_len)
 {
@@ -213,19 +225,12 @@ ac_get(root_t *root, const char *val, char *buf, int buf_len)
 
 int ac_put(root_t *root, const char *str)
 {
-    acshow_t *data = (acshow_t *) malloc(sizeof(acshow_t));
-    if (!data)
-    {
-        return 1;
-    }
-    data->str = (char *) malloc((strlen(str) + 1) * sizeof(char));
-    if (!data->str)
-    {
-        free(data);
-        return 1;
-    }
-    strcpy(data->str, str);
+    acshow_t *data = NULL;
     rb_node_t **new_node = &(root->rb_node), *parent = NULL;
+    if (!(data = ac_alloc(str)))
+    {
+        return 1;
+    }
     while (*new_node)
     {
         acshow_t *this_node = rb_entry(*new_node, acshow_t, node);

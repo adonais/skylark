@@ -423,7 +423,6 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_ADD_SERVER_BUTTON,
                                        IDOK,
                                        IDM_APPLY_NOW,
-                                       IDC_USE_PRIVATE,
                                        IDC_PRIVATE_KEY_BUTTON};
                 for (int id = 0; id < _countof(buttons); ++id)
                 {

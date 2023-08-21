@@ -569,8 +569,8 @@ on_file_header_parser(void *hdr, size_t size, size_t nmemb, void *userdata)
         char *u8_file = ((char (*)[MAX_PATH])userdata)[0];
         if (u8_file[0] && (p = strstr(hdr, u8_file)) && (p[strlen(p) - 1] == '\r' || p[strlen(p) - 1] == '\n'))
         {
-            eu_logmsg("we do util_split, hdr = [%s]\n", (const char*)hdr);
-            util_split(hdr, userdata, ' ');
+            eu_logmsg("we do util_split_attr, hdr = [%s]\n", (const char*)hdr);
+            util_split_attr(hdr, userdata, ' ');
             return 0;
         }
     }

@@ -7,6 +7,7 @@
 @echo EXT_PART = "%EXT_PART%"
 @echo CURRENT_LINESTR = "%CURRENT_LINESTR%"
 @echo CURRENT_SELSTR = "%CURRENT_SELSTR%"
+@echo NUM_SELSTR = "%NUM_SELSTR%"
 call g++ "%*" -g -o "%temp%\%NAME_PART%.exe"
 
 @if ERRORLEVEL 1 GOTO END-ERR

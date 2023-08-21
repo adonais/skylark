@@ -427,8 +427,8 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
             case 9:
                 eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.aspsection.font));
                 eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.aspsection.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETBACK, lex, (sptr_t)(eu_get_theme()->item.aspsection.color));
-                eu_sci_call(pnode, SCI_STYLESETBACK, lex, (sptr_t)(eu_get_theme()->item.aspsection.bold));
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.aspsection.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.aspsection.bold));
                 break;
             default:
                 break;
@@ -1069,6 +1069,7 @@ on_doc_init_after_html(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_H_COMMENT, 0);
     on_doc_keyword_light(pnode, SCE_H_QUESTION, 3, 0);
     on_doc_keyword_light(pnode, SCE_H_SCRIPT, 3, 0);
+    // Asp
     on_doc_keyword_light(pnode, SCE_H_ASP, 9, 0);
     on_doc_keyword_light(pnode, SCE_H_ASPAT, 9, 0);
     // JavaScript
@@ -1089,15 +1090,6 @@ on_doc_init_after_html(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_HJA_COMMENTLINE, 0);
     on_doc_commentblock_light(pnode, SCE_HJA_COMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_HJA_COMMENTDOC, 0);
-    // VBScript
-    for (style = SCE_HB_START; style <= SCE_HB_STRINGEOL; style++)
-    {
-        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-    }
-    for (style = SCE_HBA_START; style <= SCE_HBA_STRINGEOL; style++)
-    {
-        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-    }
     on_doc_keyword_light(pnode, SCE_HB_WORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_HBA_WORD, 1, 0);
     on_doc_keyword_light(pnode, SCE_HB_START, 3, 0);
@@ -1108,15 +1100,6 @@ on_doc_init_after_html(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_HBA_STRING, 0);
     on_doc_number_light(pnode, SCE_HBA_NUMBER, 0);
     on_doc_comment_light(pnode, SCE_HBA_COMMENTLINE, 0);
-    // Python
-    for (style = SCE_HP_START; style <= SCE_HP_IDENTIFIER; style++)
-    {
-        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-    }
-    for (style = SCE_HPHP_COMPLEX_VARIABLE; style <= SCE_HPA_IDENTIFIER; style++)
-    {
-        eu_sci_call(pnode, SCI_STYLESETBACK, style, (sptr_t)(eu_get_theme()->item.aspsection.color));
-    }
     on_doc_keyword_light(pnode, SCE_HP_WORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_HPA_WORD, 1, 0);
     on_doc_keyword_light(pnode, SCE_HP_START, 3, 0);
@@ -1715,32 +1698,27 @@ on_doc_css_like(eu_tabpage *pnode, ptr_notify lpnotify)
 int
 on_doc_json_like(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    if (pnode)
-    {
-        on_doc_identation(pnode, lpnotify);
-        on_doc_auto_brackets(pnode, lpnotify);
-    }
-    return 0;
+    return on_doc_css_like(pnode, lpnotify);
 }
 
 int
 on_doc_makefile_like(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    if (pnode)
-    {
-        on_doc_identation(pnode, lpnotify);
-        on_doc_auto_brackets(pnode, lpnotify);
-    }
-    return 0;
+    return on_doc_css_like(pnode, lpnotify);
 }
 
 int
 on_doc_cmake_like(eu_tabpage *pnode, ptr_notify lpnotify)
 {
+    return on_doc_css_like(pnode, lpnotify);
+}
+
+int
+on_doc_text_like(eu_tabpage *pnode, ptr_notify lpnotify)
+{
     if (pnode)
     {
         on_doc_identation(pnode, lpnotify);
-        on_doc_auto_brackets(pnode, lpnotify);
         on_complete_doc(pnode, lpnotify);
     }
     return 0;

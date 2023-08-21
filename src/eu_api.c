@@ -1769,7 +1769,19 @@ eu_get_toolbar(void)
 static void
 eu_free_config(void)
 {
-    eu_safe_free(g_config);
+    if (g_config)
+    {   // 销毁菜单图标资源
+        for (int i = 0; i < DW_SIZE; ++i)
+        {
+            if (g_config->m_customize[i].hbmp)
+            {
+                DeleteObject((HBITMAP)g_config->m_customize[i].hbmp);
+                g_config->m_customize[i].hbmp = 0;
+            }
+        }
+		free(g_config);
+		g_config = NULL;
+    }
 }
 
 static void
@@ -1838,7 +1850,7 @@ eu_cat_process(void)
     if (count > 0)
     {
         int offset = 0;
-        size_t len = (size_t)(count * MAX_PATH);
+        const size_t len = (size_t)(count * MAX_PATH);
         if ((pactions = (char *)calloc(1, len + 1)) != NULL)
         {
             for (int i = 1; i <= count && len > (size_t)offset; ++i)
@@ -1851,12 +1863,42 @@ eu_cat_process(void)
     return pactions;
 }
 
+static char*
+eu_customize_process(void)
+{
+    char *pcustomize = NULL;
+    const int len = (const int)(sizeof(g_config->m_customize) + MAX_BUFFER);
+    if ((pcustomize = (char *)calloc(1, len + 1)) != NULL)
+    {
+        int offset = 0;
+        for (int i = 0; i < DW_SIZE && len > offset; ++i)
+        {
+            _snprintf(pcustomize + offset, len - offset, "    {\n"
+                                                         "        ['hide'] = %s,\n"
+                                                         "        ['name'] = \"%s\",\n"
+                                                         "        ['path'] = \"%s\",\n"
+                                                         "        ['param'] = \"%s\",\n"
+                                                         "        ['micon'] = %d,\n"
+                                                         "    }%s",
+                                                         g_config->m_customize[i].hide ? "true" : "false",
+                                                         g_config->m_customize[i].name,
+                                                         g_config->m_customize[i].path,
+                                                         g_config->m_customize[i].param,
+                                                         g_config->m_customize[i].micon,
+                                                         i == DW_SIZE - 1 ? "\n" : ",\n");
+            offset = (int)strlen(pcustomize);
+        }
+    }
+    return pcustomize;
+}
+
 void
 eu_save_config(void)
 {
     FILE *fp = NULL;
     char *save = NULL;
     char *pactions = NULL;
+    char *pcustomize = NULL;
     TCHAR path[MAX_BUFFER+1] = {0};
     const char *pconfig =
         "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n"
@@ -1967,6 +2009,9 @@ eu_save_config(void)
         "m_reserved_1 = \"%s\"\n"
         "process_actions = {\n"
         "%s"
+        "}\n"
+        "process_customized = {\n"
+        "%s"
         "}\n";
     if (!g_config)
     {
@@ -1979,6 +2024,12 @@ eu_save_config(void)
     if (!(pactions = eu_cat_process()))
     {
         free(save);
+        return;
+    }
+    if (!(pcustomize = eu_customize_process()))
+    {
+        free(save);
+        free(pactions);
         return;
     }
     _sntprintf(path, MAX_BUFFER, _T("%s\\skylark.conf"), eu_config_path);
@@ -2062,7 +2113,8 @@ eu_save_config(void)
               g_config->editor,
               g_config->m_reserved_0,
               g_config->m_reserved_1,
-              pactions);
+              pactions,
+              pcustomize);
     if ((fp = _tfopen(path , _T("wb"))) != NULL)
     {
         fwrite(save, strlen(save), 1, fp);
@@ -2070,6 +2122,7 @@ eu_save_config(void)
     }
     free(save);
     free(pactions);
+    free(pcustomize);
 }
 
 void
@@ -2221,7 +2274,12 @@ eu_save_theme(void)
         "hyperlink_fontsize = %d\n"
         "hyperlink_color = 0x%08X\n"
         "hyperlink_bgcolor = 0x%08X\n"
-        "hyperlink_bold = %d";
+        "hyperlink_bold = %d\n"
+        "results_font = \"%s\"\n"
+        "results_fontsize = %d\n"
+        "results_color = 0x%08X\n"
+        "results_bgcolor = 0x%08X\n"
+        "results_bold = %d";
     if (!g_theme)
     {
         return;
@@ -2262,7 +2320,8 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(activetab),
         EXPAND_STYLETHEME(caret),
         EXPAND_STYLETHEME(symbolic),
-        EXPAND_STYLETHEME(hyperlink));
+        EXPAND_STYLETHEME(hyperlink),
+        EXPAND_STYLETHEME(results));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)
@@ -2316,10 +2375,42 @@ eu_destory_calltip_tree(root_t *root)
     map_destory(root);
 }
 
+void
+eu_lua_calltip(const char *pstr)
+{
+    eu_tabpage *p = NULL;
+    if (pstr && (p = on_tabpage_focus_at()) && !p->hex_mode && !p->pmod)
+    {
+        const sptr_t end = eu_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
+        eu_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
+        if (stricmp(pstr, "NaN") == 0 || stricmp(pstr, "INFINITY") == 0)
+        {
+            eu_sci_call(p, SCI_CALLTIPSHOW, end, (sptr_t) pstr);
+        }
+        else
+        {
+            char *text = NULL;
+            int ch = (int) eu_sci_call(p, SCI_GETCHARAT, end, 0);
+            if (ch == 0x3d)
+            {
+                eu_sci_call(p, SCI_INSERTTEXT, end + 1, (sptr_t)pstr);
+                eu_sci_call(p, SCI_GOTOPOS, end + 1 + strlen(pstr), 0);
+            }
+            else if ((text = (char *)calloc(1, QW_SIZE + 1)))
+            {
+                _snprintf(text, QW_SIZE, "=%s", pstr);
+                eu_sci_call(p, SCI_INSERTTEXT, end, (sptr_t)text);
+                eu_sci_call(p, SCI_GOTOPOS, end + strlen(text), 0);
+                free(text);
+            }
+        }
+    }
+}
+
 bool
 eu_init_completed_tree(doctype_t *p, const char *str)
 {
-    if (!(str))
+    if (!p || STR_IS_NUL(str))
     {
         return false;
     }
@@ -2841,4 +2932,34 @@ eu_theme_index(void)
         return (const int)THEME_OTHER;
     }
     return (const int)THEME_UNUSABLE;
+}
+
+double
+eu_te_eval(const te_expr *n)
+{
+    return te_eval(n);
+}
+
+double
+eu_te_interp(const char *expression, int *error)
+{
+    return te_interp(expression, error);
+}
+
+void
+eu_te_print(const te_expr *n)
+{
+    te_print(n);
+}
+
+void
+eu_te_free(te_expr *n)
+{
+    te_free(n);
+}
+
+te_expr *
+eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error)
+{
+    return (void *)te_compile(expression, variables, var_count, error);
 }

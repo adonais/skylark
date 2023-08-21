@@ -115,6 +115,11 @@ static HFONT font_activetab_static;
 static HWND hwnd_symbolic_static;
 static HFONT font_symbolic_static;
 
+static HWND hwnd_result_lineno_static;
+static HWND hwnd_result_key_static;
+static HFONT font_result_lineno_static;
+static HFONT font_result_key_static;
+
 static theme_query pm_query[] =
 {
     {IDS_THEME_DESC_DEFAULT, {0}, _T("default")} ,
@@ -592,6 +597,8 @@ theme_release_handle(void)
     DeleteObject(font_phpsection_static);
     DeleteObject(font_aspsection_static);
     DeleteObject(font_hyperlink_static);
+    DeleteObject(font_result_lineno_static);
+    DeleteObject(font_result_key_static);
 
     DeleteObject(brush_language);
     brush_language = NULL;
@@ -690,6 +697,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(hyperlink, IDC_HYPERLINKSECTION_STATIC, hwnd_hyperlink_static, font_hyperlink_static)
             CREATE_STYLETHEME_FONT(activetab, IDC_THEME_TAB_STATIC, hwnd_activetab_static, font_activetab_static)
             CREATE_STYLETHEME_FONT(symbolic, IDC_THEME_SYMBOLIC_STATIC, hwnd_symbolic_static, font_symbolic_static)
+            CREATE_STYLETHEME_FONT(results, IDC_THEME_LINENO_STATIC, hwnd_result_lineno_static, font_result_lineno_static)
+            CREATE_STYLETHEME_FONT(results, IDC_THEME_LINEKEY_STATIC, hwnd_result_key_static, font_result_key_static)
             HWND hwnd_caretline_edt = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
             HWND hwnd_caretline_udn = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_UDN);
             HWND hwnd_indicator_edt = GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT);
@@ -794,7 +803,9 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETBGCOLOR_TAB_BTN,
                                        IDC_SETCOLOR_CARET_BTN,
                                        IDC_SETFONT_SYMBOLIC_BTN,
-                                       IDC_SETTEXTCOLOR_SYMBOLIC_BTN
+                                       IDC_SETTEXTCOLOR_SYMBOLIC_BTN,
+                                       IDC_SETTEXTCOLOR_LINENO_BTN,
+                                       IDC_SETTEXTCOLOR_LINEKEY_BTN
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -895,6 +906,16 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 brush_activetab = CreateSolidBrush(dlg_style.activetab.bgcolor);
                 return (INT_PTR) brush_activetab;
+            }
+            else if ((HWND) lParam == hwnd_result_lineno_static)
+            {
+                SetTextColor((HDC) wParam, dlg_style.results.color);
+                SetBkColor((HDC) wParam, dlg_style.text.bgcolor);
+            }
+            else if ((HWND) lParam == hwnd_result_key_static)
+            {
+                SetTextColor((HDC) wParam, dlg_style.results.bgcolor);
+                SetBkColor((HDC) wParam, dlg_style.text.bgcolor);
             }
             else SET_STATIC_TEXTCOLOR(hwnd_keyword_static, keywords0)
             else SET_STATIC_TEXTCOLOR(hwnd_keyword2_static, keywords1)
@@ -1034,6 +1055,18 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     choose_text_color(hdlg, &(dlg_style.caret.color));
                     InvalidateRect(hwnd_caret_static, NULL, TRUE);
+                    break;
+                }
+                case IDC_SETTEXTCOLOR_LINENO_BTN:
+                {
+                    choose_text_color(hdlg, &dlg_style.results.color);
+                    InvalidateRect(hwnd_result_lineno_static, NULL, FALSE);
+                    break;
+                }
+                case IDC_SETTEXTCOLOR_LINEKEY_BTN:
+                {
+                    choose_text_color(hdlg, &(dlg_style.results.bgcolor));
+                    InvalidateRect(hwnd_result_key_static, NULL, FALSE);
                     break;
                 }
             }

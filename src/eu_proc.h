@@ -22,6 +22,7 @@
 #define APP_CLASS _T("__eu_skylark__")
 #define HEX_CLASS _T("__eu_hexview__")
 #define RESULT_SHOW(p)  (p && p->result_show && p->presult && p->presult->hwnd_sc)
+#define QRTABLE_SHOW(p) (p && p->hwnd_qrtable)
 
 #ifdef __cplusplus
 extern "C"
@@ -34,7 +35,6 @@ int eu_dpi_scale_font(void);
 int eu_dpi_scale_xy(int adpi, int m);
 void on_proc_destory_brush(void);
 void on_proc_resize(HWND hwnd);
-void on_proc_undo_off(void);
 void on_proc_sync_wait(void);
 void eu_window_resize(HWND hwnd);
 void eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi);

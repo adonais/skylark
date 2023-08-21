@@ -308,8 +308,8 @@ on_result_reload(eu_tabpage *pedit)
         // 加载词语解析器
         on_doc_init_after_scilexer(pedit, "result");
         on_doc_default_light(pedit, SCE_RESULT_COMMENT, 0x768465, -1, true);
-        on_doc_default_light(pedit, SCE_RESULT_HEADER , eu_get_theme()->item.keywords0.color, -1, true);
-        on_doc_default_light(pedit, SCE_RESULT_KEYWORD, eu_get_theme()->item.number.color, -1, true);
+        on_doc_default_light(pedit, SCE_RESULT_HEADER , eu_get_theme()->item.results.color, -1, true);
+        on_doc_default_light(pedit, SCE_RESULT_KEYWORD, eu_get_theme()->item.results.bgcolor, -1, true);
         if (pedit->pwant)
         {
             pedit->pwant(pedit);

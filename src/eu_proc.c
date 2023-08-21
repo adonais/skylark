@@ -26,7 +26,6 @@ typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
 static HWND g_hwndmain;                    // 主窗口句柄
-static volatile long undo_off;             // 状态栏按钮撤销信号量
 volatile long g_interval_count = 0;        // 启动自动更新的时间间隔
 
 static int
@@ -112,7 +111,6 @@ on_destory_window(HWND hwnd)
     // 释放libcurl资源
     eu_curl_global_cleanup();
     // 全局变量清零
-    _InterlockedExchange(&undo_off, 0);
     _InterlockedExchange(&g_interval_count, 0);
     // 退出消息循环
     PostQuitMessage(0);
@@ -151,12 +149,6 @@ do_drop_fix(void)
         }
         FreeLibrary(usr32);
     }
-}
-
-void
-on_proc_undo_off(void)
-{
-    _InterlockedExchange(&undo_off, 0);
 }
 
 HWND
@@ -462,7 +454,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
             on_result_move_sci(pnode, pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top);
             on_result_reload(pnode->presult);
-            if (pnode->hwnd_qrtable)
+            if (QRTABLE_SHOW(pnode))
             {
                 eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
                                  pnode->rect_qrtable.right - pnode->rect_qrtable.left, pnode->rect_qrtable.bottom - pnode->rect_qrtable.top, SWP_SHOWWINDOW);
@@ -708,9 +700,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostQuitMessage(0);
             }
-            if (eu_get_config()->m_menubar)
+            if (!menu_setup(hwnd))
             {
-                SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
+                PostQuitMessage(0);
             }
             if (eu_get_config()->m_fullscreen)
             {
@@ -987,6 +979,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (IDM_LOCALES_BASE <= wm_id && wm_id <= IDM_LOCALES_BASE + MAX_MULTI_LANG - 1)
             {
                 i18n_switch_locale(g_hwndmain, wm_id);
+                break;
+            }
+            if (IDM_SET_LUAJIT_EXECUTE <= wm_id && wm_id <= IDM_SET_LUAJIT_EXECUTE + DW_SIZE - 1)
+            {
+                on_setting_execute(g_hwndmain, wm_id);
                 break;
             }
             switch (wm_id)
@@ -1444,6 +1441,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_NAVIGATE_PREV_INALL:
                     on_search_back_navigate_all();
                     break;
+                case IDM_SEARCH_SELECT_MATCHING_ALL:
+                    on_search_select_matching_all(pnode);
+                    break;
                 case IDM_SEARCH_MULTISELECT_README:
                     MSG_BOX(IDC_MSG_HELP_INF1, IDC_MSG_JUST_HELP, MB_OK);
                     break;
@@ -1652,6 +1652,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_SOURCE_ENABLE_CTSHOW:
                     eu_get_config()->eu_calltip.enable ^= true;
+                    break;
+                case IDM_SET_SETTINGS_CONFIG:
+                    on_setting_manager();
                     break;
                 case IDM_SET_RESET_CONFIG:
                     eu_reset_all_mask();
@@ -1922,35 +1925,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_sci_character(on_tabpage_focus_at(), 0);
                     break;
                 case SCN_MODIFIED:
-                    if (lpnotify->modificationType & SC_PERFORMED_UNDO)
+                    if ((lpnotify->modificationType & SC_MOD_CONTAINER))
                     {
-                        if (lpnotify->text)
+                        if (lpnotify->token == EOLS_UNDO)
                         {
-                            if (strcmp(lpnotify->text, eols_undo_str) == 0)
-                            {
-                                if (!_InterlockedCompareExchange(&undo_off, 1, 0))
-                                {
-                                    on_edit_undo_eol(pnode);
-                                }
-                            }
-                            else if ((strlen(lpnotify->text) <= 2) && (lpnotify->text[0] == 0x0d || lpnotify->text[0] == 0x0a))
-                            {
-                                if (!eu_sci_call(pnode,SCI_CANUNDO, 0, 0))
-                                {
-                                    eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
-                                }
-                            }
-                            else if (strcmp(lpnotify->text, iconv_undo_str) == 0)
-                            {
-                                if (!_InterlockedCompareExchange(&undo_off, 1, 0))
-                                {
-                                    on_edit_undo_iconv(pnode);
-                                }
-                                if (!eu_sci_call(pnode, SCI_CANUNDO, 0, 0))
-                                {
-                                    eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
-                                }
-                            }
+                            on_edit_undo_eol(pnode);
+                        }
+                        else if (lpnotify->token == ICONV_UNDO)
+                        {
+                            on_edit_undo_iconv(pnode);
                         }
                     }
                     break;

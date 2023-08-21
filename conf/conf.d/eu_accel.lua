@@ -120,6 +120,7 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FSHIFT), VK_F2, IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_BACK, IDM_SEARCH_NAVIGATE_PREV_THIS},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), VK_BACK, IDM_SEARCH_NAVIGATE_PREV_INALL},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"A\"), IDM_SEARCH_SELECT_MATCHING_ALL},\n",
       "                 -- View menu\n",
       "                 {0, 0, IDM_VIEW_FILETREE},\n",
       "                 {0, 0, IDM_VIEW_SYMTREE},\n",
@@ -181,6 +182,8 @@ function eu_accel.loadaccel()
       "                 {0, 0, IDM_VIEW_MODIFY_STYLETHEME},\n",
       "                 {0, 0, IDM_SET_RESET_CONFIG},\n",
       "                 {0, 0, IDM_FILE_SAVE_NOTIFY},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"V\"), IDM_SET_LUAJIT_EXECUTE},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"Z\"), IDM_SET_LUAJIT_EXECUTE + 1},\n",
       "                 -- Help menu\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F1, IDM_DONATION},\n",
       "                 {0, 0, IDM_INTRODUTION},\n",
@@ -199,7 +202,7 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    if (m_len < 167) then
+    if (m_len < 171) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})

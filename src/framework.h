@@ -103,6 +103,7 @@
 #include "sqlite3.h"
 #include "libpq-fe.h"
 #include "chardet.h"
+#include "tinyexpr.h"
 
 // skylark 源目录下的头文件
 #include "eu_cvector.h"
@@ -165,5 +166,6 @@
 #include "eu_exporter.h"
 #include "eu_session.h"
 #include "eu_favorites.h"
+#include "eu_settings.h"
 
 #endif  // _EU_FRAMEWORK_H_

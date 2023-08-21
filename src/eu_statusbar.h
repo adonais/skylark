@@ -39,7 +39,6 @@ extern "C" {
 #endif
 
 extern HWND g_statusbar;
-extern char iconv_undo_str[QW_SIZE];
 
 bool on_statusbar_init(HWND hwnd);
 int  on_statusbar_height(void);
@@ -48,7 +47,7 @@ void on_statusbar_refresh(void);
 void on_statusbar_update(void);
 void on_statusbar_destroy(void);
 void on_statusbar_adjust_box(void);
-void on_statusbar_update_eol(eu_tabpage *pnode);
+void on_statusbar_update_eol(eu_tabpage *pnode, const int eol);
 void on_statusbar_update_line(eu_tabpage *pnode);
 void on_statusbar_update_filesize(eu_tabpage *pnode);
 void on_statusbar_update_coding(eu_tabpage *pnode, const int res_id);

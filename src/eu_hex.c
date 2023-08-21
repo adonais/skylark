@@ -2264,10 +2264,6 @@ hexview_switch_mode(eu_tabpage *pnode)
         eu_sci_call(pnode, SCI_SETOVERTYPE, false, 0);
         on_sci_after_file(pnode);
         on_search_add_navigate_list(pnode, 0);
-        if (pnode->be_modify)
-        {
-            on_tabpage_editor_modify(pnode, "X");
-        }
         if ((err = on_tabpage_selection(pnode, pnode->tab_id)) >= 0)
         {
             if (pnode->nc_pos >= 0)
@@ -2279,6 +2275,11 @@ hexview_switch_mode(eu_tabpage *pnode)
                 pnode->file_attr &= ~FILE_READONLY_COLOR;
                 on_statusbar_btn_colour(pnode, true);
             }
+            if (pnode->be_modify && pnode->undo_id)
+            {
+                MSG_BOX(IDS_UNDO_UNCLOSE_TIPS, IDC_MSG_WARN, MB_ICONWARNING | MB_OK);
+            }
+            eu_logmsg("%s: pnode->eol = %d\n", __FUNCTION__, pnode->eol);
             PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
         }
     }

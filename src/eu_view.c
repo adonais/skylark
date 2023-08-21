@@ -581,8 +581,12 @@ on_view_editor_selection(eu_tabpage *pnode)
     {
         sptr_t start_pos = 0;
         sptr_t found_pos = 0;
-        size_t flags = SCFIND_WHOLEWORD|SCFIND_MATCHCASE;
+        size_t flags = SCFIND_MATCHCASE;
         sptr_t end_pos = total_len;
+        if (eu_get_config() && eu_get_config()->last_flags & SCFIND_WHOLEWORD)
+        {
+            flags |= SCFIND_WHOLEWORD;
+        }
         while (true)
         {
             found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
