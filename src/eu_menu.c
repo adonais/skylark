@@ -539,6 +539,7 @@ menu_update_item(const HMENU menu, const bool init)
                             util_set_menu_item(menu, IDM_TAB_CONVERT_SPACES, eu_get_config()->tab2spaces);
                         }
                         util_set_menu_item(menu, IDM_VIEW_TIPS_ONTAB, eu_get_config()->m_tab_tip);
+                        util_switch_menu_group(menu, TAB_HISTORY_SUB, IDM_VIEW_HISTORY_NONE, IDM_VIEW_HISTORY_ALL, eu_get_config()->history_mask);
                         util_switch_menu_group(menu, TAB_MENU_TOOLBAR_SUB, IDB_SIZE_0, IDB_SIZE_128, eu_get_config()->m_toolbar);
                         util_switch_menu_group(menu, TAB_MENU_ACTIVE_SUB, IDM_VIEW_LEFT_TAB, IDM_VIEW_FAR_RIGHT_TAB, eu_get_config()->m_tab_active);
                         util_switch_menu_group(menu, TAB_MENU_CLOSE_SUB, IDM_VIEW_TAB_RIGHT_CLICK, IDM_VIEW_TAB_LEFT_DBCLICK, eu_get_config()->m_close_way);

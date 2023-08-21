@@ -1913,6 +1913,7 @@ eu_save_config(void)
         "window_statusbar_visiable = %s\n"
         "line_number_visiable = %s\n"
         "last_search_flags = 0x%08X\n"
+        "history_mask = %u\n"
         "white_space_visiable = %s\n"
         "white_space_size = %d\n"
         "newline_visiable = %s\n"
@@ -2044,6 +2045,7 @@ eu_save_config(void)
               g_config->m_statusbar?"true":"false",
               g_config->m_linenumber?"true":"false",
               g_config->last_flags,
+              g_config->history_mask,
               g_config->ws_visiable?"true":"false",
               g_config->ws_size,
               g_config->newline_visialbe?"true":"false",

@@ -1204,6 +1204,7 @@
 #define IDS_LUAJIT_EVALUATION               44500
 #define IDS_WIN32CALC_DESC                  44501
 #define IDS_UNDO_UNCLOSE_TIPS               44502
+#define IDS_HISTORY_CLEAR_UNDO              44503
 
 #define IDD_SETTING_DIALOG                  44600
 #define IDC_SETTING_NAME_EDIT               44601
@@ -1213,6 +1214,12 @@
 #define IDC_SETTING_HIDE_RUN                44605
 
 #define IDM_SEARCH_SELECT_MATCHING_ALL      44700
+
+#define IDM_VIEW_HISTORY_PLACEHOLDE         44710
+#define IDM_VIEW_HISTORY_NONE               44711
+#define IDM_VIEW_HISTORY_MARGIN             44713
+#define IDM_VIEW_HISTORY_DOCS               44715
+#define IDM_VIEW_HISTORY_ALL                44717
 
 // For MessageBox
 #define IDALWAYS                            12

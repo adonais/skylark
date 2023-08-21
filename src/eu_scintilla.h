@@ -19,6 +19,15 @@
 #ifndef _EU_SCINTILLA_H_
 #define _EU_SCINTILLA_H_
 
+#define MARGIN_HISTORY_MASKN (                       \
+    (1 << SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN) |   \
+    (1 << SC_MARKNUM_HISTORY_SAVED) |                \
+    (1 << SC_MARKNUM_HISTORY_MODIFIED) |             \
+    (1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED)   \
+)
+
+#define MARGIN_BOOKMARK_MASKN        0x1
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -35,7 +44,9 @@ void on_sci_before_file(eu_tabpage *pnode);
 void on_sci_after_file(eu_tabpage *pnode);
 void on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify);
 void on_sci_send_extra(void *pdata, uint32_t code, LPNMHDR phdr);
-void on_sci_update_margin(eu_tabpage *pnode);
+void on_sci_update_line_margin(eu_tabpage *pnode);
+void on_sci_clear_history(eu_tabpage *pnode);
+void on_sci_update_history_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
 void on_sci_free_tab(eu_tabpage **ppnod);
 void on_sci_insert_egg(eu_tabpage *pnode);

@@ -263,6 +263,13 @@ BEGIN
         MENUITEM "显示行号",                                    IDM_VIEW_LINENUMBER_VISIABLE
         MENUITEM "显示书签",                                    IDM_VIEW_BOOKMARK_VISIABLE
         MENUITEM "显示折叠线",                                  IDM_SOURCE_BLOCKFOLD_VISIABLE
+        POPUP "变更记录标记",                                   IDM_VIEW_HISTORY_PLACEHOLDE
+        BEGIN
+            MENUITEM "不显示",                                  IDM_VIEW_HISTORY_NONE
+            MENUITEM "显示在页边区",                            IDM_VIEW_HISTORY_MARGIN
+            MENUITEM "显示在文档中",                            IDM_VIEW_HISTORY_DOCS
+            MENUITEM "在以上两者中显示",                        IDM_VIEW_HISTORY_ALL
+        END
         MENUITEM MF_SEPARATOR
         MENUITEM "显示白字符",                                  IDM_VIEW_WHITESPACE_VISIABLE
         MENUITEM "显示换行符",                                  IDM_VIEW_NEWLINE_VISIABLE
@@ -1333,6 +1340,7 @@ STRINGTABLE DISCARDABLE
     IDS_INDENT_PROPOSE      "我们建议使用clang-format或者 '编辑->转换' 功能格式化文档"
     IDS_FAVORITE_ADD_TIPS   "收藏夹内的文件具有相同的别名, 会难以分辨, 你确认继续吗?"
     IDS_UNDO_UNCLOSE_TIPS   "文件曾执行过编码转换或换行符转换, 你应该尽快保存文件以免'撤销/重做'操作影响到文件状态"
+    IDS_HISTORY_CLEAR_UNDO  "该操作将会清空撤销历史, 影响'撤销/重做', 是否继续?"
 }
 
 /////////////////////////////////////////////////////////////////////////////

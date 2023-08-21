@@ -500,7 +500,6 @@ function eu_theme.load_default(name)
       results_bgcolor = number_color
       results_bold = 0
     end
-    print("results_fontsize  = " .. results_fontsize)
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)
     local m_theme = eu_core.ffi.new("struct eu_theme", {m_file, tname,

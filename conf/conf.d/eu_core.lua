@@ -104,6 +104,7 @@ struct eu_config
     bool m_linenumber;
 
     uint32_t last_flags;
+    uint32_t history_mask;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;

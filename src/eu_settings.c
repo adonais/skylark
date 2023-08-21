@@ -79,7 +79,7 @@ on_setting_load_icon(const TCHAR *path)
             break;
         }
         // Find the bits for the nid icon
-        if (!(hresource = FindResource(hexe, MAKEINTRESOURCE(nid), MAKEINTRESOURCE(RT_ICON))))
+        if (!(hresource = FindResource(hexe, MAKEINTRESOURCE(nid), RT_ICON)))
         {
             break;
         }

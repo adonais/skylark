@@ -18,6 +18,8 @@
 
 #include "framework.h"
 
+#define HOSTORY_MODIFIED_COLOR 0x0080FF
+
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 static volatile sptr_t last_sci_eusc = 0;
@@ -47,6 +49,28 @@ static const char *auto_xpm[] = {
 };
 
 void
+on_sci_clear_history(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
+        eu_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_DISABLED, 0);
+    }
+}
+
+void
+on_sci_update_history_margin(eu_tabpage *pnode)
+{
+    const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_NONE;
+    if (pnode && maskn >= 0)
+    {
+        const bool margin_enable = maskn > 0 && maskn & SC_CHANGE_HISTORY_MARKERS;
+        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_HISTORY_INDEX, margin_enable ? MARGIN_HISTORY_WIDTH : 0);
+        eu_sci_call(pnode, SCI_SETCHANGEHISTORY, !maskn ? maskn : maskn | SC_CHANGE_HISTORY_ENABLED, 0);
+    }
+}
+
+void
 on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
 {
     if (!pnode || !eu_get_config() || !eu_get_theme())
@@ -65,21 +89,14 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_SUPPORTSFEATURE, SC_SUPPORTS_THREAD_SAFE_MEASURE_WIDTHS, 0);
     eu_sci_call(pnode, SCI_SETLAYOUTTHREADS, (sptr_t)util_num_cores(), 0);
     // 页边区设置
-    eu_sci_call(pnode, SCI_SETMARGINS, 3, 0);
+    eu_sci_call(pnode, SCI_SETMARGINS, MARGIN_NUMBER_OF, 0);
     // 行号显示以及样式设置
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_LINENUMBER_INDEX, SC_MARGIN_NUMBER);
     eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
     eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
     eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
     eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);
-    if (eu_get_config()->m_linenumber)
-    {
-        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, MARGIN_LINENUMBER_WIDTH);
-    }
-    else
-    {
-        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
-    }
+    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, eu_get_config()->m_linenumber ? MARGIN_LINENUMBER_WIDTH : 0);
     sptr_t bgra = eu_get_theme()->item.indicator.bgcolor;
     // 自动补全窗口颜色
     eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST, eu_get_theme()->item.text.color);
@@ -92,10 +109,16 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_STYLESETCHECKMONOSPACED, STYLE_DEFAULT, true);
     // 书签栏样式
     eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_BOOKMARK_INDEX, TRUE);
+    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_BOOKMARK_INDEX, MARGIN_BOOKMARK_MASKN);
     eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
     eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.shape);
     eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
     eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
+    // 修改文本历史记录样式
+    eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_HISTORY_INDEX, TRUE);
+    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_HISTORY_INDEX, SC_MARGIN_SYMBOL);
+    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_HISTORY_INDEX, MARGIN_HISTORY_MASKN);
+    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, HOSTORY_MODIFIED_COLOR);
     // 代码折叠栏颜色与亮量颜色, 这里与背景色相同
     eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
@@ -200,23 +223,6 @@ on_sci_init_style(eu_tabpage *pnode)
     on_hyper_set_style(pnode);
 }
 
-void
-on_sci_before_file(eu_tabpage *pnode)
-{
-    if (pnode)
-    {
-        on_sci_init_style(pnode);
-        eu_sci_call(pnode, SCI_CANCEL, 0, 0);
-        eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 0, 0);
-        eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
-        eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
-        if (pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
-        {   // 初始化侧边栏控件
-            pnode->doc_ptr->fn_init_before(pnode);
-        }
-    }
-}
-
 static void
 on_sci_reset_zoom(eu_tabpage *pnode)
 {
@@ -242,14 +248,32 @@ on_sci_reset_zoom(eu_tabpage *pnode)
 }
 
 void
+on_sci_before_file(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        on_sci_init_style(pnode);
+        eu_sci_call(pnode, SCI_CANCEL, 0, 0);
+        eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
+        eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 0, 0);
+        if (pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
+        {   // 初始化侧边栏控件
+            pnode->doc_ptr->fn_init_before(pnode);
+        }
+    }
+}
+
+void
 on_sci_after_file(eu_tabpage *pnode)
 {
     if (pnode)
     {
         if (!pnode->hex_mode && !pnode->pmod)
         {
-            eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
             eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
+            eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
+            eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
+            on_sci_update_history_margin(pnode);
             on_sci_reset_zoom(pnode);
             if (!pnode->raw_size)
             {
@@ -259,7 +283,7 @@ on_sci_after_file(eu_tabpage *pnode)
             {   // 设置此标签页的语法解析
                 pnode->doc_ptr->fn_init_after(pnode);
             }
-            on_sci_update_margin(pnode);
+            on_sci_update_line_margin(pnode);
         }
         else if (!pnode->plugin)
         {
@@ -275,7 +299,7 @@ on_sci_refresh_ui(eu_tabpage *pnode)
     {
         on_toolbar_update_button();
         on_statusbar_update();
-        on_sci_update_margin(pnode);
+        on_sci_update_line_margin(pnode);
     }
 }
 
@@ -524,7 +548,7 @@ on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify)
 }
 
 void
-on_sci_update_margin(eu_tabpage *pnode)
+on_sci_update_line_margin(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL);
     sptr_t m_width = eu_sci_call(pnode, SCI_GETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
@@ -680,7 +704,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
             {
                 eu_logmsg("scintilla WM_DPICHANGED_AFTERPARENT\n");
-                on_sci_update_margin(pnode);
+                on_sci_update_line_margin(pnode);
             }
             break;
         }

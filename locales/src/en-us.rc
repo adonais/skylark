@@ -263,6 +263,13 @@ BEGIN
         MENUITEM "Line &Numbers",                                      IDM_VIEW_LINENUMBER_VISIABLE
         MENUITEM "Show Bookmark",                                      IDM_VIEW_BOOKMARK_VISIABLE
         MENUITEM "Show Fold Lines",                                    IDM_SOURCE_BLOCKFOLD_VISIABLE
+        POPUP "Change History Marker",                                 IDM_VIEW_HISTORY_PLACEHOLDE
+        BEGIN
+            MENUITEM "Do Not Show",                                    IDM_VIEW_HISTORY_NONE
+            MENUITEM "Show In Margin Only",                            IDM_VIEW_HISTORY_MARGIN
+            MENUITEM "Show In Document Only",                          IDM_VIEW_HISTORY_DOCS
+            MENUITEM "Show In Both Above",                             IDM_VIEW_HISTORY_ALL
+        END
         MENUITEM MF_SEPARATOR
         MENUITEM "Show White Space",                                   IDM_VIEW_WHITESPACE_VISIABLE
         MENUITEM "Show Wrap Symbol",                                   IDM_VIEW_NEWLINE_VISIABLE
@@ -1334,7 +1341,8 @@ STRINGTABLE DISCARDABLE
     IDS_INDENT_TAB_SPACE    "[%s] %zd line(s) are indented with space + tab characters\n"
     IDS_INDENT_PROPOSE      "We recommend formatting the document using clang-format or the 'Edit->Convert' function"
     IDS_FAVORITE_ADD_TIPS   "It's hard to tell when files in your favorites have the same alias, Are you sure you want to continue?"
-    IDS_UNDO_UNCLOSE_TIPS   "The file has been converted to encoding or line breaks, you should save the file as soon as possible to avoid 'undo/redo' operations affecting the file state."
+    IDS_UNDO_UNCLOSE_TIPS   "The file has been converted to encoding or line breaks, You should save the file as soon as possible to avoid 'undo/redo' operations affecting the file state."
+    IDS_HISTORY_CLEAR_UNDO  "This operation will clear the undo history, Affecting 'Undo/Redo', Continue?"
 }
 
 /////////////////////////////////////////////////////////////////////////////

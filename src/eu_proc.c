@@ -1567,6 +1567,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
                     on_view_indent_visiable();
                     break;
+                case IDM_VIEW_HISTORY_NONE:
+                case IDM_VIEW_HISTORY_MARGIN:
+                case IDM_VIEW_HISTORY_DOCS:
+                case IDM_VIEW_HISTORY_ALL:
+                    on_view_history_visiable(pnode, wm_id);
+                    break;
                 case IDM_VIEW_TIPS_ONTAB:
                     eu_get_config()->m_tab_tip ^= true;
                     break;

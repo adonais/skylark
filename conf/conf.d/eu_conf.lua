@@ -77,6 +77,7 @@ function eu_conf.loadconf()
         "window_statusbar_visiable = true\n" ..
         "line_number_visiable = true\n" ..
         "last_search_flags = 0x000044\n" ..
+        "history_mask = 44711\n" ..
         "white_space_visiable = false\n" ..
         "white_space_size = 2\n" ..
         "newline_visiable = false\n" ..
@@ -183,6 +184,9 @@ function eu_conf.loadconf()
     if (process_customized == nil) then
         process_customized = {}
     end
+    if (history_mask == nil) then
+        history_mask = 44711
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -194,6 +198,7 @@ function eu_conf.loadconf()
         window_statusbar_visiable,
         line_number_visiable,
         last_search_flags,
+        history_mask,
         white_space_visiable,
         white_space_size,
         newline_visiable,
