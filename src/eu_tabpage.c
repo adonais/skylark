@@ -143,7 +143,6 @@ on_tabpage_changing(int index)
     eu_tabpage *p = NULL;
     if((p = on_tabpage_get_ptr(index)) != NULL)
     {
-        util_set_undo(p);
         util_set_title(p);
         on_toolbar_update_button();
         SendMessage(eu_module_hwnd(), WM_TAB_CLICK, (WPARAM)p, 0);
@@ -344,7 +343,7 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             {
                 ImageList_Draw(himg, 1, hdc, rc.left + 6, rc.top + (rc.bottom - rc.top - CY_ICON)/2, ILD_TRANSPARENT);
             }
-            else if (p->be_modify)
+            else if (p->be_modify || p->fn_modify)
             {
                 ImageList_Draw(himg, 0, hdc, rc.left + 6, rc.top + (rc.bottom - rc.top - CY_ICON)/2, ILD_TRANSPARENT);
             }
@@ -1362,25 +1361,7 @@ on_tabpage_set_title(int ontab, TCHAR *title)
 }
 
 int
-on_tabpage_editor_modify(eu_tabpage *pnode, const char *str)
-{
-    EU_VERIFY(pnode != NULL);
-    if (pnode->hex_mode)
-    {
-        return (int)eu_sci_call(pnode, SCN_SAVEPOINTLEFT, 0, 0);
-    }
-    if (!pnode->plugin)
-    {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) str);
-        eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(str));
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-    }
-    return 0;
-}
-
-int
-on_tabpage_reload_file(eu_tabpage *pnode, int flags)
+on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
 {
     EU_VERIFY(pnode != NULL);
     if (pnode->hex_mode || pnode->plugin)
@@ -1390,30 +1371,46 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags)
     switch (flags)
     {
         case 0: // 保留
-            on_tabpage_editor_modify(pnode, "X");
+            pnode->fn_modify = true;
+            on_sci_point_left(pnode);
             break;
         case 1: // 丢弃
-            eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
+            pnode->be_modify = false;
+            pnode->fn_modify = false;
             on_file_close(pnode, FILE_ONLY_CLOSE);
             break;
         case 2: // 重载, 滚动到末尾行
         {
-            if (url_has_remote(pnode->pathfile))
+            if (!url_has_remote(pnode->pathfile))
             {
-                break;
-            }
-            eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-            if (on_file_load(pnode, NULL, true))
-            {
-                return 1;
-            }
-            eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
-            eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
-            eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
-            if (!pnode->is_blank)
-            {
-                pnode->st_mtime = util_last_time(pnode->pathfile);
-                SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
+                on_sci_clear_history(pnode);
+                eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                if (on_file_load(pnode, NULL, true) == SKYLARK_OK)
+                {
+                    sptr_t max_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+                    if (pline && *pline > max_line - 1)
+                    {
+                        *pline = max_line - 1;
+                    }
+                    eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
+                    eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
+                    pnode->be_modify = false;
+                    pnode->fn_modify = false;
+                    if (!pnode->is_blank)
+                    {
+                        pnode->st_mtime = util_last_time(pnode->pathfile);
+                        if (pline)
+                        {
+                            on_search_jmp_line(pnode, *pline, 0);
+                        }
+                        else
+                        {
+                            on_search_jmp_line(pnode, max_line, 0);
+                        }
+                    }
+                    on_toolbar_update_button();
+                    util_redraw(g_tabpages, false);
+                }
             }
             break;
         }

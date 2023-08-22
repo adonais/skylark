@@ -210,6 +210,7 @@ menu_update_hexview(const HMENU root_menu, const bool hex_mode, const bool init)
         util_enable_menu_item(root_menu, IDM_SOURCE_ENABLE_CTSHOW, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_FONTQUALITY, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_RENDER, init || !hex_mode);
+        util_enable_menu_item(root_menu, IDM_VIEW_HISTORY_PLACEHOLDE, init || !hex_mode);
     }
 }
 
@@ -438,7 +439,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_FILE_NEWFILE_ENCODING_ANSI, (eu_get_config()->new_file_enc == IDM_OTHER_ANSI));
                         break;
                     case IDM_FILE_RELOAD_CURRENT:
-                        util_enable_menu_item(menu, IDM_FILE_RELOAD_CURRENT, pnode && !url_has_remote(pnode->pathfile));
+                        util_enable_menu_item(menu, IDM_FILE_RELOAD_CURRENT, pnode && !pnode->hex_mode && !url_has_remote(pnode->pathfile));
                         break;
                     case IDM_FILE_ADD_FAVORITES:
                         util_enable_menu_item(menu, IDM_FILE_ADD_FAVORITES, init || !pnode->is_blank);

@@ -40,6 +40,7 @@ void on_view_bookmark(void);
 void on_view_white_space(void);
 void on_view_line_visiable(void);
 void on_view_indent_visiable(void);
+void on_view_history_visiable(eu_tabpage *p, const int wm_id);
 void on_view_light_str(void);
 void on_view_light_brace(void);
 void on_view_light_fold(void);

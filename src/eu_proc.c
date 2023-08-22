@@ -663,6 +663,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
             if (err == SKYLARK_OK)
             {
                 pnode->be_modify = false;
+                pnode->fn_modify = false;
             }
             InvalidateRect(g_tabpages, NULL, false);
             on_toolbar_update_button();

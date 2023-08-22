@@ -84,12 +84,8 @@ on_view_switch_type(int m_type)
         {
             pnode->doc_ptr = eu_doc_get_ptr() + m_type;
         }
-        on_sci_before_file(pnode);
-        on_sci_after_file(pnode);
-        if (pnode->be_modify)
-        {
-            on_tabpage_editor_modify(pnode, "X");
-        }
+        on_sci_before_file(pnode, false);
+        on_sci_after_file(pnode, false);
         eu_window_resize(eu_hwnd_self());
         return 0;
     }
@@ -150,7 +146,7 @@ on_view_refresh_theme(HWND hwnd)
         else
         {
             on_sci_init_style(p);
-            on_sci_after_file(p);
+            on_sci_after_file(p, false);
         }
         if (p->hwnd_symlist)
         {
@@ -165,10 +161,6 @@ on_view_refresh_theme(HWND hwnd)
         if (p->hwnd_qrtable)
         {
             on_table_update_theme(p);
-        }
-        if (p->be_modify)
-        {
-            on_tabpage_editor_modify(p, "X");
         }
         if (p->pmod)
         {
@@ -508,20 +500,47 @@ on_view_indent_visiable(void)
 }
 
 void
-on_view_history_visiable(eu_tabpage *p, const int wm_id)
+on_view_history_visiable(eu_tabpage *pnode, const int wm_id)
 {
-    if (p && wm_id > 0 && wm_id != (const int)eu_get_config()->history_mask)
+    const int history_mask = (const int)eu_get_config()->history_mask;
+    if (pnode && wm_id > 0 && wm_id != history_mask)
     {
+        int index = 0;
         int result = IDOK;
-        const uint32_t maskn = wm_id - IDM_VIEW_HISTORY_NONE;
-        if (!maskn)
+        bool affected = false;
+        eu_tabpage *p = NULL;
+        const int count = TabCtrl_GetItemCount(g_tabpages);
+        const uint32_t maskn = wm_id - IDM_VIEW_HISTORY_PLACEHOLDE;
+        for (index = 0; index < count; ++index)
         {
-            MSG_BOX_SEL(IDS_HISTORY_CLEAR_UNDO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, result);
+            if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+            {   // 先给出提示
+                if (maskn > 1 && history_mask - IDM_VIEW_HISTORY_PLACEHOLDE == 1 &&
+                   (eu_sci_call(p, SCI_CANUNDO, 0, 0) || eu_sci_call(p, SCI_CANREDO, 0, 0)))
+                {
+                    if (!affected)
+                    {
+                        MSG_BOX_SEL(IDS_HISTORY_CLEAR_UNDO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, result);
+                        affected = true;
+                    }
+                    if (result == IDOK)
+                    {
+                        eu_sci_call(p, SCI_EMPTYUNDOBUFFER, 0, 0);
+                        p == pnode ? on_toolbar_update_button() : (void)0;
+                    }
+                }
+            }
         }
         if (result == IDOK)
-        {
+        {   // 然后再显示
             eu_get_config()->history_mask = (uint32_t)wm_id;
-            on_sci_update_history_margin(p);
+            for (index = 0; index < count; ++index)
+            {
+                if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+                {
+                    on_sci_update_history_margin(p);
+                }
+            }
         }
     }
 }
@@ -746,7 +765,7 @@ on_view_font_quality(HWND hwnd, int res_id)
             if (p)
             {
                 on_sci_init_style(p);
-                on_sci_after_file(p);
+                on_sci_after_file(p, false);
             }
         }
         eu_window_resize(hwnd);
@@ -765,7 +784,7 @@ on_view_enable_rendering(HWND hwnd, int res_id)
             if (p)
             {
                 on_sci_init_style(p);
-                on_sci_after_file(p);
+                on_sci_after_file(p, false);
             }
         }
         eu_window_resize(hwnd);

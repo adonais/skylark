@@ -57,6 +57,7 @@ struct _tabpage
     bool at_close;              // 是否绘制了关闭按钮    
     bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
+    bool fn_modify;             // 文档打开时的初始状态
     bool last_focus;            // 保存前台焦点    
     TCHAR pathfile[MAX_BUFFER]; // 文件带路径名
     TCHAR pathname[MAX_BUFFER]; // 文件所在路径名
@@ -80,7 +81,6 @@ struct _tabpage
     volatile long json_id;      // 解析json线程id
     volatile long busy_id;      // 标签是否空闲状态
     volatile long lock_id;      // 自动保存时使用的锁
-    int undo_id;                // eols或编码转换后, 16进制相互转换时, 用于提示
     int tab_id;                 // tab编号,用于保存会话
     int codepage;               // 文件编码
     int eol;                    // 换行符
@@ -106,8 +106,7 @@ extern HWND g_tabpages;
 int  on_tabpage_create_dlg(HWND hwnd);
 int  on_tabpage_add(eu_tabpage *pnode);
 int  on_tabpage_remove(eu_tabpage **ppnode);
-int  on_tabpage_reload_file(eu_tabpage *pnode, int flags);
-int  on_tabpage_editor_modify(eu_tabpage *pnode, const char *);
+int  on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(eu_tabpage *pnode);

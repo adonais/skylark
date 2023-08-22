@@ -61,12 +61,12 @@ on_sci_clear_history(eu_tabpage *pnode)
 void
 on_sci_update_history_margin(eu_tabpage *pnode)
 {
-    const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_NONE;
-    if (pnode && maskn >= 0)
+    const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_PLACEHOLDE;
+    if (pnode && maskn > 0)
     {
-        const bool margin_enable = maskn > 0 && maskn & SC_CHANGE_HISTORY_MARKERS;
+        const bool margin_enable = maskn > 1 && maskn & SC_CHANGE_HISTORY_MARKERS;
         eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_HISTORY_INDEX, margin_enable ? MARGIN_HISTORY_WIDTH : 0);
-        eu_sci_call(pnode, SCI_SETCHANGEHISTORY, !maskn ? maskn : maskn | SC_CHANGE_HISTORY_ENABLED, 0);
+        eu_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn == 1 ? SC_CHANGE_HISTORY_DISABLED : maskn, 0);
     }
 }
 
@@ -248,14 +248,14 @@ on_sci_reset_zoom(eu_tabpage *pnode)
 }
 
 void
-on_sci_before_file(eu_tabpage *pnode)
+on_sci_before_file(eu_tabpage *pnode, const bool init)
 {
     if (pnode)
     {
         on_sci_init_style(pnode);
         eu_sci_call(pnode, SCI_CANCEL, 0, 0);
         eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
-        eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 0, 0);
+        init ? eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 0, 0) : (void)0;
         if (pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
         {   // 初始化侧边栏控件
             pnode->doc_ptr->fn_init_before(pnode);
@@ -264,16 +264,19 @@ on_sci_before_file(eu_tabpage *pnode)
 }
 
 void
-on_sci_after_file(eu_tabpage *pnode)
+on_sci_after_file(eu_tabpage *pnode, const bool init)
 {
     if (pnode)
     {
         if (!pnode->hex_mode && !pnode->pmod)
         {
             eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
-            eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
-            eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
-            on_sci_update_history_margin(pnode);
+            if (init)
+            {
+                eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
+                on_sci_clear_history(pnode);
+                on_sci_update_history_margin(pnode);
+            }
             on_sci_reset_zoom(pnode);
             if (!pnode->raw_size)
             {
@@ -507,35 +510,34 @@ on_sci_doc_modified(eu_tabpage *pnode)
     return (pnode ? pnode->be_modify : false);
 }
 
-static int
-on_sci_status_setup(eu_tabpage *pnode, bool revise)
-{
-    int index = EUE_TAB_NULL;
-    if (!(pnode && *pnode->filename))
-    {
-        return EUE_POINT_NULL;
-    }
-    if ((index = on_tabpage_get_index(pnode)) < SKYLARK_OK)
-    {
-        return index;
-    }
-    on_tabpage_set_title(index, pnode->filename);
-    util_set_title(pnode);
-    pnode->be_modify = revise;
-    on_toolbar_update_button();
-    return SKYLARK_OK;
-}
-
 int
 on_sci_point_reached(eu_tabpage *pnode)
 {
-    return on_sci_status_setup(pnode, false);
+    if (pnode && g_tabpages)
+    {
+        if (!pnode->fn_modify)
+        {
+            pnode->be_modify = false;
+        }
+        on_toolbar_update_button();
+        util_redraw(g_tabpages, false);
+    }
+    return SKYLARK_OK;
 }
 
 int
 on_sci_point_left(eu_tabpage *pnode)
 {
-    return on_sci_status_setup(pnode, true);
+    if (pnode && g_tabpages)
+    {
+        if (!pnode->be_modify)
+        {
+            pnode->be_modify = true;
+        }
+        on_toolbar_update_button();
+        util_redraw(g_tabpages, false);
+    }
+    return SKYLARK_OK;
 }
 
 void

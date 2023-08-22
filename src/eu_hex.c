@@ -26,8 +26,9 @@
 #define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \0")
 #define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\0")
 
-static volatile long hex_zoom;
-static int hex_area;
+static int hex_area = 0;
+static volatile long hex_zoom = 0;
+static volatile long affected_switch = 0;
 
 /*******************************************
  * 计算utf8编码字节数
@@ -2258,11 +2259,11 @@ hexview_switch_mode(eu_tabpage *pnode)
             err = EUE_UNKOWN_ERR;
             goto HEX_ERROR;
         }
-        on_sci_before_file(pnode);
+        on_sci_before_file(pnode, true);
         eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
         eu_sci_call(pnode, SCI_ADDTEXT, dst_len - offset, (LPARAM)(pdst + offset));
         eu_sci_call(pnode, SCI_SETOVERTYPE, false, 0);
-        on_sci_after_file(pnode);
+        on_sci_after_file(pnode, true);
         on_search_add_navigate_list(pnode, 0);
         if ((err = on_tabpage_selection(pnode, pnode->tab_id)) >= 0)
         {
@@ -2274,10 +2275,6 @@ hexview_switch_mode(eu_tabpage *pnode)
             {
                 pnode->file_attr &= ~FILE_READONLY_COLOR;
                 on_statusbar_btn_colour(pnode, true);
-            }
-            if (pnode->be_modify && pnode->undo_id)
-            {
-                MSG_BOX(IDS_UNDO_UNCLOSE_TIPS, IDC_MSG_WARN, MB_ICONWARNING | MB_OK);
             }
             eu_logmsg("%s: pnode->eol = %d\n", __FUNCTION__, pnode->eol);
             PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
@@ -2295,18 +2292,30 @@ hexview_switch_item(eu_tabpage *pnode)
 {
     if (g_tabpages && pnode)
     {
-        eu_tabpage *p = NULL;
-        cvector_vector_type(int) v = NULL;
-        int num = on_tabpage_sel_number(&v, false);
-        for (int i = 0; i < num; ++i)
+        int result = IDOK;
+        if (!_InterlockedCompareExchange(&affected_switch, 1, 0))
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && p != pnode && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
-            {
-                hexview_switch_mode(p);
-            }
+            MSG_BOX_SEL(IDS_HISTORY_CLEAR_UNDO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, result);
         }
-        hexview_switch_mode(pnode);
-        cvector_freep(&v);
+        if (result == IDOK)
+        {
+            eu_tabpage *p = NULL;
+            cvector_vector_type(int) v = NULL;
+            int num = on_tabpage_sel_number(&v, false);
+            for (int i = 0; i < num; ++i)
+            {
+                eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+                if (p && p != pnode && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
+                {
+                    hexview_switch_mode(p);
+                }
+            }
+            hexview_switch_mode(pnode);
+            cvector_freep(&v);
+        }
+        else
+        {
+            _InterlockedExchange(&affected_switch, 0);
+        }
     }
 }

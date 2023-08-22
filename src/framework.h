@@ -63,7 +63,7 @@
 #define MARGIN_LINENUMBER_WIDTH      40
 #define MARGIN_BOOKMARK_WIDTH        16
 #define MARGIN_FOLD_WIDTH            14
-#define MARGIN_HISTORY_WIDTH         10
+#define MARGIN_HISTORY_WIDTH         9
 
 #define MARGIN_BOOKMARK_VALUE        0
 #define MARGIN_HISTORY_VALUE         1

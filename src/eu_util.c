@@ -2017,15 +2017,6 @@ util_open_file(LPCTSTR path, pf_stream pstream)
 }
 
 void
-util_set_undo(eu_tabpage *p)
-{
-    if (p && !eu_sci_call(p, SCI_GETUNDOCOLLECTION, 0 , 0))
-    {
-        eu_sci_call(p, SCI_SETUNDOCOLLECTION, 1 , 0);
-    }
-}
-
-void
 util_setforce_eol(eu_tabpage *p)
 {
     size_t len = 0;

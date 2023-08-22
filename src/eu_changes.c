@@ -130,7 +130,7 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
                 case IDC_NOEXIST_BTN3:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 0);
+                        on_tabpage_reload_file(p, 0, NULL);
                         p->st_mtime = 0;
                         _InterlockedExchange(&keep_mask, FILE_KEEP_YES);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
@@ -139,7 +139,7 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
                 case IDC_NOEXIST_BTN4:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 1);
+                        on_tabpage_reload_file(p, 1, NULL);
                         _InterlockedExchange(&keep_mask, FILE_KEEP_NO);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
@@ -229,14 +229,14 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDC_FC_BTN1:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 2);
+                        on_tabpage_reload_file(p, 2, NULL);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
                     break;
                 case IDC_FC_BTN2:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 0);
+                        on_tabpage_reload_file(p, 0, NULL);
                         p->st_mtime = util_last_time(p->pathfile);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
@@ -244,7 +244,7 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDC_FC_BTN3:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 2);
+                        on_tabpage_reload_file(p, 2, NULL);
                         if (eu_get_config()->m_upfile != FILE_CHANGE_SEC_YES)
                         {
                             eu_get_config()->m_upfile = FILE_CHANGE_ALL_YES;
@@ -255,7 +255,7 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDC_FC_BTN4:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 0);
+                        on_tabpage_reload_file(p, 0, NULL);
                         p->st_mtime = util_last_time(p->pathfile);
                         if (eu_get_config()->m_upfile != FILE_CHANGE_SEC_NO)
                         {
@@ -313,13 +313,13 @@ on_changes_delete_event(eu_tabpage *p)
         }
         case FILE_KEEP_ALL_YES:
         {
-            on_tabpage_reload_file(p, 0);
+            on_tabpage_reload_file(p, 0, NULL);
             p->st_mtime = 0;
             break;
         }
         case FILE_KEEP_ALL_NO:
         {
-            on_tabpage_reload_file(p, 1);
+            on_tabpage_reload_file(p, 1, NULL);
             break;
         }
         default:
@@ -344,13 +344,13 @@ on_changes_time_event(eu_tabpage *p)
         case FILE_CHANGE_ALL_YES:
         case FILE_CHANGE_SEC_YES:
         {
-            on_tabpage_reload_file(p, 2);
+            on_tabpage_reload_file(p, 2, NULL);
             break;
         }
         case FILE_CHANGE_ALL_NO:
         case FILE_CHANGE_SEC_NO:
         {
-            on_tabpage_reload_file(p, 0);
+            on_tabpage_reload_file(p, 0, NULL);
             p->st_mtime = util_last_time(p->pathfile);
             break;
         }
