@@ -596,15 +596,15 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
             pnode->be_modify = true;
             on_toolbar_update_button();
             InvalidateRect(g_tabpages, NULL, false);
-            eu_logmsg("skylark: doc has been modified\n");
+            eu_logmsg("%s: iniit doc has been modified\n", __FUNCTION__);
         }
     }
     if (flags && !lpnmhdr->modified && pnode->plugin)
     {
         bool remote = false;
         bool backup = false;
+        int err = EUE_UNKOWN_ERR;
         wchar_t *full_path = NULL;
-        pnode->be_modify = false;
         eu_logmsg("skylark: doc has been saved\n");
         if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&full_path) && STR_NOT_NUL(full_path))
         {
@@ -620,17 +620,21 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
             {
                 if (remote)
                 {
-                    on_proc_save_remote(pnode);
+                    err = np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+                    if (!err)
+                    {
+                        err = on_proc_save_remote(pnode);
+                    }
                 }
                 else if (backup)
                 {
-                    np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, pnode->pathfile);
+                    err = np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, pnode->pathfile);
                     util_delete_file(pnode->bakpath);
                     pnode->bakpath[0] = 0;
                 }
                 else
                 {
-                    np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+                    err = np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
                 }
                 on_file_update_time(pnode, 0);
             }
@@ -654,9 +658,14 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                 }
                 on_file_update_time(pnode, 0);
                 util_set_title(pnode);
-                np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
+                err = np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
+            }
+            if (err == SKYLARK_OK)
+            {
+                pnode->be_modify = false;
             }
             InvalidateRect(g_tabpages, NULL, false);
+            on_toolbar_update_button();
             eu_safe_free(full_path);
         }
     }

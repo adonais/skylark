@@ -50,9 +50,9 @@ int  np_plugins_initialize(const NMM hmod, npdata **pdata);
 int  np_plugins_destroy(const npp_funcs *pfunc, const NPP instance, nppsave **data);
 int  np_plugins_getvalue(const npp_funcs *pfunc, const NPP instance, npp_variable v, void **value);
 int  np_plugins_setvalue(const npp_funcs *pfunc, const NPP instance, npp_variable v, void *value);
+int  np_plugins_savefile(const npp_funcs *pfunc, const NPP instance);
+int  np_plugins_savefileas(const npp_funcs *pfunc, const NPP instance, const wchar_t *path);
 void np_plugins_shutdown(HMODULE *hmod, npdata **plugin);
-void np_plugins_savefile(const npp_funcs *pfunc, const NPP instance);
-void np_plugins_savefileas(const npp_funcs *pfunc, const NPP instance, const wchar_t *path);
 void np_plugins_print(const npp_funcs *pfunc, const NPP instance, npprint *platform);
 HMODULE np_load_plugin_library(const TCHAR *filename, const bool sys);
 
