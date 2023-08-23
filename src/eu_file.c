@@ -1608,6 +1608,11 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
             result = EUE_CURL_NETWORK_ERR;
             break;
         }
+        if (pnode->be_modify && (!pbak || !pbak->status))
+        {   // add_text导致了SCN_SAVEPOINTLEFT消息
+            // 重新修改回状态
+            pnode->be_modify = false;
+        }
         result = on_file_after_open(pnode, pbak);
     } while(0);
     util_unlock(&pnode->busy_id);
@@ -2035,6 +2040,7 @@ SAVE_FINAL:
         if (!pnode->pmod)
         {   // 发送SCI_SETSAVEPOINT消息
             pnode->fn_modify = false;
+            on_sci_point_reached(pnode);
             eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
             if (!(pnode->is_blank || save_as))
             {
@@ -2212,13 +2218,13 @@ on_file_cache_protect(eu_tabpage *pnode)
 static void
 on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
 {
-    file_backup filebak = {0};
-    filebak.cp = pnode->codepage;
-    filebak.bakcp = !TAB_NOT_BIN(pnode) ? IDM_OTHER_BIN : IDM_UNI_UTF8;
     if (!file_click_close(mode) && !on_file_cache_protect(pnode))
     {
         if (!pnode->is_blank || TAB_NOT_NUL(pnode))
         {
+            file_backup filebak = {0};
+            filebak.cp = pnode->codepage;
+            filebak.bakcp = !TAB_NOT_BIN(pnode) ? IDM_OTHER_BIN : IDM_UNI_UTF8;
             if (pnode->be_modify)
             {
                 TCHAR buf[QW_SIZE] = {0};

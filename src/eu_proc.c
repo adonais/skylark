@@ -1958,9 +1958,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    eu_logmsg("%s: on_sci_point_reached caller\n", __FUNCTION__);
                     break;
                 case SCN_SAVEPOINTLEFT:
                     on_sci_point_left(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    eu_logmsg("%s: on_sci_point_left caller\n", __FUNCTION__);
                     break;
                 case SCN_MARGINCLICK:
                 {

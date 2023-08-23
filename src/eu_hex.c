@@ -1833,17 +1833,9 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             return 0;
         }
-        case SCI_SETSAVEPOINT:
-        {
-            return on_sci_point_reached(pnode);
-        }
         case SCI_GETCURRENTPOS:
         {
             return hexview->number_items;
-        }
-        case SCN_SAVEPOINTLEFT:
-        {
-            return on_sci_point_left(pnode);
         }
         case SCI_GETSELTEXT:
         {
