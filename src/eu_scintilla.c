@@ -18,8 +18,6 @@
 
 #include "framework.h"
 
-#define HOSTORY_MODIFIED_COLOR 0x0080FF
-
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 static volatile sptr_t last_sci_eusc = 0;
@@ -118,7 +116,12 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_HISTORY_INDEX, TRUE);
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_HISTORY_INDEX, SC_MARGIN_SYMBOL);
     eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_HISTORY_INDEX, MARGIN_HISTORY_MASKN);
-    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, HOSTORY_MODIFIED_COLOR);
+    eu_sci_call(pnode, SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.color);
+    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.color);
+    eu_sci_call(pnode, SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_SAVED, eu_get_theme()->item.nchistory.bgcolor);
+    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.bgcolor);
+    eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_MODIFIED_INSERTION, eu_get_theme()->item.dochistory.color);
+    eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_SAVED_INSERTION, eu_get_theme()->item.dochistory.bgcolor);
     // 代码折叠栏颜色与亮量颜色, 这里与背景色相同
     eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
     eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);

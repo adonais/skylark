@@ -203,12 +203,15 @@ struct styletheme
     struct styleclass cdata;
     struct styleclass phpsection;
     struct styleclass aspsection;
+    struct styleclass xmlsection;
 
     struct styleclass activetab;
     struct styleclass caret;
     struct styleclass symbolic;
     struct styleclass hyperlink;
     struct styleclass results;
+    struct styleclass nchistory;
+    struct styleclass dochistory;
 };
 
 typedef struct _npn_rect

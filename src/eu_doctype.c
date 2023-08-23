@@ -424,11 +424,17 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
                 eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowtags.color));
                 eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
                 break;
-            case 9:
+            case 9:  // asp color
                 eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.aspsection.font));
                 eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.aspsection.fontsize);
                 eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.aspsection.color));
                 eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.aspsection.bold));
+                break;
+            case 10:
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.xmlsection.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.xmlsection.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.xmlsection.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.xmlsection.bold));
                 break;
             default:
                 break;
@@ -1169,6 +1175,8 @@ int
 on_doc_init_after_xml(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "xml");
+    on_doc_keyword_light(pnode, SCE_H_XMLSTART, 10, 0);
+    on_doc_keyword_light(pnode, SCE_H_XMLEND, 10, 0);
     on_doc_tags_light(pnode, SCE_H_TAG, 0);
     on_doc_keyword_light(pnode, SCE_H_TAGUNKNOWN, 8, 0);
     on_doc_keyword_light(pnode, SCE_H_ATTRIBUTE, 4, 0);
