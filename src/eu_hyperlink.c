@@ -193,8 +193,6 @@ on_hyper_menu(eu_tabpage *pnode)
     {
         eu_get_config()->m_hyperlink ^= true;
         // Make it generate SCN_UPDATEUI message
-        const sptr_t pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
-        eu_sci_call(pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
-        eu_sci_call(pnode, SCI_SETANCHOR, pos, 0);
+        util_updateui_msg(pnode);
     }
 }

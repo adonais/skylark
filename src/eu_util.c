@@ -3113,6 +3113,14 @@ util_shield_icon(HINSTANCE hinst, LPCTSTR name)
 }
 
 void
+util_updateui_msg(const eu_tabpage *pnode)
+{
+    const sptr_t pos = eu_sci_call((eu_tabpage *)pnode, SCI_GETANCHOR, 0, 0);
+    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
+    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos, 0);
+}
+
+void
 util_update_env(eu_tabpage *pnode)
 {
     TCHAR *env_name[] = {_T("FULL_CURRENT_PATH"),
