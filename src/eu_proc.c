@@ -1414,6 +1414,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_MOVEBOTTOM_FIRSTLINE:
                     on_search_move_to_bottom_block(pnode);
                     break;
+                case IDM_SEARCH_NAVIGATE_NEXT_HISTORY:
+                    on_search_jmp_next_history(pnode);
+                    break;
+                case IDM_SEARCH_NAVIGATE_PREV_HISTORY:
+                    on_search_jmp_previous_history(pnode);
+                    break;
+                case IDM_SEARCH_NAVIGATE_CLEAR_HISTORY:
+                    on_sci_clear_history(pnode, true);
+                    break;
                 case IDM_SEARCH_TOGGLE_BOOKMARK:
                     on_search_toggle_mark(pnode, -1);
                     break;
@@ -1421,10 +1430,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_remove_marks_all(pnode);
                     break;
                 case IDM_SEARCH_GOTO_PREV_BOOKMARK:
-                    on_search_jmp_premark_this(pnode);
+                    on_search_jmp_premark_this(pnode, MARGIN_BOOKMARK_MASKN);
                     break;
                 case IDM_SEARCH_GOTO_NEXT_BOOKMARK:
-                    on_search_jmp_next_mark_this(pnode);
+                    on_search_jmp_next_mark_this(pnode, MARGIN_BOOKMARK_MASKN);
                     break;
                 case IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL:
                     on_search_jmp_premark_all(pnode);

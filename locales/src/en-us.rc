@@ -211,6 +211,12 @@ BEGIN
         MENUITEM "Go To Matching Brace",                               IDM_SEARCH_MATCHING_BRACE
         MENUITEM "Select Chars Between &Matching Braces",              IDM_SEARCH_MATCHING_BRACE_SELECT
         MENUITEM MF_SEPARATOR
+        POPUP "Change History",                                        IDM_SEARCH_HISTORY_PLACEHOLDE
+        BEGIN
+            MENUITEM "Goto Next Change",                               IDM_SEARCH_NAVIGATE_NEXT_HISTORY
+            MENUITEM "Goto Previous Change",                           IDM_SEARCH_NAVIGATE_PREV_HISTORY
+            MENUITEM "&Clear Change History",                          IDM_SEARCH_NAVIGATE_CLEAR_HISTORY
+        END
         POPUP "Bookmark",                                              IDM_EDIT_PLACEHOLDE13
         BEGIN
             MENUITEM "Add/Delete Bookmark ",                           IDM_SEARCH_TOGGLE_BOOKMARK

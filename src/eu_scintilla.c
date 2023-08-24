@@ -18,6 +18,8 @@
 
 #include "framework.h"
 
+#define SKYLARK_CURSORHAND 0x8
+
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
 static volatile sptr_t last_sci_eusc = 0;
@@ -47,12 +49,21 @@ static const char *auto_xpm[] = {
 };
 
 void
-on_sci_clear_history(eu_tabpage *pnode)
+on_sci_clear_history(eu_tabpage *pnode, const bool refresh)
 {
     if (pnode)
     {
         eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
         eu_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_DISABLED, 0);
+        if (refresh)
+        {
+            const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_PLACEHOLDE;
+            if (maskn > 1)
+            {
+                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
+                util_updateui_msg(pnode);
+            }
+        }
     }
 }
 
@@ -112,6 +123,7 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.shape);
     eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
     eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
+    eu_sci_call(pnode, SCI_SETMARGINCURSORN, MARGIN_BOOKMARK_INDEX, SKYLARK_CURSORHAND);
     // 修改文本历史记录样式
     eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_HISTORY_INDEX, TRUE);
     eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_HISTORY_INDEX, SC_MARGIN_SYMBOL);
@@ -277,7 +289,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
             if (init)
             {
                 eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
-                on_sci_clear_history(pnode);
+                on_sci_clear_history(pnode, false);
                 on_sci_update_history_margin(pnode);
             }
             on_sci_reset_zoom(pnode);

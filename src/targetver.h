@@ -1232,6 +1232,11 @@
 #define IDM_VIEW_HISTORY_DOCS               44715
 #define IDM_VIEW_HISTORY_ALL                44717
 
+#define IDM_SEARCH_HISTORY_PLACEHOLDE       44720
+#define IDM_SEARCH_NAVIGATE_NEXT_HISTORY    44721
+#define IDM_SEARCH_NAVIGATE_PREV_HISTORY    44722
+#define IDM_SEARCH_NAVIGATE_CLEAR_HISTORY   44723
+
 // For MessageBox
 #define IDALWAYS                            12
 #define MB_YESNOALWAYS                      0x0007

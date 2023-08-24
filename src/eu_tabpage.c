@@ -1383,7 +1383,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
         {
             if (!url_has_remote(pnode->pathfile))
             {
-                on_sci_clear_history(pnode);
+                on_sci_clear_history(pnode, false);
                 eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
                 if (on_file_load(pnode, NULL, true) == SKYLARK_OK)
                 {
@@ -1392,8 +1392,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
                     {
                         *pline = max_line - 1;
                     }
-                    eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 1, 0);
-                    eu_sci_call(pnode, SCI_EMPTYUNDOBUFFER, 0, 0);
+                    on_sci_clear_history(pnode, true);
                     pnode->be_modify = false;
                     pnode->fn_modify = false;
                     if (!pnode->is_blank)

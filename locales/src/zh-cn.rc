@@ -211,6 +211,12 @@ BEGIN
         MENUITEM "转到匹配的括号",                              IDM_SEARCH_MATCHING_BRACE
         MENUITEM "选中匹配括号间的字符(&M)",                    IDM_SEARCH_MATCHING_BRACE_SELECT
         MENUITEM MF_SEPARATOR
+        POPUP "变更历史",                                       IDM_SEARCH_HISTORY_PLACEHOLDE
+        BEGIN
+            MENUITEM "跳转到下一处变更标记",                    IDM_SEARCH_NAVIGATE_NEXT_HISTORY
+            MENUITEM "跳转到上一处变更标记",                    IDM_SEARCH_NAVIGATE_PREV_HISTORY
+            MENUITEM "清除本页面所有变更标记(&C)",              IDM_SEARCH_NAVIGATE_CLEAR_HISTORY
+        END
         POPUP "书签",                                           IDM_EDIT_PLACEHOLDE13
         BEGIN
             MENUITEM "增加/删除书签",                           IDM_SEARCH_TOGGLE_BOOKMARK

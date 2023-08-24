@@ -92,8 +92,10 @@ bool on_search_create_box(void);
 
 void on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno);
 void on_search_remove_marks_all(eu_tabpage *pnode);
-void on_search_jmp_premark_this(eu_tabpage *pnode);
-void on_search_jmp_next_mark_this(eu_tabpage *pnode);
+void on_search_jmp_premark_this(eu_tabpage *pnode, const int mask);
+void on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask);
+void on_search_jmp_previous_history(eu_tabpage *pnode);
+void on_search_jmp_next_history(eu_tabpage *pnode);
 void on_search_jmp_specified_line(eu_tabpage *pnode);
 void on_search_move_to_lgroup(eu_tabpage *pnode);
 void on_search_move_to_rgroup(eu_tabpage *pnode);
@@ -129,6 +131,8 @@ void on_search_repalce_event(eu_tabpage *p, replace_event docase);
 void on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres);
 void on_search_turn_select(eu_tabpage *pnode);
 void on_search_regxp_error(void);
+void
+on_search_jmp_next_history(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

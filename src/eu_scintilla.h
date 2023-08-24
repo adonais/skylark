@@ -26,7 +26,15 @@
     (1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED)   \
 )
 
-#define MARGIN_BOOKMARK_MASKN        0x1
+#define MARGIN_BOOKMARK_VALUE 0x9
+#define MARGIN_BOOKMARK_MASKN (~SC_MASK_FOLDERS & ~MARGIN_HISTORY_MASKN)
+
+#define OSI_BITMASK_GET(pos, len) (~(~((int)0ull) << (len)) << (pos))
+#define INVISIBLE_BITMASK() OSI_BITMASK_GET(0, 1)
+#define MARKERS_BITMASK() OSI_BITMASK_GET(0, MARGIN_BOOKMARK_VALUE + 1)
+#define BOOKMARK_BITMASK() OSI_BITMASK_GET(MARGIN_BOOKMARK_VALUE, 1)
+#define CHANGE_HISTORY_BITMASK() OSI_BITMASK_GET(SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, \
+                                                (SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED - SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN + 1))
 
 #ifdef __cplusplus
 extern "C"
@@ -45,7 +53,7 @@ void on_sci_after_file(eu_tabpage *pnode, const bool init);
 void on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify);
 void on_sci_send_extra(void *pdata, uint32_t code, LPNMHDR phdr);
 void on_sci_update_line_margin(eu_tabpage *pnode);
-void on_sci_clear_history(eu_tabpage *pnode);
+void on_sci_clear_history(eu_tabpage *pnode, const bool refresh);
 void on_sci_update_history_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
 void on_sci_free_tab(eu_tabpage **ppnod);

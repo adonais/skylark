@@ -65,9 +65,6 @@
 #define MARGIN_FOLD_WIDTH            14
 #define MARGIN_HISTORY_WIDTH         9
 
-#define MARGIN_BOOKMARK_VALUE        0
-#define MARGIN_HISTORY_VALUE         1
-
 #define SYMBOLLIST_MARGIN_LEFT       2
 #define SYMBOLLIST_MARGIN_RIGHT      2
 #define SYMBOLLIST_MARGIN_TOP        2

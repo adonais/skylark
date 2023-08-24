@@ -211,6 +211,7 @@ menu_update_hexview(const HMENU root_menu, const bool hex_mode, const bool init)
         util_enable_menu_item(root_menu, IDM_SETTING_FONTQUALITY, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_SETTING_RENDER, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_HISTORY_PLACEHOLDE, init || !hex_mode);
+        util_enable_menu_item(root_menu, IDM_SEARCH_HISTORY_PLACEHOLDE, init || !hex_mode);
     }
 }
 
