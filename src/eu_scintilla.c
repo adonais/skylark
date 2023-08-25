@@ -248,17 +248,16 @@ on_sci_reset_zoom(eu_tabpage *pnode)
         {
             while (zoom--)
             {
-                on_view_zoom_out(pnode);
+                on_view_zoom_in(pnode);
             }
         }
         else if (pnode->zoom_level < 0)
         {
             while (zoom++)
             {
-                on_view_zoom_in(pnode);
+                on_view_zoom_out(pnode);
             }
         }
-        pnode->zoom_level = 0;
     }
 }
 

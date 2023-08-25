@@ -27,7 +27,6 @@
 #define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\0")
 
 static int hex_area = 0;
-static volatile long hex_zoom = 0;
 static volatile long affected_switch = 0;
 
 /*******************************************
@@ -501,7 +500,7 @@ hexview_vscroll_visible(HWND hwnd)
 }
 
 static bool
-hexview_create_font(HWND hwnd, PHEXVIEW hexview)
+hexview_create_font(HWND hwnd, PHEXVIEW hexview, const int zoom)
 {
     LOGFONT logfont;
     TCHAR font[LF_FACESIZE] = {0};
@@ -518,7 +517,7 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     {
         quality = NONANTIALIASED_QUALITY;
     }
-    int font_size = eu_get_theme()->item.text.fontsize + hex_zoom + 1;
+    int font_size = eu_get_theme()->item.text.fontsize + zoom + 1;
     logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(NULL), 72);
     logfont.lfWidth = 0;
     logfont.lfEscapement = 0;
@@ -1047,9 +1046,9 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 hexview->ct_flags &= ~HVF_FONTCREATED;
             }
             hexview->hfont = (HFONT) wParam;
-            if (!hexview->hfont)
+            if (!hexview->hfont && pnode)
             {
-                hexview_create_font(hwnd, hexview);
+                hexview_create_font(hwnd, hexview, pnode->zoom_level);
             }
             hdc = GetDC(hwnd);
             hold_font = SelectObject(hdc, hexview->hfont);
@@ -1745,28 +1744,37 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         // 兼容scintilla控件
         case SCI_ZOOMIN:
         {
-            _InterlockedExchangeAdd(&hex_zoom, 1);
-            SendMessage(hwnd, WM_SETFONT, 0, 0);
-            InvalidateRect(hwnd, NULL, false);
+            if (pnode && pnode->zoom_level !=SELECTION_ZOOM_LEVEEL)
+            {
+                ++pnode->zoom_level;
+                SendMessage(hwnd, WM_SETFONT, 0, 0);
+                InvalidateRect(hwnd, NULL, false);
+            }
             break;
         }
         case SCI_ZOOMOUT:
         {
-            _InterlockedExchangeAdd(&hex_zoom, -1);
-            SendMessage(hwnd, WM_SETFONT, 0, 0);
-            InvalidateRect(hwnd, NULL, false);
+            if (pnode && pnode->zoom_level != SELECTION_ZOOM_LEVEEL)
+            {
+                --pnode->zoom_level;
+                SendMessage(hwnd, WM_SETFONT, 0, 0);
+                InvalidateRect(hwnd, NULL, false);
+            }
             break;
         }
         case SCI_SETZOOM:
         {
-            _InterlockedExchange(&hex_zoom, (long)wParam);
-            SendMessage(hwnd, WM_SETFONT, 0, 0);
-            InvalidateRect(hwnd, NULL, false);
+            if (pnode && pnode->zoom_level != SELECTION_ZOOM_LEVEEL)
+            {
+                pnode->zoom_level = 0;
+                SendMessage(hwnd, WM_SETFONT, 0, 0);
+                InvalidateRect(hwnd, NULL, false);
+            }
             break;
         }
         case SCI_GETZOOM:
         {
-            return hex_zoom;
+            return (pnode && pnode->zoom_level ? pnode->zoom_level : 0);
         }
         case SCI_GOTOPOS:
         {
@@ -2154,10 +2162,11 @@ hexview_switch_mode(eu_tabpage *pnode)
     if (!pnode->hex_mode)
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        pnode->zoom_level = (pnode->zoom_level == SELECTION_ZOOM_LEVEEL) ? 0 : (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
+        eu_logmsg("To hex, pnode->zoom_level = %d\n", pnode->zoom_level);
         if (!pnode->phex)
         {
             pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
-            hex_zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
             if (!pnode->phex)
             {
                 err = EUE_POINT_NULL;
@@ -2195,7 +2204,9 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnode->tab_id = on_tabpage_get_index(pnode);
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
         pnode->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
-        pnode->zoom_level = hex_zoom > SELECTION_ZOOM_LEVEEL ? hex_zoom : 0;
+        pnode->zoom_level = (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
+        pnode->zoom_level == SELECTION_ZOOM_LEVEEL ? (pnode->zoom_level = 0) : (void)0;
+        eu_logmsg("To text, pnode->zoom_level = %d\n", pnode->zoom_level);
         pnode->needpre = pnode->pre_len > 0;
         if (pnode->phex && pnode->phex->hex_ascii)
         {

@@ -19,7 +19,7 @@
 #ifndef _H_SKYLARK_SEARCH_
 #define _H_SKYLARK_SEARCH_
 
-#define SELECTION_ZOOM_LEVEEL -11
+#define SELECTION_ZOOM_LEVEEL -99
 
 #define ON_LOOP_FLAGS          0x00000010
 #define ON_HEX_STRINGS         0x00000020

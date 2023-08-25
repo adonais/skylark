@@ -2267,7 +2267,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
             filebak.blank = pnode->is_blank;
             filebak.hex = !(pnode->pmod && pnode->plugin) ? pnode->hex_mode : 0;
             filebak.focus = pnode->last_focus;
-            filebak.zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
+            filebak.zoom = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
             on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
             on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
             filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
@@ -2535,7 +2535,7 @@ on_file_check_save(void *lp)
         if (pnode)
         {
             pnode->tab_id = index;
-            pnode->zoom_level = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
+            pnode->zoom_level = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
             if (at_focus >= 0)
             {
                 pnode->last_focus = pnode->tab_id == at_focus;

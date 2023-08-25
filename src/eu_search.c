@@ -739,9 +739,10 @@ on_search_set_rectangle(eu_tabpage *pnode)
         {
             if (eu_sci_call(pnode, SCI_GETZOOM, 0, 0) == 0)
             {
-                on_view_zoom_in(pnode);
-                on_view_zoom_in(pnode);
+                on_view_zoom_out(pnode);
+                on_view_zoom_out(pnode);
                 pnode->zoom_level = SELECTION_ZOOM_LEVEEL;
+                eu_logmsg("%s: pnode->zoom_level = %d\n", __FUNCTION__, pnode->zoom_level);
             }
             eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_RECTANGLE, 0);
         }
