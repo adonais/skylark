@@ -126,7 +126,15 @@ dirs:
     @if not exist "$(DIR_O)" mkdir "$(DIR_O)" && echo.   Created $(DIR_O)
     @if not exist "$(DIR_O)\host" mkdir "$(DIR_O)\host" && echo.   Created $(DIR_O)\host
     @if not exist "$(BIN_O)" mkdir "$(BIN_O)" && echo.   Created $(BIN_O)
-    
+
+$(SRC)\luajit.h: $(MINILUA) $(SRC)\luajit_rolling.h
+	@if exist "$(SRC)\luajit.h" del /q "$(SRC)\luajit.h"
+	@if exist "$(SRC)\luajit_relver.txt" del /q "$(SRC)\luajit_relver.txt"
+	@git show -s --format=%%ct >$(SRC)\luajit_relver.txt
+	@cd src
+	..\$(MINILUA) host\genversion.lua
+	@cd ..
+
 $(MINILUA): $(MIN_OBJS)
 	$(LD) $(LDFLAGS) -out:$@ $(MIN_OBJS)
 !IF "$(BITS)" == "64"	
@@ -135,7 +143,7 @@ $(MINILUA): $(MIN_OBJS)
 	$(MINILUA) dynasm\dynasm.lua -LN -D WIN -D JIT -D FFI -o $(SRC)\host\buildvm_arch.h $(SRC)\vm_x86.dasc
 !ENDIF
 	
-$(BUILDVM): $(BUILDVM_OBJS) $(MINILUA)
+$(BUILDVM): $(MINILUA) $(SRC)\luajit.h $(BUILDVM_OBJS)
 	$(LD) $(LDFLAGS) -out:$@ $(BUILDVM_OBJS)
 	$(BUILDVM) -m peobj -o $(DIR_O)\lj_vm.obj
 	$(BUILDVM) -m bcdef -o $(SRC)\lj_bcdef.h $(ALL_LIB)
@@ -157,9 +165,10 @@ clean:
 	-del /q $(STATICLIB) 2>nul 1>nul
 	-del /q $(OBJS) 2>nul 1>nul
 	-del /q $(SRC)\host\buildvm_arch.h  $(SRC)\lj_vm.obj $(SRC)\lj_bcdef.h $(SRC)\lj_ffdef.h $(SRC)\lj_libdef.h \
-	        $(SRC)\lj_recdef.h $(SRC)\lj_recdef.h $(SRC)\jit\vmdef.lua $(SRC)\lj_folddef.h
-	-rd /s/q $(DIR_O)  2>nul 1>nul
-	-rd /s/q $(BIN_O)  2>nul 1>nul
+	        $(SRC)\lj_recdef.h $(SRC)\lj_recdef.h $(SRC)\jit\vmdef.lua $(SRC)\lj_folddef.h $(SRC)\luajit_relver.txt $(SRC)\luajit.h 2>nul 1>nul
+	-rd /s/q "$(DIR_O)"  2>nul 1>nul
+	-rd /s/q "$(BIN_O)"  2>nul 1>nul
+	-rd /s/q "$(BIND)\\lua"
 
 $(MIN_OBJS)     : $(SRC)\host\minilua.c
 	$(CC) $(CFLAGS) -Fd$(BIN_O)\minilua.pdb -Fo$(DIR_O)\ -c $(SRC)\host\minilua.c
