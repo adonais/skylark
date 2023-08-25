@@ -61,7 +61,7 @@ on_sci_clear_history(eu_tabpage *pnode, const bool refresh)
             if (maskn > 1)
             {
                 eu_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
-                util_updateui_msg(pnode);
+                util_redraw(pnode->hwnd_sc, false);
             }
         }
     }

@@ -215,7 +215,7 @@ BEGIN
         BEGIN
             MENUITEM "跳转到下一处变更标记",                    IDM_SEARCH_NAVIGATE_NEXT_HISTORY
             MENUITEM "跳转到上一处变更标记",                    IDM_SEARCH_NAVIGATE_PREV_HISTORY
-            MENUITEM "清除本页面所有变更标记(&C)",              IDM_SEARCH_NAVIGATE_CLEAR_HISTORY
+            MENUITEM "清除本页面所有变更标记",                  IDM_SEARCH_NAVIGATE_CLEAR_HISTORY
         END
         POPUP "书签",                                           IDM_EDIT_PLACEHOLDE13
         BEGIN
