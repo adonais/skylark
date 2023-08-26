@@ -435,6 +435,8 @@
 #define IDC_SETTEXTCOLOR_HISTORYDOC_BTN       21147
 #define IDC_THEME_HISTORYDOC2_STATIC          21148
 #define IDC_SETTEXTCOLOR_HISTORYDOC2_BTN      21149
+#define IDC_BRACESECTION_STATIC               21150
+#define IDC_SETTEXTCOLORBRACESECTION_BTN      21151
 
 #define IDD_ABOUTBOX                          21200
 #define IDM_ABOUT                             21201

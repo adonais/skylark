@@ -2287,6 +2287,11 @@ eu_save_theme(void)
         "results_color = 0x%08X\n"
         "results_bgcolor = 0x%08X\n"
         "results_bold = %d\n"
+        "bracesection_font = \"%s\"\n"
+        "bracesection_fontsize = %d\n"
+        "bracesection_color = 0x%08X\n"
+        "bracesection_bgcolor = 0x%08X\n"
+        "bracesection_bold = %d\n"
         "nchistory_font = \"%s\"\n"
         "nchistory_fontsize = %d\n"
         "nchistory_color = 0x%08X\n"
@@ -2340,6 +2345,7 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(symbolic),
         EXPAND_STYLETHEME(hyperlink),
         EXPAND_STYLETHEME(results),
+        EXPAND_STYLETHEME(bracesection),
         EXPAND_STYLETHEME(nchistory),
         EXPAND_STYLETHEME(dochistory));
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)

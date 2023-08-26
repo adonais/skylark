@@ -209,6 +209,7 @@ struct styletheme
     struct styleclass symbolic;
     struct styleclass hyperlink;
     struct styleclass results;
+    struct styleclass bracesection;
     struct styleclass nchistory;
     struct styleclass dochistory;
 };

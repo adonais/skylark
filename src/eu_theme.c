@@ -123,6 +123,9 @@ static HWND hwnd_result_key_static;
 static HFONT font_result_lineno_static;
 static HFONT font_result_key_static;
 
+static HWND hwnd_bracesection_static;
+static HFONT font_bracesection_static;
+
 static HWND hwnd_nchistory_static;
 static HWND hwnd_nchistory_static2;
 static HFONT font_nchistory_static;
@@ -613,6 +616,7 @@ theme_release_handle(void)
     DeleteObject(font_hyperlink_static);
     DeleteObject(font_result_lineno_static);
     DeleteObject(font_result_key_static);
+    DeleteObject(font_bracesection_static);
     DeleteObject(font_nchistory_static);
     DeleteObject(font_nchistory_static2);
     DeleteObject(font_dochistory_static);
@@ -717,6 +721,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(symbolic, IDC_THEME_SYMBOLIC_STATIC, hwnd_symbolic_static, font_symbolic_static)
             CREATE_STYLETHEME_FONT(results, IDC_THEME_LINENO_STATIC, hwnd_result_lineno_static, font_result_lineno_static)
             CREATE_STYLETHEME_FONT(results, IDC_THEME_LINEKEY_STATIC, hwnd_result_key_static, font_result_key_static)
+            CREATE_STYLETHEME_FONT(bracesection, IDC_BRACESECTION_STATIC, hwnd_bracesection_static, font_bracesection_static)
             CREATE_STYLETHEME_FONT(nchistory, IDC_THEME_HISTORY_STATIC, hwnd_nchistory_static, font_nchistory_static)
             CREATE_STYLETHEME_FONT(nchistory, IDC_THEME_HISTORY2_STATIC, hwnd_nchistory_static2, font_nchistory_static2)
             CREATE_STYLETHEME_FONT(dochistory, IDC_THEME_HISTORYDOC_STATIC, hwnd_dochistory_static, font_dochistory_static)
@@ -830,6 +835,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETTEXTCOLOR_SYMBOLIC_BTN,
                                        IDC_SETTEXTCOLOR_LINENO_BTN,
                                        IDC_SETTEXTCOLOR_LINEKEY_BTN,
+                                       IDC_SETTEXTCOLORBRACESECTION_BTN,
                                        IDC_SETTEXTCOLOR_HISTORY_BTN,
                                        IDC_SETTEXTCOLOR_HISTORY2_BTN,
                                        IDC_SETTEXTCOLOR_HISTORYDOC_BTN,
@@ -986,6 +992,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else SET_STATIC_TEXTCOLOR(hwnd_aspsection_static, aspsection)
             else SET_STATIC_TEXTCOLOR(hwnd_xmlsection_static, xmlsection)
             else SET_STATIC_TEXTCOLOR(hwnd_hyperlink_static, hyperlink)
+            else SET_STATIC_TEXTCOLOR(hwnd_bracesection_static, bracesection)
             else SET_STATIC_TEXTCOLOR(hwnd_caret_static, caret)
             else SET_STATIC_TEXTCOLOR(hwnd_symbolic_static, symbolic)
             return (LRESULT) brush_language;
@@ -1117,6 +1124,12 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     choose_text_color(hdlg, &(dlg_style.results.bgcolor));
                     InvalidateRect(hwnd_result_key_static, NULL, FALSE);
+                    break;
+                }
+                case IDC_SETTEXTCOLORBRACESECTION_BTN:
+                {
+                    choose_text_color(hdlg, &dlg_style.bracesection.color);
+                    InvalidateRect(hwnd_bracesection_static, NULL, FALSE);
                     break;
                 }
                 case IDC_SETTEXTCOLOR_HISTORY_BTN:

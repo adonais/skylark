@@ -156,6 +156,11 @@ function eu_theme.get_default(name)
           "results_color = 0x00FF8000\n" ..
           "results_bgcolor = 0x00C080FF\n" ..
           "results_bold = 0\n" ..
+          "bracesection_font = \"Consolas\"\n" ..
+          "bracesection_fontsize = 11\n" ..
+          "bracesection_color = 0x000000FF\n" ..
+          "bracesection_bgcolor = 0x001E1E1E\n" ..
+          "bracesection_bold = 1\n" ..
           "nchistory_font = \"Consolas\"\n" ..
           "nchistory_fontsize = 11\n" ..
           "nchistory_color = 0x000080FF\n" ..
@@ -318,6 +323,11 @@ function eu_theme.get_default(name)
           "results_color = 0x00FF8000\n" ..
           "results_bgcolor = 0x00588609\n" ..
           "results_bold = 0\n" ..
+          "bracesection_font = \"Consolas\"\n" ..
+          "bracesection_fontsize = 11\n" ..
+          "bracesection_color = 0x000000FF\n" ..
+          "bracesection_bgcolor = 0x00FFFFFF\n" ..
+          "bracesection_bold = 1\n" ..
           "nchistory_font = \"Consolas\"\n" ..
           "nchistory_fontsize = 11\n" ..
           "nchistory_color = 0x000080FF\n" ..
@@ -482,6 +492,11 @@ function eu_theme.get_default(name)
           "results_color = 0x000000B050\n" ..
           "results_bgcolor = 0x00A8CE93\n" ..
           "results_bold = 0\n" ..
+          "bracesection_font = \"Consolas\"\n" ..
+          "bracesection_fontsize = 11\n" ..
+          "bracesection_color = 0x000000FF\n" ..
+          "bracesection_bgcolor = 0x00444444\n" ..
+          "bracesection_bold = 1\n" ..
           "nchistory_font = \"Consolas\"\n" ..
           "nchistory_fontsize = 11\n" ..
           "nchistory_color = 0x000080FF\n" ..
@@ -552,6 +567,13 @@ function eu_theme.load_default(name)
       results_bgcolor = number_color
       results_bold = 0
     end
+    if (bracesection_font == nil) then
+      bracesection_font = "Consola"
+      bracesection_fontsize = 11
+      bracesection_color = 0x000000FF
+      bracesection_bgcolor = text_bgcolor
+      bracesection_bold = 1
+    end
     if (nchistory_font == nil) then
       nchistory_font = "Consola"
       nchistory_fontsize = 11
@@ -600,6 +622,7 @@ function eu_theme.load_default(name)
         {symbolic_font,symbolic_fontsize,symbolic_color,symbolic_bgcolor,symbolic_bold},
         {hyperlink_font,hyperlink_fontsize,hyperlink_color,hyperlink_bgcolor,hyperlink_bold},
         {results_font,results_fontsize,results_color,results_bgcolor,results_bold},
+        {bracesection_font,bracesection_fontsize,bracesection_color,bracesection_bgcolor,bracesection_bold},
         {nchistory_font,nchistory_fontsize,nchistory_color,nchistory_bgcolor,nchistory_bold},
         {dochistory_font,dochistory_fontsize,dochistory_color,dochistory_bgcolor,dochistory_bold}
       }

@@ -223,9 +223,9 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     // 支持多列粘贴
     eu_sci_call(pnode, SCI_SETMULTIPASTE, SC_MULTIPASTE_EACH, 0);
     // 设置括号匹配高亮色以及指示出不匹配的大括号
-    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_config()->eu_brace.rgb);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.text.bgcolor);
-    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
+    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.color);
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.bgcolor);
+    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.bold);
     eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
     eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
