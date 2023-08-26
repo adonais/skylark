@@ -1752,17 +1752,11 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
             {   // 当键盘输入时, 相邻的括号不要高亮
                 if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
                 {
-                    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT,
-                                eu_get_config()->eu_brace.rgb != (uint32_t)-1 ? eu_get_config()->eu_brace.rgb : eu_get_theme()->item.text.color);
-                    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.text.bgcolor);
-                    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
                     eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
                 }
             }
             else
             {
-                eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
-                eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
                 eu_sci_call(pnode, SCI_BRACEBADLIGHT, current_pos, 0);
             }
         }

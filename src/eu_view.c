@@ -363,15 +363,29 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
 }
 
 void
-on_view_light_brace(void)
+on_view_light_brace(eu_tabpage *p)
 {
-    eu_get_config()->eu_brace.matching ^= true;
+    if (p)
+    {
+        eu_get_config()->eu_brace.matching ^= true;
+        if (!eu_get_config()->eu_brace.matching)
+        {   // 取消括号匹配
+            eu_sci_call(p, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
+        }
+    }
 }
 
 void
-on_view_light_str(void)
+on_view_light_str(eu_tabpage *p)
 {
-    eu_get_config()->m_light_str ^= true;
+    if (p)
+    {
+        eu_get_config()->m_light_str ^= true;
+        if (!eu_get_config()->m_light_str)
+        {   // 取消指示器高亮
+            eu_sci_call(p, SCI_INDICATORCLEARRANGE, 0, eu_sci_call(p, SCI_GETLENGTH, 0, 0));
+        }
+    }
 }
 
 void
@@ -541,6 +555,7 @@ on_view_history_visiable(eu_tabpage *pnode, const int wm_id)
                     on_sci_update_history_margin(p);
                 }
             }
+            util_redraw(pnode->hwnd_sc, false);
         }
     }
 }

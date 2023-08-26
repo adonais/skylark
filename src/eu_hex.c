@@ -2296,7 +2296,7 @@ hexview_switch_item(eu_tabpage *pnode)
     if (g_tabpages && pnode)
     {
         int result = IDOK;
-        if (!_InterlockedCompareExchange(&affected_switch, 1, 0))
+        if ((eu_sci_call(pnode, SCI_CANUNDO, 0, 0) || eu_sci_call(pnode, SCI_CANREDO, 0, 0)) && !_InterlockedCompareExchange(&affected_switch, 1, 0))
         {
             MSG_BOX_SEL(IDS_HISTORY_CLEAR_UNDO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, result);
         }

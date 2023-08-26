@@ -1485,10 +1485,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     hexview_switch_item(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_BRACE:
-                    on_view_light_brace();
+                    on_view_light_brace(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_STR:
-                    on_view_light_str();
+                    on_view_light_str(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_FOLD:
                     on_view_light_fold();

@@ -222,7 +222,12 @@ on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
     eu_sci_call(pnode, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT|SC_PERFORMED_UNDO|SC_PERFORMED_REDO, 0);
     // 支持多列粘贴
     eu_sci_call(pnode, SCI_SETMULTIPASTE, SC_MULTIPASTE_EACH, 0);
-    // 指示出不匹配的大括号
+    // 设置括号匹配高亮色以及指示出不匹配的大括号
+    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_config()->eu_brace.rgb);
+    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.text.bgcolor);
+    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
+    eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
+    eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
     eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
     // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
     eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
@@ -317,6 +322,7 @@ on_sci_refresh_ui(eu_tabpage *pnode)
         on_toolbar_update_button();
         on_statusbar_update();
         on_sci_update_line_margin(pnode);
+        util_redraw(g_tabpages, true);
     }
 }
 
