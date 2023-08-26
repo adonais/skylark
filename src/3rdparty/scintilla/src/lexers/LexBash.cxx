@@ -81,7 +81,7 @@ enum class QuoteStyle {
 	String,			// ""
 	LString,		// $""
 	HereDoc,		// here document
-	Backtick,		// ``, $``
+	Backtick,		// ``
 	Parameter,		// ${}
 	Command,		// $()
 	CommandInside,	// $() with styling inside
@@ -184,6 +184,7 @@ struct OptionsBash {
 	bool stylingInsideBackticks = false;
 	bool stylingInsideParameter = false;
 	bool stylingInsideHeredoc = false;
+	bool nestedBackticks = true;
 	int commandSubstitution = static_cast<int>(CommandSubstitution::Backtick);
 	std::string specialParameter = BASH_SPECIAL_PARAMETER;
 
@@ -234,6 +235,9 @@ struct OptionSetBash : public OptionSet<OptionsBash> {
 			"1 highlighted inside. "
 			"2 highlighted inside with extra scope tracking.");
 
+		DefineProperty("lexer.bash.nested.backticks", &OptionsBash::nestedBackticks,
+			"Set this property to 0 to disable nested backquoted command substitution.");
+
 		DefineProperty("lexer.bash.special.parameter", &OptionsBash::specialParameter,
 			"Set shell (default is Bash) special parameters.");
 
@@ -272,8 +276,10 @@ public:
 	int Depth = 0;
 	int State = SCE_SH_DEFAULT;
 	bool lineContinuation = false;
+	bool nestedBackticks = false;
 	CommandSubstitution commandSubstitution = CommandSubstitution::Backtick;
 	int insideCommand = 0;
+	unsigned backtickLevel = 0;
 	QuoteCls Current;
 	QuoteCls Stack[BASH_QUOTE_STACK_MAX];
 	const CharacterSet &setParamStart;
@@ -284,6 +290,9 @@ public:
 	void Start(int u, QuoteStyle s, int outer, CmdState state) noexcept {
 		if (Empty()) {
 			Current.Start(u, s, outer, state);
+			if (s == QuoteStyle::Backtick) {
+				++backtickLevel;
+			}
 		} else {
 			Push(u, s, outer, state);
 		}
@@ -295,13 +304,19 @@ public:
 		Stack[Depth] = Current;
 		Depth++;
 		Current.Start(u, s, outer, state);
+		if (s == QuoteStyle::Backtick) {
+			++backtickLevel;
+		}
 	}
 	void Pop() noexcept {
 		if (Depth == 0) {
 			Clear();
 			return;
 		}
-		if (insideCommand != 0) {
+		if (backtickLevel != 0 && Current.Style == QuoteStyle::Backtick) {
+			--backtickLevel;
+		}
+		if (insideCommand != 0 && Current.Style == QuoteStyle::CommandInside) {
 			insideCommand = 0;
 			for (int i = 0; i < Depth; i++) {
 				if (Stack[i].Style == QuoteStyle::CommandInside) {
@@ -317,6 +332,7 @@ public:
 		Depth = 0;
 		State = SCE_SH_DEFAULT;
 		insideCommand = 0;
+		backtickLevel = 0;
 		Current.Clear();
 	}
 	bool CountDown(StyleContext &sc, CmdState &cmdState) {
@@ -372,9 +388,6 @@ public:
 				// optimized to avoid track nested delimiter pairs
 				style = QuoteStyle::Literal;
 			}
-		} else if (sc.ch == '`') {	// $` seen in a configure script, valid?
-			style = QuoteStyle::Backtick;
-			sc.ChangeState(SCE_SH_BACKTICKS);
 		} else {
 			// scalar has no delimiter pair
 			if (!setParamStart.Contains(sc.ch)) {
@@ -392,18 +405,51 @@ public:
 		}
 	}
 	void Escape(StyleContext &sc) {
-		int count = 1;
+		unsigned count = 1;
 		while (sc.chNext == '\\') {
 			++count;
 			sc.Forward();
 		}
-		bool escaped = count & 1; // odd backslash escape next character
+		bool escaped = count & 1U; // odd backslash escape next character
 		if (escaped && (sc.chNext == '\r' || sc.chNext == '\n')) {
 			lineContinuation = true;
 			if (sc.state == SCE_SH_IDENTIFIER) {
 				sc.SetState(SCE_SH_OPERATOR | insideCommand);
 			}
 			return;
+		}
+		if (backtickLevel > 0 && nestedBackticks) {
+			/*
+			for $k$ level substitution with $N$ backslashes:
+			* when $N/2^k$ is odd, following dollar is escaped.
+			* when $(N - 1)/2^k$ is even, following quote is escaped.
+			* when $N = n\times 2^{k + 1} - 1$, following backtick is escaped.
+			* when $N = n\times 2^{k + 1} + 2^k - 1$, following backtick starts inner substitution.
+			* when $N = m\times 2^k + 2^{k - 1} - 1$ and $k > 1$, following backtick ends current substitution.
+			*/
+			if (sc.chNext == '$') {
+				escaped = (count >> backtickLevel) & 1U;
+			} else if (sc.chNext == '\"' || sc.chNext == '\'') {
+				escaped = (((count - 1) >> backtickLevel) & 1U) == 0;
+			} else if (sc.chNext == '`' && escaped) {
+				unsigned mask = 1U << (backtickLevel + 1);
+				count += 1;
+				escaped = (count & (mask - 1)) == 0;
+				if (!escaped) {
+					unsigned remain = count - (mask >> 1U);
+					if (static_cast<int>(remain) >= 0 && (remain & (mask - 1)) == 0) {
+						escaped = true;
+						++backtickLevel;
+					} else if (backtickLevel > 1) {
+						mask >>= 1U;
+						remain = count - (mask >> 1U);
+						if (static_cast<int>(remain) >= 0 && (remain & (mask - 1)) == 0) {
+							escaped = true;
+							--backtickLevel;
+						}
+					}
+				}
+			}
 		}
 		if (escaped) {
 			sc.Forward();
@@ -583,6 +629,7 @@ void SCI_METHOD LexerBash::Lex(Sci_PositionU startPos, Sci_Position length, int 
 	HereDocCls HereDoc;
 
 	QuoteStackCls QuoteStack(setParamStart);
+	QuoteStack.nestedBackticks = options.nestedBackticks;
 	QuoteStack.commandSubstitution = static_cast<CommandSubstitution>(options.commandSubstitution);
 
 	const WordClassifier &classifierIdentifiers = subStyles.Classifier(SCE_SH_IDENTIFIER);
