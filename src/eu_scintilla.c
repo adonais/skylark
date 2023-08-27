@@ -79,6 +79,13 @@ on_sci_update_history_margin(eu_tabpage *pnode)
     }
 }
 
+const int
+on_sci_bitmask_get(const uint32_t pos, const uint32_t len)
+{
+    const unsigned long long _zone = 0;
+    return (const int)(~(~((int)_zone) << (len)) << (pos));
+}
+
 void
 on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
 {

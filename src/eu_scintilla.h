@@ -26,15 +26,8 @@
     (1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED)   \
 )
 
-#define MARGIN_BOOKMARK_VALUE 0x9
-#define MARGIN_BOOKMARK_MASKN (~SC_MASK_FOLDERS & ~MARGIN_HISTORY_MASKN)
-
-#define OSI_BITMASK_GET(pos, len) (~(~((int)0ull) << (len)) << (pos))
-#define INVISIBLE_BITMASK() OSI_BITMASK_GET(0, 1)
-#define MARKERS_BITMASK() OSI_BITMASK_GET(0, MARGIN_BOOKMARK_VALUE + 1)
-#define BOOKMARK_BITMASK() OSI_BITMASK_GET(MARGIN_BOOKMARK_VALUE, 1)
-#define CHANGE_HISTORY_BITMASK() OSI_BITMASK_GET(SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, \
-                                                (SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED - SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN + 1))
+#define MARGIN_BOOKMARK_VALUE   0x9
+#define MARGIN_BOOKMARK_MASKN   (~SC_MASK_FOLDERS & ~MARGIN_HISTORY_MASKN)
 
 #ifdef __cplusplus
 extern "C"
@@ -64,6 +57,7 @@ bool on_sci_doc_modified(eu_tabpage *pnode);
 bool on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len);
 void on_sci_destroy_control(eu_tabpage *pnode);
 char *on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end);
+const int on_sci_bitmask_get(const uint32_t pos, const uint32_t len);
 
 #ifdef __cplusplus
 }

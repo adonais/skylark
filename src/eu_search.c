@@ -21,6 +21,11 @@
 #define LINE_NOT_FOUND ((sptr_t)-1)
 #define MAX_TRACE_COUNT 8192
 #define RESULAT_MAX_MATCH (UINT16_MAX * 2 + 1)
+#define INVISIBLE_BITMASK()      on_sci_bitmask_get(0, 1)
+#define MARKERS_BITMASK()        on_sci_bitmask_get(0, MARGIN_BOOKMARK_VALUE + 1)
+#define BOOKMARK_BITMASK()       on_sci_bitmask_get(MARGIN_BOOKMARK_VALUE, 1)
+#define CHANGE_HISTORY_BITMASK() on_sci_bitmask_get(SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, \
+    (SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED - SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN + 1))
 
 static int max_nav_count;
 static int result_line_width;
