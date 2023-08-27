@@ -211,6 +211,12 @@ BEGIN
         MENUITEM "Go To Matching Brace",                               IDM_SEARCH_MATCHING_BRACE
         MENUITEM "Select Chars Between &Matching Braces",              IDM_SEARCH_MATCHING_BRACE_SELECT
         MENUITEM MF_SEPARATOR
+        POPUP "Change History",                                        IDM_SEARCH_HISTORY_PLACEHOLDE
+        BEGIN
+            MENUITEM "Goto Next Change",                               IDM_SEARCH_NAVIGATE_NEXT_HISTORY
+            MENUITEM "Goto Previous Change",                           IDM_SEARCH_NAVIGATE_PREV_HISTORY
+            MENUITEM "&Clear Change History",                          IDM_SEARCH_NAVIGATE_CLEAR_HISTORY
+        END
         POPUP "Bookmark",                                              IDM_EDIT_PLACEHOLDE13
         BEGIN
             MENUITEM "Add/Delete Bookmark ",                           IDM_SEARCH_TOGGLE_BOOKMARK
@@ -263,6 +269,13 @@ BEGIN
         MENUITEM "Line &Numbers",                                      IDM_VIEW_LINENUMBER_VISIABLE
         MENUITEM "Show Bookmark",                                      IDM_VIEW_BOOKMARK_VISIABLE
         MENUITEM "Show Fold Lines",                                    IDM_SOURCE_BLOCKFOLD_VISIABLE
+        POPUP "Change History Marker",                                 IDM_VIEW_HISTORY_PLACEHOLDE
+        BEGIN
+            MENUITEM "Do Not Show",                                    IDM_VIEW_HISTORY_NONE
+            MENUITEM "Show In Margin Only",                            IDM_VIEW_HISTORY_MARGIN
+            MENUITEM "Show In Document Only",                          IDM_VIEW_HISTORY_DOCS
+            MENUITEM "Show In Both Above",                             IDM_VIEW_HISTORY_ALL
+        END
         MENUITEM MF_SEPARATOR
         MENUITEM "Show White Space",                                   IDM_VIEW_WHITESPACE_VISIABLE
         MENUITEM "Show Wrap Symbol",                                   IDM_VIEW_NEWLINE_VISIABLE
@@ -641,7 +654,7 @@ FONT 9, "Microsoft Sans Serif", 400, 0, 0
     PUSHBUTTON      "Cancel", IDCANCEL, 195, 163, 50, 14, WS_TABSTOP, WS_EX_LEFT
 }
 
-IDD_STYLETHEME_DIALOG DIALOGEX 0, 0, 543, 357
+IDD_STYLETHEME_DIALOG DIALOGEX 0, 0, 543, 395
 STYLE DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_POPUP | WS_SYSMENU
 CAPTION "Style Theme"
 FONT 8, "MS Shell Dlg", 400, 0, 1
@@ -680,7 +693,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 1
     PUSHBUTTON      "Font", IDC_SETFONT_COMMENTDOC_BTN, 113, 181, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_COMMENTDOC_BTN, 167, 181, 50, 14, 0, WS_EX_LEFT
     GROUPBOX        "Mark Language", IDC_THEME_MARKUP_STATIC, 244, 5, 227, 201, 0, WS_EX_LEFT
-    CTEXT           "tag", IDC_TAGS_STATIC, 255, 21, 94, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    CTEXT           "tag", IDC_TAGS_STATIC, 255, 21, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     CTEXT           "unknow_tag", IDC_UNKNOWTAGS_STATIC, 255, 39, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     CTEXT           "property", IDC_ATTRIBUTES_STATIC, 255, 57, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     CTEXT           "unknow_property", IDC_UNKNOWATTRIBUTES_STATIC, 255, 75, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
@@ -689,7 +702,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 1
     CTEXT           "CData", IDC_CDATA_STATIC, 255, 129, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     CTEXT           "<?php ... ?>", IDC_PHPSECTION_STATIC, 255, 147, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     CTEXT           "<% ...asp... %>", IDC_ASPSECTION_STATIC, 255, 165, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
-    CTEXT           "hyperlink", IDC_HYPERLINKSECTION_STATIC, 255, 182, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    CTEXT           "<?xml ... ?>", IDC_XMLSECTION_STATIC, 255, 182, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "Font", IDC_SETFONT_TAGS_BTN, 351, 19, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_TAGS_BTN, 405, 19, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Font", IDC_SETFONT_UNKNOWTAGS_BTN, 351, 37, 50, 14, 0, WS_EX_LEFT
@@ -708,9 +721,9 @@ FONT 8, "MS Shell Dlg", 400, 0, 1
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_PHPSECTION_BTN, 405, 145, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Font", IDC_SETFONT_ASPSECTION_BTN, 351, 163, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_ASPSECTION_BTN, 405, 163, 50, 14, 0, WS_EX_LEFT
-    PUSHBUTTON      "Font", IDC_SETFONT_HYPERLINKSECTION_BTN, 351, 181, 50, 14, WS_DISABLED, WS_EX_LEFT
-    PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN, 405, 181, 50, 14, 0, WS_EX_LEFT
-    GROUPBOX        "Edit Area", IDC_THEME_EDIT_STATIC, 244, 211, 281, 128, 0, WS_EX_LEFT
+    PUSHBUTTON      "Font", IDC_SETFONT_XMLSECTION_BTN, 351, 181, 50, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_XMLSECTION_BTN, 405, 181, 50, 14, 0, WS_EX_LEFT
+    GROUPBOX        "Edit Area", IDC_THEME_EDIT_STATIC, 244, 211, 280, 167, 0, WS_EX_LEFT
     CTEXT           "Text", IDC_TEXT_STATIC, 254, 226, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "All Fonts", IDC_SETFONT_TEXT_BTN, 350, 224, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_TEXT_BTN, 404, 224, 50, 14, 0, WS_EX_LEFT
@@ -724,12 +737,12 @@ FONT 8, "MS Shell Dlg", 400, 0, 1
     CTEXT           "Line Number", IDC_LINENUMBER_STATIC, 18, 226, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_LINENUMBER_BTN, 112, 224, 50, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "BG Color", IDC_SETBGCOLOR_LINENUMBER_BTN, 167, 224, 50, 14, 0, WS_EX_LEFT
-    GROUPBOX        "Margins", IDC_THEME_MARGIN_STATIC, 7, 211, 228, 128, 0, WS_EX_LEFT
+    GROUPBOX        "Margins", IDC_THEME_MARGIN_STATIC, 7, 211, 228, 167, 0, WS_EX_LEFT
     CTEXT           "Block Collapse", IDC_FOLDMARGIN_STATIC, 18, 245, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "BG Color", IDC_SETBGCOLOR_FOLDMARGIN_BTN, 167, 242, 50, 14, 0, WS_EX_LEFT
     CTEXT           "Activate Tab", IDC_THEME_TAB_STATIC, 18, 264, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "BG Color", IDC_SETBGCOLOR_TAB_BTN, 167, 261, 50, 14, 0, WS_EX_LEFT
-    CTEXT           "Symbolic Window", IDC_THEME_SYMBOLIC_STATIC, 18, 283, 91, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    CTEXT           "Symbolic Window", IDC_THEME_SYMBOLIC_STATIC, 18, 283, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "Font", IDC_SETFONT_SYMBOLIC_BTN, 112, 281, 50, 14, 0, WS_EX_LEFT
     EDITTEXT        IDC_THEME_CARTETLINE_EDT, 405, 244, 33, 12, NOT WS_BORDER, WS_EX_CLIENTEDGE
     CONTROL         "", IDC_THEME_CARTETLINE_UDN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_AUTOBUDDY | UDS_HOTTRACK | UDS_SETBUDDYINT, 427, 244, 12, 13, WS_EX_LEFT
@@ -738,11 +751,23 @@ FONT 8, "MS Shell Dlg", 400, 0, 1
     EDITTEXT        IDC_THEME_CARET_EDT, 405, 282, 33, 12, NOT WS_BORDER, WS_EX_CLIENTEDGE
     CONTROL         "", IDC_THEME_CARET_UDN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_AUTOBUDDY | UDS_HOTTRACK | UDS_SETBUDDYINT, 427, 282, 12, 13, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_SYMBOLIC_BTN, 167, 281, 50, 14, 0, WS_EX_LEFT
-    CTEXT           "Resulting Window Line", IDC_THEME_LINENO_STATIC, 18, 302, 91, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    CTEXT           "Resulting Window Line", IDC_THEME_LINENO_STATIC, 18, 302, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_LINENO_BTN, 167, 300, 50, 14, 0, WS_EX_LEFT
-    CTEXT           "Resulting Window Key", IDC_THEME_LINEKEY_STATIC, 18, 321, 91, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    CTEXT           "Resulting Window Key", IDC_THEME_LINEKEY_STATIC, 18, 321, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
     PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_LINEKEY_BTN, 167, 319, 50, 14, 0, WS_EX_LEFT
-    LTEXT           "Tips: More professional syntax highlighting can be completed by user script", IDC_THEME_TIPS_STC, 10, 343, 441, 10, SS_LEFT, WS_EX_LEFT
+    LTEXT           "Tips: More professional syntax highlighting can be completed by user script", IDC_THEME_TIPS_STC, 4, 384, 441, 10, SS_LEFT, WS_EX_LEFT
+    CTEXT           "hyperlink", IDC_HYPERLINKSECTION_STATIC, 254, 302, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN, 459, 300, 50, 14, 0, WS_EX_LEFT
+    CTEXT           "Change History Modify", IDC_THEME_HISTORY_STATIC, 18, 340, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_HISTORY_BTN, 167, 338, 50, 14, 0, WS_EX_LEFT
+    CTEXT           "Change History Save", IDC_THEME_HISTORY2_STATIC, 18, 359, 93, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_HISTORY2_BTN, 167, 357, 50, 14, 0, WS_EX_LEFT
+    CTEXT           "Change History Modify", IDC_THEME_HISTORYDOC_STATIC, 254, 340, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_HISTORYDOC_BTN, 459, 338, 50, 14, 0, WS_EX_LEFT
+    CTEXT           "Change History Save", IDC_THEME_HISTORYDOC2_STATIC, 254, 359, 95, 10, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    PUSHBUTTON      "Colour", IDC_SETTEXTCOLOR_HISTORYDOC2_BTN, 459, 357, 50, 14, 0, WS_EX_LEFT
+    CTEXT           "Matching Braces", IDC_BRACESECTION_STATIC, 254, 321, 95, 9, SS_CENTER | SS_CENTERIMAGE, WS_EX_LEFT
+    PUSHBUTTON      "Colour", IDC_SETTEXTCOLORBRACESECTION_BTN, 459, 319, 50, 14, 0, WS_EX_LEFT
 }
 
 IDR_LBREAK_MENU  MENUEX DISCARDABLE
@@ -1334,7 +1359,8 @@ STRINGTABLE DISCARDABLE
     IDS_INDENT_TAB_SPACE    "[%s] %zd line(s) are indented with space + tab characters\n"
     IDS_INDENT_PROPOSE      "We recommend formatting the document using clang-format or the 'Edit->Convert' function"
     IDS_FAVORITE_ADD_TIPS   "It's hard to tell when files in your favorites have the same alias, Are you sure you want to continue?"
-    IDS_UNDO_UNCLOSE_TIPS   "The file has been converted to encoding or line breaks, you should save the file as soon as possible to avoid 'undo/redo' operations affecting the file state."
+    IDS_UNDO_UNCLOSE_TIPS   "The file has been converted to encoding or line breaks, You should save the file as soon as possible to avoid 'undo/redo' operations affecting the file state."
+    IDS_HISTORY_CLEAR_UNDO  "This operation will clear the undo history, Affecting 'Undo/Redo', Continue?"
 }
 
 /////////////////////////////////////////////////////////////////////////////

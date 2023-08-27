@@ -599,7 +599,7 @@ pdf_destroy(const NPP instance, nppsave **save)
     return NP_NO_ERROR;
 }
 
-static void
+static int
 pdf_savefile(const NPP instance)
 {
     if (instance)
@@ -612,14 +612,17 @@ pdf_savefile(const NPP instance)
             if (hchild)
             {
                 SendMessage(hchild, WM_COMMAND, IDM_SAVE_PLUGIN, 0);
+                return NP_NO_ERROR;
             }
         }
     }
+    return NP_NO_DATA;
 }
 
-static void
+static int
 pdf_savefileas(const NPP instance, const wchar_t *path)
 {
+    int ret = NP_NO_DATA;
     if (instance)
     {
         instance_data *data = (instance_data *)instance->pdata;
@@ -638,6 +641,7 @@ pdf_savefileas(const NPP instance, const wchar_t *path)
                     if (w)
                     {
                         SendMessage(hchild, WM_COMMAND, IDM_SAVEAS_PLUGIN, (LPARAM)remote_ptr);
+                        ret = NP_NO_ERROR;
                     }
                 }
                 if (remote_ptr)
@@ -648,9 +652,11 @@ pdf_savefileas(const NPP instance, const wchar_t *path)
             else if (hchild)
             {
                 PostMessage(hchild, WM_COMMAND, IDM_SAVEAS_PLUGIN, 0);
+                ret = NP_NO_ERROR;
             }
         }
     }
+    return ret;
 }
 
 static int

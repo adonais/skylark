@@ -18,8 +18,14 @@
 #include "framework.h"
 #include <shlobj.h>
 
+#define LINE_NOT_FOUND ((sptr_t)-1)
 #define MAX_TRACE_COUNT 8192
 #define RESULAT_MAX_MATCH (UINT16_MAX * 2 + 1)
+#define INVISIBLE_BITMASK()      on_sci_bitmask_get(0, 1)
+#define MARKERS_BITMASK()        on_sci_bitmask_get(0, MARGIN_BOOKMARK_VALUE + 1)
+#define BOOKMARK_BITMASK()       on_sci_bitmask_get(MARGIN_BOOKMARK_VALUE, 1)
+#define CHANGE_HISTORY_BITMASK() on_sci_bitmask_get(SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN, \
+    (SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED - SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN + 1))
 
 static int max_nav_count;
 static int result_line_width;
@@ -738,9 +744,10 @@ on_search_set_rectangle(eu_tabpage *pnode)
         {
             if (eu_sci_call(pnode, SCI_GETZOOM, 0, 0) == 0)
             {
-                on_view_zoom_in(pnode);
-                on_view_zoom_in(pnode);
+                on_view_zoom_out(pnode);
+                on_view_zoom_out(pnode);
                 pnode->zoom_level = SELECTION_ZOOM_LEVEEL;
+                eu_logmsg("%s: pnode->zoom_level = %d\n", __FUNCTION__, pnode->zoom_level);
             }
             eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_RECTANGLE, 0);
         }
@@ -997,10 +1004,13 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
 void
 on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
 {
-    sptr_t mark_num;
-    sptr_t current_line;
     if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
+        int bitmask = 0;
+        bool bookmark = false;
+        sptr_t mark_num;
+        sptr_t current_line;
+        const int  all = MARKERS_BITMASK();
         if (lineno < 0)
         {
             sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
@@ -1010,14 +1020,19 @@ on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
         {
             current_line = lineno;
         }
-        mark_num = eu_sci_call(pnode, SCI_MARKERGET, current_line, 0);
-        if (mark_num == MARGIN_BOOKMARK_VALUE)
+        if (true)
         {
-            eu_sci_call(pnode, SCI_MARKERADD, current_line, MARGIN_BOOKMARK_VALUE);
+            mark_num = eu_sci_call(pnode, SCI_MARKERGET, current_line, 0);
+            bitmask = (int)mark_num & all;
+            bookmark = (bool)(bitmask & BOOKMARK_BITMASK());
         }
-        else
+        if (bookmark)
         {
             eu_sci_call(pnode, SCI_MARKERDELETE, current_line, MARGIN_BOOKMARK_VALUE);
+        }
+        if (!bitmask || (bitmask == INVISIBLE_BITMASK()))
+        {
+            eu_sci_call(pnode, SCI_MARKERADD, current_line, MARGIN_BOOKMARK_VALUE);
         }
     }
 }
@@ -1061,15 +1076,50 @@ on_search_remove_marks_all(eu_tabpage *pnode)
     }
 }
 
+static inline sptr_t
+on_search_mrker_next(eu_tabpage *pnode, const sptr_t line, const int bitmask)
+{
+    if (bitmask & CHANGE_HISTORY_BITMASK())
+    {
+        const sptr_t last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        for (sptr_t i = line; i <= last; ++i)
+        {
+            if (eu_sci_call(pnode, SCI_MARKERGET, i, 0) & bitmask)
+            {
+                return i;
+            }
+        }
+        return LINE_NOT_FOUND;
+    }
+    return eu_sci_call(pnode, SCI_MARKERNEXT, line, bitmask);
+}
+
+static inline sptr_t
+on_search_marker_previous(eu_tabpage *pnode, const sptr_t line, const int bitmask)
+{
+    if (bitmask & CHANGE_HISTORY_BITMASK())
+    {
+        for (sptr_t i = line; i >= 0; --i)
+        {
+            if (eu_sci_call(pnode, SCI_MARKERGET, i, 0) & bitmask)
+            {
+                return i;
+            }
+        }
+        return LINE_NOT_FOUND;
+    }
+    return eu_sci_call(pnode, SCI_MARKERPREVIOUS, line, bitmask);
+}
+
 void
-on_search_jmp_premark_this(eu_tabpage *pnode)
+on_search_jmp_premark_this(eu_tabpage *pnode, const int mask)
 {
     if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t find_line = eu_sci_call(pnode, SCI_MARKERPREVIOUS, current_line - 1, MARGIN_BOOKMARK_MASKN);
-        if (find_line != -1)
+        sptr_t find_line = on_search_marker_previous(pnode, current_line - 1, mask);
+        if (find_line != LINE_NOT_FOUND)
         {
             on_search_jmp_line(pnode, find_line, current_line);
         }
@@ -1077,16 +1127,60 @@ on_search_jmp_premark_this(eu_tabpage *pnode)
 }
 
 void
-on_search_jmp_next_mark_this(eu_tabpage *pnode)
+on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask)
 {
     if (pnode && !pnode->hex_mode && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line + 1, MARGIN_BOOKMARK_MASKN);
-        if (find_line != -1)
+        sptr_t find_line = on_search_mrker_next(pnode, current_line + 1, mask);
+        if (find_line != LINE_NOT_FOUND)
         {
             on_search_jmp_line(pnode, find_line, current_line);
+        }
+    }
+}
+
+void
+on_search_jmp_previous_history(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_PLACEHOLDE;
+        if (maskn > 1)
+        {
+            const bool non_mark = !(maskn & SC_CHANGE_HISTORY_MARKERS);
+            if (non_mark)
+            {
+                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_MARKERS | eu_sci_call(pnode, SCI_GETCHANGEHISTORY, 0, 0), 0);
+            }
+            on_search_jmp_premark_this(pnode, MARGIN_HISTORY_MASKN);
+            if (non_mark)
+            {
+                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
+            }
+        }
+    }
+}
+
+void
+on_search_jmp_next_history(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_PLACEHOLDE;
+        if (maskn > 1)
+        {
+            const bool non_mark = !(maskn & SC_CHANGE_HISTORY_MARKERS);
+            if (non_mark)
+            {
+                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_MARKERS | eu_sci_call(pnode, SCI_GETCHANGEHISTORY, 0, 0), 0);
+            }
+            on_search_jmp_next_mark_this(pnode, MARGIN_HISTORY_MASKN);
+            if (non_mark)
+            {
+                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
+            }
         }
     }
 }
@@ -1106,7 +1200,7 @@ on_search_jmp_premark_all(eu_tabpage *pnode)
             pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
             current_line = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
             find_line = eu_sci_call(p, SCI_MARKERPREVIOUS, current_line - 1, MARGIN_BOOKMARK_MASKN);
-            if (find_line != -1)
+            if (find_line != LINE_NOT_FOUND)
             {
                 on_search_jmp_line(p, find_line, current_line);
                 break;
@@ -1119,7 +1213,7 @@ on_search_jmp_premark_all(eu_tabpage *pnode)
                     {
                         max_line = eu_sci_call(p, SCI_GETLINECOUNT, 0, 0);
                         find_line = eu_sci_call(p, SCI_MARKERPREVIOUS, max_line - 1, MARGIN_BOOKMARK_MASKN);
-                        if (find_line != -1)
+                        if (find_line != LINE_NOT_FOUND)
                         {
                             on_tabpage_select_index(index);
                             on_search_jmp_line(p, find_line, max_line);
@@ -1148,7 +1242,7 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
             pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
             current_line = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
             find_line = eu_sci_call(p, SCI_MARKERNEXT, current_line + 1, MARGIN_BOOKMARK_MASKN);
-            if (find_line != -1)
+            if (find_line != LINE_NOT_FOUND)
             {
                 on_search_jmp_line(p, find_line, current_line);
                 break;
@@ -1160,7 +1254,7 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
                     if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
                     {
                         find_line = eu_sci_call(p, SCI_MARKERNEXT, 0, MARGIN_BOOKMARK_MASKN);
-                        if (find_line != -1)
+                        if (find_line != LINE_NOT_FOUND)
                         {
                             on_tabpage_select_index(index);
                             on_search_jmp_line(p, find_line, 0);
@@ -1185,7 +1279,7 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
     {
         const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
         *szmark = 0;
-        while (find_line != -1 && find_line <= line)
+        while (find_line != LINE_NOT_FOUND && find_line <= line)
         {
             find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
             if (find_line >= 0)
@@ -1227,7 +1321,7 @@ on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
         do
         {
             header_line = eu_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
-            if (header_line != -1)
+            if (header_line != LINE_NOT_FOUND)
             {
                 offset = eu_int_cast(strlen(szfold));
                 if (offset >= size)
@@ -1237,7 +1331,7 @@ on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
                 _snprintf(szfold+offset, size-offset, "%zd;", header_line);
                 ++header_line;
             }
-        } while (header_line != -1);
+        } while (header_line != LINE_NOT_FOUND);
     }
 }
 

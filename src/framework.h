@@ -55,15 +55,15 @@
 #define SCINTILLA_MARGIN_BOTTOM      0
 
 #define MARGIN_LINENUMBER_INDEX      0
-#define MARGIN_LINENUMBER_WIDTH      40
-
 #define MARGIN_BOOKMARK_INDEX        1
-#define MARGIN_BOOKMARK_WIDTH        16
-#define MARGIN_BOOKMARK_MASKN        1
-#define MARGIN_BOOKMARK_VALUE        0
-
 #define MARGIN_FOLD_INDEX            2
+#define MARGIN_HISTORY_INDEX         3
+#define MARGIN_NUMBER_OF             4
+
+#define MARGIN_LINENUMBER_WIDTH      40
+#define MARGIN_BOOKMARK_WIDTH        16
 #define MARGIN_FOLD_WIDTH            14
+#define MARGIN_HISTORY_WIDTH         9
 
 #define SYMBOLLIST_MARGIN_LEFT       2
 #define SYMBOLLIST_MARGIN_RIGHT      2

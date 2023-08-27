@@ -104,6 +104,7 @@ struct eu_config
     bool m_linenumber;
 
     uint32_t last_flags;
+    uint32_t history_mask;
     bool ws_visiable;
     int ws_size;
     bool newline_visialbe;
@@ -201,12 +202,16 @@ struct styletheme
     struct styleclass cdata;
     struct styleclass phpsection;
     struct styleclass aspsection;
+    struct styleclass xmlsection;
     
     struct styleclass activetab;
     struct styleclass caret;
     struct styleclass symbolic;
     struct styleclass hyperlink;
     struct styleclass results;
+    struct styleclass bracesection;
+    struct styleclass nchistory;
+    struct styleclass dochistory;
 };
 
 struct eu_theme

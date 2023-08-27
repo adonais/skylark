@@ -2017,15 +2017,6 @@ util_open_file(LPCTSTR path, pf_stream pstream)
 }
 
 void
-util_set_undo(eu_tabpage *p)
-{
-    if (p && !eu_sci_call(p, SCI_GETUNDOCOLLECTION, 0 , 0))
-    {
-        eu_sci_call(p, SCI_SETUNDOCOLLECTION, 1 , 0);
-    }
-}
-
-void
 util_setforce_eol(eu_tabpage *p)
 {
     size_t len = 0;
@@ -3119,6 +3110,14 @@ util_shield_icon(HINSTANCE hinst, LPCTSTR name)
         DestroyIcon(hicon);
     }
     return hmap;
+}
+
+void
+util_updateui_msg(const eu_tabpage *pnode)
+{
+    const sptr_t pos = eu_sci_call((eu_tabpage *)pnode, SCI_GETANCHOR, 0, 0);
+    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
+    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos, 0);
 }
 
 void

@@ -596,15 +596,15 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
             pnode->be_modify = true;
             on_toolbar_update_button();
             InvalidateRect(g_tabpages, NULL, false);
-            eu_logmsg("skylark: doc has been modified\n");
+            eu_logmsg("%s: iniit doc has been modified\n", __FUNCTION__);
         }
     }
     if (flags && !lpnmhdr->modified && pnode->plugin)
     {
         bool remote = false;
         bool backup = false;
+        int err = EUE_UNKOWN_ERR;
         wchar_t *full_path = NULL;
-        pnode->be_modify = false;
         eu_logmsg("skylark: doc has been saved\n");
         if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&full_path) && STR_NOT_NUL(full_path))
         {
@@ -620,17 +620,21 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
             {
                 if (remote)
                 {
-                    on_proc_save_remote(pnode);
+                    err = np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+                    if (!err)
+                    {
+                        err = on_proc_save_remote(pnode);
+                    }
                 }
                 else if (backup)
                 {
-                    np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, pnode->pathfile);
+                    err = np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, pnode->pathfile);
                     util_delete_file(pnode->bakpath);
                     pnode->bakpath[0] = 0;
                 }
                 else
                 {
-                    np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+                    err = np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
                 }
                 on_file_update_time(pnode, 0);
             }
@@ -654,9 +658,15 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                 }
                 on_file_update_time(pnode, 0);
                 util_set_title(pnode);
-                np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
+                err = np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
+            }
+            if (err == SKYLARK_OK)
+            {
+                pnode->be_modify = false;
+                pnode->fn_modify = false;
             }
             InvalidateRect(g_tabpages, NULL, false);
+            on_toolbar_update_button();
             eu_safe_free(full_path);
         }
     }
@@ -1404,6 +1414,15 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_MOVEBOTTOM_FIRSTLINE:
                     on_search_move_to_bottom_block(pnode);
                     break;
+                case IDM_SEARCH_NAVIGATE_NEXT_HISTORY:
+                    on_search_jmp_next_history(pnode);
+                    break;
+                case IDM_SEARCH_NAVIGATE_PREV_HISTORY:
+                    on_search_jmp_previous_history(pnode);
+                    break;
+                case IDM_SEARCH_NAVIGATE_CLEAR_HISTORY:
+                    on_sci_clear_history(pnode, true);
+                    break;
                 case IDM_SEARCH_TOGGLE_BOOKMARK:
                     on_search_toggle_mark(pnode, -1);
                     break;
@@ -1411,10 +1430,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_remove_marks_all(pnode);
                     break;
                 case IDM_SEARCH_GOTO_PREV_BOOKMARK:
-                    on_search_jmp_premark_this(pnode);
+                    on_search_jmp_premark_this(pnode, MARGIN_BOOKMARK_MASKN);
                     break;
                 case IDM_SEARCH_GOTO_NEXT_BOOKMARK:
-                    on_search_jmp_next_mark_this(pnode);
+                    on_search_jmp_next_mark_this(pnode, MARGIN_BOOKMARK_MASKN);
                     break;
                 case IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL:
                     on_search_jmp_premark_all(pnode);
@@ -1466,10 +1485,10 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     hexview_switch_item(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_BRACE:
-                    on_view_light_brace();
+                    on_view_light_brace(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_STR:
-                    on_view_light_str();
+                    on_view_light_str(pnode);
                     break;
                 case IDM_VIEW_HIGHLIGHT_FOLD:
                     on_view_light_fold();
@@ -1566,6 +1585,12 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
                     on_view_indent_visiable();
+                    break;
+                case IDM_VIEW_HISTORY_NONE:
+                case IDM_VIEW_HISTORY_MARGIN:
+                case IDM_VIEW_HISTORY_DOCS:
+                case IDM_VIEW_HISTORY_ALL:
+                    on_view_history_visiable(pnode, wm_id);
                     break;
                 case IDM_VIEW_TIPS_ONTAB:
                     eu_get_config()->m_tab_tip ^= true;
@@ -1942,9 +1967,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    eu_logmsg("%s: on_sci_point_reached caller\n", __FUNCTION__);
                     break;
                 case SCN_SAVEPOINTLEFT:
                     on_sci_point_left(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    eu_logmsg("%s: on_sci_point_left caller\n", __FUNCTION__);
                     break;
                 case SCN_MARGINCLICK:
                 {

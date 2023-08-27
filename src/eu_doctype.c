@@ -424,11 +424,17 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
                 eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowtags.color));
                 eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
                 break;
-            case 9:
+            case 9:  // asp color
                 eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.aspsection.font));
                 eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.aspsection.fontsize);
                 eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.aspsection.color));
                 eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.aspsection.bold));
+                break;
+            case 10:
+                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.xmlsection.font));
+                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.xmlsection.fontsize);
+                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.xmlsection.color));
+                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.xmlsection.bold));
                 break;
             default:
                 break;
@@ -1169,6 +1175,8 @@ int
 on_doc_init_after_xml(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "xml");
+    on_doc_keyword_light(pnode, SCE_H_XMLSTART, 10, 0);
+    on_doc_keyword_light(pnode, SCE_H_XMLEND, 10, 0);
     on_doc_tags_light(pnode, SCE_H_TAG, 0);
     on_doc_keyword_light(pnode, SCE_H_TAGUNKNOWN, 8, 0);
     on_doc_keyword_light(pnode, SCE_H_ATTRIBUTE, 4, 0);
@@ -1744,17 +1752,11 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
             {   // 当键盘输入时, 相邻的括号不要高亮
                 if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
                 {
-                    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT,
-                                eu_get_config()->eu_brace.rgb != (uint32_t)-1 ? eu_get_config()->eu_brace.rgb : eu_get_theme()->item.text.color);
-                    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.text.bgcolor);
-                    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, true);
                     eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
                 }
             }
             else
             {
-                eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
-                eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
                 eu_sci_call(pnode, SCI_BRACEBADLIGHT, current_pos, 0);
             }
         }

@@ -203,12 +203,16 @@ struct styletheme
     struct styleclass cdata;
     struct styleclass phpsection;
     struct styleclass aspsection;
+    struct styleclass xmlsection;
 
     struct styleclass activetab;
     struct styleclass caret;
     struct styleclass symbolic;
     struct styleclass hyperlink;
     struct styleclass results;
+    struct styleclass bracesection;
+    struct styleclass nchistory;
+    struct styleclass dochistory;
 };
 
 typedef struct _npn_rect
@@ -262,8 +266,8 @@ typedef int (*npp_getvalue_ptr)(NPP instance, npp_variable v, void **value);
 typedef int (*npp_setvalue_ptr)(NPP instance, npp_variable v, void *value);
 typedef int (*npp_stream2file_ptr)(NPP instance, npstream* stream);
 typedef void (*npp_print_ptr)(NPP instance, npprint *platform);
-typedef void (*npp_savefile_ptr)(const NPP instance);
-typedef void (*npp_savefileas_ptr)(const NPP instance, const wchar_t *fname);
+typedef int (*npp_savefile_ptr)(const NPP instance);
+typedef int (*npp_savefileas_ptr)(const NPP instance, const wchar_t *fname);
 typedef uint32_t (*npp_writeready_ptr)(NPP instance, npstream* stream);
 typedef uint32_t (*npp_write_ptr)(NPP instance, npstream* stream, uint32_t offset, uint32_t len, void* buffer);
 

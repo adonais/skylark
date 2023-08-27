@@ -38,7 +38,7 @@ void
 on_edit_undo(eu_tabpage *pnode)
 {
     cvector_vector_type(int) v = NULL;
-    if ((on_tabpage_sel_number(&v, false)) > 0)
+    if (g_tabpages && (on_tabpage_sel_number(&v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int i = 0; i < count; ++i)
@@ -50,6 +50,7 @@ on_edit_undo(eu_tabpage *pnode)
             }
         }
         on_toolbar_update_button();
+        util_redraw(g_tabpages, false);
     }
     cvector_freep(&v);
 }
@@ -58,7 +59,7 @@ void
 on_edit_redo(eu_tabpage *pnode)
 {
     cvector_vector_type(int) v = NULL;
-    if ((on_tabpage_sel_number(&v, false)) > 0)
+    if (g_tabpages && (on_tabpage_sel_number(&v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int i = 0; i < count; ++i)
@@ -70,6 +71,7 @@ on_edit_redo(eu_tabpage *pnode)
             }
         }
         on_toolbar_update_button();
+        util_redraw(g_tabpages, false);
     }
     cvector_freep(&v);
 }
@@ -2059,7 +2061,6 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         _snprintf(pnode->eols_undo_str, QW_SIZE-1, "%s=%d=%d", EOLS_UNDO_DESC, pnode->eol, eol_mode);
         pnode->eol = eol_mode;
-        pnode->undo_id = 1;
         return 0;
     }
     return 1;
@@ -2072,7 +2073,6 @@ on_edit_convert_coding(eu_tabpage *pnode, int new_code)
     {
         _snprintf(pnode->icon_undo_str, QW_SIZE-1, "%s=%d=%d", ICON_UNDO_DESC, pnode->codepage, new_code);
         pnode->codepage = new_code;
-        pnode->undo_id = 1;
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) pnode->icon_undo_str);
         eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(pnode->icon_undo_str));

@@ -38,22 +38,24 @@ np_load_plugin_library(const TCHAR *filename, const bool sys)
     return mod;
 }
 
-void
+int
 np_plugins_savefile(const npp_funcs *pfunc, const NPP instance)
 {
     if (pfunc && pfunc->savefile && instance)
     {
-        pfunc->savefile(instance);
+        return pfunc->savefile(instance);
     }
+    return NP_NO_DATA;
 }
 
-void
+int
 np_plugins_savefileas(const npp_funcs *pfunc, const NPP instance, const wchar_t *path)
 {
     if (pfunc && pfunc->savefileas && instance)
     {
-        pfunc->savefileas(instance, path);
+        return pfunc->savefileas(instance, path);
     }
+    return NP_NO_DATA;
 }
 
 bool

@@ -59,7 +59,7 @@ on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
                 else
                 {
                     on_sci_init_style(pnode);
-                    on_sci_after_file(pnode);
+                    on_sci_after_file(pnode, false);
                 }
                 eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
                 pnode->file_attr &= ~FILE_ATTRIBUTE_READONLY;
@@ -81,7 +81,7 @@ on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
             else
             {
                 on_sci_init_default(pnode, STATUS_STATIC_FOCUS);
-                on_sci_after_file(pnode);
+                on_sci_after_file(pnode, false);
             }
             eu_sci_call(pnode, SCI_SETREADONLY, 1, 0);
             pnode->file_attr &= ~FILE_ATTRIBUTE_READONLY;

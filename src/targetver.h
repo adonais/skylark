@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 3
+#define __EU_INFO_VERSION_PATCHLEVEL 4
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -424,6 +424,19 @@
 #define IDC_SETTEXTCOLOR_LINEKEY_BTN          21136
 #define IDC_THEME_LINENO_STATIC               21137
 #define IDC_THEME_LINEKEY_STATIC              21138
+#define IDC_XMLSECTION_STATIC                 21139
+#define IDC_SETFONT_XMLSECTION_BTN            21140
+#define IDC_SETTEXTCOLOR_XMLSECTION_BTN       21141
+#define IDC_THEME_HISTORY_STATIC              21142
+#define IDC_SETTEXTCOLOR_HISTORY_BTN          21143
+#define IDC_THEME_HISTORY2_STATIC             21144
+#define IDC_SETTEXTCOLOR_HISTORY2_BTN         21145
+#define IDC_THEME_HISTORYDOC_STATIC           21146
+#define IDC_SETTEXTCOLOR_HISTORYDOC_BTN       21147
+#define IDC_THEME_HISTORYDOC2_STATIC          21148
+#define IDC_SETTEXTCOLOR_HISTORYDOC2_BTN      21149
+#define IDC_BRACESECTION_STATIC               21150
+#define IDC_SETTEXTCOLORBRACESECTION_BTN      21151
 
 #define IDD_ABOUTBOX                          21200
 #define IDM_ABOUT                             21201
@@ -1204,6 +1217,7 @@
 #define IDS_LUAJIT_EVALUATION               44500
 #define IDS_WIN32CALC_DESC                  44501
 #define IDS_UNDO_UNCLOSE_TIPS               44502
+#define IDS_HISTORY_CLEAR_UNDO              44503
 
 #define IDD_SETTING_DIALOG                  44600
 #define IDC_SETTING_NAME_EDIT               44601
@@ -1213,6 +1227,17 @@
 #define IDC_SETTING_HIDE_RUN                44605
 
 #define IDM_SEARCH_SELECT_MATCHING_ALL      44700
+
+#define IDM_VIEW_HISTORY_PLACEHOLDE         44710
+#define IDM_VIEW_HISTORY_NONE               44711
+#define IDM_VIEW_HISTORY_MARGIN             44713
+#define IDM_VIEW_HISTORY_DOCS               44715
+#define IDM_VIEW_HISTORY_ALL                44717
+
+#define IDM_SEARCH_HISTORY_PLACEHOLDE       44720
+#define IDM_SEARCH_NAVIGATE_NEXT_HISTORY    44721
+#define IDM_SEARCH_NAVIGATE_PREV_HISTORY    44722
+#define IDM_SEARCH_NAVIGATE_CLEAR_HISTORY   44723
 
 // For MessageBox
 #define IDALWAYS                            12

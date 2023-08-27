@@ -5,7 +5,7 @@ require("eu_core")
 function eu_theme.get_default(name)
     local theme = nil
     if (name == "black") then
-        theme = -- 暗黑主题配置文件
+        theme = -- 默认主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
           "linenumber_fontsize = 9\n" ..
           "linenumber_color = 0x00A0A0A0\n" ..
@@ -126,6 +126,11 @@ function eu_theme.get_default(name)
           "aspsection_color = 0x00808080\n" ..
           "aspsection_bgcolor = 0x00000000\n" ..
           "aspsection_bold = 0\n" ..
+          "xmlsection_font = \"Consolas\"\n" ..
+          "xmlsection_fontsize = 11\n" ..
+          "xmlsection_color = 0x00C972C9\n" ..
+          "xmlsection_bgcolor = 0x00000000\n" ..
+          "xmlsection_bold = 1\n" ..
           "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
@@ -150,7 +155,22 @@ function eu_theme.get_default(name)
           "results_fontsize = 11\n" ..
           "results_color = 0x00FF8000\n" ..
           "results_bgcolor = 0x00C080FF\n" ..
-          "results_bold = 0"
+          "results_bold = 0\n" ..
+          "bracesection_font = \"Consolas\"\n" ..
+          "bracesection_fontsize = 11\n" ..
+          "bracesection_color = 0x000000FF\n" ..
+          "bracesection_bgcolor = 0x001E1E1E\n" ..
+          "bracesection_bold = 1\n" ..
+          "nchistory_font = \"Consolas\"\n" ..
+          "nchistory_fontsize = 11\n" ..
+          "nchistory_color = 0x000080FF\n" ..
+          "nchistory_bgcolor = 0x0000A000\n" ..
+          "nchistory_bold = 0\n" ..
+          "dochistory_font = \"Consolas\"\n" ..
+          "dochistory_fontsize = 11\n" ..
+          "dochistory_color = 0x000080FF\n" ..
+          "dochistory_bgcolor = 0x0000A000\n" ..
+          "dochistory_bold = 0"
     elseif (name == "white") then
         theme = -- 经典白主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -273,6 +293,11 @@ function eu_theme.get_default(name)
           "aspsection_color = 0x00C0C0C0\n" ..
           "aspsection_bgcolor = 0x00000000\n" ..
           "aspsection_bold = 0\n" ..
+          "xmlsection_font = \"Consolas\"\n" ..
+          "xmlsection_fontsize = 11\n" ..
+          "xmlsection_color = 0x00F651F6\n" ..
+          "xmlsection_bgcolor = 0x00000000\n" ..
+          "xmlsection_bold = 1\n" ..
           "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
@@ -297,9 +322,24 @@ function eu_theme.get_default(name)
           "results_fontsize = 11\n" ..
           "results_color = 0x00FF8000\n" ..
           "results_bgcolor = 0x00588609\n" ..
-          "results_bold = 0"
+          "results_bold = 0\n" ..
+          "bracesection_font = \"Consolas\"\n" ..
+          "bracesection_fontsize = 11\n" ..
+          "bracesection_color = 0x000000FF\n" ..
+          "bracesection_bgcolor = 0x00FFFFFF\n" ..
+          "bracesection_bold = 1\n" ..
+          "nchistory_font = \"Consolas\"\n" ..
+          "nchistory_fontsize = 11\n" ..
+          "nchistory_color = 0x000080FF\n" ..
+          "nchistory_bgcolor = 0x0000A000\n" ..
+          "nchistory_bold = 0\n" ..
+          "dochistory_font = \"Consolas\"\n" ..
+          "dochistory_fontsize = 11\n" ..
+          "dochistory_color = 0x000080FF\n" ..
+          "dochistory_bgcolor = 0x0000A000\n" ..
+          "dochistory_bold = 0"
     else
-        theme = -- 默认主题配置文件
+        theme = -- dark主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
           "linenumber_fontsize = 9\n" ..
           "linenumber_color = 0x00FFFFFF\n" ..
@@ -422,6 +462,11 @@ function eu_theme.get_default(name)
           "aspsection_color = 0x00808080\n" ..
           "aspsection_bgcolor = 0x00000000\n" ..
           "aspsection_bold = 0\n" ..
+          "xmlsection_font = \"Consolas\"\n" ..
+          "xmlsection_fontsize = 11\n" ..
+          "xmlsection_color = 0x00C972C9\n" ..
+          "xmlsection_bgcolor = 0x00000000\n" ..
+          "xmlsection_bold = 1\n" ..
           "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
@@ -446,7 +491,22 @@ function eu_theme.get_default(name)
           "results_fontsize = 11\n" ..
           "results_color = 0x000000B050\n" ..
           "results_bgcolor = 0x00A8CE93\n" ..
-          "results_bold = 0"
+          "results_bold = 0\n" ..
+          "bracesection_font = \"Consolas\"\n" ..
+          "bracesection_fontsize = 11\n" ..
+          "bracesection_color = 0x000000FF\n" ..
+          "bracesection_bgcolor = 0x00444444\n" ..
+          "bracesection_bold = 1\n" ..
+          "nchistory_font = \"Consolas\"\n" ..
+          "nchistory_fontsize = 11\n" ..
+          "nchistory_color = 0x000080FF\n" ..
+          "nchistory_bgcolor = 0x0000A000\n" ..
+          "nchistory_bold = 0\n" ..
+          "dochistory_font = \"Consolas\"\n" ..
+          "dochistory_fontsize = 11\n" ..
+          "dochistory_color = 0x000080FF\n" ..
+          "dochistory_bgcolor = 0x0000A000\n" ..
+          "dochistory_bold = 0"
     end
     return theme
 end
@@ -493,12 +553,40 @@ function eu_theme.load_default(name)
         dofile(file)
         tname = name
     end
+    if (xmlsection_font == nil) then
+      xmlsection_font = "Consola"
+      xmlsection_fontsize = 11
+      xmlsection_color = 0xC972C9
+      xmlsection_bgcolor = 0x00000000
+      xmlsection_bold = 1
+    end
     if (results_font == nil) then
       results_font = "Consola"
       results_fontsize = 11
       results_color = keywords_color
       results_bgcolor = number_color
       results_bold = 0
+    end
+    if (bracesection_font == nil) then
+      bracesection_font = "Consola"
+      bracesection_fontsize = 11
+      bracesection_color = 0x000000FF
+      bracesection_bgcolor = text_bgcolor
+      bracesection_bold = 1
+    end
+    if (nchistory_font == nil) then
+      nchistory_font = "Consola"
+      nchistory_fontsize = 11
+      nchistory_color = 0x0080FF
+      nchistory_bgcolor = 0x00A000
+      nchistory_bold = 0
+    end
+    if (dochistory_font == nil) then
+      dochistory_font = "Consola"
+      dochistory_fontsize = 11
+      dochistory_color = 0x0080FF
+      dochistory_bgcolor = 0x00A000
+      dochistory_bold = 0
     end
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)
@@ -528,11 +616,15 @@ function eu_theme.load_default(name)
         {cdata_font,cdata_fontsize,cdata_color,cdata_bgcolor,cdata_bold},
         {phpsection_font,phpsection_fontsize,phpsection_color,phpsection_bgcolor,phpsection_bold},
         {aspsection_font,aspsection_fontsize,aspsection_color,aspsection_bgcolor,aspsection_bold},
+        {xmlsection_font,xmlsection_fontsize,xmlsection_color,xmlsection_bgcolor,xmlsection_bold},
         {activetab_font,activetab_fontsize,activetab_color,activetab_bgcolor,activetab_bold},
         {caret_font,caret_fontsize,caret_color,caret_bgcolor,caret_bold},
         {symbolic_font,symbolic_fontsize,symbolic_color,symbolic_bgcolor,symbolic_bold},
         {hyperlink_font,hyperlink_fontsize,hyperlink_color,hyperlink_bgcolor,hyperlink_bold},
-        {results_font,results_fontsize,results_color,results_bgcolor,results_bold}
+        {results_font,results_fontsize,results_color,results_bgcolor,results_bold},
+        {bracesection_font,bracesection_fontsize,bracesection_color,bracesection_bgcolor,bracesection_bold},
+        {nchistory_font,nchistory_fontsize,nchistory_color,nchistory_bgcolor,nchistory_bold},
+        {dochistory_font,dochistory_fontsize,dochistory_color,dochistory_bgcolor,dochistory_bold}
       }
     })
     return eu_core.euapi.eu_theme_ptr(m_theme, true)

@@ -19,6 +19,16 @@
 #ifndef _EU_SCINTILLA_H_
 #define _EU_SCINTILLA_H_
 
+#define MARGIN_HISTORY_MASKN (                       \
+    (1 << SC_MARKNUM_HISTORY_REVERTED_TO_ORIGIN) |   \
+    (1 << SC_MARKNUM_HISTORY_SAVED) |                \
+    (1 << SC_MARKNUM_HISTORY_MODIFIED) |             \
+    (1 << SC_MARKNUM_HISTORY_REVERTED_TO_MODIFIED)   \
+)
+
+#define MARGIN_BOOKMARK_VALUE   0x9
+#define MARGIN_BOOKMARK_MASKN   (~SC_MASK_FOLDERS & ~MARGIN_HISTORY_MASKN)
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -31,11 +41,13 @@ int on_sci_point_left(eu_tabpage *pnode);
 int on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback);
 void on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor);
 void on_sci_init_style(eu_tabpage *pnode);
-void on_sci_before_file(eu_tabpage *pnode);
-void on_sci_after_file(eu_tabpage *pnode);
+void on_sci_before_file(eu_tabpage *pnode, const bool init);
+void on_sci_after_file(eu_tabpage *pnode, const bool init);
 void on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify);
 void on_sci_send_extra(void *pdata, uint32_t code, LPNMHDR phdr);
-void on_sci_update_margin(eu_tabpage *pnode);
+void on_sci_update_line_margin(eu_tabpage *pnode);
+void on_sci_clear_history(eu_tabpage *pnode, const bool refresh);
+void on_sci_update_history_margin(eu_tabpage *pnode);
 void on_sci_resever_tab(eu_tabpage *pnode);
 void on_sci_free_tab(eu_tabpage **ppnod);
 void on_sci_insert_egg(eu_tabpage *pnode);
@@ -45,6 +57,7 @@ bool on_sci_doc_modified(eu_tabpage *pnode);
 bool on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len);
 void on_sci_destroy_control(eu_tabpage *pnode);
 char *on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end);
+const int on_sci_bitmask_get(const uint32_t pos, const uint32_t len);
 
 #ifdef __cplusplus
 }

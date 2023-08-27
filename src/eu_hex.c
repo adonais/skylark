@@ -26,8 +26,8 @@
 #define HEXEDIT_MODE_FIRST64LINE2 _T("    Offset(H)    | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |   ANSI ASCII   \0")
 #define HEXEDIT_MODE_SECOND64LINE _T("-----------------+------------------------------------------------+----------------\0")
 
-static volatile long hex_zoom;
-static int hex_area;
+static int hex_area = 0;
+static volatile long affected_switch = 0;
 
 /*******************************************
  * 计算utf8编码字节数
@@ -500,7 +500,7 @@ hexview_vscroll_visible(HWND hwnd)
 }
 
 static bool
-hexview_create_font(HWND hwnd, PHEXVIEW hexview)
+hexview_create_font(HWND hwnd, PHEXVIEW hexview, const int zoom)
 {
     LOGFONT logfont;
     TCHAR font[LF_FACESIZE] = {0};
@@ -517,7 +517,7 @@ hexview_create_font(HWND hwnd, PHEXVIEW hexview)
     {
         quality = NONANTIALIASED_QUALITY;
     }
-    int font_size = eu_get_theme()->item.text.fontsize + hex_zoom + 1;
+    int font_size = eu_get_theme()->item.text.fontsize + zoom + 1;
     logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(NULL), 72);
     logfont.lfWidth = 0;
     logfont.lfEscapement = 0;
@@ -1046,9 +1046,9 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 hexview->ct_flags &= ~HVF_FONTCREATED;
             }
             hexview->hfont = (HFONT) wParam;
-            if (!hexview->hfont)
+            if (!hexview->hfont && pnode)
             {
-                hexview_create_font(hwnd, hexview);
+                hexview_create_font(hwnd, hexview, pnode->zoom_level);
             }
             hdc = GetDC(hwnd);
             hold_font = SelectObject(hdc, hexview->hfont);
@@ -1744,28 +1744,37 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         // 兼容scintilla控件
         case SCI_ZOOMIN:
         {
-            _InterlockedExchangeAdd(&hex_zoom, 1);
-            SendMessage(hwnd, WM_SETFONT, 0, 0);
-            InvalidateRect(hwnd, NULL, false);
+            if (pnode && pnode->zoom_level !=SELECTION_ZOOM_LEVEEL)
+            {
+                ++pnode->zoom_level;
+                SendMessage(hwnd, WM_SETFONT, 0, 0);
+                InvalidateRect(hwnd, NULL, false);
+            }
             break;
         }
         case SCI_ZOOMOUT:
         {
-            _InterlockedExchangeAdd(&hex_zoom, -1);
-            SendMessage(hwnd, WM_SETFONT, 0, 0);
-            InvalidateRect(hwnd, NULL, false);
+            if (pnode && pnode->zoom_level != SELECTION_ZOOM_LEVEEL)
+            {
+                --pnode->zoom_level;
+                SendMessage(hwnd, WM_SETFONT, 0, 0);
+                InvalidateRect(hwnd, NULL, false);
+            }
             break;
         }
         case SCI_SETZOOM:
         {
-            _InterlockedExchange(&hex_zoom, (long)wParam);
-            SendMessage(hwnd, WM_SETFONT, 0, 0);
-            InvalidateRect(hwnd, NULL, false);
+            if (pnode && pnode->zoom_level != SELECTION_ZOOM_LEVEEL)
+            {
+                pnode->zoom_level = 0;
+                SendMessage(hwnd, WM_SETFONT, 0, 0);
+                InvalidateRect(hwnd, NULL, false);
+            }
             break;
         }
         case SCI_GETZOOM:
         {
-            return hex_zoom;
+            return (pnode && pnode->zoom_level ? pnode->zoom_level : 0);
         }
         case SCI_GOTOPOS:
         {
@@ -1832,17 +1841,9 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             return 0;
         }
-        case SCI_SETSAVEPOINT:
-        {
-            return on_sci_point_reached(pnode);
-        }
         case SCI_GETCURRENTPOS:
         {
             return hexview->number_items;
-        }
-        case SCN_SAVEPOINTLEFT:
-        {
-            return on_sci_point_left(pnode);
         }
         case SCI_GETSELTEXT:
         {
@@ -2161,10 +2162,11 @@ hexview_switch_mode(eu_tabpage *pnode)
     if (!pnode->hex_mode)
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        pnode->zoom_level = (pnode->zoom_level == SELECTION_ZOOM_LEVEEL) ? 0 : (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
+        eu_logmsg("To hex, pnode->zoom_level = %d\n", pnode->zoom_level);
         if (!pnode->phex)
         {
             pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
-            hex_zoom = pnode->zoom_level > SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
             if (!pnode->phex)
             {
                 err = EUE_POINT_NULL;
@@ -2202,7 +2204,9 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnode->tab_id = on_tabpage_get_index(pnode);
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
         pnode->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
-        pnode->zoom_level = hex_zoom > SELECTION_ZOOM_LEVEEL ? hex_zoom : 0;
+        pnode->zoom_level = (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
+        pnode->zoom_level == SELECTION_ZOOM_LEVEEL ? (pnode->zoom_level = 0) : (void)0;
+        eu_logmsg("To text, pnode->zoom_level = %d\n", pnode->zoom_level);
         pnode->needpre = pnode->pre_len > 0;
         if (pnode->phex && pnode->phex->hex_ascii)
         {
@@ -2258,11 +2262,11 @@ hexview_switch_mode(eu_tabpage *pnode)
             err = EUE_UNKOWN_ERR;
             goto HEX_ERROR;
         }
-        on_sci_before_file(pnode);
+        on_sci_before_file(pnode, true);
         eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
         eu_sci_call(pnode, SCI_ADDTEXT, dst_len - offset, (LPARAM)(pdst + offset));
         eu_sci_call(pnode, SCI_SETOVERTYPE, false, 0);
-        on_sci_after_file(pnode);
+        on_sci_after_file(pnode, true);
         on_search_add_navigate_list(pnode, 0);
         if ((err = on_tabpage_selection(pnode, pnode->tab_id)) >= 0)
         {
@@ -2274,10 +2278,6 @@ hexview_switch_mode(eu_tabpage *pnode)
             {
                 pnode->file_attr &= ~FILE_READONLY_COLOR;
                 on_statusbar_btn_colour(pnode, true);
-            }
-            if (pnode->be_modify && pnode->undo_id)
-            {
-                MSG_BOX(IDS_UNDO_UNCLOSE_TIPS, IDC_MSG_WARN, MB_ICONWARNING | MB_OK);
             }
             eu_logmsg("%s: pnode->eol = %d\n", __FUNCTION__, pnode->eol);
             PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
@@ -2295,18 +2295,30 @@ hexview_switch_item(eu_tabpage *pnode)
 {
     if (g_tabpages && pnode)
     {
-        eu_tabpage *p = NULL;
-        cvector_vector_type(int) v = NULL;
-        int num = on_tabpage_sel_number(&v, false);
-        for (int i = 0; i < num; ++i)
+        int result = IDOK;
+        if ((eu_sci_call(pnode, SCI_CANUNDO, 0, 0) || eu_sci_call(pnode, SCI_CANREDO, 0, 0)) && !_InterlockedCompareExchange(&affected_switch, 1, 0))
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && p != pnode && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
-            {
-                hexview_switch_mode(p);
-            }
+            MSG_BOX_SEL(IDS_HISTORY_CLEAR_UNDO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, result);
         }
-        hexview_switch_mode(pnode);
-        cvector_freep(&v);
+        if (result == IDOK)
+        {
+            eu_tabpage *p = NULL;
+            cvector_vector_type(int) v = NULL;
+            int num = on_tabpage_sel_number(&v, false);
+            for (int i = 0; i < num; ++i)
+            {
+                eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+                if (p && p != pnode && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
+                {
+                    hexview_switch_mode(p);
+                }
+            }
+            hexview_switch_mode(pnode);
+            cvector_freep(&v);
+        }
+        else
+        {
+            _InterlockedExchange(&affected_switch, 0);
+        }
     }
 }

@@ -112,6 +112,10 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"G\"), IDM_SEARCH_GOTOLINE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"B\"), IDM_SEARCH_MATCHING_BRACE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), string.byte(\"B\"), IDM_SEARCH_MATCHING_BRACE_SELECT},\n",
+      "                 {bit.bor(FVIRTKEY,FALT), VK_UP, IDM_SEARCH_NAVIGATE_PREV_HISTORY},\n",
+      "                 {bit.bor(FVIRTKEY,FALT), VK_DOWN, IDM_SEARCH_NAVIGATE_NEXT_HISTORY},\n",
+      "                 {bit.bor(FVIRTKEY,FALT), string.byte(\"0\"), IDM_SEARCH_NAVIGATE_CLEAR_HISTORY},\n",
+      "                 {bit.bor(FVIRTKEY,FALT), VK_NUMPAD0, IDM_SEARCH_NAVIGATE_CLEAR_HISTORY},\n",
       "                 {bit.bor(FVIRTKEY), VK_F9, IDM_SEARCH_TOGGLE_BOOKMARK},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F9, IDM_SEARCH_REMOVE_ALL_BOOKMARKS},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F2, IDM_SEARCH_GOTO_PREV_BOOKMARK},\n",
@@ -202,7 +206,7 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    if (m_len < 171) then
+    if (m_len < 174) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})

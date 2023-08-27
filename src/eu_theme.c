@@ -106,6 +106,9 @@ static HFONT font_phpsection_static;
 static HWND hwnd_aspsection_static;
 static HFONT font_aspsection_static;
 
+static HWND hwnd_xmlsection_static;
+static HFONT font_xmlsection_static;
+
 static HWND hwnd_hyperlink_static;
 static HFONT font_hyperlink_static;
 
@@ -119,6 +122,19 @@ static HWND hwnd_result_lineno_static;
 static HWND hwnd_result_key_static;
 static HFONT font_result_lineno_static;
 static HFONT font_result_key_static;
+
+static HWND hwnd_bracesection_static;
+static HFONT font_bracesection_static;
+
+static HWND hwnd_nchistory_static;
+static HWND hwnd_nchistory_static2;
+static HFONT font_nchistory_static;
+static HFONT font_nchistory_static2;
+
+static HWND hwnd_dochistory_static;
+static HWND hwnd_dochistory_static2;
+static HFONT font_dochistory_static;
+static HFONT font_dochistory_static2;
 
 static theme_query pm_query[] =
 {
@@ -596,10 +612,15 @@ theme_release_handle(void)
     DeleteObject(font_cdata_static);
     DeleteObject(font_phpsection_static);
     DeleteObject(font_aspsection_static);
+    DeleteObject(font_xmlsection_static);
     DeleteObject(font_hyperlink_static);
     DeleteObject(font_result_lineno_static);
     DeleteObject(font_result_key_static);
-
+    DeleteObject(font_bracesection_static);
+    DeleteObject(font_nchistory_static);
+    DeleteObject(font_nchistory_static2);
+    DeleteObject(font_dochistory_static);
+    DeleteObject(font_dochistory_static2);
     DeleteObject(brush_language);
     brush_language = NULL;
     DeleteObject(brush_linenumber);
@@ -694,11 +715,17 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             CREATE_STYLETHEME_FONT(cdata, IDC_CDATA_STATIC, hwnd_cdata_static, font_cdata_static)
             CREATE_STYLETHEME_FONT(phpsection, IDC_PHPSECTION_STATIC, hwnd_phpsection_static, font_phpsection_static)
             CREATE_STYLETHEME_FONT(aspsection, IDC_ASPSECTION_STATIC, hwnd_aspsection_static, font_aspsection_static)
+            CREATE_STYLETHEME_FONT(xmlsection, IDC_XMLSECTION_STATIC, hwnd_xmlsection_static, font_xmlsection_static)
             CREATE_STYLETHEME_FONT(hyperlink, IDC_HYPERLINKSECTION_STATIC, hwnd_hyperlink_static, font_hyperlink_static)
             CREATE_STYLETHEME_FONT(activetab, IDC_THEME_TAB_STATIC, hwnd_activetab_static, font_activetab_static)
             CREATE_STYLETHEME_FONT(symbolic, IDC_THEME_SYMBOLIC_STATIC, hwnd_symbolic_static, font_symbolic_static)
             CREATE_STYLETHEME_FONT(results, IDC_THEME_LINENO_STATIC, hwnd_result_lineno_static, font_result_lineno_static)
             CREATE_STYLETHEME_FONT(results, IDC_THEME_LINEKEY_STATIC, hwnd_result_key_static, font_result_key_static)
+            CREATE_STYLETHEME_FONT(bracesection, IDC_BRACESECTION_STATIC, hwnd_bracesection_static, font_bracesection_static)
+            CREATE_STYLETHEME_FONT(nchistory, IDC_THEME_HISTORY_STATIC, hwnd_nchistory_static, font_nchistory_static)
+            CREATE_STYLETHEME_FONT(nchistory, IDC_THEME_HISTORY2_STATIC, hwnd_nchistory_static2, font_nchistory_static2)
+            CREATE_STYLETHEME_FONT(dochistory, IDC_THEME_HISTORYDOC_STATIC, hwnd_dochistory_static, font_dochistory_static)
+            CREATE_STYLETHEME_FONT(dochistory, IDC_THEME_HISTORYDOC2_STATIC, hwnd_dochistory_static2, font_dochistory_static2)
             HWND hwnd_caretline_edt = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_EDT);
             HWND hwnd_caretline_udn = GetDlgItem(hdlg, IDC_THEME_CARTETLINE_UDN);
             HWND hwnd_indicator_edt = GetDlgItem(hdlg, IDC_THEME_INDICATOR_EDT);
@@ -788,6 +815,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETTEXTCOLOR_PHPSECTION_BTN,
                                        IDC_SETFONT_ASPSECTION_BTN,
                                        IDC_SETTEXTCOLOR_ASPSECTION_BTN,
+                                       IDC_SETFONT_XMLSECTION_BTN,
+                                       IDC_SETTEXTCOLOR_XMLSECTION_BTN,
                                        IDC_SETFONT_HYPERLINKSECTION_BTN,
                                        IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN,
                                        IDC_SETFONT_TAGS_BTN,
@@ -805,7 +834,12 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        IDC_SETFONT_SYMBOLIC_BTN,
                                        IDC_SETTEXTCOLOR_SYMBOLIC_BTN,
                                        IDC_SETTEXTCOLOR_LINENO_BTN,
-                                       IDC_SETTEXTCOLOR_LINEKEY_BTN
+                                       IDC_SETTEXTCOLOR_LINEKEY_BTN,
+                                       IDC_SETTEXTCOLORBRACESECTION_BTN,
+                                       IDC_SETTEXTCOLOR_HISTORY_BTN,
+                                       IDC_SETTEXTCOLOR_HISTORY2_BTN,
+                                       IDC_SETTEXTCOLOR_HISTORYDOC_BTN,
+                                       IDC_SETTEXTCOLOR_HISTORYDOC2_BTN,
                                        };
                 for (int id = 0; id < _countof(buttons); ++id)
                 {
@@ -917,6 +951,26 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                 SetTextColor((HDC) wParam, dlg_style.results.bgcolor);
                 SetBkColor((HDC) wParam, dlg_style.text.bgcolor);
             }
+            else if ((HWND) lParam == hwnd_nchistory_static)
+            {
+                SetTextColor((HDC) wParam, dlg_style.nchistory.color);
+                SetBkColor((HDC) wParam, dlg_style.text.bgcolor);
+            }
+            else if ((HWND) lParam == hwnd_nchistory_static2)
+            {
+                SetTextColor((HDC) wParam, dlg_style.nchistory.bgcolor);
+                SetBkColor((HDC) wParam, dlg_style.text.bgcolor);
+            }
+            else if ((HWND) lParam == hwnd_dochistory_static)
+            {
+                SetTextColor((HDC) wParam, dlg_style.dochistory.color);
+                SetBkColor((HDC) wParam, dlg_style.text.bgcolor);
+            }
+            else if ((HWND) lParam == hwnd_dochistory_static2)
+            {
+                SetTextColor((HDC) wParam, dlg_style.dochistory.bgcolor);
+                SetBkColor((HDC) wParam, dlg_style.text.bgcolor);
+            }
             else SET_STATIC_TEXTCOLOR(hwnd_keyword_static, keywords0)
             else SET_STATIC_TEXTCOLOR(hwnd_keyword2_static, keywords1)
             else SET_STATIC_TEXTCOLOR(hwnd_string_static, string)
@@ -936,7 +990,9 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else SET_STATIC_TEXTCOLOR(hwnd_cdata_static, cdata)
             else SET_STATIC_TEXTCOLOR(hwnd_phpsection_static, phpsection)
             else SET_STATIC_TEXTCOLOR(hwnd_aspsection_static, aspsection)
+            else SET_STATIC_TEXTCOLOR(hwnd_xmlsection_static, xmlsection)
             else SET_STATIC_TEXTCOLOR(hwnd_hyperlink_static, hyperlink)
+            else SET_STATIC_TEXTCOLOR(hwnd_bracesection_static, bracesection)
             else SET_STATIC_TEXTCOLOR(hwnd_caret_static, caret)
             else SET_STATIC_TEXTCOLOR(hwnd_symbolic_static, symbolic)
             return (LRESULT) brush_language;
@@ -1024,6 +1080,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     SYNC_FONT(cdata, hwnd_cdata_static, font_cdata_static)
                     SYNC_FONT(phpsection, hwnd_phpsection_static, font_phpsection_static)
                     SYNC_FONT(aspsection, hwnd_aspsection_static, font_aspsection_static)
+                    SYNC_FONT(xmlsection, hwnd_xmlsection_static, font_xmlsection_static)
                     SYNC_FONT(hyperlink, hwnd_hyperlink_static, font_hyperlink_static)
                     break;
                 }
@@ -1069,6 +1126,36 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     InvalidateRect(hwnd_result_key_static, NULL, FALSE);
                     break;
                 }
+                case IDC_SETTEXTCOLORBRACESECTION_BTN:
+                {
+                    choose_text_color(hdlg, &dlg_style.bracesection.color);
+                    InvalidateRect(hwnd_bracesection_static, NULL, FALSE);
+                    break;
+                }
+                case IDC_SETTEXTCOLOR_HISTORY_BTN:
+                {
+                    choose_text_color(hdlg, &dlg_style.nchistory.color);
+                    InvalidateRect(hwnd_nchistory_static, NULL, FALSE);
+                    break;
+                }
+                case IDC_SETTEXTCOLOR_HISTORY2_BTN:
+                {
+                    choose_text_color(hdlg, &(dlg_style.nchistory.bgcolor));
+                    InvalidateRect(hwnd_nchistory_static2, NULL, FALSE);
+                    break;
+                }
+                case IDC_SETTEXTCOLOR_HISTORYDOC_BTN:
+                {
+                    choose_text_color(hdlg, &dlg_style.dochistory.color);
+                    InvalidateRect(hwnd_dochistory_static, NULL, FALSE);
+                    break;
+                }
+                case IDC_SETTEXTCOLOR_HISTORYDOC2_BTN:
+                {
+                    choose_text_color(hdlg, &(dlg_style.dochistory.bgcolor));
+                    InvalidateRect(hwnd_dochistory_static2, NULL, FALSE);
+                    break;
+                }
             }
             STYLE_MSG(keywords0,hwnd_keyword_static,font_keyword_static,IDC_SETFONT_KEYWORDS_BUTTON,IDC_SETTEXTCOLOR_KEYWORDS_BTN)
             else STYLE_MSG(keywords1,hwnd_keyword2_static,font_keyword2_static,IDC_SETFONT_KEYWORDS2_BTN,IDC_SETTEXTCOLOR_KEYWORDS2_BTN)
@@ -1089,6 +1176,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else STYLE_MSG(cdata,hwnd_cdata_static,font_cdata_static,IDC_SETFONT_CDATA_BTN,IDC_SETTEXTCOLOR_CDATA_BTN)
             else STYLE_MSG(phpsection,hwnd_phpsection_static,font_phpsection_static,IDC_SETFONT_PHPSECTION_BTN,IDC_SETTEXTCOLOR_PHPSECTION_BTN)
             else STYLE_MSG(aspsection,hwnd_aspsection_static,font_aspsection_static,IDC_SETFONT_ASPSECTION_BTN,IDC_SETTEXTCOLOR_ASPSECTION_BTN)
+            else STYLE_MSG(xmlsection,hwnd_xmlsection_static,font_xmlsection_static,IDC_SETFONT_XMLSECTION_BTN,IDC_SETTEXTCOLOR_XMLSECTION_BTN)    
             else STYLE_MSG(hyperlink,hwnd_hyperlink_static,font_hyperlink_static,IDC_SETFONT_HYPERLINKSECTION_BTN,IDC_SETTEXTCOLOR_HYPERLINKSECTION_BTN)
             else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)
             break;

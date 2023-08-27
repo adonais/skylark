@@ -84,12 +84,8 @@ on_view_switch_type(int m_type)
         {
             pnode->doc_ptr = eu_doc_get_ptr() + m_type;
         }
-        on_sci_before_file(pnode);
-        on_sci_after_file(pnode);
-        if (pnode->be_modify)
-        {
-            on_tabpage_editor_modify(pnode, "X");
-        }
+        on_sci_before_file(pnode, false);
+        on_sci_after_file(pnode, false);
         eu_window_resize(eu_hwnd_self());
         return 0;
     }
@@ -150,7 +146,7 @@ on_view_refresh_theme(HWND hwnd)
         else
         {
             on_sci_init_style(p);
-            on_sci_after_file(p);
+            on_sci_after_file(p, false);
         }
         if (p->hwnd_symlist)
         {
@@ -165,10 +161,6 @@ on_view_refresh_theme(HWND hwnd)
         if (p->hwnd_qrtable)
         {
             on_table_update_theme(p);
-        }
-        if (p->be_modify)
-        {
-            on_tabpage_editor_modify(p, "X");
         }
         if (p->pmod)
         {
@@ -371,15 +363,29 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
 }
 
 void
-on_view_light_brace(void)
+on_view_light_brace(eu_tabpage *p)
 {
-    eu_get_config()->eu_brace.matching ^= true;
+    if (p)
+    {
+        eu_get_config()->eu_brace.matching ^= true;
+        if (!eu_get_config()->eu_brace.matching)
+        {   // 取消括号匹配
+            eu_sci_call(p, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
+        }
+    }
 }
 
 void
-on_view_light_str(void)
+on_view_light_str(eu_tabpage *p)
 {
-    eu_get_config()->m_light_str ^= true;
+    if (p)
+    {
+        eu_get_config()->m_light_str ^= true;
+        if (!eu_get_config()->m_light_str)
+        {   // 取消指示器高亮
+            eu_sci_call(p, SCI_INDICATORCLEARRANGE, 0, eu_sci_call(p, SCI_GETLENGTH, 0, 0));
+        }
+    }
 }
 
 void
@@ -508,6 +514,53 @@ on_view_indent_visiable(void)
 }
 
 void
+on_view_history_visiable(eu_tabpage *pnode, const int wm_id)
+{
+    const int history_mask = (const int)eu_get_config()->history_mask;
+    if (pnode && wm_id > 0 && wm_id != history_mask)
+    {
+        int index = 0;
+        int result = IDOK;
+        bool affected = false;
+        eu_tabpage *p = NULL;
+        const int count = TabCtrl_GetItemCount(g_tabpages);
+        const uint32_t maskn = wm_id - IDM_VIEW_HISTORY_PLACEHOLDE;
+        for (index = 0; index < count; ++index)
+        {
+            if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+            {   // 先给出提示
+                if (maskn > 1 && history_mask - IDM_VIEW_HISTORY_PLACEHOLDE == 1 &&
+                   (eu_sci_call(p, SCI_CANUNDO, 0, 0) || eu_sci_call(p, SCI_CANREDO, 0, 0)))
+                {
+                    if (!affected)
+                    {
+                        MSG_BOX_SEL(IDS_HISTORY_CLEAR_UNDO, IDC_MSG_TIPS, MB_ICONSTOP | MB_OKCANCEL, result);
+                        affected = true;
+                    }
+                    if (result == IDOK)
+                    {
+                        eu_sci_call(p, SCI_EMPTYUNDOBUFFER, 0, 0);
+                        p == pnode ? on_toolbar_update_button() : (void)0;
+                    }
+                }
+            }
+        }
+        if (result == IDOK)
+        {   // 然后再显示
+            eu_get_config()->history_mask = (uint32_t)wm_id;
+            for (index = 0; index < count; ++index)
+            {
+                if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+                {
+                    on_sci_update_history_margin(p);
+                }
+            }
+            util_redraw(pnode->hwnd_sc, false);
+        }
+    }
+}
+
+void
 on_view_zoom_out(eu_tabpage *pnode)
 {
     if (pnode)
@@ -519,7 +572,7 @@ on_view_zoom_out(eu_tabpage *pnode)
         else
         {
             eu_sci_call(pnode, SCI_ZOOMOUT, 0, 0);
-            on_sci_update_margin(pnode);
+            on_sci_update_line_margin(pnode);
         }
     }
 }
@@ -536,7 +589,7 @@ on_view_zoom_in(eu_tabpage *pnode)
         else
         {
             eu_sci_call(pnode, SCI_ZOOMIN, 0, 0);
-            on_sci_update_margin(pnode);
+            on_sci_update_line_margin(pnode);
         }
     }
 }
@@ -553,7 +606,7 @@ on_view_zoom_reset(eu_tabpage *pnode)
         else
         {
             eu_sci_call(pnode, SCI_SETZOOM, 0, 0);
-            on_sci_update_margin(pnode);
+            on_sci_update_line_margin(pnode);
             pnode->zoom_level = 0;
         }
     }
@@ -727,7 +780,7 @@ on_view_font_quality(HWND hwnd, int res_id)
             if (p)
             {
                 on_sci_init_style(p);
-                on_sci_after_file(p);
+                on_sci_after_file(p, false);
             }
         }
         eu_window_resize(hwnd);
@@ -746,7 +799,7 @@ on_view_enable_rendering(HWND hwnd, int res_id)
             if (p)
             {
                 on_sci_init_style(p);
-                on_sci_after_file(p);
+                on_sci_after_file(p, false);
             }
         }
         eu_window_resize(hwnd);
