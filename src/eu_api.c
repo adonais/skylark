@@ -276,11 +276,11 @@ eu_exist_file(LPCTSTR path)
     {
         return false;
     }
-    if (_tcslen(path) > 1 && path[1] == L':')
+    if (_tcslen(path) > 1 && ((path[1] == L':' || url_has_samba(path))))
     {
         fileattr = GetFileAttributes(path);
     }
-    else
+    else if (!url_has_remote(path))
     {
         TCHAR file_path[MAX_BUFFER] = {0};
         _sntprintf(file_path, MAX_BUFFER, _T("%s\\%s"), eu_module_path, path);

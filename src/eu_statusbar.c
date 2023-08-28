@@ -134,7 +134,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
             on_statusbar_btn_colour(pnode, true);
             ret = 1;
         }
-        else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
+        else if (!url_has_samba(pnode->pathfile) && util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
         {
             Button_SetText(hrw, rstr);
             on_statusbar_btn_colour(pnode, true);
@@ -147,7 +147,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
             ret = 2;
         }
     }
-    else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
+    else if (!url_has_samba(pnode->pathfile) && util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
     {
         MSG_BOX(IDS_BUTTON_RW_TIPS, IDC_MSG_TIPS, MB_OK);
         ret = 0;
