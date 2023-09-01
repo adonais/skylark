@@ -299,6 +299,7 @@ on_result_reload(eu_tabpage *pedit)
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
         eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, 0);
+        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_HISTORY_INDEX, 0);
         // 强制使用unix回车符
         eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 不显示对齐线

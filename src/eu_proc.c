@@ -1976,11 +1976,11 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case SCN_MARGINCLICK:
                 {
                     sptr_t lineno = eu_sci_call(pnode, SCI_LINEFROMPOSITION, lpnotify->position, 0);
-                    if (lpnotify->margin == 1)
+                    if (lpnotify->margin == MARGIN_BOOKMARK_INDEX)
                     {
                         on_search_toggle_mark(pnode, lineno);
                     }
-                    else if (lpnotify->margin == 2)
+                    else if (lpnotify->margin == MARGIN_FOLD_INDEX)
                     {
                         on_code_switch_fold(pnode, lineno);
                     }
