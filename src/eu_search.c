@@ -2546,16 +2546,16 @@ on_search_lookup_result(eu_tabpage *pnode, const bool all_file, const int count)
             {
                 if (p != pnode)
                 {
-                    result_vec vec = {-1};
-                    vec.mark._no = (intptr_t)p;
+                    result_vec vec_t = {-1};
+                    vec_t.mark._no = (intptr_t)p;
                     // 占位, 对应词法解析里的文件名
-                    cvector_push_back(pnode->ret_vec, vec);
+                    cvector_push_back(pnode->ret_vec, vec_t);
                     // 拷贝其他标签页的数据到当前页面
                     for (size_t j = 0; j < cvector_size(p->ret_vec); ++j)
                     {
                         p->ret_vec[j].mark._no = prefix_width;
-                        memcpy(&vec, &p->ret_vec[j], sizeof(result_vec));
-                        cvector_push_back(pnode->ret_vec, vec);
+                        memcpy(&vec_t, &p->ret_vec[j], sizeof(result_vec));
+                        cvector_push_back(pnode->ret_vec, vec_t);
                     }
                 }
             }

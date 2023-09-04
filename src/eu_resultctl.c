@@ -140,15 +140,15 @@ on_result_menu_callback(HMENU hpop, void *param)
 }
 
 static eu_tabpage *
-on_result_other_tab(int line, result_vec *vec)
+on_result_other_tab(int line, result_vec *vec_strings)
 {
-    if ((int)cvector_size(vec) >= line)
+    if ((int)cvector_size(vec_strings) >= line)
     {
         for (int i = line - 1; i >= 0; --i)
         {
-            if (vec[i].line == -1)
+            if (vec_strings[i].line == -1)
             {
-                return (eu_tabpage *)(vec[i].mark._no);
+                return (eu_tabpage *)(vec_strings[i].mark._no);
             }
         }
     }

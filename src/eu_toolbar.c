@@ -692,7 +692,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
 static void
 on_toolbar_create_file(const int *pv, const int size, wchar_t ***plist)
 {
-    uint32_t buf_len = 0;
+    size_t buf_len = 0;
     eu_tabpage *p = NULL;
     for (int i = 0; i < size; ++i)
     {
@@ -704,10 +704,10 @@ on_toolbar_create_file(const int *pv, const int size, wchar_t ***plist)
             if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
             {
                 char *pbuffer = NULL;
-                if ((pbuffer = util_strdup_content(p, (size_t *)&buf_len)) != NULL)
+                if ((pbuffer = util_strdup_content(p, &buf_len)) != NULL)
                 {
                     uint32_t written;
-                    WriteFile(pfile, pbuffer, buf_len, &written, NULL);
+                    WriteFile(pfile, pbuffer, (unsigned long)buf_len, &written, NULL);
                     cvector_push_back(*plist, pname);
                     free(pbuffer);
                 }
@@ -718,37 +718,37 @@ on_toolbar_create_file(const int *pv, const int size, wchar_t ***plist)
 }
 
 static bool
-on_toolbar_mk_temp(wchar_t ***vec)
+on_toolbar_mk_temp(wchar_t ***vec_files)
 {
     cvector_vector_type(int) v = NULL;
     if (on_tabpage_sel_number(&v, true) > 0 && v)
     {
         const int size = (int)cvector_size(v);
         // 改成函数调用, cvector宏定义在一个函数里, 导致clang瞎优化
-        on_toolbar_create_file(v, size, vec);
+        on_toolbar_create_file(v, size, vec_files);
     }
     cvector_freep(&v);
-    return (*vec != NULL && cvector_size(*vec) > 0);
+    return (*vec_files != NULL && cvector_size(*vec_files) > 0);
 }
 
 static unsigned __stdcall
 do_extra_actions(void *lp)
 {
     wchar_t *abs_path = NULL;
-    cvector_vector_type(wchar_t *) vec = NULL;
+    cvector_vector_type(wchar_t *) vec_files = NULL;
     char *pactions = eu_get_config()->m_actions[eu_int_cast(lp)];
     if (strlen(pactions) < 1)
     {
         return 1;
     }
-    if (!on_toolbar_mk_temp(&vec))
+    if (!on_toolbar_mk_temp(&vec_files))
     {
         return 1;
     }
     if ((abs_path = util_to_abs(pactions)) != NULL)
     {
         bool wine = util_under_wine();
-        int count = eu_int_cast(cvector_size(vec));
+        int count = eu_int_cast(cvector_size(vec_files));
         const int len = (count + 1) * (MAX_PATH + 1);
         wchar_t *cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1);
         if (cmd_exec != NULL)
@@ -770,26 +770,26 @@ do_extra_actions(void *lp)
                 if (i == count - 1)
                 {
                     wcsncat(cmd_exec, L"\"", len);
-                    if (wine && util_get_unix_file_name(vec[i], unix_path, MAX_PATH))
+                    if (wine && util_get_unix_file_name(vec_files[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
                     }
                     else
                     {
-                        wcsncat(cmd_exec, vec[i], len);
+                        wcsncat(cmd_exec, vec_files[i], len);
                     }
                     wcsncat(cmd_exec, L"\"", len);
                 }
                 else
                 {
                     wcsncat(cmd_exec, L"\"", len);
-                    if (wine && util_get_unix_file_name(vec[i], unix_path, MAX_PATH))
+                    if (wine && util_get_unix_file_name(vec_files[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
                     }
                     else
                     {
-                        wcsncat(cmd_exec, vec[i], len);
+                        wcsncat(cmd_exec, vec_files[i], len);
                     }
                     wcsncat(cmd_exec, L"\" ", len);
                 }
@@ -806,15 +806,15 @@ do_extra_actions(void *lp)
             eu_close_handle(handle);
             if (!wine)
             {
-                cvector_for_each(vec, DeleteFile);
+                cvector_for_each(vec_files, DeleteFile);
             }
             free(cmd_exec);
         }
         free(abs_path);
     }
-    if (vec)
+    if (vec_files)
     {
-        cvector_free_each_and_free(vec, free);
+        cvector_free_each_and_free(vec_files, free);
     }
     return 0;
 }

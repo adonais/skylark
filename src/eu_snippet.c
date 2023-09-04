@@ -260,16 +260,16 @@ static bool
 on_snippet_init_parser(const TCHAR *path, snippet_t **ptr_vec)
 {
     int eol = 0;
-    cvector_vector_type(snippet_t) vec = NULL;
-    if (on_parser_init(path, &vec, &eol))
+    cvector_vector_type(snippet_t) vec_spp = NULL;
+    if (on_parser_init(path, &vec_spp, &eol))
     {   // 启用snippets文件里的回车符
         eu_tabpage *pview = (eu_tabpage *)GetWindowLongPtr(hwnd_snippet, GWLP_USERDATA);
         if (pview)
         {
             eu_sci_call(pview, SCI_SETEOLMODE, eol, 0);
         }
-        on_snippet_write_control(vec);
-        *ptr_vec = vec;
+        on_snippet_write_control(vec_spp);
+        *ptr_vec = vec_spp;
         return true;
     }
     return false;
@@ -310,10 +310,10 @@ on_snippet_get_vec(HWND hwnd_cmb, doctype_t **pdoc)
 /**************************************************************************************
  * 重置doc_ptr所指结构体的vec指针, 因为vec可能会随配置文件改变而改变
  * index, doc_ptr所指结构体的序号
- * vec, 新的vec指针
+ * vec_spp, 新的vec指针
  **************************************************************************************/
 static void
-on_snippet_set_data(int index, snippet_t *vec)
+on_snippet_set_data(int index, snippet_t *vec_spp)
 {
     doctype_t *doc_ptr = eu_doc_get_ptr();
     if (doc_ptr)
@@ -330,9 +330,9 @@ on_snippet_set_data(int index, snippet_t *vec)
         {
             doc_ptr = &doc_ptr[index];
         }
-        if (doc_ptr && doc_ptr->ptrv != vec)
+        if (doc_ptr && doc_ptr->ptrv != vec_spp)
         {
-            doc_ptr->ptrv = vec;
+            doc_ptr->ptrv = vec_spp;
         }
     }
 }
@@ -380,7 +380,7 @@ static void
 on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
 {
     int index = -1;
-    snippet_t *vec = NULL;
+    snippet_t *vec_spp = NULL;
     TCHAR snippet_file[MAX_BUFFER] = {0};
     TCHAR first[QW_SIZE] = {0};
     TCHAR str[QW_SIZE] = {0};
@@ -393,19 +393,19 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
         on_snippet_do_sci("", false);
         on_snippet_do_listbox(NULL, 0);
     }
-    else if ((index = on_snippet_get_file(hself, snippet_file, MAX_BUFFER, &vec)) >= 0)
+    else if ((index = on_snippet_get_file(hself, snippet_file, MAX_BUFFER, &vec_spp)) >= 0)
     {
-        if (vec)
+        if (vec_spp)
         {
-            on_snippet_write_control(vec);
-            *ptr_vec = vec;
+            on_snippet_write_control(vec_spp);
+            *ptr_vec = vec_spp;
         }
-        else if (eu_exist_file(snippet_file) && on_snippet_init_parser(snippet_file, &vec))
+        else if (eu_exist_file(snippet_file) && on_snippet_init_parser(snippet_file, &vec_spp))
         {
-            on_snippet_set_data(index, vec);
-            *ptr_vec = vec;
+            on_snippet_set_data(index, vec_spp);
+            *ptr_vec = vec_spp;
         }
-        else if (!vec)
+        else if (!vec_spp)
         {
             on_snippet_do_listbox(NULL, 0);
         }
@@ -417,14 +417,14 @@ on_snippet_do_combo(HWND hself, snippet_t **ptr_vec)
 static void
 on_snippet_lst_click(HWND hwnd_lst, const char *ptxt, const int index)
 {
-    snippet_t *vec = NULL;
+    snippet_t *vec_spp = NULL;
     int n = (int) ListBox_GetItemData(hwnd_lst, index);
     HWND hwnd_cbo = GetDlgItem(hwnd_snippet, IDC_SNIPPET_CBO1);
-    if (n >=0 && hwnd_cbo != NULL &&  (vec = on_snippet_get_vec(hwnd_cbo, NULL)) != NULL)
+    if (n >=0 && hwnd_cbo != NULL &&  (vec_spp = on_snippet_get_vec(hwnd_cbo, NULL)) != NULL)
     {
         int c = 0;
         snippet_t *it;
-        for (it = cvector_begin(vec); it != cvector_end(vec); ++it, ++c)
+        for (it = cvector_begin(vec_spp); it != cvector_end(vec_spp); ++it, ++c)
         {
             if (!strcmp(it->name, ptxt) && n == c)
             {
@@ -457,7 +457,7 @@ on_snippet_do_modify(HWND hdlg)
         int dimension = -1;
         bool add = false;
         bool edt_modify = false;
-        snippet_t *vec = NULL;
+        snippet_t *vec_spp = NULL;
         TCHAR str[MAX_PATH] = {0};
         TCHAR snippet_file[MAX_BUFFER] = {0};
         HWND hwnd_edt = GetDlgItem(hdlg, IDC_SNIPPET_EDT1);
@@ -485,7 +485,7 @@ on_snippet_do_modify(HWND hdlg)
         {
             SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_NEW, 0), 0);
         }
-        if (!(vec = on_snippet_get_vec(hwnd_cmb, NULL)))
+        if (!(vec_spp = on_snippet_get_vec(hwnd_cmb, NULL)))
         {
             break;
         }
@@ -494,13 +494,13 @@ on_snippet_do_modify(HWND hdlg)
             dimension = (int) ListBox_GetItemData(hwnd_lst, index);
             if (dimension < 0)
             {
-                dimension = eu_int_cast(!index ? 0 : cvector_size(vec) - 1);
+                dimension = eu_int_cast(!index ? 0 : cvector_size(vec_spp) - 1);
             }
         }
     #ifdef APP_DEBUG
-        printf("listbox_count = %d, vec = %p, vec_size = %zu, dimension = %d\n", index, (void *)vec, cvector_size(vec), dimension);
+        printf("listbox_count = %d, vec_spp = %p, vec_size = %zu, dimension = %d\n", index, (void *)vec_spp, cvector_size(vec_spp), dimension);
     #endif
-        if (dimension < 0 || (int)cvector_size(vec) < index)
+        if (dimension < 0 || (int)cvector_size(vec_spp) < index)
         {
             break;
         }
@@ -517,21 +517,21 @@ on_snippet_do_modify(HWND hdlg)
                 {
                     case 0:
                     {
-                        memset(&vec[dimension].name, 0, QW_SIZE);
+                        memset(&vec_spp[dimension].name, 0, QW_SIZE);
                         _sntprintf(name, QW_SIZE - 1, _T("%s"), p);
-                        util_make_u8(p, vec[dimension].name, QW_SIZE);
+                        util_make_u8(p, vec_spp[dimension].name, QW_SIZE);
                         break;
                     }
                     case 1:
                     {
-                        memset(&vec[dimension].comment, 0, QW_SIZE);
-                        util_make_u8(p, vec[dimension].comment, QW_SIZE);
+                        memset(&vec_spp[dimension].comment, 0, QW_SIZE);
+                        util_make_u8(p, vec_spp[dimension].comment, QW_SIZE);
                         break;
                     }
                     case 2:
                     {
-                        memset(&vec[dimension].parameter, 0, PARAM_LEN);
-                        util_make_u8(p, vec[dimension].parameter, PARAM_LEN);
+                        memset(&vec_spp[dimension].parameter, 0, PARAM_LEN);
+                        util_make_u8(p, vec_spp[dimension].parameter, PARAM_LEN);
                         break;
                     }
                     default:
@@ -547,13 +547,13 @@ on_snippet_do_modify(HWND hdlg)
             {
                 case 0:
                 {
-                    memset(&vec[dimension].comment, 0, QW_SIZE);
-                    memset(&vec[dimension].parameter, 0, PARAM_LEN);
+                    memset(&vec_spp[dimension].comment, 0, QW_SIZE);
+                    memset(&vec_spp[dimension].parameter, 0, PARAM_LEN);
                     break;
                 }
                 case 1:
                 {
-                    memset(&vec[dimension].parameter, 0, PARAM_LEN);
+                    memset(&vec_spp[dimension].parameter, 0, PARAM_LEN);
                     break;
                 }
                 default:
@@ -571,7 +571,7 @@ on_snippet_do_modify(HWND hdlg)
             }
             if (add && (n = ListBox_AddString(hwnd_lst, name)) >= 0)
             {
-                ListBox_SetItemData(hwnd_lst, n, (LPARAM)(cvector_size(vec) - 1));
+                ListBox_SetItemData(hwnd_lst, n, (LPARAM)(cvector_size(vec_spp) - 1));
                 ListBox_SetCurSel(hwnd_lst, n);
             }
             else
@@ -602,7 +602,7 @@ on_snippet_do_modify(HWND hdlg)
             char *txt = util_strdup_content(pview, NULL);
             if (txt)
             {
-                _snprintf(vec[dimension].body, LARGER_LEN - 1, "%s", txt);
+                _snprintf(vec_spp[dimension].body, LARGER_LEN - 1, "%s", txt);
                 eu_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
                 edt_modify = true;
                 free(txt);
@@ -613,14 +613,14 @@ on_snippet_do_modify(HWND hdlg)
             if (add)
             {
                 eu_touch(snippet_file);
-                if (on_parser_vector_new(snippet_file, &vec, dimension, (int)eu_sci_call(pview, SCI_GETEOLMODE, 0, 0)))
+                if (on_parser_vector_new(snippet_file, &vec_spp, dimension, (int)eu_sci_call(pview, SCI_GETEOLMODE, 0, 0)))
                 {
                     _InterlockedExchange(&snippet_new, 0);
                 }
             }
             else
             {
-                on_parser_vector_modify(snippet_file, &vec, dimension);
+                on_parser_vector_modify(snippet_file, &vec_spp, dimension);
             }
         }
     } while (0);
@@ -731,8 +731,8 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                         int focus = ComboBox_GetCurSel(cbo_self);
                         if (focus != last_index)
                         {
-                            cvector_vector_type(snippet_t) vec = NULL;
-                            on_snippet_do_combo(cbo_self, &vec);
+                            cvector_vector_type(snippet_t) vec_spp = NULL;
+                            on_snippet_do_combo(cbo_self, &vec_spp);
                             last_index = ComboBox_GetCurSel(cbo_self);
                         }
                     }
@@ -765,7 +765,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                     int i = 0;
                     int index = 0;
                     int dimension = 0;
-                    snippet_t *vec = NULL;
+                    snippet_t *vec_spp = NULL;
                     TCHAR snippet_file[MAX_BUFFER] = {0};
                     HWND hwnd_lst = GetDlgItem(hdlg, IDC_SNIPPET_LST);
                     HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
@@ -792,10 +792,10 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                     {
                         i = index - 1;
                     }
-                    if ((on_snippet_get_file(hwnd_cmb, snippet_file, MAX_BUFFER, &vec)) >= 0 && vec != NULL)
+                    if ((on_snippet_get_file(hwnd_cmb, snippet_file, MAX_BUFFER, &vec_spp)) >= 0 && vec_spp != NULL)
                     {
-                        on_parser_vector_erase(snippet_file, &vec, dimension);
-                        on_snippet_set_data(-1, vec);
+                        on_parser_vector_erase(snippet_file, &vec_spp, dimension);
+                        on_snippet_set_data(-1, vec_spp);
                         ListBox_SetCurSel(hwnd_lst, i);
                         on_snippet_update_item(hwnd_lst, index);
                         SendMessage(hdlg, WM_COMMAND, MAKEWPARAM(IDC_SNIPPET_LST, LBN_SELCHANGE), (LPARAM)hwnd_lst);
@@ -808,7 +808,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                     {
                         break;
                     }
-                    snippet_t *vec = NULL;
+                    snippet_t *vec_spp = NULL;
                     snippet_t data = {0};
                     HWND hwnd_lst = GetDlgItem(hdlg, IDC_SNIPPET_LST);
                     HWND hwnd_cmb = GetDlgItem(hdlg, IDC_SNIPPET_CBO1);
@@ -821,11 +821,11 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                         on_snippet_do_edt(NULL);
                         on_snippet_do_sci(NULL, false);
                     }
-                    vec = on_snippet_get_vec(hwnd_cmb, NULL);
-                    cvector_push_back(vec, data);
-                    on_snippet_set_data(-1, vec);
+                    vec_spp = on_snippet_get_vec(hwnd_cmb, NULL);
+                    cvector_push_back(vec_spp, data);
+                    on_snippet_set_data(-1, vec_spp);
                     ListBox_SetCurSel(hwnd_lst, -1);
-                    return (INT_PTR)vec;
+                    return (INT_PTR)vec_spp;
                 }
                 case IDC_SNIPPET_BTN_APPLY:
                 {
