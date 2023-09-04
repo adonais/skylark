@@ -281,12 +281,12 @@ on_statusbar_menu_check(HMENU hmenu, int first_id, int last_id, int id, int part
 static int
 on_statusbar_convert_coding(eu_tabpage *pnode, int encoding)
 {
-    sptr_t file_len = 0;
     char *file_buf = NULL;
     char *src_str = NULL;
     char *dst_str = NULL;
     size_t src_len = 0;
     size_t dst_len = 0;
+    size_t file_len = 0;
     size_t res = 0;
     euconv_t evd = {0};
     if (!pnode)

@@ -196,8 +196,8 @@ on_edit_incremental_clipborad(eu_tabpage *pnode)
         char *buf0 = NULL;
         char *buf1 = NULL;
         wchar_t *text = NULL;
-        const sptr_t n = eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0);
-        if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+        const int n = (const int)eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0);
+        if (n < 0 || eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
         {
             MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             return;
@@ -206,7 +206,7 @@ on_edit_incremental_clipborad(eu_tabpage *pnode)
         {
             buf0 = _strdup("");
         }
-        if (buf0 && (buf1 = util_strdup_select(pnode, &len, n)) != NULL && len > 0)
+        if (buf0 && (buf1 = util_strdup_select(pnode, &len, (size_t)n)) != NULL && len > 0)
         {
             char *buf = NULL;
             len += (strlen(buf0) + 8);

@@ -637,8 +637,8 @@ on_sci_parser_line(eu_tabpage *p, const sptr_t current_line, const sptr_t last_l
 {
     if (p && vec_buf && pcount && pmax && ward)
     {
-        int len = 0;
         int last = 0;
+        size_t len = 0;
         const sptr_t end_y = (const sptr_t )(p->rect_sc.bottom - p->rect_sc.top);
         const sptr_t font_hight = eu_sci_call(p, SCI_TEXTHEIGHT, 0, 0);
         const int w_count = (const int)(last_line - current_line + 1);
@@ -665,22 +665,22 @@ on_sci_parser_line(eu_tabpage *p, const sptr_t current_line, const sptr_t last_l
             *pcount = MIN(w_count, *ward ? eu_int_cast((end_y - current_y)/font_hight - 3) : eu_int_cast(current_y/font_hight - 3));
         }
         for (sptr_t i = current_line; i <= last_line && last < *pcount; ++i, ++last)
-        {
-            char *pbuf = util_strdup_line(p, i, (size_t *)&len);
-            if (pbuf)
+        {   // clang, 整型指针转size_t指针导致__fastfail?
+            char *buffer = util_strdup_line(p, i, &len);
+            if (buffer)
             {
-                cvector_push_back(*vec_buf, pbuf);
+                cvector_push_back(*vec_buf, buffer);
             }
-            if (len > *pmax)
+            if (len > (size_t)*pmax)
             {
-                *pmax = len;
+                *pmax = eu_int_cast(len);
             }
         }
         if (cvector_size(*vec_buf) > 0)
         {
             if (w_count > *pcount)
             {
-                cvector_push_back(*vec_buf, strdup("..."));
+                cvector_push_back(*vec_buf, _strdup("..."));
             }
             *pcount = (int)cvector_size(*vec_buf);
         }
