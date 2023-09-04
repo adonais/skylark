@@ -159,7 +159,7 @@ func_qrgen(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     UNREFERENCED_PARAMETER(lParam);
     switch (message)
     {
-    case WM_INITDIALOG:
+        case WM_INITDIALOG:
         {
             RECT rc;
             size_t len = 0;
@@ -209,28 +209,28 @@ func_qrgen(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             set_hwnd_qr(hdlg);
             return 1;
         }
-    case WM_DPICHANGED:
-    {
-        on_qrgen_dpi_scale(hdlg);
-        return 1;
-    }        
-    case WM_LBUTTONUP:
-        EndDialog(hdlg, LOWORD(wParam));
-        return 1;
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK)
+        case WM_DPICHANGED:
         {
+            on_qrgen_dpi_scale(hdlg);
+            return 1;
+        }        
+        case WM_LBUTTONUP:
             EndDialog(hdlg, LOWORD(wParam));
             return 1;
-        }
-        break;
-    case WM_DESTROY:
-        if (hqr_bitmap)
-        {
-            DeleteObject(hqr_bitmap);
-        }
-        set_hwnd_qr(NULL);
-        break;
+        case WM_COMMAND:
+            if (LOWORD(wParam) == IDOK)
+            {
+                EndDialog(hdlg, LOWORD(wParam));
+                return 1;
+            }
+            break;
+        case WM_DESTROY:
+            if (hqr_bitmap)
+            {
+                DeleteObject(hqr_bitmap);
+            }
+            set_hwnd_qr(NULL);
+            break;
     }
     return 0;
 }

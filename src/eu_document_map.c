@@ -315,19 +315,18 @@ on_map_reload(eu_tabpage *pedit)
         sptr_t pdoc = eu_sci_call(pnode, SCI_GETDOCPOINTER, 0, 0);
         if (strcmp(eu_get_config()->window_theme, "default") == 0)
         {
-            on_sci_init_default(pedit, util_under_wine() ? WINE_BACK_COLOR : -1);
+            on_sci_default_theme(pedit, util_under_wine() ? WINE_BACK_COLOR : -1);
         }
         else
         {
-            on_sci_init_default(pedit, -1);
+            on_sci_default_theme(pedit, -1);
         }
         eu_sci_call(pedit, SCI_SETZOOM, -10, 0);
         eu_sci_call(pedit, SCI_SETVSCROLLBAR, 0, 0);
         eu_sci_call(pedit, SCI_SETHSCROLLBAR, 0, 0);
         // disable margin
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, 0);
+        eu_sci_call(pedit, SCI_SETMARGINS, 0, 0);
+        // receive doc pointer
         eu_sci_call(pedit, SCI_SETDOCPOINTER, 0, pdoc);
         // 强制启用自动换行, 不然folding会出现问题
         eu_sci_call(pedit, SCI_SETWRAPMODE, 2, 0);

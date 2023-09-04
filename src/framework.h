@@ -167,5 +167,6 @@
 #include "eu_session.h"
 #include "eu_favorites.h"
 #include "eu_settings.h"
+#include "eu_hintctl.h"
 
 #endif  // _EU_FRAMEWORK_H_

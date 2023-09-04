@@ -871,13 +871,11 @@ on_snippet_reload(eu_tabpage *pedit)
 {
     if (pedit)
     {
-        on_sci_init_default(pedit, -1);
-        // disable margin
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, MARGIN_FOLD_WIDTH);
+        on_sci_default_theme(pedit, -1);
+        // 设置一个页边缩进
+        on_sci_set_margin(pedit);
         // 强制启用自动换行
-        eu_sci_call(pedit, SCI_SETWRAPMODE, 2, 0);
+        eu_sci_call(pedit, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
         eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 启用语法解析与配色方案
         on_doc_init_after_scilexer(pedit, "eu_demo");

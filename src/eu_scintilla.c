@@ -87,159 +87,187 @@ on_sci_bitmask_get(const uint32_t pos, const uint32_t len)
 }
 
 void
-on_sci_init_default(eu_tabpage *pnode, intptr_t bgcolor)
+on_sci_set_margin(eu_tabpage *pnode)
 {
-    if (!pnode || !eu_get_config() || !eu_get_theme())
+    if (pnode)
     {
-        return;
+        eu_sci_call(pnode, SCI_SETMARGINS, 1, 0);
+        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, 0, MARGIN_FOLD_WIDTH);
+        eu_sci_call(pnode, SCI_SETMARGINTYPEN, 0, SC_MARGIN_SYMBOL);
+        eu_sci_call(pnode, SCI_SETMARGINMASKN, 0, SC_MASK_FOLDERS);
+        eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.text.bgcolor);
+        eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.text.bgcolor);
     }
-    // 编辑区样式与字体设置
-    eu_sci_call(pnode, SCI_STYLERESETDEFAULT, 0, 0);
-    eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, (sptr_t)(eu_get_theme()->item.text.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_get_theme()->item.text.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor >= 0 ? bgcolor : eu_get_theme()->item.text.bgcolor);
-    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
-    eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
-    // scintilla 5.3.4, DirectWrite on Win32, Can text measurement be safely performed concurrently on multiple threads?
-    eu_sci_call(pnode, SCI_SUPPORTSFEATURE, SC_SUPPORTS_THREAD_SAFE_MEASURE_WIDTHS, 0);
-    eu_sci_call(pnode, SCI_SETLAYOUTTHREADS, (sptr_t)util_num_cores(), 0);
-    // 页边区设置
-    eu_sci_call(pnode, SCI_SETMARGINS, MARGIN_NUMBER_OF, 0);
-    // 行号显示以及样式设置
-    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_LINENUMBER_INDEX, SC_MARGIN_NUMBER);
-    eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
-    eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
-    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);
-    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, eu_get_config()->m_linenumber ? MARGIN_LINENUMBER_WIDTH : 0);
-    sptr_t bgra = eu_get_theme()->item.indicator.bgcolor;
-    // 自动补全窗口颜色
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST, eu_get_theme()->item.text.color);
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_BACK, eu_get_theme()->item.text.bgcolor);
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_SELECTED_BACK, bgra);
-    // 函数原型窗口颜色
-    eu_sci_call(pnode, SCI_CALLTIPSETFORE, eu_get_config()->eu_calltip.rgb != (uint32_t)-1 ? eu_get_config()->eu_calltip.rgb : eu_get_theme()->item.text.color, 0);
-    eu_sci_call(pnode, SCI_CALLTIPSETBACK, eu_get_theme()->item.text.bgcolor, 0);
-    // https://www.scintilla.org/ScintillaDoc.html#SCI_STYLESETCHECKMONOSPACED
-    eu_sci_call(pnode, SCI_STYLESETCHECKMONOSPACED, STYLE_DEFAULT, true);
-    // 书签栏样式
-    eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_BOOKMARK_INDEX, TRUE);
-    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_BOOKMARK_INDEX, MARGIN_BOOKMARK_MASKN);
-    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
-    eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.shape);
-    eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
-    eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
-    eu_sci_call(pnode, SCI_SETMARGINCURSORN, MARGIN_BOOKMARK_INDEX, SKYLARK_CURSORHAND);
-    // 修改文本历史记录样式
-    eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_HISTORY_INDEX, TRUE);
-    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_HISTORY_INDEX, SC_MARGIN_SYMBOL);
-    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_HISTORY_INDEX, MARGIN_HISTORY_MASKN);
-    eu_sci_call(pnode, SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.color);
-    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.color);
-    eu_sci_call(pnode, SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_SAVED, eu_get_theme()->item.nchistory.bgcolor);
-    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.bgcolor);
-    eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_MODIFIED_INSERTION, eu_get_theme()->item.dochistory.color);
-    eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_SAVED_INSERTION, eu_get_theme()->item.dochistory.bgcolor);
-    // 代码折叠栏颜色与亮量颜色, 这里与背景色相同
-    eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
-    eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
-    // 当前行背景色
-    eu_sci_call(pnode, SCI_SETCARETLINEVISIBLE, TRUE, 0);
-    eu_sci_call(pnode, SCI_SETCARETLINEVISIBLEALWAYS, 1, 0);
-    eu_sci_call(pnode, SCI_SETCARETLINEBACK, eu_get_theme()->item.caretline.bgcolor, 0);
-    // 设置边框透明度
-    eu_sci_call(pnode, SCI_SETCARETLINEBACKALPHA, eu_get_theme()->item.caretline.bgcolor >> 24, 0);
-    eu_sci_call(pnode, SCI_SETCARETLINEFRAME, 2, 0);
-    // 设置插入符样式
-    eu_sci_call(pnode, SCI_SETCARETSTYLE, 1, 0);
-    eu_sci_call(pnode, SCI_SETCARETWIDTH, eu_get_theme()->item.caret.color >> 24, 0);
-    eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_theme()->item.caret.bold, 0);
-    eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
-    eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
-    // 选中行背景色
-    eu_sci_call(pnode, SCI_SETSELECTIONLAYER, SC_LAYER_OVER_TEXT, 0);
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, bgra);
-    // 其他选中
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_ADDITIONAL_BACK, bgra);
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_SECONDARY_BACK, bgra);
-    // 窗口未激活时选中色
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, bgra);
-    // 是否自动换行
-    eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
-    // 换行符样式
-    eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
-    // tab字符是否当成空格
-    if (pnode->doc_ptr)
+}
+
+void
+on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
+{
+    if (pnode)
     {
-        eu_sci_call(pnode, SCI_SETTABWIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width, 0);
-        eu_sci_call(pnode, SCI_SETUSETABS, pnode->doc_ptr->tab_convert_spaces >= 0 ? !pnode->doc_ptr->tab_convert_spaces : !eu_get_config()->tab2spaces, 0);
+        eu_sci_call(pnode, SCI_STYLERESETDEFAULT, 0, 0);
+        eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, (sptr_t)(eu_get_theme()->item.text.font));
+        eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_get_theme()->item.text.fontsize);
+        eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
+        eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor != (uint32_t)-1 ? bgcolor : eu_get_theme()->item.text.bgcolor);
+        eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
+        eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
+        // 设置字体抗锯齿
+        if (eu_get_config()->m_quality ==  IDM_VIEW_FONTQUALITY_STANDARD)
+        {
+            eu_sci_call(pnode, SCI_SETFONTQUALITY,  SC_EFF_QUALITY_ANTIALIASED, 0);
+        }
+        else if (eu_get_config()->m_quality == IDM_VIEW_FONTQUALITY_NONE)
+        {
+            eu_sci_call(pnode, SCI_SETFONTQUALITY,  SC_EFF_QUALITY_NON_ANTIALIASED, 0);
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_SETFONTQUALITY, SC_EFF_QUALITY_LCD_OPTIMIZED, 0);
+        }
+        // 设置字体渲染方式
+        if (util_under_wine())
+        {
+            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
+        }
+        else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
+        {
+            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITE, 0);
+        }
+        else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2DRETAIN)
+        {
+            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITERETAIN, 0);
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
+        }
     }
-    else
+}
+
+void
+on_sci_default_theme(eu_tabpage *pnode, const uint32_t bgcolor)
+{
+    if (pnode)
+    {   // 编辑区样式与字体设置
+        on_sci_default_fonts(pnode, bgcolor);
+        // 当前行背景色
+        eu_sci_call(pnode, SCI_SETCARETLINEVISIBLE, TRUE, 0);
+        eu_sci_call(pnode, SCI_SETCARETLINEVISIBLEALWAYS, 1, 0);
+        eu_sci_call(pnode, SCI_SETCARETLINEBACK, eu_get_theme()->item.caretline.bgcolor, 0);
+        // 设置边框透明度
+        eu_sci_call(pnode, SCI_SETCARETLINEBACKALPHA, eu_get_theme()->item.caretline.bgcolor >> 24, 0);
+        eu_sci_call(pnode, SCI_SETCARETLINEFRAME, 2, 0);
+        // 设置插入符样式
+        eu_sci_call(pnode, SCI_SETCARETSTYLE, 1, 0);
+        eu_sci_call(pnode, SCI_SETCARETWIDTH, eu_get_theme()->item.caret.color >> 24, 0);
+        eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_theme()->item.caret.bold, 0);
+        eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
+        eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
+        // 选中行背景色
+        const sptr_t bgra = eu_get_theme()->item.indicator.bgcolor;
+        eu_sci_call(pnode, SCI_SETSELECTIONLAYER, SC_LAYER_OVER_TEXT, 0);
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, bgra);
+        // 其他选中
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_ADDITIONAL_BACK, bgra);
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_SECONDARY_BACK, bgra);
+        // 窗口未激活时选中色
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, bgra);
+    }
+}
+
+void
+on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
+{
+    if (pnode && eu_get_config() && eu_get_theme())
     {
-        eu_sci_call(pnode, SCI_SETTABWIDTH, eu_get_config()->tab_width, 0);
-        eu_sci_call(pnode, SCI_SETUSETABS,!eu_get_config()->tab2spaces, 0);
+        on_sci_default_theme(pnode, bgcolor);
+        // scintilla 5.3.4, DirectWrite on Win32, Can text measurement be safely performed concurrently on multiple threads?
+        eu_sci_call(pnode, SCI_SUPPORTSFEATURE, SC_SUPPORTS_THREAD_SAFE_MEASURE_WIDTHS, 0);
+        eu_sci_call(pnode, SCI_SETLAYOUTTHREADS, (sptr_t)util_num_cores(), 0);
+        // 页边区设置
+        eu_sci_call(pnode, SCI_SETMARGINS, MARGIN_NUMBER_OF, 0);
+        // 行号显示以及样式设置
+        eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_LINENUMBER_INDEX, SC_MARGIN_NUMBER);
+        eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_LINENUMBER, (sptr_t)(eu_get_theme()->item.linenumber.font));
+        eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.fontsize);
+        eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.color);
+        eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_LINENUMBER, eu_get_theme()->item.linenumber.bgcolor);
+        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, eu_get_config()->m_linenumber ? MARGIN_LINENUMBER_WIDTH : 0);
+        // 自动补全窗口颜色
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST, eu_get_theme()->item.text.color);
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_BACK, eu_get_theme()->item.text.bgcolor);
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_LIST_SELECTED_BACK, eu_get_theme()->item.indicator.bgcolor);
+        // 函数原型窗口颜色
+        eu_sci_call(pnode, SCI_CALLTIPSETFORE, eu_get_config()->eu_calltip.rgb != (uint32_t)-1 ? eu_get_config()->eu_calltip.rgb : eu_get_theme()->item.text.color, 0);
+        eu_sci_call(pnode, SCI_CALLTIPSETBACK, eu_get_theme()->item.text.bgcolor, 0);
+        // https://www.scintilla.org/ScintillaDoc.html#SCI_STYLESETCHECKMONOSPACED
+        eu_sci_call(pnode, SCI_STYLESETCHECKMONOSPACED, STYLE_DEFAULT, true);
+        // 书签栏样式
+        eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_BOOKMARK_INDEX, TRUE);
+        eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_BOOKMARK_INDEX, MARGIN_BOOKMARK_MASKN);
+        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
+        eu_sci_call(pnode, SCI_MARKERDEFINE, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.shape);
+        eu_sci_call(pnode, SCI_MARKERSETBACKTRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, MARGIN_BOOKMARK_VALUE, eu_get_config()->eu_bookmark.argb);
+        eu_sci_call(pnode, SCI_SETMARGINCURSORN, MARGIN_BOOKMARK_INDEX, SKYLARK_CURSORHAND);
+        // 修改文本历史记录样式
+        eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_HISTORY_INDEX, FALSE);
+        eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_HISTORY_INDEX, SC_MARGIN_SYMBOL);
+        eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_HISTORY_INDEX, MARGIN_HISTORY_MASKN);
+        eu_sci_call(pnode, SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.color);
+        eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORE, SC_MARKNUM_HISTORY_SAVED, eu_get_theme()->item.nchistory.bgcolor);
+        eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.bgcolor);
+        eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_MODIFIED_INSERTION, eu_get_theme()->item.dochistory.color);
+        eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_SAVED_INSERTION, eu_get_theme()->item.dochistory.bgcolor);
+        // 代码折叠栏颜色与亮量颜色
+        eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
+        eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
+        // 是否自动换行
+        eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? SC_WRAP_CHAR : SC_WRAP_NONE), 0);
+        // 换行符样式
+        eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
+        // tab字符是否当成空格
+        if (pnode->doc_ptr)
+        {
+            eu_sci_call(pnode, SCI_SETTABWIDTH, pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width, 0);
+            eu_sci_call(pnode, SCI_SETUSETABS, pnode->doc_ptr->tab_convert_spaces >= 0 ? !pnode->doc_ptr->tab_convert_spaces : !eu_get_config()->tab2spaces, 0);
+        }
+        else
+        {
+            eu_sci_call(pnode, SCI_SETTABWIDTH, eu_get_config()->tab_width, 0);
+            eu_sci_call(pnode, SCI_SETUSETABS,!eu_get_config()->tab2spaces, 0);
+        }
+        // tab字符显示时的样式
+        eu_sci_call(pnode, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
+        // 空白字符样式
+        eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_config()->ws_visiable ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
+        eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_config()->ws_size, 0);
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, rgb_alpha(eu_get_theme()->item.text.color, 0x3f));
+        // 是否显示对齐线
+        eu_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
+        eu_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
+        eu_sci_call(pnode, SCI_SETADDITIONALSELECTIONTYPING, true, 0);
+        eu_sci_call(pnode, SCI_SETVIRTUALSPACEOPTIONS, 1, 0);
+        // 需要时显示水平滚动条, 但是删除文本后, 滚动条不会消失
+        eu_sci_call(pnode, SCI_SETSCROLLWIDTH, 1, 0);
+        eu_sci_call(pnode, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
+        // 设置undo掩码, 接受SCN_MODIFIED消息
+        eu_sci_call(pnode, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT|SC_PERFORMED_UNDO|SC_PERFORMED_REDO, 0);
+        // 支持多列粘贴
+        eu_sci_call(pnode, SCI_SETMULTIPASTE, SC_MULTIPASTE_EACH, 0);
+        // 设置括号匹配高亮色以及指示出不匹配的大括号
+        eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.color);
+        eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.bgcolor);
+        eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.bold);
+        eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
+        eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
+        eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
+        // 注册补全列表图标
+        eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
     }
-    // tab字符显示时的样式
-    eu_sci_call(pnode, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
-    // 空白字符样式
-    eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_config()->ws_visiable ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
-    eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_config()->ws_size, 0);
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
-    eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, rgb_alpha(eu_get_theme()->item.text.color, 0x3f));
-    // 是否显示对齐线
-    eu_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
-    eu_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
-    eu_sci_call(pnode, SCI_SETADDITIONALSELECTIONTYPING, true, 0);
-    eu_sci_call(pnode, SCI_SETVIRTUALSPACEOPTIONS, 1, 0);
-    // 设置字体抗锯齿
-    if (eu_get_config()->m_quality ==  IDM_VIEW_FONTQUALITY_STANDARD)
-    {
-        eu_sci_call(pnode, SCI_SETFONTQUALITY,  SC_EFF_QUALITY_ANTIALIASED, 0);
-    }
-    else if (eu_get_config()->m_quality == IDM_VIEW_FONTQUALITY_NONE)
-    {
-        eu_sci_call(pnode, SCI_SETFONTQUALITY,  SC_EFF_QUALITY_NON_ANTIALIASED, 0);
-    }
-    else
-    {
-        eu_sci_call(pnode, SCI_SETFONTQUALITY, SC_EFF_QUALITY_LCD_OPTIMIZED, 0);
-    }
-    // 设置字体渲染方式
-    if (util_under_wine())
-    {
-        eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
-    }
-    else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
-    {
-        eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITE, 0);
-    }
-    else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2DRETAIN)
-    {
-        eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITERETAIN, 0);
-    }
-    else
-    {
-        eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
-    }
-    // 需要时显示水平滚动条, 但是删除文本后, 滚动条不会消失
-    eu_sci_call(pnode, SCI_SETSCROLLWIDTH, 1, 0);
-    eu_sci_call(pnode, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
-    // 设置undo掩码, 接受SCN_MODIFIED消息
-    eu_sci_call(pnode, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT|SC_PERFORMED_UNDO|SC_PERFORMED_REDO, 0);
-    // 支持多列粘贴
-    eu_sci_call(pnode, SCI_SETMULTIPASTE, SC_MULTIPASTE_EACH, 0);
-    // 设置括号匹配高亮色以及指示出不匹配的大括号
-    eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.color);
-    eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.bgcolor);
-    eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.bold);
-    eu_sci_call(pnode, SCI_STYLESETITALIC, STYLE_BRACEBAD, true);
-    eu_sci_call(pnode, SCI_STYLESETUNDERLINE, STYLE_BRACEBAD, true);
-    eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
-    // 不产生鼠标悬浮消息(SCN_DWELLSTART, SCN_DWELLEND, 设置SC_TIME_FOREVER>0则产生
-    eu_sci_call(pnode, SCI_SETMOUSEDWELLTIME, SC_TIME_FOREVER, 0);
-    // 注册补全列表图标
-    eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
 }
 
 void
@@ -604,6 +632,63 @@ on_sci_menu_callback(HMENU hpop, void *param)
     }
 }
 
+static bool
+on_sci_parser_line(eu_tabpage *p, const sptr_t current_line, const sptr_t last_line, const long current_y, char ***vec_buf, int *pcount, int *pmax, bool *ward)
+{
+    if (p && vec_buf && pcount && pmax && ward)
+    {
+        int len = 0;
+        int last = 0;
+        const sptr_t end_y = (const sptr_t )(p->rect_sc.bottom - p->rect_sc.top);
+        const sptr_t font_hight = eu_sci_call(p, SCI_TEXTHEIGHT, 0, 0);
+        const int w_count = (const int)(last_line - current_line + 1);
+        // 确认代码提示向上还是向下
+        if (w_count <= eu_int_cast((end_y - current_y)/font_hight - 1))
+        {
+            *ward = true;
+        }
+        else if (w_count <= eu_int_cast(current_y/font_hight - 1))
+        {
+            *ward = false;
+        }
+        else if (end_y -  current_y >= current_y)
+        {
+            *ward = true;
+        }
+        else
+        {
+            *ward = false;
+        }
+        if (true)
+        {
+            *pmax = 0;
+            *pcount = MIN(w_count, *ward ? eu_int_cast((end_y - current_y)/font_hight - 3) : eu_int_cast(current_y/font_hight - 3));
+        }
+        for (sptr_t i = current_line; i <= last_line && last < *pcount; ++i, ++last)
+        {
+            char *pbuf = util_strdup_line(p, i, (size_t *)&len);
+            if (pbuf)
+            {
+                cvector_push_back(*vec_buf, pbuf);
+            }
+            if (len > *pmax)
+            {
+                *pmax = len;
+            }
+        }
+        if (cvector_size(*vec_buf) > 0)
+        {
+            if (w_count > *pcount)
+            {
+                cvector_push_back(*vec_buf, strdup("..."));
+            }
+            *pcount = (int)cvector_size(*vec_buf);
+        }
+        return true;
+    }
+    return false;
+}
+
 LRESULT CALLBACK
 sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -677,6 +762,53 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);
+            break;
+        }
+        case WM_MOUSEMOVE:
+        {
+            if ((pnode = on_tabpage_focus_at()) != NULL)
+            {
+                POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                TRACKMOUSEEVENT event = {sizeof(TRACKMOUSEEVENT), TME_HOVER, hwnd, HOVER_DEFAULT};
+                TrackMouseEvent(&event);
+                on_hint_hide(&pt);
+            }
+            break;
+        }
+        case WM_MOUSEHOVER:
+        {
+            if ((pnode = on_tabpage_focus_at()) != NULL)
+            {
+                const POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                const sptr_t current_pos = eu_sci_call(pnode, SCI_POSITIONFROMPOINT, pt.x, pt.y);
+                const sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+                const bool status = (const bool)eu_sci_call(pnode, SCI_GETFOLDEXPANDED, current_line, 0);
+                if (!status)
+                {
+                    const long offset = (const long)eu_dpi_scale_xy(0, 8);
+                    const sptr_t last_line = eu_sci_call(pnode, SCI_GETLASTCHILD, current_line, -1);
+                    const sptr_t current_header = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+                    const long lx = (const long)eu_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_pos) + offset;
+                    const long ly = (const long)eu_sci_call(pnode, SCI_POINTYFROMPOSITION, 0, current_pos);
+                    const RECT rc = {lx, ly, lx + eu_dpi_scale_xy(0, 26), ly + (eu_dpi_scale_xy, 0, 18)};
+                    pnode->reserved1 = eu_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_header) + offset;
+                    if (PtInRect(&rc, pt) && on_hint_initialized())
+                    {   // 在折叠框内
+                        int line_max = 0;
+                        int line_count = 0;
+                        bool downward = false;
+                        cvector_vector_type(char *) buf = NULL;
+                        if (on_sci_parser_line(pnode, current_line, last_line, ly, &buf, &line_count, &line_max, &downward))
+                        {
+                            on_hint_launch(pnode, &rc, buf, line_count, line_max, downward);
+                        }
+                        if (cvector_size(buf) > 0)
+                        {
+                            cvector_free_each_and_free(buf, free);
+                        }
+                    }
+                }
+            }
             break;
         }
         case WM_LBUTTONUP:
