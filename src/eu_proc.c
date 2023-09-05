@@ -1602,6 +1602,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_TIPS_ONTAB:
                     eu_get_config()->m_tab_tip ^= true;
                     break;
+                case IDM_VIEW_CODE_HINT:
+                    eu_get_config()->m_code_hint ^= true;
+                    break;
                 case IDM_VIEW_LEFT_TAB:
                 case IDM_VIEW_RIGHT_TAB:
                 case IDM_VIEW_FAR_LEFT_TAB:
@@ -1658,7 +1661,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_ZOOMRESET:
                     on_view_zoom_reset(pnode);
                     break;
-                case IDM_SOURCE_BLOCKFOLD_VISIABLE:
+                case IDM_VIEW_FOLDLINE_VISIABLE:
                     on_view_show_fold_lines();
                     break;
                 case IDM_SOURCE_BLOCKFOLD_TOGGLE:

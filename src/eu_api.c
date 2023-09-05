@@ -1940,6 +1940,7 @@ eu_save_config(void)
         "inter_reserved_2 = %d\n"
         "block_fold_visiable = %s\n"
         "tabs_tip_show_enable = %s\n"
+        "code_hint_show_enable = %s\n"
         "tab_close_way = %d\n"
         "tab_close_draw = %d\n"
         "tab_new_way = %d\n"
@@ -2069,6 +2070,7 @@ eu_save_config(void)
               g_config->inter_reserved_2,
               g_config->block_fold?"true":"false",
               g_config->m_tab_tip?"true":"false",
+              g_config->m_code_hint?"true":"false",
               g_config->m_close_way,
               g_config->m_close_draw,
               g_config->m_new_way,

@@ -798,7 +798,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEMOVE:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL)
+            if ((pnode = on_tabpage_focus_at()) != NULL && eu_get_config()->m_code_hint)
             {
                 POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
                 TRACKMOUSEEVENT event = {sizeof(TRACKMOUSEEVENT), TME_HOVER, hwnd, HOVER_DEFAULT};

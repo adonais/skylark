@@ -26,14 +26,17 @@
 #define LOCALE_MENU_SUB       5
 
 /* 子菜单弹出菜单位置 */
-#define TAB_MENU_TOOLBAR_SUB  7
-#define TAB_HISTORY_SUB       22
-#define TAB_MENU_ACTIVE_SUB   29
-#define TAB_MENU_CLOSE_SUB    30
-#define TAB_MENU_NEW_SUB      31
-#define TAB_MENU_CBUTTON_SUB  32
-#define TAB_MENU_SCROLLCURSOR 34
-#define TAB_MENU_SNIPPET_SUB  15
+#define TAB_MENU_PANELS_SUB   4
+#define TAB_MENU_TOOLBAR_SUB  5
+#define TAB_MENU_HILIGHT_SUB  12
+#define TAB_DISPLAY_SUB       15
+#define TAB_HISTORY_SUB       16
+#define TAB_MENU_ACTIVE_SUB   18
+#define TAB_MENU_CLOSE_SUB    19
+#define TAB_MENU_NEW_SUB      20
+#define TAB_MENU_CBUTTON_SUB  21
+#define TAB_MENU_SCROLLCURSOR 23
+#define PROGRAM_SNIPPET_SUB   15
 #define CUSTOMIZED_CMD_SUB    14
 
 #ifdef __cplusplus
