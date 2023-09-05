@@ -33,6 +33,8 @@ on_hint_reload(const char **pbuf)
         eu_sci_call(phint, SCI_SETEOLMODE, phint->eol, 0);
         // 不显示插入符
         eu_sci_call(phint, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
+        // 设置缩放级别
+        eu_sci_call(phint, SCI_SETZOOM, phint->zoom_level, 0);
         // 插入缓冲区代码
         for (size_t i = 0; i < cvector_size(pbuf); ++i)
         {
@@ -145,6 +147,7 @@ on_hint_launch(eu_tabpage *pnode, const RECT *prc, const char **pbuf, const int 
         const sptr_t font_hight = eu_sci_call(pnode, SCI_TEXTHEIGHT, 0, 0);
         memcpy(&phint->rect_sc, prc, sizeof(RECT));
         phint->eol = pnode->eol;
+        phint->zoom_level = pnode->zoom_level;
         if (downward)
         {
             rc.left = prc->left;

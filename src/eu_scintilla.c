@@ -824,6 +824,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     const long ly = (const long)eu_sci_call(pnode, SCI_POINTYFROMPOSITION, 0, current_pos);
                     const RECT rc = {lx, ly, lx + eu_dpi_scale_xy(0, 26), ly + (eu_dpi_scale_xy, 0, 18)};
                     pnode->reserved1 = eu_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_header) + offset;
+                    pnode->zoom_level = (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
                     if (PtInRect(&rc, pt) && on_hint_initialized())
                     {   // 在折叠框内
                         int line_max = 0;
