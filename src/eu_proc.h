@@ -32,6 +32,7 @@ extern "C"
 extern volatile long g_interval_count;
 
 int eu_dpi_scale_font(void);
+int eu_dpi_scale_style(int value, const int scale, const int min_value);
 int eu_dpi_scale_xy(int adpi, int m);
 void on_proc_destory_brush(void);
 void on_proc_resize(HWND hwnd);

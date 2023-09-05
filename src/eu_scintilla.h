@@ -39,6 +39,7 @@ int on_sci_init_dlg(eu_tabpage *pnode);
 int on_sci_point_reached(eu_tabpage *pnode);
 int on_sci_point_left(eu_tabpage *pnode);
 int on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback);
+void on_sci_update_fold_margin(eu_tabpage *pnode);
 void on_sci_set_margin(eu_tabpage *pnode);
 void on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor);
 void on_sci_default_theme(eu_tabpage *pnode, const uint32_t bgcolor);

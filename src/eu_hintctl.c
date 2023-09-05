@@ -149,14 +149,14 @@ on_hint_launch(eu_tabpage *pnode, const RECT *prc, const char **pbuf, const int 
         {
             rc.left = prc->left;
             rc.top = prc->top + (long)font_hight * 2;
-            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - 28), (r2 = (long)(rc.left + (line_max + 3) * font_width)));
+            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - eu_dpi_scale_xy(0, 28)), (r2 = (long)(rc.left + (line_max + 3) * font_width)));
             rc.bottom = rc.top + (long)(line_count * font_hight);
         }
         else
         {
             rc.left = prc->left;
-            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - 28), (r2 = (long)(rc.left + (line_max + 3) * font_width)));
-            rc.bottom = prc->bottom - (long)font_hight * 2;
+            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - eu_dpi_scale_xy(0, 28)), (r2 = (long)(rc.left + (line_max + 3) * font_width)));
+            rc.bottom = prc->top - (long)font_hight;
             rc.top = rc.bottom - (long)(line_count * font_hight);
         }
         if (r1 < r2)

@@ -221,9 +221,13 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_HISTORY_MODIFIED, eu_get_theme()->item.nchistory.bgcolor);
         eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_MODIFIED_INSERTION, eu_get_theme()->item.dochistory.color);
         eu_sci_call(pnode, SCI_INDICSETFORE, INDICATOR_HISTORY_SAVED_INSERTION, eu_get_theme()->item.dochistory.bgcolor);
-        // 代码折叠栏颜色与亮量颜色
+        // 代码折叠栏亮量颜色与填充色
         eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
         eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
+		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDER, eu_get_theme()->item.foldmargin.color);
+		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEREND, eu_get_theme()->item.foldmargin.color);
+		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPEN, eu_get_theme()->item.foldmargin.color);
+		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPENMID, eu_get_theme()->item.foldmargin.color);
         // 是否自动换行
         eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? SC_WRAP_CHAR : SC_WRAP_NONE), 0);
         // 换行符样式
@@ -357,6 +361,7 @@ on_sci_refresh_ui(eu_tabpage *pnode)
         on_toolbar_update_button();
         on_statusbar_update();
         on_sci_update_line_margin(pnode);
+        on_sci_update_fold_margin(pnode);
         util_redraw(g_tabpages, true);
     }
 }
@@ -620,6 +625,33 @@ on_sci_update_line_margin(eu_tabpage *pnode)
     }
 }
 
+void
+on_sci_update_fold_margin(eu_tabpage *pnode)
+{
+    if (pnode && !pnode->hex_mode && !pnode->plugin)
+    {
+        const int zoom = (const int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
+        const int scalex = eu_get_dpi(eu_hwnd_self()) * zoom;
+        const int scaley = eu_dpi_scale_xy(0, MARGIN_FOLD_WIDTH) + zoom;
+        const int fold_marks[] =
+        {
+            SC_MARKNUM_FOLDER,
+            SC_MARKNUM_FOLDEROPEN,
+            SC_MARKNUM_FOLDERSUB,
+            SC_MARKNUM_FOLDERTAIL,
+            SC_MARKNUM_FOLDEREND,
+            SC_MARKNUM_FOLDEROPENMID,
+            SC_MARKNUM_FOLDERMIDTAIL
+        };
+        const int mstroke = eu_dpi_scale_style(100, scalex, 100);
+        eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, (eu_get_config()->block_fold ? scaley : 0));
+        for (int i = 0; i < _countof(fold_marks); ++i)
+        {
+            eu_sci_call(pnode, SCI_MARKERSETSTROKEWIDTH, fold_marks[i], mstroke);
+        }
+    }
+}
+
 static void
 on_sci_menu_callback(HMENU hpop, void *param)
 {
@@ -866,6 +898,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 eu_logmsg("scintilla WM_DPICHANGED_AFTERPARENT\n");
                 on_sci_update_line_margin(pnode);
+                on_sci_update_fold_margin(pnode);
             }
             break;
         }

@@ -573,6 +573,7 @@ on_view_zoom_out(eu_tabpage *pnode)
         {
             eu_sci_call(pnode, SCI_ZOOMOUT, 0, 0);
             on_sci_update_line_margin(pnode);
+            on_sci_update_fold_margin(pnode);
         }
     }
 }
@@ -590,6 +591,7 @@ on_view_zoom_in(eu_tabpage *pnode)
         {
             eu_sci_call(pnode, SCI_ZOOMIN, 0, 0);
             on_sci_update_line_margin(pnode);
+            on_sci_update_fold_margin(pnode);
         }
     }
 }
@@ -608,6 +610,7 @@ on_view_zoom_reset(eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_SETZOOM, 0, 0);
             on_sci_update_line_margin(pnode);
             pnode->zoom_level = 0;
+            on_sci_update_fold_margin(pnode);
         }
     }
 }

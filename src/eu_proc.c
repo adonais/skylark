@@ -211,7 +211,14 @@ eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
 int
 eu_dpi_scale_font(void)
 {
-    return eu_get_dpi(NULL) > 96 ? 0 : -11;
+    return eu_get_dpi(NULL) > USER_DEFAULT_SCREEN_DPI ? 0 : -11;
+}
+
+int
+eu_dpi_scale_style(int value, const int scale, const int min_value)
+{
+	value = (scale == USER_DEFAULT_SCREEN_DPI*100) ? value : MulDiv(value, scale, USER_DEFAULT_SCREEN_DPI*100);
+	return MAX(value, min_value);
 }
 
 int
@@ -220,7 +227,7 @@ eu_dpi_scale_xy(int adpi, int m)
     int dpx = adpi ? adpi : eu_get_dpi(NULL);
     if (dpx)
     {
-        return MulDiv(m, dpx, 96);
+        return MulDiv(m, dpx, USER_DEFAULT_SCREEN_DPI);
     }
     return m;
 }
