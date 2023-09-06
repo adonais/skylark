@@ -1234,9 +1234,8 @@ util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char *
 char *
 util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
 {
-    sptr_t line;
-    sptr_t text_len;
-    sptr_t buf_len = 0;
+    sptr_t line = -1;
+    sptr_t text_len = 0;
     char *ptext = NULL;
     if (!pnode)
     {
@@ -1255,8 +1254,7 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
     {
         return NULL;
     }
-    text_len = eu_sci_call(pnode, SCI_LINELENGTH, line, 0);
-    if (!text_len)
+    if (!(text_len = eu_sci_call(pnode, SCI_GETLINE, line, 0)))
     {
         sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (row == -1)
@@ -1264,25 +1262,20 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
             text_len = -1;
         }
     }
-    ptext = text_len >= 0 ? malloc(text_len+3) : NULL;
-    if (ptext)
+    if ((ptext = text_len >= 0 ? malloc(text_len + 1) : NULL))
     {
-        buf_len = eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
-        ptext[buf_len] = 0;
+        eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
+        ptext[text_len] = 0;
         if (plen)
         {
-            *plen = (size_t)buf_len;
+            *plen = (size_t)text_len;
         }
-        return ptext;
     }
-    else
+    else if (plen)
     {
-        if (plen)
-        {
-            *plen = 0;
-        }
-        return NULL;
+        *plen = 0;
     }
+    return ptext;
 }
 
 char *
@@ -1294,26 +1287,23 @@ util_strdup_content(eu_tabpage *pnode, size_t *plen)
     {
         return NULL;
     }
-    total_len = (size_t)eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-    if (total_len > on_file_get_avail_phys())
+    if ((total_len = (size_t)eu_sci_call(pnode, SCI_GETLENGTH, 0, 0)) > on_file_get_avail_phys())
     {
         MSG_BOX(IDC_MSG_MEM_NOT_AVAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return NULL;
     }
-    ptext = total_len > 0 ? (char *) calloc(1, total_len + 1) : NULL;
-    if (!ptext)
+    if ((ptext = total_len > 0 ? (char *) calloc(1, total_len + 1) : NULL))
     {
-        plen ? *plen = 0 : (void)0;
-        return NULL;
-    }
-    else
-    {
+        eu_sci_call(pnode, SCI_GETTEXT, (sptr_t)(total_len + 1), (sptr_t)ptext);
         if (plen)
         {
-            *plen = (size_t)total_len;
+            *plen = total_len;
         }
     }
-    eu_sci_call(pnode, SCI_GETTEXT, (sptr_t)(total_len + 1), (sptr_t)ptext);
+    else if (plen)
+    {
+        *plen = 0;
+    }
     return ptext;
 }
 

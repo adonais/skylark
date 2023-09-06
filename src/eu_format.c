@@ -640,14 +640,14 @@ on_format_cmp_header(const char *pheader, const int len, const bool use_tab)
 }
 
 static void
-on_format_get_lines(sptr_t *vec, const int vec_size, wchar_t *pstr, const int len)
+on_format_get_lines(sptr_t *vec_lines, const int vec_size, wchar_t *pstr, const int len)
 {
     int offset = 0;
     int count = min(10, (int)vec_size);
     memset(pstr, 0, sizeof(wchar_t) * len);
     for (int i = 0; i < count; ++i)
     {
-        _snwprintf(pstr + offset, len - offset - 1, L"%zd, ", vec[i]);
+        _snwprintf(pstr + offset, len - offset - 1, L"%zd, ", vec_lines[i]);
         offset = (int)wcslen(pstr);
     }
     if (count > 0)

@@ -238,9 +238,12 @@ BEGIN
         MENUITEM "&Document Map",                                      IDM_VIEW_DOCUMENT_MAP
         MENUITEM "&Symbolic Window",                                   IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
-        MENUITEM "F&ull Screen Mode",                                  IDM_VIEW_FULLSCREEN
-        MENUITEM "Show M&enubar",                                      IDM_VIEW_MENUBAR
-        MENUITEM "Show Stat&usbar",                                    IDM_VIEW_STATUSBAR
+        POPUP "P&anels"
+        BEGIN
+            MENUITEM "Full Screen Mode",                               IDM_VIEW_FULLSCREEN
+            MENUITEM "Show M&enubar",                                  IDM_VIEW_MENUBAR
+            MENUITEM "Show Stat&usbar",                                IDM_VIEW_STATUSBAR
+        END
         POPUP "Adjust Toolbar"
         BEGIN
             MENUITEM "&Hide",                                          IDB_SIZE_0
@@ -261,14 +264,25 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "&Hex Edit View",                                     IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
-        MENUITEM "Highlight The Matching Brace",                       IDM_VIEW_HIGHLIGHT_BRACE
-        MENUITEM "Highlight The Matching String",                      IDM_VIEW_HIGHLIGHT_STR
-        MENUITEM "Highlight Current &Block",                           IDM_VIEW_HIGHLIGHT_FOLD
+        POPUP "H&ighlight"
+        BEGIN
+            MENUITEM "Highlight The Matching &Brace",                  IDM_VIEW_HIGHLIGHT_BRACE
+            MENUITEM "Highlight The Matching &String",                 IDM_VIEW_HIGHLIGHT_STR
+            MENUITEM "Highlight Current Bloc&k",                       IDM_VIEW_HIGHLIGHT_FOLD
+        END
         MENUITEM "Auto Indent",                                        IDM_EDIT_AUTO_INDENTATION
         MENUITEM MF_SEPARATOR
-        MENUITEM "Line &Numbers",                                      IDM_VIEW_LINENUMBER_VISIABLE
-        MENUITEM "Show Bookmark",                                      IDM_VIEW_BOOKMARK_VISIABLE
-        MENUITEM "Show Fold Lines",                                    IDM_SOURCE_BLOCKFOLD_VISIABLE
+        POPUP "&Display",                                              IDM_VIEW_DISPLAY_PLACEHOLDE
+        BEGIN
+            MENUITEM "Line Numbers",                                   IDM_VIEW_LINENUMBER_VISIABLE
+            MENUITEM "Show Bookmark",                                  IDM_VIEW_BOOKMARK_VISIABLE
+            MENUITEM "Show Fold Lines",                                IDM_VIEW_FOLDLINE_VISIABLE
+            MENUITEM "Show White Space",                               IDM_VIEW_WHITESPACE_VISIABLE
+            MENUITEM "Show Wrap Symbol",                               IDM_VIEW_NEWLINE_VISIABLE
+            MENUITEM "Show Indent Guide",                              IDM_VIEW_INDENTGUIDES_VISIABLE
+            MENUITEM "Show Tips On Tabs",                              IDM_VIEW_TIPS_ONTAB
+            MENUITEM "Fold Box Code Hint",                             IDM_VIEW_CODE_HINT
+        END
         POPUP "Change History Marker",                                 IDM_VIEW_HISTORY_PLACEHOLDE
         BEGIN
             MENUITEM "Do Not Show",                                    IDM_VIEW_HISTORY_NONE
@@ -277,11 +291,6 @@ BEGIN
             MENUITEM "Show In Both Above",                             IDM_VIEW_HISTORY_ALL
         END
         MENUITEM MF_SEPARATOR
-        MENUITEM "Show White Space",                                   IDM_VIEW_WHITESPACE_VISIABLE
-        MENUITEM "Show Wrap Symbol",                                   IDM_VIEW_NEWLINE_VISIABLE
-        MENUITEM "Show Indent Guide",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
-        MENUITEM MF_SEPARATOR
-        MENUITEM "Show Tips On Tabs",                                  IDM_VIEW_TIPS_ONTAB
         POPUP "Activated When Closing Tab"
         BEGIN
             MENUITEM "The Left Tab",                                   IDM_VIEW_LEFT_TAB

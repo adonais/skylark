@@ -238,9 +238,12 @@ BEGIN
         MENUITEM "文档结构图(&D)",                              IDM_VIEW_DOCUMENT_MAP
         MENUITEM "符号链接窗口(&S)",                            IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
-        MENUITEM "全屏模式(&U)",                                IDM_VIEW_FULLSCREEN
-        MENUITEM "显示菜单栏",                                  IDM_VIEW_MENUBAR
-        MENUITEM "显示状态栏",                                  IDM_VIEW_STATUSBAR
+        POPUP "面板(&A)"
+        BEGIN
+            MENUITEM "全屏模式",                                IDM_VIEW_FULLSCREEN
+            MENUITEM "显示菜单栏",                              IDM_VIEW_MENUBAR
+            MENUITEM "显示状态栏",                              IDM_VIEW_STATUSBAR
+        END
         POPUP "调整工具栏"
         BEGIN
             MENUITEM "隐藏(&H)",                                IDB_SIZE_0
@@ -261,14 +264,25 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "十六进制视图(&H)",                            IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
-        MENUITEM "高亮显示匹配的括号",                          IDM_VIEW_HIGHLIGHT_BRACE
-        MENUITEM "高亮显示匹配的字符串",                        IDM_VIEW_HIGHLIGHT_STR
-        MENUITEM "高亮当前代码块",                              IDM_VIEW_HIGHLIGHT_FOLD
+        POPUP "高亮(&I)"
+        BEGIN
+            MENUITEM "高亮匹配的括号(&B)",                      IDM_VIEW_HIGHLIGHT_BRACE
+            MENUITEM "高亮匹配的字符串(&S)",                    IDM_VIEW_HIGHLIGHT_STR
+            MENUITEM "高亮当前代码块(&K)",                      IDM_VIEW_HIGHLIGHT_FOLD
+        END
         MENUITEM "自动缩进",                                    IDM_EDIT_AUTO_INDENTATION
         MENUITEM MF_SEPARATOR
-        MENUITEM "显示行号",                                    IDM_VIEW_LINENUMBER_VISIABLE
-        MENUITEM "显示书签",                                    IDM_VIEW_BOOKMARK_VISIABLE
-        MENUITEM "显示折叠线",                                  IDM_SOURCE_BLOCKFOLD_VISIABLE
+        POPUP "显示(&D)",                                       IDM_VIEW_DISPLAY_PLACEHOLDE
+        BEGIN
+            MENUITEM "显示行号",                                IDM_VIEW_LINENUMBER_VISIABLE
+            MENUITEM "显示书签",                                IDM_VIEW_BOOKMARK_VISIABLE
+            MENUITEM "显示折叠线",                              IDM_VIEW_FOLDLINE_VISIABLE
+            MENUITEM "显示白字符",                              IDM_VIEW_WHITESPACE_VISIABLE
+            MENUITEM "显示换行符",                              IDM_VIEW_NEWLINE_VISIABLE
+            MENUITEM "显示缩进线",                              IDM_VIEW_INDENTGUIDES_VISIABLE
+            MENUITEM "标签提示信息",                            IDM_VIEW_TIPS_ONTAB
+            MENUITEM "折叠框代码提示",                          IDM_VIEW_CODE_HINT
+        END
         POPUP "变更记录标记",                                   IDM_VIEW_HISTORY_PLACEHOLDE
         BEGIN
             MENUITEM "不显示",                                  IDM_VIEW_HISTORY_NONE
@@ -277,11 +291,6 @@ BEGIN
             MENUITEM "在以上两者中显示",                        IDM_VIEW_HISTORY_ALL
         END
         MENUITEM MF_SEPARATOR
-        MENUITEM "显示白字符",                                  IDM_VIEW_WHITESPACE_VISIABLE
-        MENUITEM "显示换行符",                                  IDM_VIEW_NEWLINE_VISIABLE
-        MENUITEM "显示缩进线",                                  IDM_VIEW_INDENTGUIDES_VISIABLE
-        MENUITEM MF_SEPARATOR
-        MENUITEM "在标签上显示提示信息",                        IDM_VIEW_TIPS_ONTAB
         POPUP "关闭标签时激活"
         BEGIN
             MENUITEM "左边的标签",                              IDM_VIEW_LEFT_TAB

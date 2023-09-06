@@ -1209,10 +1209,10 @@ cjson_thread(void *lp)
     if (pnode->hwnd_symtree)
     {
         char *text = NULL;
-        sptr_t text_len = 0;
-        if ((text = util_strdup_content(pnode, (size_t *)&text_len)) != NULL)
+        size_t text_len = 0;
+        if ((text = util_strdup_content(pnode, &text_len)) != NULL)
         {
-            if (!init_json_tree(pnode, text, text_len))
+            if (!init_json_tree(pnode, text, (sptr_t)text_len))
             {
                 eu_logmsg("%s: json parser failed\n", __FUNCTION__);
             }

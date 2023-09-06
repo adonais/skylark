@@ -1,5 +1,5 @@
 # skylark:
-Skylark Edit is a customizable text/hex editor. Small, Portable, Fast.  
+Skylark Editor is a customizable text/hex editor. Small, Portable, Fast.  
 Compared with vs code, atom, and more editors, it can start up in less than a second~~  
   
 # features:

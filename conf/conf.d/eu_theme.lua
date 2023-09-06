@@ -5,7 +5,7 @@ require("eu_core")
 function eu_theme.get_default(name)
     local theme = nil
     if (name == "black") then
-        theme = -- 默认主题配置文件
+        theme = -- Dark主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
           "linenumber_fontsize = 9\n" ..
           "linenumber_color = 0x00A0A0A0\n" ..
@@ -13,7 +13,7 @@ function eu_theme.get_default(name)
           "linenumber_bold = 0\n" ..
           "foldmargin_font = \"Consolas\"\n" ..
           "foldmargin_fontsize = 9\n" ..
-          "foldmargin_color = 0x00000000\n" ..
+          "foldmargin_color = 0x3C000000\n" ..
           "foldmargin_bgcolor = 0x002B2B2B\n" ..
           "foldmargin_bold = 0\n" ..
           "text_font = \"Consolas\"\n" ..
@@ -180,7 +180,7 @@ function eu_theme.get_default(name)
           "linenumber_bold = 0\n" ..
           "foldmargin_font = \"Consolas\"\n" ..
           "foldmargin_fontsize = 9\n" ..
-          "foldmargin_color = 0x00000000\n" ..
+          "foldmargin_color = 0x3C111111\n" ..
           "foldmargin_bgcolor = 0x00F0F0F0\n" ..
           "foldmargin_bold = 0\n" ..
           "text_font = \"Consolas\"\n" ..
@@ -339,7 +339,7 @@ function eu_theme.get_default(name)
           "dochistory_bgcolor = 0x0000A000\n" ..
           "dochistory_bold = 0"
     else
-        theme = -- dark主题配置文件
+        theme = -- 默认主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
           "linenumber_fontsize = 9\n" ..
           "linenumber_color = 0x00FFFFFF\n" ..
@@ -348,7 +348,7 @@ function eu_theme.get_default(name)
           "foldmargin_font = \"Consolas\"\n" ..
           "foldmargin_fontsize = 9\n" ..
           -- 折叠标志(+,-)颜色
-          "foldmargin_color = 0x00707070\n" ..
+          "foldmargin_color = 0x3C707070\n" ..
           -- 折叠栏背景色
           "foldmargin_bgcolor = 0x004E4C4C\n" ..
           "foldmargin_bold = 0\n" ..

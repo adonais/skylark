@@ -140,15 +140,15 @@ on_result_menu_callback(HMENU hpop, void *param)
 }
 
 static eu_tabpage *
-on_result_other_tab(int line, result_vec *vec)
+on_result_other_tab(int line, result_vec *vec_strings)
 {
-    if ((int)cvector_size(vec) >= line)
+    if ((int)cvector_size(vec_strings) >= line)
     {
         for (int i = line - 1; i >= 0; --i)
         {
-            if (vec[i].line == -1)
+            if (vec_strings[i].line == -1)
             {
-                return (eu_tabpage *)(vec[i].mark._no);
+                return (eu_tabpage *)(vec_strings[i].mark._no);
             }
         }
     }
@@ -294,15 +294,11 @@ on_result_reload(eu_tabpage *pedit)
 {
     if (pedit)
     {
-        on_sci_init_style(pedit);
+        on_sci_default_theme(pedit, -1);
         // disable margin
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, 0);
-        eu_sci_call(pedit, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, 0);
+        eu_sci_call(pedit, SCI_SETMARGINS, 0, 0);
         // 强制使用unix回车符
         eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
-        // 不显示对齐线
-        eu_sci_call(pedit, SCI_SETINDENTATIONGUIDES, SC_IV_NONE, 0);
         // 不显示插入符
         eu_sci_call(pedit, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
         // 加载词语解析器

@@ -75,7 +75,8 @@ struct _tabpage
     intptr_t match_count;       // 查找时匹配计数
     intptr_t begin_pos;         // 开始选择位置
     intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
-    intptr_t reserved0;         // 保留, 暂未使用
+    intptr_t reserved0;         // 保留, 仅供临时使用
+    intptr_t reserved1;         // 保留, 仅供临时使用
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id

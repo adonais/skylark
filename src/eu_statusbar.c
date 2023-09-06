@@ -134,7 +134,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
             on_statusbar_btn_colour(pnode, true);
             ret = 1;
         }
-        else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
+        else if (!url_has_samba(pnode->pathfile) && util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
         {
             Button_SetText(hrw, rstr);
             on_statusbar_btn_colour(pnode, true);
@@ -147,7 +147,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
             ret = 2;
         }
     }
-    else if (util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
+    else if (!url_has_samba(pnode->pathfile) && util_file_access(pnode->pathfile, &grant) && ((grant & FILE_GENERIC_WRITE) != FILE_GENERIC_WRITE))
     {
         MSG_BOX(IDS_BUTTON_RW_TIPS, IDC_MSG_TIPS, MB_OK);
         ret = 0;
@@ -281,12 +281,12 @@ on_statusbar_menu_check(HMENU hmenu, int first_id, int last_id, int id, int part
 static int
 on_statusbar_convert_coding(eu_tabpage *pnode, int encoding)
 {
-    sptr_t file_len = 0;
     char *file_buf = NULL;
     char *src_str = NULL;
     char *dst_str = NULL;
     size_t src_len = 0;
     size_t dst_len = 0;
+    size_t file_len = 0;
     size_t res = 0;
     euconv_t evd = {0};
     if (!pnode)

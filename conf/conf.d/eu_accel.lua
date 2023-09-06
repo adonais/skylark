@@ -135,11 +135,12 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"H\"), IDM_VIEW_HEXEDIT_MODE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"N\"), IDM_VIEW_LINENUMBER_VISIABLE},\n",
       "                 {0, 0, IDM_VIEW_BOOKMARK_VISIABLE},\n",
-      "                 {0, 0, IDM_SOURCE_BLOCKFOLD_VISIABLE},\n",
+      "                 {0, 0, IDM_VIEW_FOLDLINE_VISIABLE},\n",
       "                 {0, 0, IDM_VIEW_WHITESPACE_VISIABLE},\n",
       "                 {0, 0, IDM_VIEW_NEWLINE_VISIABLE},\n",
       "                 {0, 0, IDM_VIEW_INDENTGUIDES_VISIABLE},\n",
       "                 {0, 0, IDM_VIEW_TIPS_ONTAB},\n",
+      "                 {0, 0, IDM_VIEW_CODE_HINT},\n",
       "                 {0, 0, IDM_TABCLOSE_FOLLOW},\n",
       "                 {0, 0, IDM_TABCLOSE_ALWAYS},\n",
       "                 {0, 0, IDM_TABCLOSE_NONE},\n",
@@ -206,7 +207,7 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    if (m_len < 174) then
+    if (m_len < 175) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})

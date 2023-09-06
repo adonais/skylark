@@ -813,6 +813,10 @@ void SCI_METHOD LexerBash::Lex(Sci_PositionU startPos, Sci_Position length, int 
 #endif
 				) {
 					sc.ChangeState(SCE_SH_ERROR | insideCommand);
+				} else if (digit < 62 || digit == 63 || (cmdState != CmdState::Arithmetic && AnyOf(sc.ch, '-', '.'))) {
+					// current character is alpha numeric, underscore, hyphen or dot
+					sc.ChangeState(SCE_SH_IDENTIFIER | insideCommand);
+					break;
 				}
 				sc.SetState(SCE_SH_DEFAULT | insideCommand);
 				break;
@@ -1037,8 +1041,6 @@ void SCI_METHOD LexerBash::Lex(Sci_PositionU startPos, Sci_Position length, int 
 					} else if (IsADigit(sc.chNext)) {
 #ifdef PEDANTIC_OCTAL
 						numBase = BASH_BASE_OCTAL;
-#else
-						numBase = BASH_BASE_HEX;
 #endif
 					}
 				}
@@ -1092,7 +1094,7 @@ void SCI_METHOD LexerBash::Lex(Sci_PositionU startPos, Sci_Position length, int 
 			} else if (sc.ch == '-' && // test operator or short and long option
 					   cmdState != CmdState::Arithmetic &&
 					   (IsUpperOrLowerCase(sc.chNext) || sc.chNext == '-') &&
-					   IsASpace(sc.chPrev)) {
+					   (IsASpace(sc.chPrev) || setMetaCharacter.Contains(sc.chPrev))) {
 				sc.SetState(SCE_SH_WORD | insideCommand);
 				sc.Forward();
 			} else if (setBashOperator.Contains(sc.ch)) {

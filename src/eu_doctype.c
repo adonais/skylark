@@ -17,57 +17,12 @@
  *******************************************************************************/
 #include "framework.h"
 
-#define XPM_SIZE 16
-#define XPM_DIMENSION 18
-
 static doctype_t* g_doc_config;
 extern sptr_t __stdcall CreateLexer(const char *name);
 
-static char *plus_xpm[] = {
-    "14 14 3 1 ",
-    "  c None",
-    ". c gray30",
-    "X c #8c96ac",
-    " XXXXXXXXXXXXX",
-    " XXXXXXXXXXXXX",
-    " XXXXXXXXXXXXX",
-    " XXXXXX XXXXXX",
-    " XXXXXX XXXXXX",
-    " XXXXXX XXXXXX",
-    " XXX       XXX",
-    " XXX       XXX",
-    " XXXXXX XXXXXX",
-    " XXXXXX XXXXXX",
-    " XXXXXX XXXXXX",
-    " XXXXXXXXXXXXX",
-    " XXXXXXXXXXXXX",
-    " XXXXXXXXXXXXX",
-};
-static char *minus_xpm[] = {
-    "14 14 3 1 ",
-    "  c #8c96ac",
-    ". c gray31",
-    "X c None",
-    "XXXXXXXXXXXXXX",
-    "X.          .X",
-    "X            X",
-    "X            X",
-    "X            X",
-    "X            X",
-    "X  XXXXXXXX  X",
-    "X  XXXXXXXX  X",
-    "X            X",
-    "X            X",
-    "X            X",
-    "X            X",
-    "X.          .X",
-    "XXXXXXXXXXXXXX"
-};
-
 void
 on_doc_enable_foldline(eu_tabpage *pnode)
-{
-    // 启用折叠
+{   // 启用折叠
     eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold", (sptr_t)"1");
     eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.comment", (sptr_t)"1");
     eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.preprocessor", (sptr_t)"1");
@@ -100,61 +55,24 @@ on_doc_enable_foldline(eu_tabpage *pnode)
             break;
         }
     }
-    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_FOLD_INDEX, SC_MARGIN_SYMBOL); // 页边类型
-    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_FOLD_INDEX, SC_MASK_FOLDERS);  // 页边掩码
-
-    // 页边宽度
-    eu_sci_call(pnode, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, (eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0));
-    eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_FOLD_INDEX, true); //响应鼠标消息
-
+    // 页边类型
+    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_FOLD_INDEX, SC_MARGIN_SYMBOL);
+    // 页边掩码
+    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_FOLD_INDEX, SC_MASK_FOLDERS);
+    // 响应鼠标消息
+    eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_FOLD_INDEX, true);
     // 折叠标签样式
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_PIXMAP);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_PIXMAP);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_PIXMAP);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_PIXMAP);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNERCURVE);
+    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS);
+    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS);
+    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED);
+    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED);
+    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER);
     eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNERCURVE);
-    if (eu_get_theme()->item.foldmargin.color > 0)
-    {
-        char *plus[XPM_DIMENSION] = {NULL};
-        char *minus[XPM_DIMENSION] = {NULL};
-        char str1[XPM_SIZE] = {0};
-        char str2[XPM_SIZE] = {0};
-        int  i = 0;
-        const char *fmt1 = "X c #%x";
-        const char *fmt2 = "  c #%x";
-        snprintf(str1, XPM_SIZE, fmt1, eu_get_theme()->item.foldmargin.color);
-        snprintf(str2, XPM_SIZE, fmt2, eu_get_theme()->item.foldmargin.color);
-        for (; i < XPM_DIMENSION; ++i)
-        {
-            plus[i] = plus_xpm[i];
-        }
-        plus[3] = _strdup(str1);
-        for (i = 0; i < XPM_DIMENSION; ++i)
-        {
-            minus[i] = minus_xpm[i];
-        }
-        minus[1] = _strdup(str2);
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDER, (sptr_t) plus);
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPEN, (sptr_t) minus);
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEREND, (sptr_t) plus);
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPENMID, (sptr_t) minus);
-        eu_safe_free(plus[3]);
-        eu_safe_free(minus[1]);
-    }
-    else
-    {
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDER, (sptr_t) plus_xpm);
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPEN, (sptr_t) minus_xpm);
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEREND, (sptr_t) plus_xpm);
-        eu_sci_call(pnode, SCI_MARKERDEFINEPIXMAP, SC_MARKNUM_FOLDEROPENMID, (sptr_t) minus_xpm);
-    }
+    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER);
     // 折叠线的背景颜色
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERSUB, 0xa0a0a0);
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERMIDTAIL, 0xa0a0a0);
     eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERTAIL, 0xa0a0a0);
-
     // 折叠时不要在下面画折叠线
     eu_sci_call(pnode, SCI_SETFOLDFLAGS, 0, 0);
     eu_sci_call(pnode, SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_BOXED, 0);
@@ -163,6 +81,8 @@ on_doc_enable_foldline(eu_tabpage *pnode)
     eu_sci_call(pnode, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
     // 行变更时, 自动展开, 排除SC_AUTOMATICFOLD_CLICK
     eu_sci_call(pnode, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CHANGE, 0);
+    // 页边宽度
+    on_sci_update_fold_margin(pnode);
     // 启用折叠标志
     pnode->foldline = true;
 }

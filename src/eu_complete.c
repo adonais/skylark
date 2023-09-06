@@ -39,13 +39,13 @@ typedef int (*ptr_re_callback)(eu_tabpage *pnode, const char *pstr, int start, i
 static int on_complete_pcre_match(eu_tabpage *pnode, const char *pstr, const char *pattern, ptr_re_callback fn);
 static volatile long last_snippet_focus = 0;
 static inline void
-on_complete_vec_init(complete_t *vec)
+on_complete_vec_init(complete_t *vec_cl)
 {
-    if (vec)
+    if (vec_cl)
     {
-        memset(vec, 0, sizeof(complete_t));
-        vec->index = -1;
-        memset(vec->pos, -1, OVEC_LEN * sizeof(auto_postion));
+        memset(vec_cl, 0, sizeof(complete_t));
+        vec_cl->index = -1;
+        memset(vec_cl->pos, -1, OVEC_LEN * sizeof(auto_postion));
     }
 }
 
