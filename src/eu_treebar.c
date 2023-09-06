@@ -840,26 +840,29 @@ static int
 on_filetree_load_drives(HWND hwnd)
 {
     size_t dri_len;
+    unsigned int type = 0;
     tree_data *tvd = NULL;
     TCHAR *pdri = NULL;
-    TCHAR dri_name[MAX_PATH] = {0};
-    GetLogicalDriveStrings(MAX_PATH - 1, dri_name);
+    TCHAR dri_name[MAX_PATH + 1] = {0};
+    GetLogicalDriveStrings(MAX_PATH, dri_name);
     pdri = dri_name;
-    while (pdri[0])
+    while (pdri[0] && pdri - dri_name < MAX_PATH)
     {
         dri_len = _tcslen(pdri);
-        if (_tcschr(pdri, _T('\\')))
+        if ((type = GetDriveType(pdri)) == DRIVE_FIXED)
         {
-            *(_tcschr(pdri, _T('\\'))) = '\0';
-        }
-        tvd = on_filetree_add_node(hwnd, TVI_ROOT, IMG_DRIVE, NULL, pdri, pdri, pdri, NULL, true);
-        if (tvd == NULL)
-        {
-            return EUE_POINT_NULL;
-        }
-        if (on_filetree_append_file_child(hwnd, tvd))
-        {
-            break;
+            if (_tcschr(pdri, _T('\\')))
+            {
+                *(_tcschr(pdri, _T('\\'))) = '\0';
+            }
+            if ((tvd = on_filetree_add_node(hwnd, TVI_ROOT, IMG_DRIVE, NULL, pdri, pdri, pdri, NULL, true))== NULL)
+            {
+                return EUE_POINT_NULL;
+            }
+            if (on_filetree_append_file_child(hwnd, tvd))
+            {
+                break;
+            }
         }
         pdri += dri_len + 1;
     }
