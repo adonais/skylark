@@ -330,7 +330,7 @@ extern "C" {
 
 EXPORT_FUNCTION int CALLING_CONVENTION GetLexerCount() {
 	AddEachLexer();
-	return catalogueLexilla.Count();
+	return (int)catalogueLexilla.Count();
 }
 
 EXPORT_FUNCTION void CALLING_CONVENTION GetLexerName(unsigned int index, char *name, int buflength) {
