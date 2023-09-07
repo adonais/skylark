@@ -22,7 +22,7 @@ static eu_tabpage *phint = NULL;
 static volatile long code_hint_initialized = 0;
 
 static void
-on_hint_reload(const char **pbuf)
+on_hint_reload(const char **pbuf, const int tab_width)
 {
     if (phint)
     {
@@ -31,6 +31,8 @@ on_hint_reload(const char **pbuf)
         on_sci_set_margin(phint);
         // 回车符
         eu_sci_call(phint, SCI_SETEOLMODE, phint->eol, 0);
+        // tab
+        eu_sci_call(phint, SCI_SETTABWIDTH, (sptr_t)tab_width, 0);
         // 不显示插入符
         eu_sci_call(phint, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
         // 设置缩放级别
@@ -143,6 +145,7 @@ on_hint_launch(eu_tabpage *pnode, const RECT *prc, const char **pbuf, const int 
         long r1 = 0;
         long r2 = 0;
         int flags = WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_EX_RTLREADING;
+        const int tab_width = (const int)eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
         const sptr_t font_width = eu_sci_call(pnode, SCI_TEXTWIDTH, STYLE_DEFAULT, (sptr_t)"X");
         const sptr_t font_hight = eu_sci_call(pnode, SCI_TEXTHEIGHT, 0, 0);
         memcpy(&phint->rect_sc, prc, sizeof(RECT));
@@ -152,13 +155,13 @@ on_hint_launch(eu_tabpage *pnode, const RECT *prc, const char **pbuf, const int 
         {
             rc.left = prc->left;
             rc.top = prc->top + (long)font_hight * 2;
-            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - eu_dpi_scale_xy(0, 28)), (r2 = (long)(rc.left + (line_max + 3) * font_width)));
+            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - eu_dpi_scale_xy(0, 28)), (r2 = (long)(rc.left + (line_max + 2) * font_width)));
             rc.bottom = rc.top + (long)(line_count * font_hight);
         }
         else
         {
             rc.left = prc->left;
-            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - eu_dpi_scale_xy(0, 28)), (r2 = (long)(rc.left + (line_max + 3) * font_width)));
+            rc.right = (long)MIN((r1 = pnode->rect_sc.right - pnode->rect_sc.left - eu_dpi_scale_xy(0, 28)), (r2 = (long)(rc.left + (line_max + 2) * font_width)));
             rc.bottom = prc->top - (long)font_hight;
             rc.top = rc.bottom - (long)(line_count * font_hight);
         }
@@ -169,7 +172,7 @@ on_hint_launch(eu_tabpage *pnode, const RECT *prc, const char **pbuf, const int 
         if (on_sci_create(phint, (HWND)phint->reserved0, flags, on_hint_code_proc) == SKYLARK_OK)
         {
             on_dark_border(phint->hwnd_sc, true);
-            on_hint_reload(pbuf);
+            on_hint_reload(pbuf, tab_width);
         }
         return SetWindowPos((HWND)phint->reserved0, HWND_TOP, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_SHOWWINDOW);
     }
