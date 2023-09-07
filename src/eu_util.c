@@ -2089,6 +2089,21 @@ util_count_number(size_t number)
     return length;
 }
 
+int
+util_count_characters(const char *pstr, const int ch)
+{
+    int var;
+    int c = 0;
+    while ((var = *pstr++))
+    {
+        if (var == ch)
+        {
+            ++c;
+        }
+    }
+    return c;
+}
+
 sptr_t
 util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
 {
@@ -2727,6 +2742,28 @@ util_path_ext(const TCHAR *path)
     {
         TCHAR *p = _tcsrchr(path, _T('.'));
         if (p && _tcslen(p) > 1)
+        {
+            return (const TCHAR *)&p[1];
+        }
+    }
+    return NULL;
+}
+
+const TCHAR*
+util_path_filename(const TCHAR *path)
+{
+    if (STR_NOT_NUL(path))
+    {
+        TCHAR *p = _tcsrchr(path, _T('\\'));
+        if (!p)
+        {
+            p = _tcsrchr(path, _T('/'));
+        }
+        if (!p)
+        {
+            return path;
+        }
+        else if (_tcslen(p) > 1)
         {
             return (const TCHAR *)&p[1];
         }

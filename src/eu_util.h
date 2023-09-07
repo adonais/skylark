@@ -91,6 +91,7 @@ int util_query_hostname(char *hostname, char *ip, int bufsize);
 int util_effect_line(eu_tabpage *pnode, sptr_t *, sptr_t *);
 int util_get_hex_byte(const char *p);
 int util_strnspace(const char *s1, const char *s2, int *plen);
+int util_count_characters(const char *pstr, const int ch);
 
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
@@ -169,6 +170,7 @@ bool  util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len);
 wchar_t* util_get_nt_file_name(LPCWSTR path);
 const uint32_t util_os_version(void);
 const TCHAR* util_path_ext(const TCHAR *path);
+const TCHAR* util_path_filename(const TCHAR *path);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
 sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 HBITMAP util_icon_bitmap(HICON hicon, const int width, const int height);

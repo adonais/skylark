@@ -65,6 +65,10 @@ on_setting_load_icon(const TCHAR *path)
                 break;
             }
         }
+        if (!hresource && WCSICMP(util_path_filename(path), ==, _T("calc.exe")))
+        {
+            hresource = FindResource(hexe, _T("IDI_CALC_ICON"), RT_GROUP_ICON);
+        }
         // Load and lock the icon directory.
         if (!(hmem = hresource ? LoadResource(hexe, hresource): NULL))
         {
