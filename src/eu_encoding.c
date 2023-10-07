@@ -18,6 +18,7 @@
 
 #include "framework.h"
 
+#define MAX_UTF_BITS 5
 #define LANG_CHT MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL)
 #define LANG_CHS MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED)
 
@@ -232,9 +233,8 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     size_t lsrc = *src_len;
     char *psrc = src;
     char *pdst = NULL;
-    size_t ldst = lsrc * 4;
+    size_t ldst = lsrc * MAX_UTF_BITS;
     int msg = IDOK;
-    int argument = 0;
     if (!init_conv_handle(icv))
     {
         return (size_t) -1;
@@ -262,14 +262,7 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
         }
     }
     *plen = ldst;
-    if (eu_iconvctl(icv->cd, ICONV_SET_DISCARD_ILSEQ, &argument) != 0)
-    {
-        eu_logmsg("can't enable illegal feature!\n");
-        close_conv_handle(icv);
-        return (size_t) -1;
-    }
-    *dst = (char *) malloc(ldst + 1);
-    if (*dst == NULL)
+    if ((*dst = (char *) malloc(ldst + 1)) == NULL)
     {
         close_conv_handle(icv);
         return (size_t) -1;
@@ -280,14 +273,34 @@ on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size
     }
     ret = eu_iconv(icv->cd, &psrc, &lsrc, &pdst, &ldst);
     if (ret != (size_t) -1)
-    {
-        // 成功, 写入转换后的长度
+    {   // 成功, 写入转换后的长度
         *plen -= ldst;
+    }
+    else if (stricmp(icv->src_from, "gb18030") == 0)
+    {
+        eu_iconv_close(icv->cd);
+        icv->src_from = "cp936";
+        if (init_conv_handle(icv))
+        {
+            psrc = src;
+            lsrc = *src_len;
+            pdst = *dst;
+            ldst = lsrc * MAX_UTF_BITS;
+            ret = eu_iconv(icv->cd, &psrc, &lsrc, &pdst, &ldst);
+        }
+        if (ret != (size_t) -1)
+        {
+            *plen -= ldst;
+        }
+        else
+        {
+            eu_safe_free(*dst);
+        }
     }
     else
     {
         eu_safe_free(*dst);
-        eu_logmsg("%s: [%s->%s] failed! lsrc = %zu, ldst = %zu, ret = %d\n", __FUNCTION__, icv->src_from, icv->dst_to, lsrc, ldst, (int)ret);
+        eu_logmsg("%s: [%s->%s] failed! lsrc = %zu, ldst = %zu, ret = %d, errno = %d\n", __FUNCTION__, icv->src_from, icv->dst_to, lsrc, ldst, (int)ret, errno);
     }
     close_conv_handle(icv);
     return ret;
