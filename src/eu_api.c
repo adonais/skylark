@@ -1991,6 +1991,12 @@ eu_save_config(void)
         "    margin_right = %d,\n"
         "    margin_bottom = %d\n"
         "}\n"
+        "-- titlebar default setting\n"
+        "titlebar = {\n"
+        "    icon = %s,\n"
+        "    name = %s,\n"
+        "    path = %s\n"
+        "}\n"
         "-- hyperlink hotspot default setting\n"
         "hyperlink_detection = %s\n"
         "-- automatically cached file (size < 200MB)\n"
@@ -2106,6 +2112,9 @@ eu_save_config(void)
               g_config->eu_print.rect.top,
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
+              g_config->eu_titlebar.icon?"true":"false",
+              g_config->eu_titlebar.name?"true":"false",
+              g_config->eu_titlebar.path?"true":"false",
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
               g_config->upgrade.enable?"true":"false",

@@ -244,6 +244,12 @@ BEGIN
             MENUITEM "显示菜单栏",                              IDM_VIEW_MENUBAR
             MENUITEM "显示状态栏",                              IDM_VIEW_STATUSBAR
         END
+        POPUP "定制标题栏",                                     IDM_VIEW_TITLEBAR_GROUP
+        BEGIN
+            MENUITEM "显示应用图标(&I)",                        IDM_VIEW_TITLEBAR_ICON
+            MENUITEM "显示应用名称(&N)",                        IDM_VIEW_TITLEBAR_NAME
+            MENUITEM "显示文档路径(&P)",                        IDM_VIEW_TITLEBAR_PATH
+        END
         POPUP "调整工具栏"
         BEGIN
             MENUITEM "隐藏(&H)",                                IDB_SIZE_0

@@ -29,6 +29,13 @@ typedef struct _print_set
     RECT rect;
 }print_set;
 
+typedef struct _titlebar_set
+{
+    bool icon;
+    bool name;
+    bool path;
+}titlebar_set;
+
 typedef struct _caret_set
 {
     int blink;
@@ -154,6 +161,7 @@ struct eu_config
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
+    titlebar_set eu_titlebar;
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;

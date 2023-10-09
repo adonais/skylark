@@ -1242,6 +1242,11 @@
 
 #define IDM_VIEW_DISPLAY_PLACEHOLDE         44730
 
+#define IDM_VIEW_TITLEBAR_GROUP             44740
+#define IDM_VIEW_TITLEBAR_ICON              44741
+#define IDM_VIEW_TITLEBAR_NAME              44742
+#define IDM_VIEW_TITLEBAR_PATH              44743
+
 // For MessageBox
 #define IDALWAYS                            12
 #define MB_YESNOALWAYS                      0x0007

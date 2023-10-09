@@ -1055,7 +1055,7 @@ util_set_title(const eu_tabpage *pnode)
         TCHAR *title = NULL;
         const TCHAR *filename = pnode->pathfile;
         bool admin = !util_under_wine() && on_reg_admin();
-        if ((len = _tcslen(pnode->pathfile)) > FILESIZE && pnode->filename[0])
+        if (((len = _tcslen(pnode->pathfile)) > FILESIZE && pnode->filename[0]) || !eu_get_config()->eu_titlebar.path)
         {
             filename = pnode->filename;
         }
@@ -1065,11 +1065,25 @@ util_set_title(const eu_tabpage *pnode)
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
             if (!filename[0])
             {
-                _sntprintf(title, len, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
+                if (eu_get_config()->eu_titlebar.name)
+                {
+                    _sntprintf(title, len, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
+                }
+                else
+                {
+                    _sntprintf(title, len, _T("%s"), _T(""));
+                }
             }
             else
             {
-                _sntprintf(title, len, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
+                if (eu_get_config()->eu_titlebar.name)
+                {
+                    _sntprintf(title, len, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
+                }
+                else
+                {
+                    _sntprintf(title, len, _T("%s"), filename);
+                }
             }
         }
         SetWindowText(eu_module_hwnd(), title);
@@ -3137,6 +3151,29 @@ util_shield_icon(HINSTANCE hinst, LPCTSTR name)
         DestroyIcon(hicon);
     }
     return hmap;
+}
+
+void
+util_updateui_icon(const HWND hwnd, const bool fnshow)
+{
+    if (fnshow)
+    {
+        HICON hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SKYLARK));
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hicon);
+        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hicon);
+        DestroyIcon(hicon);
+    }
+    else
+    {
+        uint32_t ex = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, ex | WS_EX_DLGMODALFRAME);
+        SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+        if ((HICON)SendMessage(hwnd, WM_GETICON, ICON_SMALL, 0))
+        {
+            SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)0);
+            SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)0);
+        }
+    }
 }
 
 void

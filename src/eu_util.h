@@ -163,6 +163,7 @@ void  util_explorer_open(eu_tabpage *pnode);
 void  util_redraw(const HWND hwnd, const bool force);
 void  util_symlink_destroy(eu_tabpage *pnode);
 void  util_updateui_msg(const eu_tabpage *pnode);
+void  util_updateui_icon(const HWND hwnd, const bool fnshow);
 void  util_update_env(eu_tabpage *pnode);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);

@@ -244,6 +244,12 @@ BEGIN
             MENUITEM "Show M&enubar",                                  IDM_VIEW_MENUBAR
             MENUITEM "Show Stat&usbar",                                IDM_VIEW_STATUSBAR
         END
+        POPUP "Customize Titlebar",                                    IDM_VIEW_TITLEBAR_GROUP
+        BEGIN
+            MENUITEM "Show App &Icon",                                 IDM_VIEW_TITLEBAR_ICON
+            MENUITEM "Show App &Name",                                 IDM_VIEW_TITLEBAR_NAME
+            MENUITEM "Show Document &Path",                            IDM_VIEW_TITLEBAR_PATH
+        END
         POPUP "Adjust Toolbar"
         BEGIN
             MENUITEM "&Hide",                                          IDB_SIZE_0
