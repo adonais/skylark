@@ -67,6 +67,8 @@ int on_symtree_postion(eu_tabpage *pnode);
 int on_symtree_create(eu_tabpage *pnode);
 int on_symtree_add_text(eu_tabpage *pnode);
 int on_symtree_update_theme(eu_tabpage *pnode);
+void on_symtree_expand_all(const HWND htree, const HTREEITEM hitem);
+HTREEITEM on_symtree_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos);
 
 #ifdef __cplusplus
 }

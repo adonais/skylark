@@ -415,6 +415,7 @@ int on_doc_click_list_jmp(void *pnode);
 int on_doc_click_list_jump_sh(void *pnode);
 int on_doc_click_tree_sql(void *pnode);
 int on_doc_click_tree_json(void *pnode);
+int on_doc_click_tree_xml(void *pnode);
 int on_doc_click_tree_redis(void *pnode);
 
 /* lua脚本接口支持, 对各类关键字着色 */

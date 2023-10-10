@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-static WNDPROC symlist_wnd;
+static volatile sptr_t symlist_wnd = 0;
 
 static int
 pcre_match_callback(pcre_conainer *pcre_info, void *param)
@@ -218,14 +218,13 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         default:
             break;
     }
-    return CallWindowProc(symlist_wnd, hwnd, message, wParam, lParam);
+    return CallWindowProc((WNDPROC)symlist_wnd, hwnd, message, wParam, lParam);
 }
 
 int
 on_symlist_create(eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL);
-    if (pnode->doc_ptr->reqular_exp)
+    if (pnode && pnode->doc_ptr && pnode->doc_ptr->reqular_exp)
     {
         if (pnode->hwnd_symlist)
         {
@@ -247,7 +246,11 @@ on_symlist_create(eu_tabpage *pnode)
             MSG_BOX(IDC_MSG_SYMLIST_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             return 1;
         }
-        if (!(symlist_wnd = (WNDPROC) SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc)))
+        if (inter_atom_compare_exchange(&symlist_wnd, SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc), 0))
+        {
+            SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc);
+        }
+        if (!symlist_wnd)
         {
             eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symlist) failed\n", __FUNCTION__);
             return 1;

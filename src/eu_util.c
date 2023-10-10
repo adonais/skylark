@@ -3165,7 +3165,7 @@ util_updateui_icon(const HWND hwnd, const bool fnshow)
     }
     else
     {
-        uint32_t ex = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        uint32_t ex = (uint32_t)GetWindowLongPtr(hwnd, GWL_EXSTYLE);
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, ex | WS_EX_DLGMODALFRAME);
         SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
         if ((HICON)SendMessage(hwnd, WM_GETICON, ICON_SMALL, 0))

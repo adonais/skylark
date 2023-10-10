@@ -129,6 +129,7 @@ void on_tabpage_active_tab(eu_tabpage *pnode);
 void on_tabpage_active_one(int index);
 bool on_tabpage_check_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
+eu_tabpage *on_tabpage_from_symtree(void *hwnd);
 eu_tabpage *on_tabpage_get_ptr(int index);
 eu_tabpage *on_tabpage_select_index(int index);
 eu_tabpage *on_tabpage_focus_at(void);

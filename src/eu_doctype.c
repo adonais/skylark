@@ -1110,6 +1110,10 @@ on_doc_init_after_xml(eu_tabpage *pnode)
     on_doc_number_light(pnode, SCE_H_NUMBER, 0);
     on_doc_commentblock_light(pnode, SCE_H_COMMENT, 0);
     on_doc_enable_foldline(pnode);
+    if (pnode->doc_ptr->fn_reload_symtree)
+    {
+        pnode->doc_ptr->fn_reload_symtree(pnode);
+    }
     return 0;
 }
 
@@ -1848,6 +1852,12 @@ on_doc_reload_tree_json(eu_tabpage *pnode)
 }
 
 int
+on_doc_reload_tree_xml(eu_tabpage *pnode)
+{
+    return on_xml_tree(pnode);
+}
+
+int
 on_doc_click_tree_sql(eu_tabpage *pnode)
 {
     return on_symtree_add_text(pnode);
@@ -1855,6 +1865,12 @@ on_doc_click_tree_sql(eu_tabpage *pnode)
 
 int
 on_doc_click_tree_json(eu_tabpage *pnode)
+{
+    return on_symtree_postion(pnode);
+}
+
+int
+on_doc_click_tree_xml(eu_tabpage *pnode)
 {
     return on_symtree_postion(pnode);
 }

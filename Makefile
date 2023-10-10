@@ -9,6 +9,7 @@ all:
 	@if exist "$(MAKEDIR)\src\3rdparty\chardet\Makefile" cd "$(MAKEDIR)\src\3rdparty\chardet" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
 	@if exist "$(MAKEDIR)\src\3rdparty\qrencode\Makefile" cd "$(MAKEDIR)\src\3rdparty\qrencode" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
 	@if exist "$(MAKEDIR)\src\3rdparty\tinyexpr\Makefile" cd "$(MAKEDIR)\src\3rdparty\tinyexpr" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
+	@if exist "$(MAKEDIR)\src\3rdparty\expat\Makefile" cd "$(MAKEDIR)\src\3rdparty\expat" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
 	@if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE)  /NOLOGO /$(MAKEFLAGS)
 	cd "$(MAKEDIR)\src"
 	@$(MAKE) /NOLOGO /$(MAKEFLAGS)
@@ -52,6 +53,7 @@ clean:
 	@if exist "$(MAKEDIR)\src\3rdparty\chardet\Makefile" cd "$(MAKEDIR)\src\3rdparty\chardet" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
 	@if exist "$(MAKEDIR)\src\3rdparty\qrencode\Makefile" cd "$(MAKEDIR)\src\3rdparty\qrencode" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
 	@if exist "$(MAKEDIR)\src\3rdparty\tinyexpr\Makefile" cd "$(MAKEDIR)\src\3rdparty\tinyexpr" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
+	@if exist "$(MAKEDIR)\src\3rdparty\expat\Makefile" cd "$(MAKEDIR)\src\3rdparty\expat" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
 	@if exist "$(MAKEDIR)\src\3rdparty\scintilla\Makefile" cd "$(MAKEDIR)\src\3rdparty\scintilla" && $(MAKE) /NOLOGO /$(MAKEFLAGS) clean
 	@if exist "$(MAKEDIR)\plugins\pdfview\Makefile" cd "$(MAKEDIR)\plugins\pdfview" && $(MAKE)  /NOLOGO /$(MAKEFLAGS) clean
 	cd "$(MAKEDIR)\src"

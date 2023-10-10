@@ -844,6 +844,7 @@ EU_EXT_CLASS int on_doc_reload_list_reqular(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_reload_list_sh(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_reload_tree_xml(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_reload_tree_json(eu_tabpage *pnode);
+EU_EXT_CLASS int on_doc_reload_tree_xml(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_reload_tree_sql(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_reload_tree_redis(eu_tabpage *pnode);
 
@@ -851,6 +852,7 @@ EU_EXT_CLASS int on_doc_click_list_jmp(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_click_list_jump_sh(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_click_tree_sql(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_click_tree_json(eu_tabpage *pnode);
+EU_EXT_CLASS int on_doc_click_tree_xml(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_click_tree_redis(eu_tabpage *pnode);
 
 /* 脚本调用 */
