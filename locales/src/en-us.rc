@@ -342,6 +342,11 @@ BEGIN
             MENUITEM "Reformat Js",                                    IDM_FORMAT_REFORMAT_JS
             MENUITEM "Compress Js",                                    IDM_FORMAT_COMPRESS_JS
         END
+        POPUP "XML File",                                              IDM_EDIT_PLACEHOLDE_XML
+        BEGIN
+            MENUITEM "Reformat XML",                                   IDM_FORMAT_REFORMAT_XML
+            MENUITEM "Compress XML",                                   IDM_FORMAT_COMPRESS_XML
+        END
         POPUP "Lua Scripts",                                           IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
             MENUITEM "Run This Script",                                IDM_FORMAT_RUN_SCRIPT
@@ -451,7 +456,7 @@ BEGIN
     POPUP "&Help"
     BEGIN
         MENUITEM "Donate Now",                                         IDM_DONATION
-        MENUITEM "Introduction &Of Eidt ...",                          IDM_INTRODUTION
+        MENUITEM "Introduction &Of Editor ...",                        IDM_INTRODUTION
         MENUITEM "Update &history ...",                                IDM_CHANGELOG
         MENUITEM "&Command Line ...",                                  IDM_HELP_COMMAND
         MENUITEM "&About ...",                                         IDM_ABOUT

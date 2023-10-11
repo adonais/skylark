@@ -23,7 +23,9 @@
 extern "C" {
 #endif
 
-int on_xml_tree(eu_tabpage *pnode);
+int  on_xml_tree(eu_tabpage *pnode);
+int  on_xml_format(eu_tabpage *pnode);
+bool on_xml_pretty(void *ptr, struct opt_format *opt);
 
 #ifdef __cplusplus
 }

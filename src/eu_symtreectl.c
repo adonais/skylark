@@ -1400,12 +1400,12 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            on_symtree_update_theme(on_tabpage_from_symtree(hwnd));
+            on_symtree_update_theme((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             break;
         }
         case WM_DESTROY:
         {
-            util_symlink_destroy(on_tabpage_from_symtree(hwnd));
+            util_symlink_destroy((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             break;
         }
         default:
@@ -1443,6 +1443,7 @@ on_symtree_create(eu_tabpage *pnode)
         }
         else
         {
+            SetWindowLongPtr(pnode->hwnd_symtree, GWLP_USERDATA, (intptr_t) pnode);
             on_symtree_update_theme(pnode);
         }
     }

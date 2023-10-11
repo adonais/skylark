@@ -180,13 +180,13 @@ on_symlist_update_theme(eu_tabpage *pnode)
 LRESULT CALLBACK
 symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    eu_tabpage *pnode = NULL;
     switch (message)
     {
         case WM_COMMAND:
         {
             if (LOWORD(wParam) == IDM_RELOAD_SYMBOLLIST)
             {
+                eu_tabpage *pnode = NULL;
                 if ((pnode = on_tabpage_focus_at()) && pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
                 {
                     pnode->doc_ptr->fn_reload_symlist(pnode);
@@ -196,8 +196,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDBLCLK:
         {
-            pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            on_tabpage_symlist_click(pnode);
+            on_tabpage_symlist_click((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             return 1;
         }
         case WM_RBUTTONDOWN:
@@ -206,8 +205,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            on_symlist_update_theme(pnode);
+            on_symlist_update_theme((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             break;
         }
         case WM_DESTROY:

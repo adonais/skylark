@@ -3926,7 +3926,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-static void
+void
 on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, replace_event docase)
 {
     sptr_t fpos = -1;

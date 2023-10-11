@@ -678,7 +678,7 @@ do_lua_func(const char *fname, const char *func, const char *arg)
     return status;
 }
 
-static int
+int
 do_lua_point(const char *fname, const char *func, void *arg)
 {
     int status;

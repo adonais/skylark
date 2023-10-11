@@ -1247,6 +1247,10 @@
 #define IDM_VIEW_TITLEBAR_NAME              44742
 #define IDM_VIEW_TITLEBAR_PATH              44743
 
+#define IDM_EDIT_PLACEHOLDE_XML             44750
+#define IDM_FORMAT_REFORMAT_XML             44751
+#define IDM_FORMAT_COMPRESS_XML             44752
+
 // For MessageBox
 #define IDALWAYS                            12
 #define MB_YESNOALWAYS                      0x0007

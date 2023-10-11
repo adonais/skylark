@@ -26,6 +26,7 @@ extern "C" {
 int do_lua_func(const char *, const char *, const char *arg);
 int do_lua_code(const char *s);
 int do_byte_code(eu_tabpage *pnode);
+int do_lua_point(const char *fname, const char *func, void *arg);
 int do_lua_parser_doctype(const char *fname, const char *func);
 void do_lua_parser_release(void);
 bool do_lua_setting_path(eu_tabpage *pnode);

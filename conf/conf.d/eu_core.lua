@@ -242,6 +242,17 @@ struct rb_root
     struct rb_node *rb_node;
 };
 
+struct opt_format
+{
+    bool no_c;
+    bool no_p;
+    bool no_f;
+    bool no_x;
+    bool no_t;
+    bool no_d;
+    bool no_a;
+};
+
 typedef struct rb_root eutype_t;
 typedef int (*init_before_ptr)(void *pnode);
 typedef int (*init_after_ptr)(void *pnode);
@@ -340,6 +351,9 @@ bool eu_theme_ptr(struct eu_theme *ptheme, bool init);
 bool eu_accel_ptr(ACCEL *paccel);
 bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
 bool eu_exist_path(const char *path);
+bool eu_xml_pretty(void *ptr, struct opt_format *opt);
+
+// crt 函数
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
 // all doctype callbacks

@@ -1539,6 +1539,22 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_sci_refresh_ui(pnode);
                     }
                     break;
+                case IDM_FORMAT_REFORMAT_XML:
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    {
+                        on_format_file_style(pnode);
+                        on_xml_tree(pnode);
+                        on_sci_refresh_ui(pnode);
+                    }
+                    break;
+                case IDM_FORMAT_COMPRESS_XML:
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    {
+                        on_format_xml_compress(pnode);
+                        on_xml_tree(pnode);
+                        on_sci_refresh_ui(pnode);
+                    }
+                    break;
                 case IDM_FORMAT_WHOLE_FILE:
                     on_format_clang_file(pnode, true);
                     on_sci_refresh_ui(pnode);

@@ -410,6 +410,17 @@ typedef struct _customize_set
     uintptr_t hbmp;
 }customize_set;
 
+struct opt_format
+{
+    bool no_c;
+    bool no_p;
+    bool no_f;
+    bool no_x;
+    bool no_t;
+    bool no_d;
+    bool no_a;
+};
+
 struct eu_config
 {
     int new_file_eol;
@@ -605,7 +616,7 @@ EU_EXT_CLASS struct eu_theme *eu_get_theme(void);
 EU_EXT_CLASS struct eu_config *eu_get_config(void);
 EU_EXT_CLASS eue_accel *eu_get_accel(void);
 EU_EXT_CLASS eue_toolbar *eu_get_toolbar(void);
-EU_EXT_CLASS void eu_config_api_release(void);
+EU_EXT_CLASS void eu_api_release(void);
 
 EU_EXT_CLASS const int eu_theme_index(void);
 EU_EXT_CLASS const uint32_t eu_win10_or_later(void);
@@ -873,6 +884,9 @@ EU_EXT_CLASS void on_doc_tags_light(eu_tabpage *pnode, int lex, intptr_t rgb);
 EU_EXT_CLASS void on_doc_comment_light(eu_tabpage *pnode, int lex, intptr_t rgb);
 EU_EXT_CLASS void on_doc_commentblock_light(eu_tabpage *pnode, int lex, intptr_t rgb);
 EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t rgb);
+
+/* for eu_xmlist.c */
+EU_EXT_CLASS bool eu_xml_pretty(void *ptr, struct opt_format *opt);
 
 #ifdef __cplusplus
 }

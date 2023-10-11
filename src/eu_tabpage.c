@@ -1546,23 +1546,6 @@ on_tabpage_get_handle(void *hwnd_sc)
     return p;
 }
 
-eu_tabpage *
-on_tabpage_from_symtree(void *hwnd)
-{
-    eu_tabpage *p = NULL;
-    if (g_tabpages && (HWND)hwnd)
-    {
-        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
-        {
-            if ((p = on_tabpage_get_ptr(index)) && p->hwnd_symtree == (HWND)hwnd)
-            {
-                break;
-            }
-        }
-    }
-    return p;
-}
-
 int
 on_tabpage_get_index(eu_tabpage *pnode)
 {

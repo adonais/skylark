@@ -342,6 +342,11 @@ BEGIN
             MENUITEM "格式化 Js",                               IDM_FORMAT_REFORMAT_JS
             MENUITEM "压缩 Js",                                 IDM_FORMAT_COMPRESS_JS
         END
+        POPUP "XML 文件",                                       IDM_EDIT_PLACEHOLDE_XML
+        BEGIN
+            MENUITEM "格式化 XML",                              IDM_FORMAT_REFORMAT_XML
+            MENUITEM "压缩 XML",                                IDM_FORMAT_COMPRESS_XML
+        END
         POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
             MENUITEM "运行当前脚本",                            IDM_FORMAT_RUN_SCRIPT

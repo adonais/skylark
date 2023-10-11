@@ -1334,17 +1334,43 @@ util_availed_char(int ch)
     return false;
 }
 
-/**************************************************
- * 去除字符串右边的*号字符
- *************************************************/
-void
-util_trim_right_star(TCHAR *str)
+bool
+util_has_space(uint8_t ch)
 {
-    size_t str_len = _tcslen(str);
-    if (str_len > 0 && str[str_len - 1] == _T('*'))
+    if (ch == '\r' || ch == '\n' || ch == '\t' || ch == ' ')
     {
-        str[str_len - 1]  = 0;
+        return true;
     }
+    return false;
+}
+
+/**************************************************
+ * 去除字符串左右两端的空白字符
+ * 返回一个指针, 使用后需释放(free)
+ *************************************************/
+char*
+util_trim_sides_white(const uint8_t *str)
+{
+    char *p = NULL;
+    if (STR_NOT_NUL(str))
+    {
+        int i = 0;
+        int j = (int)strlen((const char *)str) - 1;
+        while(util_has_space(str[i]))
+        {
+            ++i;
+        }
+        while(util_has_space(str[j]))
+        {
+            --j;
+        }
+        if (j > 0 && (p = malloc(j + 2)))
+        {
+            strncpy(p, (const char *)(str + i), j - i + 1);
+            p[j - i + 1] = '\0';
+        }
+    }
+    return p;
 }
 
 /**************************************************
@@ -2508,40 +2534,6 @@ util_which(const TCHAR *name)
     return NULL;
 }
 
-int
-eu_prepend_path(const TCHAR *dir)
-{
-    size_t bufsize;
-    TCHAR *path;
-    TCHAR *value = NULL;
-    int    rc = -1;
-    if ((path = _tgetenv(_T("PATH"))) == NULL)
-    {
-        return (-1);
-    }
-    bufsize = _tcslen(dir) + _tcslen(path) + 8;
-    value = (TCHAR *)calloc(1, bufsize * sizeof(TCHAR));
-    if (value && _sntprintf(value, bufsize, _T("PATH=%s;%s"), dir, path) > 0)
-    {
-        rc = _tputenv(value);
-    }
-    eu_safe_free(value);
-    return rc;
-}
-
-bool
-eu_gui_app(void)
-{
-    HMODULE hmodule = GetModuleHandle(NULL);
-    if(hmodule == NULL)
-    {
-        return false;
-    }
-    IMAGE_DOS_HEADER* dos_header = (IMAGE_DOS_HEADER *)hmodule;
-    IMAGE_NT_HEADERS* pe_header =(IMAGE_NT_HEADERS *)((uint8_t *)dos_header + dos_header->e_lfanew);
-    return pe_header->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI;
-}
-
 bool
 util_delete_file(LPCTSTR filepath)
 {
@@ -3292,5 +3284,29 @@ util_update_env(eu_tabpage *pnode)
         eu_safe_free(pline);
         eu_safe_free(sel_str);
         eu_safe_free(psel);
+    }
+}
+
+char*
+util_has_newline(const char *dst)
+{
+    char *p = strchr(dst, '\r');
+    if (!p)
+    {
+        p = strchr(dst, '\n');
+    }
+    return p;
+}
+
+void
+util_strcat(uint8_t **dst, const char* pstr)
+{
+    if (dst && pstr)
+    {
+        while (*pstr)
+        {
+            cvector_push_back(*dst, (uint8_t)(*pstr));
+            ++pstr;
+        }
     }
 }

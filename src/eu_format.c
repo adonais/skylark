@@ -466,6 +466,13 @@ on_format_json_callback(const uint8_t *text, uint8_t **pbuf)
     return SKYLARK_OK;
 }
 
+int
+on_format_xml_compress(eu_tabpage *pnode)
+{
+    on_search_do_space(pnode, ">[\\s\r\n]*<", "><", RE_REGXP);
+    return SKYLARK_OK;
+}
+
 void
 on_format_do_compress(eu_tabpage *pnode, format_back fn)
 {
@@ -609,9 +616,16 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
 void
 on_format_file_style(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr && (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT))
+    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr)
     {
-        on_format_clang_file(pnode, true);
+        if (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+        {
+            on_format_clang_file(pnode, true);
+        }
+        else if (pnode->doc_ptr->doc_type == DOCTYPE_XML)
+        {
+            on_xml_format(pnode);
+        }
     }
 }
 

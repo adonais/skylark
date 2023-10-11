@@ -575,6 +575,7 @@ menu_update_item(const HMENU menu, const bool init)
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON))));
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_XML, init ||(pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_LUA, init ||(pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_ICODE, init || (!pnode->hex_mode && !pnode->plugin && TAB_NOT_NUL(pnode)));
                         util_enable_menu_item(menu, IDM_FORMAT_PLACEHOLDE_PUNCTUATION, init || (!pnode->hex_mode && !pnode->plugin && TAB_NOT_NUL(pnode)));
