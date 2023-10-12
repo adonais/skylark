@@ -49,7 +49,7 @@ on_setting_load_icon(const TCHAR *path)
     const int scx = Scintilla_GetSystemMetricsForDpi(SM_CXSMICON, dpi);
     const int scy = Scintilla_GetSystemMetricsForDpi(SM_CYSMICON, dpi);
     // Load the file from which to copy the icon.
-    do
+    while (!_tcsicmp(util_path_ext(path), _T("exe")))
     {
         // Note: LoadLibrary should have a fully explicit path.
         if ((hexe = (HINSTANCE)LoadLibrary(path)) == NULL)
@@ -95,7 +95,8 @@ on_setting_load_icon(const TCHAR *path)
         lpresource = LockResource(hmem);
         // Create a handle to the icon.
         hicon = CreateIconFromResourceEx((PBYTE) lpresource, SizeofResource(hexe, hresource), TRUE, 0x00030000, scx, scy, LR_DEFAULTCOLOR);
-    } while(0);
+        break;
+    }
     if (hicon)
     {
         hmap = util_icon_bitmap(hicon, scx, scy);

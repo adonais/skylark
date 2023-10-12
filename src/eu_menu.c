@@ -633,9 +633,11 @@ menu_update_item(const HMENU menu, const bool init)
                         on_theme_update_item();
                         menu_switch_theme();
                         if (!init)
-                        {
+                        {   // 盾牌图标
                             menu_shield_icons(menu, IDM_ENV_FILE_POPUPMENU, IDM_ENV_SET_ASSOCIATED_WITH);
+                            // 定制命令图标
                             menu_setting_icons(menu);
+                            // 定制命令菜单更新
                             on_setting_update_menu(menu);
                         }
                         break;

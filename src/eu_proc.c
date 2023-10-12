@@ -1007,6 +1007,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (IDM_SET_LUAJIT_EXECUTE <= wm_id && wm_id <= IDM_SET_LUAJIT_EXECUTE + DW_SIZE - 1)
             {
+                eu_logmsg("Run custom menu, wm_id = %d\n", (int)wm_id);
                 on_setting_execute(g_hwndmain, wm_id);
                 break;
             }
