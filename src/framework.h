@@ -104,6 +104,7 @@
 #include "libpq-fe.h"
 #include "chardet.h"
 #include "tinyexpr.h"
+#include "expat.h"
 
 // skylark 源目录下的头文件
 #include "eu_cvector.h"
@@ -168,5 +169,6 @@
 #include "eu_favorites.h"
 #include "eu_settings.h"
 #include "eu_hintctl.h"
+#include "eu_xmlist.h"
 
 #endif  // _EU_FRAMEWORK_H_

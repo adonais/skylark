@@ -18,7 +18,7 @@
 
 #include "framework.h"
 
-static WNDPROC symtree_wnd;
+static volatile sptr_t symtree_wnd = 0;
 
 static char *
 get_symtree_str(eu_tabpage *pnode, bool get_parent)
@@ -964,8 +964,8 @@ on_symtree_query_redis(eu_tabpage *pnode)
     return 0;
 }
 
-static HTREEITEM
-tvi_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
+HTREEITEM
+on_symtree_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
 {
     HTREEITEM hti = NULL;
     TVITEM tvi = {0};
@@ -987,6 +987,18 @@ tvi_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
     tvis.item = tvi;
     hti = TreeView_InsertItem(hwnd, &tvis);
     return hti;
+}
+
+void
+on_symtree_expand_all(const HWND htree, const HTREEITEM hitem)
+{
+    HTREEITEM hchild = TreeView_GetChild(htree, hitem);
+    while (hchild)
+    {
+        TreeView_Expand(htree,hchild,TVE_EXPAND);
+        on_symtree_expand_all(htree, hchild);
+        hchild = TreeView_GetNextItem(htree, hchild, TVGN_NEXT);
+    }
 }
 
 static HTREEITEM
@@ -1026,18 +1038,6 @@ tvi_inser_object(HWND dlg, HTREEITEM parent, const char *parent_str, const char 
 }
 
 static void
-expand_all_child(HWND htree, HTREEITEM hitem)
-{
-    HTREEITEM hchild = TreeView_GetChild(htree, hitem);
-    while (hchild)
-    {
-        TreeView_Expand(htree,hchild,TVE_EXPAND);
-        expand_all_child(htree, hchild);
-        hchild = TreeView_GetNextItem(htree, hchild, TVGN_NEXT);
-    }
-}
-
-static void
 process_value(eu_tabpage *pnode, HTREEITEM tree_root, json_value *value, int x);
 
 static void
@@ -1053,11 +1053,11 @@ process_object(eu_tabpage *pnode, HTREEITEM tree_root, json_value *value, int x,
 
     if (value->parent != NULL && value->parent->type != json_array && value->parent->u.object.values[x].name)
     {
-        new_tvi = tvi_insert_str(pnode->hwnd_symtree, tree_root, value->parent->u.object.values[x].name, pos);
+        new_tvi = on_symtree_insert_str(pnode->hwnd_symtree, tree_root, value->parent->u.object.values[x].name, pos);
     }
     else
     {
-        new_tvi = tvi_insert_str(pnode->hwnd_symtree, tree_root, "(object)", pos);
+        new_tvi = on_symtree_insert_str(pnode->hwnd_symtree, tree_root, "(object)", pos);
     }
     for (int i = 0; i < length; i++)
     {
@@ -1122,7 +1122,7 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
             }
             else
             {
-                tvi_insert_str(pnode->hwnd_symtree, new_tvi, i2s, pos);
+                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, i2s, pos);
             }
             break;
         }
@@ -1136,7 +1136,7 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
             }
             else
             {
-                tvi_insert_str(pnode->hwnd_symtree, new_tvi, f2s, pos);
+                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, f2s, pos);
             }
             break;
         }
@@ -1147,7 +1147,7 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
             }
             else
             {
-                tvi_insert_str(pnode->hwnd_symtree, new_tvi, json_root->u.string.ptr, pos);
+                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, json_root->u.string.ptr, pos);
             }
             break;
         case json_boolean:
@@ -1157,7 +1157,7 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
             }
             else
             {
-                tvi_insert_str(pnode->hwnd_symtree, new_tvi, json_root->u.jbool ? "true" : "false", pos);
+                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, json_root->u.jbool ? "true" : "false", pos);
             }
             break;
         case json_null:
@@ -1167,7 +1167,7 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
             }
             else
             {
-                tvi_insert_str(pnode->hwnd_symtree, new_tvi, "null", pos);
+                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, "null", pos);
             }
             break;
         default:
@@ -1192,9 +1192,9 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
     }
     else
     {
-        tvi_insert_str(pnode->hwnd_symtree, tree_root, NULL, 0);
+        on_symtree_insert_str(pnode->hwnd_symtree, tree_root, NULL, 0);
     }
-    expand_all_child(pnode->hwnd_symtree, tree_root);
+    on_symtree_expand_all(pnode->hwnd_symtree, tree_root);
     return ret;
 }
 
@@ -1202,11 +1202,7 @@ static unsigned WINAPI
 cjson_thread(void *lp)
 {
     eu_tabpage *pnode = (eu_tabpage *) lp;
-    if (!pnode)
-    {
-        return 1;
-    }
-    if (pnode->hwnd_symtree)
+    if (pnode && pnode->hwnd_symtree)
     {
         char *text = NULL;
         size_t text_len = 0;
@@ -1218,20 +1214,21 @@ cjson_thread(void *lp)
             }
             free(text);
         }
+        _InterlockedExchange(&pnode->json_id, 0);
     }
-    _InterlockedExchange(&pnode->json_id, 0);
     return 0;
 }
 
 int
 on_symtree_json(eu_tabpage *pnode)
 {
-    if (!pnode)
+    if (!pnode || !pnode->hwnd_symtree)
     {
         return 1;
     }
     if (pnode->raw_size > 0xA00000)
-    {   // size > 10MB
+    {
+        eu_logmsg("Error: This json file is larger than 10MB\n");
         if (pnode->hwnd_symtree)
         {
             DestroyWindow(pnode->hwnd_symtree);
@@ -1239,7 +1236,10 @@ on_symtree_json(eu_tabpage *pnode)
         }
         return 1;
     }
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, &cjson_thread, pnode, 0, (uint32_t *)&pnode->json_id));
+    if (!pnode->json_id)
+    {
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, &cjson_thread, pnode, 0, (uint32_t *)&pnode->json_id));
+    }
     return 0;
 }
 
@@ -1375,12 +1375,11 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             ClientToScreen(hwnd, &pt);
             if (tvhti.flags & TVHT_ONITEM)
             {
-                if (!(pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA)))
+                if (!(pnode = on_tabpage_focus_at()))
                 {
                     break;
                 }
-                if ((pnode->db_ptr && pnode->db_ptr->connected) ||
-                    (pnode->redis_ptr && pnode->redis_ptr->connected) )
+                if ((pnode->db_ptr && pnode->db_ptr->connected) || (pnode->redis_ptr && pnode->redis_ptr->connected))
                 {
                     TreeView_SelectItem(hwnd, tvhti.hItem);
                     if (TreeView_GetChild(hwnd, tvhti.hItem))
@@ -1401,8 +1400,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            pnode = on_tabpage_focus_at();
-            on_symtree_update_theme(pnode);
+            on_symtree_update_theme((eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA));
             break;
         }
         case WM_DESTROY:
@@ -1413,34 +1411,41 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         default:
             break;
     }
-    return CallWindowProc(symtree_wnd, hwnd, message, wParam, lParam);
+    return CallWindowProc((WNDPROC)symtree_wnd, hwnd, message, wParam, lParam);
 }
 
 int
 on_symtree_create(eu_tabpage *pnode)
 {
-    if (pnode->hwnd_symtree)
+    if (pnode)
     {
-        DestroyWindow(pnode->hwnd_symtree);
-    }
-    const int style = WS_CHILD | WS_CLIPSIBLINGS | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP;
-    pnode->hwnd_symtree = CreateWindow(WC_TREEVIEW, NULL, style, 0, 0, 0, 0, eu_module_hwnd(), NULL, eu_module_handle(), NULL);
-    if (pnode->hwnd_symtree == NULL)
-    {
-        MSG_BOX(IDC_MSG_SYMTREE_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        return 1;
-    }
-    if (!(symtree_wnd = (WNDPROC) SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR) symtree_proc)))
-    {
-        eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symtree) failed\n", __FUNCTION__);
-        DestroyWindow(pnode->hwnd_symtree);
-        pnode->hwnd_symtree = NULL;
-        return 1;
-    }
-    else
-    {
-        SetWindowLongPtr(pnode->hwnd_symtree, GWLP_USERDATA, (intptr_t) pnode);
-        on_symtree_update_theme(pnode);
+        if (pnode->hwnd_symtree)
+        {
+            DestroyWindow(pnode->hwnd_symtree);
+        }
+        const int style = WS_CHILD | WS_CLIPSIBLINGS | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP;
+        pnode->hwnd_symtree = CreateWindow(WC_TREEVIEW, NULL, style, 0, 0, 0, 0, eu_module_hwnd(), NULL, eu_module_handle(), NULL);
+        if (pnode->hwnd_symtree == NULL)
+        {
+            MSG_BOX(IDC_MSG_SYMTREE_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            return 1;
+        }
+        if (inter_atom_compare_exchange(&symtree_wnd, SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR) symtree_proc), 0))
+        {
+            SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR) symtree_proc);
+        }
+        if (!symtree_wnd)
+        {
+            eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symtree) failed\n", __FUNCTION__);
+            DestroyWindow(pnode->hwnd_symtree);
+            pnode->hwnd_symtree = NULL;
+            return 1;
+        }
+        else
+        {
+            SetWindowLongPtr(pnode->hwnd_symtree, GWLP_USERDATA, (intptr_t) pnode);
+            on_symtree_update_theme(pnode);
+        }
     }
     return 0;
 }

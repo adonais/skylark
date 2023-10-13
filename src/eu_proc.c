@@ -721,10 +721,17 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostQuitMessage(0);
             }
-            if (eu_get_config()->m_fullscreen)
+            if (eu_get_config())
             {
-                eu_get_config()->m_statusbar = false;
-                on_view_setfullscreenimpl(hwnd);
+                if (eu_get_config()->m_fullscreen)
+                {
+                    eu_get_config()->m_statusbar = false;
+                    on_view_setfullscreenimpl(hwnd);
+                }
+                else
+                {
+                    util_updateui_icon(hwnd, eu_get_config()->eu_titlebar.icon);
+                }
             }
             break;
         case WM_NCPAINT:
@@ -1000,6 +1007,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (IDM_SET_LUAJIT_EXECUTE <= wm_id && wm_id <= IDM_SET_LUAJIT_EXECUTE + DW_SIZE - 1)
             {
+                eu_logmsg("Run custom menu, wm_id = %d\n", (int)wm_id);
                 on_setting_execute(g_hwndmain, wm_id);
                 break;
             }
@@ -1532,6 +1540,22 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_sci_refresh_ui(pnode);
                     }
                     break;
+                case IDM_FORMAT_REFORMAT_XML:
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    {
+                        on_format_file_style(pnode);
+                        on_xml_tree(pnode);
+                        on_sci_refresh_ui(pnode);
+                    }
+                    break;
+                case IDM_FORMAT_COMPRESS_XML:
+                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    {
+                        on_format_xml_compress(pnode);
+                        on_xml_tree(pnode);
+                        on_sci_refresh_ui(pnode);
+                    }
+                    break;
                 case IDM_FORMAT_WHOLE_FILE:
                     on_format_clang_file(pnode, true);
                     on_sci_refresh_ui(pnode);
@@ -1592,6 +1616,18 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_VIEW_INDENTGUIDES_VISIABLE:
                     on_view_indent_visiable();
+                    break;
+                case IDM_VIEW_TITLEBAR_ICON:
+                    eu_get_config()->eu_titlebar.icon ^= true;
+                    util_updateui_icon(hwnd, eu_get_config()->eu_titlebar.icon);
+                    break;
+                case IDM_VIEW_TITLEBAR_NAME:
+                    eu_get_config()->eu_titlebar.name ^= true;
+                    util_set_title(pnode);
+                    break;
+                case IDM_VIEW_TITLEBAR_PATH:
+                    eu_get_config()->eu_titlebar.path ^= true;
+                    util_set_title(pnode);
                     break;
                 case IDM_VIEW_HISTORY_NONE:
                 case IDM_VIEW_HISTORY_MARGIN:
@@ -2203,19 +2239,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 static ATOM
 class_register(HINSTANCE instance)
 {
-    WNDCLASSEX wcex;
-    wcex.cbSize = sizeof(WNDCLASSEX);
+    WNDCLASSEX wcex = {sizeof(WNDCLASSEX)};
     wcex.style = CS_BYTEALIGNWINDOW | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = eu_main_proc;
-    wcex.cbClsExtra = 0;
-    wcex.cbWndExtra = 0;
     wcex.hInstance = instance;
-    wcex.hIcon = LoadIcon(instance, MAKEINTRESOURCE(IDI_SKYLARK));
+    wcex.hIconSm = wcex.hIcon = NULL;
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
-    wcex.lpszMenuName = NULL;
     wcex.lpszClassName = APP_CLASS;
-    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SKYLARK));
     return RegisterClassEx(&wcex);
 }
 
@@ -2253,9 +2284,8 @@ eu_create_main_window(HINSTANCE instance)
     CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_calss_drop, NULL, 0, NULL));
     if (class_register(instance))
     {
-        INITCOMMONCONTROLSEX icex;
         uint32_t ac_flags = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
-        icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+        INITCOMMONCONTROLSEX icex = {sizeof(INITCOMMONCONTROLSEX)};
         icex.dwICC = ICC_TAB_CLASSES | ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_USEREX_CLASSES;
         if (InitCommonControlsEx(&icex))
         {

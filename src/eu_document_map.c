@@ -22,12 +22,12 @@
 #define DLG_FROST (RGB(0xFF, 0xFF, 0xFF))
 #define WINE_BACK_COLOR 0x1E1E1E
 
+static volatile sptr_t canvas_default_proc = 0;
 HWND hwnd_document_map = NULL;
 HWND hwnd_document_static = NULL;
 volatile long document_map_initialized = 0;
 volatile long higher_y = 0;
 volatile long lower_y = 0;
-static WNDPROC canvas_default_proc;
 
 typedef enum _move_mode
 {
@@ -233,7 +233,7 @@ on_map_canvas_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         default :
             break;
     }
-    return canvas_default_proc(hwnd, message, wParam, lParam);
+    return ((WNDPROC)canvas_default_proc)(hwnd, message, wParam, lParam);
 }
 
 static intptr_t CALLBACK
@@ -246,9 +246,15 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HWND hwnd_canvas = GetDlgItem(hwnd, IDC_VIEWZONE_CANVAS);
             if (NULL != hwnd_canvas)
             {
-                canvas_default_proc = (WNDPROC)SetWindowLongPtr(hwnd_canvas, GWLP_WNDPROC, (LONG_PTR)on_map_canvas_proc);
-                BringWindowToTop(hwnd);
-                util_transparent(hwnd, 50);
+                if (inter_atom_compare_exchange(&canvas_default_proc, SetWindowLongPtr(hwnd_canvas, GWLP_WNDPROC, (LONG_PTR)on_map_canvas_proc), 0))
+                {
+                    SetWindowLongPtr(hwnd_canvas, GWLP_WNDPROC, (LONG_PTR)on_map_canvas_proc);
+                }
+                if (canvas_default_proc)
+                {
+                    BringWindowToTop(hwnd);
+                    util_transparent(hwnd, 50);
+                }
                 return 1;
             }
             break;

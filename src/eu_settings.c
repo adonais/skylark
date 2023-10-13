@@ -38,18 +38,18 @@ on_setting_lua_icon(const int resid)
 static HBITMAP
 on_setting_load_icon(const TCHAR *path)
 {
-    int nid;            // ID of resource that best fits current screen
-    HINSTANCE hexe;     // handle to loaded .EXE file
-    HRSRC hresource;    // handle to FindResource
-    HRSRC hmem;         // handle to LoadResource
-    BYTE *lpresource;   // pointer to resource data
+    int nid;               // ID of resource that best fits current screen
+    HRSRC hresource;       // handle to FindResource
+    HRSRC hmem;            // handle to LoadResource
+    BYTE *lpresource;      // pointer to resource data
     HICON hicon = NULL;
     HBITMAP hmap = NULL;
+    HINSTANCE hexe = NULL; // handle to loaded .EXE file
     const uint32_t dpi = eu_get_dpi(NULL);
     const int scx = Scintilla_GetSystemMetricsForDpi(SM_CXSMICON, dpi);
     const int scy = Scintilla_GetSystemMetricsForDpi(SM_CYSMICON, dpi);
     // Load the file from which to copy the icon.
-    do
+    while (!_tcsicmp(util_path_ext(path), _T("exe")))
     {
         // Note: LoadLibrary should have a fully explicit path.
         if ((hexe = (HINSTANCE)LoadLibrary(path)) == NULL)
@@ -64,6 +64,10 @@ on_setting_load_icon(const TCHAR *path)
             {
                 break;
             }
+        }
+        if (!hresource && WCSICMP(util_path_filename(path), ==, _T("calc.exe")))
+        {
+            hresource = FindResource(hexe, _T("IDI_CALC_ICON"), RT_GROUP_ICON);
         }
         // Load and lock the icon directory.
         if (!(hmem = hresource ? LoadResource(hexe, hresource): NULL))
@@ -91,7 +95,8 @@ on_setting_load_icon(const TCHAR *path)
         lpresource = LockResource(hmem);
         // Create a handle to the icon.
         hicon = CreateIconFromResourceEx((PBYTE) lpresource, SizeofResource(hexe, hresource), TRUE, 0x00030000, scx, scy, LR_DEFAULTCOLOR);
-    } while(0);
+        break;
+    }
     if (hicon)
     {
         hmap = util_icon_bitmap(hicon, scx, scy);

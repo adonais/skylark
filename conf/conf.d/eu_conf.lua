@@ -152,6 +152,12 @@ function eu_conf.loadconf()
         "    margin_right = 2000,\n" ..
         "    margin_bottom = 2000\n" ..
         "}\n" ..
+        "-- titlebar default setting\n" ..
+        "titlebar = {\n" ..
+        "    icon = true,\n" ..
+        "    name = true,\n" ..
+        "    path = true\n" ..
+        "}\n" ..
         "-- hyperlink hotspot default setting\n" ..
         "hyperlink_detection = true\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
@@ -176,20 +182,8 @@ function eu_conf.loadconf()
         eu_code = dofile(file)
     end
     -- Add new preference
-    if (update_file_notify == nil) then
-        update_file_notify = 0
-    end
-    if (enable_runtime_logging == nil) then
-        enable_runtime_logging = false
-    end
-    if (process_customized == nil) then
-        process_customized = {}
-    end
-    if (history_mask == nil) then
-        history_mask = 44711
-    end
-    if (code_hint_show_enable == nil) then
-        code_hint_show_enable = true;
+    if (titlebar == nil) then
+        titlebar = {["icon"] = true, ["name"] = true, ["path"] = true}
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
@@ -248,6 +242,7 @@ function eu_conf.loadconf()
         {calltip.enable, calltip.rgb},
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
+        {titlebar.icon, titlebar.name, titlebar.path},
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
@@ -256,10 +251,6 @@ function eu_conf.loadconf()
         m_reserved_0,
         m_reserved_1
     })
-    -- Compatible with previous versions
-    if (m_config ~= nil and m_config.eu_complete.characters == 0) then
-        m_config.eu_complete.characters = 1
-    end
     eu_conf.fill_actions(m_config)
     eu_conf.fill_customize(m_config)
     if (not eu_core.euapi.eu_config_ptr(m_config)) then

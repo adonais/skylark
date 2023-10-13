@@ -353,6 +353,40 @@ eu_touch(LPCTSTR path)
     return ret;
 }
 
+int
+eu_prepend_path(const TCHAR *dir)
+{
+    size_t bufsize;
+    TCHAR *path;
+    TCHAR *value = NULL;
+    int    rc = -1;
+    if ((path = _tgetenv(_T("PATH"))) == NULL)
+    {
+        return (-1);
+    }
+    bufsize = _tcslen(dir) + _tcslen(path) + 8;
+    value = (TCHAR *)calloc(1, bufsize * sizeof(TCHAR));
+    if (value && _sntprintf(value, bufsize, _T("PATH=%s;%s"), dir, path) > 0)
+    {
+        rc = _tputenv(value);
+    }
+    eu_safe_free(value);
+    return rc;
+}
+
+bool
+eu_gui_app(void)
+{
+    HMODULE hmodule = GetModuleHandle(NULL);
+    if(hmodule == NULL)
+    {
+        return false;
+    }
+    IMAGE_DOS_HEADER* dos_header = (IMAGE_DOS_HEADER *)hmodule;
+    IMAGE_NT_HEADERS* pe_header =(IMAGE_NT_HEADERS *)((uint8_t *)dos_header + dos_header->e_lfanew);
+    return pe_header->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI;
+}
+
 static bool
 do_rename_operation(const TCHAR *porig)
 {
@@ -1811,7 +1845,7 @@ eu_free_toolbar(void)
 }
 
 void
-eu_config_api_release(void)
+eu_api_release(void)
 {
     eu_free_theme();
     eu_free_config();
@@ -1991,6 +2025,12 @@ eu_save_config(void)
         "    margin_right = %d,\n"
         "    margin_bottom = %d\n"
         "}\n"
+        "-- titlebar default setting\n"
+        "titlebar = {\n"
+        "    icon = %s,\n"
+        "    name = %s,\n"
+        "    path = %s\n"
+        "}\n"
         "-- hyperlink hotspot default setting\n"
         "hyperlink_detection = %s\n"
         "-- automatically cached file (size < 200MB)\n"
@@ -2106,6 +2146,9 @@ eu_save_config(void)
               g_config->eu_print.rect.top,
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
+              g_config->eu_titlebar.icon?"true":"false",
+              g_config->eu_titlebar.name?"true":"false",
+              g_config->eu_titlebar.path?"true":"false",
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
               g_config->upgrade.enable?"true":"false",
@@ -2960,6 +3003,12 @@ eu_theme_index(void)
         return (const int)THEME_OTHER;
     }
     return (const int)THEME_UNUSABLE;
+}
+
+bool
+eu_xml_pretty(void *ptr, struct opt_format *opt)
+{
+    return on_xml_pretty(ptr, opt);
 }
 
 double

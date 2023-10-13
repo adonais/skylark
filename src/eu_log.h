@@ -24,22 +24,22 @@
 #endif
 
 #ifndef STRCMP
-#define STRCMP(_a_,_C_,_b_) ( strcmp(_a_,_b_) _C_ 0 )
-#define STRNCMP(_a_,_C_,_b_,_n_) ( strncmp(_a_,_b_,_n_) _C_ 0 )
+#define STRCMP(_a_,_C_,_b_) (((_a_) && (_b_)) ? (strcmp(_a_,_b_) _C_ 0) : (false))
+#endif
+
+#if defined(_WIN32)
+#ifndef WCSCMP
+#define WCSCMP(_a_,_C_,_b_) (((_a_) && (_b_)) ? (wcscmp(_a_,_b_) _C_ 0) : (false))
+#define WCSICMP(_a_,_C_,_b_) (((_a_) && (_b_)) ? (wcsicmp(_a_,_b_) _C_ 0) : (false))
+#endif
 #endif
 
 #ifndef STRICMP
-#if ( defined _WIN32 )
-#define STRICMP(_a_,_C_,_b_) ( stricmp(_a_,_b_) _C_ 0 )
-#define STRNICMP(_a_,_C_,_b_,_n_) ( strnicmp(_a_,_b_,_n_) _C_ 0 )
-#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
-#define STRICMP(_a_,_C_,_b_) ( strcasecmp(_a_,_b_) _C_ 0 )
-#define STRNICMP(_a_,_C_,_b_,_n_) ( strncasecmp(_a_,_b_,_n_) _C_ 0 )
+#if defined (_WIN32)
+#define STRICMP(_a_,_C_,_b_) (((_a_) && (_b_)) ? (stricmp(_a_,_b_) _C_ 0) : (false))
+#elif (defined __unix) || (defined _AIX) || (defined __linux__) || (defined __hpux)
+#define STRICMP(_a_,_C_,_b_) (((_a_) && (_b_)) ? (strcasecmp(_a_,_b_) _C_ 0) : (false))
 #endif
-#endif
-
-#ifndef MEMCMP
-#define MEMCMP(_a_,_C_,_b_,_n_) ( memcmp(_a_,_b_,_n_) _C_ 0 )
 #endif
 
 #if defined(_MSC_VER)

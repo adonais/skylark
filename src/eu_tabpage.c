@@ -1533,16 +1533,17 @@ eu_tabpage *
 on_tabpage_get_handle(void *hwnd_sc)
 {
     eu_tabpage *p = NULL;
-    EU_VERIFY(g_tabpages != NULL);
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    if (g_tabpages && (HWND)hwnd_sc)
     {
-        p = on_tabpage_get_ptr(index);
-        if (p && p->hwnd_sc == hwnd_sc)
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            return p;
+            if ((p = on_tabpage_get_ptr(index)) && p->hwnd_sc == (HWND)hwnd_sc)
+            {
+                break;
+            }
         }
     }
-    return NULL;
+    return p;
 }
 
 int

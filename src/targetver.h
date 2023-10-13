@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 5
+#define __EU_INFO_VERSION_PATCHLEVEL 6
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -1241,6 +1241,15 @@
 #define IDM_SEARCH_NAVIGATE_CLEAR_HISTORY   44723
 
 #define IDM_VIEW_DISPLAY_PLACEHOLDE         44730
+
+#define IDM_VIEW_TITLEBAR_GROUP             44740
+#define IDM_VIEW_TITLEBAR_ICON              44741
+#define IDM_VIEW_TITLEBAR_NAME              44742
+#define IDM_VIEW_TITLEBAR_PATH              44743
+
+#define IDM_EDIT_PLACEHOLDE_XML             44750
+#define IDM_FORMAT_REFORMAT_XML             44751
+#define IDM_FORMAT_COMPRESS_XML             44752
 
 // For MessageBox
 #define IDALWAYS                            12

@@ -1055,7 +1055,7 @@ util_set_title(const eu_tabpage *pnode)
         TCHAR *title = NULL;
         const TCHAR *filename = pnode->pathfile;
         bool admin = !util_under_wine() && on_reg_admin();
-        if ((len = _tcslen(pnode->pathfile)) > FILESIZE && pnode->filename[0])
+        if (((len = _tcslen(pnode->pathfile)) > FILESIZE && pnode->filename[0]) || !eu_get_config()->eu_titlebar.path)
         {
             filename = pnode->filename;
         }
@@ -1065,11 +1065,25 @@ util_set_title(const eu_tabpage *pnode)
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
             if (!filename[0])
             {
-                _sntprintf(title, len, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
+                if (eu_get_config()->eu_titlebar.name)
+                {
+                    _sntprintf(title, len, admin ? _T("%s [Administrator]") : _T("%s"), app_title);
+                }
+                else
+                {
+                    _sntprintf(title, len, _T("%s"), _T(""));
+                }
             }
             else
             {
-                _sntprintf(title, len, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
+                if (eu_get_config()->eu_titlebar.name)
+                {
+                    _sntprintf(title, len, admin ? _T("%s [Administrator] - %s") : _T("%s - %s"), app_title, filename);
+                }
+                else
+                {
+                    _sntprintf(title, len, _T("%s"), filename);
+                }
             }
         }
         SetWindowText(eu_module_hwnd(), title);
@@ -1320,17 +1334,43 @@ util_availed_char(int ch)
     return false;
 }
 
-/**************************************************
- * 去除字符串右边的*号字符
- *************************************************/
-void
-util_trim_right_star(TCHAR *str)
+bool
+util_has_space(uint8_t ch)
 {
-    size_t str_len = _tcslen(str);
-    if (str_len > 0 && str[str_len - 1] == _T('*'))
+    if (ch == '\r' || ch == '\n' || ch == '\t' || ch == ' ')
     {
-        str[str_len - 1]  = 0;
+        return true;
     }
+    return false;
+}
+
+/**************************************************
+ * 去除字符串左右两端的空白字符
+ * 返回一个指针, 使用后需释放(free)
+ *************************************************/
+char*
+util_trim_sides_white(const uint8_t *str)
+{
+    char *p = NULL;
+    if (STR_NOT_NUL(str))
+    {
+        int i = 0;
+        int j = (int)strlen((const char *)str) - 1;
+        while(util_has_space(str[i]))
+        {
+            ++i;
+        }
+        while(util_has_space(str[j]))
+        {
+            --j;
+        }
+        if (j > 0 && (p = malloc(j + 2)))
+        {
+            strncpy(p, (const char *)(str + i), j - i + 1);
+            p[j - i + 1] = '\0';
+        }
+    }
+    return p;
 }
 
 /**************************************************
@@ -2089,6 +2129,21 @@ util_count_number(size_t number)
     return length;
 }
 
+int
+util_count_characters(const char *pstr, const int ch)
+{
+    int var;
+    int c = 0;
+    while ((var = *pstr++))
+    {
+        if (var == ch)
+        {
+            ++c;
+        }
+    }
+    return c;
+}
+
 sptr_t
 util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
 {
@@ -2479,40 +2534,6 @@ util_which(const TCHAR *name)
     return NULL;
 }
 
-int
-eu_prepend_path(const TCHAR *dir)
-{
-    size_t bufsize;
-    TCHAR *path;
-    TCHAR *value = NULL;
-    int    rc = -1;
-    if ((path = _tgetenv(_T("PATH"))) == NULL)
-    {
-        return (-1);
-    }
-    bufsize = _tcslen(dir) + _tcslen(path) + 8;
-    value = (TCHAR *)calloc(1, bufsize * sizeof(TCHAR));
-    if (value && _sntprintf(value, bufsize, _T("PATH=%s;%s"), dir, path) > 0)
-    {
-        rc = _tputenv(value);
-    }
-    eu_safe_free(value);
-    return rc;
-}
-
-bool
-eu_gui_app(void)
-{
-    HMODULE hmodule = GetModuleHandle(NULL);
-    if(hmodule == NULL)
-    {
-        return false;
-    }
-    IMAGE_DOS_HEADER* dos_header = (IMAGE_DOS_HEADER *)hmodule;
-    IMAGE_NT_HEADERS* pe_header =(IMAGE_NT_HEADERS *)((uint8_t *)dos_header + dos_header->e_lfanew);
-    return pe_header->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI;
-}
-
 bool
 util_delete_file(LPCTSTR filepath)
 {
@@ -2727,6 +2748,28 @@ util_path_ext(const TCHAR *path)
     {
         TCHAR *p = _tcsrchr(path, _T('.'));
         if (p && _tcslen(p) > 1)
+        {
+            return (const TCHAR *)&p[1];
+        }
+    }
+    return NULL;
+}
+
+const TCHAR*
+util_path_filename(const TCHAR *path)
+{
+    if (STR_NOT_NUL(path))
+    {
+        TCHAR *p = _tcsrchr(path, _T('\\'));
+        if (!p)
+        {
+            p = _tcsrchr(path, _T('/'));
+        }
+        if (!p)
+        {
+            return path;
+        }
+        else if (_tcslen(p) > 1)
         {
             return (const TCHAR *)&p[1];
         }
@@ -3103,6 +3146,29 @@ util_shield_icon(HINSTANCE hinst, LPCTSTR name)
 }
 
 void
+util_updateui_icon(const HWND hwnd, const bool fnshow)
+{
+    if (fnshow)
+    {
+        HICON hicon = LoadIcon(eu_module_handle(), MAKEINTRESOURCE(IDI_SKYLARK));
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hicon);
+        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hicon);
+        DestroyIcon(hicon);
+    }
+    else
+    {
+        uint32_t ex = (uint32_t)GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, ex | WS_EX_DLGMODALFRAME);
+        SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+        if ((HICON)SendMessage(hwnd, WM_GETICON, ICON_SMALL, 0))
+        {
+            SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)0);
+            SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)0);
+        }
+    }
+}
+
+void
 util_updateui_msg(const eu_tabpage *pnode)
 {
     const sptr_t pos = eu_sci_call((eu_tabpage *)pnode, SCI_GETANCHOR, 0, 0);
@@ -3218,5 +3284,29 @@ util_update_env(eu_tabpage *pnode)
         eu_safe_free(pline);
         eu_safe_free(sel_str);
         eu_safe_free(psel);
+    }
+}
+
+char*
+util_has_newline(const char *dst)
+{
+    char *p = strchr(dst, '\r');
+    if (!p)
+    {
+        p = strchr(dst, '\n');
+    }
+    return p;
+}
+
+void
+util_strcat(uint8_t **dst, const char* pstr)
+{
+    if (dst && pstr)
+    {
+        while (*pstr)
+        {
+            cvector_push_back(*dst, (uint8_t)(*pstr));
+            ++pstr;
+        }
     }
 }

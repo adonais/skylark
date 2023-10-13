@@ -733,6 +733,11 @@ on_view_setfullscreenimpl(HWND hwnd)
                 SetWindowPlacement(hwnd, &wndpl);
             }
         }
+        if (!eu_get_config()->eu_titlebar.icon)
+        {
+            util_updateui_icon(hwnd, true);
+            eu_get_config()->eu_titlebar.icon = true;
+        }
     }
     SetForegroundWindow(hwnd);
 }

@@ -673,6 +673,7 @@ on_sci_parser_line(eu_tabpage *p, const sptr_t current_line, const sptr_t last_l
         size_t len = 0;
         const sptr_t end_y = (const sptr_t )(p->rect_sc.bottom - p->rect_sc.top);
         const sptr_t font_hight = eu_sci_call(p, SCI_TEXTHEIGHT, 0, 0);
+        const int tab_width = (const int)eu_sci_call(p, SCI_GETTABWIDTH, 0, 0);
         const int w_count = (const int)(last_line - current_line + 1);
         // 确认代码提示向上还是向下
         if (w_count <= eu_int_cast((end_y - current_y)/font_hight - 1))
@@ -700,7 +701,13 @@ on_sci_parser_line(eu_tabpage *p, const sptr_t current_line, const sptr_t last_l
         {   // clang, 整型指针转size_t指针导致__fastfail?
             char *buffer = util_strdup_line(p, i, &len);
             if (buffer)
-            {
+            {   // 把tab键占用的字符数算进去
+                int j = util_count_characters(buffer, '\t');
+                if (j > 0 && tab_width > 0)
+                {
+                    j *= (tab_width - 1);
+                    len += (size_t)j;
+                }
                 cvector_push_back(*vec_buf, buffer);
             }
             if (len > (size_t)*pmax)

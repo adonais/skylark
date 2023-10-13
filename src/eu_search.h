@@ -52,7 +52,8 @@ typedef enum _replace_event
     FULL_HALF = 0,
     HALF_FULL,
     TAB_SPACE,
-    SPACE_TAB
+    SPACE_TAB,
+    RE_REGXP
 }replace_event;
 
 typedef struct _btn_state
@@ -131,8 +132,8 @@ void on_search_repalce_event(eu_tabpage *p, replace_event docase);
 void on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres);
 void on_search_turn_select(eu_tabpage *pnode);
 void on_search_regxp_error(void);
-void
-on_search_jmp_next_history(eu_tabpage *pnode);
+void on_search_jmp_next_history(eu_tabpage *pnode);
+void on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, replace_event docase);
 
 #ifdef __cplusplus
 }

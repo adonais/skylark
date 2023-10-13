@@ -68,6 +68,12 @@ on_complete_zero_focus(void)
 }
 
 static inline bool
+on_complete_is_space(uint8_t ch)
+{
+    return (ch == 0 || isspace(ch) || ispunct(ch));
+}
+
+static inline bool
 on_complete_equal_value(eu_tabpage *pnode, complete_t *it, int j)
 {
     char value[MAX_BUFFER] = {0};
@@ -599,47 +605,52 @@ on_complete_do_replace(eu_tabpage *pnode, char *pstr)
     char *p = NULL;
     char *psrc = pstr;
     char res[VALUE_LEN] = {0};
-    while (((p = strchr(psrc, '$')) && str_prev(p) != '\\') && 
-           ((strlen(p) > 1 && UTIL_BASE10(p[1])) ||
-           (strlen(p) > 3 && p[1] == '{' && UTIL_BASE10(p[2]) && p[3] == ':'))
-          )
+    while ((p = strchr(psrc, '$')))
     {
-        complete_t *oit = NULL;
-        cvector_for_each_and_cmp(pnode->ac_vec, on_complete_char_cmp, UTIL_BASE10(p[1]) ? p[1] : p[2], &oit);
-        if (!oit)
+        if ((strlen(p) > 1 && UTIL_BASE10(p[1]) && on_complete_is_space(p[2])) || (strlen(p) > 3 && p[1] == '{' && UTIL_BASE10(p[2]) && p[3] == ':'))
         {
-            if (p[1] == '{')
-            {   // 语法错误
-                on_complete_reset_focus(pnode);
-                break;
+            complete_t *oit = NULL;
+            cvector_for_each_and_cmp(pnode->ac_vec, on_complete_char_cmp, UTIL_BASE10(p[1]) ? p[1] : p[2], &oit);
+            if (!oit)
+            {
+                if (p[1] == '{')
+                {   // 语法错误
+                    on_complete_reset_focus(pnode);
+                    break;
+                }
+                else
+                {   // 可能存在没匹配的占位符$0..$9, 写入vec数组
+                    complete_t data;
+                    on_complete_vec_init(&data);
+                    data.index = UTIL_NUMBER(p[1]);
+                    cvector_push_back(pnode->ac_vec, data);
+                    oit = &pnode->ac_vec[cvector_size(pnode->ac_vec) - 1];
+                }
+            }
+            for (int j = 0; j < OVEC_LEN; ++j)
+            {
+                if (oit->pos[j].min < 0)
+                {
+                    oit->pos[j].min = (p - pstr);
+                    break;
+                }
+            }
+            if (UTIL_BASE10(p[1]))
+            {
+                _snprintf(res, VALUE_LEN - 1, "%s", p + 2);
             }
             else
-            {   // 可能存在没匹配的占位符$0..$9, 写入vec数组
-                complete_t data;
-                on_complete_vec_init(&data);
-                data.index = UTIL_NUMBER(p[1]);
-                cvector_push_back(pnode->ac_vec, data);
-                oit = &pnode->ac_vec[cvector_size(pnode->ac_vec) - 1];
-            }
-        }
-        for (int j = 0; j < OVEC_LEN; ++j)
-        {
-            if (oit->pos[j].min < 0)
             {
-                oit->pos[j].min = (p - pstr);
-                break;
+                _snprintf(res, VALUE_LEN - 1, "%s", p + strlen(oit->word));
             }
-        }
-        if (UTIL_BASE10(p[1]))
-        {
-            _snprintf(res, VALUE_LEN - 1, "%s", p + 2);
+            _snprintf(p, VALUE_LEN - (p - pstr) - 1, "%s%s", oit->value, res);
+            psrc = pstr;
         }
         else
         {
-            _snprintf(res, VALUE_LEN - 1, "%s", p + strlen(oit->word));
+            psrc = p + 1;
+            continue;
         }
-        _snprintf(p, VALUE_LEN - (p - pstr) - 1, "%s%s", oit->value, res);
-        psrc = pstr;
     }
 }
 
@@ -700,7 +711,9 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
             char tmp[3] = {0};
             complete_t *oit = NULL;
             on_complete_do_replace(pnode, pstr);
+            on_complete_vec_printer(pnode->ac_vec);
             on_complete_parser_value(pnode);
+            on_complete_vec_printer(pnode->ac_vec);
             on_complete_parser_postion(pnode);
         #ifdef APP_DEBUG
             printf("============ ac_vec start ===========\n");

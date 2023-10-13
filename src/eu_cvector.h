@@ -51,7 +51,7 @@
 /**
  * @brief cvector_vector_type - The vector type used in this library
  */
-#define cvector_vector_type(type) type *
+#define cvector_vector_type(type_) type_ *
 
 /**
  * @brief cvector_capacity - gets the current capacity of the vector
@@ -130,7 +130,7 @@
 
 /**
  * @brief cvector_freep - frees all memory and assign null to_ the pointer
- * @param_ pvec_ - the vector pointer
+ * @param_ pvec_ - the vector's pointer
  * @return void
  */
 #define cvector_freep(pvec_)                                   \
@@ -340,21 +340,22 @@
 
 /*
  * @brief cvector_init - Initialize a vector.  The vector must be NULL for this to_ do anything.
- * @param_ vec_ - the vector
- * @param_ capacity - vector capacity to_ reserve
+ * @param_ pvec_  - the vector's pointer
+ * @param_ count_ - the vector initialization size
+ * @param_ type_  - the vector type
  * @return void
  */
-#define cvector_init(vec_, count_)                                                \
+#define cvector_init(pvec_, count_, type_)                                        \
     do                                                                            \
     {                                                                             \
-        const size_t cv_sz__ = (count_) * sizeof(*(vec_)) + (sizeof(size_t) * 2); \
-        if (!(vec_))                                                              \
+        const size_t cv_sz__ = (count_) * sizeof(type_) + (sizeof(size_t) * 2);   \
+        if (!(*(pvec_)))                                                          \
         {                                                                         \
-            size_t *cv_p__ = cvector_clib_calloc(cv_sz__);                        \
+            size_t *cv_p__ = cvector_clib_calloc(1, cv_sz__);                     \
             assert(cv_p__);                                                       \
-            (vec_) = (void *) (&cv_p__[2]);                                       \
-            cvector_set_capacity((vec_), (count_) + 1);                           \
-            cvector_set_size((vec_), ((count_)));                                 \
+            (*(pvec_)) = (void *) (&cv_p__[2]);                                   \
+            cvector_set_capacity((*(pvec_)), (count_));                           \
+            cvector_set_size((*(pvec_)), (0));                                    \
         }                                                                         \
     } while (0)
 

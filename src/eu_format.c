@@ -244,7 +244,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
 }
 
 static void
-init_stderr_redirect(FILE** pout, FILE **perr)
+on_format_init_std(FILE** pout, FILE **perr)
 {
     if ((_fileno(stderr) != 2) && AllocConsole())
     {
@@ -255,13 +255,13 @@ init_stderr_redirect(FILE** pout, FILE **perr)
 }
 
 static char*
-append_ext(eu_tabpage *pnode)
+on_format_append_ext(eu_tabpage *pnode)
 {
     char *pname = NULL;
     if (pnode && pnode->doc_ptr)
     {
         TCHAR filename[MAX_BUFFER + 1] = {0};
-        const TCHAR *tmp = pnode->filename[0] ? pnode->filename : _T("a");
+        const TCHAR *tmp = pnode->pathfile[0] && !url_has_remote(pnode->pathfile) ? pnode->pathfile : _T("a");
         switch (pnode->doc_ptr->doc_type)
         {
             case DOCTYPE_CPP:
@@ -308,7 +308,7 @@ append_ext(eu_tabpage *pnode)
 }
 
 static bool
-init_lib_format(const char *filename, const char *data, size_t size, char **pout)
+on_format_init_dll(const char *filename, const char *data, size_t size, char **pout)
 {
     bool ret = false;
     HMODULE m_dll = np_load_plugin_library(FORMAT_DLL, false);
@@ -318,7 +318,7 @@ init_lib_format(const char *filename, const char *data, size_t size, char **pout
         if (fn_lib_format)
         {
             FILE *out = NULL, *err = NULL;
-            init_stderr_redirect(&out, &err);
+            on_format_init_std(&out, &err);
             ret = fn_lib_format(filename, data, size, pout);
             eu_close_file(out);
             eu_close_console(err);
@@ -466,6 +466,13 @@ on_format_json_callback(const uint8_t *text, uint8_t **pbuf)
     return SKYLARK_OK;
 }
 
+int
+on_format_xml_compress(eu_tabpage *pnode)
+{
+    on_search_do_space(pnode, ">[\\s\r\n]*<", "><", RE_REGXP);
+    return SKYLARK_OK;
+}
+
 void
 on_format_do_compress(eu_tabpage *pnode, format_back fn)
 {
@@ -550,7 +557,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                 {
                     break;
                 }
-                if (!(filename = append_ext(pnode)))
+                if (!(filename = on_format_append_ext(pnode)))
                 {
                     break;
                 }
@@ -576,7 +583,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                     break;
                 }
                 eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-                if (init_lib_format(filename, text, whole ? text_len + 1 : text_len, &out) && strcmp(text, out))
+                if (on_format_init_dll(filename, text, whole ? text_len + 1 : text_len, &out) && strcmp(text, out))
                 {
                     if (whole)
                     {
@@ -609,9 +616,16 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
 void
 on_format_file_style(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr && (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT))
+    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr)
     {
-        on_format_clang_file(pnode, true);
+        if (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+        {
+            on_format_clang_file(pnode, true);
+        }
+        else if (pnode->doc_ptr->doc_type == DOCTYPE_XML)
+        {
+            on_xml_format(pnode);
+        }
     }
 }
 

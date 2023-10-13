@@ -157,6 +157,8 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), VK_F6, IDM_FORMAT_COMPRESS_JSON},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F7, IDM_FORMAT_REFORMAT_JS},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), VK_F7, IDM_FORMAT_COMPRESS_JS},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F12, IDM_FORMAT_REFORMAT_XML},\n",
+      "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), VK_F12, IDM_FORMAT_COMPRESS_XML},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_F8, IDM_FORMAT_RUN_SCRIPT},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FALT), VK_F8, IDM_FORMAT_BYTE_CODE},\n",
       "                 {bit.bor(FVIRTKEY), VK_F10, IDM_FORMAT_WHOLE_FILE},\n",
@@ -207,7 +209,8 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    if (m_len < 175) then
+    --print("m_len = " .. m_len)
+    if (m_len < 178) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})

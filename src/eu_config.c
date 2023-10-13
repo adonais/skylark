@@ -280,6 +280,7 @@ on_config_sync_snippet(void)
                          _T("text.snippets"),
                          _T("verilog.snippets"),
                          _T("pascal.snippets"),
+                         _T("tcl.snippets"),
                          NULL};
     _sntprintf(p2, MAX_BUFFER, _T("%s\\snippets"), eu_config_path);
     if (!eu_exist_dir(p2))
