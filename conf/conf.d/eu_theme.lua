@@ -553,41 +553,6 @@ function eu_theme.load_default(name)
         dofile(file)
         tname = name
     end
-    if (xmlsection_font == nil) then
-      xmlsection_font = "Consola"
-      xmlsection_fontsize = 11
-      xmlsection_color = 0xC972C9
-      xmlsection_bgcolor = 0x00000000
-      xmlsection_bold = 1
-    end
-    if (results_font == nil) then
-      results_font = "Consola"
-      results_fontsize = 11
-      results_color = keywords_color
-      results_bgcolor = number_color
-      results_bold = 0
-    end
-    if (bracesection_font == nil) then
-      bracesection_font = "Consola"
-      bracesection_fontsize = 11
-      bracesection_color = 0x000000FF
-      bracesection_bgcolor = text_bgcolor
-      bracesection_bold = 1
-    end
-    if (nchistory_font == nil) then
-      nchistory_font = "Consola"
-      nchistory_fontsize = 11
-      nchistory_color = 0x0080FF
-      nchistory_bgcolor = 0x00A000
-      nchistory_bold = 0
-    end
-    if (dochistory_font == nil) then
-      dochistory_font = "Consola"
-      dochistory_fontsize = 11
-      dochistory_color = 0x0080FF
-      dochistory_bgcolor = 0x00A000
-      dochistory_bold = 0
-    end
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)
     local m_theme = eu_core.ffi.new("struct eu_theme", {m_file, tname,

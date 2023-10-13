@@ -1095,10 +1095,10 @@ end
 function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
-  print("my_size = " .. my_size)
-  --if (my_size < 43) then
-  --  eu_core.euapi.eu_reset_docs_mask()
-  --end
+  --print("my_size = " .. my_size)
+  if (my_size < 44) then
+    eu_core.euapi.eu_reset_docs_mask()
+  end
   for i=0,my_size-1 do
     fetch_doctype(my_doc_config[i])
   end

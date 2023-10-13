@@ -157,7 +157,7 @@ on_xml_thread(void *lp)
 }
 
 static bool
-on_xml_white_space(uint8_t *s)
+on_xml_white_space(const uint8_t *s)
 {
     while (*s)
     {
@@ -363,7 +363,7 @@ on_xml_comment_handler(void *userdata, const XML_Char *data)
                 util_strcat(ud->ppbuf, s);
                 s = p;
             }
-            if (strlen(s) > 0 && !on_xml_white_space(s))
+            if (strlen(s) > 0 && !on_xml_white_space((const uint8_t *)s))
             {
                 on_xml_indent(ud);
                 util_strcat(ud->ppbuf, s);

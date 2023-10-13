@@ -38,13 +38,13 @@ on_setting_lua_icon(const int resid)
 static HBITMAP
 on_setting_load_icon(const TCHAR *path)
 {
-    int nid;            // ID of resource that best fits current screen
-    HINSTANCE hexe;     // handle to loaded .EXE file
-    HRSRC hresource;    // handle to FindResource
-    HRSRC hmem;         // handle to LoadResource
-    BYTE *lpresource;   // pointer to resource data
+    int nid;               // ID of resource that best fits current screen
+    HRSRC hresource;       // handle to FindResource
+    HRSRC hmem;            // handle to LoadResource
+    BYTE *lpresource;      // pointer to resource data
     HICON hicon = NULL;
     HBITMAP hmap = NULL;
+    HINSTANCE hexe = NULL; // handle to loaded .EXE file
     const uint32_t dpi = eu_get_dpi(NULL);
     const int scx = Scintilla_GetSystemMetricsForDpi(SM_CXSMICON, dpi);
     const int scy = Scintilla_GetSystemMetricsForDpi(SM_CYSMICON, dpi);
