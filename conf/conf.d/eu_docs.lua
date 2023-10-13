@@ -61,6 +61,7 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_LATEX = 40,\n",
     "    DOCTYPE_VERILOG = 41,\n",
     "    DOCTYPE_PASCAL = 42,\n",
+    "    DOCTYPE_TCL = 43,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -786,6 +787,26 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "      },\n",
     "      {\n",
+    "          e.DOCTYPE_TCL,\n",
+    "          \"tcl\",\n",
+    "          \";*.tcl;*.itcl;*.tm;\",\n",
+    "          \"Tcl Script\",\n",
+    "          \"tcl.snippets\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_cpp_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
     "          e.DOCTYPE_TXT,\n",
     "          ffi_null,\n",
     "          \";*.txt;\",\n",
@@ -1074,9 +1095,10 @@ end
 function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
-  if (my_size < 43) then
-    eu_core.euapi.eu_reset_docs_mask()
-  end
+  print("my_size = " .. my_size)
+  --if (my_size < 43) then
+  --  eu_core.euapi.eu_reset_docs_mask()
+  --end
   for i=0,my_size-1 do
     fetch_doctype(my_doc_config[i])
   end

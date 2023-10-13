@@ -363,7 +363,7 @@ on_xml_comment_handler(void *userdata, const XML_Char *data)
                 util_strcat(ud->ppbuf, s);
                 s = p;
             }
-            if (strlen(s) > 0 && !on_xml_white_space((const uint8_t *)s))
+            if (strlen(s) > 0 && !on_xml_white_space(s))
             {
                 on_xml_indent(ud);
                 util_strcat(ud->ppbuf, s);
