@@ -2986,13 +2986,14 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
         eu_logmsg("%s: point error\n", __FUNCTION__);
         return false;
     }
+    if (!replace_str && !(replace_str = _strdup("")))
+    {
+        free(find_str);
+        return false;
+    }
     if (opt & ON_REPLACE_SELECTION)
     {
         end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-    }
-    if (!replace_str)
-    {
-        replace_str = _strdup("");
     }
     on_search_node_init(pnode, false);
     if (on_search_first(pnode, find_str, opt))
@@ -3016,7 +3017,11 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
         } while (!(opt & ON_REPLACE_THIS) && result && next_result);
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
-    if (*replace_str != 0)
+    if (*find_str)
+    {
+        eu_push_find_history(find_str);
+    }
+    if (*replace_str)
     {
         eu_push_replace_history(replace_str);
     }
