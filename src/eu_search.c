@@ -1819,18 +1819,18 @@ on_search_delete_lword(HWND hedit)
 }
 
 static char *
-on_search_get_combo_list(HWND hcombo, int index)
+on_search_get_combo_list(const HWND hcombo, const int index)
 {
     char *text = NULL;
     TCHAR *buf = NULL;
     const int len = (const int)ComboBox_GetLBTextLen(hcombo, index);
     buf = len > 0 ? (TCHAR *)calloc(sizeof(TCHAR), len + 1) : NULL;
-    if (STR_NOT_NUL(buf))
+    if (buf)
     {
         ComboBox_GetLBText(hcombo, index, buf);
         text = eu_utf16_utf8(buf, NULL);
+        free(buf);
     }
-    eu_safe_free(buf);
     return text;
 }
 
