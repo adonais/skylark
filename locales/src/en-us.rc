@@ -1176,7 +1176,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SYMLIST_FAIL    "Failed to create symbol list control"
     IDC_MSG_PCRE_FAIL       "Regular expressions cannot be resolved"
     IDC_MSG_HISTORY_ZERO    " (NULL) "
-    IDC_MSG_OPEN_FILE_EDIT    "Open files with Skylark"
+    IDC_MSG_OPEN_FILE_EDIT  "Open files with Skylark"
     IDC_MSG_DIRECTORYFILES  "Open all the files in the directory with Skylark"
     IDC_MSG_LOC_DIRECTORY   "Using Skylark to locate the directory"
     IDC_MSG_REGIST_ERR1     "Cannot create key in registry [*\\shell\\skylark]"
