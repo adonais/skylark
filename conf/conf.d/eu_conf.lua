@@ -24,8 +24,14 @@ function eu_conf.fill_customize(s)
     if (eu_core.table_is_empty(process_customized)) then
         process_customized[1] = {['hide'] = false, ['name'] = "44500", ['path'] = "conf/conf.d/eu_evaluation.lua",
                                  ['param'] = "%CURRENT_SELSTR% %NUM_SELSTR%", ['micon'] = 44305, ['posid'] = 0, ['hbmp'] = 0}
-        process_customized[2] = {['hide'] = false, ['name'] = "44501", ['path'] = "%windir%/system32/win32calc.exe",
+        process_customized[2] = {['hide'] = false, ['name'] = "44501", ['path'] = "",
                                  ['param'] = "", ['micon'] = 0, ['posid'] = 0, ['hbmp'] = 0}
+        local ver = eu_core.euapi.eu_win10_or_later()
+        if (ver ~= 0xFFFFFFFF) then
+          process_customized[2].path = "%windir%/system32/win32calc.exe"
+        else
+          process_customized[2].path = "%windir%/system32/calc.exe"
+        end
     end
     for i=0,msize-1 do
       if process_customized[i+1] ~= nil then
