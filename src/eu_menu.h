@@ -51,7 +51,7 @@ void menu_switch_theme(void);
 void menu_destroy(const HWND hwnd);
 void menu_bmp_destroy(void);
 void menu_update_item(const HMENU menu, const bool init);
-bool menu_setup(HWND hwnd);
+void menu_setup(HWND hwnd);
 HMENU menu_load(const uint16_t mid);
 
 #ifdef __cplusplus

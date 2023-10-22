@@ -25,11 +25,11 @@
 typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
-static HWND g_hwndmain;                    // 主窗口句柄
-volatile long g_interval_count = 0;        // 启动自动更新的时间间隔
+static HWND g_hwndmain;                      // 主窗口句柄
+static volatile long g_interval_count = 0;   // 启动自动更新的时间间隔
 
 static int
-on_create_window(HWND hwnd)
+on_proc_create_widgets(HWND hwnd)
 {
     if (on_treebar_create_dlg(hwnd))
     {
@@ -45,7 +45,7 @@ on_create_window(HWND hwnd)
 }
 
 static int CALLBACK
-enum_skylark_proc(HWND hwnd, LPARAM lParam)
+on_proc_enum_skylark(HWND hwnd, LPARAM lParam)
 {
     if (IsWindowVisible(hwnd))
     {
@@ -81,7 +81,7 @@ on_proc_send_notify(void)
 {
     if (g_hwndmain == share_envent_get_hwnd())
     {
-        if (!EnumWindows(enum_skylark_proc, 0) && GetLastError() == ERROR_CALLBACK_ABORT)
+        if (!EnumWindows(on_proc_enum_skylark, 0) && GetLastError() == ERROR_CALLBACK_ABORT)
         {
             if (eu_get_config()->upgrade.flags == VERSION_UPDATE_COMPLETED)
             {
@@ -92,7 +92,7 @@ on_proc_send_notify(void)
 }
 
 static void
-on_destory_window(HWND hwnd)
+on_proc_destory_window(HWND hwnd)
 {
     // 保存主窗口位置
     util_save_placement(hwnd);
@@ -117,7 +117,7 @@ on_destory_window(HWND hwnd)
 }
 
 static bool
-adjust_window_rect_dpi(LPRECT lpRect, DWORD dwStyle, DWORD dwExStyle, UINT dpi)
+on_proc_adjust_dpi(LPRECT lpRect, DWORD dwStyle, DWORD dwExStyle, UINT dpi)
 {
     AdjustWindowRectExForDpiPtr fnAdjustWindowRectExForDpi = NULL;
     HMODULE user32 = GetModuleHandle(_T("user32.dll"));
@@ -133,7 +133,7 @@ adjust_window_rect_dpi(LPRECT lpRect, DWORD dwStyle, DWORD dwExStyle, UINT dpi)
  * 在admin模式下启用拖放
  ****************************************************************************/
 static void
-do_drop_fix(void)
+on_proc_drop_fix(void)
 {
     typedef BOOL(WINAPI *ChangeWindowMessageFilterPtr)(UINT message, DWORD flag);
     ChangeWindowMessageFilterPtr fnChangeWindowMessageFilter = NULL;
@@ -151,92 +151,11 @@ do_drop_fix(void)
     }
 }
 
-HWND
-eu_module_hwnd(void)
-{
-    return (g_hwndmain ? g_hwndmain : share_envent_get_hwnd());
-}
-
-HWND
-eu_hwnd_self(void)
-{
-    return (g_hwndmain);
-}
-
-uint32_t
-eu_get_dpi(HWND hwnd)
-{
-    uint32_t dpi = 0;
-    GetDpiForWindowPtr fnGetDpiForWindow = NULL;
-    HMODULE user32 = GetModuleHandle(_T("user32.dll"));
-    if (user32)
-    {   // PMv2, 使用GetDpiForWindow获取dpi
-        fnGetDpiForWindow = (GetDpiForWindowPtr)GetProcAddress(user32, "GetDpiForWindow");
-        if (fnGetDpiForWindow && (dpi = fnGetDpiForWindow(hwnd ? hwnd : g_hwndmain)) > 0)
-        {
-            return dpi;
-        }
-    }
-    if (!dpi)
-    {   // PMv1或Win7系统, 使用GetDeviceCaps获取dpi
-        HDC screen = GetDC(hwnd ? hwnd : g_hwndmain);
-        int x = GetDeviceCaps(screen,LOGPIXELSX);
-        int y = GetDeviceCaps(screen,LOGPIXELSY);
-        ReleaseDC(hwnd ? hwnd : g_hwndmain, screen);
-        dpi = (uint32_t)((x + y)/2);
-    }
-    return dpi;
-}
-
-void
-eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
-{
-    const uint32_t flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED;
-    if (pnew_rect)
-    {
-        SetWindowPos(hwnd, NULL, pnew_rect->left, pnew_rect->top,
-                    (pnew_rect->right - pnew_rect->left), (pnew_rect->bottom - pnew_rect->top), flags);
-    }
-    else
-    {
-        RECT rc = {0};
-        GetWindowRect(hwnd, &rc);
-        const uint32_t dpi = adpi ? adpi : eu_get_dpi(hwnd);
-        adjust_window_rect_dpi((LPRECT)&rc, flags, 0, dpi);
-        SetWindowPos(hwnd, NULL, rc.left, rc.top, (rc.right - rc.left), (rc.bottom - rc.top), flags);
-    }
-    RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_ERASE | RDW_INTERNALPAINT | RDW_ALLCHILDREN | RDW_UPDATENOW);
-}
-
-int
-eu_dpi_scale_font(void)
-{
-    return eu_get_dpi(NULL) > USER_DEFAULT_SCREEN_DPI ? 0 : -11;
-}
-
-int
-eu_dpi_scale_style(int value, const int scale, const int min_value)
-{
-	value = (scale == USER_DEFAULT_SCREEN_DPI*100) ? value : MulDiv(value, scale, USER_DEFAULT_SCREEN_DPI*100);
-	return MAX(value, min_value);
-}
-
-int
-eu_dpi_scale_xy(int adpi, int m)
-{
-    int dpx = adpi ? adpi : eu_get_dpi(NULL);
-    if (dpx)
-    {
-        return MulDiv(m, dpx, USER_DEFAULT_SCREEN_DPI);
-    }
-    return m;
-}
-
 /*****************************************************************************
  * 菜单栏下面 1px 分割线位置
  ****************************************************************************/
 static void
-get_menu_border_rect(HWND hwnd, LPRECT r)
+on_proc_menu_border(HWND hwnd, LPRECT r)
 {
     RECT rc_window;
     POINT client_top = {0};
@@ -248,24 +167,10 @@ get_menu_border_rect(HWND hwnd, LPRECT r)
     r->bottom = client_top.y - rc_window.top;
 }
 
-bool
-eu_create_toolbar(HWND hwnd)
-{
-    return (on_toolbar_create(hwnd) == 0);
-}
-
-bool
-eu_create_statusbar(HWND hwnd)
-{
-    return on_statusbar_init(hwnd);
-}
-
-void
-eu_create_fullscreen(HWND hwnd)
-{
-    on_view_setfullscreenimpl(hwnd);
-}
-
+/*****************************************************************************
+ * 文档结构图与软链接窗口互拆
+ * 共用右侧边栏
+******************************************************************************/
 static void
 on_proc_move_sidebar(eu_tabpage *pnode)
 {
@@ -476,18 +381,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
     }
 }
 
-void
-on_proc_resize(HWND hwnd)
-{   // 当在线程需要刷新界面时, 使用消息让主线程刷新
-    SendMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
-}
-
-void
-eu_window_resize(HWND hwnd)
-{
-    on_proc_msg_size(hwnd ? hwnd : eu_module_hwnd(), NULL);
-}
-
 static void
 on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
 {
@@ -503,47 +396,6 @@ on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
         }
     }
-}
-
-int
-eu_before_proc(MSG *p_msg)
-{
-    eu_tabpage *pnode = NULL;
-    if (p_msg->message == WM_SYSKEYDOWN && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
-    {
-        return 1;
-    }
-    if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
-    {
-        on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
-        return 1;
-    }
-    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
-    {
-        bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
-        bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
-        if (p_msg->wParam == VK_TAB && main_up && eu_get_config() && eu_get_config()->eu_complete.snippet)
-        {
-            if (main_up)
-            {
-                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
-                if (KEY_DOWN(VK_SHIFT))
-                {
-                    return on_complete_snippet_back(pnode);
-                }
-                else if (on_complete_snippet(pnode))
-                {
-                    return 1;
-                }
-            }
-        }
-        else if (main_down && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
-        {
-            on_sci_insert_egg(pnode);
-            return 1;
-        }
-    }
-    return 0;
 }
 
 static int
@@ -576,6 +428,10 @@ on_proc_save_remote(eu_tabpage *pnode)
     return ret;
 }
 
+/*****************************************************************************
+ * 与 sumatrapdf 插件通信
+ * 在文件修改或保存后, 修改标签栏状态
+******************************************************************************/
 static void
 on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
 {
@@ -679,8 +535,18 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
     }
 }
 
-LRESULT CALLBACK
-eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+static unsigned __stdcall
+on_proc_enable_drop(void* lp)
+{
+    if (on_reg_admin())
+    {
+        on_proc_drop_fix();
+    }
+    return 0;
+}
+
+static LRESULT CALLBACK
+on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     NMHDR *lpnmhdr = NULL;
     ptr_notify lpnotify = NULL;
@@ -709,7 +575,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             return 1;
         case WM_CREATE:
-            if (on_create_window(hwnd))
+            if (on_proc_create_widgets(hwnd))
             {
                 PostQuitMessage(0);
             }
@@ -717,9 +583,9 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostQuitMessage(0);
             }
-            if (!menu_setup(hwnd))
+            else
             {
-                PostQuitMessage(0);
+                menu_setup(hwnd);
             }
             if (eu_get_config())
             {
@@ -753,14 +619,14 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 else if (i == THEME_WHITE)
                 {
                     hdc = GetWindowDC(hwnd);
-                    get_menu_border_rect(hwnd, &r);
+                    on_proc_menu_border(hwnd, &r);
                     FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
                 }
             }
             else
             {
                 hdc = GetWindowDC(hwnd);
-                get_menu_border_rect(hwnd, &r);
+                on_proc_menu_border(hwnd, &r);
                 FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
             }
             if (hdc)
@@ -2223,7 +2089,7 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_DESTROY:
             {
-                on_destory_window(hwnd);
+                on_proc_destory_window(hwnd);
                 eu_logmsg("main window WM_DESTROY\n");
                 break;
             }
@@ -2237,27 +2103,17 @@ eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
  * 注册主窗口类
  ****************************************************************************/
 static ATOM
-class_register(HINSTANCE instance)
+on_proc_class_register(HINSTANCE instance)
 {
     WNDCLASSEX wcex = {sizeof(WNDCLASSEX)};
     wcex.style = CS_BYTEALIGNWINDOW | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = eu_main_proc;
+    wcex.lpfnWndProc = on_proc_main_callback;
     wcex.hInstance = instance;
     wcex.hIconSm = wcex.hIcon = NULL;
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
     wcex.lpszClassName = APP_CLASS;
     return RegisterClassEx(&wcex);
-}
-
-static unsigned __stdcall
-do_calss_drop(void* lp)
-{
-    if (on_reg_admin())
-    {
-        do_drop_fix();
-    }
-    return 0;
 }
 
 void
@@ -2273,6 +2129,164 @@ on_proc_sync_wait(void)
 }
 
 void
+on_proc_resize(HWND hwnd)
+{   // 当在线程需要刷新界面时, 使用消息让主线程刷新
+    SendMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
+}
+
+void
+on_proc_counter_stop(void)
+{
+    _InterlockedExchange(&g_interval_count, (EU_UPTIMES + 2));
+}
+
+HWND
+eu_module_hwnd(void)
+{
+    return (g_hwndmain ? g_hwndmain : share_envent_get_hwnd());
+}
+
+HWND
+eu_hwnd_self(void)
+{
+    return (g_hwndmain);
+}
+
+uint32_t
+eu_get_dpi(HWND hwnd)
+{
+    uint32_t dpi = 0;
+    GetDpiForWindowPtr fnGetDpiForWindow = NULL;
+    HMODULE user32 = GetModuleHandle(_T("user32.dll"));
+    if (user32)
+    {   // PMv2, 使用GetDpiForWindow获取dpi
+        fnGetDpiForWindow = (GetDpiForWindowPtr)GetProcAddress(user32, "GetDpiForWindow");
+        if (fnGetDpiForWindow && (dpi = fnGetDpiForWindow(hwnd ? hwnd : g_hwndmain)) > 0)
+        {
+            return dpi;
+        }
+    }
+    if (!dpi)
+    {   // PMv1或Win7系统, 使用GetDeviceCaps获取dpi
+        HDC screen = GetDC(hwnd ? hwnd : g_hwndmain);
+        int x = GetDeviceCaps(screen,LOGPIXELSX);
+        int y = GetDeviceCaps(screen,LOGPIXELSY);
+        ReleaseDC(hwnd ? hwnd : g_hwndmain, screen);
+        dpi = (uint32_t)((x + y)/2);
+    }
+    return dpi;
+}
+
+void
+eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi)
+{
+    const uint32_t flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED;
+    if (pnew_rect)
+    {
+        SetWindowPos(hwnd, NULL, pnew_rect->left, pnew_rect->top,
+                    (pnew_rect->right - pnew_rect->left), (pnew_rect->bottom - pnew_rect->top), flags);
+    }
+    else
+    {
+        RECT rc = {0};
+        GetWindowRect(hwnd, &rc);
+        const uint32_t dpi = adpi ? adpi : eu_get_dpi(hwnd);
+        on_proc_adjust_dpi((LPRECT)&rc, flags, 0, dpi);
+        SetWindowPos(hwnd, NULL, rc.left, rc.top, (rc.right - rc.left), (rc.bottom - rc.top), flags);
+    }
+    RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_ERASE | RDW_INTERNALPAINT | RDW_ALLCHILDREN | RDW_UPDATENOW);
+}
+
+int
+eu_dpi_scale_font(void)
+{
+    return eu_get_dpi(NULL) > USER_DEFAULT_SCREEN_DPI ? 0 : -11;
+}
+
+int
+eu_dpi_scale_style(int value, const int scale, const int min_value)
+{
+	value = (scale == USER_DEFAULT_SCREEN_DPI*100) ? value : MulDiv(value, scale, USER_DEFAULT_SCREEN_DPI*100);
+	return MAX(value, min_value);
+}
+
+int
+eu_dpi_scale_xy(int adpi, int m)
+{
+    int dpx = adpi ? adpi : eu_get_dpi(NULL);
+    if (dpx)
+    {
+        return MulDiv(m, dpx, USER_DEFAULT_SCREEN_DPI);
+    }
+    return m;
+}
+
+bool
+eu_create_toolbar(HWND hwnd)
+{
+    return (on_toolbar_create(hwnd) == 0);
+}
+
+bool
+eu_create_statusbar(HWND hwnd)
+{
+    return on_statusbar_init(hwnd);
+}
+
+void
+eu_create_fullscreen(HWND hwnd)
+{
+    on_view_setfullscreenimpl(hwnd);
+}
+
+void
+eu_window_resize(HWND hwnd)
+{
+    on_proc_msg_size(hwnd ? hwnd : eu_module_hwnd(), NULL);
+}
+
+int
+eu_before_proc(MSG *p_msg)
+{
+    eu_tabpage *pnode = NULL;
+    if (p_msg->message == WM_SYSKEYDOWN && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
+    {
+        return 1;
+    }
+    if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
+    {
+        on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
+        return 1;
+    }
+    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
+    {
+        bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
+        bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
+        if (p_msg->wParam == VK_TAB && main_up && eu_get_config() && eu_get_config()->eu_complete.snippet)
+        {
+            if (main_up)
+            {
+                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
+                if (KEY_DOWN(VK_SHIFT))
+                {
+                    return on_complete_snippet_back(pnode);
+                }
+                else if (on_complete_snippet(pnode))
+                {
+                    return 1;
+                }
+            }
+        }
+        else if (main_down && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+        {
+            on_sci_insert_egg(pnode);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void
 eu_close_edit(void)
 {
     SendMessage(eu_module_hwnd(), WM_CLOSE, 0, 0);
@@ -2281,8 +2295,8 @@ eu_close_edit(void)
 HWND
 eu_create_main_window(HINSTANCE instance)
 {
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, do_calss_drop, NULL, 0, NULL));
-    if (class_register(instance))
+    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_proc_enable_drop, NULL, 0, NULL));
+    if (on_proc_class_register(instance))
     {
         uint32_t ac_flags = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
         INITCOMMONCONTROLSEX icex = {sizeof(INITCOMMONCONTROLSEX)};
