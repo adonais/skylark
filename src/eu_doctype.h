@@ -84,7 +84,9 @@ enum dctype
     DOCTYPE_LATEX = 40,
     DOCTYPE_VERILOG = 41,
     DOCTYPE_PASCAL = 42,
-    DOCTYPE_TCL = 43
+    DOCTYPE_TCL = 43,
+    DOCTYPE_INNO = 44,
+    DOCTYPE_NSIS = 45
 };
 
 typedef struct _doc_styles

@@ -51,6 +51,9 @@ on_doc_enable_foldline(eu_tabpage *pnode)
         case DOCTYPE_PASCAL:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.pascal.smart.highlighting", (sptr_t)"1");
             break;
+        case DOCTYPE_NSIS:
+            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "nsis.uservars", (sptr_t)"1");
+            break;
         default:
             break;
         }
@@ -845,10 +848,6 @@ on_doc_get_ext(eu_tabpage *pnode)
 int
 on_doc_init_after_shell_sh(eu_tabpage *pnode)
 {
-    if (!pnode)
-    {
-        return 1;
-    }
     TCHAR *sp = on_doc_get_ext(pnode);
     if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
     {
@@ -1641,6 +1640,12 @@ on_doc_makefile_like(eu_tabpage *pnode, ptr_notify lpnotify)
 
 int
 on_doc_cmake_like(eu_tabpage *pnode, ptr_notify lpnotify)
+{
+    return on_doc_css_like(pnode, lpnotify);
+}
+
+int
+on_doc_general_like(eu_tabpage *pnode, ptr_notify lpnotify)
 {
     return on_doc_css_like(pnode, lpnotify);
 }
