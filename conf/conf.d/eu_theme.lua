@@ -592,7 +592,7 @@ function eu_theme.load_default(name)
         {dochistory_font,dochistory_fontsize,dochistory_color,dochistory_bgcolor,dochistory_bold}
       }
     })
-    return eu_core.euapi.eu_theme_ptr(m_theme, true)
+    return eu_core.euapi.eu_theme_ptr(m_theme)
 end
 
 return eu_theme

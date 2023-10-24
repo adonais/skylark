@@ -347,7 +347,7 @@ void eu_lua_calltip(const char *pstr);
 
 // 获取配置文件指针
 bool eu_config_ptr(struct eu_config *pconfig);
-bool eu_theme_ptr(struct eu_theme *ptheme, bool init);
+bool eu_theme_ptr(struct eu_theme *ptheme);
 bool eu_accel_ptr(ACCEL *paccel);
 bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
 bool eu_exist_path(const char *path);

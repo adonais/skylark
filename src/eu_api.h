@@ -608,7 +608,7 @@ EU_EXT_CLASS wchar_t *eu_utf8_utf16(const char *utf8, size_t *out_len);
 EU_EXT_CLASS char *eu_utf8_mbcs(int codepage, const char *utf8, size_t *out_len);
 EU_EXT_CLASS void eu_setpos_window(HWND, HWND, int,int, int, int, uint32_t);
 EU_EXT_CLASS bool eu_config_ptr(struct eu_config *pconfig);
-EU_EXT_CLASS bool eu_theme_ptr(struct eu_theme *ptheme, bool init);
+EU_EXT_CLASS bool eu_theme_ptr(struct eu_theme *ptheme);
 EU_EXT_CLASS bool eu_accel_ptr(ACCEL *accel);
 EU_EXT_CLASS bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
 EU_EXT_CLASS HANDLE eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o);

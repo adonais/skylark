@@ -1027,6 +1027,8 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         dlg_style.caret.color |= value;
                     }
                     memcpy(&(eu_get_theme()->item), &dlg_style, sizeof(struct styletheme));
+                    // 当前主题可能被修改, 立即保存
+                    eu_save_theme();
                     EndDialog(hdlg, LOWORD(wParam));
                     break;
                 }

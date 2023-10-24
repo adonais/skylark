@@ -1693,8 +1693,7 @@ eu_config_ptr(struct eu_config *pconfig)
     {
         return false;
     }
-    g_config = (struct eu_config *)malloc(sizeof(struct eu_config));
-    if (g_config)
+    if ((g_config = (struct eu_config *)malloc(sizeof(struct eu_config))))
     {
         memcpy(g_config, pconfig, sizeof(struct eu_config));
     }
@@ -1702,28 +1701,22 @@ eu_config_ptr(struct eu_config *pconfig)
 }
 
 bool
-eu_theme_ptr(struct eu_theme *ptheme, bool init)
+eu_theme_ptr(struct eu_theme *ptheme)
 {
+    struct eu_theme *psave = NULL;
     if (!ptheme)
     {
         return false;
     }
-    if (!init)
+    if (g_theme)
     {
-        if (g_theme)
-        {
-            free(g_theme);
-        }
-        g_theme = ptheme;
+        psave = g_theme;
     }
-    else
+    if ((g_theme = (struct eu_theme *)malloc(sizeof(struct eu_theme))))
     {
-        g_theme = (struct eu_theme *)malloc(sizeof(struct eu_theme));
-        if (g_theme)
-        {
-            memcpy(g_theme, ptheme, sizeof(struct eu_theme));
-        }
+        memcpy(g_theme, ptheme, sizeof(struct eu_theme));
     }
+    eu_safe_free(psave);
     return g_theme != NULL;
 }
 
@@ -1766,8 +1759,7 @@ eu_toolbar_ptr(eue_toolbar *pdata, int num)
     {
         return false;
     }
-    g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num);
-    if (g_toolbar)
+    if ((g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num)))
     {
         memcpy(g_toolbar, pdata, sizeof(eue_toolbar) * num);
     }
