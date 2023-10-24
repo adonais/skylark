@@ -881,6 +881,110 @@ BEGIN
     POPUP "0"
     {
         MENUITEM "不支持高亮",        IDM_TYPES_0
+        POPUP "A",                    IDM_TYPES_A
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "B",                    IDM_TYPES_B
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "C",                    IDM_TYPES_C
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "D",                    IDM_TYPES_D
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "E",                    IDM_TYPES_E
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "F",                    IDM_TYPES_F
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "G",                    IDM_TYPES_G
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "H",                    IDM_TYPES_H
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "I",                    IDM_TYPES_I
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "J",                    IDM_TYPES_J
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "K",                    IDM_TYPES_K
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "L",                    IDM_TYPES_L
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "M",                    IDM_TYPES_M
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "N",                    IDM_TYPES_N
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "O",                    IDM_TYPES_O
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "P",                    IDM_TYPES_P
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Q",                    IDM_TYPES_Q
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "R",                    IDM_TYPES_R
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "S",                    IDM_TYPES_S
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "T",                    IDM_TYPES_T
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "U",                    IDM_TYPES_U
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "V",                    IDM_TYPES_V
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "W",                    IDM_TYPES_W
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "X",                    IDM_TYPES_X
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Y",                    IDM_TYPES_Y
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Z",                    IDM_TYPES_Z
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
     }
 END
 

@@ -1531,10 +1531,9 @@ eu_utf16_utf8(const wchar_t *utf16, size_t *out_len)
 {
     int   m, size = 0;
     char *utf8 = NULL;
-
-    size = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, NULL, 0, NULL, NULL);
+    size = utf16 ? WideCharToMultiByte(CP_UTF8, 0, utf16, -1, NULL, 0, NULL, NULL) : 0;
     utf8 = size > 0 ? (char*) malloc(size+1) : 0;
-    if (NULL == utf8 )
+    if (NULL == utf8)
     {
         return NULL;
     }
@@ -1637,9 +1636,8 @@ eu_mbcs_utf8(int codepage, const char *ansi, size_t *out_len)
 wchar_t*
 eu_utf8_utf16(const char *utf8, size_t *out_len)
 {
-    int size;
     wchar_t *u16 = NULL;
-    size = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+    int size = utf8 ? MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0) : 0;
     u16 = size > 0 ? (wchar_t*) malloc(sizeof(wchar_t) * (size + 1)) : 0;
     if (!u16)
     {

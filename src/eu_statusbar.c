@@ -257,7 +257,7 @@ on_statusbar_create_button(HWND hstatus)
 }
 
 static void
-on_statusbar_menu_check(HMENU hmenu, int first_id, int last_id, int id, int parts)
+on_statusbar_menu_check(HMENU hmenu, const int first_id, const int last_id, int id, const int group_id, const int parts)
 {
     int len = 0;
     TCHAR buf[FILESIZE + 1] = {0xA554, 0x0020, 0};
@@ -267,11 +267,37 @@ on_statusbar_menu_check(HMENU hmenu, int first_id, int last_id, int id, int part
     }
     if ((len = GetMenuString(hmenu, id, &buf[2], FILESIZE-2, MF_BYCOMMAND)) > 0)
     {
-        for (int i = IDM_UNI_UTF8; hmenu == g_menu_code && i <= IDM_UNKNOWN; ++i)
+        if (STATUSBAR_DOC_ENC == parts)
         {
-            CheckMenuItem(hmenu, i, MF_BYCOMMAND | MFS_UNCHECKED);
+            for (int i = IDM_UNI_UTF8; hmenu == g_menu_code && i <= IDM_UNKNOWN; ++i)
+            {
+                CheckMenuItem(hmenu, i, MF_BYCOMMAND | MFS_UNCHECKED);
+            }
+            if (group_id >= 0 && group_id <= 5)
+            {
+                CheckMenuRadioItem(hmenu, 0, 5, group_id, MF_BYPOSITION);
+            }
         }
-        if (buf[2] && CheckMenuRadioItem(hmenu, first_id, last_id, id, MF_BYCOMMAND))
+        if (STATUSBAR_DOC_TYPE == parts)
+        {
+            int ch = 0;
+            HMENU htype = NULL;
+            for (int i = IDM_TYPES_0; hmenu == g_menu_type && i <= IDM_TYPES_Z; ++i)
+            {
+                CheckMenuItem(hmenu, i, MF_BYCOMMAND | MFS_UNCHECKED);
+            }
+            if (IDM_TYPES_0 == id && CheckMenuRadioItem(hmenu, IDM_TYPES_0, IDM_TYPES_0, IDM_TYPES_0, MF_BYCOMMAND))
+            {
+                on_statusbar_set_text(g_statusbar, parts, buf);
+            }
+            else if (((ch = towupper(buf[2])) > 0x40 && ch < 0x5B) && (htype = GetSubMenu(hmenu, ch - 0x40)))
+            {   // A_Z, 通过首字母获取父菜单位置索引
+                CheckMenuRadioItem(hmenu, IDM_TYPES_A, IDM_TYPES_Z, IDM_TYPES_ZERO + ch - 0x40, MF_BYCOMMAND);
+                CheckMenuRadioItem(htype, first_id, last_id, id, MF_BYCOMMAND);
+                on_statusbar_set_text(g_statusbar, parts, buf);
+            }
+        }
+        else if (buf[2] && CheckMenuRadioItem(hmenu, first_id, last_id, id, MF_BYCOMMAND))
         {
             on_statusbar_set_text(g_statusbar, parts, buf);
         }
@@ -487,7 +513,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             {
                 if (on_view_switch_type(id_menu - IDM_TYPES_0 - 1) == 0)
                 {
-                    on_statusbar_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, id_menu, STATUSBAR_DOC_TYPE);
+                    on_statusbar_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, id_menu, -1, STATUSBAR_DOC_TYPE);
                 }
                 break;
             }
@@ -511,7 +537,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 {
                     if (!on_edit_convert_eols(pnode, id_menu-IDM_LBREAK_1))
                     {
-                        on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, id_menu, STATUSBAR_DOC_EOLS);
+                        on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, id_menu, -1, STATUSBAR_DOC_EOLS);
                     }
                     break;
                 }
@@ -519,14 +545,14 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                     pnode->pre_len = 0;
                     memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
                     on_edit_convert_coding(pnode, IDM_UNI_UTF8);
-                    on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
+                    on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, 0, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF8B:
                     pnode->pre_len = 3;
                     memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
                     memcpy(pnode->pre_context, "\xEF\xBB\xBF", 3);
                     on_edit_convert_coding(pnode, IDM_UNI_UTF8B);
-                    on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
+                    on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, 0, STATUSBAR_DOC_ENC);
                     break;
                 case IDM_UNI_UTF16LE:
                 case IDM_UNI_UTF16LEB:
@@ -535,7 +561,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_UNI_UTF32BE:
                     if (!on_statusbar_convert_coding(pnode, id_menu))
                     {
-                        on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, STATUSBAR_DOC_ENC);
+                        on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, id_menu, 0, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_ANSI_1:
@@ -554,7 +580,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_ANSI_14:
                     if (!on_statusbar_convert_coding(pnode, id_menu))
                     {
-                        on_statusbar_menu_check(g_menu_code, IDM_ANSI_1, IDM_ANSI_14, id_menu, STATUSBAR_DOC_ENC);
+                        on_statusbar_menu_check(g_menu_code, IDM_ANSI_1, IDM_ANSI_14, id_menu, 1, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_ISO_1:
@@ -578,7 +604,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_ISO_JP_MS:
                     if (!on_statusbar_convert_coding(pnode, id_menu))
                     {
-                        on_statusbar_menu_check(g_menu_code, IDM_ISO_1, IDM_ISO_JP_MS, id_menu, STATUSBAR_DOC_ENC);
+                        on_statusbar_menu_check(g_menu_code, IDM_ISO_1, IDM_ISO_JP_MS, id_menu, 2, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_IBM_1:
@@ -586,14 +612,14 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_IBM_3:
                     if (!on_statusbar_convert_coding(pnode, id_menu))
                     {
-                        on_statusbar_menu_check(g_menu_code, IDM_IBM_1, IDM_IBM_3, id_menu, STATUSBAR_DOC_ENC);
+                        on_statusbar_menu_check(g_menu_code, IDM_IBM_1, IDM_IBM_3, id_menu, 3, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_EUC_1:
                 case IDM_EUC_2:
                     if (!on_statusbar_convert_coding(pnode, id_menu))
                     {
-                        on_statusbar_menu_check(g_menu_code, IDM_EUC_1, IDM_EUC_2, id_menu, STATUSBAR_DOC_ENC);
+                        on_statusbar_menu_check(g_menu_code, IDM_EUC_1, IDM_EUC_2, id_menu, 4, STATUSBAR_DOC_ENC);
                     }
                     break;
                 case IDM_OTHER_HZ:
@@ -605,7 +631,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_UNKNOWN:
                     if (!on_statusbar_convert_coding(pnode, id_menu))
                     {
-                        on_statusbar_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, id_menu, STATUSBAR_DOC_ENC);
+                        on_statusbar_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, id_menu, 5, STATUSBAR_DOC_ENC);
                     }
                     break;
                 default:
@@ -648,14 +674,17 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 if (g_menu_break)
                 {
                     DestroyMenu(g_menu_break);
+                    g_menu_break = NULL;
                 }
                 if (g_menu_code)
                 {
                     DestroyMenu(g_menu_code);
+                    g_menu_code = NULL;
                 }
                 if (g_menu_type)
                 {
                     DestroyMenu(g_menu_type);
+                    g_menu_type = NULL;
                 }
                 DestroyWindow(GetDlgItem(hwnd, IDM_BTN_RW));
                 if (hfont_btn)
@@ -795,13 +824,13 @@ on_statusbar_update_eol(eu_tabpage *pnode, const int eol)
     switch (eol >= 0 ? eol : (pnode->eol >= 0 ? pnode->eol : eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0)))
     {
         case SC_EOL_CRLF:
-            on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_1, STATUSBAR_DOC_EOLS);
+            on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_1, -1, STATUSBAR_DOC_EOLS);
             break;
         case SC_EOL_CR:
-            on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_2, STATUSBAR_DOC_EOLS);
+            on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_2, -1, STATUSBAR_DOC_EOLS);
             break;
         case SC_EOL_LF:
-            on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, STATUSBAR_DOC_EOLS);
+            on_statusbar_menu_check(g_menu_break, IDM_LBREAK_1, IDM_LBREAK_3, IDM_LBREAK_3, -1, STATUSBAR_DOC_EOLS);
             break;
         default:
             break;
@@ -824,14 +853,14 @@ on_statusbar_update_filetype_menu(eu_tabpage *pnode)
         {
             if (pnode->doc_ptr && (pnode->doc_ptr == doc_ptr))
             {
-                on_statusbar_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0 + index, STATUSBAR_DOC_TYPE);
+                on_statusbar_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0 + index, -1, STATUSBAR_DOC_TYPE);
                 res = true;
             }
         }
     }
     if (!(pnode && res))
     {
-        on_statusbar_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0, STATUSBAR_DOC_TYPE);
+        on_statusbar_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, IDM_TYPES_0, -1, STATUSBAR_DOC_TYPE);
     }
 }
 
@@ -861,7 +890,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_UNI_UTF16BEB:
         case IDM_UNI_UTF32LE:
         case IDM_UNI_UTF32BE:
-            on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, type, STATUSBAR_DOC_ENC);
+            on_statusbar_menu_check(g_menu_code, IDM_UNI_UTF8, IDM_UNI_UTF32BE, type, 0, STATUSBAR_DOC_ENC);
             break;
         case IDM_ANSI_1:
         case IDM_ANSI_2:
@@ -877,7 +906,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_ANSI_12:
         case IDM_ANSI_13:
         case IDM_ANSI_14:
-            on_statusbar_menu_check(g_menu_code, IDM_ANSI_1, IDM_ANSI_14, type, STATUSBAR_DOC_ENC);
+            on_statusbar_menu_check(g_menu_code, IDM_ANSI_1, IDM_ANSI_14, type, 1, STATUSBAR_DOC_ENC);
             break;
         case IDM_ISO_1:
         case IDM_ISO_2:
@@ -898,16 +927,16 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_ISO_JP_2:
         case IDM_ISO_JP_2004:
         case IDM_ISO_JP_MS:
-            on_statusbar_menu_check(g_menu_code, IDM_ISO_1, IDM_ISO_JP_MS, type, STATUSBAR_DOC_ENC);
+            on_statusbar_menu_check(g_menu_code, IDM_ISO_1, IDM_ISO_JP_MS, type, 2, STATUSBAR_DOC_ENC);
             break;
         case IDM_IBM_1:
         case IDM_IBM_2:
         case IDM_IBM_3:
-            on_statusbar_menu_check(g_menu_code, IDM_IBM_1, IDM_IBM_3, type, STATUSBAR_DOC_ENC);
+            on_statusbar_menu_check(g_menu_code, IDM_IBM_1, IDM_IBM_3, type, 3, STATUSBAR_DOC_ENC);
             break;
         case IDM_EUC_1:
         case IDM_EUC_2:
-            on_statusbar_menu_check(g_menu_code, IDM_EUC_1, IDM_EUC_2, type, STATUSBAR_DOC_ENC);
+            on_statusbar_menu_check(g_menu_code, IDM_EUC_1, IDM_EUC_2, type, 4, STATUSBAR_DOC_ENC);
             break;
         case IDM_OTHER_HZ:
         case IDM_OTHER_1:
@@ -916,7 +945,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_OTHER_ANSI:
         case IDM_OTHER_BIN:
         case IDM_UNKNOWN:
-            on_statusbar_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, type, STATUSBAR_DOC_ENC);
+            on_statusbar_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, type, 5, STATUSBAR_DOC_ENC);
             break;
         default:
             break;
@@ -929,13 +958,22 @@ on_statusbar_create_filetype_menu(void)
     if (g_menu_type)
     {
         int index;
+        int ch = 0;
         doctype_t *doc_ptr;
+        TCHAR *desc = NULL;
+        HMENU htype = NULL;
         for (index = 1, doc_ptr = eu_doc_get_ptr(); doc_ptr&&doc_ptr->doc_type; index++, doc_ptr++)
         {
-            TCHAR *desc = NULL;
             if ((desc = eu_utf8_utf16(doc_ptr->filedesc, NULL)) != NULL)
             {
-                AppendMenu(g_menu_type, MF_POPUP | MF_STRING, IDM_TYPES_0 + index, desc);
+                if (((ch = towupper(*desc)) > 0x40 && ch < 0x5B) && (htype = GetSubMenu(g_menu_type, ch - 0x40)))
+                {
+                    if (GetMenuItemID(htype, 0) == IDM_TYPES_ZERO)
+                    {
+                        DeleteMenu(htype, 0, MF_BYPOSITION);
+                    }
+                    AppendMenu(htype, MF_POPUP | MF_STRING, IDM_TYPES_0 + index, desc);
+                }
                 free(desc);
             }
         }
