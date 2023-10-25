@@ -205,6 +205,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <array>
 #include <algorithm>
 #include <iterator>
 
@@ -260,11 +261,11 @@ RESearch::RESearch(CharClassify *charClassTable) {
 	Clear();
 }
 
-void RESearch::Clear() noexcept {
+void RESearch::Clear() {
+	bopat.fill(NOTFOUND);
+	eopat.fill(NOTFOUND);
 	for (int i = 0; i < MAXTAG; i++) {
 		pat[i].clear();
-		bopat[i] = NOTFOUND;
-		eopat[i] = NOTFOUND;
 	}
 }
 

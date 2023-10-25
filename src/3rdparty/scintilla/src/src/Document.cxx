@@ -16,6 +16,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <array>
 #include <forward_list>
 #include <optional>
 #include <algorithm>
@@ -3293,7 +3294,11 @@ Sci::Position BuiltinRegex::FindText(Document *doc, Sci::Position minPos, Sci::P
 			if ((resr.increment == -1) && !searchforLineStart) {
 				// Check for the last match on this line.
 				int repetitions = 1000;	// Break out of infinite loop
+				RESearch::MatchPositions bopat{};
+				RESearch::MatchPositions eopat{};
 				while (success && (search.eopat[0] <= endOfLine) && (repetitions--)) {
+					bopat = search.bopat;
+					eopat = search.eopat;
 					success = search.Execute(di, pos+1, endOfLine);
 					if (success) {
 						if (search.eopat[0] <= minPos) {
@@ -3303,6 +3308,10 @@ Sci::Position BuiltinRegex::FindText(Document *doc, Sci::Position minPos, Sci::P
 							success = 0;
 						}
 					}
+				}
+				if (!success) {
+					search.bopat = bopat;
+					search.eopat = eopat;
 				}
 			}
 			break;
