@@ -29,18 +29,15 @@ extern "C"
 {
 #endif
 
-extern volatile long g_interval_count;
-
-int eu_dpi_scale_font(void);
-int eu_dpi_scale_style(int value, const int scale, const int min_value);
-int eu_dpi_scale_xy(int adpi, int m);
-void on_proc_destory_brush(void);
+void on_proc_counter_stop(void);
 void on_proc_resize(HWND hwnd);
 void on_proc_sync_wait(void);
 void eu_window_resize(HWND hwnd);
 void eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi);
 HWND eu_hwnd_self(void);
-LRESULT __stdcall eu_main_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+int  eu_dpi_scale_font(void);
+int  eu_dpi_scale_style(int value, const int scale, const int min_value);
+int  eu_dpi_scale_xy(int adpi, int m);
 
 #ifdef __cplusplus
 }

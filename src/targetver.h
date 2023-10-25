@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 6
+#define __EU_INFO_VERSION_PATCHLEVEL 7
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -300,8 +300,35 @@
 #define IDS_TOOLBAR_26   10206
 #define IDS_TOOLBAR_27   10207
 #define IDS_TOOLBAR_28   10208
-// file type
+// language type
 #define IDM_TYPES_0      10300
+#define IDM_TYPES_ZERO   10409
+#define IDM_TYPES_A      10410
+#define IDM_TYPES_B      10411
+#define IDM_TYPES_C      10412
+#define IDM_TYPES_D      10413
+#define IDM_TYPES_E      10414
+#define IDM_TYPES_F      10415
+#define IDM_TYPES_G      10416
+#define IDM_TYPES_H      10417
+#define IDM_TYPES_I      10418
+#define IDM_TYPES_J      10419
+#define IDM_TYPES_K      10420
+#define IDM_TYPES_L      10421
+#define IDM_TYPES_M      10422
+#define IDM_TYPES_N      10423
+#define IDM_TYPES_O      10424
+#define IDM_TYPES_P      10425
+#define IDM_TYPES_Q      10426
+#define IDM_TYPES_R      10427
+#define IDM_TYPES_S      10428
+#define IDM_TYPES_T      10429
+#define IDM_TYPES_U      10430
+#define IDM_TYPES_V      10431
+#define IDM_TYPES_W      10432
+#define IDM_TYPES_X      10433
+#define IDM_TYPES_Y      10434
+#define IDM_TYPES_Z      10435
 
 #define IDD_DIALOG_FC                         20000
 #define IDC_FC_STC1                           20001
@@ -1066,6 +1093,7 @@
 #define IDM_HEXVIEW_INS                     42835
 #define IDM_HEXVIEW_COPY_ADDR               42836
 
+#define IDS_THEME_TIPS1                     42838
 #define IDS_THEME_CARET_TIPS                42839
 #define IDC_THEME_CARTETLINE_EDT            42840
 #define IDC_THEME_INDICATOR_EDT             42841
@@ -1073,7 +1101,7 @@
 #define IDC_THEME_INDICATOR_UDN             42845
 #define IDS_THEME_EDIT_TIPS                 42846
 #define IDC_THEME_TIPS_STC                  42847
-#define IDS_THEME_TIPS                      42848
+#define IDS_THEME_TIPS2                     42848
 #define IDS_RE_ERROR                        42849
 
 #define IDM_SELECTION_RECTANGLE             42850

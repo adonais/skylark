@@ -172,6 +172,7 @@ void  util_update_env(eu_tabpage *pnode);
 bool  util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool  util_file_access(LPCTSTR filename, uint32_t *pgranted);
 bool  util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len);
+bool  util_font_available(const char *name);
 wchar_t* util_get_nt_file_name(LPCWSTR path);
 const uint32_t util_os_version(void);
 const TCHAR* util_path_ext(const TCHAR *path);

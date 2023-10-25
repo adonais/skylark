@@ -3310,3 +3310,32 @@ util_strcat(uint8_t **dst, const char* pstr)
         }
     }
 }
+
+static int CALLBACK
+util_font_fam_callback(const LOGFONT *plf, const TEXTMETRIC *ptm, DWORD ftype, LPARAM lparam)
+{
+    UNREFERENCED_PARAMETER(plf);
+    UNREFERENCED_PARAMETER(ptm);
+    UNREFERENCED_PARAMETER(ftype);
+    *((bool*)lparam) = true;
+    // 回调中止
+    return 0;
+}
+
+bool
+util_font_available(const char *name)
+{
+    bool found = false;
+    wchar_t *pname = NULL;
+    if (STR_NOT_NUL(name) && (pname = eu_utf8_utf16(name, NULL)))
+    {
+        HDC hDC = GetDC(NULL);
+        LOGFONT lf = { 0 };
+        lf.lfCharSet = DEFAULT_CHARSET;
+        wcsncpy(lf.lfFaceName, pname, LF_FACESIZE);
+        EnumFontFamiliesEx(hDC, &lf, util_font_fam_callback, (LPARAM)&found, 0);
+        ReleaseDC(NULL, hDC);
+    }
+    eu_safe_free(pname);
+    return found;
+}

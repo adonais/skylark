@@ -62,6 +62,8 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_VERILOG = 41,\n",
     "    DOCTYPE_PASCAL = 42,\n",
     "    DOCTYPE_TCL = 43,\n",
+    "    DOCTYPE_INNO = 44,\n",
+    "    DOCTYPE_NSIS = 45,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -219,7 +221,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
-    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -259,7 +261,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          eu_core.euapi.on_doc_keyup_general,\n",
-    "          eu_core.euapi.on_doc_identation,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -339,7 +341,27 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_INNO,\n",
+    "          \"inno\",\n",
+    "          \";*.iss;*.isl;*.islu;\",\n",
+    "          \"Inno Setup\",\n",
+    "          \"inno.snippets\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -499,7 +521,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
-    "          eu_core.euapi.on_doc_identation,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -602,6 +624,26 @@ if (not eu_core.file_exists(user_file)) then
     "          eu_core.euapi.on_doc_cpp_like,\n",
     "          eu_core.euapi.on_doc_reload_list_reqular,\n",
     "          eu_core.euapi.on_doc_click_list_jmp,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_NSIS,\n",
+    "          \"nsis\",\n",
+    "          \";*.nsi;*.nsh;*.nlf;\",\n",
+    "          \"Nsis Setup\",\n",
+    "          \"nsis.snippets\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -808,7 +850,7 @@ if (not eu_core.file_exists(user_file)) then
     "      },\n",
     "      {\n",
     "          e.DOCTYPE_TXT,\n",
-    "          ffi_null,\n",
+    "          \"text\",\n",
     "          \";*.txt;\",\n",
     "          \"Text\",\n",
     "          \"text.snippets\",\n",
@@ -885,7 +927,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
-    "      },\n",    
+    "      },\n",
     "      {\n",
     "          e.DOCTYPE_XML,\n",
     "          \"xml\",\n",
@@ -962,6 +1004,7 @@ function fetch_doctype(s)
   local m_config = eu_core.ffi.cast('doctype_t *', s)
   local m_req = nil
   local m_key0,m_key1,m_key2,m_key3,m_key4,m_key5
+  local m_ftz,m_font0,m_font1,m_font2
   local m_set = nil
   local m_styles = nil
   local m_line_comment = nil
@@ -1047,7 +1090,7 @@ function fetch_doctype(s)
       end
     end
     local count = 0;
-    if (m_req.get_styles ~= ni) then
+    if (m_req.get_styles ~= nil) then
         m_styles = m_req.get_styles()
         if (m_styles ~= nil) then
           for k, v in pairs(m_styles) do
@@ -1081,13 +1124,20 @@ function fetch_doctype(s)
         end
       end
     end
-    if (m_req.get_comments ~= ni) then
+    if (m_req.get_comments ~= nil) then
         m_line_comment,m_block_comment = m_req.get_comments()
         if (m_line_comment ~= nil and m_block_comment ~= nil) then
           m_config.comment.initialized = true
           m_config.comment.line = eu_core.ffi.cast("const char *", m_line_comment)
           m_config.comment.block = eu_core.ffi.cast("const char *", m_block_comment)
         end
+    end
+    if (m_req.get_fonts ~= nil) then
+        m_font0,m_font1,m_font2, m_ftz = m_req.get_fonts()
+        if (m_font0 ~= nil) then m_config.font_list.font0 = eu_core.ffi.cast("const char *", m_font0) end
+        if (m_font1 ~= nil) then m_config.font_list.font1 = eu_core.ffi.cast("const char *", m_font1) end
+        if (m_font2 ~= nil) then m_config.font_list.font2 = eu_core.ffi.cast("const char *", m_font2) end
+        if (m_ftz ~= nil) then m_config.font_list.size = eu_core.ffi.cast("int", m_ftz) end
     end
   end
 end
@@ -1096,7 +1146,7 @@ function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
   --print("my_size = " .. my_size)
-  if (my_size < 44) then
+  if (my_size < 46) then
     eu_core.euapi.eu_reset_docs_mask()
   end
   for i=0,my_size-1 do

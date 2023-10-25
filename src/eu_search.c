@@ -1819,18 +1819,18 @@ on_search_delete_lword(HWND hedit)
 }
 
 static char *
-on_search_get_combo_list(HWND hcombo, int index)
+on_search_get_combo_list(const HWND hcombo, const int index)
 {
     char *text = NULL;
     TCHAR *buf = NULL;
     const int len = (const int)ComboBox_GetLBTextLen(hcombo, index);
     buf = len > 0 ? (TCHAR *)calloc(sizeof(TCHAR), len + 1) : NULL;
-    if (STR_NOT_NUL(buf))
+    if (buf)
     {
         ComboBox_GetLBText(hcombo, index, buf);
         text = eu_utf16_utf8(buf, NULL);
+        free(buf);
     }
-    eu_safe_free(buf);
     return text;
 }
 
@@ -2986,13 +2986,14 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
         eu_logmsg("%s: point error\n", __FUNCTION__);
         return false;
     }
+    if (!replace_str && !(replace_str = _strdup("")))
+    {
+        free(find_str);
+        return false;
+    }
     if (opt & ON_REPLACE_SELECTION)
     {
         end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-    }
-    if (!replace_str)
-    {
-        replace_str = _strdup("");
     }
     on_search_node_init(pnode, false);
     if (on_search_first(pnode, find_str, opt))
@@ -3016,7 +3017,11 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
         } while (!(opt & ON_REPLACE_THIS) && result && next_result);
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
-    if (*replace_str != 0)
+    if (*find_str)
+    {
+        eu_push_find_history(find_str);
+    }
+    if (*replace_str)
     {
         eu_push_replace_history(replace_str);
     }

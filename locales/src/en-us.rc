@@ -880,7 +880,111 @@ IDR_TYPES_MENU  MENUEX DISCARDABLE
 BEGIN
     POPUP "0"
     {
-        MENUITEM "Unsupported",        IDM_TYPES_0
+        MENUITEM "Unsupported",       IDM_TYPES_0
+        POPUP "A",                    IDM_TYPES_A
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "B",                    IDM_TYPES_B
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "C",                    IDM_TYPES_C
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "D",                    IDM_TYPES_D
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "E",                    IDM_TYPES_E
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "F",                    IDM_TYPES_F
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "G",                    IDM_TYPES_G
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "H",                    IDM_TYPES_H
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "I",                    IDM_TYPES_I
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "J",                    IDM_TYPES_J
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "K",                    IDM_TYPES_K
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "L",                    IDM_TYPES_L
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "M",                    IDM_TYPES_M
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "N",                    IDM_TYPES_N
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "O",                    IDM_TYPES_O
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "P",                    IDM_TYPES_P
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Q",                    IDM_TYPES_Q
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "R",                    IDM_TYPES_R
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "S",                    IDM_TYPES_S
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "T",                    IDM_TYPES_T
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "U",                    IDM_TYPES_U
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "V",                    IDM_TYPES_V
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "W",                    IDM_TYPES_W
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "X",                    IDM_TYPES_X
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Y",                    IDM_TYPES_Y
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Z",                    IDM_TYPES_Z
+        BEGIN
+            MENUITEM " (NULL) ",      IDM_TYPES_ZERO,,0x00000003
+        END
     }
 END
 
@@ -1176,7 +1280,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SYMLIST_FAIL    "Failed to create symbol list control"
     IDC_MSG_PCRE_FAIL       "Regular expressions cannot be resolved"
     IDC_MSG_HISTORY_ZERO    " (NULL) "
-    IDC_MSG_OPEN_FILE_EDIT    "Open files with Skylark"
+    IDC_MSG_OPEN_FILE_EDIT  "Open files with Skylark"
     IDC_MSG_DIRECTORYFILES  "Open all the files in the directory with Skylark"
     IDC_MSG_LOC_DIRECTORY   "Using Skylark to locate the directory"
     IDC_MSG_REGIST_ERR1     "Cannot create key in registry [*\\shell\\skylark]"
@@ -1341,7 +1445,8 @@ STRINGTABLE DISCARDABLE
     IDS_EXTRA_PATH          "External program path: "
     IDS_EDITOR_PATH         "External editor path: "
     IDS_EDITOR_BCOMPARE     "Bcompare path: "
-    IDS_THEME_TIPS          "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
+    IDS_THEME_TIPS1         "Tips: The editor font for this page is implemented by user scripts and does not follow the theme"
+    IDS_THEME_TIPS2         "Tips: The foreground color of some keywords on this page is realized by user script and does not follow the theme"
     IDS_RE_ERROR            "Error: invalid regular expression"
     IDS_HEXVIEW_BYTES       "Number of bytes to insert (decimal): "
     IDS_RESULT_STR_TIPS     "The number of matches has exceeded 131071 times, If the search continues, It will take a lot of time, Is it terminated?\n"

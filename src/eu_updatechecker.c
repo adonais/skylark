@@ -293,7 +293,7 @@ on_update_send_request(void *lp)
             {
                 break;
             }
-            _InterlockedExchange(&g_interval_count, 602);
+            on_proc_counter_stop();
             on_update_loop(on_update_download(dtag));
         }
         else if (tag > 0)

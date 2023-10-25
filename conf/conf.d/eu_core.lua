@@ -279,6 +279,14 @@ typedef struct _doc_comments
     bool initialized;
 } doc_comments;
 
+typedef struct _doc_fonts
+{
+    const char *font0;
+    const char *font1;
+    const char *font2;
+    int size;
+} doc_fonts;
+
 typedef struct _snippet_t
 {
     intptr_t start;
@@ -320,6 +328,7 @@ typedef struct _doc_data
     eutype_t ctshow_tree;                     // 函数提示hash表
     doc_styles style;                         // 文档关键字类型与高亮颜色
     doc_comments comment;                     // 文档注释
+    doc_fonts font_list;                      // 文档字体
 } doctype_t;
 
 // for tinyexpr
@@ -347,7 +356,7 @@ void eu_lua_calltip(const char *pstr);
 
 // 获取配置文件指针
 bool eu_config_ptr(struct eu_config *pconfig);
-bool eu_theme_ptr(struct eu_theme *ptheme, bool init);
+bool eu_theme_ptr(struct eu_theme *ptheme);
 bool eu_accel_ptr(ACCEL *paccel);
 bool eu_toolbar_ptr(eue_toolbar *pdata, int num);
 bool eu_exist_path(const char *path);
@@ -417,6 +426,7 @@ int on_doc_json_like(void *pnode, void *lpnotify);
 int on_doc_makefile_like(void *pnode, void *lpnotify);
 int on_doc_cmake_like(void *pnode, void *lpnotify);
 int on_doc_text_like(void *pnode, void *lpnotify);
+int on_doc_general_like(void *pnode, void *lpnotify);
 
 /* 默认的 reload_list_ptr,reload_tree_ptr 回调函数入口 */
 int on_doc_reload_list_reqular(void *pnode);
@@ -459,6 +469,9 @@ void eu_reset_docs_mask(void);
 void eu_reset_accs_mask(void);
 void eu_reset_snip_mask(void);
 void eu_reset_theme_mask(void);
+
+/* 获取系统版本 */
+const uint32_t eu_win10_or_later(void);
 
 ]]
 

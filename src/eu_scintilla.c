@@ -106,8 +106,8 @@ on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
     if (pnode)
     {
         eu_sci_call(pnode, SCI_STYLERESETDEFAULT, 0, 0);
-        eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, (sptr_t)(eu_get_theme()->item.text.font));
-        eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_get_theme()->item.text.fontsize);
+        eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, eu_doc_get_font_name(pnode));
+        eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_doc_get_font_size(pnode));
         eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
         eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor != (uint32_t)-1 ? bgcolor : eu_get_theme()->item.text.bgcolor);
         eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);

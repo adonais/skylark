@@ -384,21 +384,27 @@ menu_update_string(const HMENU hmenu, const int pos)
     return id;
 }
 
-bool
-menu_setup(HWND hwnd)
+static unsigned __stdcall
+menu_setup_thead(void* lp)
 {
-    if (eu_get_config() && SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK)))
+    HWND hwnd = (HWND)lp;
+    if (hwnd && SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK)))
     {
         HMENU root_menu = GetMenu(hwnd);
         HMENU setting_menu = root_menu ? GetSubMenu(root_menu, THEME_MENU) : NULL;
         setting_menu ? on_setting_update_menu(setting_menu) : (void)0;
-        if (!eu_get_config()->m_menubar)
+        if (eu_get_config() && !eu_get_config()->m_menubar)
         {
             SetMenu(hwnd, NULL);
         }
-        return true;
     }
-    return false;
+    return 0;
+}
+
+void
+menu_setup(HWND hwnd)
+{
+    CloseHandle((HANDLE) _beginthreadex(NULL, 0, menu_setup_thead, (void *)hwnd, 0, NULL));
 }
 
 void
@@ -634,7 +640,7 @@ menu_update_item(const HMENU menu, const bool init)
                         menu_switch_theme();
                         if (!init)
                         {   // 盾牌图标
-                            menu_shield_icons(menu, IDM_ENV_FILE_POPUPMENU, IDM_ENV_SET_ASSOCIATED_WITH);
+                            menu_shield_icons(menu, IDM_ENV_SET_ASSOCIATED_WITH, IDM_ENV_SET_ASSOCIATED_WITH);
                             // 定制命令图标
                             menu_setting_icons(menu);
                             // 定制命令菜单更新

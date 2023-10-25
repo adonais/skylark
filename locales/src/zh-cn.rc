@@ -881,6 +881,110 @@ BEGIN
     POPUP "0"
     {
         MENUITEM "不支持高亮",        IDM_TYPES_0
+        POPUP "A",                    IDM_TYPES_A
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "B",                    IDM_TYPES_B
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "C",                    IDM_TYPES_C
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "D",                    IDM_TYPES_D
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "E",                    IDM_TYPES_E
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "F",                    IDM_TYPES_F
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "G",                    IDM_TYPES_G
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "H",                    IDM_TYPES_H
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "I",                    IDM_TYPES_I
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "J",                    IDM_TYPES_J
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "K",                    IDM_TYPES_K
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "L",                    IDM_TYPES_L
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "M",                    IDM_TYPES_M
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "N",                    IDM_TYPES_N
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "O",                    IDM_TYPES_O
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "P",                    IDM_TYPES_P
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Q",                    IDM_TYPES_Q
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "R",                    IDM_TYPES_R
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "S",                    IDM_TYPES_S
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "T",                    IDM_TYPES_T
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "U",                    IDM_TYPES_U
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "V",                    IDM_TYPES_V
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "W",                    IDM_TYPES_W
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "X",                    IDM_TYPES_X
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Y",                    IDM_TYPES_Y
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
+        POPUP "Z",                    IDM_TYPES_Z
+        BEGIN
+            MENUITEM " (空) ",        IDM_TYPES_ZERO,,0x00000003
+        END
     }
 END
 
@@ -1175,7 +1279,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_SYMLIST_FAIL    "创建符号列表控件失败"
     IDC_MSG_PCRE_FAIL       "不能解析符号正则表达式"
     IDC_MSG_HISTORY_ZERO    " (空) "
-    IDC_MSG_OPEN_FILE_EDIT    "用 Skylark 打开文件"
+    IDC_MSG_OPEN_FILE_EDIT  "用 Skylark 打开文件"
     IDC_MSG_DIRECTORYFILES  "用 Skylark 打开目录中所有文件"
     IDC_MSG_LOC_DIRECTORY   "用 Skylark 定位目录"
     IDC_MSG_REGIST_ERR1     "不能在注册表创建项 *\\shell\\skylark "
@@ -1185,7 +1289,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_REGIST_ERR5     "不能在注册表设置键 *\\shell\\skylark:(default) "
     IDC_MSG_REGIST_ERR6     "不能在注册表删除项 *\\shell\\skylark "
     IDC_MSG_REGIST_ERR7     "不能在注册表删除项 *\\shell\\skylark "
-    IDC_MSG_REGIST_ERR8     "在资源管理器卸载右键弹出菜单成功"
+    IDC_MSG_REGIST_ERR8     "右键菜单卸载成功"
     IDC_MSG_REGIST_ERR9     "不能在注册表创建项 Directory\\shell\\skylark "
     IDC_MSG_REGIST_ERR10    "不能在注册表设置键 Directory\\shell\\skylark:(default) "
     IDC_MSG_REGIST_ERR11    "不能在注册表设置键 Directory\\shell\\skylark:Icon "
@@ -1339,7 +1443,8 @@ STRINGTABLE DISCARDABLE
     IDS_EXTRA_PATH          "外部程序路径: "
     IDS_EDITOR_PATH         "外部编辑器路径: "
     IDS_EDITOR_BCOMPARE     "Bcompare路径: "
-    IDS_THEME_TIPS          "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
+    IDS_THEME_TIPS1         "提示: 此页面的编辑器字体由用户脚本实现, 不随主题"
+    IDS_THEME_TIPS2         "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
     IDS_RE_ERROR            "错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
     IDS_RESULT_STR_TIPS     "匹配数量已经超过 131071 次, 如果继续搜索, 将耗费大量时间, 是否终止?\n"

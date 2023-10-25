@@ -22,6 +22,9 @@
 #define EOLS_UNDO_DESC "_eol/?@#$%^&*()`/~"
 #define ICON_UNDO_DESC "_iconv/?@#$%^&*()`/~"
 
+// see LexInno.cxx
+#define INNOLINESTATECODESECTION  (0x1)
+
 enum htmlblock
 {
     HTML_TEXT_BLOCK_TAG = 0,
@@ -1924,6 +1927,7 @@ on_edit_comment_line(eu_tabpage *pnode)
             break;
         case DOCTYPE_LISP:
         case DOCTYPE_AU3:
+        case DOCTYPE_NSIS:
             eu_toggle_comment(pnode, "; ", false);
             break;
         case DOCTYPE_FORTRAN:
@@ -1946,6 +1950,20 @@ on_edit_comment_line(eu_tabpage *pnode)
             {
                 eu_toggle_comment(pnode, "# ", false);
             }
+            break;
+        }
+        case DOCTYPE_INNO:
+        {
+            const sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), 0);
+            const int state = (const int)eu_sci_call(pnode, SCI_GETLINESTATE, line, 0);
+			if (state & INNOLINESTATECODESECTION)
+			{
+				eu_toggle_comment(pnode, "// ", false);
+			}
+			else
+			{
+				eu_toggle_comment(pnode, "; ", false);
+			}
             break;
         }
         default:
@@ -1984,6 +2002,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
         case DOCTYPE_SQL:
         case DOCTYPE_KOTLIN:
         case DOCTYPE_VERILOG:
+        case DOCTYPE_NSIS:
             on_close_selection(pnode, "/*", "*/");
             break;
         case DOCTYPE_CMAKE:
@@ -2035,6 +2054,20 @@ on_edit_comment_stream(eu_tabpage *pnode)
             {
                 on_edit_comment_line(pnode);
             }
+            break;
+        }
+        case DOCTYPE_INNO:
+        {
+            const sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), 0);
+            const int state = (const int)eu_sci_call(pnode, SCI_GETLINESTATE, line, 0);
+			if (state & INNOLINESTATECODESECTION)
+			{
+				on_close_selection(pnode, "{ ", " }");
+			}
+			else
+			{
+				eu_toggle_comment(pnode, "; ", false);
+			}
             break;
         }
         case DOCTYPE_AU3:
