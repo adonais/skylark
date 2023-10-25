@@ -99,6 +99,7 @@ function inno.create_bakup(path)
     "  local symbol_reqular_exp = \"^\\\\[([_a-zA-Z]+[_a-zA-Z0-9]*)\\\\][\\\\s\\\\r\\\\n]*\"\n",
     "  return symbol_reqular_exp\n",
     "end\n",
+    "\n",
     "return user_inno",
   }
   local shell_code = table.concat(inno_code)

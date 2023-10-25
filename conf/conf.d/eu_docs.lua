@@ -221,7 +221,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
-    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -261,7 +261,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          eu_core.euapi.on_doc_keyup_general,\n",
-    "          eu_core.euapi.on_doc_identation,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -341,7 +341,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
-    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -521,7 +521,7 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
-    "          eu_core.euapi.on_doc_identation,\n",
+    "          eu_core.euapi.on_doc_general_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -850,7 +850,7 @@ if (not eu_core.file_exists(user_file)) then
     "      },\n",
     "      {\n",
     "          e.DOCTYPE_TXT,\n",
-    "          ffi_null,\n",
+    "          \"text\",\n",
     "          \";*.txt;\",\n",
     "          \"Text\",\n",
     "          \"text.snippets\",\n",
@@ -1004,6 +1004,7 @@ function fetch_doctype(s)
   local m_config = eu_core.ffi.cast('doctype_t *', s)
   local m_req = nil
   local m_key0,m_key1,m_key2,m_key3,m_key4,m_key5
+  local m_ftz,m_font0,m_font1,m_font2
   local m_set = nil
   local m_styles = nil
   local m_line_comment = nil
@@ -1089,7 +1090,7 @@ function fetch_doctype(s)
       end
     end
     local count = 0;
-    if (m_req.get_styles ~= ni) then
+    if (m_req.get_styles ~= nil) then
         m_styles = m_req.get_styles()
         if (m_styles ~= nil) then
           for k, v in pairs(m_styles) do
@@ -1123,13 +1124,20 @@ function fetch_doctype(s)
         end
       end
     end
-    if (m_req.get_comments ~= ni) then
+    if (m_req.get_comments ~= nil) then
         m_line_comment,m_block_comment = m_req.get_comments()
         if (m_line_comment ~= nil and m_block_comment ~= nil) then
           m_config.comment.initialized = true
           m_config.comment.line = eu_core.ffi.cast("const char *", m_line_comment)
           m_config.comment.block = eu_core.ffi.cast("const char *", m_block_comment)
         end
+    end
+    if (m_req.get_fonts ~= nil) then
+        m_font0,m_font1,m_font2, m_ftz = m_req.get_fonts()
+        if (m_font0 ~= nil) then m_config.font_list.font0 = eu_core.ffi.cast("const char *", m_font0) end
+        if (m_font1 ~= nil) then m_config.font_list.font1 = eu_core.ffi.cast("const char *", m_font1) end
+        if (m_font2 ~= nil) then m_config.font_list.font2 = eu_core.ffi.cast("const char *", m_font2) end
+        if (m_ftz ~= nil) then m_config.font_list.size = eu_core.ffi.cast("int", m_ftz) end
     end
   end
 end

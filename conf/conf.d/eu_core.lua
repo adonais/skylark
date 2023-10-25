@@ -279,6 +279,14 @@ typedef struct _doc_comments
     bool initialized;
 } doc_comments;
 
+typedef struct _doc_fonts
+{
+    const char *font0;
+    const char *font1;
+    const char *font2;
+    int size;
+} doc_fonts;
+
 typedef struct _snippet_t
 {
     intptr_t start;
@@ -320,6 +328,7 @@ typedef struct _doc_data
     eutype_t ctshow_tree;                     // 函数提示hash表
     doc_styles style;                         // 文档关键字类型与高亮颜色
     doc_comments comment;                     // 文档注释
+    doc_fonts font_list;                      // 文档字体
 } doctype_t;
 
 // for tinyexpr

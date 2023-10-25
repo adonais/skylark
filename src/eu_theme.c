@@ -638,7 +638,7 @@ theme_release_handle(void)
 }
 
 static void
-theme_show_balloon_tip(HWND hdlg, const int resid)
+theme_show_balloon_tip(const HWND hdlg, const int resid)
 {
     TCHAR ptxt[MAX_PATH] = {0};
     HWND hwnd_edit = GetDlgItem(hdlg, resid);
@@ -669,13 +669,20 @@ theme_show_balloon_tip(HWND hdlg, const int resid)
 }
 
 static void
-on_theme_set_tip(HWND hdlg, int res_id)
+on_theme_set_tip(const HWND hdlg, const int res_id)
 {
     HWND stc = GetDlgItem(hdlg, res_id);
-    if (on_doc_is_customized(on_tabpage_focus_at(), -1) && stc)
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    bool fn_font = pnode ? eu_doc_special_font(pnode) : false;
+    if (stc && pnode && (fn_font || on_doc_is_customized(pnode, -1)))
     {
-        LOAD_I18N_RESSTR(IDS_THEME_TIPS, str);
+        HWND btn = NULL;
+        LOAD_I18N_RESSTR(fn_font ? IDS_THEME_TIPS1 : IDS_THEME_TIPS2, str);
         Static_SetText(stc, str);
+        if (fn_font && (btn = GetDlgItem(hdlg, IDC_SETFONT_TEXT_BTN)))
+        {
+            Button_Enable(btn, FALSE);
+        }
     }
 }
 

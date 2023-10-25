@@ -1093,6 +1093,7 @@
 #define IDM_HEXVIEW_INS                     42835
 #define IDM_HEXVIEW_COPY_ADDR               42836
 
+#define IDS_THEME_TIPS1                     42838
 #define IDS_THEME_CARET_TIPS                42839
 #define IDC_THEME_CARTETLINE_EDT            42840
 #define IDC_THEME_INDICATOR_EDT             42841
@@ -1100,7 +1101,7 @@
 #define IDC_THEME_INDICATOR_UDN             42845
 #define IDS_THEME_EDIT_TIPS                 42846
 #define IDC_THEME_TIPS_STC                  42847
-#define IDS_THEME_TIPS                      42848
+#define IDS_THEME_TIPS2                     42848
 #define IDS_RE_ERROR                        42849
 
 #define IDM_SELECTION_RECTANGLE             42850

@@ -104,6 +104,14 @@ typedef struct _doc_comments
     bool initialized;
 } doc_comments;
 
+typedef struct _doc_fonts
+{
+    const char *font0;
+    const char *font1;
+    const char *font2;
+    int size;
+} doc_fonts;
+
 typedef struct _doc_data
 {
     enum dctype doc_type;                     // 文档类型编号
@@ -135,6 +143,7 @@ typedef struct _doc_data
     eutype_t ctshow_tree;                     // 函数提示hash表
     doc_styles style;                         // 文档关键字类型与高亮颜色, 最多支持32类
     doc_comments comment;                     // 文档注释
+    doc_fonts font_list;                      // 文档字体
 } doctype_t;
 
 int on_doc_count(void);
@@ -142,9 +151,12 @@ int on_doc_brace_light(eu_tabpage *pnode, bool keyup);
 void on_doc_set_vec(void);
 void on_doc_set_ptr(doctype_t *ptr);
 void on_doc_ptr_free(void);
-bool on_doc_is_customized(eu_tabpage *pnode, int lex);
+bool on_doc_is_customized(const eu_tabpage *pnode, const int lex);
+bool eu_doc_special_font(const eu_tabpage *pnode);
 TCHAR *on_doc_get_ext(eu_tabpage *pnode);
 doctype_t *on_doc_get_type(const TCHAR *pfile);
+sptr_t eu_doc_get_font_size(const eu_tabpage *pnode);
+sptr_t eu_doc_get_font_name(const eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

@@ -30,6 +30,12 @@ on_doc_enable_foldline(eu_tabpage *pnode)
     {
         switch (pnode->doc_ptr->doc_type)
         {
+        case DOCTYPE_CPP:
+        {   // Disable track preprocessor to avoid incorrect detection.
+            // In the most of cases, the symbols are defined outside of file.
+            eu_sci_call(pnode, SCI_SETPROPERTY, (WPARAM)("lexer.cpp.track.preprocessor"), (sptr_t)"0");
+            break;
+        }
         case DOCTYPE_XML:
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.xml.allow.scripts", (sptr_t)"0");
             eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.xml.at.tag.open", (sptr_t)"1");
@@ -175,7 +181,7 @@ on_doc_set_keyword(eu_tabpage *pnode)
 }
 
 bool
-on_doc_is_customized(eu_tabpage *pnode, int lex)
+on_doc_is_customized(const eu_tabpage *pnode, const int lex)
 {
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->style.mask > 0)
     {
@@ -632,9 +638,6 @@ int
 on_doc_init_after_cpp(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "cpp");
-    // Disable track preprocessor to avoid incorrect detection.
-    // In the most of cases, the symbols are defined outside of file.
-    eu_sci_call(pnode, SCI_SETPROPERTY, (WPARAM)("lexer.cpp.track.preprocessor"), (LPARAM)"0");
     on_doc_keyword_light(pnode, SCE_C_WORD, 0, 0);
     on_doc_function_light(pnode, SCE_C_WORD2, 1, 0);
     on_doc_string_light(pnode, SCE_C_STRING, 0);
@@ -1052,6 +1055,7 @@ on_doc_init_after_html(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_HPHP_COMMENT, 0);
     on_doc_string_light(pnode, SCE_HPHP_SIMPLESTRING, 0);
     on_doc_enable_foldline(pnode);
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1070,6 +1074,7 @@ on_doc_init_after_css(eu_tabpage *pnode)
     on_doc_keyword_light(pnode, SCE_CSS_UNKNOWN_IDENTIFIER, 4, 0);
     on_doc_keyword_light(pnode, SCE_CSS_VALUE, 4, 0);
     on_doc_enable_foldline(pnode);
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1149,6 +1154,7 @@ on_doc_init_after_yaml(eu_tabpage *pnode)
     on_doc_operator_light(pnode, SCE_YAML_OPERATOR, 0);
     on_doc_commentblock_light(pnode, SCE_YAML_COMMENT, 0);
     on_doc_enable_foldline(pnode);
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1163,6 +1169,7 @@ on_doc_init_after_makefile(eu_tabpage *pnode)
     on_doc_tags_light(pnode, SCE_MAKE_TARGET, 0);
     // 折叠
     on_doc_enable_foldline(pnode);
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1197,6 +1204,7 @@ on_doc_init_after_cmake(eu_tabpage *pnode)
     on_doc_number_light(pnode, SCE_CMAKE_NUMBER, 0);
     on_doc_commentblock_light(pnode, SCE_CMAKE_COMMENT, 0);
     on_doc_enable_foldline(pnode);
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1210,6 +1218,8 @@ on_doc_init_after_log(eu_tabpage *pnode)
     on_doc_operator_light(pnode, SCE_STTXT_OPERATOR, 0xff);
     on_doc_comment_light(pnode, SCE_STTXT_COMMENT, 0);
     on_doc_commentblock_light(pnode, SCE_STTXT_COMMENTLINE, 0);
+    on_doc_enable_foldline(pnode);
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1223,6 +1233,8 @@ on_doc_init_after_properties(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_PROPS_SECTION, 0);
     on_doc_operator_light(pnode, SCE_PROPS_ASSIGNMENT, 0);
     on_doc_preprocessor_light(pnode, SCE_PROPS_DEFVAL, -1, 0);
+    on_doc_enable_foldline(pnode);
+    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1977,6 +1989,65 @@ on_doc_ptr_free(void)
         }
     }
     do_lua_parser_release();
+}
+
+bool
+eu_doc_special_font(const eu_tabpage *pnode)
+{
+    bool ret = false;
+    if (pnode && pnode->doc_ptr)
+    {
+        if (STR_NOT_NUL(pnode->doc_ptr->font_list.font0) && util_font_available(pnode->doc_ptr->font_list.font0))
+        {
+            ret = true;
+        }
+        else if (STR_NOT_NUL(pnode->doc_ptr->font_list.font1) && util_font_available(pnode->doc_ptr->font_list.font1))
+        {
+            ret = true;
+        }
+        else if (STR_NOT_NUL(pnode->doc_ptr->font_list.font2) && util_font_available(pnode->doc_ptr->font_list.font2))
+        {
+            ret = true;
+        }
+    }
+    return ret;    
+}
+
+sptr_t
+eu_doc_get_font_size(const eu_tabpage *pnode)
+{
+    if (pnode && pnode->doc_ptr)
+    {
+        if (pnode->doc_ptr->font_list.size > 0)
+        {
+            return (sptr_t)(pnode->doc_ptr->font_list.size);
+        }
+    }
+    return (sptr_t)(eu_get_theme()->item.text.fontsize);
+}
+
+sptr_t
+eu_doc_get_font_name(const eu_tabpage *pnode)
+{
+    if (pnode && pnode->doc_ptr)
+    {
+        if (STR_NOT_NUL(pnode->doc_ptr->font_list.font0) && util_font_available(pnode->doc_ptr->font_list.font0))
+        {
+            eu_logmsg("we apply [%s] font\n", pnode->doc_ptr->font_list.font0);
+            return (sptr_t)(pnode->doc_ptr->font_list.font0);
+        }
+        if (STR_NOT_NUL(pnode->doc_ptr->font_list.font1) && util_font_available(pnode->doc_ptr->font_list.font1))
+        {
+            eu_logmsg("we apply [%s] font\n", pnode->doc_ptr->font_list.font1);
+            return (sptr_t)(pnode->doc_ptr->font_list.font1);
+        }
+        if (STR_NOT_NUL(pnode->doc_ptr->font_list.font2) && util_font_available(pnode->doc_ptr->font_list.font2))
+        {
+            eu_logmsg("we apply [%s] font\n", pnode->doc_ptr->font_list.font2);
+            return (sptr_t)(pnode->doc_ptr->font_list.font2);
+        }
+    }
+    return (sptr_t)(eu_get_theme()->item.text.font);
 }
 
 doctype_t*
