@@ -1423,12 +1423,30 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    on_format_clang_file(pnode, true);
-                    on_sci_refresh_ui(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode &&
+                       (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
+                    {
+                        on_format_clang_file(pnode, true);
+                        on_sci_refresh_ui(pnode);
+                    }
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    on_format_clang_file(pnode, false);
-                    on_sci_refresh_ui(pnode);
+                    if (pnode->doc_ptr && !pnode->hex_mode &&
+                       (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
+                    {
+                        on_format_clang_file(pnode, false);
+                        on_sci_refresh_ui(pnode);
+                    }
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
                     if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)

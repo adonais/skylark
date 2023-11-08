@@ -523,6 +523,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_enable_menu_item(menu, IDM_VIEW_SYMTREE, init || pnode->hwnd_symlist || pnode->hwnd_symtree);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
+                        util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar != IDB_SIZE_0);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_HILIGHT_SUB), IDM_VIEW_HIGHLIGHT_BRACE, eu_get_config()->eu_brace.matching);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_HILIGHT_SUB), IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
