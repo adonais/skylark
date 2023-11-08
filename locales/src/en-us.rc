@@ -241,8 +241,9 @@ BEGIN
         POPUP "P&anels"
         BEGIN
             MENUITEM "Full Screen Mode",                               IDM_VIEW_FULLSCREEN
-            MENUITEM "Show M&enubar",                                  IDM_VIEW_MENUBAR
-            MENUITEM "Show Stat&usbar",                                IDM_VIEW_STATUSBAR
+            MENUITEM "Show Menubar",                                   IDM_VIEW_MENUBAR
+            MENUITEM "Show Toolbar",                                   IDM_VIEW_TOOLBAR
+            MENUITEM "Show Statusbar",                                 IDM_VIEW_STATUSBAR
         END
         POPUP "Customize Titlebar",                                    IDM_VIEW_TITLEBAR_GROUP
         BEGIN
