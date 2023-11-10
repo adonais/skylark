@@ -1898,9 +1898,14 @@ util_to_abs(const char *path)
     {
         return NULL;
     }
-    util_unix2path(lpfile, (const int)_tcslen(lpfile));
-    // 如果路径有引号, 去除
-    util_wstr_unquote(lpfile, sizeof(lpfile));
+    if (!wine)
+    {
+        util_unix2path(lpfile, (const int)_tcslen(lpfile));
+    }
+    if (true)
+    {   // 如果路径有引号, 去除
+        util_wstr_unquote(lpfile, sizeof(lpfile));
+    }
     if (lpfile[0] == L'%')
     {
         int n = 1;
@@ -1951,7 +1956,7 @@ util_to_abs(const char *path)
     {
         pret = _wcsdup(lpfile);
     }
-    if (wine && pret && util_get_unix_file_name(pret, lpfile, MAX_BUFFER))
+    if (wine && STR_NOT_NUL(pret) && pret[0] != L'/' && util_get_unix_file_name(pret, lpfile, MAX_BUFFER))
     {
         _snwprintf(pret, MAX_BUFFER, L"%s", lpfile);
     }

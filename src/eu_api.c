@@ -1803,8 +1803,8 @@ eu_free_config(void)
                 g_config->m_customize[i].hbmp = 0;
             }
         }
-		free(g_config);
-		g_config = NULL;
+        free(g_config);
+        g_config = NULL;
     }
 }
 

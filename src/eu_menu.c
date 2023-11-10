@@ -384,10 +384,9 @@ menu_update_string(const HMENU hmenu, const int pos)
     return id;
 }
 
-static unsigned __stdcall
-menu_setup_thead(void* lp)
+void
+menu_setup(HWND hwnd)
 {
-    HWND hwnd = (HWND)lp;
     if (hwnd && SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK)))
     {
         HMENU root_menu = GetMenu(hwnd);
@@ -398,13 +397,6 @@ menu_setup_thead(void* lp)
             SetMenu(hwnd, NULL);
         }
     }
-    return 0;
-}
-
-void
-menu_setup(HWND hwnd)
-{
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, menu_setup_thead, (void *)hwnd, 0, NULL));
 }
 
 void

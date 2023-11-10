@@ -49,7 +49,7 @@ on_setting_load_icon(const TCHAR *path)
     const int scx = Scintilla_GetSystemMetricsForDpi(SM_CXSMICON, dpi);
     const int scy = Scintilla_GetSystemMetricsForDpi(SM_CYSMICON, dpi);
     // Load the file from which to copy the icon.
-    while (!_tcsicmp(util_path_ext(path), _T("exe")))
+    while (WCSICMP(util_path_ext(path), ==, _T("exe")))
     {
         // Note: LoadLibrary should have a fully explicit path.
         if ((hexe = (HINSTANCE)LoadLibrary(path)) == NULL)
@@ -196,10 +196,13 @@ on_setting_update_menu(const HMENU setting_menu)
                     pconf->m_customize[i].posid = IDM_SET_SETTINGS_CONFIG + count;
                     if (pconf->m_customize[i].micon >= IDM_LUAJIT_ICON)
                     {
+                        pconf->m_customize[i].hbmp ? DeleteObject((HBITMAP)pconf->m_customize[i].hbmp) : (void)0;
                         pconf->m_customize[i].hbmp = (uintptr_t)on_setting_lua_icon(pconf->m_customize[i].micon);
                     }
                     else if (!pconf->m_customize[i].micon && (path = util_to_abs(pconf->m_customize[i].path)))
                     {
+                        eu_logmsg("%s: path[%s]\n", __FUNCTION__, eu_utf16_utf8(path, NULL));
+                        pconf->m_customize[i].hbmp ? DeleteObject((HBITMAP)pconf->m_customize[i].hbmp) : (void)0;
                         pconf->m_customize[i].hbmp = (uintptr_t)on_setting_load_icon(path);
                     }
                     if (pconf->m_customize[i].hbmp && pconf->m_customize[i].posid > 0)
@@ -231,6 +234,7 @@ on_setting_execute(HWND hwnd, const int wm_id)
             {
                 TCHAR *p = NULL;
                 TCHAR *plugin = NULL;
+                size_t vec_len = 0;
                 TCHAR *path = util_to_abs(pconf->m_customize[i].path);
                 if (path)
                 {
@@ -252,14 +256,20 @@ on_setting_execute(HWND hwnd, const int wm_id)
                         on_setting_parser_args(pconf->m_customize[i].param, &cmd_vec);
                         if (wine && (plugin = util_winexy_get()))
                         {
-                            _sntprintf(cmd_exec, MAX_BUFFER, L"%s \"%s\"", plugin, path);
+                            if (pconf->m_customize[i].hide)
+                            {
+                                _sntprintf(cmd_exec, MAX_BUFFER, L"%s %s \"%s\"", plugin, L"hide.exe", path);
+                            }
+                            else
+                            {
+                                _sntprintf(cmd_exec, MAX_BUFFER, L"%s \"%s\"", plugin, path);
+                            }
                         }
                         else
                         {
                             _sntprintf(cmd_exec, MAX_BUFFER, _T("%s"), path);
                         }
-                        size_t vec_len = cvector_size(cmd_vec);
-                        if (vec_len > 0)
+                        if ((vec_len = cvector_size(cmd_vec)) > 0)
                         {
                             for (size_t k = 0; k < vec_len; ++k)
                             {
@@ -277,7 +287,14 @@ on_setting_execute(HWND hwnd, const int wm_id)
                     {
                         if (wine && (plugin = util_winexy_get()))
                         {
-                            _sntprintf(cmd_exec, MAX_BUFFER, L"%s \"%s\"", plugin, path);
+                            if (pconf->m_customize[i].hide)
+                            {
+                                _sntprintf(cmd_exec, MAX_BUFFER, L"%s %s \"%s\"", plugin, L"hide.exe", path);
+                            }
+                            else
+                            {
+                                _sntprintf(cmd_exec, MAX_BUFFER, L"%s \"%s\"", plugin, path);
+                            }
                         }
                         else
                         {
