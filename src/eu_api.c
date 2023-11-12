@@ -2964,6 +2964,17 @@ eu_win10_or_later(void)
     return (uint32_t)-1;
 }
 
+const bool
+eu_win11_or_later(void)
+{
+    uint32_t patch = eu_win10_or_later();
+    if (patch != (uint32_t)-1)
+    {
+        return patch >= 22000;
+    }
+    return false;
+}
+
 const int
 eu_theme_index(void)
 {

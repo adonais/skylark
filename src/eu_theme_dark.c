@@ -75,7 +75,7 @@ on_dark_high_contrast(void)
 bool
 on_dark_enable(void)
 {
-    return g_dark_enabled && on_dark_apps_use() && !on_dark_high_contrast();
+    return g_dark_enabled && (eu_win11_or_later() ? true : on_dark_apps_use()) && !on_dark_high_contrast();
 }
 
 HRESULT
@@ -595,12 +595,15 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
             }
             if (g_dark_enabled && on_dark_create_hot_brush() && on_dark_set_caption())
             {
+                eu_logmsg("Enable dark mode\n");
                 return on_dark_create_bgbrush();
             }
             else
             {
                 g_dark_supported = false;
+                g_dark_enabled = false;
                 eu_close_dll(g_uxtheme);
+                eu_logmsg("Allow dark mode failed\n");
             }
         }
     }
