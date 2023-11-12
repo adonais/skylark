@@ -1819,7 +1819,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     RECT rc;
                     TabCtrl_GetItemRect(hwnd, 0, &rc);
-                    set_btnface_color(hdc, true);
+                    set_tabface_color(hdc, true);
                     set_text_color(hdc, true);
                     FrameRect(hdc, &rc, GetSysColorBrush(COLOR_3DDKSHADOW));
                     LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);

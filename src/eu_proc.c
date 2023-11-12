@@ -333,10 +333,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             }
             // 重新加上位置后显示
             on_proc_move_sidebar(pnode);
-            if (g_splitter_treebar)
-            {
-                UpdateWindowEx(g_splitter_treebar);
-            }
         }
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
@@ -616,14 +612,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_proc_msg_size(hwnd, NULL);
                     }
                 }
-                else if (i == THEME_WHITE)
-                {
-                    hdc = GetWindowDC(hwnd);
-                    on_proc_menu_border(hwnd, &r);
-                    FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
-                }
             }
-            else
+            if (!hdc)
             {
                 hdc = GetWindowDC(hwnd);
                 on_proc_menu_border(hwnd, &r);

@@ -337,7 +337,7 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             }
             else
             {
-                cr = set_btnface_color(hdc, dark_mode);
+                cr = set_tabface_color(hdc, dark_mode);
             }
             if (p->file_attr & FILE_ATTRIBUTE_READONLY)
             {

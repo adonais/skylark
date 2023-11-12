@@ -147,7 +147,13 @@ intptr_t on_dark_theme_brush(void);
 static inline uint32_t
 set_bk_color(const HDC hdc, const bool use_dark)
 {
-    return use_dark ? SetBkColor(hdc, rgb_dark_bk_color) : SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+    return use_dark ? SetBkColor(hdc, eu_win11_or_later() ? rgb_dark_bk11_color : rgb_dark_bk_color) : SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+}
+
+static inline uint32_t
+set_tabface_color(const HDC hdc, const bool use_dark)
+{
+    return use_dark ? SetBkColor(hdc, eu_win11_or_later() ? rgb_dark_bk11_color : rgb_dark_bk_color) : SetBkColor(hdc, GetSysColor(COLOR_BTNFACE));
 }
 
 static inline uint32_t
