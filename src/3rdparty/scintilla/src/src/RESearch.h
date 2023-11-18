@@ -22,7 +22,6 @@ public:
 	explicit RESearch(CharClassify *charClassTable);
 	// No dynamic allocation so default copy constructor and assignment operator are OK.
 	void Clear();
-	void GrabMatches(const CharacterIndexer &ci);
 	const char *Compile(const char *pattern, Sci::Position length, bool caseSensitive, bool posix) noexcept;
 	int Execute(const CharacterIndexer &ci, Sci::Position lp, Sci::Position endp);
 
@@ -32,7 +31,6 @@ public:
 	using MatchPositions = std::array<Sci::Position, MAXTAG>;
 	MatchPositions bopat;
 	MatchPositions eopat;
-	std::string pat[MAXTAG];
 
 private:
 
@@ -47,7 +45,7 @@ private:
 	void ChSetWithCase(unsigned char c, bool caseSensitive) noexcept;
 	int GetBackslashExpression(const char *pattern, int &incr) noexcept;
 
-	Sci::Position PMatch(const CharacterIndexer &ci, Sci::Position lp, Sci::Position endp, char *ap);
+	Sci::Position PMatch(const CharacterIndexer &ci, Sci::Position lp, Sci::Position endp, const char *ap);
 
 	Sci::Position bol;
 	Sci::Position tagstk[MAXTAG];  /* subpat tag stack */
