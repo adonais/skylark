@@ -755,25 +755,17 @@ count_line_space(eu_tabpage *pnode, sptr_t start, sptr_t end, bool header)
     return count;
 }
 
-static bool
-do_delete_space(eu_tabpage *pnode, sptr_t start, sptr_t end, bool header)
+static void
+do_delete_space(eu_tabpage *pnode, const sptr_t start, const sptr_t end, const bool header)
 {
     eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     for (sptr_t line = start; line <= end; ++line)
     {
-        sptr_t start_pos, end_pos, str_len, del_len;
-        start_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-        end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
-        str_len = end_pos - start_pos;
-        if (str_len == 0)
-        {
-            continue;
-        }
-        else
-        {
-            del_len = count_line_space(pnode, start_pos, end_pos, header);
-        }
-        if (del_len > 0)
+        sptr_t del_len = 0;
+        sptr_t start_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sptr_t end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        sptr_t str_len = end_pos - start_pos;
+        if (str_len > 0 && (del_len = count_line_space(pnode, start_pos, end_pos, header)) > 0)
         {
             if (header)
             {
@@ -786,7 +778,6 @@ do_delete_space(eu_tabpage *pnode, sptr_t start, sptr_t end, bool header)
         }
     }
     eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-    return true;
 }
 
 void
@@ -871,8 +862,8 @@ space_in_line(eu_tabpage *pnode, sptr_t start, sptr_t end)
     return res;
 }
 
-static bool
-do_delete_lines(eu_tabpage *pnode, sptr_t start, sptr_t end, bool white_chars)
+static void
+do_delete_lines(eu_tabpage *pnode, sptr_t start, sptr_t end, const bool white_chars)
 {
     eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     for (sptr_t line = start; line <= end; ++line)
@@ -890,7 +881,6 @@ do_delete_lines(eu_tabpage *pnode, sptr_t start, sptr_t end, bool white_chars)
         }
     }
     eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-    return true;
 }
 
 void
@@ -928,7 +918,7 @@ on_edit_join_line(eu_tabpage *pnode)
 }
 
 static void
-do_toggle_case(eu_tabpage *pnode, bool do_uppercase, bool do_line, bool first)
+do_toggle_case(eu_tabpage *pnode, const bool do_uppercase, const bool do_line, const bool first)
 {
     sptr_t sel_start = 0;
     sptr_t sel_end = 0;
@@ -1020,7 +1010,7 @@ on_edit_upper(eu_tabpage *pnode)
 }
 
 static void
-do_selection_case(eu_tabpage *pnode, bool sentence)
+do_selection_case(eu_tabpage *pnode, const bool sentence)
 {
     sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
     sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
@@ -1088,7 +1078,7 @@ on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence)
 }
 
 void
-on_edit_selection(eu_tabpage *pnode, int type)
+on_edit_selection(eu_tabpage *pnode, const int type)
 {
     size_t len = 0;
     char *text = NULL;
