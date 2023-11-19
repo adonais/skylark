@@ -2444,7 +2444,7 @@ eu_lua_calltip(const char *pstr)
     {
         const sptr_t end = eu_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
         eu_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
-        if (stricmp(pstr, "NaN") == 0 || stricmp(pstr, "INFINITY") == 0)
+        if (stricmp(pstr, "NaN") == 0 || stricmp(pstr, "INFINITY") == 0 || stricmp(pstr, "-INFINITY") == 0)
         {
             eu_sci_call(p, SCI_CALLTIPSHOW, end, (sptr_t) pstr);
         }
