@@ -245,7 +245,7 @@ on_tabpage_active_one(int index)
 static void
 on_tabpage_draw_sign(const HDC hdc, const LPRECT lprect)
 {
-    const TCHAR *text  = util_os_version() < 603 ? _T("x") : _T("✕");
+    const TCHAR *text  = util_os_version() < 603 || util_under_wine() ? _T("x") : _T("✕");
     HFONT hfont = CreateFont(-14, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
                              CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
     HGDIOBJ oldj = SelectObject(hdc, hfont);
@@ -761,7 +761,7 @@ on_tabpage_arr_drag2(const int from, const int dest)
     }
 }
 
-LRESULT CALLBACK
+static LRESULT CALLBACK
 on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     int count = 0;
@@ -1454,12 +1454,20 @@ on_tabpage_theme_changed(eu_tabpage *p)
 bool
 on_tabpage_check_map(void)
 {
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    int count = 0;
+    if (g_tabpages)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->map_show)
+        if ((count = TabCtrl_GetItemCount(g_tabpages)) < 2)
         {
-            return true;
+            return false;
+        }
+        for (int index = 0; index < count; ++index)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(index);
+            if (p && p->map_show)
+            {
+                return true;
+            }
         }
     }
     return false;

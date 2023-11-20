@@ -224,10 +224,10 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         // 代码折叠栏亮量颜色与填充色
         eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
         eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDER, eu_get_theme()->item.foldmargin.color);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEREND, eu_get_theme()->item.foldmargin.color);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPEN, eu_get_theme()->item.foldmargin.color);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPENMID, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDER, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEREND, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPEN, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPENMID, eu_get_theme()->item.foldmargin.color);
         // 是否自动换行
         eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? SC_WRAP_CHAR : SC_WRAP_NONE), 0);
         // 换行符样式
@@ -477,9 +477,17 @@ on_sci_destroy_control(eu_tabpage *pnode)
             cvector_freep(&pnode->re_group);
         }
         // 关闭minimap窗口
-        if (!on_tabpage_check_map() && hwnd_document_map)
+        if (!on_tabpage_check_map())
         {
-            DestroyWindow(hwnd_document_map);
+            if (hwnd_document_map)
+            {
+                DestroyWindow(hwnd_document_map);
+                pnode->map_show = false;
+            }
+        }
+        else if (pnode->map_show && hwnd_document_map)
+        {
+            eu_setpos_window(hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             pnode->map_show = false;
         }
     }
