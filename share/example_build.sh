@@ -9,12 +9,9 @@ get_char()
   stty echo
   stty $SAVEDSTTY
 }
-
 if [ -f "$0" ]; then
-echo -e "$0"
-echo 'Please press any key to continue...'
+echo -e Runing "$0"
 fi
-
 echo FULL_CURRENT_PATH = "$FULL_CURRENT_PATH"
 echo CURRENT_DIRECTORY = "$CURRENT_DIRECTORY"
 echo FILE_NAME = "$FILE_NAME"
@@ -29,6 +26,7 @@ if [ "$?" == "0" ]; then
 chmod +x "/tmp/$NAME_PART.out"
 "/tmp/$NAME_PART.out"
 fi
+echo 'Please press any key to continue...'
 get_char
 # remove execute file
 rm -f "/tmp/$NAME_PART.out" 2>/dev/null

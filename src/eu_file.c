@@ -1415,7 +1415,6 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败且标签小于1,则建立一个空白标签页
         err = on_file_new();
-        
     }
     return err;
 }
@@ -1443,6 +1442,7 @@ on_file_drop(HDROP hdrop)
         }
     }
     DragFinish(hdrop);
+    eu_wine_dotool();
     return SKYLARK_OK;
 }
 

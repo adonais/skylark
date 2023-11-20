@@ -589,11 +589,14 @@ EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);
 // eu_api.c
 EU_EXT_CLASS bool eu_touch(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_path(const char *path);
+EU_EXT_CLASS bool eu_which(const char *path);
 EU_EXT_CLASS bool eu_mk_dir(LPCTSTR dir);
 EU_EXT_CLASS bool eu_exist_dir(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_file(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_libcurl(void);
 EU_EXT_CLASS bool eu_exist_libssl(void);
+EU_EXT_CLASS bool eu_under_wine(void);
+EU_EXT_CLASS void eu_wine_dotool(void);
 EU_EXT_CLASS LPTSTR eu_suffix_strip(TCHAR *path);
 EU_EXT_CLASS LPTSTR eu_rand_str(TCHAR *str, const int len);
 EU_EXT_CLASS char *eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by);

@@ -643,7 +643,7 @@ on_view_editor_selection(eu_tabpage *pnode)
         {
             flags |= SCFIND_WHOLEWORD;
         }
-        while (true)
+        while (found_pos >= 0)
         {
             found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
             if (found_pos >= 0)
@@ -654,10 +654,6 @@ on_view_editor_selection(eu_tabpage *pnode)
                 }
                 start_pos = found_pos+select_len;
                 ++pnode->match_count;
-            }
-            else
-            {
-                break;
             }
         }
         free(select_buf);

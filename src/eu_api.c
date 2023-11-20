@@ -2137,7 +2137,7 @@ eu_save_config(void)
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
               g_config->eu_titlebar.icon?"true":"false",
-              g_config->eu_titlebar.name?"true":"false",
+              g_config->eu_titlebar.name||util_under_wine()?"true":"false",
               g_config->eu_titlebar.path?"true":"false",
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
@@ -3040,4 +3040,39 @@ te_expr *
 eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error)
 {
     return (void *)te_compile(expression, variables, var_count, error);
+}
+
+void
+eu_wine_dotool(void)
+{
+    TCHAR *plugin = NULL;
+    if (util_under_wine() && (plugin = util_winexy_tool()))
+    {
+        eu_new_process(plugin, NULL, NULL, 0, NULL);
+        free(plugin);
+    }
+}
+
+bool
+eu_under_wine(void)
+{
+    return util_under_wine();
+}
+
+bool
+eu_which(const char *path)
+{
+    bool ret = false;
+    TCHAR *u16_path = NULL;
+    if (STR_NOT_NUL(path) && (u16_path = eu_utf8_utf16(path, NULL)))
+    {
+        TCHAR *exist = util_which(u16_path);
+        if (exist)
+        {
+            ret = true;
+            free(exist);
+        }
+        free(u16_path);
+    }
+    return ret;
 }

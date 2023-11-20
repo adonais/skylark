@@ -392,6 +392,33 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
     CloseHandle(eu_new_process(cmd, NULL, NULL, 2, NULL));
 }
 
+static bool
+on_edit_exist_bc(const wchar_t *path, const wchar_t *name)
+{
+    if (STR_NOT_NUL(name))
+    {
+        return wcsnicmp(name, L"Beyond Compare", wcslen(L"Beyond Compare")) == 0;
+    }
+    else if (STR_NOT_NUL(path))
+    {
+        const wchar_t *p = wcsrchr(path, L'\\');
+        const wchar_t *bname = L"bcompare";
+        if (!p)
+        {
+            p = wcsrchr(path, L'/');
+        }
+        if (p)
+        {
+            return wcsnicmp(p + 1, bname, wcslen(bname)) == 0;
+        }
+        else 
+        {
+            return wcsnicmp(path, bname, wcslen(bname)) == 0;
+        }
+    }
+    return false;
+}
+
 static void
 on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
 {
@@ -400,20 +427,19 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
         wchar_t *plugin = NULL;
         wchar_t *cmd_exec = NULL;
         wchar_t name[MAX_PATH] = {0};
-        wchar_t unix_path[MAX_PATH] = {0};
         bool wine = util_under_wine();
         int count = eu_int_cast(cvector_size(pvec));
         const int len = (count + 1) * (MAX_PATH + 1);
         util_product_name(path, name, MAX_PATH - 1);
-        if ((plugin = util_winexy_get()) && (cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1)))
+        if ((plugin = util_winexy_hide()) && (cmd_exec = (wchar_t *)calloc(sizeof(wchar_t), len + 1)))
         {
             if (!hex)
             {
                 _snwprintf(cmd_exec, len, L"%s \"%s\" ", plugin, path);
             }
-            else if (wcsnicmp(name, L"Beyond Compare", wcslen(L"Beyond Compare")) == 0)
+            else if (on_edit_exist_bc(path, name))
             {
-                _snwprintf(cmd_exec, len, L"%s \"%s\" %s ", plugin, path, L"/fv=\"Hex Compare\"");
+                _snwprintf(cmd_exec, len, L"%s \"%s\" %s ", plugin, path, wine ? L"-fv=\\\"Hex Compare\\\"" : L"/fv=\"Hex Compare\"");
             }
             else if (wcsnicmp(name, L"WinMerge", wcslen(L"WinMerge")) == 0)
             {
@@ -430,33 +456,32 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
             }
             for (int i = 0; i < count; ++i)
             {
+                wchar_t unix_path[MAX_PATH] = {0};
                 if (i == count - 1)
                 {
-                    wcsncat(cmd_exec, L"\"", len);
+                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
-                        memset(unix_path, 0, sizeof(unix_path));
                     }
                     else
                     {
                         wcsncat(cmd_exec, pvec[i], len);
                     }
-                    wcsncat(cmd_exec, L"\"", len);
+                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                 }
                 else
                 {
-                    wcsncat(cmd_exec, L"\"", len);
+                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
-                        memset(unix_path, 0, sizeof(unix_path));
                     }
                     else
                     {
                         wcsncat(cmd_exec, pvec[i], len);
                     }
-                    wcsncat(cmd_exec, L"\" ", len);
+                    wcsncat(cmd_exec, wine ? L"\\\" " : L"\" ", len);
                 }
             }
             CloseHandle(eu_new_process(cmd_exec, NULL, NULL, 2, NULL));

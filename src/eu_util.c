@@ -1875,10 +1875,34 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
 WCHAR *
 util_winexy_get(void)
 {
-    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_PATH+1));
+    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_BUFFER+1));
     if (plugin && STR_NOT_NUL(eu_module_path))
     {
-        _snwprintf(plugin, MAX_PATH, L"/bin/wine \"%s\\plugins\\np_winexy.dll\"", eu_module_path);
+        _snwprintf(plugin, MAX_BUFFER, L"/bin/wine \"%s\\plugins\\np_winexy.dll\"", eu_module_path);
+        util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+    }
+    return plugin;
+}
+
+WCHAR *
+util_winexy_hide(void)
+{
+    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_BUFFER+1));
+    if (plugin && STR_NOT_NUL(eu_module_path))
+    {
+        _snwprintf(plugin, MAX_BUFFER, L"/bin/wine \"%s\\plugins\\np_winexy.dll\" hide.exe", eu_module_path);
+        util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+    }
+    return plugin;
+}
+
+WCHAR *
+util_winexy_tool(void)
+{
+    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_BUFFER+1));
+    if (plugin && STR_NOT_NUL(eu_module_path))
+    {
+        _snwprintf(plugin, MAX_BUFFER, L"/bin/wine \"%s\\plugins\\np_winexy.dll\" xtool \"%s\\plugins\\xtool\"", eu_module_path, eu_module_path);
         util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
     }
     return plugin;
@@ -2202,6 +2226,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
     LANGANDCODEPAGE *lptranslate = NULL;
     do
     {
+        out_string[0] = L'\0';
         if ((h_ver = util_init_verinfo()) == NULL)
         {
             break;
@@ -2227,19 +2252,14 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         for (uint16_t i = 0; i < (cb_translate / sizeof(LANGANDCODEPAGE)); i++)
         {
-            sntprintf(dw_block,
-                      FILESIZE,
-                      L"\\StringFileInfo\\%04x%04x\\ProductName",
-                      lptranslate[i].wLanguage,
-                      lptranslate[i].wCodePage);
-
-            ret = pfnVerQueryValueW((LPCVOID) pbuffer, (LPCWSTR) dw_block, (LPVOID *) &ptmp, &cb_translate);
-            if (ret)
+            sntprintf(dw_block, FILESIZE, L"\\StringFileInfo\\%04x%04x\\ProductName", lptranslate[i].wLanguage, lptranslate[i].wCodePage);
+            if ((ret = pfnVerQueryValueW((LPCVOID) pbuffer, (LPCWSTR) dw_block, (LPVOID *) &ptmp, &cb_translate)))
             {
-                out_string[0] = L'\0';
-                wcsncpy(out_string, (LPCWSTR) ptmp, len);
-                ret = wcslen(out_string) > 1;
-                if (ret) break;
+                wcsncpy(out_string, (LPCWSTR) ptmp, len - 1);
+                if ((ret = wcslen(out_string) > 1))
+                {
+                    break;
+                }
             }
         }
     } while (0);
@@ -2453,33 +2473,32 @@ util_get_hwnd(const uint32_t pid)
 TCHAR *
 util_which(const TCHAR *name)
 {
+    int  len = 0;
     bool diff = false;
     bool add_suf = true;
     TCHAR *file = NULL;
     TCHAR *env_path = NULL;
-    TCHAR sz_work[MAX_PATH + 1] = {0};
+    TCHAR sz_work[MAX_BUFFER] = {0};
     const TCHAR *delimiter = _T(";");
-    TCHAR *path = _tgetenv(_T("PATH"));
+    const TCHAR *path = (const TCHAR *)_tgetenv(_T("PATH"));
     TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
     TCHAR *dot = _tcsrchr(name, _T('.'));
-    int len = eu_int_cast(_tcslen(path)) + (3 * MAX_PATH);
-    if (!path)
+    if (!path || !GetSystemDirectory(sz_work, MAX_BUFFER - 1))
     {
         return NULL;
     }
-    GetSystemDirectory(sz_work, MAX_PATH);
     if (!sz_work[0] || !eu_module_path[0])
     {
         return NULL;
     }
+    if (true)
+    {
+        len = eu_int_cast(_tcslen(path)) + (3 * MAX_BUFFER);
+        diff = _tcscmp(sz_work, eu_module_path) != 0;
+    }
     if ((env_path = (TCHAR *)calloc(sizeof(TCHAR), len + 1)) == NULL)
     {
         return NULL;
-    }
-    diff = _tcscmp(sz_work, eu_module_path) != 0;
-    if (util_under_wine())
-    {
-        add_suf = false;
     }
     else if (dot)
     {
@@ -2492,7 +2511,7 @@ util_which(const TCHAR *name)
             }
         }
     }
-    if ((file = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH)) != NULL)
+    if ((file = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)) != NULL)
     {
         if (diff)
         {
@@ -2517,7 +2536,7 @@ util_which(const TCHAR *name)
             {
                 quote = false;
             }
-            _sntprintf(file, MAX_PATH, _T("%s\\%s"), quote? &tok[1] : tok, name);
+            _sntprintf(file, MAX_BUFFER - 1, _T("%s\\%s"), quote? &tok[1] : tok, name);
             do
             {
                 struct _stat st;
@@ -2528,7 +2547,7 @@ util_which(const TCHAR *name)
                 }
                 if (add_suf && av[i])
                 {
-                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), quote? &tok[1] : tok, name, av[i]);
+                    _sntprintf(file, MAX_BUFFER - 1, _T("%s\\%s%s"), quote? &tok[1] : tok, name, av[i]);
                 }
             } while (av[i++]);
             tok = _tcstok(NULL, delimiter);
@@ -2840,7 +2859,7 @@ util_explorer_open(eu_tabpage *pnode)
             wchar_t unix_path[MAX_PATH] = {0};
             if (util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH - 1) && (plugin = util_winexy_get()))
             {
-                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s %s \"%s\"", plugin, L"explorer.exe", unix_path);
+                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s %s \\\"%s\\\"", plugin, L"explorer.exe", unix_path);
                 free(plugin);
                 CloseHandle(eu_new_process(cmd_exec, NULL, pnode->pathname, 2, NULL));
             }

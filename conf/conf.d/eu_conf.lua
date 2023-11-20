@@ -26,8 +26,9 @@ function eu_conf.fill_customize(s)
                                  ['param'] = "%CURRENT_SELSTR% %NUM_SELSTR%", ['micon'] = 44305, ['posid'] = 0, ['hbmp'] = 0}
         process_customized[2] = {['hide'] = false, ['name'] = "44501", ['path'] = "",
                                  ['param'] = "", ['micon'] = 0, ['posid'] = 0, ['hbmp'] = 0}
-        local ver = eu_core.euapi.eu_win10_or_later()
-        if (ver ~= 0xFFFFFFFF) then
+        if (eu_core.euapi.eu_under_wine()) then
+          process_customized[2].path = "calc"
+        elseif (eu_core.euapi.eu_which("win32calc.exe")) then
           process_customized[2].path = "%windir%/system32/win32calc.exe"
         else
           process_customized[2].path = "%windir%/system32/calc.exe"

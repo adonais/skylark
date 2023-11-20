@@ -757,7 +757,7 @@ do_extra_actions(void *lp)
             WCHAR *plugin = NULL;
             if (wine && (plugin = util_winexy_get()))
             {
-                _snwprintf(cmd_exec, len, L"%s \"%s\" ", plugin, abs_path);
+                _snwprintf(cmd_exec, len, L"%s \\\"%s\\\" ", plugin, abs_path);
                 free(plugin);
             }
             else
@@ -769,7 +769,7 @@ do_extra_actions(void *lp)
                 WCHAR unix_path[MAX_PATH] = {0};
                 if (i == count - 1)
                 {
-                    wcsncat(cmd_exec, L"\"", len);
+                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(vec_files[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
@@ -778,11 +778,11 @@ do_extra_actions(void *lp)
                     {
                         wcsncat(cmd_exec, vec_files[i], len);
                     }
-                    wcsncat(cmd_exec, L"\"", len);
+                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                 }
                 else
                 {
-                    wcsncat(cmd_exec, L"\"", len);
+                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(vec_files[i], unix_path, MAX_PATH))
                     {
                         wcsncat(cmd_exec, unix_path, len);
@@ -791,7 +791,7 @@ do_extra_actions(void *lp)
                     {
                         wcsncat(cmd_exec, vec_files[i], len);
                     }
-                    wcsncat(cmd_exec, L"\" ", len);
+                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\" ", len);
                 }
             }
             if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)))

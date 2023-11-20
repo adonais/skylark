@@ -226,6 +226,7 @@ _tmain(int argc, TCHAR *argv[])
         }
         else if (!EU_REENTRANT_PARAM)
         {
+            eu_wine_dotool();
             SKY_SAFE_EXIT(SKYLARK_OK);
         }
     }

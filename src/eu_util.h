@@ -141,6 +141,8 @@ HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 HWND   util_get_hwnd(const uint32_t pid);
 WCHAR* util_winexy_get(void);
+WCHAR* util_winexy_hide(void);
+WCHAR* util_winexy_tool(void);
 TCHAR* util_unix2path(TCHAR *path, const int len);
 TCHAR* util_path2unix(TCHAR *path, const int len);
 TCHAR* util_add_double_quotes(const TCHAR *path);
