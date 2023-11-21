@@ -1039,7 +1039,13 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     if (hwnd_caret)
                     {
                         Edit_GetText(hwnd_caret, alpha, 4);
-                        value = _tstoi(alpha) << 24 & 0xff000000;
+                        value = _tstoi(alpha);
+                        if (value < 1 && value > 9)
+                        {
+                            value = 2;
+                        }
+                        value = value << 24 & 0xff000000;
+                        dlg_style.caret.color &= 0x00ffffff;
                         dlg_style.caret.color |= value;
                     }
                     memcpy(&(eu_get_theme()->item), &dlg_style, sizeof(struct styletheme));
