@@ -133,8 +133,8 @@ function eu_theme.get_default(name)
           "xmlsection_bold = 1\n" ..
           "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
           "activetab_fontsize = 11\n" ..
-          "activetab_color = 0\n" ..
-          "activetab_bgcolor = 0x00545454\n" ..
+          "activetab_color = 0x00545454\n" ..
+          "activetab_bgcolor = 0x00C4C4C4\n" ..
           "activetab_bold = 0\n" ..
           "caret_font = \"Consolas\"\n" ..
           "caret_fontsize = 11\n" ..
@@ -301,7 +301,7 @@ function eu_theme.get_default(name)
           "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
-          "activetab_bgcolor = 0x00d77800\n" ..
+          "activetab_bgcolor = 0x00C4C4C4\n" ..
           "activetab_bold = 0\n" ..
           "caret_font = \"Consolas\"\n" ..
           "caret_fontsize = 11\n" ..
@@ -470,7 +470,7 @@ function eu_theme.get_default(name)
           "activetab_font = \"DEFAULT_GUI_FONT\"\n" ..
           "activetab_fontsize = 11\n" ..
           "activetab_color = 0\n" ..
-          "activetab_bgcolor = 0x00d77800\n" ..
+          "activetab_bgcolor = 0x00C4C4C4\n" ..
           "activetab_bold = 0\n" ..
           "caret_font = \"Consolas\"\n" ..
           "caret_fontsize = 11\n" ..
@@ -552,6 +552,11 @@ function eu_theme.load_default(name)
     else
         dofile(file)
         tname = name
+    end
+    -- 兼容旧代码
+    if (name == "black" and activetab_bgcolor == 0x00545454 and activetab_color == 0) then
+        activetab_color = 0x00545454
+        activetab_bgcolor = 0x00C4C4C4
     end
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)

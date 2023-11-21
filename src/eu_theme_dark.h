@@ -99,6 +99,8 @@ typedef HRESULT (WINAPI *DwmGetColorizationColorPtr)(DWORD *pcrColorization, BOO
 #define UpdateWindowEx(hwnd)                                                               \
   RedrawWindow((hwnd), NULL, NULL, RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_INTERNALPAINT)   \
 
+#define DARKMODE (_T("DarkMode_Explorer"))
+
 #define rgb_alpha(rgb, a)                                                                  \
   ((int)(((colour)((rgb)&0xffffff)) | (((colour)(uint8_t)((a)&0xff)) << 24)))              \
 

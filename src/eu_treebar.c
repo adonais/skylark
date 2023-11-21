@@ -1609,11 +1609,13 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                     }
                     TreeView_SetItem(hwnd, &item);
+                    break;
                 }
-                break;
                 case NM_DBLCLK:
+                {
                     on_filetree_node_dbclick();
                     break;
+                }
                 case TVN_BEGINLABELEDIT:
                 {
                     LPNMTVDISPINFO pinfo = (LPNMTVDISPINFO) lpnmhdr;
@@ -1623,8 +1625,8 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
                     SetWindowLongPtr(hwnd, GWLP_USERDATA, (uintptr_t) old_tvd);
+                    break;
                 }
-                break;
                 case TVN_ENDLABELEDIT:
                 {
                     LPNMTVDISPINFO pinfo = (LPNMTVDISPINFO) lpnmhdr;
@@ -1635,7 +1637,9 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 default:
+                {
                     break;
+                }
             }
             break;
         }
@@ -1785,11 +1789,18 @@ on_treebar_load_imglist(HWND hwnd)
 void
 on_treebar_update_theme(void)
 {
-    SendMessage(g_filetree, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
-    SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
+    SendMessage(g_filetree, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
+    if (util_under_wine() && eu_get_theme()->item.text.color == 0x00D4D4D4)
+    {
+        SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, 0xFFFFFF);
+    }
+    else
+    {
+        SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
+    }
     SendMessage(g_filetree, TVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
     // 向控件发送消息, 要不然滚动条可能不会重绘
-    on_dark_set_theme(g_filetree, on_dark_enable() ? L"DarkMode_Explorer" : L"", NULL);
+    on_dark_set_theme(g_filetree, on_dark_enable() ? DARKMODE : L"", NULL);
 }
 
 LRESULT CALLBACK
@@ -1812,7 +1823,6 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PAINTSTRUCT    ps;
                 HDC hdc = BeginPaint(hwnd, & ps);
-                HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_bgbrush();
                 // 绘制管理器标签
                 HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
                 if (old_font)

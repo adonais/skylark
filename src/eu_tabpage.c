@@ -263,15 +263,16 @@ static void
 on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 {
     HDC hdc = GetDC(hwnd);
+    const bool dark = on_dark_enable();
     colour cr = 0;
     if (sel)
     {
-        cr = eu_get_theme()->item.activetab.bgcolor;
+        cr = !dark ? eu_get_theme()->item.activetab.bgcolor : eu_get_theme()->item.activetab.color;
         SetBkColor(hdc, cr);
     }
     else
     {
-        cr = set_btnface_color(hdc, on_dark_enable());
+        cr = set_tabface_color(hdc, dark);
     }
     on_tabpage_draw_sign(hdc, lprect);
     ReleaseDC(hwnd, hdc);
@@ -309,7 +310,7 @@ on_tabpage_hit_index(const LPPOINT pt)
 static void
 on_tabpage_paint_draw(HWND hwnd, HDC hdc)
 {
-    bool dark_mode = on_dark_enable();
+    const bool dark_mode = on_dark_enable();
     HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
     while (old_font)
     {
@@ -331,7 +332,7 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
             if (on_tabpage_nfocus(index))
             {   // 从主题获取COLOR_HIGHLIGHT值
-                cr = eu_get_theme()->item.activetab.bgcolor;
+                cr = !dark_mode ? eu_get_theme()->item.activetab.bgcolor : eu_get_theme()->item.activetab.color;
                 SetBkColor(hdc, cr);
                 ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
             }

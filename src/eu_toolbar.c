@@ -1015,6 +1015,16 @@ on_toolbar_update_button(void)
     }
 }
 
+void
+on_toolbar_redraw(HWND hwnd)
+{
+    HWND h_tool = NULL;
+    if ((h_tool = GetDlgItem(hwnd, IDC_TOOLBAR)))
+    {
+        UpdateWindowEx(h_tool);
+    }
+}
+
 bool
 on_toolbar_refresh(HWND hwnd)
 {

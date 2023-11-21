@@ -271,12 +271,15 @@ bool
 on_dark_color_scheme_change(LPARAM lParam)
 {
     bool is = false;
-    if (lParam && (0 == _tcsicmp((const TCHAR *)lParam, _T("ImmersiveColorSet"))))
+    if (lParam && (0 == _tcsicmp((const TCHAR *)lParam, _T("ImmersiveColorSet"))) && fnRefreshImmersiveColorPolicyState)
     {
         fnRefreshImmersiveColorPolicyState();
         is = true;
     }
-    fnGetIsImmersiveColorUsingHighContrast(IHCM_REFRESH);
+    if (fnGetIsImmersiveColorUsingHighContrast)
+    {
+        fnGetIsImmersiveColorUsingHighContrast(IHCM_REFRESH);
+    }
     return is;
 }
 
@@ -365,9 +368,7 @@ on_dark_get_bgbrush(void)
     {   // not dark mode
         if (on_dark_set_caption())
         {
-            g_dark_bkgnd = eu_theme_index() == THEME_WHITE ?
-                           GetSysColorBrush(COLOR_WINDOW) :
-                           GetSysColorBrush(COLOR_MENU);
+            g_dark_bkgnd = eu_theme_index() == THEME_WHITE && !util_under_wine() ? GetSysColorBrush(COLOR_WINDOW) : GetSysColorBrush(COLOR_MENU);
         }
         else
         {
@@ -495,7 +496,7 @@ on_dark_tips_theme(HWND hwnd, int msg)
         HWND htips = (HWND) SendMessage(hwnd, msg, 0, 0);
         if (NULL != htips)
         {
-            on_dark_set_theme(htips, g_dark_enabled ? L"DarkMode_Explorer" : NULL, NULL);
+            on_dark_set_theme(htips, g_dark_enabled ? DARKMODE : NULL, NULL);
         }
     }
 }

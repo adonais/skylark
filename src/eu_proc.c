@@ -549,7 +549,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     TOOLTIPTEXT *p_tips = NULL;
     eu_tabpage *pnode = NULL;
     LRESULT result = 0;
-    if (eu_get_config()->m_menubar && eu_win10_or_later() != (uint32_t)-1 && on_theme_menu_proc(hwnd, message, wParam, lParam, &result))
+    const bool menu_draw = eu_get_config()->m_menubar && eu_win10_or_later() != (uint32_t)-1 && !util_under_wine();
+    if (menu_draw && on_theme_menu_proc(hwnd, message, wParam, lParam, &result))
     {
         return result;
     }
@@ -571,6 +572,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             return 1;
         case WM_CREATE:
+            if (!on_theme_setup_font(hwnd))
+            {
+                PostQuitMessage(0);
+            }
             if (on_proc_create_widgets(hwnd))
             {
                 PostQuitMessage(0);
@@ -601,26 +606,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             RECT r = {0};
             HDC hdc = NULL;
             LRESULT result = DefWindowProc(hwnd, WM_NCPAINT, wParam, lParam);
-            if (!on_dark_enable())
-            {   // 系统dark模式关闭时, 动态刷新主题
-                const int i = eu_theme_index();
-                if (i == THEME_BLACK)
-                {
-                    if (on_dark_supports())
-                    {
-                        eu_dark_theme_release(false);
-                        on_proc_msg_size(hwnd, NULL);
-                    }
-                }
-            }
-            if (!hdc)
+            if ((hdc = GetWindowDC(hwnd)))
             {
-                hdc = GetWindowDC(hwnd);
                 on_proc_menu_border(hwnd, &r);
                 FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
-            }
-            if (hdc)
-            {
                 ReleaseDC(hwnd, hdc);
             }
             return result;
@@ -779,6 +768,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_THEMECHANGED:
+        {
             if (on_dark_supports())
             {
                 HWND snippet = NULL;
@@ -803,6 +793,15 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
             break;
+        }
+        case WM_SETTINGCHANGE:
+        {
+            if (on_dark_color_scheme_change(lParam) && eu_theme_index() == THEME_BLACK)
+            {
+                eu_logmsg("dark mode cloor changed\n");
+            }
+            break;
+        }
         case WM_SYSCOMMAND:
         {
             if (wParam == SC_RESTORE)
@@ -853,18 +852,18 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (IDM_STYLETHEME_BASE <= wm_id && wm_id <= IDM_STYLETHEME_BASE + VIEW_STYLETHEME_MAXCOUNT - 1)
             {
-                on_view_switch_theme(g_hwndmain, wm_id);
+                on_view_switch_theme(hwnd, wm_id);
                 break;
             }
             if (IDM_LOCALES_BASE <= wm_id && wm_id <= IDM_LOCALES_BASE + MAX_MULTI_LANG - 1)
             {
-                i18n_switch_locale(g_hwndmain, wm_id);
+                i18n_switch_locale(hwnd, wm_id);
                 break;
             }
             if (IDM_SET_LUAJIT_EXECUTE <= wm_id && wm_id <= IDM_SET_LUAJIT_EXECUTE + DW_SIZE - 1)
             {
                 eu_logmsg("Run custom menu, wm_id = %d\n", (int)wm_id);
-                on_setting_execute(g_hwndmain, wm_id);
+                on_setting_execute(hwnd, wm_id);
                 break;
             }
             switch (wm_id)
@@ -1795,7 +1794,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         LPNMTBCUSTOMDRAW lptoolbar = (LPNMTBCUSTOMDRAW)lParam;
                         if (lptoolbar)
-                        {
+                        {   // 绘制toolbar
                             FillRect(lptoolbar->nmcd.hdc, &lptoolbar->nmcd.rc, (HBRUSH)on_dark_get_bgbrush());
                         }
                     }
@@ -2214,8 +2213,8 @@ eu_dpi_scale_font(void)
 int
 eu_dpi_scale_style(int value, const int scale, const int min_value)
 {
-	value = (scale == USER_DEFAULT_SCREEN_DPI*100) ? value : MulDiv(value, scale, USER_DEFAULT_SCREEN_DPI*100);
-	return MAX(value, min_value);
+    value = (scale == USER_DEFAULT_SCREEN_DPI*100) ? value : MulDiv(value, scale, USER_DEFAULT_SCREEN_DPI*100);
+    return MAX(value, min_value);
 }
 
 int
@@ -2313,7 +2312,6 @@ eu_create_main_window(HINSTANCE instance)
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
             g_hwndmain = CreateWindowEx(WS_EX_ACCEPTFILES, APP_CLASS, app_title, ac_flags, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, instance, NULL);
-            on_theme_setup_font(g_hwndmain);
         }
     }
     return g_hwndmain;

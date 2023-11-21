@@ -1766,7 +1766,7 @@ on_search_regxp_error(void)
                 }
                 if (hwnd_regxp_tips && on_dark_enable())
                 {
-                    on_dark_set_theme(hwnd_regxp_tips, L"DarkMode_Explorer", NULL);
+                    on_dark_set_theme(hwnd_regxp_tips, DARKMODE, NULL);
                 }
             }
             else if ((ll_msg = on_search_regxp_msg()) != NULL)
@@ -3589,7 +3589,7 @@ on_search_dark_mode_init(HWND hdlg, bool dark)
     }
     if (hwnd_regxp_tips)
     {
-        on_dark_set_theme(hwnd_regxp_tips, dark ? L"DarkMode_Explorer": L"", NULL);
+        on_dark_set_theme(hwnd_regxp_tips, dark ? DARKMODE: L"", NULL);
     }
     UpdateWindowEx(hdlg);
 }
