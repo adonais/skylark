@@ -126,7 +126,7 @@ on_view_refresh_scroll(void)
     }
 }
 
-static int
+int
 on_view_refresh_theme(HWND hwnd)
 {
     HWND snippet = NULL;

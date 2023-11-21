@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 int on_view_switch_type(int type);
+int on_view_refresh_theme(HWND hwnd);
 int on_view_switch_theme(HWND hwnd, int id);
 int on_view_modify_theme(void);
 int on_view_editor_selection(eu_tabpage *pnode);

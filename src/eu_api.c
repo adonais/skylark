@@ -2970,7 +2970,7 @@ eu_win11_or_later(void)
     uint32_t patch = eu_win10_or_later();
     if (patch != (uint32_t)-1)
     {
-        return patch >= 22000;
+        return (patch >= 22000) && (!util_under_wine());
     }
     return false;
 }

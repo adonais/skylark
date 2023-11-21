@@ -596,7 +596,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
             }
             if (g_dark_enabled && on_dark_create_hot_brush() && on_dark_set_caption())
             {
-                eu_logmsg("Enable dark mode\n");
+                eu_logmsg("The dark theme is successfully initialized\n");
                 return on_dark_create_bgbrush();
             }
             else
@@ -604,7 +604,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
                 g_dark_supported = false;
                 g_dark_enabled = false;
                 eu_close_dll(g_uxtheme);
-                eu_logmsg("Allow dark mode failed\n");
+                eu_logmsg("The Dark theme initialization failed\n");
             }
         }
     }

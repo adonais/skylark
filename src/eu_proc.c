@@ -798,7 +798,21 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (on_dark_color_scheme_change(lParam) && eu_theme_index() == THEME_BLACK)
             {
-                eu_logmsg("dark mode cloor changed\n");
+                if (util_dark_theme())
+                {
+                    eu_logmsg("swiching dark mode\n");
+                    if (!on_dark_enable() && eu_dark_theme_init(true, true))
+                    {
+                        SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
+                        on_view_refresh_theme(hwnd);
+                    }
+                }
+                else if (!eu_win11_or_later())
+                {
+                    eu_logmsg("swiching light mode\n");
+                    eu_dark_theme_release(false);
+                    on_proc_msg_size(hwnd, NULL);
+                }
             }
             break;
         }

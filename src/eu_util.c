@@ -3363,3 +3363,18 @@ util_font_available(const char *name)
     eu_safe_free(pname);
     return found;
 }
+
+bool
+util_dark_theme(void)
+{
+    int buffer[32] = {0};
+    uint32_t cbdata = 32;
+    LSTATUS res = RegGetValueW(HKEY_CURRENT_USER,
+                              L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                              L"AppsUseLightTheme",
+                              RRF_RT_REG_DWORD,
+                              NULL,
+                              buffer,
+                              &cbdata);
+    return (res == ERROR_SUCCESS) && (((buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0])) == 0);
+}
