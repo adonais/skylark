@@ -515,7 +515,7 @@ eu_dark_theme_release(bool shutdown)
         on_dark_set_titlebar(hwnd, false);
         on_dark_allow_app(false);
         on_dark_allow_window(hwnd, false);
-        on_statusbar_dark_release(true);
+        on_statusbar_dark_mode(false);
         g_dark_enabled = false;
         on_toolbar_refresh(hwnd);
         fnFlushMenuThemes();

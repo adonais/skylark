@@ -383,8 +383,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     }
     else if (!on_dark_enable())
     {
-        SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
-        on_statusbar_update();
+        on_statusbar_refresh();
     }
     on_favorite_reload_root();
     on_search_dark_mode_release();

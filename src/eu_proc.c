@@ -307,9 +307,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         {
             if (g_statusbar)
             {
-                DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
-                               rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
-                SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+                DeferWindowPos(hdwp, g_statusbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
                 on_statusbar_btn_rw(pnode, true);
             }
         }
@@ -619,6 +617,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_SIZE:
             if (wParam != SIZE_MINIMIZED)
             {
+                on_statusbar_refresh();
                 on_proc_msg_size(hwnd, NULL);
             }
             break;
@@ -2088,10 +2087,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (document_map_initialized && hwnd_document_map)
             {
                 PostMessage(hwnd_document_map, WM_MOVE, 0, 0);
-            }
-            if (g_statusbar)
-            {
-                PostMessage(g_statusbar, WM_MOVE, 0, 0);
             }
             break;
         }
