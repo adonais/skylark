@@ -384,6 +384,19 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
     eu_tabpage *pnode = NULL;
     switch (message)
     {
+        case WM_CREATE:
+        {
+            if (on_dark_enable())
+            {
+                on_statusbar_refresh();
+                on_dark_set_theme(g_statusbar, L"Explorer", NULL);
+            }
+            else 
+            {
+                SendMessage(hwnd, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
+            }
+            break;
+        }
         case WM_ERASEBKGND:
         {
             if (!on_dark_enable())
@@ -450,8 +463,9 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             EndPaint(hwnd, &ps);
             return 0;
         }
-        case WM_SIZE:
-        {
+        case WM_DPICHANGED:
+        {   // 需要重新设置按钮的字体
+            SendMessage(GetDlgItem(hwnd, IDM_BTN_RW), WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
             break;
         }
         case WM_COMMAND:
@@ -893,7 +907,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
     }
 }
 
-static void
+static bool
 on_statusbar_create_filetype_menu(void)
 {
     if (g_menu_type)
@@ -918,7 +932,9 @@ on_statusbar_create_filetype_menu(void)
                 free(desc);
             }
         }
+        return true;
     }
+    return false;
 }
 
 int
@@ -967,16 +983,16 @@ on_statusbar_dark_mode(const bool dark)
     on_dark_set_theme(btn, L"Explorer", NULL);
 }
 
-bool
-on_statusbar_init(HWND hwnd)
+int
+on_statusbar_create_dlg(HWND hwnd)
 {
-    bool ret = false;
-    const uint32_t dw_style = SBT_NOBORDERS | WS_CHILD;
+    int ret = 1;
+    const uint32_t style = SBT_NOBORDERS | WS_CHILD;
     if (g_statusbar)
     {
         DestroyWindow(g_statusbar);
     }
-    g_statusbar = CreateWindowEx(WS_EX_COMPOSITED, STATUSCLASSNAME, NULL, dw_style, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUSBAR, eu_module_handle(), 0);
+    g_statusbar = CreateWindowEx(WS_EX_COMPOSITED, STATUSCLASSNAME, NULL, style, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUSBAR, eu_module_handle(), 0);
     do
     {
         if (!g_statusbar)
@@ -995,12 +1011,17 @@ on_statusbar_init(HWND hwnd)
             eu_logmsg("%s: create menu failed\n", __FUNCTION__);
             break;
         }
-        on_statusbar_create_filetype_menu();
-        if ((ret = on_statusbar_create_button(g_statusbar)) && on_dark_enable())
+        if (!(on_statusbar_create_filetype_menu()))
         {
-            on_statusbar_refresh();
-            on_dark_set_theme(g_statusbar, L"Explorer", NULL);
+            eu_logmsg("%s: on_statusbar_create_filetype_menu failed\n", __FUNCTION__);
+            break;
         }
+        if (!on_statusbar_create_button(g_statusbar))
+        {
+            eu_logmsg("%s: on_statusbar_create_button failed\n", __FUNCTION__);
+            break;
+        }
+        ret = 0;
     } while(0);
     return ret;
 }

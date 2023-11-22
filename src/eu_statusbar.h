@@ -41,7 +41,7 @@ extern "C" {
 
 extern HWND g_statusbar;
 
-bool on_statusbar_init(HWND hwnd);
+int  on_statusbar_create_dlg(HWND hwnd);
 int  on_statusbar_height(void);
 int  on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto);
 void on_statusbar_refresh();

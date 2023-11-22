@@ -1034,11 +1034,11 @@ on_toolbar_refresh(HWND hwnd)
         DestroyWindow(h_tool);
     }
     refresh_clipboard();  // dpi改变时重新渲染图标
-    return (on_toolbar_create(hwnd) == 0);
+    return (on_toolbar_create_dlg(hwnd) == 0);
 }
 
 int
-on_toolbar_create(HWND parent)
+on_toolbar_create_dlg(HWND parent)
 {
     int ret = 0;
     HWND htool = NULL;

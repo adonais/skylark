@@ -41,14 +41,6 @@ init_instance(HINSTANCE instance)
     HWND hwnd = eu_create_main_window(instance);
     if (hwnd)
     {
-        if (!eu_create_toolbar(hwnd))
-        {
-            return NULL;
-        }
-        if (!eu_create_statusbar(hwnd))
-        {
-            return NULL;
-        }
         if (eu_get_config()->m_fullscreen)
         {
             eu_logmsg("we create fullsrceen window\n");

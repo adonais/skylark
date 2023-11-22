@@ -31,6 +31,11 @@ static volatile long g_interval_count = 0;   // 启动自动更新的时间间�
 static int
 on_proc_create_widgets(HWND hwnd)
 {
+    if (on_toolbar_create_dlg(hwnd))
+    {
+        eu_logmsg("on_toolbar_create_dl return false\n");
+        return 1;
+    }
     if (on_treebar_create_dlg(hwnd))
     {
         eu_logmsg("on_treebar_create_dlg return false\n");
@@ -39,6 +44,11 @@ on_proc_create_widgets(HWND hwnd)
     if (on_tabpage_create_dlg(hwnd))
     {
         eu_logmsg("on_tabpage_create_dlg return false\n");
+        return 1;
+    }
+    if (on_statusbar_create_dlg(hwnd))
+    {
+        eu_logmsg("on_statusbar_create_dlg return false\n");
         return 1;
     }
     return SKYLARK_OK;
@@ -574,7 +584,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostQuitMessage(0);
             }
-            if (on_proc_create_widgets(hwnd))
+            if (on_proc_create_widgets(hwnd) != SKYLARK_OK)
             {
                 PostQuitMessage(0);
             }
@@ -719,9 +729,15 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             on_theme_setup_font(hwnd);
             on_tabpage_foreach(hexview_update_theme);
             on_toolbar_refresh(hwnd);
-            on_statusbar_init(hwnd);
             menu_bmp_destroy();
-            SendMessage(g_treebar, WM_DPICHANGED, 0, 0);
+            if (g_treebar)
+            {
+                SendMessage(g_treebar, WM_DPICHANGED, 0, 0);
+            }
+            if (g_statusbar)
+            {
+                SendMessage(g_statusbar, WM_DPICHANGED, 0, 0);
+            }
             break;
         }
         case WM_CTLCOLORLISTBOX:
@@ -775,14 +791,14 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_dark_refresh_titlebar(hwnd);
                 on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
                 on_tabpage_foreach(on_tabpage_theme_changed);
-                if (g_statusbar)
-                {
-                    on_statusbar_init(hwnd);
-                }
                 on_toolbar_refresh(hwnd);
                 if (g_filetree)
                 {
                     SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
+                }
+                if (g_statusbar)
+                {
+                    SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
                 }
                 if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
                 {
@@ -2234,18 +2250,6 @@ eu_dpi_scale_xy(int adpi, int m)
         return MulDiv(m, dpx, USER_DEFAULT_SCREEN_DPI);
     }
     return m;
-}
-
-bool
-eu_create_toolbar(HWND hwnd)
-{
-    return (on_toolbar_create(hwnd) == 0);
-}
-
-bool
-eu_create_statusbar(HWND hwnd)
-{
-    return on_statusbar_init(hwnd);
 }
 
 void

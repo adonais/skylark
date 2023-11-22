@@ -38,7 +38,7 @@ void on_toolbar_setup_button(int id, int flags);
 void on_toolbar_no_highlight(void *lp);
 void on_toolbar_redraw(HWND hwnd);
 int  on_toolbar_height(void);
-int  on_toolbar_create(HWND hwnd);
+int  on_toolbar_create_dlg(HWND hwnd);
 bool on_toolbar_refresh(HWND hwnd);
 HWND on_toolbar_create_clipbox(HWND hwnd);
 HWND on_toolbar_clip_hwnd(void);

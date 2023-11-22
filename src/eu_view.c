@@ -752,7 +752,7 @@ on_view_full_sreen(HWND hwnd)
         GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
         if (!GetDlgItem(hwnd, IDC_TOOLBAR))
         {
-            on_toolbar_create(hwnd);
+            on_toolbar_create_dlg(hwnd);
         }
     }
     else

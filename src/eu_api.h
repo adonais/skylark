@@ -707,8 +707,6 @@ EU_EXT_CLASS void eu_about_command(void);
 EU_EXT_CLASS HWND eu_module_hwnd(void);
 EU_EXT_CLASS void eu_close_edit(void);
 EU_EXT_CLASS HWND eu_create_main_window(HINSTANCE instance);
-EU_EXT_CLASS bool eu_create_toolbar(HWND hwnd);
-EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);
 EU_EXT_CLASS void eu_create_fullscreen(HWND hwnd);
 EU_EXT_CLASS int eu_before_proc(MSG *p_msg);
 EU_EXT_CLASS uint32_t eu_get_dpi(HWND hwnd);
