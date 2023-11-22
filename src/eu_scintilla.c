@@ -477,7 +477,7 @@ on_sci_destroy_control(eu_tabpage *pnode)
             cvector_freep(&pnode->re_group);
         }
         // 关闭minimap窗口
-        if (!on_tabpage_check_map())
+        if (!on_tabpage_exist_map())
         {
             if (hwnd_document_map)
             {

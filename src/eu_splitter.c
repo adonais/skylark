@@ -23,8 +23,14 @@ HWND g_splitter_symbar = NULL;
 HWND g_splitter_editbar = NULL;
 HWND g_splitter_tablebar = NULL;
 
-static void
-on_splitter_drawing(HWND hwnd, HDC hdc)
+static inline int
+on_splitter_tree_line(void)
+{
+    return (3 * SPLIT_WIDTH);
+}
+
+static inline void
+on_splitter_drawing(const HWND hwnd, const HDC hdc)
 {
     RECT rc = {0};
     GetClientRect(hwnd, &rc);
@@ -32,7 +38,7 @@ on_splitter_drawing(HWND hwnd, HDC hdc)
 }
 
 static void
-on_splitter_rect_box(HWND hwnd, LPRECT r, int offset)
+on_splitter_rect_box(HWND hwnd, LPRECT r, const int offset)
 {
     RECT rc_tree = {0};
     RECT rc_main = {0};
@@ -50,14 +56,14 @@ on_splitter_rect_box(HWND hwnd, LPRECT r, int offset)
     r->bottom = r->top + tree_hight;
 }
 
-static int
-on_splitter_absolute_height(int y)
+static inline int
+on_splitter_absolute_height(const int y)
 {
     return y + menu_height() + on_toolbar_height() + 5;
 }
 
 static HDC
-on_splitter_drawing_line(HWND parent, LPRECT r, int x, HPEN *ptr_pen)
+on_splitter_drawing_line(HWND parent, LPRECT r, const int x, HPEN *ptr_pen)
 {
     HDC hdc = GetWindowDC(parent);
     HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
@@ -78,6 +84,15 @@ on_splitter_drawing_line(HWND parent, LPRECT r, int x, HPEN *ptr_pen)
     return hdc;
 }
 
+static inline void
+on_splitter_paint(const HWND hwnd)
+{
+    PAINTSTRUCT ps;
+    HDC hdc = BeginPaint(hwnd, &ps);
+    on_splitter_drawing(hwnd, hdc);
+    EndPaint(hwnd, &ps);
+}
+
 static LRESULT CALLBACK
 on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -86,10 +101,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_PAINT:
         {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            on_splitter_drawing(hwnd, hdc);
-            EndPaint(hwnd, &ps);
+            on_splitter_paint(hwnd);
             break;
         }
         case WM_LBUTTONDOWN:
@@ -97,7 +109,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             RECT rect_tree;
             HWND parent = GetParent(hwnd);
             on_treebar_adjust_box(&rect_tree);
-            x = rect_tree.right - rect_tree.left + 3 * SPLIT_WIDTH;
+            x = rect_tree.right - rect_tree.left + on_splitter_tree_line();
             HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, NULL);
             ReleaseDC(parent, hdc);
             SetCapture(hwnd);
@@ -126,7 +138,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 HWND parent = GetParent(hwnd);
                 HPEN hpen = NULL;
                 HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, &hpen);
-                x = rect_tree.right - rect_tree.left + (short)LOWORD(lParam);
+                x = rect_tree.right - rect_tree.left + on_splitter_tree_line() + (short)LOWORD(lParam);
                 MoveToEx(hdc, x, rect_tree.top, NULL);
                 LineTo(hdc, x,  rect_tree.bottom);
                 if (hpen)
@@ -137,6 +149,11 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 ReleaseDC(parent, hdc);
             }
             break;
+        }
+        case WM_DESTROY:
+        {
+            eu_logmsg("on_splitter_callback_treebar WM_DESTROY\n");
+            x = 0;
         }
         default:
         {
@@ -155,10 +172,7 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_PAINT:
         {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            on_splitter_drawing(hwnd, hdc);
-            EndPaint(hwnd, &ps);
+            on_splitter_paint(hwnd);
             break;
         }
         case WM_LBUTTONDOWN:
@@ -170,11 +184,11 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 if (pnode->sym_show)
                 {
-                    cx = pnode->rect_sym.left +  3 * SPLIT_WIDTH;
+                    cx = pnode->rect_sym.left +  on_splitter_tree_line();
                 }
                 else if (pnode->map_show)
                 {
-                    cx = pnode->rect_map.left +  3 * SPLIT_WIDTH;
+                    cx = pnode->rect_map.left +  on_splitter_tree_line();
                 }
                 else
                 {
@@ -247,16 +261,17 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     LineTo(hdc, cx,  r.bottom);
                     if (pnode->sym_show)
                     {
-                        cx = pnode->rect_sym.left + (short)LOWORD(lParam);
+                        cx = pnode->rect_sym.left + (short)LOWORD(lParam) + on_splitter_tree_line();
                     }
                     else if (pnode->map_show)
                     {
-                        cx = pnode->rect_map.left + (short)LOWORD(lParam);
+                        cx = pnode->rect_map.left + (short)LOWORD(lParam) + on_splitter_tree_line();
                     }
                     else
                     {
-                        cx = pnode->rect_sc.right + (short)LOWORD(lParam);
+                        cx = pnode->rect_sc.right + (short)LOWORD(lParam) + on_splitter_tree_line();
                     }
+                    /* 这里应该限制cx, 不要覆盖treebar */
                     MoveToEx(hdc, cx, r.top, NULL);
                     LineTo(hdc, cx,  r.bottom);
                     SelectObject(hdc, hold_pen);
@@ -284,10 +299,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_PAINT:
         {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            on_splitter_drawing(hwnd, hdc);
-            EndPaint(hwnd, &ps);
+            on_splitter_paint(hwnd);
             break;
         }
         case WM_LBUTTONDOWN:
@@ -370,10 +382,7 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_PAINT:
         {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            on_splitter_drawing(hwnd, hdc);
-            EndPaint(hwnd, &ps);
+            on_splitter_paint(hwnd);
             break;
         }
         case WM_LBUTTONDOWN:
@@ -457,6 +466,27 @@ on_splitter_register(const TCHAR *classname, WNDPROC proc, int cur_id)
     return (RegisterClassEx(&wcex) > 0);
 }
 
+void
+on_splitter_redraw(void)
+{
+    if (g_splitter_treebar)
+    {
+        UpdateWindowEx(g_splitter_treebar);
+    }
+    if (g_splitter_symbar)
+    {
+        UpdateWindowEx(g_splitter_symbar);
+    }
+    if (g_splitter_editbar)
+    {
+        UpdateWindowEx(g_splitter_editbar);
+    }
+    if (g_splitter_tablebar)
+    {
+        UpdateWindowEx(g_splitter_tablebar);
+    }
+}
+
 bool
 on_splitter_init_treebar(HWND parent)
 {
@@ -469,7 +499,7 @@ on_splitter_init_treebar(HWND parent)
 bool
 on_splitter_init_symbar(HWND parent)
 {
-    const TCHAR *splite_class = _T("splitter_scintilla_symbar");
+    const TCHAR *splite_class = _T("splitter_symbar_scintilla");
     on_splitter_register(splite_class, on_splitter_callback_symbar, IDC_CURSOR_WE);
     g_splitter_symbar = CreateWindowEx(0, splite_class, _T(""), WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 0, 0, parent, 0, eu_module_handle(), 0);
     return (g_splitter_symbar != NULL);

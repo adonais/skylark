@@ -1809,38 +1809,34 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_ERASEBKGND:
-            if (!on_dark_enable())
-            {
-                break;
-            }
+        {
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_bgbrush());
+            FillRect((HDC)wParam, &rc, eu_theme_index() == THEME_WHITE ? GetSysColorBrush(COLOR_MENU) : (HBRUSH)on_dark_get_bgbrush());
             return 1;
+        }
         case WM_PAINT:
         {
-            if (GetWindowLongPtr(hwnd, GWL_STYLE) & TCS_OWNERDRAWFIXED)
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, & ps);
+            const bool dark = on_dark_enable();
+            // 绘制管理器标签
+            HGDIOBJ old_font = SelectObject(hdc, on_theme_font_hwnd());
+            if (old_font)
             {
-                PAINTSTRUCT    ps;
-                HDC hdc = BeginPaint(hwnd, & ps);
-                // 绘制管理器标签
-                HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
-                if (old_font)
+                RECT rc;
+                TabCtrl_GetItemRect(hwnd, 0, &rc);
+                set_tabface_color(hdc, dark);
+                set_text_color(hdc, dark);
+                FrameRect(hdc, &rc, dark ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
+                LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
+                if (STR_NOT_NUL(m_text))
                 {
-                    RECT rc;
-                    TabCtrl_GetItemRect(hwnd, 0, &rc);
-                    set_tabface_color(hdc, true);
-                    set_text_color(hdc, true);
-                    FrameRect(hdc, &rc, GetSysColorBrush(COLOR_3DDKSHADOW));
-                    LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
-                    if (STR_NOT_NUL(m_text))
-                    {
-                        DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-                    }
-                    SelectObject(hdc, old_font);
+                    DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                 }
-                EndPaint(hwnd, &ps);
+                SelectObject(hdc, old_font);
             }
+            EndPaint(hwnd, &ps);
             break;
         }
         case WM_DPICHANGED:
@@ -1850,15 +1846,6 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            uintptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
-            if (on_dark_enable())
-            {
-                style & TCS_OWNERDRAWFIXED ? (void)0 : SetWindowLongPtr(hwnd, GWL_STYLE, style | TCS_OWNERDRAWFIXED);
-            }
-            else if (style & TCS_OWNERDRAWFIXED)
-            {
-                SetWindowLongPtr(hwnd, GWL_STYLE, style & ~TCS_OWNERDRAWFIXED);
-            }
             break;
         }
         case WM_DESTROY:
@@ -1883,7 +1870,7 @@ on_treebar_create_box(HWND hwnd)
     {
         DestroyWindow(g_treebar);
     }
-    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
+    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|TCS_FIXEDWIDTH|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
     if (g_treebar == NULL)
     {
         return EUE_POINT_NULL;
@@ -1903,7 +1890,7 @@ on_treebar_create_box(HWND hwnd)
         DestroyWindow(g_treebar);
         return EUE_POINT_NULL;
     }
-    SendMessage(g_treebar, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), 0);
+    SendMessage(g_treebar, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
     return SKYLARK_OK;
 }
 
@@ -1987,6 +1974,22 @@ on_treebar_create_dlg(HWND hwnd)
     return err;
 }
 
+static int
+on_treebar_tab_height(void)
+{
+    int x, y = 0;
+    if (g_treebar)
+    {
+        sptr_t xy = 0;
+        const int dpi = eu_get_dpi(g_treebar);
+        x = eu_dpi_scale_xy(dpi > 96 ? dpi - dpi/4 : dpi, TABS_WIDTH_DEFAULT);
+        y = eu_dpi_scale_xy(dpi > 96 ? dpi - dpi/4 : dpi, TABS_HEIGHT_DEFAULT);
+        xy = TabCtrl_SetItemSize(g_treebar, x, y);
+        eu_logmsg("oldx = %d, oldy = %d\n", LOWORD(xy), HIWORD(xy));
+    }
+    return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
+}
+
 void
 on_treebar_adjust_box(RECT *ptf)
 {
@@ -1997,7 +2000,7 @@ on_treebar_adjust_box(RECT *ptf)
         ptf->left = 0;
         ptf->right = 0;
         ptf->top = rect_main.top + on_toolbar_height();
-        ptf->bottom = rect_main.bottom;
+        ptf->bottom = rect_main.bottom - on_statusbar_height();
     }
     else
     {
@@ -2009,11 +2012,11 @@ on_treebar_adjust_box(RECT *ptf)
 }
 
 void
-on_treebar_adjust_filetree(RECT *rect_filebar, RECT *rect_filetree)
+on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
 {
     rect_filetree->left = FILETREE_MARGIN_LEFT;
     rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
-    rect_filetree->top = rect_filebar->top + TABS_HEIGHT_DEFAULT + FILETREE_MARGIN_TOP;
+    rect_filetree->top = rect_filebar->top + on_treebar_tab_height() + FILETREE_MARGIN_TOP;
     rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
 }
 

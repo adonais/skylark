@@ -187,6 +187,7 @@ on_view_refresh_theme(HWND hwnd)
     menu_bmp_destroy();
     on_view_refresh_scroll();
     on_toolbar_redraw(hwnd);
+    on_splitter_redraw();
     SendMessage(hwnd, WM_SIZE, 0, 0);
     UpdateWindowEx(hwnd);
     return SKYLARK_OK;

@@ -1032,14 +1032,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_SETFONT:
-        {
-            HDC hdc;
-            TEXTMETRIC text_metric;
-            HANDLE hold_font;
-            //
-            // Delete the font, if we created it by yourself.
-            //
-
+        {   // Delete the font, if we created it by yourself.
             if ((hexview->ct_flags & HVF_FONTCREATED) && hexview->hfont)
             {
                 DeleteObject(hexview->hfont);
@@ -1050,17 +1043,14 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             {
                 hexview_create_font(hwnd, hexview, pnode->zoom_level);
             }
-            hdc = GetDC(hwnd);
-            hold_font = SelectObject(hdc, hexview->hfont);
-            GetTextMetrics(hdc, &text_metric);
-            SelectObject(hdc, hold_font);
-            ReleaseDC(hwnd, hdc);
-            hexview->width_char = text_metric.tmAveCharWidth;
-            hexview->height_char = text_metric.tmHeight;
-            hexview->visiblelines = hexview->height_view / hexview->height_char;
-            hexview->visiblechars = hexview->width_view / hexview->width_char;
-            hexview_columns(hexview);
-            hexview_srollinfo(hwnd, hexview);
+            if (hexview->hfont)
+            {
+                util_font_xy(hwnd, hexview->hfont, &hexview->width_char, &hexview->height_char);
+                hexview->visiblelines = hexview->height_view / hexview->height_char;
+                hexview->visiblechars = hexview->width_view / hexview->width_char;
+                hexview_columns(hexview);
+                hexview_srollinfo(hwnd, hexview);
+            }
             break;
         }
         case WM_RBUTTONUP:

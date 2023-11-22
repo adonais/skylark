@@ -35,7 +35,6 @@ HWND g_statusbar = NULL;
 static HMENU g_menu_break;
 static HMENU g_menu_code;
 static HMENU g_menu_type;
-static HFONT hfont_btn;
 static int g_status_height;
 
 void
@@ -215,7 +214,7 @@ on_statusbar_adjust_btn(int left, int right)
         RECT rc_part = {0};
         SendMessage(g_statusbar, SB_GETRECT, STATUSBAR_DOC_BTN, (LPARAM)&rc_part);
         btn_height = rc_part.bottom - SPLIT_WIDTH;
-        left = right - btn_width - 12;
+        left = right - btn_width - SPLIT_WIDTH;
         MoveWindow(hrw, left, SPLIT_WIDTH, btn_width, btn_height, TRUE);
         ShowWindow(hrw, SW_SHOW);
     }
@@ -379,31 +378,10 @@ on_statusbar_pop_menu(int parts, LPPOINT pt)
     }
 }
 
-static HFONT
-on_statusbar_default_font(void)
-{
-    if (!hfont_btn)
-    {
-        LOGFONT logfont = {eu_dpi_scale_font()};
-        logfont.lfWeight = FW_NORMAL;
-        logfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
-        logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-        logfont.lfQuality = CLEARTYPE_QUALITY;
-        logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
-        logfont.lfCharSet = ANSI_CHARSET;
-        _tcsncpy(logfont.lfFaceName, _T("MS Shell Dlg"), _countof(logfont.lfFaceName)-1);
-        hfont_btn = CreateFontIndirect(&logfont);
-    }
-    return hfont_btn;
-}
-
 static void
 on_statusbar_update_btn(HWND hwnd)
 {
-    if (hfont_btn || (on_statusbar_default_font()))
-    {
-        SendMessage(hwnd, WM_SETFONT, (WPARAM)hfont_btn, 0);
-    }
+    SendMessage(hwnd, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
 }
 
 static LRESULT CALLBACK
@@ -438,7 +416,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             HDC hdc = BeginPaint(hwnd, &ps);
             HPEN hpen = CreatePen(PS_SOLID, 1, edge_color);
             HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
-            HFONT hold_font = (HFONT)SelectObject(hdc, on_statusbar_default_font());
+            HFONT hold_font = (HFONT)SelectObject(hdc, on_theme_font_hwnd());
             FillRect(hdc, &ps.rcPaint, (HBRUSH)on_dark_get_bgbrush());
             wchar_t str[MAX_PATH] = {0};
             int nparts = (int)SendMessage(hwnd, SB_GETPARTS, 0, 0);
@@ -687,11 +665,6 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                     g_menu_type = NULL;
                 }
                 DestroyWindow(GetDlgItem(hwnd, IDM_BTN_RW));
-                if (hfont_btn)
-                {
-                    DeleteObject(hfont_btn);
-                    hfont_btn = NULL;
-                }
                 g_statusbar = NULL;
             }
             break;
@@ -1078,7 +1051,7 @@ on_statusbar_init(HWND hwnd)
     if (ret && on_dark_enable())
     {
         on_statusbar_dark_mode();
-        SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
+        //SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
         on_statusbar_update();
     }
     return ret;

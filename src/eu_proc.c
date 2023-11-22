@@ -781,7 +781,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_statusbar_init(hwnd);
                 }
                 on_toolbar_refresh(hwnd);
-                on_dark_set_theme(g_treebar, L"Explorer", NULL);
                 if (g_filetree)
                 {
                     SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);

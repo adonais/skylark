@@ -1453,19 +1453,14 @@ on_tabpage_theme_changed(eu_tabpage *p)
 }
 
 bool
-on_tabpage_check_map(void)
+on_tabpage_exist_map(void)
 {
-    int count = 0;
     if (g_tabpages)
     {
-        if ((count = TabCtrl_GetItemCount(g_tabpages)) < 2)
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            return false;
-        }
-        for (int index = 0; index < count; ++index)
-        {
-            eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && p->map_show)
+            if ((p = on_tabpage_get_ptr(index)) && p->map_show)
             {
                 return true;
             }

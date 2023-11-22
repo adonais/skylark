@@ -20,6 +20,7 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
+#define TABS_WIDTH_DEFAULT    120
 #define TABS_HEIGHT_DEFAULT   23
 
 #ifdef __cplusplus
@@ -127,7 +128,7 @@ void on_tabpage_push_editor(int);
 void on_tabpage_do_file(tab_callback func);
 void on_tabpage_active_tab(eu_tabpage *pnode);
 void on_tabpage_active_one(int index);
-bool on_tabpage_check_map(void);
+bool on_tabpage_exist_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(int index);
 eu_tabpage *on_tabpage_select_index(int index);

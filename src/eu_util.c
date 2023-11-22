@@ -3365,6 +3365,31 @@ util_font_available(const char *name)
 }
 
 bool
+util_font_xy(const HWND hwnd, const HFONT hfont, int *px, int *py)
+{
+    HDC hdc = GetDC(hwnd);
+    if (hdc)
+    {
+        HGDIOBJ hold_font = NULL;
+        TEXTMETRIC text_metric = {0};
+        if (hfont)
+        {
+            hold_font = SelectObject(hdc, (HGDIOBJ)hfont);
+        }
+        GetTextMetrics(hdc, &text_metric);
+        if (hold_font)
+        {
+            SelectObject(hdc, hold_font);
+        }
+        ReleaseDC(hwnd, hdc);
+        *px = text_metric.tmAveCharWidth;
+        *py = text_metric.tmHeight;
+        return true;
+    }
+    return false;
+}
+
+bool
 util_dark_theme(void)
 {
     int buffer[32] = {0};
