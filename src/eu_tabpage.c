@@ -18,11 +18,10 @@
 
 #include "framework.h"
 
-#define TAB_MIN_TOP 4
-#define TAB_MIN_LEFT 40
-#define TAB_MIN_WIDTH 140
-#define CLOSEBUTTON_WIDTH 11
-#define CLOSEBUTTON_HEIGHT 11
+#define TAB_MIN_RIGHT 8
+#define TAB_MIN_LEFT 30
+#define TAB_MIN_WIDTH 160
+#define CLOSEBUTTON_DEFAULT 11
 #define CX_ICON  16
 #define CY_ICON  16
 #define COLORREF2RGB(c) ((c & 0xff00) | ((c >> 16) & 0xff) | ((c << 16) & 0xff0000))
@@ -39,18 +38,18 @@ static HCURSOR g_drag_hcursor = NULL;
 int
 on_tabpage_get_height(void)
 {
-    RECT rect_treebar;
-    GetClientRect(g_tabpages, &rect_treebar);
-    return (rect_treebar.bottom - rect_treebar.top);
+    RECT tabs;
+    GetClientRect(g_tabpages, &tabs);
+    return (tabs.bottom - tabs.top);
 }
 
 static int
 on_tabpage_internal_height(void)
 {
-    RECT rect_tabbar = {0};
+    RECT tabs = {0};
     int tab_height = TABS_HEIGHT_DEFAULT;
-    TabCtrl_GetItemRect(g_tabpages, 0, &rect_tabbar);
-    tab_height = (rect_tabbar.bottom - rect_tabbar.top) * TabCtrl_GetRowCount(g_tabpages);
+    TabCtrl_GetItemRect(g_tabpages, 0, &tabs);
+    tab_height = (tabs.bottom - tabs.top) * TabCtrl_GetRowCount(g_tabpages);
     return tab_height;
 }
 
@@ -181,6 +180,12 @@ on_tabpage_nfocus(int index)
     return false;
 }
 
+static inline int
+on_tabpage_close_size(void)
+{
+    return (util_under_wine() ? (CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT) : eu_dpi_scale_xy(0, CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT));
+}
+
 int
 on_tabpage_sel_number(int **pvec, const bool ascending)
 {
@@ -246,17 +251,14 @@ static void
 on_tabpage_draw_sign(const HDC hdc, const LPRECT lprect)
 {
     const TCHAR *text  = util_os_version() < 603 || util_under_wine() ? _T("x") : _T("✕");
-    HFONT hfont = CreateFont(-14, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-                             CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
-    HGDIOBJ oldj = SelectObject(hdc, hfont);
-    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + 1,
+    HGDIOBJ oldj = SelectObject(hdc, on_theme_font_hwnd());
+    RECT rc = {lprect->right - on_tabpage_close_size(),
+               lprect->top,
                lprect->right,
                lprect->bottom
               };
-    DrawText(hdc, text, (int)_tcslen(text), &rc, DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+    DrawText(hdc, text, (int)_tcslen(text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
     SelectObject(hdc, oldj);
-    DeleteObject(hfont);
 }
 
 static void
@@ -281,8 +283,8 @@ on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 static void
 on_tabpage_flush_close(HWND hwnd, const LPRECT lprect)
 {
-    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + 1,
+    RECT rc = {lprect->right - on_tabpage_close_size(),
+               lprect->top,
                lprect->right,
                lprect->bottom
               };
@@ -292,8 +294,8 @@ on_tabpage_flush_close(HWND hwnd, const LPRECT lprect)
 static bool
 on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
 {
-    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + 1,
+    RECT rc = {lprect->right - on_tabpage_close_size(),
+               lprect->top,
                lprect->right,
                lprect->bottom
               };
@@ -308,10 +310,29 @@ on_tabpage_hit_index(const LPPOINT pt)
 }
 
 static void
+on_tabpage_get_padding(const HWND hwnd, const int index, RECT *prc)
+{
+    if (hwnd && prc)
+    {
+        TabCtrl_GetItemRect(hwnd, index, prc);
+        if (index > 0)
+        {
+            int diff = 0;
+            RECT pre_rc = {0};
+            TabCtrl_GetItemRect(hwnd, index - 1, &pre_rc);
+            if ((pre_rc.bottom == prc->bottom) && (diff = prc->left - pre_rc.right) > 0)
+            {
+                prc->left -= diff;
+            }
+        }
+    }
+}
+
+static void
 on_tabpage_paint_draw(HWND hwnd, HDC hdc)
 {
     const bool dark_mode = on_dark_enable();
-    HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
+    HGDIOBJ old_font = SelectObject(hdc, on_theme_font_hwnd());
     while (old_font)
     {
         set_text_color(hdc, dark_mode);
@@ -327,8 +348,7 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             {
                 break;
             }
-            TabCtrl_GetItemRect(hwnd, index, &rc);
-            rc.right -= 1;  // 多行TCS_BUTTONS样式下有些标签没有隔开?
+            on_tabpage_get_padding(hwnd, index, &rc);
             FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
             if (on_tabpage_nfocus(index))
             {   // 从主题获取COLOR_HIGHLIGHT值
@@ -785,8 +805,9 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
-        case WM_SIZE:
+        case WM_DPICHANGED:
         {
+            on_tabpage_adjust_box(NULL);
             break;
         }
         case WM_COMMAND:
@@ -1014,7 +1035,8 @@ on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
     const uint32_t flags = \
-          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_OWNERDRAWFIXED;
+          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS |
+          TCS_MULTISELECT | TCS_MULTILINE | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
     g_tabpages = CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)IDM_TABPAGE_BAR, eu_module_handle(), NULL);
     do
     {
@@ -1036,10 +1058,14 @@ on_tabpage_create_dlg(HWND hwnd)
             err = 1;
             break;
         }
-        SendMessage(g_tabpages, WM_SETFONT, (WPARAM) GetStockObject(DEFAULT_GUI_FONT), 0);
-        TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, TAB_MIN_TOP);
-        TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
-        ShowWindow(g_tabpages, SW_SHOW);
+        if (true)
+        {
+            SendMessage(g_tabpages, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
+            TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, 0);
+            TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
+            util_tab_height(g_tabpages, TAB_MIN_WIDTH);
+            ShowWindow(g_tabpages, SW_SHOW);
+        }
         if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) on_tabpage_proc_callback)))
         {
             err = 1;
@@ -1092,44 +1118,50 @@ on_tabpage_do_file(tab_callback func)
 void
 on_tabpage_adjust_box(RECT *ptp)
 {
-    RECT rect_main;
-    RECT rect_treebar = { 0 };
-    int tab_height = on_tabpage_internal_height();
-    int row = TabCtrl_GetRowCount(g_tabpages);
-    tab_height += row > 1 ? 3 * (row - 1) : 0;
-    GetClientRect(eu_module_hwnd(), &rect_main);
-    if (!eu_get_config()->m_ftree_show)
+    RECT rc_main;
+    RECT rc_treebar = { 0 };
+    if (ptp)
     {
-        ptp->left = rect_main.left;
+        const int row = TabCtrl_GetRowCount(g_tabpages);
+        int tab_height = on_tabpage_internal_height();
+        tab_height += row > 1 ? 3 * (row - 1) : 0;
+        on_treebar_adjust_box(&rc_treebar, &rc_main);
+        if (!eu_get_config()->m_ftree_show)
+        {
+            ptp->left = rc_main.left;
+        }
+        else
+        {
+            ptp->left = rc_treebar.right;
+        }
+        ptp->right = rc_main.right;
+        ptp->top = rc_treebar.top;
+        ptp->bottom = ptp->top + tab_height + SCINTILLA_MARGIN_TOP;
     }
-    else
+    else if (g_tabpages)
     {
-        on_treebar_adjust_box(&rect_treebar);
-        ptp->left = rect_treebar.right;
+        util_tab_height(g_tabpages, TAB_MIN_WIDTH);
     }
-    ptp->top = rect_main.top + on_toolbar_height();
-    ptp->right = rect_main.right;
-    ptp->bottom = ptp->top + tab_height + SCINTILLA_MARGIN_TOP;
 }
 
 void
 on_tabpage_adjust_window(eu_tabpage *pnode)
 {
     int tab_height = 0;
-    RECT rect_tabpages = {0};
+    RECT rc_tabpages = {0};
     if (true)
     {
-        RECT rect_main;
-        GetClientRect(eu_module_hwnd(), &rect_main);
-        on_tabpage_adjust_box(&rect_tabpages);
-        pnode->rect_sc.left = rect_tabpages.left;
+        RECT rc_main;
+        GetClientRect(eu_module_hwnd(), &rc_main);
+        on_tabpage_adjust_box(&rc_tabpages);
+        pnode->rect_sc.left = rc_tabpages.left;
         if (eu_get_config()->m_ftree_show)
         {
             pnode->rect_sc.left += SPLIT_WIDTH;
         }
-        pnode->rect_sc.right = rect_tabpages.right;
-        pnode->rect_sc.top = rect_tabpages.bottom;
-        pnode->rect_sc.bottom = rect_main.bottom - on_statusbar_height();
+        pnode->rect_sc.right = rc_tabpages.right;
+        pnode->rect_sc.top = rc_tabpages.bottom;
+        pnode->rect_sc.bottom = rc_main.bottom - on_statusbar_height();
     }
     if (pnode->sym_show)
     {
@@ -1138,7 +1170,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             pnode->rect_sc.right -= (pnode->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
                                      + SPLIT_WIDTH;
             pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_sym.right = rect_tabpages.right;
+            pnode->rect_sym.right = rc_tabpages.right;
             pnode->rect_sym.top = pnode->rect_sc.top;
             pnode->rect_sym.bottom = pnode->rect_sc.bottom;
         }
@@ -1149,7 +1181,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
         {
             pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
             pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_map.right = rect_tabpages.right;
+            pnode->rect_map.right = rc_tabpages.right;
             pnode->rect_map.top = pnode->rect_sc.top;
             pnode->rect_map.bottom = pnode->rect_sc.bottom;
         }

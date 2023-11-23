@@ -238,7 +238,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         on_toolbar_adjust_box();
         on_statusbar_adjust_box();
         on_tabpage_adjust_box(&rect_tabbar);
-        on_treebar_adjust_box(&rect_treebar);
+        on_treebar_adjust_box(&rect_treebar, NULL);
         on_tabpage_adjust_window(pnode);
         GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
         if (ptab)
@@ -730,6 +730,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             on_tabpage_foreach(hexview_update_theme);
             on_toolbar_refresh(hwnd);
             menu_bmp_destroy();
+            if (g_tabpages)
+            {
+                SendMessage(g_tabpages, WM_DPICHANGED, 0, 0);
+            }
             if (g_treebar)
             {
                 SendMessage(g_treebar, WM_DPICHANGED, 0, 0);

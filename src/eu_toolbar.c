@@ -225,7 +225,7 @@ on_toolbar_setup_button(int id, int flags)
 HWND
 on_toolbar_hwnd(void)
 {
-    HWND hwnd = eu_module_hwnd();
+    HWND hwnd = eu_hwnd_self();
     return hwnd ? GetDlgItem(hwnd, IDC_TOOLBAR) : NULL;
 }
 

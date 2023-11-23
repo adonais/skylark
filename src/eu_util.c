@@ -3403,3 +3403,18 @@ util_dark_theme(void)
                               &cbdata);
     return (res == ERROR_SUCCESS) && (((buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0])) == 0);
 }
+
+int
+util_tab_height(const HWND hwnd, const int width)
+{
+    int x, y = 0;
+    if (hwnd && !util_under_wine())
+    {
+        sptr_t xy = 0;
+        const int dpi = eu_get_dpi(hwnd);
+        x = eu_dpi_scale_xy(dpi, width <= 0 ? TABS_WIDTH_DEFAULT : width);
+        y = eu_dpi_scale_xy(dpi, TABS_HEIGHT_DEFAULT);
+        xy = TabCtrl_SetItemSize(hwnd, x, y);
+    }
+    return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
+}

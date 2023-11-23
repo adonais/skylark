@@ -1974,50 +1974,41 @@ on_treebar_create_dlg(HWND hwnd)
     return err;
 }
 
-static int
-on_treebar_tab_height(void)
-{
-    int x, y = 0;
-    if (g_treebar)
-    {
-        sptr_t xy = 0;
-        const int dpi = eu_get_dpi(g_treebar);
-        x = eu_dpi_scale_xy(dpi > 96 ? dpi - dpi/4 : dpi, TABS_WIDTH_DEFAULT);
-        y = eu_dpi_scale_xy(dpi > 96 ? dpi - dpi/4 : dpi, TABS_HEIGHT_DEFAULT);
-        xy = TabCtrl_SetItemSize(g_treebar, x, y);
-        eu_logmsg("oldx = %d, oldy = %d\n", LOWORD(xy), HIWORD(xy));
-    }
-    return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
-}
-
 void
-on_treebar_adjust_box(RECT *ptf)
+on_treebar_adjust_box(RECT *ptf, RECT *prc)
 {
-    RECT rect_main;
-    GetClientRect(eu_module_hwnd(), &rect_main);
+    RECT rect_main = {0};
+    GetClientRect(eu_module_hwnd(), prc ? prc : &rect_main);
+    if (prc == NULL)
+    {
+        prc = &rect_main;
+    }
     if (!eu_get_config()->m_ftree_show)
     {
         ptf->left = 0;
         ptf->right = 0;
-        ptf->top = rect_main.top + on_toolbar_height();
-        ptf->bottom = rect_main.bottom - on_statusbar_height();
+        ptf->top = prc->top + on_toolbar_height();
+        ptf->bottom = prc->bottom - on_statusbar_height();
     }
     else
     {
-        ptf->left = rect_main.left;
-        ptf->right = rect_main.left + eu_get_config()->file_tree_width;
-        ptf->top = rect_main.top + on_toolbar_height();
-        ptf->bottom = rect_main.bottom - on_statusbar_height();
+        ptf->left = prc->left;
+        ptf->right = prc->left + eu_get_config()->file_tree_width;
+        ptf->top = prc->top + on_toolbar_height();
+        ptf->bottom = prc->bottom - on_statusbar_height();
     }
 }
 
 void
 on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
 {
-    rect_filetree->left = FILETREE_MARGIN_LEFT;
-    rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
-    rect_filetree->top = rect_filebar->top + on_treebar_tab_height() + FILETREE_MARGIN_TOP;
-    rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
+    if (g_treebar)
+    {
+        rect_filetree->left = FILETREE_MARGIN_LEFT;
+        rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
+        rect_filetree->top = rect_filebar->top + util_tab_height(g_treebar, 0) + FILETREE_MARGIN_TOP;
+        rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
+    }
 }
 
 tree_data *

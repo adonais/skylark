@@ -161,6 +161,7 @@ int util_count_number(size_t number);
 int util_split_attr(const char *pstr, char (*pout)[MAX_PATH], int ch);
 int util_strim_end(char *pstr, int len);
 int util_num_cores(void);
+int util_tab_height(const HWND hwnd, const int width);
 void  util_strcat(uint8_t **dst, const char* pstr);
 void  util_split(const char *pstr, const char *sep, char ***ppvec, const bool out_vec);
 void  util_transparent(HWND hwnd, int percent);
