@@ -32,6 +32,13 @@ typedef struct _theme_query
     TCHAR name[QW_SIZE];
 }theme_query;
 
+typedef enum _control_id
+{
+    all_id = 0,
+    filebar_id = 1,
+    btn_id = 2
+} control_id;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,6 +49,7 @@ HFONT  on_theme_font_hwnd(void);
 int  on_theme_copy_style(TCHAR *ac_theme);
 int  on_theme_load_script(const TCHAR *name);
 void on_theme_update_item(void);
+void on_theme_update_font(const control_id id);
 bool on_theme_setup_font(HWND hwnd);
 bool on_theme_create_dlg(void);
 

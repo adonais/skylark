@@ -747,7 +747,7 @@ on_view_full_sreen(HWND hwnd)
     if (!eu_get_config()->m_fullscreen)
     {
         eu_get_config()->m_menubar = true;
-        eu_get_config()->m_toolbar = g_toolbar_size > 0 ? g_toolbar_size : IDB_SIZE_1;
+        eu_get_config()->m_toolbar = on_toolbar_icon_get() > 0 ? on_toolbar_icon_get() : IDB_SIZE_1;
         eu_get_config()->m_statusbar = true;
         GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
         if (!GetDlgItem(hwnd, IDC_TOOLBAR))
@@ -758,7 +758,7 @@ on_view_full_sreen(HWND hwnd)
     else
     {
         eu_get_config()->m_menubar = false;
-        g_toolbar_size = eu_get_config()->m_toolbar;
+        on_toolbar_icon_set(eu_get_config()->m_toolbar);
         eu_get_config()->m_toolbar = IDB_SIZE_0;
         eu_get_config()->m_statusbar = false;
         GetMenu(hwnd)?SetMenu(hwnd, NULL):(void)0;
@@ -778,18 +778,20 @@ on_view_font_quality(HWND hwnd, int res_id)
         {
             eu_logmsg("%s: on_theme_setup_font return false\n", __FUNCTION__);
             eu_get_config()->m_quality = old_id;
-            return;
         }
-        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        else 
         {
-            eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p)
+            for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
-                on_sci_init_style(p);
-                on_sci_after_file(p, false);
+                eu_tabpage *p = on_tabpage_get_ptr(index);
+                if (p)
+                {
+                    on_sci_init_style(p);
+                    on_sci_after_file(p, false);
+                }
             }
+            eu_window_resize(hwnd);
         }
-        eu_window_resize(hwnd);
     }
 }
 

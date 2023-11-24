@@ -35,7 +35,6 @@ HWND g_statusbar = NULL;
 static HMENU g_menu_break;
 static HMENU g_menu_code;
 static HMENU g_menu_type;
-static int g_status_height;
 
 void
 on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
@@ -187,17 +186,15 @@ on_statusbar_set_text(HWND hwnd, const uint8_t part, LPCTSTR lpsz)
     }
 }
 
-void
-on_statusbar_adjust_box(void)
+int
+on_statusbar_height(void)
 {
-    if (!eu_get_config()->m_statusbar)
+    int status_height = 0;
+    if (g_statusbar && eu_get_config()->m_statusbar)
     {
-        g_status_height = 0;
+        status_height = eu_dpi_scale_xy(0, STATUSBAR_DEFHIGHT);
     }
-    else if (g_statusbar)
-    {
-        g_status_height = eu_dpi_scale_xy(0, STATUSBAR_DEFHIGHT);
-    }
+    return status_height;
 }
 
 static void
@@ -219,22 +216,33 @@ on_statusbar_adjust_btn(int left, int right)
 }
 
 void
-on_statusbar_refresh(void)
+on_statusbar_size(eu_tabpage *pnode)
 {
-    if (g_statusbar && eu_get_config()->m_statusbar)
+    if (g_statusbar)
     {
-        RECT rc = {0};
-        GetClientRect(eu_hwnd_self(), &rc);
-        int cx = rc.right - rc.left;
-        int n_half = cx / 8;
-        int btn_half = n_half*7+70;
-        int parts[] = {n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, btn_half, -1};
-        on_statusbar_adjust_box();
-        SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
-        on_statusbar_adjust_btn(btn_half, cx);
-        on_statusbar_update();
-        MoveWindow(g_statusbar, 2, rc.bottom - g_status_height - 2, cx - 4, g_status_height, TRUE);
-        ShowWindow(g_statusbar, SW_SHOW);
+        if (pnode)
+        {
+            on_statusbar_btn_rw(pnode, true);
+        }
+        else if (eu_get_config()->m_statusbar)
+        {
+            RECT rc = {0};
+            GetClientRect(eu_hwnd_self(), &rc);
+            const int height = on_statusbar_height();
+            int cx = rc.right - rc.left;
+            int n_half = cx / 8;
+            int btn_half = n_half*7+70;
+            int parts[] = {n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, btn_half, -1};
+            SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
+            on_statusbar_adjust_btn(btn_half, cx);
+            on_statusbar_update();
+            MoveWindow(g_statusbar, 0, rc.bottom - height, cx, height, TRUE);
+            ShowWindow(g_statusbar, SW_SHOW);
+        }
+        else
+        {
+            eu_setpos_window(g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
     }
 }
 
@@ -249,7 +257,7 @@ on_statusbar_create_button(const HWND hstatus)
         hrw = CreateWindowEx(0, _T("button"), wstr, WS_CHILD | WS_CLIPSIBLINGS | BS_FLAT, 0, 0, 0, 0, hstatus, (HMENU) IDM_BTN_RW, eu_module_handle(), NULL);
         if (hrw)
         {
-            SendMessage(hrw, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
+            on_theme_update_font(btn_id);
         }
     }
     return (hrw != NULL);
@@ -388,7 +396,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
         {
             if (on_dark_enable())
             {
-                on_statusbar_refresh();
+                on_statusbar_size(NULL);
                 on_dark_set_theme(g_statusbar, L"Explorer", NULL);
             }
             else 
@@ -462,11 +470,6 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
             DeleteObject(hpen);
             EndPaint(hwnd, &ps);
             return 0;
-        }
-        case WM_DPICHANGED:
-        {   // 需要重新设置按钮的字体
-            SendMessage(GetDlgItem(hwnd, IDM_BTN_RW), WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
-            break;
         }
         case WM_COMMAND:
         {
@@ -935,12 +938,6 @@ on_statusbar_create_filetype_menu(void)
         return true;
     }
     return false;
-}
-
-int
-on_statusbar_height(void)
-{
-    return g_status_height;
 }
 
 void

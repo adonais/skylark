@@ -234,9 +234,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
     eu_tabpage *pnode = ptab ? ptab : on_tabpage_focus_at();
     if (pnode)
     {
-        int number = 10;
-        on_toolbar_adjust_box();
-        on_statusbar_adjust_box();
+        int number = 8;
         on_tabpage_adjust_box(&rect_tabbar);
         on_treebar_adjust_box(&rect_treebar, NULL);
         on_tabpage_adjust_window(pnode);
@@ -248,14 +246,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
         HDWP hdwp = BeginDeferWindowPos(number);
         if (!ptab)
         {
-            if (eu_get_config()->m_toolbar != IDB_SIZE_0)
-            {
-                DeferWindowPos(hdwp, on_toolbar_hwnd(), HWND_TOP, 0, 0, rc.right - rc.left, on_toolbar_height(), SWP_SHOWWINDOW);
-            }
-            else
-            {
-                DeferWindowPos(hdwp, on_toolbar_hwnd(), 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
             if (eu_get_config()->m_ftree_show)
             {
                 RECT rect_filetree = {0};
@@ -313,18 +303,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 DeferWindowPos(hdwp, hwnd_document_map, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
             }
         }
-        if (eu_get_config()->m_statusbar)
-        {
-            if (g_statusbar)
-            {
-                DeferWindowPos(hdwp, g_statusbar, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
-                on_statusbar_btn_rw(pnode, true);
-            }
-        }
-        else if (g_statusbar)
-        {
-            DeferWindowPos(hdwp, g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
         if (true)
         {
             EndDeferWindowPos(hdwp);
@@ -381,6 +359,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 UpdateWindow(g_splitter_tablebar);
             }
         }
+        on_statusbar_size(pnode);
         PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
     }
 }
@@ -627,8 +606,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_SIZE:
             if (wParam != SIZE_MINIMIZED)
             {
-                on_statusbar_refresh();
+                on_toolbar_size(LOWORD(lParam));
                 on_proc_msg_size(hwnd, NULL);
+                on_statusbar_size(NULL);
             }
             break;
         case WM_RBUTTONDOWN:
@@ -726,6 +706,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case WM_DPICHANGED:
         {
+            eu_logmsg("main window recv WM_DPICHANGED\n");
             on_theme_setup_font(hwnd);
             on_tabpage_foreach(hexview_update_theme);
             on_toolbar_refresh(hwnd);
@@ -1733,9 +1714,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (eu_get_config()->m_toolbar != wm_id)
                     {
                         eu_get_config()->m_toolbar = wm_id;
-                        g_toolbar_size = wm_id;
+                        on_toolbar_icon_set(wm_id);
                         if (on_toolbar_refresh(hwnd))
                         {
+                            on_toolbar_size(0);
                             on_proc_msg_size(hwnd, NULL);
                         }
                     }
@@ -1746,15 +1728,16 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if (eu_get_config()->m_toolbar != IDB_SIZE_0)
                     {
-                        g_toolbar_size = eu_get_config()->m_toolbar;
+                        on_toolbar_icon_set(eu_get_config()->m_toolbar);
                         eu_get_config()->m_toolbar = IDB_SIZE_0;
                     }
                     else
                     {
-                        eu_get_config()->m_toolbar = g_toolbar_size ? g_toolbar_size : IDB_SIZE_1;
+                        eu_get_config()->m_toolbar = on_toolbar_icon_get() ? on_toolbar_icon_get() : IDB_SIZE_1;
                     }
                     if (on_toolbar_refresh(hwnd))
                     {
+                        on_toolbar_size(0);
                         on_proc_msg_size(hwnd, NULL);
                     }
                     break;

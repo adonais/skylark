@@ -1789,7 +1789,6 @@ on_treebar_load_imglist(HWND hwnd)
 void
 on_treebar_update_theme(void)
 {
-    SendMessage(g_filetree, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
     if (util_under_wine() && eu_get_theme()->item.text.color == 0x00D4D4D4)
     {
         SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, 0xFFFFFF);
@@ -1841,7 +1840,6 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            on_treebar_update_theme();
             break;
         }
         case WM_THEMECHANGED:
@@ -1956,6 +1954,7 @@ on_treebar_create_dlg(HWND hwnd)
             err = EUE_POINT_NULL;
             break;
         }
+        on_theme_update_font(filebar_id);
         on_treebar_update_theme();
     }while(0);
     if (err)

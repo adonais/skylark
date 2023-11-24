@@ -267,6 +267,38 @@ on_theme_update_item(void)
     }
 }
 
+void
+on_theme_update_font(const control_id id)
+{
+    switch (id)
+    {
+        case all_id:
+            if (g_filetree)
+            {
+                SendMessage(g_filetree, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            if (g_statusbar)
+            {
+                SendMessage(GetDlgItem(g_statusbar, IDM_BTN_RW), WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        case filebar_id:
+            if (g_filetree)
+            {
+                SendMessage(g_filetree, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        case btn_id:
+            if (g_statusbar)
+            {
+                SendMessage(GetDlgItem(g_statusbar, IDM_BTN_RW), WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 HFONT
 on_theme_font_hwnd(void)
 {
@@ -297,6 +329,7 @@ on_theme_setup_font(HWND hwnd)
     if ((g_hfont = CreateFontIndirect(&logfont)))
     {
         SendMessage(hwnd, WM_SETFONT, (WPARAM) g_hfont, 0);
+        on_theme_update_font(all_id);
     }
     return (g_hfont != NULL);
 }

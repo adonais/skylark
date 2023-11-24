@@ -21,6 +21,7 @@
 #include "framework.h"
 
 #define DPI_PERCENT_144  144
+#define DPI_PERCENT_168  168
 #define DPI_PERCENT_192  192
 #define DPI_PERCENT_240  240
 #define DPI_PERCENT_288  288
@@ -50,10 +51,9 @@ typedef struct _toolbar_data
     char gcolor[OVEC_LEN];
 } toolbar_data;
 
-int g_toolbar_size = 0;
-
 enum {READ_FD, WRITE_FD};
-static int g_toolbar_height;
+static int g_toolbar_icon = 0;
+static int g_toolbar_height = 0;
 static int fd_stdout;
 static int fd_pipe[2];
 static int m_index;
@@ -67,7 +67,7 @@ static HIMAGELIST img_list1;
 static HIMAGELIST img_list2;
 
 static int
-on_toolbar_fill_params(toolbar_data *pdata, const int resid)
+on_toolbar_fill_params(const HWND hwnd, toolbar_data *pdata, const int resid)
 {
     int cx = GetSystemMetrics(SM_CXSCREEN);
     int cy = GetSystemMetrics(SM_CYSCREEN);
@@ -83,7 +83,7 @@ on_toolbar_fill_params(toolbar_data *pdata, const int resid)
     }
     if (resid == IDB_SIZE_1)
     {
-        const uint32_t dpi = eu_get_dpi(NULL);
+        const uint32_t dpi = eu_get_dpi(hwnd);
         if (dpi >= DPI_PERCENT_480)
         {
             pdata->bmp_wh = 128;
@@ -158,17 +158,17 @@ on_toolbar_fill_params(toolbar_data *pdata, const int resid)
     }
     if (pdata->bmp_wh > 0)
     {
-        pdata->bar_wh = pdata->bmp_wh + 10;
+        g_toolbar_height = pdata->bar_wh = pdata->bmp_wh + 10;
     }
-    return pdata->bar_wh;
+    return g_toolbar_height;
 }
 
 static bool
-on_toolbar_init_params(toolbar_data **pdata, const int resid)
+on_toolbar_init_params(const HWND hwnd, toolbar_data **pdata, const int resid)
 {
     if ((*pdata = (toolbar_data *)calloc(1, sizeof(toolbar_data))) != NULL)
     {
-        return on_toolbar_fill_params(*pdata, resid) > 0;
+        return on_toolbar_fill_params(hwnd, *pdata, resid) >= 0;
     }
     return false;
 }
@@ -239,19 +239,14 @@ on_toolbar_destroy(HWND hwnd)
     }
 }
 
-void
-on_toolbar_adjust_box(void)
+int
+on_toolbar_height(void)
 {
-    int m_bar = eu_get_config()->m_toolbar;
-    if (m_bar == IDB_SIZE_0)
+    if (eu_get_config()->m_toolbar == IDB_SIZE_0)
     {
         g_toolbar_height = 0;
     }
-    else
-    {
-        toolbar_data data = {0};
-        g_toolbar_height = on_toolbar_fill_params(&data, m_bar);
-    }
+    return g_toolbar_height;
 }
 
 void
@@ -724,7 +719,7 @@ on_toolbar_mk_temp(wchar_t ***vec_files)
     if (on_tabpage_sel_number(&v, true) > 0 && v)
     {
         const int size = (int)cvector_size(v);
-        // 改成函数调用, cvector宏定义在一个函数里, 导致clang瞎优化
+        // 改成函数调用, cvector宏定义在一个函数里, clang优化出现问题
         on_toolbar_create_file(v, size, vec_files);
     }
     cvector_freep(&v);
@@ -976,9 +971,15 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
 }
 
 int
-on_toolbar_height(void)
+on_toolbar_icon_get(void)
 {
-    return g_toolbar_height;
+    return (g_toolbar_icon);
+}
+
+void
+on_toolbar_icon_set(const int size)
+{
+    g_toolbar_icon = (int)size;
 }
 
 void
@@ -1025,6 +1026,30 @@ on_toolbar_redraw(HWND hwnd)
     }
 }
 
+void
+on_toolbar_size(int width)
+{
+    HWND hwnd = on_toolbar_hwnd();
+    if (hwnd)
+    {
+        if (eu_get_config()->m_toolbar != IDB_SIZE_0)
+        {
+            if (width <= 0)
+            {
+                RECT rc;
+                GetClientRect(hwnd, &rc);
+                width = rc.right - rc.left;
+            }
+            MoveWindow(hwnd, 0, 0, width, on_toolbar_height(), TRUE);
+            ShowWindow(hwnd, SW_SHOW);
+        }
+        else
+        {
+            eu_setpos_window(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+    }
+}
+
 bool
 on_toolbar_refresh(HWND hwnd)
 {
@@ -1051,7 +1076,8 @@ on_toolbar_create_dlg(HWND parent)
     do
     {
         int i = 0, j = 0;
-        const int style = WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TBSTYLE_TOOLTIPS|TBSTYLE_FLAT|TBSTYLE_CUSTOMERASE|CCS_TOP|CCS_NODIVIDER;
+        const int style = WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TBSTYLE_TOOLTIPS|TBSTYLE_FLAT|
+                          TBSTYLE_CUSTOMERASE|CCS_TOP|CCS_NODIVIDER;
         /*********************************************************************
          * iBitmap(0), 第i个位图
          * idCommand(0), WM_COMMAND消息响应的ID
@@ -1079,7 +1105,7 @@ on_toolbar_create_dlg(HWND parent)
             ret = 1;
             break;
         }
-        on_toolbar_init_params(&pdata, eu_get_config()->m_toolbar);
+        on_toolbar_init_params(parent, &pdata, eu_get_config()->m_toolbar);
         if (!pdata)
         {
             ret = 1;
@@ -1118,7 +1144,7 @@ on_toolbar_create_dlg(HWND parent)
                 ptb[i].fsStyle = TBSTYLE_SEP;
             }
         }
-        htool = CreateWindowEx(WS_EX_PALETTEWINDOW, //TBSTYLE_EX_DOUBLEBUFFER
+        htool = CreateWindowEx(WS_EX_PALETTEWINDOW | TBSTYLE_EX_DOUBLEBUFFER,
                                TOOLBARCLASSNAME,
                                _T(""),
                                style,
@@ -1147,7 +1173,6 @@ on_toolbar_create_dlg(HWND parent)
         SendMessage(htool, TB_SETIMAGELIST, (WPARAM) 0, (LPARAM) img_list1);
         SendMessage(htool, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
         SendMessage(htool, TB_SETMAXTEXTROWS, 0, 0);
-        SendMessage(htool, TB_AUTOSIZE, 0, 0);
         on_dark_tips_theme(htool, TB_GETTOOLTIPS);
     } while(0);
     free(str);
