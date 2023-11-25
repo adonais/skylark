@@ -641,7 +641,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 ONCE_RUN(on_changes_window(hwnd));
             }
-            if (eu_get_config()->upgrade.enable)
+            if (eu_get_config()->upgrade.enable && on_update_lookup())
             {
                 if (g_interval_count == EU_UPTIMES)
                 {   // 启动更新进程
