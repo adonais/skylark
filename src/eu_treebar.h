@@ -66,6 +66,7 @@ int  on_treebar_create_box(HWND hwnd);
 int  on_treebar_create_dlg(HWND hwnd);
 int  on_treebar_refresh_node(HTREEITEM hti_parent);
 bool on_treebar_variable_initialized(HWND *pd);
+void on_treebar_size(void);
 void on_treebar_wait_hwnd(void);
 void on_treebar_update_addr(remotefs *pserver);
 void on_treebar_data_destoy(tree_data **ptvd);

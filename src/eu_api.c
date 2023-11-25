@@ -3076,3 +3076,9 @@ eu_which(const char *path)
     }
     return ret;
 }
+
+bool
+eu_dark_enable(void)
+{
+    return on_dark_enable();
+}

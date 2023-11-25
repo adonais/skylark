@@ -41,12 +41,13 @@ static OpenNcThemeDataPtr fnOpenNcThemeData;
 static ShouldSystemUseDarkModePtr fnShouldSystemUseDarkMode;
 static SetPreferredAppModePtr fnSetPreferredAppMode;
 
-static bool g_dark_supported;
-static bool g_dark_enabled;
-static HMODULE g_uxtheme;
-static HBRUSH g_dark_bkgnd;
-static HBRUSH g_dark_hot_bkgnd;
-static HBRUSH g_theme_bkgnd;
+static bool g_dark_supported = false;
+static bool g_dark_enabled = false;
+static bool g_color_enable = false;
+static HMODULE g_uxtheme = NULL;
+static HBRUSH g_dark_bkgnd = NULL;
+static HBRUSH g_dark_hot_bkgnd = NULL;
+static HBRUSH g_theme_bkgnd = NULL;
 
 bool
 on_dark_supports(void)
@@ -181,27 +182,31 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
 void
 on_dark_set_titlebar(HWND hwnd, BOOL dark)
 {
-    if (eu_win10_or_later() < 18362)
+    const uint32_t number = eu_win10_or_later();
+    if (number != (uint32_t)-1)
     {
-    #if USE_DWMAPI
-        HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
-        DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
-        if (fnDwmSetWindowAttribute)
+        if (number < 18362)
         {
-            if (S_OK != fnDwmSetWindowAttribute(hwnd, 20, &dark, sizeof dark))
-            {   // this would be the call before Windows build 18362
-                fnDwmSetWindowAttribute(hwnd, 19, &dark, sizeof dark);
+        #if USE_DWMAPI
+            HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
+            DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
+            if (fnDwmSetWindowAttribute)
+            {
+                if (S_OK != fnDwmSetWindowAttribute(hwnd, 20, &dark, sizeof dark))
+                {   // this would be the call before Windows build 18362
+                    fnDwmSetWindowAttribute(hwnd, 19, &dark, sizeof dark);
+                }
             }
+            eu_close_dll(dwm);
+        #else
+            SetProp(hwnd, _T("UseImmersiveDarkModeColors"), (HANDLE)(intptr_t)(dark));
+        #endif // USE_DWMAPI
         }
-        eu_close_dll(dwm);
-    #else
-        SetProp(hwnd, _T("UseImmersiveDarkModeColors"), (HANDLE)(intptr_t)(dark));
-    #endif // USE_DWMAPI
-    }
-    else if (fnSetWindowCompositionAttribute)
-    {
-        WINDOWCOMPOSITIONATTRIBDATA data = {WCA_USEDARKMODECOLORS, &dark, sizeof(dark)};
-        fnSetWindowCompositionAttribute(hwnd, &data);
+        else if (fnSetWindowCompositionAttribute)   // number < 22000 && 
+        {
+            WINDOWCOMPOSITIONATTRIBDATA data = {WCA_USEDARKMODECOLORS, &dark, sizeof(dark)};
+            fnSetWindowCompositionAttribute(hwnd, &data);
+        }
     }
 }
 
@@ -218,17 +223,22 @@ on_dark_set_caption(void)
     const uint32_t number = eu_win10_or_later();
     if ((ret = number != (uint32_t)-1) && number >= 22000)
     {
-    #if USE_DWMAPI
-        HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
-        DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
-        if ((ret = fnDwmSetWindowAttribute != NULL))
+        const bool white = eu_theme_index() == THEME_WHITE;
+        if (!(white && g_color_enable))
         {
-            colour mycolor = eu_theme_index() == THEME_WHITE ? rgb_dark_txt_color : DWMWA_COLOR_DEFAULT;
-            ret = S_OK == fnDwmSetWindowAttribute(eu_module_hwnd(), DWMWA_CAPTION_COLOR, &mycolor, sizeof mycolor);
-            eu_logmsg("%s: ret = %d\n", __FUNCTION__, ret);
+        #if USE_DWMAPI
+            HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
+            DwmSetWindowAttributePtr fnDwmSetWindowAttribute = dwm ? (DwmSetWindowAttributePtr)GetProcAddress(dwm, "DwmSetWindowAttribute") : NULL;
+            if ((ret = fnDwmSetWindowAttribute != NULL))
+            {
+                colour mycolor = white ? rgb_dark_txt_color : DWMWA_COLOR_DEFAULT;
+                ret = S_OK == fnDwmSetWindowAttribute(eu_module_hwnd(), DWMWA_CAPTION_COLOR, &mycolor, sizeof mycolor);
+                g_color_enable = white && ret == S_OK;
+                eu_logmsg("%s: ret = %d\n", __FUNCTION__, ret);
+            }
+            eu_close_dll(dwm);
+        #endif // USE_DWMAPI
         }
-        eu_close_dll(dwm);
-    #endif // USE_DWMAPI
     }
     return ret;
 }
@@ -512,17 +522,14 @@ eu_dark_theme_release(bool shutdown)
     else if (g_dark_enabled)
     {
         HWND hwnd = eu_module_hwnd();
-        on_dark_set_titlebar(hwnd, false);
+        //on_dark_set_titlebar(hwnd, false);
         on_dark_allow_app(false);
         on_dark_allow_window(hwnd, false);
-        on_statusbar_dark_mode(false);
         g_dark_enabled = false;
-        on_toolbar_refresh(hwnd);
         fnFlushMenuThemes();
         eu_close_dll(g_uxtheme);
         SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
         on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
-        on_tabpage_foreach(on_tabpage_theme_changed);
         if (g_treebar)
         {
             SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);

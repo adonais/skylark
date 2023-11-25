@@ -203,15 +203,23 @@ on_statusbar_adjust_btn(int left, int right)
     HWND hrw = GetDlgItem(g_statusbar, IDM_BTN_RW);
     if (hrw)
     {
-        int btn_height = 0;
-        int dpi = eu_get_dpi(g_statusbar);
-        int btn_width = eu_dpi_scale_xy(dpi > 96 ? dpi - dpi/4 : dpi, BTN_DEFAULT_WIDTH);
-        RECT rc_part = {0};
-        SendMessage(g_statusbar, SB_GETRECT, STATUSBAR_DOC_BTN, (LPARAM)&rc_part);
-        btn_height = rc_part.bottom - SPLIT_WIDTH;
-        left = right - btn_width - 1;
-        MoveWindow(hrw, left, SPLIT_WIDTH, btn_width, btn_height, TRUE);
-        ShowWindow(hrw, SW_SHOW);
+        if (left || right)
+        {
+            int btn_height = 0;
+            int dpi = eu_get_dpi(g_statusbar);
+            int btn_width = eu_dpi_scale_xy(dpi > 96 ? dpi - dpi/4 : dpi, BTN_DEFAULT_WIDTH);
+            RECT rc_part = {0};
+            SendMessage(g_statusbar, SB_GETRECT, STATUSBAR_DOC_BTN, (LPARAM)&rc_part);
+            btn_height = rc_part.bottom - SPLIT_WIDTH;
+            left = right - btn_width - 1;
+            //MoveWindow(hrw, left, SPLIT_WIDTH, btn_width, btn_height, TRUE);
+            //ShowWindow(hrw, SW_SHOW);
+            eu_setpos_window(hrw, HWND_TOP, left, SPLIT_WIDTH, btn_width, btn_height, SWP_SHOWWINDOW);
+        }
+        else 
+        {
+            eu_setpos_window(hrw, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
     }
 }
 
@@ -220,11 +228,16 @@ on_statusbar_size(eu_tabpage *pnode)
 {
     if (g_statusbar)
     {
-        if (pnode)
+        if (!eu_get_config()->m_statusbar)
+        {
+            on_statusbar_adjust_btn(0, 0);
+            eu_setpos_window(g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+        else if (pnode)
         {
             on_statusbar_btn_rw(pnode, true);
         }
-        else if (eu_get_config()->m_statusbar)
+        else
         {
             RECT rc = {0};
             GetClientRect(eu_hwnd_self(), &rc);
@@ -238,10 +251,6 @@ on_statusbar_size(eu_tabpage *pnode)
             on_statusbar_update();
             MoveWindow(g_statusbar, 0, rc.bottom - height, cx, height, TRUE);
             ShowWindow(g_statusbar, SW_SHOW);
-        }
-        else
-        {
-            eu_setpos_window(g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
         }
     }
 }

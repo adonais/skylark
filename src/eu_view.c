@@ -22,6 +22,7 @@ void
 on_view_filetree(void)
 {
     eu_get_config()->m_ftree_show ^= true;
+    on_treebar_size();
     eu_window_resize(NULL);
 }
 
@@ -746,14 +747,13 @@ on_view_full_sreen(HWND hwnd)
     eu_get_config()->m_fullscreen ^= true;
     if (!eu_get_config()->m_fullscreen)
     {
+        int size = on_toolbar_icon_get();
         eu_get_config()->m_menubar = true;
-        eu_get_config()->m_toolbar = on_toolbar_icon_get() > 0 ? on_toolbar_icon_get() : IDB_SIZE_1;
+        eu_get_config()->m_toolbar = size > 0 ? size : IDB_SIZE_1;
+        on_toolbar_set_height(size > 0 ? size : IDB_SIZE_1);
         eu_get_config()->m_statusbar = true;
         GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
-        if (!GetDlgItem(hwnd, IDC_TOOLBAR))
-        {
-            on_toolbar_create_dlg(hwnd);
-        }
+        on_toolbar_refresh(hwnd);
     }
     else
     {
@@ -762,9 +762,9 @@ on_view_full_sreen(HWND hwnd)
         eu_get_config()->m_toolbar = IDB_SIZE_0;
         eu_get_config()->m_statusbar = false;
         GetMenu(hwnd)?SetMenu(hwnd, NULL):(void)0;
+            
     }
     on_view_setfullscreenimpl(hwnd);
-    eu_window_resize(hwnd);
 }
 
 void

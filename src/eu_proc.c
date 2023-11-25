@@ -223,100 +223,53 @@ on_proc_move_sidebar(eu_tabpage *pnode)
 
 /*****************************************************************************
  * 主窗口缩放处理函数
- * 一次性处理所有窗口, 不在每个窗口处理WM_SIZE消息了
 ******************************************************************************/
 static void
-on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
+on_proc_msg_size(HWND hwnd, eu_tabpage *pnode)
 {
-    RECT rc = {0};
-    RECT rect_treebar = {0};
-    RECT rect_tabbar = {0};
-    eu_tabpage *pnode = ptab ? ptab : on_tabpage_focus_at();
-    if (pnode)
+    const bool redraw = pnode == NULL;
+    if (pnode || (pnode = on_tabpage_focus_at()))
     {
-        int number = 8;
-        on_tabpage_adjust_box(&rect_tabbar);
-        on_treebar_adjust_box(&rect_treebar, NULL);
-        on_tabpage_adjust_window(pnode);
-        GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
-        if (ptab)
+        RECT rc_tabbar = {0};
+        if (redraw)
         {
-            number -= 5;
+            on_tabpage_size();
         }
-        HDWP hdwp = BeginDeferWindowPos(number);
-        if (!ptab)
-        {
-            if (eu_get_config()->m_ftree_show)
-            {
-                RECT rect_filetree = {0};
-                on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
-                DeferWindowPos(hdwp,
-                               g_treebar,
-                               HWND_TOP,
-                               rect_treebar.left,
-                               rect_treebar.top,
-                               rect_treebar.right - rect_treebar.left,
-                               rect_treebar.bottom - rect_treebar.top,
-                               SWP_SHOWWINDOW);
-                DeferWindowPos(hdwp,
-                               g_filetree,
-                               HWND_TOP,
-                               rect_filetree.left,
-                               rect_filetree.top,
-                               rect_filetree.right - rect_filetree.left,
-                               rect_filetree.bottom - rect_filetree.top,
-                               SWP_SHOWWINDOW);
-                DeferWindowPos(hdwp,
-                               g_splitter_treebar,
-                               HWND_TOP,
-                               rect_treebar.right,
-                               pnode->rect_sc.top,
-                               SPLIT_WIDTH,
-                               rect_treebar.bottom - pnode->rect_sc.top,
-                               SWP_SHOWWINDOW);
-            }
-            else
-            {
-                DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                DeferWindowPos(hdwp, g_splitter_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
-            DeferWindowPos(hdwp, g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
-                           rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
-        }
+        on_tabpage_adjust_window(pnode, &rc_tabbar);
         if (pnode->hwnd_sc)
         {
-            DeferWindowPos(hdwp, pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                           pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-            // 先隐藏右边侧边栏
-            DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            if (pnode->hwnd_symlist)
+            HDWP hdwp = NULL;
+            int number = 3;
+            if (pnode->hwnd_symlist || pnode->hwnd_symtree)
             {
-                DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
-            else if (pnode->hwnd_symtree)
-            {
-                DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                ++number;
             }
             if (document_map_initialized && hwnd_document_map)
             {
-                DeferWindowPos(hdwp, hwnd_document_map, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             }
-        }
-        if (true)
-        {
+            hdwp = BeginDeferWindowPos(number);
+            // 先隐藏右边侧边栏
+            DeferWindowPos(hdwp,g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            if (pnode->hwnd_symlist)
+            {
+                DeferWindowPos(hdwp,pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+            else if (pnode->hwnd_symtree)
+            {
+                DeferWindowPos(hdwp,pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+            DeferWindowPos(hdwp,pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
+                           pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,g_tabpages, HWND_TOP, rc_tabbar.left, rc_tabbar.top,
+                           rc_tabbar.right - rc_tabbar.left, on_tabpage_get_height(), SWP_NOREDRAW);
             EndDeferWindowPos(hdwp);
-            if (!ptab)
-            {   // 重新计算标签栏大小
-                on_tabpage_adjust_box(&rect_tabbar);
-                on_tabpage_adjust_window(pnode);
-                eu_setpos_window(g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
-                                 rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
-                eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                                 pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
+            if (redraw)
+            {
                 UpdateWindowEx(g_tabpages);
-                UpdateWindowEx(pnode->hwnd_sc);
             }
+            // tabbar调整位置后重绘工作区
+            UpdateWindowEx(pnode->hwnd_sc);
             // 重新加上位置后显示
             on_proc_move_sidebar(pnode);
         }
@@ -333,7 +286,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                         ShowWindow(p->hwnd_qrtable, SW_HIDE);
                     }
                 }
-                if (p->hex_mode && p->hwnd_sc)
+                if (p->hwnd_sc)
                 {
                     ShowWindow(p->hwnd_sc, SW_HIDE);
                 }
@@ -360,6 +313,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
             }
         }
         on_statusbar_size(pnode);
+        // 从插件页面切换时获取鼠标焦点
         PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
     }
 }
@@ -551,14 +505,19 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NCLBUTTONDOWN:
         case WM_WINDOWPOSCHANGING:
         case WM_WINDOWPOSCHANGED:
+        {
             return DefWindowProc(hwnd, message, wParam, lParam);
+        }
         case WM_ERASEBKGND:
+        {
             if (!on_dark_enable())
             {
                 return DefWindowProc(hwnd, message, wParam, lParam);
             }
             return 1;
+        }
         case WM_CREATE:
+        {
             if (!on_theme_setup_font(hwnd))
             {
                 PostQuitMessage(0);
@@ -588,6 +547,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
             break;
+        }
         case WM_NCPAINT:
         {
             RECT r = {0};
@@ -602,15 +562,20 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return result;
         }
         case WM_NCACTIVATE:
+        {
             return 1;
+        }
         case WM_SIZE:
+        {
             if (wParam != SIZE_MINIMIZED)
             {
-                on_toolbar_size(LOWORD(lParam));
+                on_treebar_size();
+                on_toolbar_size();
                 on_proc_msg_size(hwnd, NULL);
                 on_statusbar_size(NULL);
             }
             break;
+        }
         case WM_RBUTTONDOWN:
         case WM_LBUTTONDBLCLK:
         {
@@ -631,8 +596,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_TAB_CLICK:
+        {
             on_proc_tab_click(hwnd, (void *)wParam);
             return 1;
+        }
         case WM_UPCHECK_STATUS:
         {
             if ((intptr_t)wParam < 0)
@@ -658,6 +625,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 1;
         }
         case WM_TIMER:
+        {
             if (KEY_DOWN(VK_ESCAPE))
             {
                 if (on_qrgen_hwnd())
@@ -691,19 +659,26 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_session_do(hwnd);
             }
             break;
+        }
         case WM_INITMENUPOPUP:
-            // 展开时, 显示菜单状态
+        {   // 展开时, 显示菜单状态
             menu_update_item((HMENU)wParam, false);
             break;
+        }
         case WM_UNINITMENUPOPUP:
-            // 合拢时, 启用所有菜单项
+        {   // 合拢时, 启用所有菜单项
             menu_update_item((HMENU)wParam, true);
             break;
+        }
         case WM_SKYLARK_DESC:
+        {
             return WM_SKYLARK_DESC;
+        }
         case WM_ABOUT_RE:
+        {
             on_search_regxp_error();
             break;
+        }
         case WM_DPICHANGED:
         {
             eu_logmsg("main window recv WM_DPICHANGED\n");
@@ -771,24 +746,44 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (on_dark_supports())
             {
-                HWND snippet = NULL;
-                on_dark_allow_window(hwnd, on_dark_enable());
-                on_dark_refresh_titlebar(hwnd);
-                on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
-                on_tabpage_foreach(on_tabpage_theme_changed);
-                on_toolbar_refresh(hwnd);
-                if (g_filetree)
-                {
-                    SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
-                }
-                if (g_statusbar)
+                if (wParam == DARK_THEME_APPLY)
                 {
                     SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+                    on_dark_allow_window(hwnd, true);
+                    on_dark_refresh_titlebar(hwnd);
+                    if (eu_win11_or_later())
+                    {
+                        on_toolbar_refresh(hwnd);
+                    }
+                    else
+                    {   // win10 dark模式启动时刷新标题栏
+                        ShowWindow(hwnd, SW_MINIMIZE);
+                        ShowWindow(hwnd, SW_RESTORE);
+                    }
+                    
                 }
-                if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+                else 
                 {
-                    on_dark_set_theme(snippet, L"", L"");
-                    on_dark_set_theme(snippet, L"Explorer", NULL);
+                    HWND snippet = NULL;
+                    on_dark_allow_window(hwnd, on_dark_enable());
+                    on_dark_refresh_titlebar(hwnd);
+                    on_toolbar_refresh(hwnd);
+                    on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
+                    on_tabpage_foreach(on_tabpage_theme_changed);
+                    //SendMessage(on_toolbar_hwnd(), WM_THEMECHANGED, (WPARAM)hwnd, 0);
+                    if (g_treebar)
+                    {
+                        SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
+                    }
+                    if (g_statusbar)
+                    {
+                        SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+                    }
+                    if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+                    {
+                        on_dark_set_theme(snippet, L"", L"");
+                        on_dark_set_theme(snippet, L"Explorer", NULL);
+                    }
                 }
             }
             break;
@@ -1697,7 +1692,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     eu_get_config()->m_menubar ^= true;
                     eu_get_config()->m_menubar?(GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK))):SetMenu(hwnd, NULL);
-                    on_proc_msg_size(hwnd, NULL);
                     break;
                 }
                 case IDB_SIZE_1:
@@ -1717,7 +1711,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_toolbar_icon_set(wm_id);
                         if (on_toolbar_refresh(hwnd))
                         {
-                            on_toolbar_size(0);
+                            on_toolbar_size();
+                            on_treebar_size();
                             on_proc_msg_size(hwnd, NULL);
                         }
                     }
@@ -1737,7 +1732,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     if (on_toolbar_refresh(hwnd))
                     {
-                        on_toolbar_size(0);
+                        on_toolbar_size();
+                        on_treebar_size();
                         on_proc_msg_size(hwnd, NULL);
                     }
                     break;
@@ -1747,7 +1743,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (eu_get_config() && !(eu_get_config()->m_fullscreen))
                     {
                         eu_get_config()->m_statusbar ^= true;
+                        on_treebar_size();
                         on_proc_msg_size(hwnd, NULL);
+                        on_statusbar_size(NULL);
                     }
                     break;
                 }
@@ -1795,6 +1793,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (lpnmhdr->code)
             {
                 case NM_CLICK:
+                {
                     if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {
                         POINT pt;
@@ -1803,6 +1802,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_statusbar_pop_menu((int)lpnmm->dwItemSpec, &pt);
                     }
                     break;
+                }
                 case NM_CUSTOMDRAW:
                 {
                     if (eu_get_config() && eu_get_config()->m_toolbar && GetDlgItem(hwnd, IDC_TOOLBAR) == lpnmhdr->hwndFrom)
@@ -2075,11 +2075,13 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_DROPFILES:
+        {
             if (wParam)
             {
                 on_file_drop((HDROP) wParam);
             }
             break;
+        }
         case WM_MOVE:
         {
             HWND hwnd_clip = on_toolbar_clip_hwnd();
@@ -2094,25 +2096,31 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_CLOSE:
+        {
             if (hwnd == g_hwndmain)
             {
                 on_file_edit_exit(hwnd);
             }
             break;
+        }
         case WM_BACKUP_OVER:
+        {
             if (hwnd == g_hwndmain)
             {
                 DestroyWindow(hwnd);
             }
             break;
+        }
         case WM_DESTROY:
-            {
-                on_proc_destory_window(hwnd);
-                eu_logmsg("main window WM_DESTROY\n");
-                break;
-            }
+        {
+            on_proc_destory_window(hwnd);
+            eu_logmsg("main window WM_DESTROY\n");
+            break;
+        }
         default:
+        {
             return DefWindowProc(hwnd, message, wParam, lParam);
+        }
     }
     return 0;
 }

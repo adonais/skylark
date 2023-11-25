@@ -240,13 +240,15 @@ on_toolbar_destroy(HWND hwnd)
 }
 
 int
-on_toolbar_height(void)
+on_toolbar_get_height(void)
 {
-    if (eu_get_config()->m_toolbar == IDB_SIZE_0)
-    {
-        g_toolbar_height = 0;
-    }
-    return g_toolbar_height;
+    return (eu_get_config()->m_toolbar == IDB_SIZE_0 ? 0 : g_toolbar_height);
+}
+
+void
+on_toolbar_set_height(int resid)
+{
+    g_toolbar_height = resid == IDB_SIZE_0 ? 0 : resid + 10;
 }
 
 void
@@ -872,6 +874,25 @@ on_toolbar_menu_callback(HMENU hpop, void *param)
     }
 }
 
+static bool
+on_toolbar_generate_img(const HWND hwnd, toolbar_data **pdata, const int resid)
+{
+    on_toolbar_init_params(hwnd, pdata, resid);
+    if (!*pdata)
+    {
+        return false;
+    }
+    if ((img_list1 = create_img_list(*pdata, true)) == NULL)
+    {
+        return false;
+    }
+    if ((img_list2 = create_img_list(*pdata, false)) == NULL)
+    {
+        return false;
+    }
+    return true;
+}
+
 /*****************************************************************
  * 工具栏回调函数, 接受工具栏点击消息, 以及销毁自身资源
  *****************************************************************/
@@ -892,6 +913,17 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_SIZE:
         {
             on_toolbar_setpos_clipdlg(g_clip_hwnd, eu_module_hwnd());
+            break;
+        }
+        case WM_THEMECHANGED:
+        {
+            toolbar_data *data = NULL;
+            if (on_toolbar_generate_img((HWND)wParam, &data, eu_get_config()->m_toolbar))
+            {
+                SendMessage(hwnd, TB_SETIMAGELIST, (WPARAM) 0, (LPARAM) img_list1);
+                SendMessage(hwnd, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
+            }
+            eu_safe_free(data);
             break;
         }
         case WM_DESTROY:
@@ -1027,21 +1059,17 @@ on_toolbar_redraw(HWND hwnd)
 }
 
 void
-on_toolbar_size(int width)
+on_toolbar_size(void)
 {
     HWND hwnd = on_toolbar_hwnd();
     if (hwnd)
     {
         if (eu_get_config()->m_toolbar != IDB_SIZE_0)
         {
-            if (width <= 0)
-            {
-                RECT rc;
-                GetClientRect(hwnd, &rc);
-                width = rc.right - rc.left;
-            }
-            MoveWindow(hwnd, 0, 0, width, on_toolbar_height(), TRUE);
-            ShowWindow(hwnd, SW_SHOW);
+            RECT rc;
+            GetClientRect(eu_hwnd_self(), &rc);
+            int width = rc.right - rc.left;
+            eu_setpos_window(hwnd, HWND_TOP, 0, 0, width, on_toolbar_get_height(), SWP_SHOWWINDOW);
         }
         else
         {
@@ -1105,18 +1133,7 @@ on_toolbar_create_dlg(HWND parent)
             ret = 1;
             break;
         }
-        on_toolbar_init_params(parent, &pdata, eu_get_config()->m_toolbar);
-        if (!pdata)
-        {
-            ret = 1;
-            break;
-        }
-        if ((img_list1 = create_img_list(pdata, true)) == NULL)
-        {
-            ret = 1;
-            break;
-        }
-        if ((img_list2 = create_img_list(pdata, false)) == NULL)
+        if (!on_toolbar_generate_img(parent, &pdata, eu_get_config()->m_toolbar))
         {
             ret = 1;
             break;
@@ -1144,7 +1161,7 @@ on_toolbar_create_dlg(HWND parent)
                 ptb[i].fsStyle = TBSTYLE_SEP;
             }
         }
-        htool = CreateWindowEx(WS_EX_PALETTEWINDOW | TBSTYLE_EX_DOUBLEBUFFER,
+        htool = CreateWindowEx(WS_EX_PALETTEWINDOW,
                                TOOLBARCLASSNAME,
                                _T(""),
                                style,

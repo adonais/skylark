@@ -122,6 +122,8 @@
 #define TBCTL_LIST_SUBID 0x43
 #define STATUSBAR_SUBID 0x44
 
+#define DARK_THEME_APPLY 1
+
 // Custom message
 #define HVM_SETEXTENDEDSTYLE      (WM_USER + 100)
 #define HVM_SETITEMCOUNT          (WM_USER + 101)
@@ -596,6 +598,7 @@ EU_EXT_CLASS bool eu_exist_file(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_libcurl(void);
 EU_EXT_CLASS bool eu_exist_libssl(void);
 EU_EXT_CLASS bool eu_under_wine(void);
+EU_EXT_CLASS bool eu_dark_enable(void);
 EU_EXT_CLASS void eu_wine_dotool(void);
 EU_EXT_CLASS LPTSTR eu_suffix_strip(TCHAR *path);
 EU_EXT_CLASS LPTSTR eu_rand_str(TCHAR *str, const int len);

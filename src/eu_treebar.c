@@ -1974,6 +1974,53 @@ on_treebar_create_dlg(HWND hwnd)
 }
 
 void
+on_treebar_size(void)
+{
+    HDWP hdwp = BeginDeferWindowPos(3);
+    if (g_treebar && hdwp)
+    {
+        RECT rect_treebar = {0};
+        on_treebar_adjust_box(&rect_treebar, NULL);
+        if (eu_get_config()->m_ftree_show)
+        {
+            RECT rect_filetree = {0};
+            on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
+            DeferWindowPos(hdwp,
+                           g_treebar,
+                           HWND_TOP,
+                           rect_treebar.left,
+                           rect_treebar.top,
+                           rect_treebar.right - rect_treebar.left,
+                           rect_treebar.bottom - rect_treebar.top,
+                           SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,
+                           g_filetree,
+                           HWND_TOP,
+                           rect_filetree.left,
+                           rect_filetree.top,
+                           rect_filetree.right - rect_filetree.left,
+                           rect_filetree.bottom - rect_filetree.top,
+                           SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,
+                           g_splitter_treebar,
+                           HWND_TOP,
+                           rect_treebar.right,
+                           rect_filetree.top,
+                           SPLIT_WIDTH,
+                           rect_filetree.bottom - rect_filetree.top,
+                           SWP_SHOWWINDOW);
+        }
+        else
+        {
+            DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            DeferWindowPos(hdwp, g_splitter_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+    }
+    EndDeferWindowPos(hdwp);
+}
+
+void
 on_treebar_adjust_box(RECT *ptf, RECT *prc)
 {
     RECT rect_main = {0};
@@ -1986,14 +2033,14 @@ on_treebar_adjust_box(RECT *ptf, RECT *prc)
     {
         ptf->left = 0;
         ptf->right = 0;
-        ptf->top = prc->top + on_toolbar_height();
+        ptf->top = prc->top + on_toolbar_get_height();
         ptf->bottom = prc->bottom - on_statusbar_height();
     }
     else
     {
         ptf->left = prc->left;
         ptf->right = prc->left + eu_get_config()->file_tree_width;
-        ptf->top = prc->top + on_toolbar_height();
+        ptf->top = prc->top + on_toolbar_get_height();
         ptf->bottom = prc->bottom - on_statusbar_height();
     }
 }
@@ -2214,6 +2261,7 @@ on_treebar_locate_path(const TCHAR *pathname)
         TreeView_SelectItem(g_filetree, hti);
         TreeView_EnsureVisible(g_filetree, hti);
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
+        on_treebar_size();
         eu_window_resize(eu_module_hwnd());
     }
     util_free(m_dup);

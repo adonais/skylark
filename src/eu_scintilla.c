@@ -918,12 +918,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_SETFOCUS:
-        {
-            NMHDR nm = {0};
-            eu_send_notify(hwnd, NM_SETFOCUS, &nm);
-            break;
-        }
         case WM_DESTROY:
         {
             eu_logmsg("scintilla WM_DESTROY\n");

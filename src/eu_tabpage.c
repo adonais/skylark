@@ -38,18 +38,14 @@ static HCURSOR g_drag_hcursor = NULL;
 int
 on_tabpage_get_height(void)
 {
-    RECT tabs;
-    GetClientRect(g_tabpages, &tabs);
-    return (tabs.bottom - tabs.top);
-}
-
-static int
-on_tabpage_internal_height(void)
-{
-    RECT tabs = {0};
-    int tab_height = TABS_HEIGHT_DEFAULT;
-    TabCtrl_GetItemRect(g_tabpages, 0, &tabs);
-    tab_height = (tabs.bottom - tabs.top) * TabCtrl_GetRowCount(g_tabpages);
+    int tab_height = eu_dpi_scale_xy(0, TABS_HEIGHT_DEFAULT);
+    if (g_tabpages)
+    {
+        RECT tabs = {0};
+        int row = TabCtrl_GetRowCount(g_tabpages);
+        TabCtrl_GetItemRect(g_tabpages, 0, &tabs);
+        tab_height = row * (tabs.bottom - tabs.top) + (row > 1 ? (row - 1) * 3 + 1 : 1);
+    }
     return tab_height;
 }
 
@@ -1064,7 +1060,7 @@ on_tabpage_create_dlg(HWND hwnd)
             TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, 0);
             TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
             util_tab_height(g_tabpages, TAB_MIN_WIDTH);
-            ShowWindow(g_tabpages, SW_SHOW);
+            //ShowWindow(g_tabpages, SW_SHOW);
         }
         if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) on_tabpage_proc_callback)))
         {
@@ -1116,15 +1112,24 @@ on_tabpage_do_file(tab_callback func)
 }
 
 void
+on_tabpage_size(void)
+{
+    if (g_tabpages)
+    {
+        RECT rc_tabbar;
+        on_tabpage_adjust_box(&rc_tabbar);
+        MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, TRUE);
+        ShowWindow(g_tabpages, SW_SHOW);
+    }
+}
+
+void
 on_tabpage_adjust_box(RECT *ptp)
 {
-    RECT rc_main;
-    RECT rc_treebar = { 0 };
     if (ptp)
     {
-        const int row = TabCtrl_GetRowCount(g_tabpages);
-        int tab_height = on_tabpage_internal_height();
-        tab_height += row > 1 ? 3 * (row - 1) : 0;
+        RECT rc_main;
+        RECT rc_treebar = { 0 };
         on_treebar_adjust_box(&rc_treebar, &rc_main);
         if (!eu_get_config()->m_ftree_show)
         {
@@ -1136,7 +1141,7 @@ on_tabpage_adjust_box(RECT *ptp)
         }
         ptp->right = rc_main.right;
         ptp->top = rc_treebar.top;
-        ptp->bottom = ptp->top + tab_height + SCINTILLA_MARGIN_TOP;
+        ptp->bottom = rc_treebar.bottom;
     }
     else if (g_tabpages)
     {
@@ -1145,23 +1150,26 @@ on_tabpage_adjust_box(RECT *ptp)
 }
 
 void
-on_tabpage_adjust_window(eu_tabpage *pnode)
+on_tabpage_adjust_window(eu_tabpage *pnode, RECT *ptab)
 {
-    int tab_height = 0;
     RECT rc_tabpages = {0};
+    if (!ptab)
+    {
+        ptab = &rc_tabpages;
+    }
     if (true)
     {
         RECT rc_main;
         GetClientRect(eu_module_hwnd(), &rc_main);
-        on_tabpage_adjust_box(&rc_tabpages);
-        pnode->rect_sc.left = rc_tabpages.left;
+        on_tabpage_adjust_box(ptab);
+        pnode->rect_sc.left = ptab->left;
         if (eu_get_config()->m_ftree_show)
         {
             pnode->rect_sc.left += SPLIT_WIDTH;
         }
-        pnode->rect_sc.right = rc_tabpages.right;
-        pnode->rect_sc.top = rc_tabpages.bottom;
-        pnode->rect_sc.bottom = rc_main.bottom - on_statusbar_height();
+        pnode->rect_sc.right = ptab->right;
+        pnode->rect_sc.top = ptab->top + on_tabpage_get_height();
+        pnode->rect_sc.bottom = ptab->bottom;
     }
     if (pnode->sym_show)
     {
@@ -1170,7 +1178,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             pnode->rect_sc.right -= (pnode->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
                                      + SPLIT_WIDTH;
             pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_sym.right = rc_tabpages.right;
+            pnode->rect_sym.right = ptab->right;
             pnode->rect_sym.top = pnode->rect_sc.top;
             pnode->rect_sym.bottom = pnode->rect_sc.bottom;
         }
@@ -1181,7 +1189,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
         {
             pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
             pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_map.right = rc_tabpages.right;
+            pnode->rect_map.right = ptab->right;
             pnode->rect_map.top = pnode->rect_sc.top;
             pnode->rect_map.bottom = pnode->rect_sc.bottom;
         }

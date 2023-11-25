@@ -275,6 +275,13 @@ _tmain(int argc, TCHAR *argv[])
         eu_logmsg("eu_sci_register failed\n");
         SKY_SAFE_EXIT(SKYLARK_SCI_FAILED);
     }
+    if (!eu_win11_or_later() && strcmp(eu_get_config()->window_theme, "black") == 0)
+    {
+        if (eu_dark_theme_init(true, true))
+        {
+            eu_logmsg("eu_dark_theme_init ok!\n");
+        }
+    }
     if (!(hwnd = init_instance(instance)))
     {
         eu_logmsg("init_instance failed\n");
@@ -302,12 +309,13 @@ _tmain(int argc, TCHAR *argv[])
             SKY_SAFE_EXIT(SKYLARK_CONF_FAILED);
         }
     }
-    if (strcmp(eu_get_config()->window_theme, "black") == 0)
+    if (eu_dark_enable())
     {
-        if (eu_dark_theme_init(true, true))
-        {
-            SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
-        }
+        SendMessage(eu_module_hwnd(), WM_THEMECHANGED, DARK_THEME_APPLY, 0);
+    }
+    else if (eu_win11_or_later() && strcmp(eu_get_config()->window_theme, "black") == 0 && eu_dark_theme_init(true, true))
+    {
+        SendMessage(eu_module_hwnd(), WM_THEMECHANGED, DARK_THEME_APPLY, 0);
     }
     while (GetMessage(&msg, NULL, 0, 0) > 0)
     {
