@@ -53,7 +53,7 @@ on_view_document_map(eu_tabpage *pnode)
 }
 
 void
-on_view_result_show(eu_tabpage *pnode, int key)
+on_view_result_show(eu_tabpage *pnode, const int key)
 {
     if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
     {
@@ -71,7 +71,7 @@ on_view_result_show(eu_tabpage *pnode, int key)
 }
 
 int
-on_view_switch_type(int m_type)
+on_view_switch_type(const int m_type)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
     if (pnode && !pnode->hex_mode && !pnode->pmod)
@@ -128,10 +128,14 @@ on_view_refresh_scroll(void)
 }
 
 int
-on_view_refresh_theme(HWND hwnd)
+on_view_refresh_theme(HWND hwnd, const bool reload)
 {
     HWND snippet = NULL;
     on_dark_delete_theme_brush();
+    if (reload && util_under_wine())
+    {
+        on_theme_setup_font(hwnd);
+    }
     on_treebar_update_theme();
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -185,17 +189,20 @@ on_view_refresh_theme(HWND hwnd)
             on_snippet_reload(pview);
         }
     }
-    menu_bmp_destroy();
-    on_view_refresh_scroll();
-    on_toolbar_redraw(hwnd);
-    on_splitter_redraw();
-    SendMessage(hwnd, WM_SIZE, 0, 0);
-    UpdateWindowEx(hwnd);
+    if (reload)
+    {
+        menu_bmp_destroy();
+        on_view_refresh_scroll();
+        on_toolbar_redraw(hwnd);
+        on_splitter_redraw();
+        SendMessage(hwnd, WM_SIZE, 0, 0);
+        UpdateWindowEx(hwnd);
+    }
     return SKYLARK_OK;
 }
 
 int
-on_view_switch_theme(HWND hwnd, int id)
+on_view_switch_theme(HWND hwnd, const int id)
 {
     int count = 0;
     HFONT hfont = NULL;
@@ -239,7 +246,7 @@ on_view_switch_theme(HWND hwnd, int id)
     {
         eu_dark_theme_release(false);
     }
-    return on_view_refresh_theme(hwnd);
+    return on_view_refresh_theme(hwnd, true);
 }
 
 int
@@ -253,7 +260,7 @@ on_view_modify_theme(void)
             eu_logmsg("%s: on_theme_setup_font failed\n", __FUNCTION__);
             return 1;
         }
-        return on_view_refresh_theme(hwnd);
+        return on_view_refresh_theme(hwnd, false);
     }
     return SKYLARK_OK;
 }
@@ -768,7 +775,7 @@ on_view_full_sreen(HWND hwnd)
 }
 
 void
-on_view_font_quality(HWND hwnd, int res_id)
+on_view_font_quality(HWND hwnd, const int res_id)
 {
     int old_id = eu_get_config()->m_quality;
     if (eu_get_config()->m_quality != res_id)
@@ -796,7 +803,7 @@ on_view_font_quality(HWND hwnd, int res_id)
 }
 
 void
-on_view_enable_rendering(HWND hwnd, int res_id)
+on_view_enable_rendering(HWND hwnd, const int res_id)
 {
     if (!util_under_wine() && eu_get_config()->m_render != res_id)
     {

@@ -882,6 +882,15 @@ on_toolbar_generate_img(const HWND hwnd, toolbar_data **pdata, const int resid)
     {
         return false;
     }
+    if (img_list1)
+    {
+        ImageList_Destroy(img_list1);
+    }
+    if (img_list2)
+    {
+        ImageList_Destroy(img_list2);
+        img_list2 = NULL;
+    }
     if ((img_list1 = create_img_list(*pdata, true)) == NULL)
     {
         return false;
@@ -917,13 +926,16 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            toolbar_data *data = NULL;
-            if (on_toolbar_generate_img((HWND)wParam, &data, eu_get_config()->m_toolbar))
-            {
-                SendMessage(hwnd, TB_SETIMAGELIST, (WPARAM) 0, (LPARAM) img_list1);
-                SendMessage(hwnd, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
+            if (eu_hwnd_self() == (HWND)wParam)
+            {   // 忽略自动发送的WM_THEMECHANGED消息
+                toolbar_data *data = NULL;
+                if (on_toolbar_generate_img((HWND)wParam, &data, eu_get_config()->m_toolbar))
+                {
+                    SendMessage(hwnd, TB_SETIMAGELIST, (WPARAM) 0, (LPARAM) img_list1);
+                    SendMessage(hwnd, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
+                }
+                eu_safe_free(data);
             }
-            eu_safe_free(data);
             break;
         }
         case WM_DESTROY:
@@ -1104,8 +1116,7 @@ on_toolbar_create_dlg(HWND parent)
     do
     {
         int i = 0, j = 0;
-        const int style = WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TBSTYLE_TOOLTIPS|TBSTYLE_FLAT|
-                          TBSTYLE_CUSTOMERASE|CCS_TOP|CCS_NODIVIDER;
+        int style = WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TBSTYLE_TOOLTIPS|TBSTYLE_FLAT|CCS_TOP|CCS_NODIVIDER;
         /*********************************************************************
          * iBitmap(0), 第i个位图
          * idCommand(0), WM_COMMAND消息响应的ID
@@ -1161,10 +1172,14 @@ on_toolbar_create_dlg(HWND parent)
                 ptb[i].fsStyle = TBSTYLE_SEP;
             }
         }
+        if (on_dark_enable())
+        {
+            style |= TBSTYLE_CUSTOMERASE;
+        }
         htool = CreateWindowEx(WS_EX_PALETTEWINDOW,
                                TOOLBARCLASSNAME,
                                _T(""),
-                               style,
+                               style|TBSTYLE_BUTTON,
                                0,
                                0,
                                0,

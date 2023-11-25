@@ -1888,7 +1888,7 @@ on_treebar_create_box(HWND hwnd)
         DestroyWindow(g_treebar);
         return EUE_POINT_NULL;
     }
-    SendMessage(g_treebar, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
+    on_theme_update_font(filebar_id);
     return SKYLARK_OK;
 }
 
@@ -1954,7 +1954,7 @@ on_treebar_create_dlg(HWND hwnd)
             err = EUE_POINT_NULL;
             break;
         }
-        on_theme_update_font(filebar_id);
+        on_theme_update_font(filetree_id);
         on_treebar_update_theme();
     }while(0);
     if (err)

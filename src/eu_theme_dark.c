@@ -521,27 +521,11 @@ eu_dark_theme_release(bool shutdown)
     }
     else if (g_dark_enabled)
     {
-        HWND hwnd = eu_module_hwnd();
-        //on_dark_set_titlebar(hwnd, false);
         on_dark_allow_app(false);
-        on_dark_allow_window(hwnd, false);
         g_dark_enabled = false;
         fnFlushMenuThemes();
         eu_close_dll(g_uxtheme);
         SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
-        on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
-        if (g_treebar)
-        {
-            SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
-        }
-        if (g_filetree)
-        {
-            SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
-        }
-        if (g_tabpages)
-        {
-            SendMessage(g_tabpages, WM_THEMECHANGED, 0, 0);
-        }
         on_dark_delete_brush();
         on_theme_menu_release();
     }
@@ -603,7 +587,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
             }
             if (g_dark_enabled && on_dark_create_hot_brush() && on_dark_set_caption())
             {
-                eu_logmsg("The dark theme is successfully initialized\n");
+                eu_logmsg("dark theme is successfully initialized\n");
                 return on_dark_create_bgbrush();
             }
             else
@@ -611,7 +595,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
                 g_dark_supported = false;
                 g_dark_enabled = false;
                 eu_close_dll(g_uxtheme);
-                eu_logmsg("The Dark theme initialization failed\n");
+                eu_logmsg("dark theme initialization failed\n");
             }
         }
     }

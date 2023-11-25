@@ -18,6 +18,8 @@
 #include "framework.h"
 #include <uxtheme.h>
 
+#define FONT_DEFAULT_SIZE (-12)
+
 static HFONT g_hfont;
 static HWND  hwnd_edit_tips;
 static HBRUSH brush_linenumber;
@@ -273,6 +275,14 @@ on_theme_update_font(const control_id id)
     switch (id)
     {
         case all_id:
+            if (g_tabpages)
+            {
+                SendMessage(g_tabpages, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            if (g_treebar)
+            {
+                SendMessage(g_treebar, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
             if (g_filetree)
             {
                 SendMessage(g_filetree, WM_SETFONT, (WPARAM)g_hfont, 0);
@@ -282,7 +292,19 @@ on_theme_update_font(const control_id id)
                 SendMessage(GetDlgItem(g_statusbar, IDM_BTN_RW), WM_SETFONT, (WPARAM)g_hfont, 0);
             }
             break;
+        case tabbar_id:
+            if (g_tabpages)
+            {
+                SendMessage(g_tabpages, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;     
         case filebar_id:
+            if (g_treebar)
+            {
+                SendMessage(g_treebar, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        case filetree_id:
             if (g_filetree)
             {
                 SendMessage(g_filetree, WM_SETFONT, (WPARAM)g_hfont, 0);
@@ -308,20 +330,17 @@ on_theme_font_hwnd(void)
 bool
 on_theme_setup_font(HWND hwnd)
 {
-    int font_hight = 0;
     NONCLIENTMETRICS ncm = {sizeof(NONCLIENTMETRICS)};
     SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
     LOGFONT logfont = ncm.lfMessageFont;
-    if (util_under_wine() && util_font_available(eu_get_theme()->item.text.font))
-    {
+    if (util_under_wine())
+    {   // 跟windows不同, wine预先对字体进行了缩放
         util_make_u16(eu_get_theme()->item.text.font, logfont.lfFaceName, _countof(logfont.lfFaceName) - 1);
-        font_hight = 13;
     }
-    if (!font_hight)
-    {
-        font_hight = logfont.lfHeight < 0 ? -logfont.lfHeight : logfont.lfHeight;
+    else
+    {   // 在windows下, 因为10与11的差别, 使用标准字体大小
+        logfont.lfHeight = -MulDiv(-FONT_DEFAULT_SIZE, eu_get_dpi(hwnd), USER_DEFAULT_SCREEN_DPI);
     }
-    logfont.lfHeight = -MulDiv(font_hight, eu_get_dpi(hwnd), USER_DEFAULT_SCREEN_DPI);
     if (g_hfont)
     {
         DeleteObject(g_hfont);

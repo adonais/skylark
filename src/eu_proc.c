@@ -683,9 +683,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             eu_logmsg("main window recv WM_DPICHANGED\n");
             on_theme_setup_font(hwnd);
+            menu_bmp_destroy();
             on_tabpage_foreach(hexview_update_theme);
             on_toolbar_refresh(hwnd);
-            menu_bmp_destroy();
             if (g_tabpages)
             {
                 SendMessage(g_tabpages, WM_DPICHANGED, 0, 0);
@@ -765,12 +765,19 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 else 
                 {
                     HWND snippet = NULL;
+                    HWND htool = on_toolbar_hwnd();
                     on_dark_allow_window(hwnd, on_dark_enable());
                     on_dark_refresh_titlebar(hwnd);
-                    on_toolbar_refresh(hwnd);
-                    on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
-                    on_tabpage_foreach(on_tabpage_theme_changed);
-                    //SendMessage(on_toolbar_hwnd(), WM_THEMECHANGED, (WPARAM)hwnd, 0);
+                    if (g_tabpages)
+                    {
+                        on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
+                        on_tabpage_foreach(on_tabpage_theme_changed);
+                    }
+                    if (htool)
+                    {
+                        on_dark_tips_theme(htool, TB_GETTOOLTIPS);
+                        SendMessage(htool, WM_THEMECHANGED, (WPARAM)hwnd, 0);
+                    }
                     if (g_treebar)
                     {
                         SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
@@ -798,7 +805,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (!on_dark_enable() && eu_dark_theme_init(true, true))
                     {
                         SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
-                        on_view_refresh_theme(hwnd);
+                        on_view_refresh_theme(hwnd, true);
                     }
                 }
                 else if (!eu_win11_or_later())

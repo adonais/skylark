@@ -1056,11 +1056,10 @@ on_tabpage_create_dlg(HWND hwnd)
         }
         if (true)
         {
-            SendMessage(g_tabpages, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
             TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, 0);
             TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
+            on_theme_update_font(tabbar_id);
             util_tab_height(g_tabpages, TAB_MIN_WIDTH);
-            //ShowWindow(g_tabpages, SW_SHOW);
         }
         if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) on_tabpage_proc_callback)))
         {

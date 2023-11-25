@@ -3414,10 +3414,7 @@ util_tab_height(const HWND hwnd, const int width)
         const int dpi = eu_get_dpi(hwnd);
         x = eu_dpi_scale_xy(dpi, width <= 0 ? TABS_WIDTH_DEFAULT : width);
         y = eu_dpi_scale_xy(dpi, TABS_HEIGHT_DEFAULT);
-        if (!util_under_wine())
-        {   // wine 下会对tab自动缩放
-            xy = TabCtrl_SetItemSize(hwnd, x, y);
-        }
+        xy = TabCtrl_SetItemSize(hwnd, x, y);
     }
     return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
 }

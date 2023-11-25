@@ -212,8 +212,6 @@ on_statusbar_adjust_btn(int left, int right)
             SendMessage(g_statusbar, SB_GETRECT, STATUSBAR_DOC_BTN, (LPARAM)&rc_part);
             btn_height = rc_part.bottom - SPLIT_WIDTH;
             left = right - btn_width - 1;
-            //MoveWindow(hrw, left, SPLIT_WIDTH, btn_width, btn_height, TRUE);
-            //ShowWindow(hrw, SW_SHOW);
             eu_setpos_window(hrw, HWND_TOP, left, SPLIT_WIDTH, btn_width, btn_height, SWP_SHOWWINDOW);
         }
         else 

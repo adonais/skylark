@@ -35,8 +35,10 @@ typedef struct _theme_query
 typedef enum _control_id
 {
     all_id = 0,
-    filebar_id = 1,
-    btn_id = 2
+    tabbar_id,
+    filebar_id,
+    filetree_id,
+    btn_id
 } control_id;
 
 #ifdef __cplusplus
