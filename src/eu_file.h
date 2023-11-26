@@ -64,7 +64,7 @@ typedef struct _file_backup
     char fold_id[MAX_BUFFER];
 }file_backup;
 
-int on_file_new(void);
+int on_file_new(eu_tabpage *psrc);
 int on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force);
 int on_file_only_open(file_backup *pbak, const bool selection);
 int on_file_open(void);

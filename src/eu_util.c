@@ -1321,6 +1321,17 @@ util_strdup_content(eu_tabpage *pnode, size_t *plen)
     return ptext;
 }
 
+void *
+util_memdup(void *p, const size_t size)
+{
+    void *pdst = NULL;
+    if (p && size > 0 && (pdst = malloc(size)))
+    {
+        memcpy(pdst, p, size);
+    }
+    return pdst;
+}
+
 /**************************************************
  * 验证字符的有效性
  *************************************************/

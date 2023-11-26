@@ -1056,6 +1056,8 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_VIEW_ZOOMIN, 2);
             on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!pnode->hex_mode && pnode->doc_ptr) ? 2 : 1);
+            // dark theme下需要重新绘制
+            on_toolbar_redraw(eu_hwnd_self());
         }
     }
 }
@@ -1063,11 +1065,7 @@ on_toolbar_update_button(void)
 void
 on_toolbar_redraw(HWND hwnd)
 {
-    HWND h_tool = NULL;
-    if ((h_tool = GetDlgItem(hwnd, IDC_TOOLBAR)))
-    {
-        UpdateWindowEx(h_tool);
-    }
+    UpdateWindowEx(on_toolbar_hwnd());
 }
 
 void
@@ -1179,7 +1177,7 @@ on_toolbar_create_dlg(HWND parent)
         htool = CreateWindowEx(WS_EX_PALETTEWINDOW,
                                TOOLBARCLASSNAME,
                                _T(""),
-                               style|TBSTYLE_BUTTON,
+                               style,
                                0,
                                0,
                                0,

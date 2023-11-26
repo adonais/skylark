@@ -315,10 +315,23 @@ on_tabpage_get_padding(const HWND hwnd, const int index, RECT *prc)
         {
             int diff = 0;
             RECT pre_rc = {0};
+            RECT pre_zero = {0};
+            TabCtrl_GetItemRect(hwnd, 0, &pre_zero);
             TabCtrl_GetItemRect(hwnd, index - 1, &pre_rc);
-            if ((pre_rc.bottom == prc->bottom) && (diff = prc->left - pre_rc.right) > 0)
+            if ((pre_rc.bottom == prc->bottom))
             {
-                prc->left -= diff;
+                if ((diff = prc->left - pre_rc.right) > 0)
+                {
+                    prc->left -= diff;
+                }
+                if ((diff = prc->top - pre_zero.top) > 0)
+                {
+                    prc->top = pre_rc.top - 3;
+                }
+            }
+            else if ((diff = prc->top - pre_rc.bottom) > 0)
+            {
+                prc->top -= diff;
             }
         }
     }
@@ -839,14 +852,13 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 g_drag_hcursor ? SetCursor(g_drag_hcursor) : (void *)0;
                 break;
             }
-            count = TabCtrl_GetItemCount(hwnd);
-            for (index = 0; index < count; ++index)
+            for (index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
             {
                 if (!(p = on_tabpage_get_ptr(index)))
                 {
                     break;
                 }
-                TabCtrl_GetItemRect(hwnd, index, &rect);
+                on_tabpage_get_padding(hwnd, index, &rect);
                 if (PtInRect(&rect, point))
                 {
                     if (!tab_do_drag && tab_drag)
@@ -858,6 +870,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (on_tabpage_has_drag(&point) && KEY_DOWN(VK_LBUTTON))
                     {
                         tab_drag = true;
+                        eu_logmsg("tab_drag = %d\n", tab_drag);
                     }
                     else if (eu_get_config()->m_close_draw == IDM_TABCLOSE_FOLLOW && !tab_drag && !p->at_close)
                     {
@@ -885,7 +898,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if ((tab_move_from = on_tabpage_hit_index(&g_point)) != -1)
             {
                 RECT rc;
-                TabCtrl_GetItemRect(hwnd, tab_move_from, &rc);
+                on_tabpage_get_padding(hwnd, tab_move_from, &rc);
                 if (eu_get_config()->m_close_draw != IDM_TABCLOSE_NONE && on_tabpage_hit_button(&rc, &g_point))
                 {
                     PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
@@ -982,11 +995,11 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (eu_get_config()->m_new_way == IDM_VIEW_TAB_RIGHT_NEW && wParam == MK_RBUTTON)
             {
-                on_file_new();
+                on_file_new(NULL);
             }
             if (eu_get_config()->m_new_way == IDM_VIEW_TAB_DBCLICK_NEW && wParam == MK_LBUTTON)
             {
-                on_file_new();
+                on_file_new(NULL);
             }
             break;
         }
@@ -1005,7 +1018,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         break;
                     }
-                    TabCtrl_GetItemRect(hwnd, index, &rect);
+                    on_tabpage_get_padding(hwnd, index, &rect);
                     if (p->at_close)
                     {
                         on_tabpage_flush_close(hwnd, &rect);
@@ -1212,21 +1225,25 @@ on_tabpage_adjust_window(eu_tabpage *pnode, RECT *ptab)
     }
 }
 
-int
-on_tabpage_remove(eu_tabpage **ppnode)
+eu_tabpage *
+on_tabpage_remove(const eu_tabpage *pnode)
 {
     eu_tabpage *p = NULL;
-    EU_VERIFY(ppnode != NULL && *ppnode != NULL && g_tabpages != NULL);
+    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        if ((p = on_tabpage_get_ptr(index)) && p == *ppnode)
-        {   /* 删除控件句柄与释放资源 */
+        if ((p = on_tabpage_get_ptr(index)) && p == pnode)
+        {   /* 从控件删除选项卡 */
+            p->tab_id = index;
             TabCtrl_DeleteItem(g_tabpages, index);
-            on_sci_free_tab(ppnode);
-            return index;
+            if (count < 2 && !pnode->hex_mode && !pnode->plugin)
+            {
+                p->reason = TABS_MAYBE_RESERVE;
+            }
+            return p;
         }
     }
-    return EUE_TAB_NULL;
+    return NULL;
 }
 
 static int
@@ -1256,7 +1273,7 @@ on_tabpage_replace_empty(eu_tabpage *pre)
 }
 
 TCHAR *
-on_tabpage_generator(TCHAR *filename, int len)
+on_tabpage_generator(TCHAR *filename, const int len)
 {
     EU_VERIFY(g_tabpages != NULL);
     LOAD_I18N_RESSTR(IDC_MSG_NEW_FILE, m_file);
@@ -1522,7 +1539,7 @@ on_tabpage_foreach(tab_ptr fntab)
 }
 
 eu_tabpage *
-on_tabpage_get_ptr(int index)
+on_tabpage_get_ptr(const int index)
 {
     TCITEM tci = {TCIF_PARAM};
     if (TabCtrl_GetItem(g_tabpages, index, &tci))
@@ -1543,7 +1560,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     eu_tabpage *p = NULL;
-    int count = TabCtrl_GetItemCount(g_tabpages);
+    const int count = TabCtrl_GetItemCount(g_tabpages);
     if (index < 0)
     {
         for (index = 0; index < count; ++index)
@@ -1559,7 +1576,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     {
         HWND hwnd = eu_module_hwnd();
         on_tabpage_set_active(index);
-        on_proc_resize(hwnd);
+        eu_window_resize(hwnd);
         if ((p = on_tabpage_get_ptr(index)))
         {   // 窗口处理过程中可能改变了标签位置, 重置它
             on_tabpage_deselect(index);
@@ -1590,7 +1607,7 @@ on_tabpage_get_handle(void *hwnd_sc)
 }
 
 int
-on_tabpage_get_index(eu_tabpage *pnode)
+on_tabpage_get_index(const eu_tabpage *pnode)
 {
     if (g_tabpages)
     {

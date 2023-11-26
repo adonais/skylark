@@ -1172,7 +1172,7 @@ on_filetree_node_dbclick(void)
     }
     if (!err && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 建立一个空白标签页
-        err = on_file_new();
+        err = on_file_new(NULL);
     }
     return err;
 }

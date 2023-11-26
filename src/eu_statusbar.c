@@ -246,7 +246,6 @@ on_statusbar_size(eu_tabpage *pnode)
             int parts[] = {n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, btn_half, -1};
             SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
             on_statusbar_adjust_btn(btn_half, cx);
-            on_statusbar_update();
             MoveWindow(g_statusbar, 0, rc.bottom - height, cx, height, TRUE);
             ShowWindow(g_statusbar, SW_SHOW);
         }
@@ -948,12 +947,12 @@ on_statusbar_create_filetype_menu(void)
 }
 
 void
-on_statusbar_update(void)
+on_statusbar_update(eu_tabpage *psrc)
 {
+    eu_tabpage *pnode = psrc;
     if (g_statusbar && eu_get_config()->m_statusbar)
     {
-        eu_tabpage *pnode = on_tabpage_focus_at();
-        if (pnode && pnode->hwnd_sc)
+        if ((pnode || (pnode = on_tabpage_focus_at())) && pnode->hwnd_sc)
         {
             SendMessage(g_statusbar, WM_SETREDRAW, FALSE, 0);
             on_statusbar_update_fileinfo(pnode, NULL);

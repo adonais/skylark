@@ -412,63 +412,60 @@ on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TC
 }
 
 int
-on_file_new(void)
+on_file_new(eu_tabpage *psrc)
 {
-    eu_tabpage *pnode = NULL;
+    eu_tabpage *pnode = psrc;
     TCHAR filename[100] = {0};
     const uint8_t *bom_str = NULL;
-    if ((pnode = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))) == NULL)
-    {
-        return EUE_POINT_NULL;
-    }
-    else
+    if (pnode || (pnode = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))))
     {
         pnode->is_blank = true;
         pnode->begin_pos = -1;
         pnode->tab_id = -1;
+        if (on_tabpage_generator(filename, 100)[0])
+        {
+            _tcscpy(pnode->pathfile, filename);
+            _tcscpy(pnode->filename, filename);
+        }
+        if (on_tabpage_add(pnode))
+        {
+            eu_safe_free(pnode);
+            return EUE_INSERT_TAB_FAIL;
+        }
+        else
+        {
+            on_sci_before_file(pnode, true);
+            eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+            pnode->eol = eu_get_config()->new_file_eol;
+            pnode->codepage = eu_get_config()->new_file_enc;
+        }
+        switch (pnode->codepage)
+        {
+            case IDM_UNI_UTF8B:
+                bom_str = (const uint8_t *) "\xEF\xBB\xBF";
+                break;
+            case IDM_UNI_UTF16LEB:
+                bom_str = (const uint8_t *) "\xFF\xFE";
+                break;
+            case IDM_UNI_UTF16BEB:
+                bom_str = (const uint8_t *) "\xFE\xFF";
+                break;
+            default:
+                break;
+        }
+        if (bom_str)
+        {
+            on_encoding_set_bom(bom_str, pnode);
+        }
+        if (true)
+        {
+            on_file_update_time(pnode, time(NULL));
+            on_sci_after_file(pnode, true);
+            on_tabpage_selection(pnode, -1);
+        }
+        return SKYLARK_OK;
     }
-    if (on_tabpage_generator(filename, 100)[0])
-    {
-        _tcscpy(pnode->pathfile, filename);
-        _tcscpy(pnode->filename, filename);
-    }
-    if (on_tabpage_add(pnode))
-    {
-        eu_safe_free(pnode);
-        return EUE_INSERT_TAB_FAIL;
-    }
-    else
-    {
-        on_sci_before_file(pnode, true);
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        pnode->eol = eu_get_config()->new_file_eol;
-        pnode->codepage = eu_get_config()->new_file_enc;
-    }
-    switch (pnode->codepage)
-    {
-        case IDM_UNI_UTF8B:
-            bom_str = (const uint8_t *) "\xEF\xBB\xBF";
-            break;
-        case IDM_UNI_UTF16LEB:
-            bom_str = (const uint8_t *) "\xFF\xFE";
-            break;
-        case IDM_UNI_UTF16BEB:
-            bom_str = (const uint8_t *) "\xFE\xFF";
-            break;
-        default:
-            break;
-    }
-    if (bom_str)
-    {
-        on_encoding_set_bom(bom_str, pnode);
-    }
-    if (true)
-    {
-        on_file_update_time(pnode, time(NULL));
-        on_sci_after_file(pnode, true);
-        on_tabpage_selection(pnode, -1);
-    }
-    return SKYLARK_OK;
+    return EUE_POINT_NULL;
 }
 
 uint64_t
@@ -926,39 +923,42 @@ on_file_open_if(const TCHAR *pfile, bool selection)
 }
 
 static void
-on_file_active_other(int index)
+on_file_active_other(eu_tabpage *pnode)
 {
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    if (count <= 0)
-    {   // 最后一个标签
-        if (!eu_get_config()->m_exit)
+    if (pnode && g_tabpages)
+    {
+        const int count = TabCtrl_GetItemCount(g_tabpages);
+        if (count < 1)
         {
-            file_backup bak = {0};
-            share_send_msg(&bak);
+            if (eu_get_config()->m_exit)
+            {   // 最后一个标签退出设置
+                pnode->reason = TABS_MAYBE_EIXT;
+            }
+            else if (pnode->reason != TABS_MAYBE_RESERVE)
+            {
+                on_file_new(NULL);
+            }
         }
-        else if (on_sql_sync_session() == SKYLARK_OK)
+        else
         {
-            eu_logmsg("close last tab, skylark exit ...\n");
-            SendMessage(eu_module_hwnd(), WM_BACKUP_OVER, 0, 0);
+            switch (eu_get_config()->m_tab_active)
+            {   // 激活另一个标签
+                case IDM_VIEW_LEFT_TAB:
+                    on_tabpage_select_index(pnode->tab_id > 0 ? pnode->tab_id - 1 : count - 1);
+                    break;
+                case IDM_VIEW_RIGHT_TAB:
+                    on_tabpage_select_index(pnode->tab_id > count - 1 ? 0 : pnode->tab_id);
+                    break;
+                case IDM_VIEW_FAR_LEFT_TAB:
+                    on_tabpage_select_index(0);
+                    break;
+                case IDM_VIEW_FAR_RIGHT_TAB:
+                    on_tabpage_select_index(count - 1);
+                    break;
+                default:
+                    break;
+            }
         }
-        return;
-    }
-    switch (eu_get_config()->m_tab_active)
-    {   // 激活另一个标签
-        case IDM_VIEW_LEFT_TAB:
-            on_tabpage_select_index(index > 0 ? index - 1 : count - 1);
-            break;
-        case IDM_VIEW_RIGHT_TAB:
-            on_tabpage_select_index(index > count - 1 ? 0 : index);
-            break;
-        case IDM_VIEW_FAR_LEFT_TAB:
-            on_tabpage_select_index(0);
-            break;
-        case IDM_VIEW_FAR_RIGHT_TAB:
-            on_tabpage_select_index(count - 1);
-            break;
-        default:
-            break;
     }
 }
 
@@ -1243,13 +1243,9 @@ on_file_only_open(file_backup *pbak, const bool selection)
     {
         if (res == EUE_WRITE_TAB_FAIL)
         {
-            int index = on_tabpage_remove(&pnode);
-            on_file_active_other(index);
+            on_file_active_other(on_tabpage_remove(pnode));
         }
-        else
-        {
-            on_sci_free_tab(&pnode);
-        }
+        on_sci_free_tab(&pnode);
     }
     return res;
 }
@@ -1259,7 +1255,7 @@ on_file_open_bakcup(file_backup *pbak)
 {
     if (!pbak || (STR_IS_NUL(pbak->rel_path)))
     {
-        return on_file_new();
+        return on_file_new(NULL);
     }
     if (_tcslen(pbak->rel_path) > 0 && pbak->rel_path[_tcslen(pbak->rel_path) - 1] == _T('*'))
     {
@@ -1414,7 +1410,7 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
     }
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 打开文件失败且标签小于1,则建立一个空白标签页
-        err = on_file_new();
+        err = on_file_new(NULL);
     }
     return err;
 }
@@ -1620,14 +1616,10 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     {
         if (result == EUE_CURL_NETWORK_ERR)
         {
-            int index = on_tabpage_remove(&pnode);
-            on_file_active_other(index);
+            on_file_active_other(on_tabpage_remove(pnode));
             MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         }
-        else
-        {
-            on_sci_free_tab(&pnode);
-        }
+        on_sci_free_tab(&pnode);
     }
     else
     {
@@ -2339,7 +2331,6 @@ int
 on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
 {
     EU_VERIFY(g_tabpages != NULL);
-    int index = -1;
     int err = SKYLARK_OK;
     int ifocus = TabCtrl_GetCurSel(g_tabpages);
     eu_tabpage *p = on_tabpage_get_ptr(ifocus);
@@ -2400,16 +2391,17 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
             on_file_push_recent(pnode);
         }
         /* 关闭标签后需要激活其他标签 */
-        if ((index = on_tabpage_remove(&pnode)) >= 0 && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))
+        if ((on_tabpage_remove(pnode)) && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))
         {
-            if (index == ifocus || mode == FILE_REMOTE_CLOSE)
+            if (pnode->tab_id == ifocus || mode == FILE_REMOTE_CLOSE)
             {
-                on_file_active_other(index);
+                on_file_active_other(pnode);
             }
             else if (p)
             {
                 on_tabpage_selection(p, -1);
             }
+            on_sci_free_tab(&pnode);
         }
     }
     return err;

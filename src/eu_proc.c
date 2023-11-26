@@ -231,10 +231,6 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *pnode)
     if (pnode || (pnode = on_tabpage_focus_at()))
     {
         RECT rc_tabbar = {0};
-        if (redraw)
-        {
-            on_tabpage_size();
-        }
         on_tabpage_adjust_window(pnode, &rc_tabbar);
         if (pnode->hwnd_sc)
         {
@@ -571,6 +567,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_treebar_size();
                 on_toolbar_size();
+                on_tabpage_size();
                 on_proc_msg_size(hwnd, NULL);
                 on_statusbar_size(NULL);
             }
@@ -748,7 +745,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 if (wParam == DARK_THEME_APPLY)
                 {
-                    SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
                     on_dark_allow_window(hwnd, true);
                     on_dark_refresh_titlebar(hwnd);
                     if (eu_win11_or_later())
@@ -760,7 +756,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         ShowWindow(hwnd, SW_MINIMIZE);
                         ShowWindow(hwnd, SW_RESTORE);
                     }
-                    
+                    SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
                 }
                 else 
                 {
@@ -884,7 +880,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (wm_id)
             {
                 case IDM_FILE_NEW:
-                    on_file_new();
+                    on_file_new(NULL);
                     break;
                 case IDM_FILE_OPEN:
                     on_file_open();
@@ -2077,6 +2073,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
                 {
                     SetFocus(pnode->hwnd_sc);
+                }
+                if (eu_get_config()->m_statusbar && g_statusbar)
+                {
+                    on_statusbar_update(pnode);
                 }
             }
             break;
