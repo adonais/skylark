@@ -146,6 +146,7 @@ function eu_accel.loadaccel()
       "                 {0, 0, IDM_TABCLOSE_NONE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_TAB, IDM_VIEW_SWITCH_TAB},\n",
       "                 {0, 0, IDM_VIEW_SCROLLCURSOR},\n",
+      "                 {0, 0, IDM_VIEW_TABBAR_SPLIT},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_OEM_MINUS, IDM_VIEW_ZOOMOUT},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_SUBTRACT, IDM_VIEW_ZOOMOUT},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_OEM_PLUS, IDM_VIEW_ZOOMIN},\n",

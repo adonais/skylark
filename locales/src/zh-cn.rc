@@ -321,8 +321,12 @@ BEGIN
             MENUITEM "总是绘制(&A)",                            IDM_TABCLOSE_ALWAYS
             MENUITEM "从不绘制(&N)",                            IDM_TABCLOSE_NONE
         END
-        MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
-        MENUITEM "切换标签时滚动到光标所在",                    IDM_VIEW_SCROLLCURSOR
+        POPUP "标签栏其他选项"
+        BEGIN
+            MENUITEM "切换到下一个标签",                        IDM_VIEW_SWITCH_TAB
+            MENUITEM "切换标签时滚动到光标处",                  IDM_VIEW_SCROLLCURSOR
+            MENUITEM "多行标签时显示分割线",                    IDM_VIEW_TABBAR_SPLIT
+        END
         MENUITEM MF_SEPARATOR
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN

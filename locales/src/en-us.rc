@@ -321,8 +321,12 @@ BEGIN
             MENUITEM "&Always Draw",                                   IDM_TABCLOSE_ALWAYS
             MENUITEM "&Never Draw",                                    IDM_TABCLOSE_NONE
         END
-        MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
-        MENUITEM "Switch Tabs To Scroll To The Cursor Position",       IDM_VIEW_SCROLLCURSOR
+        POPUP "Other Options For Tabbar"
+        BEGIN
+            MENUITEM "Switch The Next Tab",                            IDM_VIEW_SWITCH_TAB
+            MENUITEM "Scroll To Anchor When Switching Tabs",           IDM_VIEW_SCROLLCURSOR
+            MENUITEM "Split Line On Multiline Tabs",                   IDM_VIEW_TABBAR_SPLIT
+        END
         MENUITEM MF_SEPARATOR
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN

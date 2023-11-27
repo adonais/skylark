@@ -656,7 +656,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
             int read_len = 0;
             char *std_buffer = NULL;
             pnode->presult->pwant = on_toolbar_no_highlight;
-            on_proc_resize(NULL);
+            eu_window_resize(NULL);
             do_lua_setting_path(pnode);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {

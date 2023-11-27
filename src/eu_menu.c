@@ -507,7 +507,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_enable_menu_item(menu, IDM_SEARCH_MATCHING_BRACE_SELECT, init || enable);
                         break;
                     }
-                    case IDM_VIEW_SCROLLCURSOR:            /* View menu */
+                    case IDM_EDIT_AUTO_INDENTATION:         /* View menu */
                     {
                         util_set_menu_item(menu, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
                         util_set_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, pnode->map_show && hwnd_document_map);
@@ -555,12 +555,9 @@ menu_update_item(const HMENU menu, const bool init)
                         util_switch_menu_group(menu, TAB_MENU_CLOSE_SUB, IDM_VIEW_TAB_RIGHT_CLICK, IDM_VIEW_TAB_LEFT_DBCLICK, eu_get_config()->m_close_way);
                         util_switch_menu_group(menu, TAB_MENU_NEW_SUB, IDM_VIEW_TAB_RIGHT_NEW, IDM_VIEW_TAB_DBCLICK_NEW, eu_get_config()->m_new_way);
                         util_switch_menu_group(menu, TAB_MENU_CBUTTON_SUB, IDM_TABCLOSE_FOLLOW, IDM_TABCLOSE_NONE, eu_get_config()->m_close_draw);
-                        util_set_menu_item(menu, IDM_VIEW_SCROLLCURSOR, eu_get_config()->scroll_to_cursor);
-                        break;
-                    }
-                    case IDM_VIEW_SWITCH_TAB:
-                    {
                         util_enable_menu_item(menu, IDM_VIEW_SWITCH_TAB, init || (g_tabpages && TabCtrl_GetItemCount(g_tabpages) > 1));
+                        util_set_menu_item(menu, IDM_VIEW_SCROLLCURSOR, eu_get_config()->scroll_to_cursor);
+                        util_set_menu_item(menu, IDM_VIEW_TABBAR_SPLIT, eu_get_config()-> m_tab_split);
                         break;
                     }
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */

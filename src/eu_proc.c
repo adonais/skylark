@@ -1569,6 +1569,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_SCROLLCURSOR:
                     eu_get_config()->scroll_to_cursor ^= true;
                     break;
+                case IDM_VIEW_TABBAR_SPLIT:
+                    eu_get_config()->m_tab_split ^= true;
+                    eu_window_resize(hwnd);
+                    break;
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
                     break;
@@ -2159,12 +2163,6 @@ on_proc_sync_wait(void)
     on_update_thread_wait();
     // 等待保存会话线程结束
     on_session_thread_wait();
-}
-
-void
-on_proc_resize(HWND hwnd)
-{   // 当在线程需要刷新界面时, 使用消息让主线程刷新
-    SendMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
 }
 
 void

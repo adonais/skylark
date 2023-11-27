@@ -163,7 +163,8 @@ on_tabpage_get_padding(const HWND hwnd, const int index, RECT *prc)
             int diff = 0;
             RECT pre_rc = {0};
             RECT pre_zero = {0};
-            TabCtrl_GetItemRect(hwnd, 0, &pre_zero);
+            const bool split_hide = !eu_get_config()->m_tab_split;
+            split_hide ? TabCtrl_GetItemRect(hwnd, 0, &pre_zero) : (void)0;
             TabCtrl_GetItemRect(hwnd, index - 1, &pre_rc);
             if ((pre_rc.bottom == prc->bottom))
             {
@@ -171,12 +172,12 @@ on_tabpage_get_padding(const HWND hwnd, const int index, RECT *prc)
                 {
                     prc->left -= diff;
                 }
-                if ((diff = prc->top - pre_zero.top) > 0)
+                if (split_hide && (diff = prc->top - pre_zero.top) > 0)
                 {
                     prc->top = pre_rc.top - 3;
                 }
             }
-            else if ((diff = prc->top - pre_rc.bottom) > 0)
+            else if (split_hide && (diff = prc->top - pre_rc.bottom) > 0)
             {
                 prc->top -= diff;
             }

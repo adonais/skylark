@@ -624,6 +624,7 @@
 #define IDM_EDIT_CLEAR_CLIPBOARD             30456
 #define IDM_EDIT_COPY_INCREMENTAL            30457
 #define IDM_EDIT_COPY_RTF                    30458
+#define IDM_VIEW_TABBAR_SPLIT                30459
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
