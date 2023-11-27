@@ -540,12 +540,12 @@ on_tabpage_send_file(const HWND hwin, const int index)
                     bak.y = eu_int_cast(pos - row + 1);
                     bak.hex = p->hex_mode;
                 }
-                err = on_file_close(p, FILE_ONLY_CLOSE);
+                err = on_file_close(&p, FILE_ONLY_CLOSE);
             }
         }
         else
         {
-            if (!(err = on_file_close(p, FILE_REMOTE_CLOSE)))
+            if (!(err = on_file_close(&p, FILE_REMOTE_CLOSE)))
             {
                 const char *sql = "SELECT * FROM skylark_session;";
                 err = on_sql_post(sql, on_tabpage_parser_bakup, &bak);
@@ -986,7 +986,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             if ((index = on_tabpage_hit_index(&point)) != -1 && (p = on_tabpage_get_ptr(index)) != NULL)
             {
-                on_file_close(p, FILE_ONLY_CLOSE);
+                on_file_close(&p, FILE_ONLY_CLOSE);
                 return 1;
             }
             break;
@@ -1091,7 +1091,8 @@ on_tabpage_create_dlg(HWND hwnd)
 void
 on_tabpage_close_tabs(int it)
 {
-    on_file_close(on_tabpage_get_ptr(it), FILE_ONLY_CLOSE);
+    eu_tabpage *p = on_tabpage_get_ptr(it);
+    on_file_close(&p, FILE_ONLY_CLOSE);
 }
 
 void
@@ -1226,7 +1227,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode, RECT *ptab)
 }
 
 eu_tabpage *
-on_tabpage_remove(const eu_tabpage *pnode)
+on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode)
 {
     eu_tabpage *p = NULL;
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
@@ -1236,7 +1237,7 @@ on_tabpage_remove(const eu_tabpage *pnode)
         {   /* 从控件删除选项卡 */
             p->tab_id = index;
             TabCtrl_DeleteItem(g_tabpages, index);
-            if (count < 2 && !pnode->hex_mode && !pnode->plugin)
+            if (file_click_close(mode) && count < 2 && !pnode->hex_mode && !pnode->plugin)
             {
                 p->reason = TABS_MAYBE_RESERVE;
             }
@@ -1434,7 +1435,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
         case 1: // 丢弃
             pnode->be_modify = false;
             pnode->fn_modify = false;
-            on_file_close(pnode, FILE_ONLY_CLOSE);
+            on_file_close(&pnode, FILE_ONLY_CLOSE);
             break;
         case 2: // 重载, 滚动到末尾行
         {

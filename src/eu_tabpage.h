@@ -55,13 +55,13 @@ struct _tabpage
     bool result_show;           // 是否显示文档搜索结果窗口
     bool sidebar_show;          // 是否显示侧边栏窗口
     bool foldline;              // 是否存在折叠线
-    bool needpre;               // 是否需要bom    
+    bool needpre;               // 是否需要bom
     bool is_blank;              // 新建文件,空白标签
     bool at_close;              // 是否绘制了关闭按钮
     bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool fn_modify;             // 文档打开时的初始状态
-    bool last_focus;            // 保存前台焦点    
+    bool last_focus;            // 保存前台焦点
     TCHAR pathfile[MAX_BUFFER]; // 文件带路径名
     TCHAR pathname[MAX_BUFFER]; // 文件所在路径名
     TCHAR bakpath[MAX_BUFFER];  // 备份后的名称
@@ -72,7 +72,7 @@ struct _tabpage
     char icon_undo_str[QW_SIZE];// 编码转换时保存的数据,用于undo操作
     size_t pre_len;             // bom的长度
     size_t bytes_remaining;     // 文件变动后的大小
-    size_t bytes_written;       // 文件保存时写入的长度    
+    size_t bytes_written;       // 文件保存时写入的长度
     time_t st_mtime;            // 文件修改时间
     uint32_t file_attr;         // 文件属性,只读/可写...
     intptr_t match_count;       // 查找时匹配计数
@@ -91,6 +91,8 @@ struct _tabpage
     int zoom_level;             // 标签页的放大倍数
     int ac_mode;                // 是否处于snippet模式
     int reason;                 // 编辑器窗口状态
+    int initial;                // 标签初始化状态
+    int view;                   // 标签所在视图
     remotefs fs_server;         // SFTP
     PHEXVIEW phex;              // 二进制视图
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
@@ -136,7 +138,7 @@ eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(const int index);
 eu_tabpage *on_tabpage_select_index(int index);
 eu_tabpage *on_tabpage_focus_at(void);
-eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode);
+eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);
 TCHAR *on_tabpage_generator(TCHAR *filename, const int len);
 LRESULT on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 

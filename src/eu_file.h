@@ -58,6 +58,7 @@ typedef struct _file_backup
     int zoom;
     int status;
     int sync;
+    int view;
     TCHAR rel_path[MAX_BUFFER];
     TCHAR bak_path[MAX_BUFFER];
     char mark_id[MAX_BUFFER];
@@ -74,11 +75,12 @@ int on_file_open_remote(remotefs *pserver, file_backup *pbak, const bool selecti
 int on_file_save(eu_tabpage *pnode, const bool save_as);
 int on_file_save_as(eu_tabpage *pnode);
 int on_file_all_save(void);
-int on_file_close(eu_tabpage *pnode, CLOSE_MODE mode);
+int on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode);
 int on_file_all_close(void);
 int on_file_left_close(void);
 int on_file_right_close(void);
 int on_file_exclude_close(eu_tabpage *pnode);
+int on_file_unchange_close(eu_tabpage *pnode);
 int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
 int on_file_redirect(HWND hwnd, file_backup *pm);
 int on_file_stream_upload(eu_tabpage *pnode, TCHAR *pmsg);

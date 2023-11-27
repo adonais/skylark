@@ -907,6 +907,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FILE_CLOSEALL_EXCLUDE:
                     on_file_exclude_close(pnode);
                     break;
+                case IDM_FILE_UNMODIFIED:
+                    on_file_unchange_close(pnode);
+                    break;
                 case IDM_FILE_RESTORE_RECENT:
                     on_file_restore_recent();
                     break;

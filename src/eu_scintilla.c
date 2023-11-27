@@ -516,7 +516,6 @@ on_sci_free_tab(eu_tabpage **ppnode)
         else 
         {
             (*ppnode)->reason = 0;
-            eu_logmsg("we create new file\n");
             on_file_new(*ppnode);
         }
         if (reason == TABS_MAYBE_EIXT && on_sql_sync_session() == SKYLARK_OK)

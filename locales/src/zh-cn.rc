@@ -36,6 +36,7 @@ BEGIN
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭其他文件",                                IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭未修改文件",                              IDM_FILE_UNMODIFIED
         MENUITEM MF_SEPARATOR
         MENUITEM "恢复最近关闭文件",                            IDM_FILE_RESTORE_RECENT
         MENUITEM "重新载入当前文件",                            IDM_FILE_RELOAD_CURRENT
@@ -474,6 +475,7 @@ BEGIN
     BEGIN
         MENUITEM "关闭标签页(&C)",                              IDM_FILE_CLOSE
         MENUITEM "关闭其他标签页(&O)",                          IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭未修改标签页(&U)",                        IDM_FILE_UNMODIFIED
         MENUITEM "关闭所有标签页",                              IDM_FILE_CLOSEALL
         MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
         MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT

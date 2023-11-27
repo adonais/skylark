@@ -21,6 +21,7 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"W\"), IDM_FILE_CLOSE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), VK_F4, IDM_FILE_CLOSEALL},\n",
       "                 {0, 0, IDM_FILE_CLOSEALL_EXCLUDE},\n",
+      "                 {0, 0, IDM_FILE_UNMODIFIED},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"T\"), IDM_FILE_RESTORE_RECENT},\n",
       "                 {bit.bor(FVIRTKEY,FSHIFT), VK_F5, IDM_FILE_RELOAD_CURRENT},\n",
       "                 {0, 0, IDM_FILE_REMOTE_FILESERVERS},\n",
@@ -210,8 +211,8 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    --print("m_len = " .. m_len)
-    if (m_len < 178) then
+    print("m_len = " .. m_len)
+    if (m_len < 180) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})

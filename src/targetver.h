@@ -502,6 +502,7 @@
 #define IDM_SCRIPT_EXEC                      30025
 #define IDM_CMD_TAB                          30026
 #define IDC_TOOLBAR                          30027
+#define IDM_FILE_UNMODIFIED                  30028
 
 #define IDB_SIZE_0                           30030
 #define IDB_SIZE_1                           30031

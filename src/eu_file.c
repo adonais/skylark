@@ -923,6 +923,48 @@ on_file_open_if(const TCHAR *pfile, bool selection)
 }
 
 static void
+on_file_active_condition(eu_tabpage *pnode, const int index)
+{
+    if (g_tabpages && eu_get_config())
+    {
+        const int i = index >= 0 ? index : (pnode && pnode->tab_id >= 0 ? pnode->tab_id : 0);
+        const int count = TabCtrl_GetItemCount(g_tabpages);
+        if (count < 1)
+        {
+            if (!eu_get_config()->m_exit)
+            {
+                on_file_new(NULL);
+            }
+            else if (on_sql_sync_session() == SKYLARK_OK)
+            {
+                eu_logmsg("close last tab, skylark exit ...\n");
+                SendMessage(eu_module_hwnd(), WM_BACKUP_OVER, 0, 0);
+            }
+        }
+        else if (i >= 0)
+        {
+            switch (eu_get_config()->m_tab_active)
+            {   // 激活另一个标签
+                case IDM_VIEW_LEFT_TAB:
+                    on_tabpage_select_index(i > 0 ? i - 1 : count - 1);
+                    break;
+                case IDM_VIEW_RIGHT_TAB:
+                    on_tabpage_select_index(i > count - 1 ? 0 : i);
+                    break;
+                case IDM_VIEW_FAR_LEFT_TAB:
+                    on_tabpage_select_index(0);
+                    break;
+                case IDM_VIEW_FAR_RIGHT_TAB:
+                    on_tabpage_select_index(count - 1);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+static void
 on_file_active_other(eu_tabpage *pnode)
 {
     if (pnode && g_tabpages)
@@ -941,23 +983,7 @@ on_file_active_other(eu_tabpage *pnode)
         }
         else
         {
-            switch (eu_get_config()->m_tab_active)
-            {   // 激活另一个标签
-                case IDM_VIEW_LEFT_TAB:
-                    on_tabpage_select_index(pnode->tab_id > 0 ? pnode->tab_id - 1 : count - 1);
-                    break;
-                case IDM_VIEW_RIGHT_TAB:
-                    on_tabpage_select_index(pnode->tab_id > count - 1 ? 0 : pnode->tab_id);
-                    break;
-                case IDM_VIEW_FAR_LEFT_TAB:
-                    on_tabpage_select_index(0);
-                    break;
-                case IDM_VIEW_FAR_RIGHT_TAB:
-                    on_tabpage_select_index(count - 1);
-                    break;
-                default:
-                    break;
-            }
+            on_file_active_condition(pnode, -1);
         }
     }
 }
@@ -1243,7 +1269,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
     {
         if (res == EUE_WRITE_TAB_FAIL)
         {
-            on_file_active_other(on_tabpage_remove(pnode));
+            on_file_active_other(on_tabpage_remove(pnode, FILE_SHUTDOWN));
         }
         on_sci_free_tab(&pnode);
     }
@@ -1371,13 +1397,13 @@ on_file_out_open(const int index, uint32_t *pid)
                     {
                         _tcsncat(process, _T(" -hex"), MAX_BUFFER);
                     }
-                    err = on_file_close(p, FILE_ONLY_CLOSE);
+                    err = on_file_close(&p, FILE_ONLY_CLOSE);
                 }
             }
             else
             {
                 _sntprintf(process, MAX_BUFFER, _T("%s%s"), process, _T(" -noremote "));
-                err = on_file_close(p, FILE_REMOTE_CLOSE);
+                err = on_file_close(&p, FILE_REMOTE_CLOSE);
             }
             if (err == SKYLARK_OK)
             {
@@ -1616,7 +1642,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     {
         if (result == EUE_CURL_NETWORK_ERR)
         {
-            on_file_active_other(on_tabpage_remove(pnode));
+            on_file_active_other(on_tabpage_remove(pnode, FILE_SHUTDOWN));
             MSG_BOX(IDC_MSG_ATTACH_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         }
         on_sci_free_tab(&pnode);
@@ -2328,13 +2354,13 @@ on_file_auto_backup(void)
 }
 
 int
-on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
+on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
 {
     EU_VERIFY(g_tabpages != NULL);
     int err = SKYLARK_OK;
     int ifocus = TabCtrl_GetCurSel(g_tabpages);
     eu_tabpage *p = on_tabpage_get_ptr(ifocus);
-    if (!pnode)
+    if (STR_IS_NUL(ppnode))
     {
         return EUE_TAB_NULL;
     }
@@ -2342,10 +2368,10 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
     {
         // do nothing
     }
-    else if (on_sci_doc_modified(pnode))
+    else if (on_sci_doc_modified(*ppnode))
     {
         TCHAR msg[100 + MAX_BUFFER];
-        if (pnode->pathfile[0] == 0)
+        if ((*ppnode)->pathfile[0] == 0)
         {
             LOAD_I18N_RESSTR(IDC_MSG_SAVE_STR1, save_str);
             _sntprintf(msg, _countof(msg) - 1, save_str);
@@ -2353,11 +2379,11 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
         else
         {
             LOAD_I18N_RESSTR(IDC_MSG_SAVE_STR2, save_str);
-            _sntprintf(msg, _countof(msg) - 1, save_str, pnode->pathfile);
+            _sntprintf(msg, _countof(msg) - 1, save_str, (*ppnode)->pathfile);
         }
         LOAD_APP_RESSTR(IDS_APP_TITLE, title);
         /* 如果需要确认, 选中该标签 */
-        on_tabpage_selection(pnode, -1);
+        on_tabpage_selection((*ppnode), -1);
         int decision = eu_msgbox(eu_module_hwnd(), msg, title, MB_YESNOCANCEL);
         if (decision == IDCANCEL)
         {
@@ -2366,42 +2392,45 @@ on_file_close(eu_tabpage *pnode, CLOSE_MODE mode)
         }
         else if (decision == IDYES)
         {
-            err = on_file_save(pnode, false);
+            err = on_file_save((*ppnode), false);
         }
         else
         {
-            pnode->be_modify = false;
+            (*ppnode)->be_modify = false;
         }
     }
     if (!err)
     {
         if (eu_get_config()->m_session)
         {
-            on_file_save_backup(pnode, mode);
+            on_file_save_backup((*ppnode), mode);
         }
         else
         {
-            on_sql_delete_backup_row(pnode);
+            on_sql_delete_backup_row((*ppnode));
         }
         /* 清理该文件的位置导航信息 */
-        on_search_clean_navigate_this(pnode);
+        on_search_clean_navigate_this((*ppnode));
         /* 排序最近关闭文件的列表 */
-        if (file_click_close(mode) && !pnode->is_blank)
+        if (file_click_close(mode) && !(*ppnode)->is_blank)
         {
-            on_file_push_recent(pnode);
+            on_file_push_recent((*ppnode));
         }
         /* 关闭标签后需要激活其他标签 */
-        if ((on_tabpage_remove(pnode)) && (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE))
+        if (on_tabpage_remove((*ppnode), mode))
         {
-            if (pnode->tab_id == ifocus || mode == FILE_REMOTE_CLOSE)
+            if (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE)
             {
-                on_file_active_other(pnode);
+                if ((*ppnode)->tab_id == ifocus || mode == FILE_REMOTE_CLOSE)
+                {
+                    on_file_active_other((*ppnode));
+                }
+                else if (p)
+                {
+                    on_tabpage_selection(p, -1);
+                }
             }
-            else if (p)
-            {
-                on_tabpage_selection(p, -1);
-            }
-            on_sci_free_tab(&pnode);
+            on_sci_free_tab(ppnode);
         }
     }
     return err;
@@ -2415,7 +2444,7 @@ on_file_all_close(void)
     for (int index = 0; index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(this_index);
-        if (p && on_file_close(p, FILE_ALL_CLOSE))
+        if (p && on_file_close(&p, FILE_ALL_CLOSE))
         {
             ++this_index;
         }
@@ -2444,13 +2473,13 @@ on_file_left_close(void)
 {
     int first = 0;
     int this_index = TabCtrl_GetCurSel(g_tabpages);
+    eu_tabpage *p = NULL;
     eu_tabpage *pnode = on_tabpage_get_ptr(this_index);
     for (int index = 0; index < this_index; ++index)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(first);
-        if (p)
+        if ((p = on_tabpage_get_ptr(first)))
         {
-            if (on_file_close(p, FILE_EXCLUDE_CLOSE))
+            if (on_file_close(&p, FILE_EXCLUDE_CLOSE))
             {
                 ++first;
             }
@@ -2466,12 +2495,12 @@ on_file_right_close(void)
     int count = TabCtrl_GetItemCount(g_tabpages);
     const int this_index = TabCtrl_GetCurSel(g_tabpages);
     int right = count - 1;
+    eu_tabpage *p = NULL;
     for (; this_index < right; --right)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(right);
-        if (p)
+        if ((p = on_tabpage_get_ptr(right)))
         {
-            if (on_file_close(p, FILE_EXCLUDE_CLOSE))
+            if (on_file_close(&p, FILE_EXCLUDE_CLOSE))
             {
                 continue;
             }
@@ -2499,7 +2528,7 @@ on_file_exclude_close(eu_tabpage *pnode)
                 ++this_index;
                 continue;
             }
-            if ((p = on_tabpage_get_ptr(this_index)) && on_file_close(p, FILE_EXCLUDE_CLOSE))
+            if ((p = on_tabpage_get_ptr(this_index)) && on_file_close(&p, FILE_EXCLUDE_CLOSE))
             {
                 ++this_index;
             }
@@ -2510,21 +2539,43 @@ on_file_exclude_close(eu_tabpage *pnode)
     return SKYLARK_OK;
 }
 
+int
+on_file_unchange_close(eu_tabpage *pnode)
+{
+    if (pnode && g_tabpages)
+    {
+        int this_index = TabCtrl_GetCurSel(g_tabpages);
+        const count = TabCtrl_GetItemCount(g_tabpages);
+        for (int index = count - 1; index >= 0; --index)
+        {
+            if ((pnode = on_tabpage_get_ptr(index)) && !pnode->be_modify)
+            {
+                on_file_close(&pnode, FILE_EXCLUDE_CLOSE);
+                if (index < this_index)
+                {
+                    --this_index;
+                }
+            }
+        }
+        on_file_active_condition(pnode, this_index);
+    }
+    return SKYLARK_OK;
+}
+
 static unsigned __stdcall
 on_file_check_save(void *lp)
 {
     int err = 0;
     int at_focus = -1;
-    int count = TabCtrl_GetItemCount(g_tabpages);
+    eu_tabpage *pnode = NULL;
     on_proc_sync_wait();
     if (eu_get_config()->m_session)
     {
         at_focus = TabCtrl_GetCurSel(g_tabpages);
     }
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        eu_tabpage *pnode = on_tabpage_get_ptr(err);
-        if (pnode)
+        if ((pnode = on_tabpage_get_ptr(err)))
         {
             pnode->tab_id = index;
             pnode->zoom_level = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
@@ -2532,7 +2583,7 @@ on_file_check_save(void *lp)
             {
                 pnode->last_focus = pnode->tab_id == at_focus;
             }
-            if (on_file_close(pnode, FILE_SHUTDOWN))
+            if (on_file_close(&pnode, FILE_SHUTDOWN))
             {
                 ++err;
                 continue;

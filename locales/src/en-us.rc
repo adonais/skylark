@@ -36,6 +36,7 @@ BEGIN
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
         MENUITEM "Close Other Documents",                              IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close All Unchanged",                                IDM_FILE_UNMODIFIED
         MENUITEM MF_SEPARATOR
         MENUITEM "Restore Recent Closed File",                         IDM_FILE_RESTORE_RECENT
         MENUITEM "Reload The Current File",                            IDM_FILE_RELOAD_CURRENT
@@ -474,6 +475,7 @@ BEGIN
     BEGIN
         MENUITEM "&Close Tab",                                         IDM_FILE_CLOSE
         MENUITEM "Close &Other Tabs",                                  IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close All &Unchanged",                               IDM_FILE_UNMODIFIED
         MENUITEM "Close All Tabs",                                     IDM_FILE_CLOSEALL
         MENUITEM "Close The Left Tabs",                                IDM_TAB_CLOSE_LEFT
         MENUITEM "Close The Right Tabs",                               IDM_TAB_CLOSE_RIGHT
