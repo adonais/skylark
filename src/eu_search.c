@@ -18,7 +18,6 @@
 #include "framework.h"
 #include <shlobj.h>
 
-#define LINE_NOT_FOUND ((sptr_t)-1)
 #define MAX_TRACE_COUNT 8192
 #define RESULAT_MAX_MATCH (UINT16_MAX * 2 + 1)
 #define INVISIBLE_BITMASK()      on_sci_bitmask_get(0, 1)
@@ -1076,12 +1075,15 @@ on_search_remove_marks_all(eu_tabpage *pnode)
     }
 }
 
-static inline sptr_t
-on_search_mrker_next(eu_tabpage *pnode, const sptr_t line, const int bitmask)
+sptr_t
+on_search_marker_next(eu_tabpage *pnode, const sptr_t line, sptr_t last, const int bitmask)
 {
     if (bitmask & CHANGE_HISTORY_BITMASK())
     {
-        const sptr_t last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        if (last <= 0)
+        {
+            last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        }
         for (sptr_t i = line; i <= last; ++i)
         {
             if (eu_sci_call(pnode, SCI_MARKERGET, i, 0) & bitmask)
@@ -1133,7 +1135,7 @@ on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t find_line = on_search_mrker_next(pnode, current_line + 1, mask);
+        sptr_t find_line = on_search_marker_next(pnode, current_line + 1, -1, mask);
         if (find_line != LINE_NOT_FOUND)
         {
             on_search_jmp_line(pnode, find_line, current_line);

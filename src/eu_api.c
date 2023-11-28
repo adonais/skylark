@@ -2628,7 +2628,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     {
         return 1;
     }
-#if PCRE_DEBUG
+#if APP_DEBUG
     printf("Match succeeded at offset %d\n", pcre_info->ovector[0]);
     // debug 模式下输出详细内容
     int i;
@@ -2750,7 +2750,7 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
             eu_logmsg("pcre: ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
         }
 
-    #if PCRE_DEBUG
+    #if APP_DEBUG
         // As before, show substrings stored in the output vector
         // by number, and then also any named substrings.
 
@@ -2773,7 +2773,7 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
             break;
         }
 
-    #ifdef PCRE_DEBUG
+    #ifdef APP_DEBUG
         if (pcre_info->namecount > 0)
         {
             int name_entry_size;

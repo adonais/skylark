@@ -2330,3 +2330,138 @@ on_edit_sorting(eu_tabpage *p, int wm_id)
     }
     cvector_freep(&v);
 }
+
+void
+on_edit_bookmark_copy(eu_tabpage *pnode)
+{
+    char *p = NULL;
+    char *p1 = NULL;
+    wchar_t *ptext = NULL;
+    sptr_t line = LINE_NOT_FOUND;
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        {
+            if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
+            {
+                i = line;
+                if (p1 = util_strdup_line(pnode, line, NULL))
+                {
+                    p = util_memdup(&p , p1);
+                    free(p1);
+                    if (!p)
+                    {
+                        eu_logmsg("Warning: p is null\n");
+                        break;
+                    }
+                }
+            }
+        }
+        if (p && (ptext = eu_utf8_utf16(p, NULL)))
+        {
+            on_edit_push_clipboard(ptext);
+        }
+        eu_safe_free(p);
+        eu_safe_free(ptext);
+    }
+}
+
+void
+on_edit_bookmark_cut(eu_tabpage *pnode)
+{
+    char *p = NULL;
+    char *p1 = NULL;
+    wchar_t *ptext = NULL;
+    sptr_t line = LINE_NOT_FOUND;
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        {
+            if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
+            {
+                if (p1 = util_strdup_line(pnode, line, NULL))
+                {
+                    p = util_memdup(&p , p1);
+                    free(p1);
+                    if (!p)
+                    {
+                        break;
+                    }
+                    else 
+                    {
+                        sptr_t start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+                        sptr_t end = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line + 1, 0);
+                        if (end == LINE_NOT_FOUND)
+                        {
+                            end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+                        }
+                        eu_sci_call(pnode, SCI_DELETERANGE, start, end - start);
+                        eu_sci_call(pnode, SCI_MARKERDELETE, line, MARGIN_BOOKMARK_VALUE);
+                    }
+                }
+                i = line - 1;
+                --last;
+            }
+        }
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        if (p && (ptext = eu_utf8_utf16(p, NULL)))
+        {
+            on_edit_push_clipboard(ptext);
+        }
+        eu_safe_free(p);
+        eu_safe_free(ptext);
+    }
+}
+
+void
+on_edit_bookmark_remove(eu_tabpage *pnode)
+{
+    sptr_t line = LINE_NOT_FOUND;
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        {
+            if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
+            {
+                sptr_t start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+                sptr_t end = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line + 1, 0);
+                if (end == LINE_NOT_FOUND)
+                {
+                    end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+                }
+                eu_sci_call(pnode, SCI_DELETERANGE, start, end - start);
+                eu_sci_call(pnode, SCI_MARKERDELETE, line, MARGIN_BOOKMARK_VALUE);
+                i = line - 1;
+                --last;
+            }
+        }
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    }
+}
+
+void
+on_edit_bookmark_reserve_remove(eu_tabpage *pnode)
+{
+    sptr_t line = LINE_NOT_FOUND;
+    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    {
+        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        {
+            if (!(eu_sci_call(pnode, SCI_MARKERGET, i, 0) & MARGIN_BOOKMARK_MASKN))
+            {
+                sptr_t start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
+                sptr_t end = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i + 1, 0);
+                if (end == LINE_NOT_FOUND)
+                {
+                    end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
+                }
+                eu_sci_call(pnode, SCI_DELETERANGE, start, end - start);
+                --i, --last;
+            }
+        }
+        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    }
+}

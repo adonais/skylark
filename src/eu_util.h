@@ -93,7 +93,7 @@ int util_get_hex_byte(const char *p);
 int util_strnspace(const char *s1, const char *s2, int *plen);
 int util_count_characters(const char *pstr, const int ch);
 
-void*  util_memdup(void *p, const size_t size);
+char*  util_memdup(char **p, const char *text);
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
 char*  util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen);

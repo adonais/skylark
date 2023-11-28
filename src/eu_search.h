@@ -20,6 +20,7 @@
 #define _H_SKYLARK_SEARCH_
 
 #define SELECTION_ZOOM_LEVEEL -99
+#define LINE_NOT_FOUND ((sptr_t)-1)
 
 #define ON_LOOP_FLAGS          0x00000010
 #define ON_HEX_STRINGS         0x00000020
@@ -88,6 +89,7 @@ int on_search_back_navigate_all(void);
 int on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos);
 int on_search_combo_callback(void *data, int count, char **column, char **names);
 
+sptr_t on_search_marker_next(eu_tabpage *pnode, const sptr_t line, sptr_t last, const int bitmask);
 sptr_t on_search_process_find(eu_tabpage *, const char *, size_t, size_t, size_t);
 bool on_search_create_box(void);
 

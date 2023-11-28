@@ -505,6 +505,9 @@ menu_update_item(const HMENU menu, const bool init)
                         on_search_jmp_matching_brace(pnode, &enable);
                         util_enable_menu_item(menu, IDM_SEARCH_MATCHING_BRACE, init || enable);
                         util_enable_menu_item(menu, IDM_SEARCH_MATCHING_BRACE_SELECT, init || enable);
+                        util_enable_menu_item(menu, IDM_SEARCH_SELECT_MATCHING_ALL, init || (!pnode->hex_mode && !pnode->plugin && TAB_NOT_NUL(pnode)));
+                        util_enable_menu_item(menu, IDM_EDIT_GOLINE_GROUP, init || !pnode->plugin);
+                        util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE14, init || !pnode->plugin);
                         break;
                     }
                     case IDM_EDIT_AUTO_INDENTATION:         /* View menu */

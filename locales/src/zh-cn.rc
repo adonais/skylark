@@ -203,7 +203,7 @@ BEGIN
             MENUITEM "移动到下一个语句块首行",                  IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "行定位(&G) ..."
+        POPUP "行定位(&G) ...",                                 IDM_EDIT_GOLINE_GROUP
         BEGIN
             MENUITEM "跳到首行",                                IDM_SEARCH_GOTOHOME
             MENUITEM "跳到末行",                                IDM_SEARCH_GOTOEND
@@ -226,6 +226,11 @@ BEGIN
             MENUITEM "跳到下一个书签 (当前文件)",               IDM_SEARCH_GOTO_NEXT_BOOKMARK
             MENUITEM "跳到上一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
             MENUITEM "跳到下一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
+            MENUITEM MF_SEPARATOR
+            MENUITEM "复制书签行",                              IDM_EDIT_BOOKMARK_LINES_COPY
+            MENUITEM "剪切书签行",                              IDM_EDIT_BOOKMARK_LINES_CUT
+            MENUITEM "删除书签行",                              IDM_EDIT_BOOKMARK_LINES_REMOVE
+            MENUITEM "删除非书签行",                            IDM_EDIT_BOOKMARK_LINES_RESERVE
         END
         POPUP "导航",                                           IDM_EDIT_PLACEHOLDE14
         BEGIN

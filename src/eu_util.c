@@ -1321,15 +1321,32 @@ util_strdup_content(eu_tabpage *pnode, size_t *plen)
     return ptext;
 }
 
-void *
-util_memdup(void *p, const size_t size)
+char *
+util_memdup(char **p, const char *text)
 {
-    void *pdst = NULL;
-    if (p && size > 0 && (pdst = malloc(size)))
+    if (p && text)
     {
-        memcpy(pdst, p, size);
+        size_t text_len = strlen(text) + (*p ? strlen(*p) : 0);
+        if (*p)
+        {
+            char *dst = (char *)realloc(*p, text_len + 1);
+            if (dst)
+            {
+                strncat(dst, text, text_len);
+                if (*p != dst)
+                {
+                    *p = dst;
+                }
+            }
+        }
+        else if ((*p = (char *)malloc(text_len + 1)))
+        {
+            (*p)[text_len] = 0;
+            _snprintf(*p, text_len, "%s", text);
+        }
+        return (*p);
     }
-    return pdst;
+    return NULL;
 }
 
 /**************************************************

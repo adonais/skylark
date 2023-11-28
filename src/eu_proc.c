@@ -1325,6 +1325,18 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL:
                     on_search_jmp_next_mark_all(pnode);
                     break;
+                case IDM_EDIT_BOOKMARK_LINES_COPY:
+                    on_edit_bookmark_copy(pnode);
+                    break;
+                case IDM_EDIT_BOOKMARK_LINES_CUT:
+                    on_edit_bookmark_cut(pnode);
+                    break;
+                case IDM_EDIT_BOOKMARK_LINES_REMOVE:
+                    on_edit_bookmark_remove(pnode);
+                    break;
+                case IDM_EDIT_BOOKMARK_LINES_RESERVE:
+                    on_edit_bookmark_reserve_remove(pnode);
+                    break;
                 case IDM_SEARCH_GOTOHOME:
                     on_search_jmp_home(pnode);
                     break;

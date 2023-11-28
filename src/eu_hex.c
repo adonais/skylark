@@ -1480,6 +1480,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             {   // caret invisible, show it!
                 hexview_caret(hwnd, hexview);
             }
+            if (GetFocus() != hwnd)
+            {   // 可能被plugin窗口强占了键盘焦点
+                eu_window_resize(NULL);
+            }
             break;
         }
         case WM_KILLFOCUS:
