@@ -244,7 +244,7 @@ BEGIN
         MENUITEM "&Document Map",                                      IDM_VIEW_DOCUMENT_MAP
         MENUITEM "&Symbolic Window",                                   IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
-        POPUP "P&anels"
+        POPUP "Panels"
         BEGIN
             MENUITEM "Full Screen Mode",                               IDM_VIEW_FULLSCREEN
             MENUITEM "Show Menubar",                                   IDM_VIEW_MENUBAR
@@ -277,7 +277,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "&Hex Edit View",                                     IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
-        POPUP "H&ighlight"
+        POPUP "Highlight",                                             IDM_VIEW_HIGHLIGHT_GROUP
         BEGIN
             MENUITEM "Highlight The Matching &Brace",                  IDM_VIEW_HIGHLIGHT_BRACE
             MENUITEM "Highlight The Matching &String",                 IDM_VIEW_HIGHLIGHT_STR
@@ -285,7 +285,7 @@ BEGIN
         END
         MENUITEM "Auto Indent",                                        IDM_EDIT_AUTO_INDENTATION
         MENUITEM MF_SEPARATOR
-        POPUP "&Display",                                              IDM_VIEW_DISPLAY_PLACEHOLDE
+        POPUP "Display",                                               IDM_VIEW_DISPLAY_PLACEHOLDE
         BEGIN
             MENUITEM "Line Numbers",                                   IDM_VIEW_LINENUMBER_VISIABLE
             MENUITEM "Show Bookmark",                                  IDM_VIEW_BOOKMARK_VISIABLE
@@ -882,8 +882,9 @@ BEGIN
             MENUITEM "mac-cyrillic",                        IDM_OTHER_2
             MENUITEM "mac-centraleurope",                   IDM_OTHER_3
             MENUITEM "Native Codepage",                     IDM_OTHER_ANSI
-            MENUITEM "Binary code",                         IDM_OTHER_BIN,,0x00000003
-            MENUITEM "Unknown code",                        IDM_UNKNOWN,,0x00000003
+            MENUITEM "Binary Code",                         IDM_OTHER_BIN,,0x00000003
+            MENUITEM "Plugins Code",                        IDM_OTHER_PLUGIN,,0x00000003
+            MENUITEM "Unknown Code",                        IDM_UNKNOWN,,0x00000003
         END
     }
 END

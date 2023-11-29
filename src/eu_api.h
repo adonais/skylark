@@ -285,6 +285,13 @@ enum
     INDIC_SKYLARK_HYPER_U
 };
 
+enum
+{
+    TYPES_TEXT = 0,
+    TYPES_HEX,
+    TYPES_PLUGIN
+};
+
 typedef enum _UPDATE_STATUS
 {
     VERSION_LATEST = 0,

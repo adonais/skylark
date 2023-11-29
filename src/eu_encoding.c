@@ -409,7 +409,7 @@ on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn)
     int ret = 1;
     size_t len = 0;
     char *dst = NULL;
-    if (pnode && !pnode->hex_mode && !pnode->pmod && fn)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && fn)
     {
         bool whole = false;
         char *ptxt = util_strdup_select(pnode, &len, 0);

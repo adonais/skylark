@@ -324,7 +324,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
 {
     if (pnode)
     {
-        if (!pnode->hex_mode && !pnode->pmod)
+        if (!TAB_HEX_MODE(pnode) && !pnode->pmod)
         {
             eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
             if (init)
@@ -616,7 +616,7 @@ on_sci_point_left(eu_tabpage *pnode)
 void
 on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    if (pnode && !pnode->hex_mode && pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
+    if (pnode && !TAB_HEX_MODE(pnode) && pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
     {
         pnode->doc_ptr->fn_on_char(pnode, lpnotify);
     }
@@ -641,7 +641,7 @@ on_sci_update_line_margin(eu_tabpage *pnode)
 void
 on_sci_update_fold_margin(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->plugin)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->plugin)
     {
         const int zoom = (const int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
         const int scalex = eu_get_dpi(eu_hwnd_self()) * zoom;
@@ -974,7 +974,7 @@ on_sci_init_dlg(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        return on_sci_create(pnode, NULL, !pnode->hex_mode && pnode->pmod ? WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING : 0, NULL);
+        return on_sci_create(pnode, NULL, !TAB_HEX_MODE(pnode) && pnode->pmod ? WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING : 0, NULL);
         
     }
     return EUE_POINT_NULL;
@@ -998,7 +998,7 @@ sptr_t
 eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
 {
     return ((p && p->hwnd_sc) ?
-            (p->hex_mode ? SendMessage(p->hwnd_sc, m, w, l) :
+            (TAB_HEX_MODE(p) ? SendMessage(p->hwnd_sc, m, w, l) :
             (ptr_scintilla && p->eusc) ? ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l) : 0) :
             0);
 }

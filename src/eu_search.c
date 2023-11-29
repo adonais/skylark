@@ -165,7 +165,7 @@ on_search_tab_ui(int index)
         hc = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO);
         EnableWindow(hc, true);
         hc = GetDlgItem(hwnd_search_dlg, IDC_MATCH_CASE);
-        if (!pnode->hex_mode)
+        if (!TAB_HEX_MODE(pnode))
         {
             EnableWindow(hc, true);
             CONTROL_HANDLE(hc, IDC_MATCH_ALL_FILE, SW_SHOW)
@@ -236,24 +236,24 @@ on_search_tab_ui(int index)
         CONTROL_HANDLE(hc, IDC_SEARCH_ALL_BTN, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STRINGS, SW_HIDE)
         CONTROL_HANDLE(hc, IDC_SEARCH_HEX_STC, SW_HIDE)
-        CONTROL_HANDLE(hc, IDC_MATCH_ALL_FILE, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
-        CONTROL_HANDLE(hc, IDC_MATCH_LOOP, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
-        CONTROL_HANDLE(hc, IDC_MATCH_WDSTART, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
-        CONTROL_HANDLE(hc, IDC_MATCH_WORD, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_MATCH_ALL_FILE, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_MATCH_LOOP, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_MATCH_WDSTART, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_MATCH_WORD, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
         hc = GetDlgItem(hwnd_search_dlg, IDC_MATCH_CASE);
         EnableWindow(hc, true);
         hc = GetDlgItem(hwnd_search_dlg, IDC_MODE_REGEXP);
         EnableWindow(hc, true);
-        CONTROL_HANDLE(hc, IDC_SEARCH_PRE_BTN, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
-        CONTROL_HANDLE(hc, IDC_SEARCH_NEXT_BTN, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_SEARCH_PRE_BTN, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_SEARCH_NEXT_BTN, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
         GetWindowRect(hc, &rc);
         MapWindowPoints(NULL, hwnd_search_dlg, (LPPOINT)&rc, 2);
-        CONTROL_HANDLE(hc, IDC_SEARCH_RE_BTN, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_SEARCH_RE_BTN, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
         MoveWindow(hc, rc.left, rc.bottom + 4, rc.right - rc.left, rc.bottom - rc.top, TRUE);
-        CONTROL_HANDLE(hc, IDC_SEARCH_REALL_BTN, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
+        CONTROL_HANDLE(hc, IDC_SEARCH_REALL_BTN, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
         MoveWindow(hc, rc.left, rc.bottom + (rc.bottom - rc.top) + 6, rc.right - rc.left, rc.bottom - rc.top, TRUE);
         hc = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO);
-        if (pnode->hex_mode)
+        if (TAB_HEX_MODE(pnode))
         {
             EnableWindow(hc, false);
             CONTROL_HANDLE(hc, IDC_SEARCH_SELRE_BTN, SW_HIDE)
@@ -266,8 +266,8 @@ on_search_tab_ui(int index)
             util_can_selections(pnode) ? EnableWindow(hc, true) : EnableWindow(hc, false);
 
         }
-        CONTROL_HANDLE(hc, IDC_SEARCH_RP_CBO, !pnode->hex_mode ? SW_SHOW : SW_HIDE)
-        pnode->hex_mode ? EnableWindow(hc, false) : EnableWindow(hc, true);
+        CONTROL_HANDLE(hc, IDC_SEARCH_RP_CBO, !TAB_HEX_MODE(pnode) ? SW_SHOW : SW_HIDE)
+        TAB_HEX_MODE(pnode) ? EnableWindow(hc, false) : EnableWindow(hc, true);
         CONTROL_HANDLE(hc, IDC_SEARCH_CLOSE_BTN, SW_SHOW)
         LOAD_I18N_RESSTR(IDC_MSG_SEARCH_TIT2, tit_str);
         SetWindowText(hwnd_search_dlg, tit_str);
@@ -414,7 +414,7 @@ on_search_jmp_pos(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        if (!pnode->nc_pos || pnode->hex_mode)
+        if (!pnode->nc_pos || TAB_HEX_MODE(pnode))
         {
             eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
         }
@@ -430,7 +430,7 @@ on_search_jmp_pos(eu_tabpage *pnode)
 void
 on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres)
 {
-    if (pnode && pres && !pnode->hex_mode && !pnode->plugin)
+    if (pnode && pres && !TAB_HEX_MODE(pnode) && !pnode->plugin)
     {
         int char_before = 0;
         sptr_t brace_caret = -1;
@@ -597,7 +597,7 @@ on_search_set_folder_path(LPCTSTR path)
 void
 on_search_turn_select(eu_tabpage *pnode)
 {
-    if (hwnd_search_dlg && pnode && !pnode->hex_mode)
+    if (hwnd_search_dlg && pnode && !TAB_HEX_MODE(pnode))
     {
         HWND hwnd_tab = GetDlgItem(hwnd_search_dlg, IDD_SEARCH_TAB_1);
         if (hwnd_tab && TabCtrl_GetCurSel(hwnd_tab) == 1)
@@ -664,7 +664,7 @@ on_search_find_next(eu_tabpage *pnode)
 int
 on_search_replace_thread(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         HWND hwnd_what = GetDlgItem(hwnd_search_dlg, IDC_WHAT_FOLDER_CBO);
         HWND hwnd_tab = GetDlgItem(hwnd_search_dlg, IDD_SEARCH_TAB_1);
@@ -720,7 +720,7 @@ on_search_file_thread(const TCHAR *path)
 void
 on_search_set_selection(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         if (pnode->begin_pos == -1)
         {
@@ -737,7 +737,7 @@ on_search_set_selection(eu_tabpage *pnode)
 void
 on_search_set_rectangle(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         if (eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) == SC_SEL_STREAM)
         {
@@ -760,7 +760,7 @@ on_search_set_rectangle(eu_tabpage *pnode)
 void
 on_search_select_all(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_SELECTALL, 0, 0);
     }
@@ -769,7 +769,7 @@ on_search_select_all(eu_tabpage *pnode)
 void
 on_search_select_word(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t wd_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
@@ -781,7 +781,7 @@ on_search_select_word(eu_tabpage *pnode)
 void
 on_search_select_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         // 支持类似visual studio的单行操作
         // TAB键增加缩进, Shift+TAB减少缩进
@@ -792,7 +792,7 @@ on_search_select_line(eu_tabpage *pnode)
 void
 on_search_select_se(eu_tabpage *pnode, uint16_t id)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t sel_start = 0;
         sptr_t sel_end = 0;
@@ -814,7 +814,7 @@ on_search_select_se(eu_tabpage *pnode, uint16_t id)
 void
 on_search_select_left_word(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTLEFTEXTEND, 0, 0);
     }
@@ -823,7 +823,7 @@ on_search_select_left_word(eu_tabpage *pnode)
 void
 on_search_select_right_word(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTRIGHTEXTEND, 0, 0);
     }
@@ -832,7 +832,7 @@ on_search_select_right_word(eu_tabpage *pnode)
 void
 on_search_select_left_group(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDLEFTEXTEND, 0, 0);
     }
@@ -841,7 +841,7 @@ on_search_select_left_group(eu_tabpage *pnode)
 void
 on_search_select_right_group(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDRIGHTEXTEND, 0, 0);
     }
@@ -850,7 +850,7 @@ on_search_select_right_group(eu_tabpage *pnode)
 void
 on_search_cumulative_previous_block(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARAUPEXTEND, 0, 0);
     }
@@ -859,7 +859,7 @@ on_search_cumulative_previous_block(eu_tabpage *pnode)
 void
 on_search_cumulative_next_block(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARADOWNEXTEND, 0, 0);
     }
@@ -868,7 +868,7 @@ on_search_cumulative_next_block(eu_tabpage *pnode)
 void
 on_search_move_to_lgroup(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTLEFT, 0, 0);
     }
@@ -877,7 +877,7 @@ on_search_move_to_lgroup(eu_tabpage *pnode)
 void
 on_search_move_to_rgroup(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDPARTRIGHT, 0, 0);
     }
@@ -886,7 +886,7 @@ on_search_move_to_rgroup(eu_tabpage *pnode)
 void
 on_search_move_to_lword(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDLEFT, 0, 0);
     }
@@ -895,7 +895,7 @@ on_search_move_to_lword(eu_tabpage *pnode)
 void
 on_search_move_to_rword(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_WORDRIGHT, 0, 0);
     }
@@ -904,7 +904,7 @@ on_search_move_to_rword(eu_tabpage *pnode)
 void
 on_search_move_to_top_block(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARAUP, 0, 0);
     }
@@ -913,7 +913,7 @@ on_search_move_to_top_block(eu_tabpage *pnode)
 void
 on_search_move_to_bottom_block(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_PARADOWN, 0, 0);
     }
@@ -924,7 +924,7 @@ on_search_jmp_home(eu_tabpage *pnode)
 {
     if (pnode && !pnode->pmod)
     {
-        if (pnode->hex_mode)
+        if (TAB_HEX_MODE(pnode))
         {
             SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_HOME, 0);
         }
@@ -945,7 +945,7 @@ on_search_jmp_end(eu_tabpage *pnode)
 {
     if (pnode && !pnode->pmod)
     {
-        if (pnode->hex_mode)
+        if (TAB_HEX_MODE(pnode))
         {
             SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_END, 0);
         }
@@ -970,7 +970,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
     TCHAR tip_str[MAX_LOADSTRING]  = {0};
     if (pnode && !pnode->pmod)
     {
-        if (pnode->hex_mode)
+        if (TAB_HEX_MODE(pnode))
         {
             eu_i18n_load_str(IDC_MSG_SEARCH_STR5, tip_str, 0);
         }
@@ -980,7 +980,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
         }
         if (eu_input(tip_str, lineno, _countof(lineno)))
         {
-            if (pnode->hex_mode)
+            if (TAB_HEX_MODE(pnode))
             {
 
                 if (_stscanf(lineno, _T("%zx"), &line) == 1)
@@ -1003,7 +1003,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
 void
 on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         int bitmask = 0;
         bool bookmark = false;
@@ -1040,7 +1040,7 @@ static void
 on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
 {
     sptr_t current_line = lineno;
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         if (current_line < 0)
         {
@@ -1054,7 +1054,7 @@ on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
 static void
 on_search_remove_marks_this(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -1068,7 +1068,7 @@ on_search_remove_marks_all(eu_tabpage *pnode)
     eu_tabpage *p = NULL;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+        if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_MARKERDELETEALL, MARGIN_BOOKMARK_VALUE, 0);
         }
@@ -1116,7 +1116,7 @@ on_search_marker_previous(eu_tabpage *pnode, const sptr_t line, const int bitmas
 void
 on_search_jmp_premark_this(eu_tabpage *pnode, const int mask)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -1131,7 +1131,7 @@ on_search_jmp_premark_this(eu_tabpage *pnode, const int mask)
 void
 on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -1146,7 +1146,7 @@ on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask)
 void
 on_search_jmp_previous_history(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_PLACEHOLDE;
         if (maskn > 1)
@@ -1168,7 +1168,7 @@ on_search_jmp_previous_history(eu_tabpage *pnode)
 void
 on_search_jmp_next_history(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         const int maskn = eu_get_config()->history_mask - IDM_VIEW_HISTORY_PLACEHOLDE;
         if (maskn > 1)
@@ -1253,7 +1253,7 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
             {
                 for (index++; index < count; index++)
                 {
-                    if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+                    if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
                     {
                         find_line = eu_sci_call(p, SCI_MARKERNEXT, 0, MARGIN_BOOKMARK_MASKN);
                         if (find_line != LINE_NOT_FOUND)
@@ -1277,7 +1277,7 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
     int offset = 0;
     sptr_t find_line = 0;
     sptr_t current_line = 0;
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
         *szmark = 0;
@@ -1301,7 +1301,7 @@ on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
 void
 on_search_update_mark(eu_tabpage *pnode, char *szmark)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *p = strtok(szmark, ";");
         while (p)
@@ -1315,7 +1315,7 @@ on_search_update_mark(eu_tabpage *pnode, char *szmark)
 void
 on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         int offset = 0;
         sptr_t header_line = 0;
@@ -1340,7 +1340,7 @@ on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
 void
 on_search_update_fold(eu_tabpage *pnode, char *szfold)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *p = strtok(szfold, ";");
         while (p)
@@ -2068,7 +2068,7 @@ on_search_process_count(eu_tabpage *pnode, const char *key, const bool sel, cons
 static void
 on_search_report_result(eu_tabpage *pnode, const int button)
 {
-    if (pnode || !pnode->hex_mode)
+    if (pnode || !TAB_HEX_MODE(pnode))
     {
         int file_count = 0;
         sptr_t match_count = 0;
@@ -2340,7 +2340,7 @@ on_search_find_button(eu_tabpage *pnode, const char *dlg_text, const int button)
     {
         reverse = true;
     }
-    if (pnode->hex_mode)
+    if (TAB_HEX_MODE(pnode))
     {
         return on_search_hexview(pnode, dlg_text, reverse) > 0;
     }
@@ -2383,7 +2383,7 @@ on_search_max_line(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && p->match_count > 0)
+        if (p && !TAB_HEX_MODE(p) && p->match_count > 0)
         {
             const int max_line = (const int)cvector_size(p->ret_vec);
             const int k = max_line > 0 ? util_count_number(p->ret_vec[max_line - 1].line + 1) : 0;
@@ -2544,7 +2544,7 @@ on_search_lookup_result(eu_tabpage *pnode, const bool all_file, const int count)
         for (; index < count; ++index)
         {
             p = on_tabpage_get_ptr(index);
-            if (p && !p->hex_mode && p->match_count > 0 && p->ret_vec)
+            if (p && !TAB_HEX_MODE(p) && p->match_count > 0 && p->ret_vec)
             {
                 if (p != pnode)
                 {
@@ -2570,7 +2570,7 @@ on_search_lookup_result(eu_tabpage *pnode, const bool all_file, const int count)
         for (index = 0; index < count; ++index)
         {
             eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && !p->hex_mode && p->match_count > 0)
+            if (p && !TAB_HEX_MODE(p) && p->match_count > 0)
             {
                 if (p != pnode)
                 {
@@ -2638,7 +2638,7 @@ on_search_find_next_button(const int button)
             {
                 if (on_search_find_button(pnode, key, button))
                 {
-                    if (!pnode->hex_mode)
+                    if (!TAB_HEX_MODE(pnode))
                     {
                         sptr_t lineno = 0;
                         sptr_t row = 0;
@@ -2650,7 +2650,7 @@ on_search_find_next_button(const int button)
                         }
                     }
                 }
-                else if (!pnode->hex_mode)
+                else if (!TAB_HEX_MODE(pnode))
                 {
                     on_search_find_error(pnode, button);
                 }
@@ -3761,7 +3761,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                             ShowWindow(hwnd_re_stc, SW_HIDE);
                             on_search_set_tip(IDC_MSG_SEARCH_STR1);
                             eu_tabpage *pnode = on_tabpage_focus_at();
-                            if (pnode && pnode->hex_mode)
+                            if (pnode && TAB_HEX_MODE(pnode))
                             {
                                 Button_SetCheck(rexp, BST_UNCHECKED);
                                 EnableWindow(rexp, false);
@@ -4035,7 +4035,7 @@ on_search_repalce_event(eu_tabpage *p, replace_event docase)
         for (int k = 0; k < count; ++k)
         {
             eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
-            if (pnode && !pnode->hex_mode && !pnode->plugin)
+            if (pnode && !TAB_HEX_MODE(pnode) && !pnode->plugin)
             {
                 if (pnode->doc_ptr && pnode->doc_ptr->tab_width > 0)
                 {

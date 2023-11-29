@@ -143,8 +143,9 @@ static eue_code eue_coding[] =
     {IDM_OTHER_2     , "MACCYRILLIC"}      ,
     {IDM_OTHER_3     , "MACCENTRALEUROPE"} ,
     {IDM_OTHER_ANSI  , "ANSI"}             ,
-    {IDM_OTHER_BIN   , "Binary encoding"}  ,
-    {IDM_UNKNOWN     , "Unknown encoding"} ,
+    {IDM_OTHER_BIN   , "Binary Code"}      ,
+    {IDM_OTHER_PLUGIN, "Plugins Code"}     ,
+    {IDM_UNKNOWN     , "Unknown Code"}     ,
     {0               , NULL}
 };
 
@@ -2442,7 +2443,7 @@ void
 eu_lua_calltip(const char *pstr)
 {
     eu_tabpage *p = NULL;
-    if (pstr && (p = on_tabpage_focus_at()) && !p->hex_mode && !p->pmod)
+    if (pstr && (p = on_tabpage_focus_at()) && !TAB_HEX_MODE(p) && !p->pmod)
     {
         const sptr_t end = eu_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
         eu_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
@@ -2628,7 +2629,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     {
         return 1;
     }
-#if APP_DEBUG
+#if PCRE_DEBUG
     printf("Match succeeded at offset %d\n", pcre_info->ovector[0]);
     // debug 模式下输出详细内容
     int i;
@@ -2750,7 +2751,7 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
             eu_logmsg("pcre: ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
         }
 
-    #if APP_DEBUG
+    #if PCRE_DEBUG
         // As before, show substrings stored in the output vector
         // by number, and then also any named substrings.
 
@@ -2773,7 +2774,7 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
             break;
         }
 
-    #ifdef APP_DEBUG
+    #ifdef PCRE_DEBUG
         if (pcre_info->namecount > 0)
         {
             int name_entry_size;

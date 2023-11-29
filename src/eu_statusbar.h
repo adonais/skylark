@@ -51,7 +51,7 @@ void on_statusbar_adjust_box(void);
 void on_statusbar_update_eol(eu_tabpage *pnode, const int eol);
 void on_statusbar_update_line(eu_tabpage *pnode);
 void on_statusbar_update_filesize(eu_tabpage *pnode);
-void on_statusbar_update_coding(eu_tabpage *pnode, const int res_id);
+void on_statusbar_update_coding(eu_tabpage *pnode);
 void on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str);
 void on_statusbar_dark_mode(const bool dark);
 void on_statusbar_pop_menu(int parts, LPPOINT pt);

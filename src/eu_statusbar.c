@@ -50,7 +50,7 @@ on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
                     instance_theme theme = {0, (uint32_t)eu_get_theme()->item.text.bgcolor};
                     np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_ATTRIB_CHANGE, &theme);
                 }
-                else if (pnode->hex_mode)
+                else if (TAB_HEX_MODE(pnode))
                 {
                     SendMessage(pnode->hwnd_sc, HVM_SETBKCOLOR, 0, (LPARAM)eu_get_theme()->item.text.bgcolor);
                 }
@@ -72,7 +72,7 @@ on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
                 instance_theme theme = {1, 0x482730  /* STATUS_STATIC_FOCUS convert BGR */};
                 np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_ATTRIB_CHANGE, &theme);
             }
-            else if (pnode->hex_mode)
+            else if (TAB_HEX_MODE(pnode))
             {
                 SendMessage(pnode->hwnd_sc, HVM_SETBKCOLOR, 0, (LPARAM)STATUS_STATIC_FOCUS);
             }
@@ -610,6 +610,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_OTHER_3:
                 case IDM_OTHER_ANSI:
                 case IDM_OTHER_BIN:
+                case IDM_OTHER_PLUGIN:
                 case IDM_UNKNOWN:
                     if (!on_statusbar_convert_coding(pnode, id_menu))
                     {
@@ -704,7 +705,7 @@ on_statusbar_update_line(eu_tabpage *pnode)
     {
         return;
     }
-    if (pnode->hex_mode)
+    if (TAB_HEX_MODE(pnode))
     {
         eu_i18n_load_str(IDS_STATUS_HXY, m_xy, 0);
         _sntprintf(s_xy, FILESIZE-1, m_xy, SendMessage(pnode->hwnd_sc, HVM_GETHEXADDR, 0, 0));
@@ -756,8 +757,8 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     }
     else
     {
-        LOAD_I18N_RESSTR(pnode->hex_mode? IDS_STATUS_HLC : IDS_STATUS_LC, s_lc);
-        if (!pnode->hex_mode)
+        LOAD_I18N_RESSTR(TAB_HEX_MODE(pnode)? IDS_STATUS_HLC : IDS_STATUS_LC, s_lc);
+        if (!TAB_HEX_MODE(pnode))
         {
             _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
         }
@@ -779,7 +780,7 @@ on_statusbar_update_eol(eu_tabpage *pnode, const int eol)
     {
         return;
     }
-    if(pnode->hex_mode)
+    if(TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         TCHAR buf[] = {0xA554, 0x0020, _T('N'), _T('a'), _T('N'), 0};
         on_statusbar_set_text(g_statusbar, STATUSBAR_DOC_EOLS, buf);
@@ -829,20 +830,16 @@ on_statusbar_update_filetype_menu(eu_tabpage *pnode)
 }
 
 void
-on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
+on_statusbar_update_coding(eu_tabpage *pnode)
 {
     int type = IDM_UNKNOWN;
     if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
     {
         return;
     }
-    if (res_id)
+    if (pnode)
     {
-        type = res_id;
-    }
-    else if (pnode && pnode->codepage)
-    {
-        type = pnode->codepage;
+        type = TAB_HEX_MODE(pnode) ? IDM_OTHER_BIN : pnode->codepage;
     }
     switch (type)
     {
@@ -908,6 +905,7 @@ on_statusbar_update_coding(eu_tabpage *pnode, const int res_id)
         case IDM_OTHER_3:
         case IDM_OTHER_ANSI:
         case IDM_OTHER_BIN:
+        case IDM_OTHER_PLUGIN:
         case IDM_UNKNOWN:
             on_statusbar_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, type, 5, STATUSBAR_DOC_ENC);
             break;
@@ -960,7 +958,7 @@ on_statusbar_update(eu_tabpage *psrc)
             on_statusbar_update_filesize(pnode);
             on_statusbar_update_eol(pnode, -1);
             on_statusbar_update_filetype_menu(pnode);
-            on_statusbar_update_coding(pnode, pnode->hex_mode ? IDM_OTHER_BIN : 0);
+            on_statusbar_update_coding(pnode);
             SendMessage(g_statusbar, WM_SETREDRAW, TRUE, 0);
             RedrawWindow(g_statusbar, NULL, NULL, RDW_ERASE | RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN);
         }

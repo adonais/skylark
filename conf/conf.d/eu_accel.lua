@@ -215,7 +215,7 @@ function eu_accel.loadaccel()
   end
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
-    print("m_len = " .. m_len)
+    -- print("m_len = " .. m_len)
     if (m_len < 184) then
       eu_core.euapi.eu_reset_accs_mask()
     end

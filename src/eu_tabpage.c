@@ -249,9 +249,9 @@ on_tabpage_sel_path(wchar_t ***pvec, bool *hex)
         if (on_tabpage_nfocus(i) && (p = on_tabpage_get_ptr(i)) && !p->is_blank && !url_has_remote(p->pathfile))
         {
             cvector_push_back(*pvec, _wcsdup(p->pathfile));
-            if (hex && p->hex_mode)
+            if (hex && TAB_HEX_MODE(p))
             {
-                *hex = p->hex_mode;
+                *hex = p->hex_mode == TYPES_HEX;
             }
             ++num;
         }
@@ -1237,7 +1237,7 @@ on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode)
         {   /* 从控件删除选项卡 */
             p->tab_id = index;
             TabCtrl_DeleteItem(g_tabpages, index);
-            if (file_click_close(mode) && count < 2 && !pnode->hex_mode && !pnode->plugin)
+            if (file_click_close(mode) && count < 2 && !TAB_HEX_MODE(pnode) && !pnode->plugin)
             {
                 p->reason = TABS_MAYBE_RESERVE;
             }
@@ -1364,7 +1364,7 @@ int
 on_tabpage_add(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    if (TAB_NOT_BIN(pnode) && !pnode->hex_mode && !pnode->pmod)
+    if (TAB_NOT_BIN(pnode) && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
@@ -1388,7 +1388,7 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         eu_logmsg("%s: Replacing empty Tab, pnode->tab_id = %d\n", __FUNCTION__, pnode->tab_id);
     }
-    if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
+    if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && TAB_HEX_MODE(pnode))
     {
         pnode->bytes_remaining = (size_t)pnode->raw_size;
         if (!hexview_init(pnode))
@@ -1422,7 +1422,7 @@ int
 on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
 {
     EU_VERIFY(pnode != NULL);
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return 0;
     }

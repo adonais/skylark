@@ -29,7 +29,7 @@ on_view_filetree(void)
 void
 on_view_symtree(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && (pnode->hwnd_symlist || pnode->hwnd_symtree))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
         if ((pnode->sym_show ^= true))
         {
@@ -42,7 +42,7 @@ on_view_symtree(eu_tabpage *pnode)
 void
 on_view_document_map(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         if ((pnode->map_show ^= true) && on_map_launch())
         {
@@ -55,7 +55,7 @@ on_view_document_map(eu_tabpage *pnode)
 void
 on_view_result_show(eu_tabpage *pnode, const int key)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
     {
         if (!pnode->result_show)
         {
@@ -74,7 +74,7 @@ int
 on_view_switch_type(const int m_type)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         on_sci_resever_tab(pnode);
         if (m_type < 0)
@@ -144,7 +144,7 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
         {
             break;
         }
-        if (p->hex_mode)
+        if (TAB_HEX_MODE(p))
         {
             hexview_update_theme(p);
         }
@@ -329,7 +329,7 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
             }
             for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
-                if ((p = on_tabpage_get_ptr(index)) != NULL && !p->hex_mode && !p->pmod)
+                if ((p = on_tabpage_get_ptr(index)) != NULL && !TAB_HEX_MODE(p) && !p->pmod)
                 {
                     if (p->doc_ptr)
                     {
@@ -358,7 +358,7 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p != NULL && !p->hex_mode && !p->pmod)
+        if (p != NULL && !TAB_HEX_MODE(p) && !p->pmod)
         {
             if (p->doc_ptr)
             {
@@ -405,7 +405,7 @@ on_view_light_fold(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {   // 是否高亮显示当前折叠块
             eu_sci_call(p, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
         }
@@ -419,7 +419,7 @@ on_view_wrap_line(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
         }
@@ -433,7 +433,7 @@ on_view_line_num(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? MARGIN_LINENUMBER_WIDTH : 0));
         }
@@ -447,7 +447,7 @@ on_view_bookmark(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
         }
@@ -460,7 +460,7 @@ on_view_update_fold(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod && p->doc_ptr && p->foldline)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod && p->doc_ptr && p->foldline)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0);
         }
@@ -488,7 +488,7 @@ on_view_white_space(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWWS, (eu_get_config()->ws_visiable == true ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
         }
@@ -502,7 +502,7 @@ on_view_line_visiable(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
         }
@@ -516,7 +516,7 @@ on_view_indent_visiable(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
         }
@@ -537,7 +537,7 @@ on_view_history_visiable(eu_tabpage *pnode, const int wm_id)
         const uint32_t maskn = wm_id - IDM_VIEW_HISTORY_PLACEHOLDE;
         for (index = 0; index < count; ++index)
         {
-            if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+            if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
             {   // 先给出提示
                 if (maskn > 1 && history_mask - IDM_VIEW_HISTORY_PLACEHOLDE == 1 &&
                    (eu_sci_call(p, SCI_CANUNDO, 0, 0) || eu_sci_call(p, SCI_CANREDO, 0, 0)))
@@ -560,7 +560,7 @@ on_view_history_visiable(eu_tabpage *pnode, const int wm_id)
             eu_get_config()->history_mask = (uint32_t)wm_id;
             for (index = 0; index < count; ++index)
             {
-                if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+                if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
                 {
                     on_sci_update_history_margin(p);
                 }
@@ -628,7 +628,7 @@ on_view_zoom_reset(eu_tabpage *pnode)
 int
 on_view_editor_selection(eu_tabpage *pnode)
 {
-    if (!pnode || pnode->hex_mode || pnode->pmod)
+    if (!pnode || TAB_HEX_MODE(pnode) || pnode->pmod)
     {
         return SKYLARK_OK;
     }

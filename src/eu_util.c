@@ -378,7 +378,7 @@ done:
 void
 util_wait_cursor(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !TAB_HEX_MODE(pnode))
     {
         eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
     }
@@ -388,7 +388,7 @@ void
 util_restore_cursor(eu_tabpage *pnode)
 {
     POINT pt;
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !TAB_HEX_MODE(pnode))
     {
         eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
         GetCursorPos(&pt);

@@ -96,6 +96,7 @@ void on_file_restore_recent(void);
 void on_file_reload_current(eu_tabpage *pnode);
 void on_file_auto_backup(void);
 void on_file_auto_notify(void);
+void on_file_filedb_update(const eu_tabpage *pnode);
 uint64_t on_file_get_avail_phys(void);
 
 #ifdef __cplusplus

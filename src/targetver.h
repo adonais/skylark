@@ -196,7 +196,8 @@
 #define IDM_OTHER_3      10064
 #define IDM_OTHER_ANSI   10065
 #define IDM_OTHER_BIN    10066
-#define IDM_UNKNOWN      10067
+#define IDM_OTHER_PLUGIN 10067
+#define IDM_UNKNOWN      10068
 
 #define IDM_LBREAK_1     10080
 #define IDM_LBREAK_2     10081
@@ -948,6 +949,7 @@
 #define IDM_EDIT_LINECOMMENT                42043
 #define IDM_EDIT_STREAMCOMMENT              42044
 #define IDM_VIEW_HIGHLIGHT_BRACE            42045
+#define IDM_VIEW_HIGHLIGHT_GROUP            42046
 
 // Page Setup
 // based on prnsetup.dlg from Windows SDK

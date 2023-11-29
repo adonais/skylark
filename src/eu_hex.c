@@ -438,7 +438,7 @@ hexview_update_theme(eu_tabpage *p)
 {
     if (p && p->hwnd_sc)
     {
-        if (p->hex_mode)
+        if (TAB_HEX_MODE(p))
         {
             SendMessage(p->hwnd_sc, WM_SETFONT, 0, 0);
             SendMessage(p->hwnd_sc, HVM_SETTEXTCOLOR, 0, (LPARAM) eu_get_theme()->item.text.color);
@@ -484,7 +484,7 @@ hexview_destoy(eu_tabpage *pnode)
         {
             eu_safe_free(pnode->phex->pbase);
         }
-        pnode->hex_mode = false;
+        pnode->hex_mode = TAB_HAS_PDF(pnode) ? TYPES_PLUGIN : TYPES_TEXT;
         eu_safe_free(pnode->phex);
     }
 }
@@ -1952,7 +1952,7 @@ hexview_init(eu_tabpage *pnode)
     {
         pnode->eusc = 0;
         pnode->begin_pos = -1;
-        pnode->hex_mode = true;
+        pnode->hex_mode = TYPES_HEX;
         hexview_register_class();
     }
     if (!(pnode->hwnd_sc = hexview_create_dlg(hwnd, pnode)))
@@ -2149,7 +2149,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         on_tabpage_active_tab(pnode);
     }
     util_lock(&pnode->busy_id);
-    if (!pnode->hex_mode)
+    if (!TAB_HEX_MODE(pnode))
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         pnode->zoom_level = (pnode->zoom_level == SELECTION_ZOOM_LEVEEL) ? 0 : (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
@@ -2198,7 +2198,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         pnode->zoom_level == SELECTION_ZOOM_LEVEEL ? (pnode->zoom_level = 0) : (void)0;
         eu_logmsg("To text, pnode->zoom_level = %d\n", pnode->zoom_level);
         pnode->needpre = pnode->pre_len > 0;
-        if (pnode->phex && pnode->phex->hex_ascii)
+        if (!pnode->bakpath[0] && pnode->phex && pnode->phex->hex_ascii)
         {
             is_utf8 = false;
         }

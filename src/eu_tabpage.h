@@ -58,7 +58,6 @@ struct _tabpage
     bool needpre;               // 是否需要bom
     bool is_blank;              // 新建文件,空白标签
     bool at_close;              // 是否绘制了关闭按钮
-    bool hex_mode;              // 是否处于16禁止编辑状态
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool fn_modify;             // 文档打开时的初始状态
     bool last_focus;            // 保存前台焦点
@@ -86,7 +85,9 @@ struct _tabpage
     volatile long busy_id;      // 标签是否空闲状态
     volatile long lock_id;      // 自动保存时使用的锁
     int tab_id;                 // tab编号,用于保存会话
-    int codepage;               // 文件编码
+    int hex_mode;               // 16进制编辑状态, 0, 否. 1,是. 2,插件
+    int codepage;               // 真实的文件编码
+    int bakcp;                  // 自动保存时的文件编码
     int eol;                    // 换行符
     int zoom_level;             // 标签页的放大倍数
     int ac_mode;                // 是否处于snippet模式

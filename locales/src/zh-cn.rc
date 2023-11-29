@@ -244,7 +244,7 @@ BEGIN
         MENUITEM "文档结构图(&D)",                              IDM_VIEW_DOCUMENT_MAP
         MENUITEM "符号链接窗口(&S)",                            IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
-        POPUP "面板(&A)"
+        POPUP "面板"
         BEGIN
             MENUITEM "全屏模式",                                IDM_VIEW_FULLSCREEN
             MENUITEM "显示菜单栏",                              IDM_VIEW_MENUBAR
@@ -277,7 +277,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "十六进制视图(&H)",                            IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
-        POPUP "高亮(&I)"
+        POPUP "高亮",                                           IDM_VIEW_HIGHLIGHT_GROUP
         BEGIN
             MENUITEM "高亮匹配的括号(&B)",                      IDM_VIEW_HIGHLIGHT_BRACE
             MENUITEM "高亮匹配的字符串(&S)",                    IDM_VIEW_HIGHLIGHT_STR
@@ -285,7 +285,7 @@ BEGIN
         END
         MENUITEM "自动缩进",                                    IDM_EDIT_AUTO_INDENTATION
         MENUITEM MF_SEPARATOR
-        POPUP "显示(&D)",                                       IDM_VIEW_DISPLAY_PLACEHOLDE
+        POPUP "显示",                                           IDM_VIEW_DISPLAY_PLACEHOLDE
         BEGIN
             MENUITEM "显示行号",                                IDM_VIEW_LINENUMBER_VISIABLE
             MENUITEM "显示书签",                                IDM_VIEW_BOOKMARK_VISIABLE
@@ -883,6 +883,7 @@ BEGIN
             MENUITEM "mac-centraleurope",             IDM_OTHER_3
             MENUITEM "本地编码",                      IDM_OTHER_ANSI
             MENUITEM "二进制编码",                    IDM_OTHER_BIN,,0x00000003
+            MENUITEM "插件编码",                      IDM_OTHER_PLUGIN,,0x00000003
             MENUITEM "未知编码",                      IDM_UNKNOWN,,0x00000003
         END
     }

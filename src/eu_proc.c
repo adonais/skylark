@@ -320,7 +320,7 @@ on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
     on_proc_msg_size(hwnd, pnode);
     if (pnode && pnode->nc_pos >= 0 && eu_get_config() && eu_get_config()->scroll_to_cursor)
     {
-        if (pnode->hex_mode)
+        if (TAB_HEX_MODE(pnode))
         {
             eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
         }
@@ -818,7 +818,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (wParam == SC_RESTORE)
             {
                 const LRESULT rv = DefWindowProc(hwnd, message, wParam, lParam);
-                if ((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && pnode->nc_pos >= 0)
+                if ((pnode = on_tabpage_focus_at()) && !TAB_HEX_MODE(pnode) && pnode->nc_pos >= 0)
                 {
                     eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
                 }
@@ -1390,7 +1390,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_light_fold();
                     break;
                 case IDM_FORMAT_REFORMAT_JSON:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_format_file_style(pnode);
                         on_symtree_json(pnode);
@@ -1398,7 +1398,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JSON:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_format_do_compress(pnode, on_format_json_callback);
                         on_symtree_json(pnode);
@@ -1406,7 +1406,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_JS:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
                     {
                         on_format_file_style(pnode);
                         on_symlist_reqular(pnode);
@@ -1414,7 +1414,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JS:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
                     {
                         on_format_do_compress(pnode, on_format_js_callback);
                         on_symlist_reqular(pnode);
@@ -1422,7 +1422,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_XML:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_XML)
                     {
                         on_format_file_style(pnode);
                         on_xml_tree(pnode);
@@ -1430,7 +1430,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_XML:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_XML)
                     {
                         on_format_xml_compress(pnode);
                         on_xml_tree(pnode);
@@ -1438,7 +1438,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    if (pnode->doc_ptr && !pnode->hex_mode &&
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) &&
                        (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                         pnode->doc_ptr->doc_type == DOCTYPE_CS ||
                         pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
@@ -1451,7 +1451,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    if (pnode->doc_ptr && !pnode->hex_mode &&
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) &&
                        (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
                         pnode->doc_ptr->doc_type == DOCTYPE_CS ||
                         pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
@@ -1464,13 +1464,13 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
                     {
                         on_toolbar_lua_exec(pnode);
                     }
                     break;
                 case IDM_FORMAT_BYTE_CODE:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
                     {
                         do_byte_code(pnode);
                     }
@@ -1816,7 +1816,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 case NM_CLICK:
                 {
-                    if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
+                    if (!TAB_HEX_MODE(pnode) && !TAB_HAS_PDF(pnode) && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {
                         POINT pt;
                         LPNMMOUSE lpnmm = (LPNMMOUSE)lParam;
@@ -1967,7 +1967,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if ((lpnotify->updated))
                     {
-                        if (pnode && (!(pnode->hex_mode || pnode->plugin)))
+                        if (pnode && (!(TAB_HEX_MODE(pnode) || pnode->plugin)))
                         {
                             on_hyper_update_style(pnode);
                         }
@@ -2292,7 +2292,7 @@ eu_before_proc(MSG *p_msg)
         on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
         return 1;
     }
-    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
+    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !TAB_HEX_MODE(pnode) && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
         bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);

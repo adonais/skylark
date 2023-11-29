@@ -47,7 +47,7 @@ on_edit_undo(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode && !p->pmod)
+            if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 eu_sci_call(p, SCI_UNDO, 0, 0);
             }
@@ -68,7 +68,7 @@ on_edit_redo(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode && !p->pmod)
+            if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 eu_sci_call(p, SCI_REDO, 0, 0);
             }
@@ -93,7 +93,7 @@ on_edit_copy_text(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        if (pnode->hex_mode)
+        if (TAB_HEX_MODE(pnode))
         {
             eu_sci_call(pnode, WM_COPY, 0, 0);
         }
@@ -125,7 +125,7 @@ on_edit_delete_text(eu_tabpage *pnode)
 void
 on_edit_cut_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_LINECUT, 0, 0);
     }
@@ -134,7 +134,7 @@ on_edit_cut_line(eu_tabpage *pnode)
 void
 on_edit_copy_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *text = util_strdup_line(pnode, -1, NULL);
         if (text)
@@ -153,7 +153,7 @@ on_edit_copy_line(eu_tabpage *pnode)
 void
 on_edit_line_up(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_MOVESELECTEDLINESUP, 0, 0);
     }
@@ -162,7 +162,7 @@ on_edit_line_up(eu_tabpage *pnode)
 void
 on_edit_line_down(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_MOVESELECTEDLINESDOWN, 0, 0);
         // 确保所选内容在视图中可见
@@ -230,7 +230,7 @@ on_edit_incremental_clipborad(eu_tabpage *pnode)
 void
 on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *prtf = NULL;
         const sptr_t start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
@@ -274,7 +274,7 @@ on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode)
 void
 on_edit_swap_clipborad(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0))
     {
         char *buf = NULL;
         wchar_t *pbuf = NULL;
@@ -560,7 +560,7 @@ on_edit_push_compare(void)
 void
 on_edit_convert_slash(eu_tabpage *pnode, const bool slash)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *buf = NULL;
         const sptr_t start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
@@ -613,7 +613,7 @@ on_edit_convert_slash(eu_tabpage *pnode, const bool slash)
 void
 on_edit_delete_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_LINEDELETE, 0, 0);
     }
@@ -650,7 +650,7 @@ on_edit_add_array(eu_tabpage *pnode, char *pbuf, char *strarray[], int count)
 void
 on_edit_delete_dups(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *buf = NULL;
         char **ptext = NULL;
@@ -740,7 +740,7 @@ on_edit_delete_dups(eu_tabpage *pnode)
 void
 on_edit_line_transpose(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_LINETRANSPOSE, 0, 0);
     }
@@ -808,7 +808,7 @@ do_delete_space(eu_tabpage *pnode, const sptr_t start, const sptr_t end, const b
 void
 on_edit_delete_line_header_white(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t start_line, end_line;
         util_effect_line(pnode, &start_line, &end_line);
@@ -819,7 +819,7 @@ on_edit_delete_line_header_white(eu_tabpage *pnode)
 void
 on_edit_delete_line_tail_white(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t start_line, end_line;
         util_effect_line(pnode, &start_line, &end_line);
@@ -838,7 +838,7 @@ on_edit_delete_line_header_all(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode && !p->pmod)
+            if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
             }
@@ -858,7 +858,7 @@ on_edit_delete_line_tail_all(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode && !p->pmod)
+            if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
             }
@@ -919,7 +919,7 @@ on_edit_delete_all_empty_lines(eu_tabpage *pnode)
         for (int i = 0; i < count; ++i)
         {
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->hex_mode && !p->pmod)
+            if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 do_delete_lines(p, 0, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
             }
@@ -931,7 +931,7 @@ on_edit_delete_all_empty_lines(eu_tabpage *pnode)
 void
 on_edit_join_line(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
@@ -999,7 +999,7 @@ do_toggle_case(eu_tabpage *pnode, const bool do_uppercase, const bool do_line, c
 void
 on_edit_lower(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         bool has_selection = false;
         sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
@@ -1018,7 +1018,7 @@ on_edit_lower(eu_tabpage *pnode)
 void
 on_edit_upper(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         bool has_selection = false;
         sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
@@ -1089,7 +1089,7 @@ do_selection_case(eu_tabpage *pnode, const bool sentence)
 void
 on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && !eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && !eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
     {
         if (!eu_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0))
         {
@@ -1237,7 +1237,7 @@ on_edit_base64_enc(eu_tabpage *pnode)
     size_t out_len;
     char *sel_text = NULL;
     char *out_text = NULL;
-    if (!pnode || pnode->hex_mode || pnode->plugin)
+    if (!pnode || TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return 0;
     }
@@ -1304,7 +1304,7 @@ on_edit_base64_dec(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1345,7 +1345,7 @@ on_edit_md5(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1379,7 +1379,7 @@ on_edit_sha1(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1413,7 +1413,7 @@ on_edit_sha256(eu_tabpage *pnode)
     {
         return EUE_TAB_NULL;
     }
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return EUE_UNKOWN_ERR;
     }
@@ -1446,7 +1446,7 @@ on_edit_descbc_enc(eu_tabpage *pnode)
     char *out_text = NULL;
     char *text_exp = NULL;
     char key[24 + 1] = { 0 };
-    if (!pnode || pnode->hex_mode || pnode->plugin)
+    if (!pnode || TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return 0;
     }
@@ -1505,7 +1505,7 @@ on_edit_descbc_dec(eu_tabpage *pnode)
     char *input_text = NULL;
     char *out_text = NULL;
     char key[24 + 1] = { 0 };
-    if (!pnode || pnode->hex_mode || pnode->plugin)
+    if (!pnode || TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return 0;
     }
@@ -1880,7 +1880,7 @@ on_edit_comment_line(eu_tabpage *pnode)
     {
         return 1;
     }
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return 0;
     }
@@ -1994,7 +1994,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
     {
         return 1;
     }
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return 0;
     }
@@ -2100,7 +2100,7 @@ on_edit_comment_stream(eu_tabpage *pnode)
 int
 on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
     {
         eu_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
@@ -2109,6 +2109,7 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         _snprintf(pnode->eols_undo_str, QW_SIZE-1, "%s=%d=%d", EOLS_UNDO_DESC, pnode->eol, eol_mode);
         pnode->eol = eol_mode;
+        on_file_filedb_update(pnode);
         return 0;
     }
     return 1;
@@ -2117,7 +2118,7 @@ on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
 int
 on_edit_convert_coding(eu_tabpage *pnode, int new_code)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->codepage != new_code)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && pnode->codepage != new_code)
     {
         _snprintf(pnode->icon_undo_str, QW_SIZE-1, "%s=%d=%d", ICON_UNDO_DESC, pnode->codepage, new_code);
         pnode->codepage = new_code;
@@ -2126,6 +2127,7 @@ on_edit_convert_coding(eu_tabpage *pnode, int new_code)
         eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(pnode->icon_undo_str));
         eu_sci_call(pnode, SCI_ADDUNDOACTION, ICONV_UNDO, 0);
         eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_file_filedb_update(pnode);
         return 0;
     }
     return 1;
@@ -2134,7 +2136,7 @@ on_edit_convert_coding(eu_tabpage *pnode, int new_code)
 void
 on_edit_undo_iconv(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         int old_codepage = IDM_UNKNOWN;
         int new_codepage = IDM_UNKNOWN;
@@ -2144,7 +2146,7 @@ on_edit_undo_iconv(eu_tabpage *pnode)
             memset(pnode->pre_context, 0, sizeof(pnode->pre_context));
             _snprintf(pnode->icon_undo_str, QW_SIZE-1, "%s=%d=%d", ICON_UNDO_DESC, new_codepage, old_codepage);
             on_encoding_set_bom_from_cp(pnode);
-            on_statusbar_update_coding(pnode, 0);
+            on_statusbar_update_coding(pnode);
         }
     }
 }
@@ -2152,7 +2154,7 @@ on_edit_undo_iconv(eu_tabpage *pnode)
 void
 on_edit_undo_eol(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         int old_eol = -1;
         int new_eol = -1;
@@ -2201,7 +2203,7 @@ on_edit_sorting(eu_tabpage *p, int wm_id)
         for (int k = 0; k < count; ++k)
         {
             eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
-            if (pnode && !pnode->hex_mode && !pnode->pmod)
+            if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
             {
                 int i = 0;
                 int count = 0;
@@ -2338,14 +2340,14 @@ on_edit_bookmark_copy(eu_tabpage *pnode)
     char *p1 = NULL;
     wchar_t *ptext = NULL;
     sptr_t line = LINE_NOT_FOUND;
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
         {
             if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
             {
                 i = line;
-                if (p1 = util_strdup_line(pnode, line, NULL))
+                if ((p1 = util_strdup_line(pnode, line, NULL)))
                 {
                     p = util_memdup(&p , p1);
                     free(p1);
@@ -2373,14 +2375,14 @@ on_edit_bookmark_cut(eu_tabpage *pnode)
     char *p1 = NULL;
     wchar_t *ptext = NULL;
     sptr_t line = LINE_NOT_FOUND;
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
         {
             if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
             {
-                if (p1 = util_strdup_line(pnode, line, NULL))
+                if ((p1 = util_strdup_line(pnode, line, NULL)))
                 {
                     p = util_memdup(&p , p1);
                     free(p1);
@@ -2418,7 +2420,7 @@ void
 on_edit_bookmark_remove(eu_tabpage *pnode)
 {
     sptr_t line = LINE_NOT_FOUND;
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
@@ -2445,7 +2447,7 @@ void
 on_edit_bookmark_reserve_remove(eu_tabpage *pnode)
 {
     sptr_t line = LINE_NOT_FOUND;
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
