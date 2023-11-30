@@ -310,7 +310,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *pnode)
         }
         on_statusbar_size(pnode);
         // 从插件页面切换时获取鼠标焦点
-        PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+        SendMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
     }
 }
 
@@ -502,6 +502,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_WINDOWPOSCHANGING:
         case WM_WINDOWPOSCHANGED:
         {
+            return DefWindowProc(hwnd, message, wParam, lParam);
+        }
+        case WM_NCLBUTTONDBLCLK:
+        {   // 防止标签栏被误拖动
+            on_tabpage_variable_reset();
             return DefWindowProc(hwnd, message, wParam, lParam);
         }
         case WM_ERASEBKGND:

@@ -134,6 +134,7 @@ void on_tabpage_do_file(tab_callback func);
 void on_tabpage_active_tab(eu_tabpage *pnode);
 void on_tabpage_active_one(int index);
 void on_tabpage_size(void);
+void on_tabpage_variable_reset(void);
 bool on_tabpage_exist_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(const int index);

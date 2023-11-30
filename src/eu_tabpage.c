@@ -219,6 +219,16 @@ on_tabpage_close_size(void)
     return (util_under_wine() ? (CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT) : eu_dpi_scale_xy(0, CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT));
 }
 
+void
+on_tabpage_variable_reset(void)
+{
+    tab_move_from = -1;
+    tab_drag = false;
+    tab_mutil_select = false;
+    tab_do_drag = false;
+    g_point.x = 0, g_point.y = 0;
+}
+
 int
 on_tabpage_sel_number(int **pvec, const bool ascending)
 {
@@ -939,8 +949,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {   // Get cursor position of "Screen"
                     GetCursorPos(&point);
                     on_tabpage_drag_mouse(WindowFromPoint(point));
-                    tab_drag = false;
-                    tab_do_drag = false;
+                    on_tabpage_variable_reset();
                     return 1;
                 }
                 if ((index = on_tabpage_hit_index(&point)) != -1)
@@ -956,7 +965,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                 }
             }
-            tab_drag = false;
+            on_tabpage_variable_reset();
             break;
         }
         case WM_RBUTTONDOWN:
@@ -1391,6 +1400,7 @@ on_tabpage_add(eu_tabpage *pnode)
     if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && TAB_HEX_MODE(pnode))
     {
         pnode->bytes_remaining = (size_t)pnode->raw_size;
+        eu_logmsg("%s: hexview_init execute\n", __FUNCTION__);
         if (!hexview_init(pnode))
         {
             TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
@@ -1482,13 +1492,13 @@ on_tabpage_theme_changed(eu_tabpage *p)
 {
     if (p && p->hwnd_sc)
     {
-        PostMessage(p->hwnd_sc, WM_THEMECHANGED, 0, 0);
+        SendMessage(p->hwnd_sc, WM_THEMECHANGED, 0, 0);
     }
     if (p->sym_show)
     {
         if (p->hwnd_symlist)
         {
-            PostMessage(p->hwnd_symlist, WM_THEMECHANGED, 0, 0);
+            SendMessage(p->hwnd_symlist, WM_THEMECHANGED, 0, 0);
         }
         else if (p->hwnd_symtree)
         {

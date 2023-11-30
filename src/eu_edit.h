@@ -30,10 +30,11 @@
 #endif
 #define STR_IS_NUL(s) (s == NULL || *s == 0)
 #define STR_NOT_NUL(s) (s != NULL && *s != 0)
+#define TAB_HEX_MODE(p) (p->hex_mode == TYPES_HEX)
 #define TAB_NOT_NUL(p) (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0)
 #define TAB_NOT_BIN(p) (p->codepage != IDM_OTHER_BIN)
 #define TAB_HAS_PDF(p) (p->codepage == IDM_OTHER_PLUGIN)
-#define TAB_HEX_MODE(p) (p->hex_mode == TYPES_HEX)
+#define TAB_HAS_TXT(p) (!TAB_HEX_MODE(p) && !TAB_HAS_PDF(p))
 #define EOLS_UNDO   101
 #define ICONV_UNDO  102
 

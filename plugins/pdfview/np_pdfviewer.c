@@ -1182,6 +1182,8 @@ npp_mime_type(const wchar_t *ext_name)
                                    L".djvu",
                                    L".epub",
                                    L".mobi",
+                                   L".jpg",
+                                   L".png",
                                    NULL
                                   };
     if (!pdf_exe_path(path, MAX_PATH) || !pdf_exist_file(path))

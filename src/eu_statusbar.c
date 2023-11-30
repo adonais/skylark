@@ -485,8 +485,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 {
                     on_statusbar_btn_rw(pnode, false);
                     // Maybe affect this part, refresh it
-                    on_statusbar_update_filesize(pnode);
-                    PostMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+                    SendMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
                 }
                 return 1;
             }
@@ -757,14 +756,14 @@ on_statusbar_update_filesize(eu_tabpage *pnode)
     }
     else
     {
-        LOAD_I18N_RESSTR(TAB_HEX_MODE(pnode)? IDS_STATUS_HLC : IDS_STATUS_LC, s_lc);
-        if (!TAB_HEX_MODE(pnode))
+        LOAD_I18N_RESSTR(TAB_HAS_TXT(pnode) ? IDS_STATUS_LC : IDS_STATUS_HLC, s_lc);
+        if (TAB_HAS_TXT(pnode))
         {
             _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
         }
         else
         {
-            _sntprintf(file_size, FILESIZE, s_lc, pnode->pmod ? (sptr_t)pnode->raw_size : nsize);
+            _sntprintf(file_size, FILESIZE, s_lc, pnode->pmod ? (sptr_t)pnode->raw_size : nsize);   
         }
     }
     if (*file_size)

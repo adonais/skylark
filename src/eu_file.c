@@ -520,8 +520,8 @@ on_file_get_avail_phys(void)
     return (statex.ullAvailPhys);
 }
 
-static bool
-on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, size_t nbyte)
+bool
+on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte)
 {
     if (!pnode || pnode->phex)
     {
@@ -795,7 +795,7 @@ pre_clean:
     return err;
 }
 
-static int
+int
 on_file_load_plugins(eu_tabpage *pnode, bool route_open)
 {
     int ret = np_plugins_initialize(pnode->pmod, &pnode->plugin);
@@ -861,6 +861,7 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
     }
     if (pnode->pmod)
     {
+        eu_logmsg("%s: on_file_load_plugins execute\n", __FUNCTION__);
         return on_file_load_plugins(pnode, false);
     }
     if (STR_IS_NUL(pfull))
@@ -1303,6 +1304,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
             break;
         }
         on_file_before_open(pnode);
+        eu_logmsg("%s: on_file_load execute\n", __FUNCTION__);
         if (on_file_load(pnode, pbak, false))
         {
             res = EUE_WRITE_TAB_FAIL;
@@ -1704,8 +1706,9 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
             result = on_tabpage_selection(pnode, last_focus);
         }
         else if (!TAB_NOT_BIN(pnode) || TAB_HEX_MODE(pnode))
-        {
-            pnode->hex_mode = TYPES_HEX;
+        {   // 以下是两个先决条件, 从文件切换到二进制
+            pnode->hex_mode = TYPES_TEXT;
+            pnode->codepage = IDM_OTHER_BIN;
             result = hexview_switch_mode(pnode);
         }
     }
@@ -2219,51 +2222,54 @@ on_file_backup_name(eu_tabpage *pnode, wchar_t *pout)
     return ret;
 }
 
-static void
-on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, bool isbak, int *pstatus)
+void
+on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, const bool isbak, int *pstatus)
 {
 #define TMP_SUFFX (L".$bak~")
     bool is_cache = isbak && (!eu_get_config()->m_limit || eu_get_config()->m_limit > eu_int_cast(pnode->raw_size/1024/1024));
-    if (is_cache)
+    if (pnode && pnode->pmod && pnode->plugin)
     {
-        int ret = 0;
-        bool is_same = false;
-        wchar_t *tmp_path = NULL;
-        wchar_t pathfile[MAX_BUFFER] = {0};
-        if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && STR_NOT_NUL(tmp_path))
-        {   // 未保存之前, 把本地文件先复制到临时文件
-            _snwprintf(pathfile, MAX_BUFFER, L"%s", tmp_path);
-            // 本地文件也可能是之前的备份, 不用复制
-            is_same = (STR_NOT_NUL(cache_path) && wcsicmp(pathfile, cache_path) == 0);
-            if (!is_same)
-            {
-                wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
-                ret = CopyFileW(pathfile, tmp_path, false);
-            }
-        }
-        if ((ret || is_same) && STR_NOT_NUL(tmp_path))
-        {   // 保存本地文件
-            np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
-            if (!is_same)
-            {   // 并移动到cache_path
-                ret = MoveFileW(pathfile, cache_path);
-                // 本地文件恢复未修改之前的状态
-                ret = MoveFileExW(tmp_path, pathfile, MOVEFILE_REPLACE_EXISTING|MOVEFILE_COPY_ALLOWED);
-            }
-        }
-        eu_safe_free(tmp_path);
-    }
-    else if (!url_has_remote(pnode->pathfile))
-    {   // no cache, 则自动保存
-        np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
-        if (pstatus)
+        if (is_cache)
         {
-            *pstatus = 0;
+            int ret = 0;
+            bool is_same = false;
+            wchar_t *tmp_path = NULL;
+            wchar_t pathfile[MAX_BUFFER] = {0};
+            if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&tmp_path) && STR_NOT_NUL(tmp_path))
+            {   // 未保存之前, 把本地文件先复制到临时文件
+                _snwprintf(pathfile, MAX_BUFFER, L"%s", tmp_path);
+                // 本地文件也可能是之前的备份, 不用复制
+                is_same = (STR_NOT_NUL(cache_path) && wcsicmp(pathfile, cache_path) == 0);
+                if (!is_same)
+                {
+                    wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
+                    ret = CopyFileW(pathfile, tmp_path, false);
+                }
+            }
+            if ((ret || is_same) && STR_NOT_NUL(tmp_path))
+            {   // 保存本地文件
+                np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+                if (!is_same)
+                {   // 并移动到cache_path
+                    ret = MoveFileW(pathfile, cache_path);
+                    // 本地文件恢复未修改之前的状态
+                    ret = MoveFileExW(tmp_path, pathfile, MOVEFILE_REPLACE_EXISTING|MOVEFILE_COPY_ALLOWED);
+                }
+            }
+            eu_safe_free(tmp_path);
         }
-    }
-    else
-    {   // 网络流文件的修改丢弃
-        on_sql_delete_backup_row(pnode);
+        else if (!url_has_remote(pnode->pathfile))
+        {   // no cache, 则自动保存
+            np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
+            if (pstatus)
+            {
+                *pstatus = 0;
+            }
+        }
+        else
+        {   // 网络流文件的修改丢弃
+            on_sql_delete_backup_row(pnode);
+        }
     }
 #undef TMP_SUFFX
 }
@@ -2278,6 +2284,24 @@ on_file_cache_protect(eu_tabpage *pnode)
         return (_tcsnicmp(pnode->pathfile, cache, _tcslen(cache)) == 0);
     }
     return false;
+}
+
+bool
+on_file_get_bakpath(eu_tabpage *pnode)
+{
+    TCHAR buf[QW_SIZE] = {0};
+    if (pnode)
+    {
+        if (!on_file_backup_name(pnode, buf))
+        {
+            on_file_guid(buf, QW_SIZE - 1);
+        }
+    }
+    if (buf[0])
+    {
+        _sntprintf(pnode->bakpath, MAX_BUFFER, _T("%s\\cache\\%s"), eu_config_path, buf);
+    }
+    return (buf[0] != 0);
 }
 
 static void
@@ -2323,13 +2347,13 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                         on_file_do_write(pnode, filebak.bak_path, true, false, &filebak.status);
                     }
                 }
-                else if (!TAB_HAS_PDF(pnode))
+                else if (TAB_HAS_PDF(pnode) && !TAB_HEX_MODE(pnode))
                 {
-                    on_file_do_write(pnode, filebak.bak_path, true, false, &filebak.status);
+                    on_file_npp_write(pnode, filebak.bak_path, true, &filebak.status);
                 }
                 else
                 {
-                    on_file_npp_write(pnode, filebak.bak_path, true, &filebak.status);
+                    on_file_do_write(pnode, filebak.bak_path, true, false, &filebak.status);    
                 }
             }
             if (true)

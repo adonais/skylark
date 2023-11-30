@@ -720,7 +720,7 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_FILE_SAVE_NOTIFY:
                     {
-                        enable = (!TAB_HEX_MODE(pnode) && !TAB_HAS_PDF(pnode) && eu_hwnd_self() == share_envent_get_hwnd());
+                        enable = (TAB_NOT_BIN(pnode) && !TAB_HAS_PDF(pnode) && eu_hwnd_self() == share_envent_get_hwnd());
                         util_update_menu_chars(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_up_notify);
                         util_set_menu_item(menu, IDM_FILE_SAVE_NOTIFY, eu_get_config()->m_session && eu_get_config()->m_up_notify > 0);
                         util_enable_menu_item(menu, IDM_FILE_SAVE_NOTIFY,  init || enable);

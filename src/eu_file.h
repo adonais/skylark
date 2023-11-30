@@ -84,6 +84,7 @@ int on_file_unchange_close(eu_tabpage *pnode);
 int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
 int on_file_redirect(HWND hwnd, file_backup *pm);
 int on_file_stream_upload(eu_tabpage *pnode, TCHAR *pmsg);
+int on_file_load_plugins(eu_tabpage *pnode, bool route_open);
 void on_file_update_time(eu_tabpage *pnode, time_t m);
 void on_file_new_eols(eu_tabpage *pnode, const int new_eol);
 void on_file_new_encoding(eu_tabpage *pnode, const int new_enc);
@@ -97,6 +98,9 @@ void on_file_reload_current(eu_tabpage *pnode);
 void on_file_auto_backup(void);
 void on_file_auto_notify(void);
 void on_file_filedb_update(const eu_tabpage *pnode);
+void on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, const bool isbak, int *);
+bool on_file_get_bakpath(eu_tabpage *pnode);
+bool on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte);
 uint64_t on_file_get_avail_phys(void);
 
 #ifdef __cplusplus

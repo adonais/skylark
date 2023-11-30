@@ -517,6 +517,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
         {
             (*ppnode)->reason = 0;
             on_file_new(*ppnode);
+            eu_logmsg("%s: on_file_new() execute\n", __FUNCTION__);
         }
         if (reason == TABS_MAYBE_EIXT && on_sql_sync_session() == SKYLARK_OK)
         {
@@ -975,7 +976,6 @@ on_sci_init_dlg(eu_tabpage *pnode)
     if (pnode)
     {
         return on_sci_create(pnode, NULL, !TAB_HEX_MODE(pnode) && pnode->pmod ? WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING : 0, NULL);
-        
     }
     return EUE_POINT_NULL;
 }
