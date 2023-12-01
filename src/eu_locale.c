@@ -337,10 +337,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         }
         DestroyWindow(on_toolbar_clip_hwnd());
     }
-    if (g_statusbar)
-    {   // 销毁状态栏
-        DestroyWindow(g_statusbar);
-    }
     if (true)
     {   // 更新全局变量与共享内存
         FreeLibrary(g_skylark_lang);
@@ -381,9 +377,13 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         eu_logmsg("on_statusbar_init return false\n");
         return 1;
     }
-    else if (on_dark_enable())
+    else
     {
-        SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+        on_statusbar_size(NULL);
+        if (on_dark_enable())
+        {
+            SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+        }
     }
     on_favorite_reload_root();
     on_search_dark_mode_release();
