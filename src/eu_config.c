@@ -184,24 +184,25 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int err = 0;
+    size_t vec_size = 0;
     cvector_vector_type(file_backup) vbak = NULL;
     if (eu_get_config()->m_session)
-    {
-        err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, (void *)&vbak); // 这里又导致工作目录变更了
+    {   // on_config_parser_bakup导致工作目录变更
+        err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, (void *)&vbak);
     }
     else
     {
         err = on_sql_do_session("SELECT * FROM skylar_ver;", NULL, NULL);
     }
     on_config_open_args(&vbak);
-    if (cvector_size(vbak) < 1)
+    if ((vec_size = cvector_size(vbak)) < 1)
     {
         file_backup bak = {0};
         share_send_msg(&bak);
     }
     else
     {
-        for (size_t i = 0; i < cvector_size(vbak); ++i)
+        for (size_t i = 0; i < vec_size; ++i)
         {
             if (vbak[i].rel_path[0] || vbak[i].bak_path[0])
             {

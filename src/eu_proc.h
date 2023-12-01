@@ -31,6 +31,7 @@ extern "C"
 
 void on_proc_counter_stop(void);
 void on_proc_sync_wait(void);
+void on_proc_msg_active(eu_tabpage *pnode);
 void eu_window_resize(HWND hwnd);
 void eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi);
 HWND eu_hwnd_self(void);

@@ -20,9 +20,6 @@
 #define _H_SKYLARK_FILE_
 
 #define URL_MIN 7
-#define BUFF_SIZE (8 * 1024 * 1024)                // 8M
-#define BUFF_32K (32 * 1024)                       // 32K
-#define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
 #define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define url_has_samba(ll) (_tcslen(ll) > 2 && (ll[1] == L'\\' && ll[0] == L'\\'))

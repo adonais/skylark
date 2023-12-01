@@ -121,7 +121,7 @@ share_envent_create(void)
 }
 
 void
-share_envent_set(bool signaled)
+share_envent_set(const bool signaled)
 {
     if (signaled)
     {
@@ -219,8 +219,7 @@ share_send_msg(void *param)
 {
     HWND hwnd = eu_module_hwnd();
     if (!hwnd)
-    {
-        // 等待主窗口初始化
+    {   // 等待主窗口初始化
         share_envent_wait(8000);
     }
     if ((hwnd = eu_module_hwnd()) != NULL)

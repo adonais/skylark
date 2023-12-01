@@ -46,6 +46,7 @@ int on_encoding_line_mode(const char *str , size_t len);
 int on_encoding_set_bom(const uint8_t *buf, eu_tabpage *pnode);
 int on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn);
 void on_encoding_set_bom_from_cp(eu_tabpage *pnode);
+bool on_encoding_validate_utf8(const uint8_t *str);
 size_t on_encoding_do_iconv(euconv_t *icv, char *src, size_t *src_len, char **dst, size_t *plen);
 const char *on_encoding_get_eol(eu_tabpage *pnode);
 const int on_encoding_eol_char(eu_tabpage *pnode);

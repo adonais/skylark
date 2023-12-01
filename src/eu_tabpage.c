@@ -973,7 +973,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             if ((index = on_tabpage_hit_index(&point)) != -1 && !on_tabpage_nfocus(index))
             {
-                on_tabpage_select_index(index);
+                on_tabpage_active_one(index);
                 break;
             }
             return 1;

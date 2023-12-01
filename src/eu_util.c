@@ -3198,6 +3198,16 @@ util_shield_icon(HINSTANCE hinst, LPCTSTR name)
 }
 
 void
+util_updateui_titlebar(const HWND hwnd)
+{
+    LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+    SetWindowLongPtr(hwnd, GWL_STYLE, (style &= ~WS_CAPTION));
+    eu_setpos_window(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_FRAMECHANGED);
+    SetWindowLongPtr(hwnd, GWL_STYLE, style | WS_CAPTION);
+    eu_setpos_window(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_FRAMECHANGED);
+}
+
+void
 util_updateui_icon(const HWND hwnd, const bool fnshow)
 {
     if (fnshow)
@@ -3209,7 +3219,7 @@ util_updateui_icon(const HWND hwnd, const bool fnshow)
     }
     else
     {
-        uint32_t ex = (uint32_t)GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        const LONG_PTR ex = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, ex | WS_EX_DLGMODALFRAME);
         SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
         if ((HICON)SendMessage(hwnd, WM_GETICON, ICON_SMALL, 0))

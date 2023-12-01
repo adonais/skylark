@@ -303,6 +303,15 @@ on_sci_reset_zoom(eu_tabpage *pnode)
     }
 }
 
+static inline void
+on_sci_update_size(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;    
+    }
+}
+
 void
 on_sci_before_file(eu_tabpage *pnode, const bool init)
 {
@@ -336,7 +345,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
             on_sci_reset_zoom(pnode);
             if (!pnode->raw_size)
             {
-                pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
+                on_sci_update_size(pnode);
             }
             if (pnode->doc_ptr && pnode->doc_ptr->fn_init_after)
             {   // 设置此标签页的语法解析
@@ -360,6 +369,7 @@ on_sci_refresh_ui(eu_tabpage *pnode)
         on_statusbar_update(pnode);
         on_sci_update_line_margin(pnode);
         on_sci_update_fold_margin(pnode);
+        on_sci_update_size(pnode);
         util_redraw(g_tabpages, true);
     }
 }

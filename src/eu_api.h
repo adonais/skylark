@@ -105,9 +105,15 @@
 #ifndef VALUE_LEN
 #define VALUE_LEN 4096
 #endif
-
+#ifndef MAX_ACCELS
 #define MAX_ACCELS 200
+#endif
+
+#define BUFF_32K 0x8000                // 32K
 #define BUFF_64K 0x10000
+#define BUFF_8M 0x800000               // 8M
+#define BUFF_32M 2000000               // 32M
+#define BUFF_128M 0x8000000            // 128M
 #define BUFF_200M 0xc800000
 
 #ifndef WM_COPYGLOBALDATA
@@ -742,7 +748,7 @@ EU_EXT_CLASS void share_unmap(LPVOID memory);
 EU_EXT_CLASS void share_close(HANDLE handle);
 EU_EXT_CLASS HANDLE share_open(uint32_t dw_access, LPCTSTR name);
 EU_EXT_CLASS bool share_envent_create(void);
-EU_EXT_CLASS void share_envent_set(bool signaled);
+EU_EXT_CLASS void share_envent_set(const bool signaled);
 EU_EXT_CLASS void share_envent_close(void);
 EU_EXT_CLASS void share_envent_release(void);
 EU_EXT_CLASS HANDLE share_envent_open_file_sem(void);

@@ -1092,7 +1092,7 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         Edit_GetText(hwnd_caret, alpha, 4);
                         value = _tstoi(alpha);
-                        if (value < 1 && value > 9)
+                        if (value < 1 || value > 9)
                         {
                             value = 2;
                         }

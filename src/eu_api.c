@@ -28,7 +28,6 @@
 #endif
 
 #include "framework.h"
-#include "eu_encoding_utf8.h"
 
 #define CHAR_IN_RANGE(c, lower, upper) (((c) >= (lower)) && ((c) <= (upper)))
 #define CHAR_IS_LATIN(c) ((c) <= 0x7F)
@@ -1304,7 +1303,7 @@ eu_iconv_full_text(const TCHAR *file_name, const char *from_desc, const char *ds
     size_t len = 0;
     uint8_t *data = NULL;
     struct _stat st = {0};
-    size_t buf_len = BUFF_SIZE;
+    size_t buf_len = BUFF_8M;
     if ((fp = _tfopen(file_name, _T("rb"))) == NULL)
     {
         return false;
@@ -1315,7 +1314,7 @@ eu_iconv_full_text(const TCHAR *file_name, const char *from_desc, const char *ds
         fclose(fp);
         return false;
     }
-    if (st.st_size < BUFF_SIZE)
+    if (st.st_size < BUFF_8M)
     {
         buf_len = (size_t)st.st_size;
     }
@@ -1371,11 +1370,11 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     else if (STR_NOT_NUL(file_name) && on_doc_get_type(file_name))
     {   // 如果是支持高亮的文件类型, 跳过二进制检测
         nobinary = true;
-        read_len = eu_int_cast(len > BUFF_SIZE ? BUFF_SIZE : len); 
+        read_len = eu_int_cast(len > BUFF_8M ? BUFF_8M : len); 
     }
     else
     {
-        read_len = eu_int_cast(len > BUFF_SIZE ? BUFF_SIZE : len);
+        read_len = eu_int_cast(len > BUFF_8M ? BUFF_8M : len);
     }
     if (!(type = is_plan_file(checkstr, read_len, nobinary)))
     {
@@ -1428,7 +1427,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             // GB18030!
             type = IDM_ANSI_12;
         }
-        else if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        else if (on_encoding_validate_utf8(checkstr))
         {
             eu_logmsg("Maybe UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
@@ -1451,7 +1450,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     else if (_strnicmp(obj->encoding, "ISO-8859-", 9) == 0)
     {
-        if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        if (on_encoding_validate_utf8(checkstr))
         {
             eu_logmsg("Not iso encode, it's maybe UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
@@ -1487,7 +1486,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     else if (obj->confidence < CHECK_2ND)
     {
-        if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        if (on_encoding_validate_utf8(checkstr))
         {
             eu_logmsg("we reconfirm that's UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;

@@ -64,7 +64,6 @@ EUAPI_OBJS = \
     $(OBJD)\eu_hex.obj                         \
     $(OBJD)\eu_scintilla.obj                   \
     $(OBJD)\eu_encoding.obj                    \
-    $(OBJD)\eu_encoding_utf8.obj               \
     $(OBJD)\eu_registry.obj                    \
     $(OBJD)\eu_file.obj                        \
     $(OBJD)\eu_treebar.obj                     \
@@ -217,7 +216,5 @@ $(OBJD)\eu_favorites.obj                   : eu_favorites.c eu_favorites.h frame
 $(OBJD)\eu_settings.obj                    : eu_settings.c eu_settings.h framework.h
 $(OBJD)\eu_hintctl.obj                     : eu_hintctl.c eu_hintctl.h framework.h
 $(OBJD)\eu_xmlist.obj                      : eu_xmlist.c eu_xmlist.h framework.h
-$(OBJD)\eu_encoding_utf8.obj               : eu_encoding_utf8.c eu_encoding_utf8.h framework.h
-	$(CC) $(API_CLFGAS) -Fd$(BIND)\euapi.pdb -Fo$(OBJD)\ $(MAVX2) -c eu_encoding_utf8.c
 $(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
 	$(RC) $(RFLAGS) -Fo$@ skylark.rc

@@ -485,7 +485,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 {
                     on_statusbar_btn_rw(pnode, false);
                     // Maybe affect this part, refresh it
-                    SendMessage(eu_module_hwnd(), WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+                    on_proc_msg_active(pnode);
                 }
                 return 1;
             }

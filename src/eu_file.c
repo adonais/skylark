@@ -558,14 +558,13 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte)
 static int
 on_file_set_codepage(eu_tabpage *pnode, const HANDLE hfile, const TCHAR *pfull)
 {
-    int check_len = 0;
     int bytesread = 0;
     int err = SKYLARK_OK;
     uint8_t *buf = NULL;
-    check_len = eu_int_cast(pnode->raw_size > BUFF_SIZE ? BUFF_SIZE : pnode->raw_size);
+    const int check_len = (const int)(pnode->raw_size > BUFF_8M ? BUFF_8M : pnode->raw_size);
     do
     {
-        if (!(buf = (uint8_t *)calloc(1, check_len+1)))
+        if (!(buf = (uint8_t *)malloc(check_len+1)))
         {
             err = EUE_NOT_ENOUGH_MEMORY;
             break;
@@ -584,6 +583,7 @@ on_file_set_codepage(eu_tabpage *pnode, const HANDLE hfile, const TCHAR *pfull)
         }
         else // 如果是utf8编码, 获取换行符, 否则, 等编码转换后再获取换行符
         {
+            buf[bytesread] = '\0';
             pnode->codepage = eu_try_encoding(buf, bytesread, false, pfull);
             if (pnode->codepage < IDM_UNI_UTF16LE)
             {

@@ -3408,7 +3408,7 @@ on_search_find_all_button(void* lp)
         goto res_clean;
     }
     pos = (float)(100.0/count);
-    if ((data = (uint8_t *) calloc(1, BUFF_SIZE+1)) == NULL)
+    if ((data = (uint8_t *) calloc(1, BUFF_8M+1)) == NULL)
     {
         goto res_clean;
     }
@@ -3436,7 +3436,7 @@ on_search_find_all_button(void* lp)
         {
             continue;
         }
-        while ((readlen = fread((char *) data, 1, BUFF_SIZE, fp)) > 0)
+        while ((readlen = fread((char *) data, 1, BUFF_8M, fp)) > 0)
         {
             if (inpcre)
             {

@@ -310,7 +310,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *pnode)
         }
         on_statusbar_size(pnode);
         // 从插件页面切换时获取鼠标焦点
-        SendMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+        on_proc_msg_active(pnode);
     }
 }
 
@@ -758,8 +758,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     else
                     {   // win10 dark模式启动时刷新标题栏
-                        ShowWindow(hwnd, SW_MINIMIZE);
-                        ShowWindow(hwnd, SW_RESTORE);
+                        util_updateui_titlebar(hwnd);
                     }
                     SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
                 }
@@ -1978,7 +1977,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         if (lpnotify->updated & SC_UPDATE_SELECTION)
                         {
-                            if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))
+                            if (pnode->raw_size < BUFF_32M && (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT)))
                             {
                                 on_view_editor_selection(pnode);
                             }
@@ -2094,14 +2093,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (LOWORD(wParam) != WA_INACTIVE && (pnode = on_tabpage_focus_at()))
             {
-                if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
-                {
-                    SetFocus(pnode->hwnd_sc);
-                }
-                if (eu_get_config()->m_statusbar && g_statusbar)
-                {
-                    on_statusbar_update(pnode);
-                }
+                on_proc_msg_active(pnode);
             }
             break;
         }
@@ -2171,6 +2163,22 @@ on_proc_class_register(HINSTANCE instance)
     wcex.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
     wcex.lpszClassName = APP_CLASS;
     return RegisterClassEx(&wcex);
+}
+
+void
+on_proc_msg_active(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
+        {
+            SetFocus(pnode->hwnd_sc);
+        }
+        if (eu_get_config()->m_statusbar && g_statusbar)
+        {
+            on_statusbar_update(pnode);
+        }
+    }
 }
 
 void
