@@ -36,6 +36,7 @@ BEGIN
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭其他文件",                                IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭未修改文件",                              IDM_FILE_UNMODIFIED
         MENUITEM MF_SEPARATOR
         MENUITEM "恢复最近关闭文件",                            IDM_FILE_RESTORE_RECENT
         MENUITEM "重新载入当前文件",                            IDM_FILE_RELOAD_CURRENT
@@ -202,7 +203,7 @@ BEGIN
             MENUITEM "移动到下一个语句块首行",                  IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "行定位(&G) ..."
+        POPUP "行定位(&G) ...",                                 IDM_EDIT_GOLINE_GROUP
         BEGIN
             MENUITEM "跳到首行",                                IDM_SEARCH_GOTOHOME
             MENUITEM "跳到末行",                                IDM_SEARCH_GOTOEND
@@ -225,6 +226,11 @@ BEGIN
             MENUITEM "跳到下一个书签 (当前文件)",               IDM_SEARCH_GOTO_NEXT_BOOKMARK
             MENUITEM "跳到上一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
             MENUITEM "跳到下一个书签 (所有打开的文件)",         IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
+            MENUITEM MF_SEPARATOR
+            MENUITEM "复制书签行",                              IDM_EDIT_BOOKMARK_LINES_COPY
+            MENUITEM "剪切书签行",                              IDM_EDIT_BOOKMARK_LINES_CUT
+            MENUITEM "删除书签行",                              IDM_EDIT_BOOKMARK_LINES_REMOVE
+            MENUITEM "删除非书签行",                            IDM_EDIT_BOOKMARK_LINES_RESERVE
         END
         POPUP "导航",                                           IDM_EDIT_PLACEHOLDE14
         BEGIN
@@ -238,10 +244,11 @@ BEGIN
         MENUITEM "文档结构图(&D)",                              IDM_VIEW_DOCUMENT_MAP
         MENUITEM "符号链接窗口(&S)",                            IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
-        POPUP "面板(&A)"
+        POPUP "面板"
         BEGIN
             MENUITEM "全屏模式",                                IDM_VIEW_FULLSCREEN
             MENUITEM "显示菜单栏",                              IDM_VIEW_MENUBAR
+            MENUITEM "显示工具栏",                              IDM_VIEW_TOOLBAR
             MENUITEM "显示状态栏",                              IDM_VIEW_STATUSBAR
         END
         POPUP "定制标题栏",                                     IDM_VIEW_TITLEBAR_GROUP
@@ -270,7 +277,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "十六进制视图(&H)",                            IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
-        POPUP "高亮(&I)"
+        POPUP "高亮",                                           IDM_VIEW_HIGHLIGHT_GROUP
         BEGIN
             MENUITEM "高亮匹配的括号(&B)",                      IDM_VIEW_HIGHLIGHT_BRACE
             MENUITEM "高亮匹配的字符串(&S)",                    IDM_VIEW_HIGHLIGHT_STR
@@ -278,7 +285,7 @@ BEGIN
         END
         MENUITEM "自动缩进",                                    IDM_EDIT_AUTO_INDENTATION
         MENUITEM MF_SEPARATOR
-        POPUP "显示(&D)",                                       IDM_VIEW_DISPLAY_PLACEHOLDE
+        POPUP "显示",                                           IDM_VIEW_DISPLAY_PLACEHOLDE
         BEGIN
             MENUITEM "显示行号",                                IDM_VIEW_LINENUMBER_VISIABLE
             MENUITEM "显示书签",                                IDM_VIEW_BOOKMARK_VISIABLE
@@ -320,8 +327,12 @@ BEGIN
             MENUITEM "总是绘制(&A)",                            IDM_TABCLOSE_ALWAYS
             MENUITEM "从不绘制(&N)",                            IDM_TABCLOSE_NONE
         END
-        MENUITEM "切换到下一个标签",                            IDM_VIEW_SWITCH_TAB
-        MENUITEM "切换标签时滚动到光标所在",                    IDM_VIEW_SCROLLCURSOR
+        POPUP "标签栏其他选项"
+        BEGIN
+            MENUITEM "切换到下一个标签",                        IDM_VIEW_SWITCH_TAB
+            MENUITEM "切换标签时滚动到光标处",                  IDM_VIEW_SCROLLCURSOR
+            MENUITEM "多行标签时显示分割线",                    IDM_VIEW_TABBAR_SPLIT
+        END
         MENUITEM MF_SEPARATOR
         POPUP "缩放",                                           IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN
@@ -469,6 +480,7 @@ BEGIN
     BEGIN
         MENUITEM "关闭标签页(&C)",                              IDM_FILE_CLOSE
         MENUITEM "关闭其他标签页(&O)",                          IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "关闭未修改标签页(&U)",                        IDM_FILE_UNMODIFIED
         MENUITEM "关闭所有标签页",                              IDM_FILE_CLOSEALL
         MENUITEM "关闭左侧标签页",                              IDM_TAB_CLOSE_LEFT
         MENUITEM "关闭右侧标签页",                              IDM_TAB_CLOSE_RIGHT
@@ -871,6 +883,7 @@ BEGIN
             MENUITEM "mac-centraleurope",             IDM_OTHER_3
             MENUITEM "本地编码",                      IDM_OTHER_ANSI
             MENUITEM "二进制编码",                    IDM_OTHER_BIN,,0x00000003
+            MENUITEM "插件编码",                      IDM_OTHER_PLUGIN,,0x00000003
             MENUITEM "未知编码",                      IDM_UNKNOWN,,0x00000003
         END
     }

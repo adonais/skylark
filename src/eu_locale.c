@@ -337,10 +337,6 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         }
         DestroyWindow(on_toolbar_clip_hwnd());
     }
-    if (g_statusbar)
-    {   // 销毁状态栏
-        DestroyWindow(g_statusbar);
-    }
     if (true)
     {   // 更新全局变量与共享内存
         FreeLibrary(g_skylark_lang);
@@ -353,9 +349,9 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     {
         return 1;
     }
-    if (on_toolbar_create(hwnd) != 0)
+    if (on_toolbar_create_dlg(hwnd) != 0)
     {
-        eu_logmsg("on_toolbar_create return false\n");
+        eu_logmsg("on_toolbar_create_dlg return false\n");
         return 1;
     }
     if (on_treebar_create_box(hwnd))
@@ -376,15 +372,18 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
             ShowWindow(hcip, SW_SHOW);
         }
     }
-    if (!on_statusbar_init(eu_module_hwnd()))
+    if (on_statusbar_create_dlg(eu_module_hwnd()))
     {
         eu_logmsg("on_statusbar_init return false\n");
         return 1;
     }
-    else if (!on_dark_enable())
+    else
     {
-        SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
-        on_statusbar_update();
+        on_statusbar_size(NULL);
+        if (on_dark_enable())
+        {
+            SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+        }
     }
     on_favorite_reload_root();
     on_search_dark_mode_release();

@@ -26,8 +26,9 @@
 extern "C" {
 #endif
 
-int on_view_switch_type(int type);
-int on_view_switch_theme(HWND hwnd, int id);
+int on_view_switch_type(const int type);
+int on_view_refresh_theme(HWND hwnd, const bool reload);
+int on_view_switch_theme(HWND hwnd, const int id);
 int on_view_modify_theme(void);
 int on_view_editor_selection(eu_tabpage *pnode);
 void on_view_filetree(void);
@@ -45,7 +46,7 @@ void on_view_light_str(eu_tabpage *p);
 void on_view_light_brace(eu_tabpage *p);
 void on_view_light_fold(void);
 void on_view_identation(void);
-void on_view_result_show(eu_tabpage *pnode, int key);
+void on_view_result_show(eu_tabpage *pnode, const int key);
 void on_view_copy_theme(void);
 void on_view_tab_width(HWND hwnd, eu_tabpage *pnode);
 void on_view_space_converter(HWND hwnd, eu_tabpage *pnode);
@@ -54,8 +55,8 @@ void on_view_zoom_in(eu_tabpage *pnode);
 void on_view_zoom_reset(eu_tabpage *pnode);
 void on_view_setfullscreenimpl(HWND hwnd);
 void on_view_full_sreen(HWND hwnd);
-void on_view_font_quality(HWND hwnd, int res_id);
-void on_view_enable_rendering(HWND hwnd, int res_id);
+void on_view_font_quality(HWND hwnd, const int res_id);
+void on_view_enable_rendering(HWND hwnd, const int res_id);
 
 #ifdef __cplusplus
 }

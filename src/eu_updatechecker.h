@@ -32,6 +32,7 @@ void on_update_check(const int ident);
 void on_update_sql(void);
 void on_update_thread_wait(void);
 bool on_update_do(void);
+bool on_update_lookup(void);
 
 #ifdef __cplusplus
 }

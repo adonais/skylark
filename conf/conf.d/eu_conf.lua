@@ -26,8 +26,9 @@ function eu_conf.fill_customize(s)
                                  ['param'] = "%CURRENT_SELSTR% %NUM_SELSTR%", ['micon'] = 44305, ['posid'] = 0, ['hbmp'] = 0}
         process_customized[2] = {['hide'] = false, ['name'] = "44501", ['path'] = "",
                                  ['param'] = "", ['micon'] = 0, ['posid'] = 0, ['hbmp'] = 0}
-        local ver = eu_core.euapi.eu_win10_or_later()
-        if (ver ~= 0xFFFFFFFF) then
+        if (eu_core.euapi.eu_under_wine()) then
+          process_customized[2].path = "calc"
+        elseif (eu_core.euapi.eu_which("win32calc.exe")) then
           process_customized[2].path = "%windir%/system32/win32calc.exe"
         else
           process_customized[2].path = "%windir%/system32/calc.exe"
@@ -108,6 +109,7 @@ function eu_conf.loadconf()
         "block_fold_visiable = true\n" ..
         "tabs_tip_show_enable = true\n" ..
         "code_hint_show_enable = true\n" ..
+        "tab_split_show = false\n" ..
         "tab_close_way = 0\n" ..
         "tab_close_draw = 43004\n" ..
         "tab_new_way = 0\n" ..
@@ -191,6 +193,9 @@ function eu_conf.loadconf()
     if (titlebar == nil) then
         titlebar = {["icon"] = true, ["name"] = true, ["path"] = true}
     end
+    if (tab_split_show == nil) then
+        tab_split_show = false;
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -227,6 +232,7 @@ function eu_conf.loadconf()
         block_fold_visiable,
         tabs_tip_show_enable,
         code_hint_show_enable,
+        tab_split_show,
         tab_close_way,
         tab_close_draw,
         tab_new_way,

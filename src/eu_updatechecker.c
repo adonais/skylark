@@ -423,3 +423,13 @@ on_update_check(const int ident)
         SendMessage(hwnd, WM_UPCHECK_STATUS, -1, 0);
     }
 }
+
+bool
+on_update_lookup(void)
+{
+    if (_tcsnicmp(eu_config_path, eu_module_path, _tcslen(eu_module_path)) && !util_try_path(eu_module_path))
+    {
+        return (eu_get_config()->upgrade.enable = false);
+    }
+    return true;
+}

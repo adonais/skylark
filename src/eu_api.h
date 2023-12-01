@@ -105,9 +105,15 @@
 #ifndef VALUE_LEN
 #define VALUE_LEN 4096
 #endif
-
+#ifndef MAX_ACCELS
 #define MAX_ACCELS 200
+#endif
+
+#define BUFF_32K 0x8000                // 32K
 #define BUFF_64K 0x10000
+#define BUFF_8M 0x800000               // 8M
+#define BUFF_32M 0x2000000             // 32M
+#define BUFF_128M 0x8000000            // 128M
 #define BUFF_200M 0xc800000
 
 #ifndef WM_COPYGLOBALDATA
@@ -121,6 +127,8 @@
 #define SNIPPET_CMB_SUBID 0x42
 #define TBCTL_LIST_SUBID 0x43
 #define STATUSBAR_SUBID 0x44
+
+#define DARK_THEME_APPLY 1
 
 // Custom message
 #define HVM_SETEXTENDEDSTYLE      (WM_USER + 100)
@@ -281,6 +289,13 @@ enum
     INDIC_SKYLARK_SELECT = INDICATOR_CONTAINER + 1,
     INDIC_SKYLARK_HYPER,
     INDIC_SKYLARK_HYPER_U
+};
+
+enum
+{
+    TYPES_TEXT = 0,
+    TYPES_HEX,
+    TYPES_PLUGIN
 };
 
 typedef enum _UPDATE_STATUS
@@ -463,6 +478,7 @@ struct eu_config
     bool block_fold;
     bool m_tab_tip;
     bool m_code_hint;
+    bool m_tab_split;
 
     int m_close_way;
     int m_close_draw;
@@ -589,11 +605,15 @@ EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);
 // eu_api.c
 EU_EXT_CLASS bool eu_touch(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_path(const char *path);
+EU_EXT_CLASS bool eu_which(const char *path);
 EU_EXT_CLASS bool eu_mk_dir(LPCTSTR dir);
 EU_EXT_CLASS bool eu_exist_dir(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_file(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_libcurl(void);
 EU_EXT_CLASS bool eu_exist_libssl(void);
+EU_EXT_CLASS bool eu_under_wine(void);
+EU_EXT_CLASS bool eu_dark_enable(void);
+EU_EXT_CLASS void eu_wine_dotool(void);
 EU_EXT_CLASS LPTSTR eu_suffix_strip(TCHAR *path);
 EU_EXT_CLASS LPTSTR eu_rand_str(TCHAR *str, const int len);
 EU_EXT_CLASS char *eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *by);
@@ -620,6 +640,7 @@ EU_EXT_CLASS void eu_api_release(void);
 
 EU_EXT_CLASS const int eu_theme_index(void);
 EU_EXT_CLASS const uint32_t eu_win10_or_later(void);
+EU_EXT_CLASS const bool eu_win11_or_later(void);
 EU_EXT_CLASS char *eu_strcasestr(const char *haystack, const char *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
@@ -703,8 +724,6 @@ EU_EXT_CLASS void eu_about_command(void);
 EU_EXT_CLASS HWND eu_module_hwnd(void);
 EU_EXT_CLASS void eu_close_edit(void);
 EU_EXT_CLASS HWND eu_create_main_window(HINSTANCE instance);
-EU_EXT_CLASS bool eu_create_toolbar(HWND hwnd);
-EU_EXT_CLASS bool eu_create_statusbar(HWND hwnd);
 EU_EXT_CLASS void eu_create_fullscreen(HWND hwnd);
 EU_EXT_CLASS int eu_before_proc(MSG *p_msg);
 EU_EXT_CLASS uint32_t eu_get_dpi(HWND hwnd);
@@ -729,7 +748,7 @@ EU_EXT_CLASS void share_unmap(LPVOID memory);
 EU_EXT_CLASS void share_close(HANDLE handle);
 EU_EXT_CLASS HANDLE share_open(uint32_t dw_access, LPCTSTR name);
 EU_EXT_CLASS bool share_envent_create(void);
-EU_EXT_CLASS void share_envent_set(bool signaled);
+EU_EXT_CLASS void share_envent_set(const bool signaled);
 EU_EXT_CLASS void share_envent_close(void);
 EU_EXT_CLASS void share_envent_release(void);
 EU_EXT_CLASS HANDLE share_envent_open_file_sem(void);

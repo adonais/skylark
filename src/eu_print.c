@@ -821,7 +821,7 @@ on_print_file(eu_tabpage *pnode)
         {
             np_plugins_print(&pnode->plugin->funcs, &pnode->plugin->npp, NULL);
         }
-        else if (!pnode->hex_mode)
+        else if (!TAB_HEX_MODE(pnode))
         {
             SHFILEINFO shfi = {0};
             on_print_file_info(pnode->pathfile, 0, &shfi, sizeof(SHFILEINFO), SHGFI_DISPLAYNAME);

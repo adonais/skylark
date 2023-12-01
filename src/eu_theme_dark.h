@@ -99,6 +99,8 @@ typedef HRESULT (WINAPI *DwmGetColorizationColorPtr)(DWORD *pcrColorization, BOO
 #define UpdateWindowEx(hwnd)                                                               \
   RedrawWindow((hwnd), NULL, NULL, RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_INTERNALPAINT)   \
 
+#define DARKMODE (_T("DarkMode_Explorer"))
+
 #define rgb_alpha(rgb, a)                                                                  \
   ((int)(((colour)((rgb)&0xffffff)) | (((colour)(uint8_t)((a)&0xff)) << 24)))              \
 
@@ -147,7 +149,13 @@ intptr_t on_dark_theme_brush(void);
 static inline uint32_t
 set_bk_color(const HDC hdc, const bool use_dark)
 {
-    return use_dark ? SetBkColor(hdc, rgb_dark_bk_color) : SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+    return use_dark ? SetBkColor(hdc, eu_win11_or_later() ? rgb_dark_bk11_color : rgb_dark_bk_color) : SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
+}
+
+static inline uint32_t
+set_tabface_color(const HDC hdc, const bool use_dark)
+{
+    return use_dark ? SetBkColor(hdc, eu_win11_or_later() ? rgb_dark_bk11_color : rgb_dark_bk_color) : SetBkColor(hdc, GetSysColor(COLOR_BTNFACE));
 }
 
 static inline uint32_t

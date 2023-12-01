@@ -37,7 +37,7 @@ typedef enum _DB_MODE
 
 typedef struct _file_recent
 {
-    bool hex;
+    int hex;
     char path[MAX_BUFFER];
     int64_t postion;
 }file_recent;

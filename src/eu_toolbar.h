@@ -27,17 +27,20 @@
 extern "C" {
 #endif
 
-extern int g_toolbar_size;
+void on_toolbar_icon_set(const int size);
 void on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
-void on_toolbar_adjust_box(void);
 void on_toolbar_destroy(HWND hwnd);
 void on_toolbar_update_button(void);
 void on_toolbar_execute_script(void);
 void on_toolbar_lua_exec(eu_tabpage *pnode);
 void on_toolbar_setup_button(int id, int flags);
 void on_toolbar_no_highlight(void *lp);
-int  on_toolbar_height(void);
-int  on_toolbar_create(HWND hwnd);
+void on_toolbar_redraw(HWND hwnd);
+void on_toolbar_size();
+void on_toolbar_set_height(int resid);
+int  on_toolbar_icon_get(void);
+int  on_toolbar_get_height(void);
+int  on_toolbar_create_dlg(HWND hwnd);
 bool on_toolbar_refresh(HWND hwnd);
 HWND on_toolbar_create_clipbox(HWND hwnd);
 HWND on_toolbar_clip_hwnd(void);

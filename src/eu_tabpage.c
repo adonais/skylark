@@ -18,39 +18,34 @@
 
 #include "framework.h"
 
-#define TAB_MIN_TOP 4
-#define TAB_MIN_LEFT 40
-#define TAB_MIN_WIDTH 140
-#define CLOSEBUTTON_WIDTH 11
-#define CLOSEBUTTON_HEIGHT 11
+#define TAB_MIN_RIGHT 8
+#define TAB_MIN_LEFT 30
+#define TAB_MIN_WIDTH 160
+#define CLOSEBUTTON_DEFAULT 11
 #define CX_ICON  16
 #define CY_ICON  16
 #define COLORREF2RGB(c) ((c & 0xff00) | ((c >> 16) & 0xff) | ((c << 16) & 0xff0000))
 
 HWND g_tabpages = NULL;
-static POINT g_point;
+static POINT g_point = {0};
 static WNDPROC old_tabproc = NULL;
 static bool tab_drag = false;
 static bool tab_mutil_select = false;
-static volatile bool tab_do_drag;
+static volatile bool tab_do_drag = false;;
 static volatile int tab_move_from = -1;
 static HCURSOR g_drag_hcursor = NULL;
 
 int
 on_tabpage_get_height(void)
 {
-    RECT rect_treebar;
-    GetClientRect(g_tabpages, &rect_treebar);
-    return (rect_treebar.bottom - rect_treebar.top);
-}
-
-static int
-on_tabpage_internal_height(void)
-{
-    RECT rect_tabbar = {0};
-    int tab_height = TABS_HEIGHT_DEFAULT;
-    TabCtrl_GetItemRect(g_tabpages, 0, &rect_tabbar);
-    tab_height = (rect_tabbar.bottom - rect_tabbar.top) * TabCtrl_GetRowCount(g_tabpages);
+    int tab_height = eu_dpi_scale_xy(0, TABS_HEIGHT_DEFAULT);
+    if (g_tabpages)
+    {
+        RECT tabs = {0};
+        int row = TabCtrl_GetRowCount(g_tabpages);
+        TabCtrl_GetItemRect(g_tabpages, 0, &tabs);
+        tab_height = row * (tabs.bottom - tabs.top) + (row > 1 ? (row - 1) * 3 + 1 : 1);
+    }
     return tab_height;
 }
 
@@ -59,6 +54,10 @@ on_tabpage_has_drag(POINT *pt)
 {
     int x = pt->x - g_point.x;
     int y = pt->y - g_point.y;
+    if (!(g_point.x || g_point.y))
+    {
+        return false;
+    }
     if (abs(x) > 3 || abs(y) > 3)
     {
         return true;
@@ -154,6 +153,39 @@ on_tabpage_changing(int index)
 }
 
 static void
+on_tabpage_get_padding(const HWND hwnd, const int index, RECT *prc)
+{
+    if (hwnd && prc)
+    {
+        TabCtrl_GetItemRect(hwnd, index, prc);
+        if (index > 0)
+        {
+            int diff = 0;
+            RECT pre_rc = {0};
+            RECT pre_zero = {0};
+            const bool split_hide = !eu_get_config()->m_tab_split;
+            split_hide ? TabCtrl_GetItemRect(hwnd, 0, &pre_zero) : (void)0;
+            TabCtrl_GetItemRect(hwnd, index - 1, &pre_rc);
+            if ((pre_rc.bottom == prc->bottom))
+            {
+                if ((diff = prc->left - pre_rc.right) > 0)
+                {
+                    prc->left -= diff;
+                }
+                if (split_hide && (diff = prc->top - pre_zero.top) > 0)
+                {
+                    prc->top = pre_rc.top - 3;
+                }
+            }
+            else if (split_hide && (diff = prc->top - pre_rc.bottom) > 0)
+            {
+                prc->top -= diff;
+            }
+        }
+    }
+}
+
+static void
 on_tabpage_deselect(int index)
 {
     if (g_tabpages && index >= 0)
@@ -161,7 +193,7 @@ on_tabpage_deselect(int index)
         RECT rc;
         TCITEM tci = {TCIF_STATE, 0, TCIS_BUTTONPRESSED};
         SendMessage(g_tabpages, TCM_SETITEM, index, (LPARAM)&tci);
-        TabCtrl_GetItemRect(g_tabpages, index, &rc);
+        on_tabpage_get_padding(g_tabpages, index, &rc);
         InvalidateRect(g_tabpages, &rc, true);
     }
 }
@@ -179,6 +211,22 @@ on_tabpage_nfocus(int index)
         }
     }
     return false;
+}
+
+static inline int
+on_tabpage_close_size(void)
+{
+    return (util_under_wine() ? (CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT) : eu_dpi_scale_xy(0, CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT));
+}
+
+void
+on_tabpage_variable_reset(void)
+{
+    tab_move_from = -1;
+    tab_drag = false;
+    tab_mutil_select = false;
+    tab_do_drag = false;
+    g_point.x = 0, g_point.y = 0;
 }
 
 int
@@ -211,9 +259,9 @@ on_tabpage_sel_path(wchar_t ***pvec, bool *hex)
         if (on_tabpage_nfocus(i) && (p = on_tabpage_get_ptr(i)) && !p->is_blank && !url_has_remote(p->pathfile))
         {
             cvector_push_back(*pvec, _wcsdup(p->pathfile));
-            if (hex && p->hex_mode)
+            if (hex && TAB_HEX_MODE(p))
             {
-                *hex = p->hex_mode;
+                *hex = p->hex_mode == TYPES_HEX;
             }
             ++num;
         }
@@ -245,33 +293,31 @@ on_tabpage_active_one(int index)
 static void
 on_tabpage_draw_sign(const HDC hdc, const LPRECT lprect)
 {
-    const TCHAR *text  = util_os_version() < 603 ? _T("x") : _T("✕");
-    HFONT hfont = CreateFont(-14, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-                             CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
-    HGDIOBJ oldj = SelectObject(hdc, hfont);
-    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + 1,
+    const TCHAR *text  = util_os_version() < 603 || util_under_wine() ? _T("x") : _T("✕");
+    HGDIOBJ oldj = SelectObject(hdc, on_theme_font_hwnd());
+    RECT rc = {lprect->right - on_tabpage_close_size(),
+               lprect->top,
                lprect->right,
                lprect->bottom
               };
-    DrawText(hdc, text, (int)_tcslen(text), &rc, DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+    DrawText(hdc, text, (int)_tcslen(text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
     SelectObject(hdc, oldj);
-    DeleteObject(hfont);
 }
 
 static void
 on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 {
     HDC hdc = GetDC(hwnd);
+    const bool dark = on_dark_enable();
     colour cr = 0;
     if (sel)
     {
-        cr = eu_get_theme()->item.activetab.bgcolor;
+        cr = !dark ? eu_get_theme()->item.activetab.bgcolor : eu_get_theme()->item.activetab.color;
         SetBkColor(hdc, cr);
     }
     else
     {
-        cr = set_btnface_color(hdc, on_dark_enable());
+        cr = set_tabface_color(hdc, dark);
     }
     on_tabpage_draw_sign(hdc, lprect);
     ReleaseDC(hwnd, hdc);
@@ -280,8 +326,8 @@ on_tabpage_draw_close(HWND hwnd, const LPRECT lprect, bool sel)
 static void
 on_tabpage_flush_close(HWND hwnd, const LPRECT lprect)
 {
-    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + 1,
+    RECT rc = {lprect->right - on_tabpage_close_size(),
+               lprect->top,
                lprect->right,
                lprect->bottom
               };
@@ -291,8 +337,8 @@ on_tabpage_flush_close(HWND hwnd, const LPRECT lprect)
 static bool
 on_tabpage_hit_button(const LPRECT lprect, const LPPOINT pt)
 {
-    RECT rc = {lprect->right - CLOSEBUTTON_WIDTH - TAB_MIN_TOP,
-               lprect->top + 1,
+    RECT rc = {lprect->right - on_tabpage_close_size(),
+               lprect->top,
                lprect->right,
                lprect->bottom
               };
@@ -309,8 +355,8 @@ on_tabpage_hit_index(const LPPOINT pt)
 static void
 on_tabpage_paint_draw(HWND hwnd, HDC hdc)
 {
-    bool dark_mode = on_dark_enable();
-    HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
+    const bool dark_mode = on_dark_enable();
+    HGDIOBJ old_font = SelectObject(hdc, on_theme_font_hwnd());
     while (old_font)
     {
         set_text_color(hdc, dark_mode);
@@ -326,18 +372,17 @@ on_tabpage_paint_draw(HWND hwnd, HDC hdc)
             {
                 break;
             }
-            TabCtrl_GetItemRect(hwnd, index, &rc);
-            rc.right -= 1;  // 多行TCS_BUTTONS样式下有些标签没有隔开?
+            on_tabpage_get_padding(hwnd, index, &rc);
             FrameRect(hdc, &rc, dark_mode ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
             if (on_tabpage_nfocus(index))
             {   // 从主题获取COLOR_HIGHLIGHT值
-                cr = eu_get_theme()->item.activetab.bgcolor;
+                cr = !dark_mode ? eu_get_theme()->item.activetab.bgcolor : eu_get_theme()->item.activetab.color;
                 SetBkColor(hdc, cr);
                 ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
             }
             else
             {
-                cr = set_btnface_color(hdc, dark_mode);
+                cr = set_tabface_color(hdc, dark_mode);
             }
             if (p->file_attr & FILE_ATTRIBUTE_READONLY)
             {
@@ -389,32 +434,26 @@ on_tabpage_exchange_item(const int old_index, const int new_index, const bool ac
     {
         return;
     }
-    if (active)
+    if (old_index > new_index)
     {
-        if (old_index > new_index)
+        for (i = old_index; i > new_index; --i)
         {
-            for (i = old_index; i > new_index; --i)
-            {
-                SendMessage(g_tabpages, TCM_GETITEM, i - 1, (LPARAM)(&shift_item));
-                SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
-            }
+            SendMessage(g_tabpages, TCM_GETITEM, i - 1, (LPARAM)(&shift_item));
+            SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
         }
-        else
-        {
-            for (i = old_index; i < new_index; ++i)
-            {
-                SendMessage(g_tabpages, TCM_GETITEM, i + 1, (LPARAM)(&shift_item));
-                SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
-            }
-        }
-        SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
-        on_tabpage_select_index(new_index);
     }
     else
     {
-        SendMessage(g_tabpages, TCM_GETITEM, new_index, (LPARAM)(&shift_item));
-        SendMessage(g_tabpages, TCM_SETITEM, old_index, (LPARAM)(&shift_item));
-        SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
+        for (i = old_index; i < new_index; ++i)
+        {
+            SendMessage(g_tabpages, TCM_GETITEM, i + 1, (LPARAM)(&shift_item));
+            SendMessage(g_tabpages, TCM_SETITEM, i, (LPARAM)(&shift_item));
+        }
+    }
+    SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
+    if (active)
+    {
+        on_tabpage_select_index(new_index);
     }
 }
 
@@ -511,12 +550,12 @@ on_tabpage_send_file(const HWND hwin, const int index)
                     bak.y = eu_int_cast(pos - row + 1);
                     bak.hex = p->hex_mode;
                 }
-                err = on_file_close(p, FILE_ONLY_CLOSE);
+                err = on_file_close(&p, FILE_ONLY_CLOSE);
             }
         }
         else
         {
-            if (!(err = on_file_close(p, FILE_REMOTE_CLOSE)))
+            if (!(err = on_file_close(&p, FILE_REMOTE_CLOSE)))
             {
                 const char *sql = "SELECT * FROM skylark_session;";
                 err = on_sql_post(sql, on_tabpage_parser_bakup, &bak);
@@ -668,7 +707,7 @@ on_tabpage_set_cursor(const int index)
     POINT point;
     GetCursorPos(&point);
     MapWindowPoints(HWND_DESKTOP, g_tabpages, &point, 2);
-    TabCtrl_GetItemRect(g_tabpages, index, &rc);
+    on_tabpage_get_padding(g_tabpages, index, &rc);
     if (!PtInRect(&rc, point))
     {
         int cx = (rc.right - rc.left)/2;
@@ -761,7 +800,7 @@ on_tabpage_arr_drag2(const int from, const int dest)
     }
 }
 
-LRESULT CALLBACK
+static LRESULT CALLBACK
 on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     int count = 0;
@@ -784,8 +823,9 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
-        case WM_SIZE:
+        case WM_DPICHANGED:
         {
+            on_tabpage_adjust_box(NULL);
             break;
         }
         case WM_COMMAND:
@@ -821,14 +861,13 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 g_drag_hcursor ? SetCursor(g_drag_hcursor) : (void *)0;
                 break;
             }
-            count = TabCtrl_GetItemCount(hwnd);
-            for (index = 0; index < count; ++index)
+            for (index = 0, count = TabCtrl_GetItemCount(hwnd); index < count; ++index)
             {
                 if (!(p = on_tabpage_get_ptr(index)))
                 {
                     break;
                 }
-                TabCtrl_GetItemRect(hwnd, index, &rect);
+                on_tabpage_get_padding(hwnd, index, &rect);
                 if (PtInRect(&rect, point))
                 {
                     if (!tab_do_drag && tab_drag)
@@ -837,7 +876,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_tabpage_arr_drag(index);
                         break;
                     }
-                    if (on_tabpage_has_drag(&point) && KEY_DOWN(VK_LBUTTON))
+                    if (tab_move_from >= 0 && on_tabpage_has_drag(&point) && KEY_DOWN(VK_LBUTTON))
                     {
                         tab_drag = true;
                     }
@@ -867,7 +906,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if ((tab_move_from = on_tabpage_hit_index(&g_point)) != -1)
             {
                 RECT rc;
-                TabCtrl_GetItemRect(hwnd, tab_move_from, &rc);
+                on_tabpage_get_padding(hwnd, tab_move_from, &rc);
                 if (eu_get_config()->m_close_draw != IDM_TABCLOSE_NONE && on_tabpage_hit_button(&rc, &g_point))
                 {
                     PostMessage(hwnd, WM_MBUTTONUP, 0, lParam);
@@ -905,10 +944,12 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (tab_move_from >= 0)
             {
                 int count = TabCtrl_GetItemCount(hwnd);
+                // inter_reserved_1 = 是否锁定标签
                 if (!PtInRect(&rect, point) && !eu_get_config()->inter_reserved_1)
                 {   // Get cursor position of "Screen"
                     GetCursorPos(&point);
                     on_tabpage_drag_mouse(WindowFromPoint(point));
+                    on_tabpage_variable_reset();
                     return 1;
                 }
                 if ((index = on_tabpage_hit_index(&point)) != -1)
@@ -916,16 +957,15 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (tab_drag && index != tab_move_from)
                     {
                         on_tabpage_arr_drag2(tab_move_from, index);
-                        break;
                     }
-                    if (tab_mutil_select && !tab_drag)
+                    else if (tab_mutil_select && !tab_drag)
                     {
                         tab_mutil_select = false;
                         on_tabpage_select_index(index);
                     }
                 }
-                tab_drag = false;
             }
+            on_tabpage_variable_reset();
             break;
         }
         case WM_RBUTTONDOWN:
@@ -933,7 +973,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             if ((index = on_tabpage_hit_index(&point)) != -1 && !on_tabpage_nfocus(index))
             {
-                on_tabpage_select_index(index);
+                on_tabpage_active_one(index);
                 break;
             }
             return 1;
@@ -955,7 +995,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             if ((index = on_tabpage_hit_index(&point)) != -1 && (p = on_tabpage_get_ptr(index)) != NULL)
             {
-                on_file_close(p, FILE_ONLY_CLOSE);
+                on_file_close(&p, FILE_ONLY_CLOSE);
                 return 1;
             }
             break;
@@ -964,11 +1004,11 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (eu_get_config()->m_new_way == IDM_VIEW_TAB_RIGHT_NEW && wParam == MK_RBUTTON)
             {
-                on_file_new();
+                on_file_new(NULL);
             }
             if (eu_get_config()->m_new_way == IDM_VIEW_TAB_DBCLICK_NEW && wParam == MK_LBUTTON)
             {
-                on_file_new();
+                on_file_new(NULL);
             }
             break;
         }
@@ -987,7 +1027,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         break;
                     }
-                    TabCtrl_GetItemRect(hwnd, index, &rect);
+                    on_tabpage_get_padding(hwnd, index, &rect);
                     if (p->at_close)
                     {
                         on_tabpage_flush_close(hwnd, &rect);
@@ -1013,7 +1053,8 @@ on_tabpage_create_dlg(HWND hwnd)
 {
     int err = 0;
     const uint32_t flags = \
-          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_FOCUSNEVER;
+          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS |
+          TCS_MULTISELECT | TCS_MULTILINE | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
     g_tabpages = CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)IDM_TABPAGE_BAR, eu_module_handle(), NULL);
     do
     {
@@ -1035,10 +1076,13 @@ on_tabpage_create_dlg(HWND hwnd)
             err = 1;
             break;
         }
-        SendMessage(g_tabpages, WM_SETFONT, (WPARAM) GetStockObject(DEFAULT_GUI_FONT), 0);
-        TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, TAB_MIN_TOP);
-        TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
-        ShowWindow(g_tabpages, SW_SHOW);
+        if (true)
+        {
+            TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, 0);
+            TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
+            on_theme_update_font(tabbar_id);
+            util_tab_height(g_tabpages, TAB_MIN_WIDTH);
+        }
         if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) on_tabpage_proc_callback)))
         {
             err = 1;
@@ -1056,7 +1100,8 @@ on_tabpage_create_dlg(HWND hwnd)
 void
 on_tabpage_close_tabs(int it)
 {
-    on_file_close(on_tabpage_get_ptr(it), FILE_ONLY_CLOSE);
+    eu_tabpage *p = on_tabpage_get_ptr(it);
+    on_file_close(&p, FILE_ONLY_CLOSE);
 }
 
 void
@@ -1089,46 +1134,64 @@ on_tabpage_do_file(tab_callback func)
 }
 
 void
-on_tabpage_adjust_box(RECT *ptp)
+on_tabpage_size(void)
 {
-    RECT rect_main;
-    RECT rect_treebar = { 0 };
-    int tab_height = on_tabpage_internal_height();
-    int row = TabCtrl_GetRowCount(g_tabpages);
-    tab_height += row > 1 ? 3 * (row - 1) : 0;
-    GetClientRect(eu_module_hwnd(), &rect_main);
-    if (!eu_get_config()->m_ftree_show)
+    if (g_tabpages)
     {
-        ptp->left = rect_main.left;
+        RECT rc_tabbar;
+        on_tabpage_adjust_box(&rc_tabbar);
+        MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, TRUE);
+        ShowWindow(g_tabpages, SW_SHOW);
     }
-    else
-    {
-        on_treebar_adjust_box(&rect_treebar);
-        ptp->left = rect_treebar.right;
-    }
-    ptp->top = rect_main.top + on_toolbar_height();
-    ptp->right = rect_main.right;
-    ptp->bottom = ptp->top + tab_height + SCINTILLA_MARGIN_TOP;
 }
 
 void
-on_tabpage_adjust_window(eu_tabpage *pnode)
+on_tabpage_adjust_box(RECT *ptp)
 {
-    int tab_height = 0;
-    RECT rect_tabpages = {0};
+    if (ptp)
+    {
+        RECT rc_main;
+        RECT rc_treebar = { 0 };
+        on_treebar_adjust_box(&rc_treebar, &rc_main);
+        if (!eu_get_config()->m_ftree_show)
+        {
+            ptp->left = rc_main.left;
+        }
+        else
+        {
+            ptp->left = rc_treebar.right;
+        }
+        ptp->right = rc_main.right;
+        ptp->top = rc_treebar.top;
+        ptp->bottom = rc_treebar.bottom;
+    }
+    else if (g_tabpages)
+    {
+        util_tab_height(g_tabpages, TAB_MIN_WIDTH);
+    }
+}
+
+void
+on_tabpage_adjust_window(eu_tabpage *pnode, RECT *ptab)
+{
+    RECT rc_tabpages = {0};
+    if (!ptab)
+    {
+        ptab = &rc_tabpages;
+    }
     if (true)
     {
-        RECT rect_main;
-        GetClientRect(eu_module_hwnd(), &rect_main);
-        on_tabpage_adjust_box(&rect_tabpages);
-        pnode->rect_sc.left = rect_tabpages.left;
+        RECT rc_main;
+        GetClientRect(eu_module_hwnd(), &rc_main);
+        on_tabpage_adjust_box(ptab);
+        pnode->rect_sc.left = ptab->left;
         if (eu_get_config()->m_ftree_show)
         {
             pnode->rect_sc.left += SPLIT_WIDTH;
         }
-        pnode->rect_sc.right = rect_tabpages.right;
-        pnode->rect_sc.top = rect_tabpages.bottom;
-        pnode->rect_sc.bottom = rect_main.bottom - on_statusbar_height();
+        pnode->rect_sc.right = ptab->right;
+        pnode->rect_sc.top = ptab->top + on_tabpage_get_height();
+        pnode->rect_sc.bottom = ptab->bottom;
     }
     if (pnode->sym_show)
     {
@@ -1137,7 +1200,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
             pnode->rect_sc.right -= (pnode->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
                                      + SPLIT_WIDTH;
             pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_sym.right = rect_tabpages.right;
+            pnode->rect_sym.right = ptab->right;
             pnode->rect_sym.top = pnode->rect_sc.top;
             pnode->rect_sym.bottom = pnode->rect_sc.bottom;
         }
@@ -1148,7 +1211,7 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
         {
             pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
             pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_map.right = rect_tabpages.right;
+            pnode->rect_map.right = ptab->right;
             pnode->rect_map.top = pnode->rect_sc.top;
             pnode->rect_map.bottom = pnode->rect_sc.bottom;
         }
@@ -1172,21 +1235,25 @@ on_tabpage_adjust_window(eu_tabpage *pnode)
     }
 }
 
-int
-on_tabpage_remove(eu_tabpage **ppnode)
+eu_tabpage *
+on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode)
 {
     eu_tabpage *p = NULL;
-    EU_VERIFY(ppnode != NULL && *ppnode != NULL && g_tabpages != NULL);
+    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        if ((p = on_tabpage_get_ptr(index)) && p == *ppnode)
-        {   /* 删除控件句柄与释放资源 */
+        if ((p = on_tabpage_get_ptr(index)) && p == pnode)
+        {   /* 从控件删除选项卡 */
+            p->tab_id = index;
             TabCtrl_DeleteItem(g_tabpages, index);
-            on_sci_free_tab(ppnode);
-            return index;
+            if (file_click_close(mode) && count < 2 && !TAB_HEX_MODE(pnode) && !pnode->plugin)
+            {
+                p->reason = TABS_MAYBE_RESERVE;
+            }
+            return p;
         }
     }
-    return EUE_TAB_NULL;
+    return NULL;
 }
 
 static int
@@ -1216,7 +1283,7 @@ on_tabpage_replace_empty(eu_tabpage *pre)
 }
 
 TCHAR *
-on_tabpage_generator(TCHAR *filename, int len)
+on_tabpage_generator(TCHAR *filename, const int len)
 {
     EU_VERIFY(g_tabpages != NULL);
     LOAD_I18N_RESSTR(IDC_MSG_NEW_FILE, m_file);
@@ -1306,7 +1373,7 @@ int
 on_tabpage_add(eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    if (TAB_NOT_BIN(pnode) && !pnode->hex_mode && !pnode->pmod)
+    if (TAB_NOT_BIN(pnode) && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         pnode->doc_ptr = on_doc_get_type(pnode->filename);
     }
@@ -1330,9 +1397,10 @@ on_tabpage_add(eu_tabpage *pnode)
     {
         eu_logmsg("%s: Replacing empty Tab, pnode->tab_id = %d\n", __FUNCTION__, pnode->tab_id);
     }
-    if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && pnode->hex_mode)
+    if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && TAB_HEX_MODE(pnode))
     {
         pnode->bytes_remaining = (size_t)pnode->raw_size;
+        eu_logmsg("%s: hexview_init execute\n", __FUNCTION__);
         if (!hexview_init(pnode))
         {
             TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
@@ -1364,7 +1432,7 @@ int
 on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
 {
     EU_VERIFY(pnode != NULL);
-    if (pnode->hex_mode || pnode->plugin)
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
     {
         return 0;
     }
@@ -1377,7 +1445,7 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
         case 1: // 丢弃
             pnode->be_modify = false;
             pnode->fn_modify = false;
-            on_file_close(pnode, FILE_ONLY_CLOSE);
+            on_file_close(&pnode, FILE_ONLY_CLOSE);
             break;
         case 2: // 重载, 滚动到末尾行
         {
@@ -1424,13 +1492,13 @@ on_tabpage_theme_changed(eu_tabpage *p)
 {
     if (p && p->hwnd_sc)
     {
-        PostMessage(p->hwnd_sc, WM_THEMECHANGED, 0, 0);
+        SendMessage(p->hwnd_sc, WM_THEMECHANGED, 0, 0);
     }
     if (p->sym_show)
     {
         if (p->hwnd_symlist)
         {
-            PostMessage(p->hwnd_symlist, WM_THEMECHANGED, 0, 0);
+            SendMessage(p->hwnd_symlist, WM_THEMECHANGED, 0, 0);
         }
         else if (p->hwnd_symtree)
         {
@@ -1452,14 +1520,17 @@ on_tabpage_theme_changed(eu_tabpage *p)
 }
 
 bool
-on_tabpage_check_map(void)
+on_tabpage_exist_map(void)
 {
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    if (g_tabpages)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->map_show)
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            return true;
+            if ((p = on_tabpage_get_ptr(index)) && p->map_show)
+            {
+                return true;
+            }
         }
     }
     return false;
@@ -1479,7 +1550,7 @@ on_tabpage_foreach(tab_ptr fntab)
 }
 
 eu_tabpage *
-on_tabpage_get_ptr(int index)
+on_tabpage_get_ptr(const int index)
 {
     TCITEM tci = {TCIF_PARAM};
     if (TabCtrl_GetItem(g_tabpages, index, &tci))
@@ -1500,7 +1571,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     eu_tabpage *p = NULL;
-    int count = TabCtrl_GetItemCount(g_tabpages);
+    const int count = TabCtrl_GetItemCount(g_tabpages);
     if (index < 0)
     {
         for (index = 0; index < count; ++index)
@@ -1516,7 +1587,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     {
         HWND hwnd = eu_module_hwnd();
         on_tabpage_set_active(index);
-        on_proc_resize(hwnd);
+        eu_window_resize(hwnd);
         if ((p = on_tabpage_get_ptr(index)))
         {   // 窗口处理过程中可能改变了标签位置, 重置它
             on_tabpage_deselect(index);
@@ -1547,7 +1618,7 @@ on_tabpage_get_handle(void *hwnd_sc)
 }
 
 int
-on_tabpage_get_index(eu_tabpage *pnode)
+on_tabpage_get_index(const eu_tabpage *pnode)
 {
     if (g_tabpages)
     {

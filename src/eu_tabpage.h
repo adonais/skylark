@@ -20,7 +20,10 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
-#define TABS_HEIGHT_DEFAULT   23
+#define TABS_WIDTH_DEFAULT    (120)
+#define TABS_HEIGHT_DEFAULT   (23)
+#define TABS_MAYBE_RESERVE    (-1)
+#define TABS_MAYBE_EIXT       (-2)
 
 #ifdef __cplusplus
 extern "C"
@@ -52,13 +55,12 @@ struct _tabpage
     bool result_show;           // 是否显示文档搜索结果窗口
     bool sidebar_show;          // 是否显示侧边栏窗口
     bool foldline;              // 是否存在折叠线
-    bool needpre;               // 是否需要bom    
+    bool needpre;               // 是否需要bom
     bool is_blank;              // 新建文件,空白标签
-    bool at_close;              // 是否绘制了关闭按钮    
-    bool hex_mode;              // 是否处于16禁止编辑状态
+    bool at_close;              // 是否绘制了关闭按钮
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool fn_modify;             // 文档打开时的初始状态
-    bool last_focus;            // 保存前台焦点    
+    bool last_focus;            // 保存前台焦点
     TCHAR pathfile[MAX_BUFFER]; // 文件带路径名
     TCHAR pathname[MAX_BUFFER]; // 文件所在路径名
     TCHAR bakpath[MAX_BUFFER];  // 备份后的名称
@@ -69,7 +71,7 @@ struct _tabpage
     char icon_undo_str[QW_SIZE];// 编码转换时保存的数据,用于undo操作
     size_t pre_len;             // bom的长度
     size_t bytes_remaining;     // 文件变动后的大小
-    size_t bytes_written;       // 文件保存时写入的长度    
+    size_t bytes_written;       // 文件保存时写入的长度
     time_t st_mtime;            // 文件修改时间
     uint32_t file_attr;         // 文件属性,只读/可写...
     intptr_t match_count;       // 查找时匹配计数
@@ -83,17 +85,22 @@ struct _tabpage
     volatile long busy_id;      // 标签是否空闲状态
     volatile long lock_id;      // 自动保存时使用的锁
     int tab_id;                 // tab编号,用于保存会话
-    int codepage;               // 文件编码
+    int hex_mode;               // 16进制编辑状态, 0, 否. 1,是. 2,插件
+    int codepage;               // 真实的文件编码
+    int bakcp;                  // 自动保存时的文件编码
     int eol;                    // 换行符
     int zoom_level;             // 标签页的放大倍数
     int ac_mode;                // 是否处于snippet模式
+    int reason;                 // 编辑器窗口状态
+    int initial;                // 标签初始化状态
+    int view;                   // 标签所在视图
     remotefs fs_server;         // SFTP
     PHEXVIEW phex;              // 二进制视图
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
     eu_tabpage *presult;        // 文档搜索结果的节点指针
     doctype_t *doc_ptr;         // 文件类型指针
     db_conn *db_ptr;            // 数据库配置
-    redis_conn *redis_ptr;      // redis配置        
+    redis_conn *redis_ptr;      // redis配置
     result_vec *ret_vec;        // 搜索结果标记
     complete_ptr ac_vec;        // snippet模式下的vec数组
     capture_ptr re_group;       // snippet正则模式下捕获组
@@ -106,17 +113,16 @@ extern HWND g_tabpages;
 
 int  on_tabpage_create_dlg(HWND hwnd);
 int  on_tabpage_add(eu_tabpage *pnode);
-int  on_tabpage_remove(eu_tabpage **ppnode);
 int  on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
-int  on_tabpage_get_index(eu_tabpage *pnode);
+int  on_tabpage_get_index(const eu_tabpage *pnode);
 int  on_tabpage_selection(eu_tabpage *pnode, int index);
 int  on_tabpage_sel_number(int **pvec, const bool ascending);
 int  on_tabpage_sel_path(wchar_t ***pvec, bool *hex);
 void on_tabpage_switch_next(HWND hwnd);
 void on_tabpage_adjust_box(RECT *ptp);
-void on_tabpage_adjust_window(eu_tabpage *pnode);
+void on_tabpage_adjust_window(eu_tabpage *pnode, RECT *ptab);
 void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
@@ -127,12 +133,15 @@ void on_tabpage_push_editor(int);
 void on_tabpage_do_file(tab_callback func);
 void on_tabpage_active_tab(eu_tabpage *pnode);
 void on_tabpage_active_one(int index);
-bool on_tabpage_check_map(void);
+void on_tabpage_size(void);
+void on_tabpage_variable_reset(void);
+bool on_tabpage_exist_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
-eu_tabpage *on_tabpage_get_ptr(int index);
+eu_tabpage *on_tabpage_get_ptr(const int index);
 eu_tabpage *on_tabpage_select_index(int index);
 eu_tabpage *on_tabpage_focus_at(void);
-TCHAR *on_tabpage_generator(TCHAR *filename, int len);
+eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);
+TCHAR *on_tabpage_generator(TCHAR *filename, const int len);
 LRESULT on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus

@@ -41,14 +41,6 @@ init_instance(HINSTANCE instance)
     HWND hwnd = eu_create_main_window(instance);
     if (hwnd)
     {
-        if (!eu_create_toolbar(hwnd))
-        {
-            return NULL;
-        }
-        if (!eu_create_statusbar(hwnd))
-        {
-            return NULL;
-        }
         if (eu_get_config()->m_fullscreen)
         {
             eu_logmsg("we create fullsrceen window\n");
@@ -226,6 +218,7 @@ _tmain(int argc, TCHAR *argv[])
         }
         else if (!EU_REENTRANT_PARAM)
         {
+            eu_wine_dotool();
             SKY_SAFE_EXIT(SKYLARK_OK);
         }
     }
@@ -282,6 +275,13 @@ _tmain(int argc, TCHAR *argv[])
         eu_logmsg("eu_sci_register failed\n");
         SKY_SAFE_EXIT(SKYLARK_SCI_FAILED);
     }
+    if (!eu_win11_or_later() && strcmp(eu_get_config()->window_theme, "black") == 0)
+    {
+        if (eu_dark_theme_init(true, true))
+        {
+            eu_logmsg("eu_dark_theme_init ok!\n");
+        }
+    }
     if (!(hwnd = init_instance(instance)))
     {
         eu_logmsg("init_instance failed\n");
@@ -298,10 +298,13 @@ _tmain(int argc, TCHAR *argv[])
                 share_unmap(phandle);
             }
         }
-        share_envent_set(true);  // 主窗口初始化完成, 可以发送消息了
         if (no_remote)
         {
             eu_get_config()->m_instance = true;
+        }
+        if (true)
+        {   // 主窗口初始化完成的信号量
+            share_envent_set(true);
         }
         if (!eu_config_load_files())
         {
@@ -309,12 +312,13 @@ _tmain(int argc, TCHAR *argv[])
             SKY_SAFE_EXIT(SKYLARK_CONF_FAILED);
         }
     }
-    if (strcmp(eu_get_config()->window_theme, "black") == 0)
+    if (eu_dark_enable())
     {
-        if (eu_dark_theme_init(true, true))
-        {
-            SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
-        }
+        SendMessage(eu_module_hwnd(), WM_THEMECHANGED, DARK_THEME_APPLY, 0);
+    }
+    else if (eu_win11_or_later() && strcmp(eu_get_config()->window_theme, "black") == 0 && eu_dark_theme_init(true, true))
+    {
+        SendMessage(eu_module_hwnd(), WM_THEMECHANGED, DARK_THEME_APPLY, 0);
     }
     while (GetMessage(&msg, NULL, 0, 0) > 0)
     {

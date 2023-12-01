@@ -20,9 +20,6 @@
 #define _H_SKYLARK_FILE_
 
 #define URL_MIN 7
-#define BUFF_SIZE (8 * 1024 * 1024)                // 8M
-#define BUFF_32K (32 * 1024)                       // 32K
-#define ENABLE_MMAP(x) (x > (uint64_t) 0x8000000)  //128M
 #define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define url_has_samba(ll) (_tcslen(ll) > 2 && (ll[1] == L'\\' && ll[0] == L'\\'))
@@ -58,13 +55,14 @@ typedef struct _file_backup
     int zoom;
     int status;
     int sync;
+    int view;
     TCHAR rel_path[MAX_BUFFER];
     TCHAR bak_path[MAX_BUFFER];
     char mark_id[MAX_BUFFER];
     char fold_id[MAX_BUFFER];
 }file_backup;
 
-int on_file_new(void);
+int on_file_new(eu_tabpage *psrc);
 int on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force);
 int on_file_only_open(file_backup *pbak, const bool selection);
 int on_file_open(void);
@@ -74,14 +72,16 @@ int on_file_open_remote(remotefs *pserver, file_backup *pbak, const bool selecti
 int on_file_save(eu_tabpage *pnode, const bool save_as);
 int on_file_save_as(eu_tabpage *pnode);
 int on_file_all_save(void);
-int on_file_close(eu_tabpage *pnode, CLOSE_MODE mode);
+int on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode);
 int on_file_all_close(void);
 int on_file_left_close(void);
 int on_file_right_close(void);
 int on_file_exclude_close(eu_tabpage *pnode);
+int on_file_unchange_close(eu_tabpage *pnode);
 int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
 int on_file_redirect(HWND hwnd, file_backup *pm);
 int on_file_stream_upload(eu_tabpage *pnode, TCHAR *pmsg);
+int on_file_load_plugins(eu_tabpage *pnode, bool route_open);
 void on_file_update_time(eu_tabpage *pnode, time_t m);
 void on_file_new_eols(eu_tabpage *pnode, const int new_eol);
 void on_file_new_encoding(eu_tabpage *pnode, const int new_enc);
@@ -94,6 +94,10 @@ void on_file_restore_recent(void);
 void on_file_reload_current(eu_tabpage *pnode);
 void on_file_auto_backup(void);
 void on_file_auto_notify(void);
+void on_file_filedb_update(const eu_tabpage *pnode);
+void on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, const bool isbak, int *);
+bool on_file_get_bakpath(eu_tabpage *pnode);
+bool on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte);
 uint64_t on_file_get_avail_phys(void);
 
 #ifdef __cplusplus

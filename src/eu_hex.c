@@ -438,7 +438,7 @@ hexview_update_theme(eu_tabpage *p)
 {
     if (p && p->hwnd_sc)
     {
-        if (p->hex_mode)
+        if (TAB_HEX_MODE(p))
         {
             SendMessage(p->hwnd_sc, WM_SETFONT, 0, 0);
             SendMessage(p->hwnd_sc, HVM_SETTEXTCOLOR, 0, (LPARAM) eu_get_theme()->item.text.color);
@@ -484,7 +484,7 @@ hexview_destoy(eu_tabpage *pnode)
         {
             eu_safe_free(pnode->phex->pbase);
         }
-        pnode->hex_mode = false;
+        pnode->hex_mode = TAB_HAS_PDF(pnode) ? TYPES_PLUGIN : TYPES_TEXT;
         eu_safe_free(pnode->phex);
     }
 }
@@ -1032,14 +1032,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_SETFONT:
-        {
-            HDC hdc;
-            TEXTMETRIC text_metric;
-            HANDLE hold_font;
-            //
-            // Delete the font, if we created it by yourself.
-            //
-
+        {   // Delete the font, if we created it by yourself.
             if ((hexview->ct_flags & HVF_FONTCREATED) && hexview->hfont)
             {
                 DeleteObject(hexview->hfont);
@@ -1050,17 +1043,14 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             {
                 hexview_create_font(hwnd, hexview, pnode->zoom_level);
             }
-            hdc = GetDC(hwnd);
-            hold_font = SelectObject(hdc, hexview->hfont);
-            GetTextMetrics(hdc, &text_metric);
-            SelectObject(hdc, hold_font);
-            ReleaseDC(hwnd, hdc);
-            hexview->width_char = text_metric.tmAveCharWidth;
-            hexview->height_char = text_metric.tmHeight;
-            hexview->visiblelines = hexview->height_view / hexview->height_char;
-            hexview->visiblechars = hexview->width_view / hexview->width_char;
-            hexview_columns(hexview);
-            hexview_srollinfo(hwnd, hexview);
+            if (hexview->hfont)
+            {
+                util_font_xy(hwnd, hexview->hfont, &hexview->width_char, &hexview->height_char);
+                hexview->visiblelines = hexview->height_view / hexview->height_char;
+                hexview->visiblechars = hexview->width_view / hexview->width_char;
+                hexview_columns(hexview);
+                hexview_srollinfo(hwnd, hexview);
+            }
             break;
         }
         case WM_RBUTTONUP:
@@ -1492,7 +1482,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             if (GetFocus() != hwnd)
             {   // 可能被plugin窗口强占了键盘焦点
-                on_proc_resize(NULL);
+                eu_window_resize(NULL);
             }
             break;
         }
@@ -1944,6 +1934,7 @@ hexview_register_class(void)
 bool
 hexview_init(eu_tabpage *pnode)
 {
+    HWND hwsc = NULL;
     HWND hwnd = eu_module_hwnd();
     if (!(pnode && hwnd))
     {
@@ -1955,14 +1946,14 @@ hexview_init(eu_tabpage *pnode)
     }
     if (pnode->hwnd_sc)
     {   // 销毁scintilla窗口与其关联窗口, 复用pnode指针
+        hwsc = pnode->hwnd_sc;
         on_sci_destroy_control(pnode);
-        SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0);
     }
     if (true)
     {
         pnode->eusc = 0;
         pnode->begin_pos = -1;
-        pnode->hex_mode = true;
+        pnode->hex_mode = TYPES_HEX;
         hexview_register_class();
     }
     if (!(pnode->hwnd_sc = hexview_create_dlg(hwnd, pnode)))
@@ -1985,7 +1976,17 @@ hexview_init(eu_tabpage *pnode)
     }
     SendMessage(pnode->hwnd_sc, HVM_SETITEMCOUNT, 0, (LPARAM) pnode->bytes_remaining);
     on_tabpage_selection(pnode, pnode->tab_id);
-    PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
+    SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
+    if (pnode->plugin)
+    {
+        np_plugins_destroy(&pnode->plugin->funcs, &pnode->plugin->npp, NULL);
+        np_plugins_shutdown(&pnode->pmod, &pnode->plugin);
+    }
+    if (hwsc)
+    {
+        SendMessage(hwsc, WM_CLOSE, 0, 0);
+    }
+    eu_close_dll(pnode->pmod);
     return true;
 }
 
@@ -2095,7 +2096,7 @@ hexview_save_data(eu_tabpage *pnode, const TCHAR *bakfile)
     {
         return EUE_TAB_NULL;
     }
-    if (bakfile)
+    if (STR_NOT_NUL(bakfile))
     {
         if (eu_exist_file(bakfile))
         {
@@ -2145,10 +2146,57 @@ hexview_strdup_data(eu_tabpage *pnode, size_t *plen)
     return pstr;
 }
 
+static bool
+hexview_map_pdf(eu_tabpage *pnode)
+{
+    bool ret = false;
+    if (pnode)
+    {
+        HANDLE hfile = NULL;
+        TCHAR *pfull = NULL;
+        if (pnode->be_modify)
+        {
+            if ((pnode->bakpath[0] || on_file_get_bakpath(pnode)))
+            {
+                int status = 1;
+                on_file_npp_write(pnode, pnode->bakpath, true, &status);
+                if (!status)
+                {
+                    pnode->be_modify = false;
+                }
+                if (pnode->be_modify && eu_exist_file(pnode->bakpath))
+                {
+                    pfull = _tcsdup(pnode->bakpath);
+                }
+            }
+        }
+        else if (pnode->plugin)
+        {   // 获取远程文件映射在本地的文件名
+            np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&pfull);
+        }
+        if (STR_NOT_NUL(pfull))
+        {
+            if (share_open_file(pfull, true, OPEN_EXISTING, &hfile) && util_file_size(hfile, &pnode->bytes_remaining) && pnode->bytes_remaining > 0)
+            {
+                ret = on_file_map_hex(pnode, hfile, 0);
+            }
+        }
+        share_close(hfile);
+        eu_safe_free(pfull);
+    }
+    if (ret && pnode && pnode->phex)
+    {
+        pnode->phex->hex_ascii = true;
+    }
+    return ret;
+}
+
 int
 hexview_switch_mode(eu_tabpage *pnode)
 {
     int err = EUE_TAB_NULL;
+    const bool pdf = TAB_HAS_PDF(pnode);
+    const HWND search = eu_get_search_hwnd();
     uint8_t *pdst = NULL;
     if (!pnode)
     {
@@ -2159,24 +2207,33 @@ hexview_switch_mode(eu_tabpage *pnode)
         on_tabpage_active_tab(pnode);
     }
     util_lock(&pnode->busy_id);
-    if (!pnode->hex_mode)
+    if (!TAB_HEX_MODE(pnode))
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         pnode->zoom_level = (pnode->zoom_level == SELECTION_ZOOM_LEVEEL) ? 0 : (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
-        eu_logmsg("To hex, pnode->zoom_level = %d\n", pnode->zoom_level);
+        eu_logmsg("To hex, nc_pos = %I64d, pnode->zoom_level = %d\n", pnode->nc_pos, pnode->zoom_level);
         if (!pnode->phex)
         {
-            pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
-            if (!pnode->phex)
+            if (!pdf)
             {
-                err = EUE_POINT_NULL;
-                goto HEX_ERROR;
+                pnode->phex = (PHEXVIEW) calloc(1, sizeof(HEXVIEW));
+                if (!pnode->phex)
+                {
+                    err = EUE_POINT_NULL;
+                    goto HEX_ERROR;
+                }
+                if (!(pnode->phex->pbase = (uint8_t *) util_strdup_content(pnode, &pnode->bytes_remaining)))
+                {
+                    eu_logmsg("%s: txt maybe null\n", __FUNCTION__);
+                    err = EUE_POINT_NULL;
+                    eu_safe_free(pnode->phex);
+                    goto HEX_ERROR;
+                }
             }
-            if (!(pnode->phex->pbase = (uint8_t *) util_strdup_content(pnode, &pnode->bytes_remaining)))
+            else if (!hexview_map_pdf(pnode))
             {
-                eu_logmsg("%s: txt maybe null\n", __FUNCTION__);
-                err = EUE_POINT_NULL;
-                eu_safe_free(pnode->phex);
+                err = SKYLARK_MEMAP_FAILED;
+                eu_logmsg("%s: hexview_map_pdf failed\n", __FUNCTION__);
                 goto HEX_ERROR;
             }
             if (!hexview_init(pnode))
@@ -2184,14 +2241,18 @@ hexview_switch_mode(eu_tabpage *pnode)
                 err = EUE_CREATE_MAP_ERR;
                 eu_safe_free(pnode->phex->pbase);
                 eu_safe_free(pnode->phex);
+                eu_logmsg("%s: hexview_init failed\n", __FUNCTION__);
                 goto HEX_ERROR;
             }
-            if ((err = pnode->tab_id) >= 0 && pnode->nc_pos >= 0)
+            if (!pdf)
             {
-                eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+                if ((err = pnode->tab_id) >= 0 && pnode->nc_pos >= 0)
+                {
+                    eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+                }
+                // 清理文本模式下的导航信息
+                on_search_clean_navigate_this(pnode);
             }
-            // 清理文本模式下的导航信息
-            on_search_clean_navigate_this(pnode);
         }
     }
     else
@@ -2200,74 +2261,104 @@ hexview_switch_mode(eu_tabpage *pnode)
         size_t offset = 0;
         size_t  dst_len = 0;
         bool is_utf8 = pnode->codepage == IDM_UNI_UTF8;
-        pnode->begin_pos = -1;
+        const HWND hwsc = pnode->hwnd_sc;
+        on_search_clean_navigate_this(pnode);
         pnode->tab_id = on_tabpage_get_index(pnode);
-        pnode->doc_ptr = on_doc_get_type(pnode->filename);
-        pnode->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
-        pnode->zoom_level = (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
-        pnode->zoom_level == SELECTION_ZOOM_LEVEEL ? (pnode->zoom_level = 0) : (void)0;
-        eu_logmsg("To text, pnode->zoom_level = %d\n", pnode->zoom_level);
-        pnode->needpre = pnode->pre_len > 0;
-        if (pnode->phex && pnode->phex->hex_ascii)
+        pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+        if (pdf && np_plugins_lookup(NPP_PDFVIEW, pnode->extname, &pnode->pmod))
         {
-            is_utf8 = false;
-        }
-        else
-        {
-            is_utf8 = true;
-        }
-        if (is_utf8)
-        {
-            pdst = hexview_strdup_data(pnode, &dst_len);
-        }
-        else
-        {
-            size_t src_len = (size_t)pnode->raw_size;
-            uint8_t *data = pnode->phex->pbase;
-            euconv_t evd = {0};
-            evd.src_from = eu_query_encoding_name(pnode->codepage);
-            evd.dst_to = "utf-8";
-            if (evd.src_from && strcmp(evd.src_from, "UTF-8(BOM)") == 0)
+            pnode->hex_mode = TYPES_PLUGIN;
+            if (on_sci_init_dlg(pnode))
             {
-                evd.src_from = "utf-8";
-            }
-            eu_logmsg("%s: on_encoding_do_iconv, from %s to %s\n", __FUNCTION__, evd.src_from, evd.dst_to);
-            size_t res = on_encoding_do_iconv(&evd, (char *) (data), &src_len, &pdst, &dst_len);
-            if (res == (size_t) -1)
-            {
-                eu_logmsg("%s: on_encoding_do_iconv error\n", __FUNCTION__);
-                err = EUE_ICONV_FAIL;
+                eu_logmsg("%s: on_sci_init_dlg failed\n", __FUNCTION__);
+                err = EUE_UNKOWN_ERR;
                 goto HEX_ERROR;
             }
-            // 保存bom
-            on_encoding_set_bom(pnode->phex->pbase, pnode);
-            if (memcmp(pdst, (const uint8_t *) "\xEF\xBB\xBF", 3) == 0)
-            {   // 因为pbase带bom情况下转换为utf8, 会产生bom
-                // 而我们不需要, 因为前面已经保存了原始文本的bom
-                offset = 3;
-                eu_logmsg("we save utf8 bom, offset = 3\n");
+            if (url_has_remote(pnode->pathfile) || pnode->be_modify)
+            {
+                if (pnode->bakpath[0] || on_file_get_bakpath(pnode))
+                {
+                    err = hexview_save_data(pnode, pnode->bakpath);
+                    if (err == SKYLARK_OK)
+                    {
+                        eu_logmsg("%s: pnode->raw_size = %I64u\n", __FUNCTION__, pnode->raw_size);
+                    }
+                }
+            }
+            if ((err = on_file_load_plugins(pnode, false)) == NP_NO_ERROR)
+            {
+                eu_logmsg("%s: on_file_load_plugins ok\n", __FUNCTION__);
             }
         }
-        if (!pdst)
+        else 
         {
-            err = EUE_POINT_NULL;
-            goto HEX_ERROR;
+            pnode->begin_pos = -1;
+            pnode->hex_mode = TYPES_TEXT;
+            pnode->tab_id = on_tabpage_get_index(pnode);
+            pnode->doc_ptr = on_doc_get_type(pnode->filename);
+            pnode->nc_pos = pnode->phex ? pnode->phex->number_items : -1;
+            pnode->zoom_level = (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
+            pnode->zoom_level == SELECTION_ZOOM_LEVEEL ? (pnode->zoom_level = 0) : (void)0;
+            eu_logmsg("To text, pnode->zoom_level = %d\n", pnode->zoom_level);
+            pnode->needpre = pnode->pre_len > 0;
+            if (!pnode->bakpath[0] && pnode->phex && pnode->phex->hex_ascii)
+            {
+                is_utf8 = false;
+            }
+            else
+            {
+                is_utf8 = true;
+            }
+            if (is_utf8)
+            {
+                pdst = hexview_strdup_data(pnode, &dst_len);
+            }
+            else
+            {
+                size_t src_len = (size_t)pnode->raw_size;
+                uint8_t *data = pnode->phex->pbase;
+                euconv_t evd = {0};
+                evd.src_from = eu_query_encoding_name(pnode->codepage);
+                evd.dst_to = "utf-8";
+                if (evd.src_from && strcmp(evd.src_from, "UTF-8(BOM)") == 0)
+                {
+                    evd.src_from = "utf-8";
+                }
+                eu_logmsg("%s: on_encoding_do_iconv, from %s to %s\n", __FUNCTION__, evd.src_from, evd.dst_to);
+                size_t res = on_encoding_do_iconv(&evd, (char *) (data), &src_len, &pdst, &dst_len);
+                if (res == (size_t) -1)
+                {
+                    eu_logmsg("%s: on_encoding_do_iconv error\n", __FUNCTION__);
+                    err = EUE_ICONV_FAIL;
+                    goto HEX_ERROR;
+                }
+                // 保存bom
+                on_encoding_set_bom(pnode->phex->pbase, pnode);
+                if (memcmp(pdst, (const uint8_t *) "\xEF\xBB\xBF", 3) == 0)
+                {   // 因为pbase带bom情况下转换为utf8, 会产生bom
+                    // 而我们不需要, 因为前面已经保存了原始文本的bom
+                    offset = 3;
+                    eu_logmsg("we save utf8 bom, offset = 3\n");
+                }
+            }
+            if (!pdst)
+            {
+                err = EUE_POINT_NULL;
+                goto HEX_ERROR;
+            }
+            if (on_sci_init_dlg(pnode))
+            {
+                eu_logmsg("on_sci_init_dlg return failed on %s:%d\n", __FILE__, __LINE__);
+                err = EUE_UNKOWN_ERR;
+                goto HEX_ERROR;
+            }
+            on_sci_before_file(pnode, true);
+            eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+            eu_sci_call(pnode, SCI_ADDTEXT, dst_len - offset, (LPARAM)(pdst + offset));
+            eu_sci_call(pnode, SCI_SETOVERTYPE, false, 0);
+            on_sci_after_file(pnode, true);
+            on_search_add_navigate_list(pnode, 0);
         }
-        // 清理16进制编辑器下的导航信息
-        on_search_clean_navigate_this(pnode);
-        SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0);
-        if (on_sci_init_dlg(pnode))
-        {
-            eu_logmsg("on_sci_init_dlg return failed on %s:%d\n", __FILE__, __LINE__);
-            err = EUE_UNKOWN_ERR;
-            goto HEX_ERROR;
-        }
-        on_sci_before_file(pnode, true);
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        eu_sci_call(pnode, SCI_ADDTEXT, dst_len - offset, (LPARAM)(pdst + offset));
-        eu_sci_call(pnode, SCI_SETOVERTYPE, false, 0);
-        on_sci_after_file(pnode, true);
-        on_search_add_navigate_list(pnode, 0);
         if ((err = on_tabpage_selection(pnode, pnode->tab_id)) >= 0)
         {
             if (pnode->nc_pos >= 0)
@@ -2279,13 +2370,14 @@ hexview_switch_mode(eu_tabpage *pnode)
                 pnode->file_attr &= ~FILE_READONLY_COLOR;
                 on_statusbar_btn_colour(pnode, true);
             }
-            eu_logmsg("%s: pnode->eol = %d\n", __FUNCTION__, pnode->eol);
-            PostMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
+            eu_logmsg("%s: pnode->eol = %d, pnode->hex_mode = %d\n", __FUNCTION__, pnode->eol, pnode->hex_mode);
+            SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
+            SendMessage(hwsc, WM_CLOSE, 0, 0);
         }
     }
 HEX_ERROR:
     eu_safe_free(pdst);
-    ShowWindow(eu_get_search_hwnd(), SW_HIDE);
+    search ? ShowWindow(search, SW_HIDE) : (void)0;
     util_unlock(&pnode->busy_id);
     return err;
 }

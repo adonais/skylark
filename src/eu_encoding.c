@@ -22,6 +22,27 @@
 #define LANG_CHT MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL)
 #define LANG_CHS MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED)
 
+#define GET_UTF8(val, GET_BYTE, ERROR)                               \
+    val = (GET_BYTE);                                                \
+    {                                                                \
+        uint32_t top = (val & 128) >> 1;                             \
+        if ((val & 0xc0) == 0x80 || val >= 0xFE)                     \
+        {                                                            \
+            ERROR                                                    \
+        }                                                            \
+        while (val & top)                                            \
+        {                                                            \
+            unsigned int tmp = (GET_BYTE)-128;                       \
+            if (tmp >> 6)                                            \
+            {                                                        \
+                ERROR                                                \
+            }                                                        \
+            val = (val << 6) + tmp;                                  \
+            top <<= 5;                                               \
+        }                                                            \
+        val &= (top << 1) - 1;                                       \
+    }                                                                \
+
 static bool
 is_cjk_converter(const char *encoding)
 {
@@ -409,7 +430,7 @@ on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn)
     int ret = 1;
     size_t len = 0;
     char *dst = NULL;
-    if (pnode && !pnode->hex_mode && !pnode->pmod && fn)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && fn)
     {
         bool whole = false;
         char *ptxt = util_strdup_select(pnode, &len, 0);
@@ -456,4 +477,28 @@ on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn)
         }
     }
     return ret;
+}
+
+bool
+on_encoding_validate_utf8(const uint8_t *str)
+{
+    const uint8_t *byte;
+    uint32_t codepoint, min;
+    while (*str)
+    {
+        byte = str;
+        if ((*str >> 7) == 0)
+        {
+            ++str;
+            continue;
+        }
+        GET_UTF8(codepoint, *(byte++), return false;);
+        min = byte - str == 1 ? 0 : byte - str == 2 ? 0x80 : 1 << (5 * (byte - str) - 4);
+        if (codepoint < min || codepoint >= 0x110000 || (codepoint >= 0xD800 && codepoint <= 0xDFFF))
+        {
+            return false;
+        }
+        str = byte;
+    }
+    return true;
 }

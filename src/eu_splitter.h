@@ -33,6 +33,7 @@ bool on_splitter_init_treebar(HWND parent);
 bool on_splitter_init_symbar(HWND parent);
 bool on_splitter_init_editbar(HWND parent);
 bool on_splitter_init_tablebar(HWND parent);
+void on_splitter_redraw(void);
 HWND on_splitter_init_window(HWND parent, const TCHAR *class_name, const int flags, HMENU hmenu, WNDPROC proc, void *lp);
 
 #ifdef __cplusplus

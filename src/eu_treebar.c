@@ -1172,7 +1172,7 @@ on_filetree_node_dbclick(void)
     }
     if (!err && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 建立一个空白标签页
-        err = on_file_new();
+        err = on_file_new(NULL);
     }
     return err;
 }
@@ -1609,11 +1609,13 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                     }
                     TreeView_SetItem(hwnd, &item);
+                    break;
                 }
-                break;
                 case NM_DBLCLK:
+                {
                     on_filetree_node_dbclick();
                     break;
+                }
                 case TVN_BEGINLABELEDIT:
                 {
                     LPNMTVDISPINFO pinfo = (LPNMTVDISPINFO) lpnmhdr;
@@ -1623,8 +1625,8 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
                     SetWindowLongPtr(hwnd, GWLP_USERDATA, (uintptr_t) old_tvd);
+                    break;
                 }
-                break;
                 case TVN_ENDLABELEDIT:
                 {
                     LPNMTVDISPINFO pinfo = (LPNMTVDISPINFO) lpnmhdr;
@@ -1635,7 +1637,9 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 default:
+                {
                     break;
+                }
             }
             break;
         }
@@ -1785,11 +1789,17 @@ on_treebar_load_imglist(HWND hwnd)
 void
 on_treebar_update_theme(void)
 {
-    SendMessage(g_filetree, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
-    SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
+    if (util_under_wine() && eu_get_theme()->item.text.color == 0x00D4D4D4)
+    {
+        SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, 0xFFFFFF);
+    }
+    else
+    {
+        SendMessage(g_filetree, TVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
+    }
     SendMessage(g_filetree, TVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
     // 向控件发送消息, 要不然滚动条可能不会重绘
-    on_dark_set_theme(g_filetree, on_dark_enable() ? L"DarkMode_Explorer" : L"", NULL);
+    on_dark_set_theme(g_filetree, on_dark_enable() ? DARKMODE : L"", NULL);
 }
 
 LRESULT CALLBACK
@@ -1798,57 +1808,42 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_ERASEBKGND:
-            if (!on_dark_enable())
-            {
-                break;
-            }
+        {
             RECT rc = {0};
             GetClientRect(hwnd, &rc);
-            FillRect((HDC)wParam, &rc, (HBRUSH)on_dark_get_bgbrush());
+            FillRect((HDC)wParam, &rc, eu_theme_index() == THEME_WHITE ? GetSysColorBrush(COLOR_MENU) : (HBRUSH)on_dark_get_bgbrush());
             return 1;
+        }
         case WM_PAINT:
         {
-            if (GetWindowLongPtr(hwnd, GWL_STYLE) & TCS_OWNERDRAWFIXED)
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, & ps);
+            const bool dark = on_dark_enable();
+            // 绘制管理器标签
+            HGDIOBJ old_font = SelectObject(hdc, on_theme_font_hwnd());
+            if (old_font)
             {
-                PAINTSTRUCT    ps;
-                HDC hdc = BeginPaint(hwnd, & ps);
-                HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_bgbrush();
-                // 绘制管理器标签
-                HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
-                if (old_font)
+                RECT rc;
+                TabCtrl_GetItemRect(hwnd, 0, &rc);
+                set_tabface_color(hdc, dark);
+                set_text_color(hdc, dark);
+                FrameRect(hdc, &rc, dark ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
+                LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
+                if (STR_NOT_NUL(m_text))
                 {
-                    RECT rc;
-                    TabCtrl_GetItemRect(hwnd, 0, &rc);
-                    set_btnface_color(hdc, true);
-                    set_text_color(hdc, true);
-                    FrameRect(hdc, &rc, GetSysColorBrush(COLOR_3DDKSHADOW));
-                    LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
-                    if (STR_NOT_NUL(m_text))
-                    {
-                        DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-                    }
-                    SelectObject(hdc, old_font);
+                    DrawText(hdc, m_text, (int)_tcslen(m_text), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
                 }
-                EndPaint(hwnd, &ps);
+                SelectObject(hdc, old_font);
             }
+            EndPaint(hwnd, &ps);
             break;
         }
         case WM_DPICHANGED:
         {
-            on_treebar_update_theme();
             break;
         }
         case WM_THEMECHANGED:
         {
-            uintptr_t style = GetWindowLongPtr(hwnd, GWL_STYLE);
-            if (on_dark_enable())
-            {
-                style & TCS_OWNERDRAWFIXED ? (void)0 : SetWindowLongPtr(hwnd, GWL_STYLE, style | TCS_OWNERDRAWFIXED);
-            }
-            else if (style & TCS_OWNERDRAWFIXED)
-            {
-                SetWindowLongPtr(hwnd, GWL_STYLE, style & ~TCS_OWNERDRAWFIXED);
-            }
             break;
         }
         case WM_DESTROY:
@@ -1873,7 +1868,7 @@ on_treebar_create_box(HWND hwnd)
     {
         DestroyWindow(g_treebar);
     }
-    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
+    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|TCS_FIXEDWIDTH|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
     if (g_treebar == NULL)
     {
         return EUE_POINT_NULL;
@@ -1893,7 +1888,7 @@ on_treebar_create_box(HWND hwnd)
         DestroyWindow(g_treebar);
         return EUE_POINT_NULL;
     }
-    SendMessage(g_treebar, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), 0);
+    on_theme_update_font(filebar_id);
     return SKYLARK_OK;
 }
 
@@ -1959,6 +1954,7 @@ on_treebar_create_dlg(HWND hwnd)
             err = EUE_POINT_NULL;
             break;
         }
+        on_theme_update_font(filetree_id);
         on_treebar_update_theme();
     }while(0);
     if (err)
@@ -1978,33 +1974,87 @@ on_treebar_create_dlg(HWND hwnd)
 }
 
 void
-on_treebar_adjust_box(RECT *ptf)
+on_treebar_size(void)
 {
-    RECT rect_main;
-    GetClientRect(eu_module_hwnd(), &rect_main);
+    HDWP hdwp = BeginDeferWindowPos(3);
+    if (g_treebar && hdwp)
+    {
+        RECT rect_treebar = {0};
+        on_treebar_adjust_box(&rect_treebar, NULL);
+        if (eu_get_config()->m_ftree_show)
+        {
+            RECT rect_filetree = {0};
+            on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
+            DeferWindowPos(hdwp,
+                           g_treebar,
+                           HWND_TOP,
+                           rect_treebar.left,
+                           rect_treebar.top,
+                           rect_treebar.right - rect_treebar.left,
+                           rect_treebar.bottom - rect_treebar.top,
+                           SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,
+                           g_filetree,
+                           HWND_TOP,
+                           rect_filetree.left,
+                           rect_filetree.top,
+                           rect_filetree.right - rect_filetree.left,
+                           rect_filetree.bottom - rect_filetree.top,
+                           SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,
+                           g_splitter_treebar,
+                           HWND_TOP,
+                           rect_treebar.right,
+                           rect_filetree.top,
+                           SPLIT_WIDTH,
+                           rect_filetree.bottom - rect_filetree.top,
+                           SWP_SHOWWINDOW);
+        }
+        else
+        {
+            DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            DeferWindowPos(hdwp, g_splitter_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
+    }
+    EndDeferWindowPos(hdwp);
+}
+
+void
+on_treebar_adjust_box(RECT *ptf, RECT *prc)
+{
+    RECT rect_main = {0};
+    GetClientRect(eu_module_hwnd(), prc ? prc : &rect_main);
+    if (prc == NULL)
+    {
+        prc = &rect_main;
+    }
     if (!eu_get_config()->m_ftree_show)
     {
         ptf->left = 0;
         ptf->right = 0;
-        ptf->top = rect_main.top + on_toolbar_height();
-        ptf->bottom = rect_main.bottom;
+        ptf->top = prc->top + on_toolbar_get_height();
+        ptf->bottom = prc->bottom - on_statusbar_height();
     }
     else
     {
-        ptf->left = rect_main.left;
-        ptf->right = rect_main.left + eu_get_config()->file_tree_width;
-        ptf->top = rect_main.top + on_toolbar_height();
-        ptf->bottom = rect_main.bottom - on_statusbar_height();
+        ptf->left = prc->left;
+        ptf->right = prc->left + eu_get_config()->file_tree_width;
+        ptf->top = prc->top + on_toolbar_get_height();
+        ptf->bottom = prc->bottom - on_statusbar_height();
     }
 }
 
 void
-on_treebar_adjust_filetree(RECT *rect_filebar, RECT *rect_filetree)
+on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
 {
-    rect_filetree->left = FILETREE_MARGIN_LEFT;
-    rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
-    rect_filetree->top = rect_filebar->top + TABS_HEIGHT_DEFAULT + FILETREE_MARGIN_TOP;
-    rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
+    if (g_treebar)
+    {
+        rect_filetree->left = FILETREE_MARGIN_LEFT;
+        rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
+        rect_filetree->top = rect_filebar->top + util_tab_height(g_treebar, 0) + FILETREE_MARGIN_TOP;
+        rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
+    }
 }
 
 tree_data *
@@ -2211,6 +2261,7 @@ on_treebar_locate_path(const TCHAR *pathname)
         TreeView_SelectItem(g_filetree, hti);
         TreeView_EnsureVisible(g_filetree, hti);
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
+        on_treebar_size();
         eu_window_resize(eu_module_hwnd());
     }
     util_free(m_dup);

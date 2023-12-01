@@ -378,7 +378,7 @@ done:
 void
 util_wait_cursor(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !TAB_HEX_MODE(pnode))
     {
         eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
     }
@@ -388,7 +388,7 @@ void
 util_restore_cursor(eu_tabpage *pnode)
 {
     POINT pt;
-    if (pnode && !pnode->hex_mode)
+    if (pnode && !TAB_HEX_MODE(pnode))
     {
         eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
         GetCursorPos(&pt);
@@ -1321,6 +1321,34 @@ util_strdup_content(eu_tabpage *pnode, size_t *plen)
     return ptext;
 }
 
+char *
+util_memdup(char **p, const char *text)
+{
+    if (p && text)
+    {
+        size_t text_len = strlen(text) + (*p ? strlen(*p) : 0);
+        if (*p)
+        {
+            char *dst = (char *)realloc(*p, text_len + 1);
+            if (dst)
+            {
+                strncat(dst, text, text_len);
+                if (*p != dst)
+                {
+                    *p = dst;
+                }
+            }
+        }
+        else if ((*p = (char *)malloc(text_len + 1)))
+        {
+            (*p)[text_len] = 0;
+            _snprintf(*p, text_len, "%s", text);
+        }
+        return (*p);
+    }
+    return NULL;
+}
+
 /**************************************************
  * 验证字符的有效性
  *************************************************/
@@ -1875,10 +1903,34 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
 WCHAR *
 util_winexy_get(void)
 {
-    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_PATH+1));
+    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_BUFFER+1));
     if (plugin && STR_NOT_NUL(eu_module_path))
     {
-        _snwprintf(plugin, MAX_PATH, L"/bin/wine \"%s\\plugins\\np_winexy.dll\"", eu_module_path);
+        _snwprintf(plugin, MAX_BUFFER, L"/bin/wine \"%s\\plugins\\np_winexy.dll\"", eu_module_path);
+        util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+    }
+    return plugin;
+}
+
+WCHAR *
+util_winexy_hide(void)
+{
+    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_BUFFER+1));
+    if (plugin && STR_NOT_NUL(eu_module_path))
+    {
+        _snwprintf(plugin, MAX_BUFFER, L"/bin/wine \"%s\\plugins\\np_winexy.dll\" hide.exe", eu_module_path);
+        util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
+    }
+    return plugin;
+}
+
+WCHAR *
+util_winexy_tool(void)
+{
+    WCHAR *plugin = (WCHAR *)calloc(sizeof(WCHAR), (MAX_BUFFER+1));
+    if (plugin && STR_NOT_NUL(eu_module_path))
+    {
+        _snwprintf(plugin, MAX_BUFFER, L"/bin/wine \"%s\\plugins\\np_winexy.dll\" xtool \"%s\\plugins\\xtool\"", eu_module_path, eu_module_path);
         util_path2unix(plugin, eu_int_cast(_tcslen(plugin)));
     }
     return plugin;
@@ -1898,9 +1950,14 @@ util_to_abs(const char *path)
     {
         return NULL;
     }
-    util_unix2path(lpfile, (const int)_tcslen(lpfile));
-    // 如果路径有引号, 去除
-    util_wstr_unquote(lpfile, sizeof(lpfile));
+    if (!wine)
+    {
+        util_unix2path(lpfile, (const int)_tcslen(lpfile));
+    }
+    if (true)
+    {   // 如果路径有引号, 去除
+        util_wstr_unquote(lpfile, sizeof(lpfile));
+    }
     if (lpfile[0] == L'%')
     {
         int n = 1;
@@ -1951,7 +2008,7 @@ util_to_abs(const char *path)
     {
         pret = _wcsdup(lpfile);
     }
-    if (wine && pret && util_get_unix_file_name(pret, lpfile, MAX_BUFFER))
+    if (wine && STR_NOT_NUL(pret) && pret[0] != L'/' && util_get_unix_file_name(pret, lpfile, MAX_BUFFER))
     {
         _snwprintf(pret, MAX_BUFFER, L"%s", lpfile);
     }
@@ -2197,6 +2254,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
     LANGANDCODEPAGE *lptranslate = NULL;
     do
     {
+        out_string[0] = L'\0';
         if ((h_ver = util_init_verinfo()) == NULL)
         {
             break;
@@ -2222,19 +2280,14 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         for (uint16_t i = 0; i < (cb_translate / sizeof(LANGANDCODEPAGE)); i++)
         {
-            sntprintf(dw_block,
-                      FILESIZE,
-                      L"\\StringFileInfo\\%04x%04x\\ProductName",
-                      lptranslate[i].wLanguage,
-                      lptranslate[i].wCodePage);
-
-            ret = pfnVerQueryValueW((LPCVOID) pbuffer, (LPCWSTR) dw_block, (LPVOID *) &ptmp, &cb_translate);
-            if (ret)
+            sntprintf(dw_block, FILESIZE, L"\\StringFileInfo\\%04x%04x\\ProductName", lptranslate[i].wLanguage, lptranslate[i].wCodePage);
+            if ((ret = pfnVerQueryValueW((LPCVOID) pbuffer, (LPCWSTR) dw_block, (LPVOID *) &ptmp, &cb_translate)))
             {
-                out_string[0] = L'\0';
-                wcsncpy(out_string, (LPCWSTR) ptmp, len);
-                ret = wcslen(out_string) > 1;
-                if (ret) break;
+                wcsncpy(out_string, (LPCWSTR) ptmp, len - 1);
+                if ((ret = wcslen(out_string) > 1))
+                {
+                    break;
+                }
             }
         }
     } while (0);
@@ -2448,33 +2501,32 @@ util_get_hwnd(const uint32_t pid)
 TCHAR *
 util_which(const TCHAR *name)
 {
+    int  len = 0;
     bool diff = false;
     bool add_suf = true;
     TCHAR *file = NULL;
     TCHAR *env_path = NULL;
-    TCHAR sz_work[MAX_PATH + 1] = {0};
+    TCHAR sz_work[MAX_BUFFER] = {0};
     const TCHAR *delimiter = _T(";");
-    TCHAR *path = _tgetenv(_T("PATH"));
+    const TCHAR *path = (const TCHAR *)_tgetenv(_T("PATH"));
     TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
     TCHAR *dot = _tcsrchr(name, _T('.'));
-    int len = eu_int_cast(_tcslen(path)) + (3 * MAX_PATH);
-    if (!path)
+    if (!path || !GetSystemDirectory(sz_work, MAX_BUFFER - 1))
     {
         return NULL;
     }
-    GetSystemDirectory(sz_work, MAX_PATH);
     if (!sz_work[0] || !eu_module_path[0])
     {
         return NULL;
     }
+    if (true)
+    {
+        len = eu_int_cast(_tcslen(path)) + (3 * MAX_BUFFER);
+        diff = _tcscmp(sz_work, eu_module_path) != 0;
+    }
     if ((env_path = (TCHAR *)calloc(sizeof(TCHAR), len + 1)) == NULL)
     {
         return NULL;
-    }
-    diff = _tcscmp(sz_work, eu_module_path) != 0;
-    if (util_under_wine())
-    {
-        add_suf = false;
     }
     else if (dot)
     {
@@ -2487,7 +2539,7 @@ util_which(const TCHAR *name)
             }
         }
     }
-    if ((file = (TCHAR *)calloc(sizeof(TCHAR), MAX_PATH)) != NULL)
+    if ((file = (TCHAR *)calloc(sizeof(TCHAR), MAX_BUFFER)) != NULL)
     {
         if (diff)
         {
@@ -2512,7 +2564,7 @@ util_which(const TCHAR *name)
             {
                 quote = false;
             }
-            _sntprintf(file, MAX_PATH, _T("%s\\%s"), quote? &tok[1] : tok, name);
+            _sntprintf(file, MAX_BUFFER - 1, _T("%s\\%s"), quote? &tok[1] : tok, name);
             do
             {
                 struct _stat st;
@@ -2523,7 +2575,7 @@ util_which(const TCHAR *name)
                 }
                 if (add_suf && av[i])
                 {
-                    _sntprintf(file, MAX_PATH, _T("%s\\%s%s"), quote? &tok[1] : tok, name, av[i]);
+                    _sntprintf(file, MAX_BUFFER - 1, _T("%s\\%s%s"), quote? &tok[1] : tok, name, av[i]);
                 }
             } while (av[i++]);
             tok = _tcstok(NULL, delimiter);
@@ -2835,7 +2887,7 @@ util_explorer_open(eu_tabpage *pnode)
             wchar_t unix_path[MAX_PATH] = {0};
             if (util_get_unix_file_name(pnode->pathfile, unix_path, MAX_PATH - 1) && (plugin = util_winexy_get()))
             {
-                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s %s \"%s\"", plugin, L"explorer.exe", unix_path);
+                _sntprintf(cmd_exec, MAX_BUFFER - 1, L"%s %s \\\"%s\\\"", plugin, L"explorer.exe", unix_path);
                 free(plugin);
                 CloseHandle(eu_new_process(cmd_exec, NULL, pnode->pathname, 2, NULL));
             }
@@ -3146,6 +3198,16 @@ util_shield_icon(HINSTANCE hinst, LPCTSTR name)
 }
 
 void
+util_updateui_titlebar(const HWND hwnd)
+{
+    LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+    SetWindowLongPtr(hwnd, GWL_STYLE, (style &= ~WS_CAPTION));
+    eu_setpos_window(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_FRAMECHANGED);
+    SetWindowLongPtr(hwnd, GWL_STYLE, style | WS_CAPTION);
+    eu_setpos_window(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_FRAMECHANGED);
+}
+
+void
 util_updateui_icon(const HWND hwnd, const bool fnshow)
 {
     if (fnshow)
@@ -3157,7 +3219,7 @@ util_updateui_icon(const HWND hwnd, const bool fnshow)
     }
     else
     {
-        uint32_t ex = (uint32_t)GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        const LONG_PTR ex = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, ex | WS_EX_DLGMODALFRAME);
         SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
         if ((HICON)SendMessage(hwnd, WM_GETICON, ICON_SMALL, 0))
@@ -3338,4 +3400,59 @@ util_font_available(const char *name)
     }
     eu_safe_free(pname);
     return found;
+}
+
+bool
+util_font_xy(const HWND hwnd, const HFONT hfont, int *px, int *py)
+{
+    HDC hdc = GetDC(hwnd);
+    if (hdc)
+    {
+        HGDIOBJ hold_font = NULL;
+        TEXTMETRIC text_metric = {0};
+        if (hfont)
+        {
+            hold_font = SelectObject(hdc, (HGDIOBJ)hfont);
+        }
+        GetTextMetrics(hdc, &text_metric);
+        if (hold_font)
+        {
+            SelectObject(hdc, hold_font);
+        }
+        ReleaseDC(hwnd, hdc);
+        *px = text_metric.tmAveCharWidth;
+        *py = text_metric.tmHeight;
+        return true;
+    }
+    return false;
+}
+
+bool
+util_dark_theme(void)
+{
+    int buffer[32] = {0};
+    uint32_t cbdata = 32;
+    LSTATUS res = RegGetValueW(HKEY_CURRENT_USER,
+                              L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                              L"AppsUseLightTheme",
+                              RRF_RT_REG_DWORD,
+                              NULL,
+                              buffer,
+                              &cbdata);
+    return (res == ERROR_SUCCESS) && (((buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0])) == 0);
+}
+
+int
+util_tab_height(const HWND hwnd, const int width)
+{
+    int x, y = 0;
+    if (hwnd)
+    {
+        sptr_t xy = 0;
+        const int dpi = eu_get_dpi(hwnd);
+        x = eu_dpi_scale_xy(dpi, width <= 0 ? TABS_WIDTH_DEFAULT : width);
+        y = eu_dpi_scale_xy(dpi, TABS_HEIGHT_DEFAULT);
+        xy = TabCtrl_SetItemSize(hwnd, x, y);
+    }
+    return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
 }

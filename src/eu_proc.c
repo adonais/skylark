@@ -31,6 +31,11 @@ static volatile long g_interval_count = 0;   // 启动自动更新的时间间�
 static int
 on_proc_create_widgets(HWND hwnd)
 {
+    if (on_toolbar_create_dlg(hwnd))
+    {
+        eu_logmsg("on_toolbar_create_dl return false\n");
+        return 1;
+    }
     if (on_treebar_create_dlg(hwnd))
     {
         eu_logmsg("on_treebar_create_dlg return false\n");
@@ -39,6 +44,11 @@ on_proc_create_widgets(HWND hwnd)
     if (on_tabpage_create_dlg(hwnd))
     {
         eu_logmsg("on_tabpage_create_dlg return false\n");
+        return 1;
+    }
+    if (on_statusbar_create_dlg(hwnd))
+    {
+        eu_logmsg("on_statusbar_create_dlg return false\n");
         return 1;
     }
     return SKYLARK_OK;
@@ -213,130 +223,51 @@ on_proc_move_sidebar(eu_tabpage *pnode)
 
 /*****************************************************************************
  * 主窗口缩放处理函数
- * 一次性处理所有窗口, 不在每个窗口处理WM_SIZE消息了
 ******************************************************************************/
 static void
-on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
+on_proc_msg_size(HWND hwnd, eu_tabpage *pnode)
 {
-    RECT rc = {0};
-    RECT rect_treebar = {0};
-    RECT rect_tabbar = {0};
-    eu_tabpage *pnode = ptab ? ptab : on_tabpage_focus_at();
-    if (pnode)
+    const bool redraw = pnode == NULL;
+    if (pnode || (pnode = on_tabpage_focus_at()))
     {
-        int number = 10;
-        on_toolbar_adjust_box();
-        on_statusbar_adjust_box();
-        on_tabpage_adjust_box(&rect_tabbar);
-        on_treebar_adjust_box(&rect_treebar);
-        on_tabpage_adjust_window(pnode);
-        GetWindowRect(hwnd ? hwnd : eu_module_hwnd(), &rc);
-        if (ptab)
-        {
-            number -= 5;
-        }
-        HDWP hdwp = BeginDeferWindowPos(number);
-        if (!ptab)
-        {
-            if (eu_get_config()->m_toolbar != IDB_SIZE_0)
-            {
-                DeferWindowPos(hdwp, on_toolbar_hwnd(), HWND_TOP, 0, 0, rc.right - rc.left, on_toolbar_height(), SWP_SHOWWINDOW);
-            }
-            else
-            {
-                DeferWindowPos(hdwp, on_toolbar_hwnd(), 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
-            if (eu_get_config()->m_ftree_show)
-            {
-                RECT rect_filetree = {0};
-                on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
-                DeferWindowPos(hdwp,
-                               g_treebar,
-                               HWND_TOP,
-                               rect_treebar.left,
-                               rect_treebar.top,
-                               rect_treebar.right - rect_treebar.left,
-                               rect_treebar.bottom - rect_treebar.top,
-                               SWP_SHOWWINDOW);
-                DeferWindowPos(hdwp,
-                               g_filetree,
-                               HWND_TOP,
-                               rect_filetree.left,
-                               rect_filetree.top,
-                               rect_filetree.right - rect_filetree.left,
-                               rect_filetree.bottom - rect_filetree.top,
-                               SWP_SHOWWINDOW);
-                DeferWindowPos(hdwp,
-                               g_splitter_treebar,
-                               HWND_TOP,
-                               rect_treebar.right,
-                               pnode->rect_sc.top,
-                               SPLIT_WIDTH,
-                               rect_treebar.bottom - pnode->rect_sc.top,
-                               SWP_SHOWWINDOW);
-            }
-            else
-            {
-                DeferWindowPos(hdwp, g_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                DeferWindowPos(hdwp, g_filetree, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                DeferWindowPos(hdwp, g_splitter_treebar, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
-            DeferWindowPos(hdwp, g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
-                           rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
-        }
+        RECT rc_tabbar = {0};
+        on_tabpage_adjust_window(pnode, &rc_tabbar);
         if (pnode->hwnd_sc)
         {
-            DeferWindowPos(hdwp, pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                           pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-            // 先隐藏右边侧边栏
-            DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            if (pnode->hwnd_symlist)
+            HDWP hdwp = NULL;
+            int number = 3;
+            if (pnode->hwnd_symlist || pnode->hwnd_symtree)
             {
-                DeferWindowPos(hdwp, pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            }
-            else if (pnode->hwnd_symtree)
-            {
-                DeferWindowPos(hdwp, pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                ++number;
             }
             if (document_map_initialized && hwnd_document_map)
             {
-                DeferWindowPos(hdwp, hwnd_document_map, 0, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                eu_setpos_window(hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             }
-        }
-        if (eu_get_config()->m_statusbar)
-        {
-            if (g_statusbar)
+            hdwp = BeginDeferWindowPos(number);
+            // 先隐藏右边侧边栏
+            DeferWindowPos(hdwp,g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            if (pnode->hwnd_symlist)
             {
-                DeferWindowPos(hdwp, g_statusbar, HWND_TOP, rc.left, rc.bottom - on_statusbar_height(),
-                               rc.right - rc.left, on_statusbar_height(), SWP_SHOWWINDOW);
-                SendMessage(g_statusbar, WM_STATUS_REFRESH, 0, 0);
-                on_statusbar_btn_rw(pnode, true);
+                DeferWindowPos(hdwp,pnode->hwnd_symlist, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             }
-        }
-        else if (g_statusbar)
-        {
-            DeferWindowPos(hdwp, g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-        }
-        if (true)
-        {
+            else if (pnode->hwnd_symtree)
+            {
+                DeferWindowPos(hdwp,pnode->hwnd_symtree, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
+            DeferWindowPos(hdwp,pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
+                           pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
+            DeferWindowPos(hdwp,g_tabpages, HWND_TOP, rc_tabbar.left, rc_tabbar.top,
+                           rc_tabbar.right - rc_tabbar.left, on_tabpage_get_height(), SWP_NOREDRAW);
             EndDeferWindowPos(hdwp);
-            if (!ptab)
-            {   // 重新计算标签栏大小
-                on_tabpage_adjust_box(&rect_tabbar);
-                on_tabpage_adjust_window(pnode);
-                eu_setpos_window(g_tabpages, HWND_TOP, rect_tabbar.left, rect_tabbar.top,
-                                 rect_tabbar.right - rect_tabbar.left, rect_tabbar.bottom - rect_tabbar.top, SWP_SHOWWINDOW);
-                eu_setpos_window(pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
-                                 pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
+            if (redraw)
+            {
                 UpdateWindowEx(g_tabpages);
-                UpdateWindowEx(pnode->hwnd_sc);
             }
+            // tabbar调整位置后重绘工作区
+            UpdateWindowEx(pnode->hwnd_sc);
             // 重新加上位置后显示
             on_proc_move_sidebar(pnode);
-            if (g_splitter_treebar)
-            {
-                UpdateWindowEx(g_splitter_treebar);
-            }
         }
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
@@ -351,7 +282,7 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                         ShowWindow(p->hwnd_qrtable, SW_HIDE);
                     }
                 }
-                if (p->hex_mode && p->hwnd_sc)
+                if (p->hwnd_sc)
                 {
                     ShowWindow(p->hwnd_sc, SW_HIDE);
                 }
@@ -377,7 +308,9 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *ptab)
                 UpdateWindow(g_splitter_tablebar);
             }
         }
-        PostMessage(hwnd, WM_ACTIVATE, MAKEWPARAM(WA_CLICKACTIVE, 0), 0);
+        on_statusbar_size(pnode);
+        // 从插件页面切换时获取鼠标焦点
+        on_proc_msg_active(pnode);
     }
 }
 
@@ -387,7 +320,7 @@ on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
     on_proc_msg_size(hwnd, pnode);
     if (pnode && pnode->nc_pos >= 0 && eu_get_config() && eu_get_config()->scroll_to_cursor)
     {
-        if (pnode->hex_mode)
+        if (TAB_HEX_MODE(pnode))
         {
             eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
         }
@@ -553,7 +486,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     TOOLTIPTEXT *p_tips = NULL;
     eu_tabpage *pnode = NULL;
     LRESULT result = 0;
-    if (eu_get_config()->m_menubar && eu_win10_or_later() != (uint32_t)-1 && on_theme_menu_proc(hwnd, message, wParam, lParam, &result))
+    const bool menu_draw = eu_get_config()->m_menubar && eu_win10_or_later() != (uint32_t)-1 && !util_under_wine();
+    if (menu_draw && on_theme_menu_proc(hwnd, message, wParam, lParam, &result))
     {
         return result;
     }
@@ -567,15 +501,29 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_NCLBUTTONDOWN:
         case WM_WINDOWPOSCHANGING:
         case WM_WINDOWPOSCHANGED:
+        {
             return DefWindowProc(hwnd, message, wParam, lParam);
+        }
+        case WM_NCLBUTTONDBLCLK:
+        {   // 防止标签栏被误拖动
+            on_tabpage_variable_reset();
+            return DefWindowProc(hwnd, message, wParam, lParam);
+        }
         case WM_ERASEBKGND:
+        {
             if (!on_dark_enable())
             {
                 return DefWindowProc(hwnd, message, wParam, lParam);
             }
             return 1;
+        }
         case WM_CREATE:
-            if (on_proc_create_widgets(hwnd))
+        {
+            if (!on_theme_setup_font(hwnd))
+            {
+                PostQuitMessage(0);
+            }
+            if (on_proc_create_widgets(hwnd) != SKYLARK_OK)
             {
                 PostQuitMessage(0);
             }
@@ -600,49 +548,36 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
             break;
+        }
         case WM_NCPAINT:
         {
             RECT r = {0};
             HDC hdc = NULL;
             LRESULT result = DefWindowProc(hwnd, WM_NCPAINT, wParam, lParam);
-            if (!on_dark_enable())
-            {   // 系统dark模式关闭时, 动态刷新主题
-                const int i = eu_theme_index();
-                if (i == THEME_BLACK)
-                {
-                    if (on_dark_supports())
-                    {
-                        eu_dark_theme_release(false);
-                        on_proc_msg_size(hwnd, NULL);
-                    }
-                }
-                else if (i == THEME_WHITE)
-                {
-                    hdc = GetWindowDC(hwnd);
-                    on_proc_menu_border(hwnd, &r);
-                    FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
-                }
-            }
-            else
+            if ((hdc = GetWindowDC(hwnd)))
             {
-                hdc = GetWindowDC(hwnd);
                 on_proc_menu_border(hwnd, &r);
                 FillRect(hdc, &r, (HBRUSH)on_dark_get_bgbrush());
-            }
-            if (hdc)
-            {
                 ReleaseDC(hwnd, hdc);
             }
             return result;
         }
         case WM_NCACTIVATE:
+        {
             return 1;
+        }
         case WM_SIZE:
+        {
             if (wParam != SIZE_MINIMIZED)
             {
+                on_treebar_size();
+                on_toolbar_size();
+                on_tabpage_size();
                 on_proc_msg_size(hwnd, NULL);
+                on_statusbar_size(NULL);
             }
             break;
+        }
         case WM_RBUTTONDOWN:
         case WM_LBUTTONDBLCLK:
         {
@@ -663,8 +598,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_TAB_CLICK:
+        {
             on_proc_tab_click(hwnd, (void *)wParam);
             return 1;
+        }
         case WM_UPCHECK_STATUS:
         {
             if ((intptr_t)wParam < 0)
@@ -690,6 +627,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 1;
         }
         case WM_TIMER:
+        {
             if (KEY_DOWN(VK_ESCAPE))
             {
                 if (on_qrgen_hwnd())
@@ -705,7 +643,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 ONCE_RUN(on_changes_window(hwnd));
             }
-            if (eu_get_config()->upgrade.enable)
+            if (eu_get_config()->upgrade.enable && on_update_lookup())
             {
                 if (g_interval_count == EU_UPTIMES)
                 {   // 启动更新进程
@@ -723,27 +661,45 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 on_session_do(hwnd);
             }
             break;
+        }
         case WM_INITMENUPOPUP:
-            // 展开时, 显示菜单状态
+        {   // 展开时, 显示菜单状态
             menu_update_item((HMENU)wParam, false);
             break;
+        }
         case WM_UNINITMENUPOPUP:
-            // 合拢时, 启用所有菜单项
+        {   // 合拢时, 启用所有菜单项
             menu_update_item((HMENU)wParam, true);
             break;
+        }
         case WM_SKYLARK_DESC:
+        {
             return WM_SKYLARK_DESC;
+        }
         case WM_ABOUT_RE:
+        {
             on_search_regxp_error();
             break;
+        }
         case WM_DPICHANGED:
         {
+            eu_logmsg("main window recv WM_DPICHANGED\n");
             on_theme_setup_font(hwnd);
+            menu_bmp_destroy();
             on_tabpage_foreach(hexview_update_theme);
             on_toolbar_refresh(hwnd);
-            on_statusbar_init(hwnd);
-            menu_bmp_destroy();
-            SendMessage(g_treebar, WM_DPICHANGED, 0, 0);
+            if (g_tabpages)
+            {
+                SendMessage(g_tabpages, WM_DPICHANGED, 0, 0);
+            }
+            if (g_treebar)
+            {
+                SendMessage(g_treebar, WM_DPICHANGED, 0, 0);
+            }
+            if (g_statusbar)
+            {
+                SendMessage(g_statusbar, WM_DPICHANGED, 0, 0);
+            }
             break;
         }
         case WM_CTLCOLORLISTBOX:
@@ -789,36 +745,84 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case WM_THEMECHANGED:
+        {
             if (on_dark_supports())
             {
-                HWND snippet = NULL;
-                on_dark_allow_window(hwnd, on_dark_enable());
-                on_dark_refresh_titlebar(hwnd);
-                on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
-                on_tabpage_foreach(on_tabpage_theme_changed);
-                if (g_statusbar)
+                if (wParam == DARK_THEME_APPLY)
                 {
-                    on_statusbar_init(hwnd);
+                    on_dark_allow_window(hwnd, true);
+                    on_dark_refresh_titlebar(hwnd);
+                    if (eu_win11_or_later())
+                    {
+                        on_toolbar_refresh(hwnd);
+                    }
+                    else
+                    {   // win10 dark模式启动时刷新标题栏
+                        util_updateui_titlebar(hwnd);
+                    }
+                    SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
                 }
-                on_toolbar_refresh(hwnd);
-                on_dark_set_theme(g_treebar, L"Explorer", NULL);
-                if (g_filetree)
+                else 
                 {
-                    SendMessage(g_filetree, WM_THEMECHANGED, 0, 0);
-                }
-                if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
-                {
-                    on_dark_set_theme(snippet, L"", L"");
-                    on_dark_set_theme(snippet, L"Explorer", NULL);
+                    HWND snippet = NULL;
+                    HWND htool = on_toolbar_hwnd();
+                    on_dark_allow_window(hwnd, on_dark_enable());
+                    on_dark_refresh_titlebar(hwnd);
+                    if (g_tabpages)
+                    {
+                        on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
+                        on_tabpage_foreach(on_tabpage_theme_changed);
+                    }
+                    if (htool)
+                    {
+                        on_dark_tips_theme(htool, TB_GETTOOLTIPS);
+                        SendMessage(htool, WM_THEMECHANGED, (WPARAM)hwnd, 0);
+                    }
+                    if (g_treebar)
+                    {
+                        SendMessage(g_treebar, WM_THEMECHANGED, 0, 0);
+                    }
+                    if (g_statusbar)
+                    {
+                        SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+                    }
+                    if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
+                    {
+                        on_dark_set_theme(snippet, L"", L"");
+                        on_dark_set_theme(snippet, L"Explorer", NULL);
+                    }
                 }
             }
             break;
+        }
+        case WM_SETTINGCHANGE:
+        {
+            if (on_dark_color_scheme_change(lParam) && eu_theme_index() == THEME_BLACK)
+            {
+                if (util_dark_theme())
+                {
+                    eu_logmsg("swiching dark mode\n");
+                    if (!on_dark_enable() && eu_dark_theme_init(true, true))
+                    {
+                        SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
+                        on_view_refresh_theme(hwnd, true);
+                    }
+                }
+                else if (!eu_win11_or_later())
+                {
+                    eu_logmsg("swiching light mode\n");
+                    eu_dark_theme_release(false);
+                    on_proc_msg_size(hwnd, NULL);
+                }
+            }
+            break;
+        }
         case WM_SYSCOMMAND:
         {
             if (wParam == SC_RESTORE)
             {
                 const LRESULT rv = DefWindowProc(hwnd, message, wParam, lParam);
-                if ((pnode = on_tabpage_focus_at()) && !pnode->hex_mode && pnode->nc_pos >= 0)
+                if ((pnode = on_tabpage_focus_at()) && !TAB_HEX_MODE(pnode) && pnode->nc_pos >= 0)
                 {
                     eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
                 }
@@ -863,24 +867,24 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (IDM_STYLETHEME_BASE <= wm_id && wm_id <= IDM_STYLETHEME_BASE + VIEW_STYLETHEME_MAXCOUNT - 1)
             {
-                on_view_switch_theme(g_hwndmain, wm_id);
+                on_view_switch_theme(hwnd, wm_id);
                 break;
             }
             if (IDM_LOCALES_BASE <= wm_id && wm_id <= IDM_LOCALES_BASE + MAX_MULTI_LANG - 1)
             {
-                i18n_switch_locale(g_hwndmain, wm_id);
+                i18n_switch_locale(hwnd, wm_id);
                 break;
             }
             if (IDM_SET_LUAJIT_EXECUTE <= wm_id && wm_id <= IDM_SET_LUAJIT_EXECUTE + DW_SIZE - 1)
             {
                 eu_logmsg("Run custom menu, wm_id = %d\n", (int)wm_id);
-                on_setting_execute(g_hwndmain, wm_id);
+                on_setting_execute(hwnd, wm_id);
                 break;
             }
             switch (wm_id)
             {
                 case IDM_FILE_NEW:
-                    on_file_new();
+                    on_file_new(NULL);
                     break;
                 case IDM_FILE_OPEN:
                     on_file_open();
@@ -906,6 +910,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_CLOSEALL_EXCLUDE:
                     on_file_exclude_close(pnode);
+                    break;
+                case IDM_FILE_UNMODIFIED:
+                    on_file_unchange_close(pnode);
                     break;
                 case IDM_FILE_RESTORE_RECENT:
                     on_file_restore_recent();
@@ -1322,6 +1329,18 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL:
                     on_search_jmp_next_mark_all(pnode);
                     break;
+                case IDM_EDIT_BOOKMARK_LINES_COPY:
+                    on_edit_bookmark_copy(pnode);
+                    break;
+                case IDM_EDIT_BOOKMARK_LINES_CUT:
+                    on_edit_bookmark_cut(pnode);
+                    break;
+                case IDM_EDIT_BOOKMARK_LINES_REMOVE:
+                    on_edit_bookmark_remove(pnode);
+                    break;
+                case IDM_EDIT_BOOKMARK_LINES_RESERVE:
+                    on_edit_bookmark_reserve_remove(pnode);
+                    break;
                 case IDM_SEARCH_GOTOHOME:
                     on_search_jmp_home(pnode);
                     break;
@@ -1375,7 +1394,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_light_fold();
                     break;
                 case IDM_FORMAT_REFORMAT_JSON:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_format_file_style(pnode);
                         on_symtree_json(pnode);
@@ -1383,7 +1402,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JSON:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
                         on_format_do_compress(pnode, on_format_json_callback);
                         on_symtree_json(pnode);
@@ -1391,7 +1410,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_JS:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
                     {
                         on_format_file_style(pnode);
                         on_symlist_reqular(pnode);
@@ -1399,7 +1418,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JS:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
                     {
                         on_format_do_compress(pnode, on_format_js_callback);
                         on_symlist_reqular(pnode);
@@ -1407,7 +1426,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_XML:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_XML)
                     {
                         on_format_file_style(pnode);
                         on_xml_tree(pnode);
@@ -1415,7 +1434,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_XML:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_XML)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_XML)
                     {
                         on_format_xml_compress(pnode);
                         on_xml_tree(pnode);
@@ -1423,21 +1442,39 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:
-                    on_format_clang_file(pnode, true);
-                    on_sci_refresh_ui(pnode);
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) &&
+                       (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
+                    {
+                        on_format_clang_file(pnode, true);
+                        on_sci_refresh_ui(pnode);
+                    }
                     break;
                 case IDM_FORMAT_RANGLE_STR:
-                    on_format_clang_file(pnode, false);
-                    on_sci_refresh_ui(pnode);
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) &&
+                       (pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
+                    {
+                        on_format_clang_file(pnode, false);
+                        on_sci_refresh_ui(pnode);
+                    }
                     break;
                 case IDM_FORMAT_RUN_SCRIPT:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
                     {
                         on_toolbar_lua_exec(pnode);
                     }
                     break;
                 case IDM_FORMAT_BYTE_CODE:
-                    if (pnode->doc_ptr && !pnode->hex_mode && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
+                    if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_LUA)
                     {
                         do_byte_code(pnode);
                     }
@@ -1550,6 +1587,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_VIEW_SCROLLCURSOR:
                     eu_get_config()->scroll_to_cursor ^= true;
+                    break;
+                case IDM_VIEW_TABBAR_SPLIT:
+                    eu_get_config()->m_tab_split ^= true;
+                    eu_window_resize(hwnd);
                     break;
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
@@ -1677,7 +1718,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     eu_get_config()->m_menubar ^= true;
                     eu_get_config()->m_menubar?(GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK))):SetMenu(hwnd, NULL);
-                    on_proc_msg_size(hwnd, NULL);
                     break;
                 }
                 case IDB_SIZE_1:
@@ -1694,9 +1734,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (eu_get_config()->m_toolbar != wm_id)
                     {
                         eu_get_config()->m_toolbar = wm_id;
-                        g_toolbar_size = wm_id;
+                        on_toolbar_icon_set(wm_id);
                         if (on_toolbar_refresh(hwnd))
                         {
+                            on_toolbar_size();
+                            on_treebar_size();
                             on_proc_msg_size(hwnd, NULL);
                         }
                     }
@@ -1707,15 +1749,17 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if (eu_get_config()->m_toolbar != IDB_SIZE_0)
                     {
-                        g_toolbar_size = eu_get_config()->m_toolbar;
+                        on_toolbar_icon_set(eu_get_config()->m_toolbar);
                         eu_get_config()->m_toolbar = IDB_SIZE_0;
                     }
                     else
                     {
-                        eu_get_config()->m_toolbar = g_toolbar_size ? g_toolbar_size : IDB_SIZE_1;
+                        eu_get_config()->m_toolbar = on_toolbar_icon_get() ? on_toolbar_icon_get() : IDB_SIZE_1;
                     }
                     if (on_toolbar_refresh(hwnd))
                     {
+                        on_toolbar_size();
+                        on_treebar_size();
                         on_proc_msg_size(hwnd, NULL);
                     }
                     break;
@@ -1725,7 +1769,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (eu_get_config() && !(eu_get_config()->m_fullscreen))
                     {
                         eu_get_config()->m_statusbar ^= true;
+                        on_treebar_size();
                         on_proc_msg_size(hwnd, NULL);
+                        on_statusbar_size(NULL);
                     }
                     break;
                 }
@@ -1773,7 +1819,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (lpnmhdr->code)
             {
                 case NM_CLICK:
-                    if (!pnode->hex_mode && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
+                {
+                    if (!TAB_HEX_MODE(pnode) && !TAB_HAS_PDF(pnode) && g_statusbar && lpnmhdr->hwndFrom == g_statusbar)
                     {
                         POINT pt;
                         LPNMMOUSE lpnmm = (LPNMMOUSE)lParam;
@@ -1781,13 +1828,14 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_statusbar_pop_menu((int)lpnmm->dwItemSpec, &pt);
                     }
                     break;
+                }
                 case NM_CUSTOMDRAW:
                 {
                     if (eu_get_config() && eu_get_config()->m_toolbar && GetDlgItem(hwnd, IDC_TOOLBAR) == lpnmhdr->hwndFrom)
                     {
                         LPNMTBCUSTOMDRAW lptoolbar = (LPNMTBCUSTOMDRAW)lParam;
                         if (lptoolbar)
-                        {
+                        {   // 绘制toolbar
                             FillRect(lptoolbar->nmcd.hdc, &lptoolbar->nmcd.rc, (HBRUSH)on_dark_get_bgbrush());
                         }
                     }
@@ -1923,13 +1971,13 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if ((lpnotify->updated))
                     {
-                        if (pnode && (!(pnode->hex_mode || pnode->plugin)))
+                        if (pnode && (!(TAB_HEX_MODE(pnode) || pnode->plugin)))
                         {
                             on_hyper_update_style(pnode);
                         }
                         if (lpnotify->updated & SC_UPDATE_SELECTION)
                         {
-                            if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))
+                            if (pnode->raw_size < BUFF_32M && (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT)))
                             {
                                 on_view_editor_selection(pnode);
                             }
@@ -2045,19 +2093,18 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (LOWORD(wParam) != WA_INACTIVE && (pnode = on_tabpage_focus_at()))
             {
-                if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
-                {
-                    SetFocus(pnode->hwnd_sc);
-                }
+                on_proc_msg_active(pnode);
             }
             break;
         }
         case WM_DROPFILES:
+        {
             if (wParam)
             {
                 on_file_drop((HDROP) wParam);
             }
             break;
+        }
         case WM_MOVE:
         {
             HWND hwnd_clip = on_toolbar_clip_hwnd();
@@ -2069,32 +2116,34 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostMessage(hwnd_document_map, WM_MOVE, 0, 0);
             }
-            if (g_statusbar)
-            {
-                PostMessage(g_statusbar, WM_MOVE, 0, 0);
-            }
             break;
         }
         case WM_CLOSE:
+        {
             if (hwnd == g_hwndmain)
             {
                 on_file_edit_exit(hwnd);
             }
             break;
+        }
         case WM_BACKUP_OVER:
+        {
             if (hwnd == g_hwndmain)
             {
                 DestroyWindow(hwnd);
             }
             break;
+        }
         case WM_DESTROY:
-            {
-                on_proc_destory_window(hwnd);
-                eu_logmsg("main window WM_DESTROY\n");
-                break;
-            }
+        {
+            on_proc_destory_window(hwnd);
+            eu_logmsg("main window WM_DESTROY\n");
+            break;
+        }
         default:
+        {
             return DefWindowProc(hwnd, message, wParam, lParam);
+        }
     }
     return 0;
 }
@@ -2117,6 +2166,22 @@ on_proc_class_register(HINSTANCE instance)
 }
 
 void
+on_proc_msg_active(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
+        {
+            SetFocus(pnode->hwnd_sc);
+        }
+        if (eu_get_config()->m_statusbar && g_statusbar)
+        {
+            on_statusbar_update(pnode);
+        }
+    }
+}
+
+void
 on_proc_sync_wait(void)
 {   // 销毁定时器
     KillTimer(g_hwndmain, EU_TIMER_ID);
@@ -2126,12 +2191,6 @@ on_proc_sync_wait(void)
     on_update_thread_wait();
     // 等待保存会话线程结束
     on_session_thread_wait();
-}
-
-void
-on_proc_resize(HWND hwnd)
-{   // 当在线程需要刷新界面时, 使用消息让主线程刷新
-    SendMessage(hwnd ? hwnd : eu_module_hwnd(), WM_SIZE, 0, 0);
 }
 
 void
@@ -2206,8 +2265,8 @@ eu_dpi_scale_font(void)
 int
 eu_dpi_scale_style(int value, const int scale, const int min_value)
 {
-	value = (scale == USER_DEFAULT_SCREEN_DPI*100) ? value : MulDiv(value, scale, USER_DEFAULT_SCREEN_DPI*100);
-	return MAX(value, min_value);
+    value = (scale == USER_DEFAULT_SCREEN_DPI*100) ? value : MulDiv(value, scale, USER_DEFAULT_SCREEN_DPI*100);
+    return MAX(value, min_value);
 }
 
 int
@@ -2219,18 +2278,6 @@ eu_dpi_scale_xy(int adpi, int m)
         return MulDiv(m, dpx, USER_DEFAULT_SCREEN_DPI);
     }
     return m;
-}
-
-bool
-eu_create_toolbar(HWND hwnd)
-{
-    return (on_toolbar_create(hwnd) == 0);
-}
-
-bool
-eu_create_statusbar(HWND hwnd)
-{
-    return on_statusbar_init(hwnd);
 }
 
 void
@@ -2258,7 +2305,7 @@ eu_before_proc(MSG *p_msg)
         on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
         return 1;
     }
-    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !pnode->hex_mode && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
+    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !TAB_HEX_MODE(pnode) && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
         bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
@@ -2305,7 +2352,6 @@ eu_create_main_window(HINSTANCE instance)
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);
             g_hwndmain = CreateWindowEx(WS_EX_ACCEPTFILES, APP_CLASS, app_title, ac_flags, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, instance, NULL);
-            on_theme_setup_font(g_hwndmain);
         }
     }
     return g_hwndmain;

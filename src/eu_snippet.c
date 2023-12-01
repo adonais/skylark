@@ -702,7 +702,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                 }
                 if (hwnd_lst)
                 {
-                    on_dark_set_theme(hwnd_lst, L"DarkMode_Explorer", NULL);
+                    on_dark_set_theme(hwnd_lst, DARKMODE, NULL);
                 }
                 UpdateWindowEx(hdlg);
             }

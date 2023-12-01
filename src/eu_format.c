@@ -481,7 +481,7 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
     size_t txt_len = 0;
     do
     {
-        if (!pnode || !pnode->doc_ptr || pnode->hex_mode || pnode->plugin)
+        if (!pnode || !pnode->doc_ptr || TAB_HEX_MODE(pnode) || pnode->plugin)
         {
             break;
         }
@@ -544,7 +544,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
             do
             {
                 size_t text_len = 0;
-                if (!pnode || !pnode->doc_ptr || pnode->hex_mode || pnode->plugin)
+                if (!pnode || !pnode->doc_ptr || TAB_HEX_MODE(pnode) || pnode->plugin)
                 {
                     break;
                 }
@@ -616,7 +616,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
 void
 on_format_file_style(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && pnode->doc_ptr)
     {
         if (pnode->doc_ptr->doc_type == DOCTYPE_JSON || pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
         {
@@ -677,7 +677,7 @@ on_format_get_lines(sptr_t *vec_lines, const int vec_size, wchar_t *pstr, const 
 void
 on_format_check_indentation(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         size_t vec_size = 0;
         wchar_t *pmsg = NULL;

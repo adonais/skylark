@@ -139,6 +139,7 @@ struct eu_config
     bool block_fold;
     bool m_tab_tip;
     bool m_code_hint;
+    bool m_tab_split;
     
     int m_close_way;
     int m_close_draw;
@@ -470,6 +471,10 @@ void eu_reset_accs_mask(void);
 void eu_reset_snip_mask(void);
 void eu_reset_theme_mask(void);
 
+/* 是否运行在Linux/Wine */
+bool eu_under_wine(void);
+/* 文件是否在环境变量路径中 */
+bool eu_which(const char *path);
 /* 获取系统版本 */
 const uint32_t eu_win10_or_later(void);
 

@@ -22,13 +22,14 @@ void
 on_view_filetree(void)
 {
     eu_get_config()->m_ftree_show ^= true;
+    on_treebar_size();
     eu_window_resize(NULL);
 }
 
 void
 on_view_symtree(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && (pnode->hwnd_symlist || pnode->hwnd_symtree))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
         if ((pnode->sym_show ^= true))
         {
@@ -41,7 +42,7 @@ on_view_symtree(eu_tabpage *pnode)
 void
 on_view_document_map(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         if ((pnode->map_show ^= true) && on_map_launch())
         {
@@ -52,9 +53,9 @@ on_view_document_map(eu_tabpage *pnode)
 }
 
 void
-on_view_result_show(eu_tabpage *pnode, int key)
+on_view_result_show(eu_tabpage *pnode, const int key)
 {
-    if (pnode && !pnode->hex_mode && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
     {
         if (!pnode->result_show)
         {
@@ -70,10 +71,10 @@ on_view_result_show(eu_tabpage *pnode, int key)
 }
 
 int
-on_view_switch_type(int m_type)
+on_view_switch_type(const int m_type)
 {
     eu_tabpage *pnode = on_tabpage_focus_at();
-    if (pnode && !pnode->hex_mode && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         on_sci_resever_tab(pnode);
         if (m_type < 0)
@@ -126,11 +127,15 @@ on_view_refresh_scroll(void)
     }
 }
 
-static int
-on_view_refresh_theme(HWND hwnd)
+int
+on_view_refresh_theme(HWND hwnd, const bool reload)
 {
     HWND snippet = NULL;
     on_dark_delete_theme_brush();
+    if (reload && util_under_wine())
+    {
+        on_theme_setup_font(hwnd);
+    }
     on_treebar_update_theme();
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
@@ -139,7 +144,7 @@ on_view_refresh_theme(HWND hwnd)
         {
             break;
         }
-        if (p->hex_mode)
+        if (TAB_HEX_MODE(p))
         {
             hexview_update_theme(p);
         }
@@ -184,15 +189,20 @@ on_view_refresh_theme(HWND hwnd)
             on_snippet_reload(pview);
         }
     }
-    menu_bmp_destroy();
-    on_view_refresh_scroll();
-    SendMessage(hwnd, WM_SIZE, 0, 0);
-    UpdateWindowEx(hwnd);
+    if (reload)
+    {
+        menu_bmp_destroy();
+        on_view_refresh_scroll();
+        on_toolbar_redraw(hwnd);
+        on_splitter_redraw();
+        SendMessage(hwnd, WM_SIZE, 0, 0);
+        UpdateWindowEx(hwnd);
+    }
     return SKYLARK_OK;
 }
 
 int
-on_view_switch_theme(HWND hwnd, int id)
+on_view_switch_theme(HWND hwnd, const int id)
 {
     int count = 0;
     HFONT hfont = NULL;
@@ -236,7 +246,7 @@ on_view_switch_theme(HWND hwnd, int id)
     {
         eu_dark_theme_release(false);
     }
-    return on_view_refresh_theme(hwnd);
+    return on_view_refresh_theme(hwnd, true);
 }
 
 int
@@ -250,7 +260,7 @@ on_view_modify_theme(void)
             eu_logmsg("%s: on_theme_setup_font failed\n", __FUNCTION__);
             return 1;
         }
-        return on_view_refresh_theme(hwnd);
+        return on_view_refresh_theme(hwnd, false);
     }
     return SKYLARK_OK;
 }
@@ -319,7 +329,7 @@ on_view_tab_width(HWND hwnd, eu_tabpage *pnode)
             }
             for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
-                if ((p = on_tabpage_get_ptr(index)) != NULL && !p->hex_mode && !p->pmod)
+                if ((p = on_tabpage_get_ptr(index)) != NULL && !TAB_HEX_MODE(p) && !p->pmod)
                 {
                     if (p->doc_ptr)
                     {
@@ -348,7 +358,7 @@ on_view_space_converter(HWND hwnd, eu_tabpage *pnode)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p != NULL && !p->hex_mode && !p->pmod)
+        if (p != NULL && !TAB_HEX_MODE(p) && !p->pmod)
         {
             if (p->doc_ptr)
             {
@@ -395,7 +405,7 @@ on_view_light_fold(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {   // 是否高亮显示当前折叠块
             eu_sci_call(p, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
         }
@@ -409,7 +419,7 @@ on_view_wrap_line(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
         }
@@ -423,7 +433,7 @@ on_view_line_num(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_LINENUMBER_INDEX, (eu_get_config()->m_linenumber ? MARGIN_LINENUMBER_WIDTH : 0));
         }
@@ -437,7 +447,7 @@ on_view_bookmark(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_BOOKMARK_INDEX, (eu_get_config()->eu_bookmark.visable ? MARGIN_BOOKMARK_WIDTH : 0));
         }
@@ -450,7 +460,7 @@ on_view_update_fold(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod && p->doc_ptr && p->foldline)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod && p->doc_ptr && p->foldline)
         {
             eu_sci_call(p, SCI_SETMARGINWIDTHN, MARGIN_FOLD_INDEX, eu_get_config()->block_fold ? MARGIN_FOLD_WIDTH : 0);
         }
@@ -478,7 +488,7 @@ on_view_white_space(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWWS, (eu_get_config()->ws_visiable == true ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
         }
@@ -492,7 +502,7 @@ on_view_line_visiable(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
         }
@@ -506,7 +516,7 @@ on_view_indent_visiable(void)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !p->hex_mode && !p->pmod)
+        if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
             eu_sci_call(p, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
         }
@@ -527,7 +537,7 @@ on_view_history_visiable(eu_tabpage *pnode, const int wm_id)
         const uint32_t maskn = wm_id - IDM_VIEW_HISTORY_PLACEHOLDE;
         for (index = 0; index < count; ++index)
         {
-            if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+            if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
             {   // 先给出提示
                 if (maskn > 1 && history_mask - IDM_VIEW_HISTORY_PLACEHOLDE == 1 &&
                    (eu_sci_call(p, SCI_CANUNDO, 0, 0) || eu_sci_call(p, SCI_CANREDO, 0, 0)))
@@ -550,7 +560,7 @@ on_view_history_visiable(eu_tabpage *pnode, const int wm_id)
             eu_get_config()->history_mask = (uint32_t)wm_id;
             for (index = 0; index < count; ++index)
             {
-                if ((p = on_tabpage_get_ptr(index)) && !p->hex_mode && !p->pmod)
+                if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
                 {
                     on_sci_update_history_margin(p);
                 }
@@ -618,7 +628,7 @@ on_view_zoom_reset(eu_tabpage *pnode)
 int
 on_view_editor_selection(eu_tabpage *pnode)
 {
-    if (!pnode || pnode->hex_mode || pnode->pmod)
+    if (!pnode || TAB_HEX_MODE(pnode) || pnode->pmod)
     {
         return SKYLARK_OK;
     }
@@ -643,7 +653,7 @@ on_view_editor_selection(eu_tabpage *pnode)
         {
             flags |= SCFIND_WHOLEWORD;
         }
-        while (true)
+        while (found_pos >= 0)
         {
             found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
             if (found_pos >= 0)
@@ -654,10 +664,6 @@ on_view_editor_selection(eu_tabpage *pnode)
                 }
                 start_pos = found_pos+select_len;
                 ++pnode->match_count;
-            }
-            else
-            {
-                break;
             }
         }
         free(select_buf);
@@ -748,29 +754,28 @@ on_view_full_sreen(HWND hwnd)
     eu_get_config()->m_fullscreen ^= true;
     if (!eu_get_config()->m_fullscreen)
     {
+        int size = on_toolbar_icon_get();
         eu_get_config()->m_menubar = true;
-        eu_get_config()->m_toolbar = g_toolbar_size > 0 ? g_toolbar_size : IDB_SIZE_1;
+        eu_get_config()->m_toolbar = size > 0 ? size : IDB_SIZE_1;
+        on_toolbar_set_height(size > 0 ? size : IDB_SIZE_1);
         eu_get_config()->m_statusbar = true;
         GetMenu(hwnd)?(void)0:SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
-        if (!GetDlgItem(hwnd, IDC_TOOLBAR))
-        {
-            on_toolbar_create(hwnd);
-        }
+        on_toolbar_refresh(hwnd);
     }
     else
     {
         eu_get_config()->m_menubar = false;
-        g_toolbar_size = eu_get_config()->m_toolbar;
+        on_toolbar_icon_set(eu_get_config()->m_toolbar);
         eu_get_config()->m_toolbar = IDB_SIZE_0;
         eu_get_config()->m_statusbar = false;
         GetMenu(hwnd)?SetMenu(hwnd, NULL):(void)0;
+            
     }
     on_view_setfullscreenimpl(hwnd);
-    eu_window_resize(hwnd);
 }
 
 void
-on_view_font_quality(HWND hwnd, int res_id)
+on_view_font_quality(HWND hwnd, const int res_id)
 {
     int old_id = eu_get_config()->m_quality;
     if (eu_get_config()->m_quality != res_id)
@@ -780,23 +785,25 @@ on_view_font_quality(HWND hwnd, int res_id)
         {
             eu_logmsg("%s: on_theme_setup_font return false\n", __FUNCTION__);
             eu_get_config()->m_quality = old_id;
-            return;
         }
-        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        else 
         {
-            eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p)
+            for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
-                on_sci_init_style(p);
-                on_sci_after_file(p, false);
+                eu_tabpage *p = on_tabpage_get_ptr(index);
+                if (p)
+                {
+                    on_sci_init_style(p);
+                    on_sci_after_file(p, false);
+                }
             }
+            eu_window_resize(hwnd);
         }
-        eu_window_resize(hwnd);
     }
 }
 
 void
-on_view_enable_rendering(HWND hwnd, int res_id)
+on_view_enable_rendering(HWND hwnd, const int res_id)
 {
     if (!util_under_wine() && eu_get_config()->m_render != res_id)
     {

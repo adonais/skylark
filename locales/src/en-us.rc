@@ -36,6 +36,7 @@ BEGIN
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
         MENUITEM "Close Other Documents",                              IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close All Unchanged",                                IDM_FILE_UNMODIFIED
         MENUITEM MF_SEPARATOR
         MENUITEM "Restore Recent Closed File",                         IDM_FILE_RESTORE_RECENT
         MENUITEM "Reload The Current File",                            IDM_FILE_RELOAD_CURRENT
@@ -202,7 +203,7 @@ BEGIN
             MENUITEM "Moves To The Next Block",                        IDM_SEARCH_MOVEBOTTOM_FIRSTLINE
         END
         MENUITEM MF_SEPARATOR
-        POPUP "&Go To ..."
+        POPUP "&Go To ...",                                            IDM_EDIT_GOLINE_GROUP
         BEGIN
             MENUITEM "Jump To First Line",                             IDM_SEARCH_GOTOHOME
             MENUITEM "Jump To Last Line",                              IDM_SEARCH_GOTOEND
@@ -225,6 +226,11 @@ BEGIN
             MENUITEM "Jump Next Bookmark (Current File)",              IDM_SEARCH_GOTO_NEXT_BOOKMARK
             MENUITEM "Jump Previous Bookmark (All Open Files)",        IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL
             MENUITEM "Jump Next Bookmark (All Open Files)",            IDM_SEARCH_GOTO_NEXT_BOOKMARK_INALL
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Copy Bookmarked Lines",                          IDM_EDIT_BOOKMARK_LINES_COPY
+            MENUITEM "Cut Bookmarked Lines",                           IDM_EDIT_BOOKMARK_LINES_CUT
+            MENUITEM "Remove Bookmarked Lines",                        IDM_EDIT_BOOKMARK_LINES_REMOVE
+            MENUITEM "Remove Non-Bookmarked Lines",                    IDM_EDIT_BOOKMARK_LINES_RESERVE
         END
         POPUP "Navigation",                                            IDM_EDIT_PLACEHOLDE14
         BEGIN
@@ -238,11 +244,12 @@ BEGIN
         MENUITEM "&Document Map",                                      IDM_VIEW_DOCUMENT_MAP
         MENUITEM "&Symbolic Window",                                   IDM_VIEW_SYMTREE
         MENUITEM MF_SEPARATOR
-        POPUP "P&anels"
+        POPUP "Panels"
         BEGIN
             MENUITEM "Full Screen Mode",                               IDM_VIEW_FULLSCREEN
-            MENUITEM "Show M&enubar",                                  IDM_VIEW_MENUBAR
-            MENUITEM "Show Stat&usbar",                                IDM_VIEW_STATUSBAR
+            MENUITEM "Show Menubar",                                   IDM_VIEW_MENUBAR
+            MENUITEM "Show Toolbar",                                   IDM_VIEW_TOOLBAR
+            MENUITEM "Show Statusbar",                                 IDM_VIEW_STATUSBAR
         END
         POPUP "Customize Titlebar",                                    IDM_VIEW_TITLEBAR_GROUP
         BEGIN
@@ -270,7 +277,7 @@ BEGIN
         MENUITEM MF_SEPARATOR
         MENUITEM "&Hex Edit View",                                     IDM_VIEW_HEXEDIT_MODE
         MENUITEM MF_SEPARATOR
-        POPUP "H&ighlight"
+        POPUP "Highlight",                                             IDM_VIEW_HIGHLIGHT_GROUP
         BEGIN
             MENUITEM "Highlight The Matching &Brace",                  IDM_VIEW_HIGHLIGHT_BRACE
             MENUITEM "Highlight The Matching &String",                 IDM_VIEW_HIGHLIGHT_STR
@@ -278,7 +285,7 @@ BEGIN
         END
         MENUITEM "Auto Indent",                                        IDM_EDIT_AUTO_INDENTATION
         MENUITEM MF_SEPARATOR
-        POPUP "&Display",                                              IDM_VIEW_DISPLAY_PLACEHOLDE
+        POPUP "Display",                                               IDM_VIEW_DISPLAY_PLACEHOLDE
         BEGIN
             MENUITEM "Line Numbers",                                   IDM_VIEW_LINENUMBER_VISIABLE
             MENUITEM "Show Bookmark",                                  IDM_VIEW_BOOKMARK_VISIABLE
@@ -320,8 +327,12 @@ BEGIN
             MENUITEM "&Always Draw",                                   IDM_TABCLOSE_ALWAYS
             MENUITEM "&Never Draw",                                    IDM_TABCLOSE_NONE
         END
-        MENUITEM "Switch The Next Tab",                                IDM_VIEW_SWITCH_TAB
-        MENUITEM "Switch Tabs To Scroll To The Cursor Position",       IDM_VIEW_SCROLLCURSOR
+        POPUP "Other Options For Tabbar"
+        BEGIN
+            MENUITEM "Switch The Next Tab",                            IDM_VIEW_SWITCH_TAB
+            MENUITEM "Scroll To Anchor When Switching Tabs",           IDM_VIEW_SCROLLCURSOR
+            MENUITEM "Split Line On Multiline Tabs",                   IDM_VIEW_TABBAR_SPLIT
+        END
         MENUITEM MF_SEPARATOR
         POPUP "Zoom",                                                  IDM_EDIT_PLACEHOLDE_ZOOM
         BEGIN
@@ -469,6 +480,7 @@ BEGIN
     BEGIN
         MENUITEM "&Close Tab",                                         IDM_FILE_CLOSE
         MENUITEM "Close &Other Tabs",                                  IDM_FILE_CLOSEALL_EXCLUDE
+        MENUITEM "Close All &Unchanged",                               IDM_FILE_UNMODIFIED
         MENUITEM "Close All Tabs",                                     IDM_FILE_CLOSEALL
         MENUITEM "Close The Left Tabs",                                IDM_TAB_CLOSE_LEFT
         MENUITEM "Close The Right Tabs",                               IDM_TAB_CLOSE_RIGHT
@@ -870,8 +882,9 @@ BEGIN
             MENUITEM "mac-cyrillic",                        IDM_OTHER_2
             MENUITEM "mac-centraleurope",                   IDM_OTHER_3
             MENUITEM "Native Codepage",                     IDM_OTHER_ANSI
-            MENUITEM "Binary code",                         IDM_OTHER_BIN,,0x00000003
-            MENUITEM "Unknown code",                        IDM_UNKNOWN,,0x00000003
+            MENUITEM "Binary Code",                         IDM_OTHER_BIN,,0x00000003
+            MENUITEM "Plugins Code",                        IDM_OTHER_PLUGIN,,0x00000003
+            MENUITEM "Unknown Code",                        IDM_UNKNOWN,,0x00000003
         END
     }
 END

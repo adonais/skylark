@@ -18,6 +18,8 @@
 #include "framework.h"
 #include <uxtheme.h>
 
+#define FONT_DEFAULT_SIZE (-12)
+
 static HFONT g_hfont;
 static HWND  hwnd_edit_tips;
 static HBRUSH brush_linenumber;
@@ -267,6 +269,58 @@ on_theme_update_item(void)
     }
 }
 
+void
+on_theme_update_font(const control_id id)
+{
+    switch (id)
+    {
+        case all_id:
+            if (g_tabpages)
+            {
+                SendMessage(g_tabpages, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            if (g_treebar)
+            {
+                SendMessage(g_treebar, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            if (g_filetree)
+            {
+                SendMessage(g_filetree, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            if (g_statusbar)
+            {
+                SendMessage(GetDlgItem(g_statusbar, IDM_BTN_RW), WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        case tabbar_id:
+            if (g_tabpages)
+            {
+                SendMessage(g_tabpages, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;     
+        case filebar_id:
+            if (g_treebar)
+            {
+                SendMessage(g_treebar, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        case filetree_id:
+            if (g_filetree)
+            {
+                SendMessage(g_filetree, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        case btn_id:
+            if (g_statusbar)
+            {
+                SendMessage(GetDlgItem(g_statusbar, IDM_BTN_RW), WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 HFONT
 on_theme_font_hwnd(void)
 {
@@ -276,19 +330,25 @@ on_theme_font_hwnd(void)
 bool
 on_theme_setup_font(HWND hwnd)
 {
+    NONCLIENTMETRICS ncm = {sizeof(NONCLIENTMETRICS)};
+    SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+    LOGFONT logfont = ncm.lfMessageFont;
+    if (util_under_wine())
+    {   // 跟windows不同, wine预先对字体进行了缩放
+        util_make_u16(eu_get_theme()->item.text.font, logfont.lfFaceName, _countof(logfont.lfFaceName) - 1);
+    }
+    else
+    {   // 在windows下, 因为10与11的差别, 使用标准字体大小
+        logfont.lfHeight = -MulDiv(-FONT_DEFAULT_SIZE, eu_get_dpi(hwnd), USER_DEFAULT_SCREEN_DPI);
+    }
     if (g_hfont)
     {
         DeleteObject(g_hfont);
     }
-    NONCLIENTMETRICS ncm = {sizeof(NONCLIENTMETRICS)};
-    SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
-    LOGFONT logfont = ncm.lfMessageFont;
-    int font_size = logfont.lfHeight < 0 ? -logfont.lfHeight : logfont.lfHeight;
-    logfont.lfHeight = -MulDiv(font_size, eu_get_dpi(hwnd), USER_DEFAULT_SCREEN_DPI);
-    g_hfont = CreateFontIndirect(&logfont);
-    if (g_hfont)
+    if ((g_hfont = CreateFontIndirect(&logfont)))
     {
         SendMessage(hwnd, WM_SETFONT, (WPARAM) g_hfont, 0);
+        on_theme_update_font(all_id);
     }
     return (g_hfont != NULL);
 }
@@ -472,7 +532,7 @@ choose_style_font(char *font, int *fontsize, int *bold)
 }
 
 static int
-choose_text_color(HWND hwnd, uint32_t *color)
+choose_style_color(HWND hwnd, uint32_t *color)
 {
     COLORREF cr = {0};
     COLORREF crs[16];
@@ -580,7 +640,7 @@ choose_text_color(HWND hwnd, uint32_t *color)
     }                                                                                                                 \
     else if (wm_id == _idc_settextcolor_button_)                                                                      \
     {                                                                                                                 \
-        choose_text_color(hdlg, &(dlg_style._st_memb_.color));                                                        \
+        choose_style_color(hdlg, &(dlg_style._st_memb_.color));                                                       \
         InvalidateRect(_hwnd_handle_name_, NULL, TRUE);                                                               \
     }
 
@@ -662,7 +722,7 @@ theme_show_balloon_tip(const HWND hdlg, const int resid)
             hwnd_edit_tips = util_create_tips(hwnd_edit, hdlg, ptxt);
             if (hwnd_edit_tips && on_dark_enable())
             {
-                on_dark_set_theme(hwnd_edit_tips, L"DarkMode_Explorer", NULL);
+                on_dark_set_theme(hwnd_edit_tips, DARKMODE, NULL);
             }
         }
     }
@@ -938,14 +998,15 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             }
             else if ((HWND) lParam == hwnd_activetab_static)
             {
-                dlg_style.activetab.bgcolor &= 0x00ffffff;
+                const bool dark = on_dark_enable();
+                colour cr = !dark ? (dlg_style.activetab.bgcolor &= 0x00ffffff) : (dlg_style.activetab.color &= 0x00ffffff);
                 SetTextColor((HDC) wParam, dlg_style.text.color);
-                SetBkColor((HDC) wParam, dlg_style.activetab.bgcolor);
+                SetBkColor((HDC) wParam, cr);
                 if (brush_activetab)
                 {
                     DeleteObject(brush_activetab);
                 }
-                brush_activetab = CreateSolidBrush(dlg_style.activetab.bgcolor);
+                brush_activetab = CreateSolidBrush(cr);
                 return (INT_PTR) brush_activetab;
             }
             else if ((HWND) lParam == hwnd_result_lineno_static)
@@ -1030,7 +1091,13 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     if (hwnd_caret)
                     {
                         Edit_GetText(hwnd_caret, alpha, 4);
-                        value = _tstoi(alpha) << 24 & 0xff000000;
+                        value = _tstoi(alpha);
+                        if (value < 1 || value > 9)
+                        {
+                            value = 2;
+                        }
+                        value = value << 24 & 0xff000000;
+                        dlg_style.caret.color &= 0x00ffffff;
                         dlg_style.caret.color |= value;
                     }
                     memcpy(&(eu_get_theme()->item), &dlg_style, sizeof(struct styletheme));
@@ -1053,15 +1120,15 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 case IDC_SETTEXTCOLOR_LINENUMBER_BTN:
-                    choose_text_color(hdlg, &(dlg_style.linenumber.color));
+                    choose_style_color(hdlg, &(dlg_style.linenumber.color));
                     InvalidateRect(hwnd_linenumber_static, NULL, TRUE);
                     break;
                 case IDC_SETBGCOLOR_LINENUMBER_BTN:
-                    choose_text_color(hdlg, &(dlg_style.linenumber.bgcolor));
+                    choose_style_color(hdlg, &(dlg_style.linenumber.bgcolor));
                     InvalidateRect(hwnd_linenumber_static, NULL, TRUE);
                     break;
                 case IDC_SETBGCOLOR_FOLDMARGIN_BTN:
-                    choose_text_color(hdlg, &(dlg_style.foldmargin.bgcolor));
+                    choose_style_color(hdlg, &(dlg_style.foldmargin.bgcolor));
                     InvalidateRect(hwnd_foldmargin_static, NULL, TRUE);
                     break;
                 case IDC_SETFONT_TEXT_BTN:
@@ -1094,74 +1161,74 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 }
                 case IDC_SETTEXTCOLOR_TEXT_BTN:
-                    choose_text_color(hdlg, &(dlg_style.text.color));
+                    choose_style_color(hdlg, &(dlg_style.text.color));
                     InvalidateRect(hwnd_text_static, NULL, TRUE);
                     break;
                 case IDC_SETBGCOLOR_TEXT_BTN:
-                    choose_text_color(hdlg, &(dlg_style.text.bgcolor));
+                    choose_style_color(hdlg, &(dlg_style.text.bgcolor));
                     InvalidateRect(hwnd_text_static, NULL, TRUE);
                     break;
                 case IDC_SETBGCOLOR_CARETLINE_BTN:
-                    choose_text_color(hdlg, &(dlg_style.caretline.bgcolor));
+                    choose_style_color(hdlg, &(dlg_style.caretline.bgcolor));
                     InvalidateRect(hwnd_caretline_static, NULL, TRUE);
                     break;
                 case IDC_SETBGCOLOR_INDICATOR_BTN:
                 {
-                    choose_text_color(hdlg, &dlg_style.indicator.bgcolor);
+                    choose_style_color(hdlg, &dlg_style.indicator.bgcolor);
                     InvalidateRect(hwnd_indicator_static, NULL, TRUE);
                     break;
                 }
                 case IDC_SETBGCOLOR_TAB_BTN:
                 {
-                    choose_text_color(hdlg, &dlg_style.activetab.bgcolor);
+                    choose_style_color(hdlg, !on_dark_enable() ? &dlg_style.activetab.bgcolor : &dlg_style.activetab.color);
                     InvalidateRect(hwnd_activetab_static, NULL, TRUE);
                     break;
                 }
                 case IDC_SETCOLOR_CARET_BTN:
                 {
-                    choose_text_color(hdlg, &(dlg_style.caret.color));
+                    choose_style_color(hdlg, &(dlg_style.caret.color));
                     InvalidateRect(hwnd_caret_static, NULL, TRUE);
                     break;
                 }
                 case IDC_SETTEXTCOLOR_LINENO_BTN:
                 {
-                    choose_text_color(hdlg, &dlg_style.results.color);
+                    choose_style_color(hdlg, &dlg_style.results.color);
                     InvalidateRect(hwnd_result_lineno_static, NULL, FALSE);
                     break;
                 }
                 case IDC_SETTEXTCOLOR_LINEKEY_BTN:
                 {
-                    choose_text_color(hdlg, &(dlg_style.results.bgcolor));
+                    choose_style_color(hdlg, &(dlg_style.results.bgcolor));
                     InvalidateRect(hwnd_result_key_static, NULL, FALSE);
                     break;
                 }
                 case IDC_SETTEXTCOLORBRACESECTION_BTN:
                 {
-                    choose_text_color(hdlg, &dlg_style.bracesection.color);
+                    choose_style_color(hdlg, &dlg_style.bracesection.color);
                     InvalidateRect(hwnd_bracesection_static, NULL, FALSE);
                     break;
                 }
                 case IDC_SETTEXTCOLOR_HISTORY_BTN:
                 {
-                    choose_text_color(hdlg, &dlg_style.nchistory.color);
+                    choose_style_color(hdlg, &dlg_style.nchistory.color);
                     InvalidateRect(hwnd_nchistory_static, NULL, FALSE);
                     break;
                 }
                 case IDC_SETTEXTCOLOR_HISTORY2_BTN:
                 {
-                    choose_text_color(hdlg, &(dlg_style.nchistory.bgcolor));
+                    choose_style_color(hdlg, &(dlg_style.nchistory.bgcolor));
                     InvalidateRect(hwnd_nchistory_static2, NULL, FALSE);
                     break;
                 }
                 case IDC_SETTEXTCOLOR_HISTORYDOC_BTN:
                 {
-                    choose_text_color(hdlg, &dlg_style.dochistory.color);
+                    choose_style_color(hdlg, &dlg_style.dochistory.color);
                     InvalidateRect(hwnd_dochistory_static, NULL, FALSE);
                     break;
                 }
                 case IDC_SETTEXTCOLOR_HISTORYDOC2_BTN:
                 {
-                    choose_text_color(hdlg, &(dlg_style.dochistory.bgcolor));
+                    choose_style_color(hdlg, &(dlg_style.dochistory.bgcolor));
                     InvalidateRect(hwnd_dochistory_static2, NULL, FALSE);
                     break;
                 }

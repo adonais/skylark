@@ -22,8 +22,6 @@
 
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
-static volatile sptr_t last_sci_eusc = 0;
-static volatile sptr_t last_sci_hwnd = 0;
 
 static const char *auto_xpm[] = {
     /* columns rows colors chars-per-pixel */
@@ -224,10 +222,10 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         // 代码折叠栏亮量颜色与填充色
         eu_sci_call(pnode, SCI_SETFOLDMARGINCOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
         eu_sci_call(pnode, SCI_SETFOLDMARGINHICOLOUR, true, eu_get_theme()->item.foldmargin.bgcolor);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDER, eu_get_theme()->item.foldmargin.color);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEREND, eu_get_theme()->item.foldmargin.color);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPEN, eu_get_theme()->item.foldmargin.color);
-		eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPENMID, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDER, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEREND, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPEN, eu_get_theme()->item.foldmargin.color);
+        eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPENMID, eu_get_theme()->item.foldmargin.color);
         // 是否自动换行
         eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? SC_WRAP_CHAR : SC_WRAP_NONE), 0);
         // 换行符样式
@@ -305,6 +303,15 @@ on_sci_reset_zoom(eu_tabpage *pnode)
     }
 }
 
+static inline void
+on_sci_update_size(eu_tabpage *pnode)
+{
+    if (pnode)
+    {
+        pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;    
+    }
+}
+
 void
 on_sci_before_file(eu_tabpage *pnode, const bool init)
 {
@@ -326,7 +333,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
 {
     if (pnode)
     {
-        if (!pnode->hex_mode && !pnode->pmod)
+        if (!TAB_HEX_MODE(pnode) && !pnode->pmod)
         {
             eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
             if (init)
@@ -338,7 +345,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
             on_sci_reset_zoom(pnode);
             if (!pnode->raw_size)
             {
-                pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
+                on_sci_update_size(pnode);
             }
             if (pnode->doc_ptr && pnode->doc_ptr->fn_init_after)
             {   // 设置此标签页的语法解析
@@ -359,9 +366,10 @@ on_sci_refresh_ui(eu_tabpage *pnode)
     if (pnode)
     {
         on_toolbar_update_button();
-        on_statusbar_update();
+        on_statusbar_update(pnode);
         on_sci_update_line_margin(pnode);
         on_sci_update_fold_margin(pnode);
+        on_sci_update_size(pnode);
         util_redraw(g_tabpages, true);
     }
 }
@@ -407,21 +415,11 @@ on_sci_delete_file(const eu_tabpage *pnode)
 }
 
 static void
-on_sci_swap_hwnd(eu_tabpage *pnode)
+on_sci_destroy_hwnd(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && pnode->hwnd_sc)
     {
-        if (!pnode->phex && !pnode->pmod && TabCtrl_GetItemCount(g_tabpages) <= 0 && pnode->hwnd_sc && pnode->eusc)
-        {   // 最后一个标签时, 保存scintilla窗口句柄
-            inter_atom_exchange(&last_sci_hwnd, (sptr_t)pnode->hwnd_sc);
-            inter_atom_exchange(&last_sci_eusc, (sptr_t)pnode->eusc);
-        }
-        else if (pnode->hwnd_sc)
-        {   // 销毁scintilla窗口
-            SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0);
-            inter_atom_exchange(&last_sci_hwnd, 0);
-            inter_atom_exchange(&last_sci_eusc, 0);
-        }
+        SendMessage(pnode->hwnd_sc, WM_CLOSE, 0, 0);
     }
 }
 
@@ -477,9 +475,17 @@ on_sci_destroy_control(eu_tabpage *pnode)
             cvector_freep(&pnode->re_group);
         }
         // 关闭minimap窗口
-        if (!on_tabpage_check_map() && hwnd_document_map)
+        if (!on_tabpage_exist_map())
         {
-            DestroyWindow(hwnd_document_map);
+            if (hwnd_document_map)
+            {
+                DestroyWindow(hwnd_document_map);
+                pnode->map_show = false;
+            }
+        }
+        else if (pnode->map_show && hwnd_document_map)
+        {
+            eu_setpos_window(hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
             pnode->map_show = false;
         }
     }
@@ -490,6 +496,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
 {
     if (STR_NOT_NUL(ppnode))
     {
+        int reason = (*ppnode)->reason;
         util_lock(&(*ppnode)->busy_id);
         // 销毁子窗口资源
         on_sci_destroy_control(*ppnode);
@@ -499,8 +506,11 @@ on_sci_free_tab(eu_tabpage **ppnode)
             np_plugins_destroy(&(*ppnode)->plugin->funcs, &(*ppnode)->plugin->npp, NULL);
             np_plugins_shutdown(&(*ppnode)->pmod, &(*ppnode)->plugin);
         }
-        // 切换16进制时,销毁相关资源
-        on_sci_swap_hwnd(*ppnode);
+        // 销毁编辑器窗口
+        if (reason != TABS_MAYBE_RESERVE)
+        {
+            on_sci_destroy_hwnd(*ppnode);
+        }
         // 关闭可能加载的动态库
         eu_close_dll((*ppnode)->pmod);
         // 清理缓存文件
@@ -508,8 +518,22 @@ on_sci_free_tab(eu_tabpage **ppnode)
         // 清除标签单次运行锁状态
         _InterlockedExchange(&(*ppnode)->lock_id, 0);
         util_unlock(&(*ppnode)->busy_id);
-        eu_safe_free(*ppnode);
-        eu_logmsg("%s: we free the node's memory\n", __FUNCTION__);
+        if (reason != TABS_MAYBE_RESERVE)
+        {
+            eu_safe_free(*ppnode);
+            eu_logmsg("%s: we free the node's memory\n", __FUNCTION__);
+        }
+        else 
+        {
+            (*ppnode)->reason = 0;
+            on_file_new(*ppnode);
+            eu_logmsg("%s: on_file_new() execute\n", __FUNCTION__);
+        }
+        if (reason == TABS_MAYBE_EIXT && on_sql_sync_session() == SKYLARK_OK)
+        {
+            eu_logmsg("close last tab, skylark exit ...\n");
+            SendMessage(eu_module_hwnd(), WM_BACKUP_OVER, 0, 0);
+        }
     }
 }
 
@@ -603,7 +627,7 @@ on_sci_point_left(eu_tabpage *pnode)
 void
 on_sci_character(eu_tabpage *pnode, ptr_notify lpnotify)
 {
-    if (pnode && !pnode->hex_mode && pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
+    if (pnode && !TAB_HEX_MODE(pnode) && pnode->doc_ptr && pnode->doc_ptr->fn_on_char)
     {
         pnode->doc_ptr->fn_on_char(pnode, lpnotify);
     }
@@ -628,7 +652,7 @@ on_sci_update_line_margin(eu_tabpage *pnode)
 void
 on_sci_update_fold_margin(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->hex_mode && !pnode->plugin)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->plugin)
     {
         const int zoom = (const int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
         const int scalex = eu_get_dpi(eu_hwnd_self()) * zoom;
@@ -910,12 +934,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        case WM_SETFOCUS:
-        {
-            NMHDR nm = {0};
-            eu_send_notify(hwnd, NM_SETFOCUS, &nm);
-            break;
-        }
         case WM_DESTROY:
         {
             eu_logmsg("scintilla WM_DESTROY\n");
@@ -965,19 +983,11 @@ on_sci_create(eu_tabpage *pnode, HWND parent, int flags, WNDPROC sc_callback)
 int
 on_sci_init_dlg(eu_tabpage *pnode)
 {
-    if (!pnode)
+    if (pnode)
     {
-        return EUE_POINT_NULL;
+        return on_sci_create(pnode, NULL, !TAB_HEX_MODE(pnode) && pnode->pmod ? WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING : 0, NULL);
     }
-    if (last_sci_hwnd)
-    {
-        pnode->hwnd_sc = (HWND)last_sci_hwnd;
-        pnode->eusc = last_sci_eusc;
-        inter_atom_exchange(&last_sci_hwnd, 0);
-        inter_atom_exchange(&last_sci_eusc, 0);
-        return SKYLARK_OK;
-    }
-    return on_sci_create(pnode, NULL, !pnode->hex_mode && pnode->pmod ? WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_EX_RTLREADING : 0, NULL);
+    return EUE_POINT_NULL;
 }
 
 void
@@ -998,7 +1008,7 @@ sptr_t
 eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l)
 {
     return ((p && p->hwnd_sc) ?
-            (p->hex_mode ? SendMessage(p->hwnd_sc, m, w, l) :
+            (TAB_HEX_MODE(p) ? SendMessage(p->hwnd_sc, m, w, l) :
             (ptr_scintilla && p->eusc) ? ((SciFnDirect)ptr_scintilla)(p->eusc, m, w, l) : 0) :
             0);
 }

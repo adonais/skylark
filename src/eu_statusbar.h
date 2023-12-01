@@ -19,6 +19,7 @@
 #ifndef _EU_STATUSBAR_H_
 #define _EU_STATUSBAR_H_
 
+#define STATUSBAR_DEFHIGHT 22
 #define STATUSBAR_DOC_INFO 0
 #define STATUSBAR_DOC_POS  1
 #define STATUSBAR_DOC_EOLS 2
@@ -40,20 +41,19 @@ extern "C" {
 
 extern HWND g_statusbar;
 
-bool on_statusbar_init(HWND hwnd);
+int  on_statusbar_create_dlg(HWND hwnd);
 int  on_statusbar_height(void);
 int  on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto);
-void on_statusbar_refresh(void);
-void on_statusbar_update(void);
+void on_statusbar_size(eu_tabpage *pnode);
+void on_statusbar_update(eu_tabpage *pnode);
 void on_statusbar_destroy(void);
 void on_statusbar_adjust_box(void);
 void on_statusbar_update_eol(eu_tabpage *pnode, const int eol);
 void on_statusbar_update_line(eu_tabpage *pnode);
 void on_statusbar_update_filesize(eu_tabpage *pnode);
-void on_statusbar_update_coding(eu_tabpage *pnode, const int res_id);
+void on_statusbar_update_coding(eu_tabpage *pnode);
 void on_statusbar_update_fileinfo(eu_tabpage *pnode, const TCHAR *print_str);
-void on_statusbar_dark_mode(void);
-void on_statusbar_dark_release(bool off);
+void on_statusbar_dark_mode(const bool dark);
 void on_statusbar_pop_menu(int parts, LPPOINT pt);
 void on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read);
 

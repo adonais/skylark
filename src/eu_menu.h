@@ -36,7 +36,7 @@
 #define TAB_MENU_CLOSE_SUB    20
 #define TAB_MENU_NEW_SUB      21
 #define TAB_MENU_CBUTTON_SUB  22
-#define TAB_MENU_SCROLLCURSOR 24
+#define TAB_MENU_OTHER        23
 #define PROGRAM_SNIPPET_SUB   15
 #define CUSTOMIZED_CMD_SUB    14
 

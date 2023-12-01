@@ -28,7 +28,6 @@
 #endif
 
 #include "framework.h"
-#include "eu_encoding_utf8.h"
 
 #define CHAR_IN_RANGE(c, lower, upper) (((c) >= (lower)) && ((c) <= (upper)))
 #define CHAR_IS_LATIN(c) ((c) <= 0x7F)
@@ -143,8 +142,9 @@ static eue_code eue_coding[] =
     {IDM_OTHER_2     , "MACCYRILLIC"}      ,
     {IDM_OTHER_3     , "MACCENTRALEUROPE"} ,
     {IDM_OTHER_ANSI  , "ANSI"}             ,
-    {IDM_OTHER_BIN   , "Binary encoding"}  ,
-    {IDM_UNKNOWN     , "Unknown encoding"} ,
+    {IDM_OTHER_BIN   , "Binary Code"}      ,
+    {IDM_OTHER_PLUGIN, "Plugins Code"}     ,
+    {IDM_UNKNOWN     , "Unknown Code"}     ,
     {0               , NULL}
 };
 
@@ -1303,7 +1303,7 @@ eu_iconv_full_text(const TCHAR *file_name, const char *from_desc, const char *ds
     size_t len = 0;
     uint8_t *data = NULL;
     struct _stat st = {0};
-    size_t buf_len = BUFF_SIZE;
+    size_t buf_len = BUFF_8M;
     if ((fp = _tfopen(file_name, _T("rb"))) == NULL)
     {
         return false;
@@ -1314,7 +1314,7 @@ eu_iconv_full_text(const TCHAR *file_name, const char *from_desc, const char *ds
         fclose(fp);
         return false;
     }
-    if (st.st_size < BUFF_SIZE)
+    if (st.st_size < BUFF_8M)
     {
         buf_len = (size_t)st.st_size;
     }
@@ -1370,11 +1370,11 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     else if (STR_NOT_NUL(file_name) && on_doc_get_type(file_name))
     {   // 如果是支持高亮的文件类型, 跳过二进制检测
         nobinary = true;
-        read_len = eu_int_cast(len > BUFF_SIZE ? BUFF_SIZE : len); 
+        read_len = eu_int_cast(len > BUFF_8M ? BUFF_8M : len); 
     }
     else
     {
-        read_len = eu_int_cast(len > BUFF_SIZE ? BUFF_SIZE : len);
+        read_len = eu_int_cast(len > BUFF_8M ? BUFF_8M : len);
     }
     if (!(type = is_plan_file(checkstr, read_len, nobinary)))
     {
@@ -1427,7 +1427,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             // GB18030!
             type = IDM_ANSI_12;
         }
-        else if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        else if (on_encoding_validate_utf8(checkstr))
         {
             eu_logmsg("Maybe UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
@@ -1450,7 +1450,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     else if (_strnicmp(obj->encoding, "ISO-8859-", 9) == 0)
     {
-        if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        if (on_encoding_validate_utf8(checkstr))
         {
             eu_logmsg("Not iso encode, it's maybe UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
@@ -1486,7 +1486,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     else if (obj->confidence < CHECK_2ND)
     {
-        if (on_encoding_validate_utf8((const char *)checkstr, read_len))
+        if (on_encoding_validate_utf8(checkstr))
         {
             eu_logmsg("we reconfirm that's UTF-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
@@ -1803,8 +1803,8 @@ eu_free_config(void)
                 g_config->m_customize[i].hbmp = 0;
             }
         }
-		free(g_config);
-		g_config = NULL;
+        free(g_config);
+        g_config = NULL;
     }
 }
 
@@ -1965,6 +1965,7 @@ eu_save_config(void)
         "block_fold_visiable = %s\n"
         "tabs_tip_show_enable = %s\n"
         "code_hint_show_enable = %s\n"
+        "tab_split_show = %s\n"
         "tab_close_way = %d\n"
         "tab_close_draw = %d\n"
         "tab_new_way = %d\n"
@@ -2101,6 +2102,7 @@ eu_save_config(void)
               g_config->block_fold?"true":"false",
               g_config->m_tab_tip?"true":"false",
               g_config->m_code_hint?"true":"false",
+              g_config->m_tab_split?"true":"false",
               g_config->m_close_way,
               g_config->m_close_draw,
               g_config->m_new_way,
@@ -2137,7 +2139,7 @@ eu_save_config(void)
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
               g_config->eu_titlebar.icon?"true":"false",
-              g_config->eu_titlebar.name?"true":"false",
+              g_config->eu_titlebar.name||util_under_wine()?"true":"false",
               g_config->eu_titlebar.path?"true":"false",
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
@@ -2440,11 +2442,11 @@ void
 eu_lua_calltip(const char *pstr)
 {
     eu_tabpage *p = NULL;
-    if (pstr && (p = on_tabpage_focus_at()) && !p->hex_mode && !p->pmod)
+    if (pstr && (p = on_tabpage_focus_at()) && !TAB_HEX_MODE(p) && !p->pmod)
     {
         const sptr_t end = eu_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
         eu_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
-        if (stricmp(pstr, "NaN") == 0 || stricmp(pstr, "INFINITY") == 0)
+        if (stricmp(pstr, "NaN") == 0 || stricmp(pstr, "INFINITY") == 0 || stricmp(pstr, "-INFINITY") == 0)
         {
             eu_sci_call(p, SCI_CALLTIPSHOW, end, (sptr_t) pstr);
         }
@@ -2964,6 +2966,17 @@ eu_win10_or_later(void)
     return (uint32_t)-1;
 }
 
+const bool
+eu_win11_or_later(void)
+{
+    uint32_t patch = eu_win10_or_later();
+    if (patch != (uint32_t)-1)
+    {
+        return (patch >= 22000) && (!util_under_wine());
+    }
+    return false;
+}
+
 const int
 eu_theme_index(void)
 {
@@ -3029,4 +3042,45 @@ te_expr *
 eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error)
 {
     return (void *)te_compile(expression, variables, var_count, error);
+}
+
+void
+eu_wine_dotool(void)
+{
+    TCHAR *plugin = NULL;
+    if (util_under_wine() && (plugin = util_winexy_tool()))
+    {
+        eu_new_process(plugin, NULL, NULL, 0, NULL);
+        free(plugin);
+    }
+}
+
+bool
+eu_under_wine(void)
+{
+    return util_under_wine();
+}
+
+bool
+eu_which(const char *path)
+{
+    bool ret = false;
+    TCHAR *u16_path = NULL;
+    if (STR_NOT_NUL(path) && (u16_path = eu_utf8_utf16(path, NULL)))
+    {
+        TCHAR *exist = util_which(u16_path);
+        if (exist)
+        {
+            ret = true;
+            free(exist);
+        }
+        free(u16_path);
+    }
+    return ret;
+}
+
+bool
+eu_dark_enable(void)
+{
+    return on_dark_enable();
 }

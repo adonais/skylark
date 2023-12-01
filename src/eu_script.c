@@ -671,7 +671,7 @@ do_lua_func(const char *fname, const char *func, const char *arg)
         }
         else
         {
-            eu_logmsg("%s: lua_pcall failed\n", __FUNCTION__);
+            eu_logmsg("%s: %s:%s lua_pcall failed\n", __FUNCTION__, fname, func);
         }
     }
     lua_close(L);
@@ -946,7 +946,7 @@ do_byte_code(eu_tabpage *pnode)
     }
 allclean:
     pnode->presult->pwant = on_toolbar_no_highlight;
-    on_proc_resize(NULL);
+    eu_window_resize(NULL);
     if (!status)
     {
         char u8_path[MAX_BUFFER] = {0};

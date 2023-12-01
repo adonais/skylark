@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 7
+#define __EU_INFO_VERSION_PATCHLEVEL 8
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
@@ -196,7 +196,8 @@
 #define IDM_OTHER_3      10064
 #define IDM_OTHER_ANSI   10065
 #define IDM_OTHER_BIN    10066
-#define IDM_UNKNOWN      10067
+#define IDM_OTHER_PLUGIN 10067
+#define IDM_UNKNOWN      10068
 
 #define IDM_LBREAK_1     10080
 #define IDM_LBREAK_2     10081
@@ -502,6 +503,7 @@
 #define IDM_SCRIPT_EXEC                      30025
 #define IDM_CMD_TAB                          30026
 #define IDC_TOOLBAR                          30027
+#define IDM_FILE_UNMODIFIED                  30028
 
 #define IDB_SIZE_0                           30030
 #define IDB_SIZE_1                           30031
@@ -546,6 +548,11 @@
 #define IDM_EDIT_3DES_CBC_DECRYPTO           30206
 #define IDM_VIEW_BOOKMARK_VISIABLE           30207
 #define IDM_SEARCH_REMOVE_ALL_BOOKMARKS      30210
+#define IDM_EDIT_BOOKMARK_LINES_COPY         30211
+#define IDM_EDIT_BOOKMARK_LINES_CUT          30212
+#define IDM_EDIT_BOOKMARK_LINES_REMOVE       30213
+#define IDM_EDIT_BOOKMARK_LINES_RESERVE      30214
+#define IDM_EDIT_GOLINE_GROUP                30215
 
 #define IDM_VIEW_INDENTGUIDES_VISIABLE       30300
 #define IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL  30301
@@ -624,6 +631,7 @@
 #define IDM_EDIT_CLEAR_CLIPBOARD             30456
 #define IDM_EDIT_COPY_INCREMENTAL            30457
 #define IDM_EDIT_COPY_RTF                    30458
+#define IDM_VIEW_TABBAR_SPLIT                30459
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -941,6 +949,7 @@
 #define IDM_EDIT_LINECOMMENT                42043
 #define IDM_EDIT_STREAMCOMMENT              42044
 #define IDM_VIEW_HIGHLIGHT_BRACE            42045
+#define IDM_VIEW_HIGHLIGHT_GROUP            42046
 
 // Page Setup
 // based on prnsetup.dlg from Windows SDK

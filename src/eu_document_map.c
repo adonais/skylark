@@ -355,7 +355,7 @@ on_map_create_static_dlg(HWND parent)
     if (!hwnd_document_static)
     {
         bool win10 = util_os_version() >= 1000;
-        if (win10)
+        if (win10 && !util_under_wine())
         {
             hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE), parent, on_map_static_proc, 0);
         }

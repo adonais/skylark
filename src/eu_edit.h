@@ -30,8 +30,11 @@
 #endif
 #define STR_IS_NUL(s) (s == NULL || *s == 0)
 #define STR_NOT_NUL(s) (s != NULL && *s != 0)
+#define TAB_HEX_MODE(p) (p->hex_mode == TYPES_HEX)
 #define TAB_NOT_NUL(p) (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0)
 #define TAB_NOT_BIN(p) (p->codepage != IDM_OTHER_BIN)
+#define TAB_HAS_PDF(p) (p->codepage == IDM_OTHER_PLUGIN)
+#define TAB_HAS_TXT(p) (!TAB_HEX_MODE(p) && !TAB_HAS_PDF(p))
 #define EOLS_UNDO   101
 #define ICONV_UNDO  102
 
@@ -67,7 +70,7 @@ void on_edit_join_line(eu_tabpage *pnode);
 void on_edit_lower(eu_tabpage *pnode);
 void on_edit_upper(eu_tabpage *pnode);
 void on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence);
-void on_edit_selection(eu_tabpage *pnode, int type);
+void on_edit_selection(eu_tabpage *pnode, const int type);
 void on_edit_undo_eol(eu_tabpage *pnode);
 void on_edit_undo_iconv(eu_tabpage *pnode);
 void on_edit_sorting(eu_tabpage *p, int wm_id);
@@ -75,6 +78,10 @@ void on_edit_push_compare(void);
 void on_edit_incremental_clipborad(eu_tabpage *pnode);
 void on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode);
 void on_edit_convert_slash(eu_tabpage *pnode, const bool slash);
+void on_edit_bookmark_copy(eu_tabpage *pnode);
+void on_edit_bookmark_cut(eu_tabpage *pnode);
+void on_edit_bookmark_remove(eu_tabpage *pnode);
+void on_edit_bookmark_reserve_remove(eu_tabpage *pnode);
 
 int on_edit_base64_enc(eu_tabpage *pnode);
 int on_edit_base64_dec(eu_tabpage *pnode);
