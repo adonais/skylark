@@ -1069,16 +1069,20 @@ on_toolbar_redraw(HWND hwnd)
 }
 
 void
-on_toolbar_size(void)
+on_toolbar_size(const RECT *prc)
 {
-    HWND hwnd = on_toolbar_hwnd();
-    if (hwnd)
+    RECT rc = {0};
+    HWND hwnd = NULL;
+    if (prc == NULL)
+    {
+        GetClientRect(eu_hwnd_self(), &rc);
+        prc = &rc;
+    }
+    if ((hwnd = on_toolbar_hwnd()))
     {
         if (eu_get_config()->m_toolbar != IDB_SIZE_0)
         {
-            RECT rc;
-            GetClientRect(eu_hwnd_self(), &rc);
-            int width = rc.right - rc.left;
+            int width = prc->right - prc->left;
             eu_setpos_window(hwnd, HWND_TOP, 0, 0, width, on_toolbar_get_height(), SWP_SHOWWINDOW);
         }
         else

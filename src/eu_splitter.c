@@ -44,7 +44,8 @@ on_splitter_rect_box(HWND hwnd, LPRECT r, const int offset)
     RECT rc_main = {0};
     RECT rc_client = {0};
     POINT client_top = {0};
-    on_treebar_adjust_box(&rc_tree, &rc_client);
+    GetClientRect(hwnd, &rc_client);
+    on_treebar_adjust_box(&rc_client, &rc_tree);
     GetWindowRect(hwnd, &rc_main);
     ClientToScreen(hwnd, &client_top);
     int toolbar_height = on_toolbar_get_height();
@@ -107,7 +108,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             RECT rect_tree;
             HWND parent = GetParent(hwnd);
-            on_treebar_adjust_box(&rect_tree, NULL);
+            on_treebar_adjust_box(NULL, &rect_tree);
             x = rect_tree.right - rect_tree.left + on_splitter_tree_line();
             HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, NULL);
             ReleaseDC(parent, hdc);
@@ -126,7 +127,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 eu_get_config()->file_tree_width = FILETREEBAR_WIDTH_MIN;
             }
-            on_treebar_size();
+            on_treebar_size(NULL);
             eu_window_resize(parent);
             break;
         }

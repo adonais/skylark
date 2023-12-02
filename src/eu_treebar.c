@@ -1786,6 +1786,24 @@ on_treebar_load_imglist(HWND hwnd)
     return himl;
 }
 
+static void
+on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
+{
+    if (g_treebar)
+    {
+        rect_filetree->left = FILETREE_MARGIN_LEFT;
+        rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
+        rect_filetree->top = rect_filebar->top + util_tab_height(g_treebar, 0) + FILETREE_MARGIN_TOP;
+        rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
+    }
+}
+
+static inline int
+on_treebar_edge(void)
+{
+    return (eu_get_dpi(NULL) > 96 && on_statusbar_height() > 0 ? 1 : 0);
+}
+
 void
 on_treebar_update_theme(void)
 {
@@ -1974,24 +1992,24 @@ on_treebar_create_dlg(HWND hwnd)
 }
 
 void
-on_treebar_size(void)
+on_treebar_size(const RECT *prc)
 {
     HDWP hdwp = BeginDeferWindowPos(3);
     if (g_treebar && hdwp)
     {
-        RECT rect_treebar = {0};
-        on_treebar_adjust_box(&rect_treebar, NULL);
+        RECT rc_treebar = {0};
+        on_treebar_adjust_box(prc, &rc_treebar);
         if (eu_get_config()->m_ftree_show)
         {
             RECT rect_filetree = {0};
-            on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
+            on_treebar_adjust_filetree(&rc_treebar, &rect_filetree);
             DeferWindowPos(hdwp,
                            g_treebar,
                            HWND_TOP,
-                           rect_treebar.left,
-                           rect_treebar.top,
-                           rect_treebar.right - rect_treebar.left,
-                           rect_treebar.bottom - rect_treebar.top,
+                           rc_treebar.left,
+                           rc_treebar.top,
+                           rc_treebar.right - rc_treebar.left,
+                           rc_treebar.bottom - rc_treebar.top,
                            SWP_SHOWWINDOW);
             DeferWindowPos(hdwp,
                            g_filetree,
@@ -2004,7 +2022,7 @@ on_treebar_size(void)
             DeferWindowPos(hdwp,
                            g_splitter_treebar,
                            HWND_TOP,
-                           rect_treebar.right,
+                           rc_treebar.right,
                            rect_filetree.top,
                            SPLIT_WIDTH,
                            rect_filetree.bottom - rect_filetree.top,
@@ -2021,39 +2039,27 @@ on_treebar_size(void)
 }
 
 void
-on_treebar_adjust_box(RECT *ptf, RECT *prc)
+on_treebar_adjust_box(const RECT *prc, RECT *ptf)
 {
-    RECT rect_main = {0};
-    GetClientRect(eu_module_hwnd(), prc ? prc : &rect_main);
+    RECT rc_main = {0};
     if (prc == NULL)
     {
-        prc = &rect_main;
+        GetClientRect(eu_hwnd_self(), &rc_main);
+        prc = &rc_main;
     }
     if (!eu_get_config()->m_ftree_show)
     {
         ptf->left = 0;
         ptf->right = 0;
         ptf->top = prc->top + on_toolbar_get_height();
-        ptf->bottom = prc->bottom - on_statusbar_height();
+        ptf->bottom = prc->bottom - on_statusbar_height() - on_treebar_edge();
     }
     else
     {
         ptf->left = prc->left;
         ptf->right = prc->left + eu_get_config()->file_tree_width;
         ptf->top = prc->top + on_toolbar_get_height();
-        ptf->bottom = prc->bottom - on_statusbar_height();
-    }
-}
-
-void
-on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
-{
-    if (g_treebar)
-    {
-        rect_filetree->left = FILETREE_MARGIN_LEFT;
-        rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
-        rect_filetree->top = rect_filebar->top + util_tab_height(g_treebar, 0) + FILETREE_MARGIN_TOP;
-        rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
+        ptf->bottom = prc->bottom - on_statusbar_height() - on_treebar_edge();
     }
 }
 
@@ -2261,8 +2267,8 @@ on_treebar_locate_path(const TCHAR *pathname)
         TreeView_SelectItem(g_filetree, hti);
         TreeView_EnsureVisible(g_filetree, hti);
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
-        on_treebar_size();
-        eu_window_resize(eu_module_hwnd());
+        on_treebar_size(NULL);
+        eu_window_resize(eu_hwnd_self());
     }
     util_free(m_dup);
     return SKYLARK_OK;

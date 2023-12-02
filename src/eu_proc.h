@@ -29,6 +29,7 @@ extern "C"
 {
 #endif
 
+void on_proc_redraw(const RECT *prc);
 void on_proc_counter_stop(void);
 void on_proc_sync_wait(void);
 void on_proc_msg_active(eu_tabpage *pnode);

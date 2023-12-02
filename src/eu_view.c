@@ -22,7 +22,7 @@ void
 on_view_filetree(void)
 {
     eu_get_config()->m_ftree_show ^= true;
-    on_treebar_size();
+    on_treebar_size(NULL);
     eu_window_resize(NULL);
 }
 
@@ -195,7 +195,7 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
         on_view_refresh_scroll();
         on_toolbar_redraw(hwnd);
         on_splitter_redraw();
-        SendMessage(hwnd, WM_SIZE, 0, 0);
+        on_proc_redraw(NULL);
         UpdateWindowEx(hwnd);
     }
     return SKYLARK_OK;

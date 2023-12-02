@@ -186,17 +186,6 @@ on_statusbar_set_text(HWND hwnd, const uint8_t part, LPCTSTR lpsz)
     }
 }
 
-int
-on_statusbar_height(void)
-{
-    int status_height = 0;
-    if (g_statusbar && eu_get_config()->m_statusbar)
-    {
-        status_height = eu_dpi_scale_xy(0, STATUSBAR_DEFHIGHT);
-    }
-    return status_height;
-}
-
 static void
 on_statusbar_adjust_btn(int left, int right)
 {
@@ -221,8 +210,19 @@ on_statusbar_adjust_btn(int left, int right)
     }
 }
 
+int
+on_statusbar_height(void)
+{
+    int status_height = 0;
+    if (g_statusbar && eu_get_config()->m_statusbar)
+    {
+        status_height = eu_dpi_scale_xy(0, STATUSBAR_DEFHIGHT);
+    }
+    return status_height;
+}
+
 void
-on_statusbar_size(eu_tabpage *pnode)
+on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
 {
     if (g_statusbar)
     {
@@ -238,15 +238,19 @@ on_statusbar_size(eu_tabpage *pnode)
         else
         {
             RECT rc = {0};
-            GetClientRect(eu_hwnd_self(), &rc);
+            if (!prc)
+            {
+                GetClientRect(eu_hwnd_self(), &rc);
+                prc = &rc; 
+            }
             const int height = on_statusbar_height();
-            int cx = rc.right - rc.left;
+            int cx = prc->right - prc->left;
             int n_half = cx / 8;
             int btn_half = n_half*7+70;
             int parts[] = {n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, btn_half, -1};
             SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
             on_statusbar_adjust_btn(btn_half, cx);
-            MoveWindow(g_statusbar, 0, rc.bottom - height, cx, height, TRUE);
+            MoveWindow(g_statusbar, 0, prc->bottom - height, cx, height, TRUE);
             ShowWindow(g_statusbar, SW_SHOW);
         }
     }
@@ -402,7 +406,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
         {
             if (on_dark_enable())
             {
-                on_statusbar_size(NULL);
+                on_statusbar_size(NULL, NULL);
                 on_dark_set_theme(g_statusbar, L"Explorer", NULL);
             }
             else 
@@ -951,15 +955,12 @@ on_statusbar_update(eu_tabpage *psrc)
     {
         if ((pnode || (pnode = on_tabpage_focus_at())) && pnode->hwnd_sc)
         {
-            SendMessage(g_statusbar, WM_SETREDRAW, FALSE, 0);
             on_statusbar_update_fileinfo(pnode, NULL);
             on_statusbar_update_line(pnode);
             on_statusbar_update_filesize(pnode);
             on_statusbar_update_eol(pnode, -1);
             on_statusbar_update_filetype_menu(pnode);
             on_statusbar_update_coding(pnode);
-            SendMessage(g_statusbar, WM_SETREDRAW, TRUE, 0);
-            RedrawWindow(g_statusbar, NULL, NULL, RDW_ERASE | RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN);
         }
     }
 }
