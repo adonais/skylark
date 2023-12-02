@@ -556,7 +556,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar != IDB_SIZE_0);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_STATUSBAR, eu_get_config()->m_statusbar);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_HILIGHT_SUB), IDM_VIEW_HIGHLIGHT_BRACE, eu_get_config()->eu_brace.matching);
-                        util_set_menu_item(GetSubMenu(menu, TAB_MENU_HILIGHT_SUB), IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str);
+                        util_set_menu_item(GetSubMenu(menu, TAB_MENU_HILIGHT_SUB), IDM_VIEW_HIGHLIGHT_STR, eu_get_config()->m_light_str && pnode->raw_size < BUFF_32M);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_HILIGHT_SUB), IDM_VIEW_HIGHLIGHT_FOLD, eu_get_config()->light_fold);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_LINENUMBER_VISIABLE, eu_get_config()->m_linenumber);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_BOOKMARK_VISIABLE, eu_get_config()->eu_bookmark.visable);

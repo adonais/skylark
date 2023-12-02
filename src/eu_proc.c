@@ -752,11 +752,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     on_dark_allow_window(hwnd, true);
                     on_dark_refresh_titlebar(hwnd);
-                    if (eu_win11_or_later())
-                    {
-                        on_toolbar_refresh(hwnd);
-                    }
-                    else
+                    if (!eu_win11_or_later())
                     {   // win10 dark模式启动时刷新标题栏
                         util_updateui_titlebar(hwnd);
                     }
@@ -764,8 +760,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 else 
                 {
+                    HWND htool = NULL;
                     HWND snippet = NULL;
-                    HWND htool = on_toolbar_hwnd();
                     on_dark_allow_window(hwnd, on_dark_enable());
                     on_dark_refresh_titlebar(hwnd);
                     if (g_tabpages)
@@ -773,7 +769,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
                         on_tabpage_foreach(on_tabpage_theme_changed);
                     }
-                    if (htool)
+                    if ((htool = on_toolbar_hwnd()))
                     {
                         on_dark_tips_theme(htool, TB_GETTOOLTIPS);
                         SendMessage(htool, WM_THEMECHANGED, (WPARAM)hwnd, 0);
@@ -2289,7 +2285,7 @@ eu_create_fullscreen(HWND hwnd)
 void
 eu_window_resize(HWND hwnd)
 {
-    on_proc_msg_size(hwnd ? hwnd : eu_module_hwnd(), NULL);
+    on_proc_msg_size(hwnd ? hwnd : g_hwndmain, NULL);
 }
 
 int

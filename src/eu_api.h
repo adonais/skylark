@@ -112,7 +112,7 @@
 #define BUFF_32K 0x8000                // 32K
 #define BUFF_64K 0x10000
 #define BUFF_8M 0x800000               // 8M
-#define BUFF_32M 2000000               // 32M
+#define BUFF_32M 0x2000000             // 32M
 #define BUFF_128M 0x8000000            // 128M
 #define BUFF_200M 0xc800000
 
