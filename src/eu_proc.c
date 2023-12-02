@@ -321,7 +321,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
 }
 
 static void
-on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
+on_proc_tab_click(eu_tabpage *pnode)
 {
     on_proc_msg_size(NULL, pnode);
     if (pnode && pnode->nc_pos >= 0 && eu_get_config() && eu_get_config()->scroll_to_cursor)
@@ -602,7 +602,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_TAB_CLICK:
         {
-            on_proc_tab_click(hwnd, (void *)wParam);
+            on_proc_tab_click((void *)wParam);
             return 1;
         }
         case WM_UPCHECK_STATUS:
@@ -1589,7 +1589,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_VIEW_TABBAR_SPLIT:
                     eu_get_config()->m_tab_split ^= true;
-                    eu_window_resize(hwnd);
+                    eu_window_resize();
                     break;
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
@@ -2307,7 +2307,7 @@ eu_create_fullscreen(HWND hwnd)
 }
 
 void
-eu_window_resize(HWND hwnd)
+eu_window_resize(void)
 {
     on_proc_msg_size(NULL, NULL);
 }

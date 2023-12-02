@@ -1482,7 +1482,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             if (GetFocus() != hwnd)
             {   // 可能被plugin窗口强占了键盘焦点
-                eu_window_resize(NULL);
+                eu_window_resize();
             }
             break;
         }

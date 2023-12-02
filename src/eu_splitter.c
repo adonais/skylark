@@ -128,7 +128,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 eu_get_config()->file_tree_width = FILETREEBAR_WIDTH_MIN;
             }
             on_treebar_size(NULL);
-            eu_window_resize(parent);
+            eu_window_resize();
             break;
         }
         case WM_MOUSEMOVE:
@@ -242,7 +242,7 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     eu_get_config()->document_map_width = DOCUMENTMAP_WIDTH_MIN;
                 }
             }
-            eu_window_resize(NULL);
+            eu_window_resize();
             break;
         }
         case WM_MOUSEMOVE:
@@ -342,7 +342,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 eu_get_config()->result_edit_height = SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN;
             }
-            eu_window_resize(NULL);
+            eu_window_resize();
             break;
         }
         case WM_MOUSEMOVE:
@@ -422,7 +422,7 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 eu_get_config()->result_list_height = m_height;
             }
-            eu_window_resize(NULL);
+            eu_window_resize();
             break;
         }
         case WM_MOUSEMOVE:

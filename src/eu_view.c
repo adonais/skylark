@@ -23,7 +23,7 @@ on_view_filetree(void)
 {
     eu_get_config()->m_ftree_show ^= true;
     on_treebar_size(NULL);
-    eu_window_resize(NULL);
+    eu_window_resize();
 }
 
 void
@@ -35,7 +35,7 @@ on_view_symtree(eu_tabpage *pnode)
         {
             pnode->map_show = false;
         }
-        eu_window_resize(NULL);
+        eu_window_resize();
     }
 }
 
@@ -48,7 +48,7 @@ on_view_document_map(eu_tabpage *pnode)
         {
             pnode->sym_show = false;
         }
-        eu_window_resize(NULL);
+        eu_window_resize();
     }
 }
 
@@ -64,7 +64,7 @@ on_view_result_show(eu_tabpage *pnode, const int key)
         if (RESULT_SHOW(pnode))
         {
             pnode->presult->pwant = on_toolbar_no_highlight;
-            eu_window_resize(NULL);
+            eu_window_resize();
             pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);
         }
     }
@@ -87,7 +87,7 @@ on_view_switch_type(const int m_type)
         }
         on_sci_before_file(pnode, false);
         on_sci_after_file(pnode, false);
-        eu_window_resize(eu_hwnd_self());
+        eu_window_resize();
         return 0;
     }
     return 1;
@@ -797,7 +797,7 @@ on_view_font_quality(HWND hwnd, const int res_id)
                     on_sci_after_file(p, false);
                 }
             }
-            eu_window_resize(hwnd);
+            eu_window_resize();
         }
     }
 }
@@ -817,6 +817,6 @@ on_view_enable_rendering(HWND hwnd, const int res_id)
                 on_sci_after_file(p, false);
             }
         }
-        eu_window_resize(hwnd);
+        eu_window_resize();
     }
 }

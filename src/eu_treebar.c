@@ -2192,7 +2192,7 @@ on_treebar_locate_remote(const TCHAR *pathname)
         TreeView_SelectItem(g_filetree, hti);
         TreeView_EnsureVisible(g_filetree, hti);
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
-        eu_window_resize(eu_module_hwnd());
+        eu_window_resize();
     }
     free(m_dup);
     return SKYLARK_OK;
@@ -2268,7 +2268,7 @@ on_treebar_locate_path(const TCHAR *pathname)
         TreeView_EnsureVisible(g_filetree, hti);
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
         on_treebar_size(NULL);
-        eu_window_resize(eu_hwnd_self());
+        eu_window_resize();
     }
     util_free(m_dup);
     return SKYLARK_OK;

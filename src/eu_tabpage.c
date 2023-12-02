@@ -1596,7 +1596,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     {
         HWND hwnd = eu_module_hwnd();
         on_tabpage_set_active(index);
-        eu_window_resize(hwnd);
+        eu_window_resize();
         if ((p = on_tabpage_get_ptr(index)))
         {   // 窗口处理过程中可能改变了标签位置, 重置它
             on_tabpage_deselect(index);
