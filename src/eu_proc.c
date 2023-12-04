@@ -759,7 +759,14 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {   // win10 dark模式启动时刷新标题栏
                         util_updateui_titlebar(hwnd);
                     }
-                    SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+                    if (g_tabpages)
+                    {
+                        SendMessage(g_tabpages, WM_THEMECHANGED, 0, 0);
+                    }
+                    if (g_statusbar)
+                    {
+                        SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+                    }
                 }
                 else 
                 {
@@ -769,8 +776,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_dark_refresh_titlebar(hwnd);
                     if (g_tabpages)
                     {
-                        on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
                         on_tabpage_foreach(on_tabpage_theme_changed);
+                        SendMessage(g_tabpages, WM_THEMECHANGED, 0, 0);
                     }
                     if ((htool = on_toolbar_hwnd()))
                     {

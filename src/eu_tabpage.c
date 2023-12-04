@@ -823,6 +823,11 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
+        case WM_THEMECHANGED:
+        {
+            on_dark_tips_theme(hwnd, TCM_GETTOOLTIPS);
+            break;
+        }
         case WM_DPICHANGED:
         {
             on_tabpage_adjust_box(NULL, NULL);
