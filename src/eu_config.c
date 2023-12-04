@@ -433,7 +433,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
     {
         for (int i = 1; i < arg_c; ++i)
         {
-            file_backup data = {-1, -1};
+            file_backup data = {-1, -1, 0 , -1};
             if (wcsncmp(ptr_arg[i], L"-restart", 8) == 0)
             {
                 i += 2;

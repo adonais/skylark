@@ -1594,7 +1594,7 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     }
     if(index >= 0 && index < count)
     {
-        HWND hwnd = eu_module_hwnd();
+        HWND hwnd = eu_hwnd_self();
         on_tabpage_set_active(index);
         eu_window_resize();
         if ((p = on_tabpage_get_ptr(index)))

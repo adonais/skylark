@@ -1798,12 +1798,6 @@ on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
     }
 }
 
-static inline int
-on_treebar_edge(void)
-{
-    return (eu_get_dpi(NULL) > 96 && on_statusbar_height() > 0 ? 1 : 0);
-}
-
 void
 on_treebar_update_theme(void)
 {
@@ -2052,14 +2046,14 @@ on_treebar_adjust_box(const RECT *prc, RECT *ptf)
         ptf->left = 0;
         ptf->right = 0;
         ptf->top = prc->top + on_toolbar_get_height();
-        ptf->bottom = prc->bottom - on_statusbar_height() - on_treebar_edge();
+        ptf->bottom = prc->bottom - on_statusbar_height();
     }
     else
     {
         ptf->left = prc->left;
         ptf->right = prc->left + eu_get_config()->file_tree_width;
         ptf->top = prc->top + on_toolbar_get_height();
-        ptf->bottom = prc->bottom - on_statusbar_height() - on_treebar_edge();
+        ptf->bottom = prc->bottom - on_statusbar_height();
     }
 }
 

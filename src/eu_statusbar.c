@@ -216,7 +216,12 @@ on_statusbar_height(void)
     int status_height = 0;
     if (g_statusbar && eu_get_config()->m_statusbar)
     {
-        status_height = eu_dpi_scale_xy(0, STATUSBAR_DEFHIGHT);
+        const int dpi = eu_get_dpi(NULL);
+        status_height = eu_dpi_scale_xy(dpi, STATUSBAR_DEFHIGHT);
+        if (dpi > 96)
+        {
+            --status_height;
+        }
     }
     return status_height;
 }
@@ -226,6 +231,13 @@ on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
 {
     if (g_statusbar)
     {
+        int height = 0;
+        RECT rc = {0};
+        if (!prc)
+        {
+            GetClientRect(eu_hwnd_self(), &rc);
+            prc = &rc; 
+        }
         if (!eu_get_config()->m_statusbar)
         {
             on_statusbar_adjust_btn(0, 0);
@@ -233,23 +245,19 @@ on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
         }
         else if (pnode)
         {
+            height = on_statusbar_height();
+            eu_setpos_window(g_statusbar, HWND_TOP, 0, prc->bottom - height, prc->right - prc->left, height, SWP_NOREDRAW);
             on_statusbar_btn_rw(pnode, true);
         }
         else
         {
-            RECT rc = {0};
-            if (!prc)
-            {
-                GetClientRect(eu_hwnd_self(), &rc);
-                prc = &rc; 
-            }
-            const int height = on_statusbar_height();
             int cx = prc->right - prc->left;
             int n_half = cx / 8;
             int btn_half = n_half*7+70;
             int parts[] = {n_half*2, n_half*3, n_half*4, n_half*5+20, n_half*6+20, btn_half, -1};
             SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
             on_statusbar_adjust_btn(btn_half, cx);
+            height = on_statusbar_height();
             MoveWindow(g_statusbar, 0, prc->bottom - height, cx, height, TRUE);
             ShowWindow(g_statusbar, SW_SHOW);
         }

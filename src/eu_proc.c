@@ -2169,18 +2169,13 @@ on_proc_msg_active(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        RECT rc = {0};
         if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
         {
             SetFocus(pnode->hwnd_sc);
-            GetWindowRect(pnode->hwnd_sc, &rc);
-            eu_logmsg("%s: pnode->hwnd_sc.top = %d, pnode->hwnd_sc.bottom = %d\n", __FUNCTION__, rc.top, rc.bottom);
         }
         if (eu_get_config()->m_statusbar && g_statusbar)
         {
             on_statusbar_update(pnode);
-            GetWindowRect(g_statusbar, &rc);
-            eu_logmsg("%s: g_statusbar.top = %d, g_statusbar.bottom = %d\n", __FUNCTION__, rc.top, rc.bottom);
         }
     }
 }
@@ -2197,8 +2192,8 @@ on_proc_redraw(const RECT *prc)
     on_treebar_size(prc);
     on_toolbar_size(prc);
     on_tabpage_size(prc);
-    on_proc_msg_size(prc, NULL);
     on_statusbar_size(prc, NULL);
+    on_proc_msg_size(prc, NULL);
 }
 
 void
