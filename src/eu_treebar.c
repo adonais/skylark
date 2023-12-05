@@ -1786,6 +1786,20 @@ on_treebar_load_imglist(HWND hwnd)
     return himl;
 }
 
+static int
+on_treebar_tab_height(void)
+{
+    int top = 0;
+    if (g_treebar)
+    {
+        RECT rc = {0};
+        GetClientRect(g_treebar, &rc);
+        TabCtrl_AdjustRect(g_treebar, FALSE, &rc);
+        top = rc.top;
+    }
+    return top;
+}
+
 static void
 on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
 {
@@ -1793,7 +1807,7 @@ on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
     {
         rect_filetree->left = FILETREE_MARGIN_LEFT;
         rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
-        rect_filetree->top = rect_filebar->top + util_tab_height(g_treebar, 0) + FILETREE_MARGIN_TOP;
+        rect_filetree->top = rect_filebar->top + on_treebar_tab_height();
         rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
     }
 }
@@ -1852,6 +1866,7 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
+            util_tab_height(g_treebar, 0);
             break;
         }
         case WM_THEMECHANGED:
@@ -1886,6 +1901,7 @@ on_treebar_create_box(HWND hwnd)
         return EUE_POINT_NULL;
     }
     TabCtrl_SetPadding(g_treebar, 20, 5);
+    util_tab_height(g_treebar, 0);
     LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
     tci.pszText = m_text;
     if (TabCtrl_InsertItem(g_treebar, 0, &tci) == -1)
