@@ -314,7 +314,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
                 UpdateWindow(g_splitter_tablebar);
             }
         }
-        on_statusbar_size(NULL, pnode);
+        on_statusbar_size(prc, pnode);
         // 从插件页面切换时获取鼠标焦点
         on_proc_msg_active(pnode);
     }
@@ -1775,8 +1775,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (eu_get_config() && !(eu_get_config()->m_fullscreen))
                     {
                         eu_get_config()->m_statusbar ^= true;
-                        on_treebar_size(NULL);
                         on_statusbar_size(NULL, NULL);
+                        on_treebar_size(NULL);
                         on_proc_msg_size(NULL, NULL);
                     }
                     break;
@@ -2196,10 +2196,10 @@ on_proc_redraw(const RECT *prc)
         GetClientRect(g_hwndmain, &rc);
         prc = &rc;
     }
+    on_statusbar_size(prc, NULL);
     on_treebar_size(prc);
     on_toolbar_size(prc);
     on_tabpage_size(prc);
-    on_statusbar_size(prc, NULL);
     on_proc_msg_size(prc, NULL);
 }
 

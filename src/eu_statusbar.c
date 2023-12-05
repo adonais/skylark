@@ -172,7 +172,10 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
         }
         ret = 1;
     }
-    on_toolbar_update_button();
+    if (eu_get_config()->m_toolbar != IDB_SIZE_0)
+    {
+        on_toolbar_update_button();
+    }
     return ret;
 }
 
@@ -216,11 +219,14 @@ on_statusbar_height(void)
     int status_height = 0;
     if (g_statusbar && eu_get_config()->m_statusbar)
     {
-        const int dpi = eu_get_dpi(NULL);
-        status_height = eu_dpi_scale_xy(dpi, STATUSBAR_DEFHIGHT);
-        if (dpi > 96)
+        RECT rc_status = {0};
+        if (GetWindowRect(g_statusbar, &rc_status) && (rc_status.top || rc_status.bottom))
         {
-            --status_height;
+            status_height = rc_status.bottom - rc_status.top;
+        }
+        else 
+        {
+            status_height = eu_dpi_scale_xy(0, STATUSBAR_DEFHIGHT);
         }
     }
     return status_height;
@@ -229,14 +235,15 @@ on_statusbar_height(void)
 void
 on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
 {
-    if (g_statusbar)
+    HWND hwnd = eu_hwnd_self();
+    if (hwnd && g_statusbar)
     {
         int height = 0;
         RECT rc = {0};
         if (!prc)
         {
-            GetClientRect(eu_hwnd_self(), &rc);
-            prc = &rc; 
+            GetClientRect(hwnd, &rc);
+            prc = &rc;
         }
         if (!eu_get_config()->m_statusbar)
         {
@@ -246,8 +253,8 @@ on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
         else if (pnode)
         {
             height = on_statusbar_height();
-            eu_setpos_window(g_statusbar, HWND_TOP, 0, prc->bottom - height, prc->right - prc->left, height, SWP_NOREDRAW);
             on_statusbar_btn_rw(pnode, true);
+            eu_setpos_window(g_statusbar, HWND_TOP, 0, prc->bottom - height, prc->right - prc->left, height, SWP_FRAMECHANGED);
         }
         else
         {
@@ -258,8 +265,7 @@ on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
             SendMessage(g_statusbar, SB_SETPARTS, STATUSBAR_PART, (LPARAM)&parts);
             on_statusbar_adjust_btn(btn_half, cx);
             height = on_statusbar_height();
-            MoveWindow(g_statusbar, 0, prc->bottom - height, cx, height, TRUE);
-            ShowWindow(g_statusbar, SW_SHOW);
+            eu_setpos_window(g_statusbar, HWND_TOP, 0, prc->bottom - height, cx, height, SWP_SHOWWINDOW);
         }
     }
 }
@@ -1001,13 +1007,8 @@ on_statusbar_create_dlg(HWND hwnd)
     {
         DestroyWindow(g_statusbar);
     }
-    g_statusbar = CreateWindowEx(WS_EX_COMPOSITED, STATUSCLASSNAME, NULL, style, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUSBAR, eu_module_handle(), 0);
-    do
+    while ((g_statusbar = CreateWindowEx(WS_EX_COMPOSITED, STATUSCLASSNAME, NULL, style, 0, 0, 0, 0, hwnd, (HMENU)IDC_STATUSBAR, eu_module_handle(), 0)))
     {
-        if (!g_statusbar)
-        {
-            break;
-        }
         if (!(SetWindowSubclass(g_statusbar, on_statusbar_proc, STATUSBAR_SUBID, 0)))
         {
             break;
@@ -1031,6 +1032,7 @@ on_statusbar_create_dlg(HWND hwnd)
             break;
         }
         ret = 0;
-    } while(0);
+        break;
+    }
     return ret;
 }
