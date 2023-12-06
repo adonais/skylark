@@ -20,6 +20,12 @@
 #define ascii_special_symbol(ch) \
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
+typedef struct _skyver_data
+{
+    int ver;
+    int status;
+} skyver_data;
+
 static void
 on_config_setup_postion(const wchar_t **args, int arg_c, file_backup *pbak)
 {
@@ -340,17 +346,37 @@ on_config_lua_execute(const wchar_t *file)
 }
 
 static int
+on_config_edition(const char *str)
+{
+    int v = 0;
+    if (str)
+    {
+        int i = 0;
+        const char *p = str;
+        for (i = 100, v = atoi(p) * 10000; i && (p = strchr(p, '.')) != NULL; i /= 100)
+        {
+            v += (atoi(++p) * i);
+        }
+    }
+    return v;
+}
+
+static int
 on_config_skyver_callbak(void *data, int count, char **column, char **names)
 {
-    UNREFERENCED_PARAMETER(data);
-    UNREFERENCED_PARAMETER(count);
-    UNREFERENCED_PARAMETER(names);
-    int status = atoi(column[0]);
-    if (data)
+    skyver_data *pd = (skyver_data *)data;
+    for (int i = 0; i < count; ++i)
     {
-        *(int *)data = status;
+        if (STRCMP(names[i], ==, "szVersion"))
+        {
+            pd->ver = on_config_edition(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szExtra"))
+        {
+            pd->status = atoi(column[i]);
+        }
     }
-    return (int)(status == VERSION_UPDATE_COMPLETED);
+    return 0;
 }
 
 void
@@ -647,18 +673,27 @@ eu_config_load_files(void)
 {
     if (eu_hwnd_self() == share_envent_get_hwnd())
     {
-        int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
-        if (err == SQLITE_ABORT)
+        skyver_data v = {0};
+        int err = on_sql_post("SELECT szVersion, szExtra FROM skylar_ver;", on_config_skyver_callbak, &v);
+        if (err != SKYLARK_SQL_END)
         {
-            if (on_update_do())
+            if (v.ver < 40009)
             {
-                on_update_sql();
-                eu_session_backup(SESSION_CONFIG);
-                return false;
+                on_sql_post("ALTER TABLE skylark_session ADD szView SMALLINT DEFAULT 0;", NULL, NULL);
+                on_sql_post("UPDATE skylar_ver SET szVersion='4.0.9' WHERE szName='skylark.exe';", NULL, NULL);
             }
-            else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
+            if (v.status == VERSION_UPDATE_COMPLETED)
             {
-                on_update_sql();
+                if (on_update_do())
+                {
+                    on_update_sql();
+                    eu_session_backup(SESSION_CONFIG);
+                    return false;
+                }
+                else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
+                {
+                    on_update_sql();
+                }
             }
         }
     }

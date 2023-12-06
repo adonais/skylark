@@ -328,15 +328,14 @@ on_update_do(void)
 {
     int arg_c = 0;
     bool ret = false;
-    WCHAR wcmd[LARGER_LEN] = {0};
     WCHAR self[MAX_PATH] = {0};
-    WCHAR conf_path[MAX_PATH] = {0};
-    WCHAR *param = NULL;
     WCHAR **ptr_arg = CommandLineToArgvW(GetCommandLineW(), &arg_c);
-    if (ptr_arg && GetModuleFileNameW(NULL, self, MAX_PATH - 1) > 0)
+    if (GetModuleFileNameW(NULL, self, MAX_PATH - 1) > 0 && ptr_arg != NULL)
     {
         HANDLE handle = NULL;
-        param = arg_c > 1 ? (WCHAR *)calloc(sizeof(WCHAR), MAX_PATH * (arg_c - 1)) : NULL;
+        WCHAR wcmd[LARGER_LEN] = {0};
+        WCHAR conf_path[MAX_PATH] = {0};
+        WCHAR *param = arg_c > 1 ? (WCHAR *)calloc(sizeof(WCHAR), MAX_PATH * (arg_c - 1)) : NULL;
         if (param)
         {   // 把参数追加到命令行
             for (int i = 1; i < arg_c; ++i)
