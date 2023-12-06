@@ -1789,15 +1789,14 @@ on_treebar_load_imglist(HWND hwnd)
 static int
 on_treebar_tab_height(void)
 {
-    int top = 0;
+    int height = 0;
     if (g_treebar)
     {
         RECT rc = {0};
-        GetClientRect(g_treebar, &rc);
-        TabCtrl_AdjustRect(g_treebar, FALSE, &rc);
-        top = rc.top;
+        TabCtrl_GetItemRect(g_treebar, 0, &rc);
+        height = rc.bottom - rc.top + 1;
     }
-    return top;
+    return height;
 }
 
 static void
@@ -1864,10 +1863,14 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
+        case WM_SIZE:
+        {
+            return 1;
+        }
         case WM_DPICHANGED:
         {
             util_tab_height(g_treebar, 0);
-            break;
+            return 1;
         }
         case WM_THEMECHANGED:
         {
@@ -1891,19 +1894,22 @@ int
 on_treebar_create_box(HWND hwnd)
 {
     TCITEM tci = {TCIF_TEXT};
+    const style = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
     if (g_treebar)
     {
         DestroyWindow(g_treebar);
     }
-    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|TCS_FIXEDWIDTH|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
-    if (g_treebar == NULL)
+    if (!(g_treebar = CreateWindow(WC_TABCONTROL, NULL, style, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL)))
     {
         return EUE_POINT_NULL;
     }
-    TabCtrl_SetPadding(g_treebar, 20, 5);
-    util_tab_height(g_treebar, 0);
-    LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
-    tci.pszText = m_text;
+    if (true)
+    {
+        TabCtrl_SetPadding(g_treebar, 20, 5);
+        util_tab_height(g_treebar, 0);
+        LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
+        tci.pszText = m_text;
+    }
     if (TabCtrl_InsertItem(g_treebar, 0, &tci) == -1)
     {
         eu_logmsg("%s: TabCtrl_InsertItem failed\n", __FUNCTION__);

@@ -26,7 +26,7 @@
 #define RECENT_INSERT(n1,n2) "insert or replace into "#n1 "(szName,szPos,szDate,szHex) select szName,szPos,szDate,szHex from "#n2";"
 #define SESSION_TABLE  "create table skylark_session(szId INTEGER PRIMARY KEY,szTabId INTEGER,szRealPath char,"            \
                        "szBakPath char,szMark char,szFold char,szLine BIGINT,szCp INTEGER,szBakCp INTEGER,szEol SMALLINT," \
-                       "szBlank SMALLINT,szHex SMALLINT,szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT,szSync SMALLINT,szView SMAALLINT UNIQUE(szRealPath));"
+                       "szBlank SMALLINT,szHex SMALLINT,szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT,szSync SMALLINT,szView SMALLINT DEFAULT 0, UNIQUE(szRealPath));"
 #define SESSION_VAULE  "(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync, szView) "
 #define SESSION_SELECT "select szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync,szView from "
 #define SESSION_INSERT(n1,n2) "insert or replace into "#n1 SESSION_VAULE SESSION_SELECT#n2";"
@@ -815,7 +815,7 @@ eu_update_backup_table(file_backup *pbak, DB_MODE mode)
     {
         const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,"
                           "szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync, szView) "
-                          "values(%d, '%s', '%s', '%s', '%s', %zd, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
+                          "values(%d, '%s', '%s', '%s', '%s', %zd, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
                           "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%zd,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,"
                           "szZoom=%d,szStatus=%d,szSync=%d,szView=%d;";
         WideCharToMultiByte(CP_UTF8, 0, pbak->rel_path, -1, rel_path, MAX_BUFFER - 1, NULL, NULL);

@@ -679,8 +679,8 @@ eu_config_load_files(void)
         {
             if (v.ver < 40009)
             {
-                on_sql_post("ALTER TABLE skylark_session ADD szView SMALLINT DEFAULT 0;", NULL, NULL);
                 on_sql_post("UPDATE skylar_ver SET szVersion='4.0.9' WHERE szName='skylark.exe';", NULL, NULL);
+                on_sql_post("ALTER TABLE skylark_session ADD szView SMALLINT DEFAULT 0;", NULL, NULL);
             }
             if (v.status == VERSION_UPDATE_COMPLETED)
             {
