@@ -1894,7 +1894,7 @@ int
 on_treebar_create_box(HWND hwnd)
 {
     TCITEM tci = {TCIF_TEXT};
-    const style = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
+    const int style = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
     if (g_treebar)
     {
         DestroyWindow(g_treebar);
