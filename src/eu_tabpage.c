@@ -823,9 +823,14 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
+        case WM_THEMECHANGED:
+        {
+            on_dark_tips_theme(hwnd, TCM_GETTOOLTIPS);
+            break;
+        }
         case WM_DPICHANGED:
         {
-            on_tabpage_adjust_box(NULL);
+            on_tabpage_adjust_box(NULL, NULL);
             break;
         }
         case WM_COMMAND:
@@ -1134,34 +1139,39 @@ on_tabpage_do_file(tab_callback func)
 }
 
 void
-on_tabpage_size(void)
+on_tabpage_size(const RECT *prc)
 {
     if (g_tabpages)
     {
-        RECT rc_tabbar;
-        on_tabpage_adjust_box(&rc_tabbar);
+        RECT rc_tabbar = {0};
+        on_tabpage_adjust_box(prc, &rc_tabbar);
         MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, TRUE);
         ShowWindow(g_tabpages, SW_SHOW);
     }
 }
 
 void
-on_tabpage_adjust_box(RECT *ptp)
+on_tabpage_adjust_box(const RECT *prc, RECT *ptp)
 {
     if (ptp)
     {
-        RECT rc_main;
+        RECT rc_main = { 0 };
         RECT rc_treebar = { 0 };
-        on_treebar_adjust_box(&rc_treebar, &rc_main);
+        if (prc == NULL)
+        {
+            GetClientRect(eu_hwnd_self(), &rc_main);
+            prc = &rc_main;
+        }
+        on_treebar_adjust_box(prc, &rc_treebar);
         if (!eu_get_config()->m_ftree_show)
         {
-            ptp->left = rc_main.left;
+            ptp->left = prc->left;
         }
         else
         {
             ptp->left = rc_treebar.right;
         }
-        ptp->right = rc_main.right;
+        ptp->right = prc->right;
         ptp->top = rc_treebar.top;
         ptp->bottom = rc_treebar.bottom;
     }
@@ -1172,7 +1182,7 @@ on_tabpage_adjust_box(RECT *ptp)
 }
 
 void
-on_tabpage_adjust_window(eu_tabpage *pnode, RECT *ptab)
+on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab)
 {
     RECT rc_tabpages = {0};
     if (!ptab)
@@ -1182,8 +1192,12 @@ on_tabpage_adjust_window(eu_tabpage *pnode, RECT *ptab)
     if (true)
     {
         RECT rc_main;
-        GetClientRect(eu_module_hwnd(), &rc_main);
-        on_tabpage_adjust_box(ptab);
+        if (!prc)
+        {
+            GetClientRect(eu_hwnd_self(), &rc_main);
+            prc = &rc_main;    
+        }
+        on_tabpage_adjust_box(prc, ptab);
         pnode->rect_sc.left = ptab->left;
         if (eu_get_config()->m_ftree_show)
         {
@@ -1585,9 +1599,9 @@ on_tabpage_selection(eu_tabpage *pnode, int index)
     }
     if(index >= 0 && index < count)
     {
-        HWND hwnd = eu_module_hwnd();
+        HWND hwnd = eu_hwnd_self();
         on_tabpage_set_active(index);
-        eu_window_resize(hwnd);
+        eu_window_resize();
         if ((p = on_tabpage_get_ptr(index)))
         {   // 窗口处理过程中可能改变了标签位置, 重置它
             on_tabpage_deselect(index);

@@ -26,9 +26,9 @@
 #define RECENT_INSERT(n1,n2) "insert or replace into "#n1 "(szName,szPos,szDate,szHex) select szName,szPos,szDate,szHex from "#n2";"
 #define SESSION_TABLE  "create table skylark_session(szId INTEGER PRIMARY KEY,szTabId INTEGER,szRealPath char,"            \
                        "szBakPath char,szMark char,szFold char,szLine BIGINT,szCp INTEGER,szBakCp INTEGER,szEol SMALLINT," \
-                       "szBlank SMALLINT,szHex SMALLINT,szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT,szSync SMALLINT,UNIQUE(szRealPath));"
-#define SESSION_VAULE  "(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync) "
-#define SESSION_SELECT "select szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync from "
+                       "szBlank SMALLINT,szHex SMALLINT,szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT,szSync SMALLINT,szView SMALLINT DEFAULT 0, UNIQUE(szRealPath));"
+#define SESSION_VAULE  "(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync, szView) "
+#define SESSION_SELECT "select szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync,szView from "
 #define SESSION_INSERT(n1,n2) "insert or replace into "#n1 SESSION_VAULE SESSION_SELECT#n2";"
 #define RECENT_FORMAT  "create trigger delete_till_30 BEFORE INSERT ON file_recent WHEN (select count(*) from file_recent)>%d "\
                        "BEGIN "\
@@ -813,17 +813,20 @@ eu_update_backup_table(file_backup *pbak, DB_MODE mode)
     char *sql = (char *)calloc(1, MAX_BUFFER*5 + 1);
     if (sql)
     {
-        const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync) "
-                          "values(%d, '%s', '%s', '%s', '%s', %zd, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
-                          "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%zd,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,szZoom=%d,szStatus=%d,szSync=%d;";
+        const char *fmt = "insert into skylark_session(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,"
+                          "szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync, szView) "
+                          "values(%d, '%s', '%s', '%s', '%s', %zd, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d) on conflict (szRealPath) do update set "
+                          "szTabId=%d,szBakPath='%s',szMark='%s',szFold='%s',szLine=%zd,szCp=%d,szBakCp=%d,szEol=%d,szBlank=%d,szHex=%d,szFocus=%d,"
+                          "szZoom=%d,szStatus=%d,szSync=%d,szView=%d;";
         WideCharToMultiByte(CP_UTF8, 0, pbak->rel_path, -1, rel_path, MAX_BUFFER - 1, NULL, NULL);
         WideCharToMultiByte(CP_UTF8, 0, pbak->bak_path, -1, bak_path, MAX_BUFFER - 1, NULL, NULL);
         // 文件路径存在特殊符号时进行转义
         eu_str_replace(rel_path, MAX_BUFFER - 1, "'", "''");
         eu_str_replace(bak_path, MAX_BUFFER - 1, "'", "''");
         _snprintf(sql, MAX_BUFFER*5, fmt, pbak->tab_id, rel_path, bak_path, pbak->mark_id, pbak->fold_id, pbak->postion, pbak->cp, pbak->bakcp,
-                  pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync, pbak->tab_id,bak_path,pbak->mark_id,pbak->fold_id,pbak->postion,
-                  pbak->cp, pbak->bakcp,pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync);
+                  pbak->eol, pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync, pbak->view,
+                  pbak->tab_id,bak_path,pbak->mark_id,pbak->fold_id,pbak->postion,pbak->cp, pbak->bakcp,pbak->eol,
+                  pbak->blank, pbak->hex, pbak->focus, pbak->zoom, pbak->status, pbak->sync, pbak->view);
         switch (mode)
         {
             case DB_ALL:

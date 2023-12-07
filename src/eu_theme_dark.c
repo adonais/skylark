@@ -76,7 +76,7 @@ on_dark_high_contrast(void)
 bool
 on_dark_enable(void)
 {
-    return g_dark_enabled && (eu_win11_or_later() ? true : on_dark_apps_use()) && !on_dark_high_contrast();
+    return g_dark_enabled && (eu_win11_or_later() ? true : on_dark_apps_use() && !on_dark_high_contrast());
 }
 
 HRESULT
@@ -202,7 +202,7 @@ on_dark_set_titlebar(HWND hwnd, BOOL dark)
             SetProp(hwnd, _T("UseImmersiveDarkModeColors"), (HANDLE)(intptr_t)(dark));
         #endif // USE_DWMAPI
         }
-        else if (fnSetWindowCompositionAttribute)   // number < 22000 && 
+        else if (fnSetWindowCompositionAttribute)   // win 10.0.18362 or win11
         {
             WINDOWCOMPOSITIONATTRIBDATA data = {WCA_USEDARKMODECOLORS, &dark, sizeof(dark)};
             fnSetWindowCompositionAttribute(hwnd, &data);
@@ -220,11 +220,12 @@ static bool
 on_dark_set_caption(void)
 {
     bool ret = false;
+    const HWND hwnd = eu_module_hwnd();
     const uint32_t number = eu_win10_or_later();
     if ((ret = number != (uint32_t)-1) && number >= 22000)
     {
         const bool white = eu_theme_index() == THEME_WHITE;
-        if (!(white && g_color_enable))
+        if (hwnd && !(white && g_color_enable))
         {
         #if USE_DWMAPI
             HMODULE dwm = np_load_plugin_library(_T("dwmapi.dll"), true);
@@ -232,7 +233,7 @@ on_dark_set_caption(void)
             if ((ret = fnDwmSetWindowAttribute != NULL))
             {
                 colour mycolor = white ? rgb_dark_txt_color : DWMWA_COLOR_DEFAULT;
-                ret = S_OK == fnDwmSetWindowAttribute(eu_module_hwnd(), DWMWA_CAPTION_COLOR, &mycolor, sizeof mycolor);
+                ret = S_OK == fnDwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &mycolor, sizeof mycolor);
                 g_color_enable = white && ret == S_OK;
                 eu_logmsg("%s: ret = %d\n", __FUNCTION__, ret);
             }

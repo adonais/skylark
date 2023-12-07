@@ -20,6 +20,12 @@
 #define ascii_special_symbol(ch) \
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
+typedef struct _skyver_data
+{
+    int ver;
+    int status;
+} skyver_data;
+
 static void
 on_config_setup_postion(const wchar_t **args, int arg_c, file_backup *pbak)
 {
@@ -65,19 +71,16 @@ on_config_cvector_at(const file_backup *pbak, const TCHAR *pfile)
     return -1;
 }
 
-static void
+static bool
 on_config_open_args(file_backup **pbak)
 {
-    int  arg_c = 0;
+    int arg_c = 0;
+    bool ret = false;
     LPWSTR *args = CommandLineToArgvW(GetCommandLineW(), &arg_c);
-    if (args == NULL || pbak == NULL)
-    {
-        return;
-    }
-    if (arg_c >= 2)
+    if (pbak && args && arg_c >= 2)
     {
         cvector_vector_type(file_backup) vpath = NULL;
-        if (eu_config_parser_path(args, arg_c, &vpath))
+        if ((ret = eu_config_parser_path(args, arg_c, &vpath)))
         {
             for (size_t i = 0; i < cvector_size(vpath); ++i)
             {
@@ -94,7 +97,11 @@ on_config_open_args(file_backup **pbak)
         }
         cvector_free(vpath);
     }
-    LocalFree(args);
+    if (args)
+    {
+        LocalFree(args);
+    }
+    return ret;
 }
 
 static int
@@ -194,7 +201,10 @@ on_config_load_file(void *lp)
     {
         err = on_sql_do_session("SELECT * FROM skylar_ver;", NULL, NULL);
     }
-    on_config_open_args(&vbak);
+    if (on_config_open_args(&vbak))
+    {
+        eu_logmsg("run with arguments\n");
+    }
     if ((vec_size = cvector_size(vbak)) < 1)
     {
         file_backup bak = {0};
@@ -340,17 +350,88 @@ on_config_lua_execute(const wchar_t *file)
 }
 
 static int
+on_config_edition(const char *str)
+{
+    int v = 0;
+    if (str)
+    {
+        int i = 0;
+        const char *p = str;
+        for (i = 100, v = atoi(p) * 10000; i && (p = strchr(p, '.')) != NULL; i /= 100)
+        {
+            v += (atoi(++p) * i);
+        }
+    }
+    return v;
+}
+
+static int
 on_config_skyver_callbak(void *data, int count, char **column, char **names)
 {
-    UNREFERENCED_PARAMETER(data);
-    UNREFERENCED_PARAMETER(count);
-    UNREFERENCED_PARAMETER(names);
-    int status = atoi(column[0]);
-    if (data)
+    skyver_data *pd = (skyver_data *)data;
+    for (int i = 0; i < count; ++i)
     {
-        *(int *)data = status;
+        if (STRCMP(names[i], ==, "szVersion"))
+        {
+            pd->ver = on_config_edition(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szExtra"))
+        {
+            pd->status = atoi(column[i]);
+        }
     }
-    return (int)(status == VERSION_UPDATE_COMPLETED);
+    return 0;
+}
+
+static bool
+on_config_create_cache(void)
+{
+    bool ret = false;
+    TCHAR cache_path[MAX_BUFFER] = {0};
+    if (_sntprintf(cache_path, MAX_BUFFER, _T("%s\\cache"), eu_config_path) > 0)
+    {
+        if (!eu_exist_dir(cache_path))
+        {
+            ret = eu_mk_dir(cache_path);
+        }
+        else
+        {
+            ret = true;
+        }
+    }
+    return ret;
+}
+
+static bool
+on_config_update_db(void)
+{
+    if (eu_hwnd_self() == share_envent_get_hwnd())
+    {
+        skyver_data v = {0};
+        int err = on_sql_post("SELECT szVersion, szExtra FROM skylar_ver;", on_config_skyver_callbak, &v);
+        if (err != SKYLARK_SQL_END)
+        {
+            if (v.ver < 40009)
+            {
+                on_sql_post("UPDATE skylar_ver SET szVersion='4.0.9' WHERE szName='skylark.exe';", NULL, NULL);
+                on_sql_post("ALTER TABLE skylark_session ADD szView SMALLINT DEFAULT 0;", NULL, NULL);
+            }
+            if (v.status == VERSION_UPDATE_COMPLETED)
+            {
+                if (on_update_do())
+                {
+                    on_update_sql();
+                    eu_session_backup(SESSION_CONFIG);
+                    return false;
+                }
+                else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
+                {
+                    on_update_sql();
+                }
+            }
+        }
+    }
+    return true;
 }
 
 void
@@ -433,7 +514,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
     {
         for (int i = 1; i < arg_c; ++i)
         {
-            file_backup data = {-1, -1};
+            file_backup data = {-1, -1, 0 , -1};
             if (wcsncmp(ptr_arg[i], L"-restart", 8) == 0)
             {
                 i += 2;
@@ -490,10 +571,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 {
                     on_config_setup_postion(ptr_arg, arg_c, &data);
                     cvector_push_back(*pbak, data);
-                }
-                if (!ret)
-                {
-                    ret = true;
+                    ret |= 0x1;
                 }
             }
         }
@@ -547,25 +625,6 @@ eu_config_load_docs(void)
     ret = true;
 load_fail:
     eu_safe_free(lua_path);
-    return ret;
-}
-
-static bool
-on_config_create_cache(void)
-{
-    bool ret = false;
-    TCHAR cache_path[MAX_BUFFER] = {0};
-    if (_sntprintf(cache_path, MAX_BUFFER, _T("%s\\cache"), eu_config_path) > 0)
-    {
-        if (!eu_exist_dir(cache_path))
-        {
-            ret = eu_mk_dir(cache_path);
-        }
-        else
-        {
-            ret = true;
-        }
-    }
     return ret;
 }
 
@@ -645,25 +704,12 @@ eu_config_init_path(void)
 bool
 eu_config_load_files(void)
 {
-    if (eu_hwnd_self() == share_envent_get_hwnd())
+    if (on_config_update_db())
     {
-        int err = on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, NULL);
-        if (err == SQLITE_ABORT)
-        {
-            if (on_update_do())
-            {
-                on_update_sql();
-                eu_session_backup(SESSION_CONFIG);
-                return false;
-            }
-            else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
-            {
-                on_update_sql();
-            }
-        }
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_favorite_up_config, NULL, 0, NULL));
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
+        return on_config_create_accel();
     }
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_favorite_up_config, NULL, 0, NULL));
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
-    return on_config_create_accel();
+    return false;
 }

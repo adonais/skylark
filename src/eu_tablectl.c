@@ -21,6 +21,7 @@
 #define SQL_EXECUTE_FAIL(_n) (nret) = (_n); goto table_clean
 
 static volatile long last_hot_item = -1;
+static volatile long last_hot_columu = -1;
 
 typedef struct _column_t
 {
@@ -32,54 +33,20 @@ typedef struct _column_t
 db_libs db_funcs = {0};
 redis_lib redis_funcs = {0};
 
-static void
-on_table_draw_header(HWND hwnd)
-{
-    HWND hdr = ListView_GetHeader(hwnd);
-    if (hdr && on_dark_enable())
-    {
-        const int bdh = GetSystemMetrics(SM_CYFRAME);
-        const HDC hdc_src = GetWindowDC(hdr);
-        RECT rcf = {0};
-        int count = (int)SendMessage(hdr, HDM_GETITEMCOUNT, 0, 0);
-        for (int k = 0; k < count; ++k)
-        {
-            if (SendMessage(hdr, HDM_GETITEMRECT, k, (LPARAM)&rcf))
-            {
-                for (int i = 1; i < bdh; ++i)
-                {
-                    FrameRect(hdc_src, &rcf, (HBRUSH)on_dark_theme_brush());
-                    rcf.left -= 1;
-                    rcf.top -= 1;
-                    rcf.bottom += 1;
-                    rcf.right += 1;
-                }
-                FrameRect(hdc_src, &rcf, GetSysColorBrush(COLOR_3DDKSHADOW));
-            }
-        }
-        ReleaseDC(hdr, hdc_src);
-    }
-}
-
 void
 on_table_update_theme(eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL);
-    if (pnode->hwnd_qrtable)
+    if (pnode && pnode->hwnd_qrtable)
     {
+        HWND hdr = NULL;
         SendMessage(pnode->hwnd_qrtable, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
         SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
         SendMessage(pnode->hwnd_qrtable, LVM_SETOUTLINECOLOR, 0, eu_get_theme()->item.text.color);
         SendMessage(pnode->hwnd_qrtable, LVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
         SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
-        on_dark_set_theme(pnode->hwnd_qrtable, L"Explorer", NULL);
-        HWND hdr = ListView_GetHeader(pnode->hwnd_qrtable);
-        if (hdr)
+        if ((hdr = ListView_GetHeader(pnode->hwnd_qrtable)))
         {
-            const intptr_t style = GetWindowLongPtr(hdr, GWL_STYLE);
-            SetWindowLongPtr(hdr, GWL_STYLE, style & ~HDS_FLAT);
-            // 移除主题渲染, 使用自绘
-            on_dark_set_theme(hdr, L"", L"");
+            SetWindowLongPtr(hdr, GWL_STYLE, GetWindowLongPtr(hdr, GWL_STYLE) & ~HDS_BUTTONS);
             on_dark_set_theme(pnode->hwnd_qrtable, L"Explorer", NULL);
         }
     }
@@ -94,13 +61,20 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
         {
             return 1;
         }
-        case WM_PAINT:
-        {
-            on_table_draw_header(hwnd);
-            break;
-        }
         case WM_THEMECHANGED:
         {
+            const bool dark = on_dark_enable();
+            HWND hdr = ListView_GetHeader(hwnd);
+            on_dark_allow_window(hwnd, dark);
+            on_dark_allow_window(hdr, dark);
+            if (eu_theme_index() == THEME_DEFAULT)
+            {
+                on_dark_set_theme(hdr, L"", L"");  
+            }
+            else
+            {
+                on_dark_set_theme(hdr, dark ? L"ItemsView" : NULL, NULL);
+            }
             UpdateWindowEx(hwnd);
             break;
         }
@@ -119,8 +93,8 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
         }
         case WM_NOTIFY:
         {
-            NMHDR *lpnmhdr = (NMHDR *) lp;
-            HWND hdr = ListView_GetHeader(hwnd);
+            NMHDR *lpnmhdr = (NMHDR *)lp;
+            HWND   hdr = ListView_GetHeader(hwnd);
             if (lpnmhdr->hwndFrom == hdr && lpnmhdr->code == NM_CUSTOMDRAW)
             {
                 NMCUSTOMDRAW *lpnm = (LPNMCUSTOMDRAW)lp;
@@ -132,13 +106,13 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
                     }
                     case CDDS_ITEMPREPAINT:
                     {
-                        FillRect(lpnm->hdc, &lpnm->rc, (HBRUSH)on_dark_theme_brush());
-                        SetTextColor(lpnm->hdc, eu_get_theme()->item.text.color);
-                        SetBkColor(lpnm->hdc, eu_get_theme()->item.text.bgcolor);
-                        return CDRF_DODEFAULT;
+                        set_text_color(lpnm->hdc, on_dark_enable());
+                        return CDRF_NEWFONT;
                     }
                     default:
-                        break;
+                    {
+                        return CDRF_DODEFAULT;
+                    }
                 }
             }
             break;
@@ -182,8 +156,7 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
                 {
                     if (last_hot_item >= 0)
                     {
-                        int index = ListView_GetSelectedColumn(hwnd);
-                        ListView_GetItemText(hwnd, (int)last_hot_item, index, text, LARGER_LEN);
+                        ListView_GetItemText(hwnd, (int)last_hot_item, (int)last_hot_columu, text, LARGER_LEN);
                         on_edit_push_clipboard(text);
                     }
                     break;
@@ -231,9 +204,9 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
                 // 使当前行成为焦点
                 SendMessage(hwnd, WM_LBUTTONDOWN, 0, lp);
                 _InterlockedExchange(&last_hot_item, (long)lvhti.iItem);
+                _InterlockedExchange(&last_hot_columu, (long)col);
                 // 弹出右键菜单
                 menu_pop_track(hwnd, IDR_QTABLE_VIEW_POPUPMENU, 0, -1, NULL, NULL);
-                ListView_SetSelectedColumn(hwnd, col);
                 return 1;
             }
             break;
@@ -247,6 +220,7 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
         {
             RemoveWindowSubclass(hwnd, on_table_listview_proc, sub_id);
             _InterlockedExchange(&last_hot_item, -1);
+            _InterlockedExchange(&last_hot_columu, -1);
             break;
         }
     }
@@ -256,23 +230,26 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
 int
 on_table_create_query_box(eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL);
-    if (pnode->hwnd_qrtable)
+    if (pnode)
     {
-        DestroyWindow(pnode->hwnd_qrtable);
+        const uint32_t style = WS_CHILD | WS_CLIPSIBLINGS | LVS_REPORT;
+        const uint32_t stylex = LVS_EX_DOUBLEBUFFER | LVS_EX_FLATSB | LVS_EX_HEADERINALLVIEWS | LVS_EX_FULLROWSELECT;
+        if (pnode->hwnd_qrtable)
+        {
+            DestroyWindow(pnode->hwnd_qrtable);
+        }
+        pnode->hwnd_qrtable = CreateWindow(WC_LISTVIEW, _T(""), style, 0, 0, 0, 0, eu_hwnd_self(), (HMENU)IDM_TABLE_BAR, eu_module_handle(), NULL);
+        if (pnode->hwnd_qrtable == NULL)
+        {
+            MSG_BOX(IDC_MSG_QUERY_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            return SKYLARK_TB_FAILED;
+        }
+        SetWindowSubclass(pnode->hwnd_qrtable, on_table_listview_proc, TBCTL_LIST_SUBID, 0);
+        ListView_SetExtendedListViewStyle(pnode->hwnd_qrtable, stylex);
+        on_table_update_theme(pnode);
+        return SKYLARK_OK;
     }
-    /* 创建结果表格控件 */
-    const uint32_t style = WS_CHILD | WS_CLIPSIBLINGS | LVS_REPORT;
-    pnode->hwnd_qrtable = CreateWindow(WC_LISTVIEW, _T(""), style, 0, 0, 0, 0, eu_module_hwnd(), (HMENU)IDM_TABLE_BAR, eu_module_handle(), NULL);
-    if (pnode->hwnd_qrtable == NULL)
-    {
-        MSG_BOX(IDC_MSG_QUERY_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-        return 1;
-    }
-    SetWindowSubclass(pnode->hwnd_qrtable, on_table_listview_proc, TBCTL_LIST_SUBID, 0);
-    ListView_SetExtendedListViewStyle(pnode->hwnd_qrtable, LVS_EX_FLATSB | LVS_EX_DOUBLEBUFFER | LVS_EX_HEADERDRAGDROP | LVS_EX_FULLROWSELECT);
-    on_table_update_theme(pnode);
-    return 0;
+    return SKYLARK_TB_FAILED;
 }
 
 int

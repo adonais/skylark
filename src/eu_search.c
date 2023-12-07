@@ -2514,7 +2514,7 @@ on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key, int or
         pnode->result_show = true;
         // 关键字不高亮的回调函数
         pnode->presult->pwant = NULL;
-        eu_window_resize(NULL);
+        eu_window_resize();
         eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
         eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
         sprintf(ptr_style, "%p", &pnode->ret_vec);

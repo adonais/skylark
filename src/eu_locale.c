@@ -379,7 +379,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     }
     else
     {
-        on_statusbar_size(NULL);
+        on_statusbar_size(NULL, NULL);
         if (on_dark_enable())
         {
             SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
@@ -459,7 +459,7 @@ i18n_switch_locale(HWND hwnd, int id)
         on_tabpage_newdoc_reload();
         i18n_update_multi_lang(menu_env);
         i18n_update_menu(menu_env);
-        SendMessage(hwnd, WM_SIZE, 0, 0);
+        on_proc_redraw(NULL);
     }
     return 0;
 }

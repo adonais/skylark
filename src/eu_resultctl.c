@@ -245,7 +245,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         p->presult->hwnd_sc = NULL;
                         p->result_show = false;
                         eu_safe_free(p->presult);
-                        eu_window_resize(NULL);
+                        eu_window_resize();
                     }
                     break;
                 }

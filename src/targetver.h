@@ -30,8 +30,11 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 8
+#define __EU_INFO_VERSION_PATCHLEVEL 9
 #define __ORIGINAL_NAME TEXT("skylark.exe")
+#define SKYLARK_VERSION (__EU_INFO_VERSION * 10000      \
+                        + __EU_INFO_VERSION_MINOR * 100 \
+                        + __EU_INFO_VERSION_PATCHLEVEL)
 
 #if !__EU_INFO_VERSION_PATCHLEVEL
 #define __LIFE_CYCLE TEXT("-GA")

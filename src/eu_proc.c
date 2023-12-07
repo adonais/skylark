@@ -225,13 +225,19 @@ on_proc_move_sidebar(eu_tabpage *pnode)
  * 主窗口缩放处理函数
 ******************************************************************************/
 static void
-on_proc_msg_size(HWND hwnd, eu_tabpage *pnode)
+on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
 {
     const bool redraw = pnode == NULL;
     if (pnode || (pnode = on_tabpage_focus_at()))
     {
+        RECT rc = {0};
         RECT rc_tabbar = {0};
-        on_tabpage_adjust_window(pnode, &rc_tabbar);
+        if (!prc)
+        {
+            GetClientRect(eu_hwnd_self(), &rc);
+            prc = &rc;
+        }
+        on_tabpage_adjust_window(prc, pnode, &rc_tabbar);
         if (pnode->hwnd_sc)
         {
             HDWP hdwp = NULL;
@@ -308,16 +314,16 @@ on_proc_msg_size(HWND hwnd, eu_tabpage *pnode)
                 UpdateWindow(g_splitter_tablebar);
             }
         }
-        on_statusbar_size(pnode);
+        on_statusbar_size(prc, pnode);
         // 从插件页面切换时获取鼠标焦点
         on_proc_msg_active(pnode);
     }
 }
 
 static void
-on_proc_tab_click(HWND hwnd, eu_tabpage *pnode)
+on_proc_tab_click(eu_tabpage *pnode)
 {
-    on_proc_msg_size(hwnd, pnode);
+    on_proc_msg_size(NULL, pnode);
     if (pnode && pnode->nc_pos >= 0 && eu_get_config() && eu_get_config()->scroll_to_cursor)
     {
         if (TAB_HEX_MODE(pnode))
@@ -570,11 +576,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if (wParam != SIZE_MINIMIZED)
             {
-                on_treebar_size();
-                on_toolbar_size();
-                on_tabpage_size();
-                on_proc_msg_size(hwnd, NULL);
-                on_statusbar_size(NULL);
+                RECT rc = {0, 0, LOWORD(lParam), HIWORD(lParam)};
+                on_proc_redraw(&rc);
             }
             break;
         }
@@ -591,7 +594,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     GetClientRect(g_tabpages, &rect);
                     if (PtInRect(&rect, pt) && (int)SendMessage(g_tabpages, WM_NCHITTEST, 0, lParam) == HTTRANSPARENT)
                     {
-                        PostMessage(g_tabpages, WM_TAB_NCCLICK, wParam, 0);
+                        SendMessage(g_tabpages, WM_TAB_NCCLICK, wParam, 0);
                     }
                 }
             }
@@ -599,7 +602,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_TAB_CLICK:
         {
-            on_proc_tab_click(hwnd, (void *)wParam);
+            on_proc_tab_click((void *)wParam);
             return 1;
         }
         case WM_UPCHECK_STATUS:
@@ -752,28 +755,31 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     on_dark_allow_window(hwnd, true);
                     on_dark_refresh_titlebar(hwnd);
-                    if (eu_win11_or_later())
-                    {
-                        on_toolbar_refresh(hwnd);
-                    }
-                    else
+                    if (!eu_win11_or_later())
                     {   // win10 dark模式启动时刷新标题栏
                         util_updateui_titlebar(hwnd);
                     }
-                    SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+                    if (g_tabpages)
+                    {
+                        SendMessage(g_tabpages, WM_THEMECHANGED, 0, 0);
+                    }
+                    if (g_statusbar)
+                    {
+                        SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
+                    }
                 }
                 else 
                 {
+                    HWND htool = NULL;
                     HWND snippet = NULL;
-                    HWND htool = on_toolbar_hwnd();
                     on_dark_allow_window(hwnd, on_dark_enable());
                     on_dark_refresh_titlebar(hwnd);
                     if (g_tabpages)
                     {
-                        on_dark_tips_theme(g_tabpages, TCM_GETTOOLTIPS);
                         on_tabpage_foreach(on_tabpage_theme_changed);
+                        SendMessage(g_tabpages, WM_THEMECHANGED, 0, 0);
                     }
-                    if (htool)
+                    if ((htool = on_toolbar_hwnd()))
                     {
                         on_dark_tips_theme(htool, TB_GETTOOLTIPS);
                         SendMessage(htool, WM_THEMECHANGED, (WPARAM)hwnd, 0);
@@ -812,7 +818,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     eu_logmsg("swiching light mode\n");
                     eu_dark_theme_release(false);
-                    on_proc_msg_size(hwnd, NULL);
+                    on_proc_msg_size(NULL, NULL);
                 }
             }
             break;
@@ -1590,7 +1596,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_VIEW_TABBAR_SPLIT:
                     eu_get_config()->m_tab_split ^= true;
-                    eu_window_resize(hwnd);
+                    eu_window_resize();
                     break;
                 case IDM_VIEW_SWITCH_TAB:
                     on_tabpage_switch_next(hwnd);
@@ -1737,9 +1743,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_toolbar_icon_set(wm_id);
                         if (on_toolbar_refresh(hwnd))
                         {
-                            on_toolbar_size();
-                            on_treebar_size();
-                            on_proc_msg_size(hwnd, NULL);
+                            on_toolbar_size(NULL);
+                            on_treebar_size(NULL);
+                            on_proc_msg_size(NULL, NULL);
                         }
                     }
                     break;
@@ -1758,9 +1764,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     if (on_toolbar_refresh(hwnd))
                     {
-                        on_toolbar_size();
-                        on_treebar_size();
-                        on_proc_msg_size(hwnd, NULL);
+                        on_toolbar_size(NULL);
+                        on_treebar_size(NULL);
+                        on_proc_msg_size(NULL, NULL);
                     }
                     break;
                 }
@@ -1769,9 +1775,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (eu_get_config() && !(eu_get_config()->m_fullscreen))
                     {
                         eu_get_config()->m_statusbar ^= true;
-                        on_treebar_size();
-                        on_proc_msg_size(hwnd, NULL);
-                        on_statusbar_size(NULL);
+                        on_statusbar_size(NULL, NULL);
+                        on_treebar_size(NULL);
+                        on_proc_msg_size(NULL, NULL);
                     }
                     break;
                 }
@@ -2182,6 +2188,22 @@ on_proc_msg_active(eu_tabpage *pnode)
 }
 
 void
+on_proc_redraw(const RECT *prc)
+{
+    RECT rc = {0};
+    if (!prc)
+    {
+        GetClientRect(g_hwndmain, &rc);
+        prc = &rc;
+    }
+    on_statusbar_size(prc, NULL);
+    on_treebar_size(prc);
+    on_toolbar_size(prc);
+    on_tabpage_size(prc);
+    on_proc_msg_size(prc, NULL);
+}
+
+void
 on_proc_sync_wait(void)
 {   // 销毁定时器
     KillTimer(g_hwndmain, EU_TIMER_ID);
@@ -2287,9 +2309,9 @@ eu_create_fullscreen(HWND hwnd)
 }
 
 void
-eu_window_resize(HWND hwnd)
+eu_window_resize(void)
 {
-    on_proc_msg_size(hwnd ? hwnd : eu_module_hwnd(), NULL);
+    on_proc_msg_size(NULL, NULL);
 }
 
 int

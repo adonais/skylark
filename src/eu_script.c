@@ -946,7 +946,7 @@ do_byte_code(eu_tabpage *pnode)
     }
 allclean:
     pnode->presult->pwant = on_toolbar_no_highlight;
-    eu_window_resize(NULL);
+    eu_window_resize();
     if (!status)
     {
         char u8_path[MAX_BUFFER] = {0};

@@ -1786,6 +1786,31 @@ on_treebar_load_imglist(HWND hwnd)
     return himl;
 }
 
+static int
+on_treebar_tab_height(void)
+{
+    int height = 0;
+    if (g_treebar)
+    {
+        RECT rc = {0};
+        TabCtrl_GetItemRect(g_treebar, 0, &rc);
+        height = rc.bottom - rc.top + 1;
+    }
+    return height;
+}
+
+static void
+on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
+{
+    if (g_treebar)
+    {
+        rect_filetree->left = FILETREE_MARGIN_LEFT;
+        rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
+        rect_filetree->top = rect_filebar->top + on_treebar_tab_height();
+        rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
+    }
+}
+
 void
 on_treebar_update_theme(void)
 {
@@ -1838,9 +1863,14 @@ treebar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
+        case WM_SIZE:
+        {
+            return 1;
+        }
         case WM_DPICHANGED:
         {
-            break;
+            util_tab_height(g_treebar, 0);
+            return 1;
         }
         case WM_THEMECHANGED:
         {
@@ -1864,18 +1894,22 @@ int
 on_treebar_create_box(HWND hwnd)
 {
     TCITEM tci = {TCIF_TEXT};
+    const int style = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
     if (g_treebar)
     {
         DestroyWindow(g_treebar);
     }
-    g_treebar = CreateWindow(WC_TABCONTROL, NULL, WS_CHILD|TCS_FIXEDWIDTH|TCS_FOCUSNEVER, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL);
-    if (g_treebar == NULL)
+    if (!(g_treebar = CreateWindow(WC_TABCONTROL, NULL, style, 0, 0, 0, 0, hwnd, (HMENU) IDM_TREE_BAR, eu_module_handle(), NULL)))
     {
         return EUE_POINT_NULL;
     }
-    TabCtrl_SetPadding(g_treebar, 20, 5);
-    LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
-    tci.pszText = m_text;
+    if (true)
+    {
+        TabCtrl_SetPadding(g_treebar, 20, 5);
+        util_tab_height(g_treebar, 0);
+        LOAD_I18N_RESSTR(IDC_MSG_EXPLORER, m_text);
+        tci.pszText = m_text;
+    }
     if (TabCtrl_InsertItem(g_treebar, 0, &tci) == -1)
     {
         eu_logmsg("%s: TabCtrl_InsertItem failed\n", __FUNCTION__);
@@ -1974,24 +2008,24 @@ on_treebar_create_dlg(HWND hwnd)
 }
 
 void
-on_treebar_size(void)
+on_treebar_size(const RECT *prc)
 {
     HDWP hdwp = BeginDeferWindowPos(3);
     if (g_treebar && hdwp)
     {
-        RECT rect_treebar = {0};
-        on_treebar_adjust_box(&rect_treebar, NULL);
+        RECT rc_treebar = {0};
+        on_treebar_adjust_box(prc, &rc_treebar);
         if (eu_get_config()->m_ftree_show)
         {
             RECT rect_filetree = {0};
-            on_treebar_adjust_filetree(&rect_treebar, &rect_filetree);
+            on_treebar_adjust_filetree(&rc_treebar, &rect_filetree);
             DeferWindowPos(hdwp,
                            g_treebar,
                            HWND_TOP,
-                           rect_treebar.left,
-                           rect_treebar.top,
-                           rect_treebar.right - rect_treebar.left,
-                           rect_treebar.bottom - rect_treebar.top,
+                           rc_treebar.left,
+                           rc_treebar.top,
+                           rc_treebar.right - rc_treebar.left,
+                           rc_treebar.bottom - rc_treebar.top,
                            SWP_SHOWWINDOW);
             DeferWindowPos(hdwp,
                            g_filetree,
@@ -2004,7 +2038,7 @@ on_treebar_size(void)
             DeferWindowPos(hdwp,
                            g_splitter_treebar,
                            HWND_TOP,
-                           rect_treebar.right,
+                           rc_treebar.right,
                            rect_filetree.top,
                            SPLIT_WIDTH,
                            rect_filetree.bottom - rect_filetree.top,
@@ -2021,13 +2055,13 @@ on_treebar_size(void)
 }
 
 void
-on_treebar_adjust_box(RECT *ptf, RECT *prc)
+on_treebar_adjust_box(const RECT *prc, RECT *ptf)
 {
-    RECT rect_main = {0};
-    GetClientRect(eu_module_hwnd(), prc ? prc : &rect_main);
+    RECT rc_main = {0};
     if (prc == NULL)
     {
-        prc = &rect_main;
+        GetClientRect(eu_hwnd_self(), &rc_main);
+        prc = &rc_main;
     }
     if (!eu_get_config()->m_ftree_show)
     {
@@ -2042,18 +2076,6 @@ on_treebar_adjust_box(RECT *ptf, RECT *prc)
         ptf->right = prc->left + eu_get_config()->file_tree_width;
         ptf->top = prc->top + on_toolbar_get_height();
         ptf->bottom = prc->bottom - on_statusbar_height();
-    }
-}
-
-void
-on_treebar_adjust_filetree(const RECT *rect_filebar, RECT *rect_filetree)
-{
-    if (g_treebar)
-    {
-        rect_filetree->left = FILETREE_MARGIN_LEFT;
-        rect_filetree->right = rect_filebar->right - FILETREE_MARGIN_RIGHT;
-        rect_filetree->top = rect_filebar->top + util_tab_height(g_treebar, 0) + FILETREE_MARGIN_TOP;
-        rect_filetree->bottom = rect_filebar->bottom - FILETREE_MARGIN_BOTTOM;
     }
 }
 
@@ -2186,7 +2208,7 @@ on_treebar_locate_remote(const TCHAR *pathname)
         TreeView_SelectItem(g_filetree, hti);
         TreeView_EnsureVisible(g_filetree, hti);
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
-        eu_window_resize(eu_module_hwnd());
+        eu_window_resize();
     }
     free(m_dup);
     return SKYLARK_OK;
@@ -2261,8 +2283,8 @@ on_treebar_locate_path(const TCHAR *pathname)
         TreeView_SelectItem(g_filetree, hti);
         TreeView_EnsureVisible(g_filetree, hti);
         SendMessage(g_filetree, WM_SETFOCUS, 0, 0);
-        on_treebar_size();
-        eu_window_resize(eu_module_hwnd());
+        on_treebar_size(NULL);
+        eu_window_resize();
     }
     util_free(m_dup);
     return SKYLARK_OK;
