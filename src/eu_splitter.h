@@ -26,11 +26,13 @@ extern "C"
 
 extern HWND g_splitter_treebar;
 extern HWND g_splitter_symbar;
+extern HWND g_splitter_tabbar;
 extern HWND g_splitter_editbar;
 extern HWND g_splitter_tablebar;
 
 bool on_splitter_init_treebar(HWND parent);
 bool on_splitter_init_symbar(HWND parent);
+bool on_splitter_init_tabbar(HWND parent);
 bool on_splitter_init_editbar(HWND parent);
 bool on_splitter_init_tablebar(HWND parent);
 void on_splitter_redraw(void);

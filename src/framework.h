@@ -78,6 +78,7 @@
 #define FILETREEBAR_WIDTH_MIN        100
 #define SYMBOLLIST_WIDTH_MIN         100
 #define TREEVIEW_WIDTH_MIN           100
+#define TABBAR_WIDTH_MIN             100
 #define DOCUMENTMAP_WIDTH_MIN        32
 
 #define SPLIT_WIDTH                  2

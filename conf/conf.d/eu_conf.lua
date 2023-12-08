@@ -166,6 +166,15 @@ function eu_conf.loadconf()
         "    name = true,\n" ..
         "    path = true\n" ..
         "}\n" ..
+        "-- Master Slave view default setting\n" ..
+        "mstab = {\n" ..
+        "    vertical = false,\n" ..
+        "    horizontal = false,\n" ..
+        "    slave_focus = false,\n" ..
+        "    show = false,\n" ..
+        "    main_size = 0,\n" ..
+        "    slave_size = 0\n" ..
+        "}\n" ..
         "-- hyperlink hotspot default setting\n" ..
         "hyperlink_detection = true\n" ..
         "-- automatically cached file (size < 200MB)\n" ..
@@ -195,6 +204,9 @@ function eu_conf.loadconf()
     end
     if (tab_split_show == nil) then
         tab_split_show = false;
+    end
+    if (mstab == nil) then
+        mstab = {["vertical"] = false, ["horizontal"] = false, ["slave_focus"] = false, ["show"] = false, ["main_size"] = 0, ["slave_size"] = 0}
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
@@ -255,6 +267,7 @@ function eu_conf.loadconf()
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         {titlebar.icon, titlebar.name, titlebar.path},
+        {mstab.vertical, mstab.horizontal, mstab.slave_focus, mstab.show, mstab.main_size, mstab.slave_size, 0, 0},
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},

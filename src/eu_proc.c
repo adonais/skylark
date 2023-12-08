@@ -43,7 +43,7 @@ on_proc_create_widgets(HWND hwnd)
     }
     if (on_tabpage_create_dlg(hwnd))
     {
-        eu_logmsg("on_tabpage_create_dlg return false\n");
+        eu_logmsg("on_tabpage_create return false\n");
         return 1;
     }
     if (on_statusbar_create_dlg(hwnd))
@@ -231,13 +231,14 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
     if (pnode || (pnode = on_tabpage_focus_at()))
     {
         RECT rc = {0};
-        RECT rc_tabbar = {0};
+        RECT rc_tab1 = {0};
+        RECT rc_tab2 = {0};
         if (!prc)
         {
             GetClientRect(eu_hwnd_self(), &rc);
             prc = &rc;
         }
-        on_tabpage_adjust_window(prc, pnode, &rc_tabbar);
+        on_tabpage_adjust_window(prc, pnode, &rc_tab1, &rc_tab2);
         if (pnode->hwnd_sc)
         {
             HDWP hdwp = NULL;
@@ -263,8 +264,8 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
             }
             DeferWindowPos(hdwp,pnode->hwnd_sc, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.top,
                            pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
-            DeferWindowPos(hdwp,g_tabpages, HWND_TOP, rc_tabbar.left, rc_tabbar.top,
-                           rc_tabbar.right - rc_tabbar.left, on_tabpage_get_height(), SWP_NOREDRAW);
+            DeferWindowPos(hdwp, HMAIN_GET, HWND_TOP, rc_tab1.left, rc_tab1.top,
+                           rc_tab1.right - rc_tab1.left, on_tabpage_get_height(0), SWP_NOREDRAW);
             EndDeferWindowPos(hdwp);
             if (redraw)
             {
@@ -737,11 +738,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (((LPDRAWITEMSTRUCT)lParam)->CtlID)
             {
                 case IDM_TREE_BAR:
-                case IDM_TABPAGE_BAR:
-                    if (g_tabpages)
-                    {
-                        return on_tabpage_draw_item(hwnd, wParam, lParam);
-                    }
+                case IDM_TABPAGE_BAR1:
+                case IDM_TABPAGE_BAR2:
+                    return 1;
                 default:
                     break;
             }

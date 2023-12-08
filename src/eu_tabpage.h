@@ -24,6 +24,12 @@
 #define TABS_HEIGHT_DEFAULT   (23)
 #define TABS_MAYBE_RESERVE    (-1)
 #define TABS_MAYBE_EIXT       (-2)
+#define HMAIN_GET             \
+   (eu_get_config() && eu_get_config()->eu_tab.hmain ? \
+   (HWND)eu_get_config()->eu_tab.hmain : NULL)
+#define HSLAVE_GET            \
+   (eu_get_config() && eu_get_config()->eu_tab.hslave && eu_get_config()->eu_tab.show ? \
+   (HWND)eu_get_config()->eu_tab.hslave : NULL)
 
 #ifdef __cplusplus
 extern "C"
@@ -111,18 +117,18 @@ struct _tabpage
 
 extern HWND g_tabpages;
 
-int  on_tabpage_create_dlg(HWND hwnd);
+int  on_tabpage_create_dlg(const HWND hwnd);
 int  on_tabpage_add(eu_tabpage *pnode);
 int  on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline);
 int  on_tabpage_theme_changed(eu_tabpage *p);
-int  on_tabpage_get_height(void);
+int  on_tabpage_get_height(const int i);
 int  on_tabpage_get_index(const eu_tabpage *pnode);
 int  on_tabpage_selection(eu_tabpage *pnode, int index);
 int  on_tabpage_sel_number(int **pvec, const bool ascending);
 int  on_tabpage_sel_path(wchar_t ***pvec, bool *hex);
 void on_tabpage_switch_next(HWND hwnd);
-void on_tabpage_adjust_box(const RECT *prc, RECT *ptp);
-void on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab);
+void on_tabpage_adjust_box(const RECT *prc, RECT *ptab1, RECT *ptab2);
+void on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab1, RECT *ptab2);
 void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
@@ -142,7 +148,6 @@ eu_tabpage *on_tabpage_select_index(int index);
 eu_tabpage *on_tabpage_focus_at(void);
 eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);
 TCHAR *on_tabpage_generator(TCHAR *filename, const int len);
-LRESULT on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
 
 #ifdef __cplusplus
 }

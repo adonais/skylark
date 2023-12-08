@@ -2022,6 +2022,15 @@ eu_save_config(void)
         "    name = %s,\n"
         "    path = %s\n"
         "}\n"
+        "-- Master Slave view default setting\n"
+        "mstab = {\n"
+        "    vertical = %s,\n"
+        "    horizontal = %s,\n"
+        "    slave_focus = %s,\n"
+        "    show = %s,\n"
+        "    main_size = %d,\n"
+        "    slave_size = %d\n"
+        "}\n"
         "-- hyperlink hotspot default setting\n"
         "hyperlink_detection = %s\n"
         "-- automatically cached file (size < 200MB)\n"
@@ -2141,6 +2150,12 @@ eu_save_config(void)
               g_config->eu_titlebar.icon?"true":"false",
               g_config->eu_titlebar.name||util_under_wine()?"true":"false",
               g_config->eu_titlebar.path?"true":"false",
+              g_config->eu_tab.vertical?"true":"false",
+              g_config->eu_tab.horizontal?"true":"false",
+              g_config->eu_tab.slave_focus?"true":"false",
+              g_config->eu_tab.show?"true":"false",
+              g_config->eu_tab.main_size,
+              g_config->eu_tab.slave_size,
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
               g_config->upgrade.enable?"true":"false",

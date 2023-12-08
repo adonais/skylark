@@ -97,6 +97,18 @@ typedef struct _customize_set
     uintptr_t hbmp;
 }customize_set;
 
+typedef struct _mstab_set
+{
+    bool vertical;
+    bool horizontal;
+    bool slave_focus;
+    bool show;
+    int  main_size;
+    int  slave_size;
+    intptr_t hmain;
+    intptr_t hslave;
+}mstab_set;
+
 struct eu_config
 {
     int new_file_eol;
@@ -163,6 +175,7 @@ struct eu_config
     complete_set eu_complete;
     print_set eu_print;
     titlebar_set eu_titlebar;
+    mstab_set eu_tab;
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;

@@ -1978,6 +1978,11 @@ on_treebar_create_dlg(HWND hwnd)
             err = EUE_POINT_NULL;
             break;
         }
+        if (!on_splitter_init_tabbar(hwnd))
+        {
+            err = EUE_POINT_NULL;
+            break;
+        }
         if (!on_splitter_init_editbar(hwnd))
         {
             err = EUE_POINT_NULL;

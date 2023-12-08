@@ -28,7 +28,7 @@
 
 HWND g_tabpages = NULL;
 static POINT g_point = {0};
-static WNDPROC old_tabproc = NULL;
+static volatile sptr_t old_tabproc = 0;
 static bool tab_drag = false;
 static bool tab_mutil_select = false;
 static volatile bool tab_do_drag = false;;
@@ -36,14 +36,15 @@ static volatile int tab_move_from = -1;
 static HCURSOR g_drag_hcursor = NULL;
 
 int
-on_tabpage_get_height(void)
+on_tabpage_get_height(const int i)
 {
     int tab_height = eu_dpi_scale_xy(0, TABS_HEIGHT_DEFAULT);
-    if (g_tabpages)
+    HWND htab = !i ? HMAIN_GET : HSLAVE_GET;
+    if (htab)
     {
         RECT tabs = {0};
-        int row = TabCtrl_GetRowCount(g_tabpages);
-        TabCtrl_GetItemRect(g_tabpages, 0, &tabs);
+        int row = TabCtrl_GetRowCount(htab);
+        TabCtrl_GetItemRect(htab, 0, &tabs);
         tab_height = row * (tabs.bottom - tabs.top) + (row > 1 ? (row - 1) * 3 + 1 : 1);
     }
     return tab_height;
@@ -66,31 +67,40 @@ on_tabpage_has_drag(POINT *pt)
 }
 
 static void
-on_tabpage_destroy_tabbar(void)
+on_tabpage_destroy_tabbar(const HWND hwnd)
 {
-    HIMAGELIST himg = TabCtrl_GetImageList(g_tabpages);
-    if (himg)
+    if (hwnd == (HWND)eu_get_config()->eu_tab.hmain)
     {
-        ImageList_Destroy(himg);
-    }
-    if (g_drag_hcursor)
-    {
-        DestroyCursor(g_drag_hcursor);
-        g_drag_hcursor = NULL;
-    }
-    if (g_tabpages)
-    {
-        g_tabpages = NULL;
+        HIMAGELIST himg = TabCtrl_GetImageList(g_tabpages);
+        if (himg)
+        {
+            ImageList_Destroy(himg);
+        }
+        if (g_drag_hcursor)
+        {
+            DestroyCursor(g_drag_hcursor);
+            g_drag_hcursor = NULL;
+        }
+        if (g_tabpages)
+        {
+            g_tabpages = NULL;
+        }
+        eu_logmsg("tabbar WM_DESTROY\n");
     }
 }
 
-LRESULT
-on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
+void
+on_tabpage_slave_show(const bool hide)
 {
-    UNREFERENCED_PARAMETER(hwnd);
-    UNREFERENCED_PARAMETER(wParam);
-    UNREFERENCED_PARAMETER(lParam);
-    return 1;
+    if (hide)
+    {
+        eu_get_config()->eu_tab.show &= 0x0;
+    }
+    else
+    {
+        eu_get_config()->eu_tab.show |= 0x1;
+    }
+    eu_window_resize();
 }
 
 bool
@@ -830,7 +840,7 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            on_tabpage_adjust_box(NULL, NULL);
+            on_tabpage_adjust_box(NULL, NULL, NULL);
             break;
         }
         case WM_COMMAND:
@@ -1044,32 +1054,31 @@ on_tabpage_proc_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            on_tabpage_destroy_tabbar();
+            on_tabpage_destroy_tabbar(hwnd);
             break;
         }
         default:
             break;
     }
-    return CallWindowProc(old_tabproc, hwnd, message, wParam, lParam);
+    return CallWindowProc((WNDPROC)old_tabproc, hwnd, message, wParam, lParam);
 }
 
-int
-on_tabpage_create_dlg(HWND hwnd)
+static int
+on_tabpage_create(const HWND hwnd, const intptr_t resid)
 {
     int err = 0;
     const uint32_t flags = \
-          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS |
-          TCS_MULTISELECT | TCS_MULTILINE | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
-    g_tabpages = CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)IDM_TABPAGE_BAR, eu_module_handle(), NULL);
+          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_OWNERDRAWFIXED;
+    HWND htab = CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)resid, eu_module_handle(), NULL);
     do
     {
-        if (g_tabpages == NULL)
+        if (htab == NULL)
         {
             MSG_BOX(IDC_MSG_TABCONTROL_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             err = 1;
             break;
         }
-        if (!init_icon_img_list(g_tabpages))
+        if (!init_icon_img_list(htab))
         {
             eu_logmsg("%s: init_icon_img_list return false\n", __FUNCTION__);
             err = 1;
@@ -1081,23 +1090,45 @@ on_tabpage_create_dlg(HWND hwnd)
             err = 1;
             break;
         }
-        if (true)
+        if (!err)
         {
-            TabCtrl_SetPadding(g_tabpages, TAB_MIN_LEFT, 0);
-            TabCtrl_SetMinTabWidth(g_tabpages, TAB_MIN_WIDTH);
+            TabCtrl_SetPadding(htab, TAB_MIN_LEFT, 0);
+            TabCtrl_SetMinTabWidth(htab, TAB_MIN_WIDTH);
             on_theme_update_font(tabbar_id);
-            util_tab_height(g_tabpages, TAB_MIN_WIDTH);
+            util_tab_height(htab, TAB_MIN_WIDTH);
         }
-        if (!(old_tabproc = (WNDPROC) SetWindowLongPtr(g_tabpages, GWLP_WNDPROC, (LONG_PTR) on_tabpage_proc_callback)))
+        if (inter_atom_compare_exchange(&old_tabproc, SetWindowLongPtr(htab, GWLP_WNDPROC, (LONG_PTR)on_tabpage_proc_callback), 0))
+        {
+            SetWindowLongPtr(htab, GWLP_WNDPROC, (LONG_PTR)on_tabpage_proc_callback);
+        }
+        if (!old_tabproc)
         {
             err = 1;
             break;
         }
     } while(0);
-    if (err && g_tabpages)
+    if (err)
     {
-        DestroyWindow(g_tabpages);
-        g_tabpages = NULL;
+        htab ? DestroyWindow(htab) : (void)0;
+    }
+    else
+    {
+        if (inter_atom_compare_exchange(&eu_get_config()->eu_tab.hmain, (sptr_t)htab, 0))
+        {
+            inter_atom_compare_exchange(&eu_get_config()->eu_tab.hslave, (sptr_t)htab, 0);
+        }
+        g_tabpages = (HWND)eu_get_config()->eu_tab.hmain;
+    }
+    return err;
+}
+
+int
+on_tabpage_create_dlg(const HWND hwnd)
+{
+    int err = SKYLARK_TABCTRL_ERR;
+    if ((err = on_tabpage_create(hwnd, IDM_TABPAGE_BAR1)) == SKYLARK_OK)
+    {
+        err = on_tabpage_create(hwnd, IDM_TABPAGE_BAR2);
     }
     return err;
 }
@@ -1141,19 +1172,28 @@ on_tabpage_do_file(tab_callback func)
 void
 on_tabpage_size(const RECT *prc)
 {
-    if (g_tabpages)
+    RECT rctab1;
+    RECT rctab2 = {0};
+    HWND hmain = HMAIN_GET;
+    HWND hslave = HSLAVE_GET;
+    on_tabpage_adjust_box(prc, &rctab1, &rctab2);
+    if (hmain)
     {
-        RECT rc_tabbar = {0};
-        on_tabpage_adjust_box(prc, &rc_tabbar);
-        MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, TRUE);
-        ShowWindow(g_tabpages, SW_SHOW);
+        MoveWindow(hmain, rctab1.left, rctab1.top, rctab1.right - rctab1.left, rctab1.bottom - rctab1.top, TRUE);
+        ShowWindow(hmain, SW_SHOW);
+    }
+    if (hslave)
+    {
+        eu_setpos_window(g_splitter_tabbar, HWND_TOP, rctab1.right, rctab1.top, SPLIT_WIDTH, rctab1.bottom - rctab1.top, SWP_SHOWWINDOW);
+        MoveWindow(hslave, rctab2.left, rctab2.top, rctab2.right - rctab2.left, rctab2.bottom - rctab2.top, TRUE);
+        ShowWindow(hslave, SW_SHOW);
     }
 }
 
 void
-on_tabpage_adjust_box(const RECT *prc, RECT *ptp)
+on_tabpage_adjust_box(const RECT *prc, RECT *ptab1, RECT *ptab2)
 {
-    if (ptp)
+    if (ptab1)
     {
         RECT rc_main = { 0 };
         RECT rc_treebar = { 0 };
@@ -1165,15 +1205,47 @@ on_tabpage_adjust_box(const RECT *prc, RECT *ptp)
         on_treebar_adjust_box(prc, &rc_treebar);
         if (!eu_get_config()->m_ftree_show)
         {
-            ptp->left = prc->left;
+            ptab1->left = prc->left;
         }
         else
         {
-            ptp->left = rc_treebar.right;
+            ptab1->left = rc_treebar.right;
         }
-        ptp->right = prc->right;
-        ptp->top = rc_treebar.top;
-        ptp->bottom = rc_treebar.bottom;
+        ptab1->right = prc->right;
+        ptab1->top = rc_treebar.top;
+        ptab1->bottom = rc_treebar.bottom;
+        eu_get_config()->eu_tab.main_size = ptab1->right - ptab1->left;
+        if (eu_get_config()->eu_tab.hslave)
+        {
+            RECT rc_slave = {0};
+            int sec_width = eu_get_config()->eu_tab.slave_size;
+            if (!ptab2)
+            {
+                ptab2 = &rc_slave;
+            }
+            else 
+            {
+                memcpy(ptab2, &rc_slave, sizeof(RECT));
+            }
+            if (eu_get_config()->eu_tab.show)
+            {
+                ptab2->right = prc->right - SCINTILLA_MARGIN_RIGHT;
+                ptab2->top = ptab1->top;
+                ptab2->bottom = ptab1->bottom;
+                if (sec_width > 0)
+                {
+                    ptab2->left = ptab2->right - sec_width;
+                    ptab1->right = ptab2->left - SPLIT_WIDTH;
+                }
+                else
+                {
+                    ptab1->right /= 2;
+                    ptab2->left = ptab1->right + SPLIT_WIDTH;
+                    eu_get_config()->eu_tab.slave_size = ptab2->right - ptab2->left;
+                }
+                eu_get_config()->eu_tab.main_size -= eu_get_config()->eu_tab.slave_size + SPLIT_WIDTH;
+            }
+        }
     }
     else if (g_tabpages)
     {
@@ -1182,30 +1254,36 @@ on_tabpage_adjust_box(const RECT *prc, RECT *ptp)
 }
 
 void
-on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab)
+on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab1, RECT *ptab2)
 {
-    RECT rc_tabpages = {0};
-    if (!ptab)
+    RECT rc_main;
+    RECT rc_tab1 = {0};
+    RECT rc_tab2 = {0};
+    if (!ptab1)
     {
-        ptab = &rc_tabpages;
+        ptab1 = &rc_tab1;
     }
-    if (true)
+    if (!ptab2)
     {
-        RECT rc_main;
-        if (!prc)
-        {
-            GetClientRect(eu_hwnd_self(), &rc_main);
-            prc = &rc_main;    
-        }
-        on_tabpage_adjust_box(prc, ptab);
-        pnode->rect_sc.left = ptab->left;
+        ptab2 = &rc_tab2;
+    }
+    if (!prc)
+    {
+        GetClientRect(eu_hwnd_self(), &rc_main);
+        prc = &rc_main;    
+    }
+    if (prc)
+    {
+        HWND hslave = HSLAVE_GET;
+        on_tabpage_adjust_box(prc, ptab1, ptab2);
+        pnode->rect_sc.left = !pnode->view ? ptab1->left : ptab2->left;
         if (eu_get_config()->m_ftree_show)
         {
             pnode->rect_sc.left += SPLIT_WIDTH;
         }
-        pnode->rect_sc.right = ptab->right;
-        pnode->rect_sc.top = ptab->top + on_tabpage_get_height();
-        pnode->rect_sc.bottom = ptab->bottom;
+        pnode->rect_sc.right = (!pnode->view ? ptab1->right : ptab2->right) - SPLIT_WIDTH;
+        pnode->rect_sc.top = !pnode->view ? ptab1->top + on_tabpage_get_height(0) : ptab2->top + on_tabpage_get_height(1);
+        pnode->rect_sc.bottom = !pnode->view ? ptab1->bottom : ptab2->bottom;
     }
     if (pnode->sym_show)
     {
@@ -1214,7 +1292,7 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab)
             pnode->rect_sc.right -= (pnode->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
                                      + SPLIT_WIDTH;
             pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_sym.right = ptab->right;
+            pnode->rect_sym.right = (!pnode->view ? ptab1->right : ptab2->right) - SPLIT_WIDTH;
             pnode->rect_sym.top = pnode->rect_sc.top;
             pnode->rect_sym.bottom = pnode->rect_sc.bottom;
         }
@@ -1225,7 +1303,7 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab)
         {
             pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
             pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_map.right = ptab->right;
+            pnode->rect_map.right = ptab1->right - SPLIT_WIDTH;
             pnode->rect_map.top = pnode->rect_sc.top;
             pnode->rect_map.bottom = pnode->rect_sc.bottom;
         }

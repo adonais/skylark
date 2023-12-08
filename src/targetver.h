@@ -1122,7 +1122,6 @@
 #define IDM_FILE_SHA1_CLIP                  42853
 #define IDM_FILE_SHA256_CLIP                42854
 #define IDM_TREE_BAR                        42855
-#define IDM_TABPAGE_BAR                     42856
 #define IDM_TABLE_BAR                       42857
 #define IDM_FILE_EXPLORER                   42858
 #define IDM_PIC_CONVERT_BASE64              42859
@@ -1137,6 +1136,8 @@
 #define IDS_USER32_UNFINISHED               42867
 #define IDS_SKYLARK_DONATION                42868
 #define IDM_DONATION                        42869
+#define IDM_TABPAGE_BAR1                    42870
+#define IDM_TABPAGE_BAR2                    42871
 
 #define IDD_DONATION_BOX                    42880
 #define IDC_DONA_STATIC1                    42881
