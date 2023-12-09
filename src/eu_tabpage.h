@@ -20,6 +20,7 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
+#define TABS_SPLIT            (10)
 #define TABS_WIDTH_DEFAULT    (120)
 #define TABS_HEIGHT_DEFAULT   (23)
 #define TABS_MAYBE_RESERVE    (-1)
@@ -28,7 +29,7 @@
    (eu_get_config() && eu_get_config()->eu_tab.hmain ? \
    (HWND)eu_get_config()->eu_tab.hmain : NULL)
 #define HSLAVE_GET            \
-   (eu_get_config() && eu_get_config()->eu_tab.hslave && eu_get_config()->eu_tab.show ? \
+   (eu_get_config() && eu_get_config()->eu_tab.hslave ? \
    (HWND)eu_get_config()->eu_tab.hslave : NULL)
 
 #ifdef __cplusplus

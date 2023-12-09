@@ -1182,9 +1182,9 @@ on_tabpage_size(const RECT *prc)
         MoveWindow(hmain, rctab1.left, rctab1.top, rctab1.right - rctab1.left, rctab1.bottom - rctab1.top, TRUE);
         ShowWindow(hmain, SW_SHOW);
     }
-    if (hslave)
+    if (hslave && eu_get_config()->eu_tab.show)
     {
-        eu_setpos_window(g_splitter_tabbar, HWND_TOP, rctab1.right, rctab1.top, SPLIT_WIDTH, rctab1.bottom - rctab1.top, SWP_SHOWWINDOW);
+        eu_setpos_window(g_splitter_tabbar, HWND_TOP, rctab1.right, rctab1.top, TABS_SPLIT, rctab1.bottom - rctab1.top, SWP_SHOWWINDOW);
         MoveWindow(hslave, rctab2.left, rctab2.top, rctab2.right - rctab2.left, rctab2.bottom - rctab2.top, TRUE);
         ShowWindow(hslave, SW_SHOW);
     }
@@ -1235,15 +1235,15 @@ on_tabpage_adjust_box(const RECT *prc, RECT *ptab1, RECT *ptab2)
                 if (sec_width > 0)
                 {
                     ptab2->left = ptab2->right - sec_width;
-                    ptab1->right = ptab2->left - SPLIT_WIDTH;
+                    ptab1->right = ptab2->left - TABS_SPLIT;
                 }
                 else
                 {
                     ptab1->right /= 2;
-                    ptab2->left = ptab1->right + SPLIT_WIDTH;
+                    ptab2->left = ptab1->right + TABS_SPLIT;
                     eu_get_config()->eu_tab.slave_size = ptab2->right - ptab2->left;
                 }
-                eu_get_config()->eu_tab.main_size -= eu_get_config()->eu_tab.slave_size + SPLIT_WIDTH;
+                eu_get_config()->eu_tab.main_size -= eu_get_config()->eu_tab.slave_size + TABS_SPLIT;
             }
         }
     }
@@ -1272,9 +1272,8 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab1, RECT *
         GetClientRect(eu_hwnd_self(), &rc_main);
         prc = &rc_main;    
     }
-    if (prc)
+    if (prc && pnode->hwnd_sc)
     {
-        HWND hslave = HSLAVE_GET;
         on_tabpage_adjust_box(prc, ptab1, ptab2);
         pnode->rect_sc.left = !pnode->view ? ptab1->left : ptab2->left;
         if (eu_get_config()->m_ftree_show)
@@ -1297,16 +1296,13 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab1, RECT *
             pnode->rect_sym.bottom = pnode->rect_sc.bottom;
         }
     }
-    else if (pnode->map_show)
+    else if (pnode->map_show && !pnode->view && document_map_initialized)
     {
-        if (document_map_initialized)
-        {
-            pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
-            pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_map.right = ptab1->right - SPLIT_WIDTH;
-            pnode->rect_map.top = pnode->rect_sc.top;
-            pnode->rect_map.bottom = pnode->rect_sc.bottom;
-        }
+        pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
+        pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
+        pnode->rect_map.right = ptab1->right - SPLIT_WIDTH;
+        pnode->rect_map.top = pnode->rect_sc.top;
+        pnode->rect_map.bottom = pnode->rect_sc.bottom;
     }
     if (RESULT_SHOW(pnode))
     {

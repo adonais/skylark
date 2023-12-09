@@ -204,7 +204,7 @@ on_proc_move_sidebar(eu_tabpage *pnode)
             eu_setpos_window(hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
         }
     }
-    else if (pnode->map_show && document_map_initialized)
+    else if (pnode->map_show && !pnode->view && document_map_initialized)
     {
         eu_tabpage *pedit = NULL;
         eu_setpos_window(g_splitter_symbar, HWND_TOP, pnode->rect_sc.right, pnode->rect_map.top,
@@ -242,7 +242,8 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
         if (pnode->hwnd_sc)
         {
             HDWP hdwp = NULL;
-            int number = 3;
+            HWND hslave = HSLAVE_GET;
+            int number = 5;
             if (pnode->hwnd_symlist || pnode->hwnd_symtree)
             {
                 ++number;
@@ -266,6 +267,18 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
                            pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top, SWP_SHOWWINDOW);
             DeferWindowPos(hdwp, HMAIN_GET, HWND_TOP, rc_tab1.left, rc_tab1.top,
                            rc_tab1.right - rc_tab1.left, on_tabpage_get_height(0), SWP_NOREDRAW);
+            if (hslave && eu_get_config()->eu_tab.show)
+            {
+                DeferWindowPos(hdwp, g_splitter_tabbar, HWND_TOP, rc_tab1.right, rc_tab1.top,
+                               TABS_SPLIT, rc_tab1.bottom - rc_tab1.top, SWP_SHOWWINDOW);
+                DeferWindowPos(hdwp, hslave, HWND_TOP, rc_tab2.left, rc_tab2.top,
+                               rc_tab2.right - rc_tab2.left, on_tabpage_get_height(1), SWP_SHOWWINDOW);
+            }
+            else 
+            {
+                DeferWindowPos(hdwp, g_splitter_tabbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                DeferWindowPos(hdwp, hslave, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            }
             EndDeferWindowPos(hdwp);
             if (redraw)
             {
@@ -1589,6 +1602,15 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         UpdateWindowEx(g_tabpages);
                     }
+                    break;
+                case IDM_VIEW_VERTICAL_SPLIT:
+                    on_view_split_tabbar();
+                    break;
+                case IDM_VIEW_VERTICAL_SYNC:
+                    eu_get_config()->eu_tab.vertical ^= true;
+                    break;
+                case IDM_VIEW_HORIZONTAL_SYNC:
+                    eu_get_config()->eu_tab.horizontal ^= true;
                     break;
                 case IDM_VIEW_SCROLLCURSOR:
                     eu_get_config()->scroll_to_cursor ^= true;

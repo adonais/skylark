@@ -1292,6 +1292,10 @@
 #define IDM_FORMAT_REFORMAT_XML             44751
 #define IDM_FORMAT_COMPRESS_XML             44752
 
+#define IDM_VIEW_VERTICAL_SPLIT             44760
+#define IDM_VIEW_VERTICAL_SYNC              44761
+#define IDM_VIEW_HORIZONTAL_SYNC            44762
+
 // For MessageBox
 #define IDALWAYS                            12
 #define MB_YESNOALWAYS                      0x0007

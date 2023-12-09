@@ -329,6 +329,10 @@ BEGIN
         END
         POPUP "Other Options For Tabbar"
         BEGIN
+            MENUITEM "Vertical Split Tabbar",                          IDM_VIEW_VERTICAL_SPLIT
+            MENUITEM "Main/Slave View Vertical Synchronization",       IDM_VIEW_VERTICAL_SYNC
+            MENUITEM "Master/Slave View Horizontal Synchronization",   IDM_VIEW_HORIZONTAL_SYNC
+            MENUITEM MF_SEPARATOR
             MENUITEM "Switch The Next Tab",                            IDM_VIEW_SWITCH_TAB
             MENUITEM "Scroll To Anchor When Switching Tabs",           IDM_VIEW_SCROLLCURSOR
             MENUITEM "Split Line On Multiline Tabs",                   IDM_VIEW_TABBAR_SPLIT

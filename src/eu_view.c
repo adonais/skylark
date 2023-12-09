@@ -22,8 +22,7 @@ void
 on_view_filetree(void)
 {
     eu_get_config()->m_ftree_show ^= true;
-    on_treebar_size(NULL);
-    eu_window_resize();
+    on_proc_redraw(NULL);
 }
 
 void
@@ -36,6 +35,26 @@ on_view_symtree(eu_tabpage *pnode)
             pnode->map_show = false;
         }
         eu_window_resize();
+    }
+}
+
+void
+on_view_split_tabbar(void)
+{
+    struct eu_config *pconf = eu_get_config();
+    if (pconf)
+    {
+        if (pconf->eu_tab.show)
+        {   // 如果标签都为空则隐藏从视图
+            pconf->eu_tab.show = false;
+            on_proc_redraw(NULL);
+        }
+        else 
+        {
+            pconf->eu_tab.show = true;
+            // 新建一个空标签再刷新
+            on_proc_redraw(NULL);
+        }
     }
 }
 

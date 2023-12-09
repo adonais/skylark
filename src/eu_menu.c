@@ -191,7 +191,6 @@ menu_update_hexview(const HMENU root_menu, const bool hex_mode, const bool init)
         util_enable_menu_item(root_menu, IDM_SEARCH_MULTISELECT_README, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_TAB_WIDTH, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_TAB_CONVERT_SPACES, init || !hex_mode);
-        util_enable_menu_item(root_menu, IDM_VIEW_DOCUMENT_MAP, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_HIGHLIGHT_GROUP, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_CODE_HINT, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_AUTO_INDENTATION, init || !hex_mode);
@@ -551,6 +550,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, pnode->map_show && hwnd_document_map);
                         util_set_menu_item(menu, IDM_VIEW_SYMTREE, pnode->sym_show);
                         util_enable_menu_item(menu, IDM_VIEW_SYMTREE, init || pnode->hwnd_symlist || pnode->hwnd_symtree);
+                        util_enable_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, init || (!pnode->hex_mode && !pnode->view));
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar != IDB_SIZE_0);
@@ -593,6 +593,9 @@ menu_update_item(const HMENU menu, const bool init)
                         util_switch_menu_group(menu, TAB_MENU_CLOSE_SUB, IDM_VIEW_TAB_RIGHT_CLICK, IDM_VIEW_TAB_LEFT_DBCLICK, eu_get_config()->m_close_way);
                         util_switch_menu_group(menu, TAB_MENU_NEW_SUB, IDM_VIEW_TAB_RIGHT_NEW, IDM_VIEW_TAB_DBCLICK_NEW, eu_get_config()->m_new_way);
                         util_switch_menu_group(menu, TAB_MENU_CBUTTON_SUB, IDM_TABCLOSE_FOLLOW, IDM_TABCLOSE_NONE, eu_get_config()->m_close_draw);
+                        util_set_menu_item(menu, IDM_VIEW_VERTICAL_SPLIT, eu_get_config()->eu_tab.show);
+                        util_set_menu_item(menu, IDM_VIEW_VERTICAL_SYNC, eu_get_config()->eu_tab.vertical);
+                        util_set_menu_item(menu, IDM_VIEW_HORIZONTAL_SYNC, eu_get_config()->eu_tab.horizontal);
                         util_enable_menu_item(menu, IDM_VIEW_SWITCH_TAB, init || (g_tabpages && TabCtrl_GetItemCount(g_tabpages) > 1));
                         util_set_menu_item(menu, IDM_VIEW_SCROLLCURSOR, eu_get_config()->scroll_to_cursor);
                         util_set_menu_item(menu, IDM_VIEW_TABBAR_SPLIT, eu_get_config()-> m_tab_split);

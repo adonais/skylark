@@ -44,6 +44,18 @@ on_splitter_drawing(const HWND hwnd, const HDC hdc)
     FillRect(hdc, &rc, eu_theme_index() == THEME_WHITE ? GetSysColorBrush(COLOR_MENU) : (HBRUSH)on_dark_get_bgbrush());
 }
 
+static inline int
+on_splitter_min_width(void)
+{
+    int min_width = TABBAR_WIDTH_MIN;
+    if (eu_get_config())
+    {
+        min_width = MAX(eu_get_config()->sym_tree_width, eu_get_config()->document_map_width);
+        min_width = MAX(TABBAR_WIDTH_MIN, min_width) + TABS_SPLIT;
+    }
+    return min_width;
+}
+
 static void
 on_splitter_rect_box(HWND hwnd, LPRECT r, const int offset)
 {
@@ -72,10 +84,15 @@ on_splitter_absolute_height(const int y)
 static HDC
 on_splitter_drawing_line(HWND parent, LPRECT r, const int x, HPEN *ptr_pen)
 {
+    RECT rc = {0};
     HDC hdc = GetWindowDC(parent);
     HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
     HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
     SetROP2(hdc, R2_NOTXORPEN);
+    if (!r)
+    {
+        r = &rc;
+    }
     on_splitter_rect_box(parent, r, 0);
     MoveToEx(hdc, x, r->top, NULL);
     LineTo(hdc, x,  r->bottom);
@@ -119,13 +136,13 @@ on_splitter_callback_tabbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            RECT rect_tab;
-            RECT rect_tree = {0};
+            RECT rc;
+            HDC hdc;
             HWND parent = GetParent(hwnd);
-            on_tabpage_adjust_box(NULL, &rect_tab, NULL);
-            x = rect_tree.right - rect_tree.left + SPLIT_WIDTH;
-            x += eu_get_config()->eu_tab.main_size + on_splitter_tabbar_line();
-            HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, NULL);
+            GetWindowRect(hwnd, &rc);
+            MapWindowPoints(HWND_DESKTOP, parent, (POINT*)(&rc), 2);
+            x = rc.right + TABS_SPLIT/2;
+            hdc = on_splitter_drawing_line(parent, NULL, x, NULL);
             ReleaseDC(parent, hdc);
             SetCapture(hwnd);
             break;
@@ -136,16 +153,17 @@ on_splitter_callback_tabbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             RECT rect_tree;
             HWND parent = GetParent(hwnd);
             HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, NULL);
+            const int min_width = on_splitter_min_width();
             ReleaseDC(parent, hdc);
             ReleaseCapture();
             GetClientRect(parent, &rc);
             eu_get_config()->eu_tab.slave_size = rc.right - x + 2 * SPLIT_WIDTH;
-            if (eu_get_config()->eu_tab.slave_size < TABBAR_WIDTH_MIN)
+            if (eu_get_config()->eu_tab.slave_size < min_width)
             {
-                eu_get_config()->eu_tab.slave_size = TABBAR_WIDTH_MIN;
+                eu_get_config()->eu_tab.slave_size = min_width;
             }
             eu_logmsg("x = %d, lParam = %hd, slave_size = %d\n", x, (short)LOWORD(lParam), eu_get_config()->eu_tab.slave_size);
-            eu_window_resize();
+            on_proc_redraw(NULL);
             break;
         }
         case WM_MOUSEMOVE:
@@ -157,15 +175,16 @@ on_splitter_callback_tabbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 HPEN hpen = NULL;
                 HDC hdc = on_splitter_drawing_line(parent, &rect_tree, x, &hpen);
                 const int tcx = rect_tree.right - rect_tree.left;
+                const int min_width = on_splitter_min_width();
                 x = rect_tree.right - rect_tree.left + SPLIT_WIDTH;
                 x += eu_get_config()->eu_tab.main_size + on_splitter_tabbar_line() + (short)LOWORD(lParam);
-                if (tcx && x < tcx + TABBAR_WIDTH_MIN)
+                if (tcx && x < tcx + min_width)
                 {
-                    x = tcx + TABBAR_WIDTH_MIN;
+                    x = tcx + min_width;
                 }
-                else if (x < TABBAR_WIDTH_MIN)
+                else if (x < min_width)
                 {
-                    x = TABBAR_WIDTH_MIN;
+                    x = min_width;
                 }
                 MoveToEx(hdc, x, rect_tree.top, NULL);
                 LineTo(hdc, x,  rect_tree.bottom);
@@ -180,8 +199,13 @@ on_splitter_callback_tabbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            eu_logmsg("on_splitter_callback_tabbar WM_DESTROY\n");
-            x = 0;
+            if (g_splitter_tabbar)
+            {
+                g_splitter_tabbar = NULL;
+                x = 0;
+                eu_logmsg("g_splitter_tabbar WM_DESTROY\n");
+            }
+            break;
         }
         default:
         {
@@ -225,8 +249,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 eu_get_config()->file_tree_width = FILETREEBAR_WIDTH_MIN;
             }
-            on_treebar_size(NULL);
-            eu_window_resize();
+            on_proc_redraw(NULL);
             break;
         }
         case WM_MOUSEMOVE:
@@ -251,8 +274,13 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            eu_logmsg("on_splitter_callback_treebar WM_DESTROY\n");
-            x = 0;
+            if (g_splitter_treebar)
+            {
+                g_splitter_treebar = NULL;
+                x = 0;
+                eu_logmsg("g_splitter_treebar WM_DESTROY\n");
+            }
+            break;
         }
         default:
         {
@@ -556,6 +584,7 @@ static bool
 on_splitter_register(const TCHAR *classname, WNDPROC proc, int cur_id)
 {
     WNDCLASSEX wcex = {sizeof(WNDCLASSEX)};
+    wcex.style			= CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = proc;
     wcex.hInstance = eu_module_handle();
     wcex.hCursor = LoadCursor(wcex.hInstance, cur_id ? MAKEINTRESOURCE(cur_id) : IDC_ARROW);
@@ -575,6 +604,10 @@ on_splitter_redraw(void)
     if (g_splitter_symbar)
     {
         UpdateWindowEx(g_splitter_symbar);
+    }
+    if (g_splitter_tabbar)
+    {
+        UpdateWindowEx(g_splitter_tabbar);
     }
     if (g_splitter_editbar)
     {
