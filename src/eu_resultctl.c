@@ -155,6 +155,16 @@ on_result_other_tab(int line, result_vec *vec_strings)
     return NULL;
 }
 
+static void
+on_result_move_sci(eu_tabpage *p, int width, int height)
+{
+    if (RESULT_SHOW(p))
+    {
+        MoveWindow(p->presult->hwnd_sc, 0, 0, width, height, TRUE);
+        ShowWindow(p->presult->hwnd_sc, SW_SHOW);
+    }
+}
+
 static LRESULT CALLBACK
 on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -239,11 +249,14 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_RESULT_CLOSE:
                 {
                     eu_tabpage *p = on_tabpage_focus_at();
-                    if (p && p->presult && p->presult->hwnd_sc)
+                    if (p && p->presult)
                     {
-                        SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
-                        p->presult->hwnd_sc = NULL;
-                        p->result_show = false;
+                        if (p->presult->hwnd_sc)
+                        {
+                            SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
+                            p->presult->hwnd_sc = NULL;
+                            p->result_show = false;
+                        }
                         eu_safe_free(p->presult);
                         eu_window_resize();
                     }
@@ -273,6 +286,17 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_SIZE:
         {
+            on_result_move_sci(on_tabpage_focus_at(), LOWORD(lParam), HIWORD(lParam));
+            return 1;
+        }
+        case WM_THEMECHANGED:
+        {
+            eu_tabpage *pedit = (eu_tabpage *)wParam;
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_dark_theme_brush());
+            if (pedit && pedit->presult)
+            {
+                on_sci_default_theme(pedit->presult, -1);
+            }
             break;
         }
         case WM_DESTROY:
@@ -293,14 +317,15 @@ void
 on_result_reload(eu_tabpage *pedit)
 {
     if (pedit)
-    {
-        on_sci_default_theme(pedit, -1);
-        // disable margin
+    {   // disable margin
         eu_sci_call(pedit, SCI_SETMARGINS, 0, 0);
         // 强制使用unix回车符
         eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 不显示插入符
         eu_sci_call(pedit, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
+        // 需要时显示水平滚动条
+        eu_sci_call(pedit, SCI_SETSCROLLWIDTH, 1, 0);
+        eu_sci_call(pedit, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
         // 加载词语解析器
         on_doc_init_after_scilexer(pedit, "result");
         on_doc_default_light(pedit, SCE_RESULT_COMMENT, 0x768465, -1, true);
@@ -330,21 +355,12 @@ on_result_launch(eu_tabpage *pnode)
             if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, hwnd_rst, flags, on_result_edit_proc))
             {
                 on_dark_border(pnode->presult->hwnd_sc, true);
+                SendMessage(hwnd_rst, WM_THEMECHANGED, (WPARAM)pnode, 0);
             }
         }
         return true;
     }
     return false;
-}
-
-void
-on_result_move_sci(eu_tabpage *p, int width, int height)
-{
-    if (RESULT_SHOW(p))
-    {
-        MoveWindow(p->presult->hwnd_sc, 0, 0, width, height, TRUE);
-        ShowWindow(p->presult->hwnd_sc, SW_SHOW);
-    }
 }
 
 HWND

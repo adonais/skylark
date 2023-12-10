@@ -454,11 +454,14 @@ on_sci_destroy_control(eu_tabpage *pnode)
             SendMessage(pnode->hwnd_qrtable, WM_CLOSE, 0, 0);
             pnode->hwnd_qrtable = NULL;
         }
-        if (pnode->presult && pnode->presult->hwnd_sc)
+        if (pnode->presult)
         {
-            SendMessage(pnode->presult->hwnd_sc, WM_CLOSE, 0, 0);
-            pnode->presult->hwnd_sc = NULL;
-            pnode->result_show = false;
+            if (pnode->presult->hwnd_sc)
+            {
+                SendMessage(pnode->presult->hwnd_sc, WM_CLOSE, 0, 0);
+                pnode->presult->hwnd_sc = NULL;
+                pnode->result_show = false;
+            }
             eu_safe_free(pnode->presult);
         }
         // 释放保存结果的vec数组

@@ -82,7 +82,9 @@ on_view_result_show(eu_tabpage *pnode, const int key)
         }
         if (RESULT_SHOW(pnode))
         {
+            pnode->qrtable_show = true;
             pnode->presult->pwant = on_toolbar_no_highlight;
+            on_result_reload(pnode->presult);
             eu_window_resize();
             pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);
         }
@@ -181,6 +183,10 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
         {
             on_symtree_update_theme(p);
             InvalidateRect(p->hwnd_symtree, NULL, true);
+        }
+        if (p->presult && eu_result_hwnd())
+        {
+            SendMessage(eu_result_hwnd(), WM_THEMECHANGED, (WPARAM)p, 0);
         }
         if (p->hwnd_qrtable)
         {

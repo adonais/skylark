@@ -36,12 +36,18 @@ on_splitter_tabbar_line(void)
     return (4 * SPLIT_WIDTH);
 }
 
+static inline intptr_t
+on_splitter_brush(void)
+{
+    return (eu_theme_index() == THEME_WHITE ? (intptr_t)GetSysColorBrush(COLOR_MENU) : on_dark_get_bgbrush());
+}
+
 static inline void
 on_splitter_drawing(const HWND hwnd, const HDC hdc)
 {
     RECT rc = {0};
     GetClientRect(hwnd, &rc);
-    FillRect(hdc, &rc, eu_theme_index() == THEME_WHITE ? GetSysColorBrush(COLOR_MENU) : (HBRUSH)on_dark_get_bgbrush());
+    FillRect(hdc, &rc, (HBRUSH)on_splitter_brush());
 }
 
 static inline int
@@ -134,6 +140,11 @@ on_splitter_callback_tabbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             EndPaint(hwnd, &ps);
             break;
         }
+        case WM_THEMECHANGED:
+        {
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_splitter_brush());
+            break;
+        }
         case WM_LBUTTONDOWN:
         {
             RECT rc;
@@ -221,9 +232,9 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     static int x;
     switch (msg)
     {
-        case WM_PAINT:
+        case WM_THEMECHANGED:
         {
-            on_splitter_paint(hwnd);
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_splitter_brush());
             break;
         }
         case WM_LBUTTONDOWN:
@@ -297,9 +308,9 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     eu_tabpage *pnode = NULL;
     switch (msg)
     {
-        case WM_PAINT:
+        case WM_THEMECHANGED:
         {
-            on_splitter_paint(hwnd);
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_splitter_brush());
             break;
         }
         case WM_LBUTTONDOWN:
@@ -424,9 +435,9 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     eu_tabpage *pnode = NULL;
     switch (msg)
     {
-        case WM_PAINT:
+        case WM_THEMECHANGED:
         {
-            on_splitter_paint(hwnd);
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_splitter_brush());
             break;
         }
         case WM_LBUTTONDOWN:
@@ -507,9 +518,9 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     eu_tabpage *pnode = NULL;
     switch (msg)
     {
-        case WM_PAINT:
+        case WM_THEMECHANGED:
         {
-            on_splitter_paint(hwnd);
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_splitter_brush());
             break;
         }
         case WM_LBUTTONDOWN:
@@ -588,7 +599,7 @@ on_splitter_register(const TCHAR *classname, WNDPROC proc, int cur_id)
     wcex.lpfnWndProc = proc;
     wcex.hInstance = eu_module_handle();
     wcex.hCursor = LoadCursor(wcex.hInstance, cur_id ? MAKEINTRESOURCE(cur_id) : IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
+    wcex.hbrBackground = (HBRUSH)on_splitter_brush();
     wcex.lpszMenuName = NULL;
     wcex.lpszClassName = classname;
     return (RegisterClassEx(&wcex) > 0);
@@ -597,24 +608,30 @@ on_splitter_register(const TCHAR *classname, WNDPROC proc, int cur_id)
 void
 on_splitter_redraw(void)
 {
+    HWND hrst = NULL;
     if (g_splitter_treebar)
     {
+        SendMessage(g_splitter_treebar, WM_THEMECHANGED, 0, 0);
         UpdateWindowEx(g_splitter_treebar);
     }
     if (g_splitter_symbar)
     {
+        SendMessage(g_splitter_symbar, WM_THEMECHANGED, 0, 0);
         UpdateWindowEx(g_splitter_symbar);
     }
     if (g_splitter_tabbar)
     {
+        SendMessage(g_splitter_tabbar, WM_THEMECHANGED, 0, 0);
         UpdateWindowEx(g_splitter_tabbar);
     }
     if (g_splitter_editbar)
     {
+        SendMessage(g_splitter_editbar, WM_THEMECHANGED, 0, 0);
         UpdateWindowEx(g_splitter_editbar);
     }
     if (g_splitter_tablebar)
     {
+        SendMessage(g_splitter_tablebar, WM_THEMECHANGED, 0, 0);
         UpdateWindowEx(g_splitter_tablebar);
     }
 }

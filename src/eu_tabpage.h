@@ -60,6 +60,7 @@ struct _tabpage
     bool sym_show;              // 是否显示右侧边栏
     bool map_show;              // 是否显示文档结构图
     bool result_show;           // 是否显示文档搜索结果窗口
+    bool qrtable_show;          // 是否显示sql表格窗口
     bool sidebar_show;          // 是否显示侧边栏窗口
     bool foldline;              // 是否存在折叠线
     bool needpre;               // 是否需要bom

@@ -41,7 +41,6 @@ on_table_update_theme(eu_tabpage *pnode)
         HWND hdr = NULL;
         SendMessage(pnode->hwnd_qrtable, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
         SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTCOLOR, 0, eu_get_theme()->item.text.color);
-        SendMessage(pnode->hwnd_qrtable, LVM_SETOUTLINECOLOR, 0, eu_get_theme()->item.text.color);
         SendMessage(pnode->hwnd_qrtable, LVM_SETBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
         SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
         if ((hdr = ListView_GetHeader(pnode->hwnd_qrtable)))
@@ -57,10 +56,6 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
 {
     switch (msg)
     {
-        case WM_ERASEBKGND:
-        {
-            return 1;
-        }
         case WM_THEMECHANGED:
         {
             const bool dark = on_dark_enable();
@@ -75,7 +70,6 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
             {
                 on_dark_set_theme(hdr, dark ? L"ItemsView" : NULL, NULL);
             }
-            UpdateWindowEx(hwnd);
             break;
         }
         case WM_SIZE:
@@ -89,7 +83,7 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
                     ListView_SetColumnWidth(hwnd, count - 1, LVSCW_AUTOSIZE_USEHEADER);
                 }
             }
-            break;
+            return 1;
         }
         case WM_NOTIFY:
         {
@@ -228,12 +222,12 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
 }
 
 int
-on_table_create_query_box(eu_tabpage *pnode)
+on_table_create_dlg(eu_tabpage *pnode)
 {
     if (pnode)
     {
         const uint32_t style = WS_CHILD | WS_CLIPSIBLINGS | LVS_REPORT;
-        const uint32_t stylex = LVS_EX_DOUBLEBUFFER | LVS_EX_FLATSB | LVS_EX_HEADERINALLVIEWS | LVS_EX_FULLROWSELECT;
+        const uint32_t stylex = LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT;
         if (pnode->hwnd_qrtable)
         {
             DestroyWindow(pnode->hwnd_qrtable);

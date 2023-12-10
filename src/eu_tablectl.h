@@ -202,7 +202,7 @@ typedef struct _db_conn
 extern db_libs db_funcs;
 int on_table_oci_error(eu_tabpage *, OCIError *, int *, char *, size_t);
 int on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear);
-int on_table_create_query_box(eu_tabpage *pnode);
+int on_table_create_dlg(eu_tabpage *pnode);
 bool on_table_sql_header(eu_tabpage *pnode);
 bool on_table_skip_comment(eu_tabpage *pnode, char **psql);
 void on_table_update_theme(eu_tabpage *pnode);

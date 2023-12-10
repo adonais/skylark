@@ -2512,8 +2512,10 @@ on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key, int or
         char ptr_style[16 + 1];
         // 显示底部窗口
         pnode->result_show = true;
+        pnode->qrtable_show = false;
         // 关键字不高亮的回调函数
         pnode->presult->pwant = NULL;
+        on_result_reload(pnode->presult);
         eu_window_resize();
         eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
         eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);

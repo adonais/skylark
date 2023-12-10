@@ -22,7 +22,7 @@
 #define APP_CLASS _T("__eu_skylark__")
 #define HEX_CLASS _T("__eu_hexview__")
 #define RESULT_SHOW(p)  (p && p->result_show && p->presult && p->presult->hwnd_sc)
-#define QRTABLE_SHOW(p) (p && p->hwnd_qrtable)
+#define QRTABLE_SHOW(p) (p && p->hwnd_qrtable && p->qrtable_show)
 
 #ifdef __cplusplus
 extern "C"

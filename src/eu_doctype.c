@@ -139,7 +139,7 @@ on_doc_init_result(eu_tabpage *pnode)
     {
         return 1;
     }
-    if (on_table_create_query_box(pnode))
+    if (on_table_create_dlg(pnode))
     {
         return 1;
     }
