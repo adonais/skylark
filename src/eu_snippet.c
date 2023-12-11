@@ -878,7 +878,7 @@ on_snippet_reload(eu_tabpage *pedit)
         eu_sci_call(pedit, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
         eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 启用语法解析与配色方案
-        on_doc_init_after_scilexer(pedit, "eu_demo");
+        on_doc_key_scilexer(pedit, "eu_demo");
         on_doc_default_light(pedit, SCE_DEMO_CARETSTART, 0xFF8000, -1, true);
         on_doc_default_light(pedit, SCE_DEMO_MARKNUMBER, 0x00FF8000, -1, true);
         on_doc_default_light(pedit, SCE_DEMO_MARK0, 0x0000FF, -1, true);

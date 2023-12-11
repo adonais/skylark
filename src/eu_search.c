@@ -2694,6 +2694,7 @@ on_search_find_next_button(const int button)
                 {
                     on_search_set_result(IDC_MSG_SEARCH_ERR15, -1, -1);
                 }
+                eu_push_find_history(key);
             }
         }
         eu_safe_free(key);

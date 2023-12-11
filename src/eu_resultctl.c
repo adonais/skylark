@@ -18,8 +18,6 @@
 
 #include "framework.h"
 
-static HWND hwnd_rst = NULL;
-
 int
 on_result_append_text(TCHAR *format, ...)
 {
@@ -168,16 +166,40 @@ on_result_move_sci(eu_tabpage *p, int width, int height)
 static LRESULT CALLBACK
 on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static bool ctrl_down = false;
     switch (message)
-    {
+    {   // 不在主消息循环, 支持CTRL+C
+        case WM_KEYDOWN:
+        {
+            if (wParam == VK_CONTROL)
+            {
+                ctrl_down = true;
+            }
+            else
+            {
+                ctrl_down = false;
+            }
+            return 1;
+        }
+        case WM_KEYUP:
+        {
+            if (wParam == VK_CONTROL)
+            {
+                ctrl_down = false;
+            }
+            if (wParam == 'C'  && ctrl_down)
+            {
+                SendMessage(hwnd, WM_COPY, 0, 0);
+            }
+            return 1;
+        }
         case WM_LBUTTONDBLCLK:
         {
             eu_tabpage *pnode = on_tabpage_focus_at();
             if (pnode && pnode->presult && pnode->ret_vec)
             {
-                sptr_t cur_pos = eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
-                eu_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
-                sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
+                sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, pnode->presult->nc_pos, 0);
+                eu_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, pnode->presult->nc_pos, 0);
                 if (line > 0 && cvector_size(pnode->ret_vec) > 0)
                 {
                     sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
@@ -197,11 +219,21 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             return 1;
         }
+        case WM_LBUTTONUP:
+        {
+            eu_tabpage *p = on_tabpage_focus_at();
+            if (RESULT_SHOW(p))
+            {
+                p->presult->nc_pos = eu_sci_call(p->presult, SCI_GETCURRENTPOS, 0, 0);
+            }
+            break;
+        }
         case WM_RBUTTONUP:
         {
             eu_tabpage *p = on_tabpage_focus_at();
             if (RESULT_SHOW(p))
             {
+                p->presult->nc_pos = eu_sci_call(p->presult, SCI_GETCURRENTPOS, 0, 0);
                 return menu_pop_track(hwnd, IDR_RESULT_MENU, 0, -1, on_result_menu_callback, p);
             }
             return 1;
@@ -251,13 +283,8 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_tabpage *p = on_tabpage_focus_at();
                     if (p && p->presult)
                     {
-                        if (p->presult->hwnd_sc)
-                        {
-                            SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
-                            p->presult->hwnd_sc = NULL;
-                            p->result_show = false;
-                        }
-                        eu_safe_free(p->presult);
+                        on_result_free(&p->presult);
+                        p->result_show = false;
                         eu_window_resize();
                     }
                     break;
@@ -273,6 +300,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
+            ctrl_down = false;
             break;
         }
     }
@@ -301,16 +329,32 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            if (hwnd_rst)
-            {
-                hwnd_rst = NULL;
-            }
+            eu_logmsg("on_result_callback WM_DESTROY\n");
             break;
         }
         default:
             return DefWindowProc(hwnd, message, wParam, lParam);
     }
     return 0;
+}
+
+void
+on_result_free(eu_tabpage **ptr_result)
+{
+    if (ptr_result && *ptr_result)
+    {
+        if ((*ptr_result)->hwnd_sc)
+        {
+            SendMessage((*ptr_result)->hwnd_sc, WM_CLOSE, 0, 0);
+            (*ptr_result)->hwnd_sc = NULL;
+        }
+        if ((*ptr_result)->reserved0)
+        {
+            SendMessage((HWND)((*ptr_result)->reserved0), WM_CLOSE, 0, 0);
+            (*ptr_result)->reserved0 = 0;
+        }
+        eu_safe_free((*ptr_result));
+    }
 }
 
 void
@@ -327,7 +371,7 @@ on_result_reload(eu_tabpage *pedit)
         eu_sci_call(pedit, SCI_SETSCROLLWIDTH, 1, 0);
         eu_sci_call(pedit, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
         // 加载词语解析器
-        on_doc_init_after_scilexer(pedit, "result");
+        on_doc_key_scilexer(pedit, "result");
         on_doc_default_light(pedit, SCE_RESULT_COMMENT, 0x768465, -1, true);
         on_doc_default_light(pedit, SCE_RESULT_HEADER , eu_get_theme()->item.results.color, -1, true);
         on_doc_default_light(pedit, SCE_RESULT_KEYWORD, eu_get_theme()->item.results.bgcolor, -1, true);
@@ -345,15 +389,16 @@ on_result_launch(eu_tabpage *pnode)
     {
         if (!pnode->presult)
         {
+            HWND hwnd_rst = NULL;
             const TCHAR *class_name = _T("Result List");
             const int flags = WS_CHILD | WS_CLIPSIBLINGS | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
             pnode->presult = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
-            if (!hwnd_rst)
+            hwnd_rst = pnode->presult ? 
+                       on_splitter_init_window(eu_module_hwnd(), class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_result_callback, NULL) :
+                       NULL;
+            if (hwnd_rst && !on_sci_create(pnode->presult, hwnd_rst, flags, on_result_edit_proc))
             {
-                hwnd_rst = on_splitter_init_window(eu_module_hwnd(), class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_result_callback, NULL);
-            }
-            if (pnode->presult && hwnd_rst && !on_sci_create(pnode->presult, hwnd_rst, flags, on_result_edit_proc))
-            {
+                pnode->presult->reserved0 = (intptr_t)hwnd_rst;
                 on_dark_border(pnode->presult->hwnd_sc, true);
                 SendMessage(hwnd_rst, WM_THEMECHANGED, (WPARAM)pnode, 0);
             }
@@ -364,7 +409,11 @@ on_result_launch(eu_tabpage *pnode)
 }
 
 HWND
-eu_result_hwnd(void)
+eu_result_hwnd(eu_tabpage *pnode)
 {
-    return hwnd_rst;
+    if ((pnode || (pnode = on_tabpage_focus_at())) && pnode->presult)
+    {
+        return (HWND)pnode->presult->reserved0;
+    }
+    return NULL;
 }

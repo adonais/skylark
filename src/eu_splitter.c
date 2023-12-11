@@ -471,7 +471,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             ReleaseDC(parent, hdc);
             DeleteObject(hpen);
             ReleaseCapture();
-            if (RESULT_SHOW(pnode) && eu_result_hwnd())
+            if (RESULT_SHOW(pnode) && eu_result_hwnd(pnode))
             {
                 eu_get_config()->result_edit_height = on_splitter_absolute_height(pnode->rect_result.bottom) - cy - SPLIT_WIDTH;
             }

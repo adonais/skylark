@@ -149,34 +149,32 @@ on_doc_init_result(eu_tabpage *pnode)
 static void
 on_doc_set_keyword(eu_tabpage *pnode)
 {
-    if (!(pnode && pnode->doc_ptr))
-    {
-        return;
-    }
-    // See const char *const xxxWordLists at Lex(xxx).cxx
-    if (pnode->doc_ptr->keywords0)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
-    }
-    if (pnode->doc_ptr->keywords1)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
-    }
-    if (pnode->doc_ptr->keywords2)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
-    }
-    if (pnode->doc_ptr->keywords3)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
-    }
-    if (pnode->doc_ptr->keywords4)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
-    }
-    if (pnode->doc_ptr->keywords5)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
+    if ((pnode && pnode->doc_ptr))
+    {   // See const char *const xxxWordLists at Lex(xxx).cxx
+        if (pnode->doc_ptr->keywords0)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
+        }
+        if (pnode->doc_ptr->keywords1)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
+        }
+        if (pnode->doc_ptr->keywords2)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
+        }
+        if (pnode->doc_ptr->keywords3)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
+        }
+        if (pnode->doc_ptr->keywords4)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
+        }
+        if (pnode->doc_ptr->keywords5)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
+        }
     }
 }
 
@@ -228,7 +226,7 @@ on_doc_enable_regexp(eu_tabpage *pnode)
     }
 }
 
-static void
+void
 on_doc_key_scilexer(eu_tabpage *pnode, const  char *name)
 {
     // 加载文档解析器

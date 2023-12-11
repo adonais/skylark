@@ -456,13 +456,8 @@ on_sci_destroy_control(eu_tabpage *pnode)
         }
         if (pnode->presult)
         {
-            if (pnode->presult->hwnd_sc)
-            {
-                SendMessage(pnode->presult->hwnd_sc, WM_CLOSE, 0, 0);
-                pnode->presult->hwnd_sc = NULL;
-                pnode->result_show = false;
-            }
-            eu_safe_free(pnode->presult);
+            on_result_free(&pnode->presult);
+            pnode->result_show = false;
         }
         // 释放保存结果的vec数组
         if (pnode->ret_vec)

@@ -253,7 +253,7 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 if (canvas_default_proc)
                 {
                     BringWindowToTop(hwnd);
-                    util_transparent(hwnd, 50);
+                    util_transparent(hwnd, 12);
                 }
                 return 1;
             }

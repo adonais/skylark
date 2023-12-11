@@ -770,7 +770,7 @@ EU_EXT_CLASS HANDLE share_envent_open_file_sem(void);
 EU_EXT_CLASS HWND eu_get_search_hwnd(void);
 
 // for eu_resultctl.c
-EU_EXT_CLASS HWND eu_result_hwnd(void);
+EU_EXT_CLASS HWND eu_result_hwnd(eu_tabpage *pnode);
 
 // for eu_snippet.c
 EU_EXT_CLASS HWND eu_snippet_hwnd(void);

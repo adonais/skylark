@@ -184,9 +184,9 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
             on_symtree_update_theme(p);
             InvalidateRect(p->hwnd_symtree, NULL, true);
         }
-        if (p->presult && eu_result_hwnd())
+        if (p->presult && p->presult->reserved0)
         {
-            SendMessage(eu_result_hwnd(), WM_THEMECHANGED, (WPARAM)p, 0);
+            SendMessage((HWND)p->presult->reserved0, WM_THEMECHANGED, (WPARAM)p, 0);
         }
         if (p->hwnd_qrtable)
         {

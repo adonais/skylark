@@ -296,7 +296,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
             {
                 if (RESULT_SHOW(p))
                 {
-                    eu_setpos_window(eu_result_hwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    eu_setpos_window(eu_result_hwnd(p), HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                     eu_setpos_window(p->presult->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
                     if (QRTABLE_SHOW(p))
                     {
@@ -312,7 +312,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
         }
         if (RESULT_SHOW(pnode))
         {
-            eu_setpos_window(eu_result_hwnd(), HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
+            eu_setpos_window(eu_result_hwnd(pnode), HWND_TOP, pnode->rect_result.left, pnode->rect_result.top,
                              pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top, SWP_SHOWWINDOW);
             eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
@@ -323,6 +323,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
                 eu_setpos_window(g_splitter_tablebar, HWND_TOP, pnode->rect_sc.left, pnode->rect_result.bottom,
                                  pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
             }
+            on_search_jmp_pos(pnode->presult);
         }
         on_statusbar_size(prc, pnode);
         // 从插件页面切换时获取鼠标焦点
