@@ -23,11 +23,10 @@
 #define WINE_BACK_COLOR 0x1E1E1E
 
 static volatile sptr_t canvas_default_proc = 0;
-HWND hwnd_document_map = NULL;
-HWND hwnd_document_static = NULL;
-volatile long document_map_initialized = 0;
-volatile long higher_y = 0;
-volatile long lower_y = 0;
+static volatile long higher_y = 0;
+static volatile long lower_y = 0;
+static HWND hwnd_document_static = NULL;
+static HWND hwnd_static_control = NULL;
 
 typedef enum _move_mode
 {
@@ -152,28 +151,6 @@ on_map_model_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map, bool direction, move
     on_map_scroll(pnode, ptr_map);
 }
 
-static LRESULT CALLBACK
-on_map_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
-}
-
-static void
-on_map_move_static(HWND hwnd)
-{
-    RECT rc;
-    GetClientRect (hwnd, & rc);
-    if ((GetWindowLongPtr (hwnd_document_static, GWL_STYLE) & WS_CHILD) == 0)
-    {
-        MapWindowPoints(hwnd, HWND_DESKTOP, (POINT*)(&rc), 2);
-        MoveWindow(hwnd_document_static, rc.left, rc.top, (rc.right - rc.left), (rc.bottom - rc.top), TRUE);
-    }
-    else
-    {
-        MoveWindow(hwnd_document_static, 0, 0, (rc.right - rc.left), (rc.bottom - rc.top), TRUE);
-    }
-}
-
 static void
 on_map_draw_static_zone(DRAWITEMSTRUCT *pdis)
 {
@@ -200,25 +177,26 @@ on_map_canvas_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_KEYDOWN:
         {
-            if (!hwnd_document_map)
+            eu_tabpage *p = on_map_edit();
+            if (!p || !p->hwnd_sc)
             {
                 break;
             }
             if (wParam == VK_UP)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 0);
+                SendMessage(p->hwnd_sc, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 0);
             }
             if (wParam == VK_DOWN)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 0);
+                SendMessage(p->hwnd_sc, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 0);
             }
             if (wParam == VK_PRIOR)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 1);
+                SendMessage(p->hwnd_sc, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 1);
             }
             if (wParam == VK_NEXT)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 1);
+                SendMessage(p->hwnd_sc, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 1);
             }
             break;
         }
@@ -264,6 +242,11 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             on_map_draw_static_zone((DRAWITEMSTRUCT *)lParam);
             return 1;
         }
+        case WM_THEMECHANGED:
+        {
+            SendMessage(hwnd_static_control, WM_THEMECHANGED, 0, 0);
+            break;
+        }
         case WM_SIZE:
         {
             int width = LOWORD(lParam);
@@ -277,23 +260,29 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            SendMessage(hwnd_document_map, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
+            eu_tabpage *p = on_map_edit();
+            if (p && p->hwnd_sc)
+            {
+                SendMessage(p->hwnd_sc, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
+            }
             break;
         }
         case WM_MOUSEMOVE:
         {
-            if (wParam & MK_LBUTTON)
+            eu_tabpage *p = on_map_edit();
+            if ((wParam & MK_LBUTTON) && p && p->hwnd_sc)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
+                SendMessage(p->hwnd_sc, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
             }
             break;
         }
         case WM_MOUSEWHEEL:
         {
             int fw_keys = GET_KEYSTATE_WPARAM(wParam);
-            if (!fw_keys)
+            eu_tabpage *p = on_map_edit();
+            if (!fw_keys && p && p->hwnd_sc)
             {
-                SendMessage(hwnd_document_map, DOCUMENTMAP_MOUSEWHEEL, wParam, lParam);
+                SendMessage(p->hwnd_sc, DOCUMENTMAP_MOUSEWHEEL, wParam, lParam);
             }
             break;
         }
@@ -301,6 +290,19 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             if (hwnd_document_static)
             {
+                eu_tabpage *pmap = (eu_tabpage *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+                if (pmap && pmap->hwnd_sc)
+                {
+                    DestroyWindow(pmap->hwnd_sc);
+                    pmap->hwnd_sc = NULL;
+                    SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+                    eu_safe_free(pmap);
+                }
+                if (g_splitter_minmap)
+                {
+                    DestroyWindow(g_splitter_minmap);
+                    g_splitter_minmap = NULL;
+                }
                 hwnd_document_static = NULL;
                 eu_logmsg("on_map_static_proc recv WM_DESTROY\n");
             }
@@ -349,69 +351,15 @@ on_map_reload(eu_tabpage *pedit)
     }
 }
 
-static bool
-on_map_create_static_dlg(HWND parent)
-{
-    if (!hwnd_document_static)
-    {
-        bool win10 = util_os_version() >= 1000;
-        if (win10 && !util_under_wine())
-        {
-            hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE), parent, on_map_static_proc, 0);
-        }
-        else
-        {
-            hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE_CLASSIC), parent, on_map_static_proc, 0);
-        }
-    }
-    return (hwnd_document_static != NULL);
-}
-
-static intptr_t CALLBACK
-on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK
+on_map_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
-        case WM_INITDIALOG:
-        {
-            eu_tabpage *map_edit = (eu_tabpage *)lParam;
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)map_edit);
-            const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_EX_RTLREADING;
-            if (on_sci_create(map_edit, hwnd, flags, on_map_edit_proc) != SKYLARK_OK)
-            {
-                (intptr_t)EndDialog(hwnd, 1);
-            }
-            if (!on_map_create_static_dlg(hwnd))
-            {
-                (intptr_t)EndDialog(hwnd, 1);
-            }
-            on_dark_border(map_edit->hwnd_sc, true);
-            return 1;
-        }
-        case WM_SIZE:
-        {
-            int width = LOWORD(lParam);
-            int height = HIWORD(lParam);
-            eu_tabpage *pview = on_map_edit();
-            if ((!pview && pview->hwnd_sc && hwnd_document_static))
-            {
-                break;
-            }
-            MoveWindow(pview->hwnd_sc, 0, 0, width, height, TRUE);
-            ShowWindow(pview->hwnd_sc, SW_SHOW);
-            on_map_move_static(hwnd);
-            ShowWindow(hwnd_document_static, SW_SHOW);
-            break;
-        }
-        case WM_MOVE:
-        {
-            on_map_move_static(hwnd);
-            break;
-        }
         case DOCUMENTMAP_SCROLL:
         {
             eu_tabpage *pnode = on_tabpage_focus_at();
-            eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+            eu_tabpage *map_edit = on_map_edit();
             if (pnode && map_edit)
             {
                 bool dir = (wParam != 0);
@@ -423,7 +371,7 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case DOCUMENTMAP_MOUSECLICKED:
         {
             eu_tabpage *pnode = on_tabpage_focus_at();
-            eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+            eu_tabpage *map_edit = on_map_edit();
             if (pnode && map_edit)
             {
                 int y = GET_Y_LPARAM(lParam);
@@ -445,78 +393,189 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        default:
+            break;
+    }
+    return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
+}
+
+static void
+on_map_rect(const RECT *psrc, RECT *prc)
+{
+    const int height = psrc->bottom - psrc->top - 4;
+    prc->top = psrc->top + SPLIT_WIDTH;
+    prc->bottom = psrc->bottom - SPLIT_WIDTH;
+    prc->left = (psrc->right > height) ? psrc->right - height : psrc->left;
+    prc->right = psrc->right;
+}
+
+static LRESULT CALLBACK
+on_map_control_callback(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+        case WM_PAINT:
+        {
+            RECT rc = {0};
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+            const bool dark = on_dark_enable();
+            const TCHAR *text  = util_os_version() < 603 || util_under_wine() ? _T("x") : _T("✕");
+            LOAD_I18N_RESSTR(IDS_MINMAP_DESC, map_str);
+            GetClientRect(hwnd, &rc);
+            set_tabface_color(hdc, dark);
+            set_text_color(hdc, dark);
+            HGDIOBJ oldj = SelectObject(hdc, on_theme_font_hwnd());
+            if (oldj)
+            {
+                RECT rc_close = {0};
+                int height = rc.bottom - rc.top - 4;
+                int right = rc.right;
+                int left = rc.left;
+                FrameRect(hdc, &rc, dark ? GetSysColorBrush(COLOR_3DDKSHADOW) : GetSysColorBrush(COLOR_BTNSHADOW));
+                if (rc.right > height)
+                {
+                    rc.right -= height;
+                }
+                rc.left += SPLIT_WIDTH;
+                DrawText(hdc, map_str, (int)_tcslen(map_str), &rc, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+                rc.left = left;
+                rc.right = right;
+                on_map_rect(&rc, &rc_close);
+                DrawText(hdc, text, (int)_tcslen(text), &rc_close, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                SelectObject(hdc, oldj);
+            }
+            EndPaint(hwnd, &ps);
+            break;
+        }
         case WM_THEMECHANGED:
         {
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_splitter_brush());
+            InvalidateRect(hwnd, NULL, false);
             break;
+        }
+        case WM_LBUTTONUP:
+        {
+            RECT rc;
+            RECT rc_close;
+            eu_tabpage *p = NULL;
+            POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            GetClientRect(hwnd, &rc);
+            on_map_rect(&rc, &rc_close);
+            if (PtInRect(&rc_close, point) && (p = on_tabpage_focus_at()))
+            {
+                p->map_show = false;
+                on_proc_redraw(NULL);
+            }
+            return 1;
         }
         case WM_DESTROY:
         {
-            if (hwnd_document_map)
+            if (hwnd_static_control)
             {
-                eu_tabpage *map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
-                if (map_edit)
-                {
-                    if (map_edit->hwnd_sc)
-                    {
-                        DestroyWindow(map_edit->hwnd_sc);
-                        map_edit->hwnd_sc = NULL;
-                    }
-                    eu_safe_free(map_edit);
-                    SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
-                }
-                if (hwnd_document_static)
-                {   // win7上, hwnd_document_static是popup窗口, 需手动销毁
-                    DestroyWindow(hwnd_document_static);
-                    hwnd_document_static = NULL;
-                    eu_logmsg("we destroy hwnd_document_static window first\n");
-                }
-                _InterlockedExchange(&document_map_initialized, 0);
-                hwnd_document_map = NULL;
+                hwnd_static_control = NULL;
             }
             break;
         }
         default:
-            break;
+        {
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+        }
     }
     return 0;
 }
 
-static bool
-on_map_create_dlg(LPARAM ptr)
+static inline bool
+on_map_create_static_dlg(HWND parent)
 {
-    if (!hwnd_document_map)
+    if (!hwnd_document_static)
     {
-        hwnd_document_map = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_DOCUMENTMAP), eu_module_hwnd(), on_map_callback, ptr);
+        hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE), parent, on_map_static_proc, 0);
     }
-    return (hwnd_document_map != NULL);
+    return (hwnd_document_static != NULL);
+}
+
+void
+on_map_size(const eu_tabpage *pnode, const int flags)
+{
+    eu_tabpage *pmap = on_map_edit();
+    if (pmap)
+    {
+        if (flags == SW_HIDE)
+        {
+            eu_setpos_window(g_splitter_minmap, HWND_TOP, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            eu_setpos_window(pmap->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            eu_setpos_window(hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            eu_setpos_window(hwnd_static_control, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+            if (on_dark_enable())
+            {
+                UpdateWindowEx(g_tabpages);
+            }
+        }
+        else if (flags == SW_SHOW)
+        {
+            if (pnode)
+            {
+                const int height = on_treebar_tab_height();
+                const int top = pnode->rect_map.top + height;
+                HDWP hdwp = BeginDeferWindowPos(4);
+                DeferWindowPos(hdwp, g_splitter_minmap, HWND_TOP, pnode->rect_map.left - SPLIT_WIDTH, pnode->rect_map.top,
+                               SPLIT_WIDTH, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
+                DeferWindowPos(hdwp, pmap->hwnd_sc, HWND_TOP, pnode->rect_map.left, top,
+                               pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - top, SWP_SHOWWINDOW);
+                DeferWindowPos(hdwp, hwnd_document_static, HWND_TOP, pnode->rect_map.left, top,
+                               pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - top, SWP_SHOWWINDOW);
+                DeferWindowPos(hdwp, hwnd_static_control, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
+                               pnode->rect_map.right - pnode->rect_map.left, height - 1, SWP_SHOWWINDOW);
+                EndDeferWindowPos(hdwp);
+                on_map_reload(pmap);
+            }
+        }
+    }
 }
 
 eu_tabpage*
 on_map_edit(void)
 {
-    if (document_map_initialized && hwnd_document_map)
-    {
-        return (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
-    }
-    return NULL;
+    return (hwnd_document_static ? (eu_tabpage *)GetWindowLongPtr(hwnd_document_static, GWLP_USERDATA) : NULL);
+}
+
+HWND
+on_map_hwnd(void)
+{
+    return hwnd_document_static;
 }
 
 eu_tabpage*
 on_map_launch(void)
 {
-    eu_tabpage *map_edit = NULL;
-    if (!_InterlockedCompareExchange(&document_map_initialized, 1, 0))
+    eu_tabpage *pmap = NULL;
+    if (!hwnd_document_static)
     {
-        map_edit = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
-        if (!map_edit || !on_map_create_dlg((LPARAM)map_edit))
+        HWND hwnd = eu_hwnd_self();
+        const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_EX_RTLREADING;
+        pmap = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
+        if (pmap && on_splitter_init_minmap(hwnd))
         {
-            _InterlockedExchange(&document_map_initialized, 0);
-            eu_safe_free(map_edit);
+            if (!hwnd_static_control)
+            {
+                hwnd_static_control = on_splitter_static_control(hwnd, on_map_control_callback, NULL);
+            }
+            if (!hwnd_static_control || (on_sci_create(pmap, hwnd, flags, on_map_edit_proc) != SKYLARK_OK) || !on_map_create_static_dlg(hwnd))
+            {
+                eu_safe_free(pmap);
+                eu_logmsg("create map window failed\n");
+            }
+            else if (hwnd_document_static && pmap->hwnd_sc)
+            {
+                SetWindowLongPtr(hwnd_document_static, GWLP_USERDATA, (LONG_PTR)pmap);
+                on_dark_border(pmap->hwnd_sc, true);
+            }
         }
     }
-    else if (hwnd_document_map)
+    else
     {
-        map_edit = (eu_tabpage *)GetWindowLongPtr(hwnd_document_map, GWLP_USERDATA);
+        pmap = (eu_tabpage *)GetWindowLongPtr(hwnd_document_static, GWLP_USERDATA);
     }
-    return map_edit;
+    return pmap;
 }

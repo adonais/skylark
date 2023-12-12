@@ -1503,6 +1503,7 @@ STRINGTABLE DISCARDABLE
     IDS_FAVORITE_ADD_TIPS   "It's hard to tell when files in your favorites have the same alias, Are you sure you want to continue?"
     IDS_UNDO_UNCLOSE_TIPS   "The file has been converted to encoding or line breaks, You should save the file as soon as possible to avoid 'undo/redo' operations affecting the file state."
     IDS_HISTORY_CLEAR_UNDO  "This operation will clear the undo history, Affecting 'Undo/Redo', Continue?"
+    IDS_MINMAP_DESC         "Document Map"
 }
 
 /////////////////////////////////////////////////////////////////////////////

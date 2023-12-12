@@ -32,6 +32,10 @@
    (eu_get_config() && eu_get_config()->eu_tab.hslave ? \
    (HWND)eu_get_config()->eu_tab.hslave : NULL)
 
+#define HSLAVE_SHOW           \
+   (eu_get_config() && eu_get_config()->eu_tab.show ? \
+   (true) : (false))
+
 #ifdef __cplusplus
 extern "C"
 {

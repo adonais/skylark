@@ -310,7 +310,8 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     HANDLE m_map = NULL;
     TCHAR *memory = NULL;
     bool show_clip = false;
-    HWND hwnd = eu_module_hwnd();
+    HWND hmap = NULL;
+    HWND hwnd = eu_hwnd_self();
     if (!(m_map = share_open(FILE_MAP_WRITE | FILE_MAP_READ, SKYLARK_LOCK_LANG)))
     {
         eu_logmsg("%s: share_open error\n", __FUNCTION__);
@@ -384,6 +385,10 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
         {
             SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);
         }
+    }
+    if ((hmap = on_map_hwnd()))
+    {
+        SendMessage(hmap, WM_THEMECHANGED, 0, 0);
     }
     on_favorite_reload_root();
     on_search_dark_mode_release();

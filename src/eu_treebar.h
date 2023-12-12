@@ -60,6 +60,7 @@ typedef enum _IMG_MOUNT
 extern HWND g_treebar;
 extern HWND g_filetree;
 
+int  on_treebar_tab_height(void);
 int  on_treebar_load_remote(HWND hwnd, remotefs *pserver);
 int  on_treebar_locate_path(const TCHAR *pathname);
 int  on_treebar_create_box(HWND hwnd);

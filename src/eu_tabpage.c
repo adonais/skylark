@@ -1068,7 +1068,7 @@ on_tabpage_create(const HWND hwnd, const intptr_t resid)
 {
     int err = 0;
     const uint32_t flags = \
-          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_OWNERDRAWFIXED;
+          WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_TOOLTIPS | TCS_BUTTONS | TCS_MULTISELECT | TCS_MULTILINE | TCS_OWNERDRAWFIXED | TCS_FOCUSNEVER;
     HWND htab = CreateWindow(WC_TABCONTROL, NULL, flags, 0, 0, 0, 0, hwnd, (HMENU)resid, eu_module_handle(), NULL);
     do
     {
@@ -1272,53 +1272,60 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab1, RECT *
         GetClientRect(eu_hwnd_self(), &rc_main);
         prc = &rc_main;    
     }
-    if (prc && pnode->hwnd_sc)
+    if (prc)
     {
         on_tabpage_adjust_box(prc, ptab1, ptab2);
-        pnode->rect_sc.left = !pnode->view ? ptab1->left : ptab2->left;
-        if (eu_get_config()->m_ftree_show)
+    }
+    if (pnode)
+    {
+        if (pnode->map_show && on_map_hwnd())
         {
-            pnode->rect_sc.left += SPLIT_WIDTH;
+            int *pright =  !pnode->view ? &ptab1->right : &ptab2->right;
+            *pright -= eu_get_config()->document_map_width + SPLIT_WIDTH;
+            pnode->rect_map.left = *pright;
+            pnode->rect_map.right = prc->right - SPLIT_WIDTH;
+            pnode->rect_map.top = !pnode->view ? ptab1->top : ptab2->top;
+            pnode->rect_map.bottom = !pnode->view ? ptab1->bottom : ptab2->bottom;
         }
-        pnode->rect_sc.right = (!pnode->view ? ptab1->right : ptab2->right) - SPLIT_WIDTH;
-        pnode->rect_sc.top = !pnode->view ? ptab1->top + on_tabpage_get_height(0) : ptab2->top + on_tabpage_get_height(1);
-        pnode->rect_sc.bottom = !pnode->view ? ptab1->bottom : ptab2->bottom;
-    }
-    if (pnode->sym_show)
-    {
-        if (pnode->hwnd_symlist || pnode->hwnd_symtree)
+        if (pnode->hwnd_sc)
         {
-            pnode->rect_sc.right -= (pnode->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
-                                     + SPLIT_WIDTH;
-            pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
-            pnode->rect_sym.right = (!pnode->view ? ptab1->right : ptab2->right) - SPLIT_WIDTH;
-            pnode->rect_sym.top = pnode->rect_sc.top;
-            pnode->rect_sym.bottom = pnode->rect_sc.bottom;
+            pnode->rect_sc.left = !pnode->view ? ptab1->left : ptab2->left;
+            if (eu_get_config()->m_ftree_show)
+            {
+                pnode->rect_sc.left += SPLIT_WIDTH;
+            }
+            pnode->rect_sc.right = (!pnode->view ? ptab1->right : ptab2->right) - SPLIT_WIDTH;
+            pnode->rect_sc.top = !pnode->view ? ptab1->top + on_tabpage_get_height(0) : ptab2->top + on_tabpage_get_height(1);
+            pnode->rect_sc.bottom = !pnode->view ? ptab1->bottom : ptab2->bottom;
         }
-    }
-    else if (pnode->map_show && !pnode->view && document_map_initialized)
-    {
-        pnode->rect_sc.right -= eu_get_config()->document_map_width + SPLIT_WIDTH;
-        pnode->rect_map.left = pnode->rect_sc.right + SPLIT_WIDTH;
-        pnode->rect_map.right = ptab1->right - SPLIT_WIDTH;
-        pnode->rect_map.top = pnode->rect_sc.top;
-        pnode->rect_map.bottom = pnode->rect_sc.bottom;
-    }
-    if (RESULT_SHOW(pnode))
-    {
-        int rect_bottom = pnode->rect_sc.bottom;
-        pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + (QRTABLE_SHOW(pnode) ? eu_get_config()->result_list_height : 0);
-        pnode->rect_result.left = pnode->rect_sc.left;
-        pnode->rect_result.right = pnode->rect_sc.right;
-        pnode->rect_result.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
-        pnode->rect_result.bottom = rect_bottom;
-        if (QRTABLE_SHOW(pnode))
+        if (pnode->sym_show)
         {
-            pnode->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
-            pnode->rect_qrtable.left = pnode->rect_sc.left;
-            pnode->rect_qrtable.right = pnode->rect_sc.right;
-            pnode->rect_qrtable.top = pnode->rect_result.bottom + SPLIT_WIDTH;
-            pnode->rect_qrtable.bottom = rect_bottom;
+            if (pnode->hwnd_symlist || pnode->hwnd_symtree)
+            {
+                pnode->rect_sc.right -= (pnode->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
+                                         + SPLIT_WIDTH;
+                pnode->rect_sym.left = pnode->rect_sc.right + SPLIT_WIDTH;
+                pnode->rect_sym.right = (!pnode->view ? ptab1->right : ptab2->right) - SPLIT_WIDTH;
+                pnode->rect_sym.top = pnode->rect_sc.top;
+                pnode->rect_sym.bottom = pnode->rect_sc.bottom;
+            }
+        }
+        if (RESULT_SHOW(pnode))
+        {
+            int rect_bottom = pnode->rect_sc.bottom;
+            pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + (QRTABLE_SHOW(pnode) ? eu_get_config()->result_list_height : 0);
+            pnode->rect_result.left = pnode->rect_sc.left;
+            pnode->rect_result.right = pnode->rect_sc.right;
+            pnode->rect_result.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
+            pnode->rect_result.bottom = rect_bottom;
+            if (QRTABLE_SHOW(pnode))
+            {
+                pnode->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
+                pnode->rect_qrtable.left = pnode->rect_sc.left;
+                pnode->rect_qrtable.right = pnode->rect_sc.right;
+                pnode->rect_qrtable.top = pnode->rect_result.bottom + SPLIT_WIDTH;
+                pnode->rect_qrtable.bottom = rect_bottom;
+            }
         }
     }
 }

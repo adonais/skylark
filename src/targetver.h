@@ -1260,6 +1260,7 @@
 #define IDS_WIN32CALC_DESC                  44501
 #define IDS_UNDO_UNCLOSE_TIPS               44502
 #define IDS_HISTORY_CLEAR_UNDO              44503
+#define IDS_MINMAP_DESC                     44504
 
 #define IDD_SETTING_DIALOG                  44600
 #define IDC_SETTING_NAME_EDIT               44601

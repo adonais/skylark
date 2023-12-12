@@ -203,7 +203,7 @@ function eu_conf.loadconf()
         titlebar = {["icon"] = true, ["name"] = true, ["path"] = true}
     end
     if (tab_split_show == nil) then
-        tab_split_show = false;
+        tab_split_show = false
     end
     if (mstab == nil) then
         mstab = {["vertical"] = false, ["horizontal"] = false, ["slave_focus"] = false, ["show"] = false, ["main_size"] = 0, ["slave_size"] = 0}

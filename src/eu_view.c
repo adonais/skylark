@@ -30,10 +30,7 @@ on_view_symtree(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && (pnode->hwnd_symlist || pnode->hwnd_symtree))
     {
-        if ((pnode->sym_show ^= true))
-        {
-            pnode->map_show = false;
-        }
+        pnode->sym_show ^= true;
         eu_window_resize();
     }
 }
@@ -61,13 +58,16 @@ on_view_split_tabbar(void)
 void
 on_view_document_map(eu_tabpage *pnode)
 {
-    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->plugin)
     {
-        if ((pnode->map_show ^= true) && on_map_launch())
+        if ((pnode->map_show ^= true))
         {
-            pnode->sym_show = false;
+            if (!on_map_launch())
+            {
+                pnode->map_show = false; 
+            }
         }
-        eu_window_resize();
+        on_proc_redraw(NULL);
     }
 }
 
@@ -151,6 +151,7 @@ on_view_refresh_scroll(void)
 int
 on_view_refresh_theme(HWND hwnd, const bool reload)
 {
+    HWND hmap = NULL;
     HWND snippet = NULL;
     on_dark_delete_theme_brush();
     if (reload && util_under_wine())
@@ -202,9 +203,9 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
             on_statusbar_btn_rw(p, true);
         }
     }
-    if (document_map_initialized && hwnd_document_map)
+    if ((hmap = on_map_hwnd()))
     {
-        SendMessage(hwnd_document_map, WM_THEMECHANGED, 0, 0);
+        SendMessage(hmap, WM_THEMECHANGED, 0, 0);
     }
     if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
     {

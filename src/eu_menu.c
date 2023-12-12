@@ -547,10 +547,10 @@ menu_update_item(const HMENU menu, const bool init)
                     case IDM_EDIT_AUTO_INDENTATION:         /* View menu */
                     {
                         util_set_menu_item(menu, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
-                        util_set_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, pnode->map_show && hwnd_document_map);
+                        util_set_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, pnode->map_show && on_map_hwnd());
                         util_set_menu_item(menu, IDM_VIEW_SYMTREE, pnode->sym_show);
                         util_enable_menu_item(menu, IDM_VIEW_SYMTREE, init || pnode->hwnd_symlist || pnode->hwnd_symtree);
-                        util_enable_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, init || (!pnode->hex_mode && !pnode->view));
+                        util_enable_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin));
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_TOOLBAR, eu_get_config()->m_toolbar != IDB_SIZE_0);

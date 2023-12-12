@@ -23,6 +23,7 @@ HWND g_splitter_symbar = NULL;
 HWND g_splitter_tabbar = NULL;
 HWND g_splitter_editbar = NULL;
 HWND g_splitter_tablebar = NULL;
+HWND g_splitter_minmap = NULL;
 
 static inline int
 on_splitter_tree_line(void)
@@ -34,12 +35,6 @@ static inline int
 on_splitter_tabbar_line(void)
 {
     return (4 * SPLIT_WIDTH);
-}
-
-static inline intptr_t
-on_splitter_brush(void)
-{
-    return (eu_theme_index() == THEME_WHITE ? (intptr_t)GetSysColorBrush(COLOR_MENU) : on_dark_get_bgbrush());
 }
 
 static inline void
@@ -320,13 +315,10 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HDC hdc = GetWindowDC(parent);
             if ((pnode = on_tabpage_focus_at()) != NULL)
             {
+                const int offset = on_tabpage_get_height(HSLAVE_SHOW ? 1 : 0) + 1;
                 if (pnode->sym_show)
                 {
                     cx = pnode->rect_sym.left +  on_splitter_tree_line();
-                }
-                else if (pnode->map_show)
-                {
-                    cx = pnode->rect_map.left +  on_splitter_tree_line();
                 }
                 else
                 {
@@ -335,7 +327,7 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
                 HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
                 SetROP2(hdc, R2_NOTXORPEN);
-                on_splitter_rect_box(parent, &r, on_tabpage_get_height(HSLAVE_GET ? 1 : 0) + SCINTILLA_MARGIN_TOP);
+                on_splitter_rect_box(parent, &r, offset);
                 MoveToEx(hdc, cx, r.top, NULL);
                 LineTo(hdc, cx,  r.bottom);
                 SelectObject(hdc, hold_pen);
@@ -348,11 +340,7 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONUP:
         {
             ReleaseCapture();
-            if (!(pnode = on_tabpage_focus_at()))
-            {
-                break;
-            }
-            if (pnode->sym_show)
+            if ((pnode = on_tabpage_focus_at()) && pnode->sym_show)
             {
                 if (pnode->hwnd_symlist)
                 {
@@ -370,16 +358,8 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         eu_get_config()->sym_tree_width = TREEVIEW_WIDTH_MIN;
                     }
                 }
+                eu_window_resize();
             }
-            else if (pnode->map_show)
-            {
-                eu_get_config()->document_map_width = pnode->rect_map.right - cx - SPLIT_WIDTH / 2;
-                if (eu_get_config()->document_map_width < DOCUMENTMAP_WIDTH_MIN)
-                {
-                    eu_get_config()->document_map_width = DOCUMENTMAP_WIDTH_MIN;
-                }
-            }
-            eu_window_resize();
             break;
         }
         case WM_MOUSEMOVE:
@@ -389,26 +369,97 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 RECT r;
                 HWND parent = GetParent(hwnd);
                 HDC hdc = GetWindowDC(parent);
-                if ((pnode = on_tabpage_focus_at()) != NULL)
+                const int offset = on_tabpage_get_height(HSLAVE_SHOW ? 1 : 0) + 1;
+                if ((pnode = on_tabpage_focus_at()) != NULL && pnode->sym_show)
                 {
                     HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
                     HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
                     SetROP2(hdc, R2_NOTXORPEN);
-                    on_splitter_rect_box(parent, &r, on_tabpage_get_height(HSLAVE_GET ? 1 : 0) + SCINTILLA_MARGIN_TOP);
+                    on_splitter_rect_box(parent, &r, offset);
                     MoveToEx(hdc, cx, r.top, NULL);
                     LineTo(hdc, cx,  r.bottom);
-                    if (pnode->sym_show)
-                    {
-                        cx = pnode->rect_sym.left + (short)LOWORD(lParam) + on_splitter_tree_line();
-                    }
-                    else if (pnode->map_show)
-                    {
-                        cx = pnode->rect_map.left + (short)LOWORD(lParam) + on_splitter_tree_line();
-                    }
-                    else
-                    {
-                        cx = pnode->rect_sc.right + (short)LOWORD(lParam) + on_splitter_tree_line();
-                    }
+                    cx = pnode->rect_sym.left + (short)LOWORD(lParam) + on_splitter_tree_line();
+                    /* 这里应该限制cx, 不要覆盖treebar */
+                    MoveToEx(hdc, cx, r.top, NULL);
+                    LineTo(hdc, cx,  r.bottom);
+                    SelectObject(hdc, hold_pen);
+                    DeleteObject(hpen);
+                }
+                ReleaseDC(parent, hdc);
+            }
+            break;
+        }
+        default:
+        {
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+        }
+    }
+    return 0;
+}
+
+static LRESULT CALLBACK
+on_splitter_callback_minmap(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    static int cx;
+    eu_tabpage *pnode = NULL;
+    switch (msg)
+    {
+        case WM_THEMECHANGED:
+        {
+            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_splitter_brush());
+            break;
+        }
+        case WM_LBUTTONDOWN:
+        {
+            RECT r;
+            HWND parent = GetParent(hwnd);
+            HDC hdc = GetWindowDC(parent);
+            if ((pnode = on_tabpage_focus_at()) != NULL && pnode->map_show)
+            {
+                cx = pnode->rect_map.left +  on_splitter_tree_line();
+                HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+                HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
+                SetROP2(hdc, R2_NOTXORPEN);
+                on_splitter_rect_box(parent, &r, 0);
+                MoveToEx(hdc, cx, r.top, NULL);
+                LineTo(hdc, cx,  r.bottom);
+                SelectObject(hdc, hold_pen);
+                DeleteObject(hpen);
+            }
+            ReleaseDC(parent, hdc);
+            SetCapture(hwnd);
+            break;
+        }
+        case WM_LBUTTONUP:
+        {
+            ReleaseCapture();
+            if ((pnode = on_tabpage_focus_at()) && pnode->map_show)
+            {
+                eu_get_config()->document_map_width = pnode->rect_map.right - cx - SPLIT_WIDTH / 2;
+                if (eu_get_config()->document_map_width < DOCUMENTMAP_WIDTH_MIN)
+                {
+                    eu_get_config()->document_map_width = DOCUMENTMAP_WIDTH_MIN;
+                }
+                on_proc_redraw(NULL);
+            }
+            break;
+        }
+        case WM_MOUSEMOVE:
+        {
+            if ((wParam & MK_LBUTTON) == MK_LBUTTON && GetCapture() == hwnd)
+            {
+                RECT r;
+                HWND parent = GetParent(hwnd);
+                HDC hdc = GetWindowDC(parent);
+                if ((pnode = on_tabpage_focus_at()) != NULL && pnode->map_show)
+                {
+                    HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
+                    HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
+                    SetROP2(hdc, R2_NOTXORPEN);
+                    on_splitter_rect_box(parent, &r, 0);
+                    MoveToEx(hdc, cx, r.top, NULL);
+                    LineTo(hdc, cx,  r.bottom);
+                    cx = pnode->rect_map.left + (short)LOWORD(lParam) + on_splitter_tree_line();
                     /* 这里应该限制cx, 不要覆盖treebar */
                     MoveToEx(hdc, cx, r.top, NULL);
                     LineTo(hdc, cx,  r.bottom);
@@ -605,6 +656,12 @@ on_splitter_register(const TCHAR *classname, WNDPROC proc, int cur_id)
     return (RegisterClassEx(&wcex) > 0);
 }
 
+intptr_t
+on_splitter_brush(void)
+{
+    return (eu_theme_index() == THEME_WHITE ? (intptr_t)GetSysColorBrush(COLOR_MENU) : on_dark_get_bgbrush());
+}
+
 void
 on_splitter_redraw(void)
 {
@@ -634,6 +691,11 @@ on_splitter_redraw(void)
         SendMessage(g_splitter_tablebar, WM_THEMECHANGED, 0, 0);
         UpdateWindowEx(g_splitter_tablebar);
     }
+    if (g_splitter_minmap)
+    {
+        SendMessage(g_splitter_minmap, WM_THEMECHANGED, 0, 0);
+        UpdateWindowEx(g_splitter_minmap);
+    }
 }
 
 bool
@@ -652,6 +714,15 @@ on_splitter_init_symbar(HWND parent)
     on_splitter_register(splite_class, on_splitter_callback_symbar, IDC_CURSOR_WE);
     g_splitter_symbar = CreateWindowEx(0, splite_class, _T(""), WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 0, 0, parent, 0, eu_module_handle(), 0);
     return (g_splitter_symbar != NULL);
+}
+
+bool
+on_splitter_init_minmap(HWND parent)
+{
+    const TCHAR *splite_class = _T("splitter_minmap_scintilla");
+    on_splitter_register(splite_class, on_splitter_callback_minmap, IDC_CURSOR_WE);
+    g_splitter_minmap = CreateWindowEx(0, splite_class, _T(""), WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 0, 0, parent, 0, eu_module_handle(), 0);
+    return (g_splitter_minmap != NULL);
 }
 
 bool
@@ -686,4 +757,12 @@ on_splitter_init_window(HWND parent, const TCHAR *class_name, const int flags, H
 {
     on_splitter_register(class_name, proc, 0);
     return CreateWindowEx(0, class_name, _T(""), flags, 0, 0, 0, 0, parent, hmenu, eu_module_handle(), lp);
+}
+
+HWND
+on_splitter_static_control(HWND parent, WNDPROC proc, void *lp)
+{
+    const uint32_t flags = WS_CHILD | WS_CLIPSIBLINGS;
+    on_splitter_register(_T("minmap_tab"), proc, 0);
+    return CreateWindowEx(0, _T("minmap_tab"), _T(""), flags, 0, 0, 0, 0, parent, NULL, eu_module_handle(), lp);
 }

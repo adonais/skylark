@@ -427,7 +427,9 @@ void
 on_sci_destroy_control(eu_tabpage *pnode)
 {
     if (pnode)
-    {   // 关闭数据库链接
+    {
+        HWND hmap = NULL;
+        // 关闭数据库链接
         if (pnode->db_ptr)
         {
             on_table_disconnect_database(pnode, true);
@@ -475,16 +477,11 @@ on_sci_destroy_control(eu_tabpage *pnode)
         // 关闭minimap窗口
         if (!on_tabpage_exist_map())
         {
-            if (hwnd_document_map)
+            if ((hmap = on_map_hwnd()))
             {
-                DestroyWindow(hwnd_document_map);
+                DestroyWindow(hmap);
                 pnode->map_show = false;
             }
-        }
-        else if (pnode->map_show && hwnd_document_map)
-        {
-            eu_setpos_window(hwnd_document_map, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            pnode->map_show = false;
         }
     }
 }
@@ -758,6 +755,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_KEYDOWN:
         {   // 按下ESC键时
+            HWND hmap = NULL;
             if (!(pnode = on_tabpage_focus_at()))
             {
                 break;
@@ -779,23 +777,23 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 eu_sci_call(pnode, SCI_CANCEL, 0, 0);
             }
-            else if (pnode->map_show && document_map_initialized)
+            else if (pnode->map_show && (hmap = on_map_hwnd()))
             {
                 if (wParam == VK_UP)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 0);
+                    SendMessage(hmap, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 0);
                 }
                 if (wParam == VK_DOWN)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 0);
+                    SendMessage(hmap, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 0);
                 }
                 if (wParam == VK_PRIOR)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 1);
+                    SendMessage(hmap, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_UP, 1);
                 }
                 if (wParam == VK_NEXT)
                 {
-                    SendMessage(hwnd_document_map, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 1);
+                    SendMessage(hmap, DOCUMENTMAP_SCROLL, (WPARAM)MOVE_DOWN, 1);
                 }
             }
             break;

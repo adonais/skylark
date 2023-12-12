@@ -1786,7 +1786,7 @@ on_treebar_load_imglist(HWND hwnd)
     return himl;
 }
 
-static int
+int
 on_treebar_tab_height(void)
 {
     int height = 0;

@@ -27,13 +27,12 @@
 extern "C" {
 #endif
 
-extern volatile long document_map_initialized;
-extern HWND hwnd_document_map;
-extern HWND hwnd_document_static;
 eu_tabpage* on_map_launch(void);
 eu_tabpage* on_map_edit(void);
 void on_map_reload(eu_tabpage *pedit);
 void on_map_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map);
+void on_map_size(const eu_tabpage *pnode, const int flags);
+HWND on_map_hwnd(void);
 
 #ifdef __cplusplus
 }
