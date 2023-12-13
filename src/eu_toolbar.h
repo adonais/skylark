@@ -35,7 +35,7 @@ void on_toolbar_execute_script(void);
 void on_toolbar_lua_exec(eu_tabpage *pnode);
 void on_toolbar_setup_button(int id, int flags);
 void on_toolbar_no_highlight(void *lp);
-void on_toolbar_redraw(HWND hwnd);
+void on_toolbar_redraw(void);
 void on_toolbar_size(const RECT *prc);
 void on_toolbar_set_height(int resid);
 int  on_toolbar_icon_get(void);

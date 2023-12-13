@@ -1280,12 +1280,13 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab1, RECT *
     {
         if (pnode->map_show && on_map_hwnd())
         {
-            int *pright =  !pnode->view ? &ptab1->right : &ptab2->right;
+            const bool slave = HSLAVE_SHOW;
+            int *pright =  !slave ? &ptab1->right : &ptab2->right;
             *pright -= eu_get_config()->document_map_width + SPLIT_WIDTH;
             pnode->rect_map.left = *pright;
             pnode->rect_map.right = prc->right - SPLIT_WIDTH;
-            pnode->rect_map.top = !pnode->view ? ptab1->top : ptab2->top;
-            pnode->rect_map.bottom = !pnode->view ? ptab1->bottom : ptab2->bottom;
+            pnode->rect_map.top = !slave ? ptab1->top : ptab2->top;
+            pnode->rect_map.bottom = !slave ? ptab1->bottom : ptab2->bottom;
         }
         if (pnode->hwnd_sc)
         {
@@ -1617,14 +1618,28 @@ on_tabpage_theme_changed(eu_tabpage *p)
 bool
 on_tabpage_exist_map(void)
 {
-    if (g_tabpages)
+    HWND htab = HMAIN_GET;
+    if (htab)
     {
+        int count;
+        int index = 0;
         eu_tabpage *p = NULL;
-        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        for (index = 0, count = TabCtrl_GetItemCount(htab); index < count; ++index)
         {
             if ((p = on_tabpage_get_ptr(index)) && p->map_show)
             {
                 return true;
+            }
+        }
+        if (HSLAVE_SHOW)
+        {
+            htab = HSLAVE_GET;
+            for (index = 0, count = TabCtrl_GetItemCount(htab); index < count; ++index)
+            {
+                if ((p = on_tabpage_get_ptr(index)) && p->map_show)
+                {
+                    return true;
+                }
             }
         }
     }

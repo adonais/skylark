@@ -254,35 +254,51 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HWND hwnd_canvas = GetDlgItem(hwnd, IDC_VIEWZONE_CANVAS);
             if (NULL != hwnd_canvas)
             {
-                MoveWindow(hwnd_canvas, 0, 0, width, height, TRUE);
+                MoveWindow(hwnd_canvas, 0, 0, width, height, FALSE);
+            }
+            break;
+        }
+        case WM_MOVE:
+        {
+            if (!(GetWindowLongPtr(hwnd, GWL_STYLE) & WS_CHILD))
+            {
+                RECT rc;
+                eu_tabpage *pmap = NULL;
+                GetClientRect(hwnd, & rc);
+                if ((rc.right - rc.left) && (pmap = on_map_edit()))
+                {
+                    GetClientRect(pmap->hwnd_sc, & rc);
+                    MapWindowPoints(pmap->hwnd_sc, HWND_DESKTOP, (POINT*)(&rc), 2);
+                    MoveWindow(hwnd, rc.left, rc.top, (rc.right - rc.left), (rc.bottom - rc.top), FALSE);
+                }
             }
             break;
         }
         case WM_LBUTTONDOWN:
         {
-            eu_tabpage *p = on_map_edit();
-            if (p && p->hwnd_sc)
+            eu_tabpage *pmap = on_map_edit();
+            if (pmap && pmap->hwnd_sc)
             {
-                SendMessage(p->hwnd_sc, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
+                SendMessage(pmap->hwnd_sc, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
             }
             break;
         }
         case WM_MOUSEMOVE:
         {
-            eu_tabpage *p = on_map_edit();
-            if ((wParam & MK_LBUTTON) && p && p->hwnd_sc)
+            eu_tabpage *pmap = on_map_edit();
+            if ((wParam & MK_LBUTTON) && pmap && pmap->hwnd_sc)
             {
-                SendMessage(p->hwnd_sc, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
+                SendMessage(pmap->hwnd_sc, DOCUMENTMAP_MOUSECLICKED, wParam, lParam);
             }
             break;
         }
         case WM_MOUSEWHEEL:
         {
             int fw_keys = GET_KEYSTATE_WPARAM(wParam);
-            eu_tabpage *p = on_map_edit();
-            if (!fw_keys && p && p->hwnd_sc)
+            eu_tabpage *pmap = on_map_edit();
+            if (!fw_keys && pmap && pmap->hwnd_sc)
             {
-                SendMessage(p->hwnd_sc, DOCUMENTMAP_MOUSEWHEEL, wParam, lParam);
+                SendMessage(pmap->hwnd_sc, DOCUMENTMAP_MOUSEWHEEL, wParam, lParam);
             }
             break;
         }
@@ -490,9 +506,30 @@ on_map_create_static_dlg(HWND parent)
 {
     if (!hwnd_document_static)
     {
-        hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE), parent, on_map_static_proc, 0);
+        bool ver = !util_under_wine() && util_os_version() >= 603;
+        if (ver)
+        {   // Windows 8.1 or above
+            hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE), parent, on_map_static_proc, 0);
+        }
+        else
+        {
+            hwnd_document_static = CreateDialogParam(eu_module_handle(), MAKEINTRESOURCE(IDD_VIEWZONE_CLASSIC), parent, on_map_static_proc, 0);
+        }
     }
     return (hwnd_document_static != NULL);
+}
+
+static void
+on_map_rect_screen(const int left, const int top, const int right, const int bottom, RECT *prc)
+{
+    if (prc)
+    {
+        prc->left = left;
+        prc->top = top;
+        prc->right = right;
+        prc->bottom = bottom;
+        MapWindowPoints(eu_hwnd_self(), HWND_DESKTOP, (POINT*)(prc), 2);
+    }
 }
 
 void
@@ -501,33 +538,68 @@ on_map_size(const eu_tabpage *pnode, const int flags)
     eu_tabpage *pmap = on_map_edit();
     if (pmap)
     {
+        RECT rc = {0};
+        HDWP hdwp = NULL;
+        const bool child = GetWindowLongPtr(hwnd_document_static, GWL_STYLE) & WS_CHILD;
         if (flags == SW_HIDE)
         {
-            eu_setpos_window(g_splitter_minmap, HWND_TOP, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            eu_setpos_window(pmap->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            eu_setpos_window(hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            eu_setpos_window(hwnd_static_control, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-            if (on_dark_enable())
+            GetClientRect(hwnd_document_static, &rc);
+            if (rc.right - rc.left != 0)
             {
-                UpdateWindowEx(g_tabpages);
+                if (!child)
+                {
+                    eu_setpos_window(g_splitter_minmap, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    eu_setpos_window(pmap->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    eu_setpos_window(hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    eu_setpos_window(hwnd_static_control, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                }
+                else
+                {
+                    hdwp = BeginDeferWindowPos(4);
+                    DeferWindowPos(hdwp, g_splitter_minmap, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    DeferWindowPos(hdwp, pmap->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    DeferWindowPos(hdwp, hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    DeferWindowPos(hdwp, hwnd_static_control, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    EndDeferWindowPos(hdwp);
+                }
+                if (on_dark_enable() || !child)
+                {
+                    UpdateWindowEx(g_tabpages);
+                }
             }
         }
         else if (flags == SW_SHOW)
         {
             if (pnode)
             {
+                int number = 3;
                 const int height = on_treebar_tab_height();
                 const int top = pnode->rect_map.top + height;
-                HDWP hdwp = BeginDeferWindowPos(4);
+                if (child)
+                {
+                    ++number;
+                }
+                else 
+                {
+                    on_map_rect_screen(pnode->rect_map.left, top, pnode->rect_map.right, pnode->rect_map.bottom, &rc);
+                }
+                hdwp = BeginDeferWindowPos(number);
                 DeferWindowPos(hdwp, g_splitter_minmap, HWND_TOP, pnode->rect_map.left - SPLIT_WIDTH, pnode->rect_map.top,
                                SPLIT_WIDTH, pnode->rect_map.bottom - pnode->rect_map.top, SWP_SHOWWINDOW);
                 DeferWindowPos(hdwp, pmap->hwnd_sc, HWND_TOP, pnode->rect_map.left, top,
                                pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - top, SWP_SHOWWINDOW);
-                DeferWindowPos(hdwp, hwnd_document_static, HWND_TOP, pnode->rect_map.left, top,
-                               pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - top, SWP_SHOWWINDOW);
+                if (child)
+                {
+                    DeferWindowPos(hdwp, hwnd_document_static, HWND_TOP, pnode->rect_map.left, top,
+                                   pnode->rect_map.right - pnode->rect_map.left, pnode->rect_map.bottom - top, SWP_SHOWWINDOW);
+                }
                 DeferWindowPos(hdwp, hwnd_static_control, HWND_TOP, pnode->rect_map.left, pnode->rect_map.top,
                                pnode->rect_map.right - pnode->rect_map.left, height - 1, SWP_SHOWWINDOW);
                 EndDeferWindowPos(hdwp);
+                if (!child)
+                {
+                    eu_setpos_window(hwnd_document_static, HWND_TOP, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_SHOWWINDOW);
+                }
                 on_map_reload(pmap);
             }
         }

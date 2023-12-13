@@ -1953,6 +1953,7 @@ hexview_init(eu_tabpage *pnode)
     {
         pnode->eusc = 0;
         pnode->begin_pos = -1;
+        pnode->map_show = false;
         pnode->hex_mode = TYPES_HEX;
         hexview_register_class();
     }

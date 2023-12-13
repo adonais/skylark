@@ -2104,10 +2104,15 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOVE:
         {
+            HWND hmap = NULL;
             HWND hwnd_clip = on_toolbar_clip_hwnd();
             if (hwnd_clip && IsWindow(hwnd_clip) && IsWindowVisible(hwnd_clip))
             {
                 on_toolbar_setpos_clipdlg(hwnd_clip, hwnd);
+            }
+            if ((hmap = on_map_hwnd()) && !(GetWindowLongPtr(hmap, GWL_STYLE) & WS_CHILD))
+            {
+                SendMessage(hmap, WM_MOVE, 0, 0);
             }
             break;
         }

@@ -219,7 +219,7 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
     {
         menu_bmp_destroy();
         on_view_refresh_scroll();
-        on_toolbar_redraw(hwnd);
+        on_toolbar_redraw();
         on_splitter_redraw();
         on_proc_redraw(NULL);
         UpdateWindowEx(hwnd);

@@ -1059,13 +1059,13 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!TAB_HEX_MODE(pnode) && pnode->doc_ptr) ? 2 : 1);
             // dark theme下需要重新绘制
-            on_toolbar_redraw(eu_hwnd_self());
+            on_dark_enable() ? on_toolbar_redraw() : (void)0;
         }
     }
 }
 
 void
-on_toolbar_redraw(HWND hwnd)
+on_toolbar_redraw(void)
 {
     UpdateWindowEx(on_toolbar_hwnd());
 }
@@ -1209,6 +1209,10 @@ on_toolbar_create_dlg(HWND parent)
         SendMessage(htool, TB_SETIMAGELIST, (WPARAM) 0, (LPARAM) img_list1);
         SendMessage(htool, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
         SendMessage(htool, TB_SETMAXTEXTROWS, 0, 0);
+        if (util_under_wine())
+        {
+            SendMessage(htool, TB_SETEXTENDEDSTYLE, 0, (intptr_t)TBSTYLE_EX_DOUBLEBUFFER);
+        }
         on_dark_tips_theme(htool, TB_GETTOOLTIPS);
     } while(0);
     free(str);
