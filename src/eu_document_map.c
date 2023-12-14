@@ -267,8 +267,7 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 GetClientRect(hwnd, & rc);
                 if ((rc.right - rc.left) && (pmap = on_map_edit()))
                 {
-                    GetClientRect(pmap->hwnd_sc, & rc);
-                    MapWindowPoints(pmap->hwnd_sc, HWND_DESKTOP, (POINT*)(&rc), 2);
+                    GetWindowRect(pmap->hwnd_sc, &rc);
                     MoveWindow(hwnd, rc.left, rc.top, (rc.right - rc.left), (rc.bottom - rc.top), FALSE);
                 }
             }

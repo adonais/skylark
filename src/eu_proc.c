@@ -1845,25 +1845,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                             FillRect(lptoolbar->nmcd.hdc, &lptoolbar->nmcd.rc, (HBRUSH)on_dark_get_bgbrush());
                         }
                     }
-                    if (on_dark_enable() && GetDlgItem(hwnd, IDM_TABLE_BAR) == lpnmhdr->hwndFrom)
-                    {
-                        LPNMLVCUSTOMDRAW lpvcd = (LPNMLVCUSTOMDRAW)lParam;
-                        if (lpvcd)
-                        {
-                            if (lpvcd->nmcd.dwDrawStage == CDDS_PREPAINT)
-                            {
-                                return CDRF_NOTIFYITEMDRAW;
-                            }
-                            if (lpvcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
-                            {
-                                return CDRF_NOTIFYSUBITEMDRAW;
-                            }
-                            else if (lpvcd->nmcd.dwDrawStage == (CDDS_ITEMPREPAINT|CDDS_SUBITEM))
-                            {
-                                return CDRF_DODEFAULT;
-                            }
-                        }
-                    }
                     break;
                 }
                 // 16进制编辑器视图消息响应

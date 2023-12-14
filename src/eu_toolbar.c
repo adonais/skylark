@@ -1058,16 +1058,9 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_VIEW_ZOOMIN, 2);
             on_toolbar_setup_button(IDM_VIEW_ZOOMOUT, 2);
             on_toolbar_setup_button(IDM_SCRIPT_EXEC, (!TAB_HEX_MODE(pnode) && pnode->doc_ptr) ? 2 : 1);
-            // dark theme下需要重新绘制
-            on_dark_enable() ? on_toolbar_redraw() : (void)0;
+            on_dark_enable() ? InvalidateRect(on_toolbar_hwnd(), NULL, false) : (void)0;
         }
     }
-}
-
-void
-on_toolbar_redraw(void)
-{
-    UpdateWindowEx(on_toolbar_hwnd());
 }
 
 void
@@ -1084,7 +1077,7 @@ on_toolbar_size(const RECT *prc)
     {
         if (eu_get_config()->m_toolbar != IDB_SIZE_0)
         {
-            int width = prc->right - prc->left;
+            const int width = prc->right - prc->left;
             eu_setpos_window(hwnd, HWND_TOP, 0, 0, width, on_toolbar_get_height(), SWP_SHOWWINDOW);
         }
         else
@@ -1120,7 +1113,8 @@ on_toolbar_create_dlg(HWND parent)
     do
     {
         int i = 0, j = 0;
-        int style = WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TBSTYLE_TOOLTIPS|TBSTYLE_FLAT|CCS_TOP|CCS_NODIVIDER;
+        const int style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TBSTYLE_TOOLTIPS |
+                          TBSTYLE_FLAT | TBSTYLE_LIST | CCS_NODIVIDER | CCS_NOPARENTALIGN;
         /*********************************************************************
          * iBitmap(0), 第i个位图
          * idCommand(0), WM_COMMAND消息响应的ID
@@ -1160,7 +1154,7 @@ on_toolbar_create_dlg(HWND parent)
                 ptb[i].iBitmap = j;
                 ptb[i].idCommand = p->icmd;
                 ptb[i].fsState = TBSTATE_ENABLED;
-                ptb[i].fsStyle = TBSTYLE_BUTTON;
+                ptb[i].fsStyle = BTNS_BUTTON;
                 if (!LoadString(g_skylark_lang, p->imsg, str[j], BUFFSIZE))
                 {
                     *str[j] = 0;
@@ -1173,17 +1167,13 @@ on_toolbar_create_dlg(HWND parent)
                 ptb[i].iBitmap = 0;
                 ptb[i].idCommand = 0;
                 ptb[i].fsState = TBSTATE_ENABLED;
-                ptb[i].fsStyle = TBSTYLE_SEP;
+                ptb[i].fsStyle = BTNS_SEP;
             }
-        }
-        if (on_dark_enable())
-        {
-            style |= TBSTYLE_CUSTOMERASE;
         }
         htool = CreateWindowEx(WS_EX_PALETTEWINDOW,
                                TOOLBARCLASSNAME,
                                _T(""),
-                               style,
+                               on_dark_enable() ? style | TBSTYLE_CUSTOMERASE : style,
                                0,
                                0,
                                0,
@@ -1208,11 +1198,7 @@ on_toolbar_create_dlg(HWND parent)
         SendMessage(htool, TB_ADDBUTTONS, (WPARAM) tb_size, (LPARAM)ptb);
         SendMessage(htool, TB_SETIMAGELIST, (WPARAM) 0, (LPARAM) img_list1);
         SendMessage(htool, TB_SETDISABLEDIMAGELIST, (WPARAM) 0, (LPARAM) img_list2);
-        SendMessage(htool, TB_SETMAXTEXTROWS, 0, 0);
-        if (util_under_wine())
-        {
-            SendMessage(htool, TB_SETEXTENDEDSTYLE, 0, (intptr_t)TBSTYLE_EX_DOUBLEBUFFER);
-        }
+        SendMessage(htool, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_MIXEDBUTTONS);
         on_dark_tips_theme(htool, TB_GETTOOLTIPS);
     } while(0);
     free(str);
