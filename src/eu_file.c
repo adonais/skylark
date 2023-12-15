@@ -424,7 +424,7 @@ do_error:
     return ERANGE;
 }
 
-static void
+void
 on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname)
 {
     TCHAR drv[_MAX_DRIVE];

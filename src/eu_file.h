@@ -96,6 +96,7 @@ void on_file_auto_backup(void);
 void on_file_auto_notify(void);
 void on_file_filedb_update(const eu_tabpage *pnode);
 void on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, const bool isbak, int *);
+void on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname);
 bool on_file_get_bakpath(eu_tabpage *pnode);
 bool on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte);
 uint64_t on_file_get_avail_phys(void);

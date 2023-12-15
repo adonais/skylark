@@ -230,6 +230,7 @@ static inline int eu_cvector_at(const int *v, const int n)
 
 enum
 {
+    SKYLARK_REG_FAILED   =  -51,
     SKYLARK_HOOK_FAILED   = -50,
     SKYLARK_TB_FAILED     = -49,
     SKYLARK_SCI_FAILED    = -48,

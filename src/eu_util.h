@@ -188,6 +188,7 @@ HFONT util_create_font(const char* name, const int font_size, const bool bold);
 sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 HBITMAP util_icon_bitmap(HICON hicon, const int width, const int height);
 HBITMAP util_shield_icon(HINSTANCE hinst, LPCTSTR name);
+HRESULT util_shortcut(const WCHAR *pfile, const bool create);
 
 #ifdef __cplusplus
 }

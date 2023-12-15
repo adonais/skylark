@@ -18,6 +18,7 @@
 
 #include "framework.h"
 #include <shlobj_core.h>
+#include <shlguid.h>
 
 typedef const char *(__cdecl *pwine_get_version)(void);
 typedef char *(__cdecl *pwine_get_unix_file_name)(LPCWSTR dos);
@@ -3455,4 +3456,63 @@ util_tab_height(const HWND hwnd, const int width)
         xy = TabCtrl_SetItemSize(hwnd, x, y);
     }
     return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
+}
+
+HRESULT
+util_shortcut(const WCHAR *pfile, const bool create)
+{
+    HRESULT hr = 1;
+    PWSTR rawpath = NULL;
+    WCHAR lnk[MAX_PATH] = {0};
+    WCHAR working[MAX_PATH] = {0};
+    WCHAR lnk_file[MAX_BUFFER] = {0};
+    IShellLinkW *p_link = NULL;
+    IPersistFile *pf = NULL;
+    const GUID fid = FOLDERID_SendTo;
+    DWORD flags = KF_FLAG_SIMPLE_IDLIST | KF_FLAG_DONT_VERIFY | KF_FLAG_NO_ALIAS;
+    CoInitialize(NULL);
+    if (FAILED(hr = SHGetKnownFolderPath(&fid, flags, NULL, &rawpath)))
+    {
+        goto clean_short;
+    }
+    {
+        on_file_splite_path(pfile, working, lnk, NULL, NULL);
+        _snwprintf(lnk_file, MAX_BUFFER, L"%s\\%s.lnk", rawpath, lnk);
+        CoTaskMemFree(rawpath);
+        if (!create)
+        {
+            util_delete_file(lnk_file);
+            hr = SKYLARK_OK;
+            goto clean_short;
+        }
+    }
+    if (FAILED(hr = CoCreateInstance(&CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, &IID_IShellLink, (LPVOID *)&p_link)))
+    {
+        goto clean_short;
+    }
+    {   // 设置属性
+        IShellLinkW_SetPath(p_link, pfile);
+        IShellLinkW_SetWorkingDirectory(p_link, working);
+        IShellLinkW_SetIconLocation(p_link, pfile, 0);
+    }
+    // 取得IPersistFile接口
+    if (FAILED(hr = IShellLinkW_QueryInterface(p_link, &IID_IPersistFile, (LPVOID *)&pf)))
+    {
+        goto clean_short;
+    }
+    {
+        util_delete_file(lnk_file);
+        hr = IPersistFile_Save(pf, lnk_file, FALSE);
+    }
+clean_short:
+    if (pf)
+    {
+        IPersistFile_Release(pf);
+    }
+    if (p_link)
+    {
+        IShellLinkW_Release(p_link);
+    }
+    CoUninitialize();
+    return (hr);
 }

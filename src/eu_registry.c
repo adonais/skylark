@@ -256,11 +256,11 @@ eu_undo_file_popup(void)
 {
     HKEY regkey_edit = NULL;
     HKEY regkey_cmd = NULL;
-    LSTATUS lsret;
+    LSTATUS lsret = SKYLARK_REG_FAILED;
     TCHAR process[MAX_PATH] = {0};
     if (!GetModuleFileName(NULL, process, MAX_PATH))
     {
-        return -1;
+        return lsret;
     }
     if (!check_reg_str(HKEY_CLASSES_ROOT, _T("*\\shell\\skylark\\command")))
     {
@@ -269,7 +269,7 @@ eu_undo_file_popup(void)
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return lsret;
         }
         LOAD_I18N_RESSTR(IDC_MSG_OPEN_FILE_EDIT, msg_edit);
         do
@@ -306,6 +306,7 @@ eu_undo_file_popup(void)
                 MSG_BOX(IDC_MSG_REGIST_ERR5, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                 break;
             }
+            lsret = util_shortcut(process, true);
         } while (0);
         if (regkey_edit)
         {
@@ -332,6 +333,7 @@ eu_undo_file_popup(void)
         }
         else
         {   /* 完成 */
+            lsret = util_shortcut(process, false);
             MSG_BOX(IDC_MSG_REGIST_ERR8, IDC_MSG_TIPS, MB_OK);
         }
     }
@@ -341,7 +343,7 @@ eu_undo_file_popup(void)
 int
 eu_reg_file_popup_menu(void)
 {
-    int ret = 1;
+    int ret = SKYLARK_REG_FAILED;
     if (on_reg_admin())
     {
         eu_undo_file_popup();
@@ -364,11 +366,11 @@ eu_undo_dir_popup(void)
 {
     HKEY regkey_edit = NULL;
     HKEY regkey_cmd = NULL;
-    LSTATUS lsret;
+    LSTATUS lsret = SKYLARK_REG_FAILED;
     TCHAR process[MAX_PATH] = { 0 };
     if (!GetModuleFileName(NULL, process, MAX_PATH))
     {
-        return -1;
+        return SKYLARK_REG_FAILED;
     }
     if (!check_reg_str(HKEY_CLASSES_ROOT, _T("Directory\\shell\\skylark2\\command")))
     {
@@ -380,7 +382,7 @@ eu_undo_dir_popup(void)
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR9, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         do
         {
@@ -540,52 +542,52 @@ eu_undo_dir_popup(void)
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR29, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         lsret = RegDeleteKey(HKEY_CLASSES_ROOT, _T("Directory\\shell\\skylark"));
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR30, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         /* Directory注销Edit2 */
         lsret = RegDeleteKey(HKEY_CLASSES_ROOT, _T("Directory\\shell\\skylark2\\command"));
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR31, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         lsret = RegDeleteKey(HKEY_CLASSES_ROOT, _T("Directory\\shell\\skylark2"));
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR32, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         /* Drive注销Edit */
         lsret = RegDeleteKey(HKEY_CLASSES_ROOT, _T("Drive\\shell\\skylark\\command"));
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR33, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         lsret = RegDeleteKey(HKEY_CLASSES_ROOT, _T("Drive\\shell\\skylark"));
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR34, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         /* Drive注销Edit2 */
         lsret = RegDeleteKey(HKEY_CLASSES_ROOT, _T("Drive\\shell\\skylark2\\command"));
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR35, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         lsret = RegDeleteKey(HKEY_CLASSES_ROOT, _T("Drive\\shell\\skylark2"));
         if (lsret != ERROR_SUCCESS)
         {
             MSG_BOX(IDC_MSG_REGIST_ERR36, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return -1;
+            return SKYLARK_REG_FAILED;
         }
         else
         {   /* 完成 */
@@ -598,7 +600,7 @@ eu_undo_dir_popup(void)
 int
 eu_reg_dir_popup_menu(void)
 {
-    int ret = 1;
+    int ret = SKYLARK_REG_FAILED;
     if (on_reg_admin())
     {
         eu_undo_dir_popup();
@@ -650,7 +652,7 @@ get_sub_key(HKEY h_key)
 {
     int m_sub;
     long result = RegQueryInfoKey(h_key, NULL, NULL, NULL, (LPDWORD)&m_sub, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-    return (result == ERROR_SUCCESS)?m_sub:0;
+    return (result == ERROR_SUCCESS) ? m_sub : 0;
 }
 
 static int
@@ -658,7 +660,7 @@ get_sub_value(HKEY h_key)
 {
     int m_value;
     long result = RegQueryInfoKey(h_key, NULL, NULL, NULL, NULL, NULL, NULL, (LPDWORD)&m_value, NULL, NULL, NULL, NULL);
-    return (result == ERROR_SUCCESS)?m_value:0;
+    return (result == ERROR_SUCCESS) ? m_value : 0;
 }
 
 static void
@@ -1040,7 +1042,7 @@ reg_proc(HWND hdlg, UINT msg, WPARAM wParam, LPARAM lParam)
 int
 eu_create_registry_dlg(void)
 {
-    int ret = 1;
+    int ret = SKYLARK_REG_FAILED;
     HANDLE m_map = NULL;
     HWND *memory = NULL;
     TCHAR ui_dest[QW_SIZE+1] = {0};
@@ -1048,7 +1050,7 @@ eu_create_registry_dlg(void)
     if (!m_map)
     {
         eu_logmsg("%s: share_open return false\n", __FUNCTION__);
-        return 1;
+        return SKYLARK_MEMAP_FAILED;
     }
     do
     {
@@ -1060,7 +1062,7 @@ eu_create_registry_dlg(void)
         }
         if (i18n_dlgbox(*memory, IDD_REGEXT_BOX, reg_proc, 0) > 0)
         {
-            ret = 0;
+            ret = SKYLARK_OK;
         }
     } while(0);
     if (memory)
@@ -1074,7 +1076,7 @@ eu_create_registry_dlg(void)
 int
 on_reg_files_association(void)
 {
-    int ret = 1;
+    int ret = SKYLARK_REG_FAILED;
     if (on_reg_admin())
     {
         ret = eu_create_registry_dlg();
