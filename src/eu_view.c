@@ -220,6 +220,7 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
         menu_bmp_destroy();
         on_view_refresh_scroll();
         InvalidateRect(on_toolbar_hwnd(), NULL, false);
+        util_tips_dark();
         on_splitter_redraw();
         on_proc_redraw(NULL);
         UpdateWindowEx(hwnd);

@@ -21,7 +21,6 @@
 #define FONT_DEFAULT_SIZE (-12)
 
 static HFONT g_hfont;
-static HWND  hwnd_edit_tips;
 static HBRUSH brush_linenumber;
 static HBRUSH brush_foldmargin;
 static HBRUSH brush_text;
@@ -700,10 +699,10 @@ theme_release_handle(void)
 static void
 theme_show_balloon_tip(const HWND hdlg, const int resid)
 {
-    TCHAR ptxt[MAX_PATH] = {0};
     HWND hwnd_edit = GetDlgItem(hdlg, resid);
     if (hwnd_edit)
     {
+        TCHAR ptxt[MAX_PATH] = {0};
         if (resid == IDC_THEME_CARET_EDT)
         {
             eu_i18n_load_str(IDS_THEME_CARET_TIPS, ptxt, MAX_PATH);
@@ -712,19 +711,7 @@ theme_show_balloon_tip(const HWND hdlg, const int resid)
         {
             eu_i18n_load_str(IDS_THEME_EDIT_TIPS, ptxt, MAX_PATH);
         }
-        if (hwnd_edit_tips)
-        {
-            DestroyWindow(hwnd_edit_tips);
-            hwnd_edit_tips = NULL;
-        }
-        if (!hwnd_edit_tips)
-        {
-            hwnd_edit_tips = util_create_tips(hwnd_edit, hdlg, ptxt);
-            if (hwnd_edit_tips && on_dark_enable())
-            {
-                on_dark_set_theme(hwnd_edit_tips, DARKMODE, NULL);
-            }
-        }
+        util_create_tips(hwnd_edit, ptxt, NULL);
     }
 }
 
@@ -1257,11 +1244,6 @@ theme_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             else STYLE_MSG(symbolic,hwnd_symbolic_static,font_symbolic_static,IDC_SETFONT_SYMBOLIC_BTN,IDC_SETTEXTCOLOR_SYMBOLIC_BTN)
             break;
         case WM_DESTROY:
-            if (hwnd_edit_tips)
-            {
-                DestroyWindow(hwnd_edit_tips);
-                hwnd_edit_tips = NULL;
-            }
             theme_release_handle();
             break;
         default:

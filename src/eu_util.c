@@ -38,9 +38,10 @@ typedef struct _LANGANDCODEPAGE
     uint16_t wCodePage;
 } LANGANDCODEPAGE;
 
-static PFNGFVSW pfnGetFileVersionInfoSizeW;
-static PFNGFVIW pfnGetFileVersionInfoW;
-static PFNVQVW pfnVerQueryValueW;
+static PFNGFVSW pfnGetFileVersionInfoSizeW = NULL;
+static PFNGFVIW pfnGetFileVersionInfoW = NULL;
+static PFNVQVW pfnVerQueryValueW = NULL;
+static HWND g_tipinfo = NULL;
 
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
@@ -179,38 +180,52 @@ util_unlock(volatile long *gcs)
     _InterlockedExchange(gcs, 0);
 }
 
-HWND
-util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
+void
+util_tips_dark(void)
 {
-    if (!(hwnd_stc && hwnd && ptext))
+    if (g_tipinfo)
     {
-        return NULL;
+        on_dark_set_theme(g_tipinfo, on_dark_enable() ? DARKMODE : NULL, NULL);
     }
-    // Create the tooltip. g_hInst is the global instance handle.
-    HWND htip = CreateWindowEx(0, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON, CW_USEDEFAULT, CW_USEDEFAULT,
-                               CW_USEDEFAULT, CW_USEDEFAULT, hwnd, NULL, eu_module_handle(), NULL);
+}
 
-    if (!htip)
+void
+util_create_tips(HWND parent, TCHAR* ptext, LPRECT prc)
+{
+    RECT rc = {0};
+    if (!prc)
     {
-        return NULL;
+        GetClientRect(parent, &rc);
+        prc = &rc;
     }
-    // Associate the tooltip with the tool.
-    TOOLINFO toolinfo = {0};
-    toolinfo.cbSize = sizeof(TOOLINFO);
-    toolinfo.hwnd = hwnd;
-    toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-    toolinfo.uId = (LONG_PTR)hwnd_stc;
-    toolinfo.lpszText = ptext;
-    if (!SendMessage(htip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo))
+    if (!g_tipinfo)
     {
-        DestroyWindow(htip);
-        return NULL;
+        g_tipinfo = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+                                   CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, eu_hwnd_self(), NULL, eu_module_handle(), NULL);
+        util_tips_dark();
     }
-    SendMessage(htip, TTM_ACTIVATE, TRUE, 0);
-    SendMessage(htip, TTM_SETMAXTIPWIDTH, 0, 200);
-    // Make tip stay 15 seconds
-    SendMessage(htip, TTM_SETDELAYTIME, TTDT_AUTOPOP, MAKELPARAM((15000), (0)));
-    return htip;
+    if (g_tipinfo)
+    {
+        TOOLINFO ti = {sizeof(TOOLINFO)};
+        ti.hwnd   = parent;
+        ti.uId = (LONG_PTR)parent;
+        SetWindowPos(g_tipinfo, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        if (!SendMessage(g_tipinfo, TTM_GETTOOLINFO, 0, (LPARAM)&ti))
+        {
+            ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+            ti.lpszText = ptext ? ptext : _T("");
+            ti.rect = *prc;
+            SendMessage(g_tipinfo, TTM_ADDTOOL, 0, (LPARAM)&ti);
+            SendMessage(g_tipinfo, TTM_SETMAXTIPWIDTH, 0, 200);
+        }
+        else
+        {
+            ti.lpszText = ptext ? ptext : _T("");
+            ti.rect = *prc;
+            SendMessage(g_tipinfo, TTM_UPDATETIPTEXT, 0, (LPARAM)&ti);
+            printf("tool count = %d\n", (int)SendMessage(g_tipinfo, TTM_GETTOOLCOUNT, 0, 0));
+        }
+    }
 }
 
 bool

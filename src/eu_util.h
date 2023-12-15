@@ -140,7 +140,6 @@ char*  util_string_match(const char *str, const char *pattern, bool incase, bool
 char*  util_str_replace(const char *in, const char *pattern, const char *by);
 char*  util_trim_sides_white(const uint8_t *str);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
-HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 HWND   util_get_hwnd(const uint32_t pid);
 WCHAR* util_winexy_get(void);
 WCHAR* util_winexy_hide(void);
@@ -163,6 +162,8 @@ int util_split_attr(const char *pstr, char (*pout)[MAX_PATH], int ch);
 int util_strim_end(char *pstr, int len);
 int util_num_cores(void);
 int util_tab_height(const HWND hwnd, const int width);
+void util_tips_dark(void);
+void util_create_tips(HWND hwnd, TCHAR* ptext, LPRECT prc);
 void util_strcat(uint8_t **dst, const char* pstr);
 void util_split(const char *pstr, const char *sep, char ***ppvec, const bool out_vec);
 void util_transparent(HWND hwnd, int percent);

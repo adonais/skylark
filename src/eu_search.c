@@ -37,7 +37,6 @@ static LIST_HEAD(list_files);
 static LIST_HEAD(list_folders);
 static volatile long search_btn_id = 0;
 static HANDLE search_event_final = NULL;
-static HWND hwnd_regxp_tips = NULL;
 
 typedef struct _report_data
 {
@@ -1760,26 +1759,9 @@ on_search_regxp_error(void)
             MoveWindow(hwnd_re_stc, rc.left + sz.cx + 8, rc.top, 12, rc.bottom - rc.top, TRUE);
             ShowWindow(hwnd_re_stc, SW_HIDE);
             ShowWindow(hwnd_re_stc, SW_SHOW);
-            if (!hwnd_regxp_tips)
+            if ((ll_msg = on_search_regxp_msg()) != NULL)
             {
-                if ((ll_msg = on_search_regxp_msg()) != NULL)
-                {
-                    hwnd_regxp_tips = util_create_tips(hwnd_re_stc, hwnd_search_dlg, ll_msg);
-                }
-                if (hwnd_regxp_tips && on_dark_enable())
-                {
-                    on_dark_set_theme(hwnd_regxp_tips, DARKMODE, NULL);
-                }
-            }
-            else if ((ll_msg = on_search_regxp_msg()) != NULL)
-            {
-                TOOLINFO toolinfo = {0};
-                toolinfo.cbSize = sizeof(TOOLINFO);
-                toolinfo.hwnd = hwnd_search_dlg;
-                toolinfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-                toolinfo.uId = (LONG_PTR)hwnd_re_stc;
-                toolinfo.lpszText = ll_msg;
-                SendMessage(hwnd_regxp_tips, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolinfo);
+                util_create_tips(hwnd_re_stc, ll_msg, NULL);
             }
             eu_safe_free(ll_msg);
         }
@@ -3592,10 +3574,6 @@ on_search_dark_mode_init(HWND hdlg, bool dark)
             on_dark_set_theme(btn, L"Explorer", NULL);
         }
     }
-    if (hwnd_regxp_tips)
-    {
-        on_dark_set_theme(hwnd_regxp_tips, dark ? DARKMODE: L"", NULL);
-    }
     UpdateWindowEx(hdlg);
 }
 
@@ -3920,15 +3898,6 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             if (on_dark_supports())
             {
                 on_search_dark_mode_init(hdlg, on_dark_enable());
-            }
-            break;
-        }
-        case WM_DESTROY:
-        {
-            if (hwnd_regxp_tips)
-            {
-                DestroyWindow(hwnd_regxp_tips);
-                hwnd_regxp_tips = NULL;
             }
             break;
         }
