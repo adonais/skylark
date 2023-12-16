@@ -59,6 +59,11 @@ typedef struct _HANDLE_DATA
     HWND handle;
 } handle_data;
 
+typedef struct _queue_list
+{
+    TCHAR path[MAX_BUFFER];
+} queue_list;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -176,6 +181,7 @@ void util_updateui_msg(const eu_tabpage *pnode);
 void util_updateui_icon(const HWND hwnd, const bool fnshow);
 void util_updateui_titlebar(const HWND hwnd);
 void util_update_env(eu_tabpage *pnode);
+void util_bfs_search(const TCHAR *path, file_backup **pout);
 bool util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool util_file_access(LPCTSTR filename, uint32_t *pgranted);
 bool util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len);

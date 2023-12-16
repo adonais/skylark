@@ -64,6 +64,14 @@ static HWND g_tipinfo = NULL;
 #define CLOCK_MONOTONIC 1
 #endif
 
+#define STRIM_PSZ_TAIL(_psz, _path)                  \
+    _tcsncpy(_psz, _path, MAX_BUFFER - 1);           \
+    p = _tcsrchr(_psz, _T('\\'));                    \
+    if (p)                                           \
+    {                                                \
+        *p = 0;                                      \
+    }
+
 static pwine_get_version fn_wine_get_version;
 static char const out_of_mem[] = "no memory for %zu byte allocation\n";
 
@@ -3530,4 +3538,63 @@ clean_short:
     }
     CoUninitialize();
     return (hr);
+}
+
+void
+util_bfs_search(const TCHAR *path, file_backup **pout)
+{
+    queue_list sz = {0};
+    _tcsncpy(sz.path, path, MAX_BUFFER - 1);
+    if (GetFileAttributes(sz.path) & FILE_ATTRIBUTE_DIRECTORY)
+    {
+        TCHAR *p = NULL;
+        TCHAR psz[MAX_BUFFER] = {0};
+        WIN32_FIND_DATA fd = {0};
+        HANDLE handle = INVALID_HANDLE_VALUE;
+        cvector_vector_type(queue_list) sz_queue = NULL;
+        if (_T('\\') == sz.path[_tcslen(sz.path) - 1])
+        {
+            sz.path[_tcslen(sz.path) - 1] = 0;
+        }
+        if (true)
+        {
+            _tcsncpy(psz, sz.path, MAX_BUFFER - 1);
+            _tcsncat(sz.path, _T("\\*"), MAX_BUFFER - 1);
+            cvector_push_back(sz_queue, sz);
+        }
+        for (size_t i = 0; i < cvector_size(sz_queue); ++i)
+        {
+            if ((handle = FindFirstFile(sz_queue[i].path, &fd)) != INVALID_HANDLE_VALUE)
+            {
+                do
+                {
+                    if (_tcscmp(fd.cFileName, _T(".")) == 0 || _tcscmp(fd.cFileName, _T("..")) == 0)
+                    {
+                        continue;
+                    }
+                    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                    {
+                        _tcsncpy(psz, sz_queue[i].path, MAX_BUFFER - 1);
+                        STRIM_PSZ_TAIL(psz, sz_queue[i].path);
+                        _sntprintf(sz.path, MAX_BUFFER - 1, _T("%s\\%s\\*"), psz, fd.cFileName);
+                        cvector_push_back(sz_queue, sz);
+                    }
+                    else
+                    {
+                        file_backup sz_backup = {0};
+                        STRIM_PSZ_TAIL(psz, sz_queue[i].path);
+                        _sntprintf(sz_backup.rel_path, MAX_BUFFER - 1, _T("%s\\%s"), psz, fd.cFileName);
+                        cvector_push_back((*pout), sz_backup);
+                    }
+
+                } while (FindNextFile(handle, &fd));
+                if (INVALID_HANDLE_VALUE != handle)
+                {
+                    FindClose(handle);
+                    handle = INVALID_HANDLE_VALUE;
+                }
+            }
+        }
+        cvector_free(sz_queue);
+    }
 }

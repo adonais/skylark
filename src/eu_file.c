@@ -1325,45 +1325,11 @@ on_file_only_open(file_backup *pbak, const bool selection)
 }
 
 static int
-on_file_open_bakcup(file_backup *pbak)
+on_file_open_bakup(file_backup *pbak)
 {
     if (!pbak || (STR_IS_NUL(pbak->rel_path)))
     {
         return on_file_new(NULL);
-    }
-    if (_tcslen(pbak->rel_path) > 0 && pbak->rel_path[_tcslen(pbak->rel_path) - 1] == _T('*'))
-    {
-        HANDLE hfile = NULL;
-        WIN32_FIND_DATA st_file = {0};
-        TCHAR base_path[MAX_BUFFER] = {0};
-        _tcsncpy(base_path, pbak->rel_path, MAX_BUFFER);
-        if (*base_path != 0)
-        {
-            if (_tcsrchr(base_path, _T('\\')))
-            {
-                _tcsrchr(base_path, _T('\\'))[0] = 0;
-            }
-        }
-        if ((hfile = FindFirstFile(pbak->rel_path, &st_file)) == INVALID_HANDLE_VALUE)
-        {
-            MSG_BOX(IDC_MSG_OPEN_ERR1, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
-            return EUE_FILE_ATTR_ERR;
-        }
-        do
-        {
-            if (_tcscmp(st_file.cFileName, _T(".")) == 0 || _tcscmp(st_file.cFileName, _T("..")) == 0)
-            {
-                continue;
-            }
-            if (!(st_file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-            {
-                file_backup bak = {0};
-                _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\%s"), base_path, st_file.cFileName);
-                on_file_only_open(&bak, true);
-            }
-        } while (FindNextFile(hfile, &st_file));
-        FindClose(hfile);
-        return SKYLARK_OK;
     }
     return (on_file_only_open(pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
 }
@@ -1479,7 +1445,7 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
         }
         else 
         {
-            err = on_file_open_bakcup(pbak);
+            err = on_file_open_bakup(pbak);
         }
     }
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
@@ -1492,26 +1458,31 @@ on_file_redirect(HWND hwnd, file_backup *pbak)
 int
 on_file_drop(HDROP hdrop)
 {
+    int index = 0;
     file_backup bak = {0};
+    cvector_vector_type(file_backup) vbak = NULL;
     eu_logmsg("on_file_drop\n");
     int count = DragQueryFile(hdrop, 0xFFFFFFFF, NULL, 0);
-    for (int index = 0; index < count; ++index)
+    for (index = 0; index < count; ++index)
     {
         memset(bak.rel_path, 0, sizeof(bak.rel_path));
         DragQueryFile(hdrop, index, bak.rel_path, MAX_BUFFER);
         uint32_t attr = GetFileAttributes(bak.rel_path);
         if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
         {
-            on_file_only_open(&bak, true);
+            cvector_push_back(vbak, bak);
         }
         else
         {
-            _tcsncat(bak.rel_path, _T("\\*"), MAX_BUFFER);
-            on_file_open_bakcup(&bak);
-            break;
+            util_bfs_search(bak.rel_path, &vbak);
         }
     }
     DragFinish(hdrop);
+    count = (int)cvector_size(vbak);
+    for (index = 0; index < count; ++index)
+    {
+        on_file_open_bakup(&vbak[index]);
+    }
     eu_wine_dotool();
     return SKYLARK_OK;
 }

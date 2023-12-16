@@ -191,6 +191,8 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int err = 0;
+    int last_id = -1;
+    bool narg = false;
     size_t vec_size = 0;
     cvector_vector_type(file_backup) vbak = NULL;
     if (eu_get_config()->m_session)
@@ -204,27 +206,40 @@ on_config_load_file(void *lp)
     if (on_config_open_args(&vbak))
     {
         eu_logmsg("run with arguments\n");
+        narg = true;
     }
     if ((vec_size = cvector_size(vbak)) < 1)
     {
         file_backup bak = {0};
-        share_send_msg(&bak);
+        bak.focus = 1;
+        cvector_push_back(vbak, bak);
     }
     else
-    {
+    {   // 调整tabid与焦点
         for (size_t i = 0; i < vec_size; ++i)
         {
-            if (vbak[i].rel_path[0] || vbak[i].bak_path[0])
+            if (narg)
             {
-                share_send_msg(&vbak[i]);
+                if (vbak[i].tab_id >= 0)
+                {
+                    last_id = vbak[i].tab_id;
+                    if (vbak[i].focus)
+                    {
+                        vbak[i].focus = 0;    
+                    }
+                }
+                else 
+                {
+                    vbak[i].tab_id = last_id >= 0 ? (++last_id) : (last_id = 0);
+                    if (i == vec_size - 1)
+                    {
+                        vbak[i].focus = 1;     
+                    }
+                }
             }
         }
-        if (util_under_wine() && g_tabpages && TabCtrl_GetItemCount(g_tabpages) < 1)
-        {   // 启动器启动时
-            file_backup bak = {0};
-            share_send_msg(&bak);
-        }
     }
+    cvector_point_for_each(vbak, share_send_msg);
     cvector_free(vbak);
     return 0;
 }
@@ -501,6 +516,7 @@ bool
 eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
 {
     bool ret = false;
+    size_t len = 0;
     LPWSTR *ptr_arg = NULL;
     if (args)
     {
@@ -532,10 +548,13 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 }
                 continue;
             }
-            if (ptr_arg[i][0] != L'-' && wcslen(ptr_arg[i]) > 0)
+            if (ptr_arg[i][0] != L'-' && (len = wcslen(ptr_arg[i])) > 0)
             {
                 WCHAR *p = NULL;
-                size_t len = 0;
+                if (ptr_arg[i][len - 1] == L'*')
+                {
+                    ptr_arg[i][len - 1] = 0;
+                }
                 if ((p = wcschr(ptr_arg[i], L':')) != NULL)
                 {   // 处理以绝对路径打开的文件或目录
                     wcsncpy(data.rel_path, ptr_arg[i], MAX_BUFFER);
@@ -543,11 +562,9 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                     len = wcslen(data.rel_path);
                     if (!url_has_remote(data.rel_path) && eu_exist_dir(data.rel_path) && len < MAX_BUFFER - 2)
                     {
-                        if (data.rel_path[len - 1] != L'\\')
-                        {
-                            data.rel_path[len++] = L'\\';
-                        }
-                        data.rel_path[len] = L'*';
+                        util_bfs_search(data.rel_path, pbak);
+                        ret |= 0x1;
+                        continue;
                     }
                 }
                 else
@@ -556,11 +573,9 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                     len = wcslen(data.rel_path);
                     if (eu_exist_dir(data.rel_path) && len < MAX_BUFFER - 2)
                     {
-                        if (data.rel_path[len - 1] != L'\\')
-                        {
-                            data.rel_path[len++] = L'\\';
-                        }
-                        data.rel_path[len] = L'*';
+                        util_bfs_search(data.rel_path, pbak);
+                        ret |= 0x1;
+                        continue;
                     }
                 }
                 if (eu_config_check_arg(ptr_arg, arg_c, L"-hex"))

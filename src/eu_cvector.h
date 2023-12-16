@@ -377,6 +377,18 @@
         }                                                      \
     } while (0)
 
+#define cvector_point_for_each(vec_, func_)                    \
+    do                                                         \
+    {                                                          \
+        if ((vec_) && (func_) != NULL)                         \
+        {                                                      \
+            for (size_t i_ = 0; i_ < cvector_size(vec_); ++i_) \
+            {                                                  \
+                func_((&(vec_)[i_]));                          \
+            }                                                  \
+        }                                                      \
+    } while (0)
+
 /**
  * @brief cvector_for_each - call function with param_ on each element of the vector
  * @param_ vec_ - the vector
