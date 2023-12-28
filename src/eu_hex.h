@@ -138,6 +138,7 @@ int hexview_update_theme(eu_tabpage *pnode);
 void hexview_set_area(int value);
 void hexview_switch_item(eu_tabpage *pnode);
 bool hexview_init(eu_tabpage *pnode);
+HWND hexview_create_dlg(HWND parent, LPVOID lparam);
 uint8_t *hexview_strdup_data(eu_tabpage *pnode, size_t *out);
 
 #ifdef __cplusplus

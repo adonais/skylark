@@ -60,38 +60,41 @@ on_session_set_signal(void)
 static void
 on_session_delete_backup(void)
 {
-    EU_VERIFY(g_tabpages != NULL);
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    eu_tabpage *pnode = NULL;
+    HWND htab[2] = {HMAIN_GET, HSLAVE_SHOW ? HSLAVE_GET : NULL};
+    for (int k = 0; k < 2 && htab[k]; ++k)
     {
-        eu_tabpage *pnode = on_tabpage_get_ptr(index);
-        if (pnode && eu_exist_file(pnode->bakpath))
+        for (int index = 0, count = TabCtrl_GetItemCount(htab[k]); index < count; ++index)
         {
-            wchar_t buf[MAX_BUFFER] = {0};
-            TCHAR *p = _tcsrchr(pnode->bakpath, _T('\\'));
-            if (p++)
+            if ((pnode = on_tabpage_get_ptr(htab[k], index)) && eu_exist_file(pnode->bakpath))
             {
-                int len = eu_int_cast(_tcslen(p));
-                if (util_isxdigit_string(p, len - 2))
+                wchar_t buf[MAX_BUFFER] = {0};
+                TCHAR *p = _tcsrchr(pnode->bakpath, _T('\\'));
+                if (p++)
                 {
-                    if (p[len - 1] == _T('~') && p[len - 2] == _T('~'))
+                    int len = eu_int_cast(_tcslen(p));
+                    if (util_isxdigit_string(p, len - 2))
                     {
-                        _sntprintf(buf, MAX_BUFFER, _T("%s"), pnode->bakpath);
-                        len = eu_int_cast(_tcslen(buf));
-                        buf[len - 2] = 0;
-                    }
-                    else
-                    {
-                        _sntprintf(buf, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
+                        if (p[len - 1] == _T('~') && p[len - 2] == _T('~'))
+                        {
+                            _sntprintf(buf, MAX_BUFFER, _T("%s"), pnode->bakpath);
+                            len = eu_int_cast(_tcslen(buf));
+                            buf[len - 2] = 0;
+                        }
+                        else
+                        {
+                            _sntprintf(buf, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
+                        }
                     }
                 }
-            }
-            if (!DeleteFile(pnode->bakpath))
-            {
-                eu_logmsg("%s: delete(pnode->bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
-            }
-            if (eu_exist_file(buf) && !DeleteFile(buf))
-            {
-                eu_logmsg("%s: delete(backup~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
+                if (!DeleteFile(pnode->bakpath))
+                {
+                    eu_logmsg("%s: delete(pnode->bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
+                }
+                if (eu_exist_file(buf) && !DeleteFile(buf))
+                {
+                    eu_logmsg("%s: delete(backup~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
+                }
             }
         }
     }

@@ -167,7 +167,7 @@ report_gui(lua_State *L, int status)
         }
         if ((gui_msg = util_unix_newline(msg, strlen(msg))))
         {
-            on_result_append_text_utf8("%s", gui_msg);
+            on_result_append_text_utf8(on_tabpage_focused(), "%s", gui_msg);
             free(gui_msg);
         }
         lua_pop(L, 1);
@@ -955,7 +955,7 @@ allclean:
         LOAD_I18N_RESSTR(IDS_LUA_CONV_SUCCESS, m_format);
         if ((utf8 = eu_utf16_utf8(m_format, NULL)) != NULL)
         {
-            on_result_append_text_utf8(utf8, util_make_u8(psave, u8_path, MAX_BUFFER));
+            on_result_append_text_utf8(pnode, utf8, util_make_u8(psave, u8_path, MAX_BUFFER));
             free(utf8);
         }
     }
@@ -964,7 +964,7 @@ allclean:
         LOAD_I18N_RESSTR(IDS_LUA_CONV_FAIL, m_format);
         if ((utf8 = eu_utf16_utf8(m_format, NULL)) != NULL)
         {
-            on_result_append_text_utf8(utf8);
+            on_result_append_text_utf8(pnode, utf8);
             free(utf8);
         }
     }

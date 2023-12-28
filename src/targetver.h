@@ -1296,6 +1296,9 @@
 #define IDM_VIEW_VERTICAL_SPLIT             44760
 #define IDM_VIEW_VERTICAL_SYNC              44761
 #define IDM_VIEW_HORIZONTAL_SYNC            44762
+#define IDM_VIEW_SPLIT_COPY                 44763
+#define IDM_VIEW_OTHER_COPY                 44764
+#define IDM_VIEW_OTHER_MOVE                 44765
 
 // For MessageBox
 #define IDALWAYS                            12

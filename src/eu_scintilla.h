@@ -59,6 +59,8 @@ void on_sci_refresh_ui(eu_tabpage *pnode);
 void on_sic_mousewheel(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam);
 bool on_sci_doc_modified(eu_tabpage *pnode);
 bool on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len);
+bool on_sci_view_sync(void);
+void on_sci_scroll(eu_tabpage *p);
 void on_sci_destroy_control(eu_tabpage *pnode);
 char *on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end);
 const int on_sci_bitmask_get(const uint32_t pos, const uint32_t len);

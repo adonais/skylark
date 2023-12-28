@@ -402,7 +402,7 @@ menu_update_item(const HMENU menu, const bool init)
     if (menu)
     {
         int count = GetMenuItemCount(menu);
-        eu_tabpage *pnode = on_tabpage_focus_at();
+        eu_tabpage *pnode = on_tabpage_focused();
         if (count > 0 && eu_get_config() && pnode)
         {
             int enable = 0;
@@ -511,7 +511,7 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_EDIT_OTHER_BCOMPARE:
                     {
-                        int num = on_tabpage_sel_number(NULL, false);
+                        int num = on_tabpage_sel_path(NULL, NULL);
                         util_enable_menu_item(menu, IDM_EDIT_OTHER_BCOMPARE, num > 1 && num < 4);
                         break;
                     }
@@ -549,7 +549,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_VIEW_FILETREE, eu_get_config()->m_ftree_show);
                         util_set_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, pnode->map_show && on_map_hwnd());
                         util_set_menu_item(menu, IDM_VIEW_SYMTREE, pnode->sym_show);
-                        util_enable_menu_item(menu, IDM_VIEW_SYMTREE, init || pnode->hwnd_symlist || pnode->hwnd_symtree);
+                        util_enable_menu_item(menu, IDM_VIEW_SYMTREE, init || (!TAB_HEX_MODE(pnode) && pnode->doc_ptr && pnode->doc_ptr->fn_init_before));
                         util_enable_menu_item(menu, IDM_VIEW_DOCUMENT_MAP, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin));
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_FULLSCREEN, eu_get_config()->m_fullscreen);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_PANELS_SUB), IDM_VIEW_MENUBAR, eu_get_config()->m_menubar);
@@ -593,12 +593,17 @@ menu_update_item(const HMENU menu, const bool init)
                         util_switch_menu_group(menu, TAB_MENU_CLOSE_SUB, IDM_VIEW_TAB_RIGHT_CLICK, IDM_VIEW_TAB_LEFT_DBCLICK, eu_get_config()->m_close_way);
                         util_switch_menu_group(menu, TAB_MENU_NEW_SUB, IDM_VIEW_TAB_RIGHT_NEW, IDM_VIEW_TAB_DBCLICK_NEW, eu_get_config()->m_new_way);
                         util_switch_menu_group(menu, TAB_MENU_CBUTTON_SUB, IDM_TABCLOSE_FOLLOW, IDM_TABCLOSE_NONE, eu_get_config()->m_close_draw);
-                        util_set_menu_item(menu, IDM_VIEW_VERTICAL_SPLIT, eu_get_config()->eu_tab.show);
+                        util_set_menu_item(menu, IDM_VIEW_VERTICAL_SPLIT, eu_get_config()->eu_tab.slave_show);
+                        util_set_menu_item(menu, IDM_VIEW_SPLIT_COPY, eu_get_config()->eu_tab.s_copy);
+                        util_enable_menu_item(menu, IDM_VIEW_OTHER_MOVE, init || !pnode->is_blank);
+                        util_enable_menu_item(menu, IDM_VIEW_OTHER_COPY, init || !pnode->is_blank && TAB_HAS_TXT(pnode));
                         util_set_menu_item(menu, IDM_VIEW_VERTICAL_SYNC, eu_get_config()->eu_tab.vertical);
                         util_set_menu_item(menu, IDM_VIEW_HORIZONTAL_SYNC, eu_get_config()->eu_tab.horizontal);
-                        util_enable_menu_item(menu, IDM_VIEW_SWITCH_TAB, init || (g_tabpages && TabCtrl_GetItemCount(g_tabpages) > 1));
+                        util_enable_menu_item(menu, IDM_VIEW_VERTICAL_SYNC, init || eu_get_config()->eu_tab.slave_show);
+                        util_enable_menu_item(menu, IDM_VIEW_HORIZONTAL_SYNC, init || eu_get_config()->eu_tab.slave_show);
+                        util_enable_menu_item(menu, IDM_VIEW_SWITCH_TAB, init || (TabCtrl_GetItemCount(on_tabpage_hwnd(pnode)) > 1));
                         util_set_menu_item(menu, IDM_VIEW_SCROLLCURSOR, eu_get_config()->scroll_to_cursor);
-                        util_set_menu_item(menu, IDM_VIEW_TABBAR_SPLIT, eu_get_config()-> m_tab_split);
+                        util_set_menu_item(menu, IDM_VIEW_TABBAR_SPLIT, eu_get_config()->m_tab_split);
                         break;
                     }
                     case IDM_VIEW_WRAPLINE_MODE:      /* Format menu */

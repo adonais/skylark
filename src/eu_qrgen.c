@@ -165,7 +165,7 @@ func_qrgen(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             size_t len = 0;
             char *text = NULL;
             HBITMAP hbit = NULL;
-            eu_tabpage *pnode = on_tabpage_focus_at();
+            eu_tabpage *pnode = on_tabpage_focused();
             if (!pnode)
             {
                 EndDialog(hdlg, 0);

@@ -321,10 +321,6 @@ on_sci_before_file(eu_tabpage *pnode, const bool init)
         eu_sci_call(pnode, SCI_CANCEL, 0, 0);
         eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
         init ? eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 0, 0) : (void)0;
-        if (pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
-        {   // 初始化侧边栏控件
-            pnode->doc_ptr->fn_init_before(pnode);
-        }
     }
 }
 
@@ -333,7 +329,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
 {
     if (pnode)
     {
-        if (!TAB_HEX_MODE(pnode) && !pnode->pmod)
+        if (TAB_HAS_TXT(pnode))
         {
             eu_sci_call(pnode, SCI_SETEOLMODE, pnode->eol, 0);
             if (init)
@@ -342,18 +338,24 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
                 on_sci_clear_history(pnode, false);
                 on_sci_update_history_margin(pnode);
             }
-            on_sci_reset_zoom(pnode);
             if (!pnode->raw_size)
             {
                 on_sci_update_size(pnode);
             }
             if (pnode->doc_ptr && pnode->doc_ptr->fn_init_after)
-            {   // 设置此标签页的语法解析
-                pnode->doc_ptr->fn_init_after(pnode);
+            {
+                if (on_proc_thread() == GetCurrentThreadId())
+                {   // 主线程加载解析器
+                    pnode->doc_ptr->fn_init_after(pnode);
+                }
+                else 
+                {   // 线程加载lua脚本导致crash, 在主线程加载
+                    SendMessage(eu_hwnd_self(), WM_SCI_LEXER, (sptr_t)pnode, 0);
+                }
             }
             on_sci_update_line_margin(pnode);
         }
-        else if (!pnode->plugin)
+        if (!pnode->plugin)
         {
             on_sci_reset_zoom(pnode);
         }
@@ -365,12 +367,12 @@ on_sci_refresh_ui(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        on_toolbar_update_button();
+        on_toolbar_update_button(pnode);
         on_statusbar_update(pnode);
         on_sci_update_line_margin(pnode);
         on_sci_update_fold_margin(pnode);
         on_sci_update_size(pnode);
-        util_redraw(g_tabpages, true);
+        util_redraw(on_tabpage_hwnd(pnode), true);
     }
 }
 
@@ -479,7 +481,7 @@ on_sci_destroy_control(eu_tabpage *pnode)
         {
             if ((hmap = on_map_hwnd()))
             {
-                DestroyWindow(hmap);
+                SendMessage(hmap, WM_CLOSE, 0, 0);
                 pnode->map_show = false;
             }
         }
@@ -492,7 +494,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
     if (STR_NOT_NUL(ppnode))
     {
         int reason = (*ppnode)->reason;
-        util_lock(&(*ppnode)->busy_id);
+        util_lock_v2((*ppnode));
         // 销毁子窗口资源
         on_sci_destroy_control(*ppnode);
         // 销毁插件窗口资源
@@ -512,16 +514,17 @@ on_sci_free_tab(eu_tabpage **ppnode)
         on_sci_delete_file(*ppnode);
         // 清除标签单次运行锁状态
         _InterlockedExchange(&(*ppnode)->lock_id, 0);
-        util_unlock(&(*ppnode)->busy_id);
+        util_unlock_v2((*ppnode));
         if (reason != TABS_MAYBE_RESERVE)
         {
             eu_safe_free(*ppnode);
             eu_logmsg("%s: we free the node's memory\n", __FUNCTION__);
         }
         else 
-        {
+        {   // 存在复制标签时, 不复用hwnd_sc
+            const bool stat = ((*ppnode)->stat_id & TABS_DUPED) || ((*ppnode)->stat_id & TABS_MAIN);
             (*ppnode)->reason = 0;
-            on_file_new(*ppnode);
+            on_file_new(on_tabpage_hwnd(*ppnode), stat ? NULL : (*ppnode));
             eu_logmsg("%s: on_file_new() execute\n", __FUNCTION__);
         }
         if (reason == TABS_MAYBE_EIXT && on_sql_sync_session() == SKYLARK_OK)
@@ -592,14 +595,15 @@ on_sci_doc_modified(eu_tabpage *pnode)
 int
 on_sci_point_reached(eu_tabpage *pnode)
 {
-    if (pnode && g_tabpages)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab && pnode)
     {
         if (!pnode->fn_modify)
         {
             pnode->be_modify = false;
         }
-        on_toolbar_update_button();
-        util_redraw(g_tabpages, false);
+        on_toolbar_update_button(pnode);
+        util_redraw(htab, false);
     }
     return SKYLARK_OK;
 }
@@ -607,14 +611,15 @@ on_sci_point_reached(eu_tabpage *pnode)
 int
 on_sci_point_left(eu_tabpage *pnode)
 {
-    if (pnode && g_tabpages)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab && pnode)
     {
         if (!pnode->be_modify)
         {
             pnode->be_modify = true;
         }
-        on_toolbar_update_button();
-        util_redraw(g_tabpages, false);
+        on_toolbar_update_button(pnode);
+        util_redraw(htab, false);
     }
     return SKYLARK_OK;
 }
@@ -756,7 +761,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:
         {   // 按下ESC键时
             HWND hmap = NULL;
-            if (!(pnode = on_tabpage_focus_at()))
+            if (!(pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)))
             {
                 break;
             }
@@ -808,7 +813,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            if ((pnode = on_tabpage_focus_at()) == NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)) == NULL)
             {
                 break;
             }
@@ -825,7 +830,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEMOVE:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL && eu_get_config()->m_code_hint)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)) != NULL && eu_get_config()->m_code_hint)
             {
                 POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
                 TRACKMOUSEEVENT event = {sizeof(TRACKMOUSEEVENT), TME_HOVER, hwnd, HOVER_DEFAULT};
@@ -836,7 +841,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEHOVER:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)) != NULL)
             {
                 const POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
                 const sptr_t current_pos = eu_sci_call(pnode, SCI_POSITIONFROMPOINT, pt.x, pt.y);
@@ -871,9 +876,17 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case WM_LBUTTONDOWN:
+        {
+            if (HSLAVE_SHOW && (pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)) && !(pnode->stat_id & TABS_FOUCED))
+            {
+                on_tabpage_active_tab(pnode);
+            }
+            break;
+        }
         case WM_LBUTTONUP:
         {
-            if ((pnode = on_tabpage_focus_at()) == NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)) == NULL)
             {
                 break;
             }
@@ -892,7 +905,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)) != NULL)
             {
                 return menu_pop_track(hwnd, IDR_EDITOR_POPUPMENU, 0, 0, on_sci_menu_callback, pnode);
             }
@@ -900,7 +913,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_COMMAND:
         {
-            PostMessage(eu_module_hwnd(), WM_COMMAND, wParam, lParam);
+            SendMessage(eu_hwnd_self(), WM_COMMAND, wParam, lParam);
             break;
         }
         case WM_THEMECHANGED:
@@ -908,7 +921,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             eu_logmsg("scintilla WM_THEMECHANGED\n");
             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
-                on_toolbar_update_button();
+                on_toolbar_update_button(NULL);
             }
             break;
         }
@@ -922,7 +935,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED_AFTERPARENT:
         {
-            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_sci)) != NULL)
             {
                 eu_logmsg("scintilla WM_DPICHANGED_AFTERPARENT\n");
                 on_sci_update_line_margin(pnode);
@@ -939,6 +952,74 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
     }
     return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
+}
+
+bool
+on_sci_view_sync(void)
+{
+    return (eu_get_config() ? eu_get_config()->eu_tab.slave_show &&
+           (eu_get_config()->eu_tab.vertical || eu_get_config()->eu_tab.horizontal) : false);
+}
+
+void
+on_sci_scroll(eu_tabpage *p)
+{
+    HWND htab = NULL, hsci = NULL;
+    if ((htab = on_tabpage_hwnd(p)) && (hsci = on_tabpage_sci(htab == HMAIN_GET ? HSLAVE_GET : HMAIN_GET)))
+    {
+        eu_tabpage *psub = NULL;
+        int pos1 = 0, pos2 = 0;
+        int vmin = 0, vmax = 0;
+        int hmin = 0, hmax = 0;
+        const uint32_t ex1 = (const uint32_t)GetWindowLongPtr(p->hwnd_sc, GWL_STYLE);
+        const uint32_t ex2 = (const uint32_t)GetWindowLongPtr(hsci, GWL_STYLE);
+        if (eu_get_config()->eu_tab.vertical && (ex1 & WS_VSCROLL) && (ex2 & WS_VSCROLL) && GetScrollRange(hsci, SB_VERT, &vmin, &vmax))
+        {
+            psub = (eu_tabpage *)eu_tabpage_from_handle(hsci);
+            pos1 = GetScrollPos(p->hwnd_sc, SB_VERT);
+            pos2 = GetScrollPos(hsci, SB_VERT);
+            if (pos1 >= 0 && vmin >= 0 && pos1 != pos2)
+            {
+                if (TAB_HAS_TXT(psub))
+                {
+                    SetScrollPos(hsci, SB_VERT, (pos2 = pos1 <= vmax ? pos1 : vmax), TRUE);
+                    CallWindowProc((WNDPROC)eu_edit_wnd, hsci, WM_VSCROLL, MAKEWPARAM(SB_THUMBPOSITION, pos2), 0);    
+                }
+                else if (TAB_HEX_MODE(psub))
+                {
+                    SetScrollPos(hsci, SB_VERT, (pos2 = pos1 <= vmax ? pos1 : vmax), TRUE);
+                    SendMessage(hsci, WM_VSCROLL, MAKEWPARAM(SB_THUMBPOSITION, pos2), 0);     
+                }
+                else if (TAB_HAS_PDF(psub))
+                {
+                    eu_logmsg("not support\n");
+                }
+            }
+        }
+        if (eu_get_config()->eu_tab.horizontal && (ex1 & WS_HSCROLL) && (ex2 & WS_HSCROLL) && GetScrollRange(hsci, SB_HORZ, &hmin, &hmax))
+        {
+            psub = (eu_tabpage *)eu_tabpage_from_handle(hsci);
+            pos1 = GetScrollPos(p->hwnd_sc, SB_HORZ);
+            pos2 = GetScrollPos(hsci, SB_HORZ);
+            if (pos1 >= 0 && hmin >= 0 && pos1 != pos2)
+            {
+                if (TAB_HAS_TXT(psub))
+                {
+                    SetScrollPos(hsci, SB_HORZ, (pos2 = pos1 <= hmax ? pos1 : hmax), TRUE);
+                    CallWindowProc((WNDPROC)eu_edit_wnd, hsci, WM_HSCROLL, MAKEWPARAM(SB_THUMBPOSITION, pos2), 0);
+                }
+                else if (TAB_HEX_MODE(psub))
+                {
+                    SetScrollPos(hsci, SB_HORZ, (pos2 = pos1 <= hmax ? pos1 : hmax), TRUE);
+                    SendMessage(hsci, SB_HORZ, MAKEWPARAM(SB_THUMBPOSITION, pos2), 0);     
+                }
+                else if (TAB_HAS_PDF(psub))
+                {
+                    eu_logmsg("not support\n");
+                }
+            }
+        }
+    }
 }
 
 void

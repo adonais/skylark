@@ -41,9 +41,10 @@
 
 wchar_t eu_module_path[MAX_PATH+1] = {0};
 wchar_t eu_config_path[MAX_BUFFER] = {0};
-static volatile long eu_curl_initialized;
-static HINSTANCE eu_instance;   // 当前实例
+// 当前实例
+static HINSTANCE eu_instance = NULL;
 static uint32_t fn_config_mask = 0x0;
+static volatile long eu_curl_initialized = 0;
 
 /* generic implementation */
 #define FOREACH(node, collection)                      \
@@ -1974,6 +1975,7 @@ eu_save_config(void)
         "edit_rendering_technology = %d\n"
         "update_file_mask = %d\n"
         "update_file_notify = %d\n"
+        "doc_highlight_restrict = 0x%x\n"
         "light_all_find_str = %s\n"
         "backup_on_file_write = %s\n"
         "save_last_session = %s\n"
@@ -2026,10 +2028,12 @@ eu_save_config(void)
         "mstab = {\n"
         "    vertical = %s,\n"
         "    horizontal = %s,\n"
-        "    slave_focus = %s,\n"
-        "    show = %s,\n"
+        "    splitting_copy = %s,\n"
+        "    main_show = %s,\n"
+        "    slave_show = %s,\n"
         "    main_size = %d,\n"
-        "    slave_size = %d\n"
+        "    slave_size = %d,\n"
+        "    reserved = %zd\n"
         "}\n"
         "-- hyperlink hotspot default setting\n"
         "hyperlink_detection = %s\n"
@@ -2120,6 +2124,7 @@ eu_save_config(void)
               g_config->m_render,
               0,
               g_config->m_up_notify,
+              g_config->m_doc_restrict,
               g_config->m_light_str?"true":"false",
               g_config->m_write_copy?"true":"false",
               g_config->m_session?"true":"false",
@@ -2152,10 +2157,12 @@ eu_save_config(void)
               g_config->eu_titlebar.path?"true":"false",
               g_config->eu_tab.vertical?"true":"false",
               g_config->eu_tab.horizontal?"true":"false",
-              g_config->eu_tab.slave_focus?"true":"false",
-              g_config->eu_tab.show?"true":"false",
+              g_config->eu_tab.s_copy?"true":"false",
+              g_config->eu_tab.main_show?"true":"false",
+              g_config->eu_tab.slave_show?"true":"false",
               g_config->eu_tab.main_size,
               g_config->eu_tab.slave_size,
+              g_config->eu_tab.reserved,
               g_config->m_hyperlink?"true":"false",
               g_config->m_limit,
               g_config->upgrade.enable?"true":"false",
@@ -2457,7 +2464,7 @@ void
 eu_lua_calltip(const char *pstr)
 {
     eu_tabpage *p = NULL;
-    if (pstr && (p = on_tabpage_focus_at()) && !TAB_HEX_MODE(p) && !p->pmod)
+    if (pstr && (p = on_tabpage_focused()) && !TAB_HEX_MODE(p) && !p->pmod)
     {
         const sptr_t end = eu_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
         eu_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
@@ -2857,43 +2864,49 @@ eu_iconv_close(iconv_t cd)
     return 0;
 }
 
+static int
+eu_curl_library_init(void)
+{
+    int result = SKYLARK_OK;
+    if (!eu_curl_symbol && (eu_curl_symbol = np_load_plugin_library(_T("libcurl.dll"), false)) != NULL)
+    {
+        fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(eu_curl_symbol,"curl_global_init");
+        fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(eu_curl_symbol,"curl_easy_init");
+        fn_curl_global_cleanup = (ptr_curl_global_cleanup)GetProcAddress(eu_curl_symbol,"curl_global_cleanup");
+        fn_curl_easy_cleanup = (ptr_curl_easy_cleanup)GetProcAddress(eu_curl_symbol,"curl_easy_cleanup");
+        eu_curl_easy_setopt = (ptr_curl_easy_setopt)GetProcAddress(eu_curl_symbol,"curl_easy_setopt");
+        eu_curl_easy_perform = (ptr_curl_easy_perform)GetProcAddress(eu_curl_symbol,"curl_easy_perform");
+        eu_curl_slist_append = (ptr_curl_slist_append)GetProcAddress(eu_curl_symbol,"curl_slist_append");
+        eu_curl_slist_free_all = (ptr_curl_slist_free_all)GetProcAddress(eu_curl_symbol,"curl_slist_free_all");
+        eu_curl_easy_getinfo = (ptr_curl_easy_getinfo)GetProcAddress(eu_curl_symbol,"curl_easy_getinfo");
+        eu_curl_easy_strerror = (ptr_curl_easy_strerror)GetProcAddress(eu_curl_symbol,"curl_easy_strerror");
+    }
+    if (!(fn_curl_global_init && fn_curl_easy_init && fn_curl_global_cleanup && eu_curl_easy_setopt && eu_curl_easy_perform &&
+          fn_curl_easy_cleanup && eu_curl_slist_append && eu_curl_slist_free_all && eu_curl_easy_getinfo && eu_curl_easy_strerror)
+       )
+    {
+        result = EUE_CURL_INIT_FAIL;
+        eu_close_dll(eu_curl_symbol);
+        _InterlockedExchange(&eu_curl_initialized, 0);
+        eu_logmsg("eu_curl_library_init failed, we set eu_curl_initialized = 0\n");
+    }
+    return result;
+}
+
 /*******************************************************************
  * 加载curl动态库与初始化curl全局变量
  * 在最新的 7.84 版本, curl_global_init已经默认支持线程安全
  * 函数调用失败, 返回 EUE_CURL_INIT_FAIL
  * 成功, 返回值与 curl_global_init 函数相同
+ * default flags = CURL_GLOBAL_DEFAULT
  *******************************************************************/
 int
 eu_curl_global_init(long flags)
 {
-    int result = CURLE_OK;
-    if (!InterlockedCompareExchange(&eu_curl_initialized, 1, 0))
+    int result = SKYLARK_OK;
+    if (!InterlockedCompareExchange(&eu_curl_initialized, 1, 0) && (result = eu_curl_library_init()) == SKYLARK_OK)
     {
-        if ((eu_curl_symbol = np_load_plugin_library(_T("libcurl.dll"), false)) != NULL)
-        {
-            fn_curl_global_init = (ptr_curl_global_init)GetProcAddress(eu_curl_symbol,"curl_global_init");
-            fn_curl_easy_init = (ptr_curl_easy_init)GetProcAddress(eu_curl_symbol,"curl_easy_init");
-            fn_curl_global_cleanup = (ptr_curl_global_cleanup)GetProcAddress(eu_curl_symbol,"curl_global_cleanup");
-            fn_curl_easy_cleanup = (ptr_curl_easy_cleanup)GetProcAddress(eu_curl_symbol,"curl_easy_cleanup");
-            eu_curl_easy_setopt = (ptr_curl_easy_setopt)GetProcAddress(eu_curl_symbol,"curl_easy_setopt");
-            eu_curl_easy_perform = (ptr_curl_easy_perform)GetProcAddress(eu_curl_symbol,"curl_easy_perform");
-            eu_curl_slist_append = (ptr_curl_slist_append)GetProcAddress(eu_curl_symbol,"curl_slist_append");
-            eu_curl_slist_free_all = (ptr_curl_slist_free_all)GetProcAddress(eu_curl_symbol,"curl_slist_free_all");
-            eu_curl_easy_getinfo = (ptr_curl_easy_getinfo)GetProcAddress(eu_curl_symbol,"curl_easy_getinfo");
-            eu_curl_easy_strerror = (ptr_curl_easy_strerror)GetProcAddress(eu_curl_symbol,"curl_easy_strerror");
-        }
-        if (!(fn_curl_global_init && fn_curl_easy_init && fn_curl_global_cleanup && eu_curl_easy_setopt && eu_curl_easy_perform &&
-              fn_curl_easy_cleanup && eu_curl_slist_append && eu_curl_slist_free_all && eu_curl_easy_getinfo && eu_curl_easy_strerror)
-           )
-        {
-            result = EUE_CURL_INIT_FAIL;
-            eu_close_dll(eu_curl_symbol);
-            _InterlockedExchange(&eu_curl_initialized, 0);
-        }
-        else
-        {
-            result = fn_curl_global_init(flags);
-        }
+        result = fn_curl_global_init ? fn_curl_global_init(flags) : EUE_CURL_INIT_FAIL;
     }
     return result;
 }
@@ -2901,20 +2914,18 @@ eu_curl_global_init(long flags)
 CURL *
 eu_curl_easy_init(void)
 {
-    if (!eu_curl_initialized)
+    int result = CURLE_OK;
+    if (!InterlockedCompareExchange(&eu_curl_initialized, 1, 0))
     {
-        if (eu_curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK)
-        {
-            return NULL;
-        }
+        result = eu_curl_library_init();
     }
-    return fn_curl_easy_init();
+    return (result == CURLE_OK && fn_curl_easy_init ? fn_curl_easy_init() : NULL);
 }
 
 void
 eu_curl_easy_cleanup(CURL *curl)
 {
-    if (eu_curl_initialized)
+    if (fn_curl_easy_cleanup)
     {
         fn_curl_easy_cleanup(curl);
     }
@@ -2923,27 +2934,22 @@ eu_curl_easy_cleanup(CURL *curl)
 void
 eu_curl_global_cleanup(void)
 {
-    if (eu_curl_initialized)
+    if (InterlockedCompareExchange(&eu_curl_initialized, 0, 1))
     {
         if (fn_curl_global_cleanup)
         {
             fn_curl_global_cleanup();
         }
-        if (eu_curl_symbol)
-        {
-            FreeLibrary(eu_curl_symbol);
-            eu_curl_symbol = NULL;
-            fn_curl_global_init = NULL;
-            fn_curl_easy_init = NULL;
-            fn_curl_global_cleanup = NULL;
-            fn_curl_easy_cleanup = NULL;
-            eu_curl_easy_setopt = NULL;
-            eu_curl_easy_perform = NULL;
-            eu_curl_easy_getinfo = NULL;
-            eu_curl_slist_append = NULL;
-            eu_curl_slist_free_all = NULL;
-        }
-        _InterlockedExchange(&eu_curl_initialized, 0);
+        eu_close_dll(eu_curl_symbol);
+        fn_curl_global_init = NULL;
+        fn_curl_easy_init = NULL;
+        fn_curl_global_cleanup = NULL;
+        fn_curl_easy_cleanup = NULL;
+        eu_curl_easy_setopt = NULL;
+        eu_curl_easy_perform = NULL;
+        eu_curl_easy_getinfo = NULL;
+        eu_curl_slist_append = NULL;
+        eu_curl_slist_free_all = NULL;
     }
 }
 
@@ -3098,4 +3104,40 @@ bool
 eu_dark_enable(void)
 {
     return on_dark_enable();
+}
+
+void*
+eu_tabpage_from_handle(void *hwnd_sc)
+{
+    eu_tabpage *p = NULL;
+    HWND htab = HMAIN_GET;
+    if ((HWND)hwnd_sc != NULL)
+    {
+        p = on_tabpage_focus_at(htab);
+        if (p->hwnd_sc == (HWND)hwnd_sc)
+        {
+            return (void *)p;
+        }
+        else if (HSLAVE_SHOW && (htab = HSLAVE_GET))
+        {
+            p = on_tabpage_focus_at(htab);
+            if (p->hwnd_sc == (HWND)hwnd_sc)
+            {
+                return (void *)p;
+            }
+        }
+    }
+    return NULL;
+}
+
+HWND
+eu_tabpage_hwnd(void *p)
+{
+    return on_tabpage_hwnd((const eu_tabpage *)p);
+}
+
+void
+eu_sci_scroll(void *p)
+{
+    on_sci_scroll((eu_tabpage *)p);
 }

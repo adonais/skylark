@@ -286,15 +286,15 @@ on_favorite_remove_node(void)
 void
 on_favorite_add(eu_tabpage *pnode)
 {
-    if (g_tabpages && pnode)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab)
     {
         eu_tabpage *p = NULL;
         cvector_vector_type(int) v = NULL;
-        int num = on_tabpage_sel_number(&v, false);
+        int num = on_tabpage_sel_number(htab, &v, false);
         for (int i = 0; i < num; ++i)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-            if (p && !p->is_blank)
+            if ((p = on_tabpage_get_ptr(htab, v[i])) && !p->is_blank)
             {
                 on_favorite_add_item(p);
             }

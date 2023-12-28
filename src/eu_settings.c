@@ -246,13 +246,13 @@ on_setting_execute(HWND hwnd, const int wm_id)
                     {
                         cvector_push_back(cmd_vec, strdup("skylark.exe"));
                         cvector_push_back(cmd_vec, eu_utf16_utf8(path, NULL));
-                        util_update_env(on_tabpage_focus_at());
+                        util_update_env(on_tabpage_focused());
                         on_setting_parser_args(pconf->m_customize[i].param, &cmd_vec);
                         eu_lua_script_evp((const int)cvector_size(cmd_vec), cmd_vec);
                     }
                     else if (pconf->m_customize[i].param[0])
                     {
-                        util_update_env(on_tabpage_focus_at());
+                        util_update_env(on_tabpage_focused());
                         on_setting_parser_args(pconf->m_customize[i].param, &cmd_vec);
                         if (wine && (plugin = util_winexy_get()))
                         {

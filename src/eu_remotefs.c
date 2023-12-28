@@ -647,12 +647,12 @@ remotefs_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 static int
 on_remote_parser_callback(void *data, int count, char **column, char **names)
 {
+    remotefs *pserver = NULL;
     if ((int *)data)
     {
         *(int *)data = 0;
     }
-    remotefs *pserver = (remotefs *) calloc(1, sizeof(remotefs));
-    if (!pserver)
+    if (!(pserver = (remotefs *) calloc(1, sizeof(remotefs))))
     {
         return 1;
     }
@@ -757,20 +757,13 @@ eu_remote_list_release(void)
     }
 }
 
-unsigned __stdcall
-on_remote_load_config(void *lp)
+bool
+on_remote_list_init(void)
 {
     int load_code = 1;
     const char *sql = "SELECT * FROM file_remote;";
-    int err = eu_sqlite3_send(sql, on_remote_parser_callback, &load_code);
-    if (err == SQLITE_OK && load_code == 0)
-    {
-        if (on_treebar_variable_initialized(&g_filetree))
-        {
-            SendMessage(g_filetree, TVI_LOADREMOTE, 0, 0);
-        }
-    }
-    return err;
+    int err = on_sql_post(sql, on_remote_parser_callback, &load_code);
+    return (err == SQLITE_OK && load_code == 0);
 }
 
 void

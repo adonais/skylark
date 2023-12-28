@@ -162,10 +162,6 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         else if (STRCMP(names[i], ==, "szFocus"))
         {
             filebak.focus = atoi(column[i]);
-            if (!filebak.focus)
-            {
-                filebak.focus = -1;
-            }
         }
         else if (STRCMP(names[i], ==, "szZoom"))
         {
@@ -174,6 +170,10 @@ on_config_parser_bakup(void *data, int count, char **column, char **names)
         else if (STRCMP(names[i], ==, "szStatus"))
         {
             filebak.status = atoi(column[i]);
+        }
+        else if (STRCMP(names[i], ==, "szView"))
+        {
+            filebak.view = atoi(column[i]);
         }
     }
     if (filebak.rel_path[0] || filebak.bak_path[0])
@@ -213,6 +213,7 @@ on_config_load_file(void *lp)
         file_backup bak = {0};
         bak.focus = 1;
         cvector_push_back(vbak, bak);
+        ++vec_size;
     }
     else
     {   // 调整tabid与焦点
@@ -233,13 +234,13 @@ on_config_load_file(void *lp)
                     vbak[i].tab_id = last_id >= 0 ? (++last_id) : (last_id = 0);
                     if (i == vec_size - 1)
                     {
-                        vbak[i].focus = 1;     
+                        vbak[i].focus = 1;
                     }
                 }
             }
         }
     }
-    cvector_point_for_each(vbak, share_send_msg);
+    share_send_msg(vbak, vec_size);
     cvector_free(vbak);
     return 0;
 }
@@ -528,9 +529,14 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
     }
     if (ptr_arg && pbak)
     {
+        const bool hex = eu_config_check_arg(ptr_arg, arg_c, L"-hex");
+        const bool view = eu_config_check_arg(ptr_arg, arg_c, L"-v1");
         for (int i = 1; i < arg_c; ++i)
         {
-            file_backup data = {-1, -1, 0 , -1};
+            file_backup data = {-1, -1, 0, -1};
+            data.hex = (int)hex;
+            data.view = (int)view;
+            on_config_setup_postion(ptr_arg, arg_c, &data);
             if (wcsncmp(ptr_arg[i], L"-restart", 8) == 0)
             {
                 i += 2;
@@ -548,6 +554,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 }
                 continue;
             }
+            printf("ptr_arg[%d] = %ls\n", i, ptr_arg[i]);
             if (ptr_arg[i][0] != L'-' && (len = wcslen(ptr_arg[i])) > 0)
             {
                 WCHAR *p = NULL;
@@ -562,7 +569,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                     len = wcslen(data.rel_path);
                     if (!url_has_remote(data.rel_path) && eu_exist_dir(data.rel_path) && len < MAX_BUFFER - 2)
                     {
-                        util_bfs_search(data.rel_path, pbak);
+                        util_bfs_search(data.rel_path, pbak, &data);
                         ret |= 0x1;
                         continue;
                     }
@@ -571,20 +578,16 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 {   // 处理以相对路径打开的文件或目录
                     GetFullPathNameW(ptr_arg[i], MAX_BUFFER, data.rel_path, &p);
                     len = wcslen(data.rel_path);
+                    printf("data.rel_path = %ls\n", data.rel_path);
                     if (eu_exist_dir(data.rel_path) && len < MAX_BUFFER - 2)
                     {
-                        util_bfs_search(data.rel_path, pbak);
+                        util_bfs_search(data.rel_path, pbak, &data);
                         ret |= 0x1;
                         continue;
                     }
                 }
-                if (eu_config_check_arg(ptr_arg, arg_c, L"-hex"))
-                {
-                    data.hex = 1;
-                }
                 if (true)
                 {
-                    on_config_setup_postion(ptr_arg, arg_c, &data);
                     cvector_push_back(*pbak, data);
                     ret |= 0x1;
                 }
@@ -721,8 +724,11 @@ eu_config_load_files(void)
 {
     if (on_config_update_db())
     {
+        if (on_remote_list_init() && g_filetree)
+        {
+            PostMessage(g_filetree, TVI_LOADREMOTE, 0, 0);
+        }
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_favorite_up_config, NULL, 0, NULL));
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
         return on_config_create_accel();
     }

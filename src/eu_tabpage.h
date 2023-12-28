@@ -20,21 +20,29 @@
 #define _H_SKYLARK_TABPAGES_
 
 #define CONFIG_KEY_MATERIAL_TABPAGES "EU_TABPAG"
+#define TABS_FOUCED           (1L)
+#define TABS_DUPED            (2L)
+#define TABS_MAIN             (4L)
 #define TABS_SPLIT            (10)
 #define TABS_WIDTH_DEFAULT    (120)
 #define TABS_HEIGHT_DEFAULT   (23)
 #define TABS_MAYBE_RESERVE    (-1)
 #define TABS_MAYBE_EIXT       (-2)
-#define HMAIN_GET             \
-   (eu_get_config() && eu_get_config()->eu_tab.hmain ? \
-   (HWND)eu_get_config()->eu_tab.hmain : NULL)
-#define HSLAVE_GET            \
-   (eu_get_config() && eu_get_config()->eu_tab.hslave ? \
-   (HWND)eu_get_config()->eu_tab.hslave : NULL)
 
-#define HSLAVE_SHOW           \
-   (eu_get_config() && eu_get_config()->eu_tab.show ? \
-   (true) : (false))
+#define TAB_HEX_MODE(p) ((p) && (p->hex_mode == TYPES_HEX))
+#define TAB_NOT_NUL(p) ((p) && (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
+#define TAB_NOT_BIN(p) ((p) && (p->codepage != IDM_OTHER_BIN))
+#define TAB_HAS_PDF(p) ((p) && (p->codepage == IDM_OTHER_PLUGIN))
+#define TAB_HAS_TXT(p) (!TAB_HEX_MODE(p) && !TAB_HAS_PDF(p) && TAB_NOT_BIN(p))
+
+#define HMAIN_GET                                                   \
+   (eu_get_config() ? (HWND)eu_get_config()->eu_tab.hmain : NULL)
+#define HSLAVE_GET                                                  \
+   (eu_get_config() ? (HWND)eu_get_config()->eu_tab.hslave : NULL)
+#define HMAIN_SHOW                                                  \
+   (eu_get_config() ? eu_get_config()->eu_tab.main_show : (false))
+#define HSLAVE_SHOW                                                 \
+   (eu_get_config() ? eu_get_config()->eu_tab.slave_show : (false))
 
 #ifdef __cplusplus
 extern "C"
@@ -44,8 +52,9 @@ extern "C"
 typedef struct _complete_t *complete_ptr;
 typedef struct _capture_set *capture_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
-typedef void  (*tab_callback)(int index);
 typedef void (__cdecl *tab_want)(void *p);
+typedef void (*tab_callback)(const HWND htab, const int index);
+typedef HWND (*tab_hwnd)(const HWND htab);
 
 struct _tabpage
 {
@@ -91,11 +100,15 @@ struct _tabpage
     intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
     intptr_t reserved0;         // 保留, 仅供临时使用
     intptr_t reserved1;         // 保留, 仅供临时使用
+    intptr_t x, y;              // 行,列
+    char mark_id[MAX_BUFFER];   // 保存书签
+    char fold_id[MAX_BUFFER];   // 保存合拢线
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
     volatile long busy_id;      // 标签是否空闲状态
     volatile long lock_id;      // 自动保存时使用的锁
+    volatile long stat_id;      // 状态id, 当前激活标签
     int tab_id;                 // tab编号,用于保存会话
     int hex_mode;               // 16进制编辑状态, 0, 否. 1,是. 2,插件
     int codepage;               // 真实的文件编码
@@ -121,39 +134,48 @@ struct _tabpage
     tab_want pwant;             // 回调函数, 需要时使用
 };
 
-extern HWND g_tabpages;
-
 int  on_tabpage_create_dlg(const HWND hwnd);
-int  on_tabpage_add(eu_tabpage *pnode);
+int  on_tabpage_insert(eu_tabpage *pnode);
 int  on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(const int i);
 int  on_tabpage_get_index(const eu_tabpage *pnode);
-int  on_tabpage_selection(eu_tabpage *pnode, int index);
-int  on_tabpage_sel_number(int **pvec, const bool ascending);
+int  on_tabpage_selection(const eu_tabpage *pnode);
+int  on_tabpage_sel_number(const HWND htab, int **pvec, const bool ascending);
 int  on_tabpage_sel_path(wchar_t ***pvec, bool *hex);
-void on_tabpage_switch_next(HWND hwnd);
-void on_tabpage_adjust_box(const RECT *prc, RECT *ptab1, RECT *ptab2);
-void on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab1, RECT *ptab2);
-void on_tabpage_set_title(int ntab, TCHAR *title);
+void on_tabpage_switch_next(void);
+void on_tabpage_adjust_window(const RECT *prc, eu_tabpage *p1, eu_tabpage *p2, RECT *ptab1, RECT *ptab2);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
-void on_tabpage_close_tabs(int);
-void on_tabpage_save_files(int);
-void on_tabpage_push_editor(int);
-void on_tabpage_do_file(tab_callback func);
+void on_tabpage_close_tabs(const HWND htab, const int index);
+void on_tabpage_save_files(const HWND htab, const int index);
+void on_tabpage_push_editor(const HWND htab, const int index);
+void on_tabpage_do_file(tab_callback func, eu_tabpage *p);
 void on_tabpage_active_tab(eu_tabpage *pnode);
-void on_tabpage_active_one(int index);
+void on_tabpage_active_one(const HWND htab, const int index);
 void on_tabpage_size(const RECT *prc);
 void on_tabpage_variable_reset(void);
+void on_tabpage_count_tabs(int *pv0, int *pv1);
+void on_tabpage_count_empty(int *pv0, int *pv1);
+void on_tabpage_move_tab(const HWND htab, const HWND other);
+bool on_tabpage_clone_tab(const HWND htab);
+bool on_tabpage_delete_item(const HWND htab, const int index);
 bool on_tabpage_exist_map(void);
-eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
-eu_tabpage *on_tabpage_get_ptr(const int index);
-eu_tabpage *on_tabpage_select_index(int index);
-eu_tabpage *on_tabpage_focus_at(void);
+bool on_tabpage_other_empty(const HWND htab);
+eu_tabpage *on_tabpage_from_handle(void *hwnd_sc, tab_hwnd func);
+eu_tabpage *on_tabpage_get_ptr(const HWND htab, const int index);
+eu_tabpage *on_tabpage_select_index(const HWND htab, int index);
+eu_tabpage *on_tabpage_focused(void);
+eu_tabpage *on_tabpage_focus_at(const HWND htab);
 eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);
-TCHAR *on_tabpage_generator(TCHAR *filename, const int len);
+TCHAR *on_tabpage_generator(HWND htab, TCHAR *filename, const int len);
+HWND on_tabpage_sci(const HWND htab);
+HWND on_tabpage_symlist(const HWND htab);
+HWND on_tabpage_symtree(const HWND htab);
+HWND on_tabpage_qrtable(const HWND htab);
+HWND on_tabpage_resultctl(const HWND htab);
+HWND on_tabpage_hwnd(const eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

@@ -19,14 +19,13 @@
 #include "framework.h"
 
 int
-on_result_append_text(TCHAR *format, ...)
+on_result_append_text(eu_tabpage *pnode, TCHAR *format, ...)
 {
     va_list valist;
     SYSTEMTIME systime;
     int l, len = 0;
     TCHAR *buf = NULL;
     char *utf_buf = NULL;
-    eu_tabpage *pnode = on_tabpage_focus_at();
     if (!RESULT_SHOW(pnode))
     {
         return 1;
@@ -89,13 +88,12 @@ on_result_append_text(TCHAR *format, ...)
 }
 
 int
-on_result_append_text_utf8(char *format, ...)
+on_result_append_text_utf8(eu_tabpage *pnode, char *format, ...)
 {
     va_list valist;
     char *buf = NULL;
     int l, len = 0;
-    eu_tabpage *pnode = NULL;
-    if ((pnode = on_tabpage_focus_at()) == NULL || !RESULT_SHOW(pnode))
+    if (!RESULT_SHOW(pnode))
     {
         return 1;
     }
@@ -153,16 +151,6 @@ on_result_other_tab(int line, result_vec *vec_strings)
     return NULL;
 }
 
-static void
-on_result_move_sci(eu_tabpage *p, int width, int height)
-{
-    if (RESULT_SHOW(p))
-    {
-        MoveWindow(p->presult->hwnd_sc, 0, 0, width, height, TRUE);
-        ShowWindow(p->presult->hwnd_sc, SW_SHOW);
-    }
-}
-
 static LRESULT CALLBACK
 on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -195,7 +183,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDBLCLK:
         {
-            eu_tabpage *pnode = on_tabpage_focus_at();
+            eu_tabpage *pnode = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
             if (pnode && pnode->presult && pnode->ret_vec)
             {
                 sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, pnode->presult->nc_pos, 0);
@@ -210,7 +198,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
                         eu_sci_call(pnode, SCI_SETSELECTION, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
                     }
-                    else if (on_tabpage_selection(p, -1) >= 0)
+                    else if (on_tabpage_selection(p) >= 0)
                     {
                         on_search_jmp_line(p, pnode->ret_vec[line - 1].line, current_line);
                         eu_sci_call(p, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
@@ -221,7 +209,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
-            eu_tabpage *p = on_tabpage_focus_at();
+            eu_tabpage *p = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
             if (RESULT_SHOW(p))
             {
                 p->presult->nc_pos = eu_sci_call(p->presult, SCI_GETCURRENTPOS, 0, 0);
@@ -230,7 +218,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            eu_tabpage *p = on_tabpage_focus_at();
+            eu_tabpage *p = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
             if (RESULT_SHOW(p))
             {
                 p->presult->nc_pos = eu_sci_call(p->presult, SCI_GETCURRENTPOS, 0, 0);
@@ -259,7 +247,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_RESULT_WRAPLINE:
                 {
-                    eu_tabpage *p = on_tabpage_focus_at();
+                    eu_tabpage *p = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
                     if (RESULT_SHOW(p))
                     {
                         int mode = (int)eu_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0);
@@ -269,8 +257,8 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_RESULT_CLEARALL:
                 {
-                    eu_tabpage *p = on_tabpage_focus_at();
-                    if (p && p->presult && p->presult->hwnd_sc)
+                    eu_tabpage *p = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
+                    if (RESULT_SHOW(p))
                     {
                         eu_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
                         eu_sci_call(p->presult, SCI_CLEARALL, 0, 0);
@@ -280,7 +268,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_RESULT_CLOSE:
                 {
-                    eu_tabpage *p = on_tabpage_focus_at();
+                    eu_tabpage *p = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
                     if (p && p->presult)
                     {
                         on_result_free(&p->presult);
@@ -296,46 +284,21 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            break;
-        }
-        case WM_DESTROY:
-        {
-            ctrl_down = false;
-            break;
-        }
-    }
-    return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
-}
-
-static LRESULT CALLBACK
-on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-        case WM_SIZE:
-        {
-            on_result_move_sci(on_tabpage_focus_at(), LOWORD(lParam), HIWORD(lParam));
-            return 1;
-        }
-        case WM_THEMECHANGED:
-        {
-            eu_tabpage *pedit = (eu_tabpage *)wParam;
-            SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, on_dark_theme_brush());
-            if (pedit && pedit->presult)
+            eu_tabpage *p = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
+            if (p && p->presult)
             {
-                on_sci_default_theme(pedit->presult, -1);
+                on_sci_default_theme(p->presult, -1);
             }
             break;
         }
         case WM_DESTROY:
         {
+            ctrl_down = false;
             eu_logmsg("on_result_callback WM_DESTROY\n");
             break;
         }
-        default:
-            return DefWindowProc(hwnd, message, wParam, lParam);
     }
-    return 0;
+    return CallWindowProc((WNDPROC)eu_edit_wnd, hwnd, message, wParam, lParam);
 }
 
 void
@@ -347,11 +310,6 @@ on_result_free(eu_tabpage **ptr_result)
         {
             SendMessage((*ptr_result)->hwnd_sc, WM_CLOSE, 0, 0);
             (*ptr_result)->hwnd_sc = NULL;
-        }
-        if ((*ptr_result)->reserved0)
-        {
-            SendMessage((HWND)((*ptr_result)->reserved0), WM_CLOSE, 0, 0);
-            (*ptr_result)->reserved0 = 0;
         }
         eu_safe_free((*ptr_result));
     }
@@ -385,35 +343,31 @@ on_result_reload(eu_tabpage *pedit)
 bool
 on_result_launch(eu_tabpage *pnode)
 {
+    bool ret = false;
     if (pnode)
     {
-        if (!pnode->presult)
+        if (!(ret ^= (pnode->presult != NULL)))
         {
-            HWND hwnd_rst = NULL;
-            const TCHAR *class_name = _T("Result List");
             const int flags = WS_CHILD | WS_CLIPSIBLINGS | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
-            pnode->presult = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
-            hwnd_rst = pnode->presult ? 
-                       on_splitter_init_window(eu_module_hwnd(), class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_result_callback, NULL) :
-                       NULL;
-            if (hwnd_rst && !on_sci_create(pnode->presult, hwnd_rst, flags, on_result_edit_proc))
+            if ((pnode->presult = (eu_tabpage *)calloc(1, sizeof(eu_tabpage))))
             {
-                pnode->presult->reserved0 = (intptr_t)hwnd_rst;
-                on_dark_border(pnode->presult->hwnd_sc, true);
-                SendMessage(hwnd_rst, WM_THEMECHANGED, (WPARAM)pnode, 0);
+                if (on_sci_create(pnode->presult, eu_hwnd_self(), flags, on_result_edit_proc) == SKYLARK_OK)
+                {
+                    on_sci_default_theme(pnode->presult, -1);
+                    ret = true;
+                }
             }
         }
-        return true;
     }
-    return false;
+    return ret;
 }
 
 HWND
 eu_result_hwnd(eu_tabpage *pnode)
 {
-    if ((pnode || (pnode = on_tabpage_focus_at())) && pnode->presult)
+    if (pnode && pnode->presult)
     {
-        return (HWND)pnode->presult->reserved0;
+        return (pnode->presult->hwnd_sc);
     }
     return NULL;
 }

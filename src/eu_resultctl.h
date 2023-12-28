@@ -25,8 +25,8 @@
 extern "C" {
 #endif
 
-int on_result_append_text(wchar_t*format , ...);
-int on_result_append_text_utf8(char *format , ...);
+int on_result_append_text(eu_tabpage *pnode, wchar_t*format , ...);
+int on_result_append_text_utf8(eu_tabpage *pnode, char *format , ...);
 bool on_result_launch(eu_tabpage *pnode);
 void on_result_reload(eu_tabpage *p);
 void on_result_free(eu_tabpage **ptr_result);

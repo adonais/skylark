@@ -30,8 +30,8 @@ extern "C" {
 void on_toolbar_icon_set(const int size);
 void on_toolbar_setpos_clipdlg(HWND hwnd, HWND parent);
 void on_toolbar_destroy(HWND hwnd);
-void on_toolbar_update_button(void);
-void on_toolbar_execute_script(void);
+void on_toolbar_update_button(eu_tabpage *pnode);
+void on_toolbar_execute_script(eu_tabpage *pnode);
 void on_toolbar_lua_exec(eu_tabpage *pnode);
 void on_toolbar_setup_button(int id, int flags);
 void on_toolbar_no_highlight(void *lp);

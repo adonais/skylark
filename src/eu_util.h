@@ -75,6 +75,8 @@ void util_ssl_close_symbol(HMODULE *pssl);
 
 void util_lock(volatile long *gcs);
 void util_unlock(volatile long *gcs);
+void util_lock_v2(eu_tabpage *p);
+void util_unlock_v2(eu_tabpage *p);
 
 int util_aes_enc(unsigned char *dec, unsigned char *enc, int len);
 int util_aes_dec(unsigned char *enc, unsigned char *dec, int len);
@@ -98,6 +100,8 @@ int util_get_hex_byte(const char *p);
 int util_strnspace(const char *s1, const char *s2, int *plen);
 int util_count_characters(const char *pstr, const int ch);
 
+void*  util_xmalloc(const size_t sz);
+void*  util_xrealloc(void * ptr, const size_t sz);
 char*  util_memdup(char **p, const char *text);
 char*  util_unix_newline(const char *in, const size_t in_size);
 char*  util_strdup_select(eu_tabpage *pnode, size_t *text_len, size_t multiple);
@@ -181,7 +185,7 @@ void util_updateui_msg(const eu_tabpage *pnode);
 void util_updateui_icon(const HWND hwnd, const bool fnshow);
 void util_updateui_titlebar(const HWND hwnd);
 void util_update_env(eu_tabpage *pnode);
-void util_bfs_search(const TCHAR *path, file_backup **pout);
+void util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata);
 bool util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len);
 bool util_file_access(LPCTSTR filename, uint32_t *pgranted);
 bool util_get_unix_file_name(LPCWSTR path, wchar_t *out, const int len);

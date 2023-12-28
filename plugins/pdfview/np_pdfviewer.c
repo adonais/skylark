@@ -190,6 +190,36 @@ pdf_get_theme(void)
     return NULL;
 }
 
+static HWND
+pdf_tabpage_hwnd(void *p)
+{
+    HMODULE hmodule = GetModuleHandleW(L"euapi.dll");
+    if (NULL != hmodule)
+    {
+        npn_tabpage_hwnd fn_hwnd = (npn_tabpage_hwnd)GetProcAddress(hmodule, "eu_tabpage_hwnd");
+        if (fn_hwnd)
+        {
+            return fn_hwnd(p);
+        }
+    }
+    return NULL;
+}
+
+static void*
+pdf_tabpage_from_handle(void *hwnd_sc)
+{
+    HMODULE hmodule = GetModuleHandleW(L"euapi.dll");
+    if (NULL != hmodule)
+    {
+        npn_tabpage_from_handle fn_tabpage = (npn_tabpage_from_handle)GetProcAddress(hmodule, "eu_tabpage_from_handle");
+        if (fn_tabpage)
+        {
+            return fn_tabpage(hwnd_sc);
+        }
+    }
+    return NULL;    
+}
+
 // format a number with a given thousand separator e.g. it turns 1234 into "1,234"
 // Caller needs to free() the result.
 static WCHAR*
@@ -443,7 +473,7 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         uint32_t bg = pdf_get_theme()->item.text.bgcolor;
         HBRUSH brush_bg = CreateSolidBrush(bg);
         HFONT hfont = pdf_create_font(hdc, L"MS Shell Dlg", 14);
-        
+
         // set up double buffering
         npn_rect rc_client;
         npn_client_rect(hwnd, &rc_client);
@@ -499,13 +529,14 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         }
         // draw the buffer on screen
         buffer.flush(&buffer, hdc);
-        
         DeleteObject(SelectObject(hdc_buffer, hfont));
         DeleteObject(brush_bg);
         EndPaint(hwnd, &ps);
         HWND hchild = FindWindowEx(hwnd, NULL, NULL, NULL);
         if (hchild)
+        {
             InvalidateRect(hchild, NULL, FALSE);
+        }
     }
     else if (msg == WM_SIZE)
     {

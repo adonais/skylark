@@ -136,7 +136,7 @@ util_clock_gettime(int type, struct timespec *tp)
     return -1;
 }
 
-static void *
+void *
 util_xmalloc(const size_t sz)
 {
     void *res = malloc(sz);
@@ -148,10 +148,10 @@ util_xmalloc(const size_t sz)
     return res;
 }
 
-static void *
+void *
 util_xrealloc(void * ptr, const size_t sz)
 {
-    void *res = realloc(ptr, sz);
+    void *res = ptr ? realloc(ptr, sz) : malloc(sz);
     if (res == NULL)
     {
         eu_logmsg(out_of_mem, sz);
@@ -186,6 +186,61 @@ void
 util_unlock(volatile long *gcs)
 {
     _InterlockedExchange(gcs, 0);
+}
+
+static unsigned __stdcall
+util_lock_callback(void *lp)
+{
+    eu_tabpage *p = (eu_tabpage *)lp;
+    if (p)
+    {
+        util_lock(&p->busy_id);
+    }
+    return 0;
+}
+
+void
+util_lock_v2(eu_tabpage *p)
+{
+    if (p)
+    {
+        if (on_proc_thread() == GetCurrentThreadId())
+        {
+            if (_InterlockedCompareExchange(&p->busy_id, 1, 0) != 0)
+            {
+                MSG msg = {0};
+                DWORD result = 0;
+                HANDLE wait_handle = (HANDLE)_beginthreadex(NULL, 0, util_lock_callback, p, 0, NULL);
+                while (wait_handle)
+                {
+                    result = MsgWaitForMultipleObjects(1, &wait_handle, FALSE, INFINITE, QS_ALLINPUT);
+                    if (result != (WAIT_OBJECT_0))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+                        TranslateMessage(&msg);
+                        DispatchMessage(&msg);
+                    }
+                }
+            }
+        }
+        else 
+        {
+            util_lock(&p->busy_id);
+        }
+    }
+}
+
+void
+util_unlock_v2(eu_tabpage *p)
+{
+    if (p)
+    {
+        util_unlock(&p->busy_id);
+    }
 }
 
 void
@@ -3541,7 +3596,7 @@ clean_short:
 }
 
 void
-util_bfs_search(const TCHAR *path, file_backup **pout)
+util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata)
 {
     queue_list sz = {0};
     _tcsncpy(sz.path, path, MAX_BUFFER - 1);
@@ -3581,7 +3636,11 @@ util_bfs_search(const TCHAR *path, file_backup **pout)
                     }
                     else
                     {
-                        file_backup sz_backup = {0};
+                        file_backup sz_backup = {-1, -1, 0 , -1};
+                        if (pdata)
+                        {
+                            memcpy(&sz_backup, pdata, sizeof(file_backup));
+                        }
                         STRIM_PSZ_TAIL(psz, sz_queue[i].path);
                         _sntprintf(sz_backup.rel_path, MAX_BUFFER - 1, _T("%s\\%s"), psz, fd.cFileName);
                         cvector_push_back((*pout), sz_backup);

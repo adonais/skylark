@@ -330,6 +330,10 @@ BEGIN
         POPUP "标签栏其他选项"
         BEGIN
             MENUITEM "垂直拆分标签栏",                          IDM_VIEW_VERTICAL_SPLIT
+            MENUITEM "复制到另一视图",                          IDM_VIEW_OTHER_COPY
+            MENUITEM "移动到另一视图",                          IDM_VIEW_OTHER_MOVE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "拆分时复制选中标签",                      IDM_VIEW_SPLIT_COPY
             MENUITEM "主/从视图垂直同步",                       IDM_VIEW_VERTICAL_SYNC
             MENUITEM "主/从视图水平同步",                       IDM_VIEW_HORIZONTAL_SYNC
             MENUITEM MF_SEPARATOR
@@ -496,6 +500,9 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_TABPAGE_SAVE
         MENUITEM "锁定(不允许拖放)",                            IDM_TABPAGE_LOCKED
+        MENUITEM SEPARATOR
+        MENUITEM "复制到另一视图",                              IDM_VIEW_OTHER_COPY
+        MENUITEM "移动到另一视图",                              IDM_VIEW_OTHER_MOVE
         MENUITEM SEPARATOR
         MENUITEM "发送到其他编辑器",                            IDM_EDIT_OTHER_EDITOR
         MENUITEM "发送到外部应用进行比较",                      IDM_EDIT_OTHER_BCOMPARE
@@ -1227,7 +1234,7 @@ STRINGTABLE DISCARDABLE
 {
     IDS_BUTTON_R                     "只读"
     IDS_BUTTON_W                     "读写"
-    IDS_STATUS_F1                    "%d 个文件, 时间戳: %s"
+    IDS_STATUS_F1                    "文件时间戳: %s"
     IDS_STATUS_XY                    "光标 (行 %zu, 列 %zu)"
     IDS_STATUS_LC                    "文件: %zd/%zd (字节)"
     IDS_STATUS_LD                    "选择: %zd/%zu (字符/行)"

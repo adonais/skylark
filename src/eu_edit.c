@@ -41,19 +41,20 @@ void
 on_edit_undo(eu_tabpage *pnode)
 {
     cvector_vector_type(int) v = NULL;
-    if (g_tabpages && (on_tabpage_sel_number(&v, false)) > 0)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab && (on_tabpage_sel_number(htab, &v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int i = 0; i < count; ++i)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            eu_tabpage *p = on_tabpage_get_ptr(htab, v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 eu_sci_call(p, SCI_UNDO, 0, 0);
             }
         }
-        on_toolbar_update_button();
-        util_redraw(g_tabpages, false);
+        on_toolbar_update_button(pnode);
+        util_redraw(htab, false);
     }
     cvector_freep(&v);
 }
@@ -62,19 +63,20 @@ void
 on_edit_redo(eu_tabpage *pnode)
 {
     cvector_vector_type(int) v = NULL;
-    if (g_tabpages && (on_tabpage_sel_number(&v, false)) > 0)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab && (on_tabpage_sel_number(htab, &v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int i = 0; i < count; ++i)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            eu_tabpage *p = on_tabpage_get_ptr(htab, v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 eu_sci_call(p, SCI_REDO, 0, 0);
             }
         }
-        on_toolbar_update_button();
-        util_redraw(g_tabpages, false);
+        on_toolbar_update_button(pnode);
+        util_redraw(htab, false);
     }
     cvector_freep(&v);
 }
@@ -342,7 +344,7 @@ on_edit_clear_clipborad(HWND hwnd)
         if (CountClipboardFormats() > 0)
         {
             EmptyClipboard();
-            on_toolbar_update_button();
+            on_toolbar_update_button(NULL);
             if (on_toolbar_clip_hwnd())
             {
                 PostMessage(on_toolbar_clip_hwnd(), WM_CLEAN_CHAIN, 0, 0);
@@ -831,13 +833,13 @@ void
 on_edit_delete_line_header_all(eu_tabpage *pnode)
 {
     cvector_vector_type(int) v = NULL;
-    UNREFERENCED_PARAMETER(pnode);
-    if ((on_tabpage_sel_number(&v, false)) > 0)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab && (on_tabpage_sel_number(htab, &v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int i = 0; i < count; ++i)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            eu_tabpage *p = on_tabpage_get_ptr(htab, v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
@@ -851,13 +853,13 @@ void
 on_edit_delete_line_tail_all(eu_tabpage *pnode)
 {
     cvector_vector_type(int) v = NULL;
-    UNREFERENCED_PARAMETER(pnode);
-    if ((on_tabpage_sel_number(&v, false)) > 0)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab && (on_tabpage_sel_number(htab, &v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int i = 0; i < count; ++i)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            eu_tabpage *p = on_tabpage_get_ptr(htab, v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
@@ -912,13 +914,13 @@ void
 on_edit_delete_all_empty_lines(eu_tabpage *pnode)
 {
     cvector_vector_type(int) v = NULL;
-    UNREFERENCED_PARAMETER(pnode);
-    if ((on_tabpage_sel_number(&v, false)) > 0)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab && (on_tabpage_sel_number(htab, &v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int i = 0; i < count; ++i)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(v[i]);
+            eu_tabpage *p = on_tabpage_get_ptr(htab, v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
                 do_delete_lines(p, 0, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
@@ -1117,13 +1119,14 @@ on_edit_selection(eu_tabpage *pnode, const int type)
         {
             case 0:
             {
-                file_backup file = {0};
+                file_backup file = {-1, -1, 0, -1};
+                file.focus = 1;
                 if (eu_exist_path(text) && MultiByteToWideChar(CP_UTF8, 0, text, -1, file.rel_path, MAX_BUFFER) > 0)
                 {
                     uint32_t attr = GetFileAttributes(file.rel_path);
                     if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
                     {
-                        on_file_only_open(&file, true);
+                        on_file_redirect(&file, 1);
                     }
                 }
                 break;
@@ -2196,13 +2199,13 @@ void
 on_edit_sorting(eu_tabpage *p, int wm_id)
 {
     cvector_vector_type(int) v = NULL;
-    UNREFERENCED_PARAMETER(p);
-    if ((on_tabpage_sel_number(&v, false)) > 0)
+    HWND htab = on_tabpage_hwnd(p);
+    if (htab && (on_tabpage_sel_number(htab, &v, false)) > 0)
     {
         int count = eu_int_cast(cvector_size(v));
         for (int k = 0; k < count; ++k)
         {
-            eu_tabpage *pnode = on_tabpage_get_ptr(v[k]);
+            eu_tabpage *pnode = on_tabpage_get_ptr(htab, v[k]);
             if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
             {
                 int i = 0;

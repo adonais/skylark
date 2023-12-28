@@ -271,12 +271,17 @@ on_theme_update_item(void)
 void
 on_theme_update_font(const control_id id)
 {
+    HWND htab = HMAIN_GET;
     switch (id)
     {
         case all_id:
-            if (g_tabpages)
+            if (htab)
             {
-                SendMessage(g_tabpages, WM_SETFONT, (WPARAM)g_hfont, 0);
+                SendMessage(htab, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            if (HSLAVE_SHOW && (htab = HSLAVE_GET))
+            {
+                SendMessage(htab, WM_SETFONT, (WPARAM)g_hfont, 0);    
             }
             if (g_treebar)
             {
@@ -292,9 +297,13 @@ on_theme_update_font(const control_id id)
             }
             break;
         case tabbar_id:
-            if (g_tabpages)
+            if (htab)
             {
-                SendMessage(g_tabpages, WM_SETFONT, (WPARAM)g_hfont, 0);
+                SendMessage(htab, WM_SETFONT, (WPARAM)g_hfont, 0);
+            }
+            if (HSLAVE_SHOW && (htab = HSLAVE_GET))
+            {
+                SendMessage(htab, WM_SETFONT, (WPARAM)g_hfont, 0);    
             }
             break;     
         case filebar_id:
@@ -719,7 +728,7 @@ static void
 on_theme_set_tip(const HWND hdlg, const int res_id)
 {
     HWND stc = GetDlgItem(hdlg, res_id);
-    eu_tabpage *pnode = on_tabpage_focus_at();
+    eu_tabpage *pnode = on_tabpage_focused();
     bool fn_font = pnode ? eu_doc_special_font(pnode) : false;
     if (stc && pnode && (fn_font || on_doc_is_customized(pnode, -1)))
     {

@@ -332,7 +332,7 @@ on_map_static_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 void
 on_map_reload(eu_tabpage *pedit)
 {
-    eu_tabpage *pnode = on_tabpage_focus_at();
+    eu_tabpage *pnode = on_tabpage_focused();
     if (pedit && pnode)
     {
         sptr_t pdoc = eu_sci_call(pnode, SCI_GETDOCPOINTER, 0, 0);
@@ -373,7 +373,7 @@ on_map_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case DOCUMENTMAP_SCROLL:
         {
-            eu_tabpage *pnode = on_tabpage_focus_at();
+            eu_tabpage *pnode = on_tabpage_focused();
             eu_tabpage *map_edit = on_map_edit();
             if (pnode && map_edit)
             {
@@ -385,7 +385,7 @@ on_map_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case DOCUMENTMAP_MOUSECLICKED:
         {
-            eu_tabpage *pnode = on_tabpage_focus_at();
+            eu_tabpage *pnode = on_tabpage_focused();
             eu_tabpage *map_edit = on_map_edit();
             if (pnode && map_edit)
             {
@@ -401,7 +401,7 @@ on_map_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case DOCUMENTMAP_MOUSEWHEEL:
         {
-            eu_tabpage *pnode = on_tabpage_focus_at();
+            eu_tabpage *pnode = on_tabpage_focused();
             if (pnode)
             {
                 on_sic_mousewheel(pnode, wParam, lParam);
@@ -477,7 +477,7 @@ on_map_control_callback(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             GetClientRect(hwnd, &rc);
             on_map_rect(&rc, &rc_close);
-            if (PtInRect(&rc_close, point) && (p = on_tabpage_focus_at()))
+            if (PtInRect(&rc_close, point) && (p = on_tabpage_focused()))
             {
                 p->map_show = false;
                 on_proc_redraw(NULL);
@@ -535,7 +535,8 @@ void
 on_map_size(const eu_tabpage *pnode, const int flags)
 {
     eu_tabpage *pmap = on_map_edit();
-    if (pmap)
+    const HWND htab = on_tabpage_hwnd(pnode);
+    if (pmap && htab)
     {
         RECT rc = {0};
         HDWP hdwp = NULL;
@@ -549,7 +550,7 @@ on_map_size(const eu_tabpage *pnode, const int flags)
                 {
                     eu_setpos_window(g_splitter_minmap, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                     eu_setpos_window(pmap->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                    eu_setpos_window(hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    eu_setpos_window(hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_HIDEWINDOW);
                     eu_setpos_window(hwnd_static_control, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                 }
                 else
@@ -557,13 +558,13 @@ on_map_size(const eu_tabpage *pnode, const int flags)
                     hdwp = BeginDeferWindowPos(4);
                     DeferWindowPos(hdwp, g_splitter_minmap, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                     DeferWindowPos(hdwp, pmap->hwnd_sc, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                    DeferWindowPos(hdwp, hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                    DeferWindowPos(hdwp, hwnd_document_static, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_HIDEWINDOW);
                     DeferWindowPos(hdwp, hwnd_static_control, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                     EndDeferWindowPos(hdwp);
                 }
                 if (on_dark_enable() || !child)
                 {
-                    UpdateWindowEx(g_tabpages);
+                    UpdateWindowEx(htab);
                 }
             }
         }

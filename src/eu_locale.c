@@ -380,7 +380,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     }
     else
     {
-        on_statusbar_size(NULL, NULL);
+        on_statusbar_size(NULL, false);
         if (on_dark_enable())
         {
             SendMessage(g_statusbar, WM_THEMECHANGED, 0, 0);

@@ -79,7 +79,7 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
     rc.bottom = hexview->height_char;
     ExtTextOut(mem_hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
     // 因为加上了2辅助行
-    if ((hexview->vscroll_pos + line_number + 2) < hexview->totallines)
+    if (hexview && hexview->pbase && (hexview->vscroll_pos + line_number + 2) < hexview->totallines)
     {
         NMHVDISPINFO dispinfo = {0};
         TCHAR buffer[32];
@@ -87,7 +87,7 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
         size_t select_start, select_end;
         size_t i, number_items;
         COLORREF clr_bk;
-
+        uint8_t *ptext = NULL;
         // address column
         number_items = (hexview->vscroll_pos + line_number) * 16;
         dispinfo.item.mask = HVIF_ADDRESS;
@@ -105,7 +105,6 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
         select_end = max(hexview->select_start, hexview->select_end);
         for (i = number_items; i <= number_items + 15 && i < hexview->total_items; ++i)
         {
-
             dispinfo.item.mask = HVIF_BYTE;
             dispinfo.item.state = 0;
             dispinfo.item.number_items = i;
@@ -137,7 +136,7 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
                 SetTextColor(mem_hdc, hexview->clr_text);
             }
             // 绘制16进制值
-            uint8_t *ptext = (uint8_t *)(hexview->pbase + i);
+            ptext = (uint8_t *)(hexview->pbase + i);
             num = hexview_is_utf8(ptext, i%16);
             if (hexview->hex_ascii)
             {
@@ -197,68 +196,74 @@ hexview_draw_line(HWND hwnd, HDC mem_hdc, PHEXVIEW hexview, int line_number)
 static void
 hexview_paint(HWND hwnd, HDC hdc, PHEXVIEW hexview)
 {
-    HDC mem_hdc;
-    HBITMAP hbm_mem;
-    HANDLE hold;
-    HANDLE hold_font;
-    COLORREF clr_bk;
-    int line_number;
-    int add_line = 0;
     RECT rect = {0};
-    UNREFERENCED_PARAMETER(hwnd);
-    mem_hdc = CreateCompatibleDC(hdc);
-    hbm_mem = CreateCompatibleBitmap(hdc, hexview->width_view, hexview->height_char);
-
-    hold = SelectObject(mem_hdc, hbm_mem);
-    hold_font = SelectObject(mem_hdc, hexview->hfont);
-    clr_bk = SetBkColor(mem_hdc, hexview->clr_bg_text);
-    if (hexview->total_items > 0)
+    eu_tabpage *p = (eu_tabpage *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    if (p)
     {
-        SetTextColor(mem_hdc, hexview->clr_text);
-        rect.right = hexview->width_view;
-        rect.bottom = hexview->height_char;
-        ExtTextOut(mem_hdc, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL);
-        if (hexview->ex_style & HVS_ADDRESS64)
+        HDC mem_hdc;
+        HBITMAP hbm_mem;
+        HANDLE hold;
+        HANDLE hold_font = NULL;
+        COLORREF clr_bk = 0;
+        int line_number = 0;
+        int add_line = 0;
+        if (on_sci_view_sync())
         {
-            if (hexview->hex_ascii)
+            on_sci_scroll(p);
+        }
+        mem_hdc = CreateCompatibleDC(hdc);
+        hbm_mem = CreateCompatibleBitmap(hdc, hexview->width_view, hexview->height_char);
+        hold = SelectObject(mem_hdc, hbm_mem);
+        hold_font = SelectObject(mem_hdc, hexview->hfont);
+        clr_bk = SetBkColor(mem_hdc, hexview->clr_bg_text);
+        if (hexview->total_items > 0)
+        {
+            SetTextColor(mem_hdc, hexview->clr_text);
+            rect.right = hexview->width_view;
+            rect.bottom = hexview->height_char;
+            ExtTextOut(mem_hdc, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL);
+            if (hexview->ex_style & HVS_ADDRESS64)
             {
-                TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST64LINE2, (int) _tcslen(HEXEDIT_MODE_FIRST64LINE2));
+                if (hexview->hex_ascii)
+                {
+                    TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST64LINE2, (int) _tcslen(HEXEDIT_MODE_FIRST64LINE2));
+                }
+                else
+                {
+                    TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST64LINE1, (int) _tcslen(HEXEDIT_MODE_FIRST64LINE1));
+                }
+                BitBlt(hdc, 0, 0, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
+                TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_SECOND64LINE, (int) _tcslen(HEXEDIT_MODE_SECOND64LINE));
+                BitBlt(hdc, 0, hexview->height_char, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
             }
             else
             {
-                TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST64LINE1, (int) _tcslen(HEXEDIT_MODE_FIRST64LINE1));
+                if (hexview->hex_ascii)
+                {
+                    TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST32LINE2, (int) _tcslen(HEXEDIT_MODE_FIRST32LINE2));
+                }
+                else
+                {
+                    TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST32LINE1, (int) _tcslen(HEXEDIT_MODE_FIRST32LINE1));
+                }
+                BitBlt(hdc, 0, 0, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
+                TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_SECOND32LINE, (int) _tcslen(HEXEDIT_MODE_SECOND32LINE));
+                BitBlt(hdc, 0, hexview->height_char, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
             }
-            BitBlt(hdc, 0, 0, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
-            TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_SECOND64LINE, (int) _tcslen(HEXEDIT_MODE_SECOND64LINE));
-            BitBlt(hdc, 0, hexview->height_char, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
+            add_line = 2;
         }
-        else
+        for (line_number = 0; line_number <= hexview->visiblelines; line_number++)
         {
-            if (hexview->hex_ascii)
-            {
-                TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST32LINE2, (int) _tcslen(HEXEDIT_MODE_FIRST32LINE2));
-            }
-            else
-            {
-                TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_FIRST32LINE1, (int) _tcslen(HEXEDIT_MODE_FIRST32LINE1));
-            }
-            BitBlt(hdc, 0, 0, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
-            TextOut(mem_hdc, 0, 0, HEXEDIT_MODE_SECOND32LINE, (int) _tcslen(HEXEDIT_MODE_SECOND32LINE));
-            BitBlt(hdc, 0, hexview->height_char, hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
+        
+            hexview_draw_line(hwnd, mem_hdc, hexview, line_number);
+            BitBlt(hdc, 0, (add_line * hexview->height_char) + (hexview->height_char * line_number), hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
         }
-        add_line = 2;
+        SetBkColor(mem_hdc, clr_bk);
+        SelectObject(mem_hdc, hold_font);
+        SelectObject(mem_hdc, hold);
+        DeleteObject(hbm_mem);
+        DeleteDC(mem_hdc);
     }
-    for (line_number = 0; line_number <= hexview->visiblelines; line_number++)
-    {
-
-        hexview_draw_line(hwnd, mem_hdc, hexview, line_number);
-        BitBlt(hdc, 0, (add_line * hexview->height_char) + (hexview->height_char * line_number), hexview->width_view, hexview->height_char, mem_hdc, 0, 0, SRCCOPY);
-    }
-    SetBkColor(mem_hdc, clr_bk);
-    SelectObject(mem_hdc, hold_font);
-    SelectObject(mem_hdc, hold);
-    DeleteObject(hbm_mem);
-    DeleteDC(mem_hdc);
 }
 
 static bool
@@ -985,14 +990,17 @@ hexview_postion_offset(PHEXVIEW hexview, const size_t position, int *pnum)
 {
     int offset = -1;
     int line_pos = position%16;
-    *pnum = 0;
     sptr_t line_fist = position - line_pos;
-    for (int i = 0; i < 16; ++i)
+    if (hexview && hexview->pbase && pnum)
     {
-        if ((*pnum = hexview_builtin_clz(hexview->pbase[line_fist + i])) > 1 && line_pos >= i && line_pos < i + *pnum)
+        *pnum = 0;
+        for (int i = 0; i < 16; ++i)
         {
-            offset = line_pos - i;
-            break;
+            if ((*pnum = hexview_builtin_clz(hexview->pbase[line_fist + i])) > 1 && line_pos >= i && line_pos < i + *pnum)
+            {
+                offset = line_pos - i;
+                break;
+            }
         }
     }
     return offset;
@@ -1256,6 +1264,10 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             int xpos = GET_X_LPARAM(lParam);
             int ypos = GET_Y_LPARAM(lParam);
+            if (HSLAVE_SHOW && !(pnode->stat_id & TABS_FOUCED))
+            {
+                on_tabpage_active_tab(pnode);
+            }
             if (hexview_number_item(hexview, xpos, ypos))
             {
                 hexview->select_start = hexview->select_end = hexview->number_items;
@@ -1519,6 +1531,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                     hexview->vscroll_pos =
                         min(hexview->vscroll_pos + hexview->visiblelines, max(0, hexview->vscroll_max - hexview->visiblelines + 1));
                     break;
+                case SB_THUMBPOSITION:
                 case SB_THUMBTRACK:
                     hexview->vscroll_pos = hexview_track_pos(hwnd, hexview, SB_VERT);
                     break;
@@ -1554,6 +1567,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case SB_PAGERIGHT:
                     hexview->hscroll_pos = min(hexview->hscroll_pos + 1, max(0, hexview->hscroll_max - hexview->visiblechars + 1));
                     break;
+                case SB_THUMBPOSITION:
                 case SB_THUMBTRACK:
                     hexview->hscroll_pos = (int) hexview_track_pos(hwnd, hexview, SB_HORZ);
                     break;
@@ -1727,7 +1741,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
-                on_toolbar_update_button();
+                on_toolbar_update_button(NULL);
             }
             break;
         }
@@ -1901,8 +1915,8 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
         {
             if (pnode)
             {
-                hexview_destoy(pnode);
                 SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+                hexview_destoy(pnode);
                 eu_logmsg("HEXVIEW WM_DESTROY\n");
             }
             break;
@@ -1913,7 +1927,7 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-static HWND
+HWND
 hexview_create_dlg(HWND parent, LPVOID lparam)
 {
     return CreateWindowEx(0, HEX_CLASS, NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, parent, 0, eu_module_handle(), lparam);
@@ -1947,6 +1961,7 @@ hexview_init(eu_tabpage *pnode)
     if (pnode->hwnd_sc)
     {   // 销毁scintilla窗口与其关联窗口, 复用pnode指针
         hwsc = pnode->hwnd_sc;
+        printf("we on_sci_destroy_control\n");
         on_sci_destroy_control(pnode);
     }
     if (true)
@@ -1957,7 +1972,15 @@ hexview_init(eu_tabpage *pnode)
         pnode->hex_mode = TYPES_HEX;
         hexview_register_class();
     }
-    if (!(pnode->hwnd_sc = hexview_create_dlg(hwnd, pnode)))
+    if (on_proc_thread() == GetCurrentThreadId())
+    {
+        pnode->hwnd_sc = hexview_create_dlg(hwnd, pnode);
+    }
+    else 
+    {
+        pnode->hwnd_sc = (HWND)SendMessage(hwnd, HVM_CREATE_DLG, (sptr_t)pnode, 0);
+    }
+    if (!pnode->hwnd_sc)
     {
         eu_logmsg("hexview_create_dlg failed on %s:%d\n", __FILE__, __LINE__);
         return false;
@@ -1976,7 +1999,6 @@ hexview_init(eu_tabpage *pnode)
         pnode->phex->hex_ascii = true;
     }
     SendMessage(pnode->hwnd_sc, HVM_SETITEMCOUNT, 0, (LPARAM) pnode->bytes_remaining);
-    on_tabpage_selection(pnode, pnode->tab_id);
     SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
     if (pnode->plugin)
     {
@@ -2027,7 +2049,7 @@ hexview_map_write(const uint8_t *pbuf, const size_t buf_len, const TCHAR *dst_pa
     HANDLE hfile = NULL;
     int err = SKYLARK_OK;
     uint8_t *data = NULL;
-    uint64_t block = 0x10000000;  // 每次映射256M
+    uint64_t block = BUFF_256M;  // 每次映射256M
     uint64_t filesize = buf_len;
     uint64_t offset = 0;
     if (!share_open_file(dst_path, false, dw_create, &hfile))
@@ -2203,14 +2225,9 @@ hexview_switch_mode(eu_tabpage *pnode)
     {
         return err;
     }
-    if (on_tabpage_focus_at() != pnode)
-    {
-        on_tabpage_active_tab(pnode);
-    }
-    util_lock(&pnode->busy_id);
     if (!TAB_HEX_MODE(pnode))
     {
-        pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        pnode->tab_id = on_tabpage_get_index(pnode);
         pnode->zoom_level = (pnode->zoom_level == SELECTION_ZOOM_LEVEEL) ? 0 : (int)eu_sci_call(pnode, SCI_GETZOOM, 0, 0);
         eu_logmsg("To hex, nc_pos = %I64d, pnode->zoom_level = %d\n", pnode->nc_pos, pnode->zoom_level);
         if (!pnode->phex)
@@ -2360,7 +2377,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             on_sci_after_file(pnode, true);
             on_search_add_navigate_list(pnode, 0);
         }
-        if ((err = on_tabpage_selection(pnode, pnode->tab_id)) >= 0)
+        if ((err = on_tabpage_selection(pnode)) >= 0)
         {
             if (pnode->nc_pos >= 0)
             {
@@ -2379,15 +2396,16 @@ hexview_switch_mode(eu_tabpage *pnode)
 HEX_ERROR:
     eu_safe_free(pdst);
     search ? ShowWindow(search, SW_HIDE) : (void)0;
-    util_unlock(&pnode->busy_id);
     return err;
 }
 
 void
 hexview_switch_item(eu_tabpage *pnode)
 {
-    if (g_tabpages && pnode)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab)
     {
+        int cur = -1;
         int result = IDOK;
         if ((eu_sci_call(pnode, SCI_CANUNDO, 0, 0) || eu_sci_call(pnode, SCI_CANREDO, 0, 0)) && !_InterlockedCompareExchange(&affected_switch, 1, 0))
         {
@@ -2397,17 +2415,17 @@ hexview_switch_item(eu_tabpage *pnode)
         {
             eu_tabpage *p = NULL;
             cvector_vector_type(int) v = NULL;
-            int num = on_tabpage_sel_number(&v, false);
+            int num = on_tabpage_sel_number(htab, &v, false);
             for (int i = 0; i < num; ++i)
             {
-                eu_tabpage *p = on_tabpage_get_ptr(v[i]);
-                if (p && p != pnode && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
+                p = on_tabpage_get_ptr(htab, v[i]);
+                if (p && !p->busy_id && p->hex_mode == pnode->hex_mode && TAB_NOT_NUL(p) && TAB_NOT_BIN(p))
                 {
                     hexview_switch_mode(p);
                 }
             }
-            hexview_switch_mode(pnode);
             cvector_freep(&v);
+            on_tabpage_select_index(htab, pnode->tab_id);
         }
         else
         {

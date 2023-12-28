@@ -167,10 +167,11 @@ on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool e
                     SendMessage(pnode->hwnd_sc, WM_KEYDOWN, VK_ESCAPE, 0);
                     if (url_has_file(text))
                     {
-                        file_backup bak = {0};
+                        file_backup bak = {-1, -1, 0, -1};
+                        bak.focus = 1;
                         on_config_file_url(text, (int)wcslen(text), &text[4]);
                         wcsncpy(bak.rel_path, text, _countof(bak.rel_path));
-                        on_file_only_open(&bak, true);
+                        on_file_redirect(&bak, 1);
                     }
                     else
                     {

@@ -39,7 +39,8 @@ static HMENU g_menu_type;
 void
 on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
 {
-    if (g_tabpages && pnode)
+    HWND htab = on_tabpage_hwnd(pnode);
+    if (htab)
     {
         if (!only_read)
         {
@@ -62,7 +63,7 @@ on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
                 eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
                 pnode->file_attr &= ~FILE_ATTRIBUTE_READONLY;
                 pnode->file_attr &= ~FILE_READONLY_COLOR;
-                InvalidateRect(g_tabpages, NULL, 0);
+                InvalidateRect(htab, NULL, 0);
             }
         }
         else if (!(pnode->file_attr & FILE_READONLY_COLOR))
@@ -84,7 +85,7 @@ on_statusbar_btn_colour(eu_tabpage *pnode, bool only_read)
             eu_sci_call(pnode, SCI_SETREADONLY, 1, 0);
             pnode->file_attr &= ~FILE_ATTRIBUTE_READONLY;
             pnode->file_attr |= (FILE_ATTRIBUTE_READONLY | FILE_READONLY_COLOR);
-            InvalidateRect(g_tabpages, NULL, 0);
+            InvalidateRect(htab, NULL, 0);
         }
     }
 }
@@ -119,7 +120,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
         if (pnode->is_blank)
         {
             Button_SetText(hrw, wstr);
-            on_toolbar_update_button();
+            on_toolbar_update_button(pnode);
         }
         return 0;
     }
@@ -174,7 +175,7 @@ on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto)
     }
     if (eu_get_config()->m_toolbar != IDB_SIZE_0)
     {
-        on_toolbar_update_button();
+        on_toolbar_update_button(pnode);
     }
     return ret;
 }
@@ -233,7 +234,7 @@ on_statusbar_height(void)
 }
 
 void
-on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
+on_statusbar_size(const RECT *prc, const bool fn_btn)
 {
     HWND hwnd = eu_hwnd_self();
     if (hwnd && g_statusbar)
@@ -250,11 +251,15 @@ on_statusbar_size(const RECT *prc, eu_tabpage *pnode)
             on_statusbar_adjust_btn(0, 0);
             eu_setpos_window(g_statusbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
         }
-        else if (pnode)
+        else if (fn_btn)
         {
-            height = on_statusbar_height();
-            on_statusbar_btn_rw(pnode, true);
-            eu_setpos_window(g_statusbar, HWND_TOP, 0, prc->bottom - height, prc->right - prc->left, height, SWP_FRAMECHANGED);
+            eu_tabpage *pnode = on_tabpage_focused();
+            if (pnode)
+            {
+                height = on_statusbar_height();
+                on_statusbar_btn_rw(pnode, true);
+                eu_setpos_window(g_statusbar, HWND_TOP, 0, prc->bottom - height, prc->right - prc->left, height, SWP_FRAMECHANGED);
+            }
         }
         else
         {
@@ -420,7 +425,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
         {
             if (on_dark_enable())
             {
-                on_statusbar_size(NULL, NULL);
+                on_statusbar_size(NULL, false);
                 on_dark_set_theme(g_statusbar, L"Explorer", NULL);
             }
             else 
@@ -497,27 +502,24 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
         }
         case WM_COMMAND:
         {
-            if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDM_BTN_RW)
+            uint16_t id_menu = LOWORD(wParam);
+            if (!(pnode = on_tabpage_focused()))
             {
-                if ((pnode = on_tabpage_focus_at()) && pnode->hwnd_sc)
-                {
-                    on_statusbar_btn_rw(pnode, false);
-                    // Maybe affect this part, refresh it
-                    on_proc_msg_active(pnode);
-                }
+                break;
+            }
+            if (HIWORD(wParam) == BN_CLICKED && id_menu == IDM_BTN_RW)
+            {
+                on_statusbar_btn_rw(pnode, false);
+                // Maybe affect this part, refresh it
+                on_proc_msg_active(pnode);
                 return 1;
             }
-            uint16_t id_menu = LOWORD(wParam);
             if (id_menu >= IDM_TYPES_0 && id_menu <= IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1)
             {
-                if (on_view_switch_type(id_menu - IDM_TYPES_0 - 1) == 0)
+                if (on_view_switch_type(pnode, id_menu - IDM_TYPES_0 - 1) == 0)
                 {
                     on_statusbar_menu_check(g_menu_type, IDM_TYPES_0, IDM_TYPES_0 + VIEW_FILETYPE_MAXCOUNT-1, id_menu, -1, STATUSBAR_DOC_TYPE);
                 }
-                break;
-            }
-            if (!(pnode = on_tabpage_focus_at()))
-            {
                 break;
             }
             if (id_menu > IDM_UNI_UTF8 && id_menu < IDM_LBREAK_3)
@@ -698,7 +700,7 @@ on_statusbar_file_info(time_t filetime)
         {
             sntprintf(file_time, 100, _T("%d-%d-%d %02d:%02d:%02d"), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
         }
-        sntprintf(s_hp, MAX_PATH, m_hp, TabCtrl_GetItemCount(g_tabpages), *file_time ? file_time : _T("0"));
+        sntprintf(s_hp, MAX_PATH, m_hp, *file_time ? file_time : _T("0"));
         on_statusbar_set_text(g_statusbar, 0, s_hp);
     }
 }
@@ -745,48 +747,44 @@ on_statusbar_update_line(eu_tabpage *pnode)
 void
 on_statusbar_update_filesize(eu_tabpage *pnode)
 {
-    sptr_t nsize = 0;
-    sptr_t line = 0;
-    sptr_t ns_start = 0;
-    sptr_t ns_end = 0;
-    TCHAR file_size[FILESIZE + 1] = {0};
-    if (!(g_statusbar && pnode && eu_get_config()->m_statusbar))
+    if (g_statusbar && eu_get_config()->m_statusbar && pnode)
     {
-        return;
-    }
-    nsize = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
-    ns_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    ns_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-    if (ns_end - ns_start > 0)
-    {
-        sptr_t nfirst = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_start, 0);
-        sptr_t nlast = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_end, 0);
-        line = nlast - nfirst + 1;
-    }
-    else if (nsize >= 0)
-    {
-        line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-    }
-    if (ns_end - ns_start > 0)
-    {
-        LOAD_I18N_RESSTR(IDS_STATUS_LD, s_ld);
-        _sntprintf(file_size, FILESIZE, s_ld, util_select_characters(pnode, ns_start, ns_end), line);
-    }
-    else
-    {
-        LOAD_I18N_RESSTR(TAB_HAS_TXT(pnode) ? IDS_STATUS_LC : IDS_STATUS_HLC, s_lc);
-        if (TAB_HAS_TXT(pnode))
+        sptr_t line = 0;
+        TCHAR file_size[FILESIZE + 1] = {0};
+        sptr_t nsize = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
+        sptr_t ns_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t ns_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if (ns_end - ns_start > 0)
         {
-            _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+            sptr_t nfirst = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_start, 0);
+            sptr_t nlast = eu_sci_call(pnode, SCI_LINEFROMPOSITION, ns_end, 0);
+            line = nlast - nfirst + 1;
+        }
+        else if (nsize >= 0)
+        {
+            line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        }
+        if (ns_end - ns_start > 0)
+        {
+            LOAD_I18N_RESSTR(IDS_STATUS_LD, s_ld);
+            _sntprintf(file_size, FILESIZE, s_ld, util_select_characters(pnode, ns_start, ns_end), line);
         }
         else
         {
-            _sntprintf(file_size, FILESIZE, s_lc, pnode->pmod ? (sptr_t)pnode->raw_size : nsize);   
+            LOAD_I18N_RESSTR(TAB_HAS_TXT(pnode) ? IDS_STATUS_LC : IDS_STATUS_HLC, s_lc);
+            if (TAB_HAS_TXT(pnode))
+            {
+                _sntprintf(file_size, FILESIZE, s_lc, nsize, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
+            }
+            else
+            {
+                _sntprintf(file_size, FILESIZE, s_lc, pnode->pmod ? (sptr_t)pnode->raw_size : nsize);   
+            }
         }
-    }
-    if (*file_size)
-    {
-        on_statusbar_set_text(g_statusbar, STATUSBAR_DOC_SIZE, file_size);
+        if (*file_size)
+        {
+            on_statusbar_set_text(g_statusbar, STATUSBAR_DOC_SIZE, file_size);
+        }
     }
 }
 
@@ -962,20 +960,16 @@ on_statusbar_create_filetype_menu(void)
 }
 
 void
-on_statusbar_update(eu_tabpage *psrc)
+on_statusbar_update(eu_tabpage *pnode)
 {
-    eu_tabpage *pnode = psrc;
-    if (g_statusbar && eu_get_config()->m_statusbar)
+    if (g_statusbar && eu_get_config()->m_statusbar && (pnode || (pnode = on_tabpage_focused())) && pnode->hwnd_sc)
     {
-        if ((pnode || (pnode = on_tabpage_focus_at())) && pnode->hwnd_sc)
-        {
-            on_statusbar_update_fileinfo(pnode, NULL);
-            on_statusbar_update_line(pnode);
-            on_statusbar_update_filesize(pnode);
-            on_statusbar_update_eol(pnode, -1);
-            on_statusbar_update_filetype_menu(pnode);
-            on_statusbar_update_coding(pnode);
-        }
+        on_statusbar_update_fileinfo(pnode, NULL);
+        on_statusbar_update_line(pnode);
+        on_statusbar_update_filesize(pnode);
+        on_statusbar_update_eol(pnode, -1);
+        on_statusbar_update_filetype_menu(pnode);
+        on_statusbar_update_coding(pnode);
     }
 }
 

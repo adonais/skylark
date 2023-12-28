@@ -41,8 +41,10 @@
 #define NP_FILE_NOT_FOUND              (NPERR_BASE + 11)
 #define NP_NO_DATA                     (NPERR_BASE + 12)
 #define NP_STREAM_NOT_SEEKABLE         (NPERR_BASE + 13)
+
 #define NPP_DOC_MODIFY                 (WM_USER+30000)
 #define NPP_DOC_STATUS                 (WM_USER+30001)
+
 #define NPP_EXPORT                     __declspec(dllexport)
 
 /*
@@ -90,7 +92,8 @@ typedef enum
     NV_THEME_CHANGE,
     NV_PATH_CHANGE,
     NV_OBJETCT,
-    NV_ATTRIB_CHANGE
+    NV_ATTRIB_CHANGE,
+    NV_HAS_SCROLL
 } npp_variable;
 
 typedef enum
@@ -301,6 +304,8 @@ typedef wchar_t*  (*npn_utf8_utf16_ptr)(const char *utf8, size_t *out_len);
 typedef wchar_t*  (*npn_wstr_replace_ptr)(wchar_t* in, size_t in_size, const wchar_t* pattern, const wchar_t* by);
 typedef HANDLE    (*npn_new_process_ptr)(const wchar_t* wcmd, const wchar_t* param, const wchar_t* pcd, int flags, uint32_t *o);
 typedef npn_theme (*npn_theme_ptr)(void);
+typedef HWND      (*npn_tabpage_hwnd)(void *p);
+typedef void*     (*npn_tabpage_from_handle)(void *hwnd_sc);
 
 static bool
 npn_client_rect(HWND hwnd, npn_rect *prect)

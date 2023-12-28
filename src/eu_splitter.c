@@ -316,7 +316,7 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL && pnode->sym_show)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_symtree)) != NULL && pnode->sym_show)
             {
                 RECT r;
                 HWND parent = GetParent(hwnd);
@@ -338,7 +338,7 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
-            if ((pnode = on_tabpage_focus_at()) && pnode->sym_show)
+            if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_symtree)) && pnode->sym_show)
             {
                 RECT rc_tab;
                 RECT rect_tree;
@@ -381,7 +381,7 @@ on_splitter_callback_symbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             if ((wParam & MK_LBUTTON) == MK_LBUTTON && GetCapture() == hwnd)
             {
-                if ((pnode = on_tabpage_focus_at()) != NULL && pnode->sym_show)
+                if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_symtree)) != NULL && pnode->sym_show)
                 {
                     RECT r;
                     HWND parent = GetParent(hwnd);
@@ -428,7 +428,7 @@ on_splitter_callback_minmap(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             RECT r;
             HWND parent = GetParent(hwnd);
             HDC hdc = GetWindowDC(parent);
-            if ((pnode = on_tabpage_focus_at()) != NULL && pnode->map_show)
+            if ((pnode = on_tabpage_focused()) != NULL && pnode->map_show)
             {
                 cx = pnode->rect_map.left +  on_splitter_tree_line();
                 HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
@@ -447,7 +447,7 @@ on_splitter_callback_minmap(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONUP:
         {
             ReleaseCapture();
-            if ((pnode = on_tabpage_focus_at()) && pnode->map_show)
+            if ((pnode = on_tabpage_focused()) && pnode->map_show)
             {
                 eu_get_config()->document_map_width = pnode->rect_map.right - cx - SPLIT_WIDTH / 2;
                 if (eu_get_config()->document_map_width < DOCUMENTMAP_WIDTH_MIN)
@@ -465,7 +465,7 @@ on_splitter_callback_minmap(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 RECT r;
                 HWND parent = GetParent(hwnd);
                 HDC hdc = GetWindowDC(parent);
-                if ((pnode = on_tabpage_focus_at()) != NULL && pnode->map_show)
+                if ((pnode = on_tabpage_focused()) != NULL && pnode->map_show)
                 {
                     HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
                     HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
@@ -508,7 +508,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONDOWN:
         {
             parent = GetParent(hwnd);
-            pnode = on_tabpage_focus_at();
+            pnode = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
             cy = on_splitter_absolute_height(pnode->rect_sc.bottom);
             HDC hdc = GetWindowDC(parent);
             HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
@@ -525,7 +525,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONUP:
         {
             parent = GetParent(hwnd);
-            pnode = on_tabpage_focus_at();
+            pnode = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
             HDC hdc = GetWindowDC(parent);
             HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
             HPEN hold_pen = (HPEN)SelectObject(hdc, hpen);
@@ -552,7 +552,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if ((wParam & MK_LBUTTON) == MK_LBUTTON && GetCapture() == hwnd)
             {
                 parent = GetParent(hwnd);
-                pnode = on_tabpage_focus_at();
+                pnode = on_tabpage_from_handle(hwnd, on_tabpage_resultctl);
                 HDC hdc = GetWindowDC(parent);
                 HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
                 HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
@@ -591,7 +591,7 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONDOWN:
         {
             HWND parent = GetParent(hwnd);
-            pnode = on_tabpage_focus_at();
+            pnode = on_tabpage_from_handle(hwnd, on_tabpage_qrtable);
             y = on_splitter_absolute_height(pnode->rect_result.bottom);
             HDC hdc = GetWindowDC(parent);
             HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
@@ -608,7 +608,7 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONUP:
         {
             HWND parent = GetParent(hwnd);
-            pnode = on_tabpage_focus_at();
+            pnode = on_tabpage_from_handle(hwnd, on_tabpage_qrtable);
             HDC hdc = GetWindowDC(parent);
             HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
             HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
@@ -632,7 +632,7 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if ((wParam & MK_LBUTTON) == MK_LBUTTON && GetCapture() == hwnd)
             {
                 HWND parent = GetParent(hwnd);
-                pnode = on_tabpage_focus_at();
+                pnode = on_tabpage_from_handle(hwnd, on_tabpage_qrtable);
                 HDC hdc = GetWindowDC(parent);
                 HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
                 HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));

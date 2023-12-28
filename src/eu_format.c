@@ -530,87 +530,90 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
 void
 on_format_clang_file(eu_tabpage *p, const bool whole)
 {
-    cvector_vector_type(int) v = NULL;
-    UNREFERENCED_PARAMETER(p);
-    if ((on_tabpage_sel_number(&v, false)) > 0)
+    HWND htab = on_tabpage_hwnd(p);
+    if (htab)
     {
-        int count = eu_int_cast(cvector_size(v));
-        for (int i = 0; i < count; ++i)
+        cvector_vector_type(int) v = NULL;
+        if ((on_tabpage_sel_number(htab, &v, false)) > 0)
         {
-            char *out = NULL;
-            char *text = NULL;
-            char *filename = NULL;
-            eu_tabpage *pnode = on_tabpage_get_ptr(v[i]);
-            do
+            int count = eu_int_cast(cvector_size(v));
+            for (int i = 0; i < count; ++i)
             {
-                size_t text_len = 0;
-                if (!pnode || !pnode->doc_ptr || TAB_HEX_MODE(pnode) || pnode->plugin)
+                char *out = NULL;
+                char *text = NULL;
+                char *filename = NULL;
+                eu_tabpage *pnode = on_tabpage_get_ptr(htab, v[i]);
+                do
                 {
-                    break;
-                }
-                if (!(pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
-                    pnode->doc_ptr->doc_type == DOCTYPE_CS ||
-                    pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
-                    pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
-                    pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
-                    pnode->doc_ptr->doc_type == DOCTYPE_JSON))
-                {
-                    break;
-                }
-                if (!(filename = on_format_append_ext(pnode)))
-                {
-                    break;
-                }
-                if (whole)
-                {
-                    if (!(text = util_strdup_content(pnode, &text_len)))
+                    size_t text_len = 0;
+                    if (!pnode || !pnode->doc_ptr || TAB_HEX_MODE(pnode) || pnode->plugin)
                     {
                         break;
                     }
-                }
-                else if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
-                {
-                    MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                    break;
-                }
-                else if (!(text = util_strdup_select(pnode, &text_len, 0)))
-                {
-                    break;
-                }
-                if (text_len > FORMAT_MAX_LEN)
-                {
-                    MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-                    break;
-                }
-                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-                if (on_format_init_dll(filename, text, whole ? text_len + 1 : text_len, &out) && strcmp(text, out))
-                {
+                    if (!(pnode->doc_ptr->doc_type == DOCTYPE_CPP ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_CS ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_VERILOG ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVA ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT ||
+                        pnode->doc_ptr->doc_type == DOCTYPE_JSON))
+                    {
+                        break;
+                    }
+                    if (!(filename = on_format_append_ext(pnode)))
+                    {
+                        break;
+                    }
                     if (whole)
                     {
-                        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                        eu_sci_call(pnode, SCI_ADDTEXT, strlen(out), (sptr_t)out);
+                        if (!(text = util_strdup_content(pnode, &text_len)))
+                        {
+                            break;
+                        }
                     }
-                    else
+                    else if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
                     {
-                        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)out);
+                        MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                        break;
                     }
-                    if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                    else if (!(text = util_strdup_select(pnode, &text_len, 0)))
                     {
-                        on_symtree_json(pnode);
+                        break;
                     }
-                    else
+                    if (text_len > FORMAT_MAX_LEN)
                     {
-                        on_symlist_reqular(pnode);
+                        MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                        break;
                     }
-                }
-                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-            } while(0);
-            eu_safe_free(text);
-            eu_safe_free(filename);
-            eu_safe_free(out);
+                    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                    if (on_format_init_dll(filename, text, whole ? text_len + 1 : text_len, &out) && strcmp(text, out))
+                    {
+                        if (whole)
+                        {
+                            eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                            eu_sci_call(pnode, SCI_ADDTEXT, strlen(out), (sptr_t)out);
+                        }
+                        else
+                        {
+                            eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)out);
+                        }
+                        if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
+                        {
+                            on_symtree_json(pnode);
+                        }
+                        else
+                        {
+                            on_symlist_reqular(pnode);
+                        }
+                    }
+                    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                } while(0);
+                eu_safe_free(text);
+                eu_safe_free(filename);
+                eu_safe_free(out);
+            }
         }
+        cvector_freep(&v);
     }
-    cvector_freep(&v);
 }
 
 void

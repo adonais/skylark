@@ -110,11 +110,13 @@
 #endif
 
 #define BUFF_32K 0x8000                // 32K
-#define BUFF_64K 0x10000
+#define BUFF_64K 0x10000               // 64k
 #define BUFF_8M 0x800000               // 8M
+#define BUFF_16M 0x1000000             // 16M
 #define BUFF_32M 0x2000000             // 32M
 #define BUFF_128M 0x8000000            // 128M
 #define BUFF_200M 0xc800000
+#define BUFF_256M 0x10000000
 
 #ifndef WM_COPYGLOBALDATA
 #define WM_COPYGLOBALDATA (0x0049)
@@ -142,6 +144,7 @@
 #define HVM_GOPOS                 (WM_USER + 108)
 #define HVM_GETHEXADDR            (WM_USER + 109)
 #define HVM_SETLINECOUNT          (WM_USER + 110)
+#define HVM_CREATE_DLG            (WM_USER + 111)
 #define HVN_GETDISPINFO           (WMN_FIRST - 0)
 #define HVN_ITEMCHANGING          (WMN_FIRST - 1)
 #define WM_BTN_PRESS              (WM_USER + 201)
@@ -163,6 +166,7 @@
 #define WM_UPCHECK_STATUS         (WM_USER+10011)
 // User clip message
 #define WM_CLEAN_CHAIN            (WM_USER+10020)
+#define WM_SCI_LEXER              (WM_USER+10021)
 
 #define WM_BACKUP_THEME           (WM_USER+10030)
 #define WM_BACKUP_CONFIG          (WM_USER+10031)
@@ -282,6 +286,7 @@ enum
     SKYLARK_NOT_OPENED    = -2,
     SKYLARK_OPENED        = -1,
     SKYLARK_OK            = 0,
+    SKYLARK_ERROR         = 1,
     SKYLARK_SQL_END       = 200
 };
 
@@ -430,10 +435,12 @@ typedef struct _mstab_set
 {
     bool vertical;
     bool horizontal;
-    bool slave_focus;
-    bool show;
+    bool s_copy;
+    bool main_show;
+    bool slave_show;
     int  main_size;
     int  slave_size;
+    intptr_t reserved;
     intptr_t hmain;
     intptr_t hslave;
 }mstab_set;
@@ -499,8 +506,10 @@ struct eu_config
     int m_tab_active;
     int m_quality;
     int m_render;
-    int  m_upfile;
-    int  m_up_notify;
+    int m_upfile;
+    int m_up_notify;
+    int m_doc_restrict;
+
     bool m_light_str;
     bool m_write_copy;
     bool m_session;
@@ -671,6 +680,9 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
+EU_EXT_CLASS void eu_sci_scroll(void *p);
+EU_EXT_CLASS HWND eu_tabpage_hwnd(void *p);
+EU_EXT_CLASS void *eu_tabpage_from_handle(void *hwnd_sc);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);
@@ -753,19 +765,19 @@ EU_EXT_CLASS int eu_reg_dir_popup_menu(void);
 EU_EXT_CLASS bool eu_hook_exception(void);
 
 // for eu_share.c
-EU_EXT_CLASS void share_close_lang(void);
-EU_EXT_CLASS LPVOID share_map(HANDLE hmap, size_t bytes, uint32_t dw_access);
-EU_EXT_CLASS unsigned share_send_msg(void *param);
-EU_EXT_CLASS HANDLE share_load_lang(void);
-EU_EXT_CLASS HANDLE share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name);
-EU_EXT_CLASS void share_unmap(LPVOID memory);
-EU_EXT_CLASS void share_close(HANDLE handle);
-EU_EXT_CLASS HANDLE share_open(uint32_t dw_access, LPCTSTR name);
 EU_EXT_CLASS bool share_envent_create(void);
+EU_EXT_CLASS void share_close_lang(void);
+EU_EXT_CLASS void share_send_msg(void *param, const size_t len);
+EU_EXT_CLASS void share_close(HANDLE handle);
 EU_EXT_CLASS void share_envent_set(const bool signaled);
 EU_EXT_CLASS void share_envent_close(void);
 EU_EXT_CLASS void share_envent_release(void);
+EU_EXT_CLASS void share_unmap(LPVOID memory);
+EU_EXT_CLASS LPVOID share_map(HANDLE hmap, size_t bytes, uint32_t dw_access);
+EU_EXT_CLASS HANDLE share_open(uint32_t dw_access, LPCTSTR name);
 EU_EXT_CLASS HANDLE share_envent_open_file_sem(void);
+EU_EXT_CLASS HANDLE share_load_lang(void);
+EU_EXT_CLASS HANDLE share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name);
 
 // for eu_search.c
 EU_EXT_CLASS HWND eu_get_search_hwnd(void);

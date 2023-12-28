@@ -101,10 +101,12 @@ typedef struct _mstab_set
 {
     bool vertical;
     bool horizontal;
-    bool slave_focus;
-    bool show;
+    bool s_copy;
+    bool main_show;
+    bool slave_show;
     int  main_size;
     int  slave_size;
+    intptr_t reserved;
     intptr_t hmain;
     intptr_t hslave;
 }mstab_set;
@@ -159,8 +161,10 @@ struct eu_config
     int m_tab_active;
     int m_quality;
     int m_render;
-    int  m_upfile;
-    int  m_up_notify;
+    int m_upfile;
+    int m_up_notify;
+    int m_doc_restrict;
+
     bool m_light_str;
     bool m_write_copy;
     bool m_session;

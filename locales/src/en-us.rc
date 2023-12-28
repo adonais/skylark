@@ -330,6 +330,10 @@ BEGIN
         POPUP "Other Options For Tabbar"
         BEGIN
             MENUITEM "Vertical Split Tabbar",                          IDM_VIEW_VERTICAL_SPLIT
+            MENUITEM "Clone To Other View",                            IDM_VIEW_OTHER_COPY
+            MENUITEM "Move To Other View",                             IDM_VIEW_OTHER_MOVE
+            MENUITEM MF_SEPARATOR
+            MENUITEM "Clone Selected Tabs When Splitting",             IDM_VIEW_SPLIT_COPY
             MENUITEM "Main/Slave View Vertical Synchronization",       IDM_VIEW_VERTICAL_SYNC
             MENUITEM "Master/Slave View Horizontal Synchronization",   IDM_VIEW_HORIZONTAL_SYNC
             MENUITEM MF_SEPARATOR
@@ -496,6 +500,9 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Save",                                              IDM_TABPAGE_SAVE
         MENUITEM "Lock(no drag and drop)",                             IDM_TABPAGE_LOCKED
+        MENUITEM SEPARATOR
+        MENUITEM "Clone To Other View",                                IDM_VIEW_OTHER_COPY
+        MENUITEM "Move To Other View",                                 IDM_VIEW_OTHER_MOVE
         MENUITEM SEPARATOR
         MENUITEM "Send To Other Editor",                               IDM_EDIT_OTHER_EDITOR
         MENUITEM "Send To External App For Comparison",                IDM_EDIT_OTHER_BCOMPARE
@@ -1227,7 +1234,7 @@ STRINGTABLE DISCARDABLE
 {
     IDS_BUTTON_R                     "R/0"
     IDS_BUTTON_W                     "R/W"
-    IDS_STATUS_F1                    "%d File(s), Timestamp: %s"
+    IDS_STATUS_F1                    "File Timestamp: %s"
     IDS_STATUS_XY                    "Cursor (Line %zu, Column %zu)"
     IDS_STATUS_LC                    "File: %zd/%zd (Byte)"
     IDS_STATUS_LD                    "Select: %zd/%zu (Tchars/Line)"

@@ -380,13 +380,15 @@ on_changes_click_sci(eu_tabpage *p)
 void
 on_changes_window(HWND hwnd)
 {
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    eu_tabpage *p = NULL;
+    const HWND htab = HMAIN_GET;
+    for (int index = 0, count = TabCtrl_GetItemCount(htab); index < count; ++index)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
+        p = on_tabpage_get_ptr(htab, index);
         if (p && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
         {
-            on_changes_click_sci(on_tabpage_focus_at());
-            on_tabpage_selection(p, index);
+            on_changes_click_sci(on_tabpage_focused());
+            on_tabpage_selection(p);
             if (_taccess(p->pathfile, 0) == -1)
             {
                 if (!on_changes_delete_event(p))

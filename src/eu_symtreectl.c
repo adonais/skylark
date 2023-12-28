@@ -232,7 +232,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                 char err_desc[512] = { 0 };
                 LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR4, err4);
                 on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                on_result_append_text(err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                on_result_append_text(pnode, err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
                 break;
             }
             oci_sub->fnOCIDefineByPos(stmthpp,
@@ -260,7 +260,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                 char err_desc[512] = { 0 };
                 LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR4, err4);
                 on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                on_result_append_text(err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                on_result_append_text(pnode, err4, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
                 break;
             }
             TreeView_DeleteAllItems(pnode->hwnd_symtree);
@@ -303,7 +303,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                     char err_desc[512] = { 0 };
                     LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR5, err5);
                     on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                    on_result_append_text(err5, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                    on_result_append_text(pnode, err5, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
                     break;
                 }
                 oci_sub->fnOCIDefineByPos(stmthpp2,
@@ -376,7 +376,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                     char err_desc[512] = { 0 };
                     LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR6, err6);
                     on_table_oci_error(pnode, this_oci->errhpp, &err_code, err_desc, _countof(err_desc) - 1);
-                    on_result_append_text(err6, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
+                    on_result_append_text(pnode, err6, err_code, util_make_u16(err_desc, utf_str, MAX_BUFFER));
                     break;
                 }
                 do
@@ -429,7 +429,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                 if (errmsg)
                 {
                     LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR7, errbox);
-                    on_result_append_text(errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                    on_result_append_text(pnode, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
                     eu_sqlite3_free(errmsg);
                 }
                 break;
@@ -458,7 +458,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                     if (errmsg)
                     {
                         LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR8, errbox);
-                        on_result_append_text(errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                        on_result_append_text(pnode, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
                         eu_sqlite3_free(errmsg);
                     }
                     eu_sqlite3_free_table(result);
@@ -511,7 +511,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                 if (errmsg)
                 {
                     LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR7, errbox);
-                    on_result_append_text(errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                    on_result_append_text(pnode, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
                 }
                 err = 1;
                 pq_sub->fnPQclear(res);
@@ -554,7 +554,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
                     if (errmsg)
                     {
                         LOAD_I18N_RESSTR(IDC_MSG_SYMTREE_ERR8, errbox);
-                        on_result_append_text(errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
+                        on_result_append_text(pnode, errbox, util_make_u16(errmsg, utf_str, MAX_BUFFER));
                     }
                     err = 1;
                     pq_sub->fnPQclear(res2);
@@ -616,7 +616,7 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
         else
         {
             LOAD_I18N_RESSTR(IDC_MSG_QUERY_ERR26, msg_str);
-            on_result_append_text(msg_str, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, MAX_BUFFER));
+            on_result_append_text(pnode, msg_str, util_make_u16(pnode->db_ptr->config.dbtype, utf_str, MAX_BUFFER));
             err = 1;
             break;
         }
@@ -1290,7 +1290,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_COMMAND:
         {
-            if (!(pnode = on_tabpage_focus_at()))
+            if (!(pnode = on_tabpage_from_handle(hwnd, on_tabpage_symtree)))
             {
                 break;
             }
@@ -1347,7 +1347,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             TVHITTESTINFO tvhti;
             memset(&tvhti, 0, sizeof(tvhti));
             memcpy(&(tvhti.pt), &pt, sizeof(POINT));
-            if (!(pnode = on_tabpage_focus_at()))
+            if (!(pnode = on_tabpage_from_handle(hwnd, on_tabpage_symtree)))
             {
                 break;
             }
@@ -1375,7 +1375,7 @@ symtree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             ClientToScreen(hwnd, &pt);
             if (tvhti.flags & TVHT_ONITEM)
             {
-                if (!(pnode = on_tabpage_focus_at()))
+                if (!(pnode = on_tabpage_from_handle(hwnd, on_tabpage_symtree)))
                 {
                     break;
                 }

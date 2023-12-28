@@ -199,20 +199,15 @@ _tmain(int argc, TCHAR *argv[])
                 if (eu_config_parser_path(argv, argc, &vpath) && (count = cvector_size(vpath)) > 0)
                 {
                     vpath[count - 1].focus = 1;
-                    for (size_t i = 0; i < count; ++i)
-                    {
-                        if (vpath[i].rel_path[0])
-                        {   // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
-                            share_send_msg(&vpath[i]);
-                        }
-                    }
+                    // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
+                    share_send_msg(vpath, count);
                 }
                 cvector_free(vpath);
             }
         }
         else
         {   // 没有参数, 则恢复窗口
-            share_send_msg(NULL);
+            share_send_msg(NULL, 0);
         }
         if (no_remote)
         {

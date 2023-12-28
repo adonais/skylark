@@ -377,14 +377,14 @@
         }                                                      \
     } while (0)
 
-#define cvector_point_for_each(vec_, func_)                    \
+#define cvector_for_each_v2(vec_, func_, param_)               \
     do                                                         \
     {                                                          \
         if ((vec_) && (func_) != NULL)                         \
         {                                                      \
             for (size_t i_ = 0; i_ < cvector_size(vec_); ++i_) \
             {                                                  \
-                func_((&(vec_)[i_]));                          \
+                func_((param_), ((vec_)[i_]));                 \
             }                                                  \
         }                                                      \
     } while (0)

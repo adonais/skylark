@@ -41,13 +41,13 @@ typedef struct _remotefs
     struct list_head node_server;
 }remotefs;
 
-extern struct list_head    list_server ;
+extern struct list_head list_server;
 
+bool on_remote_list_init(void);
 void on_remote_manager(void);
 void on_remotefs_draw_combo(HWND hwnd, const HDC hdc, RECT rc);
 remotefs *on_remote_list_find(const TCHAR *url);
 CURL* on_remote_init_socket(const char *, remotefs *pserver);
-unsigned __stdcall on_remote_load_config(void *);
 
 #ifdef __cplusplus
 }

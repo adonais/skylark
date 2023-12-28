@@ -93,7 +93,7 @@ reqular_thread(void *lp)
 int
 on_symlist_reqular(eu_tabpage *pnode)
 {
-    if (pnode && !pnode->pcre_id)
+    if (pnode && pnode->hwnd_symlist && !pnode->pcre_id)
     {
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, &reqular_thread, pnode, 0, (uint32_t *)&pnode->pcre_id));
     }
@@ -108,7 +108,8 @@ on_symlist_jump_word(eu_tabpage *pnode)
     sptr_t end_pos;
     TCHAR *ptext = NULL;
     char *current_text = NULL;
-    if (!pnode)
+    const HWND htab = on_tabpage_hwnd(pnode);
+    if (!htab)
     {
         return EUE_TAB_NULL;
     }
@@ -125,10 +126,9 @@ on_symlist_jump_word(eu_tabpage *pnode)
         free(current_text);
         return EUE_POINT_NULL;
     }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
+    for (int index = 0, count = TabCtrl_GetItemCount(htab); index < count; ++index)
     {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
+        eu_tabpage *p = on_tabpage_get_ptr(htab, index);
         if (p && p->doc_ptr && p->doc_ptr->doc_type == DOCTYPE_CPP)
         {
             int i = ListBox_FindStringExact(p->hwnd_symlist, -1, ptext);
@@ -136,7 +136,7 @@ on_symlist_jump_word(eu_tabpage *pnode)
             {
                 if (p != pnode)
                 {
-                    on_tabpage_select_index(index);
+                    on_tabpage_select_index(htab, index);
                 }
                 sptr_t line_num = (sptr_t) SendMessage(p->hwnd_symlist, LB_GETITEMDATA, i, 0);
                 on_search_add_navigate_list(p, pos);
@@ -187,7 +187,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (LOWORD(wParam) == IDM_RELOAD_SYMBOLLIST)
             {
                 eu_tabpage *pnode = NULL;
-                if ((pnode = on_tabpage_focus_at()) && pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
+                if ((pnode = on_tabpage_from_handle(hwnd, on_tabpage_symlist)) && pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
                 {
                     pnode->doc_ptr->fn_reload_symlist(pnode);
                 }

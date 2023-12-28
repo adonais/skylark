@@ -1146,6 +1146,8 @@ on_filetree_node_dbclick(void)
     int err = SKYLARK_OK;
     tree_data *tvd = NULL;
     file_backup bak = {0};
+    bak.focus = 1;
+    bak.tab_id = TabCtrl_GetItemCount(HMAIN_GET);
     if (!(hti = on_treebar_get_path(&tvd)) || !tvd || !tvd->filepath)
     {
         return EUE_POINT_NULL;
@@ -1162,19 +1164,13 @@ on_filetree_node_dbclick(void)
     if ((tvd->img_index == IMG_SHORTCUT && url_has_remote(tvd->filepath)) || tvd->server != NULL)
     {
         _tcsncpy(bak.rel_path, tvd->filepath, _countof(bak.rel_path));
-        err = (on_file_open_remote(tvd->server, &bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
     else
     {
         _tcsncpy(bak.rel_path, tvd->filepath, _countof(bak.rel_path));
         eu_wstr_replace(bak.rel_path, _countof(bak.rel_path), _T("/"), _T("\\"));
-        err = (on_file_only_open(&bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
-    if (!err && TabCtrl_GetItemCount(g_tabpages) < 1)
-    {   // 建立一个空白标签页
-        err = on_file_new(NULL);
-    }
-    return err;
+    return on_file_redirect(&bak, 1);
 }
 
 static size_t
@@ -1238,7 +1234,7 @@ on_treebar_download_file(const TCHAR *path, remotefs *pserver, TCHAR *out_path)
 static void
 on_treebar_insert_edit(const TCHAR *ext, const char *str)
 {
-    eu_tabpage *pnode = on_tabpage_focus_at();
+    eu_tabpage *pnode = on_tabpage_focused();
     if (pnode && STR_NOT_NUL(ext) && STR_NOT_NUL(str))
     {
         sptr_t cur_pos = -1;
@@ -1485,34 +1481,6 @@ on_treebar_update_addr(remotefs *pserver)
                 break;
             }
         }
-    }
-}
-
-bool
-on_treebar_variable_initialized(HWND *pd)
-{
-    int i = 60;
-    while (!*pd && i--)
-    {
-        SleepEx(100, false);
-    }
-    return (*pd != NULL);
-}
-
-static unsigned __stdcall
-on_treebar_wait_thread(void *lp)
-{
-    return on_treebar_variable_initialized(&g_filetree);
-}
-
-void
-on_treebar_wait_hwnd(void)
-{
-    HANDLE thread = (HANDLE) _beginthreadex(NULL, 0, on_treebar_wait_thread, NULL, 0, NULL);
-    if (thread)
-    {
-        WaitForSingleObject(thread, INFINITE);
-        CloseHandle(thread);
     }
 }
 
