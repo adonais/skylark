@@ -557,13 +557,15 @@ void lj_snap_replay(jit_State *J, GCtrace *T)
       IRRef refp = snap_ref(sn);
       IRIns *ir = &T->ir[refp];
       if (regsp_reg(ir->r) == RID_SUNK) {
+	uint8_t m;
 	if (J->slot[snap_slot(sn)] != snap_slot(sn)) continue;
 	pass23 = 1;
 	lj_assertJ(ir->o == IR_TNEW || ir->o == IR_TDUP ||
 		   ir->o == IR_CNEW || ir->o == IR_CNEWI,
 		   "sunk parent IR %04d has bad op %d", refp - REF_BIAS, ir->o);
-	if (ir->op1 >= T->nk) snap_pref(J, T, map, nent, seen, ir->op1);
-	if (ir->op2 >= T->nk) snap_pref(J, T, map, nent, seen, ir->op2);
+	m = lj_ir_mode[ir->o];
+	if (irm_op1(m) == IRMref) snap_pref(J, T, map, nent, seen, ir->op1);
+	if (irm_op2(m) == IRMref) snap_pref(J, T, map, nent, seen, ir->op2);
 	if (LJ_HASFFI && ir->o == IR_CNEWI) {
 	  if (LJ_32 && refp+1 < T->nins && (ir+1)->o == IR_HIOP)
 	    snap_pref(J, T, map, nent, seen, (ir+1)->op2);
@@ -591,14 +593,16 @@ void lj_snap_replay(jit_State *J, GCtrace *T)
       IRIns *ir = &T->ir[refp];
       if (regsp_reg(ir->r) == RID_SUNK) {
 	TRef op1, op2;
+	uint8_t m;
 	if (J->slot[snap_slot(sn)] != snap_slot(sn)) {  /* De-dup allocs. */
 	  J->slot[snap_slot(sn)] = J->slot[J->slot[snap_slot(sn)]];
 	  continue;
 	}
 	op1 = ir->op1;
-	if (op1 >= T->nk) op1 = snap_pref(J, T, map, nent, seen, op1);
+	m = lj_ir_mode[ir->o];
+	if (irm_op1(m) == IRMref) op1 = snap_pref(J, T, map, nent, seen, op1);
 	op2 = ir->op2;
-	if (op2 >= T->nk) op2 = snap_pref(J, T, map, nent, seen, op2);
+	if (irm_op2(m) == IRMref) op2 = snap_pref(J, T, map, nent, seen, op2);
 	if (LJ_HASFFI && ir->o == IR_CNEWI) {
 	  if (LJ_32 && refp+1 < T->nins && (ir+1)->o == IR_HIOP) {
 	    lj_needsplit(J);  /* Emit joining HIOP. */
@@ -624,9 +628,25 @@ void lj_snap_replay(jit_State *J, GCtrace *T)
 		if (irr->o == IR_HREFK || irr->o == IR_AREF) {
 		  IRIns *irf = &T->ir[irr->op1];
 		  tmp = emitir(irf->ot, tmp, irf->op2);
+		} else if (irr->o == IR_NEWREF) {
+		  IRRef allocref = tref_ref(tr);
+		  IRRef keyref = tref_ref(key);
+		  IRRef newref_ref = J->chain[IR_NEWREF];
+		  IRIns *newref = &J->cur.ir[newref_ref];
+		  lj_assertJ(irref_isk(keyref),
+			     "sunk store for parent IR %04d with bad key %04d",
+			     refp - REF_BIAS, keyref - REF_BIAS);
+		  if (newref_ref > allocref && newref->op2 == keyref) {
+		    lj_assertJ(newref->op1 == allocref,
+			       "sunk store for parent IR %04d with bad tab %04d",
+			       refp - REF_BIAS, allocref - REF_BIAS);
+		    tmp = newref_ref;
+		    goto skip_newref;
+		  }
 		}
 	      }
 	      tmp = emitir(irr->ot, tmp, key);
+	    skip_newref:
 	      val = snap_pref(J, T, map, nent, seen, irs->op2);
 	      if (val == 0) {
 		IRIns *irc = &T->ir[irs->op2];
