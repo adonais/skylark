@@ -882,7 +882,7 @@ on_tabpage_clone_tab(const HWND htab)
     cvector_vector_type(int) v = NULL;
     eu_tabpage *pnode = on_tabpage_focus_at(htab);
     const int index = on_tabpage_get_index(pnode);
-    const HWND other = (htab == HMAIN_GET ? HSLAVE_GET : HMAIN_GET);
+    const HWND other = (htab == HMAIN_GET) ? (HSLAVE_GET) : (HMAIN_GET);
     if (pnode && index >= 0 && on_tabpage_can_copy(htab, other, &v, true) && (eu_cvector_at(v, index)) >= 0)
     {
         sptr_t pdoc = 0;
@@ -1854,16 +1854,19 @@ bool
 on_tabpage_other_empty(const HWND htab)
 {
     bool empty = true;
-    eu_tabpage *p = NULL;
-    HWND other = (htab == HMAIN_GET) ? (HSLAVE_GET) : (HMAIN_GET);
-    for (int index = 0, count = TabCtrl_GetItemCount(other); index < count; ++index)
+    HWND other = TAB_GET_SUB(htab);
+    if (other)
     {
-        if ((p = on_tabpage_get_ptr(other, index)))
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(other); index < count; ++index)
         {
-            if (!p->is_blank || TAB_NOT_NUL(p) || on_sci_doc_modified(p))
+            if ((p = on_tabpage_get_ptr(other, index)))
             {
-                empty = false;
-                break;
+                if (!p->is_blank || TAB_NOT_NUL(p) || on_sci_doc_modified(p))
+                {
+                    empty = false;
+                    break;
+                }
             }
         }
     }
@@ -2162,6 +2165,27 @@ eu_tabpage *
 on_tabpage_focus_at(const HWND htab)
 {
     return htab ? on_tabpage_get_ptr(htab, TabCtrl_GetCurSel(htab)) : NULL;
+}
+
+eu_tabpage *
+on_tabpage_dup_at(const HWND htab, const TCHAR *path)
+{
+    if (htab && STR_NOT_NUL(path))
+    {
+        eu_tabpage *p = NULL;
+        const HWND other = TAB_GET_SUB(htab);
+        if (other)
+        {
+            for (int i = 0, count = TabCtrl_GetItemCount(other); i < count; ++i)
+            {
+                if ((p = on_tabpage_get_ptr(other, i)) && (!p->is_blank) && _tcscmp(p->pathfile, path) == 0)
+                {
+                    return p;
+                }
+            }
+        }
+    }
+    return NULL;
 }
 
 HWND

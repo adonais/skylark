@@ -170,17 +170,30 @@ on_file_kill_tree(const uint32_t self)
 }
 
 void
-on_file_update_time(eu_tabpage *pnode, time_t m)
+on_file_update_time(eu_tabpage *pnode, const time_t m, const bool saved)
 {
-    if (m)
+    const HWND htab = on_tabpage_hwnd(pnode);
+    if (htab)
     {
-        pnode->st_mtime = m;
-    }
-    else if (pnode->pathfile[0])
-    {
-        struct _stat statbuf;
-        _tstat(pnode->pathfile, &statbuf);
-        pnode->st_mtime = statbuf.st_mtime;
+        eu_tabpage *p = NULL;
+        if (m)
+        {
+            pnode->st_mtime = m;
+        }
+        else if (pnode->pathfile[0])
+        {
+            struct _stat statbuf;
+            _tstat(pnode->pathfile, &statbuf);
+            pnode->st_mtime = statbuf.st_mtime;
+        }
+        if ((p = on_tabpage_dup_at(htab, pnode->pathfile)))
+        {
+            p->st_mtime = pnode->st_mtime;
+            if (saved)
+            {
+                p->fn_modify = false;
+            }
+        }
     }
 }
 
@@ -507,7 +520,7 @@ on_file_new(const HWND htab, eu_tabpage *psrc)
         {
             eu_get_config()->eu_tab.slave_show = true;    
         }
-        on_file_update_time(pnode, time(NULL));
+        on_file_update_time(pnode, time(NULL), false);
         on_sci_after_file(pnode, true);
         if ((pnode->tab_id = on_tabpage_selection(pnode)) >= 0)
         {
@@ -1399,7 +1412,7 @@ on_file_node_init(eu_tabpage **p, file_backup *pbak)
         if (!(*p)->is_blank)
         {
             (*p)->zoom_level = pbak->zoom;
-            on_file_update_time((*p), on_file_max_date(pbak));
+            on_file_update_time((*p), on_file_max_date(pbak), false);
         }
         if ((*p)->extname[0])
         {
@@ -1862,14 +1875,11 @@ FILE_FINAL:
             {
                 *pstatus = 0;
             }
+            on_file_update_time(pnode, 0, true);
         }
         if (eu_exist_file(tmp))
         {
             util_delete_file(tmp);
-        }
-        if (!save_as && !be_cache)
-        {
-            on_file_update_time(pnode, 0);
         }
     }
     return ret;
@@ -2025,7 +2035,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
             _tcsncpy(pnode->pathfile, full_path, MAX_BUFFER);
             // 有可能是远程服务器文件, 清除网址
             pnode->fs_server.networkaddr[0] = 0;
-            on_file_update_time(pnode, 0);
+            on_file_update_time(pnode, 0, true);
             util_set_title(pnode);
             pnode->doc_ptr = on_doc_get_type(pnode->filename);
             on_sci_before_file(pnode, false);
@@ -2099,7 +2109,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
             pnode->st_mtime = 0;
             goto SAVE_FINAL;
         }
-        on_file_update_time(pnode, time(NULL));
+        on_file_update_time(pnode, time(NULL), true);
     }
     else
     {
@@ -2129,7 +2139,6 @@ SAVE_FINAL:
         if (!pnode->pmod)
         {   // 发送SCI_SETSAVEPOINT消息
             pnode->fn_modify = false;
-            on_sci_point_reached(pnode);
             eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
             if (!(pnode->is_blank || save_as))
             {

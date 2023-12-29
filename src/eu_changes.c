@@ -385,7 +385,7 @@ on_changes_window(HWND hwnd)
     for (int index = 0, count = TabCtrl_GetItemCount(htab); index < count; ++index)
     {
         p = on_tabpage_get_ptr(htab, index);
-        if (p && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
+        if (TAB_NOT_CLONE(p) && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
         {
             on_changes_click_sci(on_tabpage_focused());
             on_tabpage_selection(p);

@@ -84,7 +84,7 @@ int on_file_load_plugins(eu_tabpage *pnode, bool route_open);
 int on_file_after_open(eu_tabpage *pnode);
 void on_file_before_open(eu_tabpage *pnode);
 void on_file_active_condition(const HWND htab, const int index);
-void on_file_update_time(eu_tabpage *pnode, time_t m);
+void on_file_update_time(eu_tabpage *pnode, const time_t m, const bool saved);
 void on_file_new_eols(eu_tabpage *pnode, const int new_eol);
 void on_file_new_encoding(eu_tabpage *pnode, const int new_enc);
 void on_file_finish_wait(void);

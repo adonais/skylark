@@ -451,7 +451,7 @@ on_proc_save_remote(eu_tabpage *pnode)
             }
             else
             {
-                on_file_update_time(pnode, time(NULL));
+                on_file_update_time(pnode, time(NULL), true);
             }
             pstream->close(pstream);
             eu_safe_free(pstream);
@@ -533,7 +533,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                 {
                     err = np_plugins_savefile(&pnode->plugin->funcs, &pnode->plugin->npp);
                 }
-                on_file_update_time(pnode, 0);
+                on_file_update_time(pnode, 0, true);
             }
             else if (flags == OPERATE_SAVEAS)
             {
@@ -553,7 +553,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                 {
                     wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
                 }
-                on_file_update_time(pnode, 0);
+                on_file_update_time(pnode, 0, true);
                 util_set_title(pnode);
                 err = np_plugins_setvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_PATH_CHANGE, pnode->pathfile);
             }

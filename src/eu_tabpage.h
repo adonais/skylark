@@ -29,11 +29,13 @@
 #define TABS_MAYBE_RESERVE    (-1)
 #define TABS_MAYBE_EIXT       (-2)
 
-#define TAB_HEX_MODE(p) ((p) && (p->hex_mode == TYPES_HEX))
-#define TAB_NOT_NUL(p) ((p) && (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
-#define TAB_NOT_BIN(p) ((p) && (p->codepage != IDM_OTHER_BIN))
-#define TAB_HAS_PDF(p) ((p) && (p->codepage == IDM_OTHER_PLUGIN))
-#define TAB_HAS_TXT(p) (!TAB_HEX_MODE(p) && !TAB_HAS_PDF(p) && TAB_NOT_BIN(p))
+#define TAB_NOT_CLONE(p) ((p) && !(p->stat_id & TABS_DUPED))
+#define TAB_HEX_MODE(p)  ((p) && (p->hex_mode == TYPES_HEX))
+#define TAB_NOT_NUL(p)   ((p) && (eu_sci_call(p, SCI_GETLENGTH, 0, 0) > 0))
+#define TAB_NOT_BIN(p)   ((p) && (p->codepage != IDM_OTHER_BIN))
+#define TAB_HAS_PDF(p)   ((p) && (p->codepage == IDM_OTHER_PLUGIN))
+#define TAB_HAS_TXT(p)   (!TAB_HEX_MODE(p) && !TAB_HAS_PDF(p) && TAB_NOT_BIN(p))
+#define TAB_GET_SUB(h)   (((h) == HMAIN_GET) ? (HSLAVE_SHOW ? HSLAVE_GET : (NULL)) : (HMAIN_GET))
 
 #define HMAIN_GET                                                   \
    (eu_get_config() ? (HWND)eu_get_config()->eu_tab.hmain : NULL)
@@ -168,6 +170,7 @@ eu_tabpage *on_tabpage_get_ptr(const HWND htab, const int index);
 eu_tabpage *on_tabpage_select_index(const HWND htab, int index);
 eu_tabpage *on_tabpage_focused(void);
 eu_tabpage *on_tabpage_focus_at(const HWND htab);
+eu_tabpage *on_tabpage_dup_at(const HWND htab, const TCHAR *path);
 eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);
 TCHAR *on_tabpage_generator(HWND htab, TCHAR *filename, const int len);
 HWND on_tabpage_sci(const HWND htab);
