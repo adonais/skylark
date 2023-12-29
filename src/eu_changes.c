@@ -381,24 +381,27 @@ void
 on_changes_window(HWND hwnd)
 {
     eu_tabpage *p = NULL;
-    const HWND htab = HMAIN_GET;
-    for (int index = 0, count = TabCtrl_GetItemCount(htab); index < count; ++index)
+    HWND htab[2] = {HMAIN_GET, HSLAVE_SHOW ? HSLAVE_GET : NULL};
+    for (int k = 0; k < 2 && htab[k]; ++k)
     {
-        p = on_tabpage_get_ptr(htab, index);
-        if (TAB_NOT_CLONE(p) && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
+        for (int index = 0, count = TabCtrl_GetItemCount(htab[k]); index < count; ++index)
         {
-            on_changes_click_sci(on_tabpage_focused());
-            on_tabpage_selection(p);
-            if (_taccess(p->pathfile, 0) == -1)
+            p = on_tabpage_get_ptr(htab[k], index);
+            if (TAB_NOT_CLONE(p) && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
             {
-                if (!on_changes_delete_event(p))
+                on_changes_click_sci(on_tabpage_focused());
+                on_tabpage_selection(p);
+                if (_taccess(p->pathfile, 0) == -1)
+                {
+                    if (!on_changes_delete_event(p))
+                    {
+                        break;
+                    }
+                }
+                else if (!on_changes_time_event(p))
                 {
                     break;
                 }
-            }
-            else if (!on_changes_time_event(p))
-            {
-                break;
             }
         }
     }
