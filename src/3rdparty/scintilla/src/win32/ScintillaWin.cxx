@@ -320,6 +320,13 @@ struct HorizontalScrollRange {
 	int documentWidth;
 };
 
+CLIPFORMAT RegisterClipboardType(LPCWSTR lpszFormat) noexcept {
+	// Registered clipboard format values are 0xC000 through 0xFFFF.
+	// RegisterClipboardFormatW returns 32-bit unsigned and CLIPFORMAT is 16-bit
+	// unsigned so choose the low 16-bits with &.
+	return ::RegisterClipboardFormatW(lpszFormat) & 0xFFFF;
+}
+
 }
 
 namespace Scintilla::Internal {
@@ -573,16 +580,12 @@ ScintillaWin::ScintillaWin(HWND hwnd) {
 
 	// There does not seem to be a real standard for indicating that the clipboard
 	// contains a rectangular selection, so copy Developer Studio and Borland Delphi.
-	cfColumnSelect = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("MSDEVColumnSelect")));
-	cfBorlandIDEBlockType = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("Borland IDE Block Type")));
+	cfColumnSelect = RegisterClipboardType(L"MSDEVColumnSelect");
+	cfBorlandIDEBlockType = RegisterClipboardType(L"Borland IDE Block Type");
 
 	// Likewise for line-copy (copies a full line when no text is selected)
-	cfLineSelect = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("MSDEVLineSelect")));
-	cfVSLineTag = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("VisualStudioEditorOperationsLineCutCopyClipboardTag")));
+	cfLineSelect = RegisterClipboardType(L"MSDEVLineSelect");
+	cfVSLineTag = RegisterClipboardType(L"VisualStudioEditorOperationsLineCutCopyClipboardTag");
 	hrOle = E_FAIL;
 
 	wMain = hwnd;
