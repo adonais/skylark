@@ -97,10 +97,13 @@ function eu_conf.loadconf()
         "file_treebar_width = 253\n" ..
         "symbol_list_width = 210\n" ..
         "symbol_tree_width = 210\n" ..
-        "sidebar_width = 320\n" ..
+        "sidebar_width = 210\n" ..
+        "sidebar_tree_width = 210\n" ..
         "document_map_width = 140\n" ..
         "sqlquery_result_edit_height = 80\n" ..
         "sqlquery_result_listview_height = 270\n" ..
+        "sqlquery2_result_edit_height = 80\n" ..
+        "sqlquery2_result_listview_height = 270\n" ..
         "file_recent_number = 29\n" ..
         "scroll_to_cursor = false\n" ..
         "inter_reserved_0 = 0\n" ..
@@ -202,6 +205,15 @@ function eu_conf.loadconf()
         eu_code = dofile(file)
     end
     -- Add new preference
+    if (sidebar_tree_width == nil) then
+        sidebar_tree_width = 210
+    end
+    if (sqlquery2_result_edit_height == nil) then
+        sqlquery2_result_edit_height = 80
+    end
+    if (sqlquery2_result_listview_height == nil) then
+        sqlquery2_result_listview_height = 270
+    end
     if (titlebar == nil) then
         titlebar = {["icon"] = true, ["name"] = true, ["path"] = true}
     end
@@ -240,9 +252,12 @@ function eu_conf.loadconf()
         symbol_list_width,
         symbol_tree_width,
         sidebar_width,
+        sidebar_tree_width,
         document_map_width,
         sqlquery_result_edit_height,
         sqlquery_result_listview_height,
+        sqlquery2_result_edit_height,
+        sqlquery2_result_listview_height,
         file_recent_number,
         scroll_to_cursor,
         inter_reserved_0,

@@ -1952,9 +1952,12 @@ eu_save_config(void)
         "symbol_list_width = %d\n"
         "symbol_tree_width = %d\n"
         "sidebar_width = %d\n"
+        "sidebar_tree_width = %d\n"
         "document_map_width = %d\n"
         "sqlquery_result_edit_height = %d\n"
         "sqlquery_result_listview_height = %d\n"
+        "sqlquery2_result_edit_height = %d\n"
+        "sqlquery2_result_listview_height = %d\n"
         "file_recent_number = %d\n"
         "scroll_to_cursor = %s\n"
         "-- always reload the current file?\n"
@@ -2104,9 +2107,12 @@ eu_save_config(void)
               g_config->sym_list_width,
               g_config->sym_tree_width,
               g_config->sidebar_width,
+              g_config->sidebar_tree_width,
               g_config->document_map_width,
               g_config->result_edit_height,
               g_config->result_list_height,
+              g_config->result2_edit_height,
+              g_config->result2_list_height,
               (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
               g_config->scroll_to_cursor?"true":"false",
               0,

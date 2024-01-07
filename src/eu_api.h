@@ -486,9 +486,12 @@ struct eu_config
     int sym_list_width;
     int sym_tree_width;
     int sidebar_width;
+    int sidebar_tree_width;
     int document_map_width;
     int result_edit_height;
     int result_list_height;
+    int result2_edit_height;
+    int result2_list_height;
     int file_recent_number;
     int scroll_to_cursor;
     int inter_reserved_0;
