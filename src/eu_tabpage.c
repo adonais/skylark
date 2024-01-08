@@ -1607,10 +1607,11 @@ on_tabpage_size(const RECT *prc)
 void
 on_tabpage_adjust_window(const RECT *prc, eu_tabpage *p1, eu_tabpage *p2, RECT *ptab1, RECT *ptab2)
 {
-    RECT rc_main;
+    RECT rc_main = {0};
     RECT rc_tab1 = {0};
     RECT rc_tab2 = {0};
     int rect_bottom = 0;
+    eu_tabpage *p = (p2 && p2->map_show) ? p2 : p1;
     if (!ptab1)
     {
         ptab1 = &rc_tab1;
@@ -1624,104 +1625,102 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *p1, eu_tabpage *p2, RECT *
         GetClientRect(eu_hwnd_self(), &rc_main);
         prc = &rc_main;    
     }
-    if (prc)
+    if (prc && ptab1 && ptab2)
     {
         on_tabpage_adjust_box(prc, ptab1, ptab2);
-    }
-    if (p1)
-    {
-        eu_tabpage *p = (p2 && p2->map_show) ? p2 : NULL;
-        if ((p1->map_show || p) && on_map_hwnd())
+        if (p && p->map_show && on_map_hwnd())
         {
             const bool slave = p2 && HSLAVE_SHOW;
-            int *pright = !slave ? &ptab1->right : &ptab2->right;
-            if (!p)
+            int *pright = (!slave) ? (ptab1 ? &ptab1->right : NULL) : (ptab2 ? &ptab2->right : NULL);
+            if (pright)
             {
-                p = p1;
-            }
-            *pright -= eu_get_config()->document_map_width + SPLIT_WIDTH;
-            p->rect_map.left = *pright;
-            p->rect_map.right = prc->right - SPLIT_WIDTH;
-            p->rect_map.top = !slave ? ptab1->top : ptab2->top;
-            p->rect_map.bottom = !slave ? ptab1->bottom : ptab2->bottom;
-        }
-        if (p1->hwnd_sc)
-        {
-            p1->rect_sc.left = ptab1->left;
-            if (eu_get_config()->m_ftree_show)
-            {
-                p1->rect_sc.left += SPLIT_WIDTH;
-            }
-            p1->rect_sc.right = ptab1->right - SPLIT_WIDTH;
-            p1->rect_sc.top = ptab1->top + on_tabpage_get_height(0);
-            p1->rect_sc.bottom = ptab1->bottom;
-        }
-        if (p1->sym_show)
-        {
-            if (p1->hwnd_symlist || p1->hwnd_symtree)
-            {
-                p1->rect_sc.right -= (p1->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
-                                      + SPLIT_WIDTH;
-                p1->rect_sym.left = p1->rect_sc.right + SPLIT_WIDTH;
-                p1->rect_sym.right = ptab1->right - SPLIT_WIDTH;
-                p1->rect_sym.top = p1->rect_sc.top;
-                p1->rect_sym.bottom = p1->rect_sc.bottom;
+                *pright -= eu_get_config()->document_map_width + SPLIT_WIDTH;
+                p->rect_map.left = *pright;
+                p->rect_map.right = prc->right - SPLIT_WIDTH;
+                p->rect_map.top = !slave ? ptab1->top : ptab2->top;
+                p->rect_map.bottom = !slave ? ptab1->bottom : ptab2->bottom;
             }
         }
-        if (RESULT_SHOW(p1))
+        if (p1 && ptab1)
         {
-            rect_bottom = p1->rect_sc.bottom;
-            p1->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + (QRTABLE_SHOW(p1) ? eu_get_config()->result_list_height : 0);
-            p1->rect_result.left = p1->rect_sc.left;
-            p1->rect_result.right = p1->rect_sc.right;
-            p1->rect_result.top = p1->rect_sc.bottom + SPLIT_WIDTH;
-            p1->rect_result.bottom = rect_bottom;
-            if (QRTABLE_SHOW(p1))
+            if (p1->hwnd_sc)
             {
-                p1->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
-                p1->rect_qrtable.left = p1->rect_sc.left;
-                p1->rect_qrtable.right = p1->rect_sc.right;
-                p1->rect_qrtable.top = p1->rect_result.bottom + SPLIT_WIDTH;
-                p1->rect_qrtable.bottom = rect_bottom;
+                p1->rect_sc.left = ptab1->left;
+                if (eu_get_config()->m_ftree_show)
+                {
+                    p1->rect_sc.left += SPLIT_WIDTH;
+                }
+                p1->rect_sc.right = ptab1->right - SPLIT_WIDTH;
+                p1->rect_sc.top = ptab1->top + on_tabpage_get_height(0);
+                p1->rect_sc.bottom = ptab1->bottom;
+            }
+            if (p1->sym_show)
+            {
+                if (p1->hwnd_symlist || p1->hwnd_symtree)
+                {
+                    p1->rect_sc.right -= (p1->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
+                                          + SPLIT_WIDTH;
+                    p1->rect_sym.left = p1->rect_sc.right + SPLIT_WIDTH;
+                    p1->rect_sym.right = ptab1->right - SPLIT_WIDTH;
+                    p1->rect_sym.top = p1->rect_sc.top;
+                    p1->rect_sym.bottom = p1->rect_sc.bottom;
+                }
+            }
+            if (RESULT_SHOW(p1))
+            {
+                rect_bottom = p1->rect_sc.bottom;
+                p1->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + (QRTABLE_SHOW(p1) ? eu_get_config()->result_list_height : 0);
+                p1->rect_result.left = p1->rect_sc.left;
+                p1->rect_result.right = p1->rect_sc.right;
+                p1->rect_result.top = p1->rect_sc.bottom + SPLIT_WIDTH;
+                p1->rect_result.bottom = rect_bottom;
+                if (QRTABLE_SHOW(p1))
+                {
+                    p1->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
+                    p1->rect_qrtable.left = p1->rect_sc.left;
+                    p1->rect_qrtable.right = p1->rect_sc.right;
+                    p1->rect_qrtable.top = p1->rect_result.bottom + SPLIT_WIDTH;
+                    p1->rect_qrtable.bottom = rect_bottom;
+                }
             }
         }
-    }
-    if (p2)
-    {
-        if (p2->hwnd_sc)
+        if (p2 && ptab2)
         {
-            p2->rect_sc.left = ptab2->left;
-            p2->rect_sc.right = ptab2->right - SPLIT_WIDTH;
-            p2->rect_sc.top = ptab2->top + on_tabpage_get_height(1);
-            p2->rect_sc.bottom = ptab2->bottom;
-        }
-        if (p2->sym_show)
-        {
-            if (p2->hwnd_symlist || p2->hwnd_symtree)
+            if (p2->hwnd_sc)
             {
-                p2->rect_sc.right -= (p2->hwnd_symlist ? eu_get_config()->sym_list_width : eu_get_config()->sym_tree_width)
-                                      + SPLIT_WIDTH;
-                p2->rect_sym.left = p2->rect_sc.right + SPLIT_WIDTH;
-                p2->rect_sym.right = ptab2->right - SPLIT_WIDTH;
-                p2->rect_sym.top = p2->rect_sc.top;
-                p2->rect_sym.bottom = p2->rect_sc.bottom;
+                p2->rect_sc.left = ptab2->left;
+                p2->rect_sc.right = ptab2->right - SPLIT_WIDTH;
+                p2->rect_sc.top = ptab2->top + on_tabpage_get_height(1);
+                p2->rect_sc.bottom = ptab2->bottom;
             }
-        }
-        if (RESULT_SHOW(p2))
-        {
-            rect_bottom = p2->rect_sc.bottom;
-            p2->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + (QRTABLE_SHOW(p2) ? eu_get_config()->result_list_height : 0);
-            p2->rect_result.left = p2->rect_sc.left;
-            p2->rect_result.right = p2->rect_sc.right;
-            p2->rect_result.top = p2->rect_sc.bottom + SPLIT_WIDTH;
-            p2->rect_result.bottom = rect_bottom;
-            if (QRTABLE_SHOW(p2))
+            if (p2->sym_show)
             {
-                p2->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
-                p2->rect_qrtable.left = p2->rect_sc.left;
-                p2->rect_qrtable.right = p2->rect_sc.right;
-                p2->rect_qrtable.top = p2->rect_result.bottom + SPLIT_WIDTH;
-                p2->rect_qrtable.bottom = rect_bottom;
+                if (p2->hwnd_symlist || p2->hwnd_symtree)
+                {
+                    p2->rect_sc.right -= (p2->hwnd_symlist ? eu_get_config()->sidebar_width : eu_get_config()->sidebar_tree_width)
+                                          + SPLIT_WIDTH;
+                    p2->rect_sym.left = p2->rect_sc.right + SPLIT_WIDTH;
+                    p2->rect_sym.right = ptab2->right - SPLIT_WIDTH;
+                    p2->rect_sym.top = p2->rect_sc.top;
+                    p2->rect_sym.bottom = p2->rect_sc.bottom;
+                }
+            }
+            if (RESULT_SHOW(p2))
+            {
+                rect_bottom = p2->rect_sc.bottom;
+                p2->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result2_edit_height + (QRTABLE_SHOW(p2) ? eu_get_config()->result2_list_height : 0);
+                p2->rect_result.left = p2->rect_sc.left;
+                p2->rect_result.right = p2->rect_sc.right;
+                p2->rect_result.top = p2->rect_sc.bottom + SPLIT_WIDTH;
+                p2->rect_result.bottom = rect_bottom;
+                if (QRTABLE_SHOW(p2))
+                {
+                    p2->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result2_list_height;
+                    p2->rect_qrtable.left = p2->rect_sc.left;
+                    p2->rect_qrtable.right = p2->rect_sc.right;
+                    p2->rect_qrtable.top = p2->rect_result.bottom + SPLIT_WIDTH;
+                    p2->rect_qrtable.bottom = rect_bottom;
+                }
             }
         }
     }
@@ -2223,6 +2222,24 @@ on_tabpage_symtree(const HWND htab)
     if (p && p->hwnd_symtree)
     {
         return p->hwnd_symtree;
+    }
+    return NULL;
+}
+
+HWND
+on_tabpage_symbar(const HWND htab)
+{
+    eu_tabpage *p = on_tabpage_focus_at(htab);
+    if (p && p->sym_show)
+    {
+        if (htab == HMAIN_GET)
+        {
+            return g_splitter_symbar;
+        }
+        else
+        {
+            return g_splitter_symbar2;
+        }
     }
     return NULL;
 }

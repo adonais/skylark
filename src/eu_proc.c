@@ -179,11 +179,11 @@ on_proc_menu_border(HWND hwnd, LPRECT r)
 }
 
 static void
-on_proc_show_sidebar(const eu_tabpage *p)
+on_proc_show_sidebar(const eu_tabpage *p, const bool vmain)
 {
     if (p && p->sym_show)
     {
-        eu_setpos_window(g_splitter_symbar, HWND_TOP, p->rect_sc.right, p->rect_sym.top,
+        eu_setpos_window(vmain ? g_splitter_symbar : g_splitter_symbar2, HWND_TOP, p->rect_sc.right, p->rect_sym.top,
                          SPLIT_WIDTH, p->rect_sym.bottom - p->rect_sym.top, SWP_SHOWWINDOW);
         if (p->hwnd_symlist)
         {
@@ -202,9 +202,9 @@ on_proc_show_sidebar(const eu_tabpage *p)
 static void
 on_proc_move_sidebar(const eu_tabpage *pnode, const eu_tabpage *pslave)
 {
-    const eu_tabpage *pmap = pslave ? pslave : pnode;
-    on_proc_show_sidebar(pnode);
-    on_proc_show_sidebar(pslave);
+    const eu_tabpage *pmap = pslave && pslave->map_show ? pslave : pnode;
+    on_proc_show_sidebar(pnode, true);
+    on_proc_show_sidebar(pslave, false);
     if (pmap && pmap->map_show)
     {
         on_map_size(pmap, SW_SHOW);
@@ -221,7 +221,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *from)
     const HWND hslave = HSLAVE_GET;
     const bool redraw = from == NULL;
     eu_tabpage *pnode = (eu_tabpage *)from;
-    eu_tabpage *pslave = on_tabpage_focus_at(hslave);
+    eu_tabpage *pslave = HSLAVE_SHOW ? on_tabpage_focus_at(hslave) : NULL;
     if (!pnode || pnode == pslave)
     {
         pnode = on_tabpage_focus_at(hmain);
@@ -230,7 +230,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *from)
     {
         int index = 0;
         int count = 0;
-        int number = 4;
+        int number = 3;
         HDWP hdwp = NULL;
         RECT rc = {0};
         RECT rc_tab1 = {0};
@@ -251,6 +251,14 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *from)
         {
             ++number;
         }
+        if (g_splitter_symbar)
+        {
+            ++number;
+        }
+        if (g_splitter_symbar2)
+        {
+            ++number;
+        }
         if (pnode && (pnode->hwnd_symlist || pnode->hwnd_symtree))
         {
             ++number;
@@ -264,8 +272,14 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *from)
             on_map_size(pmap, SW_HIDE);
         }
         hdwp = BeginDeferWindowPos(number);
-        // 先隐藏右边侧边栏
-        DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        if (g_splitter_symbar)
+        {
+            DeferWindowPos(hdwp, g_splitter_symbar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);    
+        }
+        if (g_splitter_symbar2)
+        {
+            DeferWindowPos(hdwp, g_splitter_symbar2, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+        }
         if (pnode)
         {
             if (pnode->hwnd_symlist)

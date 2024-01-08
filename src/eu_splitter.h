@@ -30,6 +30,7 @@ extern HWND g_splitter_tabbar;
 extern HWND g_splitter_editbar;
 extern HWND g_splitter_tablebar;
 extern HWND g_splitter_minmap;
+extern HWND g_splitter_symbar2;
 
 bool on_splitter_init_treebar(HWND parent);
 bool on_splitter_init_symbar(HWND parent);
@@ -37,6 +38,7 @@ bool on_splitter_init_tabbar(HWND parent);
 bool on_splitter_init_editbar(HWND parent);
 bool on_splitter_init_tablebar(HWND parent);
 bool on_splitter_init_minmap(HWND parent);
+bool on_splitter_symbar_slave(HWND parent);
 void on_splitter_redraw(void);
 HWND on_splitter_static_control(HWND parent, WNDPROC proc, void *lp);
 HWND on_splitter_init_window(HWND parent, const TCHAR *class_name, const int flags, HMENU hmenu, WNDPROC proc, void *lp);
