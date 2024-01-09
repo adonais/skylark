@@ -29,44 +29,23 @@ void
 on_view_symtree(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
-    {
-        bool split = false;
-        const HWND h = eu_hwnd_self();
-        const HWND htab = on_tabpage_hwnd(pnode);
-        if (h && htab)
+    {   // 启用右侧边栏控件
+        if (pnode->doc_ptr->fn_reload_symlist)
         {
-            if (htab == HMAIN_GET && !g_splitter_symbar)
+            if (pnode->hwnd_symlist || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
             {
-                split = on_splitter_init_symbar(h);
-            }
-            else if (htab == HSLAVE_GET && !g_splitter_symbar2)
-            {
-                split = on_splitter_symbar_slave(h);
-            }
-            else
-            {
-                split = true;
+                pnode->doc_ptr->fn_reload_symlist(pnode);
             }
         }
-        if (split)
-        {   // 启用右侧边栏控件
-            if (pnode->doc_ptr->fn_reload_symlist)
+        else if (pnode->doc_ptr->fn_reload_symtree)
+        {
+            if (pnode->hwnd_symtree || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
             {
-                if (pnode->hwnd_symlist || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
-                {
-                    pnode->doc_ptr->fn_reload_symlist(pnode);
-                }
-            }
-            else if (pnode->doc_ptr->fn_reload_symtree)
-            {
-                if (pnode->hwnd_symtree || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
-                {
-                    pnode->doc_ptr->fn_reload_symtree(pnode);     
-                }  
-            }
-            pnode->sym_show ^= true;
-            eu_window_resize();
+                pnode->doc_ptr->fn_reload_symtree(pnode);     
+            }  
         }
+        pnode->sym_show ^= true;
+        eu_window_resize();
     }
 }
 

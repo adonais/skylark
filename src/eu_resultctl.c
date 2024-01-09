@@ -346,12 +346,26 @@ on_result_launch(eu_tabpage *pnode)
     bool ret = false;
     if (pnode)
     {
-        if (!(ret ^= (pnode->presult != NULL)))
+        bool split = true;
+        const HWND h = eu_hwnd_self();
+        const HWND htab = on_tabpage_hwnd(pnode);
+        if (h && htab)
+        {
+            if (!g_splitter_editbar)
+            {
+                split = on_splitter_init_editbar(h);
+            }
+            if (!g_splitter_editbar2)
+            {
+                split = on_splitter_editbar_slave(h);
+            }
+        }
+        if (split && !(ret ^= (pnode->presult != NULL)))
         {
             const int flags = WS_CHILD | WS_CLIPSIBLINGS | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
             if ((pnode->presult = (eu_tabpage *)calloc(1, sizeof(eu_tabpage))))
             {
-                if (on_sci_create(pnode->presult, eu_hwnd_self(), flags, on_result_edit_proc) == SKYLARK_OK)
+                if (on_sci_create(pnode->presult, h, flags, on_result_edit_proc) == SKYLARK_OK)
                 {
                     on_sci_default_theme(pnode->presult, -1);
                     ret = true;

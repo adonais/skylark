@@ -226,22 +226,39 @@ on_table_create_dlg(eu_tabpage *pnode)
 {
     if (pnode)
     {
+        bool split = true;
+        const HWND h = eu_hwnd_self();
+        const HWND htab = on_tabpage_hwnd(pnode);
         const uint32_t style = WS_CHILD | WS_CLIPSIBLINGS | LVS_REPORT;
         const uint32_t stylex = LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT;
         if (pnode->hwnd_qrtable)
         {
             DestroyWindow(pnode->hwnd_qrtable);
         }
-        pnode->hwnd_qrtable = CreateWindow(WC_LISTVIEW, _T(""), style, 0, 0, 0, 0, eu_hwnd_self(), (HMENU)IDM_TABLE_BAR, eu_module_handle(), NULL);
-        if (pnode->hwnd_qrtable == NULL)
+        if (h && htab)
         {
-            MSG_BOX(IDC_MSG_QUERY_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return SKYLARK_TB_FAILED;
+            if (!g_splitter_tablebar)
+            {
+                split = on_splitter_init_tablebar(h);
+            }
+            if (!g_splitter_tablebar2)
+            {
+                split = on_splitter_tablebar_slave(h);
+            }
         }
-        SetWindowSubclass(pnode->hwnd_qrtable, on_table_listview_proc, TBCTL_LIST_SUBID, 0);
-        ListView_SetExtendedListViewStyle(pnode->hwnd_qrtable, stylex);
-        on_table_update_theme(pnode);
-        return SKYLARK_OK;
+        if (split)
+        {
+            pnode->hwnd_qrtable = CreateWindow(WC_LISTVIEW, _T(""), style, 0, 0, 0, 0, h, (HMENU)IDM_TABLE_BAR, eu_module_handle(), NULL);
+            if (pnode->hwnd_qrtable == NULL)
+            {
+                MSG_BOX(IDC_MSG_QUERY_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                return SKYLARK_TB_FAILED;
+            }
+            SetWindowSubclass(pnode->hwnd_qrtable, on_table_listview_proc, TBCTL_LIST_SUBID, 0);
+            ListView_SetExtendedListViewStyle(pnode->hwnd_qrtable, stylex);
+            on_table_update_theme(pnode);
+            return SKYLARK_OK;
+        }
     }
     return SKYLARK_TB_FAILED;
 }

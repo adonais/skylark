@@ -1946,16 +1946,6 @@ on_treebar_create_dlg(HWND hwnd)
             err = EUE_POINT_NULL;
             break;
         }
-        if (!on_splitter_init_editbar(hwnd))
-        {
-            err = EUE_POINT_NULL;
-            break;
-        }
-        if (!on_splitter_init_tablebar(hwnd))
-        {
-            err = EUE_POINT_NULL;
-            break;
-        }
         on_theme_update_font(filetree_id);
         on_treebar_update_theme();
     }while(0);

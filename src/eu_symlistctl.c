@@ -224,40 +224,47 @@ on_symlist_create(eu_tabpage *pnode)
 {
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->reqular_exp)
     {
+        bool split = true;
+        const HWND h = eu_hwnd_self();
+        const HWND htab = on_tabpage_hwnd(pnode);
+        const int style = WS_CHILD | WS_CLIPSIBLINGS | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_TABSTOP | WS_VSCROLL;
         if (pnode->hwnd_symlist)
         {
             DestroyWindow(pnode->hwnd_symlist);
         }
-        pnode->hwnd_symlist = CreateWindow(_T("listbox"),
-                                           NULL,
-                                           WS_CHILD | WS_CLIPSIBLINGS | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_TABSTOP | WS_VSCROLL,
-                                           0,
-                                           0,
-                                           0,
-                                           0,
-                                           eu_module_hwnd(),
-                                           NULL,
-                                           eu_module_handle(),
-                                           NULL);
-        if (pnode->hwnd_symlist == NULL)
+        if (h && htab)
         {
-            MSG_BOX(IDC_MSG_SYMLIST_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return 1;
+            if (!g_splitter_symbar)
+            {
+                split = on_splitter_init_symbar(h);
+            }
+            if (!g_splitter_symbar2)
+            {
+                split = on_splitter_symbar_slave(h);
+            }
         }
-        if (inter_atom_compare_exchange(&symlist_wnd, SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc), 0))
+        if (split)
         {
-            SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc);
+            if ((pnode->hwnd_symlist = CreateWindow(_T("listbox"), NULL, style, 0, 0, 0, 0, h, NULL, eu_module_handle(), NULL)) == NULL)
+            {
+                MSG_BOX(IDC_MSG_SYMLIST_FAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                return SKYLARK_ERROR;
+            }
+            if (inter_atom_compare_exchange(&symlist_wnd, SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc), 0))
+            {
+                SetWindowLongPtr(pnode->hwnd_symlist, GWLP_WNDPROC, (LONG_PTR) symlist_proc);
+            }
+            if (!symlist_wnd)
+            {
+                eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symlist) failed\n", __FUNCTION__);
+                return SKYLARK_ERROR;
+            }
+            else
+            {
+                SetWindowLongPtr(pnode->hwnd_symlist, GWLP_USERDATA, (intptr_t) pnode);
+            }
+            return on_symlist_update_theme(pnode);
         }
-        if (!symlist_wnd)
-        {
-            eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symlist) failed\n", __FUNCTION__);
-            return 1;
-        }
-        else
-        {
-            SetWindowLongPtr(pnode->hwnd_symlist, GWLP_USERDATA, (intptr_t) pnode);
-        }
-        return on_symlist_update_theme(pnode);
     }
     return SKYLARK_OK;
 }

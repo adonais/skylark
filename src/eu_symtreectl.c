@@ -1419,33 +1419,50 @@ on_symtree_create(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        if (pnode->hwnd_symtree)
-        {
-            DestroyWindow(pnode->hwnd_symtree);
-        }
+        bool split = true;
+        const HWND h = eu_hwnd_self();
+        const HWND htab = on_tabpage_hwnd(pnode);
         const int style = WS_CHILD | WS_CLIPSIBLINGS | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | WS_TABSTOP;
-        pnode->hwnd_symtree = CreateWindow(WC_TREEVIEW, NULL, style, 0, 0, 0, 0, eu_module_hwnd(), NULL, eu_module_handle(), NULL);
-        if (pnode->hwnd_symtree == NULL)
+        if (h && htab)
         {
-            MSG_BOX(IDC_MSG_SYMTREE_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
-            return 1;
+            if (!g_splitter_symbar)
+            {
+                split = on_splitter_init_symbar(h);
+            }
+            if (!g_splitter_symbar2)
+            {
+                split = on_splitter_symbar_slave(h);
+            }
         }
-        if (inter_atom_compare_exchange(&symtree_wnd, SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR) symtree_proc), 0))
+        if (split)
         {
-            SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR) symtree_proc);
-        }
-        if (!symtree_wnd)
-        {
-            eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symtree) failed\n", __FUNCTION__);
-            DestroyWindow(pnode->hwnd_symtree);
-            pnode->hwnd_symtree = NULL;
-            return 1;
-        }
-        else
-        {
-            SetWindowLongPtr(pnode->hwnd_symtree, GWLP_USERDATA, (intptr_t) pnode);
-            on_symtree_update_theme(pnode);
+            if (pnode->hwnd_symtree)
+            {
+                DestroyWindow(pnode->hwnd_symtree);
+            }
+            pnode->hwnd_symtree = CreateWindow(WC_TREEVIEW, NULL, style, 0, 0, 0, 0, h, NULL, eu_module_handle(), NULL);
+            if (pnode->hwnd_symtree == NULL)
+            {
+                MSG_BOX(IDC_MSG_SYMTREE_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+                return SKYLARK_ERROR;
+            }
+            if (inter_atom_compare_exchange(&symtree_wnd, SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR)symtree_proc), 0))
+            {
+                SetWindowLongPtr(pnode->hwnd_symtree, GWLP_WNDPROC, (LONG_PTR) symtree_proc);
+            }
+            if (!symtree_wnd)
+            {
+                eu_logmsg("%s: SetWindowLongPtr(pnode->hwnd_symtree) failed\n", __FUNCTION__);
+                DestroyWindow(pnode->hwnd_symtree);
+                pnode->hwnd_symtree = NULL;
+                return SKYLARK_ERROR;
+            }
+            else
+            {
+                SetWindowLongPtr(pnode->hwnd_symtree, GWLP_USERDATA, (intptr_t) pnode);
+                on_symtree_update_theme(pnode);
+            }
         }
     }
-    return 0;
+    return SKYLARK_OK;
 }

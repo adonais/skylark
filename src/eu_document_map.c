@@ -627,7 +627,7 @@ on_map_launch(void)
         HWND hwnd = eu_hwnd_self();
         const int flags = WS_CHILD | WS_CLIPCHILDREN | WS_EX_RTLREADING;
         pmap = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
-        if (pmap && on_splitter_init_minmap(hwnd))
+        if (pmap && (g_splitter_minmap || on_splitter_init_minmap(hwnd)))
         {
             if (!hwnd_static_control)
             {

@@ -176,9 +176,11 @@ TCHAR *on_tabpage_generator(HWND htab, TCHAR *filename, const int len);
 HWND on_tabpage_sci(const HWND htab);
 HWND on_tabpage_symlist(const HWND htab);
 HWND on_tabpage_symtree(const HWND htab);
-HWND on_tabpage_symbar(const HWND htab);
 HWND on_tabpage_qrtable(const HWND htab);
 HWND on_tabpage_resultctl(const HWND htab);
+HWND on_tabpage_symbar(const HWND htab);
+HWND on_tabpage_resultbar(const HWND htab);
+HWND on_tabpage_qrbar(const HWND htab);
 HWND on_tabpage_hwnd(const eu_tabpage *pnode);
 
 #ifdef __cplusplus

@@ -390,7 +390,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *from)
                         if (QRTABLE_SHOW(p))
                         {
                             eu_setpos_window(p->hwnd_qrtable, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
-                            eu_setpos_window(g_splitter_tablebar, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
+                            eu_setpos_window(g_splitter_tablebar2, HWND_BOTTOM, 0, 0, 0, 0, SWP_HIDEWINDOW);
                         }
                     }
                     if (p->hwnd_sc)
@@ -415,7 +415,21 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *from)
             }
             on_search_jmp_pos(pnode->presult);
         }
-        // if (RESULT_SHOW(pslave))
+        if (RESULT_SHOW(pslave))
+        {
+            eu_setpos_window(eu_result_hwnd(pslave), HWND_TOP, pslave->rect_result.left, pslave->rect_result.top,
+                             pslave->rect_result.right - pslave->rect_result.left, pslave->rect_result.bottom - pslave->rect_result.top, SWP_SHOWWINDOW);
+            eu_setpos_window(g_splitter_editbar2, HWND_TOP, pslave->rect_sc.left, pslave->rect_sc.bottom,
+                             pslave->rect_sc.right - pslave->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
+            if (QRTABLE_SHOW(pslave))
+            {
+                eu_setpos_window(pslave->hwnd_qrtable, HWND_TOP, pslave->rect_qrtable.left, pslave->rect_qrtable.top,
+                                 pslave->rect_qrtable.right - pslave->rect_qrtable.left, pslave->rect_qrtable.bottom - pslave->rect_qrtable.top, SWP_SHOWWINDOW);
+                eu_setpos_window(g_splitter_tablebar2, HWND_TOP, pslave->rect_sc.left, pslave->rect_result.bottom,
+                                 pslave->rect_sc.right - pslave->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
+            }
+            on_search_jmp_pos(pslave->presult);
+        }
         on_statusbar_size(prc, true);
         on_proc_msg_active(from);
     }

@@ -102,7 +102,7 @@ on_doc_init_list(eu_tabpage *pnode)
 {
     if (!pnode)
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
     return on_symlist_create(pnode);
 }
@@ -113,7 +113,7 @@ on_doc_init_list_sh(eu_tabpage *pnode)
     TCHAR *sp = on_doc_get_ext(pnode);
     if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
     {
-        return 0;
+        return SKYLARK_OK;
     }
     return on_doc_init_list(pnode);
 }
@@ -123,7 +123,7 @@ on_doc_init_tree(eu_tabpage *pnode)
 {
     if (!pnode)
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
     return on_symtree_create(pnode);
 }
@@ -133,17 +133,17 @@ on_doc_init_result(eu_tabpage *pnode)
 {
     if (!pnode)
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
     if (on_symtree_create(pnode))
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
     if (on_table_create_dlg(pnode))
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
-    return 0;
+    return SKYLARK_OK;
 }
 
 static void

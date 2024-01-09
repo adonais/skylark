@@ -2227,6 +2227,28 @@ on_tabpage_symtree(const HWND htab)
 }
 
 HWND
+on_tabpage_qrtable(const HWND htab)
+{
+    eu_tabpage *p = on_tabpage_focus_at(htab);
+    if (p && p->hwnd_qrtable)
+    {
+        return p->hwnd_qrtable;
+    }
+    return NULL;
+}
+
+HWND
+on_tabpage_resultctl(const HWND htab)
+{
+    eu_tabpage *p = on_tabpage_focus_at(htab);
+    if (p && p->presult && p->presult->hwnd_sc)
+    {
+        return p->presult->hwnd_sc;
+    }
+    return NULL;
+}
+
+HWND
 on_tabpage_symbar(const HWND htab)
 {
     eu_tabpage *p = on_tabpage_focus_at(htab);
@@ -2245,23 +2267,37 @@ on_tabpage_symbar(const HWND htab)
 }
 
 HWND
-on_tabpage_qrtable(const HWND htab)
+on_tabpage_resultbar(const HWND htab)
 {
     eu_tabpage *p = on_tabpage_focus_at(htab);
-    if (p && p->hwnd_qrtable)
+    if (RESULT_SHOW(p))
     {
-        return p->hwnd_qrtable;
+        if (htab == HMAIN_GET)
+        {
+            return g_splitter_editbar;
+        }
+        else
+        {
+            return g_splitter_editbar2;
+        }
     }
     return NULL;
 }
 
 HWND
-on_tabpage_resultctl(const HWND htab)
+on_tabpage_qrbar(const HWND htab)
 {
     eu_tabpage *p = on_tabpage_focus_at(htab);
-    if (p && p->presult && p->presult->hwnd_sc)
+    if (QRTABLE_SHOW(p))
     {
-        return p->presult->hwnd_sc;
+        if (htab == HMAIN_GET)
+        {
+            return g_splitter_tablebar;
+        }
+        else
+        {
+            return g_splitter_tablebar2;
+        }
     }
     return NULL;
 }
