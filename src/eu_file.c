@@ -2741,7 +2741,7 @@ on_file_check_save(void *lp)
         {
             if (p->is_blank && !TAB_NOT_NUL(p) && !on_sci_doc_modified(p))
             {
-                reset = true;    
+                reset = true;
             }
             else
             {

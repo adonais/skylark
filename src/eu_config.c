@@ -87,8 +87,15 @@ on_config_open_args(file_backup **pbak)
                 if (vpath[i].rel_path[0])
                 {
                     int at = on_config_cvector_at(*pbak, vpath[i].rel_path);
-                    if (at >= 0 && (vpath[i].x > 0 || vpath[i].y > 0 || vpath[i].hex))
+                    if (at >= 0)
                     {
+                        if (!(vpath[i].x > 0 || vpath[i].y > 0))
+                        {
+                            vpath[i].x = (*pbak)[at].x;
+                            vpath[i].y = (*pbak)[at].y;
+                            vpath[i].postion = (*pbak)[at].postion;
+                        }
+                        vpath[i].view = (*pbak)[at].view;
                         cvector_erase(*pbak, at);
                     }
                     cvector_push_back(*pbak, vpath[i]);

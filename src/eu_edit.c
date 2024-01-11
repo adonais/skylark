@@ -343,11 +343,12 @@ on_edit_clear_clipborad(HWND hwnd)
     {
         if (CountClipboardFormats() > 0)
         {
+            const HWND hcp = on_toolbar_clip_hwnd();
             EmptyClipboard();
             on_toolbar_update_button(NULL);
-            if (on_toolbar_clip_hwnd())
+            if (hcp)
             {
-                PostMessage(on_toolbar_clip_hwnd(), WM_CLEAN_CHAIN, 0, 0);
+                PostMessage(hcp, WM_CLEAN_CHAIN, 0, 0);
             }
         }
         CloseClipboard();
