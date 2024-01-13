@@ -470,7 +470,7 @@ on_file_new(const HWND htab, eu_tabpage *psrc)
     eu_tabpage *pnode = psrc;
     TCHAR filename[100] = {0};
     const uint8_t *bom_str = NULL;
-    if (pnode || (pnode = (eu_tabpage *) calloc(1, sizeof(eu_tabpage))))
+    if (htab && (pnode || (pnode = (eu_tabpage *) calloc(1, sizeof(eu_tabpage)))))
     {
         pnode->is_blank = true;
         pnode->be_modify = false;

@@ -348,7 +348,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
                 {   // 主线程加载解析器
                     pnode->doc_ptr->fn_init_after(pnode);
                 }
-                else 
+                else
                 {   // 线程加载lua脚本导致crash, 在主线程加载
                     SendMessage(eu_hwnd_self(), WM_SCI_LEXER, (sptr_t)pnode, 0);
                 }

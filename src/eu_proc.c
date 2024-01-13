@@ -1036,7 +1036,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (wm_id)
             {
                 case IDM_FILE_NEW:
-                    on_file_new(HMAIN_GET, NULL);
+                    on_file_new(on_tabpage_hwnd(on_tabpage_focused()), NULL);
                     break;
                 case IDM_FILE_OPEN:
                     on_file_open();
