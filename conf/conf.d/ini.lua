@@ -2,8 +2,8 @@ ini = {}
 
 function ini.get_comments()
   -- 行注释与块注释, 注释头与注释尾用&&分开
-  local line_t = "; "
-  local block_t = "; "
+  local line_t = "# "
+  local block_t = "# "
   return line_t, block_t
 end
 

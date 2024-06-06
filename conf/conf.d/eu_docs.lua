@@ -331,7 +331,7 @@ if (not eu_core.file_exists(user_file)) then
     "      {\n",
     "          e.DOCTYPE_INIFILE,\n",
     "          \"ini\",\n",
-    "          \";*.ini;*.inf;*.reg;*.oem;*.sif;*.url;*.sed;*.theme;*.clw;*.abnf;\",\n",
+    "          \";*.ini;*.inf;*.reg;*.oem;*.sif;*.url;*.sed;*.theme;*.clw;*.abnf;*.toml;\",\n",
     "          \"Ini File\",\n",
     "          \"ini.snippets\",\n",
     "          0,\n",
