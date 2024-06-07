@@ -1175,15 +1175,19 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
         memset(&si, 0, sizeof(si));
         si.cb = sizeof(si);
         si.dwFlags = STARTF_USESHOWWINDOW;
-        if (flags > 1)
+        if (flags > 2)
+        {
+            si.wShowWindow = SW_SHOWNORMAL;
+        }
+        else if (flags > 1)
         {
             si.wShowWindow = SW_SHOWNOACTIVATE;
         }
-        else if (flags == 1)
+        else if (flags)
         {
             si.wShowWindow = SW_MINIMIZE;
         }
-        else if (!flags)
+        else
         {
             si.wShowWindow = SW_HIDE;
             dw_creat |= CREATE_NEW_PROCESS_GROUP;

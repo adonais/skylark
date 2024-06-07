@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright 漏2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2023 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -174,11 +174,11 @@ on_toolbar_init_params(const HWND hwnd, toolbar_data **pdata, const int resid)
 }
 
 /**********************************************
- * 璁剧疆宸ュ叿鏍忔寜閽殑鐘舵€?,
- * id 涓? 璧勬簮id鍙?
- * flags == 0, 鑷姩缈昏浆
- * flags == 1, 璁句负绂佹鐘舵€?
- * flags == 2. 璁句负鍚敤鐘舵€?
+ * 设置工具栏按钮的状态,
+ * id 为 资源id号
+ * flags == 0, 自动翻转
+ * flags == 1, 设为禁止状态
+ * flags == 2, 设为启用状态
  **********************************************/
 void
 on_toolbar_setup_button(int id, int flags)
@@ -302,7 +302,7 @@ init_clip_dlg(HWND dialog, bool init)
         }
     }
     else if (!(hbmp = on_pixmap_from_svg(svg_icon, w, w, on_dark_enable() ? DARK_HOTCOLOR : NULL)))
-    {   // nsvgRasterize涓嶆敮鎸佺旱妯瘮缂╂斁, 鍦ㄨ繖閲屾寜瀹藉害缂╂斁
+    {   // nsvgRasterize不支持纵横比缩放, 在这里按宽度缩放
         eu_logmsg("%s: on_pixmap_from_svg failed\n", __FUNCTION__);
         return false;
     }
@@ -316,7 +316,7 @@ init_clip_dlg(HWND dialog, bool init)
             Static_SetIcon(hbtn, hicon);
         }
         else if (hbmp)
-        {   // 鍦ㄩ潤鎬佹帶浠朵笂鍔犺浇浣嶅浘
+        {   // 在静态控件上加载位图
             SendMessage(hbtn, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbmp);
         }
         m_edit[i] = GetDlgItem(dialog, IDC_EDIT0 + i);
@@ -389,7 +389,7 @@ refresh_clipboard(void)
         init_clip_dlg(g_clip_hwnd, false);
         if (IsWindowVisible(g_clip_hwnd))
         {
-            UpdateWindowEx(g_clip_hwnd);  // 鍦ㄦ煇浜涘钩鍙颁笂, 鍙兘闇€瑕侀噸缁樻墍鏈夌晫闈?
+            UpdateWindowEx(g_clip_hwnd);  // 在某些平台上, 可能需要重绘所有界面
         }
     }
 }
@@ -487,7 +487,7 @@ clip_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
             draw_clipboard();
             HWND hwnd = GetClipboardOwner();
             if (!(hwnd && (hwnd == eu_module_hwnd())))
-            {   // 涓嶆槸16杩涘埗缂栬緫鍣ㄥ啓鍓创鏉?
+            {   // 不是16进制编辑器写剪贴板
                 hexview_set_area(0);
             }
             break;
@@ -667,7 +667,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                     read_len = get_output_buffer(std_buffer, MAX_OUTPUT_BUF);
                 }
                 else
-                {   // 鍐欐爣鍑嗚緭鍑鸿澶?, 闃叉_read鍑芥暟闃诲
+                {   // 写标准输出设备, 防止_read函数阻塞
                     fprintf(stdout, "Failed to execute Lua script\n");
                 }
                 close_stdout_redirect(console);
@@ -725,6 +725,7 @@ on_toolbar_mk_temp(const HWND htab, wchar_t ***vec_files)
         if (on_tabpage_sel_number(htab, &v, true) > 0 && v)
         {
             const int size = (int)cvector_size(v);
+            // 改成函数调用, cvector宏定义在一个函数里, clang优化出现问题
             on_toolbar_create_file(htab, v, size, vec_files);
         }
         cvector_freep(&v);
@@ -895,7 +896,7 @@ on_toolbar_generate_img(const HWND hwnd, toolbar_data **pdata, const int resid)
 }
 
 /*****************************************************************
- * 宸ュ叿鏍忓洖璋冨嚱鏁?, 鎺ュ彈宸ュ叿鏍忕偣鍑绘秷鎭?, 浠ュ強閿€姣佽嚜韬祫婧?
+ * 工具栏回调函数, 接受工具栏点击消息, 以及销毁自身资源
  *****************************************************************/
 LRESULT CALLBACK
 toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -919,7 +920,7 @@ toolbar_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_THEMECHANGED:
         {
             if (eu_hwnd_self() == (HWND)wParam)
-            {   // 蹇界暐鑷姩鍙戦€佺殑WM_THEMECHANGED娑堟伅
+            {   // 忽略自动发送的WM_THEMECHANGED消息
                 toolbar_data *data = NULL;
                 if (on_toolbar_generate_img((HWND)wParam, &data, eu_get_config()->m_toolbar))
                 {
@@ -995,7 +996,7 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
             _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\""), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
             free(plugin);
         }
-        if ((handle = eu_new_process(cmd_exec, NULL, pcd, 2, NULL)) != NULL)
+        if ((handle = eu_new_process(cmd_exec, NULL, pcd, 3, NULL)) != NULL)
         {
             CloseHandle(handle);
         }
@@ -1081,7 +1082,7 @@ on_toolbar_refresh(HWND hwnd)
     {
         DestroyWindow(h_tool);
     }
-    refresh_clipboard();  // dpi鏀瑰彉鏃堕噸鏂版覆鏌撳浘鏍?
+    refresh_clipboard();  // dpi改变时重新渲染图标
     return (on_toolbar_create_dlg(hwnd) == 0);
 }
 
@@ -1102,13 +1103,13 @@ on_toolbar_create_dlg(HWND parent)
         const int style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TBSTYLE_TOOLTIPS |
                           TBSTYLE_FLAT | TBSTYLE_LIST | CCS_NODIVIDER | CCS_NOPARENTALIGN;
         /*********************************************************************
-         * iBitmap(0), 绗琲涓綅鍥?
-         * idCommand(0), WM_COMMAND娑堟伅鍝嶅簲鐨処D
-         * fsState(TBSTATE_ENABLED), 鎸夐挳鐘舵€?,鍙敤鎴栦笉鍙敤
-         * fsStyle(TBSTYLE_BUTTON, TBSTYLE_SEP), 鎸夐挳椋庢牸
-         * {0} 淇濈暀
-         * dwData(0) 搴旂敤瀹氫箟鐨勫€?
-         * iString(0) 榧犳爣鎸囧悜鏃舵樉绀虹殑瀛楃涓?
+         * iBitmap(0), 第i个位图
+         * idCommand(0), WM_COMMAND消息响应的ID
+         * fsState(TBSTATE_ENABLED), 按钮状态,可用或不可用
+         * fsStyle(TBSTYLE_BUTTON, TBSTYLE_SEP), 按钮风格
+         * {0} 保留
+         * dwData(0) 应用定义的值
+         * iString(0) 鼠标指向时显示的字符串
          *********************************************************************/
         if (eu_get_config()->m_toolbar == IDB_SIZE_0)
         {
