@@ -52,9 +52,9 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "新建文件换行符"
         BEGIN
-            MENUITEM "WINDOWS风格换行符(CR+LF)",                IDM_FILE_NEWFILE_WINDOWS_EOLS
-            MENUITEM "MAC风格换行符(CR)",                       IDM_FILE_NEWFILE_MAC_EOLS
-            MENUITEM "UNIX/Linux风格换行符(LF)",                IDM_FILE_NEWFILE_UNIX_EOLS
+            MENUITEM "Windows风格换行符(CR+LF)",                IDM_FILE_NEWFILE_WINDOWS_EOLS
+            MENUITEM "Mac风格换行符(CR)",                       IDM_FILE_NEWFILE_MAC_EOLS
+            MENUITEM "Unix/Linux风格换行符(LF)",                IDM_FILE_NEWFILE_UNIX_EOLS
         END
         POPUP "新建文件字符编码"
         BEGIN

@@ -2513,13 +2513,13 @@ eu_before_proc(MSG *p_msg)
         on_tabpage_active_one(on_tabpage_hwnd(on_tabpage_focused()), (int) (p_msg->wParam) - 0x31);
         return 1;
     }
-    if((pnode = on_tabpage_focused()) && pnode->doc_ptr && !TAB_HEX_MODE(pnode) && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
+    if((pnode = on_tabpage_focused()) && !TAB_HEX_MODE(pnode) && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
         bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
         if (p_msg->wParam == VK_TAB && main_up && eu_get_config() && eu_get_config()->eu_complete.snippet)
         {
-            if (main_up)
+            if (pnode->doc_ptr)
             {
                 eu_sci_call(pnode, SCI_CANCEL, 0, 0);
                 if (KEY_DOWN(VK_SHIFT))
@@ -2532,7 +2532,7 @@ eu_before_proc(MSG *p_msg)
                 }
             }
         }
-        else if (main_down && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+        else if (main_down && (pnode->is_blank || (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_TXT)))
         {
             on_sci_insert_egg(pnode);
             return 1;
