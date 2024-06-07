@@ -596,7 +596,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(menu, IDM_VIEW_VERTICAL_SPLIT, eu_get_config()->eu_tab.slave_show);
                         util_set_menu_item(menu, IDM_VIEW_SPLIT_COPY, eu_get_config()->eu_tab.s_copy);
                         util_enable_menu_item(menu, IDM_VIEW_OTHER_MOVE, init || !pnode->is_blank);
-                        util_enable_menu_item(menu, IDM_VIEW_OTHER_COPY, init || !pnode->is_blank && TAB_HAS_TXT(pnode));
+                        util_enable_menu_item(menu, IDM_VIEW_OTHER_COPY, init || (!pnode->is_blank && TAB_HAS_TXT(pnode)));
                         util_set_menu_item(menu, IDM_VIEW_VERTICAL_SYNC, eu_get_config()->eu_tab.vertical);
                         util_set_menu_item(menu, IDM_VIEW_HORIZONTAL_SYNC, eu_get_config()->eu_tab.horizontal);
                         util_enable_menu_item(menu, IDM_VIEW_VERTICAL_SYNC, init || eu_get_config()->eu_tab.slave_show);

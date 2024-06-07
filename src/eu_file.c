@@ -1169,7 +1169,7 @@ on_file_active_condition(const HWND htab, const int index)
                 eu_tabpage *p = NULL;
                 eu_get_config()->eu_tab.slave_show = false;
                 on_proc_redraw(NULL);
-                if (p = on_tabpage_focus_at(HMAIN_GET))
+                if ((p = on_tabpage_focus_at(HMAIN_GET)))
                 {
                     on_tabpage_active_tab(p);
                 }
@@ -1224,7 +1224,7 @@ on_file_active_other(eu_tabpage *pnode)
             {
                 eu_get_config()->eu_tab.slave_show = false;
                 on_proc_redraw(NULL);
-                if (pnode = on_tabpage_focus_at(HMAIN_GET))
+                if ((pnode = on_tabpage_focus_at(HMAIN_GET)))
                 {
                     on_tabpage_active_tab(pnode);
                 }

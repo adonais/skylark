@@ -939,7 +939,7 @@ on_tabpage_drag_mouse(const HWND htab, const HWND hwin)
         eu_session_backup(SESSION_BOTH);
         if (parent == eu_hwnd_self() || hwin == eu_hwnd_self())
         {
-            if (fn = TABS_CHILD_WIDGETS(name))
+            if ((fn = TABS_CHILD_WIDGETS(name)))
             {
                 if (_tcscmp(name, WC_TABCONTROL) == 0)
                 {   // 拖放在另一个标签上, 移动标签
