@@ -198,7 +198,6 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int err = 0;
-    int last_id = -1;
     bool narg = false;
     size_t vec_size = 0;
     cvector_vector_type(file_backup) vbak = NULL;
@@ -222,8 +221,9 @@ on_config_load_file(void *lp)
         cvector_push_back(vbak, bak);
         ++vec_size;
     }
-    else
+    else if (narg)
     {   // 调整tabid与焦点
+        int last_id = -1;
         for (size_t i = 0; i < vec_size; ++i)
         {
             if (narg)
@@ -236,7 +236,7 @@ on_config_load_file(void *lp)
                         vbak[i].focus = 0;    
                     }
                 }
-                else 
+                else
                 {
                     vbak[i].tab_id = last_id >= 0 ? (++last_id) : (last_id = 0);
                     if (i == vec_size - 1)
@@ -561,7 +561,14 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 }
                 continue;
             }
-            printf("ptr_arg[%d] = %ls\n", i, ptr_arg[i]);
+        #if APP_DEBUG
+            char *ptemp = eu_utf16_utf8(ptr_arg[i], NULL);
+            if (ptemp)
+            {
+                eu_logmsg("ptr_arg[%d] = %s\n", i, ptemp);
+                free(ptemp);
+            }
+        #endif
             if (ptr_arg[i][0] != L'-' && (len = wcslen(ptr_arg[i])) > 0)
             {
                 WCHAR *p = NULL;
@@ -585,7 +592,6 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 {   // 处理以相对路径打开的文件或目录
                     GetFullPathNameW(ptr_arg[i], MAX_BUFFER, data.rel_path, &p);
                     len = wcslen(data.rel_path);
-                    printf("data.rel_path = %ls\n", data.rel_path);
                     if (eu_exist_dir(data.rel_path) && len < MAX_BUFFER - 2)
                     {
                         util_bfs_search(data.rel_path, pbak, &data);
