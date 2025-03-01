@@ -111,7 +111,6 @@ LUALIB_API int luaL_loadfilex(lua_State *L, const char *filename,
       free(wfname);
     }
   #else
-    chunkname = lua_pushfstring(L, "@%s", filename);
     ctx.fp = fopen(filename, "rb");
   #endif
     if (ctx.fp == NULL) {
@@ -119,6 +118,7 @@ LUALIB_API int luaL_loadfilex(lua_State *L, const char *filename,
       lua_pushfstring(L, "cannot open %s: %s", filename, strerror(errno));
       return LUA_ERRFILE;
     }
+    chunkname = lua_pushfstring(L, "@%s", filename);
   } else {
     ctx.fp = stdin;
     chunkname = "=stdin";
