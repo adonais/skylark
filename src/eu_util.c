@@ -2590,7 +2590,7 @@ util_which(const TCHAR *name)
     const TCHAR *path = (const TCHAR *)_tgetenv(_T("PATH"));
     TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
     TCHAR *dot = _tcsrchr(name, _T('.'));
-    if (!path || !GetSystemDirectory(sz_work, MAX_BUFFER - 1))
+    if (!path || !GetCurrentDirectoryW(MAX_BUFFER - 1, sz_work))
     {
         return NULL;
     }
