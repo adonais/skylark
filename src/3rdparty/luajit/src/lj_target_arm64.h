@@ -1,6 +1,6 @@
 /*
 ** Definitions for ARM64 CPUs.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #ifndef _LJ_TARGET_ARM64_H
@@ -281,6 +281,7 @@ typedef enum A64Ins {
   A64I_FSQRTd = 0x1e61c000,
   A64I_LDRs = 0xbd400000,
   A64I_LDRd = 0xfd400000,
+  A64I_LDRLd = 0x5c000000,
   A64I_STRs = 0xbd000000,
   A64I_STRd = 0xfd000000,
   A64I_LDPs = 0x2d400000,
@@ -320,6 +321,7 @@ typedef enum A64Ins {
   A64I_FMOV_R_D = 0x9e660000,
   A64I_FMOV_D_R = 0x9e670000,
   A64I_FMOV_DI = 0x1e601000,
+  A64I_MOVI_DI = 0x2f000400,
 } A64Ins;
 
 #define A64I_BR_AUTH	(LJ_ABI_PAUTH ? A64I_BRAAZ : A64I_BR)

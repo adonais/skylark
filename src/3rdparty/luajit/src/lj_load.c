@@ -1,6 +1,6 @@
 /*
 ** Load and dump code.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #include <errno.h>
@@ -95,11 +95,13 @@ static const char *reader_file(lua_State *L, void *ud, size_t *size)
   return *size > 0 ? ctx->buf : NULL;
 }
 
-LUALIB_API int luaL_loadfilex(lua_State *L, const char *filename, const char *mode)
+LUALIB_API int luaL_loadfilex(lua_State *L, const char *filename,
+			      const char *mode)
 {
   FileReaderCtx ctx;
   int status;
   const char *chunkname;
+  int err = 0;
   if (filename) {
   #ifdef _WIN32
     wchar_t *wfname = lj_utf8_utf16(filename, NULL);
@@ -109,29 +111,29 @@ LUALIB_API int luaL_loadfilex(lua_State *L, const char *filename, const char *mo
       free(wfname);
     }
   #else
+    chunkname = lua_pushfstring(L, "@%s", filename);
     ctx.fp = fopen(filename, "rb");
   #endif
     if (ctx.fp == NULL) {
+      L->top--;
       lua_pushfstring(L, "cannot open %s: %s", filename, strerror(errno));
       return LUA_ERRFILE;
     }
-    chunkname = lua_pushfstring(L, "@%s", filename);
   } else {
     ctx.fp = stdin;
     chunkname = "=stdin";
   }
   status = lua_loadx(L, reader_file, &ctx, chunkname, mode);
-  if (ferror(ctx.fp)) {
-    L->top -= filename ? 2 : 1;
-    lua_pushfstring(L, "cannot read %s: %s", chunkname+1, strerror(errno));
-    if (filename)
-      fclose(ctx.fp);
-    return LUA_ERRFILE;
-  }
+  if (ferror(ctx.fp)) err = errno;
   if (filename) {
+    fclose(ctx.fp);
     L->top--;
     copyTV(L, L->top-1, L->top);
-    fclose(ctx.fp);
+  }
+  if (err) {
+    L->top--;
+    lua_pushfstring(L, "cannot read %s: %s", chunkname+1, strerror(err));
+    return LUA_ERRFILE;
   }
   return status;
 }

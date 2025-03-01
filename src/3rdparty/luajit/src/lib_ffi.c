@@ -1,6 +1,6 @@
 /*
 ** FFI library.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lib_ffi_c
@@ -305,7 +305,7 @@ LJLIB_CF(ffi_meta___tostring)
       p = *(void **)p;
     } else if (ctype_isenum(ct->info)) {
       msg = "cdata<%s>: %d";
-      p = (void *)(uintptr_t)*(uint32_t **)p;
+      p = (void *)(uintptr_t)*(uint32_t *)p;
     } else {
       if (ctype_isptr(ct->info)) {
 	p = cdata_getptr(p, ct->size);

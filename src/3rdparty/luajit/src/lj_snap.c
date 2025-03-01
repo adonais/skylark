@@ -1,6 +1,6 @@
 /*
 ** Snapshot handling.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_snap_c
@@ -957,7 +957,8 @@ const BCIns *lj_snap_restore(jit_State *J, void *exptr)
   lua_State *L = J->L;
 
   /* Set interpreter PC to the next PC to get correct error messages. */
-  setcframe_pc(cframe_raw(L->cframe), pc+1);
+  setcframe_pc(L->cframe, pc+1);
+  setcframe_pc(cframe_raw(cframe_prev(L->cframe)), pc);
 
   /* Make sure the stack is big enough for the slots from the snapshot. */
   if (LJ_UNLIKELY(L->base + snap->topslot >= tvref(L->maxstack))) {

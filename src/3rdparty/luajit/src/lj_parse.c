@@ -1,6 +1,6 @@
 /*
 ** Lua parser (source code -> bytecode).
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Major portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2008 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -2339,11 +2339,15 @@ static void parse_return(LexState *ls)
     BCReg nret = expr_list(ls, &e);
     if (nret == 1) {  /* Return one result. */
       if (e.k == VCALL) {  /* Check for tail call. */
+#ifdef LUAJIT_DISABLE_TAILCALL
+	goto notailcall;
+#else
 	BCIns *ip = bcptr(fs, &e);
 	/* It doesn't pay off to add BC_VARGT just for 'return ...'. */
 	if (bc_op(*ip) == BC_VARG) goto notailcall;
 	fs->pc--;
 	ins = BCINS_AD(bc_op(*ip)-BC_CALL+BC_CALLT, bc_a(*ip), bc_c(*ip));
+#endif
       } else {  /* Can return the result from any register. */
 	ins = BCINS_AD(BC_RET1, expr_toanyreg(fs, &e), 2);
       }
@@ -2517,11 +2521,9 @@ static void parse_for_num(LexState *ls, GCstr *varname, BCLine line)
 */
 static int predict_next(LexState *ls, FuncState *fs, BCPos pc)
 {
-  BCIns ins;
+  BCIns ins = fs->bcbase[pc].ins;
   GCstr *name;
   cTValue *o;
-  if (pc >= fs->bclim) return 0;
-  ins = fs->bcbase[pc].ins;
   switch (bc_op(ins)) {
   case BC_MOV:
     if (bc_d(ins) >= fs->nactvar) return 0;
@@ -2570,7 +2572,7 @@ static void parse_for_iter(LexState *ls, GCstr *indexname)
   assign_adjust(ls, 3, expr_list(ls, &e), &e);
   /* The iterator needs another 3 [4] slots (func [pc] | state ctl). */
   bcreg_bump(fs, 3+ls->fr2);
-  isnext = (nvars <= 5 && predict_next(ls, fs, exprpc));
+  isnext = (nvars <= 5 && fs->pc > exprpc && predict_next(ls, fs, exprpc));
   var_add(ls, 3);  /* Hidden control variables. */
   lex_check(ls, TK_do);
   loop = bcemit_AJ(fs, isnext ? BC_ISNEXT : BC_JMP, base, NO_JMP);

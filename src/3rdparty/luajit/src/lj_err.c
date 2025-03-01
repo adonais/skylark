@@ -1,6 +1,6 @@
 /*
 ** Error handling.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_err_c
@@ -238,12 +238,6 @@ typedef struct UndocumentedDispatcherContext {
 
 /* Another wild guess. */
 extern void __DestructExceptionObject(EXCEPTION_RECORD *rec, int nothrow);
-
-#if LJ_TARGET_X64 && defined(MINGW_SDK_INIT)
-/* Workaround for broken MinGW64 declaration. */
-VOID RtlUnwindEx_FIXED(PVOID,PVOID,PVOID,PVOID,PVOID,PVOID) asm("RtlUnwindEx");
-#define RtlUnwindEx RtlUnwindEx_FIXED
-#endif
 
 #define LJ_MSVC_EXCODE		((DWORD)0xe06d7363)
 #define LJ_GCC_EXCODE		((DWORD)0x20474343)

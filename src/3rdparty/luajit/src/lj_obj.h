@@ -1,6 +1,6 @@
 /*
 ** LuaJIT VM tags, values and objects.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2008 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -595,7 +595,7 @@ typedef struct GCState {
   GCSize threshold;	/* Memory threshold. */
   uint8_t currentwhite;	/* Current white color. */
   uint8_t state;	/* GC state. */
-  uint8_t nocdatafin;	/* No cdata finalizer called. */
+  uint8_t unused0;
 #if LJ_64
   uint8_t lightudnum;	/* Number of lightuserdata segments - 1. */
 #else
