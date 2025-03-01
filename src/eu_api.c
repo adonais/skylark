@@ -1275,7 +1275,7 @@ eu_query_encoding_name(int code)
     return NULL;
 }
 
-static bool
+static inline bool
 is_exclude_char(const char *encoding)
 {
     return (0
@@ -1298,6 +1298,12 @@ is_exclude_char(const char *encoding)
            || STRICMP(encoding, ==, "windows-1250")
            || STRICMP(encoding, ==, "windows-1252")
            );
+}
+
+static inline bool
+is_difficult_char(const char *encoding)
+{
+    return (_strnicmp(encoding, "ISO-8859-", 9) == 0 || _strnicmp(encoding, "TIS-", 4) == 0);
 }
 
 static bool
@@ -1453,11 +1459,11 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             type = IDM_UNI_UTF8;
         }
     }
-    else if (_strnicmp(obj->encoding, "ISO-8859-", 9) == 0)
+    else if (is_difficult_char(obj->encoding))
     {
         if (on_encoding_validate_utf8(checkstr))
         {
-            eu_logmsg("Not iso encode, it's maybe UTF-8!\n");
+            eu_logmsg("Not %s encode, it's maybe UTF-8!\n", obj->encoding);
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else if (CHECK_1ST > obj->confidence && is_mbcs_gb18030((const char *)checkstr, read_len))
