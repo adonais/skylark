@@ -2123,7 +2123,7 @@ eu_save_config(void)
               g_config->result_list_height,
               g_config->result2_edit_height,
               g_config->result2_list_height,
-              (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
+              (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 0),
               g_config->scroll_to_cursor?"true":"false",
               0,
               g_config->inter_reserved_1,
