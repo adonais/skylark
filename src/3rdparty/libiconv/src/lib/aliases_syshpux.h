@@ -32,7 +32,7 @@
 #line 1 "lib/aliases_syshpux.gperf"
 struct alias { int name; unsigned int encoding_index; };
 
-#define TOTAL_KEYWORDS 359
+#define TOTAL_KEYWORDS 361
 #define MIN_WORD_LENGTH 2
 #define MAX_WORD_LENGTH 45
 #define MIN_HASH_VALUE 19
@@ -446,6 +446,8 @@ struct stringpool_t
     char stringpool_str571[sizeof("ISO-2022-JP")];
     char stringpool_str574[sizeof("ISO-2022-JP-1")];
     char stringpool_str575[sizeof("ISO-2022-JP-MS")];
+    char stringpool_str577[sizeof("GB18030:2022")];
+    char stringpool_str579[sizeof("GB18030:2005")];
     char stringpool_str581[sizeof("CSISO58GB231280")];
     char stringpool_str582[sizeof("CSHPROMAN8")];
     char stringpool_str584[sizeof("NEXTSTEP")];
@@ -808,6 +810,8 @@ static const struct stringpool_t stringpool_contents =
     "ISO-2022-JP",
     "ISO-2022-JP-1",
     "ISO-2022-JP-MS",
+    "GB18030:2022",
+    "GB18030:2005",
     "CSISO58GB231280",
     "CSHPROMAN8",
     "NEXTSTEP",
@@ -1007,7 +1011,7 @@ static const struct alias aliases[] =
 #line 97 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str136, ei_iso8859_5},
     {-1},
-#line 363 "lib/aliases_syshpux.gperf"
+#line 365 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str138, ei_cp949},
 #line 96 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str139, ei_iso8859_5},
@@ -1066,7 +1070,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str169, ei_cp866},
 #line 156 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str170, ei_iso8859_14},
-#line 369 "lib/aliases_syshpux.gperf"
+#line 371 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str171, ei_local_char},
 #line 73 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str172, ei_iso8859_2},
@@ -1076,7 +1080,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str174, ei_pt154},
 #line 72 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str175, ei_iso8859_2},
-#line 342 "lib/aliases_syshpux.gperf"
+#line 344 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str176, ei_hz},
 #line 13 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str177, ei_ascii},
@@ -1096,7 +1100,7 @@ static const struct alias aliases[] =
     {-1}, {-1}, {-1},
 #line 334 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str191, ei_ces_gbk},
-#line 366 "lib/aliases_syshpux.gperf"
+#line 368 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str192, ei_johab},
 #line 335 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str193, ei_cp936},
@@ -1107,13 +1111,13 @@ static const struct alias aliases[] =
 #line 59 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str198, ei_iso8859_1},
     {-1},
-#line 361 "lib/aliases_syshpux.gperf"
+#line 363 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str200, ei_euc_kr},
 #line 195 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str201, ei_cp1255},
 #line 57 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str202, ei_iso8859_1},
-#line 360 "lib/aliases_syshpux.gperf"
+#line 362 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str203, ei_euc_kr},
 #line 295 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str204, ei_iso646_cn},
@@ -1170,7 +1174,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str237, ei_cp1252},
 #line 302 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str238, ei_gb2312},
-#line 353 "lib/aliases_syshpux.gperf"
+#line 355 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str239, ei_cp950},
 #line 132 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str240, ei_iso8859_9},
@@ -1187,7 +1191,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str247, ei_iso646_cn},
 #line 188 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str248, ei_cp1252},
-#line 367 "lib/aliases_syshpux.gperf"
+#line 369 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str249, ei_iso2022_kr},
 #line 86 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str250, ei_iso8859_4},
@@ -1252,12 +1256,12 @@ static const struct alias aliases[] =
     {-1},
 #line 122 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str287, ei_iso8859_8},
-#line 347 "lib/aliases_syshpux.gperf"
+#line 349 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str288, ei_ces_big5},
 #line 189 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str289, ei_cp1253},
     {-1},
-#line 348 "lib/aliases_syshpux.gperf"
+#line 350 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str291, ei_ces_big5},
     {-1},
 #line 25 "lib/aliases_syshpux.gperf"
@@ -1313,7 +1317,7 @@ static const struct alias aliases[] =
 #line 113 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str324, ei_iso8859_7},
     {-1}, {-1},
-#line 339 "lib/aliases_syshpux.gperf"
+#line 341 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str327, ei_iso2022_cn},
 #line 78 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str328, ei_iso8859_3},
@@ -1343,8 +1347,8 @@ static const struct alias aliases[] =
 #line 284 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str348, ei_jisx0208},
 #line 338 "lib/aliases_syshpux.gperf"
-    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str349, ei_gb18030},
-#line 368 "lib/aliases_syshpux.gperf"
+    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str349, ei_gb18030_2005},
+#line 370 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str350, ei_iso2022_kr},
 #line 94 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str351, ei_iso8859_5},
@@ -1390,13 +1394,13 @@ static const struct alias aliases[] =
     {-1}, {-1},
 #line 239 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str393, ei_armscii_8},
-#line 352 "lib/aliases_syshpux.gperf"
+#line 354 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str394, ei_ces_big5},
 #line 62 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str395, ei_iso8859_1},
 #line 12 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str396, ei_ascii},
-#line 351 "lib/aliases_syshpux.gperf"
+#line 353 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str397, ei_ces_big5},
     {-1},
 #line 41 "lib/aliases_syshpux.gperf"
@@ -1414,7 +1418,7 @@ static const struct alias aliases[] =
 #line 143 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str409, ei_iso8859_10},
     {-1}, {-1}, {-1}, {-1}, {-1},
-#line 364 "lib/aliases_syshpux.gperf"
+#line 366 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str415, ei_cp949},
     {-1}, {-1},
 #line 242 "lib/aliases_syshpux.gperf"
@@ -1432,7 +1436,7 @@ static const struct alias aliases[] =
     {-1},
 #line 110 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str427, ei_iso8859_7},
-#line 340 "lib/aliases_syshpux.gperf"
+#line 342 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str428, ei_iso2022_cn},
     {-1},
 #line 42 "lib/aliases_syshpux.gperf"
@@ -1480,7 +1484,7 @@ static const struct alias aliases[] =
 #line 309 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str470, ei_ksc5601},
     {-1}, {-1}, {-1},
-#line 341 "lib/aliases_syshpux.gperf"
+#line 343 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str474, ei_iso2022_cn_ext},
     {-1}, {-1},
 #line 181 "lib/aliases_syshpux.gperf"
@@ -1530,7 +1534,7 @@ static const struct alias aliases[] =
 #line 80 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str511, ei_iso8859_3},
     {-1},
-#line 362 "lib/aliases_syshpux.gperf"
+#line 364 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str513, ei_euc_kr},
     {-1},
 #line 219 "lib/aliases_syshpux.gperf"
@@ -1571,10 +1575,10 @@ static const struct alias aliases[] =
     {-1}, {-1},
 #line 160 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str541, ei_iso8859_14},
-#line 350 "lib/aliases_syshpux.gperf"
+#line 352 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str542, ei_ces_big5},
     {-1}, {-1},
-#line 349 "lib/aliases_syshpux.gperf"
+#line 351 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str545, ei_ces_big5},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
 #line 40 "lib/aliases_syshpux.gperf"
@@ -1591,7 +1595,13 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str574, ei_iso2022_jp1},
 #line 326 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str575, ei_iso2022_jpms},
-    {-1}, {-1}, {-1}, {-1}, {-1},
+    {-1},
+#line 340 "lib/aliases_syshpux.gperf"
+    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str577, ei_gb18030_2022},
+    {-1},
+#line 339 "lib/aliases_syshpux.gperf"
+    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str579, ei_gb18030_2005},
+    {-1},
 #line 301 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str581, ei_gb2312},
 #line 237 "lib/aliases_syshpux.gperf"
@@ -1614,7 +1624,7 @@ static const struct alias aliases[] =
 #line 47 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str602, ei_utf7},
     {-1}, {-1},
-#line 343 "lib/aliases_syshpux.gperf"
+#line 345 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str605, ei_hz},
 #line 324 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str606, ei_iso2022_jp2},
@@ -1622,16 +1632,16 @@ static const struct alias aliases[] =
 #line 227 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str610, ei_mac_cyrillic},
     {-1},
-#line 358 "lib/aliases_syshpux.gperf"
+#line 360 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str612, ei_big5hkscs2008},
     {-1}, {-1},
-#line 357 "lib/aliases_syshpux.gperf"
+#line 359 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str615, ei_big5hkscs2008},
     {-1}, {-1},
-#line 345 "lib/aliases_syshpux.gperf"
+#line 347 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str618, ei_euc_tw},
     {-1}, {-1},
-#line 344 "lib/aliases_syshpux.gperf"
+#line 346 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str621, ei_euc_tw},
     {-1}, {-1},
 #line 200 "lib/aliases_syshpux.gperf"
@@ -1696,15 +1706,15 @@ static const struct alias aliases[] =
 #line 125 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str719, ei_iso8859_8},
     {-1}, {-1}, {-1},
-#line 370 "lib/aliases_syshpux.gperf"
+#line 372 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str723, ei_local_wchar_t},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
 #line 223 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str731, ei_mac_centraleurope},
     {-1}, {-1},
-#line 354 "lib/aliases_syshpux.gperf"
+#line 356 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str734, ei_big5hkscs1999},
-#line 355 "lib/aliases_syshpux.gperf"
+#line 357 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str735, ei_big5hkscs2001},
     {-1}, {-1},
 #line 276 "lib/aliases_syshpux.gperf"
@@ -1716,14 +1726,14 @@ static const struct alias aliases[] =
 #line 288 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str750, ei_jisx0212},
     {-1}, {-1}, {-1},
-#line 356 "lib/aliases_syshpux.gperf"
+#line 358 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str754, ei_big5hkscs2004},
 #line 277 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str755, ei_jisx0201},
     {-1}, {-1}, {-1}, {-1},
 #line 232 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str760, ei_mac_arabic},
-#line 359 "lib/aliases_syshpux.gperf"
+#line 361 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str761, ei_big5hkscs2008},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
@@ -1767,13 +1777,13 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str912, ei_sjis},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-#line 346 "lib/aliases_syshpux.gperf"
+#line 348 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str931, ei_euc_tw},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
 #line 314 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str950, ei_euc_jp},
-#line 365 "lib/aliases_syshpux.gperf"
+#line 367 "lib/aliases_syshpux.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str951, ei_johab},
     {-1}, {-1}, {-1}, {-1},
 #line 222 "lib/aliases_syshpux.gperf"

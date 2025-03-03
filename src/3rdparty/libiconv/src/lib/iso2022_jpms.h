@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2008, 2011-2012, 2016, 2018 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2001, 2008, 2011-2012, 2016, 2018, 2024 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -58,7 +58,7 @@
  * Conclusion:
  *   - CP50222 should not be used, because the multibyte sequence that it
  *     produces cannot be parsed by either of the three encodings.
- *   - CP50221 is preferrable to CP50220, because it can faithfully represent
+ *   - CP50221 is preferable to CP50220, because it can faithfully represent
  *     the halfwidth Katakana characters.
  * We therefore implement CP50221.  As an extension, in the mbtowc conversion
  * direction, we support also ESC ( J 0x0E, just in case.

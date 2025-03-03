@@ -18,6 +18,27 @@
 #ifndef _LOCALCHARSET_H
 #define _LOCALCHARSET_H
 
+#if 0 && BUILDING_LIBCHARSET
+# define LIBCHARSET_SHLIB_EXPORTED __attribute__((__visibility__("default")))
+#elif defined _MSC_VER && BUILDING_LIBCHARSET
+/* When building with MSVC, exporting a symbol means that the object file
+   contains a "linker directive" of the form /EXPORT:symbol.  This can be
+   inspected through the "objdump -s --section=.drectve FILE" or
+   "dumpbin /directives FILE" commands.
+   The symbols from this file should be exported if and only if the object
+   file gets included in a DLL.  Libtool, on Windows platforms, defines
+   the C macro DLL_EXPORT (together with PIC) when compiling for a shared
+   library (called DLL under Windows) and does not define it when compiling
+   an object file meant to be linked statically into some executable.  */
+# if defined DLL_EXPORT
+#  define LIBCHARSET_SHLIB_EXPORTED __declspec(dllexport)
+# else
+#  define LIBCHARSET_SHLIB_EXPORTED
+# endif
+#else
+# define LIBCHARSET_SHLIB_EXPORTED
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,7 +53,7 @@ extern "C" {
    is changed; threads in multithreaded programs should not do this.
    If the canonical name cannot be determined, the result is a non-canonical
    name.  */
-extern const char * locale_charset (void);
+extern LIBCHARSET_SHLIB_EXPORTED const char * locale_charset (void);
 
 /* About GNU canonical names for character encodings:
 

@@ -4,7 +4,7 @@
 /* Define to 1 if the package shall run at any location in the file system. */
 /* #undef ENABLE_RELOCATABLE */
 
-/* Define to 1 if you have the `copy_file_range' function. */
+/* Define to 1 if you have the 'copy_file_range' function. */
 /* #undef HAVE_COPY_FILE_RANGE */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
@@ -22,7 +22,7 @@
 /* Define to 1 if you have the <minix/config.h> header file. */
 /* #undef HAVE_MINIX_CONFIG_H */
 
-/* Define to 1 if you have the `setlocale' function. */
+/* Define to 1 if you have the 'setlocale' function. */
 #define HAVE_SETLOCALE 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
@@ -40,7 +40,7 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
-/* Define to 1 if you have the `symlink' function. */
+/* Define to 1 if you have the 'symlink' function. */
 /* #undef HAVE_SYMLINK */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
@@ -65,7 +65,7 @@
 /* Define to 1 if O_NOFOLLOW works. */
 #define HAVE_WORKING_O_NOFOLLOW 0
 
-/* Define to 1 if you have the `_NSGetExecutablePath' function. */
+/* Define to 1 if you have the '_NSGetExecutablePath' function. */
 /* #undef HAVE__NSGETEXECUTABLEPATH */
 
 /* Define to the value of ${prefix}, as a string. */
@@ -92,12 +92,12 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "1.5"
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #define STDC_HEADERS 1
 
-/* Enable extensions on AIX 3, Interix.  */
+/* Enable extensions on AIX, Interix, z/OS.  */
 #ifndef _ALL_SOURCE
 # define _ALL_SOURCE 1
 #endif
@@ -158,11 +158,15 @@
 #ifndef __STDC_WANT_IEC_60559_DFP_EXT__
 # define __STDC_WANT_IEC_60559_DFP_EXT__ 1
 #endif
+/* Enable extensions specified by C23 Annex F.  */
+#ifndef __STDC_WANT_IEC_60559_EXT__
+# define __STDC_WANT_IEC_60559_EXT__ 1
+#endif
 /* Enable extensions specified by ISO/IEC TS 18661-4:2015.  */
 #ifndef __STDC_WANT_IEC_60559_FUNCS_EXT__
 # define __STDC_WANT_IEC_60559_FUNCS_EXT__ 1
 #endif
-/* Enable extensions specified by ISO/IEC TS 18661-3:2015.  */
+/* Enable extensions specified by C23 Annex H and ISO/IEC TS 18661-3:2015.  */
 #ifndef __STDC_WANT_IEC_60559_TYPES_EXT__
 # define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
 #endif

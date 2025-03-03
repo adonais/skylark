@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2001, 2003, 2005, 2008, 2012, 2017 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2001, 2003, 2005, 2008, 2012, 2017, 2023 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
@@ -19,6 +19,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+/* When we create shell scripts, we need to make sure that on Cygwin they have
+   Unix end-of-line characters, regardless of Cygwin choice of text mode vs.
+   binary mode. On z/OS, however, binary mode turns off charset tagging for
+   output files, which is not what we want. */
+#if defined __MVS__
+# define BINARY_MODE ""
+#else
+# define BINARY_MODE "b"
+#endif
 
 static void emit_alias (FILE* out1, const char* alias, const char* c_name)
 {
@@ -98,7 +108,7 @@ int main (int argc, char* argv[])
 #define BRACIFY(...) { __VA_ARGS__ }
 #define DEFALIAS(xxx_alias,xxx) emit_alias(aliases_file,xxx_alias,#xxx);
 
-  canonical_sh_file = fopen(canonical_sh_file_name, "wb");
+  canonical_sh_file = fopen(canonical_sh_file_name, "w" BINARY_MODE);
   if (canonical_sh_file == NULL) {
     fprintf(stderr, "Could not open '%s' for writing\n", canonical_sh_file_name);
     exit(1);
@@ -107,7 +117,7 @@ int main (int argc, char* argv[])
   if (ferror(canonical_sh_file) || fclose(canonical_sh_file))
     exit(1);
 
-  canonical_sh_file = fopen(canonical_local_sh_file_name, "wb");
+  canonical_sh_file = fopen(canonical_local_sh_file_name, "w" BINARY_MODE);
   if (canonical_sh_file == NULL) {
     fprintf(stderr, "Could not open '%s' for writing\n", canonical_local_sh_file_name);
     exit(1);

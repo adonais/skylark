@@ -8,14 +8,13 @@ SRC = .\src
 # variables
 STATICLIB = $(BIND)\iconv.lib
 
-CFLAGS  = -Zi -Oy -utf-8 -I$(SRC) -Iinclude -I$(SRC)\lib -I$(SRC)\libcharset -D_WIN32_WINNT=_WIN32_WINNT_WIN7 -DENABLE_RELOCATABLE=1 \
-          -DIN_LIBRARY -DNO_XMALLOC -Dset_relocation_prefix=libiconv_set_relocation_prefix -Drelocate=libiconv_relocate \
-          -DENABLE_EXTRA=1 -Drelocate2=libiconv_relocate2 -DHAVE_CONFIG_H $(RELEASE) $(CFLAGS)
+CFLAGS  = -Zi -Oy -utf-8 -I$(SRC) -D_WIN32_WINNT=_WIN32_WINNT_WIN7 -DHAVE_CONFIG_H $(RELEASE) $(CFLAGS)
 
+ICONV_CFLAGS   = $(CFLAGS) -Iinclude -I$(SRC)\lib -DBUILDING_LIBICONV -DBUILDING_LIBCHARSET
+CHARSET_CFLAGS = $(CFLAGS) -I$(SRC)\libcharset -DBUILDING_LIBCHARSET
 
-OBJS = $(OBJD)\iconv.obj         \
-	   $(OBJD)\localcharset.obj  \
-	   $(OBJD)\relocatable.obj   \
+OBJS = $(OBJD)\iconv.obj              \
+	   $(OBJD)\localcharset.obj       \
 
 # targets
 all: dirs $(STATICLIB)
@@ -27,15 +26,12 @@ dirs:
 $(STATICLIB): $(OBJS)
 	$(AR) -out:$@ $(OBJS)
 
-$(OBJD)\iconv.obj       : $(SRC)\lib\iconv.c
-	$(CC) -c $(SRC)\lib\iconv.c $(CFLAGS) -Fo$(OBJD)/ -Fd$(BIND)\euapi
+$(OBJD)\iconv.obj            : $(SRC)\lib\iconv.c
+	$(CC) -c $(SRC)\lib\iconv.c $(ICONV_CFLAGS) -Fo$(OBJD)\ -Fd$(BIND)\euapi
 
-$(OBJD)\localcharset.obj: $(SRC)\libcharset\localcharset.c
-	$(CC) -c $(SRC)\libcharset\localcharset.c $(CFLAGS) -Fo$(OBJD)/ -Fd$(BIND)\euapi
-	
-$(OBJD)\relocatable.obj : $(SRC)\lib\relocatable.c $(SRC)\lib\relocatable.h
-	$(CC) -c $(SRC)\lib\relocatable.c $(CFLAGS) -Fo$(OBJD)/ -Fd$(BIND)\euapi
-		
+$(OBJD)\localcharset.obj     : $(SRC)\libcharset\localcharset.c
+	$(CC) -c $(SRC)\libcharset\localcharset.c $(CHARSET_CFLAGS) -Fo$(OBJD)\ -Fd$(BIND)\euapi
+
 # cleanup
 clean:
 	-del /q $(STATICLIB) 2>nul

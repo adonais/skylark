@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2022 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2023 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -76,6 +76,8 @@ static int
 ebcdic425_mbtowc (conv_t conv, ucs4_t *pwc, const unsigned char *s, size_t n)
 {
   unsigned char c = *s;
+  if (conv->isurface & ICONV_SURFACE_EBCDIC_ZOS_UNIX)
+    c = swap_x15_x25 (c);
   unsigned short wc = ebcdic425_2uni[c];
   if (wc != 0xfffd) {
     *pwc = (ucs4_t) wc;
@@ -157,6 +159,8 @@ ebcdic425_wctomb (conv_t conv, unsigned char *r, ucs4_t wc, size_t n)
   else if (wc == 0x20ac)
     c = 0x9f;
   if (c != 0 || wc == 0) {
+    if (conv->osurface & ICONV_SURFACE_EBCDIC_ZOS_UNIX)
+      c = swap_x15_x25 (c);
     *r = c;
     return 1;
   }

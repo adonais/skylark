@@ -912,9 +912,15 @@ DEFENCODING(( "CP936",                  /* IANA */
 
 DEFENCODING(( "GB18030",                /* IANA, glibc */
             /*"CP54936",                   Windows */
+              "GB18030:2005",
             ),
-            gb18030,
-            { gb18030_mbtowc, NULL },     { gb18030_wctomb, NULL })
+            gb18030_2005,
+            { gb18030_2005_mbtowc, NULL },{ gb18030_2005_wctomb, NULL })
+
+DEFENCODING(( "GB18030:2022",
+            ),
+            gb18030_2022,
+            { gb18030_2022_mbtowc, NULL },{ gb18030_2022_wctomb, NULL })
 
 DEFENCODING(( "ISO-2022-CN",            /* IANA, RFC 1922 */
               "csISO2022CN",
