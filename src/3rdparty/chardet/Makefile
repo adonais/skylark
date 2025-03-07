@@ -12,7 +12,7 @@ SRC = .\src
 STATICLIB = $(BIND)\libchardet.lib
 
 
-CFLAGS  = -I. -W3 -EHsc -Zi -I$(SRC) -D_CRT_SECURE_NO_WARNINGS \
+CXXFLAGS  = -I. -W3 -EHsc -Zi -I$(SRC) -D_CRT_SECURE_NO_WARNINGS -D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR \
           -D_CRT_NONSTDC_NO_DEPRECATE -D_WIN32_WINNT=0x0600 $(RELEASE) $(CFLAGS)
 
 # ----------------------------
@@ -73,10 +73,10 @@ OBJS = \
 .SUFFIXES: .cpp .h .obj
 
 {$(SRC)}.cpp{$(OBJD)}.obj:
-    $(CC) $(CFLAGS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
+    $(CC) $(CXXFLAGS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
 
 {$(SRC)\tables}.cpp{$(OBJD)}.obj:
-    $(CC) $(CFLAGS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
+    $(CC) $(CXXFLAGS) /Fd$(BIND)\euapi.pdb /Fo$(OBJD)\ /c $<
 
 ##############################################################################
 
