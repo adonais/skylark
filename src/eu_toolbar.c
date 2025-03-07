@@ -1003,7 +1003,7 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
             _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\""), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
             free(plugin);
         }
-        if ((handle = eu_new_process(cmd_exec, NULL, pcd, 2, NULL)) != NULL)
+        if ((handle = eu_new_process(cmd_exec, NULL, pcd, 3, NULL)) != NULL)
         {
             CloseHandle(handle);
         }
