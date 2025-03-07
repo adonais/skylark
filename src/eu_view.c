@@ -22,8 +22,7 @@ void
 on_view_filetree(void)
 {
     eu_get_config()->m_ftree_show ^= true;
-    on_treebar_size(NULL);
-    eu_window_resize();
+    on_proc_redraw(NULL);
 }
 
 void

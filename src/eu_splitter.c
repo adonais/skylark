@@ -127,8 +127,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 eu_get_config()->file_tree_width = FILETREEBAR_WIDTH_MIN;
             }
-            on_treebar_size(NULL);
-            eu_window_resize();
+            on_proc_redraw(NULL);
             break;
         }
         case WM_MOUSEMOVE:
