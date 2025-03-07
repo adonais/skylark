@@ -847,8 +847,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 HMENU hpop = NULL;
                 HMENU root_menu = GetMenu(hwnd);
                 file_backup bak = {0};
-                file_menu = root_menu ? GetSubMenu(root_menu, 0) : NULL;
-                hpop = file_menu ? GetSubMenu(file_menu, 2) : NULL;
+                file_menu = root_menu ? GetSubMenu(root_menu, FILES_MENU) : NULL;
+                hpop = file_menu ? GetSubMenu(file_menu, FT_MENU_RECENT_SUB) : NULL;
                 len = hpop ? GetMenuString(hpop, wm_id, bak.rel_path, MAX_BUFFER, MF_BYCOMMAND) : 0;
                 if (len > 0)
                 {

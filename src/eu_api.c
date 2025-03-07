@@ -2094,7 +2094,7 @@ eu_save_config(void)
               g_config->document_map_width,
               g_config->result_edit_height,
               g_config->result_list_height,
-              (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
+              (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 0),
               g_config->scroll_to_cursor?"true":"false",
               0,
               g_config->inter_reserved_1,

@@ -25,14 +25,17 @@ BEGIN
     BEGIN
         MENUITEM "新建(&N)",                                    IDM_FILE_NEW
         MENUITEM "打开(&O) ...",                                IDM_FILE_OPEN
+        MENUITEM MF_SEPARATOR
         POPUP "打开最近"
         BEGIN
             MENUITEM "...",                                     IDM_HISTORY_BASE
         END
         MENUITEM "清理打开文件历史",                            IDM_HISTORY_CLEAN
+        MENUITEM MF_SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_FILE_SAVE
         MENUITEM "另存为 ...",                                  IDM_FILE_SAVEAS
         MENUITEM "全部保存",                                    IDM_FILE_SAVEALL
+        MENUITEM MF_SEPARATOR
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭其他文件",                                IDM_FILE_CLOSEALL_EXCLUDE

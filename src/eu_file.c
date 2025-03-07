@@ -216,8 +216,8 @@ on_file_update_recent_menu(void)
     if (hroot)
     {
         HMENU hre = NULL;
-        HMENU hfile = GetSubMenu(hroot, 0);
-        hre = hfile ? GetSubMenu(hfile, 2) : NULL;
+        HMENU hfile = GetSubMenu(hroot, FILES_MENU);
+        hre = hfile ? GetSubMenu(hfile, FT_MENU_RECENT_SUB) : NULL;
         if (hre)
         {
             int count = GetMenuItemCount(hre);
@@ -225,9 +225,12 @@ on_file_update_recent_menu(void)
             {
                 DeleteMenu(hre, 0, MF_BYPOSITION);
             }
-            if (on_sql_mem_post("SELECT szName FROM file_recent ORDER BY szDate DESC;", on_file_refresh_recent_menu, (void *)hre) != 0)
+            if (eu_get_config() && eu_get_config()->file_recent_number > 0)
             {
-                eu_logmsg("%s: on_sql_mem_post failed\n", __FUNCTION__);
+                if (on_sql_mem_post("SELECT szName FROM file_recent ORDER BY szDate DESC;", on_file_refresh_recent_menu, (void *)hre) != 0)
+                {
+                    eu_logmsg("%s: on_sql_mem_post failed\n", __FUNCTION__);
+                }
             }
             if ((count = GetMenuItemCount(hre)) == 0)
             {

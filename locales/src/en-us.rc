@@ -25,14 +25,17 @@ BEGIN
     BEGIN
         MENUITEM "&New",                                               IDM_FILE_NEW
         MENUITEM "&Open ...",                                          IDM_FILE_OPEN
+        MENUITEM MF_SEPARATOR
         POPUP "Open Recent History"
         BEGIN
             MENUITEM "...",                                            IDM_HISTORY_BASE
         END
         MENUITEM "Clear Recent History",                               IDM_HISTORY_CLEAN
+        MENUITEM MF_SEPARATOR
         MENUITEM "&Save",                                              IDM_FILE_SAVE
         MENUITEM "Save As ...",                                        IDM_FILE_SAVEAS
         MENUITEM "Save All",                                           IDM_FILE_SAVEALL
+        MENUITEM MF_SEPARATOR
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
         MENUITEM "Close Other Documents",                              IDM_FILE_CLOSEALL_EXCLUDE
