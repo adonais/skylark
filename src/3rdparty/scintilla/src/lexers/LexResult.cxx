@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <ctype.h>
+#include "eu_cvector.h"
 
 #include <string>
 #include <string_view>
@@ -50,7 +51,7 @@ handle_word(result_vec *pvec, char *lineBuffer, size_t startLine, size_t endPos,
     {
         styler.ColourTo(endPos, SCE_RESULT_COMMENT);
     }
-    else if (linenum > 0 && pvec && ((size_t *)(pvec))[-2] > (size_t)(linenum - 1) && pvec[linenum - 1].line >= 0)
+    else if (linenum > 0 && pvec && cvector_size(pvec) > (size_t)(linenum - 1) && pvec[linenum - 1].line >= 0)
     {
         result_postion mark = pvec[linenum - 1].mark;
         // line header

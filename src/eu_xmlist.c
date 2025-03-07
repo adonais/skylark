@@ -468,7 +468,7 @@ on_xml_pretty(void *ptr, struct opt_format *opt)
                 int n = (int) eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
                 memset(indent, 0x20, (n > 0 && n < QW_SIZE) ? n : 4);
             }
-            cvector_init(&pout, text_len, uint8_t); 
+            cvector_init(pout, text_len, NULL);
             ctx.indent = indent;
             ctx.ppbuf = &pout;
             XML_SetUserData(parser, &ctx);
