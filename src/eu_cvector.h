@@ -246,12 +246,16 @@ typedef struct cvector_metadata_t {
  * @param_ pvec_ - the vector's pointer
  * @return void
  */
-#define cvector_freep(pvec_)                                                          \
-    do {                                                                              \
-        if ((pvec_ && *pvec_)) {                                                      \
-            cvector_free((*pvec_));                                            \
-			(*pvec_) = NULL; \
-        }                                                                             \
+#define cvector_freep(pvec_)                                   \
+    do                                                         \
+    {                                                          \
+        if ((pvec_ && *pvec_))                                 \
+        {                                                      \
+            void *val__;                                       \
+            memcpy(&val__, (pvec_), sizeof(val__));            \
+            memcpy((pvec_), &(void *){ NULL }, sizeof(val__)); \
+            cvector_free((char *)(val__));                     \
+        }                                                      \
     } while (0)
 
 /**
@@ -526,6 +530,18 @@ typedef struct cvector_metadata_t {
         }                                                      \
     } while (0)
 
+#define cvector_for_each_v2(vec_, func_, param_)               \
+    do                                                         \
+    {                                                          \
+        if ((vec_) && (func_) != NULL)                         \
+        {                                                      \
+            for (size_t i_ = 0; i_ < cvector_size(vec_); ++i_) \
+            {                                                  \
+                func_((param_), ((vec_)[i_]));                 \
+            }                                                  \
+        }                                                      \
+    } while (0)
+
 /**
  * @brief cvector_for_each - call function with param_ on each element of the vector
  * @param_ vec_ - the vector
@@ -581,11 +597,11 @@ typedef struct cvector_metadata_t {
  * one parameter which is the element to_ be freed)
  * @return void
  */
-#define cvector_free_each_and_free(vec_, free_func) \
-    do                                              \
-    {                                               \
-        cvector_for_each((vec_), (free_func));      \
-        cvector_free(vec_);                         \
+#define cvector_free_each_and_free(vec_, free_func_) \
+    do                                               \
+    {                                                \
+        cvector_for_each((vec_), (free_func_));      \
+        cvector_free(vec_);                          \
     } while (0)
 
 #endif /* CVECTOR_H_ */
