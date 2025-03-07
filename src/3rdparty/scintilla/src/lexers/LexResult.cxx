@@ -103,4 +103,4 @@ ColouriseResultDoc(Sci_PositionU startPos, Sci_Position length, int initStyle, W
 
 static const char *const emptyWordList[] = { 0 };
 
-LexerModule lmResult(SCLEX_RESULT, ColouriseResultDoc, "result", 0, emptyWordList);
+extern const LexerModule lmResult(SCLEX_RESULT, ColouriseResultDoc, "result", 0, emptyWordList);

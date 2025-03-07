@@ -43,13 +43,17 @@
 #include <zmouse.h>
 #include <ole2.h>
 
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
+
 #if !defined(DISABLE_D2D)
 #define USE_D2D 1
 #endif
 
 #if defined(USE_D2D)
-#include <d2d1.h>
-#include <dwrite.h>
+#include <d2d1_1.h>
+#include <d3d11_1.h>
+#include <dwrite_1.h>
 #endif
 
 #include "ScintillaTypes.h"
@@ -99,6 +103,11 @@
 #include "ScintillaWin.h"
 #include "BoostRegexSearch.h"
 
+// __uuidof is a Microsoft extension but makes COM code neater, so disable warning
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#endif
+
 namespace {
 
 // Two idle messages SC_WIN_IDLE and SC_WORK_IDLE.
@@ -134,7 +143,11 @@ void SetWindowID(HWND hWnd, int identifier) noexcept {
 	::SetWindowLongPtr(hWnd, GWLP_ID, identifier);
 }
 
-Point PointFromLParam(sptr_t lpoint) noexcept {
+constexpr POINT POINTFromLParam(sptr_t lParam) noexcept {
+	return { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+};
+
+constexpr Point PointFromLParam(sptr_t lpoint) noexcept {
 	return Point::FromInts(GET_X_LPARAM(lpoint), GET_Y_LPARAM(lpoint));
 }
 
@@ -267,14 +280,19 @@ public:
 		return ImmGetCompositionStringW(hIMC, GCS_CURSORPOS, nullptr, 0);
 	}
 
-	std::vector<BYTE> GetImeAttributes() {
+	std::vector<BYTE> GetImeAttributes() const {
 		const int attrLen = ::ImmGetCompositionStringW(hIMC, GCS_COMPATTR, nullptr, 0);
 		std::vector<BYTE> attr(attrLen, 0);
 		::ImmGetCompositionStringW(hIMC, GCS_COMPATTR, &attr[0], static_cast<DWORD>(attr.size()));
 		return attr;
 	}
 
-	std::wstring GetCompositionString(DWORD dwIndex) {
+	LONG GetCompositionStringLength(DWORD dwIndex) const noexcept {
+		const LONG byteLen = ::ImmGetCompositionStringW(hIMC, dwIndex, nullptr, 0);
+		return byteLen / sizeof(wchar_t);
+	}
+
+	std::wstring GetCompositionString(DWORD dwIndex) const {
 		const LONG byteLen = ::ImmGetCompositionStringW(hIMC, dwIndex, nullptr, 0);
 		std::wstring wcs(byteLen / 2, 0);
 		::ImmGetCompositionStringW(hIMC, dwIndex, &wcs[0], byteLen);
@@ -285,8 +303,8 @@ public:
 class GlobalMemory;
 
 class ReverseArrowCursor {
-	UINT dpi = USER_DEFAULT_SCREEN_DPI;
 	HCURSOR cursor {};
+	bool valid = false;
 
 public:
 	ReverseArrowCursor() noexcept {}
@@ -301,16 +319,20 @@ public:
 		}
 	}
 
-	HCURSOR Load(UINT dpi_) noexcept {
+	void Invalidate() noexcept {
+		valid = false;
+	}
+
+	HCURSOR Load(UINT dpi) noexcept {
 		if (cursor)	 {
-			if (dpi == dpi_) {
+			if (valid) {
 				return cursor;
 			}
 			::DestroyCursor(cursor);
 		}
 
-		dpi = dpi_;
-		cursor = LoadReverseArrowCursor(dpi_);
+		valid = true;
+		cursor = LoadReverseArrowCursor(dpi);
 		return cursor ? cursor : ::LoadCursor({}, IDC_ARROW);
 	}
 };
@@ -320,9 +342,102 @@ struct HorizontalScrollRange {
 	int documentWidth;
 };
 
+CLIPFORMAT RegisterClipboardType(LPCWSTR lpszFormat) noexcept {
+	// Registered clipboard format values are 0xC000 through 0xFFFF.
+	// RegisterClipboardFormatW returns 32-bit unsigned and CLIPFORMAT is 16-bit
+	// unsigned so choose the low 16-bits with &.
+	return ::RegisterClipboardFormatW(lpszFormat) & 0xFFFF;
+}
+
+RECT GetClientRect(HWND hwnd) noexcept {
+	RECT rect{};
+	::GetClientRect(hwnd, &rect);
+	return rect;
+}
+
+#if defined(USE_D2D)
+
+D2D1_SIZE_U GetSizeUFromRect(const RECT &rc, const int scaleFactor) noexcept {
+	const SIZE size = SizeOfRect(rc);
+	const UINT32 scaledWidth = size.cx * scaleFactor;
+	const UINT32 scaledHeight = size.cy * scaleFactor;
+	return D2D1::SizeU(scaledWidth, scaledHeight);
+}
+
+#endif
+
 }
 
 namespace Scintilla::Internal {
+
+#if defined(USE_D2D)
+
+using HwndRenderTarget = ComPtr<ID2D1HwndRenderTarget>;
+
+// There may be either a Hwnd or DC render target
+struct RenderTargets {
+	HwndRenderTarget pHwndRT;
+	DCRenderTarget pDCRT;
+	ComPtr<ID2D1DeviceContext> pDeviceContext;
+	bool valid = true;
+	[[nodiscard]] ID2D1RenderTarget *RenderTarget() const noexcept {
+		if (pHwndRT)
+			return pHwndRT.Get();
+		if (pDCRT)
+			return pDCRT.Get();
+		if (pDeviceContext)
+			return pDeviceContext.Get();
+		return nullptr;
+	}
+	void Release() noexcept {
+		pHwndRT = nullptr;
+		pDCRT = nullptr;
+		pDeviceContext = nullptr;
+	}
+};
+
+// These resources are device-dependent but not window-dependent
+struct DirectDevice {
+	D3D11Device pDirect3DDevice;
+	ComPtr<ID2D1Device> pDirect2DDevice;
+	ComPtr<IDXGIDevice> pDXGIDevice;
+
+	void Release() noexcept;
+	HRESULT CreateDevice() noexcept;
+};
+
+void DirectDevice::Release() noexcept {
+	pDirect3DDevice = nullptr;
+	pDirect2DDevice = nullptr;
+	pDXGIDevice = nullptr;
+}
+
+HRESULT DirectDevice::CreateDevice() noexcept {
+	if (pDirect2DDevice) {	// Must be released before creation
+		return E_FAIL;
+	}
+
+	HRESULT hr = CreateD3D(pDirect3DDevice);
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	hr = pDirect3DDevice.As(&pDXGIDevice);
+	if (FAILED(hr)) {
+		Platform::DebugPrintf("Failed to create DXGI device 0x%lx\n", hr);
+		return hr;
+	}
+
+	hr = pD2DFactory->CreateDevice(pDXGIDevice.Get(), pDirect2DDevice.ReleaseAndGetAddressOf());
+	if (FAILED(hr)) {
+		Platform::DebugPrintf("Failed to create D2D device 0x%lx\n", hr);
+		return hr;
+	}
+
+	return S_OK;
+}
+
+#endif
 
 /**
  */
@@ -371,8 +486,9 @@ class ScintillaWin :
 	}
 
 #if defined(USE_D2D)
-	ID2D1RenderTarget *pRenderTarget;
-	bool renderTargetValid;
+	DirectDevice device;
+	ComPtr<IDXGISwapChain1> pDXGISwapChain;
+	RenderTargets targets;
 	// rendering parameters for current monitor
 	HMONITOR hCurrentMonitor;
 	std::shared_ptr<RenderingParams> renderingParams;
@@ -389,6 +505,10 @@ class ScintillaWin :
 	void Finalise() override;
 #if defined(USE_D2D)
 	bool UpdateRenderingParams(bool force) noexcept;
+	HRESULT Create3D() noexcept;
+	void CreateRenderTarget();
+	HRESULT SetBackBuffer(HWND hwnd, IDXGISwapChain1 *pSwapChain);
+	HRESULT CreateSwapChain(HWND hwnd);
 	void EnsureRenderTarget(HDC hdc);
 #endif
 	void DropRenderTarget() noexcept;
@@ -573,16 +693,12 @@ ScintillaWin::ScintillaWin(HWND hwnd) {
 
 	// There does not seem to be a real standard for indicating that the clipboard
 	// contains a rectangular selection, so copy Developer Studio and Borland Delphi.
-	cfColumnSelect = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("MSDEVColumnSelect")));
-	cfBorlandIDEBlockType = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("Borland IDE Block Type")));
+	cfColumnSelect = RegisterClipboardType(L"MSDEVColumnSelect");
+	cfBorlandIDEBlockType = RegisterClipboardType(L"Borland IDE Block Type");
 
-	// Likewise for line-copy (copies a full line when no text is selected)
-	cfLineSelect = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("MSDEVLineSelect")));
-	cfVSLineTag = static_cast<CLIPFORMAT>(
-		::RegisterClipboardFormat(TEXT("VisualStudioEditorOperationsLineCutCopyClipboardTag")));
+	// Likewise for line-copy or line-cut (copies or cuts a full line when no text is selected)
+	cfLineSelect = RegisterClipboardType(L"MSDEVLineSelect");
+	cfVSLineTag = RegisterClipboardType(L"VisualStudioEditorOperationsLineCutCopyClipboardTag");
 	hrOle = E_FAIL;
 
 	wMain = hwnd;
@@ -598,8 +714,6 @@ ScintillaWin::ScintillaWin(HWND hwnd) {
 	styleIdleInQueue = false;
 
 #if defined(USE_D2D)
-	pRenderTarget = nullptr;
-	renderTargetValid = true;
 	hCurrentMonitor = {};
 #endif
 
@@ -645,6 +759,15 @@ void ScintillaWin::Finalise() {
 
 #if defined(USE_D2D)
 
+namespace {
+
+HRESULT CreateHwndRenderTarget(const D2D1_RENDER_TARGET_PROPERTIES *renderTargetProperties,
+	const D2D1_HWND_RENDER_TARGET_PROPERTIES *hwndRenderTargetProperties, HwndRenderTarget &hwndRT) noexcept {
+	return pD2DFactory->CreateHwndRenderTarget(renderTargetProperties, hwndRenderTargetProperties, hwndRT.ReleaseAndGetAddressOf());
+}
+
+}
+
 bool ScintillaWin::UpdateRenderingParams(bool force) noexcept {
 	if (!renderingParams) {
 		try {
@@ -659,104 +782,202 @@ bool ScintillaWin::UpdateRenderingParams(bool force) noexcept {
 		return false;
 	}
 
-	IDWriteRenderingParams *monitorRenderingParams = nullptr;
-	IDWriteRenderingParams *customClearTypeRenderingParams = nullptr;
-	const HRESULT hr = pIDWriteFactory->CreateMonitorRenderingParams(monitor, &monitorRenderingParams);
+	ComPtr<IDWriteRenderingParams> upMrp;
+	HRESULT hr = pIDWriteFactory->CreateMonitorRenderingParams(monitor, upMrp.GetAddressOf());
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	// Cast to IDWriteRenderingParams1 so can call GetGrayscaleEnhancedContrast
+	WriteRenderingParams monitorRenderingParams{};
+	hr = upMrp.As(&monitorRenderingParams);
+
+	WriteRenderingParams customClearTypeRenderingParams;
 	UINT clearTypeContrast = 0;
-	if (SUCCEEDED(hr) && ::SystemParametersInfo(SPI_GETFONTSMOOTHINGCONTRAST, 0, &clearTypeContrast, 0) != 0) {
+	if (SUCCEEDED(hr) && monitorRenderingParams &&
+		::SystemParametersInfo(SPI_GETFONTSMOOTHINGCONTRAST, 0, &clearTypeContrast, 0) != 0) {
 		if (clearTypeContrast >= 1000 && clearTypeContrast <= 2200) {
 			const FLOAT gamma = static_cast<FLOAT>(clearTypeContrast) / 1000.0f;
 			pIDWriteFactory->CreateCustomRenderingParams(gamma,
 				monitorRenderingParams->GetEnhancedContrast(),
+				monitorRenderingParams->GetGrayscaleEnhancedContrast(),
 				monitorRenderingParams->GetClearTypeLevel(),
 				monitorRenderingParams->GetPixelGeometry(),
 				monitorRenderingParams->GetRenderingMode(),
-				&customClearTypeRenderingParams);
+				customClearTypeRenderingParams.GetAddressOf());
 		}
 	}
 
 	hCurrentMonitor = monitor;
 	deviceScaleFactor = Internal::GetDeviceScaleFactorWhenGdiScalingActive(hRootWnd);
-	renderingParams->defaultRenderingParams.reset(monitorRenderingParams);
-	renderingParams->customRenderingParams.reset(customClearTypeRenderingParams);
+	renderingParams->defaultRenderingParams = std::move(monitorRenderingParams);
+	renderingParams->customRenderingParams = std::move(customClearTypeRenderingParams);
 	return true;
 }
 
-namespace {
-
-D2D1_SIZE_U GetSizeUFromRect(const RECT &rc, const int scaleFactor) noexcept {
-	const long width = rc.right - rc.left;
-	const long height = rc.bottom - rc.top;
-	const UINT32 scaledWidth = width * scaleFactor;
-	const UINT32 scaledHeight = height * scaleFactor;
-	return D2D1::SizeU(scaledWidth, scaledHeight);
+HRESULT ScintillaWin::Create3D() noexcept {
+	if (device.pDirect2DDevice) {
+		return S_OK;
+	}
+	targets.Release();
+	pDXGISwapChain = nullptr;
+	device.Release();
+	const HRESULT hr = device.CreateDevice();
+	if (FAILED(hr)) {
+		device.Release();
+	}
+	return hr;
 }
 
+void ScintillaWin::CreateRenderTarget() {
+	HWND hw = MainHWND();
+	const RECT rc = GetClientRect(hw);
+
+	// Create a Direct2D render target.
+	D2D1_RENDER_TARGET_PROPERTIES drtp{};
+	drtp.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
+	drtp.usage = D2D1_RENDER_TARGET_USAGE_NONE;
+	drtp.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
+
+	if (technology == Technology::DirectWriteDC) {
+		drtp.dpiX = 96.f;
+		drtp.dpiY = 96.f;
+		// Explicit pixel format needed.
+		drtp.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
+			D2D1_ALPHA_MODE_IGNORE);
+
+		const HRESULT hr = CreateDCRenderTarget(&drtp, targets.pDCRT);
+		if (FAILED(hr)) {
+			Platform::DebugPrintf("Failed CreateDCRenderTarget 0x%lx\n", hr);
+			targets.Release();
+		}
+
+	} else if (technology == Technology::DirectWrite1) {
+		HRESULT hr = Create3D();	// Need pDirect2DDevice
+		if (SUCCEEDED(hr)) {
+			hr = device.pDirect2DDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+				targets.pDeviceContext.ReleaseAndGetAddressOf());
+			if (FAILED(hr)) {
+				Platform::DebugPrintf("Failed CreateDeviceContext 0x%lx\n", hr);
+			} else {
+				hr = CreateSwapChain(hw);
+				if (FAILED(hr)) {
+					Platform::DebugPrintf("Failed CreateSwapChain 0x%lx\n", hr);
+					targets.Release();
+				}
+			}
+		}
+
+	} else { // DirectWrite or DirectWriteRetain
+		const int integralDeviceScaleFactor = GetFirstIntegralMultipleDeviceScaleFactor();
+		drtp.dpiX = 96.f * integralDeviceScaleFactor;
+		drtp.dpiY = 96.f * integralDeviceScaleFactor;
+		drtp.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN,
+			D2D1_ALPHA_MODE_UNKNOWN);
+
+		D2D1_HWND_RENDER_TARGET_PROPERTIES dhrtp{};
+		dhrtp.hwnd = hw;
+		dhrtp.pixelSize = ::GetSizeUFromRect(rc, integralDeviceScaleFactor);
+		dhrtp.presentOptions = (technology == Technology::DirectWriteRetain) ?
+			D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS : D2D1_PRESENT_OPTIONS_NONE;
+
+		const HRESULT hr = CreateHwndRenderTarget(&drtp, &dhrtp, targets.pHwndRT);
+		if (FAILED(hr)) {
+			Platform::DebugPrintf("Failed CreateHwndRenderTarget 0x%lx\n", hr);
+			targets.Release();
+		}
+
+	}
+}
+
+HRESULT ScintillaWin::SetBackBuffer(HWND hwnd, IDXGISwapChain1 *pSwapChain) {
+	assert(targets.pDeviceContext);
+	// Back buffer as an IDXGISurface
+	ComPtr<IDXGISurface> dxgiBackBuffer;
+	HRESULT hr = pSwapChain->GetBuffer(0, IID_PPV_ARGS(dxgiBackBuffer.GetAddressOf()));
+	if (FAILED(hr))
+		return hr;
+
+	const FLOAT dpiX = static_cast<FLOAT>(DpiForWindow(hwnd));
+	const FLOAT dpiY = dpiX;
+
+	// Direct2D bitmap linked to Direct3D texture through DXGI back buffer
+	const D2D1_BITMAP_PROPERTIES1 bitmapProperties =
+		D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE), dpiX, dpiY);
+	ComPtr<ID2D1Bitmap1> pDirect2DBackBuffer;
+	hr = targets.pDeviceContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer.Get(), &bitmapProperties, pDirect2DBackBuffer.GetAddressOf());
+	if (FAILED(hr))
+		return hr;
+
+	// Bitmap is render target
+	targets.pDeviceContext->SetTarget(pDirect2DBackBuffer.Get());
+
+	return S_OK;
+}
+
+HRESULT ScintillaWin::CreateSwapChain(HWND hwnd) {
+	// Sets pDXGISwapChain but only when each call succeeds
+	// Needs pDXGIDevice, pDirect3DDevice
+	pDXGISwapChain = nullptr;
+	assert(device.pDXGIDevice);
+
+	// At each stage, place object in a unique_ptr to ensure release occurs
+
+	ComPtr<IDXGIAdapter> dxgiAdapter;
+	HRESULT hr = device.pDXGIDevice->GetAdapter(dxgiAdapter.GetAddressOf());
+	if (FAILED(hr))
+		return hr;
+
+	ComPtr<IDXGIFactory2> dxgiFactory;
+	hr = dxgiAdapter->GetParent(IID_PPV_ARGS(dxgiFactory.GetAddressOf()));
+	if (FAILED(hr))
+		return hr;
+
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
+	swapChainDesc.Width = 0;
+	swapChainDesc.Height = 0;
+	swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	swapChainDesc.Stereo = false;
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.BufferCount = 2;
+	swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	swapChainDesc.Flags = 0;
+
+	// DXGI swap chain for window
+	ComPtr<IDXGISwapChain1> pSwapChain;
+	hr = dxgiFactory->CreateSwapChainForHwnd(device.pDirect3DDevice.Get(), hwnd, &swapChainDesc,
+		nullptr, nullptr, pSwapChain.GetAddressOf());
+	if (FAILED(hr))
+		return hr;
+
+	hr = SetBackBuffer(hwnd, pSwapChain.Get());
+	if (FAILED(hr))
+		return hr;
+
+	// All successful so export swap chain for later presentation 
+	pDXGISwapChain = std::move(pSwapChain);
+	return S_OK;
 }
 
 void ScintillaWin::EnsureRenderTarget(HDC hdc) {
-	if (!renderTargetValid) {
+	if (!targets.valid) {
 		DropRenderTarget();
-		renderTargetValid = true;
+		targets.valid = true;
 	}
-	if (!pRenderTarget) {
-		HWND hw = MainHWND();
-		RECT rc;
-		::GetClientRect(hw, &rc);
-
-		// Create a Direct2D render target.
-		D2D1_RENDER_TARGET_PROPERTIES drtp {};
-		drtp.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
-		drtp.usage = D2D1_RENDER_TARGET_USAGE_NONE;
-		drtp.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
-
-		if (technology == Technology::DirectWriteDC) {
-			drtp.dpiX = 96.f;
-			drtp.dpiY = 96.f;
-			// Explicit pixel format needed.
-			drtp.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
-				D2D1_ALPHA_MODE_IGNORE);
-
-			ID2D1DCRenderTarget *pDCRT = nullptr;
-			const HRESULT hr = pD2DFactory->CreateDCRenderTarget(&drtp, &pDCRT);
-			if (SUCCEEDED(hr)) {
-				pRenderTarget = pDCRT;
-			} else {
-				Platform::DebugPrintf("Failed CreateDCRenderTarget 0x%lx\n", hr);
-				pRenderTarget = nullptr;
-			}
-
-		} else {
-			const int integralDeviceScaleFactor = GetFirstIntegralMultipleDeviceScaleFactor();
-			drtp.dpiX = 96.f * integralDeviceScaleFactor;
-			drtp.dpiY = 96.f * integralDeviceScaleFactor;
-			drtp.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN,
-				D2D1_ALPHA_MODE_UNKNOWN);
-
-			D2D1_HWND_RENDER_TARGET_PROPERTIES dhrtp {};
-			dhrtp.hwnd = hw;
-			dhrtp.pixelSize = ::GetSizeUFromRect(rc, integralDeviceScaleFactor);
-			dhrtp.presentOptions = (technology == Technology::DirectWriteRetain) ?
-			D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS : D2D1_PRESENT_OPTIONS_NONE;
-
-			ID2D1HwndRenderTarget *pHwndRenderTarget = nullptr;
-			const HRESULT hr = pD2DFactory->CreateHwndRenderTarget(drtp, dhrtp, &pHwndRenderTarget);
-			if (SUCCEEDED(hr)) {
-				pRenderTarget = pHwndRenderTarget;
-			} else {
-				Platform::DebugPrintf("Failed CreateHwndRenderTarget 0x%lx\n", hr);
-				pRenderTarget = nullptr;
-			}
-		}
+	if (!targets.RenderTarget()) {
+		CreateRenderTarget();
 		// Pixmaps were created to be compatible with previous render target so
 		// need to be recreated.
 		DropGraphics();
 	}
 
-	if ((technology == Technology::DirectWriteDC) && pRenderTarget) {
-		RECT rcWindow;
-		::GetClientRect(MainHWND(), &rcWindow);
-		const HRESULT hr = static_cast<ID2D1DCRenderTarget*>(pRenderTarget)->BindDC(hdc, &rcWindow);
+	if ((technology == Technology::DirectWriteDC) && targets.pDCRT) {	// DC RenderTarget needs binding
+		const RECT rcWindow = GetClientRect(MainHWND());
+		const HRESULT hr = targets.pDCRT->BindDC(hdc, &rcWindow);
 		if (FAILED(hr)) {
 			Platform::DebugPrintf("BindDC failed 0x%lx\n", hr);
 			DropRenderTarget();
@@ -767,7 +988,7 @@ void ScintillaWin::EnsureRenderTarget(HDC hdc) {
 
 void ScintillaWin::DropRenderTarget() noexcept {
 #if defined(USE_D2D)
-	ReleaseUnknown(pRenderTarget);
+	targets.Release();
 #endif
 }
 
@@ -1011,8 +1232,13 @@ bool ScintillaWin::PaintDC(HDC hdc) {
 		}
 	} else {
 #if defined(USE_D2D)
+		// RefreshStyleData may set scroll bars and resize the window.
+		// Avoid issues resizing inside Paint when calling IDXGISwapChain1->ResizeBuffers
+		// with committed resources by refreshing the style data first.
+		RefreshStyleData();
+
 		EnsureRenderTarget(hdc);
-		if (pRenderTarget) {
+		if (ID2D1RenderTarget *pRenderTarget = targets.RenderTarget()) {
 			AutoSurface surfaceWindow(pRenderTarget, this);
 			if (surfaceWindow) {
 				SetRenderingParams(surfaceWindow);
@@ -1023,6 +1249,14 @@ bool ScintillaWin::PaintDC(HDC hdc) {
 				if (hr == static_cast<HRESULT>(D2DERR_RECREATE_TARGET)) {
 					DropRenderTarget();
 					return false;
+				}
+				if ((technology == Technology::DirectWrite1) && pDXGISwapChain) {
+					const DXGI_PRESENT_PARAMETERS parameters{};
+					const HRESULT hrPresent = pDXGISwapChain->Present1(1, 0, &parameters);
+					if (FAILED(hrPresent)) {
+						DropRenderTarget();
+						return false;
+					}
 				}
 			}
 		}
@@ -1098,8 +1332,7 @@ void ScintillaWin::MoveImeCarets(Sci::Position offset) noexcept {
 	// Move carets relatively by bytes.
 	for (size_t r=0; r<sel.Count(); r++) {
 		const Sci::Position positionInsert = sel.Range(r).Start().Position();
-		sel.Range(r).caret.SetPosition(positionInsert + offset);
-		sel.Range(r).anchor.SetPosition(positionInsert + offset);
+		sel.Range(r) = SelectionRange(positionInsert + offset);
 	}
 }
 
@@ -1153,10 +1386,9 @@ void ScintillaWin::SelectionToHangul() {
 
 		if (converted) {
 			documentStr = StringEncode(uniStr, CodePageOfDocument());
-			pdoc->BeginUndoAction();
+			UndoGroup ug(pdoc);
 			ClearSelection();
 			InsertPaste(&documentStr[0], documentStr.size());
-			pdoc->EndUndoAction();
 		}
 	}
 }
@@ -1514,19 +1746,21 @@ Window::Cursor ScintillaWin::ContextCursor(Point pt) {
 }
 
 sptr_t ScintillaWin::ShowContextMenu(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
-	Point pt = PointFromLParam(lParam);
-	POINT rpt = POINTFromPoint(pt);
-	::ScreenToClient(MainHWND(), &rpt);
-	const Point ptClient = PointFromPOINT(rpt);
+	Point ptScreen = PointFromLParam(lParam);
+	Point ptClient;
+	POINT point = POINTFromLParam(lParam);
+	if ((point.x == -1) && (point.y == -1)) {
+		// Caused by keyboard so display menu near caret
+		ptClient = PointMainCaret();
+		point = POINTFromPoint(ptClient);
+		::ClientToScreen(MainHWND(), &point);
+		ptScreen = PointFromPOINT(point);
+	} else {
+		::ScreenToClient(MainHWND(), &point);
+		ptClient = PointFromPOINT(point);
+	}
 	if (ShouldDisplayPopup(ptClient)) {
-		if ((pt.x == -1) && (pt.y == -1)) {
-			// Caused by keyboard so display menu near caret
-			pt = PointMainCaret();
-			POINT spt = POINTFromPoint(pt);
-			::ClientToScreen(MainHWND(), &spt);
-			pt = PointFromPOINT(spt);
-		}
-		ContextMenu(pt);
+		ContextMenu(ptScreen);
 		return 0;
 	}
 	return ::DefWindowProc(MainHWND(), iMessage, wParam, lParam);
@@ -1537,15 +1771,37 @@ PRectangle ScintillaWin::GetClientRectangle() const {
 }
 
 void ScintillaWin::SizeWindow() {
+	rectangleClient = wMain.GetClientPosition();
 #if defined(USE_D2D)
-	if (paintState == PaintState::notPainting) {
-		DropRenderTarget();
-	} else {
-		renderTargetValid = false;
+	HRESULT hrResize = E_FAIL;
+	if (((technology == Technology::DirectWrite) || (technology == Technology::DirectWriteRetain)) && targets.pHwndRT) {
+		// May be able to just resize the HWND render target
+		const int scaleFactor = GetFirstIntegralMultipleDeviceScaleFactor();
+		const D2D1_SIZE_U pixelSize = ::GetSizeUFromRect(GetClientRect(MainHWND()), scaleFactor);
+		hrResize = targets.pHwndRT->Resize(pixelSize);
+		if (FAILED(hrResize)) {
+			Platform::DebugPrintf("Failed to Resize ID2D1HwndRenderTarget 0x%lx\n", hrResize);
+		}
+	}
+	if ((technology == Technology::DirectWrite1) && pDXGISwapChain && targets.pDeviceContext &&
+		(paintState == PaintState::notPainting)) {
+		targets.pDeviceContext->SetTarget(NULL);	// ResizeBuffers fails if bitmap still owned by swap chain
+		hrResize = pDXGISwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+		if (SUCCEEDED(hrResize)) {
+			hrResize = SetBackBuffer(MainHWND(), pDXGISwapChain.Get());
+		} else {
+			Platform::DebugPrintf("Failed ResizeBuffers 0x%lx\n", hrResize);
+		}
+	}
+	if (FAILED(hrResize)) {
+		if (paintState == PaintState::notPainting) {
+			DropRenderTarget();
+		} else {
+			targets.valid = false;
+		}
 	}
 #endif
 	//Platform::DebugPrintf("Scintilla WM_SIZE %d %d\n", LOWORD(lParam), HIWORD(lParam));
-	rectangleClient = wMain.GetClientPosition();
 	ChangeSize();
 }
 
@@ -1611,7 +1867,7 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 			// handle the message but pass it on.
 			RECT rc;
 			GetWindowRect(MainHWND(), &rc);
-			const POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+			const POINT pt = POINTFromLParam(lParam);
 			if (!PtInRect(&rc, pt))
 				return ::DefWindowProc(MainHWND(), iMessage, wParam, lParam);
 		}
@@ -1630,11 +1886,16 @@ sptr_t ScintillaWin::MouseMessage(unsigned int iMessage, uptr_t wParam, sptr_t l
 
 			MouseWheelDelta &wheelDelta = (iMessage == WM_MOUSEHWHEEL) ? horizontalWheelDelta : verticalWheelDelta;
 			if (wheelDelta.Accumulate(wParam)) {
-				const int charsToScroll = charsPerScroll * wheelDelta.Actions();
+				int charsToScroll = charsPerScroll * wheelDelta.Actions();
+				if (iMessage == WM_MOUSEHWHEEL) {
+					// horizontal scroll is in reverse direction
+					charsToScroll = -charsToScroll;
+				}
 				const int widthToScroll = static_cast<int>(std::lround(charsToScroll * vs.aveCharWidth));
 				HorizontalScrollToClamped(xOffset + widthToScroll);
 			}
-			return 0;
+			// return 1 for Logitech mouse, https://www.pretentiousname.com/setpoint_hwheel/index.html
+			return (iMessage == WM_MOUSEHWHEEL) ? 1 : 0;
 		}
 
 		// Either SCROLL vertically or ZOOM. We handle the wheel steppings calculation
@@ -1970,7 +2231,8 @@ sptr_t ScintillaWin::SciMessage(Message iMessage, uptr_t wParam, sptr_t lParam) 
 			(technologyNew == Technology::Default) ||
 			(technologyNew == Technology::DirectWriteRetain) ||
 			(technologyNew == Technology::DirectWriteDC) ||
-			(technologyNew == Technology::DirectWrite)) {
+			(technologyNew == Technology::DirectWrite) ||
+			(technologyNew == Technology::DirectWrite1)) {
 			if (technology != technologyNew) {
 				if (technologyNew > Technology::Default) {
 #if defined(USE_D2D)
@@ -2133,6 +2395,7 @@ sptr_t ScintillaWin::WndProc(Message iMessage, uptr_t wParam, sptr_t lParam) {
 
 		case WM_DPICHANGED:
 			dpi = HIWORD(wParam);
+			reverseArrowCursor.Invalidate();
 			InvalidateStyleRedraw();
 			break;
 
@@ -2140,6 +2403,7 @@ sptr_t ScintillaWin::WndProc(Message iMessage, uptr_t wParam, sptr_t lParam) {
 				const UINT dpiNow = DpiForWindow(wMain.GetID());
 				if (dpi != dpiNow) {
 					dpi = dpiNow;
+					reverseArrowCursor.Invalidate();
 					InvalidateStyleRedraw();
 				}
 			}
@@ -2538,10 +2802,11 @@ void ScintillaWin::NotifyDoubleClick(Point pt, KeyMod modifiers) {
 	//Platform::DebugPrintf("ScintillaWin Double click 0\n");
 	ScintillaBase::NotifyDoubleClick(pt, modifiers);
 	// Send myself a WM_LBUTTONDBLCLK, so the container can handle it too.
+	const POINT point = POINTFromPoint(pt);
 	::SendMessage(MainHWND(),
 			  WM_LBUTTONDBLCLK,
 			  FlagSet(modifiers, KeyMod::Shift) ? MK_SHIFT : 0,
-			  MAKELPARAM(pt.x, pt.y));
+			  MAKELPARAM(point.x, point.y));
 }
 
 namespace {
@@ -2747,6 +3012,27 @@ bool OpenClipboardRetry(HWND hwnd) noexcept {
 	return false;
 }
 
+// Ensure every successful OpenClipboard is followed by a CloseClipboard.
+class Clipboard {
+	bool opened = false;
+public:
+	Clipboard(HWND hwnd) noexcept : opened(::OpenClipboardRetry(hwnd)) {
+	}
+	// Deleted so Clipboard objects can not be copied.
+	Clipboard(const Clipboard &) = delete;
+	Clipboard(Clipboard &&) = delete;
+	Clipboard &operator=(const Clipboard &) = delete;
+	Clipboard &operator=(Clipboard &&) = delete;
+	~Clipboard() noexcept {
+		if (opened) {
+			::CloseClipboard();
+		}
+	}
+	constexpr operator bool() const noexcept {
+		return opened;
+	}
+};
+
 bool IsValidFormatEtc(const FORMATETC *pFE) noexcept {
 	return pFE->ptd == nullptr &&
 		(pFE->dwAspect & DVASPECT_CONTENT) != 0 &&
@@ -2762,7 +3048,8 @@ bool SupportedFormat(const FORMATETC *pFE) noexcept {
 }
 
 void ScintillaWin::Paste() {
-	if (!::OpenClipboardRetry(MainHWND())) {
+	Clipboard clipboard(MainHWND());
+	if (!clipboard) {
 		return;
 	}
 	UndoGroup ug(pdoc);
@@ -2788,7 +3075,6 @@ void ScintillaWin::Paste() {
 		InsertPasteShape(putf.c_str(), putf.length(), pasteShape);
 		memUSelection.Unlock();
 	}
-	::CloseClipboard();
 	Redraw();
 }
 
@@ -3149,8 +3435,7 @@ LRESULT ScintillaWin::ImeOnReconvert(LPARAM lParam) {
 		const Sci::Position docCompStart = rBase + adjust;
 
 		if (inOverstrike) { // the docCompLen of bytes will be overstriked.
-			sel.Range(r).caret.SetPosition(docCompStart);
-			sel.Range(r).anchor.SetPosition(docCompStart);
+			sel.Range(r) = SelectionRange(docCompStart);
 		} else {
 			// Ensure docCompStart+docCompLen be not beyond lineEnd.
 			// since docCompLen by byte might break eol.
@@ -3193,9 +3478,14 @@ LRESULT ScintillaWin::ImeOnDocumentFeed(LPARAM lParam) const {
 	if (!imc.hIMC)
 		return 0;
 
-	const size_t compStrLen = imc.GetCompositionString(GCS_COMPSTR).size();
-	const int imeCaretPos = imc.GetImeCaretPos();
-	const Sci::Position compStart = pdoc->GetRelativePositionUTF16(curPos, -imeCaretPos);
+	DWORD compStrLen = 0;
+	Sci::Position compStart = curPos;
+	if (pdoc->TentativeActive()) {
+		// rcFeed contains current composition string
+		compStrLen = imc.GetCompositionStringLength(GCS_COMPSTR);
+		const int imeCaretPos = imc.GetImeCaretPos();
+		compStart = pdoc->GetRelativePositionUTF16(curPos, -imeCaretPos);
+	}
 	const Sci::Position compStrOffset = pdoc->CountUTF16(lineStart, compStart);
 
 	// Fill in reconvert structure.
@@ -3203,7 +3493,7 @@ LRESULT ScintillaWin::ImeOnDocumentFeed(LPARAM lParam) const {
 	rc->dwVersion = 0; //constant
 	rc->dwStrLen = static_cast<DWORD>(rcFeed.length());
 	rc->dwStrOffset = sizeof(RECONVERTSTRING); //constant
-	rc->dwCompStrLen = static_cast<DWORD>(compStrLen);
+	rc->dwCompStrLen = compStrLen;
 	rc->dwCompStrOffset = static_cast<DWORD>(compStrOffset) * sizeof(wchar_t);
 	rc->dwTargetStrLen = rc->dwCompStrLen;
 	rc->dwTargetStrOffset = rc->dwCompStrOffset;
@@ -3212,6 +3502,8 @@ LRESULT ScintillaWin::ImeOnDocumentFeed(LPARAM lParam) const {
 }
 
 void ScintillaWin::GetMouseParameters() noexcept {
+	// mouse pointer size and colour may changed
+	reverseArrowCursor.Invalidate();
 	// This retrieves the number of lines per scroll as configured in the Mouse Properties sheet in Control Panel
 	::SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &linesPerScroll, 0);
 	if (!::SystemParametersInfo(SPI_GETWHEELSCROLLCHARS, 0, &charsPerScroll, 0)) {
@@ -3245,7 +3537,8 @@ void ScintillaWin::CopyToGlobal(GlobalMemory &gmUnicode, const SelectionText &se
 }
 
 void ScintillaWin::CopyToClipboard(const SelectionText &selectedText) {
-	if (!::OpenClipboardRetry(MainHWND())) {
+	Clipboard clipboard(MainHWND());
+	if (!clipboard) {
 		return;
 	}
 	::EmptyClipboard();
@@ -3271,8 +3564,6 @@ void ScintillaWin::CopyToClipboard(const SelectionText &selectedText) {
 		::SetClipboardData(cfLineSelect, 0);
 		::SetClipboardData(cfVSLineTag, 0);
 	}
-
-	::CloseClipboard();
 }
 
 void ScintillaWin::ScrollMessage(WPARAM wParam) {
@@ -3659,10 +3950,9 @@ LRESULT PASCAL ScintillaWin::CTWndProc(
 				::BeginPaint(hWnd, &ps);
 				std::unique_ptr<Surface> surfaceWindow(Surface::Allocate(sciThis->technology));
 #if defined(USE_D2D)
-				ID2D1HwndRenderTarget *pCTRenderTarget = nullptr;
+				HwndRenderTarget pCTRenderTarget;
 #endif
-				RECT rc;
-				GetClientRect(hWnd, &rc);
+				const RECT rc = GetClientRect(hWnd);
 				if (sciThis->technology == Technology::Default) {
 					surfaceWindow->Init(ps.hdc, hWnd);
 				} else {
@@ -3685,7 +3975,8 @@ LRESULT PASCAL ScintillaWin::CTWndProc(
 					drtp.usage = D2D1_RENDER_TARGET_USAGE_NONE;
 					drtp.minLevel = D2D1_FEATURE_LEVEL_DEFAULT;
 
-					if (!SUCCEEDED(pD2DFactory->CreateHwndRenderTarget(drtp, dhrtp, &pCTRenderTarget))) {
+					const HRESULT hr = CreateHwndRenderTarget(&drtp, &dhrtp, pCTRenderTarget);
+					if (!SUCCEEDED(hr)) {
 						surfaceWindow->Release();
 						::EndPaint(hWnd, &ps);
 						return 0;
@@ -3693,7 +3984,7 @@ LRESULT PASCAL ScintillaWin::CTWndProc(
 					// If above SUCCEEDED, then pCTRenderTarget not nullptr
 					assert(pCTRenderTarget);
 					if (pCTRenderTarget) {
-						surfaceWindow->Init(pCTRenderTarget, hWnd);
+						surfaceWindow->Init(pCTRenderTarget.Get(), hWnd);
 						pCTRenderTarget->BeginDraw();
 					}
 #endif
@@ -3706,14 +3997,11 @@ LRESULT PASCAL ScintillaWin::CTWndProc(
 					pCTRenderTarget->EndDraw();
 #endif
 				surfaceWindow->Release();
-#if defined(USE_D2D)
-				ReleaseUnknown(pCTRenderTarget);
-#endif
 				::EndPaint(hWnd, &ps);
 				return 0;
 			} else if ((iMessage == WM_NCLBUTTONDOWN) || (iMessage == WM_NCLBUTTONDBLCLK)) {
-				POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-				ScreenToClient(hWnd, &pt);
+				POINT pt = POINTFromLParam(lParam);
+				::ScreenToClient(hWnd, &pt);
 				sciThis->ct.MouseClick(PointFromPOINT(pt));
 				sciThis->CallTipClick();
 				return 0;

@@ -167,6 +167,7 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SC_MARKNUM_FOLDERSUB 29
 #define SC_MARKNUM_FOLDER 30
 #define SC_MARKNUM_FOLDEROPEN 31
+#define SC_MASK_HISTORY 0x01E00000
 #define SC_MASK_FOLDERS 0xFE000000
 #define SCI_MARKERDEFINE 2040
 #define SCI_MARKERSETFORE 2041
@@ -282,6 +283,17 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_STYLESETHOTSPOT 2409
 #define SCI_STYLESETCHECKMONOSPACED 2254
 #define SCI_STYLEGETCHECKMONOSPACED 2255
+#define SC_STRETCH_ULTRA_CONDENSED 1
+#define SC_STRETCH_EXTRA_CONDENSED 2
+#define SC_STRETCH_CONDENSED 3
+#define SC_STRETCH_SEMI_CONDENSED 4
+#define SC_STRETCH_NORMAL 5
+#define SC_STRETCH_SEMI_EXPANDED 6
+#define SC_STRETCH_EXPANDED 7
+#define SC_STRETCH_EXTRA_EXPANDED 8
+#define SC_STRETCH_ULTRA_EXPANDED 9
+#define SCI_STYLESETSTRETCH 2258
+#define SCI_STYLEGETSTRETCH 2259
 #define SCI_STYLESETINVISIBLEREPRESENTATION 2256
 #define SCI_STYLEGETINVISIBLEREPRESENTATION 2257
 #define SC_ELEMENT_LIST 0
@@ -296,6 +308,8 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SC_ELEMENT_SELECTION_SECONDARY_BACK 15
 #define SC_ELEMENT_SELECTION_INACTIVE_TEXT 16
 #define SC_ELEMENT_SELECTION_INACTIVE_BACK 17
+#define SC_ELEMENT_SELECTION_INACTIVE_ADDITIONAL_TEXT 18
+#define SC_ELEMENT_SELECTION_INACTIVE_ADDITIONAL_BACK 19
 #define SC_ELEMENT_CARET 40
 #define SC_ELEMENT_CARET_ADDITIONAL 41
 #define SC_ELEMENT_CARET_LINE_BACK 50
@@ -340,6 +354,21 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_GETCHARACTERCATEGORYOPTIMIZATION 2721
 #define SCI_BEGINUNDOACTION 2078
 #define SCI_ENDUNDOACTION 2079
+#define SCI_GETUNDOSEQUENCE 2799
+#define SCI_GETUNDOACTIONS 2790
+#define SCI_SETUNDOSAVEPOINT 2791
+#define SCI_GETUNDOSAVEPOINT 2792
+#define SCI_SETUNDODETACH 2793
+#define SCI_GETUNDODETACH 2794
+#define SCI_SETUNDOTENTATIVE 2795
+#define SCI_GETUNDOTENTATIVE 2796
+#define SCI_SETUNDOCURRENT 2797
+#define SCI_GETUNDOCURRENT 2798
+#define SCI_PUSHUNDOACTIONTYPE 2800
+#define SCI_CHANGELASTUNDOACTIONTEXT 2801
+#define SCI_GETUNDOACTIONTYPE 2802
+#define SCI_GETUNDOACTIONPOSITION 2803
+#define SCI_GETUNDOACTIONTEXT 2804
 #define INDIC_PLAIN 0
 #define INDIC_SQUIGGLE 1
 #define INDIC_TT 2
@@ -432,7 +461,8 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_AUTOCGETAUTOHIDE 2119
 #define SC_AUTOCOMPLETE_NORMAL 0
 #define SC_AUTOCOMPLETE_FIXED_SIZE 1
-#define SC_AUTOCOMPLETE_SNIPPET 2
+#define SC_AUTOCOMPLETE_SELECT_FIRST_ITEM 2
+#define SC_AUTOCOMPLETE_SNIPPET 4
 #define SCI_AUTOCSETOPTIONS 2638
 #define SCI_AUTOCGETOPTIONS 2639
 #define SCI_AUTOCSETDROPRESTOFWORD 2270
@@ -445,6 +475,8 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_AUTOCGETMAXWIDTH 2209
 #define SCI_AUTOCSETMAXHEIGHT 2210
 #define SCI_AUTOCGETMAXHEIGHT 2211
+#define SCI_AUTOCSETSTYLE 2109
+#define SCI_AUTOCGETSTYLE 2120
 #define SCI_SETINDENT 2122
 #define SCI_GETINDENT 2123
 #define SCI_SETUSETABS 2124
@@ -502,6 +534,12 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SC_CHANGE_HISTORY_INDICATORS 4
 #define SCI_SETCHANGEHISTORY 2780
 #define SCI_GETCHANGEHISTORY 2781
+#define SC_UNDO_SELECTION_HISTORY_DISABLED 0
+#define SC_UNDO_SELECTION_HISTORY_ENABLED 1
+#define SCI_SETUNDOSELECTIONHISTORY 2782
+#define SCI_GETUNDOSELECTIONHISTORY 2783
+#define SCI_SETSELECTIONSERIALIZED 2784
+#define SCI_GETSELECTIONSERIALIZED 2785
 #define SCI_GETFIRSTVISIBLELINE 2152
 #define SCI_GETLINE 2153
 #define SCI_GETLINECOUNT 2154
@@ -737,7 +775,9 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_CANCEL 2325
 #define SCI_DELETEBACK 2326
 #define SCI_TAB 2327
+#define SCI_LINEINDENT 2813
 #define SCI_BACKTAB 2328
+#define SCI_LINEDEDENT 2814
 #define SCI_NEWLINE 2329
 #define SCI_FORMFEED 2330
 #define SCI_VCHOME 2331
@@ -876,7 +916,9 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SC_SEL_LINES 2
 #define SC_SEL_THIN 3
 #define SCI_SETSELECTIONMODE 2422
+#define SCI_CHANGESELECTIONMODE 2659
 #define SCI_GETSELECTIONMODE 2423
+#define SCI_SETMOVEEXTENDSSELECTION 2719
 #define SCI_GETMOVEEXTENDSSELECTION 2706
 #define SCI_GETLINESELSTARTPOSITION 2424
 #define SCI_GETLINESELENDPOSITION 2425
@@ -959,6 +1001,9 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_SETLAYOUTTHREADS 2775
 #define SCI_GETLAYOUTTHREADS 2776
 #define SCI_COPYALLOWLINE 2519
+#define SCI_CUTALLOWLINE 2810
+#define SCI_SETCOPYSEPARATOR 2811
+#define SCI_GETCOPYSEPARATOR 2812
 #define SCI_GETCHARACTERPOINTER 2520
 #define SCI_GETRANGEPOINTER 2643
 #define SCI_GETGAPPOSITION 2644
@@ -1022,6 +1067,7 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SCI_CLEARSELECTIONS 2571
 #define SCI_SETSELECTION 2572
 #define SCI_ADDSELECTION 2573
+#define SCI_SELECTIONFROMPOINT 2474
 #define SCI_DROPSELECTIONN 2671
 #define SCI_SETMAINSELECTION 2574
 #define SCI_GETMAINSELECTION 2575
@@ -1083,6 +1129,7 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
 #define SC_TECHNOLOGY_DIRECTWRITE 1
 #define SC_TECHNOLOGY_DIRECTWRITERETAIN 2
 #define SC_TECHNOLOGY_DIRECTWRITEDC 3
+#define SC_TECHNOLOGY_DIRECT_WRITE_1 4
 #define SCI_SETTECHNOLOGY 2630
 #define SCI_GETTECHNOLOGY 2631
 #define SCI_CREATELOADER 2632
@@ -1360,27 +1407,11 @@ struct Sci_RangeToFormatFull {
 	struct Sci_CharacterRangeFull chrg;
 };
 
-typedef struct _result_postion {
-    intptr_t _no;
-    intptr_t _start;
-    intptr_t start;
-    intptr_t end;
-} result_postion;
-
-typedef  struct _result_vec {
-    intptr_t line;
-    result_postion mark;
-}result_vec;
-
 #ifndef __cplusplus
 /* For the GTK+ platform, g-ir-scanner needs to have these typedefs. This
- * is not required in C++ code and actually seems to break ScintillaEditPy */
+ * is not required in C++ code and has caused problems in the past. */
 typedef struct Sci_NotifyHeader Sci_NotifyHeader;
 typedef struct SCNotification SCNotification;
-typedef struct Sci_CharacterRangeFull sci_range_t;
-typedef struct Sci_TextRange Sci_TextRange;
-typedef struct Sci_TextRangeFull Sci_TextRangeFull;
-typedef struct Sci_TextToFind Sci_TextToFind;
 #endif
 
 struct Sci_NotifyHeader {
@@ -1431,6 +1462,23 @@ struct SCNotification {
 	/* SCN_AUTOCSELECTION, SCN_AUTOCCOMPLETED, SCN_USERLISTSELECTION, */
 	int characterSource;	/* SCN_CHARADDED */
 };
+
+typedef struct _result_postion {
+    intptr_t _no;
+    intptr_t _start;
+    intptr_t start;
+    intptr_t end;
+} result_postion;
+
+typedef  struct _result_vec {
+    intptr_t line;
+    result_postion mark;
+}result_vec;
+
+typedef struct Sci_CharacterRangeFull sci_range_t;
+typedef struct Sci_TextRange Sci_TextRange;
+typedef struct Sci_TextRangeFull Sci_TextRangeFull;
+typedef struct Sci_TextToFind Sci_TextToFind;
 
 #ifdef INCLUDE_DEPRECATED_FEATURES
 

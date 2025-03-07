@@ -38,4 +38,4 @@ static void ColouriseSnippetsDoc(Sci_PositionU startPos, Sci_Position length, in
 	}
 }
 
-LexerModule lmSnippets(SCLEX_SNIPPET, ColouriseSnippetsDoc, "snippets");
+extern const LexerModule lmSnippets(SCLEX_SNIPPET, ColouriseSnippetsDoc, "snippets");

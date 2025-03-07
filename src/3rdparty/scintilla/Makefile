@@ -14,7 +14,10 @@ ROOT = ..\..\..
 DIR_O=$(OBJD)\scintilla
 DIR_BIN=$(BIND)
 SRC=src\src
+
+!IFDEF _USRDLL
 SCI_DEF=src\win32\scintilla.def
+!ENDIF
 
 LEXCOMPONENT=$(DIR_BIN)\scilexer.lib
 
@@ -29,7 +32,7 @@ LIBS=KERNEL32.lib USER32.lib GDI32.lib IMM32.lib OLE32.lib OLEAUT32.lib MSIMG32.
 NOLOGO=-nologo
 
 CXXFLAGS=$(CXXFLAGS) -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1 -D_CRT_SECURE_NO_DEPRECATE=1 \
-         -D_SCL_SECURE_NO_WARNINGS=1
+         -D_SCL_SECURE_NO_WARNINGS=1 -D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
 
 INCLUDES=-I$(SRC) -Isrc/include -Isrc/lexlib
 CXXFLAGS=$(CXXFLAGS) $(INCLUDES)
@@ -78,7 +81,8 @@ SRC_OBJS=\
 	$(DIR_O)\UniqueString.obj \
 	$(DIR_O)\ViewStyle.obj \
 	$(DIR_O)\XPM.obj \
-	
+	$(DIR_O)\UndoHistory.obj \
+
 LEX_OBJS=\
 	$(DIR_O)\LexA68k.obj \
 	$(DIR_O)\LexAbaqus.obj \
@@ -109,6 +113,7 @@ LEX_OBJS=\
 	$(DIR_O)\LexCsound.obj \
 	$(DIR_O)\LexCSS.obj \
 	$(DIR_O)\LexD.obj \
+	$(DIR_O)\LexDart.obj \
 	$(DIR_O)\LexDataflex.obj \
 	$(DIR_O)\LexDiff.obj \
 	$(DIR_O)\LexDMAP.obj \
@@ -153,6 +158,7 @@ LEX_OBJS=\
 	$(DIR_O)\LexMySQL.obj \
 	$(DIR_O)\LexNim.obj \
 	$(DIR_O)\LexNimrod.obj \
+	$(DIR_O)\LexNix.obj \
 	$(DIR_O)\LexNsis.obj \
 	$(DIR_O)\LexNull.obj \
 	$(DIR_O)\LexOpal.obj \
@@ -191,6 +197,8 @@ LEX_OBJS=\
 	$(DIR_O)\LexTCL.obj \
 	$(DIR_O)\LexTCMD.obj \
 	$(DIR_O)\LexTeX.obj \
+	$(DIR_O)\LexTOML.obj \
+	$(DIR_O)\LexTroff.obj \
 	$(DIR_O)\LexTxt2tags.obj \
 	$(DIR_O)\LexVB.obj \
 	$(DIR_O)\LexVerilog.obj \
@@ -198,6 +206,7 @@ LEX_OBJS=\
 	$(DIR_O)\LexVisualProlog.obj \
 	$(DIR_O)\LexX12.obj \
 	$(DIR_O)\LexYAML.obj \
+	$(DIR_O)\LexZig.obj \
 	$(DIR_O)\LexResult.obj \
 	$(DIR_O)\LexDemo.obj \
 	$(DIR_O)\LexSnippets.obj \
@@ -210,10 +219,10 @@ LEXLIB_OBJS= \
 	$(DIR_O)\CharacterCategory.obj \
 	$(DIR_O)\CharacterSet.obj \
 	$(DIR_O)\DefaultLexer.obj \
+	$(DIR_O)\InList.obj \
 	$(DIR_O)\LexerBase.obj \
 	$(DIR_O)\LexAccessor.obj \
 	$(DIR_O)\LexerModule.obj \
-	$(DIR_O)\LexerNoExceptions.obj \
 	$(DIR_O)\LexerSimple.obj \
 	$(DIR_O)\PropSetSimple.obj \
 	$(DIR_O)\StyleContext.obj \
@@ -228,7 +237,9 @@ SCILEX_OBJS = \
 	$(DIR_O)\HanjaDic.obj \
 	$(DIR_O)\PlatWin.obj \
 	$(DIR_O)\ScintillaBaseL.obj \
+!IFDEF _USRDLL
 	$(DIR_O)\ScintillaDLL.obj \
+!ENDIF
 	$(DIR_O)\ScintillaWin.obj
 
 STATICS_OBJS = \

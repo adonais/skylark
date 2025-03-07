@@ -413,4 +413,4 @@ static void FoldSTTXTDoc(Sci_PositionU startPos, Sci_Position length, int initSt
 	}
 }
 
-LexerModule lmSTTXT(SCLEX_STTXT, ColouriseSTTXTDoc, "fcST", FoldSTTXTDoc, STTXTWordListDesc);
+extern const LexerModule lmSTTXT(SCLEX_STTXT, ColouriseSTTXTDoc, "fcST", FoldSTTXTDoc, STTXTWordListDesc);

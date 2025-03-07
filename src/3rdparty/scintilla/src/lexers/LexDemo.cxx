@@ -78,4 +78,4 @@ static void ColouriseDemoDoc(Sci_PositionU startPos, Sci_Position length, int in
     sc.Complete();
 }
 
-LexerModule lmDemo(SCLEX_DEMO, ColouriseDemoDoc, "eu_demo", nullptr);
+extern const LexerModule lmDemo(SCLEX_DEMO, ColouriseDemoDoc, "eu_demo", nullptr);
