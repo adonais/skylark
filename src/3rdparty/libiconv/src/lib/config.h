@@ -18,7 +18,7 @@
 
 
 /* Define to 1 to enable a few rarely used encodings. */
-/* #undef ENABLE_EXTRA */
+#define ENABLE_EXTRA 1
 
 /* Define to 1 if the package shall run at any location in the filesystem. */
 /* #undef ENABLE_RELOCATABLE */
@@ -79,5 +79,5 @@
 #define mode_t int
 
 /* Define as a signed type of the same size as size_t. */
-#define ssize_t int
+#define ssize_t long long
 

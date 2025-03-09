@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2008, 2011, 2016 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2024 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -27,26 +27,32 @@
 static int
 ucs4_mbtowc (conv_t conv, ucs4_t *pwc, const unsigned char *s, size_t n)
 {
-  state_t state = conv->istate;
+  state_t state = conv->ibyteorder;
   int count = 0;
   for (; n >= 4 && count <= RET_COUNT_MAX && count <= INT_MAX-4;) {
     ucs4_t wc = (state
-                  ? s[0] + (s[1] << 8) + (s[2] << 16) + (s[3] << 24)
-                  : (s[0] << 24) + (s[1] << 16) + (s[2] << 8) + s[3]);
+                  ?    (ucs4_t) s[0]
+                    + ((ucs4_t) s[1] << 8)
+                    + ((ucs4_t) s[2] << 16)
+                    + ((ucs4_t) s[3] << 24)
+                  :   ((ucs4_t) s[0] << 24)
+                    + ((ucs4_t) s[1] << 16)
+                    + ((ucs4_t) s[2] << 8)
+                    +  (ucs4_t) s[3]);
     if (wc == 0x0000feff) {
     } else if (wc == 0xfffe0000u) {
       state ^= 1;
     } else if (wc <= 0x7fffffff) {
       *pwc = wc;
-      conv->istate = state;
+      conv->ibyteorder = state;
       return count+4;
     } else {
-      conv->istate = state;
+      conv->ibyteorder = state;
       return RET_SHIFT_ILSEQ(count);
     }
     s += 4; n -= 4; count += 4;
   }
-  conv->istate = state;
+  conv->ibyteorder = state;
   return RET_TOOFEW(count);
 }
 

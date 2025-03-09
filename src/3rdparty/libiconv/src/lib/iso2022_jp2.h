@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2008, 2016 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2001, 2008, 2016, 2024 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -310,7 +310,7 @@ iso2022_jp2_wctomb (conv_t conv, unsigned char *r, ucs4_t wc, size_t n)
   unsigned char buf[2];
   int ret;
   /* This defines the conversion preferences depending on the current
-     langauge tag. */
+     language tag. */
   enum conversion { none = 0, european, japanese, chinese, korean, other };
   static const unsigned int conversion_lists[STATE_TAG_LANGUAGE] = {
     /* STATE_TAG_NONE */
