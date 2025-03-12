@@ -1298,7 +1298,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
         eu_logmsg("%s: on_file_preload failed, err = %d\n", __FUNCTION__, res);
         return res;
     }
-    util_lock(&pnode->busy_id);
+    util_lock_v2(pnode);
     do
     {
         if ((res = on_tabpage_add(pnode)) != SKYLARK_OK)
@@ -1315,7 +1315,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
         }
         res = on_file_after_open(pnode, pbak);
     } while(0);
-    util_unlock(&pnode->busy_id);
+    util_unlock_v2(pnode);
     if (res < 0)
     {
         if (res == EUE_WRITE_TAB_FAIL)
@@ -1665,7 +1665,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
         eu_logmsg("%s: on_file_preload failed, err = %d\n", __FUNCTION__, result);
         return result;
     }
-    util_lock(&pnode->busy_id);
+    util_lock_v2(pnode);
     do
     {
         if ((result = on_tabpage_add(pnode)) != SKYLARK_OK)
@@ -1688,7 +1688,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
         }
         result = on_file_after_open(pnode, pbak);
     } while(0);
-    util_unlock(&pnode->busy_id);
+    util_unlock_v2(pnode);
     if (result < 0)
     {
         if (result == EUE_CURL_NETWORK_ERR)
@@ -2427,21 +2427,14 @@ void
 on_file_auto_backup(void)
 {
     EU_VERIFY(g_tabpages != NULL);
-    bool need_lock = on_session_thread_id() == GetCurrentThreadId();
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && p->be_modify && !on_file_cache_protect(p))
         {
-            if (need_lock)
-            {
-                util_lock(&p->busy_id);
-            }
+            util_lock_v2(p);
             on_file_save_backup(p, FILE_AUTO_SAVE);
-            if (need_lock)
-            {
-                util_unlock(&p->busy_id);
-            }
+            util_unlock_v2(p);
         }
     }
 }

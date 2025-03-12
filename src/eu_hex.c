@@ -2206,7 +2206,7 @@ hexview_switch_mode(eu_tabpage *pnode)
     {
         on_tabpage_active_tab(pnode);
     }
-    util_lock(&pnode->busy_id);
+    util_lock_v2(pnode);
     if (!TAB_HEX_MODE(pnode))
     {
         pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
@@ -2378,7 +2378,7 @@ hexview_switch_mode(eu_tabpage *pnode)
 HEX_ERROR:
     eu_safe_free(pdst);
     search ? ShowWindow(search, SW_HIDE) : (void)0;
-    util_unlock(&pnode->busy_id);
+    util_unlock_v2(pnode);
     return err;
 }
 

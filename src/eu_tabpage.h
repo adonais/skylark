@@ -74,6 +74,7 @@ struct _tabpage
     size_t bytes_written;       // 文件保存时写入的长度
     time_t st_mtime;            // 文件修改时间
     uint32_t file_attr;         // 文件属性,只读/可写...
+    uint32_t tabs_mask;         // 标签上的掩码,标签是否重载
     intptr_t match_count;       // 查找时匹配计数
     intptr_t begin_pos;         // 开始选择位置
     intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
@@ -126,6 +127,7 @@ void on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab);
 void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
+void on_tabpage_txt_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);
 void on_tabpage_close_tabs(int);
 void on_tabpage_save_files(int);

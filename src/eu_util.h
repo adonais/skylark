@@ -70,6 +70,8 @@ void util_ssl_close_symbol(HMODULE *pssl);
 
 void util_lock(volatile long *gcs);
 void util_unlock(volatile long *gcs);
+void util_lock_v2(eu_tabpage *p);
+void util_unlock_v2(eu_tabpage *p);
 
 int util_aes_enc(unsigned char *dec, unsigned char *enc, int len);
 int util_aes_dec(unsigned char *enc, unsigned char *dec, int len);

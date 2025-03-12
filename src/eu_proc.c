@@ -27,6 +27,7 @@ typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, 
 
 static HWND g_hwndmain;                      // 主窗口句柄
 static volatile long g_interval_count = 0;   // 启动自动更新的时间间隔
+static volatile long g_main_thread = 0;      // 主线程id
 
 static int
 on_proc_create_widgets(HWND hwnd)
@@ -537,7 +538,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 PostQuitMessage(0);
             }
-            else
+            else if (!_InterlockedCompareExchange(&g_main_thread, (long)GetCurrentThreadId(), 0))
             {
                 menu_setup(hwnd);
             }
@@ -2219,6 +2220,12 @@ void
 on_proc_counter_stop(void)
 {
     _InterlockedExchange(&g_interval_count, (EU_UPTIMES + 2));
+}
+
+unsigned long
+on_proc_thread(void)
+{
+    return (unsigned long)g_main_thread;
 }
 
 HWND

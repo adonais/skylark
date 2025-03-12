@@ -178,6 +178,60 @@ util_unlock(volatile long *gcs)
     _InterlockedExchange(gcs, 0);
 }
 
+static unsigned __stdcall
+util_lock_callback(void *lp)
+{
+    eu_tabpage *p = (eu_tabpage *)lp;
+    if (p)
+    {
+        util_lock(&p->busy_id);
+    }
+    return 0;
+}
+
+void
+util_lock_v2(eu_tabpage *p)
+{
+    if (p)
+    {
+        if (on_proc_thread() == GetCurrentThreadId())
+        {
+            if (_InterlockedCompareExchange(&p->busy_id, 1, 0) != 0)
+            {
+                MSG msg = {0};
+                DWORD result = 0;
+                HANDLE wait_handle = (HANDLE)_beginthreadex(NULL, 0, util_lock_callback, p, 0, NULL);
+                if (wait_handle)
+                {
+                    while ((result = MsgWaitForMultipleObjects(1, &wait_handle, FALSE, INFINITE, QS_ALLINPUT)) == WAIT_OBJECT_0 + 1)
+                    {
+                        eu_logmsg("Have a message, peek and dispatch it\n");
+                        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+                        {
+                            TranslateMessage(&msg);
+                            DispatchMessage(&msg);
+                        }
+                    }
+                    CloseHandle(wait_handle);
+                }
+            }
+        }
+        else
+        {
+            util_lock(&p->busy_id);
+        }
+    }
+}
+
+void
+util_unlock_v2(eu_tabpage *p)
+{
+    if (p)
+    {
+        util_unlock(&p->busy_id);
+    }
+}
+
 HWND
 util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
 {

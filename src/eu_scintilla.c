@@ -497,7 +497,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
     if (STR_NOT_NUL(ppnode))
     {
         int reason = (*ppnode)->reason;
-        util_lock(&(*ppnode)->busy_id);
+        util_lock_v2(*ppnode);
         // 销毁子窗口资源
         on_sci_destroy_control(*ppnode);
         // 销毁插件窗口资源
@@ -517,7 +517,7 @@ on_sci_free_tab(eu_tabpage **ppnode)
         on_sci_delete_file(*ppnode);
         // 清除标签单次运行锁状态
         _InterlockedExchange(&(*ppnode)->lock_id, 0);
-        util_unlock(&(*ppnode)->busy_id);
+        util_unlock_v2(*ppnode);
         if (reason != TABS_MAYBE_RESERVE)
         {
             eu_safe_free(*ppnode);

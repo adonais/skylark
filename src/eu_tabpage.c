@@ -1563,6 +1563,19 @@ on_tabpage_foreach(tab_ptr fntab)
     }
 }
 
+void
+on_tabpage_txt_foreach(tab_ptr fntab)
+{
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0])
+        {
+            fntab(p);
+        }
+    }
+}
+
 eu_tabpage *
 on_tabpage_get_ptr(const int index)
 {

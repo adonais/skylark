@@ -18,12 +18,13 @@
 
 #include "framework.h"
 
-#define LEN_TXT 384
-
-#define FILE_KEEP_YES 1
-#define FILE_KEEP_NO 2
-#define FILE_KEEP_ALL_YES 3
-#define FILE_KEEP_ALL_NO 4
+#define FILE_RELOAD_YES       1
+#define FILE_RELOAD_SEC_YES   2
+#define FILE_KEEP_YES         16
+#define FILE_KEEP_NO          32
+#define FILE_KEEP_ALL_YES     64
+#define FILE_KEEP_ALL_NO      128
+#define LEN_TXT               384
 
 typedef struct _THREAD_WINDOWS
 {
@@ -32,20 +33,94 @@ typedef struct _THREAD_WINDOWS
     HWND *handles;
 }THREAD_WINDOWS;
 
-static volatile long keep_mask = 0;
+static int
+on_changes_set_mask(eu_tabpage *p)
+{
+    if (p)
+    {
+        p->tabs_mask |= FILE_RELOAD_YES;
+    }
+    return 0;
+}
+
+static int
+on_changes_unset_mask(eu_tabpage *p)
+{
+    if (p)
+    {
+        p->tabs_mask &= ~FILE_RELOAD_YES;
+    }
+    return 0;
+}
+
+static int
+on_changes_keep_mask(eu_tabpage *p)
+{
+    if (p)
+    {
+        p->tabs_mask &= ~FILE_KEEP_ALL_NO;
+        p->tabs_mask |= FILE_KEEP_ALL_YES;
+    }
+    return 0;
+}
+
+static int
+on_changes_unkeep_mask(eu_tabpage *p)
+{
+    if (p)
+    {
+        p->tabs_mask &= ~FILE_KEEP_ALL_YES;
+        p->tabs_mask |= FILE_KEEP_ALL_NO;
+    }
+    return 0;
+}
+
+static int
+on_changes_sec_mask(eu_tabpage *p)
+{
+    if (p)
+    {
+        p->tabs_mask |= FILE_RELOAD_SEC_YES;
+    }
+    return 0;
+}
+
+static int
+on_changes_unsec_mask(eu_tabpage *p)
+{
+    if (p)
+    {
+        p->tabs_mask &= ~FILE_RELOAD_SEC_YES;
+    }
+    return 0;
+}
 
 static void
-on_changes_box_vaule(HWND hdlg)
+on_changes_box_vaule(HWND hdlg, eu_tabpage *p)
 {
     if (SendDlgItemMessage(hdlg, IDC_FC_CHK1, BM_GETCHECK, 0, 0))
     {
         // Checkbox Selected
-        eu_get_config()->m_upfile = FILE_CHANGE_SEC_YES;
+        if (p)
+        {
+            on_changes_sec_mask(p);
+        }
+        else
+        {
+            on_tabpage_txt_foreach(&on_changes_sec_mask);
+        }
     }
     else
     {
         // Checkbox Unselected
-        eu_get_config()->m_upfile = FILE_CHANGE_SEC_NO;
+        if (p)
+        {
+            on_changes_unsec_mask(p);
+        }
+        else
+        {
+            on_tabpage_txt_foreach(&on_changes_unsec_mask);
+        }
     }
 }
 
@@ -120,11 +195,11 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
             switch (mid)
             {
                 case IDC_NOEXIST_BTN1:
-                    _InterlockedExchange(&keep_mask, FILE_KEEP_ALL_YES);
+                    on_tabpage_txt_foreach(&on_changes_keep_mask);
                     SendMessage(hdlg, WM_CLOSE, 0, 0);
                     break;
                 case IDC_NOEXIST_BTN2:
-                    _InterlockedExchange(&keep_mask, FILE_KEEP_ALL_NO);
+                    on_tabpage_txt_foreach(&on_changes_unkeep_mask);
                     SendMessage(hdlg, WM_CLOSE, 0, 0);
                     break;
                 case IDC_NOEXIST_BTN3:
@@ -132,7 +207,8 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
                     {
                         on_tabpage_reload_file(p, 0, NULL);
                         p->st_mtime = 0;
-                        _InterlockedExchange(&keep_mask, FILE_KEEP_YES);
+                        p->tabs_mask &= ~FILE_KEEP_NO;
+                        p->tabs_mask |= FILE_KEEP_YES;
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
                     break;
@@ -140,7 +216,8 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
                         on_tabpage_reload_file(p, 1, NULL);
-                        _InterlockedExchange(&keep_mask, FILE_KEEP_NO);
+                        p->tabs_mask &= ~FILE_KEEP_YES;
+                        p->tabs_mask |= FILE_KEEP_NO;
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
                     break;
@@ -230,6 +307,8 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
                         on_tabpage_reload_file(p, 2, NULL);
+                        p->tabs_mask |= FILE_RELOAD_YES;
+                        on_changes_box_vaule(hdlg, p);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
                     break;
@@ -238,6 +317,8 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                     {
                         on_tabpage_reload_file(p, 0, NULL);
                         p->st_mtime = util_last_time(p->pathfile);
+                        p->tabs_mask &= ~FILE_RELOAD_YES;
+                        on_changes_box_vaule(hdlg, p);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
                     break;
@@ -245,10 +326,8 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
                         on_tabpage_reload_file(p, 2, NULL);
-                        if (eu_get_config()->m_upfile != FILE_CHANGE_SEC_YES)
-                        {
-                            eu_get_config()->m_upfile = FILE_CHANGE_ALL_YES;
-                        }
+                        on_tabpage_txt_foreach(&on_changes_set_mask);
+                        on_changes_box_vaule(hdlg, NULL);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
                     break;
@@ -257,15 +336,12 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                     {
                         on_tabpage_reload_file(p, 0, NULL);
                         p->st_mtime = util_last_time(p->pathfile);
-                        if (eu_get_config()->m_upfile != FILE_CHANGE_SEC_NO)
-                        {
-                            eu_get_config()->m_upfile = FILE_CHANGE_ALL_NO;
-                        }
+                        on_tabpage_txt_foreach(&on_changes_unset_mask);
+                        on_changes_box_vaule(hdlg, NULL);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
                     }
                     break;
                 case IDC_FC_CHK1:
-                    on_changes_box_vaule(hdlg);
                     break;
                 default:
                     break;
@@ -299,65 +375,51 @@ on_changes_alter_dlg(eu_tabpage *p, bool fc)
     }
 }
 
-static bool
+static void
 on_changes_delete_event(eu_tabpage *p)
 {
-    switch (keep_mask)
+    if (p)
     {
-        case 0:
-        case FILE_KEEP_YES:
-        case FILE_KEEP_NO:
-        {
-            on_changes_alter_dlg(p, false);
-            break;
-        }
-        case FILE_KEEP_ALL_YES:
+        uint32_t opt = p->tabs_mask;
+        if (opt & FILE_KEEP_ALL_YES)
         {
             on_tabpage_reload_file(p, 0, NULL);
             p->st_mtime = 0;
-            break;
         }
-        case FILE_KEEP_ALL_NO:
+        else if (opt & FILE_KEEP_ALL_NO)
         {
             on_tabpage_reload_file(p, 1, NULL);
-            break;
         }
-        default:
-            break;
+        else
+        {
+            on_changes_alter_dlg(p, false);
+        }
     }
-    return (keep_mask > FILE_KEEP_NO);
 }
 
-static bool
+static void
 on_changes_time_event(eu_tabpage *p)
 {
-    int opt = eu_get_config()->m_upfile;
-    switch (opt)
+    if (p)
     {
-        case 0:
-        case FILE_CHANGE_FILE_YES:
-        case FILE_CHANGE_FILE_NO:
+        uint32_t opt = p->tabs_mask;
+        if (opt & FILE_RELOAD_SEC_YES)
+        {
+            if (opt & FILE_RELOAD_YES)
+            {
+                on_tabpage_reload_file(p, 2, NULL);
+            }
+            else
+            {
+                on_tabpage_reload_file(p, 0, NULL);
+                p->st_mtime = util_last_time(p->pathfile);
+            }
+        }
+        else
         {
             on_changes_alter_dlg(p, true);
-            break;
         }
-        case FILE_CHANGE_ALL_YES:
-        case FILE_CHANGE_SEC_YES:
-        {
-            on_tabpage_reload_file(p, 2, NULL);
-            break;
-        }
-        case FILE_CHANGE_ALL_NO:
-        case FILE_CHANGE_SEC_NO:
-        {
-            on_tabpage_reload_file(p, 0, NULL);
-            p->st_mtime = util_last_time(p->pathfile);
-            break;
-        }
-        default:
-            break;
     }
-    return (eu_get_config()->m_upfile > FILE_CHANGE_FILE_NO);
 }
 
 static void
@@ -385,24 +447,19 @@ on_changes_window(HWND hwnd)
         eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
         {
+            eu_logmsg("mainid = %u, current_id = %u\n", on_proc_thread(), GetCurrentThreadId());
             on_changes_click_sci(on_tabpage_focus_at());
             on_tabpage_selection(p, index);
             if (_taccess(p->pathfile, 0) == -1)
             {
-                if (!on_changes_delete_event(p))
-                {
-                    break;
-                }
+                on_changes_delete_event(p);
             }
-            else if (!on_changes_time_event(p))
+            else
             {
-                break;
+                on_changes_time_event(p);
             }
+            break;
         }
-    }
-    if (eu_get_config()->m_upfile && eu_get_config()->m_upfile < FILE_CHANGE_SEC_YES)
-    { // 复位, 下次会话重新显示窗口
-        eu_get_config()->m_upfile = 0;
     }
 }
 

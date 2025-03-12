@@ -35,10 +35,12 @@ void on_proc_sync_wait(void);
 void on_proc_msg_active(eu_tabpage *pnode);
 void eu_window_resize(void);
 void eu_window_layout_dpi(HWND hwnd, const RECT *pnew_rect, const uint32_t adpi);
-HWND eu_hwnd_self(void);
 int  eu_dpi_scale_font(void);
 int  eu_dpi_scale_style(int value, const int scale, const int min_value);
 int  eu_dpi_scale_xy(int adpi, int m);
+
+HWND eu_hwnd_self(void);
+unsigned long on_proc_thread(void);
 
 #ifdef __cplusplus
 }

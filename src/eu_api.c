@@ -211,7 +211,7 @@ eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *
         offset += (int) strlen(by);
     }
     strncpy(res + offset, in, VALUE_LEN - offset);
-    _snprintf(in_ptr, eu_int_cast(in_size), "%s", res);
+    _snprintf(in_ptr, in_size, "%s", res);
     in = in_ptr;
     return in;
 }
