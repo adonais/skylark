@@ -454,13 +454,14 @@ BEGIN
             MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
         END
         MENUITEM MF_SEPARATOR
-        POPUP "自定义命令 ...",                                 IDM_SET_PLACEHOLDE_CUSTOMIZED
+        POPUP "自定义命令",                                     IDM_SET_PLACEHOLDE_CUSTOMIZED
         BEGIN
             MENUITEM "设置运行路径(&S)",                        IDM_SET_SETTINGS_CONFIG
             MENUITEM MF_SEPARATOR
         END
-        MENUITEM "翻新Skylark ...",                             IDM_SET_RESET_CONFIG
+        MENUITEM "翻新Skylark",                                 IDM_SET_RESET_CONFIG
         MENUITEM MF_SEPARATOR
+        MENUITEM "文件变更通知(&C)",                            IDM_SET_CHANGENOTIFY
         MENUITEM "启用运行时日志(&L)",                          IDM_SET_LOGGING_ENABLE
         MENUITEM MF_SEPARATOR
         MENUITEM "文件间隔[N]秒自动保存",                       IDM_FILE_SAVE_NOTIFY
@@ -470,8 +471,8 @@ BEGIN
     POPUP "帮助(&H)"
     BEGIN
         MENUITEM "捐赠我们",                                    IDM_DONATION
-        MENUITEM "功能简介(&O) ...",                            IDM_INTRODUTION
-        MENUITEM "更新历史(&H) ...",                            IDM_CHANGELOG
+        MENUITEM "功能简介(&O)",                                IDM_INTRODUTION
+        MENUITEM "更新历史(&H)",                                IDM_CHANGELOG
         MENUITEM "命令行参数(&C) ...",                          IDM_HELP_COMMAND
         MENUITEM "关于(&A) ...",                                IDM_ABOUT
     END

@@ -643,7 +643,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_view_full_sreen(eu_hwnd_self());
                 }
             }
-            if (g_hwndmain == GetForegroundWindow())
+            if (g_hwndmain == GetForegroundWindow() && eu_get_config()->m_upfile)
             {
                 ONCE_RUN(on_changes_window(hwnd));
             }
@@ -1644,6 +1644,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SET_RESET_CONFIG:
                     eu_reset_all_mask();
                     on_file_edit_restart(hwnd, false, true);
+                    break;
+                case IDM_SET_CHANGENOTIFY:
+                    eu_get_config()->m_upfile ^= true;
                     break;
                 case IDM_SET_LOGGING_ENABLE:
                     eu_init_logs(true);

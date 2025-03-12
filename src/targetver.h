@@ -1238,6 +1238,7 @@
 #define IDM_EDIT_BACKSLASH_SLASH            44101
 
 #define IDM_SET_LOGGING_ENABLE              44200
+#define IDM_SET_CHANGENOTIFY                44201
 
 #define IDR_FILETREE_FAVORITE_POPUP         44300
 #define IDM_FAVORITE_OPEN                   44301

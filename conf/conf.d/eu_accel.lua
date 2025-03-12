@@ -194,6 +194,8 @@ function eu_accel.loadaccel()
       "                 -- Settings menu\n",
       "                 {0, 0, IDM_VIEW_MODIFY_STYLETHEME},\n",
       "                 {0, 0, IDM_SET_RESET_CONFIG},\n",
+      "                 {0, 0, IDM_SET_CHANGENOTIFY},\n",
+      "                 {0, 0, IDM_SET_LOGGING_ENABLE},\n",
       "                 {0, 0, IDM_FILE_SAVE_NOTIFY},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"V\"), IDM_SET_LUAJIT_EXECUTE},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"Z\"), IDM_SET_LUAJIT_EXECUTE + 1},\n",

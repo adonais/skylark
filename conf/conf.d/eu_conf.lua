@@ -116,7 +116,7 @@ function eu_conf.loadconf()
         "tab_switch_forward = 42991\n" ..
         "edit_font_quality = 42552\n" ..
         "edit_rendering_technology = 42560\n" ..
-        "update_file_mask = 0\n" ..
+        "update_file_mask = 1\n" ..
         "update_file_notify = 0\n" ..
         "light_all_find_str = true\n" ..
         "backup_on_file_write = false\n" ..

@@ -454,13 +454,14 @@ BEGIN
             MENUITEM "DirectWrite &Retain",                            IDM_SET_RENDER_TECH_D2DRETAIN
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Custom Commands ...",                                   IDM_SET_PLACEHOLDE_CUSTOMIZED
+        POPUP "Custom Commands",                                       IDM_SET_PLACEHOLDE_CUSTOMIZED
         BEGIN
             MENUITEM "&Set Run Path",                                  IDM_SET_SETTINGS_CONFIG
             MENUITEM MF_SEPARATOR
         END
-        MENUITEM "Refresh Skylark ...",                                IDM_SET_RESET_CONFIG
+        MENUITEM "Refresh Skylark",                                    IDM_SET_RESET_CONFIG
         MENUITEM MF_SEPARATOR
+        MENUITEM "Files &Change Notification",                         IDM_SET_CHANGENOTIFY
         MENUITEM "Enable Runtime &Logging",                            IDM_SET_LOGGING_ENABLE
         MENUITEM MF_SEPARATOR
         MENUITEM "Files Interval [N] Seconds Auto-save",               IDM_FILE_SAVE_NOTIFY
@@ -470,8 +471,8 @@ BEGIN
     POPUP "&Help"
     BEGIN
         MENUITEM "Donate Now",                                         IDM_DONATION
-        MENUITEM "Introduction &Of Editor ...",                        IDM_INTRODUTION
-        MENUITEM "Update &history ...",                                IDM_CHANGELOG
+        MENUITEM "Introduction &Of Editor",                            IDM_INTRODUTION
+        MENUITEM "Update &history",                                    IDM_CHANGELOG
         MENUITEM "&Command Line ...",                                  IDM_HELP_COMMAND
         MENUITEM "&About ...",                                         IDM_ABOUT
     END

@@ -2119,7 +2119,7 @@ eu_save_config(void)
               g_config->m_tab_active,
               g_config->m_quality,
               g_config->m_render,
-              0,
+              g_config->m_upfile,
               g_config->m_up_notify,
               g_config->m_light_str?"true":"false",
               g_config->m_write_copy?"true":"false",
