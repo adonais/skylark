@@ -54,6 +54,12 @@ void CALLBACK WaitCallback(PTP_CALLBACK_INSTANCE Instance, PVOID Context, PTP_WA
 }
 #endif
 
+HANDLE
+eu_threadpool_handle(void)
+{
+    return g_threadpool_sem;
+}
+
 bool
 eu_threadpool_init(void)
 {
@@ -65,7 +71,7 @@ eu_threadpool_add(PTP_WAIT_CALLBACK wait_back, TASK_T parg)
 {
     bool          ret = false;
     eu_threadpool pool = {0};
-    if (wait_back)
+    if (wait_back && g_threadpool_sem)
     {
         do
         {
@@ -127,16 +133,36 @@ eu_threadpool_add(PTP_WAIT_CALLBACK wait_back, TASK_T parg)
 }
 
 bool
+eu_threadpool_check(PTP_WAIT_CALLBACK wait_back)
+{
+    bool res = false;
+    if (g_threadpool_sem)
+    {
+        for (size_t i = 0; i < cvector_size(g_threadpool_task); ++i)
+        {
+            if (g_threadpool_task[i].pcall == wait_back && g_threadpool_task[i].task->xcode == 1L)
+            {
+                res = true;
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+bool
 eu_threadpool_cancel(PTP_WAIT_CALLBACK wait_back)
 {
     bool res = false;
-    for (size_t i = 0; i < cvector_size(g_threadpool_task); ++i)
+    if (g_threadpool_sem)
     {
-        if (g_threadpool_task[i].pcall == wait_back)
+        for (size_t i = 0; i < cvector_size(g_threadpool_task); ++i)
         {
-            res = _InterlockedExchange(&g_threadpool_task[i].task->cancel, 1) ==
-                  0;
-            break;
+            if (g_threadpool_task[i].pcall == wait_back)
+            {
+                res = _InterlockedExchange(&g_threadpool_task[i].task->cancel, 1) == 0;
+                break;
+            }
         }
     }
     eu_logmsg("eu_threadpool_cancel return %s\n", (res ? "true" : "false"));

@@ -26,7 +26,6 @@ typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
 static HWND g_hwndmain;                      // 主窗口句柄
-static volatile long g_interval_count = 0;   // 启动自动更新的时间间隔
 static volatile long g_main_thread = 0;      // 主线程id
 
 static int
@@ -121,8 +120,8 @@ on_proc_destory_window(HWND hwnd)
     on_file_finish_wait();
     // 释放libcurl资源
     eu_curl_global_cleanup();
-    // 全局变量清零
-    _InterlockedExchange(&g_interval_count, 0);
+    // 清理线程池
+    eu_threadpool_destroy();
     // 退出消息循环
     PostQuitMessage(0);
 }
@@ -554,6 +553,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     util_updateui_icon(hwnd, eu_get_config()->eu_titlebar.icon);
                 }
             }
+            if (eu_threadpool_init())
+            {
+                on_update_check();
+            }
             break;
         }
         case WM_NCPAINT:
@@ -646,19 +649,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (g_hwndmain == GetForegroundWindow() && eu_get_config()->m_upfile)
             {
                 ONCE_RUN(on_changes_window(hwnd));
-            }
-            if (eu_get_config()->upgrade.enable && on_update_lookup())
-            {
-                if (g_interval_count == EU_UPTIMES)
-                {   // 启动更新进程
-                    _InterlockedIncrement(&g_interval_count);
-                    on_update_check(UPCHECK_INDENT_MAIN);
-                    eu_logmsg("g_interval_count = %ld, upcheck start\n", g_interval_count);
-                }
-                else if (g_interval_count < EU_UPTIMES)
-                {
-                    _InterlockedIncrement(&g_interval_count);
-                }
             }
             if (eu_get_config()->m_session)
             {
@@ -2213,16 +2203,10 @@ on_proc_sync_wait(void)
     KillTimer(g_hwndmain, EU_TIMER_ID);
     // 等待搜索线程完成
     on_search_finish_wait();
-    // 等待更新线程完成并响应
-    on_update_thread_wait();
+    // 等待更新线程结束
+    eu_threadpool_join();
     // 等待保存会话线程结束
     on_session_thread_wait();
-}
-
-void
-on_proc_counter_stop(void)
-{
-    _InterlockedExchange(&g_interval_count, (EU_UPTIMES + 2));
 }
 
 unsigned long
