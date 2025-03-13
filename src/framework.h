@@ -25,7 +25,7 @@
 // Windows 头文件
 #include <windows.h>
 #include <richedit.h>
-#include <Commdlg.h>
+#include <commdlg.h>
 #include <commctrl.h>
 #include <windowsx.h>
 #include <shellapi.h>
@@ -170,5 +170,6 @@
 #include "eu_settings.h"
 #include "eu_hintctl.h"
 #include "eu_xmlist.h"
+#include "eu_pool.h"
 
 #endif  // _EU_FRAMEWORK_H_
