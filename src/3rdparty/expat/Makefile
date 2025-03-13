@@ -11,15 +11,15 @@ SRC = .\src
 STATICLIB = $(BIND)\expat.lib
 
 CFLAGS  = -Oy -DNDEBUG=1 -I. -W3 -EHsc  -Zi -I$(SRC) -D_CRT_SECURE_NO_WARNINGS \
-          -D_CRT_NONSTDC_NO_DEPRECATE -D_WIN32_WINNT=0x0600 -DHAVE_CONFIG_H \
+          -D_CRT_NONSTDC_NO_DEPRECATE -D_WINDOWS -D_WIN32_WINNT=0x0600 -DHAVE_CONFIG_H \
           $(RELEASE) $(CFLAGS)
 
 #LDFLAGS = $(DLLFLAGS) -def:src/expat.def
 
 OBJS = \
     $(OBJD)\xmlparse.obj    \
-    $(OBJD)\xmltok.obj		\
-    $(OBJD)\xmlrole.obj		\
+    $(OBJD)\xmltok.obj      \
+    $(OBJD)\xmlrole.obj     \
 
 ##############################################################################
 ##
