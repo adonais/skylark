@@ -3653,7 +3653,7 @@ on_about_hwnd(void)
 bool
 on_about_dialog(void)
 {
-    on_update_check();
+    on_update_check(UPCHECK_INDENT_ABOUT);
     return i18n_dlgbox(eu_hwnd_self(), IDD_ABOUTBOX, func_about_proc, 0) > 0;
 }
 

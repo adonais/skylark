@@ -23,8 +23,10 @@ typedef struct _TASK_ARG
 {
     int           attach;
     char         *block;    // 动态数据, 用户分配内存, 由线程池销毁
+    uint32_t      pthid;    // 用来保存用户线程id号
     intptr_t      pdata;    // 用户数据, 可作为指针或整数
-    volatile long xcode;    // 线程运行状态. 1, 线程运行中
+    intptr_t      pcall;    // 保存回调函数PTP_WAIT_CALLBACK地址
+    volatile long xcode;    // 线程运行状态. 1, 表示线程运行中
     volatile long cancel;   // 回调函数检测这个变量, 可安全退出线程
 } TASK_ARG, *TASK_T;
 
@@ -33,13 +35,19 @@ typedef struct _TASK_ARG
 extern "C" {
 #endif
 
-bool   eu_threadpool_init(void);
-bool   eu_threadpool_add(PTP_WAIT_CALLBACK wait_back, TASK_T parg);
-bool   eu_threadpool_cancel(PTP_WAIT_CALLBACK wait_back);
-bool   eu_threadpool_check(PTP_WAIT_CALLBACK wait_back);
-void   eu_threadpool_join(void);
-void   eu_threadpool_destroy(void);
-HANDLE eu_threadpool_handle(void);
+bool     eu_threadpool_init(void);
+bool     eu_threadpool_add(PTP_WAIT_CALLBACK wait_back, TASK_T parg);
+bool     eu_threadpool_cancel(PTP_WAIT_CALLBACK wait_back);
+bool     eu_threadpool_check(PTP_WAIT_CALLBACK wait_back);
+void     eu_threadpool_join(void);
+void     eu_threadpool_destroy(void);
+HANDLE   eu_threadpool_handle(void);
+bool     eu_timer_create(PTP_TIMER_CALLBACK call_back, TASK_T pv);
+void     eu_timer_join(void);
+void     eu_timer_destroy(void);
+bool     eu_timer_check(PTP_TIMER_CALLBACK wait_back);
+bool     eu_timer_cancel(PTP_TIMER_CALLBACK call_back);
+uint32_t eu_timer_id(PTP_TIMER_CALLBACK call_back);
 
 #ifdef __cplusplus
 }

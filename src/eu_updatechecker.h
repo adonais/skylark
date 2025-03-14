@@ -19,16 +19,17 @@
 #ifndef _EU_UPDATECHECKER_H_
 #define _EU_UPDATECHECKER_H_
 
+// 启动时运行标识符
 #define UPCHECK_INDENT_MAIN  1
+// 菜单点击时运行标识符
 #define UPCHECK_INDENT_ABOUT 2
-#define EU_UPGRADE_OK        2
 
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void on_update_check(void);
+void on_update_check(const int indent);
 void on_update_sql(void);
 bool on_update_do(void);
 

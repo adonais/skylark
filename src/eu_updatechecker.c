@@ -232,15 +232,14 @@ on_update_loop(TASK_T hv)
 static bool
 on_update_diff_days(void)
 {
-    bool res = false;
     const uint64_t diff = 3600*24;
     uint64_t cur_time = (uint64_t)time(NULL);
     uint64_t last_time = eu_get_config()->upgrade.last_check;
     if (cur_time - last_time > diff)
     {
-        res = true;
+        return true;
     }
-    return res;
+    return false;
 }
 
 static void __stdcall
@@ -263,7 +262,7 @@ on_update_send_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP_W
         {
             break;
         }
-        if (hv->attach == 1 && !on_update_diff_days())
+        if (hv->attach == UPCHECK_INDENT_MAIN && !on_update_diff_days())
         {
             eu_logmsg("Upcheck: it's not time yet\n");
             break;
@@ -372,7 +371,7 @@ on_update_sql(void)
 }
 
 void
-on_update_check(void)
+on_update_check(const int indent)
 {
     HWND hwnd = eu_hwnd_self();
     if (hwnd == share_envent_get_hwnd())
@@ -382,7 +381,7 @@ on_update_check(void)
             if (!eu_threadpool_check(on_update_send_request))
             {
                 eu_logmsg("Upcheck: thread start ...\n");
-                TASK_ARG hv = {UPCHECK_INDENT_MAIN};
+                TASK_ARG hv = {indent};
                 eu_threadpool_add(on_update_send_request, &hv);
             }
         }

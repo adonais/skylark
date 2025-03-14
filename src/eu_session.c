@@ -20,10 +20,6 @@
 
 #define EU_SESSION_INTERVAL 400
 
-static volatile long g_session_id = 0;
-static volatile long g_session_total = 0;
-static volatile intptr_t g_session_sem = 0;
-
 static void
 on_session_backup(const int status)
 {
@@ -44,16 +40,6 @@ on_session_backup(const int status)
             break;
         default:
             break;
-    }
-}
-
-static inline void
-on_session_set_signal(void)
-{
-    _InterlockedExchange(&g_session_total, 0);
-    if (g_session_sem)
-    {
-        SetEvent((HANDLE)g_session_sem);
     }
 }
 
@@ -97,121 +83,68 @@ on_session_delete_backup(void)
     }
 }
 
-static unsigned __stdcall
-on_session_thead(void *lp)
+static void __stdcall
+on_session_thead(PTP_CALLBACK_INSTANCE inst, PVOID pv, PTP_TIMER tm)
 {
-    MSG msg;
-    while (eu_get_config()->m_session && eu_get_config()->m_up_notify > 0)
+    TASK_T hv = (TASK_T)pv;
+    const long count = eu_get_config()->m_up_notify * 1000;
+    if (hv)
     {
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        volatile long session_total = 0;
+        hv->pthid = GetCurrentThreadId();
+        _InterlockedExchange(&hv->xcode, 1);
+        while (!_InterlockedCompareExchange(&hv->cancel, 0, 1))
         {
-            if(msg.message == WM_QUIT)
+            if (session_total)
             {
-                eu_logmsg("%s: recv WM_QUIT\n", __FUNCTION__);
-                break;
-            }
-            switch (msg.message)
-            {
-                case WM_BACKUP_THEME:
-                    on_session_backup(SESSION_THEME);
-                    on_session_set_signal();
-                    break;
-                case WM_BACKUP_CONFIG:
-                    on_session_backup(SESSION_CONFIG);
-                    on_session_set_signal();
-                    break;
-                case WM_BACKUP_BOTH:
-                    on_session_backup(SESSION_BOTH);
-                    on_session_set_signal();
-                    break;
-                case WM_BACKUP_ALL:
+                if (session_total >= count)
+                {
+                #if APP_DEBUG
+                    printf("Session: we start auto backup\n");
+                #endif
                     on_session_backup(SESSION_ALL);
-                    on_session_set_signal();
-                    break;
-                default:
-                    break;
+                    _InterlockedExchange(&session_total, 0);
+                }
+                Sleep(EU_SESSION_INTERVAL);
             }
+            _InterlockedExchangeAdd(&session_total, EU_SESSION_INTERVAL);
         }
-        if (g_session_total)
-        {  
-            const long count = eu_get_config()->m_up_notify * 1000;
-            if (g_session_total >= count)
-            {   // 间隔时间内, 自动备份
-            #if APP_DEBUG
-                printf("we start auto backup\n");
-            #endif
-                on_session_backup(SESSION_ALL);
-                _InterlockedExchange(&g_session_total, 0);
-            }
-            Sleep(EU_SESSION_INTERVAL);
-        }
-        _InterlockedExchangeAdd(&g_session_total, EU_SESSION_INTERVAL);
+        eu_logmsg("Session: on_session_thead exit\n");
+        _InterlockedExchange(&hv->xcode, 0);
     }
-    if (!eu_get_config()->m_session || eu_get_config()->m_up_notify <= 0)
+}
+
+void
+on_session_cancel(void)
+{
+    if (eu_timer_cancel(&on_session_thead))
     {
         on_session_delete_backup();
     }
-    _InterlockedExchange(&g_session_total, 0);
-    _InterlockedExchange(&g_session_id, 0);
-    eu_logmsg("on_session_thead exit\n");
-    if (g_session_sem)
-    {
-        SetEvent((HANDLE)g_session_sem);
-    }
-    return 0;
-}
-
-static void
-on_session_close_sem(void)
-{
-    if (g_session_sem)
-    {
-        CloseHandle((HANDLE)g_session_sem);
-        inter_atom_exchange(&g_session_sem, 0);
-    }
-}
-
-static void
-on_session_thread_msg(const uint32_t msg)
-{
-    if (g_session_id)
-    {
-        PostThreadMessage(g_session_id, msg, 0, 0);
-        if (g_session_sem)
-        {
-            WaitForSingleObject((HANDLE)g_session_sem, EU_SESSION_INTERVAL * 10);
-        }
-    }
 }
 
 void
-on_session_thread_wait(void)
+on_session_do(const int indent)
 {
-    on_session_thread_msg(WM_QUIT);
-    on_session_close_sem();
-}
-
-void
-on_session_do(const HWND hwnd)
-{
-    if (hwnd && hwnd == share_envent_get_hwnd() && eu_get_config() && eu_get_config()->m_up_notify > 0)
+    const int mt_max = INT_MAX/1000;
+    int mt = eu_get_config() ? eu_get_config()->m_up_notify : 0;
+    // 在主窗口运行, 所以它们要么都为0, 要么相等
+    if (eu_hwnd_self() == share_envent_get_hwnd() && mt > 4 && mt < mt_max)
     {
-        if (!_InterlockedCompareExchange(&g_session_id, 1, 0))
+        TASK_ARG hv = {eu_get_config()->m_up_notify * 1000};
+        if (indent == UPCHECK_INDENT_MAIN)
         {
-            unsigned id = 0;
-            HANDLE handle = ((HANDLE)_beginthreadex(NULL, 0, on_session_thead, NULL, 0, (unsigned *)&id));
-            if (handle)
+            if (!eu_timer_create(&on_session_thead, &hv))
             {
-                _InterlockedExchange(&g_session_id, (long)id);
-                CloseHandle(handle);
-                on_session_close_sem();
-                g_session_sem = (intptr_t)CreateEvent(NULL, FALSE, FALSE, NULL);
+                eu_logmsg("Session: in %s, eu_timer_create failed\n", __FUNCTION__);
             }
-            else
+        }
+        else if (indent == UPCHECK_INDENT_ABOUT)
+        {
+            eu_timer_cancel(&on_session_thead);
+            if (!eu_timer_create(&on_session_thead, &hv))
             {
-                eu_logmsg("%s: on_session_thead start failed\n", __FUNCTION__);
-                eu_get_config()->m_up_notify = 0;
-                _InterlockedExchange(&g_session_id, 0);
+                eu_logmsg("Session: in %s, eu_timer_create failed\n", __FUNCTION__);
             }
         }
     }
@@ -220,58 +153,28 @@ on_session_do(const HWND hwnd)
 void
 eu_session_backup(const int status)
 {
-    HWND hwnd = eu_hwnd_self();
-    HWND share = share_envent_get_hwnd();
-    if (hwnd)
+    if (eu_hwnd_self() == share_envent_get_hwnd())
     {
         switch (status)
         {
             case SESSION_THEME:
             {
-                if (g_session_id)
-                {
-                    on_session_thread_msg(WM_BACKUP_THEME);
-                }
-                else if (hwnd == share)
-                {
-                    on_session_backup(SESSION_THEME);
-                }
+                on_session_backup(SESSION_THEME);
                 break;
             }
             case SESSION_CONFIG:
             {
-                if (g_session_id)
-                {
-                    on_session_thread_msg(WM_BACKUP_CONFIG);
-                }
-                else if (hwnd == share)
-                {
-                    on_session_backup(SESSION_CONFIG);
-                }
+                on_session_backup(SESSION_CONFIG);
                 break;
             }
             case SESSION_BOTH:
             {
-                if (g_session_id)
-                {
-                    on_session_thread_msg(WM_BACKUP_BOTH);
-                }
-                else if (hwnd == share)
-                {
-                    on_session_backup(SESSION_BOTH);
-                }
+                on_session_backup(SESSION_BOTH);
                 break;
             }
             case SESSION_ALL:
             {
-                if (g_session_id)
-                {
-                    on_session_thread_msg(WM_BACKUP_ALL);
-                }
-                else if (hwnd == share)
-                {
-                    on_session_backup(SESSION_ALL);
-                }
+                on_session_backup(SESSION_ALL);
                 break;
             }
             default:
@@ -282,8 +185,8 @@ eu_session_backup(const int status)
     }
 }
 
-unsigned long
+uint32_t
 on_session_thread_id(void)
 {
-    return (unsigned long)g_session_id;
+    return eu_timer_id(&on_session_thead);
 }

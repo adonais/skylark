@@ -89,13 +89,13 @@ on_proc_enum_skylark(HWND hwnd, LPARAM lParam)
 static void
 on_proc_send_notify(void)
 {
-    if (g_hwndmain == share_envent_get_hwnd())
+    if (g_hwndmain && g_hwndmain == share_envent_get_hwnd())
     {
         if (!EnumWindows(on_proc_enum_skylark, 0) && GetLastError() == ERROR_CALLBACK_ABORT)
         {
             if (eu_get_config()->upgrade.flags == VERSION_UPDATE_COMPLETED)
             {
-                SendMessage(share_envent_get_hwnd(), WM_UPCHECK_STATUS, VERSION_UPDATE_COMPLETED, 0);
+                SendMessage(g_hwndmain, WM_UPCHECK_STATUS, VERSION_UPDATE_COMPLETED, 0);
             }
         }
     }
@@ -122,6 +122,7 @@ on_proc_destory_window(HWND hwnd)
     eu_curl_global_cleanup();
     // 清理线程池
     eu_threadpool_destroy();
+    eu_timer_destroy();
     // 退出消息循环
     PostQuitMessage(0);
 }
@@ -555,7 +556,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (eu_threadpool_init())
             {
-                on_update_check();
+                on_update_check(UPCHECK_INDENT_MAIN);
+            }
+            if (eu_get_config()->m_session)
+            {
+                on_session_do(UPCHECK_INDENT_MAIN);
             }
             break;
         }
@@ -649,10 +654,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (g_hwndmain == GetForegroundWindow() && eu_get_config()->m_upfile)
             {
                 ONCE_RUN(on_changes_window(hwnd));
-            }
-            if (eu_get_config()->m_session)
-            {
-                on_session_do(hwnd);
             }
             break;
         }
@@ -937,6 +938,14 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_SAVE_NOTIFY:
                     on_file_auto_notify();
+                    if (eu_get_config()->m_session && eu_get_config()->m_up_notify > 4)
+                    {
+                        on_session_do(UPCHECK_INDENT_ABOUT);
+                    }
+                    else
+                    {
+                        on_session_cancel();
+                    }
                     break;
                 case IDM_EDIT_CLIP:
                 {
@@ -2206,7 +2215,7 @@ on_proc_sync_wait(void)
     // 等待更新线程结束
     eu_threadpool_join();
     // 等待保存会话线程结束
-    on_session_thread_wait();
+    eu_timer_join();
 }
 
 unsigned long

@@ -5,11 +5,11 @@ typedef struct _eu_threadpool
     TASK_T            task;
     PTP_WAIT          wait;
     HANDLE            event;
-    PTP_WAIT_CALLBACK pcall;
 } eu_threadpool;
 
 static HANDLE g_threadpool_sem = NULL;
 static cvector(eu_threadpool) g_threadpool_task = NULL;
+static cvector(TASK_ARG) g_timer_task = NULL;
 
 #ifdef EU_POOL_TESTING
 static CRITICAL_SECTION       g_threadpool_cs;
@@ -34,9 +34,9 @@ int get_context(TASK_T hv)
 void CALLBACK WaitCallback(PTP_CALLBACK_INSTANCE Instance, PVOID Context, PTP_WAIT Wait, TP_WAIT_RESULT WaitResult)
 {
     TASK_T hv = (TASK_T)Context;
-    while (1)
+    while (gcs_test < 0xffff)
     {
-        printf("Thread_id = %u, Task1 %d value. Wait result: %s\n",
+        printf("Thread_id = %u, task %d value. wait result: %s\n",
                GetCurrentThreadId(), get_context(hv),
                (WaitResult == WAIT_OBJECT_0) ? "Signaled" : "Timeout");
         if (WaitForSingleObject(g_threadpool_sem, 0) != WAIT_TIMEOUT)
@@ -49,6 +49,9 @@ void CALLBACK WaitCallback(PTP_CALLBACK_INSTANCE Instance, PVOID Context, PTP_WA
             printf("recv cancel, thread %u exit ...\n", GetCurrentThreadId());
             break;
         }
+        EnterCriticalSection(&(g_threadpool_cs));
+        ++gcs_test;
+        LeaveCriticalSection(&(g_threadpool_cs));
         Sleep(300);
     }
 }
@@ -71,26 +74,22 @@ eu_threadpool_add(PTP_WAIT_CALLBACK wait_back, TASK_T parg)
 {
     bool          ret = false;
     eu_threadpool pool = {0};
-    if (wait_back && g_threadpool_sem)
+    if (wait_back && parg && g_threadpool_sem)
     {
         do
         {
-            if (parg)
+            if ((pool.task = (TASK_T)malloc(sizeof(TASK_ARG))) == NULL)
             {
-                if ((pool.task = (TASK_T)malloc(sizeof(TASK_ARG))) == NULL)
-                {
-                    eu_logmsg("malloc failed for task\n");
-                    break;
-                }
-                memcpy(pool.task, parg, sizeof(TASK_ARG));
+                eu_logmsg("malloc failed for task\n");
+                break;
             }
+            memcpy(pool.task, parg, sizeof(TASK_ARG));
             if ((pool.event = CreateEvent(NULL, FALSE, FALSE, NULL)) == NULL)
             {
                 eu_logmsg("CreateEvent failed for task\n");
                 break;
             }
-            if ((pool.wait = CreateThreadpoolWait(wait_back, (PVOID)pool.task,
-                                                  NULL)) == NULL)
+            if ((pool.wait = CreateThreadpoolWait(wait_back, (PVOID)pool.task, NULL)) == NULL)
             {
                 eu_logmsg("CreateThreadpoolWait failed for task\n");
                 break;
@@ -98,7 +97,7 @@ eu_threadpool_add(PTP_WAIT_CALLBACK wait_back, TASK_T parg)
             if (true)
             {
                 SetThreadpoolWait(pool.wait, pool.event, NULL);
-                pool.pcall = wait_back;
+                pool.task->pcall = (intptr_t)wait_back;
                 cvector_push_back(g_threadpool_task, pool);
             }
             if (!SetEvent(pool.event))
@@ -135,19 +134,17 @@ eu_threadpool_add(PTP_WAIT_CALLBACK wait_back, TASK_T parg)
 bool
 eu_threadpool_check(PTP_WAIT_CALLBACK wait_back)
 {
-    bool res = false;
     if (g_threadpool_sem)
     {
         for (size_t i = 0; i < cvector_size(g_threadpool_task); ++i)
         {
-            if (g_threadpool_task[i].pcall == wait_back && g_threadpool_task[i].task->xcode == 1L)
+            if (g_threadpool_task[i].task->pcall == (intptr_t)wait_back && g_threadpool_task[i].task->xcode == 1L)
             {
-                res = true;
-                break;
+                return true;
             }
         }
     }
-    return res;
+    return false;
 }
 
 bool
@@ -158,14 +155,14 @@ eu_threadpool_cancel(PTP_WAIT_CALLBACK wait_back)
     {
         for (size_t i = 0; i < cvector_size(g_threadpool_task); ++i)
         {
-            if (g_threadpool_task[i].pcall == wait_back)
+            if (g_threadpool_task[i].task->pcall == (intptr_t)wait_back)
             {
                 res = _InterlockedExchange(&g_threadpool_task[i].task->cancel, 1) == 0;
                 break;
             }
         }
     }
-    eu_logmsg("eu_threadpool_cancel return %s\n", (res ? "true" : "false"));
+    eu_logmsg("Threadpool: %s return %s\n", __FUNCTION__, (res ? "true" : "false"));
     return res;
 }
 
@@ -177,7 +174,10 @@ eu_threadpool_join(void)
         SetEvent(g_threadpool_sem);
         for (size_t i = 0; i < cvector_size(g_threadpool_task); ++i)
         {
-            WaitForThreadpoolWaitCallbacks(g_threadpool_task[i].wait, FALSE);
+            if (g_threadpool_task[i].wait)
+            {
+                WaitForThreadpoolWaitCallbacks(g_threadpool_task[i].wait, FALSE);
+            }
         }
     }
 }
@@ -211,4 +211,124 @@ eu_threadpool_destroy(void)
         }
         cvector_freep(&g_threadpool_task);
     }
+}
+
+void
+eu_timer_join(void)
+{
+    if (g_timer_task)
+    {
+        for (size_t i = 0; i < cvector_size(g_timer_task); ++i)
+        {
+            _InterlockedExchange(&g_timer_task[i].cancel, 1);
+            if (g_timer_task[i].pdata > 0)
+            {
+                WaitForThreadpoolTimerCallbacks((PTP_TIMER)g_timer_task[i].pdata, TRUE);
+            }
+        }
+    }
+}
+
+bool
+eu_timer_create(PTP_TIMER_CALLBACK call_back, TASK_T pv)
+{
+    PTP_TIMER timer = NULL;
+    if (call_back && pv)
+    {
+        TASK_ARG hv;
+        memcpy(&hv, pv, sizeof(TASK_ARG));
+        FILETIME ft;
+        ULARGE_INTEGER ul;
+        size_t i = 0;
+        // 20毫米后启动定时器
+        ul.QuadPart = (LONGLONG) - (200000);
+        ft.dwHighDateTime = ul.HighPart;
+        ft.dwLowDateTime = ul.LowPart;
+        hv.pcall = (intptr_t)call_back;
+        cvector_push_back(g_timer_task, hv);
+        if ((i = cvector_size(g_timer_task)) > 0 && (timer = CreateThreadpoolTimer(call_back, (PVOID)&g_timer_task[i - 1], NULL)) != NULL)
+        {   // 保存PTP_TIMER句柄到结构数组
+            g_timer_task[i - 1].pdata = (intptr_t)timer;
+            // 间隔时间内回调函数仅运行一次
+            SetThreadpoolTimer(timer, &ft, 0, 0);
+        }
+    }
+    return (timer != NULL);
+}
+
+void
+eu_timer_destroy(void)
+{
+    if (g_timer_task)
+    {
+        for (size_t i = 0; i < cvector_size(g_threadpool_task); ++i)
+        {
+            if (g_timer_task[i].block)
+            {
+                free(g_timer_task[i].block);
+            }
+            if (g_timer_task[i].pdata)
+            {
+                CloseThreadpoolTimer((PTP_TIMER)g_timer_task[i].pdata);
+            }
+        }
+        cvector_freep(&g_timer_task);
+    }
+}
+
+bool
+eu_timer_check(PTP_TIMER_CALLBACK wait_back)
+{
+    
+    for (size_t i = 0; i < cvector_size(g_timer_task); ++i)
+    {
+        if (g_timer_task[i].pcall == (intptr_t)wait_back && g_timer_task[i].xcode == 1L)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint32_t
+eu_timer_id(PTP_TIMER_CALLBACK call_back)
+{
+    if (g_timer_task)
+    {
+        for (size_t i = 0; i < cvector_size(g_timer_task); ++i)
+        {
+            if (g_timer_task[i].pcall == (intptr_t)call_back && g_timer_task[i].pthid > 0u)
+            {
+                return g_timer_task[i].pthid;
+            }
+        }
+    }
+    return 0;
+}
+
+bool
+eu_timer_cancel(PTP_TIMER_CALLBACK call_back)
+{
+    if (g_timer_task)
+    {
+        for (size_t i = 0; i < cvector_size(g_timer_task); ++i)
+        {
+            if (g_timer_task[i].pcall == (intptr_t)call_back)
+            {
+                _InterlockedExchange(&g_timer_task[i].cancel, 1);
+                WaitForThreadpoolTimerCallbacks((PTP_TIMER)g_timer_task[i].pdata, TRUE);
+                if (g_timer_task[i].block)
+                {
+                    free(g_timer_task[i].block);
+                }
+                if (g_timer_task[i].pdata)
+                {
+                    CloseThreadpoolTimer((PTP_TIMER)g_timer_task[i].pdata);
+                }
+                cvector_erase(g_timer_task, i);
+                return true;
+            }
+        }
+    }
+    return false;
 }

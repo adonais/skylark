@@ -2788,14 +2788,19 @@ on_file_auto_notify(void)
     {
         if (input_chars[0])
         {
+            const int mt_max = INT_MAX/1000;
             int intervar = _tstoi(input_chars);
             if (intervar > 0 && intervar < 5)
             {
                 eu_get_config()->m_up_notify = 5;
             }
-            else
+            else if (intervar < mt_max)
             {
                 eu_get_config()->m_up_notify = intervar;
+            }
+            else
+            {
+                eu_get_config()->m_up_notify = 0;
             }
         }
     }
