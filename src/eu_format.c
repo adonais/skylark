@@ -112,7 +112,7 @@ js_next(const uint8_t *ptext, size_t *in)
                             }
                             break;
                         case -1:
-                            eu_logmsg("Error: JSMIN Unterminated comment.\n");
+                            eu_logmsg("Format: error, jsmin unterminated comment.\n");
                             return EUE_UNKOWN_ERR;
                     }
                 }
@@ -163,7 +163,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                     }
                     if (the_a == -1)
                     {
-                        eu_logmsg("Error: JSMIN unterminated string literal\n");
+                        eu_logmsg("Format: error, jsmin unterminated string literal\n");
                         return EUE_UNKOWN_ERR;
                     }
                 }
@@ -205,7 +205,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                             }
                             if (the_a == -1)
                             {
-                                eu_logmsg("Unterminated set in Regular Expression literal.\n");
+                                eu_logmsg("Format: unterminated set in regular expression literal.\n");
                                 return EUE_UNKOWN_ERR;
                             }
                         }
@@ -216,7 +216,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                         {
                             case '/':
                             case '*':
-                                eu_logmsg("Unterminated set in Regular Expression literal.\n");
+                                eu_logmsg("Format: unterminated set in regular expression literal.\n");
                                 return EUE_UNKOWN_ERR;
                         }
                         break;
@@ -228,7 +228,7 @@ js_action(const uint8_t *ptext, size_t *in, uint8_t *pbuf, size_t *out, int d)
                     }
                     if (the_a == -1)
                     {
-                        eu_logmsg("Unterminated Regular Expression literal.\n");
+                        eu_logmsg("Format: unterminated regular expression literal.\n");
                         return EUE_UNKOWN_ERR;
                     }
                     js_put(the_a, pbuf, out);
@@ -411,58 +411,34 @@ on_format_js_callback(const uint8_t *text, uint8_t **pbuf)
 }
 
 int
-on_format_json_callback(const uint8_t *text, uint8_t **pbuf)
+on_format_json_format(const uint8_t *text, uint8_t **pbuf)
 {
-    size_t in = 0;
-    size_t out = 0;
-    size_t length;
-    int state = 0;
-    uint8_t *output = NULL;
-    /* check if pre-conditions are met */
-    if (!text || !pbuf)
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    if (pnode && pnode->doc_ptr && text && pbuf)
     {
-        return 1;
-    }
-    length = strlen((const char *)text);
-    *pbuf = length > 0 ? (uint8_t *) malloc(length) : NULL;
-    if (*pbuf == NULL)
-    {
-        return 1;
-    }
-    else
-    {
-        output = *pbuf;
-    }
-    while (in < length)
-    {
-        switch (text[in])
+        char indent_str[QW_SIZE] = {0};
+        const int width = (const int)(pnode->doc_ptr->tab_width > 0 ? pnode->doc_ptr->tab_width : eu_get_config()->tab_width);
+        const bool tab2spaces = (const bool)(pnode->doc_ptr->tab_convert_spaces >= 0 ? pnode->doc_ptr->tab_convert_spaces : eu_get_config()->tab2spaces);
+        if (tab2spaces)
         {
-            case '\x20': /* space */
-            case '\x09': /* horizontal tab */
-            case '\x0A': /* line feed or new line */
-            case '\x0D': /* Carriage return */
-                if (state == 1)
-                {
-                    output[out++] = text[in];
-                }
-                break;
-            case '\"':
-                if (!state)
-                {
-                    state = 1;
-                }
-                else if (text[in - 1] != '\\')
-                {
-                    state = 0;
-                }
-                output[out++] = text[in];
-                break;
-            default:
-                output[out++] = text[in];
+            memset(indent_str, 0x20, width > QW_SIZE ? 4 : width);
         }
-        ++in;
+        else
+        {
+            *indent_str = '\t';
+        }
+        *pbuf = (uint8_t *)json_printf_format((const char *)text, indent_str);
     }
-    (*pbuf)[out] = 0;
+    return SKYLARK_OK;
+}
+
+int
+on_format_json_unformat(const uint8_t *text, uint8_t **pbuf)
+{
+    if (text && pbuf)
+    {
+        *pbuf = (uint8_t *)json_printf_unformat((const char *)text);
+    }
     return SKYLARK_OK;
 }
 
@@ -483,11 +459,6 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
     {
         if (!pnode || !pnode->doc_ptr || TAB_HEX_MODE(pnode) || pnode->plugin)
         {
-            break;
-        }
-        if (pnode->doc_ptr->doc_type == DOCTYPE_JSON && !pnode->hwnd_symtree)
-        {
-            MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             break;
         }
         if (!(text = util_strdup_content(pnode, &txt_len)))

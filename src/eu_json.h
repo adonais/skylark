@@ -71,8 +71,8 @@ typedef struct _jobject_string
 
 typedef struct
 {
-   size_t max_memory;
    int settings;
+   size_t max_memory;
 
    /* Custom allocator support (leave null to use malloc/free)
     */
@@ -287,7 +287,7 @@ void json_value_free (json_value *);
 void json_value_free_ex (json_settings * settings,
                          json_value *);
 
-char *json_printf_format(const char *input);
+char *json_printf_format(const char *input, const char *indent_str);
 char *json_printf_unformat(const char *input);
 
 #ifdef __cplusplus

@@ -1195,9 +1195,8 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
 {
     int ret = JSON_OK;
     HTREEITEM tree_root = NULL;
-    json_settings sets = {0};
+    json_settings sets = {json_enable_comments};
     json_value *json_root = NULL;
-    sets.settings |= json_enable_comments;
     TreeView_DeleteAllItems(pnode->hwnd_symtree);
     if ((json_root = json_parse_ex(&sets, buffer, (size_t)len, NULL)))
     {

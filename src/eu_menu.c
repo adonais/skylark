@@ -603,7 +603,7 @@ menu_update_item(const HMENU menu, const bool init)
                         enable = eu_exist_file(CLANGDLL);
                         util_set_menu_item(menu, IDM_VIEW_WRAPLINE_MODE, eu_get_config()->line_mode);
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_JSON, init || (pnode->doc_ptr && !TAB_HEX_MODE(pnode) &&
-                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON && enable));
+                                              pnode->doc_ptr->doc_type == DOCTYPE_JSON));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_JS, init || (pnode->doc_ptr && !TAB_HEX_MODE(pnode) &&
                                               pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT && enable));
                         util_enable_menu_item(menu, IDM_EDIT_PLACEHOLDE_CLANG, init || (

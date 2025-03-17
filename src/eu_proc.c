@@ -1410,33 +1410,45 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_FORMAT_REFORMAT_JSON:
                     if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
-                        on_format_file_style(pnode);
-                        on_symtree_json(pnode);
-                        on_sci_refresh_ui(pnode);
+                        on_format_do_compress(pnode, on_format_json_format);
+                        if (pnode->sym_show)
+                        {
+                            on_symtree_json(pnode);
+                            on_sci_refresh_ui(pnode);
+                        }
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JSON:
                     if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
-                        on_format_do_compress(pnode, on_format_json_callback);
-                        on_symtree_json(pnode);
-                        on_sci_refresh_ui(pnode);
+                        on_format_do_compress(pnode, on_format_json_unformat);
+                        if (pnode->sym_show)
+                        {
+                            on_symtree_json(pnode);
+                            on_sci_refresh_ui(pnode);
+                        }
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_JS:
                     if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
                     {
                         on_format_file_style(pnode);
-                        on_symlist_reqular(pnode);
-                        on_sci_refresh_ui(pnode);
+                        if (pnode->sym_show)
+                        {
+                            on_symlist_reqular(pnode);
+                            on_sci_refresh_ui(pnode);
+                        }
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_JS:
                     if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
                     {
                         on_format_do_compress(pnode, on_format_js_callback);
-                        on_symlist_reqular(pnode);
-                        on_sci_refresh_ui(pnode);
+                        if (pnode->sym_show)
+                        {
+                            on_symlist_reqular(pnode);
+                            on_sci_refresh_ui(pnode);
+                        }
                     }
                     break;
                 case IDM_FORMAT_REFORMAT_XML:

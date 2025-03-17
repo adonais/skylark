@@ -1058,43 +1058,59 @@ void json_value_free (json_value * value)
    json_value_free_ex (&settings, value);
 }
 
-static void init_dynamic_string(jobject_string *ds)
+static int init_dynamic_string(jobject_string *ds)
 {
     ds->capacity = JSON_CAPACITY;
-    ds->data = malloc(ds->capacity);
     ds->length = 0;
-    ds->data = '\0';
+    ds->data = malloc(ds->capacity);
+    if (ds->data)
+    {
+        ds->data[0] = '\0';
+        return 0;
+    }
+    return 1;
 }
 
-static void append_char(jobject_string *ds, char c)
+static int append_char(jobject_string *ds, char c)
 {
     if (ds->length + 1 >= ds->capacity) {
         ds->capacity *= 2;
         ds->data = realloc(ds->data, ds->capacity);
     }
-    ds->data[ds->length++] = c;
-    ds->data[ds->length] = '\0';
+    if (ds->data)
+    {
+        ds->data[ds->length++] = c;
+        ds->data[ds->length] = '\0';
+        return 0;
+    }
+    return 1;
 }
 
-static void append_string(jobject_string *ds, const char *str)
+static int append_string(jobject_string *ds, const char *str)
 {
     size_t len = strlen(str);
     while (ds->length + len >= ds->capacity) {
         ds->capacity *= 2;
         ds->data = realloc(ds->data, ds->capacity);
     }
-    memcpy(ds->data + ds->length, str, len);
-    ds->length += len;
-    ds->data[ds->length] = '\0';
+    if (ds->data)
+    {
+        memcpy(ds->data + ds->length, str, len);
+        ds->length += len;
+        ds->data[ds->length] = '\0';
+        return 0;
+    }
+    return 1;
 }
 
-// JSON 生成函数
-static void generate_json(json_value *value, jobject_string *ds, int indent, int is_format);
+/* JSON 生成函数 */
+static void generate_json(json_value *value, jobject_string *ds, int indent, const char *indent_str);
 
-static void append_indent(jobject_string *ds, int indent)
+static void append_indent(jobject_string *ds, int indent, const char *indent_str)
 {
-    for (int i = 0; i < indent; i++) {
-        append_string(ds, "  ");
+    for (int i = 0; i < indent; i++)
+    {
+        append_string(ds, indent_str);
     }
 }
 
@@ -1105,7 +1121,6 @@ static void append_json_string(jobject_string *ds, const char *str)
         switch (*p) {
             case '"': append_string(ds, "\\\""); break;
             case '\\': append_string(ds, "\\\\"); break;
-            case '/': append_string(ds, "\\/"); break;
             case '\b': append_string(ds, "\\b"); break;
             case '\f': append_string(ds, "\\f"); break;
             case '\n': append_string(ds, "\\n"); break;
@@ -1125,45 +1140,45 @@ static void append_json_string(jobject_string *ds, const char *str)
     append_char(ds, '"');
 }
 
-static void generate_json(json_value *value, jobject_string *ds, int indent, int is_format)
+static void generate_json(json_value *value, jobject_string *ds, int indent, const char *indent_str)
 {
     switch (value->type) {
         case json_object: {
             append_char(ds, '{');
-            if (is_format && value->u.object.length > 0) {
+            if (indent_str && value->u.object.length > 0) {
                 append_char(ds, '\n');
             }
             for (unsigned int i = 0; i < value->u.object.length; i++) {
-                if (is_format) append_indent(ds, indent + 1);
+                if (indent_str) append_indent(ds, indent + 1, indent_str);
                 append_json_string(ds, value->u.object.values[i].name);
-                append_string(ds, is_format ? ": " : ":");
-                generate_json(value->u.object.values[i].value, ds, indent + 1, is_format);
+                append_string(ds, indent_str ? ": " : ":");
+                generate_json(value->u.object.values[i].value, ds, indent + 1, indent_str);
                 if (i < value->u.object.length - 1) {
                     append_char(ds, ',');
                 }
-                if (is_format) append_char(ds, '\n');
+                if (indent_str) append_char(ds, '\n');
             }
-            if (is_format && value->u.object.length > 0) {
-                append_indent(ds, indent);
+            if (indent_str && value->u.object.length > 0) {
+                append_indent(ds, indent, indent_str);
             }
             append_char(ds, '}');
             break;
         }
         case json_array: {
             append_char(ds, '[');
-            if (is_format && value->u.array.length > 0) {
+            if (indent_str && value->u.array.length > 0) {
                 append_char(ds, '\n');
             }
             for (unsigned int i = 0; i < value->u.array.length; i++) {
-                if (is_format) append_indent(ds, indent + 1);
-                generate_json(value->u.array.values[i], ds, indent + 1, is_format);
+                if (indent_str) append_indent(ds, indent + 1, indent_str);
+                generate_json(value->u.array.values[i], ds, indent + 1, indent_str);
                 if (i < value->u.array.length - 1) {
                     append_char(ds, ',');
                 }
-                if (is_format) append_char(ds, '\n');
+                if (indent_str) append_char(ds, '\n');
             }
-            if (is_format && value->u.array.length > 0) {
-                append_indent(ds, indent);
+            if (indent_str && value->u.array.length > 0) {
+                append_indent(ds, indent, indent_str);
             }
             append_char(ds, ']');
             break;
@@ -1193,30 +1208,36 @@ static void generate_json(json_value *value, jobject_string *ds, int indent, int
     }
 }
 
-// 格式化 JSON（带缩进）
-char *json_printf_format(const char *input)
+/* 格式化 JSON（带缩进）
+ * indent_str为缩进字符串, 多个空格或制表符
+ */
+char *json_printf_format(const char *input, const char *indent_str)
 {
-    json_char *json = (json_char*)input;
-    json_value *root = json_parse(json, strlen(json));
-    if (!root) 
-        return NULL;
     jobject_string ds;
-    init_dynamic_string(&ds);
-    generate_json(root, &ds, 0, 1);
-    json_value_free(root);
-    return ds.data;
+    json_char *json = (json_char*)input;
+    json_settings sets = {json_enable_comments};
+    json_value *root = json_parse_ex(&sets, json, strlen(json), NULL);
+    if (root && init_dynamic_string(&ds) == 0)
+    {
+        generate_json(root, &ds, 0, indent_str);
+        json_value_free(root);
+        return ds.data;
+    }
+    return NULL;
 }
 
-// 压缩 JSON（去除空格）
+/* 压缩 JSON（去除空格或制表符）*/
 char *json_printf_unformat(const char *input)
 {
-    json_char *json = (json_char*)input;
-    json_value *root = json_parse(json, strlen(json));
-    if (!root)
-        return NULL;
     jobject_string ds;
-    init_dynamic_string(&ds);
-    generate_json(root, &ds, 0, 0);
-    json_value_free(root);
-    return ds.data;
+    json_char *json = (json_char*)input;
+    json_settings sets = {json_enable_comments};
+    json_value *root = json_parse_ex(&sets, json, strlen(json), NULL);
+    if (root && init_dynamic_string(&ds) == 0)
+    {
+        generate_json(root, &ds, 0, NULL);
+        json_value_free(root);
+        return ds.data;
+    }
+    return NULL;
 }

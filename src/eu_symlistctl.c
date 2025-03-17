@@ -55,7 +55,7 @@ reqular_thread(void *lp)
     if (pnode)
     {
         pcre_conainer *pcre_info = NULL;
-        if ((pcre_info = eu_pcre_init(pnode->write_buffer, pnode->bytes_written, pnode->doc_ptr->reqular_exp, NULL, PCRE_NO_UTF8_CHECK|PCRE_CASELESS)) != NULL)
+        if ((pcre_info = eu_pcre_init((const char *)pnode->write_buffer, pnode->bytes_written, pnode->doc_ptr->reqular_exp, NULL, PCRE_NO_UTF8_CHECK|PCRE_CASELESS)) != NULL)
         {
             eu_pcre_exec_multi(pcre_info, pcre_match_callback, pnode);
             eu_pcre_delete(pcre_info);
