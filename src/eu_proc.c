@@ -638,6 +638,14 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             return 1;
         }
+        case WM_JSON_PASSED:
+        {
+            if (on_tabpage_get_index((const eu_tabpage *)lParam) >= 0)
+            {
+                return 0;
+            }
+            return 1;
+        }
         case WM_TIMER:
         {
             if (KEY_DOWN(VK_ESCAPE))
@@ -1435,16 +1443,22 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_XML)
                     {
                         on_format_file_style(pnode);
-                        on_xml_tree(pnode);
-                        on_sci_refresh_ui(pnode);
+                        if (pnode->sym_show)
+                        {
+                            on_xml_tree(pnode);
+                            on_sci_refresh_ui(pnode);
+                        }
                     }
                     break;
                 case IDM_FORMAT_COMPRESS_XML:
                     if (pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->doc_ptr->doc_type == DOCTYPE_XML)
                     {
                         on_format_xml_compress(pnode);
-                        on_xml_tree(pnode);
-                        on_sci_refresh_ui(pnode);
+                        if (pnode->sym_show)
+                        {
+                            on_xml_tree(pnode);
+                            on_sci_refresh_ui(pnode);
+                        }
                     }
                     break;
                 case IDM_FORMAT_WHOLE_FILE:

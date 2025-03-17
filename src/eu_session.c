@@ -117,7 +117,7 @@ on_session_thead(PTP_CALLBACK_INSTANCE inst, PVOID pv, PTP_TIMER tm)
 void
 on_session_cancel(void)
 {
-    if (eu_timer_cancel(&on_session_thead))
+    if (eu_timer_cancel(&on_session_thead, 0))
     {
         on_session_delete_backup();
     }
@@ -141,7 +141,7 @@ on_session_do(const int indent)
         }
         else if (indent == UPCHECK_INDENT_ABOUT)
         {
-            eu_timer_cancel(&on_session_thead);
+            eu_timer_cancel(&on_session_thead, 0);
             if (!eu_timer_create(&on_session_thead, &hv))
             {
                 eu_logmsg("Session: in %s, eu_timer_create failed\n", __FUNCTION__);
@@ -188,5 +188,5 @@ eu_session_backup(const int status)
 uint32_t
 on_session_thread_id(void)
 {
-    return eu_timer_id(&on_session_thead);
+    return eu_timer_id(&on_session_thead, 0);
 }

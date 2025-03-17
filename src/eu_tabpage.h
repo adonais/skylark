@@ -126,6 +126,7 @@ void on_tabpage_adjust_box(const RECT *prc, RECT *ptp);
 void on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab);
 void on_tabpage_set_title(int ntab, TCHAR *title);
 void on_tabpage_symlist_click(eu_tabpage *pnode);
+void on_tabpage_symreload(eu_tabpage *pnode);
 void on_tabpage_foreach(tab_ptr fntab);
 void on_tabpage_txt_foreach(tab_ptr fntab);
 void on_tabpage_newdoc_reload(void);

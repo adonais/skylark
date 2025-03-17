@@ -28,6 +28,7 @@ int on_symlist_reqular(eu_tabpage *pnode);
 int on_symlist_jump_word(eu_tabpage *pnode);
 int on_symlist_jump_item(eu_tabpage *pnode);
 int on_symlist_update_theme(eu_tabpage *pnode);
+void on_symlist_wait(eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

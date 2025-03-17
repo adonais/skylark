@@ -20,6 +20,13 @@
 
 static volatile sptr_t symtree_wnd = 0;
 
+enum
+{
+    JSON_OK,
+    JSON_ERROR,
+    JSON_CANCEL,
+};
+
 static char *
 get_symtree_str(eu_tabpage *pnode, bool get_parent)
 {
@@ -985,7 +992,8 @@ on_symtree_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
     tvis.hParent = parent;
     tvis.hInsertAfter = TVI_LAST;
     tvis.item = tvi;
-    hti = TreeView_InsertItem(hwnd, &tvis);
+    //hti = TreeView_InsertItem(hwnd, &tvis);
+    hti = (HTREEITEM)SendMessage(hwnd, TVM_INSERTITEM, 0, (LPARAM)&tvis);
     return hti;
 }
 
@@ -1037,7 +1045,7 @@ tvi_inser_object(HWND dlg, HTREEITEM parent, const char *parent_str, const char 
     return hti;
 }
 
-static void
+static int
 process_value(eu_tabpage *pnode, HTREEITEM tree_root, json_value *value, int x);
 
 static void
@@ -1045,19 +1053,19 @@ process_object(eu_tabpage *pnode, HTREEITEM tree_root, json_value *value, int x,
 {
     int length;
     HTREEITEM new_tvi = NULL;
-    if (value == NULL)
+    HWND hwnd = pnode ? pnode->hwnd_symtree : NULL;
+    if (!hwnd || pnode->json_id == 1 || !value)
     {
         return;
     }
     length = value->u.object.length;
-
     if (value->parent != NULL && value->parent->type != json_array && value->parent->u.object.values[x].name)
     {
-        new_tvi = on_symtree_insert_str(pnode->hwnd_symtree, tree_root, value->parent->u.object.values[x].name, pos);
+        new_tvi = on_symtree_insert_str(hwnd, tree_root, value->parent->u.object.values[x].name, pos);
     }
     else
     {
-        new_tvi = on_symtree_insert_str(pnode->hwnd_symtree, tree_root, "(object)", pos);
+        new_tvi = on_symtree_insert_str(hwnd, tree_root, "(object)", pos);
     }
     for (int i = 0; i < length; i++)
     {
@@ -1070,14 +1078,15 @@ process_array(eu_tabpage *pnode, HTREEITEM tree_root, json_value *value, int x, 
 {
     int length;
     HTREEITEM new_tvi = NULL;
-    if (value == NULL)
+    HWND hwnd = pnode ? pnode->hwnd_symtree : NULL;
+    if (!hwnd || pnode->json_id == 1 || !value)
     {
         return;
     }
     length = value->u.array.length;
     if (value->parent != NULL && value->parent->type != json_array && value->parent->u.object.values[x].name)
     {
-        new_tvi = tvi_inser_object(pnode->hwnd_symtree, tree_root, value->parent->u.object.values[x].name, " (array)", pos);
+        new_tvi = tvi_inser_object(hwnd, tree_root, value->parent->u.object.values[x].name, " (array)", pos);
     }
     else
     {
@@ -1089,17 +1098,21 @@ process_array(eu_tabpage *pnode, HTREEITEM tree_root, json_value *value, int x, 
     }
 }
 
-static void
+static int
 process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x)
 {
+    int ret = JSON_OK;
     int64_t pos = 0;
-    if (json_root == NULL)
+    HWND hwnd = pnode ? pnode->hwnd_symtree : NULL;
+    if (!hwnd || pnode->json_id == 1 || !json_root)
     {
-        return;
+        return JSON_CANCEL;
     }
     if (json_root->line > 0)
     {
+        util_lock_v2(pnode);
         pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, json_root->line, 0);
+        util_unlock_v2(pnode);
     }
     switch (json_root->type)
     {
@@ -1118,11 +1131,11 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
             _i64toa(json_root->u.integer, i2s, 10);
             if (json_root->parent->type != json_array)
             {
-                tvi_inser_object(pnode->hwnd_symtree, new_tvi, json_root->parent->u.object.values[x].name, i2s, pos);
+                tvi_inser_object(hwnd, new_tvi, json_root->parent->u.object.values[x].name, i2s, pos);
             }
             else
             {
-                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, i2s, pos);
+                on_symtree_insert_str(hwnd, new_tvi, i2s, pos);
             }
             break;
         }
@@ -1132,53 +1145,55 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
             _snprintf(f2s, 64, "%g", json_root->u.dbl);
             if (json_root->parent->type != json_array)
             {
-                tvi_inser_object(pnode->hwnd_symtree, new_tvi, json_root->parent->u.object.values[x].name, f2s, pos);
+                tvi_inser_object(hwnd, new_tvi, json_root->parent->u.object.values[x].name, f2s, pos);
             }
             else
             {
-                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, f2s, pos);
+                on_symtree_insert_str(hwnd, new_tvi, f2s, pos);
             }
             break;
         }
         case json_string:
             if (json_root->parent->type != json_array)
             {
-                tvi_inser_object(pnode->hwnd_symtree, new_tvi, json_root->parent->u.object.values[x].name, json_root->u.string.ptr, pos);
+                tvi_inser_object(hwnd, new_tvi, json_root->parent->u.object.values[x].name, json_root->u.string.ptr, pos);
             }
             else
             {
-                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, json_root->u.string.ptr, pos);
+                on_symtree_insert_str(hwnd, new_tvi, json_root->u.string.ptr, pos);
             }
             break;
         case json_boolean:
             if (json_root->parent->type != json_array)
             {
-                tvi_inser_object(pnode->hwnd_symtree, new_tvi, json_root->parent->u.object.values[x].name, json_root->u.jbool ? "true" : "false", pos);
+                tvi_inser_object(hwnd, new_tvi, json_root->parent->u.object.values[x].name, json_root->u.jbool ? "true" : "false", pos);
             }
             else
             {
-                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, json_root->u.jbool ? "true" : "false", pos);
+                on_symtree_insert_str(hwnd, new_tvi, json_root->u.jbool ? "true" : "false", pos);
             }
             break;
         case json_null:
             if (json_root->parent->type != json_array)
             {
-                tvi_inser_object(pnode->hwnd_symtree, new_tvi, json_root->parent->u.object.values[x].name, "null", pos);
+                tvi_inser_object(hwnd, new_tvi, json_root->parent->u.object.values[x].name, "null", pos);
             }
             else
             {
-                on_symtree_insert_str(pnode->hwnd_symtree, new_tvi, "null", pos);
+                on_symtree_insert_str(hwnd, new_tvi, "null", pos);
             }
             break;
         default:
+            ret = JSON_CANCEL;
             break;
     }
+    return ret;
 }
 
-static bool
+static int
 init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
 {
-    bool ret = false;
+    int ret = JSON_OK;
     HTREEITEM tree_root = NULL;
     json_settings sets = {0};
     json_value *json_root = NULL;
@@ -1186,15 +1201,24 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
     TreeView_DeleteAllItems(pnode->hwnd_symtree);
     if ((json_root = json_parse_ex(&sets, buffer, (size_t)len, NULL)))
     {
-        process_value(pnode, tree_root, json_root, 0);
+        if (SendMessage(eu_hwnd_self(), WM_JSON_PASSED, 0, (LPARAM)pnode) != JSON_OK || pnode->json_id == 1)
+        {
+            ret = JSON_CANCEL;
+        }
+        else
+        {
+            ret = process_value(pnode, tree_root, json_root, 0);
+        }
         json_value_free(json_root);
-        ret = true;
     }
     else
     {
         on_symtree_insert_str(pnode->hwnd_symtree, tree_root, NULL, 0);
     }
-    on_symtree_expand_all(pnode->hwnd_symtree, tree_root);
+    if (ret < JSON_CANCEL)
+    {
+        on_symtree_expand_all(pnode->hwnd_symtree, tree_root);
+    }
     return ret;
 }
 
@@ -1208,13 +1232,13 @@ cjson_thread(void *lp)
         size_t text_len = 0;
         if ((text = util_strdup_content(pnode, &text_len)) != NULL)
         {
-            if (!init_json_tree(pnode, text, (sptr_t)text_len))
+            if (init_json_tree(pnode, text, (sptr_t)text_len) != JSON_OK)
             {
                 eu_logmsg("%s: json parser failed\n", __FUNCTION__);
             }
             free(text);
         }
-        _InterlockedExchange(&pnode->json_id, 0);
+        eu_logmsg("Json: %s exit ...\n", __FUNCTION__);
     }
     return 0;
 }
@@ -1226,17 +1250,7 @@ on_symtree_json(eu_tabpage *pnode)
     {
         return 1;
     }
-    if (pnode->raw_size > 0xA00000)
-    {
-        eu_logmsg("Error: This json file is larger than 10MB\n");
-        if (pnode->hwnd_symtree)
-        {
-            DestroyWindow(pnode->hwnd_symtree);
-            pnode->hwnd_symtree = NULL;
-        }
-        return 1;
-    }
-    if (!pnode->json_id)
+    if (pnode->json_id < 2)
     {
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, &cjson_thread, pnode, 0, (uint32_t *)&pnode->json_id));
     }

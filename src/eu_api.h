@@ -110,11 +110,13 @@
 #endif
 
 #define BUFF_32K 0x8000                // 32K
-#define BUFF_64K 0x10000
+#define BUFF_64K 0x10000               // 64k
 #define BUFF_8M 0x800000               // 8M
+#define BUFF_16M 0x1000000             // 16M
 #define BUFF_32M 0x2000000             // 32M
 #define BUFF_128M 0x8000000            // 128M
 #define BUFF_200M 0xc800000
+#define BUFF_256M 0x10000000
 
 #ifndef WM_COPYGLOBALDATA
 #define WM_COPYGLOBALDATA (0x0049)
@@ -142,6 +144,7 @@
 #define HVM_GOPOS                 (WM_USER + 108)
 #define HVM_GETHEXADDR            (WM_USER + 109)
 #define HVM_SETLINECOUNT          (WM_USER + 110)
+#define HVM_CREATE_DLG            (WM_USER + 111)
 #define HVN_GETDISPINFO           (WMN_FIRST - 0)
 #define HVN_ITEMCHANGING          (WMN_FIRST - 1)
 #define WM_BTN_PRESS              (WM_USER + 201)
@@ -163,11 +166,15 @@
 #define WM_UPCHECK_STATUS         (WM_USER+10011)
 // User clip message
 #define WM_CLEAN_CHAIN            (WM_USER+10020)
+#define WM_SCI_LEXER              (WM_USER+10021)
 
 #define WM_BACKUP_THEME           (WM_USER+10030)
 #define WM_BACKUP_CONFIG          (WM_USER+10031)
 #define WM_BACKUP_BOTH            (WM_USER+10032)
 #define WM_BACKUP_ALL             (WM_USER+10033)
+
+#define WM_PCRE_ADDSTRING         (WM_USER+12000)
+#define WM_JSON_PASSED            (WM_USER+12001)
 
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
@@ -230,6 +237,7 @@ static inline int eu_cvector_at(const int *v, const int n)
 
 enum
 {
+    SKYLARK_REG_FAILED   =  -51,
     SKYLARK_HOOK_FAILED   = -50,
     SKYLARK_TB_FAILED     = -49,
     SKYLARK_SCI_FAILED    = -48,
@@ -281,6 +289,7 @@ enum
     SKYLARK_NOT_OPENED    = -2,
     SKYLARK_OPENED        = -1,
     SKYLARK_OK            = 0,
+    SKYLARK_ERROR         = 1,
     SKYLARK_SQL_END       = 200
 };
 

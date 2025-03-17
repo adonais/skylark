@@ -1050,7 +1050,7 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, TAB_NOT_BIN(pnode) && (TAB_HAS_PDF(pnode) || TAB_NOT_NUL(pnode)) ? 2 : 1);
-            on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree) ? 2 : 1);
+            on_toolbar_setup_button(IDM_VIEW_SYMTREE, (!TAB_HEX_MODE(pnode) && pnode->doc_ptr && pnode->doc_ptr->fn_init_before) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl() ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMIN, 2);

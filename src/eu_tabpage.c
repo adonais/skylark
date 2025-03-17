@@ -1701,3 +1701,25 @@ on_tabpage_symlist_click(eu_tabpage *pnode)
         pnode->doc_ptr->fn_click_symlist(pnode);
     }
 }
+
+void
+on_tabpage_symreload(eu_tabpage *pnode)
+{
+    if (pnode && pnode->doc_ptr)
+    {
+        if (pnode->doc_ptr->fn_reload_symlist)
+        {
+            if (pnode->hwnd_symlist || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
+            {
+                pnode->doc_ptr->fn_reload_symlist(pnode);
+            }
+        }
+        else if (pnode->doc_ptr->fn_reload_symtree)
+        {
+            if (pnode->hwnd_symtree || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
+            {
+                pnode->doc_ptr->fn_reload_symtree(pnode);
+            }
+        }
+    }
+}

@@ -141,7 +141,7 @@ util_xmalloc(const size_t sz)
 static void *
 util_xrealloc(void * ptr, const size_t sz)
 {
-    void *res = realloc(ptr, sz);
+    void *res = ptr ? realloc(ptr, sz) : malloc(sz);
     if (res == NULL)
     {
         eu_logmsg(out_of_mem, sz);
@@ -199,11 +199,10 @@ util_lock_v2(eu_tabpage *p)
             if (_InterlockedCompareExchange(&p->busy_id, 1, 0) != 0)
             {
                 MSG msg = {0};
-                DWORD result = 0;
                 HANDLE wait_handle = (HANDLE)_beginthreadex(NULL, 0, util_lock_callback, p, 0, NULL);
                 if (wait_handle)
                 {
-                    while ((result = MsgWaitForMultipleObjects(1, &wait_handle, FALSE, INFINITE, QS_ALLINPUT)) == WAIT_OBJECT_0 + 1)
+                    while (MsgWaitForMultipleObjects(1, &wait_handle, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0 + 1)
                     {
                         eu_logmsg("Have a message, peek and dispatch it\n");
                         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -3113,14 +3112,13 @@ util_symlink_destroy(eu_tabpage *pnode)
             DeleteObject(pnode->hwnd_font);
             pnode->hwnd_font = NULL;
         }
-        // 强制终止后台线程, 当软链接未解析完成时会导致泄露
-        if (_InterlockedCompareExchange(&pnode->pcre_id, 0, 1L))
+        if (pnode->pcre_id > 1)
         {
-            util_kill_thread((uint32_t)pnode->pcre_id);
+            on_symlist_wait(pnode);
         }
-        if (_InterlockedCompareExchange(&pnode->json_id, 0, 1L))
+        else if (pnode->json_id > 1)
         {
-            util_kill_thread((uint32_t)pnode->json_id);
+            _InterlockedExchange(&pnode->json_id, 1);
         }
     }
 }

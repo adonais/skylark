@@ -28,10 +28,11 @@ on_view_filetree(void)
 void
 on_view_symtree(eu_tabpage *pnode)
 {
-    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && (pnode->hwnd_symlist || pnode->hwnd_symtree))
-    {
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
+    {   // 启用右侧边栏控件
         if ((pnode->sym_show ^= true))
         {
+            on_tabpage_symreload(pnode);
             pnode->map_show = false;
         }
         eu_window_resize();

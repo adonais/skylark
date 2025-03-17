@@ -228,7 +228,7 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
 }
 
 int
-on_table_create_query_box(eu_tabpage *pnode)
+on_table_create_dlg(eu_tabpage *pnode)
 {
     if (pnode)
     {

@@ -102,7 +102,7 @@ on_doc_init_list(eu_tabpage *pnode)
 {
     if (!pnode)
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
     return on_symlist_create(pnode);
 }
@@ -113,7 +113,7 @@ on_doc_init_list_sh(eu_tabpage *pnode)
     TCHAR *sp = on_doc_get_ext(pnode);
     if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
     {
-        return 0;
+        return SKYLARK_OK;
     }
     return on_doc_init_list(pnode);
 }
@@ -123,7 +123,7 @@ on_doc_init_tree(eu_tabpage *pnode)
 {
     if (!pnode)
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
     return on_symtree_create(pnode);
 }
@@ -133,50 +133,48 @@ on_doc_init_result(eu_tabpage *pnode)
 {
     if (!pnode)
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
     if (on_symtree_create(pnode))
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
-    if (on_table_create_query_box(pnode))
+    if (on_table_create_dlg(pnode))
     {
-        return 1;
+        return SKYLARK_ERROR;
     }
-    return 0;
+    return SKYLARK_OK;
 }
 
 static void
 on_doc_set_keyword(eu_tabpage *pnode)
 {
-    if (!(pnode && pnode->doc_ptr))
-    {
-        return;
-    }
-    // See const char *const xxxWordLists at Lex(xxx).cxx
-    if (pnode->doc_ptr->keywords0)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
-    }
-    if (pnode->doc_ptr->keywords1)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
-    }
-    if (pnode->doc_ptr->keywords2)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
-    }
-    if (pnode->doc_ptr->keywords3)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
-    }
-    if (pnode->doc_ptr->keywords4)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
-    }
-    if (pnode->doc_ptr->keywords5)
-    {
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
+    if ((pnode && pnode->doc_ptr))
+    {   // See const char *const xxxWordLists at Lex(xxx).cxx
+        if (pnode->doc_ptr->keywords0)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
+        }
+        if (pnode->doc_ptr->keywords1)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
+        }
+        if (pnode->doc_ptr->keywords2)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
+        }
+        if (pnode->doc_ptr->keywords3)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
+        }
+        if (pnode->doc_ptr->keywords4)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
+        }
+        if (pnode->doc_ptr->keywords5)
+        {
+            eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
+        }
     }
 }
 
@@ -219,16 +217,7 @@ on_doc_color_customizes(eu_tabpage *pnode)
     }
 }
 
-static void
-on_doc_enable_regexp(eu_tabpage *pnode)
-{
-    if (pnode && pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
-    {
-        pnode->doc_ptr->fn_reload_symlist(pnode);
-    }
-}
-
-static void
+void
 on_doc_key_scilexer(eu_tabpage *pnode, const  char *name)
 {
     // 加载文档解析器
@@ -246,7 +235,6 @@ on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
     if (pnode)
     {
         on_doc_key_scilexer(pnode, name);
-        on_doc_enable_regexp(pnode);
         return 0;
     }
     return 1;
@@ -651,7 +639,6 @@ on_doc_init_after_cpp(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_C_PREPROCESSORCOMMENT, 0);
     on_doc_commentblock_light(pnode, SCE_C_PREPROCESSORCOMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -668,7 +655,6 @@ on_doc_init_after_cs(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -685,7 +671,6 @@ on_doc_init_after_java(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -702,7 +687,6 @@ on_doc_init_after_go(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -719,7 +703,6 @@ on_doc_init_after_swift(eu_tabpage *pnode)
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -764,7 +747,6 @@ on_doc_init_after_python(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_P_TRIPLE, 0);
     on_doc_string_light(pnode, SCE_P_TRIPLEDOUBLE, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -781,7 +763,6 @@ on_doc_init_after_lua(eu_tabpage *pnode)
     on_doc_commentdoc_light(pnode, SCE_LUA_COMMENTDOC, 0);
     on_doc_operator_light(pnode, SCE_LUA_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -796,7 +777,6 @@ on_doc_init_after_perl(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_PL_COMMENTLINE, 0);
     on_doc_operator_light(pnode, SCE_PL_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -826,7 +806,6 @@ on_doc_init_after_shell(eu_tabpage *pnode)
         on_doc_operator_light(pnode, SCE_SH_OPERATOR, 0);
     }
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -884,7 +863,6 @@ on_doc_init_after_rust(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_RUST_COMMENTLINEDOC, 0);
     on_doc_commentdoc_light(pnode, SCE_RUST_COMMENTBLOCKDOC, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -900,7 +878,6 @@ on_doc_init_after_ruby(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_RB_COMMENTLINE, 0);
     on_doc_operator_light(pnode, SCE_RB_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -915,7 +892,6 @@ on_doc_init_after_lisp(eu_tabpage *pnode)
     on_doc_commentdoc_light(pnode, SCE_LISP_MULTI_COMMENT, 0);
     on_doc_operator_light(pnode, SCE_LISP_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -933,7 +909,6 @@ on_doc_init_after_asm(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_ASM_COMMENTDIRECTIVE, 0);
     on_doc_operator_light(pnode, SCE_ASM_OPERATOR, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -957,7 +932,6 @@ on_doc_init_after_nim(eu_tabpage *pnode)
     on_doc_string_light(pnode, SCE_NIM_STRINGEOL, 0);
     on_doc_tags_light(pnode, SCE_NIM_FUNCNAME, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -976,7 +950,6 @@ on_doc_init_after_cobol(eu_tabpage *pnode)
     on_doc_operator_light(pnode, SCE_C_OPERATOR, 0);
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1055,7 +1028,6 @@ on_doc_init_after_html(eu_tabpage *pnode)
     on_doc_commentblock_light(pnode, SCE_HPHP_COMMENT, 0);
     on_doc_string_light(pnode, SCE_HPHP_SIMPLESTRING, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1074,7 +1046,6 @@ on_doc_init_after_css(eu_tabpage *pnode)
     on_doc_keyword_light(pnode, SCE_CSS_UNKNOWN_IDENTIFIER, 4, 0);
     on_doc_keyword_light(pnode, SCE_CSS_VALUE, 4, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1091,7 +1062,6 @@ on_doc_init_after_js(eu_tabpage *pnode)
     on_doc_commentdoc_light(pnode, SCE_C_COMMENTDOC, 0);
     on_doc_preprocessor_light(pnode, SCE_C_PREPROCESSOR, -1, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1114,10 +1084,6 @@ on_doc_init_after_xml(eu_tabpage *pnode)
     on_doc_number_light(pnode, SCE_H_NUMBER, 0);
     on_doc_commentblock_light(pnode, SCE_H_COMMENT, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symtree)
-    {
-        pnode->doc_ptr->fn_reload_symtree(pnode);
-    }
     return 0;
 }
 
@@ -1135,10 +1101,6 @@ on_doc_init_after_json(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_JSON_LINECOMMENT, 0);
     on_doc_commentdoc_light(pnode, SCE_JSON_BLOCKCOMMENT, 0);
     on_doc_enable_foldline(pnode);
-    if (pnode->doc_ptr->fn_reload_symtree)
-    {
-        pnode->doc_ptr->fn_reload_symtree(pnode);
-    }
     return 0;
 }
 
@@ -1154,7 +1116,6 @@ on_doc_init_after_yaml(eu_tabpage *pnode)
     on_doc_operator_light(pnode, SCE_YAML_OPERATOR, 0);
     on_doc_commentblock_light(pnode, SCE_YAML_COMMENT, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1169,7 +1130,6 @@ on_doc_init_after_makefile(eu_tabpage *pnode)
     on_doc_tags_light(pnode, SCE_MAKE_TARGET, 0);
     // 折叠
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1204,7 +1164,6 @@ on_doc_init_after_cmake(eu_tabpage *pnode)
     on_doc_number_light(pnode, SCE_CMAKE_NUMBER, 0);
     on_doc_commentblock_light(pnode, SCE_CMAKE_COMMENT, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1219,7 +1178,6 @@ on_doc_init_after_log(eu_tabpage *pnode)
     on_doc_comment_light(pnode, SCE_STTXT_COMMENT, 0);
     on_doc_commentblock_light(pnode, SCE_STTXT_COMMENTLINE, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1234,7 +1192,6 @@ on_doc_init_after_properties(eu_tabpage *pnode)
     on_doc_operator_light(pnode, SCE_PROPS_ASSIGNMENT, 0);
     on_doc_preprocessor_light(pnode, SCE_PROPS_DEFVAL, -1, 0);
     on_doc_enable_foldline(pnode);
-    on_doc_enable_regexp(pnode);
     return 0;
 }
 
@@ -1807,6 +1764,7 @@ on_doc_keyup_general_sh(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     return on_doc_brace_handling(pnode);
 }
 
+/* reload_list_ptr() callback */
 int
 on_doc_reload_list_reqular(eu_tabpage *pnode)
 {
@@ -1841,6 +1799,7 @@ on_doc_click_list_jump_sh(eu_tabpage *pnode)
     return on_symlist_jump_item(pnode);
 }
 
+/* reload_tree_ptr() callback */
 int
 on_doc_reload_tree_sql(eu_tabpage *pnode)
 {

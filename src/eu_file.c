@@ -2112,12 +2112,9 @@ SAVE_FINAL:
             pnode->fn_modify = false;
             on_sci_point_reached(pnode);
             eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
-            if (!(pnode->is_blank || save_as))
+            if (!pnode->is_blank && pnode->sym_show)
             {
-                if (pnode->doc_ptr && pnode->doc_ptr->fn_reload_symlist)
-                {
-                    pnode->doc_ptr->fn_reload_symlist(pnode);
-                }
+                on_tabpage_symreload(pnode);
             }
         }
         on_sci_refresh_ui(pnode);

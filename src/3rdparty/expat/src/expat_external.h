@@ -150,7 +150,7 @@ typedef char XML_Char;
 typedef char XML_LChar;
 #endif   /* XML_UNICODE */
 
-#ifdef XML_LARGE_SIZE /* Use large integers for file/stream positions. */
+#if (defined _M_X64) || (defined __x86_64__) /* Use large integers for file/stream positions. */
 typedef long long XML_Index;
 typedef unsigned long long XML_Size;
 #else

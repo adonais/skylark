@@ -378,7 +378,7 @@ on_update_check(const int indent)
     {
         if (eu_get_config()->upgrade.enable && !_tcsnicmp(eu_config_path, eu_module_path, _tcslen(eu_module_path)) && util_try_path(eu_module_path))
         {
-            if (!eu_threadpool_check(on_update_send_request))
+            if (!eu_threadpool_check(on_update_send_request, 0))
             {
                 eu_logmsg("Upcheck: thread start ...\n");
                 TASK_ARG hv = {indent};

@@ -321,10 +321,6 @@ on_sci_before_file(eu_tabpage *pnode, const bool init)
         eu_sci_call(pnode, SCI_CANCEL, 0, 0);
         eu_sci_call(pnode, SCI_SETREADONLY, 0, 0);
         init ? eu_sci_call(pnode, SCI_SETUNDOCOLLECTION, 0, 0) : (void)0;
-        if (pnode->doc_ptr && pnode->doc_ptr->fn_init_before)
-        {   // 初始化侧边栏控件
-            pnode->doc_ptr->fn_init_before(pnode);
-        }
     }
 }
 
@@ -405,11 +401,11 @@ on_sci_delete_file(const eu_tabpage *pnode)
         _sntprintf(tmp, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
         if (!util_delete_file(pnode->bakpath))
         {
-            eu_logmsg("%s: delete(pnode->bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
+            eu_logmsg("Scintilla: delete(pnode->bakpath) error, cause: %lu\n", GetLastError());
         }
         if (eu_exist_file(tmp) && !DeleteFile(tmp))
         {
-            eu_logmsg("%s: delete(pnode->bakpath~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
+            eu_logmsg("Scintilla: delete(pnode->bakpath~~) error, cause: %lu\n", GetLastError());
         }
     }
 }
@@ -521,17 +517,17 @@ on_sci_free_tab(eu_tabpage **ppnode)
         if (reason != TABS_MAYBE_RESERVE)
         {
             eu_safe_free(*ppnode);
-            eu_logmsg("%s: we free the node's memory\n", __FUNCTION__);
+            eu_logmsg("Scintill: %s, we free the node's memory\n", __FUNCTION__);
         }
-        else 
+        else
         {
             (*ppnode)->reason = 0;
             on_file_new(*ppnode);
-            eu_logmsg("%s: on_file_new() execute\n", __FUNCTION__);
+            eu_logmsg("Scintill: %s, on_file_new() execute\n", __FUNCTION__);
         }
         if (reason == TABS_MAYBE_EIXT && on_sql_sync_session() == SKYLARK_OK)
         {
-            eu_logmsg("close last tab, skylark exit ...\n");
+            eu_logmsg("Scintill: close last tab, skylark exit ...\n");
             SendMessage(eu_module_hwnd(), WM_BACKUP_OVER, 0, 0);
         }
     }
@@ -540,19 +536,23 @@ on_sci_free_tab(eu_tabpage **ppnode)
 void
 on_sci_insert_egg(eu_tabpage *pnode)
 {
-    unsigned char represent[QW_SIZE] = \
-                  {0x0a,0x2f,0x2f,0x20, 0x53,0x6b,0x79,0x6c,0x61,0x72,0x6B,0XE6,0X98,0xAF,0xe4,0xb8,0x80,0xe4,
-                   0xb8,0xaa,0xe5,0xbe,0x88,0xe6,0xa3,0x92,0xe7,0x9a,0x84,0xe7,0xbc,0x96,0xe8,0xbe,0x91,0xe5,
-                   0x99,0xa8,0xf0,0x9f,0x99,0x82,0x00};
-    if (util_os_version() < 1000)
+    uint8_t represent[MAX_PATH + 1] = \
+            {0x0a,0x20,0x20,0x20,0x20,0xE9,0x92,0x9F,0xE5,0xB1,0xB1,0xE9,0xA3,0x8E,0xE9,0x9B,0xA8,0xE8,0xB5,0xB7,0xE8,0x8B,0x8D,0xE9,0xBB,0x84,0xEF,0xBC,0x8C,0xE7,0x99,0xBE,0xE4,0xB8,0x87,0xE9,0x9B,0x84,0xE5,0xB8,0x88,0xE8,0xBF,0x87,0xE5,0xA4,0xA7,0xE6,0xB1,0x9F,0xE3,0x80,0x82,0x0A,0x20,0x20,0x20,0x20,0xE8,0x99,0x8E,0xE8,0xB8,0x9E,0xE9,0xBE,0x99,0xE7,0x9B,0x98,0xE4,0xBB,0x8A,0xE8,0x83,0x9C,0xE6,0x98,0x94,0xEF,0xBC,0x8C,0xE5,0xA4,0xA9,0xE7,0xBF,0xBB,0xE5,0x9C,0xB0,0xE8,0xA6,0x86,0xE6,0x85,0xA8,0xE8,0x80,0x8C,0xE6,0x85,0xB7,0xE3,0x80,0x82,0x0A,0x20,0x20,0x20,0x20,0xE5,0xAE,0x9C,0xE5,0xB0,0x86,0xE5,0x89,0xA9,0xE5,0x8B,0x87,0xE8,0xBF,0xBD,0xE7,0xA9,0xB7,0xE5,0xAF,0x87,0xEF,0xBC,0x8C,0xE4,0xB8,0x8D,0xE5,0x8F,0xAF,0xE6,0xB2,0xBD,0xE5,0x90,0x8D,0xE5,0xAD,0xA6,0xE9,0x9C,0xB8,0xE7,0x8E,0x8B,0xE3,0x80,0x82,0x0A,0x20,0x20,0x20,0x20,0xE5,0xA4,0xA9,0xE8,0x8B,0xA5,0xE6,0x9C,0x89,0xE6,0x83,0x85,0xE5,0xA4,0xA9,0xE4,0xBA,0xA6,0xE8,0x80,0x81,0xEF,0xBC,0x8C,0xE4,0xBA,0xBA,0xE9,0x97,0xB4,0xE6,0xAD,0xA3,0xE9,0x81,0x93,0xE6,0x98,0xAF,0xE6,0xB2,0xA7,0xE6,0xA1,0x91,0xE3,0x80,0x82,0x0a,0x00};
+    const char *by = on_encoding_get_eol(pnode);
+    const sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    if (by && pos >= 0)
     {
-        represent[strlen((const char *)represent) - 4] = 0;
-        strncat((char *)represent, "\x5E\x30\x5E", QW_SIZE);
+        if (*by != '\n')
+        {
+            eu_str_replace((char *)represent, MAX_PATH, "\n", by);
+        }
+        if (eu_sci_call(pnode, SCI_GETUSETABS, 0, 0))
+        {
+            eu_str_replace((char *)represent, MAX_PATH, "    ", "\t");
+        }
+        eu_sci_call(pnode, SCI_INSERTTEXT, pos, (LPARAM) represent);
+        eu_sci_call(pnode, SCI_GOTOPOS, pos + strlen((const char *)represent), 0);
     }
-    strncat((char *)represent, on_encoding_get_eol(pnode), QW_SIZE);
-    sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    eu_sci_call(pnode, SCI_INSERTTEXT, cur_pos, (LPARAM) represent);
-    eu_sci_call(pnode, SCI_GOTOPOS, cur_pos + strlen((const char *)represent), 0);
 }
 
 char *
@@ -695,10 +695,14 @@ on_sci_parser_line(eu_tabpage *p, const sptr_t current_line, const sptr_t last_l
     {
         int last = 0;
         size_t len = 0;
-        const sptr_t end_y = (const sptr_t )(p->rect_sc.bottom - p->rect_sc.top);
+        sptr_t end_y = (sptr_t )(p->rect_sc.bottom - p->rect_sc.top);
         const sptr_t font_hight = eu_sci_call(p, SCI_TEXTHEIGHT, 0, 0);
         const int tab_width = (const int)eu_sci_call(p, SCI_GETTABWIDTH, 0, 0);
         const int w_count = (const int)(last_line - current_line + 1);
+        if (GetWindowLongPtr(p->hwnd_sc, GWL_STYLE) & WS_HSCROLL)
+        {
+            end_y -= GetSystemMetrics(SM_CYHSCROLL);
+        }
         // 确认代码提示向上还是向下
         if (w_count <= eu_int_cast((end_y - current_y)/font_hight - 1))
         {
@@ -909,7 +913,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            eu_logmsg("scintilla WM_THEMECHANGED\n");
+            eu_logmsg("Scintilla: WM_THEMECHANGED\n");
             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 on_toolbar_update_button();
@@ -920,7 +924,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = (eu_tabpage *) lParam) != NULL)
             {
-                eu_logmsg("scintilla WM_DPICHANGED\n");
+                eu_logmsg("Scintilla: WM_DPICHANGED\n");
             }
             break;
         }
@@ -928,7 +932,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
             {
-                eu_logmsg("scintilla WM_DPICHANGED_AFTERPARENT\n");
+                eu_logmsg("Scintilla: WM_DPICHANGED_AFTERPARENT\n");
                 on_sci_update_line_margin(pnode);
                 on_sci_update_fold_margin(pnode);
             }
@@ -936,7 +940,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            eu_logmsg("scintilla WM_DESTROY\n");
+            eu_logmsg("Scintilla: windows destroy\n");
             break;
         }
         default:
