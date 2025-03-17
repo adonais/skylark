@@ -245,8 +245,8 @@ on_update_diff_days(void)
 static void __stdcall
 on_update_send_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP_WAIT_RESULT result)
 {
-    int64_t tag = 0;
-    int64_t dtag = 0;
+    int64_t dst_tag = 0;
+    int64_t src_tag = 0;
     HWND hwnd = NULL;
     char chunk[QW_SIZE] = {0};
     CURL *curl = NULL;
@@ -269,6 +269,7 @@ on_update_send_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP_W
         }
         if ((curl = on_update_init(&headers)))
         {
+            eu_logmsg("Upcheck: thread start ...\n");
             eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)chunk);
             CURLcode res = eu_curl_easy_perform(curl);
             eu_curl_easy_cleanup(curl);
@@ -287,19 +288,25 @@ on_update_send_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP_W
         }
         if (strlen(chunk) > 0)
         {
-            tag = _atoi64(chunk);
+            dst_tag = _atoi64(chunk);
         }
-        if ((dtag = on_update_build_time()) > 0 && dtag < tag)
+        if ((src_tag = on_update_build_time()) > 0 && src_tag < dst_tag)
         {
-            eu_logmsg("Upcheck: curerent_version = %I64d, tag = %I64d\n", dtag, tag);
+            eu_logmsg("Upcheck: curerent_version = %I64d, dst_tag = %I64d\n", src_tag, dst_tag);
             on_update_msg(VERSION_UPDATE_REQUIRED, true);
-            hv->pdata = (intptr_t)on_update_download(dtag);
-            on_update_loop(hv);
+            if (eu_get_config()->upgrade.enable)
+            {
+                hv->pdata = (intptr_t)on_update_download(src_tag);
+                on_update_loop(hv);
+            }
         }
-        else if (tag > 0)
+        else if (dst_tag > 0)
         {
-            on_update_msg(VERSION_LATEST, true);
-            if (hv->attach == UPCHECK_INDENT_MAIN)
+            if (hv->attach == UPCHECK_INDENT_ABOUT)
+            {
+                on_update_msg(VERSION_LATEST, true);
+            }
+            else if (hv->attach == UPCHECK_INDENT_MAIN)
             {
                 PostMessage(eu_hwnd_self(), WM_UPCHECK_LAST, -1, 0);
             }
@@ -376,11 +383,10 @@ on_update_check(const int indent)
     HWND hwnd = eu_hwnd_self();
     if (hwnd == share_envent_get_hwnd())
     {
-        if (eu_get_config()->upgrade.enable && !_tcsnicmp(eu_config_path, eu_module_path, _tcslen(eu_module_path)) && util_try_path(eu_module_path))
+        if (!_tcsnicmp(eu_config_path, eu_module_path, _tcslen(eu_module_path)) && util_try_path(eu_module_path))
         {
-            if (!eu_threadpool_check(on_update_send_request, 0))
+            if ((eu_get_config()->upgrade.enable || indent == UPCHECK_INDENT_ABOUT) && !eu_threadpool_check(on_update_send_request, 0))
             {
-                eu_logmsg("Upcheck: thread start ...\n");
                 TASK_ARG hv = {indent};
                 eu_threadpool_add(on_update_send_request, &hv);
             }
