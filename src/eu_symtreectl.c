@@ -972,7 +972,7 @@ on_symtree_query_redis(eu_tabpage *pnode)
 }
 
 HTREEITEM
-on_symtree_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
+on_symtree_insert_str(const HWND hwnd, const HTREEITEM parent, const char *str, int64_t pos)
 {
     HTREEITEM hti = NULL;
     TVITEM tvi = {0};
@@ -992,7 +992,6 @@ on_symtree_insert_str(HWND hwnd, HTREEITEM parent, const char *str, int64_t pos)
     tvis.hParent = parent;
     tvis.hInsertAfter = TVI_LAST;
     tvis.item = tvi;
-    //hti = TreeView_InsertItem(hwnd, &tvis);
     hti = (HTREEITEM)SendMessage(hwnd, TVM_INSERTITEM, 0, (LPARAM)&tvis);
     return hti;
 }
@@ -1110,9 +1109,14 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
     }
     if (json_root->line > 0)
     {
-        util_lock_v2(pnode);
-        pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, json_root->line, 0);
-        util_unlock_v2(pnode);
+        //util_lock_v2(pnode);
+        //pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, json_root->line, 0);
+        //util_unlock_v2(pnode);
+        pos = (int64_t)SendMessage(eu_hwnd_self(), WM_JSON_POSITION, (WPARAM)pnode, (LPARAM)json_root->line);
+    }
+    if (pos == -1)
+    {
+        return JSON_CANCEL;
     }
     switch (json_root->type)
     {
@@ -1195,9 +1199,10 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
 {
     int ret = JSON_OK;
     HTREEITEM tree_root = NULL;
+    HWND hwnd = pnode->hwnd_symtree;
     json_settings sets = {json_enable_comments};
     json_value *json_root = NULL;
-    TreeView_DeleteAllItems(pnode->hwnd_symtree);
+    TreeView_DeleteAllItems(hwnd);
     if ((json_root = json_parse_ex(&sets, buffer, (size_t)len, NULL)))
     {
         if (SendMessage(eu_hwnd_self(), WM_JSON_PASSED, 0, (LPARAM)pnode) != JSON_OK || pnode->json_id == 1)
@@ -1212,11 +1217,11 @@ init_json_tree(eu_tabpage *pnode, const char *buffer, int64_t len)
     }
     else
     {
-        on_symtree_insert_str(pnode->hwnd_symtree, tree_root, NULL, 0);
+        on_symtree_insert_str(hwnd, tree_root, NULL, 0);
     }
     if (ret < JSON_CANCEL)
     {
-        on_symtree_expand_all(pnode->hwnd_symtree, tree_root);
+        on_symtree_expand_all(hwnd, tree_root);
     }
     return ret;
 }
@@ -1233,7 +1238,7 @@ cjson_thread(void *lp)
         {
             if (init_json_tree(pnode, text, (sptr_t)text_len) != JSON_OK)
             {
-                eu_logmsg("%s: json parser failed\n", __FUNCTION__);
+                eu_logmsg("Json: %s failed\n", __FUNCTION__);
             }
             free(text);
         }

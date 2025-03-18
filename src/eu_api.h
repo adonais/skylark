@@ -175,6 +175,7 @@
 
 #define WM_PCRE_ADDSTRING         (WM_USER+12000)
 #define WM_JSON_PASSED            (WM_USER+12001)
+#define WM_JSON_POSITION          (WM_USER+12002)
 
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)

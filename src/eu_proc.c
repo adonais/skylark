@@ -646,6 +646,15 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             return 1;
         }
+        case WM_JSON_POSITION:
+        {
+            pnode = (eu_tabpage *)wParam;
+            if (on_tabpage_get_index(pnode) >= 0)
+            {
+                return eu_sci_call(pnode, SCI_POSITIONFROMLINE, lParam, 0);
+            }
+            return -1;
+        }
         case WM_TIMER:
         {
             if (KEY_DOWN(VK_ESCAPE))
