@@ -1695,15 +1695,11 @@ eu_setpos_window(HWND hwnd, HWND affer, int x, int y, int cx, int cy, uint32_t f
 bool
 eu_config_ptr(struct eu_config *pconfig)
 {
-    if (g_config)
-    {
-        return true;
-    }
-    if (!pconfig)
+    if (!pconfig || pconfig == g_config)
     {
         return false;
     }
-    if ((g_config = (struct eu_config *)malloc(sizeof(struct eu_config))))
+    if (g_config || (g_config = (struct eu_config *)malloc(sizeof(struct eu_config))))
     {
         memcpy(g_config, pconfig, sizeof(struct eu_config));
     }
@@ -1713,65 +1709,56 @@ eu_config_ptr(struct eu_config *pconfig)
 bool
 eu_theme_ptr(struct eu_theme *ptheme)
 {
-    struct eu_theme *psave = NULL;
-    if (!ptheme)
+    if (!ptheme || ptheme == g_theme)
     {
         return false;
     }
-    if (g_theme)
-    {
-        psave = g_theme;
-    }
-    if ((g_theme = (struct eu_theme *)malloc(sizeof(struct eu_theme))))
+    if (g_theme || (g_theme = (struct eu_theme *)malloc(sizeof(struct eu_theme))))
     {
         memcpy(g_theme, ptheme, sizeof(struct eu_theme));
     }
-    eu_safe_free(psave);
     return g_theme != NULL;
 }
 
 bool
 eu_accel_ptr(ACCEL *accel)
 {
-    if (g_accel)
-    {
-        return true;
-    }
     if (!accel)
     {
         return false;
     }
-    ;
-    if (!(g_accel = (eue_accel *)calloc(1, sizeof(eue_accel))))
+    if (g_accel || (g_accel = (eue_accel *)malloc(sizeof(eue_accel))))
     {
-        return false;
-    }
-    for (int i = 0; accel && (i < MAX_ACCELS); ++i, ++accel)
-    {
-        if (!accel->cmd)
+        g_accel->accel_num = 0;
+        for (int i = 0; i < MAX_ACCELS; ++i)
         {
-            break;
+            if (!accel->cmd)
+            {
+                break;
+            }
+            memcpy(&g_accel->accel_ptr[i], &accel[i], sizeof(ACCEL));
+            ++g_accel->accel_num;
         }
-        memcpy(&g_accel->accel_ptr[i], accel, sizeof(ACCEL));
-        g_accel->accel_num++;
     }
-    return (g_accel->accel_num>0);
+    return (g_accel->accel_num > 0);
 }
 
 bool
 eu_toolbar_ptr(eue_toolbar *pdata, int num)
 {
-    if (g_toolbar)
-    {
-        return true;
-    }
-    if (!pdata)
+    eue_toolbar *gsave = NULL;
+    if (!pdata || pdata == g_toolbar)
     {
         return false;
+    }
+    if (g_toolbar)
+    {
+        gsave = g_toolbar;
     }
     if ((g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num)))
     {
         memcpy(g_toolbar, pdata, sizeof(eue_toolbar) * num);
+        free(gsave);
     }
     return g_toolbar != NULL;
 }

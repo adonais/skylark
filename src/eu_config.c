@@ -323,19 +323,6 @@ on_config_lua_get(const wchar_t *file)
     return NULL;
 }
 
-static bool
-on_config_lua_run(const wchar_t *file)
-{
-    bool ret = false;
-    char *lua_path = on_config_lua_get(file);
-    if (lua_path)
-    {
-        ret = (do_lua_func(lua_path, "run", "") == 0);
-        free(lua_path);
-    }
-    return ret;
-}
-
 static wchar_t*
 on_config_lua_execute(const wchar_t *file)
 {
@@ -418,7 +405,7 @@ on_config_update_db(void)
             }
             if (v.status == VERSION_UPDATE_COMPLETED)
             {
-                if (on_update_do())
+                if (on_update_excute())
                 {
                     on_update_sql();
                     eu_session_backup(SESSION_CONFIG);
@@ -584,21 +571,55 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
 }
 
 bool
+on_config_lua_run(const wchar_t *file, const char *parg)
+{
+    bool ret = false;
+    char *lua_path = on_config_lua_get(file);
+    if (lua_path)
+    {
+        ret = (do_lua_func(lua_path, "run", parg) == 0);
+        free(lua_path);
+    }
+    return ret;
+}
+
+int
+on_config_accel_loader(void)
+{
+    eue_accel *paccel = eu_get_accel();
+    HACCEL h = paccel ? paccel->haccel : NULL;
+    if (h && on_config_lua_run(_T("eu_input.lua"), ""))
+    {
+        HWND hwnd = eu_hwnd_self();
+        HMENU menu = hwnd ? GetMenu(hwnd) : NULL;
+        DestroyAcceleratorTable(h);
+        on_config_create_accel();
+        if (menu && eu_get_config()->m_menubar)
+        {
+            SetMenu(hwnd, NULL);
+            SetMenu(hwnd, i18n_load_menu(IDC_SKYLARK));
+        }
+        return 0;
+    }
+    return SKYLARK_ACCEL_FAILED;
+}
+
+bool
 eu_config_load_accel(void)
 {
-    return on_config_lua_run(_T("eu_input.lua"));
+    return on_config_lua_run(_T("eu_input.lua"), "");
 }
 
 bool
 eu_config_load_toolbar(void)
 {
-    return on_config_lua_run(_T("eu_gui.lua"));
+    return on_config_lua_run(_T("eu_gui.lua"), "");
 }
 
 bool
 eu_config_load_main(void)
 {
-    return on_config_lua_run(_T("eu_main.lua"));
+    return on_config_lua_run(_T("eu_main.lua"), "");
 }
 
 bool

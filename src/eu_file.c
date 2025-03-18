@@ -189,23 +189,28 @@ static int
 on_file_refresh_recent_menu(void *data, int count, char **column, char **names)
 {
     HMENU hre = (HMENU)data;
+    struct eu_config *pconf = eu_get_config();
     const int index = GetMenuItemCount(hre);
-    for (int i = 0; i < count && column[i]; ++i)
+    if (index < pconf->file_recent_number)
     {
-        if (column[i][0] != 0)
+        for (int i = 0; i < count && column[i]; ++i)
         {
-            TCHAR ptr_row[MAX_BUFFER] = {0};
-            if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, ptr_row, MAX_BUFFER))
+            if (column[i][0] != 0)
             {
-                if (_tcsrchr(ptr_row, _T('&')))
+                TCHAR ptr_row[MAX_BUFFER] = {0};
+                if (MultiByteToWideChar(CP_UTF8, 0, column[i], -1, ptr_row, MAX_BUFFER))
                 {
-                    eu_wstr_replace(ptr_row, MAX_BUFFER, _T("&"), _T("&&"));
+                    if (_tcsrchr(ptr_row, _T('&')))
+                    {
+                        eu_wstr_replace(ptr_row, MAX_BUFFER, _T("&"), _T("&&"));
+                    }
+                    AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE + index, ptr_row);
                 }
-                AppendMenu(hre, MF_POPUP | MF_STRING, IDM_HISTORY_BASE + index, ptr_row);
             }
         }
+        return SKYLARK_OK;
     }
-    return SKYLARK_OK;
+    return SKYLARK_SQL_END;
 }
 
 void
@@ -217,20 +222,18 @@ on_file_update_recent_menu(void)
     {
         HMENU hre = NULL;
         HMENU hfile = GetSubMenu(hroot, FILES_MENU);
+        struct eu_config *pconf = eu_get_config();
         hre = hfile ? GetSubMenu(hfile, FT_MENU_RECENT_SUB) : NULL;
-        if (hre)
+        if (hre && pconf)
         {
             int count = GetMenuItemCount(hre);
             for (int index = 0; index < count; ++index)
             {
                 DeleteMenu(hre, 0, MF_BYPOSITION);
             }
-            if (eu_get_config() && eu_get_config()->file_recent_number > 0)
+            if (pconf->file_recent_number > 0)
             {
-                if (on_sql_mem_post("SELECT szName FROM file_recent ORDER BY szDate DESC;", on_file_refresh_recent_menu, (void *)hre) != 0)
-                {
-                    eu_logmsg("%s: on_sql_mem_post failed\n", __FUNCTION__);
-                }
+                on_sql_mem_post("SELECT szName FROM file_recent ORDER BY szDate DESC;", on_file_refresh_recent_menu, (void *)hre);
             }
             if ((count = GetMenuItemCount(hre)) == 0)
             {
@@ -1954,8 +1957,10 @@ on_file_stream_upload(eu_tabpage *pnode, wchar_t *pmsg)
 int
 on_file_save(eu_tabpage *pnode, const bool save_as)
 {
-    char *ptext = NULL;
+    int att = 0;
     int err = SKYLARK_OK;
+    uint8_t *dup = NULL;
+    char *ptext = NULL;
     npn_nmhdr nphdr = {0};
     if (!pnode)
     {
@@ -2084,6 +2089,18 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     }
     else
     {
+        if ((att = on_profiles_used(pnode)) > 0)
+        {
+            if (!on_profiles_warn())
+            {
+                att = 0;
+                goto SAVE_FINAL;
+            }
+            else
+            {
+                eu_logmsg("File: this is profile\n");
+            }
+        }
         if (eu_get_config()->m_write_copy && on_file_write_backup(pnode))
         {
             err = EUE_WRITE_FILE_ERR;
@@ -2096,8 +2113,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     }
 SAVE_FINAL:
     // 防止重复释放内存
-    uint8_t *dup = (uint8_t *)pnode->write_buffer;
-    if (dup && dup != (uint8_t *)ptext)
+    if ((dup = (uint8_t *)pnode->write_buffer) && dup != (uint8_t *)ptext)
     {
         eu_safe_free(pnode->write_buffer);
     }
@@ -2117,8 +2133,15 @@ SAVE_FINAL:
                 on_tabpage_symreload(pnode);
             }
         }
-        on_sci_refresh_ui(pnode);
-        on_file_filedb_update(pnode);
+        if (!att)
+        {
+            on_sci_refresh_ui(pnode);
+            on_file_filedb_update(pnode);
+        }
+        else
+        {
+            err = on_profiles_reload(pnode, att);
+        }
     }
     return err;
 }
@@ -2443,6 +2466,7 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
     int err = SKYLARK_OK;
     int ifocus = TabCtrl_GetCurSel(g_tabpages);
     eu_tabpage *p = on_tabpage_get_ptr(ifocus);
+    eu_logmsg("File: CLOSE_MODE = %d\n", mode);
     if (STR_IS_NUL(ppnode))
     {
         return EUE_TAB_NULL;
@@ -2470,7 +2494,7 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
         int decision = eu_msgbox(eu_module_hwnd(), msg, title, MB_YESNOCANCEL);
         if (decision == IDCANCEL)
         {
-            eu_logmsg("abort closing file\n");
+            eu_logmsg("File: abort closing file\n");
             err = SKYLARK_OPENED;
         }
         else if (decision == IDYES)
@@ -2775,9 +2799,10 @@ on_file_new_encoding(eu_tabpage *pnode, const int new_enc)
     eu_get_config()->new_file_enc = new_enc;
 }
 
-void
+bool
 on_file_auto_notify(void)
 {
+    bool ret = false;
     TCHAR input_chars[8] = {0};
     _sntprintf(input_chars, _countof(input_chars)-1, _T("%d"), eu_get_config()->m_up_notify);
     LOAD_I18N_RESSTR(IDC_MSG_INTERVAL_STR, ac_str);
@@ -2790,10 +2815,12 @@ on_file_auto_notify(void)
             if (intervar > 0 && intervar < 5)
             {
                 eu_get_config()->m_up_notify = 5;
+                ret = true;
             }
             else if (intervar < mt_max)
             {
                 eu_get_config()->m_up_notify = intervar;
+                ret = true;
             }
             else
             {
@@ -2801,6 +2828,7 @@ on_file_auto_notify(void)
             }
         }
     }
+    return ret;
 }
 
 static int

@@ -556,11 +556,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (eu_threadpool_init())
             {
-                on_update_check(UPCHECK_INDENT_MAIN);
+                on_update_run(UPCHECK_INDENT_MAIN);
             }
             if (eu_get_config()->m_session)
             {
-                on_session_do(UPCHECK_INDENT_MAIN);
+                on_session_run(UPCHECK_INDENT_MAIN);
             }
             break;
         }
@@ -954,10 +954,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_print_file(pnode);
                     break;
                 case IDM_FILE_SAVE_NOTIFY:
-                    on_file_auto_notify();
-                    if (eu_get_config()->m_session && eu_get_config()->m_up_notify > 4)
+                    if (on_file_auto_notify())
                     {
-                        on_session_do(UPCHECK_INDENT_ABOUT);
+                        on_session_run(UPCHECK_INDENT_ABOUT);
                     }
                     else
                     {

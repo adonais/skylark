@@ -113,6 +113,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_hintctl.obj                     \
     $(OBJD)\eu_xmlist.obj                      \
     $(OBJD)\eu_pool.obj                        \
+    $(OBJD)\eu_profiles.obj                    \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -218,5 +219,6 @@ $(OBJD)\eu_settings.obj                    : eu_settings.c eu_settings.h framewo
 $(OBJD)\eu_hintctl.obj                     : eu_hintctl.c eu_hintctl.h framework.h
 $(OBJD)\eu_xmlist.obj                      : eu_xmlist.c eu_xmlist.h framework.h
 $(OBJD)\eu_pool.obj                        : eu_pool.c eu_pool.h eu_cvector.h framework.h
+$(OBJD)\eu_profiles.obj                    : eu_profiles.c eu_profiles.h eu_cvector.h framework.h
 $(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
 	$(RC) $(RFLAGS) -Fo$@ skylark.rc

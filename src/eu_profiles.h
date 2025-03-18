@@ -16,27 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _EU_UPDATECHECKER_H_
-#define _EU_UPDATECHECKER_H_
+#ifndef _EU_PROFILES_H_
+#define _EU_PROFILES_H_
 
-// 启动时运行标识符
-#define UPCHECK_INDENT_MAIN  1
-// 菜单点击时运行标识符
-#define UPCHECK_INDENT_ABOUT 2
+enum
+{
+    EU_CONFG_RELOAD = 1,
+    EU_ACCEL_RELOAD = 2,
+    EU_THEME_RELOAD = 3,
+    EU_TBBAR_RELOAD = 4
+};
 
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void on_update_run(const int indent);
-void on_update_sql(void);
-void on_update_cancel(void);
-bool on_update_check(void);
-bool on_update_excute(void);
+int      on_profiles_reload(eu_tabpage *pnode, const uint32_t flag);
+bool     on_profiles_warn(void);
+uint32_t on_profiles_used(const eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _EU_UPDATECHECKER_H_
+#endif  // _EU_PROFILES_H_

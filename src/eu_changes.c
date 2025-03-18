@@ -445,9 +445,9 @@ on_changes_window(HWND hwnd)
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] && p->st_mtime != util_last_time(p->pathfile))
+        if (p && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0] &&
+            _tcsnicmp(p->pathname, eu_config_path, _tcslen(eu_config_path)) && p->st_mtime != util_last_time(p->pathfile))
         {
-            eu_logmsg("mainid = %u, current_id = %u\n", on_proc_thread(), GetCurrentThreadId());
             on_changes_click_sci(on_tabpage_focus_at());
             on_tabpage_selection(p, index);
             if (_taccess(p->pathfile, 0) == -1)

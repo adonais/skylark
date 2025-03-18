@@ -18,8 +18,6 @@
 
 #include "framework.h"
 
-#define EU_SESSION_INTERVAL 400
-
 static void
 on_session_backup(const int status)
 {
@@ -73,11 +71,11 @@ on_session_delete_backup(void)
             }
             if (!DeleteFile(pnode->bakpath))
             {
-                eu_logmsg("%s: delete(pnode->bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
+                eu_logmsg("Session: %s delete(bakpath) error, cause: %u\n", __FUNCTION__, GetLastError());
             }
             if (eu_exist_file(buf) && !DeleteFile(buf))
             {
-                eu_logmsg("%s: delete(backup~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
+                eu_logmsg("Session: %s delete(backup~~) error, cause: %u\n", __FUNCTION__, GetLastError());
             }
         }
     }
@@ -99,9 +97,6 @@ on_session_thead(PTP_CALLBACK_INSTANCE inst, PVOID pv, PTP_TIMER tm)
             {
                 if (session_total >= count)
                 {
-                #if APP_DEBUG
-                    printf("Session: we start auto backup\n");
-                #endif
                     on_session_backup(SESSION_ALL);
                     _InterlockedExchange(&session_total, 0);
                 }
@@ -109,9 +104,15 @@ on_session_thead(PTP_CALLBACK_INSTANCE inst, PVOID pv, PTP_TIMER tm)
             }
             _InterlockedExchangeAdd(&session_total, EU_SESSION_INTERVAL);
         }
-        eu_logmsg("Session: on_session_thead exit\n");
+        eu_logmsg("Session: %s exit\n", __FUNCTION__);
         _InterlockedExchange(&hv->xcode, 0);
     }
+}
+
+bool
+on_session_check(void)
+{
+    return eu_timer_check(&on_session_thead, 0);
 }
 
 void
@@ -124,7 +125,7 @@ on_session_cancel(void)
 }
 
 void
-on_session_do(const int indent)
+on_session_run(const int indent)
 {
     const int mt_max = INT_MAX/1000;
     int mt = eu_get_config() ? eu_get_config()->m_up_notify : 0;
@@ -136,7 +137,7 @@ on_session_do(const int indent)
         {
             if (!eu_timer_create(&on_session_thead, &hv))
             {
-                eu_logmsg("Session: in %s, eu_timer_create failed\n", __FUNCTION__);
+                eu_logmsg("Session: %s, eu_timer_create failed\n", __FUNCTION__);
             }
         }
         else if (indent == UPCHECK_INDENT_ABOUT)
@@ -144,7 +145,7 @@ on_session_do(const int indent)
             eu_timer_cancel(&on_session_thead, 0);
             if (!eu_timer_create(&on_session_thead, &hv))
             {
-                eu_logmsg("Session: in %s, eu_timer_create failed\n", __FUNCTION__);
+                eu_logmsg("Session: %s, eu_timer_create failed\n", __FUNCTION__);
             }
         }
     }

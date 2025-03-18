@@ -319,7 +319,7 @@ on_update_send_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP_W
 }
 
 bool
-on_update_do(void)
+on_update_excute(void)
 {
     int arg_c = 0;
     bool ret = false;
@@ -378,14 +378,14 @@ on_update_sql(void)
 }
 
 void
-on_update_check(const int indent)
+on_update_run(const int indent)
 {
     HWND hwnd = eu_hwnd_self();
     if (hwnd == share_envent_get_hwnd())
     {
         if (!_tcsnicmp(eu_config_path, eu_module_path, _tcslen(eu_module_path)) && util_try_path(eu_module_path))
         {
-            if ((eu_get_config()->upgrade.enable || indent == UPCHECK_INDENT_ABOUT) && !eu_threadpool_check(on_update_send_request, 0))
+            if ((eu_get_config()->upgrade.enable || indent == UPCHECK_INDENT_ABOUT) && !on_update_check())
             {
                 TASK_ARG hv = {indent};
                 eu_threadpool_add(on_update_send_request, &hv);
@@ -400,4 +400,15 @@ on_update_check(const int indent)
     {
         SendMessage(hwnd, WM_UPCHECK_STATUS, -1, 0);
     }
+}
+
+void
+on_update_cancel(void)
+{
+    eu_threadpool_cancel(&on_update_send_request, 0);
+}
+
+bool on_update_check(void)
+{
+    return eu_threadpool_check(&on_update_send_request, 0);
 }

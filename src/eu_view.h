@@ -21,14 +21,15 @@
 
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-    
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int on_view_switch_type(const int type);
-int on_view_refresh_theme(HWND hwnd, const bool reload);
-int on_view_switch_theme(HWND hwnd, const int id);
+int on_view_refresh_theme(const HWND hwnd, const bool reload);
+int on_view_switch_theme(const HWND hwnd, const int id);
+int on_view_theme_loader(const HWND hwnd, const TCHAR *pbuf, const int id);
 int on_view_modify_theme(void);
 int on_view_editor_selection(eu_tabpage *pnode);
 void on_view_filetree(void);

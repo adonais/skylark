@@ -202,7 +202,33 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
 }
 
 int
-on_view_switch_theme(HWND hwnd, const int id)
+on_view_theme_loader(const HWND hwnd, const TCHAR *pbuf, const int id)
+{
+    if (on_theme_load_script(pbuf))
+    {
+        eu_logmsg("%s: on_theme_load_script return false\n", __FUNCTION__);
+        return EUE_LOAD_SCRIPT_ERR;
+    }
+    if (!id || strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE))
+    {
+        on_dark_delete_brush();
+    }
+    if (_tcscmp(pbuf, _T("black")) == 0)
+    {
+        if (eu_dark_theme_init(true, true))
+        {
+            SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
+        }
+    }
+    else
+    {
+        eu_dark_theme_release(false);
+    }
+    return on_view_refresh_theme(hwnd, true);
+}
+
+int
+on_view_switch_theme(const HWND hwnd, const int id)
 {
     int count = 0;
     HFONT hfont = NULL;
@@ -226,27 +252,7 @@ on_view_switch_theme(HWND hwnd, const int id)
     {
         return 0;
     }
-    if (on_theme_load_script(pbuf))
-    {
-        eu_logmsg("%s: on_theme_load_script return false\n", __FUNCTION__);
-        return 1;
-    }
-    if (strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE))
-    {
-        on_dark_delete_brush();
-    }
-    if (_tcscmp(pbuf, _T("black")) == 0)
-    {
-        if (eu_dark_theme_init(true, true))
-        {
-            SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
-        }
-    }
-    else
-    {
-        eu_dark_theme_release(false);
-    }
-    return on_view_refresh_theme(hwnd, true);
+    return on_view_theme_loader(hwnd, pbuf, id);
 }
 
 int

@@ -24,6 +24,8 @@ extern "C" {
 #endif
 
 void on_config_file_url(wchar_t *path, int len, const wchar_t *p);
+bool on_config_lua_run(const wchar_t *file, const char *parg);
+int  on_config_accel_loader(void);
 
 #ifdef __cplusplus
 }

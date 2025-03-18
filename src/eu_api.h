@@ -185,6 +185,7 @@
 #define eu_int_cast(n) ((int)((intptr_t)(n)))
 #define eu_uint_cast(n) ((uint32_t)((uintptr_t)(n)))
 #define FONT_SIZE_DPI(fontsize) (-MulDiv((fontsize), eu_get_dpi(NULL), USER_DEFAULT_SCREEN_DPI))
+#define EU_ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
 #if APP_DEBUG
 #define EU_ABORT(...) (eu_logmsg(__VA_ARGS__), exit(-1))

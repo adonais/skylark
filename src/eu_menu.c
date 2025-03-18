@@ -54,7 +54,7 @@ menu_bmp_destroy(void)
         DeleteObject(g_shield_hbmp);
         g_shield_hbmp = NULL;
     }
-    eu_logmsg("menu_bmp_destroy\n");
+    eu_logmsg("Menu: destroy menu\n");
 }
 
 void

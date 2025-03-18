@@ -171,5 +171,6 @@
 #include "eu_hintctl.h"
 #include "eu_xmlist.h"
 #include "eu_pool.h"
+#include "eu_profiles.h"
 
 #endif  // _EU_FRAMEWORK_H_

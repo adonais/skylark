@@ -140,9 +140,9 @@ static HFONT font_dochistory_static2;
 
 static theme_query pm_query[] =
 {
-    {IDS_THEME_DESC_DEFAULT, {0}, _T("default")} ,
-    {IDS_THEME_DESC_BLOCK  , {0}, _T("black")}   ,
-    {IDS_THEME_DESC_WHITE  , {0}, _T("white")}   ,
+    {IDS_THEME_DESC_DEFAULT, {0}, _T("default")},
+    {IDS_THEME_DESC_BLOCK  , {0}, _T("black")}  ,
+    {IDS_THEME_DESC_WHITE  , {0}, _T("white")}  ,
     {0, {0}, {0}}
 };
 

@@ -274,7 +274,7 @@
 #define IDS_STATUS_LD  10178
 #define IDS_STATUS_HXY 10179
 #define IDS_STATUS_HLC 10279
-
+// toolbar message id
 #define IDS_TOOLBAR_0    10180
 #define IDS_TOOLBAR_1    10181
 #define IDS_TOOLBAR_2    10182
@@ -304,6 +304,17 @@
 #define IDS_TOOLBAR_26   10206
 #define IDS_TOOLBAR_27   10207
 #define IDS_TOOLBAR_28   10208
+#define IDS_TOOLBAR_29   10209
+#define IDS_TOOLBAR_30   10210
+#define IDS_TOOLBAR_31   10211
+#define IDS_TOOLBAR_32   10212
+#define IDS_TOOLBAR_33   10213
+#define IDS_TOOLBAR_34   10214
+#define IDS_TOOLBAR_35   10215
+#define IDS_TOOLBAR_36   10216
+#define IDS_TOOLBAR_37   10217
+#define IDS_TOOLBAR_38   10218
+#define IDS_TOOLBAR_39   10219
 // language type
 #define IDM_TYPES_0      10300
 #define IDM_TYPES_ZERO   10409
@@ -1260,6 +1271,7 @@
 #define IDS_WIN32CALC_DESC                  44501
 #define IDS_UNDO_UNCLOSE_TIPS               44502
 #define IDS_HISTORY_CLEAR_UNDO              44503
+#define IDS_PRIFILES_WARNING                44504
 
 #define IDD_SETTING_DIALOG                  44600
 #define IDC_SETTING_NAME_EDIT               44601
