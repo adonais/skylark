@@ -194,23 +194,20 @@ _tmain(int argc, TCHAR *argv[])
             }
             else if (!no_remote)
             {
+                size_t count = 0;
                 cvector_vector_type(file_backup) vpath = NULL;
-                if (eu_config_parser_path(argv, argc, &vpath))
+                if (eu_config_parser_path(argv, argc, &vpath) && (count = cvector_size(vpath)) > 0)
                 {
-                    for (size_t i = 0; i < cvector_size(vpath); ++i)
-                    {
-                        if (vpath[i].rel_path[0])
-                        {   // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
-                            share_send_msg(&vpath[i]);
-                        }
-                    }
+                    vpath[count - 1].focus = 1;
+                    // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
+                    share_send_msg(vpath, count);
                 }
                 cvector_free(vpath);
             }
         }
         else
         {   // 没有参数, 则恢复窗口
-            share_send_msg(NULL);
+            share_send_msg(NULL, 0);
         }
         if (no_remote)
         {

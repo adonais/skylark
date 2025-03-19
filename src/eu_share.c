@@ -214,8 +214,8 @@ share_envent_wait_file_close_sem(HANDLE *phandle)
 /*****************************************************************************
  * 多进程共享,  以消息模式放送而不是共享内存
  ****************************************************************************/
-unsigned
-share_send_msg(void *param)
+void
+share_send_msg(void *param, const size_t len)
 {
     HWND hwnd = eu_module_hwnd();
     if (!hwnd)
@@ -227,14 +227,13 @@ share_send_msg(void *param)
         file_backup *pbak = (file_backup *)param;
         if (pbak)
         {
-            COPYDATASTRUCT cpd = { 0 };
+            COPYDATASTRUCT cpd = {cvector_size(pbak)};
             cpd.lpData = (PVOID) pbak;
-            cpd.cbData = (DWORD) sizeof(file_backup);
+            cpd.cbData = (DWORD)(sizeof(file_backup) * cpd.dwData);
             SendMessageW(hwnd, WM_COPYDATA, 0, (LPARAM) &cpd);
         }
         SwitchToThisWindow(hwnd, true);
     }
-    return 0;
 }
 
 /*****************************************************************************

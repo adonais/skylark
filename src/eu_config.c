@@ -191,7 +191,6 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int err = 0;
-    size_t vec_size = 0;
     cvector_vector_type(file_backup) vbak = NULL;
     if (eu_get_config()->m_session)
     {   // on_config_parser_bakup导致工作目录变更
@@ -205,26 +204,12 @@ on_config_load_file(void *lp)
     {
         eu_logmsg("run with arguments\n");
     }
-    if ((vec_size = cvector_size(vbak)) < 1)
+    if (cvector_size(vbak) < 1)
     {
         file_backup bak = {0};
-        share_send_msg(&bak);
+        cvector_push_back(vbak, bak);
     }
-    else
-    {
-        for (size_t i = 0; i < vec_size; ++i)
-        {
-            if (vbak[i].rel_path[0] || vbak[i].bak_path[0])
-            {
-                share_send_msg(&vbak[i]);
-            }
-        }
-        if (util_under_wine() && g_tabpages && TabCtrl_GetItemCount(g_tabpages) < 1)
-        {   // 启动器启动时
-            file_backup bak = {0};
-            share_send_msg(&bak);
-        }
-    }
+    share_send_msg(vbak, cvector_size(vbak));
     cvector_free(vbak);
     return 0;
 }

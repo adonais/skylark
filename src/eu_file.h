@@ -79,7 +79,7 @@ int on_file_right_close(void);
 int on_file_exclude_close(eu_tabpage *pnode);
 int on_file_unchange_close(eu_tabpage *pnode);
 int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
-int on_file_redirect(HWND hwnd, file_backup *pm);
+int on_file_redirect(file_backup *pbak, const size_t vsize);
 int on_file_stream_upload(eu_tabpage *pnode, TCHAR *pmsg);
 int on_file_load_plugins(eu_tabpage *pnode, bool route_open);
 void on_file_update_time(eu_tabpage *pnode, time_t m);

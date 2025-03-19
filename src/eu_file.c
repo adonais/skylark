@@ -1470,22 +1470,24 @@ on_file_out_open(const int index, uint32_t *pid)
 
 /**************************************************************************************
  * 多标签打开文件时调用的第一个函数
- * hwnd参数可省略, 成功打开文件返回SKYLARK_OK
+ * 成功打开文件返回SKYLARK_OK
  **************************************************************************************/
 int
-on_file_redirect(HWND hwnd, file_backup *pbak)
+on_file_redirect(file_backup *pbak, const size_t vsize)
 {
-    UNREFERENCED_PARAMETER(hwnd);
     int err = SKYLARK_NOT_OPENED;
-    if (pbak && pbak->rel_path[0])
+    for (size_t i = 0; i < vsize; ++i)
     {
-        if (!pbak->status && url_has_remote(pbak->rel_path))
+        if (pbak[i].rel_path[0])
         {
-            err = (on_file_open_remote(NULL, pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
-        }
-        else 
-        {
-            err = on_file_open_bakcup(pbak);
+            if (!pbak[i].status && url_has_remote(pbak[i].rel_path))
+            {
+                err = (on_file_open_remote(NULL, &pbak[i], true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+            }
+            else 
+            {
+                err = on_file_open_bakcup(&pbak[i]);
+            }
         }
     }
     if (err != SKYLARK_OK && TabCtrl_GetItemCount(g_tabpages) < 1)
@@ -2561,7 +2563,7 @@ on_file_all_close(void)
         if (!eu_get_config()->m_exit)
         {
             file_backup bak = {0};
-            share_send_msg(&bak);
+            share_send_msg(&bak, 1);
         }
         else
         {

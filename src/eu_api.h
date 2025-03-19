@@ -752,7 +752,7 @@ EU_EXT_CLASS bool eu_hook_exception(void);
 // for eu_share.c
 EU_EXT_CLASS void share_close_lang(void);
 EU_EXT_CLASS LPVOID share_map(HANDLE hmap, size_t bytes, uint32_t dw_access);
-EU_EXT_CLASS unsigned share_send_msg(void *param);
+EU_EXT_CLASS void share_send_msg(void *param, const size_t len);
 EU_EXT_CLASS HANDLE share_load_lang(void);
 EU_EXT_CLASS HANDLE share_create(HANDLE handle, uint32_t dw_protect, size_t size, LPCTSTR name);
 EU_EXT_CLASS void share_unmap(LPVOID memory);
