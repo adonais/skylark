@@ -1500,26 +1500,29 @@ on_file_redirect(file_backup *pbak, const size_t vsize)
 int
 on_file_drop(HDROP hdrop)
 {
+    uint32_t attr = 0;
     file_backup bak = {0};
-    eu_logmsg("on_file_drop\n");
+    cvector_vector_type(file_backup) vbak = NULL;
     int count = DragQueryFile(hdrop, 0xFFFFFFFF, NULL, 0);
     for (int index = 0; index < count; ++index)
     {
         memset(bak.rel_path, 0, sizeof(bak.rel_path));
         DragQueryFile(hdrop, index, bak.rel_path, MAX_BUFFER);
-        uint32_t attr = GetFileAttributes(bak.rel_path);
+        attr = GetFileAttributes(bak.rel_path);
         if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
         {
-            on_file_only_open(&bak, true);
+            cvector_push_back(vbak, bak);
         }
         else
         {
-            _tcsncat(bak.rel_path, _T("\\*"), MAX_BUFFER);
-            on_file_open_bakcup(&bak);
-            break;
+            util_bfs_search(bak.rel_path, &vbak, &bak);
         }
     }
     DragFinish(hdrop);
+    if ((count = (int)cvector_size(vbak)) > 0)
+    {
+        on_file_redirect(vbak, count);
+    }
     eu_wine_dotool();
     return SKYLARK_OK;
 }
@@ -2563,7 +2566,7 @@ on_file_all_close(void)
         if (!eu_get_config()->m_exit)
         {
             file_backup bak = {0};
-            share_send_msg(&bak, 1);
+            on_file_redirect(&bak, 1);
         }
         else
         {
