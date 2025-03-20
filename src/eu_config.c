@@ -201,7 +201,7 @@ on_config_load_file(void *lp)
     cvector_vector_type(file_backup) vbak = NULL;
     if (eu_get_config()->m_session)
     {   // on_config_parser_bakup导致工作目录变更
-        err = on_sql_do_session("SELECT * FROM skylark_session;", on_config_parser_bakup, (void *)&vbak);
+        err = on_sql_do_session("SELECT * FROM skylark_session ORDER BY szTabId ASC;", on_config_parser_bakup, (void *)&vbak);
     }
     else
     {

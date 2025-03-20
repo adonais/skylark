@@ -517,17 +517,17 @@ on_sci_free_tab(eu_tabpage **ppnode)
         if (reason != TABS_MAYBE_RESERVE)
         {
             eu_safe_free(*ppnode);
-            eu_logmsg("Scintill: %s, we free the node's memory\n", __FUNCTION__);
+            eu_logmsg("Scintilla: %s, we free the node's memory\n", __FUNCTION__);
         }
         else
         {
             (*ppnode)->reason = 0;
             on_file_new(*ppnode);
-            eu_logmsg("Scintill: %s, on_file_new() execute\n", __FUNCTION__);
+            eu_logmsg("Scintilla: %s, on_file_new() execute\n", __FUNCTION__);
         }
         if (reason == TABS_MAYBE_EIXT && on_sql_sync_session() == SKYLARK_OK)
         {
-            eu_logmsg("Scintill: close last tab, skylark exit ...\n");
+            eu_logmsg("Scintilla: close last tab, skylark exit ...\n");
             SendMessage(eu_module_hwnd(), WM_BACKUP_OVER, 0, 0);
         }
     }

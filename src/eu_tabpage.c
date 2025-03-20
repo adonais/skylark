@@ -561,7 +561,7 @@ on_tabpage_send_file(const HWND hwin, const int index)
                 err = on_sql_post(sql, on_tabpage_parser_bakup, &bak);
                 if (err != SKYLARK_OK && err != SQLITE_ABORT)
                 {
-                    eu_logmsg("%s: on_sql_post return false, cause: %d\n", __FUNCTION__, err);
+                    eu_logmsg("Tabs: on_sql_post return false, cause: %d\n", err);
                 }
                 else
                 {
@@ -1071,13 +1071,13 @@ on_tabpage_create_dlg(HWND hwnd)
         }
         if (!init_icon_img_list(g_tabpages))
         {
-            eu_logmsg("%s: init_icon_img_list return false\n", __FUNCTION__);
+            eu_logmsg("Tabs: init_icon_img_list return false\n");
             err = 1;
             break;
         }
         if (!g_drag_hcursor && (g_drag_hcursor = LoadCursor(eu_module_handle(), MAKEINTRESOURCE(IDC_CURSOR_DRAG))) == NULL)
         {
-            eu_logmsg("%s: LoadCursor return false\n", __FUNCTION__);
+            eu_logmsg("Tabs: LoadCursor return false\n");
             err = 1;
             break;
         }
@@ -1386,49 +1386,50 @@ on_tabpage_newdoc_reload(void)
 int
 on_tabpage_add(eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    if (TAB_NOT_BIN(pnode) && !TAB_HEX_MODE(pnode) && !pnode->pmod)
+    const HWND htab = on_tabpage_hwnd(pnode);
+    if (htab)
     {
-        pnode->doc_ptr = on_doc_get_type(pnode->filename);
-    }
-    if (!pnode->is_blank)
-    {
-        pnode->tab_id = on_tabpage_replace_empty(pnode);
-    }
-    if (pnode->tab_id < 0)
-    {
-        TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
-        tci.pszText = pnode->filename;
-        tci.lParam = (LPARAM) pnode;
-        pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
-        if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
+        int tab_id = 0;
+        if (TAB_NOT_BIN(pnode) && !TAB_HEX_MODE(pnode) && !pnode->pmod)
         {
-            eu_logmsg("%s: TabCtrl_InsertItem return false\n", __FUNCTION__);
-            return SKYLARK_TABCTRL_ERR;
+            pnode->doc_ptr = on_doc_get_type(pnode->filename);
         }
-    }
-    else
-    {
-        eu_logmsg("%s: Replacing empty Tab, pnode->tab_id = %d\n", __FUNCTION__, pnode->tab_id);
-    }
-    if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && TAB_HEX_MODE(pnode))
-    {
-        pnode->bytes_remaining = (size_t)pnode->raw_size;
-        eu_logmsg("%s: hexview_init execute\n", __FUNCTION__);
-        if (!hexview_init(pnode))
+        if ((tab_id = pnode->is_blank ? -1 : on_tabpage_replace_empty(pnode)) < 0)
         {
-            TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
+            TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
+            tci.pszText = pnode->filename;
+            tci.lParam = (LPARAM) pnode;
+            tab_id = pnode->tab_id < 0 ? TabCtrl_GetItemCount(htab) : pnode->tab_id;
+            if (TabCtrl_InsertItem(htab, tab_id, &tci) == -1)
+            {
+                eu_logmsg("Tabs: tabctrl_insertitem failed\n");
+                return SKYLARK_TABCTRL_ERR;
+            }
+        }
+        else
+        {
+            eu_logmsg("Tabs: replacing empty tab, pnode->tab_id = %d\n", pnode->tab_id);
+        }
+        if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && TAB_HEX_MODE(pnode))
+        {
+            pnode->bytes_remaining = (size_t)pnode->raw_size;
+            eu_logmsg("Tabs: hexview_init execute\n");
+            if (!hexview_init(pnode))
+            {
+                TabCtrl_DeleteItem(htab, tab_id);
+                return EUE_INSERT_TAB_FAIL;
+            }
+            return SKYLARK_OK;
+        }
+        // 当复用scintilla窗口时, 不重复创建
+        if (!pnode->hwnd_sc && on_sci_init_dlg(pnode))
+        {
+            TabCtrl_DeleteItem(htab, tab_id);
             return EUE_INSERT_TAB_FAIL;
         }
         return SKYLARK_OK;
     }
-    // 当复用scintilla窗口时, 不重复创建
-    if (!pnode->hwnd_sc && on_sci_init_dlg(pnode))
-    {
-        TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
-        return EUE_INSERT_TAB_FAIL;
-    }
-    return SKYLARK_OK;
+    return EUE_INSERT_TAB_FAIL;
 }
 
 void
@@ -1704,4 +1705,10 @@ on_tabpage_symreload(eu_tabpage *pnode)
             }
         }
     }
+}
+
+HWND
+on_tabpage_hwnd(const eu_tabpage *pnode)
+{
+    return (pnode ? g_tabpages : NULL);
 }
