@@ -33,22 +33,22 @@ on_proc_create_widgets(HWND hwnd)
 {
     if (on_toolbar_create_dlg(hwnd))
     {
-        eu_logmsg("on_toolbar_create_dl return false\n");
+        eu_logmsg("MainCallbak: on_toolbar_create_dl failed\n");
         return 1;
     }
     if (on_treebar_create_dlg(hwnd))
     {
-        eu_logmsg("on_treebar_create_dlg return false\n");
+        eu_logmsg("MainCallbak: on_treebar_create_dlg failed\n");
         return 1;
     }
     if (on_tabpage_create_dlg(hwnd))
     {
-        eu_logmsg("on_tabpage_create_dlg return false\n");
+        eu_logmsg("MainCallbak: on_tabpage_create_dlg failed\n");
         return 1;
     }
     if (on_statusbar_create_dlg(hwnd))
     {
-        eu_logmsg("on_statusbar_create_dlg return false\n");
+        eu_logmsg("MainCallbak: on_statusbar_create_dlg failed\n");
         return 1;
     }
     return SKYLARK_OK;
@@ -75,7 +75,7 @@ on_proc_enum_skylark(HWND hwnd, LPARAM lParam)
                 QueryFullProcessImageName(hprocess, 0, m_buffer, &buffer_len);
                 if (_tcsnicmp(m_buffer, m_path, _tcslen(m_buffer)) == 0)
                 {
-                    eu_logmsg("we get other hwnd = %p\n", (void *)hwnd);
+                    eu_logmsg("MainCallbak: we get other hwnd = %p\n", (void *)hwnd);
                     share_envent_set_hwnd(hwnd);
                     SetLastError(ERROR_CALLBACK_ABORT);
                     return 0;
@@ -321,19 +321,26 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
     }
 }
 
-static void
+void
 on_proc_tab_click(eu_tabpage *pnode)
 {
-    on_proc_msg_size(NULL, pnode);
-    if (pnode && pnode->nc_pos >= 0 && eu_get_config() && eu_get_config()->scroll_to_cursor)
+    if (pnode)
     {
-        if (TAB_HEX_MODE(pnode))
+        on_proc_msg_size(NULL, pnode);
+        if (!_InterlockedCompareExchange(&pnode->initial, 1, 0))
         {
-            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            on_search_jmp_pos(pnode);
         }
-        else
+        if (pnode->nc_pos >= 0 && eu_get_config()->scroll_to_cursor)
         {
-            eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+            if (TAB_HEX_MODE(pnode))
+            {
+                eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            }
+            else
+            {
+                eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+            }
         }
     }
 }
@@ -399,7 +406,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
             pnode->be_modify = true;
             on_toolbar_update_button();
             InvalidateRect(g_tabpages, NULL, false);
-            eu_logmsg("%s: iniit doc has been modified\n", __FUNCTION__);
+            eu_logmsg("MainCallbak: %s, doc has been modified\n", __FUNCTION__);
         }
     }
     if (flags && !lpnmhdr->modified && pnode->plugin)
@@ -408,7 +415,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
         bool backup = false;
         int err = EUE_UNKOWN_ERR;
         wchar_t *full_path = NULL;
-        eu_logmsg("skylark: doc has been saved\n");
+        eu_logmsg("MainCallbak: doc has been saved\n");
         if (!np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&full_path) && STR_NOT_NUL(full_path))
         {
             if (url_has_remote(pnode->pathfile))
@@ -655,6 +662,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             return -1;
         }
+        case WM_TABPAGE_FINAL:
+        {
+            on_proc_msg_size(NULL, on_tabpage_focus_at());
+            return 1;
+        }
         case WM_TIMER:
         {
             if (KEY_DOWN(VK_ESCAPE))
@@ -695,7 +707,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED:
         {
-            eu_logmsg("main window recv WM_DPICHANGED\n");
+            eu_logmsg("MainCallbak: recv wm_dpichanged message\n");
             on_theme_setup_font(hwnd);
             menu_bmp_destroy();
             on_tabpage_foreach(hexview_update_theme);
@@ -816,7 +828,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 if (util_dark_theme())
                 {
-                    eu_logmsg("swiching dark mode\n");
+                    eu_logmsg("MainCallbak: swiching dark mode\n");
                     if (!on_dark_enable() && eu_dark_theme_init(true, true))
                     {
                         SendMessageTimeout(HWND_BROADCAST, WM_THEMECHANGED, 0, 0, SMTO_NORMAL, 10, 0);
@@ -825,7 +837,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 else if (!eu_win11_or_later())
                 {
-                    eu_logmsg("swiching light mode\n");
+                    eu_logmsg("MainCallbak: swiching light mode\n");
                     eu_dark_theme_release(false);
                     on_proc_msg_size(NULL, NULL);
                 }
@@ -892,7 +904,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (IDM_SET_LUAJIT_EXECUTE <= wm_id && wm_id <= IDM_SET_LUAJIT_EXECUTE + DW_SIZE - 1)
             {
-                eu_logmsg("Run custom menu, wm_id = %d\n", (int)wm_id);
+                eu_logmsg("MainCallbak: run custom menu, wm_id = %d\n", (int)wm_id);
                 on_setting_execute(hwnd, wm_id);
                 break;
             }
@@ -1970,11 +1982,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case SCN_SAVEPOINTREACHED:
                     on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
-                    eu_logmsg("%s: on_sci_point_reached caller\n", __FUNCTION__);
+                    eu_logmsg("MainCallbak: on_sci_point_reached caller\n");
                     break;
                 case SCN_SAVEPOINTLEFT:
                     on_sci_point_left(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
-                    eu_logmsg("%s: on_sci_point_left caller\n", __FUNCTION__);
+                    eu_logmsg("MainCallbak: on_sci_point_left caller\n");
                     break;
                 case SCN_MARGINCLICK:
                 {
@@ -2112,7 +2124,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 file_backup *pm = (file_backup *) (cpd->lpData);
                 if (cpd->cbData != (DWORD)(sizeof(file_backup) * cpd->dwData))
                 {
-                    eu_logmsg("bad WM_COPYDATA data\n");
+                    eu_logmsg("MainCallbak: bad wm_copydata data\n");
                     return 1;
                 }
                 if ((rel_len = pm ? _tcslen(pm->rel_path) : 0) > 0 && pm->rel_path[rel_len - 1] == _T('#'))
@@ -2180,7 +2192,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_DESTROY:
         {
             on_proc_destory_window(hwnd);
-            eu_logmsg("main window WM_DESTROY\n");
+            eu_logmsg("MainCallbak: main window destroy\n");
             break;
         }
         default:

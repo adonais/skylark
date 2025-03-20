@@ -172,6 +172,7 @@
 #define WM_BACKUP_CONFIG          (WM_USER+10031)
 #define WM_BACKUP_BOTH            (WM_USER+10032)
 #define WM_BACKUP_ALL             (WM_USER+10033)
+#define WM_TABPAGE_FINAL          (WM_USER+10034)
 
 #define WM_PCRE_ADDSTRING         (WM_USER+12000)
 #define WM_JSON_PASSED            (WM_USER+12001)

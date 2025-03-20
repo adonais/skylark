@@ -596,7 +596,7 @@ eu_reset_config(void)
     {
         if (do_configs_backup())
         {
-            eu_logmsg("%s: We will reset all configuration files and restart the editor\n", __FUNCTION__);
+            eu_logmsg("Euapi: we will reset all configuration files and restart the editor\n");
         }
     }
 }
@@ -670,12 +670,12 @@ eu_iconv_converter(char *src, size_t *src_len, char **pout, const char *from_des
     cd = eu_iconv_open(dst_desc, from_desc);
     if (cd == (iconv_t) -1)
     {
-        eu_logmsg("eu_iconv_open error!\n");
+        eu_logmsg("Euapi: eu_iconv_open error!\n");
         goto iconv_err;
     }
     if (eu_iconvctl(cd, ICONV_SET_DISCARD_ILSEQ, &argument) != 0)
     {
-        eu_logmsg("can't enable illegal feature!\n");
+        eu_logmsg("Euapi: can't enable illegal feature!\n");
         goto iconv_err;
     }
     ptmp = pdst = (char *) calloc(1, ldst + 1);
@@ -699,7 +699,7 @@ iconv_err:
     eu_iconv_close(cd);
     if (ret != (size_t)-1)
     {
-        eu_logmsg("%s->%s ok, ret = %zu!\n", from_desc, dst_desc, ret);
+        eu_logmsg("Euapi: %s->%s ok, ret = %zu!\n", from_desc, dst_desc, ret);
     }
     return (ret == 0);
 }
@@ -769,7 +769,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     }   // 如果通过utf-16le静态分析, 测试一下编码转换, 因为可能为二进制文件
     if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_le) && (result_le & IS_TEXT_UNICODE_STATISTICS))
     {
-        eu_logmsg("result_le = %d\n", result_le);
+        eu_logmsg("Euapi: result_le = %d\n", result_le);
         if (eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16LE", "GBK"))
         {
             return UTF16_LE_NOBOM;
@@ -777,7 +777,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     }   // 如果通过utf-16be静态分析, 测试一下编码转换, 因为可能为二进制文件
     else if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_be) && eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16BE", "GBK"))
     {
-        eu_logmsg("result_be = %d\n", result_be);
+        eu_logmsg("Euapi: result_be = %d\n", result_be);
         return UTF16_BE_NOBOM;
     }
     return EN_CODEING_NONE;
@@ -858,7 +858,7 @@ eu_memstr(const uint8_t *haystack, const char *needle, size_t size)
     size_t needlesize = strlen(needle);
     if (needlesize%2 !=0 )
     {
-        eu_logmsg("not double byte\n");
+        eu_logmsg("Euapi: not double byte\n");
         return NULL;
     }
     if (!(need = (uint8_t *)malloc(needlesize/2)))
@@ -1131,7 +1131,7 @@ is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
                 {
                     if ((black_mask & 1) && (name[i] == n))
                     {
-                        eu_logmsg("\nbinary char, name[%zu] = %.02x\n", i, name[i]);
+                        eu_logmsg("\nEuapi: binary char, name[%zu] = %.02x\n", i, name[i]);
                         return EN_CODEING_BINARY;
                     }
                 }
@@ -1202,7 +1202,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
                           &si,&pi))
         {
             char u8[MAX_BUFFER] = {0};
-            eu_logmsg("CreateProcessW [%s] error, cause: %lu\n", util_make_u8(wcmd, u8, MAX_BUFFER - 1), GetLastError());
+            eu_logmsg("Euapi: CreateProcessW [%s] error, cause: %u\n", util_make_u8(wcmd, u8, MAX_BUFFER - 1), GetLastError());
             return NULL;
         }
         if (NULL != o)
@@ -1371,7 +1371,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         if ((fp = _tfopen(file_name, _T("rb"))) == NULL)
         {
-            eu_logmsg("_tfopen failed in %s\n", __FUNCTION__);
+            eu_logmsg("Euapi: _tfopen failed in %s\n", __FUNCTION__);
             return type;
         }
         read_len = fread(checkstr, 1, len - 1, fp);
@@ -1389,7 +1389,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     if (!(type = is_plan_file(checkstr, read_len, nobinary)))
     {
         // BINARY file
-        eu_logmsg("this is BINARY file\n");
+        eu_logmsg("Euapi: this is binary file\n");
         return IDM_OTHER_BIN;
     }
     switch (type)
@@ -1414,22 +1414,22 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     if ((obj = detect_obj_init()) == NULL)
     {
-        eu_logmsg("Memory Allocation failed in %s\n", __FUNCTION__);
+        eu_logmsg("Euapi: memory allocation failed in %s\n", __FUNCTION__);
         return type;
     }
     switch (detect_r((const char *)checkstr, read_len, &obj))
     {
         case CHARDET_OUT_OF_MEMORY:
-            eu_logmsg("On handle processing, occured out of memory\n");
+            eu_logmsg("Euapi: on handle processing, occured out of memory\n");
             detect_obj_free(&obj);
             return type;
         case CHARDET_NULL_OBJECT:
-            eu_logmsg("2st argument of chardet() is must memory allocation with detect_obj_init API\n");
+            eu_logmsg("Euapi: 2st argument of chardet() is must memory allocation with detect_obj_init\n");
             return type;
         default:
             break;
     }
-    eu_logmsg("%s, confidence: %f, exists bom: %d\n", obj->encoding, obj->confidence, obj->bom);
+    eu_logmsg("Euapi: %s, confidence: %f, exists bom: %d\n", obj->encoding, obj->confidence, obj->bom);
     if (!obj->encoding || DET_EPSILON > obj->confidence)
     {
         if (is_mbcs_gb18030((const char *)checkstr, read_len))
@@ -1439,7 +1439,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (on_encoding_validate_utf8(checkstr))
         {
-            eu_logmsg("Maybe UTF-8!\n");
+            eu_logmsg("Euapi: maybe utf-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else
@@ -1462,12 +1462,12 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     {
         if (on_encoding_validate_utf8(checkstr))
         {
-            eu_logmsg("Not %s encode, it's maybe UTF-8!\n", obj->encoding);
+            eu_logmsg("Euapi: not %s encode, it's maybe utf-8!\n", obj->encoding);
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else if (CHECK_1ST > obj->confidence && is_mbcs_gb18030((const char *)checkstr, read_len))
         {
-            eu_logmsg("Confidence[%f] < %f, Maybe GB18030!\n", obj->confidence, CHECK_1ST);
+            eu_logmsg("Euapi: confidence[%f] < %f, maybe gb18030!\n", obj->confidence, CHECK_1ST);
             type = IDM_ANSI_12;
         }
         else
@@ -1498,7 +1498,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     {
         if (on_encoding_validate_utf8(checkstr))
         {
-            eu_logmsg("we reconfirm that's UTF-8!\n");
+            eu_logmsg("Euapi: we reconfirm that's utf-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else if (obj->confidence > CHECK_1ST && is_exclude_char(obj->encoding))
@@ -1507,16 +1507,16 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (is_mbcs_gb18030((const char *)checkstr, read_len))
         {
-            eu_logmsg("Maybe GB18030!\n");
+            eu_logmsg("Euapi: maybe gb18030!\n");
             type = IDM_ANSI_12;
         }
         else
         {
             type = query_encode(obj->encoding);
-            eu_logmsg("Blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
+            eu_logmsg("Euapi: blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
             if ((file_name != NULL) && !eu_iconv_full_text(file_name, obj->encoding, "utf-8"))
             {
-                eu_logmsg("It doesn't look like %s, We think of it as binary coding\n", obj->encoding);
+                eu_logmsg("Euapi: it doesn't look like %s, we think of it as binary coding\n", obj->encoding);
                 type = IDM_OTHER_BIN;
             }
         }
@@ -2584,7 +2584,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     {   // 正则表达式预编译失败
         if (pcre_info->error)
         {
-            eu_logmsg("PCRE compilation failed at offset %d: %s\n", pcre_info->erroroffset, pcre_info->error);
+            eu_logmsg("Euapi: pcre compilation failed at offset %d: %s\n", pcre_info->erroroffset, pcre_info->error);
         }
         return 1;
     }
@@ -2602,10 +2602,10 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
         switch (pcre_info->rc)
         {
             case PCRE_ERROR_NOMATCH:
-                eu_logmsg("pcre: no match.\n");
+                eu_logmsg("Euapi: pcre, no match.\n");
                 break;
             default:
-                eu_logmsg("pcre: matching error.\n");
+                eu_logmsg("Euapi: pcre, matching error.\n");
                 break;
         }
         return 1;
@@ -2614,7 +2614,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     if (pcre_info->rc == 0)
     {   // 处理偏移量的数组不够大, 输出错误
         pcre_info->rc = OVECCOUNT / 3;
-        eu_logmsg("error: ovector only has room for %d substrings\n", (pcre_info->rc) - 1);
+        eu_logmsg("Euapi: error, ovector only has room for %d substrings\n", (pcre_info->rc) - 1);
         return 1;
     }
 
@@ -2738,13 +2738,13 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
         }
         if (pcre_info->rc < 0)
         {
-            eu_logmsg("pcre: Matching error %d\n", pcre_info->rc);
+            eu_logmsg("Euapi: pcre, Matching error %d\n", pcre_info->rc);
             return 1;
         }
         if (pcre_info->rc == 0)
         {
             pcre_info->rc = OVECCOUNT / 3;
-            eu_logmsg("pcre: ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
+            eu_logmsg("Euapi: pcre, ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
         }
 
     #if PCRE_DEBUG

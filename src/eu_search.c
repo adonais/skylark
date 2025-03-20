@@ -1474,7 +1474,7 @@ on_search_back_navigate_all(void)
         }
         if (curr->pnode != pnode)
         {
-            on_tabpage_selection(curr->pnode, -1);
+            on_tabpage_selection(curr->pnode);
             return SKYLARK_OK;
         }
         list_del(&(curr->ng_node));
@@ -1484,7 +1484,7 @@ on_search_back_navigate_all(void)
         {
             if (prev->pnode != pnode)
             {
-                on_tabpage_selection(prev->pnode, -1);
+                on_tabpage_selection(prev->pnode);
             }
             sptr_t text_len = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
             sptr_t go_pos = prev->last_pos > text_len - 1 ? text_len - 1 : (sptr_t)prev->last_pos;

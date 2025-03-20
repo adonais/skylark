@@ -152,7 +152,7 @@ on_splitter_callback_treebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
-            eu_logmsg("on_splitter_callback_treebar WM_DESTROY\n");
+            eu_logmsg("Splitter: windows wm_destroy\n");
             x = 0;
         }
         default:

@@ -178,7 +178,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
                         eu_sci_call(pnode, SCI_SETSELECTION, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
                     }
-                    else if (on_tabpage_selection(p, -1) >= 0)
+                    else if (on_tabpage_selection(p) >= 0)
                     {
                         on_search_jmp_line(p, pnode->ret_vec[line - 1].line, current_line);
                         eu_sci_call(p, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);

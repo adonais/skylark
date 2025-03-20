@@ -144,7 +144,7 @@ on_tabpage_changing(int index)
     {
         util_set_title(p);
         on_toolbar_update_button();
-        SendMessage(eu_module_hwnd(), WM_TAB_CLICK, (WPARAM)p, 0);
+        SendMessage(eu_hwnd_self(), WM_TAB_CLICK, (WPARAM)p, 0);
         if (p->pmod)
         {
             on_tabpage_setpos(p);
@@ -1594,37 +1594,22 @@ on_tabpage_focus_at(void)
 }
 
 int
-on_tabpage_selection(eu_tabpage *pnode, int index)
+on_tabpage_selection(const eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     eu_tabpage *p = NULL;
-    const int count = TabCtrl_GetItemCount(g_tabpages);
-    if (index < 0)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        for (index = 0; index < count; ++index)
+        if ((p = on_tabpage_get_ptr(index)) && p == pnode)
         {
-            p = on_tabpage_get_ptr(index);
-            if (p && p == pnode)
-            {
-                break;
-            }
-        }
-    }
-    if(index >= 0 && index < count)
-    {
-        HWND hwnd = eu_hwnd_self();
-        on_tabpage_set_active(index);
-        eu_window_resize();
-        if ((p = on_tabpage_get_ptr(index)))
-        {   // 窗口处理过程中可能改变了标签位置, 重置它
-            on_tabpage_deselect(index);
-            TabCtrl_SetCurFocus(g_tabpages, index);
-            TabCtrl_SetCurSel(g_tabpages, index);
+            on_tabpage_set_active(index);
+            eu_window_resize();
             on_toolbar_update_button();
             util_set_title(p);
+            return index;
         }
     }
-    return (index >= 0 && index < count ? index : SKYLARK_TABCTRL_ERR);
+    return SKYLARK_NOT_OPENED;
 }
 
 eu_tabpage *
@@ -1667,16 +1652,13 @@ on_tabpage_active_tab(eu_tabpage *pnode)
     on_tabpage_set_active(on_tabpage_get_index(pnode));
 }
 
-eu_tabpage *
-on_tabpage_select_index(int index)
+void
+on_tabpage_select_index(const int index)
 {
-    eu_tabpage *p = on_tabpage_get_ptr(index);
-    if (p)
-    {
-        on_tabpage_selection(p, index);
-        return p;
-    }
-    return NULL;
+    on_tabpage_set_active(index);
+    eu_window_resize();
+    on_toolbar_update_button();
+    util_set_title(on_tabpage_get_ptr(index));
 }
 
 void

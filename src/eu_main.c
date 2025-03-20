@@ -43,7 +43,7 @@ init_instance(HINSTANCE instance)
     {
         if (eu_get_config()->m_fullscreen)
         {
-            eu_logmsg("we create fullsrceen window\n");
+            eu_logmsg("Main: we create fullsrceen window\n");
         }
         else if (strlen(eu_get_config()->m_placement) < 1)
         {
@@ -160,13 +160,13 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (!share_envent_create())
     {   // 进程同步的信号量
-        eu_logmsg("share_envent_create failed\n");
+        eu_logmsg("Main: share_envent_create failed\n");
         SKY_SAFE_EXIT(SKYLARK_ENVENT_FAILED);
     }
     // 建立共享内存, 里面保存第一个进程的主窗口句柄
     if ((mapped = share_create(NULL, PAGE_READWRITE, sizeof(HWND), SKYLARK_LOCK_NAME)) == NULL)
     {
-        eu_logmsg("share_create failed\n");
+        eu_logmsg("Main: share_create failed\n");
         SKY_SAFE_EXIT(SKYLARK_MEMAP_FAILED);
     }
     else if (ERROR_ALREADY_EXISTS == GetLastError())
@@ -199,7 +199,9 @@ _tmain(int argc, TCHAR *argv[])
                 if (eu_config_parser_path(argv, argc, &vpath) && (count = cvector_size(vpath)) > 0)
                 {
                     vpath[count - 1].focus = 1;
-                    // 多个文件时, 向第一个主窗口发送WM_COPYDATA消息
+                    /* 当编辑器存在, 右键再次打开文件或命令行打开时,
+                     * 向第一个主窗口发送WM_COPYDATA消息
+                     */
                     share_send_msg(vpath, count);
                 }
                 cvector_free(vpath);
@@ -226,7 +228,7 @@ _tmain(int argc, TCHAR *argv[])
 #if 0
     if (!eu_hook_exception())
     {
-        eu_logmsg("eu_hook_exception failed\n");
+        eu_logmsg("Main: eu_hook_exception failed\n");
         SKY_SAFE_EXIT(SKYLARK_HOOK_FAILED);
     }
 #endif
@@ -263,25 +265,25 @@ _tmain(int argc, TCHAR *argv[])
     }
     if (!eu_config_load_toolbar())
     {   // 加载工具栏配置文件
-        eu_logmsg("eu_config_load_toolbar failed\n");
+        eu_logmsg("Main: eu_config_load_toolbar failed\n");
         SKY_SAFE_EXIT(SKYLARK_TB_FAILED);
     }
     // 注册scintilla
     if (!eu_sci_register(instance))
     {
-        eu_logmsg("eu_sci_register failed\n");
+        eu_logmsg("Main: eu_sci_register failed\n");
         SKY_SAFE_EXIT(SKYLARK_SCI_FAILED);
     }
     if (eu_win10_or_later() && strcmp(eu_get_config()->window_theme, "black") == 0)
     {
         if (eu_dark_theme_init(true, true))
         {
-            eu_logmsg("eu_dark_theme_init ok!\n");
+            eu_logmsg("Main: eu_dark_theme_init ok!\n");
         }
     }
     if (!(hwnd = init_instance(instance)))
     {
-        eu_logmsg("init_instance failed\n");
+        eu_logmsg("Main: init_instance failed\n");
         SKY_SAFE_EXIT(SKYLARK_INST_FAILED);
     }
     if (mapped)
@@ -305,7 +307,7 @@ _tmain(int argc, TCHAR *argv[])
         }
         if (!eu_config_load_files())
         {
-            eu_logmsg("eu_config_load_files failed\n");
+            eu_logmsg("Main: eu_config_load_files failed\n");
             SKY_SAFE_EXIT(SKYLARK_CONF_FAILED);
         }
     }

@@ -1975,7 +1975,7 @@ hexview_init(eu_tabpage *pnode)
         pnode->phex->hex_ascii = true;
     }
     SendMessage(pnode->hwnd_sc, HVM_SETITEMCOUNT, 0, (LPARAM) pnode->bytes_remaining);
-    on_tabpage_selection(pnode, pnode->tab_id);
+    on_tabpage_selection(pnode);
     SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
     if (pnode->plugin)
     {
@@ -2359,7 +2359,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             on_sci_after_file(pnode, true);
             on_search_add_navigate_list(pnode, 0);
         }
-        if ((err = on_tabpage_selection(pnode, pnode->tab_id)) >= 0)
+        if ((err = on_tabpage_selection(pnode)) >= 0)
         {
             if (pnode->nc_pos >= 0)
             {

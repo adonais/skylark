@@ -53,6 +53,7 @@ struct _tabpage
     bool sym_show;              // 是否显示右侧边栏
     bool map_show;              // 是否显示文档结构图
     bool result_show;           // 是否显示文档搜索结果窗口
+    bool qrtable_show;          // 是否显示sql表格窗口
     bool sidebar_show;          // 是否显示侧边栏窗口
     bool foldline;              // 是否存在折叠线
     bool needpre;               // 是否需要bom
@@ -80,11 +81,16 @@ struct _tabpage
     intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
     intptr_t reserved0;         // 保留, 仅供临时使用
     intptr_t reserved1;         // 保留, 仅供临时使用
+    intptr_t x, y;              // 行,列
+    char mark_id[MAX_BUFFER];   // 保存书签
+    char fold_id[MAX_BUFFER];   // 保存合拢线
     uint64_t raw_size;          // 文件初始大小
     volatile long pcre_id;      // pcre线程id
     volatile long json_id;      // 解析json线程id
     volatile long busy_id;      // 标签是否空闲状态
     volatile long lock_id;      // 自动保存时使用的锁
+    volatile long stat_id;      // 状态id, 当前激活标签
+    volatile long initial;      // 标签初始化状态
     int tab_id;                 // tab编号,用于保存会话
     int hex_mode;               // 16进制编辑状态, 0, 否. 1,是. 2,插件
     int codepage;               // 真实的文件编码
@@ -93,7 +99,6 @@ struct _tabpage
     int zoom_level;             // 标签页的放大倍数
     int ac_mode;                // 是否处于snippet模式
     int reason;                 // 编辑器窗口状态
-    int initial;                // 标签初始化状态
     int view;                   // 标签所在视图
     remotefs fs_server;         // SFTP
     PHEXVIEW phex;              // 二进制视图
@@ -118,7 +123,7 @@ int  on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(const eu_tabpage *pnode);
-int  on_tabpage_selection(eu_tabpage *pnode, int index);
+int  on_tabpage_selection(const eu_tabpage *pnode);
 int  on_tabpage_sel_number(int **pvec, const bool ascending);
 int  on_tabpage_sel_path(wchar_t ***pvec, bool *hex);
 void on_tabpage_switch_next(HWND hwnd);
@@ -138,10 +143,10 @@ void on_tabpage_active_tab(eu_tabpage *pnode);
 void on_tabpage_active_one(int index);
 void on_tabpage_size(const RECT *prc);
 void on_tabpage_variable_reset(void);
+void on_tabpage_select_index(const int index);
 bool on_tabpage_exist_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(const int index);
-eu_tabpage *on_tabpage_select_index(int index);
 eu_tabpage *on_tabpage_focus_at(void);
 eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);
 TCHAR *on_tabpage_generator(TCHAR *filename, const int len);

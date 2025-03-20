@@ -2144,7 +2144,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 {
                     pstream->close = util_close_stream_by_munmap;
                     ret = true;
-                    eu_logmsg("we open file use MapViewOfFile API\n");
+                    eu_logmsg("File: use mapviewoffile\n");
                 }
             }
         }
@@ -2156,7 +2156,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                eu_logmsg("we open file use ReadFile API, bytesread = %u\n", bytesread);
+                eu_logmsg("File: use readfile, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -3517,10 +3517,16 @@ util_tab_height(const HWND hwnd, const int width)
     return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
 }
 
-void
+/* 广度算法搜索文件夹, 搜索到文件返回true, 否则返回false
+ * 参数1, path 为给定目录
+ * 参数2, pout 是保存输出文件的数组
+ * 参数3, pdata是一个结构体的模板, 可以为空
+ */
+bool
 util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata)
 {
     queue_list sz = {0};
+    size_t vec_size = cvector_size(*pout);
     _tcsncpy(sz.path, path, MAX_BUFFER - 1);
     if (GetFileAttributes(sz.path) & FILE_ATTRIBUTE_DIRECTORY)
     {
@@ -3578,4 +3584,5 @@ util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata)
         }
         cvector_free(sz_queue);
     }
+    return (vec_size < cvector_size(*pout));
 }

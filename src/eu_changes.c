@@ -449,7 +449,7 @@ on_changes_window(HWND hwnd)
             _tcsnicmp(p->pathname, eu_config_path, _tcslen(eu_config_path)) && p->st_mtime != util_last_time(p->pathfile))
         {
             on_changes_click_sci(on_tabpage_focus_at());
-            on_tabpage_selection(p, index);
+            on_tabpage_selection(p);
             if (_taccess(p->pathfile, 0) == -1)
             {
                 on_changes_delete_event(p);
