@@ -1384,7 +1384,7 @@ on_tabpage_newdoc_reload(void)
 }
 
 int
-on_tabpage_add(eu_tabpage *pnode)
+on_tabpage_insert(eu_tabpage *pnode)
 {
     const HWND htab = on_tabpage_hwnd(pnode);
     if (htab)

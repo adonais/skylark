@@ -475,7 +475,7 @@ on_file_new(eu_tabpage *psrc)
             _tcscpy(pnode->pathfile, filename);
             _tcscpy(pnode->filename, filename);
         }
-        if (on_tabpage_add(pnode))
+        if (on_tabpage_insert(pnode))
         {
             eu_safe_free(pnode);
             return EUE_INSERT_TAB_FAIL;
@@ -1296,9 +1296,9 @@ on_file_only_open(file_backup *pbak, const bool selection)
     util_lock_v2(pnode);
     do
     {
-        if ((res = on_tabpage_add(pnode)) != SKYLARK_OK)
+        if ((res = on_tabpage_insert(pnode)) != SKYLARK_OK)
         {
-            eu_logmsg("File: on_tabpage_add failed, err = %d\n", res);
+            eu_logmsg("File: on_tabpage_insert failed, err = %d\n", res);
             break;
         }
         on_file_before_open(pnode);
@@ -1462,7 +1462,7 @@ int
 on_file_drop(HDROP hdrop)
 {
     uint32_t attr = 0;
-    file_backup bak = {-1, -1, 0 , -1};
+    file_backup bak = {-1, -1, 0, -1};
     cvector_vector_type(file_backup) vbak = NULL;
     int count = DragQueryFile(hdrop, 0xFFFFFFFF, NULL, 0);
     for (int index = 0; index < count; ++index)
@@ -1638,9 +1638,9 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     util_lock_v2(pnode);
     do
     {
-        if ((result = on_tabpage_add(pnode)) != SKYLARK_OK)
+        if ((result = on_tabpage_insert(pnode)) != SKYLARK_OK)
         {
-            eu_logmsg("File: on_tabpage_add failed, err = %d\n", result);
+            eu_logmsg("File: on_tabpage_insert failed, err = %d\n", result);
             break;
         }
         on_file_before_open(pnode);

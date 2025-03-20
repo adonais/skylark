@@ -118,7 +118,7 @@ struct _tabpage
 extern HWND g_tabpages;
 
 int  on_tabpage_create_dlg(HWND hwnd);
-int  on_tabpage_add(eu_tabpage *pnode);
+int  on_tabpage_insert(eu_tabpage *pnode);
 int  on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);

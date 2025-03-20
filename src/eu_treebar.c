@@ -1145,7 +1145,8 @@ on_filetree_node_dbclick(void)
     HTREEITEM hti;
     int err = SKYLARK_OK;
     tree_data *tvd = NULL;
-    file_backup bak = {0};
+    file_backup bak = {-1, -1, 0, -1};
+    bak.focus = 1;
     if (!(hti = on_treebar_get_path(&tvd)) || !tvd || !tvd->filepath)
     {
         return EUE_POINT_NULL;

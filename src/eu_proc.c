@@ -867,7 +867,8 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 HMENU file_menu = NULL;
                 HMENU hpop = NULL;
                 HMENU root_menu = GetMenu(hwnd);
-                file_backup bak = {0};
+                file_backup bak = {-1, -1, 0, -1};
+                bak.focus = 1;
                 file_menu = root_menu ? GetSubMenu(root_menu, FILES_MENU) : NULL;
                 hpop = file_menu ? GetSubMenu(file_menu, FT_MENU_RECENT_SUB) : NULL;
                 len = hpop ? GetMenuString(hpop, wm_id, bak.rel_path, MAX_BUFFER, MF_BYCOMMAND) : 0;
@@ -1744,14 +1745,16 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_INTRODUTION:
                 {
-                    file_backup bak = {0};
+                    file_backup bak = {-1, -1, 0, -1};
+                    bak.focus = 1;
                     _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\README_CN.MD"), eu_module_path);
                     on_file_only_open(&bak, true);
                     break;
                 }
                 case IDM_CHANGELOG:
                 {
-                    file_backup bak = {0};
+                    file_backup bak = {-1, -1, 0, -1};
+                    bak.focus = 1;
                     _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\share\\changelog"), eu_module_path);
                     on_file_only_open(&bak, true);
                     break;

@@ -501,7 +501,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
         const bool view = eu_config_check_arg(ptr_arg, arg_c, L"-v1");
         for (int i = 1; i < arg_c; ++i)
         {
-            file_backup data = {-1, -1, 0 , -1};
+            file_backup data = {-1, -1, 0, -1};
             data.hex = (int)hex;
             data.view = (int)view;
             on_config_setup_postion(ptr_arg, arg_c, &data);
