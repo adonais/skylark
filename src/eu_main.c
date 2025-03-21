@@ -244,7 +244,7 @@ _tmain(int argc, TCHAR *argv[])
     {   // 加载语言资源文件
         SKY_SAFE_EXIT(SKYLARK_RESID_FAILED);
     }
-    if (eu_config_check_arg(argv, argc, _T("--help")))
+    if (eu_config_check_arg(argv, argc, _T("--help"), NULL))
     {
         if (strcmp(eu_get_config()->window_theme, "black") == 0)
         {

@@ -784,7 +784,7 @@ EU_EXT_CLASS bool eu_config_load_toolbar(void);
 EU_EXT_CLASS bool eu_config_load_docs(void);
 EU_EXT_CLASS bool eu_config_load_files(void);
 EU_EXT_CLASS bool eu_config_init_path(void);
-EU_EXT_CLASS bool eu_config_check_arg(const wchar_t **args, int argc, const wchar_t *);
+EU_EXT_CLASS bool eu_config_check_arg(const wchar_t **args, int argc, const wchar_t *, int *);
 EU_EXT_CLASS bool eu_config_parser_path(const wchar_t **args, int argc, file_backup **pbak);
 
 // for eu_script.c

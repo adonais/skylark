@@ -464,11 +464,7 @@ on_tabpage_parser_bakup(void *data, int count, char **column, char **names)
     file_backup *pbak = (file_backup *)data;
     for (int i = 0; i < count; ++i)
     {
-        if (STRCMP(names[i], ==, "szTabId"))
-        {
-            pbak->tab_id = (short)atoi(column[i]);
-        }
-        else if (STRCMP(names[i], ==, "szRealPath"))
+        if (STRCMP(names[i], ==, "szRealPath"))
         {
             MultiByteToWideChar(CP_UTF8, 0, column[i], -1, path, MAX_BUFFER);
         }
@@ -571,7 +567,9 @@ on_tabpage_send_file(const HWND hwin, const int index)
         }
         if (err == SKYLARK_OK)
         {
-            COPYDATASTRUCT cpd = { 0 };
+            bak.focus = 1;
+            bak.tab_id = -1;
+            COPYDATASTRUCT cpd = {1};
             cpd.lpData = (PVOID) &bak;
             cpd.cbData = (DWORD) sizeof(file_backup);
             SendMessageW(hwin, WM_COPYDATA, 0, (LPARAM) &cpd);

@@ -1992,7 +1992,7 @@ eu_doc_get_font_name(const eu_tabpage *pnode)
     {
         if (STR_NOT_NUL(pnode->doc_ptr->font_list.font0) && util_font_available(pnode->doc_ptr->font_list.font0))
         {
-            eu_logmsg("we apply [%s] font\n", pnode->doc_ptr->font_list.font0);
+            eu_logmsg("Theme: we apply [%s] font\n", pnode->doc_ptr->font_list.font0);
             return (sptr_t)(pnode->doc_ptr->font_list.font0);
         }
         if (STR_NOT_NUL(pnode->doc_ptr->font_list.font1) && util_font_available(pnode->doc_ptr->font_list.font1))

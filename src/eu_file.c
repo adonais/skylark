@@ -1146,7 +1146,6 @@ on_file_after_open(eu_tabpage *pnode)
         else
         {
             on_tabpage_size(NULL);
-            on_search_jmp_pos(pnode);
         }
         return SKYLARK_OK;
     }
@@ -1413,7 +1412,7 @@ on_file_out_open(const int index, uint32_t *pid)
             }
             else
             {
-                _sntprintf(process, MAX_BUFFER, _T("%s%s"), process, _T(" -noremote "));
+                _sntprintf(process, MAX_BUFFER, _T("%s%s%s%d"), process, _T(" -noremote "), _T("#"), index);
                 err = on_file_close(&p, FILE_REMOTE_CLOSE);
             }
             if (err == SKYLARK_OK)
@@ -2358,7 +2357,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 filebak.zoom = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
                 on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
                 on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
-                filebak.postion = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+                filebak.postion = pnode->initial ? eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) : 0;
             }
             if (mode == FILE_REMOTE_CLOSE)
             {
@@ -2505,6 +2504,10 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
                 }
             }
             on_sci_free_tab(ppnode);
+        }
+        if (mode == FILE_REMOTE_CLOSE)
+        {
+            eu_logmsg("File: drag tabs?\n");
         }
     }
     return err;

@@ -380,7 +380,7 @@ on_theme_copy_style(TCHAR *ac_theme)
     }
     if (on_theme_load_script(ac_theme))
     {
-        eu_logmsg("%s: on_theme_load_script return false\n", __FUNCTION__);
+        eu_logmsg("Theme: %s, on_theme_load_script return false\n", __FUNCTION__);
         return EUE_LOAD_SCRIPT_ERR;
     }
     strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE - 1);
