@@ -1643,7 +1643,6 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
             break;
         }
         on_file_before_open(pnode);
-        //on_tabpage_selection(pnode, pnode->tab_id);
         if (on_file_remote_thread(pnode, pbak, premote) != CURLE_OK)
         {
             on_sql_delete_backup_row(pnode);
@@ -1673,14 +1672,13 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
         {
             pnode->raw_size = pnode->bytes_remaining;
             pnode->plugin->funcs.destroystream(&pnode->plugin->npp, NULL, 0);
-            //on_file_update_focus(pnode, NULL);
             pnode->hex_mode = TYPES_PLUGIN;
-            //result = on_tabpage_selection(pnode, last_focus);
         }
         else if (!TAB_NOT_BIN(pnode) || TAB_HEX_MODE(pnode))
         {   // 以下是两个先决条件, 从文件切换到二进制
             pnode->hex_mode = TYPES_TEXT;
             pnode->codepage = IDM_OTHER_BIN;
+            eu_logmsg("File: %s, hexview_switch_mode()\n", __FUNCTION__);
             result = hexview_switch_mode(pnode);
         }
     }
