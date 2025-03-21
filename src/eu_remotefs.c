@@ -765,10 +765,7 @@ on_remote_load_config(void *lp)
     int err = eu_sqlite3_send(sql, on_remote_parser_callback, &load_code);
     if (err == SQLITE_OK && load_code == 0)
     {
-        if (on_treebar_variable_initialized(&g_filetree))
-        {
-            SendMessage(g_filetree, TVI_LOADREMOTE, 0, 0);
-        }
+        PostMessage(g_filetree, TVI_LOADREMOTE, 0, 0);
     }
     return err;
 }

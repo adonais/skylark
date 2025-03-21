@@ -306,7 +306,7 @@ on_config_load_file(void *lp)
             vbak[i].focus = 0;
         }
         vbak[i].focus = 1;
-        eu_logmsg("run with arguments\n");
+        eu_logmsg("Config: run with arguments\n");
     }
     if (cvector_size(vbak) < 1)
     {
@@ -356,7 +356,7 @@ on_config_create_accel(void)
         }
         else
         {
-            eu_logmsg("CreateAcceleratorTable failed, cause: %lu\n", GetLastError());
+            eu_logmsg("Config: createAcceleratorTable failed, cause: %u\n", GetLastError());
         }
     }
     return ret;
@@ -759,7 +759,7 @@ eu_config_load_docs(void)
     }
     if (do_lua_parser_doctype(lua_path, "fill_my_docs"))
     {
-        eu_logmsg("eu_docs exec failed\n");
+        eu_logmsg("Config: eu_docs exec failed\n");
         goto load_fail;
     }
     ret = true;
@@ -846,8 +846,6 @@ eu_config_load_files(void)
 {
     if (on_config_update_db())
     {
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_favorite_up_config, NULL, 0, NULL));
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_config_load_file, NULL, 0, NULL));
         return on_config_create_accel();
     }

@@ -1489,34 +1489,6 @@ on_treebar_update_addr(remotefs *pserver)
     }
 }
 
-bool
-on_treebar_variable_initialized(HWND *pd)
-{
-    int i = 60;
-    while (!*pd && i--)
-    {
-        SleepEx(100, false);
-    }
-    return (*pd != NULL);
-}
-
-static unsigned __stdcall
-on_treebar_wait_thread(void *lp)
-{
-    return on_treebar_variable_initialized(&g_filetree);
-}
-
-void
-on_treebar_wait_hwnd(void)
-{
-    HANDLE thread = (HANDLE) _beginthreadex(NULL, 0, on_treebar_wait_thread, NULL, 0, NULL);
-    if (thread)
-    {
-        WaitForSingleObject(thread, INFINITE);
-        CloseHandle(thread);
-    }
-}
-
 static void
 on_filetree_menu_callback(HMENU hpop, void *param)
 {
@@ -1963,7 +1935,6 @@ on_treebar_create_dlg(HWND hwnd)
         {
             break;
         }
-        on_filetree_load_drives(g_filetree);
         if (!(filetree_wnd = (WNDPROC) SetWindowLongPtr(g_filetree, GWLP_WNDPROC, (LONG_PTR) filetree_proc)))
         {
             err = EUE_POINT_NULL;
@@ -1989,6 +1960,9 @@ on_treebar_create_dlg(HWND hwnd)
             err = EUE_POINT_NULL;
             break;
         }
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_favorite_up_config, NULL, 0, NULL));
+        CloseHandle((HANDLE) _beginthreadex(NULL, 0, on_remote_load_config, NULL, 0, NULL));
+        on_filetree_load_drives(g_filetree);
         on_theme_update_font(filetree_id);
         on_treebar_update_theme();
     }while(0);
