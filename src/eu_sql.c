@@ -683,30 +683,17 @@ eu_push_find_history(const char *key)
 }
 
 void
-eu_delete_find_history(const char *key)
+eu_delete_find_history(const char *table, const char *key)
 {
-    char *sql = (char *)calloc(1, MAX_BUFFER);
-    if (sql)
-    {
-        _snprintf(sql, MAX_BUFFER, "delete from find_his where szName='%s';", key);
-        on_sql_post_thread(sql);
-    }
-}
-
-static unsigned __stdcall
-sql_search_history(void *lp)
-{
-    if (eu_sqlite3_send("SELECT szName FROM find_his;", (sql3_callback)lp, (void *)IDC_WHAT_FOLDER_CBO) != 0)
-    {
-        eu_logmsg("Sql: %s eu_sqlite3_send return false\n", __FUNCTION__);
-    }
-    return 0;
+    char sql[MAX_BUFFER] = {0};
+    _snprintf(sql, MAX_BUFFER - 1, "delete from %s where szName='%s';", table, key);
+    on_sql_post(sql, NULL, NULL);
 }
 
 void
 eu_get_find_history(sql3_callback pfunc)
 {
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, sql_search_history, pfunc, 0, NULL));
+    on_sql_post("SELECT szName FROM find_his;", pfunc, (void *)IDC_WHAT_FOLDER_CBO);
 }
 
 void
@@ -721,30 +708,9 @@ eu_push_replace_history(const char *key)
 }
 
 void
-eu_delete_replace_history(const char *key)
-{
-    char *sql = (char *)calloc(1, MAX_BUFFER);
-    if (sql)
-    {
-        _snprintf(sql, MAX_BUFFER, "delete from replace_his where szName='%s';", key);
-        on_sql_post_thread(sql);
-    }
-}
-
-static unsigned __stdcall
-sql_replace_history(void *lp)
-{
-    if (eu_sqlite3_send("SELECT szName FROM replace_his;", (sql3_callback)lp, (void *)IDC_SEARCH_RP_CBO) != 0)
-    {
-        eu_logmsg("Sql: %s eu_sqlite3_send return false\n", __FUNCTION__);
-    }
-    return 0;
-}
-
-void
 eu_get_replace_history(sql3_callback pfunc)
 {
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, sql_replace_history, pfunc, 0, NULL));
+    on_sql_post("SELECT szName FROM replace_his;", pfunc, (void *)IDC_SEARCH_RP_CBO);
 }
 
 void
@@ -759,30 +725,9 @@ eu_push_folder_history(const char *key)
 }
 
 void
-eu_delete_folder_history(const char *key)
-{
-    char *sql = (char *)calloc(1, MAX_BUFFER);
-    if (sql)
-    {
-        _snprintf(sql, MAX_BUFFER, "delete from folder_his where szName='%s';", key);
-        on_sql_post_thread(sql);
-    }
-}
-
-static unsigned __stdcall
-sql_folder_history(void *lp)
-{
-    if (eu_sqlite3_send("SELECT szName FROM folder_his;", (sql3_callback)lp, (void *)IDC_SEARCH_DIR_CBO) != 0)
-    {
-        eu_logmsg("Sql: %s eu_sqlite3_send return false\n", __FUNCTION__);
-    }
-    return 0;
-}
-
-void
 eu_get_folder_history(sql3_callback pfunc)
 {
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, sql_folder_history, pfunc, 0, NULL));
+    on_sql_post("SELECT szName FROM folder_his;", pfunc, (void *)IDC_SEARCH_DIR_CBO);
 }
 
 void

@@ -1843,31 +1843,31 @@ on_search_combo_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     if (message == WM_CHAR && wParam == 0x7F)
     {
         int i = CB_ERR;
-        on_search_delete_lword(hwnd);
         int res_id = (int)(LONG_PTR)GetWindowLongPtr(hwnd_search_dlg, GWLP_USERDATA);
-        HWND hwnd_txt = GetDlgItem(hwnd_search_dlg, res_id);
-        if ((i = ComboBox_GetCurSel(hwnd_txt)) != CB_ERR)
+        HWND hwnd_cbo = GetDlgItem(hwnd_search_dlg, res_id);
+        on_search_delete_lword(hwnd);
+        if ((i = ComboBox_GetCurSel(hwnd_cbo)) != CB_ERR)
         {
-            char *key = on_search_get_combo_list(hwnd_txt, i);
+            char *key = on_search_get_combo_list(hwnd_cbo, i);
             if (key)
             {
                 if (res_id == IDC_WHAT_FOLDER_CBO)
                 {
-                    eu_delete_find_history(key);
+                    eu_delete_find_history("find_his", key);
                 }
                 else if (res_id == IDC_SEARCH_RP_CBO)
                 {
-                    eu_delete_replace_history(key);
+                    eu_delete_find_history("replace_his", key);
                 }
                 else if (res_id == IDC_SEARCH_DIR_CBO)
                 {
-                    eu_delete_folder_history(key);
+                    eu_delete_find_history("folder_his", key);
                 }
                 free(key);
             }
-            ComboBox_DeleteString(hwnd_txt, i);
+            ComboBox_DeleteString(hwnd_cbo, i);
         }
-        return 0;
+        return 1;
     }
     return CallWindowProc((WNDPROC)orig_combo_proc, hwnd, message, wParam, lParam);
 }
@@ -3634,7 +3634,6 @@ on_search_save_state(HWND hdlg)
 static INT_PTR CALLBACK
 on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(lParam);
     switch (message)
     {
         case WM_INITDIALOG:
