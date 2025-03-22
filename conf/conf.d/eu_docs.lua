@@ -66,6 +66,7 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_NSIS = 45,\n",
     "    DOCTYPE_BATCH = 46,\n",
     "    DOCTYPE_POWERSHELL = 47,\n",
+    "    DOCTYPE_TOML = 48,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -891,6 +892,26 @@ if (not eu_core.file_exists(user_file)) then
     "          ffi_null,\n",
     "      },\n",
     "      {\n",
+    "          e.DOCTYPE_TOML,\n",
+    "          \"toml\",\n",
+    "          \";*.toml;*.pylintrc;\",\n",
+    "          \"Toml File\",\n",
+    "          \"toml.snippets\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_cmake_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
     "          e.DOCTYPE_TXT,\n",
     "          \"text\",\n",
     "          \";*.txt;\",\n",
@@ -1188,7 +1209,7 @@ function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
   --print("my_size = " .. my_size)
-  if (my_size < 48) then
+  if (my_size < 49) then
     eu_core.euapi.eu_reset_docs_mask()
   end
   for i=0,my_size-1 do
