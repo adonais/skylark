@@ -130,7 +130,15 @@ on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
         }
         else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
         {
-            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITE, 0);
+            // d3d11, patched scintilla
+            if (eu_win10_or_later() != (uint32_t)-1)
+            {
+                eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECT_WRITE_1, 0);
+            }
+            else
+            {
+                eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITE, 0);
+            }
         }
         else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2DRETAIN)
         {

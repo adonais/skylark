@@ -1539,6 +1539,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_FORMAT_CHECK_INDENTATION:
                 {
+                    eu_logmsg("MainCallbak: technology = %d\n", (int)eu_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0));
                     on_format_check_indentation(pnode);
                     break;
                 }

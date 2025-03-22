@@ -172,7 +172,7 @@ on_dark_set_theme(HWND hwnd, const wchar_t *psz_name, const wchar_t *psz_list)
         {
             if (fnSetWindowTheme(hwnd, psz_name, psz_list) != S_OK)
             {
-                eu_logmsg("%s: fnSetWindowTheme failed\n", __FUNCTION__);
+                eu_logmsg("Theme: %s, fnSetWindowTheme failed\n", __FUNCTION__);
             }
         }
         eu_close_dll(uxtheme);
@@ -235,7 +235,7 @@ on_dark_set_caption(void)
                 colour mycolor = white ? rgb_dark_txt_color : DWMWA_COLOR_DEFAULT;
                 ret = S_OK == fnDwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &mycolor, sizeof mycolor);
                 g_color_enable = white && ret == S_OK;
-                eu_logmsg("%s: ret = %d\n", __FUNCTION__, ret);
+                eu_logmsg("Theme: %s, ret = %d\n", __FUNCTION__, ret);
             }
             eu_close_dll(dwm);
         #endif // USE_DWMAPI
@@ -588,7 +588,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
             }
             if (g_dark_enabled && on_dark_create_hot_brush() && on_dark_set_caption())
             {
-                eu_logmsg("dark theme is successfully initialized\n");
+                eu_logmsg("Theme: dark theme is successfully initialized\n");
                 return on_dark_create_bgbrush();
             }
             else
@@ -596,7 +596,7 @@ eu_dark_theme_init(bool fix_scroll, bool dark)
                 g_dark_supported = false;
                 g_dark_enabled = false;
                 eu_close_dll(g_uxtheme);
-                eu_logmsg("dark theme initialization failed\n");
+                eu_logmsg("Theme: dark theme initialization failed\n");
             }
         }
     }
