@@ -404,6 +404,8 @@ int on_doc_init_after_cmake(void *pnode);
 int on_doc_init_after_log(void *pnode);
 int on_doc_init_after_nim(void *pnode);
 int on_doc_init_after_shell_sh(void *pnode);
+int on_doc_init_after_shell_batch(void *pnode);
+int on_doc_init_after_shell_power(void *pnode);
 int on_doc_init_after_properties(void *pnode);
 int on_doc_init_after_diff(void *pnode);
 

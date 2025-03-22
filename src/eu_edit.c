@@ -237,7 +237,7 @@ on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode)
         const sptr_t end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         if (!(start < end))
         {
-            eu_logmsg("%s: start >= end\n", __FUNCTION__);
+            eu_logmsg("Edit: %s, start >= end\n", __FUNCTION__);
             return;
         }
         if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
@@ -530,11 +530,11 @@ on_edit_push_compare(void)
         }
         else if ((path = util_which(_T("bcompare"))) != NULL)
         {
-            eu_logmsg("found bcompare\n");
+            eu_logmsg("Edit: found bcompare\n");
         }
         else if ((path = util_which(_T("winmergeu"))) != NULL)
         {
-            eu_logmsg("found winmergeu\n");
+            eu_logmsg("Edit: found winmergeu\n");
         }
         else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
         {
@@ -1351,7 +1351,7 @@ on_edit_md5(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
+        eu_logmsg("Edit: %s, memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"MD5"};
@@ -1385,7 +1385,7 @@ on_edit_sha1(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
+        eu_logmsg("Edit: %s, memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA1"};
@@ -1419,7 +1419,7 @@ on_edit_sha256(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
+        eu_logmsg("Edit: %s, memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA256"};
@@ -1954,17 +1954,13 @@ on_edit_comment_line(eu_tabpage *pnode)
         case DOCTYPE_JULIA:
             eu_toggle_comment(pnode, "# ", false);
             break;
+        case DOCTYPE_BATCH:
+            eu_toggle_comment(pnode, "@rem ", false);
+            break;
+        case DOCTYPE_POWERSHELL:
         case DOCTYPE_SH:
         {
-            TCHAR *sp = on_doc_get_ext(pnode);
-            if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
-            {
-                eu_toggle_comment(pnode, "@rem ", false);
-            }
-            else
-            {
-                eu_toggle_comment(pnode, "# ", false);
-            }
+            eu_toggle_comment(pnode, "# ", false);
             break;
         }
         case DOCTYPE_INNO:
@@ -2058,17 +2054,13 @@ on_edit_comment_stream(eu_tabpage *pnode)
         case DOCTYPE_JULIA:
             on_comment_newline(pnode, "#=", "=#");
             break;
+        case DOCTYPE_POWERSHELL:
+            on_comment_newline(pnode, "<#", "#>");
+            break;
+        case DOCTYPE_BATCH:
         case DOCTYPE_SH:
         {
-            TCHAR *sp = on_doc_get_ext(pnode);
-            if ((sp && _tcsstr(_T(";*.ps1;*.psc1;*.psd1;*.psm1;"), sp)))
-            {
-                on_comment_newline(pnode, "<#", "#>");
-            }
-            else
-            {
-                on_edit_comment_line(pnode);
-            }
+            on_edit_comment_line(pnode);
             break;
         }
         case DOCTYPE_INNO:
@@ -2353,7 +2345,7 @@ on_edit_bookmark_copy(eu_tabpage *pnode)
                     free(p1);
                     if (!p)
                     {
-                        eu_logmsg("Warning: p is null\n");
+                        eu_logmsg("Edit: warning, p is null\n");
                         break;
                     }
                 }

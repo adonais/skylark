@@ -64,6 +64,7 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_TCL = 43,\n",
     "    DOCTYPE_INNO = 44,\n",
     "    DOCTYPE_NSIS = 45,\n",
+    "    DOCTYPE_BATCH = 46,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -104,6 +105,26 @@ if (not eu_core.file_exists(user_file)) then
     "          eu_core.euapi.on_doc_cpp_like,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_BATCH,\n",
+    "          \"batch\",\n",
+    "          \";*.bat;*.cmd;*.nt;\",\n",
+    "          \"Batch File\",\n",
+    "          \"batch.snippets\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          eu_core.euapi.on_doc_init_list,\n",
+    "          eu_core.euapi.on_doc_init_after_shell_batch,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general_sh,\n",
+    "          eu_core.euapi.on_doc_cpp_like,\n",
+    "          eu_core.euapi.on_doc_reload_list_sh,\n",
+    "          eu_core.euapi.on_doc_click_list_jump_sh,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -1146,7 +1167,7 @@ function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
   --print("my_size = " .. my_size)
-  if (my_size < 46) then
+  if (my_size < 47) then
     eu_core.euapi.eu_reset_docs_mask()
   end
   for i=0,my_size-1 do

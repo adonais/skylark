@@ -808,6 +808,38 @@ on_doc_init_after_shell_sh(eu_tabpage *pnode)
 }
 
 int
+on_doc_init_after_shell_batch(eu_tabpage *pnode)
+{
+    on_doc_key_scilexer(pnode, "batch");
+    on_doc_default_light(pnode, SCE_BAT_DEFAULT, 0, -1, false);
+    on_doc_keyword_light(pnode, SCE_BAT_WORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_BAT_COMMAND, 1, 0);
+    on_doc_keyword_light(pnode, SCE_BAT_HIDE, 8, 0);
+    on_doc_char_light(pnode, SCE_BAT_LABEL, 0);
+    on_doc_comment_light(pnode, SCE_BAT_COMMENT, 0);
+    on_doc_string_light(pnode, SCE_BAT_IDENTIFIER, 0);
+    on_doc_operator_light(pnode, SCE_BAT_OPERATOR, 0);
+    // batch词法解析不支持折叠
+    // on_doc_enable_foldline(pnode);
+    return 0;
+}
+
+int
+on_doc_init_after_shell_power(eu_tabpage *pnode)
+{
+    on_doc_key_scilexer(pnode, "powershell");
+    on_doc_keyword_light(pnode, SCE_POWERSHELL_KEYWORD, 0, 0);
+    on_doc_keyword_light(pnode, SCE_POWERSHELL_CMDLET, 7, 0);
+    on_doc_operator_light(pnode, SCE_POWERSHELL_OPERATOR, 0);
+    on_doc_number_light(pnode, SCE_POWERSHELL_NUMBER, 0);
+    on_doc_comment_light(pnode, SCE_POWERSHELL_COMMENT, 0);
+    on_doc_commentblock_light(pnode, SCE_POWERSHELL_COMMENTSTREAM, 0);
+    on_doc_preprocessor_light(pnode, SCE_POWERSHELL_VARIABLE, -1, 0);
+    on_doc_enable_foldline(pnode);
+    return 0;
+}
+
+int
 on_doc_init_after_rust(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "rust");

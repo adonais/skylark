@@ -855,6 +855,8 @@ EU_EXT_CLASS int on_doc_init_after_cmake(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_log(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_nim(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_shell_sh(eu_tabpage *pnode);
+EU_EXT_CLASS int on_doc_init_after_shell_batch(eu_tabpage *pnode);
+EU_EXT_CLASS int on_doc_init_after_shell_power(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_properties(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_diff(eu_tabpage *pnode);
 
