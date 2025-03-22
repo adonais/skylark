@@ -61,7 +61,6 @@ struct _tabpage
     bool at_close;              // 是否绘制了关闭按钮
     bool be_modify;             // 文档是否修改, 同步hex模式
     bool fn_modify;             // 文档打开时的初始状态
-    bool last_focus;            // 保存前台焦点
     TCHAR pathfile[MAX_BUFFER]; // 文件带路径名
     TCHAR pathname[MAX_BUFFER]; // 文件所在路径名
     TCHAR bakpath[MAX_BUFFER];  // 备份后的名称
@@ -92,6 +91,7 @@ struct _tabpage
     volatile long stat_id;      // 状态id, 当前激活标签
     volatile long initial;      // 标签初始化状态
     int tab_id;                 // tab编号,用于保存会话
+    int tab_focus;              // 保存前台焦点
     int hex_mode;               // 16进制编辑状态, 0, 否. 1,是. 2,插件
     int codepage;               // 真实的文件编码
     int bakcp;                  // 自动保存时的文件编码

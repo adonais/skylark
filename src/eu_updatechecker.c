@@ -370,10 +370,13 @@ on_update_sql(void)
     if (eu_get_config())
     {
         char sql[MAX_PATH] = {0};
+        char *pver = eu_utf16_utf8(__EU_INFO_RELEASE_VERSION, NULL);
         eu_get_config()->upgrade.flags = VERSION_LATEST;
         eu_get_config()->upgrade.last_check = (uint64_t)time(NULL);
-        _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", VERSION_LATEST);
+        _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szVersion = '%s', szBUildId = %I64u, szExtra = %d WHERE szName = 'skylark.exe';", 
+                  pver, on_about_build_id(), VERSION_LATEST);
         on_sql_post(sql, NULL, NULL);
+        free(pver);
     }
 }
 

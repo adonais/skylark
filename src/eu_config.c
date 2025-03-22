@@ -20,12 +20,6 @@
 #define ascii_special_symbol(ch) \
         ((ch > 0x20 && ch < 0x30)||(ch > 0x39 && ch < 0x41)||(ch > 0x5a && ch < 0x7f))
 
-typedef struct _skyver_data
-{
-    int ver;
-    int status;
-} skyver_data;
-
 static void
 on_config_setup_postion(const wchar_t **args, int arg_c, file_backup *pbak)
 {
@@ -445,16 +439,12 @@ on_config_edition(const char *str)
 static int
 on_config_skyver_callbak(void *data, int count, char **column, char **names)
 {
-    skyver_data *pd = (skyver_data *)data;
+    int *pd = (int *)data;
     for (int i = 0; i < count; ++i)
     {
-        if (STRCMP(names[i], ==, "szVersion"))
+        if (STRCMP(names[i], ==, "szExtra"))
         {
-            pd->ver = on_config_edition(column[i]);
-        }
-        else if (STRCMP(names[i], ==, "szExtra"))
-        {
-            pd->status = atoi(column[i]);
+            *pd = atoi(column[i]);
         }
     }
     return 0;
@@ -484,27 +474,19 @@ on_config_update_db(void)
 {
     if (eu_hwnd_self() == share_envent_get_hwnd())
     {
-        skyver_data v = {0};
-        int err = on_sql_post("SELECT szVersion, szExtra FROM skylar_ver;", on_config_skyver_callbak, &v);
-        if (err != SKYLARK_SQL_END)
+        int v = -1;
+        on_sql_post("SELECT szExtra FROM skylar_ver;", on_config_skyver_callbak, &v);
+        if (v == VERSION_UPDATE_COMPLETED)
         {
-            if (v.ver < 40009)
+            if (on_update_excute())
             {
-                on_sql_post("UPDATE skylar_ver SET szVersion='4.0.9' WHERE szName='skylark.exe';", NULL, NULL);
-                on_sql_post("ALTER TABLE skylark_session ADD szView SMALLINT DEFAULT 0;", NULL, NULL);
+                on_update_sql();
+                eu_session_backup(SESSION_CONFIG);
+                return false;
             }
-            if (v.status == VERSION_UPDATE_COMPLETED)
+            else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
             {
-                if (on_update_excute())
-                {
-                    on_update_sql();
-                    eu_session_backup(SESSION_CONFIG);
-                    return false;
-                }
-                else if (eu_get_config()->upgrade.flags != VERSION_LATEST)
-                {
-                    on_update_sql();
-                }
+                on_update_sql();
             }
         }
     }

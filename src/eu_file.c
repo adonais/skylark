@@ -276,7 +276,7 @@ on_file_get_bakup(const eu_tabpage *pnode)
         pbak->eol = pnode->eol;
         pbak->blank = pnode->is_blank;
         pbak->hex = pnode->hex_mode;
-        pbak->focus = (int)pnode->last_focus;
+        pbak->focus = pnode->tab_focus;
         pbak->zoom = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
         pbak->status = pnode->be_modify ? 1 : 0;
         pbak->view = pnode->view;
@@ -1133,7 +1133,7 @@ on_file_after_open(eu_tabpage *pnode)
             on_file_update_postion(pnode, NULL);
             on_search_add_navigate_list(pnode, pnode->nc_pos);
         }
-        if (pnode->last_focus)
+        if (pnode->tab_focus > 0)
         {
             if ((pnode->tab_id = on_tabpage_selection(pnode)) >= 0)
             {
@@ -1193,7 +1193,7 @@ on_file_node_init(eu_tabpage **p, file_backup *pbak)
         (*p)->nc_pos = pbak->postion;
         (*p)->tab_id = pbak->tab_id;
         (*p)->view = pbak->view;
-        (*p)->last_focus = pbak->focus > 0 ? true : false;
+        (*p)->tab_focus = pbak->focus;
         (*p)->hex_mode = pbak->hex;
         (*p)->is_blank = pbak->blank;
         (*p)->be_modify = !!pbak->status;
@@ -2351,7 +2351,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 filebak.eol = pnode->eol;
                 filebak.blank = pnode->is_blank;
                 filebak.hex = pnode->hex_mode;
-                filebak.focus = (int)pnode->last_focus;
+                filebak.focus = pnode->tab_focus;
                 filebak.zoom = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
                 on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
                 on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
@@ -2656,7 +2656,7 @@ on_file_check_save(void *lp)
             pnode->zoom_level = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
             if (at_focus >= 0)
             {
-                pnode->last_focus = pnode->tab_id == at_focus;
+                pnode->tab_focus = (int)(pnode->tab_id == at_focus);
             }
             if (on_file_close(&pnode, FILE_SHUTDOWN))
             {

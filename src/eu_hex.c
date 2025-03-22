@@ -1975,7 +1975,7 @@ hexview_init(eu_tabpage *pnode)
         pnode->phex->hex_ascii = true;
     }
     SendMessage(pnode->hwnd_sc, HVM_SETITEMCOUNT, 0, (LPARAM) pnode->bytes_remaining);
-    if (pnode->last_focus)
+    if (pnode->tab_focus > 0)
     {
         on_tabpage_selection(pnode);
         SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
@@ -2407,7 +2407,7 @@ hexview_switch_item(eu_tabpage *pnode)
             eu_tabpage *p = NULL;
             cvector_vector_type(int) v = NULL;
             int num = on_tabpage_sel_number(&v, false);
-            pnode->last_focus = true;
+            pnode->tab_focus = 1;
             for (int i = 0; i < num; ++i)
             {
                 eu_tabpage *p = on_tabpage_get_ptr(v[i]);

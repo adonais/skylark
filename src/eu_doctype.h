@@ -88,7 +88,9 @@ enum dctype
     DOCTYPE_INNO = 44,
     DOCTYPE_NSIS = 45,
     DOCTYPE_BATCH = 46,
-    DOCTYPE_POWERSHELL = 47
+    DOCTYPE_POWERSHELL = 47,
+    DOCTYPE_TOML = 48,
+    DOCTYPE_ZIG = 49
 };
 
 typedef struct _doc_styles
