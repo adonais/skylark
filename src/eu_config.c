@@ -270,6 +270,7 @@ static unsigned __stdcall
 on_config_load_file(void *lp)
 {
     int error = 0;
+    size_t count = 0;
     file_backup bak = {0};
     cvector_vector_type(file_backup) vbak = NULL;
     if (eu_get_config()->m_session)
@@ -283,8 +284,7 @@ on_config_load_file(void *lp)
             }
         }
         else
-        {
-            // on_config_parser_bakup导致工作目录变更
+        {   /* on_config_parser_bakup导致工作目录变更 */
             on_sql_do_session("SELECT * FROM skylark_session ORDER BY szTabId ASC;", on_config_parser_bakup, (void *)&vbak);
         }
     }
@@ -294,21 +294,26 @@ on_config_load_file(void *lp)
     }
     if (error == 0 && on_config_open_args(&vbak))
     {
-        size_t i = 0;
-        for (; i < cvector_size(vbak) - 1; ++i)
+        for (; count < cvector_size(vbak) - 1; ++count)
         {
-            vbak[i].focus = 0;
+            vbak[count].focus = 0;
         }
-        vbak[i].focus = 1;
+        vbak[count].focus = 1;
         eu_logmsg("Config: run with arguments\n");
     }
-    if (cvector_size(vbak) < 1)
+    /* 正常标签与空标签一起关闭时可能没有获取焦点 */
+    if ((count = cvector_size(vbak)) == 1 && (!vbak[0].focus))
+    {
+        vbak[0].focus = 1;
+    }
+    else if (count < 1)
     {
         bak.focus = 1;
         bak.rel_path[0] = L'\0';
         cvector_push_back(vbak, bak);
+        ++count;
     }
-    share_send_msg(vbak, cvector_size(vbak));
+    share_send_msg(vbak, count);
     cvector_free(vbak);
     return 0;
 }
@@ -337,7 +342,7 @@ on_config_create_accel(void)
         }
         p->haccel = CreateAcceleratorTable(p->accel_ptr, p->accel_num);
         if (p->haccel)
-        {   // 恢复原数据
+        {   /* 恢复原数据 */
             for (i = 0; i < p->accel_num; ++i )
             {
                 if (old[i] > 0)
@@ -634,7 +639,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                     }
                 }
                 else
-                {   // 处理以相对路径打开的文件或目录
+                {   /* 处理以相对路径打开的文件或目录 */
                     GetFullPathNameW(ptr_arg[i], MAX_BUFFER, data.rel_path, &p);
                     len = wcslen(data.rel_path);
                     star = data.rel_path[len - 1] == L'*';
