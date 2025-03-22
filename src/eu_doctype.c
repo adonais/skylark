@@ -828,6 +828,7 @@ int
 on_doc_init_after_shell_power(eu_tabpage *pnode)
 {
     on_doc_key_scilexer(pnode, "powershell");
+    on_doc_keyword_light(pnode, SCE_POWERSHELL_FUNCTION, 1, 0);
     on_doc_keyword_light(pnode, SCE_POWERSHELL_KEYWORD, 0, 0);
     on_doc_keyword_light(pnode, SCE_POWERSHELL_CMDLET, 7, 0);
     on_doc_operator_light(pnode, SCE_POWERSHELL_OPERATOR, 0);
