@@ -467,6 +467,11 @@ menu_update_item(const HMENU menu, const bool init)
                         util_enable_menu_item(menu, IDM_EDIT_REDO, init || eu_sci_call(pnode,SCI_CANREDO, 0, 0));
                         break;
                     }
+                    case IDM_EDIT_UNDO_SELECTION:
+                    {
+                        util_set_menu_item(menu, IDM_EDIT_UNDO_SELECTION, eu_get_config()->m_undo_selection);
+                        break;
+                    }
                     case IDM_EDIT_CUT:
                     case IDM_EDIT_COPY:
                     case IDM_EDIT_PASTE:

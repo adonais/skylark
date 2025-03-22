@@ -33,6 +33,7 @@ function eu_accel.loadaccel()
       "                 -- Edit menu\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"Z\"), IDM_EDIT_UNDO},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"Y\"), IDM_EDIT_REDO},\n",
+      "                 {0, 0, IDM_EDIT_UNDO_SELECTION},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"X\"), IDM_EDIT_CUT},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"C\"), IDM_EDIT_COPY},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"V\"), IDM_EDIT_PASTE},\n",
@@ -218,7 +219,7 @@ function eu_accel.loadaccel()
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
     -- print("m_len = " .. m_len)
-    if (m_len < 186) then
+    if (m_len < 187) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})

@@ -1971,6 +1971,8 @@ eu_save_config(void)
         "edit_rendering_technology = %d\n"
         "update_file_mask = %d\n"
         "update_file_notify = %d\n"
+        "doc_highlight_restrict = 0x%x\n"
+        "set_undo_selection = %s\n"
         "light_all_find_str = %s\n"
         "backup_on_file_write = %s\n"
         "save_last_session = %s\n"
@@ -2108,6 +2110,8 @@ eu_save_config(void)
               g_config->m_render,
               g_config->m_upfile,
               g_config->m_up_notify,
+              g_config->m_doc_restrict,
+              g_config->m_undo_selection?"true":"false",
               g_config->m_light_str?"true":"false",
               g_config->m_write_copy?"true":"false",
               g_config->m_session?"true":"false",

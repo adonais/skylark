@@ -277,6 +277,11 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         eu_sci_call(pnode, SCI_BRACEBADLIGHTINDICATOR, true, INDIC_STRIKE);
         // 注册补全列表图标
         eu_sci_call(pnode, SCI_REGISTERIMAGE, SNIPPET_FUNID, (sptr_t)auto_xpm);
+        // undo操作支持文本选中
+        if (eu_get_config()->m_undo_selection)
+        {
+            eu_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_ENABLED, 0);
+        }
     }
 }
 

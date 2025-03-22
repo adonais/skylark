@@ -1044,6 +1044,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_REDO:
                     on_edit_redo(pnode);
                     break;
+                case IDM_EDIT_UNDO_SELECTION:
+                    eu_get_config()->m_undo_selection ^= true;
+                    break;
                 case IDM_EDIT_CUT:
                     on_edit_cut(pnode);
                     break;
