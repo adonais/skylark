@@ -791,7 +791,7 @@ if (not eu_core.file_exists(user_file)) then
     "      {\n",
     "          e.DOCTYPE_SH,\n",
     "          \"shell\",\n",
-    "          \";*.bat;*.cmd;*.nt;*.ps1;*.psc1;*.psd1;*.psm1;*.sh;*.mozconfig;\",\n",
+    "          \";*.sh;*.csh;*.zsh;*.bash;*.tcsh;*.m4;*.in;*.ac;\",\n",
     "          \"Shell\",\n",
     "          \"shell.snippets\",\n",
     "          0,\n",

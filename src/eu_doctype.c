@@ -110,11 +110,6 @@ on_doc_init_list(eu_tabpage *pnode)
 int
 on_doc_init_list_sh(eu_tabpage *pnode)
 {
-    TCHAR *sp = on_doc_get_ext(pnode);
-    if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
-    {
-        return SKYLARK_OK;
-    }
     return on_doc_init_list(pnode);
 }
 
@@ -780,35 +775,6 @@ on_doc_init_after_perl(eu_tabpage *pnode)
     return 0;
 }
 
-int
-on_doc_init_after_shell(eu_tabpage *pnode)
-{
-    TCHAR *sp = on_doc_get_ext(pnode);
-    if (sp && _tcsstr(_T(";*.ps1;*.psc1;*.psd1;*.psm1;"), sp))
-    {
-        on_doc_key_scilexer(pnode, "powershell");
-        on_doc_keyword_light(pnode, SCE_POWERSHELL_KEYWORD, 0, 0);
-        on_doc_keyword_light(pnode, SCE_POWERSHELL_CMDLET, 7, 0);
-        on_doc_operator_light(pnode, SCE_POWERSHELL_OPERATOR, 0);
-        on_doc_number_light(pnode, SCE_POWERSHELL_NUMBER, 0);
-        on_doc_comment_light(pnode, SCE_POWERSHELL_COMMENT, 0);
-        on_doc_commentblock_light(pnode, SCE_POWERSHELL_COMMENTSTREAM, 0);
-        on_doc_preprocessor_light(pnode, SCE_POWERSHELL_VARIABLE, -1, 0);
-    }
-    else
-    {
-        on_doc_key_scilexer(pnode, "bash");
-        on_doc_keyword_light(pnode, SCE_SH_WORD, 0, 0);
-        on_doc_string_light(pnode, SCE_SH_STRING, 0);
-        on_doc_char_light(pnode, SCE_SH_CHARACTER, 0);
-        on_doc_number_light(pnode, SCE_SH_NUMBER, 0);
-        on_doc_comment_light(pnode, SCE_SH_COMMENTLINE, 0);
-        on_doc_operator_light(pnode, SCE_SH_OPERATOR, 0);
-    }
-    on_doc_enable_foldline(pnode);
-    return 0;
-}
-
 TCHAR *
 on_doc_get_ext(eu_tabpage *pnode)
 {
@@ -830,21 +796,15 @@ on_doc_get_ext(eu_tabpage *pnode)
 int
 on_doc_init_after_shell_sh(eu_tabpage *pnode)
 {
-    TCHAR *sp = on_doc_get_ext(pnode);
-    if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
-    {
-        on_doc_key_scilexer(pnode, "batch");
-        on_doc_default_light(pnode, SCE_BAT_DEFAULT, 0, -1, false);
-        on_doc_keyword_light(pnode, SCE_BAT_WORD, 0, 0);
-        on_doc_keyword_light(pnode, SCE_BAT_COMMAND, 1, 0);
-        on_doc_keyword_light(pnode, SCE_BAT_HIDE, 8, 0);
-        on_doc_char_light(pnode, SCE_BAT_LABEL, 0);
-        on_doc_comment_light(pnode, SCE_BAT_COMMENT, 0);
-        on_doc_string_light(pnode, SCE_BAT_IDENTIFIER, 0);
-        on_doc_operator_light(pnode, SCE_BAT_OPERATOR, 0);
-        return 0;
-    }
-    return on_doc_init_after_shell(pnode);
+    on_doc_key_scilexer(pnode, "bash");
+    on_doc_keyword_light(pnode, SCE_SH_WORD, 0, 0);
+    on_doc_string_light(pnode, SCE_SH_STRING, 0);
+    on_doc_char_light(pnode, SCE_SH_CHARACTER, 0);
+    on_doc_number_light(pnode, SCE_SH_NUMBER, 0);
+    on_doc_comment_light(pnode, SCE_SH_COMMENTLINE, 0);
+    on_doc_operator_light(pnode, SCE_SH_OPERATOR, 0);
+    on_doc_enable_foldline(pnode);
+    return 0;
 }
 
 int
@@ -1756,11 +1716,6 @@ on_doc_keyup_general(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 int
 on_doc_keyup_general_sh(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
-    TCHAR *sp = on_doc_get_ext(pnode);
-    if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
-    {
-        return 0;
-    }
     return on_doc_brace_handling(pnode);
 }
 
@@ -1774,11 +1729,6 @@ on_doc_reload_list_reqular(eu_tabpage *pnode)
 int
 on_doc_reload_list_sh(eu_tabpage *pnode)
 {
-    TCHAR *sp = on_doc_get_ext(pnode);
-    if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
-    {
-        return 0;
-    }
     return on_symlist_reqular(pnode);
 }
 
@@ -1791,11 +1741,6 @@ on_doc_click_list_jmp(eu_tabpage *pnode)
 int
 on_doc_click_list_jump_sh(eu_tabpage *pnode)
 {
-    TCHAR *sp = on_doc_get_ext(pnode);
-    if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
-    {
-        return 0;
-    }
     return on_symlist_jump_item(pnode);
 }
 

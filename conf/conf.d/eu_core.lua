@@ -388,7 +388,6 @@ int on_doc_init_after_redis(void *pnode);
 int on_doc_init_after_python(void *pnode);
 int on_doc_init_after_lua(void *pnode);
 int on_doc_init_after_perl(void *pnode);
-int on_doc_init_after_shell(void *pnode);
 int on_doc_init_after_rust(void *pnode);
 int on_doc_init_after_ruby(void *pnode);
 int on_doc_init_after_lisp(void *pnode);

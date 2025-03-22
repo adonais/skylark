@@ -839,7 +839,6 @@ EU_EXT_CLASS int on_doc_init_after_redis(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_python(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_lua(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_perl(eu_tabpage *pnode);
-EU_EXT_CLASS int on_doc_init_after_shell(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_rust(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_ruby(eu_tabpage *pnode);
 EU_EXT_CLASS int on_doc_init_after_lisp(eu_tabpage *pnode);
