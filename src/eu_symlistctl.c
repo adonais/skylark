@@ -23,26 +23,30 @@ static volatile sptr_t symlist_wnd = 0;
 static int
 pcre_match_callback(pcre_conainer *pcre_info, void *param)
 {
-    MSG msg = {0};
+    TCHAR *uni_str = NULL;
     eu_tabpage *pnode = (eu_tabpage *)param;
     if (!pnode || pnode->pcre_id == 1)
     {
         eu_logmsg("Pcre: recv cancel message, thread %u exit ...\n", GetCurrentThreadId());
         return EUE_TAB_NULL;
     }
-    if (pcre_info->rc > 1)
+    if (pcre_info->rc < 0)
+    {
+        eu_logmsg("Pcre: matching error or not match\n");
+        return EUE_PCRE_NO_MATCHING;
+    }
+    for (int i = 1; i < pcre_info->rc; ++i)
     {
         char buf[MAX_PATH+1] = {0};
-        const char *substring_start = pcre_info->buffer + pcre_info->ovector[2];
-        int substring_length = pcre_info->ovector[3] - pcre_info->ovector[2];
-        snprintf(buf, MAX_PATH, "%.*s", substring_length, substring_start);
-        if (STRCMP(buf, !=, "if"))
+        const char *substring_start = pcre_info->buffer + pcre_info->ovector[2 * i];
+        int substring_length = pcre_info->ovector[2 * i + 1] - pcre_info->ovector[2 * i];
+        if (substring_length > 0)
         {
-            TCHAR *uni_str = eu_utf8_utf16(buf, NULL);
-            if (uni_str)
-            {
-                PostMessage(pnode->hwnd_symlist, WM_PCRE_ADDSTRING, (WPARAM)uni_str, pcre_info->ovector[2]);
-            }
+            snprintf(buf, MAX_PATH, "%.*s", substring_length, substring_start);
+        }
+        if (*buf != 0 && STRCMP(buf, !=, "if") && (uni_str = eu_utf8_utf16(buf, NULL)))
+        {
+            PostMessage(pnode->hwnd_symlist, WM_PCRE_ADDSTRING, (WPARAM)uni_str, pcre_info->ovector[2 * i]);
         }
     }
     return SKYLARK_OK;
