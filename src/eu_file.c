@@ -2355,7 +2355,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 filebak.zoom = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
                 on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
                 on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
-                filebak.postion = pnode->initial ? eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) : 0;
+                filebak.postion = pnode->initial ? eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) : (pnode->nc_pos >= 0 ? pnode->nc_pos : 0);
             }
             if (mode == FILE_REMOTE_CLOSE)
             {

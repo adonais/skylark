@@ -78,7 +78,7 @@ BEGIN
     BEGIN
         MENUITEM "撤销(&U)",                                    IDM_EDIT_UNDO
         MENUITEM "重做(&R)",                                    IDM_EDIT_REDO
-        MENUITEM "撤销时恢复选中(&S)",                           IDM_EDIT_UNDO_SELECTION
+        MENUITEM "撤销时恢复选中(&S)",                          IDM_EDIT_UNDO_SELECTION
         MENUITEM MF_SEPARATOR
         MENUITEM "剪切",                                        IDM_EDIT_CUT
         MENUITEM "复制",                                        IDM_EDIT_COPY
@@ -565,11 +565,11 @@ IDR_FILETREE_FAVORITE_POPUP MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "打开(&O)",                                        IDM_FAVORITE_OPEN
+        MENUITEM "打开(&O)",                                    IDM_FAVORITE_OPEN
         MENUITEM SEPARATOR
-        MENUITEM "移除(&R)",                                        IDM_FAVORITE_REMOVE
+        MENUITEM "移除(&R)",                                    IDM_FAVORITE_REMOVE
         MENUITEM SEPARATOR
-        MENUITEM "属性(&P)",                                        IDM_FAVORITE_ATTR
+        MENUITEM "属性(&P)",                                    IDM_FAVORITE_ATTR
     END
 END
 

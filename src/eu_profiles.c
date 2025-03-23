@@ -22,7 +22,7 @@ on_profiles_used(const eu_tabpage *pnode)
             {
                 ret = EU_TBBAR_RELOAD;
             }
-            else if ((t16 = eu_utf8_utf16(eu_get_theme()->pathfile, NULL)) != NULL && (_tcsicmp(pnode->filename, t16) == 0))
+            else if ((t16 = eu_utf8_utf16(eu_get_theme()->pathfile, NULL)) != NULL && (_tcsicmp(pnode->pathfile, t16) == 0))
             {
                 ret = EU_THEME_RELOAD;
             }
@@ -66,15 +66,13 @@ on_profiles_reload(eu_tabpage *pnode, const uint32_t flag)
             case EU_CONFG_RELOAD:
             {
                 char m_lang[QW_SIZE] = {0};
-                char m_theme[QW_SIZE] = {0};
-                strncpy(m_theme, pconf->window_theme, QW_SIZE);
                 strncpy(m_lang, pconf->m_language, QW_SIZE);
                 if (on_config_lua_run(_T("eu_main.lua"), "+") && (pconf = eu_get_config()))
                 {
                     eu_logmsg("Profile: reload skylark.conf ok\n");
                     if (strcmp(pconf->m_language, "auto") && strcmp(pconf->m_language, m_lang))
                     {
-                        if (strcmp(pconf->m_language, "zh-cn.dll") || strcmp(pconf->m_language, "eu-us.dll"))
+                        if (strcmp(pconf->m_language, "zh-cn.dll") || strcmp(pconf->m_language, "en-us.dll"))
                         {
                             if ((pdll = eu_utf8_utf16(pconf->m_language, NULL)))
                             {
@@ -83,7 +81,7 @@ on_profiles_reload(eu_tabpage *pnode, const uint32_t flag)
                             }
                         }
                     }
-                    if (strcmp(pconf->window_theme, m_theme) && (pdll = eu_utf8_utf16(pconf->window_theme, NULL)))
+                    if ((pdll = eu_utf8_utf16(pconf->window_theme, NULL)))
                     {
                         result = on_view_theme_loader(hwnd, pdll, 0);
                         free(pdll);

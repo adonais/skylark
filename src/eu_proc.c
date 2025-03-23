@@ -1045,8 +1045,18 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_edit_redo(pnode);
                     break;
                 case IDM_EDIT_UNDO_SELECTION:
-                    eu_get_config()->m_undo_selection ^= true;
+                {
+                    int sel = eu_sci_call(pnode, SCI_GETUNDOSELECTIONHISTORY, 0, 0);
+                    if ((eu_get_config()->m_undo_selection ^= true) && !sel)
+                    {
+                        eu_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_ENABLED, 0);
+                    }
+                    else if (sel)
+                    {
+                        eu_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_DISABLED, 0);
+                    }
                     break;
+                }
                 case IDM_EDIT_CUT:
                     on_edit_cut(pnode);
                     break;
