@@ -109,6 +109,9 @@
 #define MAX_ACCELS 200
 #endif
 
+#define WHITE_SHOW 0x1
+#define BREAK_SHOW 0x2
+
 #define BUFF_32K 0x8000                // 32K
 #define BUFF_64K 0x10000               // 64k
 #define BUFF_8M 0x800000               // 8M

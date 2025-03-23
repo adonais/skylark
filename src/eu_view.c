@@ -490,13 +490,15 @@ on_view_identation(void)
 void
 on_view_white_space(void)
 {
-    eu_get_config()->ws_visiable ^= true;
+    eu_get_theme()->item.whitechar.bold &= 0x3;
+    eu_get_theme()->item.whitechar.bold ^= WHITE_SHOW;
+    const bool visiable = (const bool)(eu_get_theme()->item.whitechar.bold & WHITE_SHOW);
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
-            eu_sci_call(p, SCI_SETVIEWWS, (eu_get_config()->ws_visiable == true ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
+            eu_sci_call(p, SCI_SETVIEWWS, (visiable ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
         }
     }
 }
@@ -504,13 +506,15 @@ on_view_white_space(void)
 void
 on_view_line_visiable(void)
 {
-    eu_get_config()->newline_visialbe ^= true;
+    eu_get_theme()->item.whitechar.bold &= 0x3;
+    eu_get_theme()->item.whitechar.bold ^= BREAK_SHOW;
+    const bool visiable = (const bool)(eu_get_theme()->item.whitechar.bold & BREAK_SHOW);
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
         eu_tabpage *p = on_tabpage_get_ptr(index);
         if (p && !TAB_HEX_MODE(p) && !p->pmod)
         {
-            eu_sci_call(p, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
+            eu_sci_call(p, SCI_SETVIEWEOL, visiable, 0);
         }
     }
 }

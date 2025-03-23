@@ -2360,7 +2360,17 @@ eu_save_theme(void)
         "dochistory_fontsize = %d\n"
         "dochistory_color = 0x%08X\n"
         "dochistory_bgcolor = 0x%08X\n"
-        "dochistory_bold = %d";
+        "dochistory_bold = %d\n"
+        "-- white space char setting, no need font\n"
+        "whitechar_font = \"%s\"\n"
+        "-- white space char szie, 0 - 12\n"
+        "whitechar_fontsize = %d\n"
+        "-- white space char color, ABGR mode\n"
+        "whitechar_color = 0x%08X\n"
+        "-- line break color, ABGR mode\n"
+        "whitechar_bgcolor = 0x%08X\n"
+        "-- 1, white space char show. 2, line break show. 3, show item\n"
+        "whitechar_bold = %d\n";
     if (!g_theme)
     {
         return;
@@ -2406,7 +2416,9 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(results),
         EXPAND_STYLETHEME(bracesection),
         EXPAND_STYLETHEME(nchistory),
-        EXPAND_STYLETHEME(dochistory));
+        EXPAND_STYLETHEME(dochistory),
+        EXPAND_STYLETHEME(whitechar)
+    );
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)

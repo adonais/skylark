@@ -19,6 +19,7 @@
 #include "framework.h"
 
 #define SKYLARK_CURSORHAND 0x8
+#define WHITE_ALPHA 0x3F
 
 volatile sptr_t eu_edit_wnd = 0;
 static volatile sptr_t ptr_scintilla = 0;
@@ -110,7 +111,7 @@ on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
         eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor != (uint32_t)-1 ? bgcolor : eu_get_theme()->item.text.bgcolor);
         eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
         eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
-        // 设置字体抗锯齿
+        /* 设置字体抗锯齿 */
         if (eu_get_config()->m_quality ==  IDM_VIEW_FONTQUALITY_STANDARD)
         {
             eu_sci_call(pnode, SCI_SETFONTQUALITY,  SC_EFF_QUALITY_ANTIALIASED, 0);
@@ -123,14 +124,14 @@ on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
         {
             eu_sci_call(pnode, SCI_SETFONTQUALITY, SC_EFF_QUALITY_LCD_OPTIMIZED, 0);
         }
-        // 设置字体渲染方式
+        /* 设置字体渲染方式 */
         if (util_under_wine())
         {
             eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
         }
         else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
         {
-            // d3d11, patched scintilla
+            /* d3d11, patched scintilla */
             if (eu_win10_or_later() != (uint32_t)-1)
             {
                 eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECT_WRITE_1, 0);
@@ -157,6 +158,8 @@ on_sci_default_theme(eu_tabpage *pnode, const uint32_t bgcolor)
     if (pnode)
     {   // 编辑区样式与字体设置
         on_sci_default_fonts(pnode, bgcolor);
+        // 选中行背景色
+        const sptr_t bgra = eu_get_theme()->item.indicator.bgcolor;
         // 当前行背景色
         eu_sci_call(pnode, SCI_SETCARETLINEVISIBLE, TRUE, 0);
         eu_sci_call(pnode, SCI_SETCARETLINEVISIBLEALWAYS, 1, 0);
@@ -170,8 +173,6 @@ on_sci_default_theme(eu_tabpage *pnode, const uint32_t bgcolor)
         eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_theme()->item.caret.bold, 0);
         eu_sci_call(pnode, SCI_SETCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
         eu_sci_call(pnode, SCI_SETADDITIONALCARETFORE, eu_get_theme()->item.caret.color & 0x00FFFFFF, 0);
-        // 选中行背景色
-        const sptr_t bgra = eu_get_theme()->item.indicator.bgcolor;
         eu_sci_call(pnode, SCI_SETSELECTIONLAYER, SC_LAYER_OVER_TEXT, 0);
         eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, bgra);
         // 其他选中
@@ -179,8 +180,35 @@ on_sci_default_theme(eu_tabpage *pnode, const uint32_t bgcolor)
         eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_SECONDARY_BACK, bgra);
         // 窗口未激活时选中色
         eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, bgra);
+        // 根据主题显示空白字符和控制符
+        if (true)
+        {
+			const bool lt = eu_get_config()->m_render > IDM_SET_RENDER_TECH_GDI;
+			eu_sci_call(pnode, SCI_CLEARALLREPRESENTATIONS, 0, 0);
+            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r", (sptr_t)"\xE2\x86\x90");
+            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\n", (sptr_t)"\xE2\x86\x93");
+            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r\n", lt ? (sptr_t)"\xE2\x86\xB2" : (sptr_t)"\xCB\xA9");
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r\n", SC_REPRESENTATION_COLOUR);
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r", SC_REPRESENTATION_COLOUR);
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\n", SC_REPRESENTATION_COLOUR);
+			// 是否显示换行符
+            eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_theme()->item.whitechar.bold & BREAK_SHOW, 0);
+			// item.whitechar.bgcolor 转义为换行符
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_get_theme()->item.whitechar.bgcolor);
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_get_theme()->item.whitechar.bgcolor);
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_get_theme()->item.whitechar.bgcolor);
+            eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_theme()->item.whitechar.fontsize, 0);
+			// 空白符根据主题设置背景
+            eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
+			// 自定义空白符颜色
+            eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, (sptr_t)eu_get_theme()->item.whitechar.color);
+            // 空白符样式, item.whitechar.bold转义为是否显示
+            eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_theme()->item.whitechar.bold & WHITE_SHOW? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
+        }
     }
 }
+
+#define RGB2RGBAREF(rgb) rgb_alpha((COLORREF)((rgb)&0xffffff), SC_ALPHA_OPAQUE)
 
 void
 on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
@@ -236,8 +264,6 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         eu_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPENMID, eu_get_theme()->item.foldmargin.color);
         // 是否自动换行
         eu_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? SC_WRAP_CHAR : SC_WRAP_NONE), 0);
-        // 换行符样式
-        eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_config()->newline_visialbe, 0);
         // tab字符是否当成空格
         if (pnode->doc_ptr)
         {
@@ -251,11 +277,6 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         }
         // tab字符显示时的样式
         eu_sci_call(pnode, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
-        // 空白字符样式
-        eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_config()->ws_visiable ? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
-        eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_config()->ws_size, 0);
-        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
-        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, rgb_alpha(eu_get_theme()->item.text.color, 0x3f));
         // 是否显示对齐线
         eu_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
         eu_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);

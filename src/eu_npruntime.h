@@ -213,6 +213,7 @@ struct styletheme
     struct styleclass bracesection;
     struct styleclass nchistory;
     struct styleclass dochistory;
+    struct styleclass whitechar;
 };
 
 typedef struct _npn_rect

@@ -226,6 +226,7 @@ struct styletheme
     struct styleclass bracesection;
     struct styleclass nchistory;
     struct styleclass dochistory;
+    struct styleclass whitechar;
 };
 
 struct eu_theme

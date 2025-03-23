@@ -565,8 +565,8 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_HILIGHT_SUB), IDM_VIEW_HIGHLIGHT_FOLD, eu_get_config()->light_fold);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_LINENUMBER_VISIABLE, eu_get_config()->m_linenumber);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_BOOKMARK_VISIABLE, eu_get_config()->eu_bookmark.visable);
-                        util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_WHITESPACE_VISIABLE, eu_get_config()->ws_visiable);
-                        util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_NEWLINE_VISIABLE, eu_get_config()->newline_visialbe);
+                        util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_WHITESPACE_VISIABLE, eu_get_theme()->item.whitechar.bold & WHITE_SHOW);
+                        util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_NEWLINE_VISIABLE, eu_get_theme()->item.whitechar.bold & BREAK_SHOW);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_INDENTGUIDES_VISIABLE, eu_get_config()->m_indentation);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_TIPS_ONTAB, eu_get_config()->m_tab_tip);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_CODE_HINT, eu_get_config()->m_code_hint);
