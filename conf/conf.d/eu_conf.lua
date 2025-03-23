@@ -85,9 +85,6 @@ function eu_conf.loadconf()
         "line_number_visiable = true\n" ..
         "last_search_flags = 0x000044\n" ..
         "history_mask = 44711\n" ..
-        "white_space_visiable = false\n" ..
-        "white_space_size = 2\n" ..
-        "newline_visiable = false\n" ..
         "indentation_guides_visiable = true\n" ..
         "tab_width = 4\n" ..
         "onkeydown_tab_convert_spaces = true\n" ..
@@ -215,9 +212,6 @@ function eu_conf.loadconf()
         line_number_visiable,
         last_search_flags,
         history_mask,
-        white_space_visiable,
-        white_space_size,
-        newline_visiable,
         indentation_guides_visiable,
         tab_width,
         onkeydown_tab_convert_spaces,

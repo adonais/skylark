@@ -112,9 +112,6 @@ struct eu_config
 
     uint32_t last_flags;
     uint32_t history_mask;
-    bool ws_visiable;
-    int ws_size;
-    bool newline_visialbe;
     
     bool m_indentation;
     int tab_width;
