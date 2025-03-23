@@ -150,10 +150,10 @@ BEGIN
             MENUITEM "Search With &Baidu",                             IDM_ONLINE_SEARCH_BAIDU
             MENUITEM "Search With B&ing",                              IDM_ONLINE_SEARCH_BING
         END
-        POPUP "BASE64 Encoding/Decoding",                              IDM_EDIT_PLACEHOLDE7
+        POPUP "Base64 Encoding/Decoding",                              IDM_EDIT_PLACEHOLDE7
         BEGIN
-            MENUITEM "BASE64 Encoding",                                IDM_EDIT_BASE64_ENCODING
-            MENUITEM "BASE64 Decoding",                                IDM_EDIT_BASE64_DECODING
+            MENUITEM "Base64 Encoding",                                IDM_EDIT_BASE64_ENCODING
+            MENUITEM "Base64 Decoding",                                IDM_EDIT_BASE64_DECODING
         END
         POPUP "Hash/Message Digest",                                   IDM_EDIT_PLACEHOLDE8
         BEGIN
@@ -357,10 +357,10 @@ BEGIN
             MENUITEM "Reformat Js",                                    IDM_FORMAT_REFORMAT_JS
             MENUITEM "Compress Js",                                    IDM_FORMAT_COMPRESS_JS
         END
-        POPUP "XML File",                                              IDM_EDIT_PLACEHOLDE_XML
+        POPUP "Xml File",                                              IDM_EDIT_PLACEHOLDE_XML
         BEGIN
-            MENUITEM "Reformat XML",                                   IDM_FORMAT_REFORMAT_XML
-            MENUITEM "Compress XML",                                   IDM_FORMAT_COMPRESS_XML
+            MENUITEM "Reformat Xml",                                   IDM_FORMAT_REFORMAT_XML
+            MENUITEM "Compress Xml",                                   IDM_FORMAT_COMPRESS_XML
         END
         POPUP "Lua Scripts",                                           IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
@@ -380,7 +380,7 @@ BEGIN
             MENUITEM "Traditional To Simplified",                      IDM_EDIT_BIG5_GB
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Full-width/half-width Conversion",                      IDM_FORMAT_PLACEHOLDE_PUNCTUATION
+        POPUP "Full-width/Half-width Conversion",                      IDM_FORMAT_PLACEHOLDE_PUNCTUATION
         BEGIN
             MENUITEM "Full-width Symbol To Half-width",                IDM_FORMAT_FULL_HALF
             MENUITEM "Half-width Punctuation To Full-width",           IDM_FORMAT_HALF_FULL

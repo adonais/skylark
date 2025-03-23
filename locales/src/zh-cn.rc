@@ -150,10 +150,10 @@ BEGIN
             MENUITEM "在百度中搜索(&B)",                        IDM_ONLINE_SEARCH_BAIDU
             MENUITEM "在必应中搜索(&I)",                        IDM_ONLINE_SEARCH_BING
         END
-        POPUP "BASE64编解/解码",                                IDM_EDIT_PLACEHOLDE7
+        POPUP "Base64编解/解码",                                IDM_EDIT_PLACEHOLDE7
         BEGIN
-            MENUITEM "BASE64编码",                              IDM_EDIT_BASE64_ENCODING
-            MENUITEM "BASE64解码",                              IDM_EDIT_BASE64_DECODING
+            MENUITEM "Base64编码",                              IDM_EDIT_BASE64_ENCODING
+            MENUITEM "Base64解码",                              IDM_EDIT_BASE64_DECODING
         END
         POPUP "散列/消息摘要",                                  IDM_EDIT_PLACEHOLDE8
         BEGIN
@@ -357,10 +357,10 @@ BEGIN
             MENUITEM "格式化 Js",                               IDM_FORMAT_REFORMAT_JS
             MENUITEM "压缩 Js",                                 IDM_FORMAT_COMPRESS_JS
         END
-        POPUP "XML 文件",                                       IDM_EDIT_PLACEHOLDE_XML
+        POPUP "Xml 文件",                                       IDM_EDIT_PLACEHOLDE_XML
         BEGIN
-            MENUITEM "格式化 XML",                              IDM_FORMAT_REFORMAT_XML
-            MENUITEM "压缩 XML",                                IDM_FORMAT_COMPRESS_XML
+            MENUITEM "格式化 Xml",                              IDM_FORMAT_REFORMAT_XML
+            MENUITEM "压缩 Xml",                                IDM_FORMAT_COMPRESS_XML
         END
         POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
