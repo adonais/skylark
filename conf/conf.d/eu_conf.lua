@@ -179,6 +179,8 @@ function eu_conf.loadconf()
         "    last_check = 0,\n" ..
         "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download',\n" ..
         "}\n" ..
+        "-- when a multiple selection is copied, this string property is added between each part\n" ..
+        "set_copy_separator = \"\\\\n\"\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
@@ -197,6 +199,9 @@ function eu_conf.loadconf()
     end
     if (set_undo_selection == nil) then
         set_undo_selection = false;
+    end
+    if (set_copy_separator == nil) then
+        set_copy_separator = "\\\\n";
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
@@ -262,6 +267,7 @@ function eu_conf.loadconf()
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
+        set_copy_separator,
         process_path,
         other_editor_path,
         m_reserved_0,

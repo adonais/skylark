@@ -169,6 +169,7 @@ struct eu_config
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;
+    char sep_copy[260];
     char m_path[260];
     char editor[260];
     char m_reserved_0[260];

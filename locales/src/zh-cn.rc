@@ -1337,7 +1337,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_REGIST_ERR35    "不能在注册表删除项 Drive\\shell\\skylark2 "
     IDC_MSG_REGIST_ERR36    "不能在注册表删除项 Drive\\shell\\skylark2 "
     IDC_MSG_JUST_HELP       "即时帮助"
-    IDC_MSG_HELP_INF1       "使用快捷键 'Ctrl+鼠标点选' 进行多个位置选择, 支持多行的输入,删除,复制等操作"
+    IDC_MSG_HELP_INF1       "使用快捷键 'Ctrl+鼠标点选' 进行多个位置选择, 支持多行的输入,删除,复制等操作\n多重选择进行粘贴时, 支持自定义分隔符"
     IDC_MSG_EXEC_ERR1       "进程启动失败, 请检测进程路径是否正确!"
     IDC_MSG_EDIT_ERR1       "创建EDIT消息控件错误"
     IDC_MSG_SYMTREE_ERR1    "创建符号树控件错误"

@@ -1920,6 +1920,7 @@ eu_save_config(void)
     char *save = NULL;
     char *pactions = NULL;
     char *pcustomize = NULL;
+    const char *p = NULL;
     TCHAR path[MAX_BUFFER+1] = {0};
     const char *pconfig =
         "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n"
@@ -2032,6 +2033,8 @@ eu_save_config(void)
         "    last_check = %I64u,\n"
         "    url = \"%s\"\n"
         "}\n"
+        "-- when a multiple selection is copied, this string property is added between each part\n"
+        "set_copy_separator = \"%s\"\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
         "other_editor_path = \"%s\"\n"
@@ -2063,6 +2066,23 @@ eu_save_config(void)
         free(save);
         free(pactions);
         return;
+    }
+    // 对sep_copy中的换行符转义
+    if ((p = strchr(g_config->sep_copy, '\r')) != NULL)
+    {
+        if ((p = g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
+        {
+            eu_logmsg("Euapi: escape new lines[\\r]\n");
+            eu_str_replace(g_config->sep_copy, MAX_PATH, "\r", "\\r");
+        }
+    }
+    if ((p = strchr(g_config->sep_copy, '\n')) != NULL)
+    {
+        if ((p = g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
+        {
+            eu_logmsg("Euapi: escape new lines[\\n]\n");
+            eu_str_replace(g_config->sep_copy, MAX_PATH, "\n", "\\n");
+        }
     }
     _sntprintf(path, MAX_BUFFER, _T("%s\\skylark.conf"), eu_config_path);
     _snprintf(save, BUFF_32K - 1, pconfig,
@@ -2149,6 +2169,7 @@ eu_save_config(void)
               g_config->upgrade.msg_id,
               g_config->upgrade.last_check,
               g_config->upgrade.url,
+              g_config->sep_copy,
               g_config->m_path,
               g_config->editor,
               g_config->m_reserved_0,

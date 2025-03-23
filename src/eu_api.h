@@ -520,6 +520,7 @@ struct eu_config
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;
+    char sep_copy[MAX_PATH];
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
     char m_reserved_0[MAX_PATH];
