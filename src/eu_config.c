@@ -613,14 +613,19 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
             {
                 WCHAR *p = NULL;
                 size_t len = 0;
+                bool que = false;
                 bool star = false;
                 if ((p = wcschr(ptr_arg[i], L':')) != NULL)
                 {   // 处理以绝对路径打开的文件或目录
                     wcsncpy(data.rel_path, ptr_arg[i], MAX_BUFFER);
                     on_config_file_url(data.rel_path, (int)wcslen(data.rel_path), p);
                     len = wcslen(data.rel_path);
-                    star = data.rel_path[len - 1] == L'*';
-                    if (!url_has_remote(data.rel_path) && (eu_exist_dir(data.rel_path) || star) && len < MAX_BUFFER - 2)
+                    star = len > 1 && data.rel_path[len - 1] == L'*';
+                    if (que = len > 1 && data.rel_path[len - 1] == L'?')
+                    {
+                        ret |= 0x1;
+                    }
+                    else if (!url_has_remote(data.rel_path) && (eu_exist_dir(data.rel_path) || star) && len < MAX_BUFFER - 2)
                     {
                         if (star)
                         {
@@ -642,8 +647,12 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 {   /* 处理以相对路径打开的文件或目录 */
                     GetFullPathNameW(ptr_arg[i], MAX_BUFFER, data.rel_path, &p);
                     len = wcslen(data.rel_path);
-                    star = data.rel_path[len - 1] == L'*';
-                    if ((eu_exist_dir(data.rel_path) || star) && len < MAX_BUFFER - 2)
+                    star = len > 1 && data.rel_path[len - 1] == L'*';
+                    if (que = len > 1 && data.rel_path[len - 1] == L'?')
+                    {
+                        ret |= 0x1;
+                    }
+                    else if ((eu_exist_dir(data.rel_path) || star) && len < MAX_BUFFER - 2)
                     {
                         if (star)
                         {

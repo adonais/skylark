@@ -2144,7 +2144,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_logmsg("MainCallbak: bad wm_copydata data\n");
                     return 1;
                 }
-                if ((rel_len = pm ? _tcslen(pm->rel_path) : 0) > 0 && pm->rel_path[rel_len - 1] == _T('#'))
+                if ((rel_len = pm ? _tcslen(pm->rel_path) : 0) > 0 && pm->rel_path[rel_len - 1] == _T('?'))
                 {
                     pm->rel_path[rel_len - 1] = 0;
                     // 先打开空白标签, 然后打开文件管理器
