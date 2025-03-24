@@ -34,6 +34,7 @@ struct navigate_trace
 };
 
 int  on_navigate_list_add(eu_tabpage *pnode);
+int  on_navigate_jump(eu_tabpage *pnode, sptr_t wp, sptr_t lp);
 bool on_navigate_back_this(const eu_tabpage *pnode);
 void on_navigate_back_all(void);
 void on_navigate_list_update(eu_tabpage *pnode, int64_t pos);

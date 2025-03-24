@@ -18,6 +18,7 @@
 
 #include "framework.h"
 #include <shlobj_core.h>
+#include <shlguid.h>
 
 typedef const char *(__cdecl *pwine_get_version)(void);
 typedef char *(__cdecl *pwine_get_unix_file_name)(LPCWSTR dos);
@@ -37,9 +38,9 @@ typedef struct _LANGANDCODEPAGE
     uint16_t wCodePage;
 } LANGANDCODEPAGE;
 
-static PFNGFVSW pfnGetFileVersionInfoSizeW;
-static PFNGFVIW pfnGetFileVersionInfoW;
-static PFNVQVW pfnVerQueryValueW;
+static PFNGFVSW pfnGetFileVersionInfoSizeW = NULL;
+static PFNGFVIW pfnGetFileVersionInfoW = NULL;
+static PFNVQVW pfnVerQueryValueW = NULL;
 
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
@@ -3532,11 +3533,71 @@ util_tab_height(const HWND hwnd, const int width)
     return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
 }
 
+HRESULT
+util_shortcut(const WCHAR *pfile, const bool create)
+{
+    HRESULT hr = 1;
+    PWSTR rawpath = NULL;
+    WCHAR lnk[MAX_PATH] = {0};
+    WCHAR working[MAX_PATH] = {0};
+    WCHAR lnk_file[MAX_BUFFER] = {0};
+    IShellLinkW *p_link = NULL;
+    IPersistFile *pf = NULL;
+    const GUID fid = FOLDERID_SendTo;
+    DWORD flags = KF_FLAG_SIMPLE_IDLIST | KF_FLAG_DONT_VERIFY | KF_FLAG_NO_ALIAS;
+    CoInitialize(NULL);
+    if (FAILED(hr = SHGetKnownFolderPath(&fid, flags, NULL, &rawpath)))
+    {
+        goto clean_short;
+    }
+    {
+        on_file_splite_path(pfile, working, lnk, NULL, NULL);
+        _snwprintf(lnk_file, MAX_BUFFER, L"%s\\%s.lnk", rawpath, lnk);
+        CoTaskMemFree(rawpath);
+        if (!create)
+        {
+            util_delete_file(lnk_file);
+            hr = SKYLARK_OK;
+            goto clean_short;
+        }
+    }
+    if (FAILED(hr = CoCreateInstance(&CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, &IID_IShellLink, (LPVOID *)&p_link)))
+    {
+        goto clean_short;
+    }
+    {   // 设置属性
+        IShellLinkW_SetPath(p_link, pfile);
+        IShellLinkW_SetWorkingDirectory(p_link, working);
+        IShellLinkW_SetIconLocation(p_link, pfile, 0);
+    }
+    // 取得IPersistFile接口
+    if (FAILED(hr = IShellLinkW_QueryInterface(p_link, &IID_IPersistFile, (LPVOID *)&pf)))
+    {
+        goto clean_short;
+    }
+    {
+        util_delete_file(lnk_file);
+        hr = IPersistFile_Save(pf, lnk_file, FALSE);
+    }
+clean_short:
+    if (pf)
+    {
+        IPersistFile_Release(pf);
+    }
+    if (p_link)
+    {
+        IShellLinkW_Release(p_link);
+    }
+    CoUninitialize();
+    return (hr);
+}
+
 /* 广度算法搜索文件夹, 搜索到文件返回true, 否则返回false
  * 参数1, path 为给定目录
  * 参数2, pout 是保存输出文件的数组
  * 参数3, pdata是一个结构体的模板, 可以为空
  */
+
 bool
 util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata)
 {
