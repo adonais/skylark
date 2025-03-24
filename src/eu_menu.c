@@ -653,7 +653,7 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_SOURCECODE_GOTODEF:
                     {
-                        enable = pnode->doc_ptr && !TAB_HEX_MODE(pnode) && pnode->hwnd_symlist;
+                        enable =!TAB_HEX_MODE(pnode) && !pnode->plugin && TAB_NOT_NUL(pnode) && pnode->doc_ptr && pnode->doc_ptr->fn_keydown;
                         util_enable_menu_item(menu, IDM_SOURCECODE_GOTODEF, init || enable);
                         break;
                     }

@@ -2380,7 +2380,22 @@ util_os_version(void)
     return ver;
 }
 
-static char *
+char *
+util_strrstr(const char *s1, const char *s2)
+{
+    char *r = NULL;
+    char *p = NULL;
+    char *s = (char *)s1;
+    while (1)
+    {
+        if (!(p = strstr(s, s2)))
+            return r;
+        r = p;
+        s = p + 1;
+    }
+}
+
+char *
 util_stristr(const char *str, const char *pattern)
 {
     char *pptr, *sptr, *start;

@@ -1686,7 +1686,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SOURCECODE_GOTODEF:
                     if (pnode && pnode->doc_ptr && pnode->doc_ptr->fn_keydown)
                     {
-                        pnode->doc_ptr->fn_keydown(pnode, VK_F12, lParam);
+                        pnode->doc_ptr->fn_keydown(pnode, wParam, lParam);
                     }
                     break;
                 case IDM_SOURCEE_ENABLE_ACSHOW:

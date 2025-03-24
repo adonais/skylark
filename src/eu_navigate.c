@@ -33,6 +33,59 @@ on_navigate_pos_exist(int64_t *vec, int64_t postion)
     return false;
 }
 
+static bool
+on_navigate_diff(eu_tabpage *p1, eu_tabpage *pnode)
+{
+    if (p1 && pnode && p1 != pnode)
+    {
+        char sub[FILESIZE] = {0};
+        const char *p = NULL;
+        const char *ext = (pnode && pnode->doc_ptr) ? pnode->doc_ptr->extname : NULL;
+        util_make_u8(p1->extname, sub, FILESIZE);
+        if (ext && sub[0] && (p = util_stristr(ext, sub)) != NULL && (p + strlen(sub))[0] == ';')
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+static int
+on_navigate_match_callback(pcre_conainer *pcre_info, void *param)
+{
+    const char *p = NULL;
+    eu_tabpage *pnode = (eu_tabpage *)param;
+    if (!pnode || !pcre_info->named_substring || pcre_info->rc < 0)
+    {
+        eu_logmsg("Navigate: pcre matching error or not match\n");
+        return EUE_PCRE_NO_MATCHING;
+    }
+    for (int i = 1; i < pcre_info->rc; ++i)
+    {
+        char buf[MAX_PATH+1] = {0};
+        const char *substring_start = pcre_info->buffer + pcre_info->ovector[2 * i];
+        int substring_length = pcre_info->ovector[2 * i + 1] - pcre_info->ovector[2 * i];
+        if (substring_length > 0)
+        {
+            snprintf(buf, MAX_PATH, "%.*s", substring_length, substring_start);
+        }
+        if (*buf)
+        {
+            // 某些语言函数带类名称
+            if ((p = util_strrstr(buf, "::")))
+            {
+                p += strlen("::");
+            }
+            if (STRCMP(buf, ==, pcre_info->named_substring) || (STR_NOT_NUL(p) && STRCMP(p, ==, pcre_info->named_substring)))
+            {
+                pnode->nc_pos = (intptr_t)pcre_info->ovector[2 * i];
+                return EUE_PCRE_BACK_ABORT;
+            }
+        }
+    }
+    return SKYLARK_OK;
+}
+
 int
 on_navigate_list_add(eu_tabpage *pnode)
 {
@@ -153,4 +206,64 @@ on_navigate_clean_this(eu_tabpage *pnode)
             }
         }
     }
+}
+
+bool
+on_navigate_find_this(eu_tabpage *pnode, const char *name, sptr_t *pos)
+{
+    bool ret = false;
+    if (pnode && pnode->doc_ptr && pnode->doc_ptr->reqular_exp)
+    {
+        size_t bytes = 0;
+        uint8_t *buffer = NULL;
+        pcre_conainer *pcre_info = NULL;
+        intptr_t psave = pnode->nc_pos;
+        const char *regxp = pnode->doc_ptr->reqular_exp;
+        if ((buffer = (uint8_t *)util_strdup_content(pnode, &bytes)))
+        {
+            if ((pcre_info = eu_pcre_init((const char *)buffer, bytes, regxp, name, PCRE_NO_UTF8_CHECK|PCRE_CASELESS)) != NULL)
+            {
+                pnode->nc_pos = -1;
+                eu_pcre_exec_multi(pcre_info, on_navigate_match_callback, pnode);
+                ret = (*pos = pnode->nc_pos) >= 0;
+                pnode->nc_pos = psave;
+                eu_pcre_delete(pcre_info);
+            }
+            free(buffer);
+        }
+    }
+    return ret;
+}
+
+int
+on_navigate_jump(eu_tabpage *pnode, sptr_t wp, sptr_t lp)
+{
+    sptr_t postion = -1;
+    eu_tabpage *p = NULL;
+    char *text = NULL;
+    if ((p = pnode))
+    {
+        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
+        sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
+        text = on_sci_range_text(pnode, start_pos, end_pos);
+    }
+    if (STR_NOT_NUL(text) && !on_navigate_find_this(pnode, text, &postion))
+    {
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        {
+            if ((p = on_tabpage_get_ptr(index)) != NULL && on_navigate_diff(p, pnode) && on_navigate_find_this(p, text, &postion))
+            {
+                break;
+            }
+        }
+    }
+    if (postion >= 0 && p)
+    {
+        on_tabpage_selection(p);
+        eu_sci_call(p, SCI_GOTOPOS, postion, 0);
+        on_navigate_list_update(p, postion);
+    }
+    eu_safe_free(text);
+    return SKYLARK_OK;
 }

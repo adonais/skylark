@@ -1692,16 +1692,12 @@ on_doc_brace_handling(eu_tabpage *pnode)
 }
 
 /**************************************************************************************
- * fn_keydown的回调函数, 通过右侧边栏软连接查找并跳转到函数定义
+ * fn_keydown的回调函数, 通过查找选中调用函数名并跳转到函数定义
  **************************************************************************************/
 int
 on_doc_keydown_jmp(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
 {
-    if (wParam == VK_F12)
-    {
-        return on_symlist_jump_word(pnode);
-    }
-    return 0;
+    return on_navigate_jump(pnode, wParam, lParam);
 }
 
 /**************************************************************************************
@@ -1876,7 +1872,7 @@ on_doc_get_type(const TCHAR *pfile)
     }
     for (doc_ptr = g_doc_config; doc_ptr->doc_type != DOCTYPE_END; doc_ptr++)
     {
-        if (eu_strcasestr(doc_ptr->extname, extname))
+        if (util_stristr(doc_ptr->extname, extname))
         {
             return doc_ptr;
         }

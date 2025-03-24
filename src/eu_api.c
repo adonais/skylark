@@ -628,7 +628,7 @@ printf_bytes(const char *str, size_t len, const char *name)
     {
         len = str_len;
     }
-    if (eu_strcasestr(name, "utf-16"))
+    if (util_stristr(name, "utf-16"))
     {
         for(int i = 0; i < eu_int_cast(len) && (str[i] || str[i+1]); ++i)
         {
@@ -1221,43 +1221,19 @@ eu_open_file(LPCTSTR path, pf_stream pstream)
     return util_open_file(path, pstream);
 }
 
-char *
-eu_strcasestr(const char *haystack, const char *needle)
+wchar_t *
+eu_wcasestr(const wchar_t *haystack, const wchar_t *needle)
 {
-    size_t l = strlen(needle);
-    for (; *haystack; haystack++)
+    size_t l = wcslen(needle);
+    wchar_t *psave = (wchar_t *)haystack;
+    for (; *psave; psave++)
     {
-        if (!_strnicmp(haystack, needle, l))
+        if (!wcsnicmp(psave, needle, l))
         {
-            return (char *)haystack;
+            return (wchar_t *)psave;
         }
     }
     return NULL;
-}
-
-static bool
-eu_ascii_escaped(const char *checkstr)
-{
-    bool ret = false;
-    char *p = eu_strcasestr(checkstr, "\\u");
-    if (p && (p - (char *)checkstr > 1 ? (*(p - 1) != '\\') : true))
-    {
-        size_t end = strlen(p);
-        if (end > 6)
-        {
-            end = 6;
-        }
-        for (int i = 2; i < eu_int_cast(end); ++i)
-        {
-            if (!isxdigit(p[i]))
-            {
-                ret = false;
-                break;
-            }
-            ret = true;
-        }
-    }
-    return ret;
 }
 
 const char *

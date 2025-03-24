@@ -108,56 +108,6 @@ on_symlist_reqular(eu_tabpage *pnode)
 }
 
 int
-on_symlist_jump_word(eu_tabpage *pnode)
-{
-    sptr_t pos;
-    sptr_t start_pos;
-    sptr_t end_pos;
-    TCHAR *ptext = NULL;
-    char *current_text = NULL;
-    if (!pnode)
-    {
-        return EUE_TAB_NULL;
-    }
-    pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
-    end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
-    current_text = on_sci_range_text(pnode, start_pos, end_pos);
-    if (!current_text)
-    {
-        return EUE_POINT_NULL;
-    }
-    if (!(ptext = eu_utf8_utf16(current_text, NULL)))
-    {
-        free(current_text);
-        return EUE_POINT_NULL;
-    }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
-    {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->doc_ptr && p->doc_ptr->doc_type == DOCTYPE_CPP)
-        {
-            int i = ListBox_FindStringExact(p->hwnd_symlist, -1, ptext);
-            if (i != LB_ERR)
-            {
-                if (p != pnode)
-                {
-                    on_tabpage_select_index(index);
-                }
-                sptr_t line_num = (sptr_t) SendMessage(p->hwnd_symlist, LB_GETITEMDATA, i, 0);
-                on_navigate_list_update(p, pos);
-                on_search_jmp_line(p, line_num, 0);
-                break;
-            }
-        }
-    }
-    free(current_text);
-    free(ptext);
-    return SKYLARK_OK;
-}
-
-int
 on_symlist_jump_item(eu_tabpage *pnode)
 {
     sptr_t  item_num = (sptr_t ) SendMessage(pnode->hwnd_symlist, LB_GETCURSEL, 0, 0);
