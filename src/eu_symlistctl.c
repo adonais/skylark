@@ -146,7 +146,7 @@ on_symlist_jump_word(eu_tabpage *pnode)
                     on_tabpage_select_index(index);
                 }
                 sptr_t line_num = (sptr_t) SendMessage(p->hwnd_symlist, LB_GETITEMDATA, i, 0);
-                on_search_add_navigate_list(p, pos);
+                on_navigate_list_update(p, pos);
                 on_search_jmp_line(p, line_num, 0);
                 break;
             }
@@ -164,7 +164,7 @@ on_symlist_jump_item(eu_tabpage *pnode)
     sptr_t  line_num = (sptr_t ) SendMessage(pnode->hwnd_symlist, LB_GETITEMDATA, item_num, 0);
     sptr_t  pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     sptr_t  current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-    on_search_add_navigate_list(pnode, pos);
+    on_navigate_list_update(pnode, pos);
     on_search_jmp_line(pnode, line_num, current_line);
     return SKYLARK_OK;
 }

@@ -1403,10 +1403,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_jmp_matching_brace(pnode, &wm_id);
                     break;
                 case IDM_SEARCH_NAVIGATE_PREV_THIS:
-                    on_search_back_navigate_this(pnode);
+                    on_navigate_back_this(pnode);
                     break;
                 case IDM_SEARCH_NAVIGATE_PREV_INALL:
-                    on_search_back_navigate_all();
+                    on_navigate_back_all();
                     break;
                 case IDM_SEARCH_SELECT_MATCHING_ALL:
                     on_search_select_matching_all(pnode);

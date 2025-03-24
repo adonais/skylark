@@ -768,7 +768,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             break;
                         }
                     }
-                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_RIGHT:
@@ -822,7 +821,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             break;
                         }
                     }
-                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_UP:
@@ -841,7 +839,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, 0);
                         }
                     }
-                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_DOWN:
@@ -860,7 +857,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, 0);
                         }
                     }
-                    on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_PRIOR:
@@ -875,7 +871,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         hexview->number_items -= 16 * NumberOfLines;
                     }
                     SendMessage(hwnd, WM_VSCROLL, SB_PAGEUP, 0);
-                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_NEXT:
@@ -890,7 +885,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         hexview->number_items += 16 * lines_number;
                     }
                     SendMessage(hwnd, WM_VSCROLL, SB_PAGEDOWN, 0);
-                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_HOME:
@@ -910,7 +904,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                             SendMessage(hwnd, WM_HSCROLL, SB_LEFT, 0);
                         }
                     }
-                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
                 case VK_END:
@@ -931,7 +924,6 @@ hexview_on_keydown(HWND hwnd, PHEXVIEW hexview, WPARAM wParam, LPARAM lParam)
                         }
                         SendMessage(hwnd, WM_HSCROLL, SB_RIGHT, 0);
                     }
-                    on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                     break;
                 }
             }
@@ -1308,7 +1300,6 @@ hexview_proc(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam)
             }
             if (pnode != NULL)
             {
-                on_search_add_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
                 on_statusbar_update_line(pnode);
             }
             if (util_under_wine())
@@ -2260,8 +2251,6 @@ hexview_switch_mode(eu_tabpage *pnode)
                 {
                     eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
                 }
-                // 清理文本模式下的导航信息
-                on_search_clean_navigate_this(pnode);
             }
         }
     }
@@ -2272,7 +2261,6 @@ hexview_switch_mode(eu_tabpage *pnode)
         size_t  dst_len = 0;
         bool is_utf8 = pnode->codepage == IDM_UNI_UTF8;
         const HWND hwsc = pnode->hwnd_sc;
-        on_search_clean_navigate_this(pnode);
         pnode->tab_id = on_tabpage_get_index(pnode);
         pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
         if (pdf && np_plugins_lookup(NPP_PDFVIEW, pnode->extname, &pnode->pmod))
@@ -2367,7 +2355,6 @@ hexview_switch_mode(eu_tabpage *pnode)
             eu_sci_call(pnode, SCI_ADDTEXT, dst_len - offset, (LPARAM)(pdst + offset));
             eu_sci_call(pnode, SCI_SETOVERTYPE, false, 0);
             on_sci_after_file(pnode, true);
-            on_search_add_navigate_list(pnode, 0);
         }
         if ((err = on_tabpage_selection(pnode)) >= 0)
         {

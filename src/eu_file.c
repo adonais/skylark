@@ -1131,7 +1131,7 @@ on_file_after_open(eu_tabpage *pnode)
         if (!pnode->plugin)
         {   // 恢复光标位置
             on_file_update_postion(pnode, NULL);
-            on_search_add_navigate_list(pnode, pnode->nc_pos);
+            on_navigate_list_add(pnode);
         }
         if (pnode->tab_focus > 0)
         {
@@ -2481,7 +2481,7 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
             on_sql_delete_backup_row((*ppnode));
         }
         /* 清理该文件的位置导航信息 */
-        on_search_clean_navigate_this((*ppnode));
+        on_navigate_clean_this((*ppnode));
         /* 排序最近关闭文件的列表 */
         if (file_click_close(mode) && !(*ppnode)->is_blank)
         {

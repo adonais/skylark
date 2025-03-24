@@ -172,5 +172,6 @@
 #include "eu_xmlist.h"
 #include "eu_pool.h"
 #include "eu_profiles.h"
+#include "eu_navigate.h"
 
 #endif  // _EU_FRAMEWORK_H_

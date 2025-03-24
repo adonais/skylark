@@ -114,6 +114,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_xmlist.obj                      \
     $(OBJD)\eu_pool.obj                        \
     $(OBJD)\eu_profiles.obj                    \
+    $(OBJD)\eu_navigate.obj                    \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -171,8 +172,8 @@ $(OBJD)\eu_file.obj                        : eu_file.c eu_file.h eu_nphost.h eu_
 $(OBJD)\eu_treebar.obj                     : eu_treebar.c eu_treebar.h framework.h eu_list.h
 $(OBJD)\eu_resultctl.obj                   : eu_resultctl.c eu_resultctl.h framework.h
 $(OBJD)\eu_tablectl.obj                    : eu_tablectl.c eu_tablectl.h framework.h
-$(OBJD)\eu_remotefs.obj                    : eu_remotefs.c eu_remotefs.h framework.h
-$(OBJD)\eu_search.obj                      : eu_search.c eu_search.h framework.h
+$(OBJD)\eu_remotefs.obj                    : eu_remotefs.c eu_remotefs.h eu_list.h framework.h
+$(OBJD)\eu_search.obj                      : eu_search.c eu_search.h eu_list.h eu_cvector.h framework.h
 $(OBJD)\eu_code.obj                        : eu_code.c eu_code.h framework.h
 $(OBJD)\eu_theme.obj                       : eu_theme.c eu_theme.h framework.h
 $(OBJD)\eu_theme_dark.obj                  : eu_theme_dark.c eu_theme_dark.h framework.h
@@ -198,7 +199,7 @@ $(OBJD)\eu_toolbar.obj                     : eu_toolbar.c eu_toolbar.h framework
 $(OBJD)\eu_statusbar.obj                   : eu_statusbar.c eu_statusbar.h framework.h
 $(OBJD)\eu_about.obj                       : eu_about.c eu_about.h framework.h skylark.rc targetver.h skylark.exe.manifest $(ROOT)\locales\src\*
 $(OBJD)\eu_qrgen.obj                       : eu_qrgen.c eu_qrgen.h framework.h
-$(OBJD)\eu_json.obj                        : eu_json.c eu_json.h framework.h
+$(OBJD)\eu_json.obj                        : eu_json.c eu_json.h eu_cvector.h framework.h
 $(OBJD)\eu_print.obj                       : eu_print.c eu_print.h eu_nphost.h eu_npruntime.h framework.h
 $(OBJD)\eu_locale.obj                      : eu_locale.c eu_locale.h framework.h
 $(OBJD)\eu_format.obj                      : eu_format.c eu_format.h framework.h
@@ -220,5 +221,6 @@ $(OBJD)\eu_hintctl.obj                     : eu_hintctl.c eu_hintctl.h framework
 $(OBJD)\eu_xmlist.obj                      : eu_xmlist.c eu_xmlist.h framework.h
 $(OBJD)\eu_pool.obj                        : eu_pool.c eu_pool.h eu_cvector.h framework.h
 $(OBJD)\eu_profiles.obj                    : eu_profiles.c eu_profiles.h eu_cvector.h framework.h
+$(OBJD)\eu_navigate.obj                    : eu_navigate.c eu_navigate.h eu_navigate.h eu_list.h eu_cvector.h framework.h
 $(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
 	$(RC) $(RFLAGS) -Fo$@ skylark.rc

@@ -863,7 +863,6 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
                 }
             }
-            on_search_update_navigate_list(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);
             break;
         }
@@ -929,8 +928,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_complete_reset_focus(pnode);
             }
-            pnode->nc_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            on_search_add_navigate_list(pnode, pnode->nc_pos);
+            on_navigate_list_update(pnode, eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);
             break;
         }

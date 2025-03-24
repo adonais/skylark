@@ -41,13 +41,6 @@ extern "C"
 {
 #endif
 
-struct navigate_trace
-{
-    eu_tabpage *pnode;
-    int64_t last_pos;
-    struct list_head ng_node;
-};
-
 typedef enum _replace_event
 {
     FULL_HALF = 0,
@@ -83,10 +76,6 @@ int on_search_replace_thread(eu_tabpage *pnode);
 int on_search_file_thread(const TCHAR *path);
 int on_search_jmp_premark_all(eu_tabpage *pnode);
 int on_search_jmp_next_mark_all(eu_tabpage *pnode);
-int on_search_update_navigate_list(eu_tabpage *pnode, int64_t pos);
-int on_search_back_navigate_this(const eu_tabpage *pnode);
-int on_search_back_navigate_all(void);
-int on_search_add_navigate_list(eu_tabpage *pnode, int64_t pos);
 int on_search_combo_callback(void *data, int count, char **column, char **names);
 
 sptr_t on_search_marker_next(eu_tabpage *pnode, const sptr_t line, sptr_t last, const int bitmask);
@@ -120,7 +109,6 @@ void on_search_jmp_home(eu_tabpage *pnode);
 void on_search_jmp_end(eu_tabpage *pnode);
 void on_search_jmp_pos(eu_tabpage *pnode);
 void on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num);
-void on_search_clean_navigate_this(eu_tabpage *pnode);
 void on_search_select_matching_all(eu_tabpage *pnode);
 void on_search_page_mark(eu_tabpage *pnode, char *, int);
 void on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size);
