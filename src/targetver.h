@@ -1057,10 +1057,13 @@
 #define IDM_SET_RENDER_TECH_GDI             42560
 #define IDM_SET_RENDER_TECH_D2D             42561
 #define IDM_SET_RENDER_TECH_D2DRETAIN       42562
-#define IDM_SETTING_FONTQUALITY             42563
-#define IDM_SETTING_RENDER                  42564
+#define IDM_SET_RENDER_TECH_DC              42563
+#define IDM_SET_RENDER_TECH_D2D1_1          42564
+
 #define IDM_SOURCE_SNIPPET_GROUP            42565
 #define IDM_EDIT_SELECT_GROUP               42566
+#define IDM_SETTING_FONTQUALITY_GROUP       42567
+#define IDM_SETTING_RENDER_GROUP            42568
 
 #define IDR_TOOLBAR_POPUPMENU               42600
 #define IDM_VIEW_MENUBAR                    42601

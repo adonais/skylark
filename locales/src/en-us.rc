@@ -442,17 +442,19 @@ BEGIN
         MENUITEM "Customize Theme ...",                                IDM_VIEW_MODIFY_STYLETHEME
         MENUITEM "Copy Create Theme ...",                              IDM_VIEW_COPYNEW_STYLETHEME
         MENUITEM MF_SEPARATOR
-        POPUP "Font &Quality",                                         IDM_SETTING_FONTQUALITY
+        POPUP "Font &Quality",                                         IDM_SETTING_FONTQUALITY_GROUP
         BEGIN
             MENUITEM "&None",                                          IDM_VIEW_FONTQUALITY_NONE
             MENUITEM "&Standard",                                      IDM_VIEW_FONTQUALITY_STANDARD
             MENUITEM "&ClearType",                                     IDM_VIEW_FONTQUALITY_CLEARTYPE
         END
-        POPUP "Ren&dering Technology",                                 IDM_SETTING_RENDER
+        POPUP "Ren&dering Technology",                                 IDM_SETTING_RENDER_GROUP
         BEGIN
-            MENUITEM "&Legacy GDI",                                    IDM_SET_RENDER_TECH_GDI
+            MENUITEM "Legacy &GDI",                                    IDM_SET_RENDER_TECH_GDI
             MENUITEM "&DirectWrite",                                   IDM_SET_RENDER_TECH_D2D
             MENUITEM "DirectWrite &Retain",                            IDM_SET_RENDER_TECH_D2DRETAIN
+            MENUITEM "DirectWrite GD&I DC",                            IDM_SET_RENDER_TECH_DC
+            MENUITEM "Direct&Write 1.1",                               IDM_SET_RENDER_TECH_D2D1_1
         END
         MENUITEM MF_SEPARATOR
         POPUP "Custom Commands",                                       IDM_SET_PLACEHOLDE_CUSTOMIZED

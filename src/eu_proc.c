@@ -1045,7 +1045,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_UNDO_SELECTION:
                 {
-                    int sel = eu_sci_call(pnode, SCI_GETUNDOSELECTIONHISTORY, 0, 0);
+                    int sel = (int)eu_sci_call(pnode, SCI_GETUNDOSELECTIONHISTORY, 0, 0);
                     if ((eu_get_config()->m_undo_selection ^= true) && !sel)
                     {
                         eu_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_ENABLED, 0);
@@ -1551,7 +1551,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_FORMAT_CHECK_INDENTATION:
                 {
-                    eu_logmsg("MainCallbak: technology = %d\n", (int)eu_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0));
                     on_format_check_indentation(pnode);
                     break;
                 }
@@ -1718,7 +1717,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_SET_RENDER_TECH_GDI:
                 case IDM_SET_RENDER_TECH_D2D:
                 case IDM_SET_RENDER_TECH_D2DRETAIN:
-                    on_view_enable_rendering(hwnd, wm_id);
+                case IDM_SET_RENDER_TECH_DC:
+                case IDM_SET_RENDER_TECH_D2D1_1:
+                    on_view_enable_rendering(pnode, wm_id);
                     break;
                 case IDM_DATABASE_INSERT_CONFIG:  // 插入sql头
                     on_code_insert_config(pnode);

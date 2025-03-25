@@ -832,8 +832,7 @@ HRESULT ScintillaWin::Create3D() noexcept {
 void ScintillaWin::CreateRenderTarget() {
 	HWND hw = MainHWND();
 	const RECT rc = GetClientRect(hw);
-	HRESULT hr = S_OK;
-	
+
 	// Create a Direct2D render target.
 	D2D1_RENDER_TARGET_PROPERTIES drtp{};
 	drtp.type = D2D1_RENDER_TARGET_TYPE_DEFAULT;
@@ -847,32 +846,29 @@ void ScintillaWin::CreateRenderTarget() {
 		drtp.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
 			D2D1_ALPHA_MODE_IGNORE);
 
-		hr = CreateDCRenderTarget(&drtp, targets.pDCRT);
+		const HRESULT hr = CreateDCRenderTarget(&drtp, targets.pDCRT);
 		if (FAILED(hr)) {
 			Platform::DebugPrintf("Failed CreateDCRenderTarget 0x%lx\n", hr);
 			targets.Release();
 		}
 
 	} else if (technology == Technology::DirectWrite1) {
-		hr = Create3D();	// Need pDirect2DDevice
+		HRESULT hr = Create3D();	// Need pDirect2DDevice
 		if (SUCCEEDED(hr)) {
 			hr = device.pDirect2DDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
 				targets.pDeviceContext.ReleaseAndGetAddressOf());
 			if (FAILED(hr)) {
 				Platform::DebugPrintf("Failed CreateDeviceContext 0x%lx\n", hr);
-				technology = Technology::DirectWrite;
 			} else {
 				hr = CreateSwapChain(hw);
 				if (FAILED(hr)) {
 					Platform::DebugPrintf("Failed CreateSwapChain 0x%lx\n", hr);
-					// targets.Release();
-					technology = Technology::DirectWrite;
+					targets.Release();
 				}
 			}
 		}
-	}
-	if (technology == Technology::DirectWrite || technology == Technology::DirectWriteRetain)
-	{
+
+	} else { // DirectWrite or DirectWriteRetain
 		const int integralDeviceScaleFactor = GetFirstIntegralMultipleDeviceScaleFactor();
 		drtp.dpiX = 96.f * integralDeviceScaleFactor;
 		drtp.dpiY = 96.f * integralDeviceScaleFactor;
@@ -885,7 +881,7 @@ void ScintillaWin::CreateRenderTarget() {
 		dhrtp.presentOptions = (technology == Technology::DirectWriteRetain) ?
 			D2D1_PRESENT_OPTIONS_RETAIN_CONTENTS : D2D1_PRESENT_OPTIONS_NONE;
 
-		hr = CreateHwndRenderTarget(&drtp, &dhrtp, targets.pHwndRT);
+		const HRESULT hr = CreateHwndRenderTarget(&drtp, &dhrtp, targets.pHwndRT);
 		if (FAILED(hr)) {
 			Platform::DebugPrintf("Failed CreateHwndRenderTarget 0x%lx\n", hr);
 			targets.Release();

@@ -125,30 +125,7 @@ on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
             eu_sci_call(pnode, SCI_SETFONTQUALITY, SC_EFF_QUALITY_LCD_OPTIMIZED, 0);
         }
         /* 设置字体渲染方式 */
-        if (util_under_wine())
-        {
-            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
-        }
-        else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2D)
-        {
-            /* d3d11, patched scintilla */
-            if (eu_win10_or_later() != (uint32_t)-1)
-            {
-                eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECT_WRITE_1, 0);
-            }
-            else
-            {
-                eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITE, 0);
-            }
-        }
-        else if (eu_get_config()->m_render == IDM_SET_RENDER_TECH_D2DRETAIN)
-        {
-            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DIRECTWRITERETAIN, 0);
-        }
-        else
-        {
-            eu_sci_call(pnode, SCI_SETTECHNOLOGY, SC_TECHNOLOGY_DEFAULT, 0);
-        }
+        eu_sci_call(pnode, SCI_SETTECHNOLOGY, (sptr_t)(eu_get_config()->m_render - IDM_SET_RENDER_TECH_GDI), 0);
     }
 }
 

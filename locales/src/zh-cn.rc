@@ -442,17 +442,19 @@ BEGIN
         MENUITEM "修改主题方案 ...",                            IDM_VIEW_MODIFY_STYLETHEME
         MENUITEM "复制创建主题 ...",                            IDM_VIEW_COPYNEW_STYLETHEME
         MENUITEM MF_SEPARATOR
-        POPUP "字体质量(&Q)",                                   IDM_SETTING_FONTQUALITY
+        POPUP "字体质量(&Q)",                                   IDM_SETTING_FONTQUALITY_GROUP
         BEGIN
             MENUITEM "无",                                      IDM_VIEW_FONTQUALITY_NONE
             MENUITEM "标准抗锯齿",                              IDM_VIEW_FONTQUALITY_STANDARD
             MENUITEM "ClearType",                               IDM_VIEW_FONTQUALITY_CLEARTYPE
         END
-        POPUP "渲染技术(&D)",                                   IDM_SETTING_RENDER
+        POPUP "渲染技术(&D)",                                   IDM_SETTING_RENDER_GROUP
         BEGIN
-            MENUITEM "传统 GDI",                                IDM_SET_RENDER_TECH_GDI
-            MENUITEM "DirectWrite",                             IDM_SET_RENDER_TECH_D2D
-            MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
+            MENUITEM "传统 GDI(&G)",                            IDM_SET_RENDER_TECH_GDI
+            MENUITEM "DirectWrite(&D)",                         IDM_SET_RENDER_TECH_D2D
+            MENUITEM "DirectWrite Retain(&R)",                  IDM_SET_RENDER_TECH_D2DRETAIN
+            MENUITEM "DirectWrite Gdi DC(&I)",                  IDM_SET_RENDER_TECH_DC
+            MENUITEM "DirectWrite 1.1(&W)",                     IDM_SET_RENDER_TECH_D2D1_1
         END
         MENUITEM MF_SEPARATOR
         POPUP "自定义命令",                                     IDM_SET_PLACEHOLDE_CUSTOMIZED

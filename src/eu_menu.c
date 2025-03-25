@@ -191,7 +191,7 @@ menu_update_hexview(const HMENU root_menu, const bool hex_mode, const bool init)
         util_enable_menu_item(root_menu, IDM_SEARCH_MULTISELECT_README, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_TAB_WIDTH, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_TAB_CONVERT_SPACES, init || !hex_mode);
-        util_enable_menu_item(root_menu, IDM_VIEW_DOCUMENT_MAP, init || !hex_mode);
+        util_enable_menu_item(root_menu, IDM_VIEW_DOCUMENT_MAP, init || (!hex_mode && !util_under_wine()));
         util_enable_menu_item(root_menu, IDM_VIEW_HIGHLIGHT_GROUP, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_CODE_HINT, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_EDIT_AUTO_INDENTATION, init || !hex_mode);
@@ -206,8 +206,8 @@ menu_update_hexview(const HMENU root_menu, const bool hex_mode, const bool init)
         util_enable_menu_item(root_menu, IDM_SOURCEE_ENABLE_ACSHOW, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_SOURCEE_ACSHOW_CHARS, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_SOURCE_ENABLE_CTSHOW, init || !hex_mode);
-        util_enable_menu_item(root_menu, IDM_SETTING_FONTQUALITY, init || !hex_mode);
-        util_enable_menu_item(root_menu, IDM_SETTING_RENDER, init || !hex_mode);
+        util_enable_menu_item(root_menu, IDM_SETTING_FONTQUALITY_GROUP, init || !hex_mode);
+        util_enable_menu_item(root_menu, IDM_SETTING_RENDER_GROUP, init || (!hex_mode && !util_under_wine()));
         util_enable_menu_item(root_menu, IDM_VIEW_HISTORY_PLACEHOLDE, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_SEARCH_HISTORY_PLACEHOLDE, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_VIEW_SCROLLCURSOR, init || !hex_mode);
@@ -708,9 +708,12 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_SET_RENDER_TECH_GDI:
                     {
-                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_GDI, IDM_SET_RENDER_TECH_GDI == eu_get_config()->m_render);
-                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, IDM_SET_RENDER_TECH_D2D == eu_get_config()->m_render);
-                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, IDM_SET_RENDER_TECH_D2DRETAIN == eu_get_config()->m_render);
+                        enable = init ? -1 : (int)eu_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0);
+                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_GDI, SC_TECHNOLOGY_DEFAULT == enable);
+                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, SC_TECHNOLOGY_DIRECTWRITE == enable);
+                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, SC_TECHNOLOGY_DIRECTWRITERETAIN == enable);
+                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_DC, SC_TECHNOLOGY_DIRECTWRITEDC == enable);
+                        util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D1_1, SC_TECHNOLOGY_DIRECT_WRITE_1 == enable);
                         break;
                     }
                     case IDM_SET_RESET_CONFIG:
