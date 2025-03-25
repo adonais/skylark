@@ -621,7 +621,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                     on_config_file_url(data.rel_path, (int)wcslen(data.rel_path), p);
                     len = wcslen(data.rel_path);
                     star = len > 1 && data.rel_path[len - 1] == L'*';
-                    if (que = len > 1 && data.rel_path[len - 1] == L'?')
+                    if ((que = (len > 1)) && data.rel_path[len - 1] == L'?')
                     {
                         ret |= 0x1;
                     }
@@ -648,7 +648,7 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                     GetFullPathNameW(ptr_arg[i], MAX_BUFFER, data.rel_path, &p);
                     len = wcslen(data.rel_path);
                     star = len > 1 && data.rel_path[len - 1] == L'*';
-                    if (que = len > 1 && data.rel_path[len - 1] == L'?')
+                    if ((que = (len > 1)) && data.rel_path[len - 1] == L'?')
                     {
                         ret |= 0x1;
                     }

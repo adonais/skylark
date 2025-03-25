@@ -2646,6 +2646,7 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
 {
     int tab_find = EUE_TAB_NULL;
     eu_tabpage *p = NULL;
+    char *u8_key = NULL;
     if (!(path && key))
     {
         return EUE_POINT_NULL;
@@ -2655,7 +2656,7 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
         p = on_tabpage_get_ptr(index);
         if (p && _tcscmp(p->pathfile, path) == 0)
         {
-            char *u8_key = eu_utf16_utf8(key, NULL);
+            u8_key = eu_utf16_utf8(key, NULL);
             on_tabpage_select_index(index);
             on_search_internal_find(p, u8_key, true);
             free(u8_key);
@@ -2665,13 +2666,12 @@ on_search_active_tab(const TCHAR *path, const TCHAR *key)
     }
     if (tab_find < 0)
     {
-        file_backup bak = {0};
+        file_backup bak = {-1, -1, 0, -1, 1};
         _tcsncpy(bak.rel_path, path, _countof(bak.rel_path));
-        tab_find = on_file_only_open(&bak, true);
+        tab_find = on_file_only_open(&bak);
         if (tab_find > SKYLARK_OPENED && (p = on_tabpage_get_ptr(tab_find)))
         {
-            char *u8_key = eu_utf16_utf8(key, NULL);
-            if (u8_key)
+            if ((u8_key = eu_utf16_utf8(key, NULL)))
             {
                 on_search_internal_find(p, u8_key, true);
                 free(u8_key);

@@ -220,7 +220,7 @@ share_send_msg(void *param, const size_t len)
     HWND hwnd = eu_module_hwnd();
     if (!hwnd)
     {   // 等待主窗口初始化
-        share_envent_wait(8000);
+        share_envent_wait(3000);
     }
     if ((hwnd = eu_module_hwnd()) != NULL)
     {

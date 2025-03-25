@@ -1381,6 +1381,11 @@ on_tabpage_newdoc_reload(void)
     }
 }
 
+/**************************************************************************************
+ * 在Tabs上插入标签
+ * 成功, 返回当前标签号
+ * 否则, 返回一个为负值的错误码
+ **************************************************************************************/
 int
 on_tabpage_insert(eu_tabpage *pnode)
 {
@@ -1417,7 +1422,7 @@ on_tabpage_insert(eu_tabpage *pnode)
                 TabCtrl_DeleteItem(htab, tab_id);
                 return EUE_INSERT_TAB_FAIL;
             }
-            return SKYLARK_OK;
+            return tab_id;
         }
         // 当复用scintilla窗口时, 不重复创建
         if (!pnode->hwnd_sc && on_sci_init_dlg(pnode))
@@ -1425,7 +1430,7 @@ on_tabpage_insert(eu_tabpage *pnode)
             TabCtrl_DeleteItem(htab, tab_id);
             return EUE_INSERT_TAB_FAIL;
         }
-        return SKYLARK_OK;
+        return tab_id;
     }
     return EUE_INSERT_TAB_FAIL;
 }

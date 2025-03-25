@@ -475,7 +475,7 @@ on_file_new(eu_tabpage *psrc)
             _tcscpy(pnode->pathfile, filename);
             _tcscpy(pnode->filename, filename);
         }
-        if (on_tabpage_insert(pnode))
+        if (on_tabpage_insert(pnode) < SKYLARK_OK)
         {
             eu_safe_free(pnode);
             return EUE_INSERT_TAB_FAIL;
@@ -973,17 +973,16 @@ on_file_update_postion(eu_tabpage *p, const file_backup *pbak)
     }
 }
 /**************************************************************************************
- * 文件是否打开已经打开
- * 参数selection代表是否选中新打开的标签
- * 如果已经打开在标签上, 返回标签号, 参数selection为true, 则返回SKYLARK_OPENED(-1)
- * 否则, 返回SKYLARK_NOT_OPENED(-2)
+ * 文件是否打开已经打开, 参数selection代表是否选中新打开的标签
+ * 如果已经打开, 返回标签号, 其值 >= 0, 否则, 返回SKYLARK_NOT_OPENED(-2)
+ * 如果出现其他错误, 返回值 < SKYLARK_NOT_OPENED
  **************************************************************************************/
 static int
-on_file_open_if(const TCHAR *pfile, bool selection)
+on_file_open_if(const TCHAR *pfile, const bool selection)
 {
     int res = SKYLARK_NOT_OPENED;
     eu_tabpage *pnode = NULL;
-    if (!pfile)
+    if (STR_IS_NUL(pfile))
     {
         return EUE_PATH_NULL;
     }
@@ -995,9 +994,9 @@ on_file_open_if(const TCHAR *pfile, bool selection)
             res = SKYLARK_TABCTRL_ERR;
             break;
         }
-        if (_tcscmp(pnode->pathfile, pfile) == 0)
+        if (_tcsicmp(pnode->pathfile, pfile) == 0)
         {
-            res = selection ? on_tabpage_selection(pnode) : SKYLARK_OPENED;
+            res = selection ? on_tabpage_selection(pnode) : index;
             break;
         }
         if (!url_has_remote(pfile) && _tcsrchr(pfile, _T('/')))
@@ -1005,9 +1004,9 @@ on_file_open_if(const TCHAR *pfile, bool selection)
             TCHAR temp[MAX_BUFFER] = {0};
             _sntprintf(temp, MAX_BUFFER, _T("%s"), pfile);
             eu_wstr_replace(temp, MAX_BUFFER, _T("/"), _T("\\"));
-            if (_tcscmp(pnode->pathfile, temp) == 0)
+            if (_tcsicmp(pnode->pathfile, temp) == 0)
             {
-                res = selection ? on_tabpage_selection(pnode) : SKYLARK_OPENED;
+                res = selection ? on_tabpage_selection(pnode) : index;
                 break;
             }
         }
@@ -1251,16 +1250,16 @@ on_file_node_init(eu_tabpage **p, file_backup *pbak)
 }
 
 /**************************************************************************************
- * 文件打开函数, 参数selection只影响返回值, 一般设为true
+ * 文件打开函数, 需要自己初始化结构, 其中.focus为是否选中标签
  * 成功打开文件, 确保返回的是当前标签的序号
- * 如果selection为false, 且文件已经打开的情况下, 返回值是SKYLARK_OPENED(-1)
+ * 如果失败, 返回一个负数错误值
  **************************************************************************************/
 int
-on_file_only_open(file_backup *pbak, const bool selection)
+on_file_only_open(file_backup *pbak)
 {
     eu_tabpage *pnode = NULL;
-    int res = on_file_open_if(pbak->rel_path, selection);
-    if (res < SKYLARK_NOT_OPENED  || res == SKYLARK_OPENED)
+    int res = on_file_open_if(pbak->rel_path, true);
+    if (res < SKYLARK_NOT_OPENED)
     {
         return res;
     }
@@ -1295,7 +1294,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
     util_lock_v2(pnode);
     do
     {
-        if ((res = on_tabpage_insert(pnode)) != SKYLARK_OK)
+        if ((res = on_tabpage_insert(pnode)) < SKYLARK_OK)
         {
             eu_logmsg("File: on_tabpage_insert failed, err = %d\n", res);
             break;
@@ -1306,7 +1305,10 @@ on_file_only_open(file_backup *pbak, const bool selection)
             res = EUE_WRITE_TAB_FAIL;
             break;
         }
-        res = on_file_after_open(pnode);
+        if (on_file_after_open(pnode) != SKYLARK_OK)
+        {
+            res = SKYLARK_NOT_OPENED;
+        }
     } while(0);
     util_unlock_v2(pnode);
     if (res < 0)
@@ -1323,7 +1325,7 @@ on_file_only_open(file_backup *pbak, const bool selection)
 static int
 on_file_open_bakcup(file_backup *pbak)
 {
-    return (on_file_only_open(pbak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+    return (on_file_only_open(pbak) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
 }
 
 /**************************************************************************************
@@ -1438,7 +1440,7 @@ on_file_redirect(file_backup *pbak, const size_t vsize)
         {
             if (!pbak[i].status && url_has_remote(pbak[i].rel_path))
             {
-                err = (on_file_open_remote(NULL, &pbak[i], true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+                err = (on_file_open_remote(NULL, &pbak[i]) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
             }
             else 
             {
@@ -1599,15 +1601,14 @@ on_file_remote_thread(eu_tabpage *p, file_backup *pbak, remotefs *premote)
  * 打开远程文件的函数
  * premote为远程服务器信息的结构体变量
  * pbak包含文件路径的一个结构体变量
- * selection只影响返回值, 一般设为true
  * 函数成功, 返回值为当前打开标签的序号, 失败则为负数
  **************************************************************************************/
 int
-on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
+on_file_open_remote(remotefs *premote, file_backup *pbak)
 {
     eu_tabpage *pnode = NULL;
-    int result = on_file_open_if(pbak->rel_path, selection);
-    if (result < SKYLARK_NOT_OPENED  || result == SKYLARK_OPENED)
+    int result = on_file_open_if(pbak->rel_path, true);
+    if (result < SKYLARK_NOT_OPENED)
     {
         return result;
     }
@@ -1637,7 +1638,7 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
     util_lock_v2(pnode);
     do
     {
-        if ((result = on_tabpage_insert(pnode)) != SKYLARK_OK)
+        if ((result = on_tabpage_insert(pnode)) < SKYLARK_OK)
         {
             eu_logmsg("File: on_tabpage_insert failed, err = %d\n", result);
             break;
@@ -1654,7 +1655,10 @@ on_file_open_remote(remotefs *premote, file_backup *pbak, const bool selection)
             // 重新修改回状态
             pnode->be_modify = false;
         }
-        result = on_file_after_open(pnode);
+        if (on_file_after_open(pnode) != SKYLARK_OK)
+        {
+            result = SKYLARK_NOT_OPENED;
+        }
     } while(0);
     util_unlock_v2(pnode);
     if (result < 0)
@@ -2802,8 +2806,7 @@ on_file_auto_notify(void)
 static int
 on_file_do_restore(void *data, int count, char **column, char **names)
 {
-    file_backup bak = {-1, -1, 0, -1};
-    bak.focus = 1;
+    file_backup bak = {-1, -1, 0, -1, 1};
     for (int i = 0; i < count; ++i)
     {
         if (STRCMP(names[i], ==, "szName"))

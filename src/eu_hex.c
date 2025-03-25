@@ -2261,7 +2261,7 @@ hexview_switch_mode(eu_tabpage *pnode)
         size_t  dst_len = 0;
         bool is_utf8 = pnode->codepage == IDM_UNI_UTF8;
         const HWND hwsc = pnode->hwnd_sc;
-        pnode->tab_id = on_tabpage_get_index(pnode);
+        err = pnode->tab_id = on_tabpage_get_index(pnode);
         pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
         if (pdf && np_plugins_lookup(NPP_PDFVIEW, pnode->extname, &pnode->pmod))
         {
@@ -2276,16 +2276,17 @@ hexview_switch_mode(eu_tabpage *pnode)
             {
                 if (pnode->bakpath[0] || on_file_get_bakpath(pnode))
                 {
-                    err = hexview_save_data(pnode, pnode->bakpath);
-                    if (err == SKYLARK_OK)
+                    if (hexview_save_data(pnode, pnode->bakpath) != SKYLARK_OK)
                     {
-                        eu_logmsg("Hex: %s, pnode->raw_size = %I64u\n", __FUNCTION__, pnode->raw_size);
+                        err = EUE_MAP_HEX_ERR;
+                        eu_logmsg("Hex: %s failed, pnode->raw_size = %I64u\n", __FUNCTION__, pnode->raw_size);
                     }
                 }
             }
-            if ((err = on_file_load_plugins(pnode, false)) == NP_NO_ERROR)
+            if (on_file_load_plugins(pnode, false) != NP_NO_ERROR)
             {
-                eu_logmsg("Hex: %s, on_file_load_plugins ok\n", __FUNCTION__);
+                err = EUE_UNKOWN_ERR;
+                eu_logmsg("Hex: %s, on_file_load_plugins failed\n", __FUNCTION__);
             }
         }
         else 

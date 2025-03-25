@@ -46,12 +46,12 @@ typedef struct _file_backup
     intptr_t y;
     intptr_t postion;
     int tab_id;
+    int focus;
     int cp;
     int bakcp;
     int eol;
     int blank;
     int hex;
-    int focus;
     int zoom;
     int status;
     int sync;
@@ -64,11 +64,11 @@ typedef struct _file_backup
 
 int on_file_new(eu_tabpage *psrc);
 int on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force);
-int on_file_only_open(file_backup *pbak, const bool selection);
+int on_file_only_open(file_backup *pbak);
 int on_file_open(void);
 int on_file_out_open(const int index, uint32_t *pid);
 int on_file_drop(HDROP hdrop);
-int on_file_open_remote(remotefs *pserver, file_backup *pbak, const bool selection);
+int on_file_open_remote(remotefs *pserver, file_backup *pbak);
 int on_file_save(eu_tabpage *pnode, const bool save_as);
 int on_file_save_as(eu_tabpage *pnode);
 int on_file_all_save(void);

@@ -1145,8 +1145,7 @@ on_filetree_node_dbclick(void)
     HTREEITEM hti;
     int err = SKYLARK_OK;
     tree_data *tvd = NULL;
-    file_backup bak = {-1, -1, 0, -1};
-    bak.focus = 1;
+    file_backup bak = {-1, -1, 0, -1, 1};
     if (!(hti = on_treebar_get_path(&tvd)) || !tvd || !tvd->filepath)
     {
         return EUE_POINT_NULL;
@@ -1163,13 +1162,13 @@ on_filetree_node_dbclick(void)
     if ((tvd->img_index == IMG_SHORTCUT && url_has_remote(tvd->filepath)) || tvd->server != NULL)
     {
         _tcsncpy(bak.rel_path, tvd->filepath, _countof(bak.rel_path));
-        err = (on_file_open_remote(tvd->server, &bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+        err = (on_file_open_remote(tvd->server, &bak) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
     else
     {
         _tcsncpy(bak.rel_path, tvd->filepath, _countof(bak.rel_path));
         eu_wstr_replace(bak.rel_path, _countof(bak.rel_path), _T("/"), _T("\\"));
-        err = (on_file_only_open(&bak, true) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
+        err = (on_file_only_open(&bak) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
     }
     if (!err && TabCtrl_GetItemCount(g_tabpages) < 1)
     {   // 建立一个空白标签页
