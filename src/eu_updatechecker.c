@@ -65,8 +65,7 @@ on_update_init(struct curl_slist **pheaders)
         // 默认使用http/2时, 检测不到最新发布的tag ?
         eu_curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         eu_curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0");
-        eu_curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA | CURLSSLOPT_NO_REVOKE);
-        eu_curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+        eu_curl_ssl_setting(curl);
         eu_curl_easy_setopt(curl, CURLOPT_AUTOREFERER, 1L);
         eu_curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_update_read_json);

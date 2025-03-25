@@ -717,10 +717,11 @@ extern ptr_curl_easy_getinfo eu_curl_easy_getinfo;
 extern ptr_curl_slist_append eu_curl_slist_append;
 extern ptr_curl_slist_free_all eu_curl_slist_free_all;
 
-extern int eu_curl_global_init(long flags);
+extern CURL *eu_curl_easy_init(void);
+extern int  eu_curl_global_init(long flags);
 extern void eu_curl_global_cleanup(void);
-extern CURL* eu_curl_easy_init(void);
-extern void eu_curl_easy_cleanup(CURL *);
+extern void eu_curl_easy_cleanup(CURL *curl);
+extern void eu_curl_ssl_setting(CURL *curl);
 
 extern TCHAR eu_module_path[MAX_PATH+1];
 extern TCHAR eu_config_path[MAX_BUFFER];

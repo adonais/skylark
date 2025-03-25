@@ -2936,6 +2936,22 @@ eu_curl_global_cleanup(void)
     }
 }
 
+void
+eu_curl_ssl_setting(CURL *curl)
+{
+    if (eu_win10_or_later() == (uint32_t)-1)
+    {   // 不受支持的操作系统证书可能过期
+        eu_curl_easy_setopt(curl, CURLOPT_SSLVERSION, 0);
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+    }
+    else
+    {
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA | CURLSSLOPT_NO_REVOKE);
+        eu_curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+    }
+}
+
 HINSTANCE
 eu_module_handle(void)
 {
