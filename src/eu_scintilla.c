@@ -158,29 +158,36 @@ on_sci_default_theme(eu_tabpage *pnode, const uint32_t bgcolor)
         // 窗口未激活时选中色
         eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, bgra);
         // 根据主题显示空白字符和控制符
-        if (true)
+        const bool lt = eu_get_config()->m_render > IDM_SET_RENDER_TECH_GDI;
+        eu_sci_call(pnode, SCI_CLEARALLREPRESENTATIONS, 0, 0);
+        if (lt)
         {
-            const bool lt = eu_get_config()->m_render > IDM_SET_RENDER_TECH_GDI;
-            eu_sci_call(pnode, SCI_CLEARALLREPRESENTATIONS, 0, 0);
             eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r", (sptr_t)"\xE2\x86\x90");
             eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\n", (sptr_t)"\xE2\x86\x93");
-            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r\n", lt ? (sptr_t)"\xE2\x86\xB2" : (sptr_t)"\xCB\xA9");
+            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r\n", (sptr_t)"\xE2\x86\xB2");
             eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r\n", SC_REPRESENTATION_COLOUR);
             eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r", SC_REPRESENTATION_COLOUR);
             eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\n", SC_REPRESENTATION_COLOUR);
-            // 是否显示换行符, item.whitechar.bold转义为是否显示
-            eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_theme()->item.whitechar.bold & BREAK_SHOW, 0);
-            // item.whitechar.bgcolor 转义为换行符前景色
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_get_theme()->item.whitechar.bgcolor);
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_get_theme()->item.whitechar.bgcolor);
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_get_theme()->item.whitechar.bgcolor);
-            eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_theme()->item.whitechar.fontsize, 0);
-            // 空白符根据主题设置背景
-            eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
-            // 自定义空白符颜色
-            eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, (sptr_t)eu_get_theme()->item.whitechar.color);
-            eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_theme()->item.whitechar.bold & WHITE_SHOW? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
         }
+        else
+        {
+            eu_sci_call(pnode, SCI_RESETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0);
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
+        }
+        // 是否显示换行符, item.whitechar.bold转义为是否显示
+        eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_theme()->item.whitechar.bold & BREAK_SHOW, 0);
+        // item.whitechar.bgcolor 转义为换行符前景色
+        eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_get_theme()->item.whitechar.bgcolor);
+        eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_get_theme()->item.whitechar.bgcolor);
+        eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_get_theme()->item.whitechar.bgcolor);
+        eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_theme()->item.whitechar.fontsize, 0);
+        // 空白符根据主题设置背景
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
+        // 自定义空白符颜色
+        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, (sptr_t)eu_get_theme()->item.whitechar.color);
+        eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_theme()->item.whitechar.bold & WHITE_SHOW? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
     }
 }
 

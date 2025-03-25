@@ -206,7 +206,7 @@ on_view_theme_loader(const HWND hwnd, const TCHAR *pbuf, const int id)
 {
     if (on_theme_load_script(pbuf))
     {
-        eu_logmsg("%s: on_theme_load_script return false\n", __FUNCTION__);
+        eu_logmsg("View: %s, on_theme_load_script return false\n", __FUNCTION__);
         return EUE_LOAD_SCRIPT_ERR;
     }
     if (!id || strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE))
@@ -263,7 +263,7 @@ on_view_modify_theme(void)
         HWND hwnd = eu_module_hwnd();
         if (hwnd && !on_theme_setup_font(hwnd))
         {
-            eu_logmsg("%s: on_theme_setup_font failed\n", __FUNCTION__);
+            eu_logmsg("View: %s, on_theme_setup_font failed\n", __FUNCTION__);
             return 1;
         }
         return on_view_refresh_theme(hwnd, false);
@@ -793,7 +793,7 @@ on_view_font_quality(HWND hwnd, const int res_id)
         eu_get_config()->m_quality = res_id;
         if (!on_theme_setup_font(hwnd))
         {
-            eu_logmsg("%s: on_theme_setup_font return false\n", __FUNCTION__);
+            eu_logmsg("View: %s, on_theme_setup_font return false\n", __FUNCTION__);
             eu_get_config()->m_quality = old_id;
         }
         else 
