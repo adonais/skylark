@@ -292,7 +292,7 @@ on_config_load_file(void *lp)
     {
         on_sql_do_session("SELECT szVersion FROM skylar_ver;", NULL, NULL);
     }
-    if (error == 0 && on_config_open_args(&vbak))
+    if (error == 0 && on_config_open_args(&vbak) && vbak)
     {
         for (; count < cvector_size(vbak) - 1; ++count)
         {
@@ -607,6 +607,22 @@ eu_config_parser_path(const wchar_t **args, int arg_c, file_backup **pbak)
                 {
                     ++i;
                 }
+                continue;
+            }
+            if (wcsncmp(ptr_arg[i], L"-lua", 4) == 0)
+            {
+                if ((i + 1) < arg_c && wcsncmp(ptr_arg[i+1], L"-b", 2) == 0)
+                {
+                    i += 3;
+                }
+                else
+                {
+                    ++i;
+                }
+                continue;
+            }
+            if (util_under_wine() && wcsicmp(ptr_arg[i], L"Z:") == 0)
+            {   // wine启动器自动添加了此参数
                 continue;
             }
             if (ptr_arg[i][0] != L'-' && wcslen(ptr_arg[i]) > 0)

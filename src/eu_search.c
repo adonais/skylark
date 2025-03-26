@@ -409,7 +409,7 @@ on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
 void
 on_search_jmp_pos(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->plugin)
     {
         if (!pnode->nc_pos || TAB_HEX_MODE(pnode))
         {

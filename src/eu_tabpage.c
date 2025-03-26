@@ -126,16 +126,6 @@ on_tabpage_set_active(int index)
     }
 }
 
-static inline void
-on_tabpage_setpos(eu_tabpage *p)
-{
-    if (p && p->hwnd_sc)
-    {
-        eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left,
-                         p->rect_sc.bottom - p->rect_sc.top, SWP_SHOWWINDOW);
-    }
-}
-
 static void
 on_tabpage_changing(int index)
 {
@@ -145,9 +135,13 @@ on_tabpage_changing(int index)
         util_set_title(p);
         on_toolbar_update_button();
         SendMessage(eu_hwnd_self(), WM_TAB_CLICK, (WPARAM)p, 0);
-        if (p->pmod)
+        if (p->pmod && p->plugin)
         {
-            on_tabpage_setpos(p);
+            MoveWindow(p->hwnd_sc, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left, p->rect_sc.bottom - p->rect_sc.top, FALSE);
+            if (util_under_wine())
+            {   // wine 下重绘插件窗口
+                p->plugin->funcs.setwindow(&p->plugin->npp, &p->plugin->win);
+            }
         }
     }
 }
@@ -1261,7 +1255,7 @@ on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode)
                 TabCtrl_DeleteItem(g_tabpages, index);
                 if (!TAB_HEX_MODE(pnode) && !pnode->plugin)
                 {
-                    eu_get_config()->m_render = (int)eu_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0) + IDM_SET_RENDER_TECH_GDI;
+                    eu_get_config()->m_render = (int)eu_sci_call((eu_tabpage *)pnode, SCI_GETTECHNOLOGY, 0, 0) + IDM_SET_RENDER_TECH_GDI;
                     if (file_click_close(mode) && count < 2)
                     {
                         p->reason = TABS_MAYBE_RESERVE;

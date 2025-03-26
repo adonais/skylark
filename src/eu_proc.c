@@ -279,7 +279,7 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && p != pnode && !p->plugin)
+            if (p && p != pnode)
             {
                 if (RESULT_SHOW(p))
                 {
@@ -291,6 +291,14 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
                 }
                 if (p->hwnd_sc)
                 {
+                    if (p->plugin && util_under_wine())
+                    {
+                        HWND hchild = FindWindowEx(p->hwnd_sc, NULL, NULL, NULL);
+                        if (hchild)
+                        {
+                            ShowWindow(hchild, SW_HIDE);
+                        }
+                    }
                     ShowWindow(p->hwnd_sc, SW_HIDE);
                 }
             }
@@ -2240,7 +2248,7 @@ on_proc_msg_active(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        if (pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
+        if (!pnode->plugin && pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
         {
             SetFocus(pnode->hwnd_sc);
         }

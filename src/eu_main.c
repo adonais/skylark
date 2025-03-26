@@ -302,7 +302,7 @@ _tmain(int argc, TCHAR *argv[])
             eu_get_config()->m_instance = true;
         }
         if (true)
-        {   // 主窗口初始化完成的信号量
+        {   // 告诉其他进程, 主窗口初始化完成的信号量
             share_envent_set(true);
         }
         if (!eu_config_load_files())
