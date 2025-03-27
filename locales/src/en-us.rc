@@ -333,6 +333,13 @@ BEGIN
         END
         POPUP "Other Options For Tabbar"
         BEGIN
+            MENUITEM "Tabs(Name A to Z)",                              IDM_VIEW_TABS_NAME_ASCEND
+            MENUITEM "Tabs(Name Z to A)",                              IDM_VIEW_TABS_NAME_ADESCEND
+            MENUITEM "Tabs(Type A to Z)",                              IDM_VIEW_TABS_TYPE_ASCEND
+            MENUITEM "Tabs(Type Z to A)",                              IDM_VIEW_TABS_TYPE_ADESCEND
+            MENUITEM "Tabs(Content Length Ascending)",                 IDM_VIEW_TABS_SIZE_ASCEND
+            MENUITEM "Tabs(Content Length Descending)",                IDM_VIEW_TABS_SIZE_ADESCEND
+            MENUITEM MF_SEPARATOR
             MENUITEM "Switch The Next Tab",                            IDM_VIEW_SWITCH_TAB
             MENUITEM "Scroll To Anchor When Switching Tabs",           IDM_VIEW_SCROLLCURSOR
             MENUITEM "Split Line On Multiline Tabs",                   IDM_VIEW_TABBAR_SPLIT

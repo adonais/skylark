@@ -150,6 +150,12 @@ function eu_accel.loadaccel()
       "                 {0, 0, IDM_TABCLOSE_FOLLOW},\n",
       "                 {0, 0, IDM_TABCLOSE_ALWAYS},\n",
       "                 {0, 0, IDM_TABCLOSE_NONE},\n",
+      "                 {bit.bor(FVIRTKEY, FALT), string.byte(\"H\"), IDM_VIEW_TABS_NAME_ASCEND},\n",
+      "                 {0, 0, IDM_VIEW_TABS_NAME_ADESCEND},\n",
+      "                 {0, 0, IDM_VIEW_TABS_TYPE_ASCEND},\n",
+      "                 {0, 0, IDM_VIEW_TABS_TYPE_ADESCEND},\n",
+      "                 {0, 0, IDM_VIEW_TABS_SIZE_ASCEND},\n",
+      "                 {0, 0, IDM_VIEW_TABS_SIZE_ADESCEND},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), VK_TAB, IDM_VIEW_SWITCH_TAB},\n",
       "                 {0, 0, IDM_VIEW_SCROLLCURSOR},\n",
       "                 {0, 0, IDM_VIEW_TABBAR_SPLIT},\n",
@@ -219,7 +225,7 @@ function eu_accel.loadaccel()
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
     -- print("m_len = " .. m_len)
-    if (m_len < 187) then
+    if (m_len < 193) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})

@@ -1652,12 +1652,24 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_TABCLOSE_FOLLOW:
                 case IDM_TABCLOSE_ALWAYS:
                 case IDM_TABCLOSE_NONE:
+                {
                     eu_get_config()->m_close_draw = wm_id;
                     if (g_tabpages)
                     {
                         UpdateWindowEx(g_tabpages);
                     }
                     break;
+                }
+                case IDM_VIEW_TABS_NAME_ASCEND:
+                case IDM_VIEW_TABS_NAME_ADESCEND:
+                case IDM_VIEW_TABS_TYPE_ASCEND:
+                case IDM_VIEW_TABS_TYPE_ADESCEND:
+                case IDM_VIEW_TABS_SIZE_ASCEND:
+                case IDM_VIEW_TABS_SIZE_ADESCEND:
+                {
+                    on_view_tabs_sort(wm_id);
+                    break;
+                }
                 case IDM_VIEW_SCROLLCURSOR:
                     eu_get_config()->scroll_to_cursor ^= true;
                     break;

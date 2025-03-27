@@ -333,6 +333,13 @@ BEGIN
         END
         POPUP "标签栏其他选项"
         BEGIN
+            MENUITEM "标签(名称升序)",                          IDM_VIEW_TABS_NAME_ASCEND
+            MENUITEM "标签(名称降序)",                          IDM_VIEW_TABS_NAME_ADESCEND
+            MENUITEM "标签(类型升序)",                          IDM_VIEW_TABS_TYPE_ASCEND
+            MENUITEM "标签(类型降序)",                          IDM_VIEW_TABS_TYPE_ADESCEND
+            MENUITEM "标签(尺寸升序)",                          IDM_VIEW_TABS_SIZE_ASCEND
+            MENUITEM "标签(尺寸降序)",                          IDM_VIEW_TABS_SIZE_ADESCEND
+            MENUITEM MF_SEPARATOR
             MENUITEM "切换到下一个标签",                        IDM_VIEW_SWITCH_TAB
             MENUITEM "切换标签时滚动到光标处",                  IDM_VIEW_SCROLLCURSOR
             MENUITEM "多行标签时显示分割线",                    IDM_VIEW_TABBAR_SPLIT

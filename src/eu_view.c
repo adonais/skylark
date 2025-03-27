@@ -834,3 +834,80 @@ on_view_enable_rendering(eu_tabpage *pnode, const int res_id)
         }
     }
 }
+
+void
+on_view_tabs_sort(const int id)
+{
+    int count = TabCtrl_GetItemCount(g_tabpages);
+    if (count > 1)
+    {
+        int index = 0;
+        eu_tabpage *p = NULL;
+        eu_tabpage *pm = NULL, *pk = NULL;
+        for (; index < count; ++index)
+        {
+            if ((p = on_tabpage_get_ptr(index)))
+            {
+                p->tab_id = index;
+                p->tab_focus = (int)(p->tab_id == TabCtrl_GetCurSel(g_tabpages));
+                on_sci_update_size(p);
+            }
+        }
+        for (index = 0; index < count; ++index)
+        {
+            if ((p = on_tabpage_get_ptr(index)))
+            {
+                pm = p;
+                for (int k = index + 1; k < count; ++k)
+                {
+                    if ((pk = on_tabpage_get_ptr(k)))
+                    {
+                        bool fn = false;
+                        switch (id) {
+                            case IDM_VIEW_TABS_NAME_ASCEND:
+                                fn = _tcsicmp(pk->filename, pm->filename) < 0;
+                                break;
+                            case IDM_VIEW_TABS_NAME_ADESCEND:
+                                fn = _tcsicmp(pk->filename, pm->filename) > 0;
+                                break;
+                            case IDM_VIEW_TABS_TYPE_ASCEND:
+                                fn = _tcsicmp(pk->extname, pm->extname) < 0;
+                                break;
+                            case IDM_VIEW_TABS_TYPE_ADESCEND:
+                                fn = _tcsicmp(pk->extname, pm->extname) > 0;
+                                break;
+                            case IDM_VIEW_TABS_SIZE_ASCEND:
+                                fn = pk->raw_size < pm->raw_size;
+                                break;
+                            case IDM_VIEW_TABS_SIZE_ADESCEND:
+                                fn = pk->raw_size > pm->raw_size;
+                                break;
+                            default:
+                                break;
+                        }
+                        if (fn)
+                        {
+                            pm = pk;
+                        }
+                    }
+                }
+                if (pm != p)
+                {
+                #if APP_DEBUG
+                    printf("pm->tab_id = %d, pm->filename = %s, p->tab_id = %d, p->filename = %s\n", pm->tab_id, eu_utf16_mbcs(-1, pm->filename, NULL), p->tab_id, eu_utf16_mbcs(-1, p->filename, NULL));
+                #endif
+                    on_tabpage_swap_item(pm->tab_id, p->tab_id);
+                    UTIL_SWAP(int, pm->tab_id, p->tab_id);
+                }
+            }
+        }
+        for (index = 0; index < count; ++index)
+        {
+            if ((p = on_tabpage_get_ptr(index)) && p->tab_focus > 0)
+            {
+                on_tabpage_select_index(index);
+                break;
+            }
+        }
+    }
+}

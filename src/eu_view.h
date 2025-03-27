@@ -58,6 +58,7 @@ void on_view_setfullscreenimpl(HWND hwnd);
 void on_view_full_sreen(HWND hwnd);
 void on_view_font_quality(HWND hwnd, const int res_id);
 void on_view_enable_rendering(eu_tabpage *pnode, const int res_id);
+void on_view_tabs_sort(const int res_id);
 
 #ifdef __cplusplus
 }

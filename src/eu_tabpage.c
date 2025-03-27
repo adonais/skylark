@@ -1095,6 +1095,26 @@ on_tabpage_create_dlg(HWND hwnd)
 }
 
 void
+on_tabpage_swap_item(const int old_index, const int new_index)
+{
+    TCITEM drag_item = {0};
+    TCITEM shift_item = {0};
+    TCHAR str1[MAX_PATH] = {0};
+    TCHAR str2[MAX_PATH] = {0};
+    drag_item.mask = shift_item.mask = TCIF_TEXT | TCIF_PARAM;
+    drag_item.cchTextMax = shift_item.cchTextMax = MAX_PATH;
+    drag_item.pszText = str1;
+    shift_item.pszText = str2;
+    if (old_index != new_index && old_index >= 0 && new_index >= 0)
+    {
+        SendMessage(g_tabpages, TCM_GETITEM, old_index, (LPARAM)(&drag_item));
+        SendMessage(g_tabpages, TCM_GETITEM, new_index, (LPARAM)(&shift_item));
+        SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
+        SendMessage(g_tabpages, TCM_SETITEM, old_index, (LPARAM)(&shift_item));
+    }
+}
+
+void
 on_tabpage_close_tabs(int it)
 {
     eu_tabpage *p = on_tabpage_get_ptr(it);

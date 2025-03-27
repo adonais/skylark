@@ -144,6 +144,7 @@ void on_tabpage_active_one(int index);
 void on_tabpage_size(const RECT *prc);
 void on_tabpage_variable_reset(void);
 void on_tabpage_select_index(const int index);
+void on_tabpage_swap_item(const int old_index, const int new_index);
 bool on_tabpage_exist_map(void);
 eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(const int index);

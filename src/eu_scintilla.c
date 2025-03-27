@@ -324,12 +324,12 @@ on_sci_reset_zoom(eu_tabpage *pnode)
     }
 }
 
-static inline void
+void
 on_sci_update_size(eu_tabpage *pnode)
 {
-    if (pnode)
+    if (pnode && !pnode->plugin)
     {
-        pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;    
+        pnode->raw_size = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0) + pnode->pre_len;
     }
 }
 
