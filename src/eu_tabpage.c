@@ -1244,22 +1244,18 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab)
 eu_tabpage *
 on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode)
 {
-    eu_tabpage *p = NULL;
     if (pnode && g_tabpages)
     {
+    	eu_tabpage *p = NULL;
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             if ((p = on_tabpage_get_ptr(index)) && p == pnode)
             {   /* 从控件删除选项卡 */
                 p->tab_id = index;
                 TabCtrl_DeleteItem(g_tabpages, index);
-                if (!TAB_HEX_MODE(pnode) && !pnode->plugin)
+                if (!TAB_HEX_MODE(pnode) && !pnode->plugin && file_click_close(mode) && count < 2)
                 {
-                    eu_get_config()->m_render = (int)eu_sci_call((eu_tabpage *)pnode, SCI_GETTECHNOLOGY, 0, 0) + IDM_SET_RENDER_TECH_GDI;
-                    if (file_click_close(mode) && count < 2)
-                    {
-                        p->reason = TABS_MAYBE_RESERVE;
-                    }
+                    p->reason = TABS_MAYBE_RESERVE;
                 }
                 return p;
             }

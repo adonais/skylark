@@ -28,8 +28,15 @@ package: all
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x64\*.lib" 2>nul 1>nul
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x64\conf\*.sqlite3" 2>nul 1>nul
 	@if exist "%WindowsSdkDir%Redist\%WindowsSDKVersion%ucrt\DLLs\x64" copy /y "%WindowsSdkDir%Redist\%WindowsSDKVersion%ucrt\DLLs\x64\*" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
+!IF "$(VC)" == "17"
+	@if exist "%VCToolsRedistDir%x64\Microsoft.VC143.CRT\msvcp140.dll" copy /y "%VCToolsRedistDir%x64\Microsoft.VC143.CRT\msvcp140.dll" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
+	@if exist "%VCToolsRedistDir%x64\Microsoft.VC143.CRT\vcruntime140.dll" copy /y "%VCToolsRedistDir%x64\Microsoft.VC143.CRT\vcruntime140.dll" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
+	@if exist "%VCToolsRedistDir%x64\Microsoft.VC143.CRT\vcruntime140_1.dll" copy /y "%VCToolsRedistDir%x64\Microsoft.VC143.CRT\vcruntime140_1.dll" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
+!ELSE
 	@if exist "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\msvcp140.dll" copy /y "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\msvcp140.dll" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
-	@if exist "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\vcruntime140.dll" copy /y "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\vcruntime140*.dll" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
+	@if exist "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\vcruntime140.dll" copy /y "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\vcruntime140.dll" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
+	@if exist "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\vcruntime140_1.dll" copy /y "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\vcruntime140_1.dll" "$(MAKEDIR)\skylark_x64" 2>&1>NUL
+!ENDIF
 	@7z a -t7z "$(MAKEDIR)\skylark_x64$(RELEASE_VERSION).7z" "$(MAKEDIR)\skylark_x64" -mx9 -r -y
 !ELSE
 	@if exist "$(MAKEDIR)\skylark_x86" rd /s/q "$(MAKEDIR)\skylark_x86"
@@ -40,8 +47,13 @@ package: all
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x86\*.lib" 2>nul 1>nul
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x86\conf\*.sqlite3" 2>nul 1>nul
 	@if exist "%WindowsSdkDir%Redist\%WindowsSDKVersion%ucrt\DLLs\x86" copy /y "%WindowsSdkDir%Redist\%WindowsSDKVersion%ucrt\DLLs\x86\*" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
+!IF "$(VC)" == "17"
+	@if exist "%VCToolsRedistDir%x86\Microsoft.VC143.CRT\msvcp140.dll" copy /y "%VCToolsRedistDir%x86\Microsoft.VC143.CRT\msvcp140.dll" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
+	@if exist "%VCToolsRedistDir%x86\Microsoft.VC143.CRT\vcruntime140.dll" copy /y "%VCToolsRedistDir%x86\Microsoft.VC143.CRT\vcruntime140.dll" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
+!ELSE
 	@if exist "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\msvcp140.dll" copy /y "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\msvcp140.dll" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
-	@if exist "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\vcruntime140.dll" copy /y "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\vcruntime140*.dll" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
+	@if exist "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\vcruntime140.dll" copy /y "%VCToolsRedistDir%x86\Microsoft.VC142.CRT\vcruntime140.dll" "$(MAKEDIR)\skylark_x86" 2>&1>NUL
+!ENDIF
 	@7z a -t7z "$(MAKEDIR)\skylark_x86$(RELEASE_VERSION).7z" "$(MAKEDIR)\skylark_x86" -mx9 -r -y
 !ENDIF
 

@@ -89,6 +89,8 @@ HMODULE hDLLDWrite{};
 PFN_D3D11_CREATE_DEVICE fnDCD {};
 
 void LoadD2DOnce() noexcept {
+	bool level_1 = true;
+    HRESULT hr = S_OK;
 	DWORD loadLibraryFlags = 0;
 	HMODULE kernel32 = ::GetModuleHandleW(L"kernel32.dll");
 	if (kernel32) {
@@ -110,10 +112,21 @@ void LoadD2DOnce() noexcept {
 	if (fnD2DCF) {
 		const D2D1_FACTORY_OPTIONS options {};
 		// A multi threaded factory in case Scintilla is used with multiple GUI threads
-		fnD2DCF(D2D1_FACTORY_TYPE_MULTI_THREADED,
-			__uuidof(ID2D1Factory1),
+		hr = fnD2DCF(D2D1_FACTORY_TYPE_MULTI_THREADED,
+			__uuidof(ID2D1Factory),
 			&options,
 			reinterpret_cast<IUnknown**>(&pD2DFactory));
+		if (SUCCEEDED(hr)) {
+			ID2D1Factory1 *pD2DFactory_t = nullptr;
+			hr = pD2DFactory->QueryInterface(__uuidof(ID2D1Factory1), reinterpret_cast<void **>(&pD2DFactory_t));
+			if (FAILED(hr) || !pD2DFactory_t) {
+				Platform::DebugPrintf("Failed to locate ID2D1Factory1 interface\n");
+				level_1 = false;
+			}
+			else {
+				pD2DFactory = pD2DFactory_t;
+			}
+		}
 	}
 	hDLLDWrite = ::LoadLibraryEx(TEXT("DWRITE.DLL"), {}, loadLibraryFlags);
 	DWriteCFSig fnDWCF = DLLFunction<DWriteCFSig>(hDLLDWrite, "DWriteCreateFactory");
@@ -121,30 +134,42 @@ void LoadD2DOnce() noexcept {
 		const GUID IID_IDWriteFactory2 = // 0439fc60-ca44-4994-8dee-3a9af7b732ec
 		{ 0x0439fc60, 0xca44, 0x4994, { 0x8d, 0xee, 0x3a, 0x9a, 0xf7, 0xb7, 0x32, 0xec } };
 
-		const HRESULT hr = fnDWCF(DWRITE_FACTORY_TYPE_SHARED,
-			IID_IDWriteFactory2,
-			reinterpret_cast<IUnknown**>(&pIDWriteFactory));
+		hr = fnDWCF(DWRITE_FACTORY_TYPE_SHARED,
+			 IID_IDWriteFactory2,
+			 reinterpret_cast<IUnknown**>(&pIDWriteFactory));
 		if (SUCCEEDED(hr)) {
 			// D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT
 			d2dDrawTextOptions = static_cast<D2D1_DRAW_TEXT_OPTIONS>(0x00000004);
 		} else {
-			fnDWCF(DWRITE_FACTORY_TYPE_SHARED,
-				__uuidof(IDWriteFactory1),
-				reinterpret_cast<IUnknown**>(&pIDWriteFactory));
+			hr = fnDWCF(DWRITE_FACTORY_TYPE_SHARED,
+				 __uuidof(IDWriteFactory),
+				 reinterpret_cast<IUnknown**>(&pIDWriteFactory));
+			if (SUCCEEDED(hr)) {
+				IDWriteFactory1 *pIDWriteFactory_t = nullptr;
+				hr = pIDWriteFactory->QueryInterface(__uuidof(IDWriteFactory1), reinterpret_cast<void **>(&pIDWriteFactory_t));
+				if (FAILED(hr) || !pIDWriteFactory_t) {
+					Platform::DebugPrintf("Failed to locate IDWriteFactory1 interface\n");
+					level_1 = false;
+				}
+				else {
+					pIDWriteFactory = pIDWriteFactory_t;
+				}
+			}
 		}
 	}
-
-	hDLLD3D = ::LoadLibraryEx(TEXT("D3D11.DLL"), {}, loadLibraryFlags);
-	if (!hDLLD3D) {
-		Platform::DebugPrintf("Direct3D not loaded\n");
-	}
-	fnDCD = DLLFunction<PFN_D3D11_CREATE_DEVICE>(hDLLD3D, "D3D11CreateDevice");
-	if (!fnDCD) {
-		Platform::DebugPrintf("Direct3D does not have D3D11CreateDevice\n");
+	if (hDLLD2D && hDLLDWrite && level_1) {
+		hDLLD3D = ::LoadLibraryEx(TEXT("D3D11.DLL"), {}, loadLibraryFlags);
+		if (!hDLLD3D) {
+			Platform::DebugPrintf("Direct3D not loaded\n");
+		}
+		fnDCD = DLLFunction<PFN_D3D11_CREATE_DEVICE>(hDLLD3D, "D3D11CreateDevice");
+		if (!fnDCD) {
+			Platform::DebugPrintf("Direct3D does not have D3D11CreateDevice\n");
+		}
 	}
 }
 
-}
+}  // anonymous-namespace end
 
 HRESULT CreateD3D(D3D11Device &device) noexcept {
 	device = nullptr;
@@ -194,14 +219,19 @@ HRESULT CreateD3D(D3D11Device &device) noexcept {
 	return hr;
 }
 
-bool LoadD2D() noexcept {
+int LoadD2D() noexcept {
 	static std::once_flag once;
 	try {
 		std::call_once(once, LoadD2DOnce);
 	} catch (...) {
 		// ignore
 	}
-	return pIDWriteFactory && pD2DFactory;
+	if (pIDWriteFactory && pD2DFactory && fnDCD) {
+		return 4;
+	} else if (pIDWriteFactory && pD2DFactory) {
+		return 3;
+	}
+	return 0;
 }
 
 HRESULT CreateDCRenderTarget(const D2D1_RENDER_TARGET_PROPERTIES *renderTargetProperties, DCRenderTarget &dcRT) noexcept {
@@ -2942,7 +2972,7 @@ public:
 #if defined(USE_D2D)
 
 	bool DrawD2D(COLORREF fillColour, COLORREF strokeColour) noexcept {
-		if (!LoadD2D()) {
+		if (LoadD2D() <= 0) {
 			return false;
 		}
 

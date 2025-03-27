@@ -203,7 +203,9 @@ on_navigate_clean_this(eu_tabpage *pnode)
                 cvector_freep(&curr->pos);
                 free(curr);
                 --max_nav_count;
-                eu_logmsg("Navigate: max_nav_count = %d\n", max_nav_count);
+            #if APP_DEBUG
+                printf("Navigate: max_nav_count = %d\n", max_nav_count);
+            #endif
             }
         }
     }

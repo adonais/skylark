@@ -2226,36 +2226,45 @@ sptr_t ScintillaWin::SciMessage(Message iMessage, uptr_t wParam, sptr_t lParam) 
 		return true;
 #endif
 
-	case Message::SetTechnology:
-		if (const Technology technologyNew = static_cast<Technology>(wParam);
+	case Message::SetTechnology: {
+		if (Technology technologyNew = static_cast<Technology>(wParam);
 			(technologyNew == Technology::Default) ||
 			(technologyNew == Technology::DirectWriteRetain) ||
 			(technologyNew == Technology::DirectWriteDC) ||
 			(technologyNew == Technology::DirectWrite) ||
 			(technologyNew == Technology::DirectWrite1)) {
+			int ret = 0;
 			if (technology != technologyNew) {
 				if (technologyNew > Technology::Default) {
-#if defined(USE_D2D)
-					if (!LoadD2D()) {
+                #if defined(USE_D2D)
+					if ((ret = LoadD2D()) <= 0) {
 						// Failed to load Direct2D or DirectWrite so no effect
-						return 0;
+						break;
 					}
 					UpdateRenderingParams(true);
-#else
-					return 0;
-#endif
+                #else
+					break;
+                #endif
 				} else {
 					bidirectional = Bidirectional::Disabled;
 				}
 				DropRenderTarget();
+				if (technologyNew > static_cast<Technology>(ret)) {
+					technologyNew = static_cast<Technology>(ret);
+				}
 				technology = technologyNew;
 				view.bufferedDraw = technologyNew == Technology::Default;
 				// Invalidate all cached information including layout.
 				InvalidateStyleRedraw();
+				if (ret > (int)wParam) {
+					ret = (int)wParam;
+				}
+				return ret;
 			}
+            return static_cast<int>(wParam);
 		}
 		break;
-
+	}
 	case Message::SetBidirectional:
 		if (technology == Technology::Default) {
 			bidirectional = Bidirectional::Disabled;

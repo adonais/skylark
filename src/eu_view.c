@@ -817,11 +817,11 @@ on_view_enable_rendering(eu_tabpage *pnode, const int res_id)
 {
     if (!util_under_wine())
     {
-        eu_get_config()->m_render = (int)eu_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0) + IDM_SET_RENDER_TECH_GDI;
-        if (eu_get_config()->m_render != res_id)
+        const int render = (int)eu_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0) + IDM_SET_RENDER_TECH_GDI;
+        if (render != res_id)
         {
             eu_tabpage *p = NULL;
-            eu_get_config()->m_render = res_id;
+            eu_get_config()->m_render = (int)res_id;
             for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
                 if ((p = on_tabpage_get_ptr(index)))

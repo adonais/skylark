@@ -125,7 +125,8 @@ on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
             eu_sci_call(pnode, SCI_SETFONTQUALITY, SC_EFF_QUALITY_LCD_OPTIMIZED, 0);
         }
         /* 设置字体渲染方式 */
-        eu_sci_call(pnode, SCI_SETTECHNOLOGY, (sptr_t)(eu_get_config()->m_render - IDM_SET_RENDER_TECH_GDI), 0);
+        const sptr_t render = (sptr_t)(eu_get_config()->m_render - IDM_SET_RENDER_TECH_GDI);
+        eu_get_config()->m_render = (int)eu_sci_call(pnode, SCI_SETTECHNOLOGY, render, 0) + IDM_SET_RENDER_TECH_GDI;
     }
 }
 

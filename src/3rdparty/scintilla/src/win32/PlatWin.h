@@ -71,7 +71,7 @@ public:
 };
 
 #if defined(USE_D2D)
-extern bool LoadD2D() noexcept;
+extern int LoadD2D() noexcept;
 extern ID2D1Factory1 *pD2DFactory;
 extern IDWriteFactory1 *pIDWriteFactory;
 
