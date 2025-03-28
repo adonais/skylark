@@ -605,8 +605,8 @@ on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len)
         }
         else
         {
-            Sci_TextRange tr = {{start, end}, buf};
-            return eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr) > 0;
+            Sci_TextRangeFull tr = {{start, end}, buf};
+            return eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr) > 0;
         }
     }
     return (*buf != 0);

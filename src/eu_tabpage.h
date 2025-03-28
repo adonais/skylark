@@ -113,6 +113,7 @@ struct _tabpage
     NMM pmod;                   // 插件模块地址
     npdata *plugin;             // 插件动态数据表
     tab_want pwant;             // 回调函数, 需要时使用
+    intptr_t lp;                // pwant回调函数参数, 需要时设置
 };
 
 extern HWND g_tabpages;

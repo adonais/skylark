@@ -86,6 +86,18 @@ on_navigate_match_callback(pcre_conainer *pcre_info, void *param)
     return SKYLARK_OK;
 }
 
+static void
+on_navigate_back_call(void *param)
+{
+    eu_tabpage *p = (eu_tabpage *)param;
+    // 确认pnode 为真且此标签还存在
+    if (p && (SendMessage(eu_hwnd_self(), WM_JSON_POSITION, (sptr_t)p, 0)) >= 0)
+    {
+        on_tabpage_selection(p);
+        eu_sci_call(p, SCI_GOTOPOS, p->nc_pos, 0);
+    }
+}
+
 int
 on_navigate_list_add(eu_tabpage *pnode)
 {
@@ -244,21 +256,33 @@ on_navigate_jump(eu_tabpage *pnode, sptr_t wp, sptr_t lp)
     sptr_t postion = -1;
     eu_tabpage *p = NULL;
     char *text = NULL;
-    if ((p = pnode))
-    {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
-        sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
-        text = on_sci_range_text(pnode, start_pos, end_pos);
+    if (pnode && pnode->pwant && pnode->lp > 0)
+    {   // 此回调函数负责跳回
+        eu_logmsg("Navigate: on_navigate_back_call\n");
+        pnode->pwant((void *)pnode->lp);
+        pnode->pwant = NULL;
+        pnode->lp = 0;
     }
-    if (STR_NOT_NUL(text) && !on_navigate_find_this(pnode, text, &postion))
+    else if ((p = pnode) && (p->nc_pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0)) >= 0)
     {
-        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        text = on_sci_range_text(pnode, eu_sci_call(p, SCI_WORDSTARTPOSITION, p->nc_pos, true), eu_sci_call(p, SCI_WORDENDPOSITION, p->nc_pos, true));
+    }
+    if (STR_NOT_NUL(text))
+    {
+        if (!on_navigate_find_this(p, text, &postion))
         {
-            if ((p = on_tabpage_get_ptr(index)) != NULL && on_navigate_diff(p, pnode) && on_navigate_find_this(p, text, &postion))
+            for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
             {
-                break;
+                if ((p = on_tabpage_get_ptr(index)) != NULL && on_navigate_diff(p, pnode) && on_navigate_find_this(p, text, &postion))
+                {
+                    break;
+                }
             }
+        }
+        if (postion >= 0)
+        {
+            p->pwant = on_navigate_back_call;
+            p->lp = (intptr_t)pnode;
         }
     }
     if (postion >= 0 && p)
