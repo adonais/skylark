@@ -2526,6 +2526,7 @@ on_search_find_next_button(const int button)
                 }
                 if (match > 0)
                 {
+                    eu_push_find_history(key);
                     on_search_lookup_result(pnode, all_file, count);
                 }
                 else if (!match)
