@@ -100,7 +100,7 @@ on_sci_set_margin(eu_tabpage *pnode)
 }
 
 void
-on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
+on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bg)
 {
     if (pnode)
     {
@@ -108,7 +108,7 @@ on_sci_default_fonts(eu_tabpage *pnode, const uint32_t bgcolor)
         eu_sci_call(pnode, SCI_STYLESETFONT, STYLE_DEFAULT, eu_doc_get_font_name(pnode));
         eu_sci_call(pnode, SCI_STYLESETSIZE, STYLE_DEFAULT, eu_doc_get_font_size(pnode));
         eu_sci_call(pnode, SCI_STYLESETFORE, STYLE_DEFAULT, eu_get_theme()->item.text.color);
-        eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bgcolor != (uint32_t)-1 ? bgcolor : eu_get_theme()->item.text.bgcolor);
+        eu_sci_call(pnode, SCI_STYLESETBACK, STYLE_DEFAULT, bg != DEFAULTBACK && bg != DEFAULTSPACE ? bg : eu_get_theme()->item.text.bgcolor);
         eu_sci_call(pnode, SCI_STYLESETBOLD, STYLE_DEFAULT, eu_get_theme()->item.text.bold);
         eu_sci_call(pnode, SCI_STYLECLEARALL, 0, 0);
         /* 设置字体抗锯齿 */
@@ -156,39 +156,42 @@ on_sci_default_theme(eu_tabpage *pnode, const uint32_t bgcolor)
         // 其他选中
         eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_ADDITIONAL_BACK, bgra);
         eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_SECONDARY_BACK, bgra);
+        // 空白符尺寸
+        eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_theme()->item.whitechar.fontsize, 0);
         // 窗口未激活时选中色
         eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, bgra);
-        // 根据主题显示空白字符和控制符
-        const bool lt = eu_get_config()->m_render > IDM_SET_RENDER_TECH_GDI;
-        eu_sci_call(pnode, SCI_CLEARALLREPRESENTATIONS, 0, 0);
-        if (lt)
-        {
-            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r", (sptr_t)"\xE2\x86\x90");
-            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\n", (sptr_t)"\xE2\x86\x93");
-            eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r\n", (sptr_t)"\xE2\x86\xB2");
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r\n", SC_REPRESENTATION_COLOUR);
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r", SC_REPRESENTATION_COLOUR);
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\n", SC_REPRESENTATION_COLOUR);
+        if (bgcolor != DEFAULTSPACE)
+        {   // 根据主题显示空白字符和控制符
+            const bool lt = eu_get_config()->m_render > IDM_SET_RENDER_TECH_GDI;
+            eu_sci_call(pnode, SCI_CLEARALLREPRESENTATIONS, 0, 0);
+            if (lt)
+            {
+                eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r", (sptr_t)"\xE2\x86\x90");
+                eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\n", (sptr_t)"\xE2\x86\x93");
+                eu_sci_call(pnode, SCI_SETREPRESENTATION, (sptr_t)"\r\n", (sptr_t)"\xE2\x86\xB2");
+                eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r\n", SC_REPRESENTATION_COLOUR);
+                eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\r", SC_REPRESENTATION_COLOUR);
+                eu_sci_call(pnode, SCI_SETREPRESENTATIONAPPEARANCE, (sptr_t)"\n", SC_REPRESENTATION_COLOUR);
+            }
+            else
+            {
+                eu_sci_call(pnode, SCI_RESETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0);
+                eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
+                eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
+                eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
+            }
+            // 是否显示换行符, item.whitechar.bold转义为是否显示
+            eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_theme()->item.whitechar.bold & BREAK_SHOW, 0);
+            // item.whitechar.bgcolor 转义为换行符前景色
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_get_theme()->item.whitechar.bgcolor);
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_get_theme()->item.whitechar.bgcolor);
+            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_get_theme()->item.whitechar.bgcolor);
+            // 空白符根据主题设置背景
+            eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
+            // 自定义空白符颜色
+            eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, (sptr_t)eu_get_theme()->item.whitechar.color);
+            eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_theme()->item.whitechar.bold & WHITE_SHOW? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
         }
-        else
-        {
-            eu_sci_call(pnode, SCI_RESETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0);
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
-            eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_sci_call(pnode, SCI_GETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, 0));
-        }
-        // 是否显示换行符, item.whitechar.bold转义为是否显示
-        eu_sci_call(pnode, SCI_SETVIEWEOL, eu_get_theme()->item.whitechar.bold & BREAK_SHOW, 0);
-        // item.whitechar.bgcolor 转义为换行符前景色
-        eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r\n", eu_get_theme()->item.whitechar.bgcolor);
-        eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\r", eu_get_theme()->item.whitechar.bgcolor);
-        eu_sci_call(pnode, SCI_SETREPRESENTATIONCOLOUR, (sptr_t)"\n", eu_get_theme()->item.whitechar.bgcolor);
-        eu_sci_call(pnode, SCI_SETWHITESPACESIZE, eu_get_theme()->item.whitechar.fontsize, 0);
-        // 空白符根据主题设置背景
-        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, rgb_alpha(eu_get_theme()->item.text.bgcolor, SC_ALPHA_OPAQUE));
-        // 自定义空白符颜色
-        eu_sci_call(pnode, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, (sptr_t)eu_get_theme()->item.whitechar.color);
-        eu_sci_call(pnode, SCI_SETVIEWWS, (eu_get_theme()->item.whitechar.bold & WHITE_SHOW? SCWS_VISIBLEALWAYS : SCWS_INVISIBLE), 0);
     }
 }
 

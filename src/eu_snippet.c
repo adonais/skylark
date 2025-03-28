@@ -871,7 +871,7 @@ on_snippet_reload(eu_tabpage *pedit)
 {
     if (pedit)
     {
-        on_sci_default_theme(pedit, -1);
+        on_sci_default_theme(pedit, DEFAULTBACK);
         // 设置一个页边缩进
         on_sci_set_margin(pedit);
         // 强制启用自动换行

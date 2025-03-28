@@ -294,7 +294,7 @@ on_result_reload(eu_tabpage *pedit)
 {
     if (pedit)
     {
-        on_sci_default_theme(pedit, -1);
+        on_sci_default_theme(pedit, DEFAULTSPACE);
         // disable margin
         eu_sci_call(pedit, SCI_SETMARGINS, 0, 0);
         // 强制使用unix回车符

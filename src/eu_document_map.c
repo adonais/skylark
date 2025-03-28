@@ -321,11 +321,11 @@ on_map_reload(eu_tabpage *pedit)
         sptr_t pdoc = eu_sci_call(pnode, SCI_GETDOCPOINTER, 0, 0);
         if (strcmp(eu_get_config()->window_theme, "default") == 0)
         {
-            on_sci_default_theme(pedit, util_under_wine() ? WINE_BACK_COLOR : -1);
+            on_sci_default_theme(pedit, util_under_wine() ? WINE_BACK_COLOR : DEFAULTBACK);
         }
         else
         {
-            on_sci_default_theme(pedit, -1);
+            on_sci_default_theme(pedit, DEFAULTBACK);
         }
         eu_sci_call(pedit, SCI_SETZOOM, -10, 0);
         eu_sci_call(pedit, SCI_SETVSCROLLBAR, 0, 0);
