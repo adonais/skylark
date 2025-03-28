@@ -91,11 +91,11 @@ on_snippet_init_sci(eu_tabpage *pview)
         eu_i18n_load_str(IDS_SNIPPET_EXAMPLE_DEC, sc_str, MAX_BUFFER - 1);
         if ((u8_str = eu_utf16_utf8(sc_str, NULL)))
         {
-            eu_sci_call(pview, SCI_CLEARALL, 0, 0);
-            eu_sci_call(pview, SCI_ADDTEXT, strlen(u8_str), (sptr_t)u8_str);
+            on_sci_call(pview, SCI_CLEARALL, 0, 0);
+            on_sci_call(pview, SCI_ADDTEXT, strlen(u8_str), (sptr_t)u8_str);
             free(u8_str);
         }
-        eu_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
+        on_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
     }
 }
 
@@ -199,12 +199,12 @@ on_snippet_do_sci(const char *txt, bool sel)
         {
             if (strlen(txt) > 0)
             {
-                eu_sci_call(pview, SCI_CLEARALL, 0, 0);
-                eu_sci_call(pview, SCI_ADDTEXT, strlen(txt), (sptr_t)txt);
+                on_sci_call(pview, SCI_CLEARALL, 0, 0);
+                on_sci_call(pview, SCI_ADDTEXT, strlen(txt), (sptr_t)txt);
                 if (sel)
                 {
                     SetFocus(pview->hwnd_sc);
-                    eu_sci_call(pview, SCI_GOTOPOS, 0, 0);
+                    on_sci_call(pview, SCI_GOTOPOS, 0, 0);
                 }
             }
             else
@@ -214,9 +214,9 @@ on_snippet_do_sci(const char *txt, bool sel)
         }
         else
         {
-            eu_sci_call(pview, SCI_CLEARALL, 0, 0);
+            on_sci_call(pview, SCI_CLEARALL, 0, 0);
         }
-        eu_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
+        on_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
     }
 }
 
@@ -266,7 +266,7 @@ on_snippet_init_parser(const TCHAR *path, snippet_t **ptr_vec)
         eu_tabpage *pview = (eu_tabpage *)GetWindowLongPtr(hwnd_snippet, GWLP_USERDATA);
         if (pview)
         {
-            eu_sci_call(pview, SCI_SETEOLMODE, eol, 0);
+            on_sci_call(pview, SCI_SETEOLMODE, eol, 0);
         }
         on_snippet_write_control(vec_spp);
         *ptr_vec = vec_spp;
@@ -597,13 +597,13 @@ on_snippet_do_modify(HWND hdlg)
             Edit_SetModify(hwnd_edt, FALSE);
             edt_modify = true;
         }
-        if (eu_sci_call(pview, SCI_GETMODIFY, 0, 0))
+        if (on_sci_call(pview, SCI_GETMODIFY, 0, 0))
         {
             char *txt = util_strdup_content(pview, NULL);
             if (txt)
             {
                 _snprintf(vec_spp[dimension].body, LARGER_LEN - 1, "%s", txt);
-                eu_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
+                on_sci_call(pview, SCI_SETSAVEPOINT, 0, 0);
                 edt_modify = true;
                 free(txt);
             }
@@ -613,7 +613,7 @@ on_snippet_do_modify(HWND hdlg)
             if (add)
             {
                 eu_touch(snippet_file);
-                if (on_parser_vector_new(snippet_file, &vec_spp, dimension, (int)eu_sci_call(pview, SCI_GETEOLMODE, 0, 0)))
+                if (on_parser_vector_new(snippet_file, &vec_spp, dimension, (int)on_sci_call(pview, SCI_GETEOLMODE, 0, 0)))
                 {
                     _InterlockedExchange(&snippet_new, 0);
                 }
@@ -875,8 +875,8 @@ on_snippet_reload(eu_tabpage *pedit)
         // 设置一个页边缩进
         on_sci_set_margin(pedit);
         // 强制启用自动换行
-        eu_sci_call(pedit, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
-        eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
+        on_sci_call(pedit, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
+        on_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 启用语法解析与配色方案
         on_doc_init_after_scilexer(pedit, "eu_demo");
         on_doc_default_light(pedit, SCE_DEMO_CARETSTART, 0xFF8000, -1, true);

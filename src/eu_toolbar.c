@@ -637,7 +637,7 @@ void
 on_toolbar_no_highlight(void *lp)
 {
     result_vec *pvec = NULL;
-    eu_sci_call((eu_tabpage *)lp, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
+    on_sci_call((const eu_tabpage *)lp, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
 }
 
 void
@@ -1044,8 +1044,8 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_SEARCH_FIND, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDPREV, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, !pnode->pmod ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && eu_sci_call(pnode, SCI_CANUNDO, 0, 0) ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && eu_sci_call(pnode, SCI_CANREDO, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && on_sci_call(pnode, SCI_CANUNDO, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && on_sci_call(pnode, SCI_CANREDO, 0, 0) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);

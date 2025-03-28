@@ -64,7 +64,7 @@ on_map_get_fold(eu_tabpage *pnode, sptr_t **plines)
     sptr_t header_line = 0;
     do
     {   // SCI_CONTRACTEDFOLDNEXT比检查文档的每一行快10%-50%
-        header_line = eu_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
+        header_line = on_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
         if (header_line != -1)
         {
             cvector_push_back(*plines, header_line);
@@ -126,18 +126,18 @@ on_map_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map)
     if (pnode && ptr_map)
     {
         // 从主编辑器视图中获取第一个和最后一个显示字符的位置
-        sptr_t higher_pos = eu_sci_call(pnode, SCI_POSITIONFROMPOINT, 0, 0);
-        sptr_t lower_pos = eu_sci_call(pnode, SCI_POSITIONFROMPOINT, pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top);
+        sptr_t higher_pos = on_sci_call(pnode, SCI_POSITIONFROMPOINT, 0, 0);
+        sptr_t lower_pos = on_sci_call(pnode, SCI_POSITIONFROMPOINT, pnode->rect_sc.right - pnode->rect_sc.left, pnode->rect_sc.bottom - pnode->rect_sc.top);
 
-        eu_sci_call(ptr_map, SCI_GOTOPOS, higher_pos, 0);
-        eu_sci_call(ptr_map, SCI_GOTOPOS, lower_pos, 0);
+        on_sci_call(ptr_map, SCI_GOTOPOS, higher_pos, 0);
+        on_sci_call(ptr_map, SCI_GOTOPOS, lower_pos, 0);
 
         RECT rc_map;
         GetClientRect(ptr_map->hwnd_sc, &rc_map);
-        sptr_t hy = eu_sci_call(ptr_map, SCI_POINTYFROMPOSITION, 0, higher_pos);
+        sptr_t hy = on_sci_call(ptr_map, SCI_POINTYFROMPOSITION, 0, higher_pos);
 
-        sptr_t map_line_height  = eu_sci_call(ptr_map, SCI_TEXTHEIGHT, 0, 0);
-        sptr_t ly = eu_sci_call(ptr_map, SCI_POINTYFROMPOSITION, 0, lower_pos) + map_line_height;
+        sptr_t map_line_height  = on_sci_call(ptr_map, SCI_TEXTHEIGHT, 0, 0);
+        sptr_t ly = on_sci_call(ptr_map, SCI_POINTYFROMPOSITION, 0, lower_pos) + map_line_height;
         // 标记文档视图中的显示区域
         on_map_draw_zone((long)hy, (long)ly);
     }
@@ -146,9 +146,9 @@ on_map_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map)
 static void
 on_map_model_scroll(eu_tabpage *pnode, eu_tabpage *ptr_map, bool direction, move_mode mode)
 {
-    sptr_t nb_line = eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
+    sptr_t nb_line = on_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
     sptr_t line2go = (mode == per_line ? 1 : nb_line);
-    eu_sci_call(pnode, SCI_LINESCROLL, 0, (direction == (bool)MOVE_DOWN) ? line2go : -line2go);
+    on_sci_call(pnode, SCI_LINESCROLL, 0, (direction == (bool)MOVE_DOWN) ? line2go : -line2go);
     on_map_scroll(pnode, ptr_map);
 }
 
@@ -318,7 +318,7 @@ on_map_reload(eu_tabpage *pedit)
     eu_tabpage *pnode = on_tabpage_focus_at();
     if (pedit && pnode)
     {
-        sptr_t pdoc = eu_sci_call(pnode, SCI_GETDOCPOINTER, 0, 0);
+        sptr_t pdoc = on_sci_call(pnode, SCI_GETDOCPOINTER, 0, 0);
         if (strcmp(eu_get_config()->window_theme, "default") == 0)
         {
             on_sci_default_theme(pedit, util_under_wine() ? WINE_BACK_COLOR : DEFAULTBACK);
@@ -327,23 +327,23 @@ on_map_reload(eu_tabpage *pedit)
         {
             on_sci_default_theme(pedit, DEFAULTBACK);
         }
-        eu_sci_call(pedit, SCI_SETZOOM, -10, 0);
-        eu_sci_call(pedit, SCI_SETVSCROLLBAR, 0, 0);
-        eu_sci_call(pedit, SCI_SETHSCROLLBAR, 0, 0);
+        on_sci_call(pedit, SCI_SETZOOM, -10, 0);
+        on_sci_call(pedit, SCI_SETVSCROLLBAR, 0, 0);
+        on_sci_call(pedit, SCI_SETHSCROLLBAR, 0, 0);
         // disable margin
-        eu_sci_call(pedit, SCI_SETMARGINS, 0, 0);
+        on_sci_call(pedit, SCI_SETMARGINS, 0, 0);
         // receive doc pointer
-        eu_sci_call(pedit, SCI_SETDOCPOINTER, 0, pdoc);
+        on_sci_call(pedit, SCI_SETDOCPOINTER, 0, pdoc);
         // 强制启用自动换行, 不然folding会出现问题
-        eu_sci_call(pedit, SCI_SETWRAPMODE, 2, 0);
+        on_sci_call(pedit, SCI_SETWRAPMODE, 2, 0);
         // folding
-        eu_sci_call(pedit, SCI_SETPROPERTY, (sptr_t)"fold", (sptr_t)"1");
-        eu_sci_call(pedit, SCI_SETPROPERTY, (sptr_t)"fold.comment", (sptr_t)"1");
-        eu_sci_call(pedit, SCI_SETPROPERTY, (sptr_t)"fold.preprocessor", (sptr_t)"1");
+        on_sci_call(pedit, SCI_SETPROPERTY, (sptr_t)"fold", (sptr_t)"1");
+        on_sci_call(pedit, SCI_SETPROPERTY, (sptr_t)"fold.comment", (sptr_t)"1");
+        on_sci_call(pedit, SCI_SETPROPERTY, (sptr_t)"fold.preprocessor", (sptr_t)"1");
         // 折叠时在下面画一条横线
-        eu_sci_call(pedit, SCI_SETFOLDFLAGS, SC_FOLDFLAG_LINEAFTER_CONTRACTED, 0);
+        on_sci_call(pedit, SCI_SETFOLDFLAGS, SC_FOLDFLAG_LINEAFTER_CONTRACTED, 0);
         // 行变更时展开
-        eu_sci_call(pedit, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CHANGE, 0);
+        on_sci_call(pedit, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CHANGE, 0);
         on_map_sync_fold(pnode, pedit);
         on_map_scroll(pnode, pedit);
     }
@@ -428,10 +428,10 @@ on_map_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 int y = GET_Y_LPARAM(lParam);
                 int center_y = on_map_center_pos();
-                sptr_t pixel_line = eu_sci_call(map_edit, SCI_TEXTHEIGHT, 0, 0);
+                sptr_t pixel_line = on_sci_call(map_edit, SCI_TEXTHEIGHT, 0, 0);
                 sptr_t jump_distance = y- center_y;
                 sptr_t jump_line = jump_distance/pixel_line;
-                eu_sci_call(pnode, SCI_LINESCROLL, 0, jump_line);
+                on_sci_call(pnode, SCI_LINESCROLL, 0, jump_line);
                 on_map_scroll(pnode, map_edit);
             }
             break;

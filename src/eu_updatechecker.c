@@ -98,7 +98,7 @@ on_update_download(const int64_t dtag)
     WCHAR path[MAX_BUFFER] = {0};
     WCHAR wcmd[LARGER_LEN] = {0};
     _snwprintf(path, MAX_BUFFER, L"%s\\cache", eu_config_path);
-    _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -uri \"%s\" -e \"%s\" -k %u -hwnd %Id -dt %I64d", eu_module_path,
+    _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -uri \"%s\" -e \"%s\" -k %lu -hwnd %Id -dt %I64d", eu_module_path,
                UPDATE_EXE, util_make_u16(eu_get_config()->upgrade.url, uri, MAX_SIZE - 1), path, GetCurrentProcessId(), (intptr_t)eu_module_hwnd(), dtag);
     return eu_new_process(wcmd, NULL, NULL, 0, NULL);
 }
@@ -189,7 +189,7 @@ on_update_loop(TASK_T hv)
             if (_InterlockedCompareExchange(&hv->cancel, 0, 1))
             {
                 on_update_kill(handle);
-                eu_logmsg("Upcheck: recv cancel message, thread %u exit ...\n", GetCurrentThreadId());
+                eu_logmsg("Upcheck: recv cancel message, thread %lu exit ...\n", GetCurrentThreadId());
                 break;
             }
             if (WaitForSingleObject(handle, MAYBE200MS) != WAIT_TIMEOUT)

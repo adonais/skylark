@@ -470,15 +470,15 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
             MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             break;
         }
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         if (fn((const uint8_t *)text, &out) == SKYLARK_OK && out)
         {
             if (pnode->doc_ptr->doc_type == DOCTYPE_JSON)
             {
                 if (strcmp(text, (const char *)out))
                 {
-                    eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                    eu_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)out), (LPARAM)out);
+                    on_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                    on_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)out), (LPARAM)out);
                 }
             }
             else if (pnode->doc_ptr->doc_type == DOCTYPE_JAVASCRIPT)
@@ -487,12 +487,12 @@ on_format_do_compress(eu_tabpage *pnode, format_back fn)
                 util_skip_whitespace(&p, eu_int_cast(strlen((const char *) p)), 0);
                 if (strcmp(text, (const char *)p))
                 {
-                    eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                    eu_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)p), (LPARAM)p);
+                    on_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                    on_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)p), (LPARAM)p);
                 }
             }
         }
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     } while(0);
     eu_safe_free(text);
     eu_safe_free(out);
@@ -539,7 +539,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                         break;
                     }
                 }
-                else if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
+                else if (on_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
                 {
                     MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                     break;
@@ -553,17 +553,17 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                     MSG_BOX(IDC_MSG_JSON_ERR1, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
                     break;
                 }
-                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
                 if (on_format_init_dll(filename, text, whole ? text_len + 1 : text_len, &out) && strcmp(text, out))
                 {
                     if (whole)
                     {
-                        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                        eu_sci_call(pnode, SCI_ADDTEXT, strlen(out), (sptr_t)out);
+                        on_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                        on_sci_call(pnode, SCI_ADDTEXT, strlen(out), (sptr_t)out);
                     }
                     else
                     {
-                        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)out);
+                        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)out);
                     }
                     if (pnode->doc_ptr && pnode->doc_ptr->doc_type == DOCTYPE_JSON)
                     {
@@ -574,7 +574,7 @@ on_format_clang_file(eu_tabpage *p, const bool whole)
                         on_symlist_reqular(pnode);
                     }
                 }
-                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
             } while(0);
             eu_safe_free(text);
             eu_safe_free(filename);
@@ -656,13 +656,13 @@ on_format_check_indentation(eu_tabpage *pnode)
         wchar_t opps_str[ENV_LEN] = {0};
         cvector_vector_type(sptr_t) opposite = NULL;
         cvector_vector_type(sptr_t) jumble = NULL;
-        bool use_tab = (bool)eu_sci_call(pnode, SCI_GETUSETABS, 0, 0);
-        const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        bool use_tab = (bool)on_sci_call(pnode, SCI_GETUSETABS, 0, 0);
+        const sptr_t line = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
         for (sptr_t i = 0; i < line; ++i)
         {
             char *pheader = NULL;
-            const sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
-            const sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
+            const sptr_t line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
+            const sptr_t line_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
             int indent = (int)util_line_header(pnode, line_start, line_end, &pheader);
             if (indent > 0 && pheader)
             {

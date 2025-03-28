@@ -343,11 +343,11 @@ on_proc_tab_click(eu_tabpage *pnode)
         {
             if (TAB_HEX_MODE(pnode))
             {
-                eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+                on_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
             }
             else
             {
-                eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+                on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
             }
         }
     }
@@ -666,14 +666,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             pnode = (eu_tabpage *)wParam;
             if (on_tabpage_get_index(pnode) >= 0)
             {
-                return eu_sci_call(pnode, SCI_POSITIONFROMLINE, lParam, 0);
+                return on_sci_call(pnode, SCI_POSITIONFROMLINE, lParam, 0);
             }
             return -1;
-        }
-        case WM_TABPAGE_FINAL:
-        {
-            on_proc_msg_size(NULL, on_tabpage_focus_at());
-            return 1;
         }
         case WM_TIMER:
         {
@@ -844,7 +839,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 const LRESULT rv = DefWindowProc(hwnd, message, wParam, lParam);
                 if ((pnode = on_tabpage_focus_at()) && !TAB_HEX_MODE(pnode) && pnode->nc_pos >= 0)
                 {
-                    eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+                    on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
                 }
                 return rv;
             }
@@ -1038,14 +1033,14 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_EDIT_UNDO_SELECTION:
                 {
-                    int sel = (int)eu_sci_call(pnode, SCI_GETUNDOSELECTIONHISTORY, 0, 0);
+                    int sel = (int)on_sci_call(pnode, SCI_GETUNDOSELECTIONHISTORY, 0, 0);
                     if ((eu_get_config()->m_undo_selection ^= true) && !sel)
                     {
-                        eu_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_ENABLED, 0);
+                        on_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_ENABLED, 0);
                     }
                     else if (sel)
                     {
-                        eu_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_DISABLED, 0);
+                        on_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_DISABLED, 0);
                     }
                     break;
                 }
@@ -2010,7 +2005,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case SCN_MARGINCLICK:
                 {
-                    sptr_t lineno = eu_sci_call(pnode, SCI_LINEFROMPOSITION, lpnotify->position, 0);
+                    sptr_t lineno = on_sci_call(pnode, SCI_LINEFROMPOSITION, lpnotify->position, 0);
                     if (lpnotify->margin == MARGIN_BOOKMARK_INDEX)
                     {
                         on_search_toggle_mark(pnode, lineno);
@@ -2082,7 +2077,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 // So, we replace SCN_AUTOCSELECTION with SCN_AUTOCCOMPLETED
                 case SCN_AUTOCCOMPLETED:
                 {
-                    int opt = (int)eu_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0);
+                    int opt = (int)on_sci_call(pnode, SCI_AUTOCGETOPTIONS, 0, 0);
                     if (((opt & SC_AUTOCOMPLETE_SNIPPET) && pnode->ac_mode != AUTO_CODE) || on_complete_auto_expand(pnode, lpnotify->text, lpnotify->position))
                     {
                         on_complete_reset_focus(pnode);
@@ -2404,7 +2399,7 @@ eu_before_proc(MSG *p_msg)
         {
             if (main_up)
             {
-                eu_sci_call(pnode, SCI_CANCEL, 0, 0);
+                on_sci_call(pnode, SCI_CANCEL, 0, 0);
                 if (KEY_DOWN(VK_SHIFT))
                 {
                     return on_complete_snippet_back(pnode);

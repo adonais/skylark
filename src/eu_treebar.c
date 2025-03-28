@@ -1242,9 +1242,9 @@ on_treebar_insert_edit(const TCHAR *ext, const char *str)
     if (pnode && STR_NOT_NUL(ext) && STR_NOT_NUL(str))
     {
         sptr_t cur_pos = -1;
-        if ((cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
+        if ((cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
         {
-            cur_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+            cur_pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
         }
         if (cur_pos >= 0)
         {
@@ -1254,8 +1254,8 @@ on_treebar_insert_edit(const TCHAR *ext, const char *str)
             {
                 char *u8_ext = eu_utf16_utf8(ext, NULL);
                 _snprintf(text, len, "data:image/%s;base64,%s", STR_NOT_NUL(u8_ext) ? u8_ext : "jpeg", str);
-                eu_sci_call(pnode, SCI_INSERTTEXT, cur_pos, (sptr_t)text);
-                eu_sci_call(pnode, SCI_GOTOPOS, cur_pos, 0);
+                on_sci_call(pnode, SCI_INSERTTEXT, cur_pos, (sptr_t)text);
+                on_sci_call(pnode, SCI_GOTOPOS, cur_pos, 0);
                 free(text);
                 eu_safe_free(u8_ext);
             }

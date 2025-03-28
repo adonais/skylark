@@ -23,9 +23,9 @@ extern sptr_t __stdcall CreateLexer(const char *name);
 void
 on_doc_enable_foldline(eu_tabpage *pnode)
 {   // 启用折叠
-    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold", (sptr_t)"1");
-    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.comment", (sptr_t)"1");
-    eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.preprocessor", (sptr_t)"1");
+    on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold", (sptr_t)"1");
+    on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.comment", (sptr_t)"1");
+    on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t)"fold.preprocessor", (sptr_t)"1");
     if (pnode->doc_ptr && pnode->doc_ptr->doc_type > 0)
     {
         switch (pnode->doc_ptr->doc_type)
@@ -33,63 +33,63 @@ on_doc_enable_foldline(eu_tabpage *pnode)
         case DOCTYPE_CPP:
         {   // Disable track preprocessor to avoid incorrect detection.
             // In the most of cases, the symbols are defined outside of file.
-            eu_sci_call(pnode, SCI_SETPROPERTY, (WPARAM)("lexer.cpp.track.preprocessor"), (sptr_t)"0");
+            on_sci_call(pnode, SCI_SETPROPERTY, (WPARAM)("lexer.cpp.track.preprocessor"), (sptr_t)"0");
             break;
         }
         case DOCTYPE_XML:
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.xml.allow.scripts", (sptr_t)"0");
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.xml.at.tag.open", (sptr_t)"1");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.xml.allow.scripts", (sptr_t)"0");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.xml.at.tag.open", (sptr_t)"1");
             FALLTHRU_ATTR;
         case DOCTYPE_HTML:
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.compact", (sptr_t)"0");
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.html", (sptr_t)"1");
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.comment", (sptr_t)"1");
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.heredoc", (sptr_t)"1");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.compact", (sptr_t)"0");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.html", (sptr_t)"1");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.comment", (sptr_t)"1");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "fold.hypertext.heredoc", (sptr_t)"1");
             break;
         case DOCTYPE_CSS:
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.scss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".scss")) == 0)? "1" : "0"));
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.less.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".less")) == 0)? "1" : "0"));
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.hss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".hss")) == 0)? "1" : "0"));
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.scss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".scss")) == 0)? "1" : "0"));
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.less.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".less")) == 0)? "1" : "0"));
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.css.hss.language", (sptr_t) ((_tcsicmp(pnode->extname, _T(".hss")) == 0)? "1" : "0"));
             break;
         case DOCTYPE_JSON:
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.json.allow.comments", (sptr_t)"1");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.json.allow.comments", (sptr_t)"1");
             break;
         case DOCTYPE_PASCAL:
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.pascal.smart.highlighting", (sptr_t)"1");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "lexer.pascal.smart.highlighting", (sptr_t)"1");
             break;
         case DOCTYPE_NSIS:
-            eu_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "nsis.uservars", (sptr_t)"1");
+            on_sci_call(pnode, SCI_SETPROPERTY, (sptr_t) "nsis.uservars", (sptr_t)"1");
             break;
         default:
             break;
         }
     }
     // 页边类型
-    eu_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_FOLD_INDEX, SC_MARGIN_SYMBOL);
+    on_sci_call(pnode, SCI_SETMARGINTYPEN, MARGIN_FOLD_INDEX, SC_MARGIN_SYMBOL);
     // 页边掩码
-    eu_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_FOLD_INDEX, SC_MASK_FOLDERS);
+    on_sci_call(pnode, SCI_SETMARGINMASKN, MARGIN_FOLD_INDEX, SC_MASK_FOLDERS);
     // 响应鼠标消息
-    eu_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_FOLD_INDEX, true);
+    on_sci_call(pnode, SCI_SETMARGINSENSITIVEN, MARGIN_FOLD_INDEX, true);
     // 折叠标签样式
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
-    eu_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER);
+    on_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS);
+    on_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS);
+    on_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED);
+    on_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED);
+    on_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER);
+    on_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
+    on_sci_call(pnode, SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER);
     // 折叠线的背景颜色
-    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERSUB, 0xa0a0a0);
-    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERMIDTAIL, 0xa0a0a0);
-    eu_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERTAIL, 0xa0a0a0);
+    on_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERSUB, 0xa0a0a0);
+    on_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERMIDTAIL, 0xa0a0a0);
+    on_sci_call(pnode, SCI_MARKERSETBACK, SC_MARKNUM_FOLDERTAIL, 0xa0a0a0);
     // 折叠时不要在下面画折叠线
-    eu_sci_call(pnode, SCI_SETFOLDFLAGS, 0, 0);
-    eu_sci_call(pnode, SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_BOXED, 0);
-    eu_sci_call(pnode, SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, (LPARAM)"\xC2\xB7\xC2\xB7\xC2\xB7");
+    on_sci_call(pnode, SCI_SETFOLDFLAGS, 0, 0);
+    on_sci_call(pnode, SCI_FOLDDISPLAYTEXTSETSTYLE, SC_FOLDDISPLAYTEXT_BOXED, 0);
+    on_sci_call(pnode, SCI_SETDEFAULTFOLDDISPLAYTEXT, 0, (LPARAM)"\xC2\xB7\xC2\xB7\xC2\xB7");
     // 高亮显示当前折叠块
-    eu_sci_call(pnode, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
+    on_sci_call(pnode, SCI_MARKERENABLEHIGHLIGHT, (sptr_t) eu_get_config()->light_fold, 0);
     // 行变更时, 自动展开, 排除SC_AUTOMATICFOLD_CLICK
-    eu_sci_call(pnode, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CHANGE, 0);
+    on_sci_call(pnode, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CHANGE, 0);
     // 页边宽度
     on_sci_update_fold_margin(pnode);
     // 启用折叠标志
@@ -148,27 +148,27 @@ on_doc_set_keyword(eu_tabpage *pnode)
     {   // See const char *const xxxWordLists at Lex(xxx).cxx
         if (pnode->doc_ptr->keywords0)
         {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
+            on_sci_call(pnode, SCI_SETKEYWORDS, 0, (sptr_t)(pnode->doc_ptr->keywords0));
         }
         if (pnode->doc_ptr->keywords1)
         {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
+            on_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t)(pnode->doc_ptr->keywords1));
         }
         if (pnode->doc_ptr->keywords2)
         {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
+            on_sci_call(pnode, SCI_SETKEYWORDS, 2, (sptr_t)(pnode->doc_ptr->keywords2));
         }
         if (pnode->doc_ptr->keywords3)
         {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
+            on_sci_call(pnode, SCI_SETKEYWORDS, 3, (sptr_t)(pnode->doc_ptr->keywords3));
         }
         if (pnode->doc_ptr->keywords4)
         {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
+            on_sci_call(pnode, SCI_SETKEYWORDS, 4, (sptr_t)(pnode->doc_ptr->keywords4));
         }
         if (pnode->doc_ptr->keywords5)
         {
-            eu_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
+            on_sci_call(pnode, SCI_SETKEYWORDS, 5, (sptr_t)(pnode->doc_ptr->keywords5));
         }
     }
 }
@@ -216,7 +216,7 @@ void
 on_doc_key_scilexer(eu_tabpage *pnode, const  char *name)
 {
     // 加载文档解析器
-    eu_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer(name));
+    on_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer(name));
     // 载入配置文件关键字列表
     on_doc_set_keyword(pnode);
     // 加载用户分类配置文件关键字渲染
@@ -248,20 +248,20 @@ on_doc_default_light(eu_tabpage *pnode, int lex, intptr_t fg_rgb, intptr_t bk_rg
         {
             if (fg_rgb >> 31)
             {
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)1);
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)1);
             }
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, fg_rgb&0xFFFFFF);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, fg_rgb&0xFFFFFF);
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.text.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.text.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.text.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.text.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.text.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.text.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.text.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.text.bold));
         }
         if (bk_rgb >= 0)
         {
-            eu_sci_call(pnode, SCI_STYLESETBACK, lex, bk_rgb&0xFFFFFF);
+            on_sci_call(pnode, SCI_STYLESETBACK, lex, bk_rgb&0xFFFFFF);
         }
     }
 }
@@ -277,76 +277,76 @@ on_doc_keyword_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
         }
         else if (rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
             return;
         }
         switch (index)
         {
             case 0:
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords0.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords0.fontsize));
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords0.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords0.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords0.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords0.fontsize));
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords0.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords0.bold));
                 break;
             case 1:
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords1.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords1.fontsize));
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords1.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords1.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords1.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords1.fontsize));
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords1.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords1.bold));
                 break;
             case 2:  // entities color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.entities.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.entities.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.entities.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.entities.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.entities.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.entities.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.entities.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.entities.bold));
                 break;
             case 3:  // phpsection color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.phpsection.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.phpsection.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.phpsection.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.phpsection.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.phpsection.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.phpsection.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.phpsection.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.phpsection.bold));
                 break;
             case 4:  // attributes color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.attributes.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.attributes.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.attributes.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.attributes.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.attributes.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.attributes.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.attributes.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.attributes.bold));
                 break;
             case 5:  // unknowattributes color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.unknowattributes.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.unknowattributes.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowattributes.bold));
                 break;
             case 6:  // cdata color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.cdata.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.cdata.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.cdata.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.cdata.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.cdata.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.cdata.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.cdata.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.cdata.bold));
                 break;
             case 7:  // tagends color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.tagends.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.tagends.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.tagends.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.tagends.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.tagends.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.tagends.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.tagends.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.tagends.bold));
                 break;
             case 8:  // unknowtags color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.unknowtags.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.unknowtags.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowtags.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.unknowtags.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.unknowtags.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.unknowtags.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.unknowtags.bold));
                 break;
             case 9:  // asp color
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.aspsection.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.aspsection.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.aspsection.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.aspsection.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.aspsection.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.aspsection.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.aspsection.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.aspsection.bold));
                 break;
             case 10:
-                eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.xmlsection.font));
-                eu_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.xmlsection.fontsize);
-                eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.xmlsection.color));
-                eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.xmlsection.bold));
+                on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.xmlsection.font));
+                on_sci_call(pnode, SCI_STYLESETSIZE, lex, eu_get_theme()->item.xmlsection.fontsize);
+                on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.xmlsection.color));
+                on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.xmlsection.bold));
                 break;
             default:
                 break;
@@ -365,14 +365,14 @@ on_doc_function_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
         }
         else if (rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords1.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords1.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords1.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords1.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.keywords1.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.keywords1.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.keywords1.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.keywords1.bold));
         }
     }
 }
@@ -388,14 +388,14 @@ on_doc_marcro_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
         }
         else if (!rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.preprocessor.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.preprocessor.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.preprocessor.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.preprocessor.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.preprocessor.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.preprocessor.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.preprocessor.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.preprocessor.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -411,7 +411,7 @@ on_doc_send_light(eu_tabpage *pnode, int lex, int index, intptr_t rgb)
 {
     if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
-        eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+        on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
     }
 }
 
@@ -420,7 +420,7 @@ on_doc_variable_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
-        eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+        on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
     }
 }
 
@@ -435,14 +435,14 @@ on_doc_tags_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.tags.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.tags.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.tags.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.tags.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.tags.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.tags.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.tags.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.tags.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -458,14 +458,14 @@ on_doc_string_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {   // set string light
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.string.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.string.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.string.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.string.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.string.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.string.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.string.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.string.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -481,14 +481,14 @@ on_doc_operator_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {   // set string light
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.operators.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.operators.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.operators.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.operators.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.operators.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.operators.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.operators.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.operators.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -504,14 +504,14 @@ on_doc_char_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.character.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.character.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.character.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.character.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.character.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.character.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.character.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.character.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -527,14 +527,14 @@ on_doc_number_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.number.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.number.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.number.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.number.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.number.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.number.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.number.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.number.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -544,7 +544,7 @@ on_doc_special_light(eu_tabpage *pnode, int lex, intptr_t rgb)
 {
     if (pnode && rgb && !on_doc_is_customized(pnode, lex))
     {
-        eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+        on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
     }
 }
 
@@ -559,14 +559,14 @@ on_doc_comment_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.commentline.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.commentline.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.commentline.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.commentline.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.commentline.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.commentline.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.commentline.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.commentline.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -582,14 +582,14 @@ on_doc_commentblock_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.comment.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.comment.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.comment.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.comment.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.comment.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.comment.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.comment.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.comment.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -605,14 +605,14 @@ on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t rgb)
         }
         else if (!rgb)
         {
-            eu_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.commentdoc.font));
-            eu_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.commentdoc.fontsize));
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.commentdoc.color));
-            eu_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.commentdoc.bold));
+            on_sci_call(pnode, SCI_STYLESETFONT, lex, (sptr_t)(eu_get_theme()->item.commentdoc.font));
+            on_sci_call(pnode, SCI_STYLESETSIZE, lex, (sptr_t)(eu_get_theme()->item.commentdoc.fontsize));
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, (sptr_t)(eu_get_theme()->item.commentdoc.color));
+            on_sci_call(pnode, SCI_STYLESETBOLD, lex, (sptr_t)(eu_get_theme()->item.commentdoc.bold));
         }
         else
         {
-            eu_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
+            on_sci_call(pnode, SCI_STYLESETFORE, lex, rgb);
         }
     }
 }
@@ -1195,8 +1195,8 @@ on_doc_character_around_space(eu_tabpage *pnode, sptr_t pos)
     int pre_pre_character = 0;
     if (pos >= 2)
     {
-        current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, pos, 0);
-        pre_pre_character = (int) eu_sci_call(pnode, SCI_GETCHARAT, pos - 2, 0);
+        current_char = (int) on_sci_call(pnode, SCI_GETCHARAT, pos, 0);
+        pre_pre_character = (int) on_sci_call(pnode, SCI_GETCHARAT, pos - 2, 0);
     }
     if (!(current_char && pre_pre_character && !(isspace(current_char) && isspace(pre_pre_character))))
     {
@@ -1210,7 +1210,7 @@ on_doc_character_replace(eu_tabpage *pnode, int ch)
 {
     char p[2] = {0};
     p[0] = ch;
-    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)p);
+    on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)p);
 }
 
 static void
@@ -1218,27 +1218,27 @@ on_doc_auto_brackets(eu_tabpage *pnode, ptr_notify lpnotify)
 {
     if (pnode && lpnotify && eu_get_config() && eu_get_config()->eu_brace.autoc)
     {   /* 自动补全关闭符号 */
-        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         if (on_doc_character_around_space(pnode, current_pos))
         {   // 当前后是空白符的时候才添加配对符号
             switch (lpnotify->ch)
             {
                 case '(':
                     on_doc_character_replace(pnode, ')');
-                    eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                    on_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
                     break;
                 case '[':
                     on_doc_character_replace(pnode, ']');
-                    eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                    on_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
                     break;
                 case '{':
                     on_doc_character_replace(pnode, '}');
-                    eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                    on_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
                     break;
                 case '\'':
                 case '"':
                     on_doc_character_replace(pnode, lpnotify->ch);
-                    eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                    on_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
                     break;
                 default:
                     break;
@@ -1255,12 +1255,12 @@ on_doc_add_bracket(eu_tabpage *pnode, ptr_notify lpnotify)
     {
         if (pnode)
         {
-            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
+            sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
             if (ch != '>')
             {
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ">");
-                eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) ">");
+                on_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
             }
         }
     }
@@ -1274,24 +1274,24 @@ on_doc_identation(eu_tabpage *pnode, ptr_notify lpnotify)
         return 1;
     }
     const int m_eol = on_encoding_eol_char(pnode);
-    const int m_width = (const int)eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
+    const int m_width = (const int)on_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
     if (m_width > QW_SIZE || m_width < 0)
     {
         return 1;
     }
-    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+    sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
     if (lpnotify->ch == m_eol)
     {   // 自动缩进
-        sptr_t pre_lpos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line - 1, 0);
+        sptr_t pre_lpos = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line - 1, 0);
         char pre_indent[QW_SIZE+1] = {0};
         char str_indent[QW_SIZE+1] = {'\t',};
         int indent_len = 0;
         sptr_t n_pos = pre_lpos;
         bool collect_indent = true;
         int line_tail_char = 0;
-        int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
-        for (; ch > 0 && ch != m_eol; n_pos++, ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
+        int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
+        for (; ch > 0 && ch != m_eol; n_pos++, ch = (int) on_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
         {
             if (collect_indent)
             {
@@ -1311,22 +1311,22 @@ on_doc_identation(eu_tabpage *pnode, ptr_notify lpnotify)
                 line_tail_char = ch;
             }
         }
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) pre_indent);
-        if (!eu_sci_call(pnode, SCI_GETUSETABS, 0, 0))
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) pre_indent);
+        if (!on_sci_call(pnode, SCI_GETUSETABS, 0, 0))
         {
             memset(str_indent, 0x20, m_width);
             str_indent[m_width] = 0;
         }
         if (line_tail_char && strchr("([{<", line_tail_char))
         {
-            eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) str_indent);
-            current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            int current_char = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
+            on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) str_indent);
+            current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            int current_char = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos, 0);
             if (strchr(")]}>", current_char))
             {
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) on_encoding_get_eol(pnode));
-                eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) pre_indent);
-                eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+                on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) on_encoding_get_eol(pnode));
+                on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) pre_indent);
+                on_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
             }
         }
     }
@@ -1347,39 +1347,39 @@ on_doc_function_tips(eu_tabpage *pnode, ptr_notify lpnotify)
         {
             sptr_t start_pos = 0;
             sptr_t end_pos = 0;
-            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos - 2 , 0);
+            sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos - 2 , 0);
             if (ch == 0x20)
             {   // 函数名称后面跟了一个空格
-                start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
-                end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 2, true);
+                start_pos = on_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
+                end_pos = on_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 2, true);
             }
             else if (ch > 0x20 && ch < 0x7f)
             {
-                start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
-                end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+                start_pos = on_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 2, true);
+                end_pos = on_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             }
             else
             {
-                start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
-                end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
+                start_pos = on_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos - 1, true);
+                end_pos = on_sci_call(pnode, SCI_WORDENDPOSITION, current_pos - 1, true);
             }
             if (end_pos - start_pos >= QW_SIZE)
             {
                 end_pos = start_pos + QW_SIZE;
             }
             Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
-            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (*word_buffer)
             {
                 const char *psz_location = eu_query_calltip_tree(&pnode->doc_ptr->ctshow_tree, word_buffer);
                 if (psz_location)
                 {
-                    eu_sci_call(pnode, SCI_CALLTIPSHOW, current_pos, (sptr_t) psz_location);
+                    on_sci_call(pnode, SCI_CALLTIPSHOW, current_pos, (sptr_t) psz_location);
                 }
-                else if (eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
+                else if (on_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
                 {
-                    eu_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
+                    on_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
                 }
             }
         }
@@ -1388,39 +1388,39 @@ on_doc_function_tips(eu_tabpage *pnode, ptr_notify lpnotify)
     {   /* 函数参数输入后继续提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
-            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) - 1;
+            sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) - 1;
             sptr_t n_pos = current_pos;
-            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
-            for (; n_pos >= 0 && ch != '('; n_pos--, ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
+            int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
+            for (; n_pos >= 0 && ch != '('; n_pos--, ch = (int) on_sci_call(pnode, SCI_GETCHARAT, n_pos, 0))
             {
                 ;
             }
             if (ch == '(' && n_pos >= 0)
             {
-                sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, n_pos - 1, true);
-                sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, n_pos - 1, true);
+                sptr_t start_pos = on_sci_call(pnode, SCI_WORDSTARTPOSITION, n_pos - 1, true);
+                sptr_t end_pos = on_sci_call(pnode, SCI_WORDENDPOSITION, n_pos - 1, true);
                 if (end_pos - start_pos >= QW_SIZE)
                 {
                     end_pos = start_pos + QW_SIZE;
                 }
                 Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
-                eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+                on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
                 if (*word_buffer)
                 {
                     const char *psz_location = eu_query_calltip_tree(&pnode->doc_ptr->ctshow_tree, word_buffer);
                     if (psz_location)
                     {
-                        eu_sci_call(pnode, SCI_CALLTIPSHOW, current_pos, (sptr_t) psz_location);
+                        on_sci_call(pnode, SCI_CALLTIPSHOW, current_pos, (sptr_t) psz_location);
                     }
-                    else if (eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
+                    else if (on_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
                     {
-                        eu_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
+                        on_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
                     }
                 }
             }
-            else if (eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
+            else if (on_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
             {
-                eu_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
+                on_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
             }
         }
     }
@@ -1435,7 +1435,7 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
     {   /* 函数原型提示 */
         if (pnode->doc_ptr && !RB_EMPTY_ROOT(&pnode->doc_ptr->ctshow_tree))
         {
-            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             sptr_t start_pos = current_pos;
             sptr_t end_pos;
             int ch;
@@ -1447,7 +1447,7 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
                     start_pos = 0;
                     break;
                 }
-                ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, start_pos, 0);
+                ch = (int) on_sci_call(pnode, SCI_GETCHARAT, start_pos, 0);
                 if (ch == ch_from)
                 {
                     start_pos++;
@@ -1456,7 +1456,7 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
             }
             while (1)
             {
-                ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, start_pos, 0);
+                ch = (int) on_sci_call(pnode, SCI_GETCHARAT, start_pos, 0);
                 if (!strchr(" \t\r\n\f", ch))
                 {
                     break;
@@ -1470,7 +1470,7 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
             end_pos = start_pos + 1;
             while (1)
             {
-                ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, end_pos, 0);
+                ch = (int) on_sci_call(pnode, SCI_GETCHARAT, end_pos, 0);
                 if (strchr(" \t\r\n\f", ch))
                 {
                     break;
@@ -1486,7 +1486,7 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
                 end_pos = start_pos + QW_SIZE;
             }
             Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
-            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (upper_case)
             {
                 util_upper_string(word_buffer);
@@ -1494,19 +1494,19 @@ on_doc_auto_calltip(eu_tabpage *pnode, ptr_notify lpnotify, char ch_from, bool u
             const char *psz_location = eu_query_calltip_tree(&pnode->doc_ptr->ctshow_tree, word_buffer);
             if (psz_location)
             {
-                eu_sci_call(pnode, SCI_CALLTIPSHOW, current_pos, (sptr_t) psz_location);
+                on_sci_call(pnode, SCI_CALLTIPSHOW, current_pos, (sptr_t) psz_location);
             }
             else
             {
-                if (eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0)) eu_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
+                if (on_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0)) on_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
             }
         }
     }
     else if (pnode && lpnotify && lpnotify->ch == '\n' && eu_get_config()->eu_calltip.enable)
     {
-        if (eu_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
+        if (on_sci_call(pnode, SCI_AUTOCACTIVE, 0, 0))
         {
-            eu_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
+            on_sci_call(pnode, SCI_CALLTIPCANCEL, 0, 0);
         }
     }
     return 0;
@@ -1630,8 +1630,8 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
     bool matching = false;
     if (pnode && eu_get_config() && eu_get_config()->eu_brace.matching)
     {
-        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
+        sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
         matching = ch > 0 && strchr("()[]{}<>", ch);
         if (matching)
         {   // 匹配的括号高亮显示
@@ -1639,21 +1639,21 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
             {
                 --current_pos;
             }
-            if ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0)) != -1)
+            if ((match_pos = on_sci_call(pnode, SCI_BRACEMATCH, current_pos, 0)) != -1)
             {   // 当键盘输入时, 相邻的括号不要高亮
                 if (!(keyup && (current_pos == match_pos + 1 || current_pos == match_pos - 1)))
                 {
-                    eu_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
+                    on_sci_call(pnode, SCI_BRACEHIGHLIGHT, current_pos, match_pos);
                 }
             }
             else
             {
-                eu_sci_call(pnode, SCI_BRACEBADLIGHT, current_pos, 0);
+                on_sci_call(pnode, SCI_BRACEBADLIGHT, current_pos, 0);
             }
         }
         else
         {   // 光标位置移动后取消高亮显示
-            eu_sci_call(pnode, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
+            on_sci_call(pnode, SCI_BRACEBADLIGHT, INVALID_POSITION, INVALID_POSITION);
         }
     }
     return 0;
@@ -1663,27 +1663,27 @@ static int
 on_doc_brace_handling(eu_tabpage *pnode)
 {
     sptr_t match_pos = -1;
-    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
-    sptr_t current_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-    sptr_t current_line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
-    int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
+    sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+    sptr_t current_line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+    sptr_t current_line_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
+    int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
     sptr_t m_indent = util_line_header(pnode, current_line_start, current_line_end, NULL);
     if (m_indent > 0 && strchr(")]}>", ch))
     {   // 当匹配括号前都是空白时, 使之对齐
-        sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-        if ((current_pos - 1 - line_start == m_indent) && ((match_pos = eu_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))
+        sptr_t line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+        if ((current_pos - 1 - line_start == m_indent) && ((match_pos = on_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))
         {
             char *str_space = NULL;
-            sptr_t match_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
-            sptr_t match_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, match_line, 0);
-            sptr_t match_line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, match_line, 0);
+            sptr_t match_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
+            sptr_t match_line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, match_line, 0);
+            sptr_t match_line_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, match_line, 0);
             m_indent = util_line_header(pnode, match_line_start, match_line_end, &str_space);
             if (m_indent >= 0 && str_space && match_pos - match_line_start == m_indent)
             {
-                eu_sci_call(pnode, SCI_SETTARGETSTART, line_start, 0);
-                eu_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
-                eu_sci_call(pnode, SCI_REPLACETARGET, m_indent, (sptr_t)str_space);
+                on_sci_call(pnode, SCI_SETTARGETSTART, line_start, 0);
+                on_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
+                on_sci_call(pnode, SCI_REPLACETARGET, m_indent, (sptr_t)str_space);
             }
             eu_safe_free(str_space);
         }
@@ -1711,7 +1711,7 @@ on_doc_keydown_sql(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     {
         if (lParam == VK_CONTROL)
         {
-            eu_sci_call(pnode, SCI_SETSEL, 0, eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
+            on_sci_call(pnode, SCI_SETSEL, 0, on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
             vcontrol = true;
         }
         return on_table_sql_query(pnode, NULL, vcontrol, true);
@@ -1726,7 +1726,7 @@ on_doc_keydown_redis(eu_tabpage *pnode, WPARAM wParam, LPARAM lParam)
     {
         if (lParam == VK_CONTROL)
         {
-            eu_sci_call(pnode, SCI_SETSEL, 0, eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
+            on_sci_call(pnode, SCI_SETSEL, 0, on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0));
         }
         return on_symtree_query_redis(pnode);
     }

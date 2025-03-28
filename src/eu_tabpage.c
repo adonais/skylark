@@ -531,11 +531,11 @@ on_tabpage_send_file(const HWND hwin, const int index)
         {
             if (!p->is_blank)
             {
-                sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                sptr_t pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
                 if (pos > 0)
                 {
-                    sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-                    sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                    sptr_t lineno = on_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                    sptr_t row = on_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
                     bak.x = lineno + 1;
                     bak.y = eu_int_cast(pos - row + 1);
                     bak.hex = p->hex_mode;
@@ -667,7 +667,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
             _sntprintf(sub_str, MAX_PATH - 1, mstr, num);
             ModifyMenu(hpop, 0, MF_BYPOSITION | MF_STRING, IDM_FILE_CLOSE, sub_str);
         }
-        util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !eu_sci_call(p,SCI_GETREADONLY, 0, 0));
+        util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !on_sci_call(p,SCI_GETREADONLY, 0, 0));
         util_set_menu_item(hpop, IDM_TABPAGE_LOCKED, eu_get_config()->inter_reserved_1);
         util_enable_menu_item(hpop, IDM_FILE_ADD_FAVORITES, !p->is_blank);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
@@ -1157,7 +1157,7 @@ on_tabpage_size(const RECT *prc)
     {
         RECT rc_tabbar = {0};
         on_tabpage_adjust_box(prc, &rc_tabbar);
-        MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, TRUE);
+        MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, FALSE);
         ShowWindow(g_tabpages, SW_SHOW);
     }
 }
@@ -1486,10 +1486,10 @@ on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
             if (!url_has_remote(pnode->pathfile))
             {
                 on_sci_clear_history(pnode, false);
-                eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                on_sci_call(pnode, SCI_CLEARALL, 0, 0);
                 if (on_file_load(pnode, NULL, true) == SKYLARK_OK)
                 {
-                    sptr_t max_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+                    sptr_t max_line = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
                     if (pline && *pline > max_line - 1)
                     {
                         *pline = max_line - 1;

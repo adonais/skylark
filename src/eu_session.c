@@ -71,11 +71,11 @@ on_session_delete_backup(void)
             }
             if (!DeleteFile(pnode->bakpath))
             {
-                eu_logmsg("Session: %s delete(bakpath) error, cause: %u\n", __FUNCTION__, GetLastError());
+                eu_logmsg("Session: %s delete(bakpath) error, cause: %lu\n", __FUNCTION__, GetLastError());
             }
             if (eu_exist_file(buf) && !DeleteFile(buf))
             {
-                eu_logmsg("Session: %s delete(backup~~) error, cause: %u\n", __FUNCTION__, GetLastError());
+                eu_logmsg("Session: %s delete(backup~~) error, cause: %lu\n", __FUNCTION__, GetLastError());
             }
         }
     }

@@ -58,22 +58,22 @@ on_exporter_init_data(eu_tabpage *pnode, sci_export *ptr, const sptr_t start, co
             return false;
         }
         ptr->nschar = eu_int_cast(len);
-        ptr->tabsize = (int) eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
+        ptr->tabsize = (int) on_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
         Sci_TextRangeFull tr = { { start, end }, ptr->data };
-        eu_sci_call(pnode, SCI_GETSTYLEDTEXTFULL, 0, (sptr_t) &tr);
+        on_sci_call(pnode, SCI_GETSTYLEDTEXTFULL, 0, (sptr_t) &tr);
         ptr->nrstyle_switches = 0;
         ptr->nr_ustyles = 1;
         ptr->font_length = 0;
         ptr->ustyles[STYLE_DEFAULT] = true;
-        eu_sci_call(pnode, SCI_STYLEGETFONT, STYLE_DEFAULT, (sptr_t) (ptr->pstyle[STYLE_DEFAULT].fontname));
+        on_sci_call(pnode, SCI_STYLEGETFONT, STYLE_DEFAULT, (sptr_t) (ptr->pstyle[STYLE_DEFAULT].fontname));
         ptr->font_length += (int) strlen((ptr->pstyle[STYLE_DEFAULT].fontname));
-        ptr->pstyle[STYLE_DEFAULT].size = (int) eu_sci_call(pnode, SCI_STYLEGETSIZE, STYLE_DEFAULT, 0);
-        ptr->pstyle[STYLE_DEFAULT].bold = (int) eu_sci_call(pnode, SCI_STYLEGETBOLD, STYLE_DEFAULT, 0);
-        ptr->pstyle[STYLE_DEFAULT].italic = (int) eu_sci_call(pnode, SCI_STYLEGETITALIC, STYLE_DEFAULT, 0);
-        ptr->pstyle[STYLE_DEFAULT].underlined = (int) eu_sci_call(pnode, SCI_STYLEGETUNDERLINE, STYLE_DEFAULT, 0);
-        ptr->pstyle[STYLE_DEFAULT].fgcolor = (int) eu_sci_call(pnode, SCI_STYLEGETFORE, STYLE_DEFAULT, 0);
-        ptr->pstyle[STYLE_DEFAULT].bgcolor = (int) eu_sci_call(pnode, SCI_STYLEGETBACK, STYLE_DEFAULT, 0);
-        ptr->pstyle[STYLE_DEFAULT].eol_ext = (bool) eu_sci_call(pnode, SCI_STYLEGETEOLFILLED, STYLE_DEFAULT, 0);
+        ptr->pstyle[STYLE_DEFAULT].size = (int) on_sci_call(pnode, SCI_STYLEGETSIZE, STYLE_DEFAULT, 0);
+        ptr->pstyle[STYLE_DEFAULT].bold = (int) on_sci_call(pnode, SCI_STYLEGETBOLD, STYLE_DEFAULT, 0);
+        ptr->pstyle[STYLE_DEFAULT].italic = (int) on_sci_call(pnode, SCI_STYLEGETITALIC, STYLE_DEFAULT, 0);
+        ptr->pstyle[STYLE_DEFAULT].underlined = (int) on_sci_call(pnode, SCI_STYLEGETUNDERLINE, STYLE_DEFAULT, 0);
+        ptr->pstyle[STYLE_DEFAULT].fgcolor = (int) on_sci_call(pnode, SCI_STYLEGETFORE, STYLE_DEFAULT, 0);
+        ptr->pstyle[STYLE_DEFAULT].bgcolor = (int) on_sci_call(pnode, SCI_STYLEGETBACK, STYLE_DEFAULT, 0);
+        ptr->pstyle[STYLE_DEFAULT].eol_ext = (bool) on_sci_call(pnode, SCI_STYLEGETEOLFILLED, STYLE_DEFAULT, 0);
         for (i = 0; i < (int) len; ++i)
         {
             current_style = ptr->data[i * 2 + 1];
@@ -85,15 +85,15 @@ on_exporter_init_data(eu_tabpage *pnode, sci_export *ptr, const sptr_t start, co
             if (current_style >= 0 && current_style < NRSTYLES && ptr->ustyles[current_style] == false)
             {
                 ptr->nr_ustyles++;
-                eu_sci_call(pnode, SCI_STYLEGETFONT, current_style, (sptr_t) (ptr->pstyle[current_style].fontname));
+                on_sci_call(pnode, SCI_STYLEGETFONT, current_style, (sptr_t) (ptr->pstyle[current_style].fontname));
                 ptr->font_length += (int) strlen((ptr->pstyle[current_style].fontname));
-                ptr->pstyle[current_style].size = (int) eu_sci_call(pnode, SCI_STYLEGETSIZE, current_style, 0);
-                ptr->pstyle[current_style].bold = (int) eu_sci_call(pnode, SCI_STYLEGETBOLD, current_style, 0);
-                ptr->pstyle[current_style].italic = (int) eu_sci_call(pnode, SCI_STYLEGETITALIC, current_style, 0);
-                ptr->pstyle[current_style].underlined = (int) eu_sci_call(pnode, SCI_STYLEGETUNDERLINE, current_style, 0);
-                ptr->pstyle[current_style].fgcolor = (int) eu_sci_call(pnode, SCI_STYLEGETFORE, current_style, 0);
-                ptr->pstyle[current_style].bgcolor = (int) eu_sci_call(pnode, SCI_STYLEGETBACK, current_style, 0);
-                ptr->pstyle[current_style].eol_ext = (bool) eu_sci_call(pnode, SCI_STYLEGETEOLFILLED, current_style, 0);
+                ptr->pstyle[current_style].size = (int) on_sci_call(pnode, SCI_STYLEGETSIZE, current_style, 0);
+                ptr->pstyle[current_style].bold = (int) on_sci_call(pnode, SCI_STYLEGETBOLD, current_style, 0);
+                ptr->pstyle[current_style].italic = (int) on_sci_call(pnode, SCI_STYLEGETITALIC, current_style, 0);
+                ptr->pstyle[current_style].underlined = (int) on_sci_call(pnode, SCI_STYLEGETUNDERLINE, current_style, 0);
+                ptr->pstyle[current_style].fgcolor = (int) on_sci_call(pnode, SCI_STYLEGETFORE, current_style, 0);
+                ptr->pstyle[current_style].bgcolor = (int) on_sci_call(pnode, SCI_STYLEGETBACK, current_style, 0);
+                ptr->pstyle[current_style].eol_ext = (bool) on_sci_call(pnode, SCI_STYLEGETEOLFILLED, current_style, 0);
                 ptr->ustyles[current_style] = true;
             }
         }

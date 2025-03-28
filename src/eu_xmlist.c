@@ -80,7 +80,7 @@ start_element(void *userdata, const XML_Char *name, const XML_Char **atts)
         if (pnode->json_id == 1)
         {
             XML_StopParser(ctx->parser, FALSE);
-            eu_logmsg("Xml: recv cancel message, thread %u exit ...\n", GetCurrentThreadId());
+            eu_logmsg("Xml: recv cancel message, thread %lu exit ...\n", GetCurrentThreadId());
             return;
         }
         if ((count = count_depth(hwnd, ctx->hitem)) && ctx->depth <= count)
@@ -469,14 +469,14 @@ on_xml_pretty(void *ptr, struct opt_format *opt)
             ctx.showattributes = !opt->no_a;
             ctx.firsttime = true;
             ctx.eol = on_encoding_get_eol(pnode);
-            if ((bool) eu_sci_call(pnode, SCI_GETUSETABS, 0, 0))
+            if ((bool) on_sci_call(pnode, SCI_GETUSETABS, 0, 0))
             {
                 indent[0] = '\t';
                 indent[1] = 0;
             }
             else
             {
-                int n = (int) eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
+                int n = (int) on_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
                 memset(indent, 0x20, (n > 0 && n < QW_SIZE) ? n : 4);
             }
             cvector_init(pout, text_len, NULL);
@@ -525,10 +525,10 @@ on_xml_pretty(void *ptr, struct opt_format *opt)
     }
     if (ret && strcmp(text, (const char *)pout))
     {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        eu_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)pout), (sptr_t)pout);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_CLEARALL, 0, 0);
+        on_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)pout), (sptr_t)pout);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
     eu_safe_free(text);
     cvector_free(pout);

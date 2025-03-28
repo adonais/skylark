@@ -381,8 +381,8 @@ on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
 {
     if (pnode)
     {
-        sptr_t line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-        sptr_t screen_line_count = eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
+        sptr_t line_count = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        sptr_t screen_line_count = on_sci_call(pnode, SCI_LINESONSCREEN, 0, 0);
         if (goto_num > current_num)
         {
             sptr_t jump_lineno = goto_num + screen_line_count / 2;
@@ -390,8 +390,8 @@ on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
             {
                 jump_lineno = line_count;
             }
-            eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
-            eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
+            on_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
+            on_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
         }
         else
         {
@@ -400,8 +400,8 @@ on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
             {
                 jump_lineno = 1;
             }
-            eu_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
-            eu_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
+            on_sci_call(pnode, SCI_GOTOLINE, jump_lineno, 0);
+            on_sci_call(pnode, SCI_GOTOLINE, goto_num, 0);
         }
     }
 }
@@ -413,13 +413,13 @@ on_search_jmp_pos(eu_tabpage *pnode)
     {
         if (!pnode->nc_pos || TAB_HEX_MODE(pnode))
         {
-            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            on_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
         }
         else if (pnode->nc_pos > 0)
         {
-            sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pnode->nc_pos, 0);
+            sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pnode->nc_pos, 0);
             on_search_jmp_line(pnode, line, 0);
-            eu_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
+            on_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
         }
     }
 }
@@ -432,11 +432,11 @@ on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres)
         int char_before = 0;
         sptr_t brace_caret = -1;
         sptr_t brace_pos = -1;
-        sptr_t caret_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t length = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+        sptr_t caret_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t length = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
         if ((length > 0) && (caret_pos > 0))
         {
-            char_before = (int)eu_sci_call(pnode, SCI_GETCHARAT, caret_pos - 1, 0);
+            char_before = (int)on_sci_call(pnode, SCI_GETCHARAT, caret_pos - 1, 0);
         }
         if (char_before && strchr("[](){}", char_before))
         {
@@ -444,7 +444,7 @@ on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres)
         }
         if (length > 0  && (brace_caret < 0))
         {   // 没找到, 向另一侧匹配
-            int char_after = (int)eu_sci_call(pnode, SCI_GETCHARAT, caret_pos, 0);
+            int char_after = (int)on_sci_call(pnode, SCI_GETCHARAT, caret_pos, 0);
             if (char_after && strchr("[](){}", char_after))
             {
                 brace_caret = caret_pos;
@@ -452,17 +452,17 @@ on_search_jmp_matching_brace(eu_tabpage *pnode, int *pres)
         }
         if (brace_caret >= 0)
         {
-            brace_pos = eu_sci_call(pnode, SCI_BRACEMATCH, brace_caret, 0);
+            brace_pos = on_sci_call(pnode, SCI_BRACEMATCH, brace_caret, 0);
         }
         if (brace_pos != -1)
         {
             if (*pres == IDM_SEARCH_MATCHING_BRACE)
             {
-                eu_sci_call(pnode, SCI_GOTOPOS, brace_pos, 0);
+                on_sci_call(pnode, SCI_GOTOPOS, brace_pos, 0);
             }
             else if (*pres == IDM_SEARCH_MATCHING_BRACE_SELECT)
             {
-                eu_sci_call(pnode, SCI_SETSEL, min(brace_caret, brace_pos), max(brace_caret, brace_pos) + 1);
+                on_sci_call(pnode, SCI_SETSEL, min(brace_caret, brace_pos), max(brace_caret, brace_pos) + 1);
             }
             else
             {
@@ -721,11 +721,11 @@ on_search_set_selection(eu_tabpage *pnode)
     {
         if (pnode->begin_pos == -1)
         {
-            pnode->begin_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            pnode->begin_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         }
         else
         {
-            eu_sci_call(pnode, SCI_SETANCHOR, pnode->begin_pos, 0);
+            on_sci_call(pnode, SCI_SETANCHOR, pnode->begin_pos, 0);
             pnode->begin_pos = -1;
         }
     }
@@ -736,16 +736,16 @@ on_search_set_rectangle(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        if (eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) == SC_SEL_STREAM)
+        if (on_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) == SC_SEL_STREAM)
         {
-            if (eu_sci_call(pnode, SCI_GETZOOM, 0, 0) == 0)
+            if (on_sci_call(pnode, SCI_GETZOOM, 0, 0) == 0)
             {
                 on_view_zoom_out(pnode);
                 on_view_zoom_out(pnode);
                 pnode->zoom_level = SELECTION_ZOOM_LEVEEL;
                 eu_logmsg("%s: pnode->zoom_level = %d\n", __FUNCTION__, pnode->zoom_level);
             }
-            eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_RECTANGLE, 0);
+            on_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_RECTANGLE, 0);
         }
         else
         {
@@ -759,7 +759,7 @@ on_search_select_all(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_SELECTALL, 0, 0);
+        on_sci_call(pnode, SCI_SELECTALL, 0, 0);
     }
 }
 
@@ -768,10 +768,10 @@ on_search_select_word(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t wd_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
-        sptr_t wd_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
-        eu_sci_call(pnode, SCI_SETSEL, wd_start, wd_end);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t wd_start = on_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
+        sptr_t wd_end = on_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
+        on_sci_call(pnode, SCI_SETSEL, wd_start, wd_end);
     }
 }
 
@@ -782,7 +782,7 @@ on_search_select_line(eu_tabpage *pnode)
     {
         // 支持类似visual studio的单行操作
         // TAB键增加缩进, Shift+TAB减少缩进
-        eu_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_LINES, 0);
+        on_sci_call(pnode, SCI_SETSELECTIONMODE, SC_SEL_LINES, 0);
     }
 }
 
@@ -795,16 +795,16 @@ on_search_select_se(eu_tabpage *pnode, uint16_t id)
         sptr_t sel_end = 0;
         if (id == IDM_SEARCH_SELECT_END)
         {
-            sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-            sel_end = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+            sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+            sel_end = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
         }
         else if (id == IDM_SEARCH_SELECT_HEAD)
         {
             sel_start = 0;
-            sel_end =  eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+            sel_end =  on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         }
-        eu_sci_call(pnode, SCI_SETSELECTIONSTART, sel_start, 0);
-        eu_sci_call(pnode, SCI_SETSELECTIONEND, sel_end, 0);
+        on_sci_call(pnode, SCI_SETSELECTIONSTART, sel_start, 0);
+        on_sci_call(pnode, SCI_SETSELECTIONEND, sel_end, 0);
     }
 }
 
@@ -813,7 +813,7 @@ on_search_select_left_word(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDPARTLEFTEXTEND, 0, 0);
+        on_sci_call(pnode, SCI_WORDPARTLEFTEXTEND, 0, 0);
     }
 }
 
@@ -822,7 +822,7 @@ on_search_select_right_word(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDPARTRIGHTEXTEND, 0, 0);
+        on_sci_call(pnode, SCI_WORDPARTRIGHTEXTEND, 0, 0);
     }
 }
 
@@ -831,7 +831,7 @@ on_search_select_left_group(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDLEFTEXTEND, 0, 0);
+        on_sci_call(pnode, SCI_WORDLEFTEXTEND, 0, 0);
     }
 }
 
@@ -840,7 +840,7 @@ on_search_select_right_group(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDRIGHTEXTEND, 0, 0);
+        on_sci_call(pnode, SCI_WORDRIGHTEXTEND, 0, 0);
     }
 }
 
@@ -849,7 +849,7 @@ on_search_cumulative_previous_block(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_PARAUPEXTEND, 0, 0);
+        on_sci_call(pnode, SCI_PARAUPEXTEND, 0, 0);
     }
 }
 
@@ -858,7 +858,7 @@ on_search_cumulative_next_block(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_PARADOWNEXTEND, 0, 0);
+        on_sci_call(pnode, SCI_PARADOWNEXTEND, 0, 0);
     }
 }
 
@@ -867,7 +867,7 @@ on_search_move_to_lgroup(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDPARTLEFT, 0, 0);
+        on_sci_call(pnode, SCI_WORDPARTLEFT, 0, 0);
     }
 }
 
@@ -876,7 +876,7 @@ on_search_move_to_rgroup(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDPARTRIGHT, 0, 0);
+        on_sci_call(pnode, SCI_WORDPARTRIGHT, 0, 0);
     }
 }
 
@@ -885,7 +885,7 @@ on_search_move_to_lword(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDLEFT, 0, 0);
+        on_sci_call(pnode, SCI_WORDLEFT, 0, 0);
     }
 }
 
@@ -894,7 +894,7 @@ on_search_move_to_rword(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_WORDRIGHT, 0, 0);
+        on_sci_call(pnode, SCI_WORDRIGHT, 0, 0);
     }
 }
 
@@ -903,7 +903,7 @@ on_search_move_to_top_block(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_PARAUP, 0, 0);
+        on_sci_call(pnode, SCI_PARAUP, 0, 0);
     }
 }
 
@@ -912,7 +912,7 @@ on_search_move_to_bottom_block(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_PARADOWN, 0, 0);
+        on_sci_call(pnode, SCI_PARADOWN, 0, 0);
     }
 }
 
@@ -927,8 +927,8 @@ on_search_jmp_home(eu_tabpage *pnode)
         }
         else
         {
-            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             if (current_line > 0)
             {
                 on_search_jmp_line(pnode, 0, current_line);
@@ -948,9 +948,9 @@ on_search_jmp_end(eu_tabpage *pnode)
         }
         else
         {
-            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-            sptr_t max_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+            sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            sptr_t max_line = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
             if (current_line != max_line)
             {
                 on_search_jmp_line(pnode, max_line, current_line);
@@ -989,8 +989,8 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
             else
             {
                 line = _tstoz(lineno);
-                sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+                sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+                sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
                 on_search_jmp_line(pnode, line - 1, current_line);
             }
         }
@@ -1009,8 +1009,8 @@ on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
         const int  all = MARKERS_BITMASK();
         if (lineno < 0)
         {
-            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         }
         else
         {
@@ -1018,17 +1018,17 @@ on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
         }
         if (true)
         {
-            mark_num = eu_sci_call(pnode, SCI_MARKERGET, current_line, 0);
+            mark_num = on_sci_call(pnode, SCI_MARKERGET, current_line, 0);
             bitmask = (int)mark_num & all;
             bookmark = (bool)(bitmask & BOOKMARK_BITMASK());
         }
         if (bookmark)
         {
-            eu_sci_call(pnode, SCI_MARKERDELETE, current_line, MARGIN_BOOKMARK_VALUE);
+            on_sci_call(pnode, SCI_MARKERDELETE, current_line, MARGIN_BOOKMARK_VALUE);
         }
         if (!bitmask || (bitmask == INVISIBLE_BITMASK()))
         {
-            eu_sci_call(pnode, SCI_MARKERADD, current_line, MARGIN_BOOKMARK_VALUE);
+            on_sci_call(pnode, SCI_MARKERADD, current_line, MARGIN_BOOKMARK_VALUE);
         }
     }
 }
@@ -1041,10 +1041,10 @@ on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
     {
         if (current_line < 0)
         {
-            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         }
-        eu_sci_call(pnode, SCI_MARKERADD, current_line, MARGIN_BOOKMARK_VALUE);
+        on_sci_call(pnode, SCI_MARKERADD, current_line, MARGIN_BOOKMARK_VALUE);
     }
 }
 
@@ -1053,9 +1053,9 @@ on_search_remove_marks_this(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        eu_sci_call(pnode, SCI_MARKERDELETE, current_line, MARGIN_BOOKMARK_VALUE);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        on_sci_call(pnode, SCI_MARKERDELETE, current_line, MARGIN_BOOKMARK_VALUE);
     }
 }
 
@@ -1067,7 +1067,7 @@ on_search_remove_marks_all(eu_tabpage *pnode)
     {
         if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
         {
-            eu_sci_call(p, SCI_MARKERDELETEALL, MARGIN_BOOKMARK_VALUE, 0);
+            on_sci_call(p, SCI_MARKERDELETEALL, MARGIN_BOOKMARK_VALUE, 0);
         }
     }
 }
@@ -1079,18 +1079,18 @@ on_search_marker_next(eu_tabpage *pnode, const sptr_t line, sptr_t last, const i
     {
         if (last <= 0)
         {
-            last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+            last = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
         }
         for (sptr_t i = line; i <= last; ++i)
         {
-            if (eu_sci_call(pnode, SCI_MARKERGET, i, 0) & bitmask)
+            if (on_sci_call(pnode, SCI_MARKERGET, i, 0) & bitmask)
             {
                 return i;
             }
         }
         return LINE_NOT_FOUND;
     }
-    return eu_sci_call(pnode, SCI_MARKERNEXT, line, bitmask);
+    return on_sci_call(pnode, SCI_MARKERNEXT, line, bitmask);
 }
 
 static inline sptr_t
@@ -1100,14 +1100,14 @@ on_search_marker_previous(eu_tabpage *pnode, const sptr_t line, const int bitmas
     {
         for (sptr_t i = line; i >= 0; --i)
         {
-            if (eu_sci_call(pnode, SCI_MARKERGET, i, 0) & bitmask)
+            if (on_sci_call(pnode, SCI_MARKERGET, i, 0) & bitmask)
             {
                 return i;
             }
         }
         return LINE_NOT_FOUND;
     }
-    return eu_sci_call(pnode, SCI_MARKERPREVIOUS, line, bitmask);
+    return on_sci_call(pnode, SCI_MARKERPREVIOUS, line, bitmask);
 }
 
 void
@@ -1115,8 +1115,8 @@ on_search_jmp_premark_this(eu_tabpage *pnode, const int mask)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         sptr_t find_line = on_search_marker_previous(pnode, current_line - 1, mask);
         if (find_line != LINE_NOT_FOUND)
         {
@@ -1130,8 +1130,8 @@ on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         sptr_t find_line = on_search_marker_next(pnode, current_line + 1, -1, mask);
         if (find_line != LINE_NOT_FOUND)
         {
@@ -1151,12 +1151,12 @@ on_search_jmp_previous_history(eu_tabpage *pnode)
             const bool non_mark = !(maskn & SC_CHANGE_HISTORY_MARKERS);
             if (non_mark)
             {
-                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_MARKERS | eu_sci_call(pnode, SCI_GETCHANGEHISTORY, 0, 0), 0);
+                on_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_MARKERS | on_sci_call(pnode, SCI_GETCHANGEHISTORY, 0, 0), 0);
             }
             on_search_jmp_premark_this(pnode, MARGIN_HISTORY_MASKN);
             if (non_mark)
             {
-                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
+                on_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
             }
         }
     }
@@ -1173,12 +1173,12 @@ on_search_jmp_next_history(eu_tabpage *pnode)
             const bool non_mark = !(maskn & SC_CHANGE_HISTORY_MARKERS);
             if (non_mark)
             {
-                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_MARKERS | eu_sci_call(pnode, SCI_GETCHANGEHISTORY, 0, 0), 0);
+                on_sci_call(pnode, SCI_SETCHANGEHISTORY, SC_CHANGE_HISTORY_MARKERS | on_sci_call(pnode, SCI_GETCHANGEHISTORY, 0, 0), 0);
             }
             on_search_jmp_next_mark_this(pnode, MARGIN_HISTORY_MASKN);
             if (non_mark)
             {
-                eu_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
+                on_sci_call(pnode, SCI_SETCHANGEHISTORY, maskn, 0);
             }
         }
     }
@@ -1196,9 +1196,9 @@ on_search_jmp_premark_all(eu_tabpage *pnode)
     {
         if ((p = on_tabpage_get_ptr(index)) && (p == pnode))
         {
-            pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-            current_line = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-            find_line = eu_sci_call(p, SCI_MARKERPREVIOUS, current_line - 1, MARGIN_BOOKMARK_MASKN);
+            pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+            current_line = on_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+            find_line = on_sci_call(p, SCI_MARKERPREVIOUS, current_line - 1, MARGIN_BOOKMARK_MASKN);
             if (find_line != LINE_NOT_FOUND)
             {
                 on_search_jmp_line(p, find_line, current_line);
@@ -1210,8 +1210,8 @@ on_search_jmp_premark_all(eu_tabpage *pnode)
                 {
                     if ((p = on_tabpage_get_ptr(index)))
                     {
-                        max_line = eu_sci_call(p, SCI_GETLINECOUNT, 0, 0);
-                        find_line = eu_sci_call(p, SCI_MARKERPREVIOUS, max_line - 1, MARGIN_BOOKMARK_MASKN);
+                        max_line = on_sci_call(p, SCI_GETLINECOUNT, 0, 0);
+                        find_line = on_sci_call(p, SCI_MARKERPREVIOUS, max_line - 1, MARGIN_BOOKMARK_MASKN);
                         if (find_line != LINE_NOT_FOUND)
                         {
                             on_tabpage_select_index(index);
@@ -1238,9 +1238,9 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
     {
         if ((p = on_tabpage_get_ptr(index)) && (p == pnode))
         {
-            pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-            current_line = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-            find_line = eu_sci_call(p, SCI_MARKERNEXT, current_line + 1, MARGIN_BOOKMARK_MASKN);
+            pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+            current_line = on_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+            find_line = on_sci_call(p, SCI_MARKERNEXT, current_line + 1, MARGIN_BOOKMARK_MASKN);
             if (find_line != LINE_NOT_FOUND)
             {
                 on_search_jmp_line(p, find_line, current_line);
@@ -1252,7 +1252,7 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
                 {
                     if ((p = on_tabpage_get_ptr(index)) && !TAB_HEX_MODE(p) && !p->pmod)
                     {
-                        find_line = eu_sci_call(p, SCI_MARKERNEXT, 0, MARGIN_BOOKMARK_MASKN);
+                        find_line = on_sci_call(p, SCI_MARKERNEXT, 0, MARGIN_BOOKMARK_MASKN);
                         if (find_line != LINE_NOT_FOUND)
                         {
                             on_tabpage_select_index(index);
@@ -1269,18 +1269,18 @@ on_search_jmp_next_mark_all(eu_tabpage *pnode)
 }
 
 void
-on_search_page_mark(eu_tabpage *pnode, char *szmark, int size)
+on_search_page_mark(const eu_tabpage *pnode, char *szmark, int size)
 {
     int offset = 0;
     sptr_t find_line = 0;
     sptr_t current_line = 0;
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        const sptr_t line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        const sptr_t line = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
         *szmark = 0;
         while (find_line != LINE_NOT_FOUND && find_line <= line)
         {
-            find_line = eu_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
+            find_line = on_sci_call(pnode, SCI_MARKERNEXT, current_line, MARGIN_BOOKMARK_MASKN);
             if (find_line >= 0)
             {
                 offset = eu_int_cast(strlen(szmark));
@@ -1310,7 +1310,7 @@ on_search_update_mark(eu_tabpage *pnode, char *szmark)
 }
 
 void
-on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
+on_search_fold_kept(const eu_tabpage *pnode, char *szfold, int size)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1319,7 +1319,7 @@ on_search_fold_kept(eu_tabpage *pnode, char *szfold, int size)
         *szfold = 0;
         do
         {
-            header_line = eu_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
+            header_line = on_sci_call(pnode, SCI_CONTRACTEDFOLDNEXT, header_line, 0);
             if (header_line != LINE_NOT_FOUND)
             {
                 offset = eu_int_cast(strlen(szfold));
@@ -1343,12 +1343,12 @@ on_search_update_fold(eu_tabpage *pnode, char *szfold)
         while (p)
         {
             sptr_t line = _atoz(p);
-            uint32_t level = (uint32_t)(eu_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0) & SC_FOLDLEVELNUMBERMASK);
+            uint32_t level = (uint32_t)(on_sci_call(pnode, SCI_GETFOLDLEVEL, line, 0) & SC_FOLDLEVELNUMBERMASK);
             if (level == 0x400)
             {   // 如果是父节点, 展开一次再折叠
-                eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_EXPAND);
+                on_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_EXPAND);
             }
-            eu_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_CONTRACT);
+            on_sci_call(pnode, SCI_FOLDLINE, line, SC_FOLDACTION_CONTRACT);
             p = strtok(NULL, ";");
         }
     }
@@ -1364,21 +1364,21 @@ on_search_select_matching_all(eu_tabpage *pnode)
         sptr_t total_len = 0;
         sptr_t current_pos = 0;
         cvector_vector_type(sci_range_t) v = NULL;
-        sci_range_t pos = {eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0)};
+        sci_range_t pos = {on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0)};
         if (pos.cpMax - pos.cpMin > 0)
         {
             sptr_t ins = 0;
             sptr_t diff = 0;
             current_pos = pos.cpMax;
             cvector_push_back(v, pos);
-            total_len = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
-            eu_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
+            total_len = on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+            on_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
             for (i = 1; i < total_len; ++i)
             {
-                if ((ins = eu_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_SELECT, i)) > 0)
+                if ((ins = on_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_SELECT, i)) > 0)
                 {
-                    pos.cpMin = eu_sci_call(pnode, SCI_INDICATORSTART, INDIC_SKYLARK_SELECT, i);
-                    pos.cpMax = eu_sci_call(pnode, SCI_INDICATOREND, INDIC_SKYLARK_SELECT, i);
+                    pos.cpMin = on_sci_call(pnode, SCI_INDICATORSTART, INDIC_SKYLARK_SELECT, i);
+                    pos.cpMax = on_sci_call(pnode, SCI_INDICATOREND, INDIC_SKYLARK_SELECT, i);
                     if ((diff = pos.cpMax - pos.cpMin) > 0)
                     {
                         i += diff;
@@ -1389,13 +1389,13 @@ on_search_select_matching_all(eu_tabpage *pnode)
         }
         if ((len = (sptr_t)cvector_size(v)) > 1)
         {
-            eu_sci_call(pnode, SCI_SETEMPTYSELECTION, current_pos, 0);
-            eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
+            on_sci_call(pnode, SCI_SETEMPTYSELECTION, current_pos, 0);
+            on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
             for (i = 1; i < len; ++i)
             {
-                eu_sci_call(pnode, SCI_ADDSELECTION, v[i].cpMin, v[i].cpMax);
+                on_sci_call(pnode, SCI_ADDSELECTION, v[i].cpMin, v[i].cpMax);
             }
-            eu_sci_call(pnode, SCI_ADDSELECTION, v[0].cpMin, v[0].cpMax);
+            on_sci_call(pnode, SCI_ADDSELECTION, v[0].cpMin, v[0].cpMax);
         }
         cvector_free(v);
     }
@@ -1562,7 +1562,7 @@ on_search_regxp_msg(void)
     {
         char sz_msg[512] = {0};
         wchar_t *ll_msg = NULL;
-        eu_sci_call(pnode, SCI_GETBOOSTREGEXERRMSG, _countof(sz_msg), (sptr_t)sz_msg);
+        on_sci_call(pnode, SCI_GETBOOSTREGEXERRMSG, _countof(sz_msg), (sptr_t)sz_msg);
         if ((ll_msg = eu_utf8_utf16(sz_msg, NULL)) != NULL)
         {
             return ll_msg;
@@ -1763,10 +1763,10 @@ on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR 
 sptr_t
 on_search_process_find(eu_tabpage *pnode, const char *key, size_t from_pos, size_t to_pos, size_t flags)
 {
-    eu_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
-    eu_sci_call(pnode, SCI_SETTARGETRANGE, from_pos, to_pos);
+    on_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
+    on_sci_call(pnode, SCI_SETTARGETRANGE, from_pos, to_pos);
     size_t len = STR_NOT_NUL(key) ? strlen(key) : 0;
-    return eu_sci_call(pnode, SCI_SEARCHINTARGET, len, (sptr_t)key);
+    return on_sci_call(pnode, SCI_SEARCHINTARGET, len, (sptr_t)key);
 }
 
 static sptr_t
@@ -1779,12 +1779,12 @@ on_search_internal_find(eu_tabpage *pnode, const char *key, const bool sel)
     {
         return -1;
     }
-    eu_sci_call(p, SCI_SETSEARCHFLAGS, flags, 0);
-    eu_sci_call(p, SCI_TARGETWHOLEDOCUMENT, 0, 0);
-    sptr_t pos = eu_sci_call(p, SCI_SEARCHINTARGET, len, (sptr_t)key);
+    on_sci_call(p, SCI_SETSEARCHFLAGS, flags, 0);
+    on_sci_call(p, SCI_TARGETWHOLEDOCUMENT, 0, 0);
+    sptr_t pos = on_sci_call(p, SCI_SEARCHINTARGET, len, (sptr_t)key);
     if (pos >= 0 && sel)
     {
-        eu_sci_call(p, SCI_SETSEL, pos, eu_sci_call(p, SCI_GETTARGETEND, 0, 0));
+        on_sci_call(p, SCI_SETSEL, pos, on_sci_call(p, SCI_GETTARGETEND, 0, 0));
     }
     return pos;
 }
@@ -1841,25 +1841,25 @@ on_search_process_count(eu_tabpage *pnode, const char *key, const bool sel, cons
     {
         return 0;
     }
-    eu_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
+    on_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
     if (sel)
     {
-        eu_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
-        end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        on_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
+        end_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     }
     else
     {
-        eu_sci_call(pnode, SCI_TARGETWHOLEDOCUMENT, 0, 0);
-        end_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+        on_sci_call(pnode, SCI_TARGETWHOLEDOCUMENT, 0, 0);
+        end_pos = on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
     }
     while (pos >= 0)
     {
         result_vec ret = {-1,};
-        pos = eu_sci_call(pnode, SCI_SEARCHINTARGET, len, (sptr_t)key);
+        pos = on_sci_call(pnode, SCI_SEARCHINTARGET, len, (sptr_t)key);
         if (pos >= 0)
         {
-            sptr_t start_pos = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-            sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            sptr_t start_pos = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+            sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
             if (need_vec && line >= 0)
             {
                 ret.line = line;
@@ -1879,12 +1879,12 @@ on_search_process_count(eu_tabpage *pnode, const char *key, const bool sel, cons
             }
             if (end_pos >= start_pos)
             {
-                eu_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
+                on_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
                 if (need_vec)
                 {
                     ret.mark.start = pos;
                     ret.mark.end = start_pos;
-                    ret.mark._start = pos - eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+                    ret.mark._start = pos - on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
                     if (ret.line >= 0)
                     {
                         cvector_push_back(pnode->ret_vec, ret);
@@ -1974,8 +1974,8 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
     sptr_t found_pos = -1;
     sptr_t target_end = -1;
     bool m_loop = false;
-    sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t max_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+    sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t max_pos = on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
     size_t find_flags = on_search_build_flags(hwnd_search_dlg);
     if (this_page)
     {
@@ -1984,18 +1984,18 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
     if (reverse)
     {
         start_pos = this_page ? pos - 1 : max_pos;
-        if (start_pos > eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0))
+        if (start_pos > on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0))
         {
-            start_pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+            start_pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
         }
     }
     else
     {
         start_pos = this_page ? pos : 0;
         end_pos = max_pos;
-        if (start_pos == eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0))
+        if (start_pos == on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0))
         {
-            start_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+            start_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         }
     }
     DO_SEARCH_LOOP:
@@ -2003,8 +2003,8 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
         found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags);
         if (found_pos >= 0)
         {
-            target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-            eu_sci_call(pnode, SCI_SETSEL, found_pos, target_end);
+            target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+            on_sci_call(pnode, SCI_SETSEL, found_pos, target_end);
         }
         else if (found_pos == -2)
         {
@@ -2044,11 +2044,11 @@ on_search_hexview_string(eu_tabpage *pnode, const char *pattern, bool reverse)
     size_t sub_len = strlen(pattern);
     m_loop = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_LOOP);
     m_case = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_CASE);
-    eu_sci_call(pnode, HVM_GETSEL, 0,(sptr_t) &lpos);
+    on_sci_call(pnode, HVM_GETSEL, 0,(sptr_t) &lpos);
     pos = reverse ? lpos.min : lpos.max;
     if (!pos)
     {
-        pos = reverse ? pnode->phex->total_items : eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        pos = reverse ? pnode->phex->total_items : on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     }
     if (pos < 0)
     {
@@ -2068,7 +2068,7 @@ on_search_hexview_string(eu_tabpage *pnode, const char *pattern, bool reverse)
         {
             lpos.min = reverse ? found_pos : pos + found_pos;
             lpos.max = lpos.min + sub_len;
-            eu_sci_call(pnode, HVM_SETSEL, 0, (sptr_t)&lpos);
+            on_sci_call(pnode, HVM_SETSEL, 0, (sptr_t)&lpos);
         }
         else if (m_loop)
         {
@@ -2119,11 +2119,11 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
             return 0;
         }
         m_loop = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_LOOP);
-        eu_sci_call(pnode, HVM_GETSEL, 0,(sptr_t) &lpos);
+        on_sci_call(pnode, HVM_GETSEL, 0,(sptr_t) &lpos);
         pos = reverse ? lpos.min : lpos.max;
         if (!pos)
         {
-            pos = reverse ? pnode->phex->total_items : eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            pos = reverse ? pnode->phex->total_items : on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         }
         if (pos < 0)
         {
@@ -2144,7 +2144,7 @@ on_search_hexview(eu_tabpage *pnode, const char *pattern, bool reverse)
             {
                 lpos.min = reverse ? found_pos : pos + found_pos;
                 lpos.max = lpos.min + strlen(pmark)/2;
-                eu_sci_call(pnode, HVM_SETSEL, 0, (sptr_t)&lpos);
+                on_sci_call(pnode, HVM_SETSEL, 0, (sptr_t)&lpos);
             }
             else if (m_loop)
             {
@@ -2298,20 +2298,20 @@ on_search_push_result(eu_tabpage *p, LPCTSTR key, LPCTSTR path, int orig_size)
         }
         LOAD_I18N_RESSTR(IDS_RESULT_STRINGS2, line_str);
         _sntprintf(msg, MAX_BUFFER-1, path_str, key, path, p->match_count);
-        eu_sci_call(presult, SCI_SETREADONLY, 0, 0);
+        on_sci_call(presult, SCI_SETREADONLY, 0, 0);
         if ((u8_path = eu_utf16_utf8(msg, NULL)))
         {   // 文件名称前面加换行符
             if (orig_size < 0)
             {
-                sptr_t len = eu_sci_call(presult, SCI_GETLENGTH, 0, 0);
-                int ch = (int)eu_sci_call(presult, SCI_GETCHARAT, len - 1, 0);
+                sptr_t len = on_sci_call(presult, SCI_GETLENGTH, 0, 0);
+                int ch = (int)on_sci_call(presult, SCI_GETCHARAT, len - 1, 0);
                 if (ch != 0x0A && ch != 0x0D)
                 {
-                    eu_sci_call(presult, SCI_ADDTEXT, 1, (LPARAM)"\n");
+                    on_sci_call(presult, SCI_ADDTEXT, 1, (LPARAM)"\n");
                 }
             }
             // 加入文件名
-            eu_sci_call(presult, SCI_ADDTEXT, strlen(u8_path), (LPARAM)u8_path);
+            on_sci_call(presult, SCI_ADDTEXT, strlen(u8_path), (LPARAM)u8_path);
             free(u8_path);
         }
         if (p->ret_vec && (pformat = eu_utf16_utf8(line_str, NULL)))
@@ -2329,7 +2329,7 @@ on_search_push_result(eu_tabpage *p, LPCTSTR key, LPCTSTR path, int orig_size)
                         {   // 附加的行前缀长度
                             p->ret_vec[i].mark._no = len - eu_int_cast(strlen(buf)) - 1;
                         }
-                        eu_sci_call(presult, SCI_ADDTEXT, len, (LPARAM)ptr_add);
+                        on_sci_call(presult, SCI_ADDTEXT, len, (LPARAM)ptr_add);
                         free(ptr_add);
                     }
                     free(buf);
@@ -2337,8 +2337,8 @@ on_search_push_result(eu_tabpage *p, LPCTSTR key, LPCTSTR path, int orig_size)
             }
             if (!orig_size)
             {   // 编辑区设置成只读
-               eu_sci_call(presult, SCI_SETREADONLY, 1, 0);
-               eu_sci_call(presult, SCI_GOTOLINE, 1, 0);
+               on_sci_call(presult, SCI_SETREADONLY, 1, 0);
+               on_sci_call(presult, SCI_GOTOLINE, 1, 0);
             }
         }
     }
@@ -2355,14 +2355,14 @@ on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key, int or
         // 关键字不高亮的回调函数
         pnode->presult->pwant = NULL;
         eu_window_resize();
-        eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
-        eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+        on_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
+        on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
         sprintf(ptr_style, "%p", &pnode->ret_vec);
-        eu_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)ptr_style);
+        on_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)ptr_style);
         on_search_push_result(pnode, key, path, orig_size);
         // 窗口并排可能导致主编辑器之前的光标位置被遮挡
         // 滚动视图以使光标可见
-        eu_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+        on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
         ShowWindow(hwnd_search_dlg, SW_HIDE);
     }
 }
@@ -2418,8 +2418,8 @@ on_search_lookup_result(eu_tabpage *pnode, const bool all_file, const int count)
                 }
             }
         }
-        eu_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
-        eu_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
+        on_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
+        on_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
     }
 }
 
@@ -2482,7 +2482,7 @@ on_search_find_next_button(const int button)
                     {
                         sptr_t lineno = 0;
                         sptr_t row = 0;
-                        sptr_t pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+                        sptr_t pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
                         if (pos >= 0)
                         {
                             util_postion_xy(pnode, pos, &lineno, &row);
@@ -2709,16 +2709,16 @@ static bool
 on_search_replace_target(eu_tabpage *pnode, const char *replace_str, sptr_t *poffset)
 {
     sptr_t re_len = 0;
-    eu_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
-    sptr_t target_start = eu_sci_call(pnode, SCI_GETTARGETSTART, 0, 0);
-    sptr_t target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-    if (eu_sci_call(pnode, SCI_GETSEARCHFLAGS, 0, 0) & SCFIND_REGEXP)
+    on_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
+    sptr_t target_start = on_sci_call(pnode, SCI_GETTARGETSTART, 0, 0);
+    sptr_t target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+    if (on_sci_call(pnode, SCI_GETSEARCHFLAGS, 0, 0) & SCFIND_REGEXP)
     {
-        re_len = eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)replace_str);
+        re_len = on_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)replace_str);
     }
     else
     {
-        re_len = eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)replace_str);
+        re_len = on_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)replace_str);
     }
     if (re_len >= 0)
     {
@@ -2728,7 +2728,7 @@ on_search_replace_target(eu_tabpage *pnode, const char *replace_str, sptr_t *pof
             target_end += *poffset;
         }
         ++pnode->match_count;
-        eu_sci_call(pnode, SCI_GOTOPOS, target_end, 0);
+        on_sci_call(pnode, SCI_GOTOPOS, target_end, 0);
     }
     return (re_len >= 0);
 }
@@ -2744,13 +2744,13 @@ on_search_common(eu_tabpage *pnode, const char *key, int opt)
     size_t find_flags = on_search_build_flags(hwnd_search_dlg);
     if (opt & ON_REPLACE_SELECTION)
     {
-        pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        end_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     }
     else
     {
-        pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        end_pos = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+        pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        end_pos = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
     }
     m_loop = (opt & ON_REPLACE_SELECTION) ? false : DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_LOOP);
     if ((opt & ON_REPLACE_ALL)  || (opt & ON_OTHER_PAGE))
@@ -2763,7 +2763,7 @@ on_search_common(eu_tabpage *pnode, const char *key, int opt)
         start_pos = pos;
         if (!(opt & ON_REPLACE_SELECTION))
         {
-            pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+            pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
             if (start_pos > pos)
             {
                 start_pos = pos;
@@ -2776,8 +2776,8 @@ DO_COMMON_LOOP:
         found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags);
         if (found_pos >= 0)
         {
-            sptr_t target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-            eu_sci_call(pnode, SCI_SETSELECTION, found_pos, target_end);
+            sptr_t target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+            on_sci_call(pnode, SCI_SETSELECTION, found_pos, target_end);
         }
         else if (found_pos == -2)
         {
@@ -2805,12 +2805,12 @@ static bool
 on_search_next(eu_tabpage *pnode, const char *key, const sptr_t end_pos)
 {
     sptr_t found_pos = -1;
-    sptr_t start_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t start_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     size_t find_flags = on_search_build_flags(hwnd_search_dlg);
     if ((found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags)) >= 0)
     {
-        sptr_t target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-        eu_sci_call(pnode, SCI_SETSELECTION, found_pos, target_end);
+        sptr_t target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+        on_sci_call(pnode, SCI_SETSELECTION, found_pos, target_end);
     }
     return (found_pos>=0);
 }
@@ -2836,12 +2836,12 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
     }
     if (opt & ON_REPLACE_SELECTION)
     {
-        end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        end_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     }
     on_search_node_init(pnode, false);
     if (on_search_first(pnode, find_str, opt))
     {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         do
         {
             result = on_search_replace_target(pnode, replace_str, &offset);
@@ -2853,12 +2853,12 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
                 }
                 else
                 {
-                    end_pos = eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+                    end_pos = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
                 }
                 next_result = on_search_next(pnode, find_str, end_pos);
             }
         } while (!(opt & ON_REPLACE_THIS) && result && next_result);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
     if (*find_str)
     {
@@ -2958,7 +2958,7 @@ on_search_replace_all_button(const int button)
             {
                 if (button != IDC_SEARCH_SELRE_BTN)
                 {   // clear all setletction
-                    eu_sci_call(p, SCI_SETEMPTYSELECTION, 0, 0);
+                    on_sci_call(p, SCI_SETEMPTYSELECTION, 0, 0);
                 }
                 on_search_at_replace_page(p, opt);
             }
@@ -3780,20 +3780,20 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, 
     sptr_t pos = 0;
     sptr_t max_pos = 0;
     const int flags = SCFIND_REGEXP;
-    sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t anchor_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+    sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t anchor_pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
     if (!(pnode && key && str_replace))
     {
         return;
     }
     if (cur_pos == anchor_pos)
     {
-        max_pos = eu_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+        max_pos = on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
     }
-    else if (!eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    else if (!on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
     {
-        pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        max_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        max_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     }
     else
     {
@@ -3804,20 +3804,20 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, 
     {
         return;
     }
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     while (pos < max_pos && (fpos = on_search_process_find(pnode, key, pos, max_pos, flags)) >= 0)
     {
         int re_len = 0;
         char str[8] = {0};
-        sptr_t target_end = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
-        eu_sci_call(pnode, SCI_SETSELECTION, fpos, target_end);
+        sptr_t target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+        on_sci_call(pnode, SCI_SETSELECTION, fpos, target_end);
         if (*str_replace != 0)
         {
-            re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str_replace);
+            re_len = (int)on_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str_replace);
         }
         else if (docase == FULL_HALF)
         {
-            eu_sci_call(pnode, SCI_GETTAG, 1, (sptr_t)str);
+            on_sci_call(pnode, SCI_GETTAG, 1, (sptr_t)str);
             if (strlen(str) != 3)
             {
                 break;
@@ -3831,11 +3831,11 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, 
             {   // 全角英文字符或标点符号转半角
                 _snprintf(str, QW_SIZE, "\\x{%x}", old - 0xFEE0);
             }
-            re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str);
+            re_len = (int)on_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str);
         }
         else if (docase == HALF_FULL)
         {
-            eu_sci_call(pnode, SCI_GETTAG, 1, (sptr_t)str);
+            on_sci_call(pnode, SCI_GETTAG, 1, (sptr_t)str);
             if (*str == 0)
             {
                 break;
@@ -3848,16 +3848,16 @@ on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, 
             {   // 半角标点符号转全角, 不包含英文字符
                 _snprintf(str, QW_SIZE, "\\x{%x}", str[0] + 0xFEE0);
             }
-            re_len = (int)eu_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str);
+            re_len = (int)on_sci_call(pnode, SCI_REPLACETARGETRE, (WPARAM)-1, (LPARAM)str);
         }
         pos = fpos + re_len;
         // 替换后, 末尾位置发生了变化, 要减去或加上差值
         max_pos -= ((int)(target_end - fpos) - re_len);
     }
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     if (pos > 1)
     {
-        eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+        on_sci_call(pnode, SCI_GOTOPOS, pos, 0);
     }
 }
 

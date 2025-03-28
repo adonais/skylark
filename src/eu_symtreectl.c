@@ -77,7 +77,7 @@ on_symtree_add_text(eu_tabpage *pnode)
     {
         return 1;
     }
-    eu_sci_call(pnode, SCI_ADDTEXT, strlen(cnv), (sptr_t) cnv);
+    on_sci_call(pnode, SCI_ADDTEXT, strlen(cnv), (sptr_t) cnv);
     free(cnv);
     return 0;
 }
@@ -627,9 +627,9 @@ on_symtree_do_sql(eu_tabpage *pnode, bool reload)
             err = 1;
             break;
         }
-        eu_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t) words2);
-        eu_sci_call(pnode, SCI_STYLESETFORE, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.color));
-        eu_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.bold));
+        on_sci_call(pnode, SCI_SETKEYWORDS, 1, (sptr_t) words2);
+        on_sci_call(pnode, SCI_STYLESETFORE, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.color));
+        on_sci_call(pnode, SCI_STYLESETBOLD, SCE_C_WORD2, (sptr_t)(eu_get_theme()->item.keywords1.bold));
     } while(0);
     free(words2);
     return 0;
@@ -842,7 +842,7 @@ on_symtree_parse_redis_header(eu_tabpage *pnode)
             return 1;
         }
     }
-    file_line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+    file_line_count = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
     for (file_line = 0; file_line <= file_line_count; ++file_line)
     {
         char line_buf[FILESIZE+1] = {0};
@@ -927,8 +927,8 @@ on_symtree_query_redis(eu_tabpage *pnode)
         eu_logmsg("%s: parse_redis_header return false\n", __FUNCTION__);
         return 1;
     }
-    start_pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    end_pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    start_pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    end_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     sel_len = end_pos - start_pos;
     if (sel_len <= 0)
     {
@@ -1110,7 +1110,7 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
     if (json_root->line > 0)
     {
         //util_lock_v2(pnode);
-        //pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, json_root->line, 0);
+        //pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, json_root->line, 0);
         //util_unlock_v2(pnode);
         pos = (int64_t)SendMessage(eu_hwnd_self(), WM_JSON_POSITION, (WPARAM)pnode, (LPARAM)json_root->line);
     }
@@ -1277,7 +1277,7 @@ on_symtree_postion(eu_tabpage *pnode)
     {
         return 1;
     }
-    eu_sci_call(pnode, SCI_GOTOPOS, tvi.lParam, 0);
+    on_sci_call(pnode, SCI_GOTOPOS, tvi.lParam, 0);
     SetFocus(pnode->hwnd_sc);
     return 0;
 }

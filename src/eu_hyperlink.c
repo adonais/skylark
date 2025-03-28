@@ -28,10 +28,10 @@ on_hyper_clear_indicator(eu_tabpage *pnode, const int i1, const int i2, const sp
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_SETINDICATORCURRENT, i1, 0);
-        eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, start, len);
-        eu_sci_call(pnode, SCI_SETINDICATORCURRENT, i2, 0);
-        eu_sci_call(pnode, SCI_INDICATORCLEARRANGE, start, len);
+        on_sci_call(pnode, SCI_SETINDICATORCURRENT, i1, 0);
+        on_sci_call(pnode, SCI_INDICATORCLEARRANGE, start, len);
+        on_sci_call(pnode, SCI_SETINDICATORCURRENT, i2, 0);
+        on_sci_call(pnode, SCI_INDICATORCLEARRANGE, start, len);
     }
 }
 
@@ -40,10 +40,10 @@ on_hyper_add_indicator(eu_tabpage *pnode, const int i1, const int i2, const sptr
 {
     if (pnode)
     {
-        eu_sci_call(pnode, SCI_SETINDICATORCURRENT, i1, 0);
-        eu_sci_call(pnode, SCI_INDICATORFILLRANGE, start, len);
-        eu_sci_call(pnode, SCI_SETINDICATORCURRENT, i2, 0);
-        eu_sci_call(pnode, SCI_INDICATORFILLRANGE, start, len);
+        on_sci_call(pnode, SCI_SETINDICATORCURRENT, i1, 0);
+        on_sci_call(pnode, SCI_INDICATORFILLRANGE, start, len);
+        on_sci_call(pnode, SCI_SETINDICATORCURRENT, i2, 0);
+        on_sci_call(pnode, SCI_INDICATORFILLRANGE, start, len);
     }
 }
 
@@ -57,7 +57,7 @@ on_hyper_strim(eu_tabpage *pnode, const sptr_t start_pos, int *plen)
         if (*plen >= 4 && *plen < LARGER_LEN)
         {
             Sci_TextRange tr = {{start_pos, end_pos}, buffer};
-            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
         }
         if (*buffer)
         {
@@ -82,14 +82,14 @@ on_hyper_update_style(eu_tabpage *pnode)
 {
     if (pnode && eu_get_config())
     {
-        const sptr_t start_line = eu_sci_call(pnode, SCI_DOCLINEFROMVISIBLE, (eu_sci_call(pnode, SCI_GETFIRSTVISIBLELINE, 0, 0)), 0);
-        const sptr_t end_line = min(start_line + eu_sci_call(pnode, SCI_LINESONSCREEN, 0, 0), eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0) - 1);
-        sptr_t pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, start_line, 0);
+        const sptr_t start_line = on_sci_call(pnode, SCI_DOCLINEFROMVISIBLE, (on_sci_call(pnode, SCI_GETFIRSTVISIBLELINE, 0, 0)), 0);
+        const sptr_t end_line = min(start_line + on_sci_call(pnode, SCI_LINESONSCREEN, 0, 0), on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0) - 1);
+        sptr_t pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, start_line, 0);
         sptr_t fpos = -1;
-        const sptr_t max_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, end_line, 0);
+        const sptr_t max_pos = on_sci_call(pnode, SCI_GETLINEENDPOSITION, end_line, 0);
         while (pos < max_pos && (fpos = on_search_process_find(pnode, HYPLNK_REGEX_FULL, pos, max_pos, SCFIND_REGEXP | SCFIND_POSIX)) >= 0)
         {
-            int len = eu_int_cast(eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0) - fpos);
+            int len = eu_int_cast(on_sci_call(pnode, SCI_GETTARGETEND, 0, 0) - fpos);
             if (len > 0)
             {
                 pos = fpos + len;
@@ -117,43 +117,43 @@ on_hyper_set_style(eu_tabpage *pnode)
         uint32_t hover_color = eu_get_theme()->item.hyperlink.bgcolor;
         const sptr_t alpha1 = (fix_color & 0xFF000000) >> 24;
         const sptr_t alpha2 = (hover_color & 0xFF000000) >> 24;
-        eu_sci_call(pnode, SCI_INDICSETALPHA, INDIC_SKYLARK_HYPER_U, alpha1);
-        eu_sci_call(pnode, SCI_INDICSETOUTLINEALPHA, INDIC_SKYLARK_HYPER_U, alpha2);
+        on_sci_call(pnode, SCI_INDICSETALPHA, INDIC_SKYLARK_HYPER_U, alpha1);
+        on_sci_call(pnode, SCI_INDICSETOUTLINEALPHA, INDIC_SKYLARK_HYPER_U, alpha2);
         // 超链接显示样式
-        eu_sci_call(pnode, SCI_INDICSETSTYLE, INDIC_SKYLARK_HYPER, INDIC_TEXTFORE);
-        eu_sci_call(pnode, SCI_INDICSETFORE, INDIC_SKYLARK_HYPER, fix_color & 0x00FFFFFF);
-        eu_sci_call(pnode, SCI_INDICSETSTYLE, INDIC_SKYLARK_HYPER_U, INDIC_PLAIN);
-        eu_sci_call(pnode, SCI_INDICSETFORE, INDIC_SKYLARK_HYPER_U, fix_color & 0x00FFFFFF);
+        on_sci_call(pnode, SCI_INDICSETSTYLE, INDIC_SKYLARK_HYPER, INDIC_TEXTFORE);
+        on_sci_call(pnode, SCI_INDICSETFORE, INDIC_SKYLARK_HYPER, fix_color & 0x00FFFFFF);
+        on_sci_call(pnode, SCI_INDICSETSTYLE, INDIC_SKYLARK_HYPER_U, INDIC_PLAIN);
+        on_sci_call(pnode, SCI_INDICSETFORE, INDIC_SKYLARK_HYPER_U, fix_color & 0x00FFFFFF);
         // 鼠标指向时的样式
-        eu_sci_call(pnode, SCI_INDICSETHOVERSTYLE, INDIC_SKYLARK_HYPER, INDIC_TEXTFORE);
-        eu_sci_call(pnode, SCI_INDICSETHOVERFORE, INDIC_SKYLARK_HYPER, hover_color & 0x00FFFFFF);
-        eu_sci_call(pnode, SCI_INDICSETHOVERSTYLE, INDIC_SKYLARK_HYPER_U, INDIC_PLAIN);
-        eu_sci_call(pnode, SCI_INDICSETHOVERFORE, INDIC_SKYLARK_HYPER_U, hover_color & 0x00FFFFFF);
+        on_sci_call(pnode, SCI_INDICSETHOVERSTYLE, INDIC_SKYLARK_HYPER, INDIC_TEXTFORE);
+        on_sci_call(pnode, SCI_INDICSETHOVERFORE, INDIC_SKYLARK_HYPER, hover_color & 0x00FFFFFF);
+        on_sci_call(pnode, SCI_INDICSETHOVERSTYLE, INDIC_SKYLARK_HYPER_U, INDIC_PLAIN);
+        on_sci_call(pnode, SCI_INDICSETHOVERFORE, INDIC_SKYLARK_HYPER_U, hover_color & 0x00FFFFFF);
         // 鼠标选中时的样式
-        eu_sci_call(pnode, SCI_INDICSETSTYLE, INDIC_SKYLARK_SELECT, INDIC_ROUNDBOX);
-        eu_sci_call(pnode, SCI_INDICSETFORE, INDIC_SKYLARK_SELECT, eu_get_theme()->item.indicator.bgcolor & 0x00FFFFFF);
-        eu_sci_call(pnode, SCI_INDICSETALPHA, INDIC_SKYLARK_SELECT, eu_get_theme()->item.indicator.bgcolor >> 24);
+        on_sci_call(pnode, SCI_INDICSETSTYLE, INDIC_SKYLARK_SELECT, INDIC_ROUNDBOX);
+        on_sci_call(pnode, SCI_INDICSETFORE, INDIC_SKYLARK_SELECT, eu_get_theme()->item.indicator.bgcolor & 0x00FFFFFF);
+        on_sci_call(pnode, SCI_INDICSETALPHA, INDIC_SKYLARK_SELECT, eu_get_theme()->item.indicator.bgcolor >> 24);
     }
 }
 
 void
 on_hyper_click(eu_tabpage *pnode, HWND hwnd, const sptr_t position, const bool execute)
 {
-    if (eu_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_HYPER, position) >= 0)
+    if (on_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_HYPER, position) >= 0)
     {
         sptr_t fpos = -1;
-        const sptr_t pos = eu_sci_call(pnode, SCI_INDICATORSTART, INDIC_SKYLARK_HYPER, position);
-        const sptr_t max_pos = eu_sci_call(pnode, SCI_INDICATOREND, INDIC_SKYLARK_HYPER, position);
+        const sptr_t pos = on_sci_call(pnode, SCI_INDICATORSTART, INDIC_SKYLARK_HYPER, position);
+        const sptr_t max_pos = on_sci_call(pnode, SCI_INDICATOREND, INDIC_SKYLARK_HYPER, position);
         if (pos < max_pos && (fpos = on_search_process_find(pnode, HYPLNK_REGEX_FULL, pos, max_pos, SCFIND_REGEXP | SCFIND_POSIX)) >= 0)
         {
             wchar_t *text = NULL;
             char buffer[LARGER_LEN+1] = {0};
-            const sptr_t end_pos = eu_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+            const sptr_t end_pos = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
             int len = eu_int_cast(end_pos - fpos);
             if (pos == fpos && len >= 4 && len < LARGER_LEN)
             {
                 Sci_TextRange tr = {{pos, end_pos}, buffer};
-                eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+                on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             }
             if (*buffer)
             {

@@ -442,7 +442,7 @@ util_wait_cursor(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode))
     {
-        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
+        on_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
     }
 }
 
@@ -452,7 +452,7 @@ util_restore_cursor(eu_tabpage *pnode)
     POINT pt;
     if (pnode && !TAB_HEX_MODE(pnode))
     {
-        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
+        on_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
         GetCursorPos(&pt);
         SetCursorPos(pt.x, pt.y);
     }
@@ -1250,7 +1250,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
     {
         return NULL;
     }
-    text_len = eu_sci_call(pnode, SCI_GETSELTEXT, 0, 0);
+    text_len = on_sci_call(pnode, SCI_GETSELTEXT, 0, 0);
     if (text_len > 0)
     {
         if (multiple > 1)
@@ -1269,7 +1269,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
             }
             return NULL;
         }
-        eu_sci_call(pnode, SCI_GETSELTEXT, text_len, (sptr_t) ptext);
+        on_sci_call(pnode, SCI_GETSELTEXT, text_len, (sptr_t) ptext);
         if (plen)
         {
             (*plen) = (size_t)buf_len;
@@ -1292,7 +1292,7 @@ util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char *
         char *txt = NULL;
         for (len = start; len < end; ++len)
         {
-            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, len, 0);
+            int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, len, 0);
             if (!isspace(ch))
             {
                 break;
@@ -1319,8 +1319,8 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
     }
     if (line_number < 0)
     {
-        sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
+        sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        line = on_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
     }
     else
     {
@@ -1330,9 +1330,9 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
     {
         return NULL;
     }
-    if (!(text_len = eu_sci_call(pnode, SCI_GETLINE, line, 0)))
+    if (!(text_len = on_sci_call(pnode, SCI_GETLINE, line, 0)))
     {
-        sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sptr_t row = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (row == -1)
         {
             text_len = -1;
@@ -1340,7 +1340,7 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
     }
     if ((ptext = text_len >= 0 ? malloc(text_len + 1) : NULL))
     {
-        eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
+        on_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
         ptext[text_len] = 0;
         if (plen)
         {
@@ -1363,14 +1363,14 @@ util_strdup_content(eu_tabpage *pnode, size_t *plen)
     {
         return NULL;
     }
-    if ((total_len = (size_t)eu_sci_call(pnode, SCI_GETLENGTH, 0, 0)) > on_file_get_avail_phys())
+    if ((total_len = (size_t)on_sci_call(pnode, SCI_GETLENGTH, 0, 0)) > on_file_get_avail_phys())
     {
         MSG_BOX(IDC_MSG_MEM_NOT_AVAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return NULL;
     }
     if ((ptext = total_len > 0 ? (char *) calloc(1, total_len + 1) : NULL))
     {
-        eu_sci_call(pnode, SCI_GETTEXT, (sptr_t)(total_len + 1), (sptr_t)ptext);
+        on_sci_call(pnode, SCI_GETTEXT, (sptr_t)(total_len + 1), (sptr_t)ptext);
         if (plen)
         {
             *plen = total_len;
@@ -1796,14 +1796,14 @@ int
 util_effect_line(eu_tabpage *pnode, sptr_t *start_line, sptr_t *end_line)
 {
     EU_VERIFY(pnode != NULL);
-    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-    sptr_t line_start = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
+    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    sptr_t line_start = on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
     sptr_t line_end;
     if (sel_end - sel_start > 0)
     {
-        line_end = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
-        if (sel_end == eu_sci_call(pnode, SCI_POSITIONFROMLINE, line_end, 0))
+        line_end = on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
+        if (sel_end == on_sci_call(pnode, SCI_POSITIONFROMLINE, line_end, 0))
         {
             line_end--;
         }
@@ -2080,8 +2080,8 @@ util_to_abs(const char *path)
 bool
 util_can_selections(eu_tabpage *pnode)
 {
-    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     return sel_start != sel_end;
 }
 
@@ -2173,7 +2173,7 @@ util_setforce_eol(eu_tabpage *p)
     if (pdata)
     {
         p->eol = on_encoding_line_mode(pdata, len);
-        eu_sci_call(p, SCI_SETEOLMODE, p->eol, 0);
+        on_sci_call(p, SCI_SETEOLMODE, p->eol, 0);
         free(pdata);
     }
 }
@@ -2272,7 +2272,7 @@ util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
     {
         wchar_t *pbuf = NULL;
         Sci_TextRangeFull tr = {{start, end}, buffer};
-        eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
+        on_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
         if (*buffer && (pbuf = eu_utf8_utf16(buffer, NULL)))
         {
             len = (sptr_t)wcslen(pbuf);
@@ -2911,14 +2911,14 @@ util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py)
 {
     if (pnode)
     {
-        if (pos < 0 && (pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
+        if (pos < 0 && (pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
         {
-            pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+            pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
         }
         if (pos >= 0)
         {
-            *px = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-            *py = eu_sci_call(pnode, SCI_POSITIONFROMLINE, *px, 0);
+            *px = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            *py = on_sci_call(pnode, SCI_POSITIONFROMLINE, *px, 0);
             (*px) += 1;
             (*py) = pos - (*py) + 1;
         }
@@ -3309,9 +3309,9 @@ util_updateui_icon(const HWND hwnd, const bool fnshow)
 void
 util_updateui_msg(const eu_tabpage *pnode)
 {
-    const sptr_t pos = eu_sci_call((eu_tabpage *)pnode, SCI_GETANCHOR, 0, 0);
-    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
-    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos, 0);
+    const sptr_t pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+    on_sci_call(pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
+    on_sci_call(pnode, SCI_SETANCHOR, pos, 0);
 }
 
 void

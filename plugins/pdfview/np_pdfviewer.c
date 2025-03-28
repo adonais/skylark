@@ -522,7 +522,7 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
             GetClientRect(hwnd, &rc);
             MoveWindow(hchild, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, FALSE);
         #if APP_DEBUG
-            printf("pdf hwnd = %p, hchild = %p, rc.left = %d, rc.right = %d, rc.top = %d, rc.bottom = %d\n", hwnd, hchild, rc.left, rc.right, rc.top, rc.bottom);
+            printf("pdf hwnd = %p, hchild = %p, rc.left = %ld, rc.right = %ld, rc.top = %ld, rc.bottom = %ld\n", hwnd, hchild, rc.left, rc.right, rc.top, rc.bottom);
         #endif
             ShowWindow(hchild, SW_SHOW);
             return 0;

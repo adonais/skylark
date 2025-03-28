@@ -175,7 +175,6 @@
 #define WM_BACKUP_CONFIG          (WM_USER+10031)
 #define WM_BACKUP_BOTH            (WM_USER+10032)
 #define WM_BACKUP_ALL             (WM_USER+10033)
-#define WM_TABPAGE_FINAL          (WM_USER+10034)
 
 #define WM_PCRE_ADDSTRING         (WM_USER+12000)
 #define WM_JSON_PASSED            (WM_USER+12001)
@@ -700,7 +699,7 @@ EU_EXT_CLASS int eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback pba
 // for scintilla
 EU_EXT_CLASS int eu_sci_register(HINSTANCE hinstance);
 EU_EXT_CLASS int eu_sci_release(void);
-EU_EXT_CLASS sptr_t eu_sci_call(eu_tabpage *p, int m, sptr_t w, sptr_t l);
+EU_EXT_CLASS sptr_t eu_sci_call(const int t, const int m, const sptr_t w, const sptr_t l);
 EU_EXT_CLASS void eu_send_notify(HWND hwnd, uint32_t code, LPNMHDR nmhdr);
 
 // for iconv

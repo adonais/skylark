@@ -355,7 +355,7 @@ on_config_create_accel(void)
         }
         else
         {
-            eu_logmsg("Config: createAcceleratorTable failed, cause: %u\n", GetLastError());
+            eu_logmsg("Config: createAcceleratorTable failed, cause: %lu\n", GetLastError());
         }
     }
     return ret;

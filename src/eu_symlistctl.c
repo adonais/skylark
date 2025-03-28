@@ -27,7 +27,7 @@ pcre_match_callback(pcre_conainer *pcre_info, void *param)
     eu_tabpage *pnode = (eu_tabpage *)param;
     if (!pnode || pnode->pcre_id == 1)
     {
-        eu_logmsg("Pcre: recv cancel message, thread %u exit ...\n", GetCurrentThreadId());
+        eu_logmsg("Pcre: recv cancel message, thread %lu exit ...\n", GetCurrentThreadId());
         return EUE_TAB_NULL;
     }
     if (pcre_info->rc < 0)
@@ -112,8 +112,8 @@ on_symlist_jump_item(eu_tabpage *pnode)
 {
     sptr_t  item_num = (sptr_t ) SendMessage(pnode->hwnd_symlist, LB_GETCURSEL, 0, 0);
     sptr_t  line_num = (sptr_t ) SendMessage(pnode->hwnd_symlist, LB_GETITEMDATA, item_num, 0);
-    sptr_t  pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t  current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+    sptr_t  pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t  current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
     on_navigate_list_update(pnode, pos);
     on_search_jmp_line(pnode, line_num, current_line);
     return SKYLARK_OK;
@@ -146,7 +146,7 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 TCHAR *uni_str = (TCHAR *)wParam;
                 intptr_t pos = (intptr_t)lParam;
-                sptr_t line_num = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+                sptr_t line_num = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
                 int index = ListBox_AddString(pnode->hwnd_symlist, uni_str);
                 ListBox_SetItemData(pnode->hwnd_symlist, index, (LPARAM) line_num);
                 free(uni_str);

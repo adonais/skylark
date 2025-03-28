@@ -1202,7 +1202,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
                           &si,&pi))
         {
             char u8[MAX_BUFFER] = {0};
-            eu_logmsg("Euapi: CreateProcessW [%s] error, cause: %u\n", util_make_u8(wcmd, u8, MAX_BUFFER - 1), GetLastError());
+            eu_logmsg("Euapi: CreateProcessW [%s] error, cause: %lu\n", util_make_u8(wcmd, u8, MAX_BUFFER - 1), GetLastError());
             return NULL;
         }
         if (NULL != o)
@@ -2448,26 +2448,26 @@ eu_lua_calltip(const char *pstr)
     eu_tabpage *p = NULL;
     if (pstr && (p = on_tabpage_focus_at()) && !TAB_HEX_MODE(p) && !p->pmod)
     {
-        const sptr_t end = eu_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
-        eu_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
+        const sptr_t end = on_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
+        on_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
         if (stricmp(pstr, "NaN") == 0 || stricmp(pstr, "INFINITY") == 0 || stricmp(pstr, "-INFINITY") == 0)
         {
-            eu_sci_call(p, SCI_CALLTIPSHOW, end, (sptr_t) pstr);
+            on_sci_call(p, SCI_CALLTIPSHOW, end, (sptr_t) pstr);
         }
         else
         {
             char *text = NULL;
-            int ch = (int) eu_sci_call(p, SCI_GETCHARAT, end, 0);
+            int ch = (int) on_sci_call(p, SCI_GETCHARAT, end, 0);
             if (ch == 0x3d)
             {
-                eu_sci_call(p, SCI_INSERTTEXT, end + 1, (sptr_t)pstr);
-                eu_sci_call(p, SCI_GOTOPOS, end + 1 + strlen(pstr), 0);
+                on_sci_call(p, SCI_INSERTTEXT, end + 1, (sptr_t)pstr);
+                on_sci_call(p, SCI_GOTOPOS, end + 1 + strlen(pstr), 0);
             }
             else if ((text = (char *)calloc(1, QW_SIZE + 1)))
             {
                 _snprintf(text, QW_SIZE, "=%s", pstr);
-                eu_sci_call(p, SCI_INSERTTEXT, end, (sptr_t)text);
-                eu_sci_call(p, SCI_GOTOPOS, end + strlen(text), 0);
+                on_sci_call(p, SCI_INSERTTEXT, end, (sptr_t)text);
+                on_sci_call(p, SCI_GOTOPOS, end + strlen(text), 0);
                 free(text);
             }
         }
@@ -3103,4 +3103,15 @@ bool
 eu_dark_enable(void)
 {
     return on_dark_enable();
+}
+
+sptr_t
+eu_sci_call(const int t, const int m, const sptr_t w, const sptr_t l)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    if (p)
+    {
+        return on_sci_call(p, m, w, l);
+    }
+    return (sptr_t)-1;
 }

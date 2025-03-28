@@ -371,7 +371,7 @@ char *_fullpath(char *buf, const char *path, size_t maxlen);
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);
 bool eu_init_completed_tree(doctype_t *p, const char *val);
-intptr_t eu_sci_call(void *p, int m, intptr_t w, intptr_t l);
+intptr_t eu_sci_call(const int t, const int m, const intptr_t w, const intptr_t l);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 int on_doc_init_list(void *pnode);

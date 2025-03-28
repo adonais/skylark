@@ -65,6 +65,7 @@ bool on_sci_line_text(eu_tabpage *pnode, size_t lineno, char *buf, size_t len);
 void on_sci_destroy_control(eu_tabpage *pnode);
 char *on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end);
 const int on_sci_bitmask_get(const uint32_t pos, const uint32_t len);
+sptr_t on_sci_call(const eu_tabpage *p, const int m, const sptr_t w, const sptr_t l);
 
 #ifdef __cplusplus
 }

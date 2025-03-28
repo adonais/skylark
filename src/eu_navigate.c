@@ -4,7 +4,7 @@ static LIST_HEAD(list_trace);
 static int max_nav_count = 0;
 
 static bool
-on_navigate_node_exist(eu_tabpage *pnode)
+on_navigate_node_exist(const eu_tabpage *pnode)
 {
     if (!list_empty(&list_trace))
     {
@@ -21,7 +21,7 @@ on_navigate_node_exist(eu_tabpage *pnode)
 }
 
 static bool
-on_navigate_pos_exist(int64_t *vec, int64_t postion)
+on_navigate_pos_exist(const int64_t *vec, const int64_t postion)
 {
     for (size_t i = 0; i < cvector_size(vec); ++i)
     {
@@ -34,7 +34,7 @@ on_navigate_pos_exist(int64_t *vec, int64_t postion)
 }
 
 static bool
-on_navigate_diff(eu_tabpage *p1, eu_tabpage *pnode)
+on_navigate_diff(const eu_tabpage *p1, const eu_tabpage *pnode)
 {
     if (p1 && pnode && p1 != pnode)
     {
@@ -94,12 +94,12 @@ on_navigate_back_call(void *param)
     if (p && (SendMessage(eu_hwnd_self(), WM_JSON_POSITION, (sptr_t)p, 0)) >= 0)
     {
         on_tabpage_selection(p);
-        eu_sci_call(p, SCI_GOTOPOS, p->nc_pos, 0);
+        on_sci_call(p, SCI_GOTOPOS, p->nc_pos, 0);
     }
 }
 
 int
-on_navigate_list_add(eu_tabpage *pnode)
+on_navigate_list_add(const eu_tabpage *pnode)
 {
     struct navigate_trace *curr = NULL;
     if (!pnode || pnode->pmod || max_nav_count + 1 > MAX_TRACE_COUNT)
@@ -113,7 +113,7 @@ on_navigate_list_add(eu_tabpage *pnode)
     }
     if ((curr = (struct navigate_trace *)calloc(1, sizeof(struct navigate_trace))) != NULL)
     {
-        curr->pnode = pnode;
+        curr->pnode = (eu_tabpage *)pnode;
         cvector_push_back(curr->pos, (int64_t)pnode->nc_pos);
         list_add_tail(&(curr->ng_node), &list_trace);
         ++max_nav_count;
@@ -124,7 +124,7 @@ on_navigate_list_add(eu_tabpage *pnode)
 }
 
 void
-on_navigate_list_update(eu_tabpage *pnode, int64_t pos)
+on_navigate_list_update(const eu_tabpage *pnode, const int64_t pos)
 {
     if (pnode && pos >= 0)
     {
@@ -153,8 +153,8 @@ on_navigate_back_this(const eu_tabpage *pnode)
             if (curr && curr->pnode == pnode && cvector_size(curr->pos) > 0)
             {
                 int64_t *back = cvector_back(curr->pos);
-                int64_t textlen = (int64_t)eu_sci_call((eu_tabpage *)pnode, SCI_GETLENGTH, 0, 0);
-                int64_t postion = (int64_t)eu_sci_call((eu_tabpage *)pnode, SCI_GETCURRENTPOS, 0, 0);
+                int64_t textlen = (int64_t)on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+                int64_t postion = (int64_t)on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
                 if (postion == *back)
                 {
                     cvector_pop_back(curr->pos);
@@ -164,7 +164,7 @@ on_navigate_back_this(const eu_tabpage *pnode)
                 {
                     sptr_t go = *back > textlen - 1 ? textlen - 1 : (sptr_t)(*back >= 0 ? *back : 0);
                     cvector_pop_back(curr->pos);
-                    eu_sci_call((eu_tabpage *)pnode, SCI_GOTOPOS, go, 0);
+                    on_sci_call(pnode, SCI_GOTOPOS, go, 0);
                     return true;
                 }
             }
@@ -176,7 +176,7 @@ on_navigate_back_this(const eu_tabpage *pnode)
 void
 on_navigate_back_all(void)
 {
-    eu_tabpage *p = on_tabpage_focus_at();
+    const eu_tabpage *p = on_tabpage_focus_at();
     if (!on_navigate_back_this(p))
     {
         struct navigate_trace *curr = NULL;
@@ -191,17 +191,17 @@ on_navigate_back_all(void)
             {
                 on_tabpage_selection(curr->pnode);
                 int64_t *back = cvector_back(curr->pos);
-                int64_t textlen = (int64_t)eu_sci_call(curr->pnode, SCI_GETLENGTH, 0, 0);
+                int64_t textlen = (int64_t)on_sci_call(curr->pnode, SCI_GETLENGTH, 0, 0);
                 sptr_t go = *back > textlen - 1 ? textlen - 1 : (sptr_t)(*back >= 0 ? *back : 0);
                 cvector_pop_back(curr->pos);
-                eu_sci_call(curr->pnode, SCI_GOTOPOS, go, 0);
+                on_sci_call(curr->pnode, SCI_GOTOPOS, go, 0);
             }
         }
     }
 }
 
 void
-on_navigate_clean_this(eu_tabpage *pnode)
+on_navigate_clean_this(const eu_tabpage *pnode)
 {
     if (pnode)
     {
@@ -263,9 +263,9 @@ on_navigate_jump(eu_tabpage *pnode, sptr_t wp, sptr_t lp)
         pnode->pwant = NULL;
         pnode->lp = 0;
     }
-    else if ((p = pnode) && (p->nc_pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0)) >= 0)
+    else if ((p = pnode) && (p->nc_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0)) >= 0)
     {
-        text = on_sci_range_text(pnode, eu_sci_call(p, SCI_WORDSTARTPOSITION, p->nc_pos, true), eu_sci_call(p, SCI_WORDENDPOSITION, p->nc_pos, true));
+        text = on_sci_range_text(pnode, on_sci_call(p, SCI_WORDSTARTPOSITION, p->nc_pos, true), on_sci_call(p, SCI_WORDENDPOSITION, p->nc_pos, true));
     }
     if (STR_NOT_NUL(text))
     {
@@ -288,7 +288,7 @@ on_navigate_jump(eu_tabpage *pnode, sptr_t wp, sptr_t lp)
     if (postion >= 0 && p)
     {
         on_tabpage_selection(p);
-        eu_sci_call(p, SCI_GOTOPOS, postion, 0);
+        on_sci_call(p, SCI_GOTOPOS, postion, 0);
         on_navigate_list_update(p, postion);
     }
     eu_safe_free(text);

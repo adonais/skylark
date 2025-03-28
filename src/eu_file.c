@@ -133,7 +133,7 @@ on_file_kill_tree(const uint32_t self)
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (snapshot == INVALID_HANDLE_VALUE)
     {
-        eu_logmsg("File: CreateToolhelp32Snapshot error %u\n", GetLastError());
+        eu_logmsg("File: CreateToolhelp32Snapshot error %lu\n", GetLastError());
         return;
     }
     edit_pid[0] = self;
@@ -254,7 +254,7 @@ on_file_push_recent(const eu_tabpage *pnode)
     {
         if (pnode && util_make_u8(pnode->pathfile, precent->path, MAX_BUFFER)[0])
         {   // 也支持16进制编辑器获取实时位置
-            precent->postion = eu_sci_call((eu_tabpage *)pnode, SCI_GETCURRENTPOS, 0, 0);
+            precent->postion = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             precent->hex = pnode->hex_mode;
             on_sql_file_recent_thread(precent);
         }
@@ -269,7 +269,7 @@ on_file_get_bakup(const eu_tabpage *pnode)
     if (pnode && pbak)
     {
         pbak->x = -1, pbak->y = -1;
-        pbak->postion = eu_sci_call((eu_tabpage *)pnode, SCI_GETCURRENTPOS, 0, 0);
+        pbak->postion = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         pbak->tab_id = on_tabpage_get_index(pnode);
         pbak->cp = pnode->codepage;
         pbak->bakcp = pnode->bakcp;
@@ -284,8 +284,8 @@ on_file_get_bakup(const eu_tabpage *pnode)
         _tcscpy(pbak->bak_path, pbak->status ? pnode->bakpath : _T(""));
         if (!TAB_HEX_MODE(pnode) && !TAB_HAS_PDF(pnode))
         {
-            on_search_page_mark((eu_tabpage *)pnode, pbak->mark_id, MAX_BUFFER-1);
-            on_search_fold_kept((eu_tabpage *)pnode, pbak->fold_id, MAX_BUFFER-1);
+            on_search_page_mark(pnode, pbak->mark_id, MAX_BUFFER-1);
+            on_search_fold_kept(pnode, pbak->fold_id, MAX_BUFFER-1);
         }
     }
     return pbak;
@@ -483,7 +483,7 @@ on_file_new(eu_tabpage *psrc)
         else
         {
             on_sci_before_file(pnode, true);
-            eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+            on_sci_call(pnode, SCI_CLEARALL, 0, 0);
             pnode->eol = eu_get_config()->new_file_eol;
             pnode->codepage = eu_get_config()->new_file_enc;
         }
@@ -542,7 +542,7 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte)
     pnode->phex->hmap = share_create(hfile, PAGE_WRITECOPY, nbyte, NULL);
     if (pnode->phex->hmap == NULL)
     {
-        eu_logmsg("File: share_create failed, cause %u\n", GetLastError());
+        eu_logmsg("File: share_create failed, cause %lu\n", GetLastError());
         eu_safe_free(pnode->phex);
         return false;
     }
@@ -550,7 +550,7 @@ on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte)
     pnode->phex->pbase = (uint8_t *)share_map(pnode->phex->hmap, nbyte, FILE_MAP_COPY);
     if (pnode->phex->pbase == NULL)
     {
-        eu_logmsg("File: share_map failed, cause %u\n", GetLastError());
+        eu_logmsg("File: share_map failed, cause %lu\n", GetLastError());
         share_close(pnode->phex->hmap);
         eu_safe_free(pnode->phex);
         return false;
@@ -915,17 +915,17 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
             {
                 pnode->eol = on_encoding_line_mode(pdst, dst_len);
             }
-            eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
+            on_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
             eu_safe_free(pdst);
         }
     }
     else if (is_utf8)
     {
-        eu_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base));
+        on_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base));
     }
     else
     {
-        eu_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base+pnode->pre_len));
+        on_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base+pnode->pre_len));
     }
     uf_stream.close(&uf_stream);
     return (int)err;
@@ -954,8 +954,8 @@ on_file_update_postion(eu_tabpage *p, const file_backup *pbak)
         }
         else
         {
-            sptr_t pos = eu_sci_call(p, SCI_POSITIONFROMLINE, x > 0 ? x - 1 : 0, 0);
-            sptr_t line_end_pos = eu_sci_call(p, SCI_GETLINEENDPOSITION, x > 0 ? x - 1 : 0, 0);
+            sptr_t pos = on_sci_call(p, SCI_POSITIONFROMLINE, x > 0 ? x - 1 : 0, 0);
+            sptr_t line_end_pos = on_sci_call(p, SCI_GETLINEENDPOSITION, x > 0 ? x - 1 : 0, 0);
             pos += (y > 0 ? y - 1 : 0);
             if (pos > line_end_pos)
             {
@@ -1086,7 +1086,7 @@ on_file_before_open(eu_tabpage *pnode)
     if (!TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         on_sci_before_file(pnode, true);
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+        on_sci_call(pnode, SCI_CLEARALL, 0, 0);
         // 把工作目录设置在进程所在地
         util_set_working_dir(eu_module_path, NULL);
     }
@@ -1401,9 +1401,9 @@ on_file_out_open(const int index, uint32_t *pid)
             {
                 if (!p->is_blank)
                 {
-                    sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
-                    sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-                    sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                    sptr_t pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                    sptr_t lineno = on_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                    sptr_t row = on_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
                     _sntprintf(process, MAX_BUFFER, _T("%s%s\"%s\" -n%zd -c%zd"), process, _T(" -noremote "), p->pathfile, lineno+1, pos-row+1);
                     if (!p->plugin && TAB_HEX_MODE(p))
                     {
@@ -1454,7 +1454,7 @@ on_file_redirect(file_backup *pbak, const size_t vsize)
     }
     else if (vsize > 1)
     {
-        SendMessage(eu_hwnd_self(), WM_TABPAGE_FINAL, 0, 0);
+        on_proc_redraw(NULL);
     }
     return err;
 }
@@ -1541,14 +1541,14 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
         {
             pnode->eol = on_encoding_line_mode(pdst, dst_len);
         }
-        eu_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
+        on_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
         free(pdst);
     }
     else
     {
         if (TAB_HEX_MODE(pnode) || !pnode->pmod)
         {
-            eu_sci_call(pnode, SCI_ADDTEXT, len - offset, (LPARAM)(data + offset));
+            on_sci_call(pnode, SCI_ADDTEXT, len - offset, (LPARAM)(data + offset));
         }
         else if (pnode->plugin && pnode->plugin->funcs.write)
         {
@@ -1698,7 +1698,7 @@ on_file_do_write(eu_tabpage *pnode, const TCHAR *pathfilename, const bool isbak,
     bool be_cache = (bool)isbak;
     if (!TAB_HEX_MODE(pnode))
     {
-        pnode->bytes_remaining = (size_t) eu_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+        pnode->bytes_remaining = (size_t) on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
         be_ignore = pnode->bytes_remaining > BUFF_200M && on_session_thread_id() == GetCurrentThreadId();
         if (be_ignore)
         {
@@ -2095,7 +2095,7 @@ SAVE_FINAL:
         {   // 发送SCI_SETSAVEPOINT消息
             pnode->fn_modify = false;
             on_sci_point_reached(pnode);
-            eu_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
+            on_sci_call(pnode, SCI_SETSAVEPOINT, 0, 0);
             if (!pnode->is_blank && pnode->sym_show)
             {
                 on_tabpage_symreload(pnode);
@@ -2359,7 +2359,7 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 filebak.zoom = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? pnode->zoom_level : 0;
                 on_search_page_mark(pnode, filebak.mark_id, MAX_BUFFER-1);
                 on_search_fold_kept(pnode, filebak.fold_id, MAX_BUFFER-1);
-                filebak.postion = pnode->initial ? eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) : (pnode->nc_pos >= 0 ? pnode->nc_pos : 0);
+                filebak.postion = pnode->initial ? on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0) : (pnode->nc_pos >= 0 ? pnode->nc_pos : 0);
             }
             if (mode == FILE_REMOTE_CLOSE)
             {
@@ -2657,7 +2657,7 @@ on_file_check_save(void *lp)
         if ((pnode = on_tabpage_get_ptr(err)))
         {
             pnode->tab_id = index;
-            pnode->zoom_level = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? (int) eu_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
+            pnode->zoom_level = pnode->zoom_level != SELECTION_ZOOM_LEVEEL ? (int) on_sci_call(pnode, SCI_GETZOOM, 0, 0) : 0;
             if (at_focus >= 0)
             {
                 pnode->tab_focus = (int)(pnode->tab_id == at_focus);
@@ -2850,8 +2850,8 @@ on_file_reload_current(eu_tabpage *pnode)
     {
         bool reload = true;
         bool modified = pnode->be_modify;
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         if (modified && !eu_get_config()->inter_reserved_0)
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, title);

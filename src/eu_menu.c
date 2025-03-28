@@ -463,8 +463,8 @@ menu_update_item(const HMENU menu, const bool init)
                     case IDM_EDIT_UNDO:                       /* Edit menu */
                     case IDM_EDIT_REDO:
                     {
-                        util_enable_menu_item(menu, IDM_EDIT_UNDO, init || eu_sci_call(pnode,SCI_CANUNDO, 0, 0));
-                        util_enable_menu_item(menu, IDM_EDIT_REDO, init || eu_sci_call(pnode,SCI_CANREDO, 0, 0));
+                        util_enable_menu_item(menu, IDM_EDIT_UNDO, init || on_sci_call(pnode,SCI_CANUNDO, 0, 0));
+                        util_enable_menu_item(menu, IDM_EDIT_REDO, init || on_sci_call(pnode,SCI_CANREDO, 0, 0));
                         break;
                     }
                     case IDM_EDIT_UNDO_SELECTION:
@@ -502,7 +502,7 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_EDIT_SWAP_CLIPBOARD:
                     {
-                        util_enable_menu_item(menu, IDM_EDIT_SWAP_CLIPBOARD, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0)));
+                        util_enable_menu_item(menu, IDM_EDIT_SWAP_CLIPBOARD, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin && on_sci_call(pnode, SCI_CANPASTE, 0, 0)));
                         break;
                     }
                     case IDM_EDIT_CLEAR_CLIPBOARD:
@@ -535,7 +535,7 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_SELECTION_RECTANGLE:
                     {
-                        util_set_menu_item(menu, IDM_SELECTION_RECTANGLE, eu_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);
+                        util_set_menu_item(menu, IDM_SELECTION_RECTANGLE, on_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) > 0);
                         util_enable_menu_item(menu, IDM_SELECTION_RECTANGLE, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin));
                         break;
                     }
@@ -708,7 +708,7 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_SET_RENDER_TECH_GDI:
                     {
-                        enable = init ? -1 : (int)eu_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0);
+                        enable = init ? -1 : (int)on_sci_call(pnode, SCI_GETTECHNOLOGY, 0, 0);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_GDI, SC_TECHNOLOGY_DEFAULT == enable);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2D, SC_TECHNOLOGY_DIRECTWRITE == enable);
                         util_set_menu_item(menu, IDM_SET_RENDER_TECH_D2DRETAIN, SC_TECHNOLOGY_DIRECTWRITERETAIN == enable);
