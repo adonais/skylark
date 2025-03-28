@@ -761,21 +761,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetBkMode(hdc, TRANSPARENT);
             return (LRESULT)on_dark_theme_brush();
         }
-        case WM_DRAWITEM:
-        {
-            switch (((LPDRAWITEMSTRUCT)lParam)->CtlID)
-            {
-                case IDM_TREE_BAR:
-                case IDM_TABPAGE_BAR:
-                    if (g_tabpages)
-                    {
-                        return on_tabpage_draw_item(hwnd, wParam, lParam);
-                    }
-                default:
-                    break;
-            }
-            break;
-        }
         case WM_THEMECHANGED:
         {
             if (on_dark_supports())

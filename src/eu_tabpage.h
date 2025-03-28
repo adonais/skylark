@@ -152,8 +152,7 @@ eu_tabpage *on_tabpage_get_ptr(const int index);
 eu_tabpage *on_tabpage_focus_at(void);
 eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);
 TCHAR *on_tabpage_generator(TCHAR *filename, const int len);
-LRESULT on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam);
-HWND on_tabpage_hwnd(const eu_tabpage *pnode);
+HWND  on_tabpage_hwnd(const eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

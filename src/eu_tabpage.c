@@ -84,12 +84,12 @@ on_tabpage_destroy_tabbar(void)
     }
 }
 
-LRESULT
-on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
+static LRESULT
+on_tabpage_draw_item(HWND hwnd, WPARAM wp, LPARAM lp)
 {
     UNREFERENCED_PARAMETER(hwnd);
-    UNREFERENCED_PARAMETER(wParam);
-    UNREFERENCED_PARAMETER(lParam);
+    UNREFERENCED_PARAMETER(wp);
+    UNREFERENCED_PARAMETER(lp);
     return 1;
 }
 
