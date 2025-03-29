@@ -104,6 +104,8 @@ on_proc_send_notify(void)
 static void
 on_proc_destory_window(HWND hwnd)
 {
+    // 运行用户脚本
+    on_script_loader_event(SKYLARK_SHUTDOWN);
     // 保存主窗口位置
     util_save_placement(hwnd);
     // 销毁菜单栏
@@ -577,6 +579,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 on_session_run(UPCHECK_INDENT_MAIN);
             }
+            on_script_loader();
             break;
         }
         case WM_NCPAINT:
@@ -837,11 +840,15 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (wParam == SC_RESTORE)
             {
                 const LRESULT rv = DefWindowProc(hwnd, message, wParam, lParam);
-                if ((pnode = on_tabpage_focus_at()) && !TAB_HEX_MODE(pnode) && pnode->nc_pos >= 0)
+                if ((pnode = on_tabpage_focus_at()) && !TAB_HEX_MODE(pnode) && eu_get_config()->scroll_to_cursor && pnode->nc_pos >= 0)
                 {
                     on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
                 }
                 return rv;
+            }
+            else if ((wParam & 0xFFF0) == SC_MINIMIZE)
+            {
+                on_script_loader_event(SKYLARK_MINIMIZED);
             }
             return DefWindowProc(hwnd, message, wParam, lParam);
         }

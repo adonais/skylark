@@ -264,16 +264,17 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         on_sci_call(pnode, SCI_SETTABDRAWMODE, SCTD_LONGARROW, 0);
         // 是否显示对齐线
         on_sci_call(pnode, SCI_SETINDENTATIONGUIDES, (eu_get_config()->m_indentation ? SC_IV_LOOKBOTH : SC_IV_NONE), 0);
-        on_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
-        on_sci_call(pnode, SCI_SETADDITIONALSELECTIONTYPING, true, 0);
-        on_sci_call(pnode, SCI_SETVIRTUALSPACEOPTIONS, 1, 0);
         // 需要时显示水平滚动条, 但是删除文本后, 滚动条不会消失
         on_sci_call(pnode, SCI_SETSCROLLWIDTH, 1, 0);
         on_sci_call(pnode, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
         // 设置undo掩码, 接受SCN_MODIFIED消息
         on_sci_call(pnode, SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT|SC_PERFORMED_UNDO|SC_PERFORMED_REDO, 0);
-        // 支持多列粘贴
+        // 支持多选, 多列粘贴
+        on_sci_call(pnode, SCI_SETMULTIPLESELECTION, true, 0);
+        on_sci_call(pnode, SCI_SETADDITIONALSELECTIONTYPING, true, 0);
         on_sci_call(pnode, SCI_SETMULTIPASTE, SC_MULTIPASTE_EACH, 0);
+        // 为矩形选择启用或禁用虚拟空间, 什么意思?
+        on_sci_call(pnode, SCI_SETVIRTUALSPACEOPTIONS, 1, 0);
         // 设置括号匹配高亮色以及指示出不匹配的大括号
         on_sci_call(pnode, SCI_STYLESETFORE, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.color);
         on_sci_call(pnode, SCI_STYLESETBACK, STYLE_BRACELIGHT, eu_get_theme()->item.bracesection.bgcolor);
@@ -851,6 +852,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
                 }
             }
+            on_script_loader_event(SKYLARK_KEYUP);
             on_statusbar_update_line(pnode);
             break;
         }
@@ -915,6 +917,14 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (pnode->ac_vec)
             {
                 on_complete_reset_focus(pnode);
+            }
+            if (util_can_selections(pnode))
+            {
+                on_script_loader_event(SKYLARK_SELETION);
+            }
+            else
+            {
+                on_script_loader_event(SKYLARK_MOUSEUP);
             }
             on_navigate_list_update(pnode, on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);

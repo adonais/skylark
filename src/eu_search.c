@@ -594,7 +594,7 @@ on_search_set_folder_path(LPCTSTR path)
 void
 on_search_turn_select(eu_tabpage *pnode)
 {
-    if (hwnd_search_dlg && pnode && !TAB_HEX_MODE(pnode))
+    if (hwnd_search_dlg && (GetWindowLongPtr(hwnd_search_dlg, GWL_STYLE) & WS_VISIBLE) && pnode && !TAB_HEX_MODE(pnode))
     {
         HWND hwnd_tab = GetDlgItem(hwnd_search_dlg, IDD_SEARCH_TAB_1);
         if (hwnd_tab && TabCtrl_GetCurSel(hwnd_tab) == 1)

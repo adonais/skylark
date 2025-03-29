@@ -438,7 +438,7 @@ done:
 }
 
 void
-util_wait_cursor(eu_tabpage *pnode)
+util_wait_cursor(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode))
     {
@@ -447,7 +447,7 @@ util_wait_cursor(eu_tabpage *pnode)
 }
 
 void
-util_restore_cursor(eu_tabpage *pnode)
+util_restore_cursor(const eu_tabpage *pnode)
 {
     POINT pt;
     if (pnode && !TAB_HEX_MODE(pnode))
@@ -2078,10 +2078,10 @@ util_to_abs(const char *path)
 }
 
 bool
-util_can_selections(eu_tabpage *pnode)
+util_can_selections(const eu_tabpage *pnode)
 {
-    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    const sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    const sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     return sel_start != sel_end;
 }
 
@@ -2179,7 +2179,7 @@ util_setforce_eol(eu_tabpage *p)
 }
 
 void
-util_save_placement(HWND hwnd)
+util_save_placement(const HWND hwnd)
 {
     WINDOWPLACEMENT wp = {sizeof(WINDOWPLACEMENT)};
     if (GetWindowPlacement(hwnd, &wp))
@@ -2197,7 +2197,7 @@ util_save_placement(HWND hwnd)
 }
 
 void
-util_restore_placement(HWND hwnd)
+util_restore_placement(const HWND hwnd)
 {
     WINDOWPLACEMENT wp = {0};
     if (util_string_to_struct(eu_get_config()->m_placement, &wp, sizeof(wp)))
@@ -2211,7 +2211,7 @@ util_restore_placement(HWND hwnd)
 }
 
 void
-util_untransparent(HWND hwnd)
+util_untransparent(const HWND hwnd)
 {
     if (hwnd != NULL)
     {
@@ -2220,7 +2220,7 @@ util_untransparent(HWND hwnd)
 }
 
 void
-util_transparent(HWND hwnd, int percent)
+util_transparent(const HWND hwnd, int percent)
 {
     if (hwnd)
     {

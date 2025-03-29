@@ -655,12 +655,13 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
         {
             int read_len = 0;
             char *std_buffer = NULL;
+            char *filename = eu_utf16_utf8(pnode->pathfile, NULL);
             pnode->presult->pwant = on_toolbar_no_highlight;
             eu_window_resize();
             do_lua_setting_path(pnode);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
-                if (do_lua_code((const char *)buffer) == 0)
+                if (do_lua_code((const char *)buffer, filename) == 0)
                 {
                     read_len = get_output_buffer(std_buffer, MAX_OUTPUT_BUF);
                 }
@@ -680,10 +681,11 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 }
                 free(std_buffer);
             }
-            free(buffer);
             do_lua_setting_path(NULL);
+            eu_safe_free(filename);
         }
     }
+    eu_safe_free(buffer);
 }
 
 static void

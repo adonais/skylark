@@ -601,7 +601,7 @@ void Editor::ThinRectangularRange() {
 }
 
 void Editor::InvalidateSelection(SelectionRange newMain, bool invalidateWholeSelection) {
-	if (sel.Count() > 1 || !(sel.RangeMain().anchor == newMain.anchor) || sel.IsRectangular()) {
+	if ((sel.Count() > 1 && sel.Length() > 0) || !(sel.RangeMain().anchor == newMain.anchor) || sel.IsRectangular()) {
 		invalidateWholeSelection = true;
 	}
 	Sci::Position firstAffected = std::min(sel.RangeMain().Start().Position(), newMain.Start().Position());
@@ -616,7 +616,9 @@ void Editor::InvalidateSelection(SelectionRange newMain, bool invalidateWholeSel
 			lastAffected = std::max(lastAffected, sel.Range(r).anchor.Position());
 		}
 	}
-	ContainerNeedsUpdate(Update::Selection);
+	if (!invalidateWholeSelection) {
+	    ContainerNeedsUpdate(Update::Selection);
+	}
 	InvalidateRange(firstAffected, lastAffected);
 }
 
