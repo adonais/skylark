@@ -88,7 +88,7 @@ struct _tabpage
     volatile long json_id;      // 解析json线程id
     volatile long busy_id;      // 标签是否空闲状态
     volatile long lock_id;      // 自动保存时使用的锁
-    volatile long stat_id;      // 状态id, 当前激活标签
+    volatile long stat_id;      // 状态id, 是否有指示器?
     volatile long initial;      // 标签初始化状态
     int tab_id;                 // tab编号,用于保存会话
     int tab_focus;              // 保存前台焦点

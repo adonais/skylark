@@ -175,6 +175,7 @@
 #define WM_BACKUP_CONFIG          (WM_USER+10031)
 #define WM_BACKUP_BOTH            (WM_USER+10032)
 #define WM_BACKUP_ALL             (WM_USER+10033)
+#define WM_PROCESS_ID             (WM_USER+10034)
 
 #define WM_PCRE_ADDSTRING         (WM_USER+12000)
 #define WM_JSON_PASSED            (WM_USER+12001)
@@ -670,6 +671,17 @@ EU_EXT_CLASS bool eu_init_completed_tree(doctype_t *root, const char *str);
 EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
+
+EU_EXT_CLASS char *eu_strdup_range(const int t, const sptr_t start, const sptr_t end);
+EU_EXT_CLASS char *eu_strdup_line(const int t, const sptr_t line_number);
+EU_EXT_CLASS char *eu_strdup_select(const int t);
+EU_EXT_CLASS char *eu_strdup_content(const int index);
+EU_EXT_CLASS char *eu_file_path(const int t);
+EU_EXT_CLASS char *eu_file_name(const int t);
+EU_EXT_CLASS size_t eu_file_size(const int t);
+EU_EXT_CLASS int eu_file_close(const int t);
+EU_EXT_CLASS int eu_file_open(const wchar_t *path);
+EU_EXT_CLASS int eu_file_save(const int t);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);

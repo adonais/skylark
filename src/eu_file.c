@@ -1923,7 +1923,7 @@ on_file_stream_upload(eu_tabpage *pnode, wchar_t *pmsg)
 }
 
 int
-on_file_save(eu_tabpage *pnode, const bool save_as)
+on_file_save(eu_tabpage *pnode, const int save)
 {
     int att = 0;
     int err = SKYLARK_OK;
@@ -1934,12 +1934,12 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
     {
         return EUE_TAB_NULL;
     }
-    if (!on_sci_doc_modified(pnode) && !save_as)
+    if (!on_sci_doc_modified(pnode) && save != SAVE_AS)
     {
         err = EUE_UNEXPECTED_SAVE;
         goto SAVE_FINAL;
     }  // 插件打开的文件, 保存
-    if (pnode->pmod && pnode->plugin && !save_as)
+    if (pnode->pmod && pnode->plugin && save != SAVE_AS)
     {
         nphdr.pnode = (void *)pnode;
         if (eu_get_config()->m_write_copy && on_file_write_backup(pnode))
@@ -1950,7 +1950,7 @@ on_file_save(eu_tabpage *pnode, const bool save_as)
         npn_send_notify(pnode->hwnd_sc, NPP_DOC_MODIFY, OPERATE_SAVE, &nphdr);
         goto SAVE_FINAL;
     }  // 编辑器文件另存为
-    if (pnode->is_blank || save_as)
+    if (pnode->is_blank || save == SAVE_AS)
     {
         TCHAR pcd[MAX_PATH] = {0};
         TCHAR full_path[MAX_BUFFER] = {0};
@@ -2103,12 +2103,30 @@ SAVE_FINAL:
         }
         if (!att)
         {
-            on_sci_refresh_ui(pnode);
+            if (save == SAVE_ALL)
+            {
+                util_redraw(g_tabpages, true);
+            }
+            else
+            {
+                on_sci_refresh_ui(pnode);
+            }
             on_file_filedb_update(pnode);
         }
         else
         {
             err = on_profiles_reload(pnode, att);
+        }
+        if (!err)
+        {
+            if (save == SAVE_ONLY)
+            {
+                on_script_loader_event(SKYLARK_FILESAVE, pnode);
+            }
+            else if (save == SAVE_AS)
+            {
+                on_script_loader_event(SKYLARK_FILESAVEAS, pnode);
+            }
         }
     }
     return err;
@@ -2117,7 +2135,7 @@ SAVE_FINAL:
 int
 on_file_save_as(eu_tabpage *pnode)
 {
-    return !pnode ? EUE_TAB_NULL : on_file_save(pnode, true);
+    return !pnode ? EUE_TAB_NULL : on_file_save(pnode, SAVE_AS);
 }
 
 int
@@ -2129,7 +2147,7 @@ on_file_all_save(void)
         eu_tabpage *pnode = on_tabpage_get_ptr(index);
         if (pnode)
         {
-            on_file_save(pnode, false);
+            on_file_save(pnode, SAVE_ALL);
         }
     }
     return SKYLARK_OK;
@@ -2467,7 +2485,7 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
         }
         else if (decision == IDYES)
         {
-            err = on_file_save((*ppnode), false);
+            err = on_file_save((*ppnode), SAVE_ONLY);
         }
         else
         {

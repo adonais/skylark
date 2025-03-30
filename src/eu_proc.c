@@ -105,7 +105,7 @@ static void
 on_proc_destory_window(HWND hwnd)
 {
     // 运行用户脚本
-    on_script_loader_event(SKYLARK_SHUTDOWN);
+    on_script_loader_event(SKYLARK_SHUTDOWN, NULL);
     // 保存主窗口位置
     util_save_placement(hwnd);
     // 销毁菜单栏
@@ -702,6 +702,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             menu_update_item((HMENU)wParam, true);
             break;
         }
+        case WM_PROCESS_ID:
+        {
+            return (LRESULT)GetCurrentProcessId();
+        }
         case WM_SKYLARK_DESC:
         {
             return WM_SKYLARK_DESC;
@@ -840,15 +844,19 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (wParam == SC_RESTORE)
             {
                 const LRESULT rv = DefWindowProc(hwnd, message, wParam, lParam);
-                if ((pnode = on_tabpage_focus_at()) && !TAB_HEX_MODE(pnode) && eu_get_config()->scroll_to_cursor && pnode->nc_pos >= 0)
+                if ((pnode = on_tabpage_focus_at()))
                 {
-                    on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+                    if (TAB_HAS_TXT(pnode) && eu_get_config()->scroll_to_cursor && pnode->nc_pos >= 0)
+                    {
+                        on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
+                    }
+                    on_script_loader_event(SKYLARK_RESTORED, pnode);
                 }
                 return rv;
             }
             else if ((wParam & 0xFFF0) == SC_MINIMIZE)
             {
-                on_script_loader_event(SKYLARK_MINIMIZED);
+                on_script_loader_event(SKYLARK_MINIMIZED, pnode);
             }
             return DefWindowProc(hwnd, message, wParam, lParam);
         }

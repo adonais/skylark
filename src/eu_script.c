@@ -712,6 +712,43 @@ do_lua_point(const char *fname, const char *func, void *arg)
 }
 
 int
+do_lua_integer(const char *fname, const char *func, const int arg)
+{
+    int status;
+    if (!fname)
+    {
+        return -1;
+    }
+    lua_State *L = lua_open();
+    if (L == NULL)
+    {
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
+        return -1;
+    }
+    /* Stop collector during library initialization. */
+    lua_gc(L, LUA_GCSTOP, 0);
+    luaL_openlibs(L);
+    lua_gc(L, LUA_GCRESTART, -1);
+    status = dofile(L, fname);
+    if (status == LUA_OK)
+    {
+        lua_getglobal(L, func);
+        lua_pushinteger(L, arg);
+        status = lua_pcall(L, 1, 0, 0);
+        if (status == LUA_OK)
+        {
+            lua_pop(L, 1);
+        }
+        else
+        {
+            eu_logmsg("%s: %s:%s lua_pcall failed\n", __FUNCTION__, fname, func);
+        }
+    }
+    lua_close(L);
+    return status;
+}
+
+int
 do_lua_parser_doctype(const char *fname, const char *func)
 {
     int status;
@@ -1083,14 +1120,14 @@ on_script_loader_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP
             }
             if (_sntprintf(lua, MAX_BUFFER, _T("%s\\script-opts\\loader\\%s"), eu_config_path, data.cFileName) > 0 && (u8 = eu_utf16_utf8(lua, NULL)) != NULL)
             {
-                eu_logmsg("Scripts: [%s] loader\n", u8);
+                eu_logmsg("Scripts: [%s] register\n", u8);
                 do_lua_func(u8, "main", "");
                 free(u8);
             }
         } while (FindNextFile(hfile, &data));
         FindClose(hfile);
     }
-    on_script_loader_event(SKYLARK_INIT);
+    on_script_loader_event(SKYLARK_INIT, NULL);
 }
 
 static const struct
@@ -1109,13 +1146,14 @@ luaopen_euapi(void *L)
 }
 
 void
-on_script_loader_event(const int event)
+on_script_loader_event(const int event, void *pnode)
 {
+    int index = on_tabpage_get_index((eu_tabpage *)pnode);
     for (size_t i = 0; i < cvector_size(psb_client); ++i)
     {
         if (psb_client[i].index == event)
         {
-            do_lua_func(psb_client[i].pfile, psb_client[i].pname, "");
+            do_lua_integer(psb_client[i].pfile, psb_client[i].pname, index);
         }
     }
 }

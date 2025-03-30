@@ -19,7 +19,10 @@
 #ifndef _H_SKYLARK_FILE_
 #define _H_SKYLARK_FILE_
 
-#define URL_MIN 7
+#define SAVE_ONLY 0
+#define SAVE_AS   1
+#define SAVE_ALL  2
+#define URL_MIN   7
 #define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define url_has_samba(ll) (_tcslen(ll) > 2 && (ll[1] == L'\\' && ll[0] == L'\\'))
@@ -69,7 +72,7 @@ int on_file_open(void);
 int on_file_out_open(const int index, uint32_t *pid);
 int on_file_drop(HDROP hdrop);
 int on_file_open_remote(remotefs *pserver, file_backup *pbak);
-int on_file_save(eu_tabpage *pnode, const bool save_as);
+int on_file_save(eu_tabpage *pnode, const int save);
 int on_file_save_as(eu_tabpage *pnode);
 int on_file_all_save(void);
 int on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode);

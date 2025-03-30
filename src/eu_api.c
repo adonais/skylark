@@ -3105,6 +3105,81 @@ eu_dark_enable(void)
     return on_dark_enable();
 }
 
+int
+eu_file_save(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_file_save((eu_tabpage *)p, SAVE_ONLY) : EUE_POINT_NULL;
+}
+
+int
+eu_file_open(const wchar_t *path)
+{
+    if (STR_NOT_NUL(path) && eu_exist_file(path))
+    {
+        file_backup bak = {-1, -1, 0, -1, 1};
+        _tcsncpy(bak.rel_path, path, MAX_BUFFER - 1);
+        return on_file_redirect(&bak, 1);
+    }
+    return SKYLARK_NOT_OPENED;
+}
+
+int
+eu_file_close(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_file_close(&p, FILE_ONLY_CLOSE) : EUE_POINT_NULL;
+}
+
+size_t
+eu_file_size(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_sci_call(p, SCI_GETLENGTH, 0, 0) + p->pre_len : 0;
+}
+
+char *
+eu_file_path(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? eu_utf16_utf8(p->pathfile, NULL) : NULL;
+}
+
+char *
+eu_file_name(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? eu_utf16_utf8(p->filename, NULL) : NULL;
+}
+
+char *
+eu_strdup_range(const int t, const sptr_t start, const sptr_t end)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_sci_range_text(p, start, end) : NULL;
+}
+
+char *
+eu_strdup_line(const int t, const sptr_t line_number)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? util_strdup_line(p, line_number, NULL) : NULL;
+}
+
+char *
+eu_strdup_select(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? util_strdup_select(p, NULL, 0) : NULL;
+}
+
+char *
+eu_strdup_content(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? util_strdup_content(p, NULL) : NULL;
+}
+
 sptr_t
 eu_sci_call(const int t, const int m, const sptr_t w, const sptr_t l)
 {

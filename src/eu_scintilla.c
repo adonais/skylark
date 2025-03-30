@@ -581,7 +581,7 @@ on_sci_insert_egg(eu_tabpage *pnode)
 }
 
 char *
-on_sci_range_text(eu_tabpage *pnode, sptr_t start, sptr_t end)
+on_sci_range_text(const eu_tabpage *pnode, sptr_t start, sptr_t end)
 {
     char *text = NULL;
     if (pnode && (text = (char *) calloc(1, end - start + 1)))
@@ -852,7 +852,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     pnode->doc_ptr->fn_keyup(pnode, wParam, lParam);
                 }
             }
-            on_script_loader_event(SKYLARK_KEYUP);
+            on_script_loader_event(SKYLARK_KEYUP, pnode);
             on_statusbar_update_line(pnode);
             break;
         }
@@ -920,11 +920,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if (util_can_selections(pnode))
             {
-                on_script_loader_event(SKYLARK_SELETION);
+                on_script_loader_event(SKYLARK_SELETION, pnode);
             }
             else
             {
-                on_script_loader_event(SKYLARK_MOUSEUP);
+                on_script_loader_event(SKYLARK_MOUSEUP, pnode);
             }
             on_navigate_list_update(pnode, on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0));
             on_statusbar_update_line(pnode);

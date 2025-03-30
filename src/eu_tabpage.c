@@ -1124,7 +1124,7 @@ on_tabpage_close_tabs(int it)
 void
 on_tabpage_save_files(int it)
 {
-    on_file_save(on_tabpage_get_ptr(it), false);
+    on_file_save(on_tabpage_get_ptr(it), SAVE_ONLY);
 }
 
 void
