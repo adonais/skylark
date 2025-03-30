@@ -1098,7 +1098,7 @@ on_script_loader_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP
     HANDLE hfile;
     WIN32_FIND_DATA data;
     TCHAR filepath[MAX_BUFFER];
-    _sntprintf(filepath, MAX_BUFFER, _T("%s\\script-opts\\loader\\*.lua"), eu_config_path);
+    _sntprintf(filepath, MAX_BUFFER, _T("%s\\lua\\loader\\*.lua"), eu_module_path);
     if ((hfile = FindFirstFile(filepath, &data)) != INVALID_HANDLE_VALUE)
     {
         char *u8 = NULL;
@@ -1118,7 +1118,7 @@ on_script_loader_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP
             {
                 continue;
             }
-            if (_sntprintf(lua, MAX_BUFFER, _T("%s\\script-opts\\loader\\%s"), eu_config_path, data.cFileName) > 0 && (u8 = eu_utf16_utf8(lua, NULL)) != NULL)
+            if (_sntprintf(lua, MAX_BUFFER, _T("%s\\lua\\loader\\%s"), eu_module_path, data.cFileName) > 0 && (u8 = eu_utf16_utf8(lua, NULL)) != NULL)
             {
                 eu_logmsg("Scripts: [%s] register\n", u8);
                 do_lua_func(u8, "main", "");
