@@ -904,6 +904,16 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+        case WM_LBUTTONDOWN:
+        {
+            if ((pnode = on_tabpage_focus_at()) != NULL && pnode->match_count > 0)
+            {
+                sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+                on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
+                pnode->match_count = 0;
+            }
+            break;
+        }
         case WM_LBUTTONUP:
         {
             if ((pnode = on_tabpage_focus_at()) == NULL)
