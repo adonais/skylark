@@ -1624,6 +1624,7 @@ on_tabpage_selection(const eu_tabpage *pnode)
         {
             on_tabpage_set_active(index);
             eu_window_resize();
+            on_sci_wrap_mode(p);
             on_toolbar_update_button();
             util_set_title(p);
             return index;
@@ -1675,10 +1676,15 @@ on_tabpage_active_tab(eu_tabpage *pnode)
 void
 on_tabpage_select_index(const int index)
 {
-    on_tabpage_set_active(index);
-    eu_window_resize();
-    on_toolbar_update_button();
-    util_set_title(on_tabpage_get_ptr(index));
+    eu_tabpage *p = on_tabpage_get_ptr(index);
+    if (p)
+    {
+        on_tabpage_set_active(index);
+        eu_window_resize();
+        on_sci_wrap_mode(p);
+        on_toolbar_update_button();
+        util_set_title(p);
+    }
 }
 
 void

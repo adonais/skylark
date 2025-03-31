@@ -419,16 +419,12 @@ on_view_light_fold(void)
 }
 
 void
-on_view_wrap_line(void)
+on_view_wrap_line(const eu_tabpage *p)
 {
     eu_get_config()->line_mode ^= true;
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
-    {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && !TAB_HEX_MODE(p) && !p->pmod)
-        {
-            on_sci_call(p, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? 2 : 0), 0);
-        }
+    if (p && TAB_HAS_TXT(p))
+    {   // 其他标签页的换行模式在切换时设置
+        on_sci_call(p, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? SC_WRAP_CHAR : SC_WRAP_NONE), 0);
     }
 }
 
@@ -850,7 +846,7 @@ on_view_tabs_sort(const int id)
             {
                 p->tab_id = index;
                 p->tab_focus = (int)(p->tab_id == TabCtrl_GetCurSel(g_tabpages));
-                on_sci_update_size(p);
+                on_sci_update_filesize(p);
             }
         }
         for (index = 0; index < count; ++index)

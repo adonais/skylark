@@ -247,8 +247,6 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         on_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEREND, eu_get_theme()->item.foldmargin.color);
         on_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPEN, eu_get_theme()->item.foldmargin.color);
         on_sci_call(pnode, SCI_MARKERSETFORETRANSLUCENT, SC_MARKNUM_FOLDEROPENMID, eu_get_theme()->item.foldmargin.color);
-        // 是否自动换行
-        on_sci_call(pnode, SCI_SETWRAPMODE, (eu_get_config()->line_mode ? SC_WRAP_CHAR : SC_WRAP_NONE), 0);
         // tab字符是否当成空格
         if (pnode->doc_ptr)
         {
@@ -329,7 +327,26 @@ on_sci_reset_zoom(eu_tabpage *pnode)
 }
 
 void
-on_sci_update_size(eu_tabpage *pnode)
+on_sci_wrap_mode(const eu_tabpage *p)
+{
+    if (p && TAB_HAS_TXT(p))
+    {   // 是否自动换行
+        if (eu_get_config()->line_mode > 0)
+        {
+            if (!on_sci_call(p, SCI_GETWRAPMODE, 0, 0))
+            {
+                on_sci_call(p, SCI_SETWRAPMODE, SC_WRAP_CHAR, 0);
+            }
+        }
+        else if (on_sci_call(p, SCI_GETWRAPMODE, 0, 0) > 0)
+        {
+            on_sci_call(p, SCI_SETWRAPMODE, SC_WRAP_NONE, 0);
+        }
+    }
+}
+
+void
+on_sci_update_filesize(eu_tabpage *pnode)
 {
     if (pnode && !pnode->plugin)
     {
@@ -366,7 +383,7 @@ on_sci_after_file(eu_tabpage *pnode, const bool init)
             on_sci_reset_zoom(pnode);
             if (!pnode->raw_size)
             {
-                on_sci_update_size(pnode);
+                on_sci_update_filesize(pnode);
             }
             if (pnode->doc_ptr && pnode->doc_ptr->fn_init_after)
             {   // 设置此标签页的语法解析
@@ -390,7 +407,7 @@ on_sci_refresh_ui(eu_tabpage *pnode)
         on_statusbar_update(pnode);
         on_sci_update_line_margin(pnode);
         on_sci_update_fold_margin(pnode);
-        on_sci_update_size(pnode);
+        on_sci_update_filesize(pnode);
         util_redraw(g_tabpages, true);
     }
 }

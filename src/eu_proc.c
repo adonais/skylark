@@ -336,10 +336,16 @@ on_proc_tab_click(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        on_proc_msg_size(NULL, pnode);
         if (!_InterlockedCompareExchange(&pnode->initial, 1, 0))
         {
+            on_proc_msg_size(NULL, pnode);
+            on_sci_wrap_mode(pnode);
             on_search_jmp_pos(pnode);
+        }
+        else
+        {
+            on_sci_wrap_mode(pnode);
+            on_proc_msg_size(NULL, pnode);
         }
         if (pnode->nc_pos >= 0 && eu_get_config()->scroll_to_cursor)
         {
@@ -1564,7 +1570,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 case IDM_VIEW_WRAPLINE_MODE:
                 {
-                    on_view_wrap_line();
+                    on_view_wrap_line(pnode);
                     break;
                 }
                 case IDM_VIEW_TAB_WIDTH:

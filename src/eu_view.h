@@ -36,7 +36,7 @@ void on_view_filetree(void);
 void on_view_symtree(eu_tabpage *pnode);
 void on_view_document_map(eu_tabpage *pnode);
 void on_view_show_fold_lines(void);
-void on_view_wrap_line(void);
+void on_view_wrap_line(const eu_tabpage *p);
 void on_view_line_num(void);
 void on_view_bookmark(void);
 void on_view_white_space(void);
