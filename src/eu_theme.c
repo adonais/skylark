@@ -140,9 +140,9 @@ static HFONT font_dochistory_static2;
 
 static theme_query pm_query[] =
 {
-    {IDS_THEME_DESC_DEFAULT, {0}, _T("default")} ,
-    {IDS_THEME_DESC_BLOCK  , {0}, _T("black")}   ,
-    {IDS_THEME_DESC_WHITE  , {0}, _T("white")}   ,
+    {IDS_THEME_DESC_DEFAULT, {0}, _T("default")},
+    {IDS_THEME_DESC_BLOCK  , {0}, _T("black")}  ,
+    {IDS_THEME_DESC_WHITE  , {0}, _T("white")}  ,
     {0, {0}, {0}}
 };
 
@@ -380,7 +380,7 @@ on_theme_copy_style(TCHAR *ac_theme)
     }
     if (on_theme_load_script(ac_theme))
     {
-        eu_logmsg("%s: on_theme_load_script return false\n", __FUNCTION__);
+        eu_logmsg("Theme: %s, on_theme_load_script return false\n", __FUNCTION__);
         return EUE_LOAD_SCRIPT_ERR;
     }
     strncpy(eu_get_config()->window_theme, eu_get_theme()->name, QW_SIZE - 1);

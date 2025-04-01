@@ -78,7 +78,7 @@ on_complete_equal_value(eu_tabpage *pnode, complete_t *it, int j)
 {
     char value[MAX_BUFFER] = {0};
     Sci_TextRange tr = {{it->pos[j].min, it->pos[j].max}, value};
-    eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+    on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
     return (strcmp(value, it->value) == 0);
 }
 
@@ -195,13 +195,13 @@ on_complete_muti_autoc(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        if (!eu_sci_call(pnode, SCI_AUTOCGETMULTI, 0, 0))
+        if (!on_sci_call(pnode, SCI_AUTOCGETMULTI, 0, 0))
         {
-            eu_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_EACH, 0);
+            on_sci_call(pnode, SCI_AUTOCSETMULTI, SC_MULTIAUTOC_EACH, 0);
         }
-        if (eu_sci_call(pnode, SCI_GETCARETPERIOD, 0, 0) > 0)
+        if (on_sci_call(pnode, SCI_GETCARETPERIOD, 0, 0) > 0)
         {
-            eu_sci_call(pnode, SCI_SETCARETPERIOD, 0, 0);
+            on_sci_call(pnode, SCI_SETCARETPERIOD, 0, 0);
         }
     }
 }
@@ -356,17 +356,17 @@ on_complete_get_key(eu_tabpage *pnode, char *key, int len, sptr_t *ptr_pos, char
     {
         snippet_t *it = NULL;
         on_complete_set_word(pnode);
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t word_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
-        sptr_t word_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        m_indent = (int)eu_sci_call(pnode, SCI_GETLINEINDENTATION, line, 0);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t word_start = on_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
+        sptr_t word_end = on_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
+        sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        m_indent = (int)on_sci_call(pnode, SCI_GETLINEINDENTATION, line, 0);
         if (word_end - word_start >= len - 1)
         {
             word_end = word_start + len - 1;
         }
         Sci_TextRange tr = {{word_start, word_end}, key};
-        eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+        on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
         on_complete_unset_word(pnode);
         if (!on_complete_get_str(pnode, key, pstr))
         {
@@ -374,7 +374,7 @@ on_complete_get_key(eu_tabpage *pnode, char *key, int len, sptr_t *ptr_pos, char
         }
         else
         {
-            eu_sci_call(pnode, SCI_SETSELECTION, word_start, word_end);
+            on_sci_call(pnode, SCI_SETSELECTION, word_start, word_end);
         }
         if (ptr_pos)
         {
@@ -389,8 +389,8 @@ on_complete_at_header(eu_tabpage *pnode, const sptr_t pos)
 {
     if (pnode)
     {
-        sptr_t lineno = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t linestart = eu_sci_call(pnode, SCI_POSITIONFROMLINE, lineno, 0);
+        sptr_t lineno = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sptr_t linestart = on_sci_call(pnode, SCI_POSITIONFROMLINE, lineno, 0);
         return (pos - linestart == 0);
     }
     return false;
@@ -684,12 +684,12 @@ on_complete_replace(eu_tabpage *pnode, char *pstr, const char *space)
         // 使用新的换行符+对齐空格替换旧的换行符
         _snprintf(eols, MAX_BUFFER - 1, "%s%s", doc_eol, space);
         eu_str_replace(pstr, VALUE_LEN, str_eol, eols);
-        int width = (int)eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
+        int width = (int)on_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
         char *str_width = width > 0 ? (char *)calloc(1, width+1) : NULL;
         if (str_width)
         {
             memset(str_width, 0x20, width);
-            if (eu_sci_call(pnode, SCI_GETUSETABS, 0, 0))
+            if (on_sci_call(pnode, SCI_GETUSETABS, 0, 0))
             {   // 如果是tab对齐, 使用tab替换掉可能存在的空格
                 eu_str_replace(pstr, VALUE_LEN, str_width, "\t");
             }
@@ -863,7 +863,7 @@ on_complete_sort_update(eu_tabpage *pnode, complete_t *it, int **pv, int offset,
                 if ((msub = on_complete_var_embed(pnode, it, index, &oit)) && oit && oit != it)
                 {
                     Sci_TextRange tr = {{it->pos[j].min, it->pos[j].max + offset}, it->value};
-                    eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+                    on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
                 }
             }
         }
@@ -915,7 +915,7 @@ on_complete_update_part(eu_tabpage *pnode, complete_t *pvec, int offset)
                 if (it->pos[0].max - it->pos[0].min >= 0 && it->pos[0].max - it->pos[0].min < MAX_BUFFER)
                 {
                     Sci_TextRange tr = {{it->pos[0].min, it->pos[0].max}, it->value};
-                    eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+                    on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
                 }
                 for (i = 1; i < OVEC_LEN; ++i)
                 {
@@ -936,14 +936,14 @@ on_complete_update_postion(eu_tabpage *pnode, complete_t **ptr_vec, bool back)
     complete_t *oit = NULL;
     intptr_t current_pos = -1;
     cvector_vector_type(int) v = NULL;
-    bool bsel = (bool)eu_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0);
+    bool bsel = (bool)on_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0);
     if (bsel)
     {
-        current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     }
     else
     {
-        current_pos = eu_sci_call(pnode, SCI_GETSELECTIONNCARET, 0, 0);
+        current_pos = on_sci_call(pnode, SCI_GETSELECTIONNCARET, 0, 0);
     }
     if (current_pos >= 0)
     {   // 根据上一个焦点, 获取要跳转的vec index
@@ -972,7 +972,7 @@ on_complete_update_postion(eu_tabpage *pnode, complete_t **ptr_vec, bool back)
         {
             memset(oit->value, 0, sizeof(oit->value));
             Sci_TextRange tr = {{oit->pos[0].min, current_pos}, oit->value};
-            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (oit->value[0])
             {
                 offset = eu_int_cast(current_pos - oit->pos[0].max);
@@ -1012,10 +1012,10 @@ on_complete_snippet_jmp(eu_tabpage *pnode, complete_t *it)
     if (pnode && it && it->index >= 0)
     {
         bool main_sel = false;
-        eu_sci_call(pnode, SCI_SETEMPTYSELECTION, it->pos[0].min, 0);
+        on_sci_call(pnode, SCI_SETEMPTYSELECTION, it->pos[0].min, 0);
         if (on_complete_equal_value(pnode, it, 0))
         {
-            eu_sci_call(pnode, SCI_SETSELECTION, it->pos[0].min, it->pos[0].max);
+            on_sci_call(pnode, SCI_SETSELECTION, it->pos[0].min, it->pos[0].max);
             main_sel = true;
         }
         for (int j = 1; j < OVEC_LEN && it->pos[j].min > 0 && it->pos[j].max - it->pos[j].min < MAX_BUFFER; ++j)
@@ -1024,7 +1024,7 @@ on_complete_snippet_jmp(eu_tabpage *pnode, complete_t *it)
             {
                 if (!main_sel)
                 {
-                    eu_sci_call(pnode, SCI_SETSELECTION, it->pos[j].min, it->pos[j].max);
+                    on_sci_call(pnode, SCI_SETSELECTION, it->pos[j].min, it->pos[j].max);
                     main_sel = true;
                     on_complete_swap(&it->pos[j], &it->pos[j - 1]);
                     it->pos[j].min = -1, it->pos[j].max = -1;
@@ -1033,11 +1033,11 @@ on_complete_snippet_jmp(eu_tabpage *pnode, complete_t *it)
                 }
                 else
                 {
-                    eu_sci_call(pnode, SCI_ADDSELECTION, it->pos[j].min, it->pos[j].max);
+                    on_sci_call(pnode, SCI_ADDSELECTION, it->pos[j].min, it->pos[j].max);
                 }
             }
         }
-        eu_sci_call(pnode, SCI_SETMAINSELECTION, 0, 0);
+        on_sci_call(pnode, SCI_SETMAINSELECTION, 0, 0);
         if (!it->index)
         {   // 已经到达$0
             on_complete_reset_focus(pnode);
@@ -1087,8 +1087,8 @@ on_complete_call_autocshow(eu_tabpage *pnode, const char *word_buffer, const spt
         {
             flags |= SC_AUTOCOMPLETE_SNIPPET;
         }
-        eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, flags, 0);
-        eu_sci_call(pnode, SCI_AUTOCSHOW, current_pos - start_pos, (sptr_t)key);
+        on_sci_call(pnode, SCI_AUTOCSETOPTIONS, flags, 0);
+        on_sci_call(pnode, SCI_AUTOCSHOW, current_pos - start_pos, (sptr_t)key);
     }
     eu_safe_free(key);
 }
@@ -1101,8 +1101,8 @@ on_complete_any_autocshow(eu_tabpage *pnode)
         char *key = eu_find_completed_tree(&pnode->doc_ptr->acshow_tree, ANY_WORD, NULL);
         if (STR_NOT_NUL(key))
         {
-            eu_sci_call(pnode, SCI_AUTOCSETOPTIONS, SC_AUTOCOMPLETE_FIXED_SIZE, 0);
-            eu_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
+            on_sci_call(pnode, SCI_AUTOCSETOPTIONS, SC_AUTOCOMPLETE_FIXED_SIZE, 0);
+            on_sci_call(pnode, SCI_AUTOCSHOW, 0, (sptr_t) key);
         }
         eu_safe_free(key);
     }
@@ -1134,18 +1134,18 @@ on_complete_get_word(eu_tabpage *pnode, char *buffer, sptr_t *pcur, sptr_t *psta
     {
         *buffer = 0;
         int ch = 0;
-        while ((*pcur) > 0 && isspace(ch = (int)eu_sci_call(pnode, SCI_GETCHARAT, (*pcur) - 1, 0)))
+        while ((*pcur) > 0 && isspace(ch = (int)on_sci_call(pnode, SCI_GETCHARAT, (*pcur) - 1, 0)))
         {
             --(*pcur);
         }
-        sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, (*pcur), true);
-        sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, (*pcur), true);
+        sptr_t start_pos = on_sci_call(pnode, SCI_WORDSTARTPOSITION, (*pcur), true);
+        sptr_t end_pos = on_sci_call(pnode, SCI_WORDENDPOSITION, (*pcur), true);
         if (end_pos - start_pos >= MAX_SIZE)
         {
             end_pos = start_pos + MAX_SIZE;
         }
         Sci_TextRangeFull tr = {{start_pos, end_pos}, buffer};
-        eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
+        on_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
         if (pstart)
         {
             *pstart = start_pos;
@@ -1165,7 +1165,7 @@ on_complete_doc(eu_tabpage *pnode, ptr_notify lpnotify)
     if (pnode && pnode->doc_ptr && lpnotify)
     {
         char word_buffer[MAX_SIZE+1] = {0};
-        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         if (isspace(lpnotify->ch))
         {
             --current_pos;
@@ -1205,7 +1205,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
         int ch_pre = 0;
         sptr_t n_pos = 0;
         char word_buffer[MAX_SIZE+1] = {0};
-        sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         if (lpnotify->ch == '<')
         {
             on_complete_any_autocshow(pnode);
@@ -1218,7 +1218,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
                 for (n_pos = current_pos - 1; n_pos >= 0; n_pos--)
                 {
                     ch_pre = ch;
-                    ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
+                    ch = (int) on_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
                     if (ch == '<' || ch == '>')
                     {
                         break;
@@ -1242,8 +1242,8 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
         else if (isalpha(lpnotify->ch) || lpnotify->ch > 0x7F)
         {
             on_complete_set_word(pnode);
-            sptr_t start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, true);
-            sptr_t end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, true);
+            sptr_t start_pos = on_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, true);
+            sptr_t end_pos = on_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, true);
             if (end_pos - start_pos >= MAX_SIZE)
             {
                 end_pos = start_pos + MAX_SIZE;
@@ -1254,7 +1254,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
                 for (ch = 0, n_pos = current_pos; n_pos >= 0; n_pos--)
                 {
                     ch_pre = ch;
-                    ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
+                    ch = (int) on_sci_call(pnode, SCI_GETCHARAT, n_pos, 0);
                     if (ch == ' ')
                     {
                         is_attr = true;
@@ -1268,7 +1268,7 @@ on_complete_html(eu_tabpage *pnode, ptr_notify lpnotify)
                 {
                     memset(word_buffer, 0, sizeof(word_buffer));
                     Sci_TextRange tr = {{start_pos, end_pos}, word_buffer};
-                    eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+                    on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
                     if (word_buffer[0])
                     {
                         if (on_complete_auto_expand(pnode, word_buffer, start_pos))
@@ -1389,7 +1389,7 @@ on_complete_snippet(eu_tabpage *pnode)
                     on_complete_replace(pnode, str, str_space);
                     free(str_space);
                     // 在编辑器里生成干净的代码片段
-                    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)str);
+                    on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)str);
                     if (pnode->ac_vec && (size = cvector_size(pnode->ac_vec)) > 0)
                     {   // 更新ac_vec里面(1..9..0)变量的位置信息, 即complete_t.min与complete_t.max
                         cvector_for_each_and_do(pnode->ac_vec, on_complete_update_vec, pos);
@@ -1435,24 +1435,24 @@ on_complete_set_word(eu_tabpage *pnode)
     if (pnode && pnode->doc_ptr)
     {
         char chars[MAX_PATH] = {0};
-        eu_sci_call(pnode, SCI_GETWORDCHARS, 0, (sptr_t)chars);
+        on_sci_call(pnode, SCI_GETWORDCHARS, 0, (sptr_t)chars);
         if (pnode->doc_ptr->doc_type == DOCTYPE_AU3)
         {
             if (strcmp(chars, CUSTOM_CHARS_AU3))
             {
-                eu_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS_AU3);
+                on_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS_AU3);
             }
         }
         if (pnode->doc_ptr->doc_type == DOCTYPE_CSS)
         {
             if (strcmp(chars, CUSTOM_CHARS_CSS))
             {
-                eu_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS_CSS);
+                on_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS_CSS);
             }
         }        
         else if (strcmp(chars, CUSTOM_CHARS))
         {
-            eu_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS);
+            on_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)CUSTOM_CHARS);
         }
     }
 }
@@ -1463,10 +1463,10 @@ on_complete_unset_word(eu_tabpage *pnode)
     if (pnode && pnode->doc_ptr)
     {
         char chars[MAX_PATH] = {0};
-        eu_sci_call(pnode, SCI_GETWORDCHARS, 0, (sptr_t)chars);
+        on_sci_call(pnode, SCI_GETWORDCHARS, 0, (sptr_t)chars);
         if (strcmp(chars, DEFAULT_CHARS))
         {
-            eu_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)DEFAULT_CHARS);
+            on_sci_call(pnode, SCI_SETWORDCHARS, 0, (sptr_t)DEFAULT_CHARS);
         }
     }
 }
@@ -1479,9 +1479,9 @@ on_complete_reset_focus(eu_tabpage *pnode)
     {
         pnode->ac_mode = AUTO_NONE;
         cvector_freep(&pnode->ac_vec);
-        if (!eu_sci_call(pnode, SCI_SETCARETPERIOD, 0, 0))
+        if (!on_sci_call(pnode, SCI_SETCARETPERIOD, 0, 0))
         {
-            eu_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_theme()->item.caret.bold, 0);
+            on_sci_call(pnode, SCI_SETCARETPERIOD, eu_get_theme()->item.caret.bold, 0);
         }
     }
 }

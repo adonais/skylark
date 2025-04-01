@@ -23,28 +23,30 @@ static volatile sptr_t symlist_wnd = 0;
 static int
 pcre_match_callback(pcre_conainer *pcre_info, void *param)
 {
-    MSG msg = {0};
+    TCHAR *uni_str = NULL;
     eu_tabpage *pnode = (eu_tabpage *)param;
-    if (!pnode)
+    if (!pnode || pnode->pcre_id == 1)
     {
+        eu_logmsg("Pcre: recv cancel message, thread %lu exit ...\n", GetCurrentThreadId());
         return EUE_TAB_NULL;
     }
-    if (pcre_info->rc > 1)
+    if (pcre_info->rc < 0)
+    {
+        eu_logmsg("Pcre: matching error or not match\n");
+        return EUE_PCRE_NO_MATCHING;
+    }
+    for (int i = 1; i < pcre_info->rc; ++i)
     {
         char buf[MAX_PATH+1] = {0};
-        const char *substring_start = pcre_info->buffer + pcre_info->ovector[2];
-        int substring_length = pcre_info->ovector[3] - pcre_info->ovector[2];
-        sptr_t line_num = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pcre_info->ovector[2], 0);
-        snprintf(buf, MAX_PATH, "%.*s", substring_length, substring_start);
-        if (STRCMP(buf, !=, "if"))
+        const char *substring_start = pcre_info->buffer + pcre_info->ovector[2 * i];
+        int substring_length = pcre_info->ovector[2 * i + 1] - pcre_info->ovector[2 * i];
+        if (substring_length > 0)
         {
-            TCHAR *uni_str = eu_utf8_utf16(buf, NULL);
-            if (uni_str)
-            {
-                int index = ListBox_AddString(pnode->hwnd_symlist, uni_str);
-                free(uni_str);
-                ListBox_SetItemData(pnode->hwnd_symlist, index, (LPARAM) line_num);
-            }
+            snprintf(buf, MAX_PATH, "%.*s", substring_length, substring_start);
+        }
+        if (*buf != 0 && STRCMP(buf, !=, "if") && (uni_str = eu_utf8_utf16(buf, NULL)))
+        {
+            PostMessage(pnode->hwnd_symlist, WM_PCRE_ADDSTRING, (WPARAM)uni_str, pcre_info->ovector[2 * i]);
         }
     }
     return SKYLARK_OK;
@@ -53,41 +55,34 @@ pcre_match_callback(pcre_conainer *pcre_info, void *param)
 static unsigned WINAPI
 reqular_thread(void *lp)
 {
-    size_t file_size;
-    char *file_buffer = NULL;
-    pcre_conainer *pcre_info = NULL;
     eu_tabpage *pnode = (eu_tabpage *) lp;
-    if (!pnode)
+    if (pnode)
     {
-        return 1;
-    }
-    do
-    {
-        if (!(pnode->hwnd_symlist && pnode->doc_ptr && pnode->doc_ptr->reqular_exp))
+        pcre_conainer *pcre_info = NULL;
+        if ((pcre_info = eu_pcre_init((const char *)pnode->write_buffer, pnode->bytes_written, pnode->doc_ptr->reqular_exp, NULL, PCRE_NO_UTF8_CHECK|PCRE_CASELESS)) != NULL)
         {
-            break;
+            eu_pcre_exec_multi(pcre_info, pcre_match_callback, pnode);
+            eu_pcre_delete(pcre_info);
         }
-        if (!(file_buffer = util_strdup_content(pnode, &file_size)))
-        {
-            break;
-        }
-        if (!(pcre_info = eu_pcre_init(file_buffer, file_size, pnode->doc_ptr->reqular_exp, NULL, PCRE_NO_UTF8_CHECK|PCRE_CASELESS)))
-        {
-            break;
-        }
-        ListBox_ResetContent(pnode->hwnd_symlist);
-        eu_pcre_exec_multi(pcre_info, pcre_match_callback, pnode);
-    } while(0);
-    if (file_buffer)
-    {
-        free(file_buffer);
+        eu_safe_free(pnode->write_buffer);
+        _InterlockedExchange(&pnode->pcre_id, 0);
+        eu_logmsg("Pcre: %s exit ...\n", __FUNCTION__);
     }
-    if (pcre_info)
-    {
-        eu_pcre_delete(pcre_info);
-    }
-    _InterlockedExchange(&pnode->pcre_id, 0);
     return 0;
+}
+
+void
+on_symlist_wait(eu_tabpage *pnode)
+{
+    if (pnode && pnode->pcre_id)
+    {
+        _InterlockedExchange(&pnode->pcre_id, 1);
+        while (_InterlockedCompareExchange(&pnode->pcre_id, 0, 0) != 0)
+        {
+            Sleep(100);
+        }
+        eu_safe_free(pnode->write_buffer);
+    }
 }
 
 int
@@ -95,59 +90,21 @@ on_symlist_reqular(eu_tabpage *pnode)
 {
     if (pnode && !pnode->pcre_id)
     {
-        CloseHandle((HANDLE) _beginthreadex(NULL, 0, &reqular_thread, pnode, 0, (uint32_t *)&pnode->pcre_id));
-    }
-    return 0;
-}
-
-int
-on_symlist_jump_word(eu_tabpage *pnode)
-{
-    sptr_t pos;
-    sptr_t start_pos;
-    sptr_t end_pos;
-    TCHAR *ptext = NULL;
-    char *current_text = NULL;
-    if (!pnode)
-    {
-        return EUE_TAB_NULL;
-    }
-    pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    start_pos = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, pos, true);
-    end_pos = eu_sci_call(pnode, SCI_WORDENDPOSITION, pos, true);
-    current_text = on_sci_range_text(pnode, start_pos, end_pos);
-    if (!current_text)
-    {
-        return EUE_POINT_NULL;
-    }
-    if (!(ptext = eu_utf8_utf16(current_text, NULL)))
-    {
-        free(current_text);
-        return EUE_POINT_NULL;
-    }
-    int count = TabCtrl_GetItemCount(g_tabpages);
-    for (int index = 0; index < count; ++index)
-    {
-        eu_tabpage *p = on_tabpage_get_ptr(index);
-        if (p && p->doc_ptr && p->doc_ptr->doc_type == DOCTYPE_CPP)
+        do
         {
-            int i = ListBox_FindStringExact(p->hwnd_symlist, -1, ptext);
-            if (i != LB_ERR)
+            if (!(pnode->hwnd_symlist && pnode->doc_ptr && pnode->doc_ptr->reqular_exp))
             {
-                if (p != pnode)
-                {
-                    on_tabpage_select_index(index);
-                }
-                sptr_t line_num = (sptr_t) SendMessage(p->hwnd_symlist, LB_GETITEMDATA, i, 0);
-                on_search_add_navigate_list(p, pos);
-                on_search_jmp_line(p, line_num, 0);
                 break;
             }
-        }
+            if (!(pnode->write_buffer = (uint8_t *)util_strdup_content(pnode, &pnode->bytes_written)))
+            {
+                break;
+            }
+            ListBox_ResetContent(pnode->hwnd_symlist);
+            CloseHandle((HANDLE) _beginthreadex(NULL, 0, &reqular_thread, pnode, 0, (uint32_t *)&pnode->pcre_id));
+        } while(0);
     }
-    free(current_text);
-    free(ptext);
-    return SKYLARK_OK;
+    return 0;
 }
 
 int
@@ -155,9 +112,9 @@ on_symlist_jump_item(eu_tabpage *pnode)
 {
     sptr_t  item_num = (sptr_t ) SendMessage(pnode->hwnd_symlist, LB_GETCURSEL, 0, 0);
     sptr_t  line_num = (sptr_t ) SendMessage(pnode->hwnd_symlist, LB_GETITEMDATA, item_num, 0);
-    sptr_t  pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t  current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-    on_search_add_navigate_list(pnode, pos);
+    sptr_t  pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t  current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+    on_navigate_list_update(pnode, pos);
     on_search_jmp_line(pnode, line_num, current_line);
     return SKYLARK_OK;
 }
@@ -182,6 +139,20 @@ symlist_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+        case WM_PCRE_ADDSTRING:
+        {
+            eu_tabpage *pnode = (eu_tabpage *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (pnode)
+            {
+                TCHAR *uni_str = (TCHAR *)wParam;
+                intptr_t pos = (intptr_t)lParam;
+                sptr_t line_num = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+                int index = ListBox_AddString(pnode->hwnd_symlist, uni_str);
+                ListBox_SetItemData(pnode->hwnd_symlist, index, (LPARAM) line_num);
+                free(uni_str);
+            }
+            return 1;
+        }
         case WM_COMMAND:
         {
             if (LOWORD(wParam) == IDM_RELOAD_SYMBOLLIST)

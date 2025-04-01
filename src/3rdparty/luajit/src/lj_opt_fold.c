@@ -2,7 +2,7 @@
 ** FOLD: Constant Folding, Algebraic Simplifications and Reassociation.
 ** ABCelim: Array Bounds Check Elimination.
 ** CSE: Common-Subexpression Elimination.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_opt_fold_c
@@ -1135,7 +1135,7 @@ LJFOLDF(shortcut_conv_num_int)
 }
 
 LJFOLD(CONV CONV IRCONV_INT_NUM)  /* _INT */
-LJFOLD(CONV CONV IRCONV_U32_NUM)  /* _U32*/
+LJFOLD(CONV CONV IRCONV_U32_NUM)  /* _U32 */
 LJFOLDF(simplify_conv_int_num)
 {
   /* Fold even across PHI to avoid expensive num->int conversions in loop. */
@@ -1170,8 +1170,10 @@ LJFOLDF(simplify_conv_i64_num)
 
 LJFOLD(CONV CONV IRCONV_INT_I64)  /* _INT or _U32 */
 LJFOLD(CONV CONV IRCONV_INT_U64)  /* _INT or _U32 */
+LJFOLD(CONV CONV IRCONV_INT_U32)  /* _INT or _U32 */
 LJFOLD(CONV CONV IRCONV_U32_I64)  /* _INT or _U32 */
 LJFOLD(CONV CONV IRCONV_U32_U64)  /* _INT or _U32 */
+LJFOLD(CONV CONV IRCONV_U32_INT)  /* _INT or _U32 */
 LJFOLDF(simplify_conv_int_i64)
 {
   int src;
@@ -1216,14 +1218,13 @@ LJFOLDF(simplify_tobit_conv)
   return NEXTFOLD;
 }
 
-/* Shortcut floor/ceil/round + IRT_NUM <- IRT_INT/IRT_U32 conversion. */
+/* Shortcut floor/ceil/trunc + IRT_NUM <- integer conversion. */
 LJFOLD(FPMATH CONV IRFPM_FLOOR)
 LJFOLD(FPMATH CONV IRFPM_CEIL)
 LJFOLD(FPMATH CONV IRFPM_TRUNC)
 LJFOLDF(simplify_floor_conv)
 {
-  if ((fleft->op2 & IRCONV_SRCMASK) == IRT_INT ||
-      (fleft->op2 & IRCONV_SRCMASK) == IRT_U32)
+  if ((uint32_t)(fleft->op2 & IRCONV_SRCMASK) - (uint32_t)IRT_I8 <= (uint32_t)(IRT_U64 - IRT_U8))
     return LEFTFOLD;
   return NEXTFOLD;
 }
@@ -1935,9 +1936,10 @@ LJFOLDF(abc_k)
 LJFOLD(ABC any any)
 LJFOLDF(abc_invar)
 {
-  /* Invariant ABC marked as PTR. Drop if op1 is invariant, too. */
+  /* Invariant ABC marked as P32 or U32. Drop if op1 is invariant too. */
   if (!irt_isint(fins->t) && fins->op1 < J->chain[IR_LOOP] &&
-      !irt_isphi(IR(fins->op1)->t))
+      (irt_isu32(fins->t) ||
+       (!irref_isk(fins->op1) && !irt_isphi(IR(fins->op1)->t))))
     return DROPFOLD;
   return NEXTFOLD;
 }
@@ -2215,9 +2217,11 @@ LJFOLD(HREF TDUP KNUM)
 LJFOLDF(fwd_href_tdup)
 {
   TValue keyv;
+  cTValue *val;
   lj_ir_kvalue(J->L, &keyv, fright);
-  if (lj_tab_get(J->L, ir_ktab(IR(fleft->op1)), &keyv) == niltvg(J2G(J)) &&
-      lj_opt_fwd_href_nokey(J))
+  val = lj_tab_get(J->L, ir_ktab(IR(fleft->op1)), &keyv);
+  /* Check for either nil or the nil value marker in the template table. */
+  if ((tvisnil(val) || tvistab(val)) && lj_opt_fwd_href_nokey(J))
     return lj_ir_kkptr(J, niltvg(J2G(J)));
   return NEXTFOLD;
 }
@@ -2484,6 +2488,17 @@ LJFOLD(TDUP any)
 LJFOLD(CNEW any any)
 LJFOLD(XSNEW any any)
 LJFOLDX(lj_ir_emit)
+
+/* -- Miscellaneous ------------------------------------------------------- */
+
+LJFOLD(CARG any any)
+LJFOLDF(cse_carg)
+{
+  TRef tr = lj_opt_cse(J);
+  if (tref_ref(tr) < J->chain[IR_LOOP])  /* CSE across loop? */
+    return EMITFOLD;  /* Raw emit. Assumes fins is left intact by CSE. */
+  return tr;
+}
 
 /* ------------------------------------------------------------------------ */
 

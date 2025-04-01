@@ -211,7 +211,7 @@ eu_str_replace(char *in, const size_t in_size, const char *pattern, const char *
         offset += (int) strlen(by);
     }
     strncpy(res + offset, in, VALUE_LEN - offset);
-    _snprintf(in_ptr, eu_int_cast(in_size), "%s", res);
+    _snprintf(in_ptr, in_size, "%s", res);
     in = in_ptr;
     return in;
 }
@@ -596,7 +596,7 @@ eu_reset_config(void)
     {
         if (do_configs_backup())
         {
-            eu_logmsg("%s: We will reset all configuration files and restart the editor\n", __FUNCTION__);
+            eu_logmsg("Euapi: we will reset all configuration files and restart the editor\n");
         }
     }
 }
@@ -628,7 +628,7 @@ printf_bytes(const char *str, size_t len, const char *name)
     {
         len = str_len;
     }
-    if (eu_strcasestr(name, "utf-16"))
+    if (util_stristr(name, "utf-16"))
     {
         for(int i = 0; i < eu_int_cast(len) && (str[i] || str[i+1]); ++i)
         {
@@ -670,12 +670,12 @@ eu_iconv_converter(char *src, size_t *src_len, char **pout, const char *from_des
     cd = eu_iconv_open(dst_desc, from_desc);
     if (cd == (iconv_t) -1)
     {
-        eu_logmsg("eu_iconv_open error!\n");
+        eu_logmsg("Euapi: eu_iconv_open error!\n");
         goto iconv_err;
     }
     if (eu_iconvctl(cd, ICONV_SET_DISCARD_ILSEQ, &argument) != 0)
     {
-        eu_logmsg("can't enable illegal feature!\n");
+        eu_logmsg("Euapi: can't enable illegal feature!\n");
         goto iconv_err;
     }
     ptmp = pdst = (char *) calloc(1, ldst + 1);
@@ -699,7 +699,7 @@ iconv_err:
     eu_iconv_close(cd);
     if (ret != (size_t)-1)
     {
-        eu_logmsg("%s->%s ok, ret = %zu!\n", from_desc, dst_desc, ret);
+        eu_logmsg("Euapi: %s->%s ok, ret = %zu!\n", from_desc, dst_desc, ret);
     }
     return (ret == 0);
 }
@@ -769,7 +769,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     }   // 如果通过utf-16le静态分析, 测试一下编码转换, 因为可能为二进制文件
     if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_le) && (result_le & IS_TEXT_UNICODE_STATISTICS))
     {
-        eu_logmsg("result_le = %d\n", result_le);
+        eu_logmsg("Euapi: result_le = %d\n", result_le);
         if (eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16LE", "GBK"))
         {
             return UTF16_LE_NOBOM;
@@ -777,7 +777,7 @@ check_utf16_newline(const uint8_t *pbuffer, const size_t len)
     }   // 如果通过utf-16be静态分析, 测试一下编码转换, 因为可能为二进制文件
     else if (IsTextUnicode(pbuffer, eu_int_cast(len), &result_be) && eu_iconv_converter((char *)pbuffer, &size, NULL, "UTF-16BE", "GBK"))
     {
-        eu_logmsg("result_be = %d\n", result_be);
+        eu_logmsg("Euapi: result_be = %d\n", result_be);
         return UTF16_BE_NOBOM;
     }
     return EN_CODEING_NONE;
@@ -858,7 +858,7 @@ eu_memstr(const uint8_t *haystack, const char *needle, size_t size)
     size_t needlesize = strlen(needle);
     if (needlesize%2 !=0 )
     {
-        eu_logmsg("not double byte\n");
+        eu_logmsg("Euapi: not double byte\n");
         return NULL;
     }
     if (!(need = (uint8_t *)malloc(needlesize/2)))
@@ -1131,7 +1131,7 @@ is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
                 {
                     if ((black_mask & 1) && (name[i] == n))
                     {
-                        eu_logmsg("\nbinary char, name[%zu] = %.02x\n", i, name[i]);
+                        eu_logmsg("\nEuapi: binary char, name[%zu] = %.02x\n", i, name[i]);
                         return EN_CODEING_BINARY;
                     }
                 }
@@ -1174,15 +1174,19 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
         memset(&si, 0, sizeof(si));
         si.cb = sizeof(si);
         si.dwFlags = STARTF_USESHOWWINDOW;
-        if (flags > 1)
+        if (flags > 2)
+        {
+            si.wShowWindow = SW_SHOWNORMAL;
+        }
+        else if (flags > 1)
         {
             si.wShowWindow = SW_SHOWNOACTIVATE;
         }
-        else if (flags == 1)
+        else if (flags)
         {
             si.wShowWindow = SW_MINIMIZE;
         }
-        else if (!flags)
+        else
         {
             si.wShowWindow = SW_HIDE;
             dw_creat |= CREATE_NEW_PROCESS_GROUP;
@@ -1198,7 +1202,7 @@ eu_new_process(LPCTSTR wcmd, LPCTSTR param, LPCTSTR pcd, int flags, uint32_t *o)
                           &si,&pi))
         {
             char u8[MAX_BUFFER] = {0};
-            eu_logmsg("CreateProcessW [%s] error, cause: %lu\n", util_make_u8(wcmd, u8, MAX_BUFFER - 1), GetLastError());
+            eu_logmsg("Euapi: CreateProcessW [%s] error, cause: %lu\n", util_make_u8(wcmd, u8, MAX_BUFFER - 1), GetLastError());
             return NULL;
         }
         if (NULL != o)
@@ -1217,43 +1221,19 @@ eu_open_file(LPCTSTR path, pf_stream pstream)
     return util_open_file(path, pstream);
 }
 
-char *
-eu_strcasestr(const char *haystack, const char *needle)
+wchar_t *
+eu_wcasestr(const wchar_t *haystack, const wchar_t *needle)
 {
-    size_t l = strlen(needle);
-    for (; *haystack; haystack++)
+    size_t l = wcslen(needle);
+    wchar_t *psave = (wchar_t *)haystack;
+    for (; *psave; psave++)
     {
-        if (!_strnicmp(haystack, needle, l))
+        if (!wcsnicmp(psave, needle, l))
         {
-            return (char *)haystack;
+            return (wchar_t *)psave;
         }
     }
     return NULL;
-}
-
-static bool
-eu_ascii_escaped(const char *checkstr)
-{
-    bool ret = false;
-    char *p = eu_strcasestr(checkstr, "\\u");
-    if (p && (p - (char *)checkstr > 1 ? (*(p - 1) != '\\') : true))
-    {
-        size_t end = strlen(p);
-        if (end > 6)
-        {
-            end = 6;
-        }
-        for (int i = 2; i < eu_int_cast(end); ++i)
-        {
-            if (!isxdigit(p[i]))
-            {
-                ret = false;
-                break;
-            }
-            ret = true;
-        }
-    }
-    return ret;
 }
 
 const char *
@@ -1270,7 +1250,7 @@ eu_query_encoding_name(int code)
     return NULL;
 }
 
-static bool
+static inline bool
 is_exclude_char(const char *encoding)
 {
     return (0
@@ -1293,6 +1273,12 @@ is_exclude_char(const char *encoding)
            || STRICMP(encoding, ==, "windows-1250")
            || STRICMP(encoding, ==, "windows-1252")
            );
+}
+
+static inline bool
+is_difficult_char(const char *encoding)
+{
+    return (_strnicmp(encoding, "ISO-8859-", 9) == 0 || _strnicmp(encoding, "TIS-", 4) == 0);
 }
 
 static bool
@@ -1361,7 +1347,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         if ((fp = _tfopen(file_name, _T("rb"))) == NULL)
         {
-            eu_logmsg("_tfopen failed in %s\n", __FUNCTION__);
+            eu_logmsg("Euapi: _tfopen failed in %s\n", __FUNCTION__);
             return type;
         }
         read_len = fread(checkstr, 1, len - 1, fp);
@@ -1379,7 +1365,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     if (!(type = is_plan_file(checkstr, read_len, nobinary)))
     {
         // BINARY file
-        eu_logmsg("this is BINARY file\n");
+        eu_logmsg("Euapi: this is binary file\n");
         return IDM_OTHER_BIN;
     }
     switch (type)
@@ -1404,22 +1390,22 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     if ((obj = detect_obj_init()) == NULL)
     {
-        eu_logmsg("Memory Allocation failed in %s\n", __FUNCTION__);
+        eu_logmsg("Euapi: memory allocation failed in %s\n", __FUNCTION__);
         return type;
     }
     switch (detect_r((const char *)checkstr, read_len, &obj))
     {
         case CHARDET_OUT_OF_MEMORY:
-            eu_logmsg("On handle processing, occured out of memory\n");
+            eu_logmsg("Euapi: on handle processing, occured out of memory\n");
             detect_obj_free(&obj);
             return type;
         case CHARDET_NULL_OBJECT:
-            eu_logmsg("2st argument of chardet() is must memory allocation with detect_obj_init API\n");
+            eu_logmsg("Euapi: 2st argument of chardet() is must memory allocation with detect_obj_init\n");
             return type;
         default:
             break;
     }
-    eu_logmsg("%s, confidence: %f, exists bom: %d\n", obj->encoding, obj->confidence, obj->bom);
+    eu_logmsg("Euapi: %s, confidence: %f, exists bom: %d\n", obj->encoding, obj->confidence, obj->bom);
     if (!obj->encoding || DET_EPSILON > obj->confidence)
     {
         if (is_mbcs_gb18030((const char *)checkstr, read_len))
@@ -1429,7 +1415,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (on_encoding_validate_utf8(checkstr))
         {
-            eu_logmsg("Maybe UTF-8!\n");
+            eu_logmsg("Euapi: maybe utf-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else
@@ -1448,16 +1434,16 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             type = IDM_UNI_UTF8;
         }
     }
-    else if (_strnicmp(obj->encoding, "ISO-8859-", 9) == 0)
+    else if (is_difficult_char(obj->encoding))
     {
         if (on_encoding_validate_utf8(checkstr))
         {
-            eu_logmsg("Not iso encode, it's maybe UTF-8!\n");
+            eu_logmsg("Euapi: not %s encode, it's maybe utf-8!\n", obj->encoding);
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else if (CHECK_1ST > obj->confidence && is_mbcs_gb18030((const char *)checkstr, read_len))
         {
-            eu_logmsg("Confidence[%f] < %f, Maybe GB18030!\n", obj->confidence, CHECK_1ST);
+            eu_logmsg("Euapi: confidence[%f] < %f, maybe gb18030!\n", obj->confidence, CHECK_1ST);
             type = IDM_ANSI_12;
         }
         else
@@ -1488,7 +1474,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     {
         if (on_encoding_validate_utf8(checkstr))
         {
-            eu_logmsg("we reconfirm that's UTF-8!\n");
+            eu_logmsg("Euapi: we reconfirm that's utf-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
         else if (obj->confidence > CHECK_1ST && is_exclude_char(obj->encoding))
@@ -1497,16 +1483,16 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (is_mbcs_gb18030((const char *)checkstr, read_len))
         {
-            eu_logmsg("Maybe GB18030!\n");
+            eu_logmsg("Euapi: maybe gb18030!\n");
             type = IDM_ANSI_12;
         }
         else
         {
             type = query_encode(obj->encoding);
-            eu_logmsg("Blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
+            eu_logmsg("Euapi: blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
             if ((file_name != NULL) && !eu_iconv_full_text(file_name, obj->encoding, "utf-8"))
             {
-                eu_logmsg("It doesn't look like %s, We think of it as binary coding\n", obj->encoding);
+                eu_logmsg("Euapi: it doesn't look like %s, we think of it as binary coding\n", obj->encoding);
                 type = IDM_OTHER_BIN;
             }
         }
@@ -1685,15 +1671,11 @@ eu_setpos_window(HWND hwnd, HWND affer, int x, int y, int cx, int cy, uint32_t f
 bool
 eu_config_ptr(struct eu_config *pconfig)
 {
-    if (g_config)
-    {
-        return true;
-    }
-    if (!pconfig)
+    if (!pconfig || pconfig == g_config)
     {
         return false;
     }
-    if ((g_config = (struct eu_config *)malloc(sizeof(struct eu_config))))
+    if (g_config || (g_config = (struct eu_config *)malloc(sizeof(struct eu_config))))
     {
         memcpy(g_config, pconfig, sizeof(struct eu_config));
     }
@@ -1703,65 +1685,56 @@ eu_config_ptr(struct eu_config *pconfig)
 bool
 eu_theme_ptr(struct eu_theme *ptheme)
 {
-    struct eu_theme *psave = NULL;
-    if (!ptheme)
+    if (!ptheme || ptheme == g_theme)
     {
         return false;
     }
-    if (g_theme)
-    {
-        psave = g_theme;
-    }
-    if ((g_theme = (struct eu_theme *)malloc(sizeof(struct eu_theme))))
+    if (g_theme || (g_theme = (struct eu_theme *)malloc(sizeof(struct eu_theme))))
     {
         memcpy(g_theme, ptheme, sizeof(struct eu_theme));
     }
-    eu_safe_free(psave);
     return g_theme != NULL;
 }
 
 bool
 eu_accel_ptr(ACCEL *accel)
 {
-    if (g_accel)
-    {
-        return true;
-    }
     if (!accel)
     {
         return false;
     }
-    ;
-    if (!(g_accel = (eue_accel *)calloc(1, sizeof(eue_accel))))
+    if (g_accel || (g_accel = (eue_accel *)malloc(sizeof(eue_accel))))
     {
-        return false;
-    }
-    for (int i = 0; accel && (i < MAX_ACCELS); ++i, ++accel)
-    {
-        if (!accel->cmd)
+        g_accel->accel_num = 0;
+        for (int i = 0; i < MAX_ACCELS; ++i)
         {
-            break;
+            if (!accel->cmd)
+            {
+                break;
+            }
+            memcpy(&g_accel->accel_ptr[i], &accel[i], sizeof(ACCEL));
+            ++g_accel->accel_num;
         }
-        memcpy(&g_accel->accel_ptr[i], accel, sizeof(ACCEL));
-        g_accel->accel_num++;
     }
-    return (g_accel->accel_num>0);
+    return (g_accel->accel_num > 0);
 }
 
 bool
 eu_toolbar_ptr(eue_toolbar *pdata, int num)
 {
-    if (g_toolbar)
-    {
-        return true;
-    }
-    if (!pdata)
+    eue_toolbar *gsave = NULL;
+    if (!pdata || pdata == g_toolbar)
     {
         return false;
+    }
+    if (g_toolbar)
+    {
+        gsave = g_toolbar;
     }
     if ((g_toolbar = (eue_toolbar *)malloc(sizeof(eue_toolbar) * num)))
     {
         memcpy(g_toolbar, pdata, sizeof(eue_toolbar) * num);
+        free(gsave);
     }
     return g_toolbar != NULL;
 }
@@ -1923,6 +1896,7 @@ eu_save_config(void)
     char *save = NULL;
     char *pactions = NULL;
     char *pcustomize = NULL;
+    const char *p = NULL;
     TCHAR path[MAX_BUFFER+1] = {0};
     const char *pconfig =
         "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n"
@@ -1938,9 +1912,6 @@ eu_save_config(void)
         "line_number_visiable = %s\n"
         "last_search_flags = 0x%08X\n"
         "history_mask = %u\n"
-        "white_space_visiable = %s\n"
-        "white_space_size = %d\n"
-        "newline_visiable = %s\n"
         "indentation_guides_visiable = %s\n"
         "tab_width = %d\n"
         "onkeydown_tab_convert_spaces = %s\n"
@@ -1974,6 +1945,8 @@ eu_save_config(void)
         "edit_rendering_technology = %d\n"
         "update_file_mask = %d\n"
         "update_file_notify = %d\n"
+        "doc_highlight_restrict = 0x%x\n"
+        "set_undo_selection = %s\n"
         "light_all_find_str = %s\n"
         "backup_on_file_write = %s\n"
         "save_last_session = %s\n"
@@ -2033,6 +2006,8 @@ eu_save_config(void)
         "    last_check = %I64u,\n"
         "    url = \"%s\"\n"
         "}\n"
+        "-- when a multiple selection is copied, this string property is added between each part\n"
+        "set_copy_separator = \"%s\"\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
         "other_editor_path = \"%s\"\n"
@@ -2065,6 +2040,23 @@ eu_save_config(void)
         free(pactions);
         return;
     }
+    // 对sep_copy中的换行符转义
+    if ((p = strchr(g_config->sep_copy, '\r')) != NULL)
+    {
+        if ((p = g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
+        {
+            eu_logmsg("Euapi: escape new lines[\\r]\n");
+            eu_str_replace(g_config->sep_copy, MAX_PATH, "\r", "\\r");
+        }
+    }
+    if ((p = strchr(g_config->sep_copy, '\n')) != NULL)
+    {
+        if ((p = g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
+        {
+            eu_logmsg("Euapi: escape new lines[\\n]\n");
+            eu_str_replace(g_config->sep_copy, MAX_PATH, "\n", "\\n");
+        }
+    }
     _sntprintf(path, MAX_BUFFER, _T("%s\\skylark.conf"), eu_config_path);
     _snprintf(save, BUFF_32K - 1, pconfig,
               g_config->new_file_eol,
@@ -2078,9 +2070,6 @@ eu_save_config(void)
               g_config->m_linenumber?"true":"false",
               g_config->last_flags,
               g_config->history_mask,
-              g_config->ws_visiable?"true":"false",
-              g_config->ws_size,
-              g_config->newline_visialbe?"true":"false",
               g_config->m_indentation?"true":"false",
               g_config->tab_width,
               g_config->tab2spaces?"true":"false",
@@ -2094,7 +2083,7 @@ eu_save_config(void)
               g_config->document_map_width,
               g_config->result_edit_height,
               g_config->result_list_height,
-              (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 29),
+              (g_config->file_recent_number > 0 && g_config->file_recent_number < 100 ? g_config->file_recent_number : 0),
               g_config->scroll_to_cursor?"true":"false",
               0,
               g_config->inter_reserved_1,
@@ -2109,8 +2098,10 @@ eu_save_config(void)
               g_config->m_tab_active,
               g_config->m_quality,
               g_config->m_render,
-              0,
+              g_config->m_upfile,
               g_config->m_up_notify,
+              g_config->m_doc_restrict,
+              g_config->m_undo_selection?"true":"false",
               g_config->m_light_str?"true":"false",
               g_config->m_write_copy?"true":"false",
               g_config->m_session?"true":"false",
@@ -2148,6 +2139,7 @@ eu_save_config(void)
               g_config->upgrade.msg_id,
               g_config->upgrade.last_check,
               g_config->upgrade.url,
+              g_config->sep_copy,
               g_config->m_path,
               g_config->editor,
               g_config->m_reserved_0,
@@ -2338,7 +2330,17 @@ eu_save_theme(void)
         "dochistory_fontsize = %d\n"
         "dochistory_color = 0x%08X\n"
         "dochistory_bgcolor = 0x%08X\n"
-        "dochistory_bold = %d";
+        "dochistory_bold = %d\n"
+        "-- white space char setting, no need font\n"
+        "whitechar_font = \"%s\"\n"
+        "-- white space char szie, 0 - 12\n"
+        "whitechar_fontsize = %d\n"
+        "-- white space char color, ABGR mode\n"
+        "whitechar_color = 0x%08X\n"
+        "-- line break color, ABGR mode\n"
+        "whitechar_bgcolor = 0x%08X\n"
+        "-- 1, white space char show. 2, line break show. 3, show item\n"
+        "whitechar_bold = %d\n";
     if (!g_theme)
     {
         return;
@@ -2384,7 +2386,9 @@ eu_save_theme(void)
         EXPAND_STYLETHEME(results),
         EXPAND_STYLETHEME(bracesection),
         EXPAND_STYLETHEME(nchistory),
-        EXPAND_STYLETHEME(dochistory));
+        EXPAND_STYLETHEME(dochistory),
+        EXPAND_STYLETHEME(whitechar)
+    );
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
         if ((fp = _wfopen(path , L"wb")) != NULL)
@@ -2444,26 +2448,26 @@ eu_lua_calltip(const char *pstr)
     eu_tabpage *p = NULL;
     if (pstr && (p = on_tabpage_focus_at()) && !TAB_HEX_MODE(p) && !p->pmod)
     {
-        const sptr_t end = eu_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
-        eu_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
+        const sptr_t end = on_sci_call(p, SCI_GETSELECTIONEND, 0, 0);
+        on_sci_call(p, SCI_SETEMPTYSELECTION, end, 0);
         if (stricmp(pstr, "NaN") == 0 || stricmp(pstr, "INFINITY") == 0 || stricmp(pstr, "-INFINITY") == 0)
         {
-            eu_sci_call(p, SCI_CALLTIPSHOW, end, (sptr_t) pstr);
+            on_sci_call(p, SCI_CALLTIPSHOW, end, (sptr_t) pstr);
         }
         else
         {
             char *text = NULL;
-            int ch = (int) eu_sci_call(p, SCI_GETCHARAT, end, 0);
+            int ch = (int) on_sci_call(p, SCI_GETCHARAT, end, 0);
             if (ch == 0x3d)
             {
-                eu_sci_call(p, SCI_INSERTTEXT, end + 1, (sptr_t)pstr);
-                eu_sci_call(p, SCI_GOTOPOS, end + 1 + strlen(pstr), 0);
+                on_sci_call(p, SCI_INSERTTEXT, end + 1, (sptr_t)pstr);
+                on_sci_call(p, SCI_GOTOPOS, end + 1 + strlen(pstr), 0);
             }
             else if ((text = (char *)calloc(1, QW_SIZE + 1)))
             {
                 _snprintf(text, QW_SIZE, "=%s", pstr);
-                eu_sci_call(p, SCI_INSERTTEXT, end, (sptr_t)text);
-                eu_sci_call(p, SCI_GOTOPOS, end + strlen(text), 0);
+                on_sci_call(p, SCI_INSERTTEXT, end, (sptr_t)text);
+                on_sci_call(p, SCI_GOTOPOS, end + strlen(text), 0);
                 free(text);
             }
         }
@@ -2587,7 +2591,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     {   // 正则表达式预编译失败
         if (pcre_info->error)
         {
-            eu_logmsg("PCRE compilation failed at offset %d: %s\n", pcre_info->erroroffset, pcre_info->error);
+            eu_logmsg("Euapi: pcre compilation failed at offset %d: %s\n", pcre_info->erroroffset, pcre_info->error);
         }
         return 1;
     }
@@ -2605,10 +2609,10 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
         switch (pcre_info->rc)
         {
             case PCRE_ERROR_NOMATCH:
-                eu_logmsg("pcre: no match.\n");
+                eu_logmsg("Euapi: pcre, no match.\n");
                 break;
             default:
-                eu_logmsg("pcre: matching error.\n");
+                eu_logmsg("Euapi: pcre, matching error.\n");
                 break;
         }
         return 1;
@@ -2617,7 +2621,7 @@ eu_pcre_exec_single(pcre_conainer *pcre_info, ptr_recallback callback, void *par
     if (pcre_info->rc == 0)
     {   // 处理偏移量的数组不够大, 输出错误
         pcre_info->rc = OVECCOUNT / 3;
-        eu_logmsg("error: ovector only has room for %d substrings\n", (pcre_info->rc) - 1);
+        eu_logmsg("Euapi: error, ovector only has room for %d substrings\n", (pcre_info->rc) - 1);
         return 1;
     }
 
@@ -2741,13 +2745,13 @@ eu_pcre_exec_multi(pcre_conainer *pcre_info, ptr_recallback callback, void *para
         }
         if (pcre_info->rc < 0)
         {
-            eu_logmsg("pcre: Matching error %d\n", pcre_info->rc);
+            eu_logmsg("Euapi: pcre, Matching error %d\n", pcre_info->rc);
             return 1;
         }
         if (pcre_info->rc == 0)
         {
             pcre_info->rc = OVECCOUNT / 3;
-            eu_logmsg("pcre: ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
+            eu_logmsg("Euapi: pcre, ovector only has room for %d captured substrings\n", pcre_info->rc - 1);
         }
 
     #if PCRE_DEBUG
@@ -2932,6 +2936,22 @@ eu_curl_global_cleanup(void)
     }
 }
 
+void
+eu_curl_ssl_setting(CURL *curl)
+{
+    if (eu_win10_or_later() == (uint32_t)-1)
+    {   // 不受支持的操作系统证书可能过期
+        eu_curl_easy_setopt(curl, CURLOPT_SSLVERSION, 0);
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+    }
+    else
+    {
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA | CURLSSLOPT_NO_REVOKE);
+        eu_curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+    }
+}
+
 HINSTANCE
 eu_module_handle(void)
 {
@@ -3083,4 +3103,90 @@ bool
 eu_dark_enable(void)
 {
     return on_dark_enable();
+}
+
+int
+eu_file_save(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_file_save((eu_tabpage *)p, SAVE_ONLY) : EUE_POINT_NULL;
+}
+
+int
+eu_file_open(const wchar_t *path)
+{
+    if (STR_NOT_NUL(path) && eu_exist_file(path))
+    {
+        file_backup bak = {-1, -1, 0, -1, 1};
+        _tcsncpy(bak.rel_path, path, MAX_BUFFER - 1);
+        return on_file_redirect(&bak, 1);
+    }
+    return SKYLARK_NOT_OPENED;
+}
+
+int
+eu_file_close(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_file_close(&p, FILE_ONLY_CLOSE) : EUE_POINT_NULL;
+}
+
+size_t
+eu_file_size(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_sci_call(p, SCI_GETLENGTH, 0, 0) + p->pre_len : 0;
+}
+
+char *
+eu_file_path(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? eu_utf16_utf8(p->pathfile, NULL) : NULL;
+}
+
+char *
+eu_file_name(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? eu_utf16_utf8(p->filename, NULL) : NULL;
+}
+
+char *
+eu_strdup_range(const int t, const sptr_t start, const sptr_t end)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_sci_range_text(p, start, end) : NULL;
+}
+
+char *
+eu_strdup_line(const int t, const sptr_t line_number)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? util_strdup_line(p, line_number, NULL) : NULL;
+}
+
+char *
+eu_strdup_select(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? util_strdup_select(p, NULL, 0) : NULL;
+}
+
+char *
+eu_strdup_content(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? util_strdup_content(p, NULL) : NULL;
+}
+
+sptr_t
+eu_sci_call(const int t, const int m, const sptr_t w, const sptr_t l)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    if (p)
+    {
+        return on_sci_call(p, m, w, l);
+    }
+    return (sptr_t)-1;
 }

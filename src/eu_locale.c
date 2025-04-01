@@ -409,14 +409,32 @@ i18n_check_envent(void)
 }
 
 int
-i18n_switch_locale(HWND hwnd, int id)
+i18n_locale_loader(const HWND hwnd, const TCHAR *dll)
+{
+    HMODULE new_lang = NULL;
+    TCHAR lang_path[MAX_PATH] = {0};
+     /* 加载新语言文件并动态刷新界面 */
+    _sntprintf(lang_path, MAX_PATH-1, _T("%s\\locales\\%s"), eu_module_path, dll);
+    if ((new_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE)) && eu_refresh_interface(new_lang, lang_path) == 0)
+    {
+        HMENU root_menu = GetMenu(hwnd);
+        HMENU menu_env = root_menu ? GetSubMenu(root_menu, LOCALE_MENU) : NULL;
+        on_tabpage_newdoc_reload();
+        i18n_update_multi_lang(menu_env);
+        i18n_update_menu(menu_env);
+        on_proc_redraw(NULL);
+        return 0;
+    }
+    return 1;
+}
+
+int
+i18n_switch_locale(const HWND hwnd, const int id)
 {
     int msg = IDOK;
     TCHAR buf[QW_SIZE] = {0};
     TCHAR old[QW_SIZE] = {0};
     TCHAR sel[QW_SIZE] = {0};
-    TCHAR lang_path[MAX_PATH] = {0};
-    HMODULE new_lang = NULL;
     if (!GetMenuString(GetMenu(hwnd), id, buf, QW_SIZE, MF_BYCOMMAND))
     {
         return 1;
@@ -445,21 +463,5 @@ i18n_switch_locale(HWND hwnd, int id)
     {
         return 0;
     }
-     /* 加载新语言文件并动态刷新界面 */
-    _sntprintf(lang_path, MAX_PATH-1, _T("%s\\locales\\%s"), eu_module_path, sel);
-    new_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE);
-    if (!new_lang)
-    {
-        return 1;
-    }
-    if (eu_refresh_interface(new_lang, lang_path) == 0)
-    {
-        HMENU root_menu = GetMenu(hwnd);
-        HMENU menu_env = root_menu ? GetSubMenu(root_menu, LOCALE_MENU) : NULL;
-        on_tabpage_newdoc_reload();
-        i18n_update_multi_lang(menu_env);
-        i18n_update_menu(menu_env);
-        on_proc_redraw(NULL);
-    }
-    return 0;
+    return i18n_locale_loader(hwnd, sel);
 }

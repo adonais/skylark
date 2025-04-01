@@ -576,7 +576,7 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     {
         return false;
     }
-    if ((doc_len = (int)eu_sci_call(pnode, SCI_GETLENGTH, 0, 0)) <= 0)
+    if ((doc_len = (int)on_sci_call(pnode, SCI_GETLENGTH, 0, 0)) <= 0)
     {   // 不打印空文档
         MSG_BOX(IDS_PRINT_EMPTY, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return true;
@@ -593,8 +593,8 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     pdlg.hDevMode = dev_mode;
     pdlg.hDevNames = dev_names;
     pdlg.lpfnPrintHook = on_print_hook_proc;
-    start_pos = (int) eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    end_pos = (int) eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    start_pos = (int) on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    end_pos = (int) on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     if (start_pos == end_pos)
     {
         pdlg.Flags |= PD_NOSELECTION;
@@ -711,9 +711,9 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
     if (StartDoc(hdc, &di) > 0)
     {   // 开始执行一个打印作业, 设置打印颜色
         int pmodes[5] = {SC_PRINT_NORMAL, SC_PRINT_INVERTLIGHT, SC_PRINT_BLACKONWHITE, SC_PRINT_COLOURONWHITE, SC_PRINT_COLOURONWHITEDEFAULTBG};
-        eu_sci_call(pnode, SCI_SETPRINTCOLOURMODE, pmodes[ptr_print->color_mode], 0);
+        on_sci_call(pnode, SCI_SETPRINTCOLOURMODE, pmodes[ptr_print->color_mode], 0);
         // 打印放大设置
-        eu_sci_call(pnode, SCI_SETPRINTMAGNIFICATION, (WPARAM) ptr_print->zoom, 0);
+        on_sci_call(pnode, SCI_SETPRINTMAGNIFICATION, (WPARAM) ptr_print->zoom, 0);
         doc_max = doc_len;
         len_printed = 0;
         // 打印所选内容
@@ -772,7 +772,7 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
             }            
             fr_print.chrg.cpMin = len_printed;
             fr_print.chrg.cpMax = doc_len;
-            len_printed = (int)eu_sci_call(pnode, SCI_FORMATRANGE, print_page, (LPARAM) &fr_print);
+            len_printed = (int)on_sci_call(pnode, SCI_FORMATRANGE, print_page, (LPARAM) &fr_print);
             if (ptr_print->footer == 0)
             {   // 打印页尾
                 on_print_footer(hdc, font_footer, page_str, &fr_print, footer_line_height);
@@ -785,7 +785,7 @@ on_print_layout(eu_tabpage *pnode, LPCTSTR doc_title, LPCTSTR page_fmt)
                 break;
             }
         }
-        eu_sci_call(pnode, SCI_FORMATRANGE, false, 0);
+        on_sci_call(pnode, SCI_FORMATRANGE, false, 0);
         // 结束打印作业
         EndDoc(hdc);        
     }

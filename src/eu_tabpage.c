@@ -84,12 +84,12 @@ on_tabpage_destroy_tabbar(void)
     }
 }
 
-LRESULT
-on_tabpage_draw_item(HWND hwnd, WPARAM wParam, LPARAM lParam)
+static LRESULT
+on_tabpage_draw_item(HWND hwnd, WPARAM wp, LPARAM lp)
 {
     UNREFERENCED_PARAMETER(hwnd);
-    UNREFERENCED_PARAMETER(wParam);
-    UNREFERENCED_PARAMETER(lParam);
+    UNREFERENCED_PARAMETER(wp);
+    UNREFERENCED_PARAMETER(lp);
     return 1;
 }
 
@@ -126,16 +126,6 @@ on_tabpage_set_active(int index)
     }
 }
 
-static inline void
-on_tabpage_setpos(eu_tabpage *p)
-{
-    if (p && p->hwnd_sc)
-    {
-        eu_setpos_window(p->hwnd_sc, HWND_TOP, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left,
-                         p->rect_sc.bottom - p->rect_sc.top, SWP_SHOWWINDOW);
-    }
-}
-
 static void
 on_tabpage_changing(int index)
 {
@@ -144,10 +134,14 @@ on_tabpage_changing(int index)
     {
         util_set_title(p);
         on_toolbar_update_button();
-        SendMessage(eu_module_hwnd(), WM_TAB_CLICK, (WPARAM)p, 0);
-        if (p->pmod)
+        SendMessage(eu_hwnd_self(), WM_TAB_CLICK, (WPARAM)p, 0);
+        if (p->pmod && p->plugin)
         {
-            on_tabpage_setpos(p);
+            MoveWindow(p->hwnd_sc, p->rect_sc.left, p->rect_sc.top, p->rect_sc.right - p->rect_sc.left, p->rect_sc.bottom - p->rect_sc.top, FALSE);
+            if (util_under_wine())
+            {   // wine 下重绘插件窗口
+                p->plugin->funcs.setwindow(&p->plugin->npp, &p->plugin->win);
+            }
         }
     }
 }
@@ -464,11 +458,7 @@ on_tabpage_parser_bakup(void *data, int count, char **column, char **names)
     file_backup *pbak = (file_backup *)data;
     for (int i = 0; i < count; ++i)
     {
-        if (STRCMP(names[i], ==, "szTabId"))
-        {
-            pbak->tab_id = (short)atoi(column[i]);
-        }
-        else if (STRCMP(names[i], ==, "szRealPath"))
+        if (STRCMP(names[i], ==, "szRealPath"))
         {
             MultiByteToWideChar(CP_UTF8, 0, column[i], -1, path, MAX_BUFFER);
         }
@@ -541,11 +531,11 @@ on_tabpage_send_file(const HWND hwin, const int index)
         {
             if (!p->is_blank)
             {
-                sptr_t pos = eu_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                sptr_t pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
                 if (pos > 0)
                 {
-                    sptr_t lineno = eu_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
-                    sptr_t row = eu_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
+                    sptr_t lineno = on_sci_call(p, SCI_LINEFROMPOSITION, pos, 0);
+                    sptr_t row = on_sci_call(p, SCI_POSITIONFROMLINE, lineno, 0);
                     bak.x = lineno + 1;
                     bak.y = eu_int_cast(pos - row + 1);
                     bak.hex = p->hex_mode;
@@ -561,7 +551,7 @@ on_tabpage_send_file(const HWND hwin, const int index)
                 err = on_sql_post(sql, on_tabpage_parser_bakup, &bak);
                 if (err != SKYLARK_OK && err != SQLITE_ABORT)
                 {
-                    eu_logmsg("%s: on_sql_post return false, cause: %d\n", __FUNCTION__, err);
+                    eu_logmsg("Tabs: on_sql_post return false, cause: %d\n", err);
                 }
                 else
                 {
@@ -571,7 +561,9 @@ on_tabpage_send_file(const HWND hwin, const int index)
         }
         if (err == SKYLARK_OK)
         {
-            COPYDATASTRUCT cpd = { 0 };
+            bak.focus = 1;
+            bak.tab_id = -1;
+            COPYDATASTRUCT cpd = {1};
             cpd.lpData = (PVOID) &bak;
             cpd.cbData = (DWORD) sizeof(file_backup);
             SendMessageW(hwin, WM_COPYDATA, 0, (LPARAM) &cpd);
@@ -675,7 +667,7 @@ on_tabpage_menu_callback(HMENU hpop, void *param)
             _sntprintf(sub_str, MAX_PATH - 1, mstr, num);
             ModifyMenu(hpop, 0, MF_BYPOSITION | MF_STRING, IDM_FILE_CLOSE, sub_str);
         }
-        util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !eu_sci_call(p,SCI_GETREADONLY, 0, 0));
+        util_enable_menu_item(hpop, IDM_TABPAGE_SAVE, on_sci_doc_modified(p) && !on_sci_call(p,SCI_GETREADONLY, 0, 0));
         util_set_menu_item(hpop, IDM_TABPAGE_LOCKED, eu_get_config()->inter_reserved_1);
         util_enable_menu_item(hpop, IDM_FILE_ADD_FAVORITES, !p->is_blank);
         util_enable_menu_item(hpop, IDM_EDIT_OTHER_EDITOR, !p->is_blank);
@@ -1071,13 +1063,13 @@ on_tabpage_create_dlg(HWND hwnd)
         }
         if (!init_icon_img_list(g_tabpages))
         {
-            eu_logmsg("%s: init_icon_img_list return false\n", __FUNCTION__);
+            eu_logmsg("Tabs: init_icon_img_list return false\n");
             err = 1;
             break;
         }
         if (!g_drag_hcursor && (g_drag_hcursor = LoadCursor(eu_module_handle(), MAKEINTRESOURCE(IDC_CURSOR_DRAG))) == NULL)
         {
-            eu_logmsg("%s: LoadCursor return false\n", __FUNCTION__);
+            eu_logmsg("Tabs: LoadCursor return false\n");
             err = 1;
             break;
         }
@@ -1103,6 +1095,26 @@ on_tabpage_create_dlg(HWND hwnd)
 }
 
 void
+on_tabpage_swap_item(const int old_index, const int new_index)
+{
+    TCITEM drag_item = {0};
+    TCITEM shift_item = {0};
+    TCHAR str1[MAX_PATH] = {0};
+    TCHAR str2[MAX_PATH] = {0};
+    drag_item.mask = shift_item.mask = TCIF_TEXT | TCIF_PARAM;
+    drag_item.cchTextMax = shift_item.cchTextMax = MAX_PATH;
+    drag_item.pszText = str1;
+    shift_item.pszText = str2;
+    if (old_index != new_index && old_index >= 0 && new_index >= 0)
+    {
+        SendMessage(g_tabpages, TCM_GETITEM, old_index, (LPARAM)(&drag_item));
+        SendMessage(g_tabpages, TCM_GETITEM, new_index, (LPARAM)(&shift_item));
+        SendMessage(g_tabpages, TCM_SETITEM, new_index, (LPARAM)(&drag_item));
+        SendMessage(g_tabpages, TCM_SETITEM, old_index, (LPARAM)(&shift_item));
+    }
+}
+
+void
 on_tabpage_close_tabs(int it)
 {
     eu_tabpage *p = on_tabpage_get_ptr(it);
@@ -1112,7 +1124,7 @@ on_tabpage_close_tabs(int it)
 void
 on_tabpage_save_files(int it)
 {
-    on_file_save(on_tabpage_get_ptr(it), false);
+    on_file_save(on_tabpage_get_ptr(it), SAVE_ONLY);
 }
 
 void
@@ -1145,7 +1157,7 @@ on_tabpage_size(const RECT *prc)
     {
         RECT rc_tabbar = {0};
         on_tabpage_adjust_box(prc, &rc_tabbar);
-        MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, TRUE);
+        MoveWindow(g_tabpages, rc_tabbar.left, rc_tabbar.top, rc_tabbar.right - rc_tabbar.left, rc_tabbar.bottom - rc_tabbar.top, FALSE);
         ShowWindow(g_tabpages, SW_SHOW);
     }
 }
@@ -1252,19 +1264,21 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab)
 eu_tabpage *
 on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode)
 {
-    eu_tabpage *p = NULL;
-    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    if (pnode && g_tabpages)
     {
-        if ((p = on_tabpage_get_ptr(index)) && p == pnode)
-        {   /* 从控件删除选项卡 */
-            p->tab_id = index;
-            TabCtrl_DeleteItem(g_tabpages, index);
-            if (file_click_close(mode) && count < 2 && !TAB_HEX_MODE(pnode) && !pnode->plugin)
-            {
-                p->reason = TABS_MAYBE_RESERVE;
+    	eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        {
+            if ((p = on_tabpage_get_ptr(index)) && p == pnode)
+            {   /* 从控件删除选项卡 */
+                p->tab_id = index;
+                TabCtrl_DeleteItem(g_tabpages, index);
+                if (!TAB_HEX_MODE(pnode) && !pnode->plugin && file_click_close(mode) && count < 2)
+                {
+                    p->reason = TABS_MAYBE_RESERVE;
+                }
+                return p;
             }
-            return p;
         }
     }
     return NULL;
@@ -1383,52 +1397,58 @@ on_tabpage_newdoc_reload(void)
     }
 }
 
+/**************************************************************************************
+ * 在Tabs上插入标签
+ * 成功, 返回当前标签号
+ * 否则, 返回一个为负值的错误码
+ **************************************************************************************/
 int
-on_tabpage_add(eu_tabpage *pnode)
+on_tabpage_insert(eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    if (TAB_NOT_BIN(pnode) && !TAB_HEX_MODE(pnode) && !pnode->pmod)
+    const HWND htab = on_tabpage_hwnd(pnode);
+    if (htab)
     {
-        pnode->doc_ptr = on_doc_get_type(pnode->filename);
-    }
-    if (!pnode->is_blank)
-    {
-        pnode->tab_id = on_tabpage_replace_empty(pnode);
-    }
-    if (pnode->tab_id < 0)
-    {
-        TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
-        tci.pszText = pnode->filename;
-        tci.lParam = (LPARAM) pnode;
-        pnode->tab_id = TabCtrl_GetItemCount(g_tabpages);
-        if (TabCtrl_InsertItem(g_tabpages, pnode->tab_id, &tci) == -1)
+        int tab_id = 0;
+        if (TAB_NOT_BIN(pnode) && !TAB_HEX_MODE(pnode) && !pnode->pmod)
         {
-            eu_logmsg("%s: TabCtrl_InsertItem return false\n", __FUNCTION__);
-            return SKYLARK_TABCTRL_ERR;
+            pnode->doc_ptr = on_doc_get_type(pnode->filename);
         }
-    }
-    else
-    {
-        eu_logmsg("%s: Replacing empty Tab, pnode->tab_id = %d\n", __FUNCTION__, pnode->tab_id);
-    }
-    if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && TAB_HEX_MODE(pnode))
-    {
-        pnode->bytes_remaining = (size_t)pnode->raw_size;
-        eu_logmsg("%s: hexview_init execute\n", __FUNCTION__);
-        if (!hexview_init(pnode))
+        if ((tab_id = pnode->is_blank ? -1 : on_tabpage_replace_empty(pnode)) < 0)
         {
-            TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
+            TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
+            tci.pszText = pnode->filename;
+            tci.lParam = (LPARAM) pnode;
+            tab_id = pnode->tab_id < 0 ? TabCtrl_GetItemCount(htab) : pnode->tab_id;
+            if (TabCtrl_InsertItem(htab, tab_id, &tci) == -1)
+            {
+                eu_logmsg("Tabs: tabctrl_insertitem failed\n");
+                return SKYLARK_TABCTRL_ERR;
+            }
+        }
+        else
+        {
+            eu_logmsg("Tabs: replacing empty tab, pnode->tab_id = %d\n", pnode->tab_id);
+        }
+        if ((pnode->fs_server.networkaddr[0] == 0 || pnode->bakpath[0]) && TAB_HEX_MODE(pnode))
+        {
+            pnode->bytes_remaining = (size_t)pnode->raw_size;
+            eu_logmsg("Tabs: hexview_init execute\n");
+            if (!hexview_init(pnode))
+            {
+                TabCtrl_DeleteItem(htab, tab_id);
+                return EUE_INSERT_TAB_FAIL;
+            }
+            return tab_id;
+        }
+        // 当复用scintilla窗口时, 不重复创建
+        if (!pnode->hwnd_sc && on_sci_init_dlg(pnode))
+        {
+            TabCtrl_DeleteItem(htab, tab_id);
             return EUE_INSERT_TAB_FAIL;
         }
-        return SKYLARK_OK;
+        return tab_id;
     }
-    // 当复用scintilla窗口时, 不重复创建
-    if (!pnode->hwnd_sc && on_sci_init_dlg(pnode))
-    {
-        TabCtrl_DeleteItem(g_tabpages, pnode->tab_id);
-        return EUE_INSERT_TAB_FAIL;
-    }
-    return SKYLARK_OK;
+    return EUE_INSERT_TAB_FAIL;
 }
 
 void
@@ -1442,63 +1462,53 @@ on_tabpage_set_title(int ontab, TCHAR *title)
     InvalidateRect(g_tabpages, NULL, true);
 }
 
-int
-on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline)
+void
+on_tabpage_reload_file(eu_tabpage *pnode, const int flags)
 {
-    EU_VERIFY(pnode != NULL);
-    if (TAB_HEX_MODE(pnode) || pnode->plugin)
+    if (pnode && TAB_HAS_TXT(pnode))
     {
-        return 0;
-    }
-    switch (flags)
-    {
-        case 0: // 保留
-            pnode->fn_modify = true;
-            on_sci_point_left(pnode);
-            break;
-        case 1: // 丢弃
-            pnode->be_modify = false;
-            pnode->fn_modify = false;
-            on_file_close(&pnode, FILE_ONLY_CLOSE);
-            break;
-        case 2: // 重载, 滚动到末尾行
+        switch (flags)
         {
-            if (!url_has_remote(pnode->pathfile))
+            case 0: // 保留
+                pnode->fn_modify = true;
+                on_sci_point_left(pnode);
+                break;
+            case 1: // 丢弃
+                pnode->be_modify = false;
+                pnode->fn_modify = false;
+                on_file_close(&pnode, FILE_ONLY_CLOSE);
+                break;
+            case 2: // 重载, 滚动到之前的位置
             {
-                on_sci_clear_history(pnode, false);
-                eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                if (on_file_load(pnode, NULL, true) == SKYLARK_OK)
+                if (!url_has_remote(pnode->pathfile))
                 {
-                    sptr_t max_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
-                    if (pline && *pline > max_line - 1)
+                    on_sci_clear_history(pnode, false);
+                    on_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                    if (on_file_load(pnode, NULL, true) == SKYLARK_OK)
                     {
-                        *pline = max_line - 1;
-                    }
-                    on_sci_clear_history(pnode, true);
-                    pnode->be_modify = false;
-                    pnode->fn_modify = false;
-                    if (!pnode->is_blank)
-                    {
-                        pnode->st_mtime = util_last_time(pnode->pathfile);
-                        if (pline)
+                        const sptr_t count = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+                        if (pnode->nc_pos > count - 1)
                         {
-                            on_search_jmp_line(pnode, *pline, 0);
+                            pnode->nc_pos = count - 1;
                         }
-                        else
+                        on_sci_clear_history(pnode, true);
+                        pnode->be_modify = false;
+                        pnode->fn_modify = false;
+                        if (!pnode->is_blank)
                         {
-                            on_search_jmp_line(pnode, max_line, 0);
+                            pnode->st_mtime = util_last_time(pnode->pathfile);
                         }
+                        on_search_jmp_pos(pnode);
+                        on_toolbar_update_button();
+                        util_redraw(g_tabpages, false);
                     }
-                    on_toolbar_update_button();
-                    util_redraw(g_tabpages, false);
                 }
+                break;
             }
-            break;
+            default:
+                break;
         }
-        default:
-            return 1;
     }
-    return 0;
 }
 
 int
@@ -1563,6 +1573,19 @@ on_tabpage_foreach(tab_ptr fntab)
     }
 }
 
+void
+on_tabpage_txt_foreach(tab_ptr fntab)
+{
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    {
+        eu_tabpage *p = on_tabpage_get_ptr(index);
+        if (p && !TAB_HEX_MODE(p) && !p->is_blank && !p->fs_server.networkaddr[0])
+        {
+            fntab(p);
+        }
+    }
+}
+
 eu_tabpage *
 on_tabpage_get_ptr(const int index)
 {
@@ -1581,37 +1604,23 @@ on_tabpage_focus_at(void)
 }
 
 int
-on_tabpage_selection(eu_tabpage *pnode, int index)
+on_tabpage_selection(const eu_tabpage *pnode)
 {
     EU_VERIFY(pnode != NULL && g_tabpages != NULL);
     eu_tabpage *p = NULL;
-    const int count = TabCtrl_GetItemCount(g_tabpages);
-    if (index < 0)
+    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
     {
-        for (index = 0; index < count; ++index)
+        if ((p = on_tabpage_get_ptr(index)) && p == pnode)
         {
-            p = on_tabpage_get_ptr(index);
-            if (p && p == pnode)
-            {
-                break;
-            }
-        }
-    }
-    if(index >= 0 && index < count)
-    {
-        HWND hwnd = eu_hwnd_self();
-        on_tabpage_set_active(index);
-        eu_window_resize();
-        if ((p = on_tabpage_get_ptr(index)))
-        {   // 窗口处理过程中可能改变了标签位置, 重置它
-            on_tabpage_deselect(index);
-            TabCtrl_SetCurFocus(g_tabpages, index);
-            TabCtrl_SetCurSel(g_tabpages, index);
+            on_tabpage_set_active(index);
+            eu_window_resize();
+            on_sci_wrap_mode(p);
             on_toolbar_update_button();
             util_set_title(p);
+            return index;
         }
     }
-    return (index >= 0 && index < count ? index : SKYLARK_TABCTRL_ERR);
+    return SKYLARK_NOT_OPENED;
 }
 
 eu_tabpage *
@@ -1654,16 +1663,18 @@ on_tabpage_active_tab(eu_tabpage *pnode)
     on_tabpage_set_active(on_tabpage_get_index(pnode));
 }
 
-eu_tabpage *
-on_tabpage_select_index(int index)
+void
+on_tabpage_select_index(const int index)
 {
     eu_tabpage *p = on_tabpage_get_ptr(index);
     if (p)
     {
-        on_tabpage_selection(p, index);
-        return p;
+        on_tabpage_set_active(index);
+        eu_window_resize();
+        on_sci_wrap_mode(p);
+        on_toolbar_update_button();
+        util_set_title(p);
     }
-    return NULL;
 }
 
 void
@@ -1687,4 +1698,32 @@ on_tabpage_symlist_click(eu_tabpage *pnode)
     {
         pnode->doc_ptr->fn_click_symlist(pnode);
     }
+}
+
+void
+on_tabpage_symreload(eu_tabpage *pnode)
+{
+    if (pnode && pnode->doc_ptr)
+    {
+        if (pnode->doc_ptr->fn_reload_symlist)
+        {
+            if (pnode->hwnd_symlist || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
+            {
+                pnode->doc_ptr->fn_reload_symlist(pnode);
+            }
+        }
+        else if (pnode->doc_ptr->fn_reload_symtree)
+        {
+            if (pnode->hwnd_symtree || pnode->doc_ptr->fn_init_before(pnode) == SKYLARK_OK)
+            {
+                pnode->doc_ptr->fn_reload_symtree(pnode);
+            }
+        }
+    }
+}
+
+HWND
+on_tabpage_hwnd(const eu_tabpage *pnode)
+{
+    return (pnode ? g_tabpages : NULL);
 }

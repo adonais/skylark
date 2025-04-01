@@ -25,14 +25,17 @@ BEGIN
     BEGIN
         MENUITEM "&New",                                               IDM_FILE_NEW
         MENUITEM "&Open ...",                                          IDM_FILE_OPEN
+        MENUITEM MF_SEPARATOR
         POPUP "Open Recent History"
         BEGIN
             MENUITEM "...",                                            IDM_HISTORY_BASE
         END
         MENUITEM "Clear Recent History",                               IDM_HISTORY_CLEAN
+        MENUITEM MF_SEPARATOR
         MENUITEM "&Save",                                              IDM_FILE_SAVE
         MENUITEM "Save As ...",                                        IDM_FILE_SAVEAS
         MENUITEM "Save All",                                           IDM_FILE_SAVEALL
+        MENUITEM MF_SEPARATOR
         MENUITEM "&Close",                                             IDM_FILE_CLOSE
         MENUITEM "Close All",                                          IDM_FILE_CLOSEALL
         MENUITEM "Close Other Documents",                              IDM_FILE_CLOSEALL_EXCLUDE
@@ -75,6 +78,7 @@ BEGIN
     BEGIN
         MENUITEM "&Undo",                                              IDM_EDIT_UNDO
         MENUITEM "&Redo",                                              IDM_EDIT_REDO
+        MENUITEM "Restore &Selection When Undo",                       IDM_EDIT_UNDO_SELECTION
         MENUITEM MF_SEPARATOR
         MENUITEM "Cu&t",                                               IDM_EDIT_CUT
         MENUITEM "&Copy",                                              IDM_EDIT_COPY
@@ -146,10 +150,10 @@ BEGIN
             MENUITEM "Search With &Baidu",                             IDM_ONLINE_SEARCH_BAIDU
             MENUITEM "Search With B&ing",                              IDM_ONLINE_SEARCH_BING
         END
-        POPUP "BASE64 Encoding/Decoding",                              IDM_EDIT_PLACEHOLDE7
+        POPUP "Base64 Encoding/Decoding",                              IDM_EDIT_PLACEHOLDE7
         BEGIN
-            MENUITEM "BASE64 Encoding",                                IDM_EDIT_BASE64_ENCODING
-            MENUITEM "BASE64 Decoding",                                IDM_EDIT_BASE64_DECODING
+            MENUITEM "Base64 Encoding",                                IDM_EDIT_BASE64_ENCODING
+            MENUITEM "Base64 Decoding",                                IDM_EDIT_BASE64_DECODING
         END
         POPUP "Hash/Message Digest",                                   IDM_EDIT_PLACEHOLDE8
         BEGIN
@@ -329,6 +333,13 @@ BEGIN
         END
         POPUP "Other Options For Tabbar"
         BEGIN
+            MENUITEM "Tabs(Name A to Z)",                              IDM_VIEW_TABS_NAME_ASCEND
+            MENUITEM "Tabs(Name Z to A)",                              IDM_VIEW_TABS_NAME_ADESCEND
+            MENUITEM "Tabs(Type A to Z)",                              IDM_VIEW_TABS_TYPE_ASCEND
+            MENUITEM "Tabs(Type Z to A)",                              IDM_VIEW_TABS_TYPE_ADESCEND
+            MENUITEM "Tabs(Content Length Ascending)",                 IDM_VIEW_TABS_SIZE_ASCEND
+            MENUITEM "Tabs(Content Length Descending)",                IDM_VIEW_TABS_SIZE_ADESCEND
+            MENUITEM MF_SEPARATOR
             MENUITEM "Switch The Next Tab",                            IDM_VIEW_SWITCH_TAB
             MENUITEM "Scroll To Anchor When Switching Tabs",           IDM_VIEW_SCROLLCURSOR
             MENUITEM "Split Line On Multiline Tabs",                   IDM_VIEW_TABBAR_SPLIT
@@ -353,10 +364,10 @@ BEGIN
             MENUITEM "Reformat Js",                                    IDM_FORMAT_REFORMAT_JS
             MENUITEM "Compress Js",                                    IDM_FORMAT_COMPRESS_JS
         END
-        POPUP "XML File",                                              IDM_EDIT_PLACEHOLDE_XML
+        POPUP "Xml File",                                              IDM_EDIT_PLACEHOLDE_XML
         BEGIN
-            MENUITEM "Reformat XML",                                   IDM_FORMAT_REFORMAT_XML
-            MENUITEM "Compress XML",                                   IDM_FORMAT_COMPRESS_XML
+            MENUITEM "Reformat Xml",                                   IDM_FORMAT_REFORMAT_XML
+            MENUITEM "Compress Xml",                                   IDM_FORMAT_COMPRESS_XML
         END
         POPUP "Lua Scripts",                                           IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
@@ -376,7 +387,7 @@ BEGIN
             MENUITEM "Traditional To Simplified",                      IDM_EDIT_BIG5_GB
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Full-width/half-width Conversion",                      IDM_FORMAT_PLACEHOLDE_PUNCTUATION
+        POPUP "Full-width/Half-width Conversion",                      IDM_FORMAT_PLACEHOLDE_PUNCTUATION
         BEGIN
             MENUITEM "Full-width Symbol To Half-width",                IDM_FORMAT_FULL_HALF
             MENUITEM "Half-width Punctuation To Full-width",           IDM_FORMAT_HALF_FULL
@@ -438,26 +449,29 @@ BEGIN
         MENUITEM "Customize Theme ...",                                IDM_VIEW_MODIFY_STYLETHEME
         MENUITEM "Copy Create Theme ...",                              IDM_VIEW_COPYNEW_STYLETHEME
         MENUITEM MF_SEPARATOR
-        POPUP "Font &Quality",                                         IDM_SETTING_FONTQUALITY
+        POPUP "Font &Quality",                                         IDM_SETTING_FONTQUALITY_GROUP
         BEGIN
             MENUITEM "&None",                                          IDM_VIEW_FONTQUALITY_NONE
             MENUITEM "&Standard",                                      IDM_VIEW_FONTQUALITY_STANDARD
             MENUITEM "&ClearType",                                     IDM_VIEW_FONTQUALITY_CLEARTYPE
         END
-        POPUP "Ren&dering Technology",                                 IDM_SETTING_RENDER
+        POPUP "Ren&dering Technology",                                 IDM_SETTING_RENDER_GROUP
         BEGIN
-            MENUITEM "&Legacy GDI",                                    IDM_SET_RENDER_TECH_GDI
+            MENUITEM "Legacy &GDI",                                    IDM_SET_RENDER_TECH_GDI
             MENUITEM "&DirectWrite",                                   IDM_SET_RENDER_TECH_D2D
             MENUITEM "DirectWrite &Retain",                            IDM_SET_RENDER_TECH_D2DRETAIN
+            MENUITEM "DirectWrite GD&I DC",                            IDM_SET_RENDER_TECH_DC
+            MENUITEM "Direct&Write 1.1",                               IDM_SET_RENDER_TECH_D2D1_1
         END
         MENUITEM MF_SEPARATOR
-        POPUP "Custom Commands ...",                                   IDM_SET_PLACEHOLDE_CUSTOMIZED
+        POPUP "Custom Commands",                                       IDM_SET_PLACEHOLDE_CUSTOMIZED
         BEGIN
             MENUITEM "&Set Run Path",                                  IDM_SET_SETTINGS_CONFIG
             MENUITEM MF_SEPARATOR
         END
-        MENUITEM "Refresh Skylark ...",                                IDM_SET_RESET_CONFIG
+        MENUITEM "Refresh Skylark",                                    IDM_SET_RESET_CONFIG
         MENUITEM MF_SEPARATOR
+        MENUITEM "Files &Change Notification",                         IDM_SET_CHANGENOTIFY
         MENUITEM "Enable Runtime &Logging",                            IDM_SET_LOGGING_ENABLE
         MENUITEM MF_SEPARATOR
         MENUITEM "Files Interval [N] Seconds Auto-save",               IDM_FILE_SAVE_NOTIFY
@@ -467,8 +481,8 @@ BEGIN
     POPUP "&Help"
     BEGIN
         MENUITEM "Donate Now",                                         IDM_DONATION
-        MENUITEM "Introduction &Of Editor ...",                        IDM_INTRODUTION
-        MENUITEM "Update &history ...",                                IDM_CHANGELOG
+        MENUITEM "Introduction &Of Editor",                            IDM_INTRODUTION
+        MENUITEM "Update &history",                                    IDM_CHANGELOG
         MENUITEM "&Command Line ...",                                  IDM_HELP_COMMAND
         MENUITEM "&About ...",                                         IDM_ABOUT
     END
@@ -1332,8 +1346,8 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_REGIST_ERR34    "Cannot delete key in registry Drive\\shell\\skylark "
     IDC_MSG_REGIST_ERR35    "Cannot delete key in registry Drive\\shell\\skylark2 "
     IDC_MSG_REGIST_ERR36    "Cannot delete key in registry Drive\\shell\\skylark2 "
-    IDC_MSG_JUST_HELP       "Immediate help"
-    IDC_MSG_HELP_INF1       "Use the shortcut Ctrl+MouseLButtonClick to select multiple locations, support multi line input, delete, copy and other operations"
+    IDC_MSG_JUST_HELP       "Instant Help"
+    IDC_MSG_HELP_INF1       "Use Ctrl+MouseLButtonClick to select multiple locations, supports input, delete, copy and other operations\nSupports separator when pasting with multiple selections"
     IDC_MSG_EXEC_ERR1       "The process failed to start. Please check whether the process path is correct!"
     IDC_MSG_EDIT_ERR1       "Error creating edit control"
     IDC_MSG_SYMTREE_ERR1    "Error creating symbol tree control"
@@ -1499,6 +1513,7 @@ STRINGTABLE DISCARDABLE
     IDS_FAVORITE_ADD_TIPS   "It's hard to tell when files in your favorites have the same alias, Are you sure you want to continue?"
     IDS_UNDO_UNCLOSE_TIPS   "The file has been converted to encoding or line breaks, You should save the file as soon as possible to avoid 'undo/redo' operations affecting the file state."
     IDS_HISTORY_CLEAR_UNDO  "This operation will clear the undo history, Affecting 'Undo/Redo', Continue?"
+    IDS_PRIFILES_WARNING    "Modifying configuration file may affect the stability of the editor, Continue?"
 }
 
 /////////////////////////////////////////////////////////////////////////////

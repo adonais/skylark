@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 9
+#define __EU_INFO_VERSION_PATCHLEVEL 10
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 #define SKYLARK_VERSION (__EU_INFO_VERSION * 10000      \
                         + __EU_INFO_VERSION_MINOR * 100 \
@@ -44,7 +44,7 @@
 
 #define __EU_INFO_RELEASE_VERSION MAKE_VERSION_NUM(__EU_INFO_VERSION,__EU_INFO_VERSION_MINOR,__EU_INFO_VERSION_PATCHLEVEL,".")
 
-#define EU_DESCRIPTION TEXT("Copyright © 2020-2023, Skylark project authors. All rights reserved. \r\n\r\n") \
+#define EU_DESCRIPTION TEXT("Copyright © 2020-2025, Skylark project authors. All rights reserved. \r\n\r\n") \
                        TEXT("Note that the GPL places important restrictions on 'derived works', \r\n") \
                        TEXT("yet it does not provide a detailed definition of that term. ") \
                        TEXT("To avoid misunderstandings, we consider an application to constitute a 'derivative work' for ") \
@@ -274,7 +274,7 @@
 #define IDS_STATUS_LD  10178
 #define IDS_STATUS_HXY 10179
 #define IDS_STATUS_HLC 10279
-
+// toolbar message id
 #define IDS_TOOLBAR_0    10180
 #define IDS_TOOLBAR_1    10181
 #define IDS_TOOLBAR_2    10182
@@ -304,6 +304,17 @@
 #define IDS_TOOLBAR_26   10206
 #define IDS_TOOLBAR_27   10207
 #define IDS_TOOLBAR_28   10208
+#define IDS_TOOLBAR_29   10209
+#define IDS_TOOLBAR_30   10210
+#define IDS_TOOLBAR_31   10211
+#define IDS_TOOLBAR_32   10212
+#define IDS_TOOLBAR_33   10213
+#define IDS_TOOLBAR_34   10214
+#define IDS_TOOLBAR_35   10215
+#define IDS_TOOLBAR_36   10216
+#define IDS_TOOLBAR_37   10217
+#define IDS_TOOLBAR_38   10218
+#define IDS_TOOLBAR_39   10219
 // language type
 #define IDM_TYPES_0      10300
 #define IDM_TYPES_ZERO   10409
@@ -556,6 +567,7 @@
 #define IDM_EDIT_BOOKMARK_LINES_REMOVE       30213
 #define IDM_EDIT_BOOKMARK_LINES_RESERVE      30214
 #define IDM_EDIT_GOLINE_GROUP                30215
+#define IDM_EDIT_UNDO_SELECTION              30216
 
 #define IDM_VIEW_INDENTGUIDES_VISIABLE       30300
 #define IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL  30301
@@ -635,6 +647,13 @@
 #define IDM_EDIT_COPY_INCREMENTAL            30457
 #define IDM_EDIT_COPY_RTF                    30458
 #define IDM_VIEW_TABBAR_SPLIT                30459
+
+#define IDM_VIEW_TABS_NAME_ASCEND            30460
+#define IDM_VIEW_TABS_NAME_ADESCEND          30461
+#define IDM_VIEW_TABS_TYPE_ASCEND            30462
+#define IDM_VIEW_TABS_TYPE_ADESCEND          30463
+#define IDM_VIEW_TABS_SIZE_ASCEND            30464
+#define IDM_VIEW_TABS_SIZE_ADESCEND          30465
 
 #define IDM_VIEW_WHITESPACE_VISIABLE      30500
 #define IDM_VIEW_LINENUMBER_VISIABLE      30501
@@ -1045,10 +1064,13 @@
 #define IDM_SET_RENDER_TECH_GDI             42560
 #define IDM_SET_RENDER_TECH_D2D             42561
 #define IDM_SET_RENDER_TECH_D2DRETAIN       42562
-#define IDM_SETTING_FONTQUALITY             42563
-#define IDM_SETTING_RENDER                  42564
+#define IDM_SET_RENDER_TECH_DC              42563
+#define IDM_SET_RENDER_TECH_D2D1_1          42564
+
 #define IDM_SOURCE_SNIPPET_GROUP            42565
 #define IDM_EDIT_SELECT_GROUP               42566
+#define IDM_SETTING_FONTQUALITY_GROUP       42567
+#define IDM_SETTING_RENDER_GROUP            42568
 
 #define IDR_TOOLBAR_POPUPMENU               42600
 #define IDM_VIEW_MENUBAR                    42601
@@ -1238,6 +1260,7 @@
 #define IDM_EDIT_BACKSLASH_SLASH            44101
 
 #define IDM_SET_LOGGING_ENABLE              44200
+#define IDM_SET_CHANGENOTIFY                44201
 
 #define IDR_FILETREE_FAVORITE_POPUP         44300
 #define IDM_FAVORITE_OPEN                   44301
@@ -1259,6 +1282,7 @@
 #define IDS_WIN32CALC_DESC                  44501
 #define IDS_UNDO_UNCLOSE_TIPS               44502
 #define IDS_HISTORY_CLEAR_UNDO              44503
+#define IDS_PRIFILES_WARNING                44504
 
 #define IDD_SETTING_DIALOG                  44600
 #define IDC_SETTING_NAME_EDIT               44601

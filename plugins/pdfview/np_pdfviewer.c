@@ -367,12 +367,16 @@ pdf_mktmp(WCHAR *file_path)
     }
     if (!GetTempFileName(temp_path, L"npv", 0, file_path))
     {
+    #if APP_DEBUG
         printf("sp: GetTempFileName return false\n");
+    #endif
         return NULL;
     }
     if ((hfile = CreateFile(file_path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
     {
+    #if APP_DEBUG
         printf("sp: pdf_mktmp(): CreateFile() failed\n");
+    #endif
         return NULL;
     }
     return hfile;
@@ -505,7 +509,9 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         EndPaint(hwnd, &ps);
         HWND hchild = FindWindowEx(hwnd, NULL, NULL, NULL);
         if (hchild)
+        {
             InvalidateRect(hchild, NULL, FALSE);
+        }
     }
     else if (msg == WM_SIZE)
     {
@@ -515,7 +521,11 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
             RECT rc;
             GetClientRect(hwnd, &rc);
             MoveWindow(hchild, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, FALSE);
-            printf("pdf hwnd = %p\n", hchild);
+        #if APP_DEBUG
+            printf("pdf hwnd = %p, hchild = %p, rc.left = %ld, rc.right = %ld, rc.top = %ld, rc.bottom = %ld\n", hwnd, hchild, rc.left, rc.right, rc.top, rc.bottom);
+        #endif
+            ShowWindow(hchild, SW_SHOW);
+            return 0;
         }
     }
     else if (msg == NPP_DOC_MODIFY)
@@ -540,7 +550,9 @@ pdf_plugin_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         COPYDATASTRUCT *cds = (COPYDATASTRUCT *)lparam;
         if (cds && 0x4C5255 == cds->dwData)  // URL
         {
+        #if APP_DEBUG
             printf("sp: npn_geturl %s\n", (const char *)cds->lpData);
+        #endif
             return TRUE;
         }
     }
@@ -557,7 +569,9 @@ pdf_new(NPP instance, nppsave *saved)
     instance->pdata = calloc(1, sizeof(instance_data));
     if (!instance->pdata)
     {
+    #if APP_DEBUG
         printf("sp: pdf_new error: NPERR_OUT_OF_MEMORY_ERROR\n");
+    #endif
         return NP_OUT_OF_MEMORY;
     }
     instance_data *data = (instance_data *)instance->pdata;
@@ -681,12 +695,9 @@ pdf_setwindow(NPP instance, npwindow *npwin)
     else
     {   // The plugin's window hasn't changed, just its size
         HWND hwnd = (HWND)npwin->window;
-        HWND hchild = FindWindowEx(hwnd, NULL, NULL, NULL);
-        if (hchild)
+        if (hwnd)
         {
-            RECT rc;
-            GetClientRect(hwnd, &rc);
-            MoveWindow(hchild, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, FALSE);
+            PostMessage(hwnd, WM_SIZE, 0, 0);
         }
     }
     return NP_NO_ERROR;
@@ -715,7 +726,9 @@ pdf_newstream(NPP instance, npstream* stream, bool seekable, uint16_t* stype)
     instance_data *data = (instance_data *)instance->pdata;
     if (!*data->exepath)
     {
+    #if APP_DEBUG
         printf("sp: pdf_newstream() error: NPERR_FILE_NOT_FOUND\n");
+    #endif
         return NP_FILE_NOT_FOUND;
     }
     // if we can create a temporary file ourselfes, we manage the download
@@ -729,7 +742,9 @@ pdf_newstream(NPP instance, npstream* stream, bool seekable, uint16_t* stype)
     data->hfile = pdf_mktmp(data->filepath);
     if (data->hfile)
     {
+    #if APP_DEBUG
         printf("sp: using temporary file\n");
+    #endif
         data->istmp = true;
         stype ? *stype = NP_NORMAL : (void)0;
     }
@@ -745,7 +760,9 @@ static uint32_t
 pdf_writeready(NPP instance, npstream* stream)
 {
     uint32_t res = stream->end > 0 ? stream->end : UINT_MAX;
+#if APP_DEBUG
     printf("sp:  pdf_writeready() res=%u\n", res);
+#endif
     return res;
 }
 
@@ -761,7 +778,9 @@ pdf_write(NPP instance, npstream* stream, uint32_t offset, uint32_t len, void* b
         BOOL ok = WriteFile(data->hfile, buffer, (DWORD)len, &bwritten, NULL);
         if (!ok)
         {
+        #if APP_DEBUG
             printf("sp: pdf_write() failed to write %u bytes at offset %u\n", len, offset);
+        #endif
             return -1;
         }
     }
@@ -781,11 +800,15 @@ launch_sumatra(instance_data *data, const char *url_utf8)
     }
     if (!pdf_exist_file(data->filepath))
     {
+    #if APP_DEBUG
         printf("sp: pdf_stream2file() error: file doesn't exist\n");
+    #endif
     }
     if (data->progress_id)
     {
+    #if APP_DEBUG
         printf("sp: pdf_stream2file() error: data->progress_id should be 0\n");
+    #endif
     }
     WCHAR url[VALUE_LEN] = {0};
     int m = MultiByteToWideChar(CP_UTF8, 0, url_utf8 ? url_utf8 : "", -1, url, VALUE_LEN);
@@ -815,7 +838,9 @@ launch_sumatra(instance_data *data, const char *url_utf8)
             data->hprocess = pdf_new_process(cmd_line, NULL, NULL, 2, NULL);
             if (!data->hprocess)
             {
+            #if APP_DEBUG
                 printf("sp: pdf_stream2file() error: couldn't run SumatraPDF!\n");
+            #endif
                 wcsncpy(data->message, L"Error: Couldn't run SumatraPDF!", MAX_PATH);
             }
             else
@@ -843,10 +868,17 @@ pdf_show_progress(void *p)
             PeekMessage(&msg, NULL,  0, 0, PM_REMOVE);
             if (msg.message == WM_QUIT)
             {
+            #if APP_DEBUG
                 printf("progress thread quit\n");
+            #endif
                 break;
             }
-            hchild = FindWindowEx(hwnd, NULL, NULL, NULL);    
+            if ((hchild = FindWindowEx(hwnd, NULL, NULL, NULL)))
+            {
+            #if APP_DEBUG
+                printf("hchild = %p, parent = %p\n", hchild, GetParent(hchild));
+            #endif
+            }
             if (data->curr_size < data->total_size)
             {
                 if (i > 500)
@@ -874,12 +906,16 @@ pdf_stream2file(NPP instance, npstream* stream)
     instance_data *data = (instance_data *)instance->pdata;
     if (!data)
     {
+    #if APP_DEBUG
         printf("sp: pdf_stream2file() error: instance->pdata is NULL\n");
+    #endif
         return NP_OUT_OF_MEMORY;
     }
     if (data->hfile)
     {
+    #if APP_DEBUG
         printf("sp: pdf_stream2file() error: data->hfile is != NULL (should be NULL)\n");
+    #endif
     }
     data->progress = 1.0f;
     data->prev_progress = 0.0f; // force update
@@ -904,24 +940,34 @@ static int
 pdf_destroystream(NPP instance, npstream* stream, uint16_t reason)
 {
     instance_data *data;
+#if APP_DEBUG
     printf("sp: NPP_DestroyStream() reason: %d\n", reason);
+#endif
     if (stream)
     {
         if (stream->url)
         {
+        #if APP_DEBUG
             printf("url: %s", stream->url);
+        #endif
         }
+    #if APP_DEBUG
         printf("end: %zd", stream->end);
+    #endif
     }
     if (!instance)
     {
+    #if APP_DEBUG
         printf("sp: pdf_destroystream() error: NP_INVALID_INSTANCE\n");
+    #endif
         return NP_INVALID_INSTANCE;
     }
     data = (instance_data *)instance->pdata;
     if (!data)
     {
+    #if APP_DEBUG
         printf("sp: pdf_destroystream() error: instance->pdata is NULL\n");
+    #endif
         return NP_OUT_OF_MEMORY;
     }
     if (!data->hfile)
@@ -944,7 +990,9 @@ pdf_print(NPP instance, npprint *platform)
 {
     if (platform && NP_FULL != platform->mode)
     {
+    #if APP_DEBUG
         printf("sp: pdf_print(), platformPrint->mode is %d (!= NP_FULL)\n", platform->mode);
+    #endif
         return;
     }
     if (instance)

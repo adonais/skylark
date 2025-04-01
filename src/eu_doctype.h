@@ -86,7 +86,11 @@ enum dctype
     DOCTYPE_PASCAL = 42,
     DOCTYPE_TCL = 43,
     DOCTYPE_INNO = 44,
-    DOCTYPE_NSIS = 45
+    DOCTYPE_NSIS = 45,
+    DOCTYPE_BATCH = 46,
+    DOCTYPE_POWERSHELL = 47,
+    DOCTYPE_TOML = 48,
+    DOCTYPE_ZIG = 49
 };
 
 typedef struct _doc_styles
@@ -150,6 +154,7 @@ int on_doc_count(void);
 int on_doc_brace_light(eu_tabpage *pnode, bool keyup);
 void on_doc_set_vec(void);
 void on_doc_set_ptr(doctype_t *ptr);
+void on_doc_key_scilexer(eu_tabpage *pnode, const  char *name);
 void on_doc_ptr_free(void);
 bool on_doc_is_customized(const eu_tabpage *pnode, const int lex);
 bool eu_doc_special_font(const eu_tabpage *pnode);

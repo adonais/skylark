@@ -1,6 +1,6 @@
 |// Low-level VM code for x64 CPUs in LJ_GC64 mode.
 |// Bytecode interpreter, fast functions and helper functions.
-|// Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+|// Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 |
 |.arch x64
 |.section code_op, code_sub
@@ -4941,7 +4941,6 @@ static void emit_asm_debug(BuildCtx *ctx)
 	  "LEFDEY:\n\n", fcsize);
     }
 #endif
-    fprintf(ctx->fp, ".subsections_via_symbols\n");
     }
     break;
 #endif

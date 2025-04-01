@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2008, 2016 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2024 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -33,7 +33,7 @@
 static int
 utf16_mbtowc (conv_t conv, ucs4_t *pwc, const unsigned char *s, size_t n)
 {
-  state_t state = conv->istate;
+  state_t state = conv->ibyteorder;
   int count = 0;
   for (; n >= 2 && count <= RET_COUNT_MAX && count <= INT_MAX-2;) {
     ucs4_t wc = (state ? s[0] + (s[1] << 8) : (s[0] << 8) + s[1]);
@@ -46,7 +46,7 @@ utf16_mbtowc (conv_t conv, ucs4_t *pwc, const unsigned char *s, size_t n)
         if (!(wc2 >= 0xdc00 && wc2 < 0xe000))
           goto ilseq;
         *pwc = 0x10000 + ((wc - 0xd800) << 10) + (wc2 - 0xdc00);
-        conv->istate = state;
+        conv->ibyteorder = state;
         return count+4;
       } else
         break;
@@ -54,16 +54,16 @@ utf16_mbtowc (conv_t conv, ucs4_t *pwc, const unsigned char *s, size_t n)
       goto ilseq;
     } else {
       *pwc = wc;
-      conv->istate = state;
+      conv->ibyteorder = state;
       return count+2;
     }
     s += 2; n -= 2; count += 2;
   }
-  conv->istate = state;
+  conv->ibyteorder = state;
   return RET_TOOFEW(count);
 
 ilseq:
-  conv->istate = state;
+  conv->ibyteorder = state;
   return RET_SHIFT_ILSEQ(count);
 }
 

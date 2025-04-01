@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "UTF8DocumentIterator.h"
+#include <map>
 #include <string_view>
 #include <stdexcept>
 #include <optional>

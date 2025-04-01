@@ -49,7 +49,7 @@ on_edit_undo(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
-                eu_sci_call(p, SCI_UNDO, 0, 0);
+                on_sci_call(p, SCI_UNDO, 0, 0);
             }
         }
         on_toolbar_update_button();
@@ -70,7 +70,7 @@ on_edit_redo(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
-                eu_sci_call(p, SCI_REDO, 0, 0);
+                on_sci_call(p, SCI_REDO, 0, 0);
             }
         }
         on_toolbar_update_button();
@@ -84,7 +84,7 @@ on_edit_cut(eu_tabpage *pnode)
 {
     if (pnode && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_CUT, 0, 0);
+        on_sci_call(pnode, SCI_CUT, 0, 0);
     }
 }
 
@@ -95,11 +95,11 @@ on_edit_copy_text(eu_tabpage *pnode)
     {
         if (TAB_HEX_MODE(pnode))
         {
-            eu_sci_call(pnode, WM_COPY, 0, 0);
+            on_sci_call(pnode, WM_COPY, 0, 0);
         }
         else if (!pnode->plugin)
         {
-            eu_sci_call(pnode, SCI_COPYALLOWLINE, 0, 0);
+            on_sci_call(pnode, SCI_COPYALLOWLINE, 0, 0);
         }
     }
 }
@@ -109,7 +109,7 @@ on_edit_paste_text(eu_tabpage *pnode)
 {
     if (pnode && !pnode->plugin)
     {
-        eu_sci_call(pnode, SCI_PASTE, 0, 0);
+        on_sci_call(pnode, SCI_PASTE, 0, 0);
     }
 }
 
@@ -118,7 +118,7 @@ on_edit_delete_text(eu_tabpage *pnode)
 {
     if (pnode && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_CLEAR, 0, 0);
+        on_sci_call(pnode, SCI_CLEAR, 0, 0);
     }
 }
 
@@ -127,7 +127,7 @@ on_edit_cut_line(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_LINECUT, 0, 0);
+        on_sci_call(pnode, SCI_LINECUT, 0, 0);
     }
 }
 
@@ -144,7 +144,7 @@ on_edit_copy_line(eu_tabpage *pnode)
             {
                 text[index] = 0;
             }
-            eu_sci_call(pnode, SCI_COPYTEXT, (sptr_t)strlen(text), (sptr_t)text);
+            on_sci_call(pnode, SCI_COPYTEXT, (sptr_t)strlen(text), (sptr_t)text);
             free(text);
         }
     }
@@ -155,7 +155,7 @@ on_edit_line_up(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_MOVESELECTEDLINESUP, 0, 0);
+        on_sci_call(pnode, SCI_MOVESELECTEDLINESUP, 0, 0);
     }
 }
 
@@ -164,9 +164,9 @@ on_edit_line_down(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_MOVESELECTEDLINESDOWN, 0, 0);
+        on_sci_call(pnode, SCI_MOVESELECTEDLINESDOWN, 0, 0);
         // 确保所选内容在视图中可见
-        eu_sci_call(pnode, SCI_SCROLLRANGE, eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0), eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0));
+        on_sci_call(pnode, SCI_SCROLLRANGE, on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0), on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0));
     }
 }
 
@@ -199,8 +199,8 @@ on_edit_incremental_clipborad(eu_tabpage *pnode)
         char *buf0 = NULL;
         char *buf1 = NULL;
         wchar_t *text = NULL;
-        const int n = (const int)eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0);
-        if (n < 0 || eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+        const int n = (const int)on_sci_call(pnode, SCI_GETSELECTIONS, 0, 0);
+        if (n < 0 || on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
         {
             MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             return;
@@ -233,14 +233,14 @@ on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode)
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *prtf = NULL;
-        const sptr_t start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        const sptr_t end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        const sptr_t start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        const sptr_t end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         if (!(start < end))
         {
-            eu_logmsg("%s: start >= end\n", __FUNCTION__);
+            eu_logmsg("Edit: %s, start >= end\n", __FUNCTION__);
             return;
         }
-        if (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
+        if (on_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1)
         {
             MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             return;
@@ -274,15 +274,15 @@ on_edit_rtf_clipborad(const HWND hwnd, eu_tabpage *pnode)
 void
 on_edit_swap_clipborad(eu_tabpage *pnode)
 {
-    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->plugin && eu_sci_call(pnode, SCI_CANPASTE, 0, 0))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->plugin && on_sci_call(pnode, SCI_CANPASTE, 0, 0))
     {
         char *buf = NULL;
         wchar_t *pbuf = NULL;
         bool has_selection = false;
         sptr_t start = 0, end = 0;
-        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-        if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+        sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if (on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
         {
             on_edit_paste_text(pnode);
             return;
@@ -295,10 +295,10 @@ on_edit_swap_clipborad(eu_tabpage *pnode)
         else
         {
             sptr_t m_indent = 0;
-            sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
-            sptr_t current_line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-            end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
+            sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+            sptr_t current_line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+            end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
             m_indent = util_line_header(pnode, current_line_start, end, NULL);
             start = current_line_start + m_indent;
         }
@@ -307,9 +307,9 @@ on_edit_swap_clipborad(eu_tabpage *pnode)
             char *replace = NULL;
             if (util_get_clipboard(&replace) && replace)
             {
-                eu_sci_call(pnode, SCI_SETTARGETSTART, start, 0);
-                eu_sci_call(pnode, SCI_SETTARGETEND, end, 0);
-                eu_sci_call(pnode, SCI_REPLACETARGET,-1, (sptr_t)replace);
+                on_sci_call(pnode, SCI_SETTARGETSTART, start, 0);
+                on_sci_call(pnode, SCI_SETTARGETEND, end, 0);
+                on_sci_call(pnode, SCI_REPLACETARGET,-1, (sptr_t)replace);
                 if ((pbuf = eu_utf8_utf16(buf, NULL)))
                 {
                     on_edit_push_clipboard(pbuf);
@@ -359,9 +359,9 @@ on_edit_execute(eu_tabpage *pnode, const TCHAR *path)
     TCHAR name[MAX_PATH] = {0};
     if (util_product_name(path, name, MAX_PATH - 1))
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sptr_t row = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (_tcsnicmp(name, _T("Notepad++"), _tcslen(_T("Notepad++"))) == 0)
         {
             _sntprintf(cmd, MAX_BUFFER - 1, _T("\"%s\" \"%s\" -n%zd -c%zd"), path, pnode->pathfile, line+1, pos-row+1);
@@ -530,11 +530,11 @@ on_edit_push_compare(void)
         }
         else if ((path = util_which(_T("bcompare"))) != NULL)
         {
-            eu_logmsg("found bcompare\n");
+            eu_logmsg("Edit: found bcompare\n");
         }
         else if ((path = util_which(_T("winmergeu"))) != NULL)
         {
-            eu_logmsg("found winmergeu\n");
+            eu_logmsg("Edit: found winmergeu\n");
         }
         else if ((path = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
         {
@@ -563,10 +563,10 @@ on_edit_convert_slash(eu_tabpage *pnode, const bool slash)
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         char *buf = NULL;
-        const sptr_t start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        const sptr_t end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-        if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0) ||
-           (eu_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1))
+        const sptr_t start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        const sptr_t end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        if (on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0) ||
+           (on_sci_call(pnode, SCI_GETSELECTIONS, 0, 0) > 1))
         {
             MSG_BOX(IDS_SELRECT_MULTI, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
             return;
@@ -598,10 +598,10 @@ on_edit_convert_slash(eu_tabpage *pnode, const bool slash)
                 }
                 if (strcmp(buf, str))
                 {
-                    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-                    eu_sci_call(pnode, SCI_SETTARGETRANGE, start, end);
-                    eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)str);
-                    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                    on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                    on_sci_call(pnode, SCI_SETTARGETRANGE, start, end);
+                    on_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)str);
+                    on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
                 }
                 free(str);
             }
@@ -615,7 +615,7 @@ on_edit_delete_line(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_LINEDELETE, 0, 0);
+        on_sci_call(pnode, SCI_LINEDELETE, 0, 0);
     }
 }
 
@@ -657,15 +657,15 @@ on_edit_delete_dups(eu_tabpage *pnode)
         sptr_t from_line = 0, to_line = 0;
         bool has_selection = false;
         bool has_last_empty = false;
-        const sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        const sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-        sptr_t total_line = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+        const sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        const sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        sptr_t total_line = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
         const char *eol_str = on_encoding_get_eol(pnode);
         if ((has_selection = sel_start != sel_end))
         {
-            sptr_t line1 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
-            sptr_t line2 = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
-            if ((line1 != line2) && (eu_sci_call(pnode, SCI_POSITIONFROMLINE, line2, 0)) == sel_end)
+            sptr_t line1 = on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
+            sptr_t line2 = on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
+            if ((line1 != line2) && (on_sci_call(pnode, SCI_POSITIONFROMLINE, line2, 0)) == sel_end)
             {   // 如果所选内容的结尾包括行尾,不要在范围内包含以下行
                 --line2;
             }
@@ -682,8 +682,8 @@ on_edit_delete_dups(eu_tabpage *pnode)
         {
             return;
         }
-        const sptr_t start_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, from_line, 0);
-        const sptr_t end_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, to_line, 0) + eu_sci_call(pnode, SCI_LINELENGTH, to_line, 0);
+        const sptr_t start_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, from_line, 0);
+        const sptr_t end_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, to_line, 0) + on_sci_call(pnode, SCI_LINELENGTH, to_line, 0);
         const sptr_t buf_size = end_pos - start_pos + 1;
         if ((ptext = (char **) calloc(line_count + 1, sizeof(char *))) == NULL)
         {
@@ -729,10 +729,10 @@ on_edit_delete_dups(eu_tabpage *pnode)
                 buf[buf_len - eol_len] = 0;
             }
         }
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        eu_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
-        eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)buf);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_SETTARGETRANGE, start_pos, end_pos);
+        on_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)buf);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         free(buf);
     }
 }
@@ -742,7 +742,7 @@ on_edit_line_transpose(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_LINETRANSPOSE, 0, 0);
+        on_sci_call(pnode, SCI_LINETRANSPOSE, 0, 0);
     }
 }
 
@@ -783,26 +783,26 @@ count_line_space(eu_tabpage *pnode, sptr_t start, sptr_t end, bool header)
 static void
 do_delete_space(eu_tabpage *pnode, const sptr_t start, const sptr_t end, const bool header)
 {
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     for (sptr_t line = start; line <= end; ++line)
     {
         sptr_t del_len = 0;
-        sptr_t start_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-        sptr_t end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        sptr_t start_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sptr_t end_pos = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
         sptr_t str_len = end_pos - start_pos;
         if (str_len > 0 && (del_len = count_line_space(pnode, start_pos, end_pos, header)) > 0)
         {
             if (header)
             {
-                eu_sci_call(pnode, SCI_DELETERANGE, start_pos, del_len);
+                on_sci_call(pnode, SCI_DELETERANGE, start_pos, del_len);
             }
             else
             {
-                eu_sci_call(pnode, SCI_DELETERANGE, end_pos - del_len, del_len);
+                on_sci_call(pnode, SCI_DELETERANGE, end_pos - del_len, del_len);
             }
         }
     }
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
 }
 
 void
@@ -840,7 +840,7 @@ on_edit_delete_line_header_all(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
-                do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
+                do_delete_space(p, 1, on_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
             }
         }
     }
@@ -860,7 +860,7 @@ on_edit_delete_line_tail_all(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
-                do_delete_space(p, 1, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
+                do_delete_space(p, 1, on_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
             }
         }
     }
@@ -890,22 +890,22 @@ space_in_line(eu_tabpage *pnode, sptr_t start, sptr_t end)
 static void
 do_delete_lines(eu_tabpage *pnode, sptr_t start, sptr_t end, const bool white_chars)
 {
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     for (sptr_t line = start; line <= end; ++line)
     {
         sptr_t start_pos, end_pos, str_len, line_len;
-        start_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-        end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        start_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        end_pos = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
         str_len = end_pos - start_pos;
-        line_len = eu_sci_call(pnode, SCI_LINELENGTH, line, 0);
+        line_len = on_sci_call(pnode, SCI_LINELENGTH, line, 0);
         if (str_len == 0 || (white_chars && space_in_line(pnode, start_pos, end_pos)))
         {
-            eu_sci_call(pnode, SCI_DELETERANGE, start_pos, line_len);
+            on_sci_call(pnode, SCI_DELETERANGE, start_pos, line_len);
             line--;
             end--;
         }
     }
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
 }
 
 void
@@ -921,7 +921,7 @@ on_edit_delete_all_empty_lines(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
-                do_delete_lines(p, 0, eu_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
+                do_delete_lines(p, 0, on_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
             }
         }
     }
@@ -933,12 +933,12 @@ on_edit_join_line(eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sptr_t line_tail_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, line_tail_pos, 0);
-        eu_sci_call(pnode, SCI_CLEAR, 0, 0);
-        eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sptr_t line_tail_pos = on_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
+        on_sci_call(pnode, SCI_GOTOPOS, line_tail_pos, 0);
+        on_sci_call(pnode, SCI_CLEAR, 0, 0);
+        on_sci_call(pnode, SCI_GOTOPOS, pos, 0);
     }
 }
 
@@ -947,13 +947,13 @@ do_toggle_case(eu_tabpage *pnode, const bool do_uppercase, const bool do_line, c
 {
     sptr_t sel_start = 0;
     sptr_t sel_end = 0;
-    eu_sci_call(pnode, SCI_SETCHARSDEFAULT, 0, 0);
-    sptr_t current_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    on_sci_call(pnode, SCI_SETCHARSDEFAULT, 0, 0);
+    sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     if (do_line)
     {
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
-        sel_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-        sel_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+        sel_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sel_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
         sptr_t indent = util_line_header(pnode, sel_start, sel_end, NULL);
         if (indent)
         {
@@ -962,8 +962,8 @@ do_toggle_case(eu_tabpage *pnode, const bool do_uppercase, const bool do_line, c
     }
     else
     {
-        sel_start = eu_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, false);
-        sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, false);
+        sel_start = on_sci_call(pnode, SCI_WORDSTARTPOSITION, current_pos, false);
+        sel_end = on_sci_call(pnode, SCI_WORDENDPOSITION, current_pos, false);
     }
     if (sel_end - sel_start > 0)
     {
@@ -986,13 +986,13 @@ do_toggle_case(eu_tabpage *pnode, const bool do_uppercase, const bool do_line, c
                     line_buf[i] = tolower(line_buf[i]);
                 }
             }
-            eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_end);
-            eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-            eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)line_buf);
-            eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+            on_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_end);
+            on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+            on_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)line_buf);
+            on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         }
         eu_safe_free(line_buf);
-        eu_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
+        on_sci_call(pnode, SCI_GOTOPOS, current_pos, 0);
     }
 }
 
@@ -1002,11 +1002,11 @@ on_edit_lower(eu_tabpage *pnode)
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         bool has_selection = false;
-        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         if ((has_selection = sel_start != sel_end))
         {
-            eu_sci_call(pnode, SCI_LOWERCASE, 0, 0);
+            on_sci_call(pnode, SCI_LOWERCASE, 0, 0);
         }
         else
         {
@@ -1021,11 +1021,11 @@ on_edit_upper(eu_tabpage *pnode)
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         bool has_selection = false;
-        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         if ((has_selection = sel_start != sel_end))
         {
-            eu_sci_call(pnode, SCI_UPPERCASE, 0, 0);
+            on_sci_call(pnode, SCI_UPPERCASE, 0, 0);
         }
         else
         {
@@ -1037,8 +1037,8 @@ on_edit_upper(eu_tabpage *pnode)
 static void
 do_selection_case(eu_tabpage *pnode, const bool sentence)
 {
-    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     if (sel_end > sel_start)
     {
         char *buf = NULL;
@@ -1046,7 +1046,7 @@ do_selection_case(eu_tabpage *pnode, const bool sentence)
         int len = eu_int_cast(sel_end - sel_start);
         if ((buf = on_sci_range_text(pnode, sel_start, sel_end)))
         {
-            sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
             copy = _strdup(buf), _strlwr(buf);
             for (int i = 0; i < len; ++i, ++sel_start)
             {
@@ -1059,7 +1059,7 @@ do_selection_case(eu_tabpage *pnode, const bool sentence)
                     }
                     else
                     {
-                        sel_end = eu_sci_call(pnode, SCI_WORDENDPOSITION, sel_start, true);
+                        sel_end = on_sci_call(pnode, SCI_WORDENDPOSITION, sel_start, true);
                         if (sel_end > sel_start && eu_int_cast(sel_end - sel_start) < len)
                         {
                             i += eu_int_cast(sel_end - sel_start);
@@ -1074,11 +1074,11 @@ do_selection_case(eu_tabpage *pnode, const bool sentence)
             }
             if (copy && strcmp(copy ,buf))
             {
-                eu_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
-                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-                eu_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)buf);
-                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
-                eu_sci_call(pnode, SCI_GOTOPOS, pos, 0);
+                on_sci_call(pnode, SCI_TARGETFROMSELECTION, 0, 0);
+                on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                on_sci_call(pnode, SCI_REPLACETARGET, (WPARAM)-1, (LPARAM)buf);
+                on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                on_sci_call(pnode, SCI_GOTOPOS, pos, 0);
             }
         }
         eu_safe_free(buf);
@@ -1089,9 +1089,9 @@ do_selection_case(eu_tabpage *pnode, const bool sentence)
 void
 on_edit_sentence_upper(eu_tabpage *pnode, const bool sentence)
 {
-    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && !eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && !on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
     {
-        if (!eu_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0))
+        if (!on_sci_call(pnode, SCI_GETSELECTIONEMPTY, 0, 0))
         {
             do_selection_case(pnode, sentence);
         }
@@ -1117,13 +1117,13 @@ on_edit_selection(eu_tabpage *pnode, const int type)
         {
             case 0:
             {
-                file_backup file = {0};
+                file_backup file = {-1, -1, 0, -1, 1};
                 if (eu_exist_path(text) && MultiByteToWideChar(CP_UTF8, 0, text, -1, file.rel_path, MAX_BUFFER) > 0)
                 {
                     uint32_t attr = GetFileAttributes(file.rel_path);
                     if (!(attr & FILE_ATTRIBUTE_DIRECTORY))
                     {
-                        on_file_only_open(&file, true);
+                        on_file_only_open(&file);
                     }
                 }
                 break;
@@ -1260,7 +1260,7 @@ on_edit_base64_enc(eu_tabpage *pnode)
             err = EUE_OPENSSL_ENC_ERR;
             break;
         }
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
     }while(0);
     if (sel_text)
     {
@@ -1327,7 +1327,7 @@ on_edit_base64_dec(eu_tabpage *pnode)
             err = EUE_OPENSSL_DEC_ERR;
             break;
         }
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
     } while(0);
     eu_safe_free(sel_text);
     eu_safe_free(out_text);
@@ -1351,7 +1351,7 @@ on_edit_md5(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
+        eu_logmsg("Edit: %s, memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"MD5"};
@@ -1361,7 +1361,7 @@ on_edit_md5(eu_tabpage *pnode)
     {
         ((eu_md5)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
         util_hex_expand(out_text, MD5_DIGEST_LENGTH, text_exp);
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
         util_ssl_close_symbol(&hssl);
     }
     free(sel_text);
@@ -1385,7 +1385,7 @@ on_edit_sha1(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
+        eu_logmsg("Edit: %s, memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA1"};
@@ -1395,7 +1395,7 @@ on_edit_sha1(eu_tabpage *pnode)
     {
         ((eu_sha1)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
         util_hex_expand(out_text, SHA_DIGEST_LENGTH, text_exp);
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
         util_ssl_close_symbol(&hssl);
     }
     free(sel_text);
@@ -1419,7 +1419,7 @@ on_edit_sha256(eu_tabpage *pnode)
     }
     if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
     {
-        eu_logmsg("%s: memory allocation failed\n", __FUNCTION__);
+        eu_logmsg("Edit: %s, memory allocation failed\n", __FUNCTION__);
         return EUE_OUT_OF_MEMORY;
     }
     char *fn_name[1] = {"SHA256"};
@@ -1429,7 +1429,7 @@ on_edit_sha256(eu_tabpage *pnode)
     {
         ((eu_sha256)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
         util_hex_expand(out_text, SHA256_DIGEST_LENGTH, text_exp);
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
         util_ssl_close_symbol(&hssl);
     }
     free(sel_text);
@@ -1486,7 +1486,7 @@ on_edit_descbc_enc(eu_tabpage *pnode)
         util_enc_des_cbc_192((unsigned char *) key, (unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text, &out_len, NULL);
         memset(text_exp, 0, out_len * 2 + 1);
         util_hex_expand(out_text, (int) out_len, text_exp);
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
     }while(0);
     eu_safe_free(sel_text);
     eu_safe_free(out_text);
@@ -1545,7 +1545,7 @@ on_edit_descbc_dec(eu_tabpage *pnode)
             WideCharToMultiByte(CP_UTF8, 0, key_str, -1, key, 24, NULL, NULL);
         }
         util_dec_des_cbc_192((unsigned char *) key, (unsigned char *) input_text, (int) input_len, (unsigned char *) out_text, &out_len, NULL);
-        eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) out_text);
     } while(0);
     eu_safe_free(sel_text);
     eu_safe_free(input_text);
@@ -1557,7 +1557,7 @@ static void
 on_close_selection(eu_tabpage *pnode, const char *open_str, const char *close_str)
 {
     int len = 0;
-    if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    if (on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
     {
         MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return;
@@ -1567,35 +1567,35 @@ on_close_selection(eu_tabpage *pnode, const char *open_str, const char *close_st
         return;
     }
     util_wait_cursor(pnode);
-    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     if (sel_start == sel_end)
     {
-        sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-        sel_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-        sel_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+        sel_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sel_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
         if (sel_end - sel_start == 0)
         {
             return;
         }
     }
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     len = eu_int_cast(strlen(open_str));
-    eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_start);
-    eu_sci_call(pnode, SCI_REPLACETARGET, len, (LPARAM) open_str);
-    eu_sci_call(pnode, SCI_SETTARGETRANGE, sel_end + len, sel_end + len);
-    eu_sci_call(pnode, SCI_REPLACETARGET, strlen(close_str), (LPARAM) close_str);
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_SETTARGETRANGE, sel_start, sel_start);
+    on_sci_call(pnode, SCI_REPLACETARGET, len, (LPARAM) open_str);
+    on_sci_call(pnode, SCI_SETTARGETRANGE, sel_end + len, sel_end + len);
+    on_sci_call(pnode, SCI_REPLACETARGET, strlen(close_str), (LPARAM) close_str);
+    on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     // fix selection
     if (sel_start == sel_end)
     {
-        eu_sci_call(pnode, SCI_SETSEL, sel_start + len, sel_start + len);
+        on_sci_call(pnode, SCI_SETSEL, sel_start + len, sel_start + len);
     }
     else
     {
-        sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t anchor_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+        sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        sptr_t anchor_pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
 
         if (cur_pos < anchor_pos)
         {
@@ -1607,7 +1607,7 @@ on_close_selection(eu_tabpage *pnode, const char *open_str, const char *close_st
             anchor_pos = sel_start + len;
             cur_pos = sel_end + len;
         }
-        eu_sci_call(pnode, SCI_SETSEL, anchor_pos, cur_pos);
+        on_sci_call(pnode, SCI_SETSEL, anchor_pos, cur_pos);
     }
     util_restore_cursor(pnode);
 }
@@ -1621,10 +1621,10 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     sptr_t eline_start = 0;
     sptr_t eline_end = 0;
     const char *str_eol = on_encoding_get_eol(pnode);
-    sptr_t pos = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-    sptr_t line_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-    sptr_t line_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+    sptr_t pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+    sptr_t line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+    sptr_t line_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (pos != line_start)
     {
         strncat(start, str_eol, QW_SIZE);
@@ -1637,17 +1637,17 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
         {   // 添加回车符, 还需要添加行首可能存在的空白
             char word_buffer[QW_SIZE + 1] = {0};
             Sci_TextRange tr = {{line_start, pos}, word_buffer};
-            eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+            on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (*word_buffer)
             {
                 strncat(start, word_buffer, QW_SIZE);
             }
         }
     }
-    pos = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-    line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-    eline_start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-    eline_end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+    pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+    eline_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+    eline_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (eline_start != eline_end)
     {
         strncat(end, str_eol, QW_SIZE);
@@ -1665,7 +1665,7 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
 static void
 eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
 {
-    if (eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+    if (on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
     {
         MSG_BOX(IDS_SELRECT, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return;
@@ -1673,9 +1673,9 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
     util_wait_cursor(pnode);
     sptr_t line_start;
     sptr_t line_end;
-    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-    sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     const int cch_comment = eu_int_cast(strlen(pcomment));
     util_effect_line(pnode, &line_start, &line_end);
     sptr_t comment_col = 0;
@@ -1684,31 +1684,31 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
         comment_col = MAX_BUFFER;
         for (sptr_t lc = line_start; lc <= line_end; lc++)
         {
-            const sptr_t line_end_pos = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, lc, 0);
-            const sptr_t line_indent_pos = eu_sci_call(pnode, SCI_GETLINEINDENTPOSITION, lc, 0);
+            const sptr_t line_end_pos = on_sci_call(pnode, SCI_GETLINEENDPOSITION, lc, 0);
+            const sptr_t line_indent_pos = on_sci_call(pnode, SCI_GETLINEINDENTPOSITION, lc, 0);
 
             if (line_indent_pos != line_end_pos)
             {
-                const sptr_t indent_col = eu_sci_call(pnode, SCI_GETCOLUMN, line_indent_pos, 0);
+                const sptr_t indent_col = on_sci_call(pnode, SCI_GETCOLUMN, line_indent_pos, 0);
                 comment_col = MIN_POS(comment_col, indent_col);
             }
         }
     }
-    eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
     int m_action = 0;
 
     for (sptr_t lc = line_start; lc <= line_end; lc++)
     {
-        const sptr_t indent_pos = eu_sci_call(pnode, SCI_GETLINEINDENTPOSITION, lc, 0);
+        const sptr_t indent_pos = on_sci_call(pnode, SCI_GETLINEINDENTPOSITION, lc, 0);
         bool whilte_line = false;
         // 空白行 [space/tab]
-        if (comment_col && indent_pos == eu_sci_call(pnode, SCI_GETLINEENDPOSITION, lc, 0))
+        if (comment_col && indent_pos == on_sci_call(pnode, SCI_GETLINEENDPOSITION, lc, 0))
         {
             whilte_line = true;
         }
         char ch_buf[DW_SIZE + 1] = { 0 };
         struct Sci_TextRange tr = { {indent_pos, indent_pos + MIN_POS(DW_SIZE, cch_comment) }, ch_buf };
-        eu_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
+        on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
 
         sptr_t comment_pos;
         if (_strnicmp(ch_buf, pcomment, cch_comment) == 0)
@@ -1723,20 +1723,20 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
                 case 2:
                     comment_pos = indent_pos;
                     // 包括注释的空白行 [space/tab/comment]
-                    ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, indent_pos + cch_comment, 0);
+                    ch = (int) on_sci_call(pnode, SCI_GETCHARAT, indent_pos + cch_comment, 0);
                     if (ch == on_encoding_eol_char(pnode))
                     {
-                        comment_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, lc, 0);
+                        comment_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, lc, 0);
                     }
-                    eu_sci_call(pnode, SCI_SETTARGETRANGE, comment_pos, indent_pos + cch_comment);
-                    eu_sci_call(pnode, SCI_REPLACETARGET, 0, (LPARAM) "");
+                    on_sci_call(pnode, SCI_SETTARGETRANGE, comment_pos, indent_pos + cch_comment);
+                    on_sci_call(pnode, SCI_REPLACETARGET, 0, (LPARAM) "");
                     break;
                 case 1:
-                    comment_pos = eu_sci_call(pnode, SCI_FINDCOLUMN, lc, comment_col);
-                    ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, comment_pos, 0);
+                    comment_pos = on_sci_call(pnode, SCI_FINDCOLUMN, lc, comment_col);
+                    ch = (int) on_sci_call(pnode, SCI_GETCHARAT, comment_pos, 0);
                     if (ch == '\t' || ch == ' ')
                     {
-                        eu_sci_call(pnode, SCI_INSERTTEXT, comment_pos, (LPARAM) pcomment);
+                        on_sci_call(pnode, SCI_INSERTTEXT, comment_pos, (LPARAM) pcomment);
                     }
                     break;
             }
@@ -1749,17 +1749,17 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
                     m_action = 1;
                     FALLTHROUGH_ATTR;
                 case 1:
-                    comment_pos = eu_sci_call(pnode, SCI_FINDCOLUMN, lc, comment_col);
+                    comment_pos = on_sci_call(pnode, SCI_FINDCOLUMN, lc, comment_col);
                     if (!whilte_line || (line_start == line_end))
                     {
-                        eu_sci_call(pnode, SCI_INSERTTEXT, comment_pos, (LPARAM) pcomment);
+                        on_sci_call(pnode, SCI_INSERTTEXT, comment_pos, (LPARAM) pcomment);
                     }
                     else
                     {
                         char psz_comment[MAX_BUFFER] = { 0 };
                         sptr_t tab = 0;
-                        bool tab_as_spaces = !eu_sci_call(pnode, SCI_GETUSETABS, 0, 0);
-                        int tab_width = (int)eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
+                        bool tab_as_spaces = !on_sci_call(pnode, SCI_GETUSETABS, 0, 0);
+                        int tab_width = (int)on_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
                         sptr_t count = comment_col;
                         if (!tab_as_spaces && tab_width > 0)
                         {
@@ -1769,7 +1769,7 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
                         }
                         FillMemory(psz_comment + tab, count, ' ');
                         strcat(psz_comment, pcomment);
-                        eu_sci_call(pnode, SCI_INSERTTEXT, comment_pos, (LPARAM) psz_comment);
+                        on_sci_call(pnode, SCI_INSERTTEXT, comment_pos, (LPARAM) psz_comment);
                     }
                     break;
                 case 2:
@@ -1777,21 +1777,21 @@ eu_toggle_comment(eu_tabpage *pnode, const char *pcomment, bool at_start)
             }
         }
     }
-    eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+    on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     if (sel_start != sel_end)
     {
         sptr_t anchor_pos;
         if (cur_pos == sel_start)
         {
-            cur_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line_start, 0);
-            anchor_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line_end + 1, 0);
+            cur_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, line_start, 0);
+            anchor_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, line_end + 1, 0);
         }
         else
         {
-            anchor_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line_start, 0);
-            cur_pos = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line_end + 1, 0);
+            anchor_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, line_start, 0);
+            cur_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, line_end + 1, 0);
         }
-        eu_sci_call(pnode, SCI_SETSEL, anchor_pos, cur_pos);
+        on_sci_call(pnode, SCI_SETSEL, anchor_pos, cur_pos);
     }
     util_restore_cursor(pnode);
 }
@@ -1829,8 +1829,8 @@ get_html_block(int style)
 static int
 on_html_block(eu_tabpage *pnode)
 {
-    const sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    const int style = (int) eu_sci_call(pnode, SCI_GETSTYLEAT, pos, 0);
+    const sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    const int style = (int) on_sci_call(pnode, SCI_GETSTYLEAT, pos, 0);
     return get_html_block(style);
 }
 
@@ -1954,23 +1954,19 @@ on_edit_comment_line(eu_tabpage *pnode)
         case DOCTYPE_JULIA:
             eu_toggle_comment(pnode, "# ", false);
             break;
+        case DOCTYPE_BATCH:
+            eu_toggle_comment(pnode, "@rem ", false);
+            break;
+        case DOCTYPE_POWERSHELL:
         case DOCTYPE_SH:
         {
-            TCHAR *sp = on_doc_get_ext(pnode);
-            if (sp && _tcsstr(_T(";*.bat;*.cmd;*.nt;"), sp))
-            {
-                eu_toggle_comment(pnode, "@rem ", false);
-            }
-            else
-            {
-                eu_toggle_comment(pnode, "# ", false);
-            }
+            eu_toggle_comment(pnode, "# ", false);
             break;
         }
         case DOCTYPE_INNO:
         {
-            const sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), 0);
-            const int state = (const int)eu_sci_call(pnode, SCI_GETLINESTATE, line, 0);
+            const sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), 0);
+            const int state = (const int)on_sci_call(pnode, SCI_GETLINESTATE, line, 0);
 			if (state & INNOLINESTATECODESECTION)
 			{
 				eu_toggle_comment(pnode, "// ", false);
@@ -2058,23 +2054,19 @@ on_edit_comment_stream(eu_tabpage *pnode)
         case DOCTYPE_JULIA:
             on_comment_newline(pnode, "#=", "=#");
             break;
+        case DOCTYPE_POWERSHELL:
+            on_comment_newline(pnode, "<#", "#>");
+            break;
+        case DOCTYPE_BATCH:
         case DOCTYPE_SH:
         {
-            TCHAR *sp = on_doc_get_ext(pnode);
-            if ((sp && _tcsstr(_T(";*.ps1;*.psc1;*.psd1;*.psm1;"), sp)))
-            {
-                on_comment_newline(pnode, "<#", "#>");
-            }
-            else
-            {
-                on_edit_comment_line(pnode);
-            }
+            on_edit_comment_line(pnode);
             break;
         }
         case DOCTYPE_INNO:
         {
-            const sptr_t line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), 0);
-            const int state = (const int)eu_sci_call(pnode, SCI_GETLINESTATE, line, 0);
+            const sptr_t line = on_sci_call(pnode, SCI_LINEFROMPOSITION, on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0), 0);
+            const int state = (const int)on_sci_call(pnode, SCI_GETLINESTATE, line, 0);
 			if (state & INNOLINESTATECODESECTION)
 			{
 				on_close_selection(pnode, "{ ", " }");
@@ -2100,13 +2092,13 @@ on_edit_comment_stream(eu_tabpage *pnode)
 int
 on_edit_convert_eols(eu_tabpage *pnode, int eol_mode)
 {
-    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && (eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod && (on_sci_call(pnode, SCI_GETEOLMODE, 0, 0) != eol_mode))
     {
-        eu_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        eu_sci_call(pnode, SCI_CONVERTEOLS, eol_mode, 0);
-        eu_sci_call(pnode, SCI_ADDUNDOACTION, EOLS_UNDO, 0);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_SETEOLMODE, eol_mode, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_CONVERTEOLS, eol_mode, 0);
+        on_sci_call(pnode, SCI_ADDUNDOACTION, EOLS_UNDO, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         _snprintf(pnode->eols_undo_str, QW_SIZE-1, "%s=%d=%d", EOLS_UNDO_DESC, pnode->eol, eol_mode);
         pnode->eol = eol_mode;
         on_file_filedb_update(pnode);
@@ -2122,11 +2114,11 @@ on_edit_convert_coding(eu_tabpage *pnode, int new_code)
     {
         _snprintf(pnode->icon_undo_str, QW_SIZE-1, "%s=%d=%d", ICON_UNDO_DESC, pnode->codepage, new_code);
         pnode->codepage = new_code;
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        eu_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) pnode->icon_undo_str);
-        eu_sci_call(pnode, SCI_DELETERANGE, 0, strlen(pnode->icon_undo_str));
-        eu_sci_call(pnode, SCI_ADDUNDOACTION, ICONV_UNDO, 0);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_INSERTTEXT, 0, (sptr_t) pnode->icon_undo_str);
+        on_sci_call(pnode, SCI_DELETERANGE, 0, strlen(pnode->icon_undo_str));
+        on_sci_call(pnode, SCI_ADDUNDOACTION, ICONV_UNDO, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         on_file_filedb_update(pnode);
         return 0;
     }
@@ -2162,7 +2154,7 @@ on_edit_undo_eol(eu_tabpage *pnode)
         {
             pnode->eol = old_eol;
             _snprintf(pnode->eols_undo_str, QW_SIZE-1, "%s=%d=%d", EOLS_UNDO_DESC, new_eol, old_eol);
-            eu_sci_call(pnode, SCI_SETEOLMODE, old_eol, 0);
+            on_sci_call(pnode, SCI_SETEOLMODE, old_eol, 0);
             on_statusbar_update_eol(pnode, old_eol);
         }
     }
@@ -2212,23 +2204,23 @@ on_edit_sorting(eu_tabpage *p, int wm_id)
                 char **ppline = NULL;
                 sptr_t cur_line = 0;
                 sptr_t cur_line_start =  0;
-                sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                sptr_t anchor_pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+                sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+                sptr_t anchor_pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
                 const char *str_eol = on_encoding_get_eol(pnode);
                 if (cur_pos == anchor_pos)
                 {
-                    count = eu_int_cast(eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0));
+                    count = eu_int_cast(on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0));
                 }
                 else
                 {
-                    if (!eu_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
+                    if (!on_sci_call(pnode, SCI_SELECTIONISRECTANGLE, 0, 0))
                     {   // 行选中状态下的部分排序
-                        sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-                        sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-                        cur_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
-                        cur_line_start =  eu_sci_call(pnode, SCI_POSITIONFROMLINE, cur_line, 0);
-                        sptr_t eol_line =  eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
-                        sptr_t eol_line_end =  eu_sci_call(pnode, SCI_GETLINEENDPOSITION, eol_line, 0);
+                        sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+                        sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+                        cur_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
+                        cur_line_start =  on_sci_call(pnode, SCI_POSITIONFROMLINE, cur_line, 0);
+                        sptr_t eol_line =  on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
+                        sptr_t eol_line_end =  on_sci_call(pnode, SCI_GETLINEENDPOSITION, eol_line, 0);
                         if (!(sel_start != cur_line_start || sel_end != eol_line_end))
                         {   // 正确的选中, 行头--行末
                             count = eu_int_cast(eol_line - cur_line);
@@ -2288,14 +2280,14 @@ on_edit_sorting(eu_tabpage *p, int wm_id)
                     default:
                         goto sorting_clean;
                 }
-                eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+                on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
                 if (!has_lineselection)
                 {
-                    eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                    on_sci_call(pnode, SCI_CLEARALL, 0, 0);
                 }
                 else
                 {
-                    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)(""));
+                    on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t)(""));
                 }
                 for (i = 0; i < count; i++)
                 {
@@ -2309,15 +2301,15 @@ on_edit_sorting(eu_tabpage *p, int wm_id)
                     }
                     if (!has_lineselection)
                     {
-                        eu_sci_call(pnode, SCI_APPENDTEXT, strlen(ppline[i]), (LPARAM) (ppline[i]));
+                        on_sci_call(pnode, SCI_APPENDTEXT, strlen(ppline[i]), (LPARAM) (ppline[i]));
                     }
                     else
                     {
-                        eu_sci_call(pnode, SCI_INSERTTEXT, cur_line_start, (LPARAM) (ppline[i]));
+                        on_sci_call(pnode, SCI_INSERTTEXT, cur_line_start, (LPARAM) (ppline[i]));
                         cur_line_start += strlen(ppline[i]);
                     }
                 }
-                eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+                on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
             sorting_clean:
                 if (ppline)
                 {
@@ -2342,7 +2334,7 @@ on_edit_bookmark_copy(eu_tabpage *pnode)
     sptr_t line = LINE_NOT_FOUND;
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        for (sptr_t i = 0, last = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
         {
             if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
             {
@@ -2353,7 +2345,7 @@ on_edit_bookmark_copy(eu_tabpage *pnode)
                     free(p1);
                     if (!p)
                     {
-                        eu_logmsg("Warning: p is null\n");
+                        eu_logmsg("Edit: warning, p is null\n");
                         break;
                     }
                 }
@@ -2377,8 +2369,8 @@ on_edit_bookmark_cut(eu_tabpage *pnode)
     sptr_t line = LINE_NOT_FOUND;
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        for (sptr_t i = 0, last = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
         {
             if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
             {
@@ -2392,21 +2384,21 @@ on_edit_bookmark_cut(eu_tabpage *pnode)
                     }
                     else 
                     {
-                        sptr_t start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-                        sptr_t end = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line + 1, 0);
+                        sptr_t start = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+                        sptr_t end = on_sci_call(pnode, SCI_POSITIONFROMLINE, line + 1, 0);
                         if (end == LINE_NOT_FOUND)
                         {
-                            end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+                            end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
                         }
-                        eu_sci_call(pnode, SCI_DELETERANGE, start, end - start);
-                        eu_sci_call(pnode, SCI_MARKERDELETE, line, MARGIN_BOOKMARK_VALUE);
+                        on_sci_call(pnode, SCI_DELETERANGE, start, end - start);
+                        on_sci_call(pnode, SCI_MARKERDELETE, line, MARGIN_BOOKMARK_VALUE);
                     }
                 }
                 i = line - 1;
                 --last;
             }
         }
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         if (p && (ptext = eu_utf8_utf16(p, NULL)))
         {
             on_edit_push_clipboard(ptext);
@@ -2422,24 +2414,24 @@ on_edit_bookmark_remove(eu_tabpage *pnode)
     sptr_t line = LINE_NOT_FOUND;
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        for (sptr_t i = 0, last = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
         {
             if ((line = on_search_marker_next(pnode, i, last, MARGIN_BOOKMARK_MASKN)) != LINE_NOT_FOUND)
             {
-                sptr_t start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
-                sptr_t end = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line + 1, 0);
+                sptr_t start = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+                sptr_t end = on_sci_call(pnode, SCI_POSITIONFROMLINE, line + 1, 0);
                 if (end == LINE_NOT_FOUND)
                 {
-                    end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
+                    end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
                 }
-                eu_sci_call(pnode, SCI_DELETERANGE, start, end - start);
-                eu_sci_call(pnode, SCI_MARKERDELETE, line, MARGIN_BOOKMARK_VALUE);
+                on_sci_call(pnode, SCI_DELETERANGE, start, end - start);
+                on_sci_call(pnode, SCI_MARKERDELETE, line, MARGIN_BOOKMARK_VALUE);
                 i = line - 1;
                 --last;
             }
         }
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
 }
 
@@ -2449,21 +2441,21 @@ on_edit_bookmark_reserve_remove(eu_tabpage *pnode)
     sptr_t line = LINE_NOT_FOUND;
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        for (sptr_t i = 0, last = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        for (sptr_t i = 0, last = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0); i < last; ++i)
         {
-            if (!(eu_sci_call(pnode, SCI_MARKERGET, i, 0) & MARGIN_BOOKMARK_MASKN))
+            if (!(on_sci_call(pnode, SCI_MARKERGET, i, 0) & MARGIN_BOOKMARK_MASKN))
             {
-                sptr_t start = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
-                sptr_t end = eu_sci_call(pnode, SCI_POSITIONFROMLINE, i + 1, 0);
+                sptr_t start = on_sci_call(pnode, SCI_POSITIONFROMLINE, i, 0);
+                sptr_t end = on_sci_call(pnode, SCI_POSITIONFROMLINE, i + 1, 0);
                 if (end == LINE_NOT_FOUND)
                 {
-                    end = eu_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
+                    end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, i, 0);
                 }
-                eu_sci_call(pnode, SCI_DELETERANGE, start, end - start);
+                on_sci_call(pnode, SCI_DELETERANGE, start, end - start);
                 --i, --last;
             }
         }
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
 }

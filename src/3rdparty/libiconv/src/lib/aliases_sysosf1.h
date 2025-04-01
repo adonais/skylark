@@ -32,7 +32,7 @@
 #line 1 "lib/aliases_sysosf1.gperf"
 struct alias { int name; unsigned int encoding_index; };
 
-#define TOTAL_KEYWORDS 354
+#define TOTAL_KEYWORDS 356
 #define MIN_WORD_LENGTH 2
 #define MAX_WORD_LENGTH 45
 #define MIN_HASH_VALUE 15
@@ -500,8 +500,10 @@ struct stringpool_t
     char stringpool_str844[sizeof("BIG5-HKSCS:2008")];
     char stringpool_str846[sizeof("BIG5-HKSCS:1999")];
     char stringpool_str848[sizeof("MACHEBREW")];
+    char stringpool_str861[sizeof("GB18030:2022")];
     char stringpool_str879[sizeof("TCVN5712-1:1993")];
     char stringpool_str893[sizeof("UCS-4-SWAPPED")];
+    char stringpool_str909[sizeof("GB18030:2005")];
     char stringpool_str911[sizeof("UCS-2-SWAPPED")];
     char stringpool_str928[sizeof("WINBALTRIM")];
     char stringpool_str981[sizeof("MS-ARAB")];
@@ -857,8 +859,10 @@ static const struct stringpool_t stringpool_contents =
     "BIG5-HKSCS:2008",
     "BIG5-HKSCS:1999",
     "MACHEBREW",
+    "GB18030:2022",
     "TCVN5712-1:1993",
     "UCS-4-SWAPPED",
+    "GB18030:2005",
     "UCS-2-SWAPPED",
     "WINBALTRIM",
     "MS-ARAB"
@@ -898,7 +902,7 @@ static const struct alias aliases[] =
 #line 68 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str43, ei_iso8859_2},
     {-1}, {-1}, {-1}, {-1}, {-1},
-#line 335 "lib/aliases_sysosf1.gperf"
+#line 337 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str49, ei_hz},
     {-1},
 #line 16 "lib/aliases_sysosf1.gperf"
@@ -963,7 +967,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str104, ei_cp1254},
 #line 292 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str105, ei_gb2312},
-#line 357 "lib/aliases_sysosf1.gperf"
+#line 359 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str106, ei_cp949},
     {-1},
 #line 186 "lib/aliases_sysosf1.gperf"
@@ -1028,7 +1032,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str143, ei_iso8859_11},
 #line 86 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str144, ei_iso8859_4},
-#line 361 "lib/aliases_sysosf1.gperf"
+#line 363 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str145, ei_johab},
 #line 162 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str146, ei_iso8859_16},
@@ -1103,7 +1107,7 @@ static const struct alias aliases[] =
 #line 64 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str187, ei_iso8859_2},
     {-1}, {-1}, {-1}, {-1}, {-1},
-#line 364 "lib/aliases_sysosf1.gperf"
+#line 366 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str193, ei_local_char},
     {-1}, {-1}, {-1},
 #line 74 "lib/aliases_sysosf1.gperf"
@@ -1115,14 +1119,14 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str202, ei_ascii},
 #line 167 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str203, ei_koi8_r},
-#line 354 "lib/aliases_sysosf1.gperf"
+#line 356 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str204, ei_euc_kr},
 #line 165 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str205, ei_iso8859_16},
     {-1}, {-1}, {-1},
 #line 313 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str209, ei_cp932},
-#line 353 "lib/aliases_sysosf1.gperf"
+#line 355 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str210, ei_euc_kr},
     {-1},
 #line 320 "lib/aliases_sysosf1.gperf"
@@ -1174,11 +1178,11 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str250, ei_cp850},
 #line 82 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str251, ei_iso8859_4},
-#line 346 "lib/aliases_sysosf1.gperf"
+#line 348 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str252, ei_cp950},
 #line 233 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str253, ei_koi8_t},
-#line 332 "lib/aliases_sysosf1.gperf"
+#line 334 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str254, ei_iso2022_cn},
 #line 266 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str255, ei_iso646_jp},
@@ -1188,12 +1192,12 @@ static const struct alias aliases[] =
     {-1},
 #line 164 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str259, ei_iso8859_16},
-#line 358 "lib/aliases_sysosf1.gperf"
+#line 360 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str260, ei_cp949},
 #line 75 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str261, ei_iso8859_3},
     {-1},
-#line 333 "lib/aliases_sysosf1.gperf"
+#line 335 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str263, ei_iso2022_cn},
 #line 131 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str264, ei_iso8859_10},
@@ -1222,7 +1226,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str279, ei_euc_cn},
 #line 38 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str280, ei_utf16},
-#line 334 "lib/aliases_sysosf1.gperf"
+#line 336 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str281, ei_iso2022_cn_ext},
 #line 246 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str282, ei_tis620},
@@ -1246,7 +1250,7 @@ static const struct alias aliases[] =
 #line 14 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str302, ei_ascii},
     {-1},
-#line 359 "lib/aliases_sysosf1.gperf"
+#line 361 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str304, ei_cp949},
     {-1}, {-1}, {-1},
 #line 23 "lib/aliases_sysosf1.gperf"
@@ -1255,7 +1259,7 @@ static const struct alias aliases[] =
 #line 297 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str311, ei_ksc5601},
     {-1}, {-1}, {-1},
-#line 340 "lib/aliases_sysosf1.gperf"
+#line 342 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str315, ei_ces_big5},
 #line 136 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str316, ei_iso8859_10},
@@ -1265,7 +1269,7 @@ static const struct alias aliases[] =
 #line 24 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str319, ei_ucs2},
     {-1},
-#line 341 "lib/aliases_sysosf1.gperf"
+#line 343 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str321, ei_ces_big5},
 #line 129 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str322, ei_iso8859_10},
@@ -1289,7 +1293,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str332, ei_iso8859_13},
 #line 141 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str333, ei_iso8859_13},
-#line 345 "lib/aliases_sysosf1.gperf"
+#line 347 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str334, ei_ces_big5},
 #line 40 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str335, ei_utf16le},
@@ -1301,7 +1305,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str338, ei_ces_gbk},
 #line 179 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str339, ei_cp1252},
-#line 344 "lib/aliases_sysosf1.gperf"
+#line 346 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str340, ei_ces_big5},
 #line 56 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str341, ei_iso8859_1},
@@ -1372,7 +1376,7 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str390, ei_iso8859_7},
 #line 230 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str391, ei_armscii_8},
-#line 362 "lib/aliases_sysosf1.gperf"
+#line 364 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str392, ei_iso2022_kr},
     {-1}, {-1}, {-1},
 #line 232 "lib/aliases_sysosf1.gperf"
@@ -1382,7 +1386,7 @@ static const struct alias aliases[] =
 #line 108 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str398, ei_iso8859_7},
     {-1}, {-1},
-#line 363 "lib/aliases_sysosf1.gperf"
+#line 365 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str401, ei_iso2022_kr},
     {-1},
 #line 143 "lib/aliases_sysosf1.gperf"
@@ -1407,7 +1411,7 @@ static const struct alias aliases[] =
     {-1},
 #line 34 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str416, ei_ucs4},
-#line 356 "lib/aliases_sysosf1.gperf"
+#line 358 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str417, ei_euc_kr},
 #line 264 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str418, ei_iso646_jp},
@@ -1429,10 +1433,10 @@ static const struct alias aliases[] =
     {-1}, {-1},
 #line 25 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str434, ei_ucs2},
-#line 338 "lib/aliases_sysosf1.gperf"
+#line 340 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str435, ei_euc_tw},
     {-1}, {-1}, {-1}, {-1}, {-1},
-#line 337 "lib/aliases_sysosf1.gperf"
+#line 339 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str441, ei_euc_tw},
 #line 291 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str442, ei_gb2312},
@@ -1447,7 +1451,7 @@ static const struct alias aliases[] =
 #line 213 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str448, ei_mac_roman},
     {-1}, {-1}, {-1},
-#line 355 "lib/aliases_sysosf1.gperf"
+#line 357 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str452, ei_euc_kr},
 #line 12 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str453, ei_ascii},
@@ -1456,12 +1460,12 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str455, ei_georgian_academy},
 #line 188 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str456, ei_cp1255},
-#line 365 "lib/aliases_sysosf1.gperf"
+#line 367 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str457, ei_local_wchar_t},
 #line 43 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str458, ei_utf32le},
 #line 331 "lib/aliases_sysosf1.gperf"
-    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str459, ei_gb18030},
+    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str459, ei_gb18030_2005},
 #line 113 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str460, ei_iso8859_7},
     {-1},
@@ -1527,7 +1531,7 @@ static const struct alias aliases[] =
 #line 178 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str518, ei_cp1252},
     {-1},
-#line 351 "lib/aliases_sysosf1.gperf"
+#line 353 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str520, ei_big5hkscs2008},
     {-1}, {-1},
 #line 45 "lib/aliases_sysosf1.gperf"
@@ -1535,7 +1539,7 @@ static const struct alias aliases[] =
     {-1},
 #line 318 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str525, ei_iso2022_jp2},
-#line 350 "lib/aliases_sysosf1.gperf"
+#line 352 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str526, ei_big5hkscs2008},
 #line 301 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str527, ei_ksc5601},
@@ -1547,14 +1551,14 @@ static const struct alias aliases[] =
 #line 307 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str532, ei_euc_jp},
     {-1},
-#line 336 "lib/aliases_sysosf1.gperf"
+#line 338 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str534, ei_hz},
 #line 182 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str535, ei_cp1253},
     {-1}, {-1}, {-1}, {-1}, {-1},
 #line 220 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str541, ei_mac_greek},
-#line 343 "lib/aliases_sysosf1.gperf"
+#line 345 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str542, ei_ces_big5},
 #line 251 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str543, ei_tis620},
@@ -1562,7 +1566,7 @@ static const struct alias aliases[] =
 #line 324 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str546, ei_euc_cn},
     {-1},
-#line 342 "lib/aliases_sysosf1.gperf"
+#line 344 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str548, ei_ces_big5},
 #line 73 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str549, ei_iso8859_3},
@@ -1674,7 +1678,7 @@ static const struct alias aliases[] =
 #line 118 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str677, ei_iso8859_8},
     {-1}, {-1}, {-1}, {-1}, {-1},
-#line 339 "lib/aliases_sysosf1.gperf"
+#line 341 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str683, ei_euc_tw},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
 #line 271 "lib/aliases_sysosf1.gperf"
@@ -1722,26 +1726,28 @@ static const struct alias aliases[] =
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str813, ei_mac_romania},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
     {-1}, {-1}, {-1}, {-1}, {-1},
-#line 348 "lib/aliases_sysosf1.gperf"
+#line 350 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str828, ei_big5hkscs2001},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-#line 349 "lib/aliases_sysosf1.gperf"
+#line 351 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str836, ei_big5hkscs2004},
-#line 360 "lib/aliases_sysosf1.gperf"
+#line 362 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str837, ei_johab},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-#line 352 "lib/aliases_sysosf1.gperf"
+#line 354 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str844, ei_big5hkscs2008},
     {-1},
-#line 347 "lib/aliases_sysosf1.gperf"
+#line 349 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str846, ei_big5hkscs1999},
     {-1},
 #line 222 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str848, ei_mac_hebrew},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-    {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-    {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
     {-1}, {-1}, {-1},
+#line 333 "lib/aliases_sysosf1.gperf"
+    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str861, ei_gb18030_2022},
+    {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
+    {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
 #line 262 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str879, ei_tcvn},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
@@ -1749,7 +1755,10 @@ static const struct alias aliases[] =
 #line 50 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str893, ei_ucs4swapped},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-    {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
+    {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
+#line 332 "lib/aliases_sysosf1.gperf"
+    {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str909, ei_gb18030_2005},
+    {-1},
 #line 48 "lib/aliases_sysosf1.gperf"
     {(int)(size_t)&((struct stringpool_t *)0)->stringpool_str911, ei_ucs2swapped},
     {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},

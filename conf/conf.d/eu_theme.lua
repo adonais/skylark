@@ -170,7 +170,17 @@ function eu_theme.get_default(name)
           "dochistory_fontsize = 11\n" ..
           "dochistory_color = 0x000080FF\n" ..
           "dochistory_bgcolor = 0x0000A000\n" ..
-          "dochistory_bold = 0"
+          "dochistory_bold = 0\n" ..
+          "-- white space char setting, no need font\n" ..
+          "whitechar_font = \"\"\n" ..
+          "-- white space char szie, 0 - 12\n" ..
+          "whitechar_fontsize = 2\n" ..
+          "-- white space char color, ABGR mode\n" ..
+          "whitechar_color = 0x3FD4D4D4\n" ..
+          "-- line break color, ABGR mode\n" ..
+          "whitechar_bgcolor = 0x3FD4D4D4\n" ..
+          "-- 1, white space char show. 2, line break show. 3, show item\n" ..
+          "whitechar_bold = 0"
     elseif (name == "white") then
         theme = -- 经典白主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -337,7 +347,17 @@ function eu_theme.get_default(name)
           "dochistory_fontsize = 11\n" ..
           "dochistory_color = 0x000080FF\n" ..
           "dochistory_bgcolor = 0x0000A000\n" ..
-          "dochistory_bold = 0"
+          "dochistory_bold = 0" ..
+          "-- white space char setting, no need font\n" ..
+          "whitechar_font = \"\"\n" ..
+          "-- white space char szie, 0 - 12\n" ..
+          "whitechar_fontsize = 2\n" ..
+          "-- white space char color, ABGR mode\n" ..
+          "whitechar_color = 0x3F000000\n" ..
+          "-- line break color, ABGR mode\n" ..
+          "whitechar_bgcolor = 0x3F000000\n" ..
+          "-- 1, white space char show. 2, line break show. 3, show item\n" ..
+          "whitechar_bold = 0"
     else
         theme = -- 默认主题配置文件
           "linenumber_font = \"Consolas\"\n" ..
@@ -506,7 +526,17 @@ function eu_theme.get_default(name)
           "dochistory_fontsize = 11\n" ..
           "dochistory_color = 0x000080FF\n" ..
           "dochistory_bgcolor = 0x0000A000\n" ..
-          "dochistory_bold = 0"
+          "dochistory_bold = 0" ..
+          "-- white space char setting, no need font\n" ..
+          "whitechar_font = \"\"\n" ..
+          "-- white space char szie, 0 - 12\n" ..
+          "whitechar_fontsize = 2\n" ..
+          "-- white space char color, ABGR mode\n" ..
+          "whitechar_color = 0x3FFFFFFF\n" ..
+          "-- line break color, ABGR mode\n" ..
+          "whitechar_bgcolor = 0x3FFFFFFF\n" ..
+          "-- 1, white space char show. 2, line break show. 3, show item\n" ..
+          "whitechar_bold = 0"
     end
     return theme
 end
@@ -554,9 +584,12 @@ function eu_theme.load_default(name)
         tname = name
     end
     -- 兼容旧代码
-    if (name == "black" and activetab_bgcolor == 0x00545454 and activetab_color == 0) then
-        activetab_color = 0x00545454
-        activetab_bgcolor = 0x00C4C4C4
+    if (whitechar_font == nil) then
+        whitechar_font = ""
+        whitechar_fontsize = 2
+        whitechar_color = 0x3F0040FF
+        whitechar_bgcolor = 0x3F0040FF
+        whitechar_bold = 0
     end
     local m_file = eu_core.ffi.new('char[260]')
     eu_core.ffi.C._fullpath(m_file, file, 260)
@@ -594,7 +627,8 @@ function eu_theme.load_default(name)
         {results_font,results_fontsize,results_color,results_bgcolor,results_bold},
         {bracesection_font,bracesection_fontsize,bracesection_color,bracesection_bgcolor,bracesection_bold},
         {nchistory_font,nchistory_fontsize,nchistory_color,nchistory_bgcolor,nchistory_bold},
-        {dochistory_font,dochistory_fontsize,dochistory_color,dochistory_bgcolor,dochistory_bold}
+        {dochistory_font,dochistory_fontsize,dochistory_color,dochistory_bgcolor,dochistory_bold},
+        {whitechar_font,whitechar_fontsize,whitechar_color,whitechar_bgcolor,whitechar_bold},
       }
     })
     return eu_core.euapi.eu_theme_ptr(m_theme)

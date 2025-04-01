@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------
 -- Lua script to embed the rolling release version in luajit.h.
 ----------------------------------------------------------------------------
--- Copyright (C) 2005-2023 Mike Pall. All rights reserved.
+-- Copyright (C) 2005-2025 Mike Pall. All rights reserved.
 -- Released under the MIT license. See Copyright Notice in luajit.h
 ----------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ local function file_write_mod(file, data)
   assert(fp:close())
 end
 
-local text = file_read(FILE_ROLLING_H)
+local text = file_read(FILE_ROLLING_H):gsub("#error.-\n", "")
 local relver = file_read(FILE_RELVER_TXT):match("(%d+)")
 
 if relver then

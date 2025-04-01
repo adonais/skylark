@@ -11,9 +11,15 @@ INCD = -I$(ROOT)\src\3rdparty\libcurl\include -I$(ROOT)\src\3rdparty\libopenssl\
        -I$(ROOT)\src\3rdparty\qrencode\src -I$(ROOT)\src\3rdparty\scintilla\src\include -I$(INCD)
            
 SHARED_LIB = $(BIND)\plugins\np_pdfviewer.dll
-CFLAGS  = -Zi -Oy -utf-8 -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" $(INCD) -I. $(RELEASE) $(CFLAGS)
+CFLAGS  = -Zi -Oy -utf-8 -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" $(INCD) -I. $(CFLAGS)
 LIBS = $(LIBS) $(BIND)\euapi.lib kernel32.lib user32.lib advapi32.lib gdi32.lib
 OBJS = $(OBJD)\plugins\np_pdfviewer.obj $(OBJD)\plugins\np_pdfviewer.res
+
+!IF "$(APP_DEBUG)"=="1"
+CFLAGS = $(CFLAGS) $(DEBUG_L)
+!ELSE
+CFLAGS = $(CFLAGS) $(RELEASE)
+!ENDIF
 
 .c{$(OBJD)\plugins}.obj:
     $(CC) -c $(CFLAGS) -Fd$(BIND)\euapi.pdb -Fo$@ $<

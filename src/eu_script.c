@@ -57,7 +57,8 @@
 #define FLAGS_OPTION         8
 #define FLAGS_NOENV          16
 
-static lua_State *pstate;
+static lua_State *pstate = NULL;
+static obs_skylark *psb_client = NULL;
 
 static int
 l_collectargs(char **argv, int *flags)
@@ -711,6 +712,43 @@ do_lua_point(const char *fname, const char *func, void *arg)
 }
 
 int
+do_lua_integer(const char *fname, const char *func, const int arg)
+{
+    int status;
+    if (!fname)
+    {
+        return -1;
+    }
+    lua_State *L = lua_open();
+    if (L == NULL)
+    {
+        eu_logmsg("%s: cannot create state: not enough memory\n", __FUNCTION__);
+        return -1;
+    }
+    /* Stop collector during library initialization. */
+    lua_gc(L, LUA_GCSTOP, 0);
+    luaL_openlibs(L);
+    lua_gc(L, LUA_GCRESTART, -1);
+    status = dofile(L, fname);
+    if (status == LUA_OK)
+    {
+        lua_getglobal(L, func);
+        lua_pushinteger(L, arg);
+        status = lua_pcall(L, 1, 0, 0);
+        if (status == LUA_OK)
+        {
+            lua_pop(L, 1);
+        }
+        else
+        {
+            eu_logmsg("%s: %s:%s lua_pcall failed\n", __FUNCTION__, fname, func);
+        }
+    }
+    lua_close(L);
+    return status;
+}
+
+int
 do_lua_parser_doctype(const char *fname, const char *func)
 {
     int status;
@@ -758,6 +796,10 @@ do_lua_parser_release(void)
     {
         lua_close(pstate);
         pstate = NULL;
+    }
+    if (psb_client)
+    {
+        cvector_free(psb_client);
     }
 }
 
@@ -828,17 +870,19 @@ do_lua_setting_path(eu_tabpage *pnode)
     TCHAR lua_path[ENV_LEN + 1] = {0};
     if (!pnode)
     {
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua"), eu_module_path, eu_config_path);
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua"),
+                   eu_module_path, eu_config_path);
     }
     else
     {
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua;%s?.lua"), eu_module_path, eu_config_path, pnode->pathname);
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua;%s?.lua"),
+                   eu_module_path, eu_config_path, pnode->pathname);
     }
     return (_tputenv(lua_path) == 0);
 }
 
 int
-do_lua_code(const char *s)
+do_lua_code(const char *s, const char *filename)
 {
     int status;
     if (!s)
@@ -856,7 +900,7 @@ do_lua_code(const char *s)
     lua_gc(L, LUA_GCSTOP, 0);
     luaL_openlibs(L);
     lua_gc(L, LUA_GCRESTART, -1);
-    status = dostring(L, s, "line");
+    status = dostring(L, s, STR_NOT_NUL(filename) ? filename : "skylark");
     if (status)
     {
         eu_logmsg("%s: dostring return false\n", __FUNCTION__);
@@ -981,13 +1025,9 @@ allclean:
 static int
 script_process_dir(lua_State *L)
 {
-    int usz = 0;
+    size_t usz = 0;
     char *utf8path = NULL;
-    wchar_t path[MAX_BUFFER] = {0};
-    // 使用中间变量保存路径
-    // 使用clang编译时, 直接转换eu_module_path导致lua crash, why?
-    _snwprintf(path, MAX_BUFFER, _T("%s"), eu_module_path);
-    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
+    if (!(utf8path = eu_utf16_utf8(eu_module_path, &usz)))
     {
         lua_pushnil(L);
         return 2;
@@ -1000,12 +1040,9 @@ script_process_dir(lua_State *L)
 static int
 script_config_dir(lua_State *L)
 {
-    int usz = 0;
+    size_t usz = 0;
     char *utf8path = NULL;
-    wchar_t path[MAX_BUFFER] = {0};
-    // 使用中间变量保存路径
-    _snwprintf(path, MAX_BUFFER, _T("%s"), eu_config_path);
-    if (!(utf8path = eu_utf16_utf8(path, (size_t *)&usz)))
+    if (!(utf8path = eu_utf16_utf8(eu_config_path, &usz)))
     {
         lua_pushnil(L);
         return 2;
@@ -1018,25 +1055,115 @@ script_config_dir(lua_State *L)
 static int
 script_mkdir(lua_State *L)
 {
-    int ret = 0;
+    int ret = 2;
     size_t sz = 0;
     const char *utf8path = luaL_checklstring(L, 1, &sz);
     wchar_t *path = utf8path ? eu_utf8_utf16(utf8path, &sz) : NULL;
     if (path)
     {
-        ret = CreateDirectoryW(path, NULL);
-        free(path);
+        CreateDirectoryW(path, NULL);
+        ret = 1;
     }
     lua_pushinteger(L, ret);
+    eu_safe_free(path);
     return ret;
 }
 
+static int
+script_register_event(lua_State *L)
+{
+    int ret = 0;
+    size_t sz = 0;
+    obs_skylark obs = {0};
+    const char *pname = luaL_checklstring(L, 2, &sz);
+    obs.index = luaL_checkint(L, 1);
+    if (obs.index >= SKYLARK_INIT && pname && sz > 0)
+    {
+        lua_Debug ar = {0};
+        if (lua_getstack(L, 1, &ar) > 0 && lua_getinfo(L, "S", &ar) > 0 && STR_NOT_NUL(ar.source))
+        {
+            _snprintf(obs.pfile, MAX_BUFFER - 1, "%s", ar.source[0] == '@' ? &ar.source[1] : ar.source);
+            _snprintf(obs.pname, MAX_PATH - 1, "%s", pname);
+            cvector_push_back(psb_client, obs);
+            ret = 1;  // 成功, 函数有一个返回值, 反之则返回nil
+        }
+    }
+    lua_pushinteger(L, (lua_Integer)ret);
+    return ret;
+}
+
+static void __stdcall
+on_script_loader_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP_WAIT_RESULT result)
+{
+    HANDLE hfile;
+    WIN32_FIND_DATA data;
+    TCHAR filepath[MAX_BUFFER];
+    _sntprintf(filepath, MAX_BUFFER, _T("%s\\lua\\loader\\*.lua"), eu_module_path);
+    if ((hfile = FindFirstFile(filepath, &data)) != INVALID_HANDLE_VALUE)
+    {
+        char *u8 = NULL;
+        TCHAR lua[MAX_BUFFER];
+        do
+        {
+            if (WaitForSingleObject(eu_threadpool_handle(), 0) != WAIT_TIMEOUT)
+            {
+                eu_logmsg("Scripts: recv g_threadpool_sem, thread %lu exit ...\n", GetCurrentThreadId());
+                break;
+            }
+            if (_tcscmp(data.cFileName, _T(".")) == 0 || _tcscmp(data.cFileName, _T("..")) == 0)
+            {
+                continue;
+            }
+            if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                continue;
+            }
+            if (_sntprintf(lua, MAX_BUFFER, _T("%s\\lua\\loader\\%s"), eu_module_path, data.cFileName) > 0 && (u8 = eu_utf16_utf8(lua, NULL)) != NULL)
+            {
+                eu_logmsg("Scripts: [%s] register\n", u8);
+                do_lua_func(u8, "main", "");
+                free(u8);
+            }
+        } while (FindNextFile(hfile, &data));
+        FindClose(hfile);
+    }
+    on_script_loader_event(SKYLARK_INIT, NULL);
+}
+
 static const struct
-luaL_Reg cb[] = {{"lprocessdir", script_process_dir}, {"lconfdir", script_config_dir}, {"lmkdir", script_mkdir}, {NULL, NULL}};
+luaL_Reg cb[] = {{"lprocessdir", script_process_dir},
+                 {"lconfdir", script_config_dir},
+                 {"lmkdir", script_mkdir},
+                 {"register_event", script_register_event},
+                 {NULL, NULL}
+                };
 
 int
 luaopen_euapi(void *L)
 {
     luaL_register(L, "euapi", cb);
     return 0;
+}
+
+void
+on_script_loader_event(const int event, void *pnode)
+{
+    int index = on_tabpage_get_index((eu_tabpage *)pnode);
+    for (size_t i = 0; i < cvector_size(psb_client); ++i)
+    {
+        if (psb_client[i].index == event)
+        {
+            do_lua_integer(psb_client[i].pfile, psb_client[i].pname, index);
+        }
+    }
+}
+
+void
+on_script_loader(void)
+{
+    if (eu_hwnd_self() == share_envent_get_hwnd())
+    {
+        TASK_ARG hv = {0};
+        eu_threadpool_add(on_script_loader_request, &hv);
+    }
 }

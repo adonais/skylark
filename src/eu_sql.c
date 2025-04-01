@@ -30,10 +30,10 @@
 #define SESSION_VAULE  "(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync, szView) "
 #define SESSION_SELECT "select szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync,szView from "
 #define SESSION_INSERT(n1,n2) "insert or replace into "#n1 SESSION_VAULE SESSION_SELECT#n2";"
-#define RECENT_FORMAT  "create trigger delete_till_30 BEFORE INSERT ON file_recent WHEN (select count(*) from file_recent)>%d "\
+#define RECENT_TRIGGER "create trigger delete_till_30 BEFORE INSERT ON file_recent WHEN (select count(*) from file_recent)>99 "\
                        "BEGIN "\
                        "DELETE FROM file_recent WHERE file_recent.szId IN "\
-                       "(SELECT file_recent.szId FROM file_recent ORDER BY file_recent.szId limit (select count(*) -%d from file_recent )); "\
+                       "(SELECT file_recent.szId FROM file_recent ORDER BY file_recent.szId limit (select count(*)-99 from file_recent )); "\
                        "END;"
 #define SKYVER_FORMAT  "insert or replace into skylar_ver(szName,szVersion,szBUildId,szTrigger,szExtra) values('%s', '%s', %I64u, %d, %I64u);"
 
@@ -42,12 +42,6 @@
 #define FAVORITE_INFO  "create table info_favorite(szFile char(1024), szVersion char(64), szMax SMALLINT, szExtra BIGINT);"
 #define FAVORITE_CONF  "insert or replace into info_favorite(szFile,szVersion,szMax,szExtra) values('%s', '%s', %d, %I64u);"
 #define FAVORITE_INSE  "insert or replace into file_favorite(szName,szPath,szTag,szGroup,szStatus) values('%s', '%s', '%s','%s', %d);"
-
-#define DO_TRIGGER(_f, _n)                             \
-char _f[MAX_BUFFER] = {0};                             \
-int  _n = eu_get_config()->file_recent_number;         \
-_n = _n > 0 && _n < 100 ? _n : 29;                     \
-_snprintf(_f, MAX_BUFFER - 1, RECENT_FORMAT, _n, _n)
 
 static volatile long eu_sql_cs = 0;
 static volatile intptr_t eu_memdb = 0;
@@ -86,17 +80,18 @@ init_sql_file(const char *sql_path, uintptr_t *pdb)
         SESSION_TABLE,
         "create table skylar_ver(szName char, szVersion char, szBUildId BIGINT, szTrigger SMALLINT, szExtra BIGINT, UNIQUE(szName));",
         SKYVER_FORMAT,
+        RECENT_TRIGGER,
         "create trigger delete_combo1_30 BEFORE INSERT ON find_his WHEN (select count(*) from find_his)>29 "
         "BEGIN "
-        "DELETE FROM find_his WHERE find_his.szId IN (SELECT find_his.szId FROM find_his ORDER BY find_his.szId limit (select count(*) -29 from find_his )); "
+        "DELETE FROM find_his WHERE find_his.szId IN (SELECT find_his.szId FROM find_his ORDER BY find_his.szId limit (select count(*)-29 from find_his )); "
         "END;",
         "create trigger delete_combo2_30 BEFORE INSERT ON replace_his WHEN (select count(*) from replace_his)>29 "
         "BEGIN "
-        "DELETE FROM replace_his WHERE replace_his.szId IN (SELECT replace_his.szId FROM replace_his ORDER BY replace_his.szId limit (select count(*) -29 from replace_his )); "
+        "DELETE FROM replace_his WHERE replace_his.szId IN (SELECT replace_his.szId FROM replace_his ORDER BY replace_his.szId limit (select count(*)-29 from replace_his )); "
         "END;",
         "create trigger delete_combo3_30 BEFORE INSERT ON folder_his WHEN (select count(*) from folder_his)>29 "
         "BEGIN "
-        "DELETE FROM folder_his WHERE folder_his.szId IN (SELECT folder_his.szId FROM folder_his ORDER BY folder_his.szId limit (select count(*) -29 from folder_his )); "
+        "DELETE FROM folder_his WHERE folder_his.szId IN (SELECT folder_his.szId FROM folder_his ORDER BY folder_his.szId limit (select count(*)-29 from folder_his )); "
         "END;",
         NULL
     };
@@ -128,7 +123,7 @@ init_sql_file(const char *sql_path, uintptr_t *pdb)
             }
             if (rc != SQLITE_OK)
             {
-                eu_logmsg("%s: create table, sql[%d] = [%s] error: %d\n", __FUNCTION__, i, sql[i], rc);
+                eu_logmsg("Sql: %s, sql[%d] = [%s] error: %d\n", __FUNCTION__, i, sql[i], rc);
                 break;
             }
         }
@@ -191,7 +186,7 @@ init_favorite_file(const char *sql_path, uintptr_t *pdb)
             }
             if (rc != SQLITE_OK)
             {
-                eu_logmsg("%s: create table, sql[%d] = [%s] error: %d\n", __FUNCTION__, i, sql[i], rc);
+                eu_logmsg("Sql: %s, sql[%d] = [%s] error: %d\n", __FUNCTION__, i, sql[i], rc);
                 break;
             }
         }
@@ -238,7 +233,7 @@ eu_sqlite3_send(const char *sql, sql3_callback callback, void *data)
             {
                 if (err)
                 {
-                    eu_logmsg("%s: failed, cause: %s\n", __FUNCTION__, err);
+                    eu_logmsg("Sql: %s failed, cause: %s\n", __FUNCTION__, err);
                     sqlite3_free(err);
                 }
             }
@@ -257,7 +252,7 @@ on_sql_post_func(void *lp)
     {
         if (eu_sqlite3_send(sql, NULL, NULL) != 0)
         {
-            eu_logmsg("%s: eu_sqlite3_send failed\n", __FUNCTION__);
+            eu_logmsg("Sql: %s failed\n", __FUNCTION__);
         }
         free(lp);
     }
@@ -302,7 +297,7 @@ on_sql_post_db(DB_MODE index, const char *sql, sql3_callback callback, void *dat
             {
                 if (err)
                 {
-                    eu_logmsg("%s: failed, cause: %s\n", __FUNCTION__, err);
+                    eu_logmsg("Sql: %s failed, cause: %s\n", __FUNCTION__, err);
                     sqlite3_free(err);
                 }
             }
@@ -477,7 +472,7 @@ on_sqlite3_create_memdb(const char *pfile)
     }
     if ((rc = sqlite3_open(":memory:", &memdb)))
     {
-        fprintf(stderr, "cannot open database, cause: %d", rc);
+        eu_logmsg("Sql: %s cannot open database, cause: %d", __FUNCTION__, rc);
         sqlite3_close(memdb);
         return rc;
     }
@@ -485,40 +480,39 @@ on_sqlite3_create_memdb(const char *pfile)
     {
         char sql[ENV_LEN] = {0};
         _snprintf(sql, ENV_LEN, "attach database \"%s\" as filedb;", pfile);
-        DO_TRIGGER(buf, n);
         if ((rc = sqlite3_exec(memdb, SESSION_TABLE, NULL, NULL, NULL)))
         {
-            fprintf(stderr, "cannot create seesion table, cause: %d\n", rc);
+            eu_logmsg("Sql: %s cannot create seesion table, cause: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, RECENT_TABLE, NULL, NULL, NULL)))
         {
-            fprintf(stderr, "cannot create recent table, cause: %d\n", rc);
+            eu_logmsg("Sql: %s cannot create recent table, cause: %d\n", __FUNCTION__, rc);
             break;
         }
-        if ((rc = sqlite3_exec(memdb, buf, NULL, NULL, NULL)))
+        if ((rc = sqlite3_exec(memdb, RECENT_TRIGGER, NULL, NULL, NULL)))
         {
-            eu_logmsg("%s: create trigger error: %d\n", __FUNCTION__, rc);
+            eu_logmsg("Sql: %s create trigger error: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, sql, NULL, NULL, NULL)))
         {
-            eu_logmsg("%s: attach database error: %d\n", __FUNCTION__, rc);
+            eu_logmsg("Sql: %s attach database error: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, SESSION_INSERT(skylark_session, filedb.skylark_session), NULL, NULL, NULL)))
         {
-            eu_logmsg("%s: sql_transfer_session: %d\n", __FUNCTION__, rc);
+            eu_logmsg("Sql: %s sql_transfer_session: %d\n", __FUNCTION__, rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, RECENT_INSERT(file_recent, filedb.file_recent), NULL, NULL, NULL)))
         {
-            eu_logmsg("%s: sql_transfer_recent[%s]: %d\n", __FUNCTION__, RECENT_INSERT(file_recent, filedb.file_recent), rc);
+            eu_logmsg("Sql: %s sql_transfer_recent[%s]: %d\n", __FUNCTION__, RECENT_INSERT(file_recent, filedb.file_recent), rc);
             break;
         }
         if ((rc = sqlite3_exec(memdb, "detach database 'filedb';", NULL, NULL, NULL)))
         {
-            eu_logmsg("%s: detach database error: %d\n", __FUNCTION__, rc);
+            eu_logmsg("Sql: %s detach database error: %d\n", __FUNCTION__, rc);
             break;
         }
     } while (0);
@@ -533,6 +527,7 @@ on_sqlite3_create_memdb(const char *pfile)
     return rc;
 }
 
+#if (0)
 static int
 on_sql_skyver_callbak(void *data, int count, char **column, char **names)
 {
@@ -541,6 +536,7 @@ on_sql_skyver_callbak(void *data, int count, char **column, char **names)
     *(int64_t *)data = _atoi64(column[0]);
     return 0;
 }
+#endif
 
 /**************************************************************************************
  * 清理session表中已经不存在于文件系统里的记录并执行sql语句
@@ -559,24 +555,8 @@ on_sql_do_session(const char *s, sql3_callback callback, void *data)
         uintptr_t db = 0;
         cvector_vector_type(int) v = NULL;
         if ((rc = init_sql_file(pfile, &db)) == SQLITE_OK && db)
-        {   // 根据配置重建触发器
-            int tri = 0;
-            DO_TRIGGER(buf, n);
+        {
             const char *sql = "select szId,szRealPath,szBakPath,szSync from skylark_session;";
-            rc = sqlite3_exec((sqlite3 *)db, "select szTrigger from skylar_ver;", on_sql_skyver_callbak, (void *)&tri, NULL);
-            if (tri != n)
-            {
-                char buffer[ENV_LEN] = {0};
-                if (sql_format_execute(buffer, ENV_LEN - 1, n, 0))
-                {
-                    rc = sqlite3_exec((sqlite3 *)db, buffer, 0, 0, NULL);
-                }
-                sqlite3_exec((sqlite3 *)db, "DROP TRIGGER delete_till_30;", 0, 0, NULL);
-                if ((rc = sqlite3_exec((sqlite3 *)db, buf, 0, 0, NULL)))
-                {
-                    eu_logmsg("%s: create trigger error: %d\n", __FUNCTION__, rc);
-                }
-            }
             rc = sqlite3_exec((sqlite3 *)db, sql, on_sqlite3_session_callback, (void *)(intptr_t)&v, NULL);
         }
         if (cvector_size(v) > 0)
@@ -686,7 +666,7 @@ on_sql_file_recent_thread(const file_recent *precent)
         snprintf(sql, MAX_BUFFER * 2 - 1, exp, pfile, precent->postion, result, precent->hex, precent->postion, result, precent->hex);
         if (on_sql_mem_post(sql, NULL, NULL) != SQLITE_OK)
         {
-            eu_logmsg("%s: failed[%s]\n", __FUNCTION__, sql);
+            eu_logmsg("Sql: %s failed[%s]\n", __FUNCTION__, sql);
         }
     }
 }
@@ -703,30 +683,17 @@ eu_push_find_history(const char *key)
 }
 
 void
-eu_delete_find_history(const char *key)
+eu_delete_find_history(const char *table, const char *key)
 {
-    char *sql = (char *)calloc(1, MAX_BUFFER);
-    if (sql)
-    {
-        _snprintf(sql, MAX_BUFFER, "delete from find_his where szName='%s';", key);
-        on_sql_post_thread(sql);
-    }
-}
-
-static unsigned __stdcall
-sql_search_history(void *lp)
-{
-    if (eu_sqlite3_send("SELECT szName FROM find_his;", (sql3_callback)lp, (void *)IDC_WHAT_FOLDER_CBO) != 0)
-    {
-        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
-    }
-    return 0;
+    char sql[MAX_BUFFER] = {0};
+    _snprintf(sql, MAX_BUFFER - 1, "delete from %s where szName='%s';", table, key);
+    on_sql_post(sql, NULL, NULL);
 }
 
 void
 eu_get_find_history(sql3_callback pfunc)
 {
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, sql_search_history, pfunc, 0, NULL));
+    on_sql_post("SELECT szName FROM find_his;", pfunc, (void *)IDC_WHAT_FOLDER_CBO);
 }
 
 void
@@ -741,30 +708,9 @@ eu_push_replace_history(const char *key)
 }
 
 void
-eu_delete_replace_history(const char *key)
-{
-    char *sql = (char *)calloc(1, MAX_BUFFER);
-    if (sql)
-    {
-        _snprintf(sql, MAX_BUFFER, "delete from replace_his where szName='%s';", key);
-        on_sql_post_thread(sql);
-    }
-}
-
-static unsigned __stdcall
-sql_replace_history(void *lp)
-{
-    if (eu_sqlite3_send("SELECT szName FROM replace_his;", (sql3_callback)lp, (void *)IDC_SEARCH_RP_CBO) != 0)
-    {
-        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
-    }
-    return 0;
-}
-
-void
 eu_get_replace_history(sql3_callback pfunc)
 {
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, sql_replace_history, pfunc, 0, NULL));
+    on_sql_post("SELECT szName FROM replace_his;", pfunc, (void *)IDC_SEARCH_RP_CBO);
 }
 
 void
@@ -779,30 +725,9 @@ eu_push_folder_history(const char *key)
 }
 
 void
-eu_delete_folder_history(const char *key)
-{
-    char *sql = (char *)calloc(1, MAX_BUFFER);
-    if (sql)
-    {
-        _snprintf(sql, MAX_BUFFER, "delete from folder_his where szName='%s';", key);
-        on_sql_post_thread(sql);
-    }
-}
-
-static unsigned __stdcall
-sql_folder_history(void *lp)
-{
-    if (eu_sqlite3_send("SELECT szName FROM folder_his;", (sql3_callback)lp, (void *)IDC_SEARCH_DIR_CBO) != 0)
-    {
-        eu_logmsg("%s: eu_sqlite3_send return false\n", __FUNCTION__);
-    }
-    return 0;
-}
-
-void
 eu_get_folder_history(sql3_callback pfunc)
 {
-    CloseHandle((HANDLE) _beginthreadex(NULL, 0, sql_folder_history, pfunc, 0, NULL));
+    on_sql_post("SELECT szName FROM folder_his;", pfunc, (void *)IDC_SEARCH_DIR_CBO);
 }
 
 void

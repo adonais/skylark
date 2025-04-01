@@ -22,9 +22,6 @@
 #define UPDATE_EXE L"upcheck.exe"
 #define UPDATE_URL "https://api.github.com/repos/adonais/skylark/releases"
 
-static volatile long g_upcheck_id = 0;
-static volatile sptr_t g_upcheck_handle = 0;
-
 static size_t
 on_update_read_json(void *buffer, size_t size, size_t nmemb, void *stream)
 {
@@ -46,6 +43,7 @@ on_update_read_json(void *buffer, size_t size, size_t nmemb, void *stream)
             {
                 snprintf(pdata, terminators - p, "%s", p);
                 // 已找到, 返回0, 引发CURLE_WRITE_ERROR中断
+                eu_logmsg("Upcheck: package[%s]\n", pdata);
                 return 0;
             }
         }
@@ -64,11 +62,10 @@ on_update_init(struct curl_slist **pheaders)
         *pheaders = eu_curl_slist_append(*pheaders, "charsets: utf-8");
         eu_curl_easy_setopt(curl, CURLOPT_HTTPHEADER, *pheaders);
         eu_curl_easy_setopt(curl, CURLOPT_URL, UPDATE_URL);
-        // 但使用http/2时, 检测不到最新发布的tag
+        // 默认使用http/2时, 检测不到最新发布的tag ?
         eu_curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        eu_curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0");
-        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        eu_curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0");
+        eu_curl_ssl_setting(curl);
         eu_curl_easy_setopt(curl, CURLOPT_AUTOREFERER, 1L);
         eu_curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         eu_curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, on_update_read_json);
@@ -101,7 +98,7 @@ on_update_download(const int64_t dtag)
     WCHAR path[MAX_BUFFER] = {0};
     WCHAR wcmd[LARGER_LEN] = {0};
     _snwprintf(path, MAX_BUFFER, L"%s\\cache", eu_config_path);
-    _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -uri \"%s\" -e \"%s\" -k %u -hwnd %Id -dt %I64d", eu_module_path,
+    _snwprintf(wcmd, LARGER_LEN - 1, L"\"%s\\plugins\\%s\" -uri \"%s\" -e \"%s\" -k %lu -hwnd %Id -dt %I64d", eu_module_path,
                UPDATE_EXE, util_make_u16(eu_get_config()->upgrade.url, uri, MAX_SIZE - 1), path, GetCurrentProcessId(), (intptr_t)eu_module_hwnd(), dtag);
     return eu_new_process(wcmd, NULL, NULL, 0, NULL);
 }
@@ -167,110 +164,117 @@ on_update_msg(UPDATE_STATUS status, bool msg)
 }
 
 static void
-on_update_loop(HANDLE handle)
+on_update_kill(HANDLE handle)
 {
-    if (handle)
+    TerminateProcess(handle, -1);
+    on_update_msg(IDS_CHECK_VER_UNKOWN, true);
+    eu_logmsg("Upcheck: process force quit...\n");
+}
+
+static void
+on_update_loop(TASK_T hv)
+{
+    if (hv)
     {
-        MSG msg;
+        HANDLE handle = (HANDLE)hv->pdata;
         on_update_msg(VERSION_UPDATE_PROGRESS, true);
+        _InterlockedExchange(&hv->xcode, 1);
         while (true)
         {
-            switch ((int)WaitForSingleObject(handle, MAYBE200MS))
-            {   
-                case WAIT_OBJECT_0:
-                {
-                    //进程运行完成并且退出了
-                    uint32_t result = 256;
-                    if (!GetExitCodeProcess(handle, &result))
-                    {
-                        eu_logmsg("%s: GetExitCodeProcess failed\n", __FUNCTION__);
-                        break;
-                    }
-                    eu_logmsg("%s: result == %u\n", __FUNCTION__, result);
-                    if (result == 0)
-                    {
-                        char sql[MAX_PATH] = {0};
-                        on_update_msg(VERSION_UPDATE_COMPLETED, true);
-                        _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", eu_get_config()->upgrade.flags);
-                        eu_sqlite3_send(sql, NULL, NULL);
-                    }
-                    else if (result == (uint32_t)-1)
-                    {
-                        on_update_msg(VERSION_UPDATE_BREAK, true);
-                    }
-                    else if (result > 0)
-                    {
-                        on_update_msg(VERSION_UPDATE_UNKOWN, true);
-                    }
-                    break;
-                }
-                case WAIT_TIMEOUT:
-                {
-                    // 有消息需要处理
-                    PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
-                    if (msg.message == WM_QUIT)
-                    {
-                        TerminateProcess(handle, -1);
-                        on_update_msg(IDS_CHECK_VER_UNKOWN, true);
-                        eu_logmsg("process force quit...\n");
-                        break;
-                    }
-                    continue; 
-                }
-                default:
-                {
-                    break;
-                }
+            if (WaitForSingleObject(eu_threadpool_handle(), 0) != WAIT_TIMEOUT)
+            {
+                on_update_kill(handle);
+                break;
             }
-            break;
+            if (_InterlockedCompareExchange(&hv->cancel, 0, 1))
+            {
+                on_update_kill(handle);
+                eu_logmsg("Upcheck: recv cancel message, thread %lu exit ...\n", GetCurrentThreadId());
+                break;
+            }
+            if (WaitForSingleObject(handle, MAYBE200MS) != WAIT_TIMEOUT)
+            {
+                //进程运行完成并且退出了
+                uint32_t result = 256;
+                if (!GetExitCodeProcess(handle, &result))
+                {
+                    eu_logmsg("Upcheck: GetExitCodeProcess failed\n");
+                    break;
+                }
+                eu_logmsg("Upcheck:: result == %u\n", result);
+                if (result == 0)
+                {
+                    char sql[MAX_PATH] = {0};
+                    on_update_msg(VERSION_UPDATE_COMPLETED, true);
+                    _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", eu_get_config()->upgrade.flags);
+                    eu_sqlite3_send(sql, NULL, NULL);
+                }
+                else if (result == (uint32_t)-1)
+                {
+                    on_update_msg(VERSION_UPDATE_BREAK, true);
+                }
+                else if (result > 0)
+                {
+                    on_update_msg(VERSION_UPDATE_UNKOWN, true);
+                }
+                break;
+            }
         }
+        if (handle)
+        {
+            CloseHandle(handle);
+        }
+        _InterlockedExchange(&hv->xcode, 0);
     }
 }
 
 static bool
 on_update_diff_days(void)
 {
-    bool res = false;
     const uint64_t diff = 3600*24;
     uint64_t cur_time = (uint64_t)time(NULL);
     uint64_t last_time = eu_get_config()->upgrade.last_check;
     if (cur_time - last_time > diff)
     {
-        res = true;
+        return true;
     }
-    return res;
+    return false;
 }
 
-static unsigned __stdcall
-on_update_send_request(void *lp)
+static void __stdcall
+on_update_send_request(PTP_CALLBACK_INSTANCE inst, PVOID lp, PTP_WAIT wait, TP_WAIT_RESULT result)
 {
-    int64_t tag = 0;
-    int64_t dtag = 0;
+    int64_t dst_tag = 0;
+    int64_t src_tag = 0;
     HWND hwnd = NULL;
     char chunk[QW_SIZE] = {0};
     CURL *curl = NULL;
-    CURLcode res = CURLE_FAILED_INIT;
     struct curl_slist *headers = NULL;
-    const int ident = (const int)(intptr_t)(lp);
+    TASK_T hv = (TASK_T)lp;
     do
     {
+        if (!hv)
+        {
+            break;
+        }
         if (eu_get_config()->upgrade.flags == VERSION_UPDATE_COMPLETED)
         {
             break;
         }
-        if (ident == 1 && !on_update_diff_days())
+        if (hv->attach == UPCHECK_INDENT_MAIN && !on_update_diff_days())
         {
-            eu_logmsg("It's not time yet\n");
+            eu_logmsg("Upcheck: it's not time yet\n");
             break;
         }
         if ((curl = on_update_init(&headers)))
         {
+            eu_logmsg("Upcheck: thread start ...\n");
             eu_curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)chunk);
-            res = eu_curl_easy_perform(curl);
+            CURLcode res = eu_curl_easy_perform(curl);
             eu_curl_easy_cleanup(curl);
-            if (res != CURLE_OK)
+            if (res != CURLE_OK && res != CURLE_WRITE_ERROR)
             {
-                eu_logmsg("curl failed, cause:%d\n", res);
+                eu_logmsg("Upcheck: curl failed, code[%d]\n", res);
             }
         }
         else
@@ -283,23 +287,25 @@ on_update_send_request(void *lp)
         }
         if (strlen(chunk) > 0)
         {
-            tag = _atoi64(chunk);
+            dst_tag = _atoi64(chunk);
         }
-        if ((dtag = on_update_build_time()) > 0 && dtag < tag)
+        if ((src_tag = on_update_build_time()) > 0 && src_tag < dst_tag)
         {
-            eu_logmsg("curerent_version = %I64d, tag = %I64d\n", dtag, tag);
+            eu_logmsg("Upcheck: curerent_version = %I64d, dst_tag = %I64d\n", src_tag, dst_tag);
             on_update_msg(VERSION_UPDATE_REQUIRED, true);
-            if (!eu_get_config()->upgrade.enable)
+            if (eu_get_config()->upgrade.enable)
             {
-                break;
+                hv->pdata = (intptr_t)on_update_download(src_tag);
+                on_update_loop(hv);
             }
-            on_proc_counter_stop();
-            on_update_loop(on_update_download(dtag));
         }
-        else if (tag > 0)
+        else if (dst_tag > 0)
         {
-            on_update_msg(VERSION_LATEST, true);
-            if (ident == UPCHECK_INDENT_MAIN)
+            if (hv->attach == UPCHECK_INDENT_ABOUT)
+            {
+                on_update_msg(VERSION_LATEST, true);
+            }
+            else if (hv->attach == UPCHECK_INDENT_MAIN)
             {
                 PostMessage(eu_hwnd_self(), WM_UPCHECK_LAST, -1, 0);
             }
@@ -309,22 +315,10 @@ on_update_send_request(void *lp)
             on_update_msg(VERSION_UPCHECK_ERR, true);
         }
     } while(0);
-    _InterlockedExchange(&g_upcheck_id, 0);
-    return res;
-}
-
-static void
-on_update_close_handle(void)
-{
-    if (g_upcheck_handle)
-    {
-        CloseHandle((HANDLE)g_upcheck_handle);
-        inter_atom_exchange(&g_upcheck_handle, 0);
-    }
 }
 
 bool
-on_update_do(void)
+on_update_excute(void)
 {
     int arg_c = 0;
     bool ret = false;
@@ -375,46 +369,33 @@ on_update_sql(void)
     if (eu_get_config())
     {
         char sql[MAX_PATH] = {0};
+        char *pver = eu_utf16_utf8(__EU_INFO_RELEASE_VERSION, NULL);
         eu_get_config()->upgrade.flags = VERSION_LATEST;
         eu_get_config()->upgrade.last_check = (uint64_t)time(NULL);
-        _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", VERSION_LATEST);
+        _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szVersion = '%s', szBUildId = %I64u, szExtra = %d WHERE szName = 'skylark.exe';", 
+                  pver, on_about_build_id(), VERSION_LATEST);
         on_sql_post(sql, NULL, NULL);
+        free(pver);
     }
 }
 
 void
-on_update_thread_wait(void)
-{
-    if (g_upcheck_id)
-    {
-        PostThreadMessage(g_upcheck_id, WM_QUIT, 0, 0);
-        if (g_upcheck_handle)
-        {
-            WaitForSingleObject((HANDLE)g_upcheck_handle, INFINITE);
-        }
-    }
-    on_update_close_handle();
-}
-
-void
-on_update_check(const int ident)
+on_update_run(const int indent)
 {
     HWND hwnd = eu_hwnd_self();
     if (hwnd == share_envent_get_hwnd())
     {
-        if (!_InterlockedCompareExchange(&g_upcheck_id, 1, 0))
+        if (!_tcsnicmp(eu_config_path, eu_module_path, _tcslen(eu_module_path)) && util_try_path(eu_module_path))
         {
-            HANDLE handle = NULL;
-            on_update_close_handle();
-            if ((handle = ((HANDLE)_beginthreadex(NULL, 0, on_update_send_request, (void *)(intptr_t)ident, 0, (unsigned *)&g_upcheck_id))))
+            if ((eu_get_config()->upgrade.enable || indent == UPCHECK_INDENT_ABOUT) && !on_update_check())
             {
-                inter_atom_exchange(&g_upcheck_handle, (sptr_t)handle);
+                TASK_ARG hv = {indent};
+                eu_threadpool_add(on_update_send_request, &hv);
             }
-            else
-            {
-                eu_logmsg("%s: on_update_send_request start failed\n", __FUNCTION__);
-                _InterlockedExchange(&g_upcheck_id, 0);
-            }
+        }
+        else
+        {
+            eu_get_config()->upgrade.enable = false;
         }
     }
     else
@@ -423,12 +404,13 @@ on_update_check(const int ident)
     }
 }
 
-bool
-on_update_lookup(void)
+void
+on_update_cancel(void)
 {
-    if (_tcsnicmp(eu_config_path, eu_module_path, _tcslen(eu_module_path)) && !util_try_path(eu_module_path))
-    {
-        return (eu_get_config()->upgrade.enable = false);
-    }
-    return true;
+    eu_threadpool_cancel(&on_update_send_request, 0);
+}
+
+bool on_update_check(void)
+{
+    return eu_threadpool_check(&on_update_send_request, 0);
 }

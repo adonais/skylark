@@ -21,21 +21,22 @@
 
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-    
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int on_view_switch_type(const int type);
-int on_view_refresh_theme(HWND hwnd, const bool reload);
-int on_view_switch_theme(HWND hwnd, const int id);
+int on_view_refresh_theme(const HWND hwnd, const bool reload);
+int on_view_switch_theme(const HWND hwnd, const int id);
+int on_view_theme_loader(const HWND hwnd, const TCHAR *pbuf, const int id);
 int on_view_modify_theme(void);
 int on_view_editor_selection(eu_tabpage *pnode);
 void on_view_filetree(void);
 void on_view_symtree(eu_tabpage *pnode);
 void on_view_document_map(eu_tabpage *pnode);
 void on_view_show_fold_lines(void);
-void on_view_wrap_line(void);
+void on_view_wrap_line(const eu_tabpage *p);
 void on_view_line_num(void);
 void on_view_bookmark(void);
 void on_view_white_space(void);
@@ -56,7 +57,8 @@ void on_view_zoom_reset(eu_tabpage *pnode);
 void on_view_setfullscreenimpl(HWND hwnd);
 void on_view_full_sreen(HWND hwnd);
 void on_view_font_quality(HWND hwnd, const int res_id);
-void on_view_enable_rendering(HWND hwnd, const int res_id);
+void on_view_enable_rendering(eu_tabpage *pnode, const int res_id);
+void on_view_tabs_sort(const int res_id);
 
 #ifdef __cplusplus
 }

@@ -25,14 +25,17 @@ BEGIN
     BEGIN
         MENUITEM "新建(&N)",                                    IDM_FILE_NEW
         MENUITEM "打开(&O) ...",                                IDM_FILE_OPEN
+        MENUITEM MF_SEPARATOR
         POPUP "打开最近"
         BEGIN
             MENUITEM "...",                                     IDM_HISTORY_BASE
         END
         MENUITEM "清理打开文件历史",                            IDM_HISTORY_CLEAN
+        MENUITEM MF_SEPARATOR
         MENUITEM "保存(&S)",                                    IDM_FILE_SAVE
         MENUITEM "另存为 ...",                                  IDM_FILE_SAVEAS
         MENUITEM "全部保存",                                    IDM_FILE_SAVEALL
+        MENUITEM MF_SEPARATOR
         MENUITEM "关闭(&C)",                                    IDM_FILE_CLOSE
         MENUITEM "关闭所有文件",                                IDM_FILE_CLOSEALL
         MENUITEM "关闭其他文件",                                IDM_FILE_CLOSEALL_EXCLUDE
@@ -52,9 +55,9 @@ BEGIN
         MENUITEM MF_SEPARATOR
         POPUP "新建文件换行符"
         BEGIN
-            MENUITEM "WINDOWS风格换行符(CR+LF)",                IDM_FILE_NEWFILE_WINDOWS_EOLS
-            MENUITEM "MAC风格换行符(CR)",                       IDM_FILE_NEWFILE_MAC_EOLS
-            MENUITEM "UNIX/Linux风格换行符(LF)",                IDM_FILE_NEWFILE_UNIX_EOLS
+            MENUITEM "Windows风格换行符(CR+LF)",                IDM_FILE_NEWFILE_WINDOWS_EOLS
+            MENUITEM "Mac风格换行符(CR)",                       IDM_FILE_NEWFILE_MAC_EOLS
+            MENUITEM "Unix/Linux风格换行符(LF)",                IDM_FILE_NEWFILE_UNIX_EOLS
         END
         POPUP "新建文件字符编码"
         BEGIN
@@ -75,6 +78,7 @@ BEGIN
     BEGIN
         MENUITEM "撤销(&U)",                                    IDM_EDIT_UNDO
         MENUITEM "重做(&R)",                                    IDM_EDIT_REDO
+        MENUITEM "撤销时恢复选中(&S)",                          IDM_EDIT_UNDO_SELECTION
         MENUITEM MF_SEPARATOR
         MENUITEM "剪切",                                        IDM_EDIT_CUT
         MENUITEM "复制",                                        IDM_EDIT_COPY
@@ -146,10 +150,10 @@ BEGIN
             MENUITEM "在百度中搜索(&B)",                        IDM_ONLINE_SEARCH_BAIDU
             MENUITEM "在必应中搜索(&I)",                        IDM_ONLINE_SEARCH_BING
         END
-        POPUP "BASE64编解/解码",                                IDM_EDIT_PLACEHOLDE7
+        POPUP "Base64编解/解码",                                IDM_EDIT_PLACEHOLDE7
         BEGIN
-            MENUITEM "BASE64编码",                              IDM_EDIT_BASE64_ENCODING
-            MENUITEM "BASE64解码",                              IDM_EDIT_BASE64_DECODING
+            MENUITEM "Base64编码",                              IDM_EDIT_BASE64_ENCODING
+            MENUITEM "Base64解码",                              IDM_EDIT_BASE64_DECODING
         END
         POPUP "散列/消息摘要",                                  IDM_EDIT_PLACEHOLDE8
         BEGIN
@@ -329,6 +333,13 @@ BEGIN
         END
         POPUP "标签栏其他选项"
         BEGIN
+            MENUITEM "标签(名称升序)",                          IDM_VIEW_TABS_NAME_ASCEND
+            MENUITEM "标签(名称降序)",                          IDM_VIEW_TABS_NAME_ADESCEND
+            MENUITEM "标签(类型升序)",                          IDM_VIEW_TABS_TYPE_ASCEND
+            MENUITEM "标签(类型降序)",                          IDM_VIEW_TABS_TYPE_ADESCEND
+            MENUITEM "标签(尺寸升序)",                          IDM_VIEW_TABS_SIZE_ASCEND
+            MENUITEM "标签(尺寸降序)",                          IDM_VIEW_TABS_SIZE_ADESCEND
+            MENUITEM MF_SEPARATOR
             MENUITEM "切换到下一个标签",                        IDM_VIEW_SWITCH_TAB
             MENUITEM "切换标签时滚动到光标处",                  IDM_VIEW_SCROLLCURSOR
             MENUITEM "多行标签时显示分割线",                    IDM_VIEW_TABBAR_SPLIT
@@ -353,10 +364,10 @@ BEGIN
             MENUITEM "格式化 Js",                               IDM_FORMAT_REFORMAT_JS
             MENUITEM "压缩 Js",                                 IDM_FORMAT_COMPRESS_JS
         END
-        POPUP "XML 文件",                                       IDM_EDIT_PLACEHOLDE_XML
+        POPUP "Xml 文件",                                       IDM_EDIT_PLACEHOLDE_XML
         BEGIN
-            MENUITEM "格式化 XML",                              IDM_FORMAT_REFORMAT_XML
-            MENUITEM "压缩 XML",                                IDM_FORMAT_COMPRESS_XML
+            MENUITEM "格式化 Xml",                              IDM_FORMAT_REFORMAT_XML
+            MENUITEM "压缩 Xml",                                IDM_FORMAT_COMPRESS_XML
         END
         POPUP "Lua 脚本",                                       IDM_EDIT_PLACEHOLDE_LUA
         BEGIN
@@ -438,26 +449,29 @@ BEGIN
         MENUITEM "修改主题方案 ...",                            IDM_VIEW_MODIFY_STYLETHEME
         MENUITEM "复制创建主题 ...",                            IDM_VIEW_COPYNEW_STYLETHEME
         MENUITEM MF_SEPARATOR
-        POPUP "字体质量(&Q)",                                   IDM_SETTING_FONTQUALITY
+        POPUP "字体质量(&Q)",                                   IDM_SETTING_FONTQUALITY_GROUP
         BEGIN
             MENUITEM "无",                                      IDM_VIEW_FONTQUALITY_NONE
             MENUITEM "标准抗锯齿",                              IDM_VIEW_FONTQUALITY_STANDARD
             MENUITEM "ClearType",                               IDM_VIEW_FONTQUALITY_CLEARTYPE
         END
-        POPUP "渲染技术(&D)",                                   IDM_SETTING_RENDER
+        POPUP "渲染技术(&D)",                                   IDM_SETTING_RENDER_GROUP
         BEGIN
-            MENUITEM "传统 GDI",                                IDM_SET_RENDER_TECH_GDI
-            MENUITEM "DirectWrite",                             IDM_SET_RENDER_TECH_D2D
-            MENUITEM "DirectWrite Retain",                      IDM_SET_RENDER_TECH_D2DRETAIN
+            MENUITEM "传统 GDI(&G)",                            IDM_SET_RENDER_TECH_GDI
+            MENUITEM "DirectWrite(&D)",                         IDM_SET_RENDER_TECH_D2D
+            MENUITEM "DirectWrite Retain(&R)",                  IDM_SET_RENDER_TECH_D2DRETAIN
+            MENUITEM "DirectWrite Gdi DC(&I)",                  IDM_SET_RENDER_TECH_DC
+            MENUITEM "DirectWrite 1.1(&W)",                     IDM_SET_RENDER_TECH_D2D1_1
         END
         MENUITEM MF_SEPARATOR
-        POPUP "自定义命令 ...",                                 IDM_SET_PLACEHOLDE_CUSTOMIZED
+        POPUP "自定义命令",                                     IDM_SET_PLACEHOLDE_CUSTOMIZED
         BEGIN
             MENUITEM "设置运行路径(&S)",                        IDM_SET_SETTINGS_CONFIG
             MENUITEM MF_SEPARATOR
         END
-        MENUITEM "翻新Skylark ...",                             IDM_SET_RESET_CONFIG
+        MENUITEM "翻新Skylark",                                 IDM_SET_RESET_CONFIG
         MENUITEM MF_SEPARATOR
+        MENUITEM "文件变更通知(&C)",                            IDM_SET_CHANGENOTIFY
         MENUITEM "启用运行时日志(&L)",                          IDM_SET_LOGGING_ENABLE
         MENUITEM MF_SEPARATOR
         MENUITEM "文件间隔[N]秒自动保存",                       IDM_FILE_SAVE_NOTIFY
@@ -467,8 +481,8 @@ BEGIN
     POPUP "帮助(&H)"
     BEGIN
         MENUITEM "捐赠我们",                                    IDM_DONATION
-        MENUITEM "功能简介(&O) ...",                            IDM_INTRODUTION
-        MENUITEM "更新历史(&H) ...",                            IDM_CHANGELOG
+        MENUITEM "功能简介(&O)",                                IDM_INTRODUTION
+        MENUITEM "更新历史(&H)",                                IDM_CHANGELOG
         MENUITEM "命令行参数(&C) ...",                          IDM_HELP_COMMAND
         MENUITEM "关于(&A) ...",                                IDM_ABOUT
     END
@@ -560,11 +574,11 @@ IDR_FILETREE_FAVORITE_POPUP MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "打开(&O)",                                        IDM_FAVORITE_OPEN
+        MENUITEM "打开(&O)",                                    IDM_FAVORITE_OPEN
         MENUITEM SEPARATOR
-        MENUITEM "移除(&R)",                                        IDM_FAVORITE_REMOVE
+        MENUITEM "移除(&R)",                                    IDM_FAVORITE_REMOVE
         MENUITEM SEPARATOR
-        MENUITEM "属性(&P)",                                        IDM_FAVORITE_ATTR
+        MENUITEM "属性(&P)",                                    IDM_FAVORITE_ATTR
     END
 END
 
@@ -1332,7 +1346,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_REGIST_ERR35    "不能在注册表删除项 Drive\\shell\\skylark2 "
     IDC_MSG_REGIST_ERR36    "不能在注册表删除项 Drive\\shell\\skylark2 "
     IDC_MSG_JUST_HELP       "即时帮助"
-    IDC_MSG_HELP_INF1       "使用快捷键 'Ctrl+鼠标点选' 进行多个位置选择, 支持多行的输入,删除,复制等操作"
+    IDC_MSG_HELP_INF1       "使用快捷键 'Ctrl+鼠标点选' 进行多个位置选择, 支持多行的输入,删除,复制等操作\n多重选择进行粘贴时, 支持自定义分隔符"
     IDC_MSG_EXEC_ERR1       "进程启动失败, 请检测进程路径是否正确!"
     IDC_MSG_EDIT_ERR1       "创建EDIT消息控件错误"
     IDC_MSG_SYMTREE_ERR1    "创建符号树控件错误"
@@ -1497,6 +1511,7 @@ STRINGTABLE DISCARDABLE
     IDS_FAVORITE_ADD_TIPS   "收藏夹内的文件具有相同的别名, 会难以分辨, 你确认继续吗?"
     IDS_UNDO_UNCLOSE_TIPS   "文件曾执行过编码转换或换行符转换, 你应该尽快保存文件以免'撤销/重做'操作影响到文件状态"
     IDS_HISTORY_CLEAR_UNDO  "该操作将会清空撤销历史, 影响'撤销/重做', 是否继续?"
+    IDS_PRIFILES_WARNING    "修改配置文件可能会影响编辑器的稳定性, 是否继续?"
 }
 
 /////////////////////////////////////////////////////////////////////////////

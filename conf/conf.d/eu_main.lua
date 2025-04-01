@@ -10,10 +10,13 @@ end
 
 function run(none)
     local name = eu_conf.loadconf()
-    if (name == nil) then
-        return 1
-    elseif (name == "") then
-        name = "default"
+    if (name == nil) then return 1 end
+    if (none == "") then
+        if (name == "") then
+            name = "default"
+        end
+        return switch_theme(name)
+    else
+        return 0
     end
-    return switch_theme(name)
 end

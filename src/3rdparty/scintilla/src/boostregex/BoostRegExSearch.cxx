@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <memory>
+#include <map>
 #include <string_view>
 #include <stdexcept>
 #include <optional>
@@ -168,6 +169,7 @@ private:
 		virtual void NotifyStyleNeeded(Document* /*document*/, void* /*userData*/, Sci::Position /*endPos*/) {}
 		virtual void NotifyLexerChanged(Document* /*document*/, void* /*userData*/) {}
 		virtual void NotifyErrorOccurred(Document* /*document*/, void* /*userData*/, Scintilla::Status /*status*/) {}
+		virtual void NotifyGroupCompleted(Document* /*document*/, void* /*userData*/) noexcept {}
 		
 		Document* _document;
 		bool _documentModified;
@@ -434,7 +436,7 @@ Sci::Position BoostRegexSearch::SearchParameters::nextCharacter(Sci::Position po
 	if (_skip_windows_line_end_as_one_character && _document->CharAt(position) == '\r' && _document->CharAt(position+1) == '\n')
 		return position + 2;
 	else
-		return position + 1;
+		return _document->NextPosition(position, 1);
 }
 
 bool BoostRegexSearch::SearchParameters::isLineStart(Sci::Position position)

@@ -42,13 +42,13 @@ on_result_append_text(TCHAR *format, ...)
         return 1;
 
     }
-    if (eu_sci_call(pnode->presult, SCI_GETLENGTH, 0, 0) < 1)
+    if (on_sci_call(pnode->presult, SCI_GETLENGTH, 0, 0) < 1)
     {
         char *u8 = NULL;
         LOAD_I18N_RESSTR(IDS_LOADLIBRARY_SQL, mlib);
         if ((u8 = eu_utf16_utf8(mlib, NULL)) != NULL)
         {
-            eu_sci_call(pnode->presult, SCI_ADDTEXT, strlen(u8), (sptr_t)u8);
+            on_sci_call(pnode->presult, SCI_ADDTEXT, strlen(u8), (sptr_t)u8);
             free(u8);
         }
     }
@@ -83,7 +83,7 @@ on_result_append_text(TCHAR *format, ...)
     }
     if ((utf_buf = eu_utf16_utf8(buf, NULL)) != NULL)
     {
-        eu_sci_call(pnode->presult, SCI_ADDTEXT, strlen(utf_buf), (LPARAM)utf_buf);
+        on_sci_call(pnode->presult, SCI_ADDTEXT, strlen(utf_buf), (LPARAM)utf_buf);
         free(utf_buf);
     }
     free(buf);
@@ -120,11 +120,11 @@ on_result_append_text_utf8(char *format, ...)
     {
         len += l;
     }
-    eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
-    eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-    eu_sci_call(pnode->presult, SCI_ADDTEXT, strlen(buf), (LPARAM)buf);
-    eu_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
-    eu_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
+    on_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
+    on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+    on_sci_call(pnode->presult, SCI_ADDTEXT, strlen(buf), (LPARAM)buf);
+    on_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
+    on_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
     free(buf);
     return 0;
 }
@@ -135,7 +135,7 @@ on_result_menu_callback(HMENU hpop, void *param)
     eu_tabpage *p = (eu_tabpage *)param;
     if (RESULT_SHOW(p) && hpop)
     {
-        util_set_menu_item(hpop, IDM_RESULT_WRAPLINE, eu_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0));
+        util_set_menu_item(hpop, IDM_RESULT_WRAPLINE, on_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0));
     }
 }
 
@@ -165,23 +165,23 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             eu_tabpage *pnode = on_tabpage_focus_at();
             if (pnode && pnode->presult && pnode->ret_vec)
             {
-                sptr_t cur_pos = eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
-                eu_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
-                sptr_t line = eu_sci_call(pnode->presult, SCI_LINEFROMPOSITION, eu_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
+                sptr_t cur_pos = on_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
+                on_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
+                sptr_t line = on_sci_call(pnode->presult, SCI_LINEFROMPOSITION, on_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
                 if (line > 0 && cvector_size(pnode->ret_vec) > 0)
                 {
-                    sptr_t pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                    sptr_t current_line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+                    sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+                    sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
                     eu_tabpage *p = on_result_other_tab((int)line, pnode->ret_vec);
                     if (!p)
                     {
                         on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
-                        eu_sci_call(pnode, SCI_SETSELECTION, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
+                        on_sci_call(pnode, SCI_SETSELECTION, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
                     }
-                    else if (on_tabpage_selection(p, -1) >= 0)
+                    else if (on_tabpage_selection(p) >= 0)
                     {
                         on_search_jmp_line(p, pnode->ret_vec[line - 1].line, current_line);
-                        eu_sci_call(p, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
+                        on_sci_call(p, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
                     }
                 }
             }
@@ -220,8 +220,8 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_tabpage *p = on_tabpage_focus_at();
                     if (RESULT_SHOW(p))
                     {
-                        int mode = (int)eu_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0);
-                        !mode ? eu_sci_call(p->presult, SCI_SETWRAPMODE, 2, 0) : eu_sci_call(p->presult, SCI_SETWRAPMODE, 0, 0);
+                        int mode = (int)on_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0);
+                        !mode ? on_sci_call(p->presult, SCI_SETWRAPMODE, 2, 0) : on_sci_call(p->presult, SCI_SETWRAPMODE, 0, 0);
                     }
                     break;
                 }
@@ -230,9 +230,9 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_tabpage *p = on_tabpage_focus_at();
                     if (p && p->presult && p->presult->hwnd_sc)
                     {
-                        eu_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
-                        eu_sci_call(p->presult, SCI_CLEARALL, 0, 0);
-                        eu_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+                        on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
+                        on_sci_call(p->presult, SCI_CLEARALL, 0, 0);
+                        on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
                     }
                     break;
                 }
@@ -294,13 +294,13 @@ on_result_reload(eu_tabpage *pedit)
 {
     if (pedit)
     {
-        on_sci_default_theme(pedit, -1);
+        on_sci_default_theme(pedit, DEFAULTSPACE);
         // disable margin
-        eu_sci_call(pedit, SCI_SETMARGINS, 0, 0);
+        on_sci_call(pedit, SCI_SETMARGINS, 0, 0);
         // 强制使用unix回车符
-        eu_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
+        on_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 不显示插入符
-        eu_sci_call(pedit, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
+        on_sci_call(pedit, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
         // 加载词语解析器
         on_doc_init_after_scilexer(pedit, "result");
         on_doc_default_light(pedit, SCE_RESULT_COMMENT, 0x768465, -1, true);

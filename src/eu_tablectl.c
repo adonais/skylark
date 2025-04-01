@@ -228,7 +228,7 @@ on_table_listview_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_i
 }
 
 int
-on_table_create_query_box(eu_tabpage *pnode)
+on_table_create_dlg(eu_tabpage *pnode)
 {
     if (pnode)
     {
@@ -872,7 +872,7 @@ on_table_sql_header(eu_tabpage *pnode)
             return false;
         }
     }
-    file_line_count = eu_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
+    file_line_count = on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0);
     for (file_line = 0; file_line <= file_line_count; file_line++)
     {
         char line_buf[FILESIZE+1] = {0};
@@ -1012,16 +1012,16 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     unsigned int *afield_width = NULL;
     TCHAR utf_str[MAX_BUFFER+1] = {0};
     EU_VERIFY(pnode != NULL);
-    int char_width = (int)eu_sci_call(pnode, SCI_TEXTWIDTH, STYLE_DEFAULT, (sptr_t) "X");
-    eu_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
-    eu_sci_call(pnode->presult, SCI_SETKEYWORDS, 0, (sptr_t)"|");
+    int char_width = (int)on_sci_call(pnode, SCI_TEXTWIDTH, STYLE_DEFAULT, (sptr_t) "X");
+    on_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
+    on_sci_call(pnode->presult, SCI_SETKEYWORDS, 0, (sptr_t)"|");
     if (clear)
     {
-        eu_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+        on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
     }
     else
     {
-        eu_sci_call(pnode->presult, SCI_ADDTEXT, 1, (LPARAM)"\n");
+        on_sci_call(pnode->presult, SCI_ADDTEXT, 1, (LPARAM)"\n");
     }
     if (!on_table_sql_header(pnode))
     {
@@ -1035,8 +1035,8 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     }
     if (!pq)
     {
-        sel_start = (int) eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        sel_end = (int) eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+        sel_start = (int) on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        sel_end = (int) on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
         sel_len = sel_end - sel_start;
         if (sel_len <= 0)
         {
@@ -1507,8 +1507,8 @@ on_table_sql_query(eu_tabpage *pnode, const char *pq, bool vcontrol, bool clear)
     }
 table_clean:
     on_table_fix_columns(pnode->hwnd_qrtable, afield_width);
-    eu_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
-    eu_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
+    on_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
+    on_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
     eu_safe_free(sel_sql);
     eu_safe_free(afield_width);
     return nret;

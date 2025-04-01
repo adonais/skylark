@@ -7,7 +7,7 @@ Skylark Editor - 开源, 小巧, 绿色, 秒开
 - 支持sql与lua脚本直接运行.
 - 支持括号补全,关键字补全与函数原型提示.
 - 支持代码片段补全与可视化代码片段管理.
-- 支持json解析与格式化, javascript压缩与格式化, clang-format格式化.
+- 支持json解析与格式化, xml, javascript压缩与格式化, clang-format格式化.
 - 支持sumatrapdf插件, 可直接在skylark打开pdf文档和epub等格式电子书.
 - 内置16进制编辑器, 大文件秒开.
 - 内置文件管理器与sftp远程管理器.

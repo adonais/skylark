@@ -18,6 +18,7 @@
 
 #include "framework.h"
 #include <shlobj_core.h>
+#include <shlguid.h>
 
 typedef const char *(__cdecl *pwine_get_version)(void);
 typedef char *(__cdecl *pwine_get_unix_file_name)(LPCWSTR dos);
@@ -37,9 +38,9 @@ typedef struct _LANGANDCODEPAGE
     uint16_t wCodePage;
 } LANGANDCODEPAGE;
 
-static PFNGFVSW pfnGetFileVersionInfoSizeW;
-static PFNGFVIW pfnGetFileVersionInfoW;
-static PFNVQVW pfnVerQueryValueW;
+static PFNGFVSW pfnGetFileVersionInfoSizeW = NULL;
+static PFNGFVIW pfnGetFileVersionInfoW = NULL;
+static PFNVQVW pfnVerQueryValueW = NULL;
 
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
@@ -61,6 +62,14 @@ static PFNVQVW pfnVerQueryValueW;
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif
+
+#define STRIM_PSZ_TAIL(_psz, _path)                  \
+    _tcsncpy(_psz, _path, MAX_BUFFER - 1);           \
+    p = _tcsrchr(_psz, _T('\\'));                    \
+    if (p)                                           \
+    {                                                \
+        *p = 0;                                      \
+    }
 
 static pwine_get_version fn_wine_get_version;
 static char const out_of_mem[] = "no memory for %zu byte allocation\n";
@@ -141,7 +150,7 @@ util_xmalloc(const size_t sz)
 static void *
 util_xrealloc(void * ptr, const size_t sz)
 {
-    void *res = realloc(ptr, sz);
+    void *res = ptr ? realloc(ptr, sz) : malloc(sz);
     if (res == NULL)
     {
         eu_logmsg(out_of_mem, sz);
@@ -176,6 +185,59 @@ void
 util_unlock(volatile long *gcs)
 {
     _InterlockedExchange(gcs, 0);
+}
+
+static unsigned __stdcall
+util_lock_callback(void *lp)
+{
+    eu_tabpage *p = (eu_tabpage *)lp;
+    if (p)
+    {
+        util_lock(&p->busy_id);
+    }
+    return 0;
+}
+
+void
+util_lock_v2(eu_tabpage *p)
+{
+    if (p)
+    {
+        if (on_proc_thread() == GetCurrentThreadId())
+        {
+            if (_InterlockedCompareExchange(&p->busy_id, 1, 0) != 0)
+            {
+                MSG msg = {0};
+                HANDLE wait_handle = (HANDLE)_beginthreadex(NULL, 0, util_lock_callback, p, 0, NULL);
+                if (wait_handle)
+                {
+                    while (MsgWaitForMultipleObjects(1, &wait_handle, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0 + 1)
+                    {
+                        eu_logmsg("Have a message, peek and dispatch it\n");
+                        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+                        {
+                            TranslateMessage(&msg);
+                            DispatchMessage(&msg);
+                        }
+                    }
+                    CloseHandle(wait_handle);
+                }
+            }
+        }
+        else
+        {
+            util_lock(&p->busy_id);
+        }
+    }
+}
+
+void
+util_unlock_v2(eu_tabpage *p)
+{
+    if (p)
+    {
+        util_unlock(&p->busy_id);
+    }
 }
 
 HWND
@@ -376,21 +438,21 @@ done:
 }
 
 void
-util_wait_cursor(eu_tabpage *pnode)
+util_wait_cursor(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode))
     {
-        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
+        on_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORWAIT, 0);
     }
 }
 
 void
-util_restore_cursor(eu_tabpage *pnode)
+util_restore_cursor(const eu_tabpage *pnode)
 {
     POINT pt;
     if (pnode && !TAB_HEX_MODE(pnode))
     {
-        eu_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
+        on_sci_call(pnode, SCI_SETCURSOR, (WPARAM) SC_CURSORNORMAL, 0);
         GetCursorPos(&pt);
         SetCursorPos(pt.x, pt.y);
     }
@@ -1179,7 +1241,7 @@ util_get_clipboard(char **ppstr)
 }
 
 char *
-util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
+util_strdup_select(const eu_tabpage *pnode, size_t *plen, size_t multiple)
 {
     sptr_t text_len;
     sptr_t buf_len;
@@ -1188,7 +1250,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
     {
         return NULL;
     }
-    text_len = eu_sci_call(pnode, SCI_GETSELTEXT, 0, 0);
+    text_len = on_sci_call(pnode, SCI_GETSELTEXT, 0, 0);
     if (text_len > 0)
     {
         if (multiple > 1)
@@ -1207,7 +1269,7 @@ util_strdup_select(eu_tabpage *pnode, size_t *plen, size_t multiple)
             }
             return NULL;
         }
-        eu_sci_call(pnode, SCI_GETSELTEXT, text_len, (sptr_t) ptext);
+        on_sci_call(pnode, SCI_GETSELTEXT, text_len, (sptr_t) ptext);
         if (plen)
         {
             (*plen) = (size_t)buf_len;
@@ -1230,7 +1292,7 @@ util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char *
         char *txt = NULL;
         for (len = start; len < end; ++len)
         {
-            int ch = (int) eu_sci_call(pnode, SCI_GETCHARAT, len, 0);
+            int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, len, 0);
             if (!isspace(ch))
             {
                 break;
@@ -1246,7 +1308,7 @@ util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char *
 }
 
 char *
-util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
+util_strdup_line(const eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
 {
     sptr_t line = -1;
     sptr_t text_len = 0;
@@ -1257,8 +1319,8 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
     }
     if (line_number < 0)
     {
-        sptr_t cur_pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        line = eu_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
+        sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+        line = on_sci_call(pnode, SCI_LINEFROMPOSITION, cur_pos, 0);
     }
     else
     {
@@ -1268,9 +1330,9 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
     {
         return NULL;
     }
-    if (!(text_len = eu_sci_call(pnode, SCI_GETLINE, line, 0)))
+    if (!(text_len = on_sci_call(pnode, SCI_GETLINE, line, 0)))
     {
-        sptr_t row = eu_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
+        sptr_t row = on_sci_call(pnode, SCI_POSITIONFROMLINE, line, 0);
         if (row == -1)
         {
             text_len = -1;
@@ -1278,7 +1340,7 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
     }
     if ((ptext = text_len >= 0 ? malloc(text_len + 1) : NULL))
     {
-        eu_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
+        on_sci_call(pnode, SCI_GETLINE, line, (sptr_t) ptext);
         ptext[text_len] = 0;
         if (plen)
         {
@@ -1293,7 +1355,7 @@ util_strdup_line(eu_tabpage *pnode, const sptr_t line_number, size_t *plen)
 }
 
 char *
-util_strdup_content(eu_tabpage *pnode, size_t *plen)
+util_strdup_content(const eu_tabpage *pnode, size_t *plen)
 {
     char *ptext = NULL;
     size_t total_len = 0;
@@ -1301,14 +1363,14 @@ util_strdup_content(eu_tabpage *pnode, size_t *plen)
     {
         return NULL;
     }
-    if ((total_len = (size_t)eu_sci_call(pnode, SCI_GETLENGTH, 0, 0)) > on_file_get_avail_phys())
+    if ((total_len = (size_t)on_sci_call(pnode, SCI_GETLENGTH, 0, 0)) > on_file_get_avail_phys())
     {
         MSG_BOX(IDC_MSG_MEM_NOT_AVAIL, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
         return NULL;
     }
     if ((ptext = total_len > 0 ? (char *) calloc(1, total_len + 1) : NULL))
     {
-        eu_sci_call(pnode, SCI_GETTEXT, (sptr_t)(total_len + 1), (sptr_t)ptext);
+        on_sci_call(pnode, SCI_GETTEXT, (sptr_t)(total_len + 1), (sptr_t)ptext);
         if (plen)
         {
             *plen = total_len;
@@ -1734,14 +1796,14 @@ int
 util_effect_line(eu_tabpage *pnode, sptr_t *start_line, sptr_t *end_line)
 {
     EU_VERIFY(pnode != NULL);
-    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
-    sptr_t line_start = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
+    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    sptr_t line_start = on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_start, 0);
     sptr_t line_end;
     if (sel_end - sel_start > 0)
     {
-        line_end = eu_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
-        if (sel_end == eu_sci_call(pnode, SCI_POSITIONFROMLINE, line_end, 0))
+        line_end = on_sci_call(pnode, SCI_LINEFROMPOSITION, sel_end, 0);
+        if (sel_end == on_sci_call(pnode, SCI_POSITIONFROMLINE, line_end, 0))
         {
             line_end--;
         }
@@ -2016,10 +2078,10 @@ util_to_abs(const char *path)
 }
 
 bool
-util_can_selections(eu_tabpage *pnode)
+util_can_selections(const eu_tabpage *pnode)
 {
-    sptr_t sel_start = eu_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t sel_end = eu_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+    const sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+    const sptr_t sel_end = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
     return sel_start != sel_end;
 }
 
@@ -2083,7 +2145,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 {
                     pstream->close = util_close_stream_by_munmap;
                     ret = true;
-                    eu_logmsg("we open file use MapViewOfFile API\n");
+                    eu_logmsg("File: use mapviewoffile\n");
                 }
             }
         }
@@ -2095,7 +2157,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                eu_logmsg("we open file use ReadFile API, bytesread = %u\n", bytesread);
+                eu_logmsg("File: use readfile, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -2111,13 +2173,13 @@ util_setforce_eol(eu_tabpage *p)
     if (pdata)
     {
         p->eol = on_encoding_line_mode(pdata, len);
-        eu_sci_call(p, SCI_SETEOLMODE, p->eol, 0);
+        on_sci_call(p, SCI_SETEOLMODE, p->eol, 0);
         free(pdata);
     }
 }
 
 void
-util_save_placement(HWND hwnd)
+util_save_placement(const HWND hwnd)
 {
     WINDOWPLACEMENT wp = {sizeof(WINDOWPLACEMENT)};
     if (GetWindowPlacement(hwnd, &wp))
@@ -2135,7 +2197,7 @@ util_save_placement(HWND hwnd)
 }
 
 void
-util_restore_placement(HWND hwnd)
+util_restore_placement(const HWND hwnd)
 {
     WINDOWPLACEMENT wp = {0};
     if (util_string_to_struct(eu_get_config()->m_placement, &wp, sizeof(wp)))
@@ -2149,7 +2211,7 @@ util_restore_placement(HWND hwnd)
 }
 
 void
-util_untransparent(HWND hwnd)
+util_untransparent(const HWND hwnd)
 {
     if (hwnd != NULL)
     {
@@ -2158,7 +2220,7 @@ util_untransparent(HWND hwnd)
 }
 
 void
-util_transparent(HWND hwnd, int percent)
+util_transparent(const HWND hwnd, int percent)
 {
     if (hwnd)
     {
@@ -2210,7 +2272,7 @@ util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
     {
         wchar_t *pbuf = NULL;
         Sci_TextRangeFull tr = {{start, end}, buffer};
-        eu_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
+        on_sci_call(pnode, SCI_GETTEXTRANGEFULL, 0, (sptr_t) &tr);
         if (*buffer && (pbuf = eu_utf8_utf16(buffer, NULL)))
         {
             len = (sptr_t)wcslen(pbuf);
@@ -2319,7 +2381,22 @@ util_os_version(void)
     return ver;
 }
 
-static char *
+char *
+util_strrstr(const char *s1, const char *s2)
+{
+    char *r = NULL;
+    char *p = NULL;
+    char *s = (char *)s1;
+    while (1)
+    {
+        if (!(p = strstr(s, s2)))
+            return r;
+        r = p;
+        s = p + 1;
+    }
+}
+
+char *
 util_stristr(const char *str, const char *pattern)
 {
     char *pptr, *sptr, *start;
@@ -2511,7 +2588,7 @@ util_which(const TCHAR *name)
     const TCHAR *path = (const TCHAR *)_tgetenv(_T("PATH"));
     TCHAR *av[] = {_T(".exe"), _T(".com"), _T(".cmd"), _T(".bat"), NULL};
     TCHAR *dot = _tcsrchr(name, _T('.'));
-    if (!path || !GetSystemDirectory(sz_work, MAX_BUFFER - 1))
+    if (!path || !GetCurrentDirectoryW(MAX_BUFFER - 1, sz_work))
     {
         return NULL;
     }
@@ -2834,14 +2911,14 @@ util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py)
 {
     if (pnode)
     {
-        if (pos < 0 && (pos = eu_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
+        if (pos < 0 && (pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
         {
-            pos = eu_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+            pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
         }
         if (pos >= 0)
         {
-            *px = eu_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-            *py = eu_sci_call(pnode, SCI_POSITIONFROMLINE, *px, 0);
+            *px = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            *py = on_sci_call(pnode, SCI_POSITIONFROMLINE, *px, 0);
             (*px) += 1;
             (*py) = pos - (*py) + 1;
         }
@@ -3059,14 +3136,13 @@ util_symlink_destroy(eu_tabpage *pnode)
             DeleteObject(pnode->hwnd_font);
             pnode->hwnd_font = NULL;
         }
-        // 强制终止后台线程, 当软链接未解析完成时会导致泄露
-        if (_InterlockedCompareExchange(&pnode->pcre_id, 0, 1L))
+        if (pnode->pcre_id > 1)
         {
-            util_kill_thread((uint32_t)pnode->pcre_id);
+            on_symlist_wait(pnode);
         }
-        if (_InterlockedCompareExchange(&pnode->json_id, 0, 1L))
+        else if (pnode->json_id > 1)
         {
-            util_kill_thread((uint32_t)pnode->json_id);
+            _InterlockedExchange(&pnode->json_id, 1);
         }
     }
 }
@@ -3233,9 +3309,9 @@ util_updateui_icon(const HWND hwnd, const bool fnshow)
 void
 util_updateui_msg(const eu_tabpage *pnode)
 {
-    const sptr_t pos = eu_sci_call((eu_tabpage *)pnode, SCI_GETANCHOR, 0, 0);
-    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
-    eu_sci_call((eu_tabpage *)pnode, SCI_SETANCHOR, pos, 0);
+    const sptr_t pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
+    on_sci_call(pnode, SCI_SETANCHOR, pos ? -1 : pos + 1, 0);
+    on_sci_call(pnode, SCI_SETANCHOR, pos, 0);
 }
 
 void
@@ -3455,4 +3531,134 @@ util_tab_height(const HWND hwnd, const int width)
         xy = TabCtrl_SetItemSize(hwnd, x, y);
     }
     return (y > TABS_HEIGHT_DEFAULT ? y : TABS_HEIGHT_DEFAULT);
+}
+
+HRESULT
+util_shortcut(const WCHAR *pfile, const bool create)
+{
+    HRESULT hr = 1;
+    PWSTR rawpath = NULL;
+    WCHAR lnk[MAX_PATH] = {0};
+    WCHAR working[MAX_PATH] = {0};
+    WCHAR lnk_file[MAX_BUFFER] = {0};
+    IShellLinkW *p_link = NULL;
+    IPersistFile *pf = NULL;
+    const GUID fid = FOLDERID_SendTo;
+    DWORD flags = KF_FLAG_SIMPLE_IDLIST | KF_FLAG_DONT_VERIFY | KF_FLAG_NO_ALIAS;
+    CoInitialize(NULL);
+    if (FAILED(hr = SHGetKnownFolderPath(&fid, flags, NULL, &rawpath)))
+    {
+        goto clean_short;
+    }
+    {
+        on_file_splite_path(pfile, working, lnk, NULL, NULL);
+        _snwprintf(lnk_file, MAX_BUFFER, L"%s\\%s.lnk", rawpath, lnk);
+        CoTaskMemFree(rawpath);
+        if (!create)
+        {
+            util_delete_file(lnk_file);
+            hr = SKYLARK_OK;
+            goto clean_short;
+        }
+    }
+    if (FAILED(hr = CoCreateInstance(&CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, &IID_IShellLink, (LPVOID *)&p_link)))
+    {
+        goto clean_short;
+    }
+    {   // 设置属性
+        IShellLinkW_SetPath(p_link, pfile);
+        IShellLinkW_SetWorkingDirectory(p_link, working);
+        IShellLinkW_SetIconLocation(p_link, pfile, 0);
+    }
+    // 取得IPersistFile接口
+    if (FAILED(hr = IShellLinkW_QueryInterface(p_link, &IID_IPersistFile, (LPVOID *)&pf)))
+    {
+        goto clean_short;
+    }
+    {
+        util_delete_file(lnk_file);
+        hr = IPersistFile_Save(pf, lnk_file, FALSE);
+    }
+clean_short:
+    if (pf)
+    {
+        IPersistFile_Release(pf);
+    }
+    if (p_link)
+    {
+        IShellLinkW_Release(p_link);
+    }
+    CoUninitialize();
+    return (hr);
+}
+
+/* 广度算法搜索文件夹, 搜索到文件返回true, 否则返回false
+ * 参数1, path 为给定目录
+ * 参数2, pout 是保存输出文件的数组
+ * 参数3, pdata是一个结构体的模板, 可以为空
+ */
+
+bool
+util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata)
+{
+    queue_list sz = {0};
+    size_t vec_size = cvector_size(*pout);
+    _tcsncpy(sz.path, path, MAX_BUFFER - 1);
+    if (GetFileAttributes(sz.path) & FILE_ATTRIBUTE_DIRECTORY)
+    {
+        TCHAR *p = NULL;
+        TCHAR psz[MAX_BUFFER] = {0};
+        WIN32_FIND_DATA fd = {0};
+        HANDLE handle = INVALID_HANDLE_VALUE;
+        cvector_vector_type(queue_list) sz_queue = NULL;
+        if (_T('\\') == sz.path[_tcslen(sz.path) - 1])
+        {
+            sz.path[_tcslen(sz.path) - 1] = 0;
+        }
+        if (true)
+        {
+            _tcsncpy(psz, sz.path, MAX_BUFFER - 1);
+            _tcsncat(sz.path, _T("\\*"), MAX_BUFFER - 1);
+            cvector_push_back(sz_queue, sz);
+        }
+        for (size_t i = 0; i < cvector_size(sz_queue); ++i)
+        {
+            if ((handle = FindFirstFile(sz_queue[i].path, &fd)) != INVALID_HANDLE_VALUE)
+            {
+                do
+                {
+                    if (_tcscmp(fd.cFileName, _T(".")) == 0 || _tcscmp(fd.cFileName, _T("..")) == 0)
+                    {
+                        continue;
+                    }
+                    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                    {
+                        _tcsncpy(psz, sz_queue[i].path, MAX_BUFFER - 1);
+                        STRIM_PSZ_TAIL(psz, sz_queue[i].path);
+                        _sntprintf(sz.path, MAX_BUFFER - 1, _T("%s\\%s\\*"), psz, fd.cFileName);
+                        cvector_push_back(sz_queue, sz);
+                    }
+                    else
+                    {
+                        file_backup sz_backup = {-1, -1, 0 , -1};
+                        if (pdata)
+                        {
+                            memcpy(&sz_backup, pdata, sizeof(file_backup));
+                        }
+                        STRIM_PSZ_TAIL(psz, sz_queue[i].path);
+                        _sntprintf(sz_backup.rel_path, MAX_BUFFER - 1, _T("%s\\%s"), psz, fd.cFileName);
+                        cvector_push_back((*pout), sz_backup);
+                    }
+
+                } while (FindNextFile(handle, &fd));
+                if (INVALID_HANDLE_VALUE != handle)
+                {
+                    FindClose(handle);
+                    handle = INVALID_HANDLE_VALUE;
+                }
+            }
+        }
+        cvector_free(sz_queue);
+    }
+    return (vec_size < cvector_size(*pout));
 }

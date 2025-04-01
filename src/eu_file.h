@@ -19,7 +19,10 @@
 #ifndef _H_SKYLARK_FILE_
 #define _H_SKYLARK_FILE_
 
-#define URL_MIN 7
+#define SAVE_ONLY 0
+#define SAVE_AS   1
+#define SAVE_ALL  2
+#define URL_MIN   7
 #define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define url_has_samba(ll) (_tcslen(ll) > 2 && (ll[1] == L'\\' && ll[0] == L'\\'))
@@ -46,12 +49,12 @@ typedef struct _file_backup
     intptr_t y;
     intptr_t postion;
     int tab_id;
+    int focus;
     int cp;
     int bakcp;
     int eol;
     int blank;
     int hex;
-    int focus;
     int zoom;
     int status;
     int sync;
@@ -64,12 +67,12 @@ typedef struct _file_backup
 
 int on_file_new(eu_tabpage *psrc);
 int on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force);
-int on_file_only_open(file_backup *pbak, const bool selection);
+int on_file_only_open(file_backup *pbak);
 int on_file_open(void);
 int on_file_out_open(const int index, uint32_t *pid);
 int on_file_drop(HDROP hdrop);
-int on_file_open_remote(remotefs *pserver, file_backup *pbak, const bool selection);
-int on_file_save(eu_tabpage *pnode, const bool save_as);
+int on_file_open_remote(remotefs *pserver, file_backup *pbak);
+int on_file_save(eu_tabpage *pnode, const int save);
 int on_file_save_as(eu_tabpage *pnode);
 int on_file_all_save(void);
 int on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode);
@@ -79,7 +82,7 @@ int on_file_right_close(void);
 int on_file_exclude_close(eu_tabpage *pnode);
 int on_file_unchange_close(eu_tabpage *pnode);
 int on_file_open_filename_dlg(HWND hwnd, TCHAR *file_name, int name_len);
-int on_file_redirect(HWND hwnd, file_backup *pm);
+int on_file_redirect(file_backup *pbak, const size_t vsize);
 int on_file_stream_upload(eu_tabpage *pnode, TCHAR *pmsg);
 int on_file_load_plugins(eu_tabpage *pnode, bool route_open);
 void on_file_update_time(eu_tabpage *pnode, time_t m);
@@ -93,9 +96,10 @@ void on_file_edit_restart(HWND hwnd, const bool admin, const bool wait);
 void on_file_restore_recent(void);
 void on_file_reload_current(eu_tabpage *pnode);
 void on_file_auto_backup(void);
-void on_file_auto_notify(void);
 void on_file_filedb_update(const eu_tabpage *pnode);
 void on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, const bool isbak, int *);
+void on_file_splite_path(const TCHAR *full_path, TCHAR *pathname, TCHAR *filename, TCHAR *mainname, TCHAR *extname);
+bool on_file_auto_notify(void);
 bool on_file_get_bakpath(eu_tabpage *pnode);
 bool on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte);
 uint64_t on_file_get_avail_phys(void);

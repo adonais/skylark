@@ -3653,7 +3653,7 @@ on_about_hwnd(void)
 bool
 on_about_dialog(void)
 {
-    on_update_check(UPCHECK_INDENT_ABOUT);
+    on_update_run(UPCHECK_INDENT_ABOUT);
     return i18n_dlgbox(eu_hwnd_self(), IDD_ABOUTBOX, func_about_proc, 0) > 0;
 }
 
@@ -3666,7 +3666,7 @@ on_about_build_id(void)
     GetTimeZoneInformation(&tzi);
     if ((zone = (int)tzi.Bias/60))
     {
-        eu_logmsg("If it is a local compilation, add this time offset, zone = %d\n", zone);
+        eu_logmsg("UTC: if it is a local compilation, add this time offset, zone = %d\n", zone);
         return (zone * 3600 + get_compiler_time(__DATE__, __TIME__));
     }
 #endif

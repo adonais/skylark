@@ -55,7 +55,7 @@ on_setting_load_icon(const TCHAR *path)
         if ((hexe = (HINSTANCE)LoadLibrary(path)) == NULL)
         {
             //Error loading module -- fail as securely as possible
-            eu_logmsg("%s: LoadLibrary return false\n", __FUNCTION__);
+            eu_logmsg("Setting: %s, LoadLibrary return false\n", __FUNCTION__);
             break;
         }
         for (int i = 1; i < UINT16_MAX; ++i)
@@ -72,7 +72,7 @@ on_setting_load_icon(const TCHAR *path)
         // Load and lock the icon directory.
         if (!(hmem = hresource ? LoadResource(hexe, hresource): NULL))
         {
-            eu_logmsg("%s: LoadResource return false\n", __FUNCTION__);
+            eu_logmsg("Setting: %s, LoadResource return false\n", __FUNCTION__);
             break;
         }
         lpresource = LockResource(hmem);
@@ -201,7 +201,7 @@ on_setting_update_menu(const HMENU setting_menu)
                     }
                     else if (!pconf->m_customize[i].micon && (path = util_to_abs(pconf->m_customize[i].path)))
                     {
-                        eu_logmsg("%s: path[%s]\n", __FUNCTION__, eu_utf16_utf8(path, NULL));
+                        eu_logmsg("Setting: %s[%s]\n", __FUNCTION__, eu_utf16_utf8(path, NULL));
                         pconf->m_customize[i].hbmp ? DeleteObject((HBITMAP)pconf->m_customize[i].hbmp) : (void)0;
                         pconf->m_customize[i].hbmp = (uintptr_t)on_setting_load_icon(path);
                     }
@@ -461,6 +461,6 @@ on_setting_manager(void)
     }
     else
     {
-        eu_logmsg("%s: error, eu_config point null\n", __FUNCTION__);
+        eu_logmsg("Setting: %s error, eu_config point null\n", __FUNCTION__);
     }
 }

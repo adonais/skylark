@@ -637,7 +637,7 @@ void
 on_toolbar_no_highlight(void *lp)
 {
     result_vec *pvec = NULL;
-    eu_sci_call((eu_tabpage *)lp, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
+    on_sci_call((const eu_tabpage *)lp, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
 }
 
 void
@@ -655,12 +655,13 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
         {
             int read_len = 0;
             char *std_buffer = NULL;
+            char *filename = eu_utf16_utf8(pnode->pathfile, NULL);
             pnode->presult->pwant = on_toolbar_no_highlight;
             eu_window_resize();
             do_lua_setting_path(pnode);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
-                if (do_lua_code((const char *)buffer) == 0)
+                if (do_lua_code((const char *)buffer, filename) == 0)
                 {
                     read_len = get_output_buffer(std_buffer, MAX_OUTPUT_BUF);
                 }
@@ -680,10 +681,11 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 }
                 free(std_buffer);
             }
-            free(buffer);
             do_lua_setting_path(NULL);
+            eu_safe_free(filename);
         }
     }
+    eu_safe_free(buffer);
 }
 
 static void
@@ -1003,7 +1005,7 @@ on_toolbar_cmd_start(eu_tabpage *pnode)
             _sntprintf(cmd_exec, MAX_BUFFER, _T("%s \"%s\""), plugin, unix_path[0] ? unix_path : L"x-terminal-emulator");
             free(plugin);
         }
-        if ((handle = eu_new_process(cmd_exec, NULL, pcd, 2, NULL)) != NULL)
+        if ((handle = eu_new_process(cmd_exec, NULL, pcd, 3, NULL)) != NULL)
         {
             CloseHandle(handle);
         }
@@ -1044,13 +1046,13 @@ on_toolbar_update_button(void)
             on_toolbar_setup_button(IDM_SEARCH_FIND, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDPREV, !pnode->pmod ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_FINDNEXT, !pnode->pmod ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && eu_sci_call(pnode, SCI_CANUNDO, 0, 0) ? 2 : 1);
-            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && eu_sci_call(pnode, SCI_CANREDO, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_UNDO, !pnode->pmod && on_sci_call(pnode, SCI_CANUNDO, 0, 0) ? 2 : 1);
+            on_toolbar_setup_button(IDM_EDIT_REDO, !pnode->pmod && on_sci_call(pnode, SCI_CANREDO, 0, 0) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_TOGGLE_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_GOTO_PREV_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_SEARCH_GOTO_NEXT_BOOKMARK, !pnode->pmod && !TAB_HEX_MODE(pnode) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_HEXEDIT_MODE, TAB_NOT_BIN(pnode) && (TAB_HAS_PDF(pnode) || TAB_NOT_NUL(pnode)) ? 2 : 1);
-            on_toolbar_setup_button(IDM_VIEW_SYMTREE, (pnode->hwnd_symlist || pnode->hwnd_symtree) ? 2 : 1);
+            on_toolbar_setup_button(IDM_VIEW_SYMTREE, (!TAB_HEX_MODE(pnode) && pnode->doc_ptr && pnode->doc_ptr->fn_init_before) ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_FULLSCREEN, 2);
             on_toolbar_setup_button(IDM_FILE_REMOTE_FILESERVERS, util_exist_libcurl() ? 2 : 1);
             on_toolbar_setup_button(IDM_VIEW_ZOOMIN, 2);

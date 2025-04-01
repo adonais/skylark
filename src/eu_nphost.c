@@ -111,6 +111,15 @@ np_plugins_print(const npp_funcs *pfunc, const NPP instance, npprint *platform)
     }
 }
 
+void
+np_plugins_draw(const npp_funcs *pfunc, const NPP instance)
+{
+    if (pfunc && pfunc->event && instance)
+    {
+        pfunc->event(instance, (void *)(intptr_t)WM_SIZE);
+    }
+}
+
 int
 np_plugins_getvalue(const npp_funcs *pfunc, const NPP instance, npp_variable v, void **value)
 {

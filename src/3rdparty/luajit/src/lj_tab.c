@@ -1,6 +1,6 @@
 /*
 ** Table handling.
-** Copyright (C) 2005-2023 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Major portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2008 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -194,6 +194,7 @@ GCtab * LJ_FASTCALL lj_tab_dup(lua_State *L, const GCtab *kt)
       Node *next = nextnode(kn);
       /* Don't use copyTV here, since it asserts on a copy of a dead key. */
       n->val = kn->val; n->key = kn->key;
+      if (tvistab(&n->val)) setnilV(&n->val); /* Replace nil value marker. */
       setmref(n->next, next == NULL? next : (Node *)((char *)next + d));
     }
   }
@@ -366,13 +367,6 @@ static void rehashtab(lua_State *L, GCtab *t, cTValue *ek)
   total -= na;
   lj_tab_resize(L, t, asize, hsize2hbits(total));
 }
-
-#if LJ_HASFFI
-void lj_tab_rehash(lua_State *L, GCtab *t)
-{
-  rehashtab(L, t, niltv(L));
-}
-#endif
 
 void lj_tab_reasize(lua_State *L, GCtab *t, uint32_t nasize)
 {
@@ -642,7 +636,7 @@ LJ_NOINLINE static MSize tab_len_slow(GCtab *t, size_t hi)
   while ((tv = lj_tab_getint(t, (int32_t)hi)) && !tvisnil(tv)) {
     lo = hi;
     hi += hi;
-    if (hi > (size_t)(INT_MAX-2)) {  /* Punt and do a linear search. */
+    if (hi > (size_t)(0x7fffffff - 2)) {  /* Punt and do a linear search. */
       lo = 1;
       while ((tv = lj_tab_getint(t, (int32_t)lo)) && !tvisnil(tv)) lo++;
       return (MSize)(lo - 1);

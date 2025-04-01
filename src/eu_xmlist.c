@@ -71,18 +71,28 @@ static void XMLCALL
 start_element(void *userdata, const XML_Char *name, const XML_Char **atts)
 {
     ex_context *ctx = (ex_context *) userdata;
-    HWND hwnd = ctx->ptab->hwnd_symtree;
-    HTREEITEM parent = ctx->hitem;
-    const int count = count_depth(hwnd, ctx->hitem);
-    if (count && ctx->depth <= count)
+    eu_tabpage *pnode = ctx->ptab;
+    if (pnode)
     {
-        for (int i = ctx->depth; i <= count; ++i)
+        int count = 0;
+        HWND hwnd = pnode->hwnd_symtree;
+        HTREEITEM parent = ctx->hitem;
+        if (pnode->json_id == 1)
         {
-            parent = TreeView_GetParent(hwnd, parent);
+            XML_StopParser(ctx->parser, FALSE);
+            eu_logmsg("Xml: recv cancel message, thread %lu exit ...\n", GetCurrentThreadId());
+            return;
         }
+        if ((count = count_depth(hwnd, ctx->hitem)) && ctx->depth <= count)
+        {
+            for (int i = ctx->depth; i <= count; ++i)
+            {
+                parent = TreeView_GetParent(hwnd, parent);
+            }
+        }
+        ctx->hitem = on_symtree_insert_str(hwnd, parent, name, XML_GetCurrentByteIndex(ctx->parser));
+        ctx->depth += 1;
     }
-    ctx->hitem = on_symtree_insert_str(hwnd, parent, name, XML_GetCurrentByteIndex(ctx->parser));
-    ctx->depth += 1;
 }
 
 static void XMLCALL
@@ -105,9 +115,10 @@ end_cdata(void *userdata)
     end_element(userdata, NULL);
 }
 
-static void
+static int
 on_xml_parser(eu_tabpage *pnode, const char *pbuf, const int buf_len)
 {
+    int ret = 0;
     if (pnode && pnode->hwnd_symtree && pbuf && buf_len > 0)
     {
         int done = 0;
@@ -121,7 +132,7 @@ on_xml_parser(eu_tabpage *pnode, const char *pbuf, const int buf_len)
             XML_SetUserData(parser, &ctx);
             XML_SetElementHandler(parser, start_element, end_element);
             XML_SetCdataSectionHandler(parser, start_cdata, end_cdata);
-            if (XML_Parse(parser, pbuf, buf_len, done) == XML_STATUS_ERROR)
+            if ((ret = XML_Parse(parser, pbuf, buf_len, done)) == XML_STATUS_ERROR)
             {
                 char err[MAX_PATH] = { 0 };
                 _snprintf(err, MAX_PATH - 1, "(%s at line %Id)\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
@@ -131,6 +142,7 @@ on_xml_parser(eu_tabpage *pnode, const char *pbuf, const int buf_len)
             XML_ParserFree(parser);
         }
     }
+    return ret;
 }
 
 static unsigned WINAPI
@@ -144,14 +156,13 @@ on_xml_thread(void *lp)
         if ((text = util_strdup_content(pnode, &text_len)) != NULL)
         {
             TreeView_DeleteAllItems(pnode->hwnd_symtree);
-            on_xml_parser(pnode, text, (const int) text_len);
-            if (TreeView_GetRoot(pnode->hwnd_symtree))
+            if (on_xml_parser(pnode, text, (const int) text_len) == 0 && TreeView_GetRoot(pnode->hwnd_symtree))
             {
                 on_symtree_expand_all(pnode->hwnd_symtree, NULL);
             }
             free(text);
         }
-        _InterlockedExchange(&pnode->json_id, 0);
+        eu_logmsg("Xml: %s exit ...\n", __FUNCTION__);
     }
     return 0;
 }
@@ -458,17 +469,17 @@ on_xml_pretty(void *ptr, struct opt_format *opt)
             ctx.showattributes = !opt->no_a;
             ctx.firsttime = true;
             ctx.eol = on_encoding_get_eol(pnode);
-            if ((bool) eu_sci_call(pnode, SCI_GETUSETABS, 0, 0))
+            if ((bool) on_sci_call(pnode, SCI_GETUSETABS, 0, 0))
             {
                 indent[0] = '\t';
                 indent[1] = 0;
             }
             else
             {
-                int n = (int) eu_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
+                int n = (int) on_sci_call(pnode, SCI_GETTABWIDTH, 0, 0);
                 memset(indent, 0x20, (n > 0 && n < QW_SIZE) ? n : 4);
             }
-            cvector_init(&pout, text_len, uint8_t); 
+            cvector_init(pout, text_len, NULL);
             ctx.indent = indent;
             ctx.ppbuf = &pout;
             XML_SetUserData(parser, &ctx);
@@ -499,7 +510,7 @@ on_xml_pretty(void *ptr, struct opt_format *opt)
             }
             if (XML_Parse(parser, text, (int) text_len, done) == XML_STATUS_ERROR)
             {
-                eu_logmsg("error: %s at line %Id\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
+                eu_logmsg("Xml: error, %s at line %Id\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
             }
             else
             {
@@ -514,10 +525,10 @@ on_xml_pretty(void *ptr, struct opt_format *opt)
     }
     if (ret && strcmp(text, (const char *)pout))
     {
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
-        eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        eu_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)pout), (sptr_t)pout);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_CLEARALL, 0, 0);
+        on_sci_call(pnode, SCI_ADDTEXT, strlen((const char *)pout), (sptr_t)pout);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
     }
     eu_safe_free(text);
     cvector_free(pout);
@@ -532,12 +543,12 @@ on_xml_format(eu_tabpage *pnode)
     int m = _sntprintf(path, MAX_BUFFER, _T("%s\\conf\\conf.d\\xmlformater.lua"), eu_module_path);
     if (!(m > 0 && m < MAX_BUFFER) || ((lua_path = eu_utf16_utf8(path, NULL)) == NULL))
     {
-        eu_logmsg("%s: path unavailable\n", __FUNCTION__);
+        eu_logmsg("Xml: %s path unavailable\n", __FUNCTION__);
         goto xml_fail;
     }
     if (do_lua_point(lua_path, "run", pnode))
     {
-        eu_logmsg("%s: xmlformater.lua failed\n", __FUNCTION__);
+        eu_logmsg("Xml: %s, xmlformater.lua failed\n", __FUNCTION__);
     }
 xml_fail:
     eu_safe_free(lua_path);
@@ -551,17 +562,7 @@ on_xml_tree(eu_tabpage *pnode)
     {
         return 1;
     }
-    if (pnode->raw_size > 0xA00000)
-    {
-        eu_logmsg("Error: This XML file is larger than 10MB\n");
-        if (pnode->hwnd_symtree)
-        {
-            DestroyWindow(pnode->hwnd_symtree);
-            pnode->hwnd_symtree = NULL;
-        }
-        return 1;
-    }
-    if (!pnode->json_id)
+    if (pnode->json_id < 2)
     {
         CloseHandle((HANDLE) _beginthreadex(NULL, 0, &on_xml_thread, pnode, 0, (uint32_t *) &pnode->json_id));
     }

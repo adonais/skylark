@@ -85,9 +85,6 @@ function eu_conf.loadconf()
         "line_number_visiable = true\n" ..
         "last_search_flags = 0x000044\n" ..
         "history_mask = 44711\n" ..
-        "white_space_visiable = false\n" ..
-        "white_space_size = 2\n" ..
-        "newline_visiable = false\n" ..
         "indentation_guides_visiable = true\n" ..
         "tab_width = 4\n" ..
         "onkeydown_tab_convert_spaces = true\n" ..
@@ -116,8 +113,10 @@ function eu_conf.loadconf()
         "tab_switch_forward = 42991\n" ..
         "edit_font_quality = 42552\n" ..
         "edit_rendering_technology = 42560\n" ..
-        "update_file_mask = 0\n" ..
+        "update_file_mask = 1\n" ..
         "update_file_notify = 0\n" ..
+        "doc_highlight_restrict = 0xc800000\n" ..
+        "set_undo_selection = false\n" ..
         "light_all_find_str = true\n" ..
         "backup_on_file_write = false\n" ..
         "save_last_session = true\n" ..
@@ -177,6 +176,8 @@ function eu_conf.loadconf()
         "    last_check = 0,\n" ..
         "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download',\n" ..
         "}\n" ..
+        "-- when a multiple selection is copied, this string property is added between each part\n" ..
+        "set_copy_separator = \"\\\\n\"\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
@@ -190,11 +191,14 @@ function eu_conf.loadconf()
         eu_code = dofile(file)
     end
     -- Add new preference
-    if (titlebar == nil) then
-        titlebar = {["icon"] = true, ["name"] = true, ["path"] = true}
+    if (doc_highlight_restrict == nil) then
+        doc_highlight_restrict = 0xc800000
     end
-    if (tab_split_show == nil) then
-        tab_split_show = false;
+    if (set_undo_selection == nil) then
+        set_undo_selection = false;
+    end
+    if (set_copy_separator == nil) then
+        set_copy_separator = "\\\\n";
     end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
@@ -208,9 +212,6 @@ function eu_conf.loadconf()
         line_number_visiable,
         last_search_flags,
         history_mask,
-        white_space_visiable,
-        white_space_size,
-        newline_visiable,
         indentation_guides_visiable,
         tab_width,
         onkeydown_tab_convert_spaces,
@@ -241,6 +242,8 @@ function eu_conf.loadconf()
         edit_rendering_technology,
         update_file_mask,
         update_file_notify,
+        doc_highlight_restrict,
+        set_undo_selection,
         light_all_find_str,
         backup_on_file_write,
         save_last_session,
@@ -258,6 +261,7 @@ function eu_conf.loadconf()
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
+        set_copy_separator,
         process_path,
         other_editor_path,
         m_reserved_0,

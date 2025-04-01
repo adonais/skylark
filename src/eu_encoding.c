@@ -145,14 +145,14 @@ on_encoding_line_mode(const char *str, size_t len)
 const char *
 on_encoding_get_eol(eu_tabpage *pnode)
 {
-    const int eol_mode = (int) eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
+    const int eol_mode = (int) on_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
     return (eol_mode == SC_EOL_LF) ? "\n" : ((eol_mode == SC_EOL_CR) ? "\r" : "\r\n");
 }
 
 const int
 on_encoding_eol_char(eu_tabpage *pnode)
 {
-    const int eol_mode = (int) eu_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
+    const int eol_mode = (int) on_sci_call(pnode, SCI_GETEOLMODE, 0, 0);
     return (eol_mode == SC_EOL_CR ? 0x0D : 0x0A);
 }
 
@@ -434,7 +434,7 @@ on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn)
     {
         bool whole = false;
         char *ptxt = util_strdup_select(pnode, &len, 0);
-        eu_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         do
         {
             if (len < 2)
@@ -455,18 +455,18 @@ on_encoding_convert_internal_code(eu_tabpage *pnode, enc_back fn)
                 if (!whole)
                 {
                     // 替换所选文本内容
-                    eu_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) dst);
+                    on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) dst);
                 }
                 else
                 {
                     // 替换整个文本内容
-                    eu_sci_call(pnode, SCI_CLEARALL, 0, 0);
-                    eu_sci_call(pnode, SCI_ADDTEXT, strlen(dst), (LPARAM) dst);
+                    on_sci_call(pnode, SCI_CLEARALL, 0, 0);
+                    on_sci_call(pnode, SCI_ADDTEXT, strlen(dst), (LPARAM) dst);
                 }
                 ret = 0;
             }
         } while(0);
-        eu_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
+        on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
         if (ptxt)
         {
             free(ptxt);
