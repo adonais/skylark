@@ -854,7 +854,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            if (wParam == VK_CONTROL || wParam == VK_MENU)
+            if (wParam == VK_CONTROL || wParam == VK_MENU || wParam == VK_SHIFT || wParam == VK_ESCAPE)
             {
                 break;
             }
