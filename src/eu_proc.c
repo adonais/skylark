@@ -1371,7 +1371,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_search_toggle_mark(pnode, -1);
                     break;
                 case IDM_SEARCH_REMOVE_ALL_BOOKMARKS:
-                    on_search_remove_marks_all(pnode);
+                    on_search_remove_marks_all();
                     break;
                 case IDM_SEARCH_GOTO_PREV_BOOKMARK:
                     on_search_jmp_premark_this(pnode, MARGIN_BOOKMARK_MASKN);

@@ -205,7 +205,7 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
                 case IDC_NOEXIST_BTN3:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 0, NULL);
+                        on_tabpage_reload_file(p, 0);
                         p->st_mtime = 0;
                         p->tabs_mask &= ~FILE_KEEP_NO;
                         p->tabs_mask |= FILE_KEEP_YES;
@@ -215,7 +215,7 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
                 case IDC_NOEXIST_BTN4:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 1, NULL);
+                        on_tabpage_reload_file(p, 1);
                         p->tabs_mask &= ~FILE_KEEP_YES;
                         p->tabs_mask |= FILE_KEEP_NO;
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
@@ -306,7 +306,8 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDC_FC_BTN1:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 2, NULL);
+                        p->nc_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                        on_tabpage_reload_file(p, 2);
                         p->tabs_mask |= FILE_RELOAD_YES;
                         on_changes_box_vaule(hdlg, p);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
@@ -315,7 +316,7 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDC_FC_BTN2:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 0, NULL);
+                        on_tabpage_reload_file(p, 0);
                         p->st_mtime = util_last_time(p->pathfile);
                         p->tabs_mask &= ~FILE_RELOAD_YES;
                         on_changes_box_vaule(hdlg, p);
@@ -325,7 +326,8 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDC_FC_BTN3:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 2, NULL);
+                        p->nc_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                        on_tabpage_reload_file(p, 2);
                         on_tabpage_txt_foreach(&on_changes_set_mask);
                         on_changes_box_vaule(hdlg, NULL);
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
@@ -334,7 +336,7 @@ on_changes_time_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam)
                 case IDC_FC_BTN4:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 0, NULL);
+                        on_tabpage_reload_file(p, 0);
                         p->st_mtime = util_last_time(p->pathfile);
                         on_tabpage_txt_foreach(&on_changes_unset_mask);
                         on_changes_box_vaule(hdlg, NULL);
@@ -383,12 +385,12 @@ on_changes_delete_event(eu_tabpage *p)
         uint32_t opt = p->tabs_mask;
         if (opt & FILE_KEEP_ALL_YES)
         {
-            on_tabpage_reload_file(p, 0, NULL);
+            on_tabpage_reload_file(p, 0);
             p->st_mtime = 0;
         }
         else if (opt & FILE_KEEP_ALL_NO)
         {
-            on_tabpage_reload_file(p, 1, NULL);
+            on_tabpage_reload_file(p, 1);
         }
         else
         {
@@ -407,11 +409,12 @@ on_changes_time_event(eu_tabpage *p)
         {
             if (opt & FILE_RELOAD_YES)
             {
-                on_tabpage_reload_file(p, 2, NULL);
+                p->nc_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+                on_tabpage_reload_file(p, 2);
             }
             else
             {
-                on_tabpage_reload_file(p, 0, NULL);
+                on_tabpage_reload_file(p, 0);
                 p->st_mtime = util_last_time(p->pathfile);
             }
         }

@@ -2868,8 +2868,6 @@ on_file_reload_current(eu_tabpage *pnode)
     {
         bool reload = true;
         bool modified = pnode->be_modify;
-        sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-        sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
         if (modified && !eu_get_config()->inter_reserved_0)
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, title);
@@ -2888,7 +2886,8 @@ on_file_reload_current(eu_tabpage *pnode)
         }
         if (reload)
         {
-            on_tabpage_reload_file(pnode, 2, &current_line);
+            pnode->nc_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+            on_tabpage_reload_file(pnode, 2);
         }
     }
 }

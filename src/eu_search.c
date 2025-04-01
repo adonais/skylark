@@ -377,7 +377,7 @@ on_search_init_option(void)
 }
 
 void
-on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
+on_search_jmp_line(const eu_tabpage *pnode, const sptr_t goto_num, const sptr_t current_num)
 {
     if (pnode)
     {
@@ -407,7 +407,7 @@ on_search_jmp_line(eu_tabpage *pnode, sptr_t goto_num, sptr_t current_num)
 }
 
 void
-on_search_jmp_pos(eu_tabpage *pnode)
+on_search_jmp_pos(const eu_tabpage *pnode)
 {
     if (pnode && !pnode->plugin)
     {
@@ -755,7 +755,7 @@ on_search_set_rectangle(eu_tabpage *pnode)
 }
 
 void
-on_search_select_all(eu_tabpage *pnode)
+on_search_select_all(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -764,7 +764,7 @@ on_search_select_all(eu_tabpage *pnode)
 }
 
 void
-on_search_select_word(eu_tabpage *pnode)
+on_search_select_word(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -776,7 +776,7 @@ on_search_select_word(eu_tabpage *pnode)
 }
 
 void
-on_search_select_line(eu_tabpage *pnode)
+on_search_select_line(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -787,7 +787,7 @@ on_search_select_line(eu_tabpage *pnode)
 }
 
 void
-on_search_select_se(eu_tabpage *pnode, uint16_t id)
+on_search_select_se(const eu_tabpage *pnode, uint16_t id)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -809,7 +809,7 @@ on_search_select_se(eu_tabpage *pnode, uint16_t id)
 }
 
 void
-on_search_select_left_word(eu_tabpage *pnode)
+on_search_select_left_word(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -818,7 +818,7 @@ on_search_select_left_word(eu_tabpage *pnode)
 }
 
 void
-on_search_select_right_word(eu_tabpage *pnode)
+on_search_select_right_word(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -827,7 +827,7 @@ on_search_select_right_word(eu_tabpage *pnode)
 }
 
 void
-on_search_select_left_group(eu_tabpage *pnode)
+on_search_select_left_group(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -836,7 +836,7 @@ on_search_select_left_group(eu_tabpage *pnode)
 }
 
 void
-on_search_select_right_group(eu_tabpage *pnode)
+on_search_select_right_group(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -845,7 +845,7 @@ on_search_select_right_group(eu_tabpage *pnode)
 }
 
 void
-on_search_cumulative_previous_block(eu_tabpage *pnode)
+on_search_cumulative_previous_block(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -854,7 +854,7 @@ on_search_cumulative_previous_block(eu_tabpage *pnode)
 }
 
 void
-on_search_cumulative_next_block(eu_tabpage *pnode)
+on_search_cumulative_next_block(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -863,7 +863,7 @@ on_search_cumulative_next_block(eu_tabpage *pnode)
 }
 
 void
-on_search_move_to_lgroup(eu_tabpage *pnode)
+on_search_move_to_lgroup(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -872,7 +872,7 @@ on_search_move_to_lgroup(eu_tabpage *pnode)
 }
 
 void
-on_search_move_to_rgroup(eu_tabpage *pnode)
+on_search_move_to_rgroup(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -881,7 +881,7 @@ on_search_move_to_rgroup(eu_tabpage *pnode)
 }
 
 void
-on_search_move_to_lword(eu_tabpage *pnode)
+on_search_move_to_lword(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -890,7 +890,7 @@ on_search_move_to_lword(eu_tabpage *pnode)
 }
 
 void
-on_search_move_to_rword(eu_tabpage *pnode)
+on_search_move_to_rword(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -899,7 +899,7 @@ on_search_move_to_rword(eu_tabpage *pnode)
 }
 
 void
-on_search_move_to_top_block(eu_tabpage *pnode)
+on_search_move_to_top_block(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -908,7 +908,7 @@ on_search_move_to_top_block(eu_tabpage *pnode)
 }
 
 void
-on_search_move_to_bottom_block(eu_tabpage *pnode)
+on_search_move_to_bottom_block(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -917,7 +917,7 @@ on_search_move_to_bottom_block(eu_tabpage *pnode)
 }
 
 void
-on_search_jmp_home(eu_tabpage *pnode)
+on_search_jmp_home(const eu_tabpage *pnode)
 {
     if (pnode && !pnode->pmod)
     {
@@ -938,7 +938,7 @@ on_search_jmp_home(eu_tabpage *pnode)
 }
 
 void
-on_search_jmp_end(eu_tabpage *pnode)
+on_search_jmp_end(const eu_tabpage *pnode)
 {
     if (pnode && !pnode->pmod)
     {
@@ -960,7 +960,7 @@ on_search_jmp_end(eu_tabpage *pnode)
 }
 
 void
-on_search_jmp_specified_line(eu_tabpage *pnode)
+on_search_jmp_specified_line(const eu_tabpage *pnode)
 {
     sptr_t line = 0;
     TCHAR lineno[32] = {0};
@@ -998,7 +998,7 @@ on_search_jmp_specified_line(eu_tabpage *pnode)
 }
 
 void
-on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
+on_search_toggle_mark(const eu_tabpage *pnode, const sptr_t lineno)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1034,22 +1034,21 @@ on_search_toggle_mark(eu_tabpage *pnode, sptr_t lineno)
 }
 
 static void
-on_search_add_mark(eu_tabpage *pnode, sptr_t lineno)
+on_search_add_mark(const eu_tabpage *pnode, const sptr_t lineno)
 {
     sptr_t current_line = lineno;
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         if (current_line < 0)
         {
-            sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-            current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
+            current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0), 0);
         }
         on_sci_call(pnode, SCI_MARKERADD, current_line, MARGIN_BOOKMARK_VALUE);
     }
 }
 
 static void
-on_search_remove_marks_this(eu_tabpage *pnode)
+on_search_remove_marks_this(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1060,7 +1059,7 @@ on_search_remove_marks_this(eu_tabpage *pnode)
 }
 
 void
-on_search_remove_marks_all(eu_tabpage *pnode)
+on_search_remove_marks_all(void)
 {
     eu_tabpage *p = NULL;
     for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
@@ -1073,7 +1072,7 @@ on_search_remove_marks_all(eu_tabpage *pnode)
 }
 
 sptr_t
-on_search_marker_next(eu_tabpage *pnode, const sptr_t line, sptr_t last, const int bitmask)
+on_search_marker_next(const eu_tabpage *pnode, const sptr_t line, sptr_t last, const int bitmask)
 {
     if (bitmask & CHANGE_HISTORY_BITMASK())
     {
@@ -1094,7 +1093,7 @@ on_search_marker_next(eu_tabpage *pnode, const sptr_t line, sptr_t last, const i
 }
 
 static inline sptr_t
-on_search_marker_previous(eu_tabpage *pnode, const sptr_t line, const int bitmask)
+on_search_marker_previous(const eu_tabpage *pnode, const sptr_t line, const int bitmask)
 {
     if (bitmask & CHANGE_HISTORY_BITMASK())
     {
@@ -1111,7 +1110,7 @@ on_search_marker_previous(eu_tabpage *pnode, const sptr_t line, const int bitmas
 }
 
 void
-on_search_jmp_premark_this(eu_tabpage *pnode, const int mask)
+on_search_jmp_premark_this(const eu_tabpage *pnode, const int mask)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1126,7 +1125,7 @@ on_search_jmp_premark_this(eu_tabpage *pnode, const int mask)
 }
 
 void
-on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask)
+on_search_jmp_next_mark_this(const eu_tabpage *pnode, const int mask)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1141,7 +1140,7 @@ on_search_jmp_next_mark_this(eu_tabpage *pnode, const int mask)
 }
 
 void
-on_search_jmp_previous_history(eu_tabpage *pnode)
+on_search_jmp_previous_history(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1163,7 +1162,7 @@ on_search_jmp_previous_history(eu_tabpage *pnode)
 }
 
 void
-on_search_jmp_next_history(eu_tabpage *pnode)
+on_search_jmp_next_history(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1185,7 +1184,7 @@ on_search_jmp_next_history(eu_tabpage *pnode)
 }
 
 int
-on_search_jmp_premark_all(eu_tabpage *pnode)
+on_search_jmp_premark_all(const eu_tabpage *pnode)
 {
     sptr_t pos;
     sptr_t current_line;
@@ -1228,7 +1227,7 @@ on_search_jmp_premark_all(eu_tabpage *pnode)
 }
 
 int
-on_search_jmp_next_mark_all(eu_tabpage *pnode)
+on_search_jmp_next_mark_all(const eu_tabpage *pnode)
 {
     sptr_t pos;
     sptr_t current_line;
@@ -1296,7 +1295,7 @@ on_search_page_mark(const eu_tabpage *pnode, char *szmark, int size)
 }
 
 void
-on_search_update_mark(eu_tabpage *pnode, char *szmark)
+on_search_update_mark(const eu_tabpage *pnode, char *szmark)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1335,7 +1334,7 @@ on_search_fold_kept(const eu_tabpage *pnode, char *szfold, int size)
 }
 
 void
-on_search_update_fold(eu_tabpage *pnode, char *szfold)
+on_search_update_fold(const eu_tabpage *pnode, char *szfold)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
@@ -1761,7 +1760,7 @@ on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR 
 }
 
 sptr_t
-on_search_process_find(eu_tabpage *pnode, const char *key, size_t from_pos, size_t to_pos, size_t flags)
+on_search_process_find(const eu_tabpage *pnode, const char *key, size_t from_pos, size_t to_pos, size_t flags)
 {
     on_sci_call(pnode, SCI_SETSEARCHFLAGS, flags, 0);
     on_sci_call(pnode, SCI_SETTARGETRANGE, from_pos, to_pos);
@@ -3774,7 +3773,7 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 void
-on_search_do_space(eu_tabpage *pnode, const char *key, const char *str_replace, replace_event docase)
+on_search_do_space(const eu_tabpage *pnode, const char *key, const char *str_replace, replace_event docase)
 {
     sptr_t fpos = -1;
     sptr_t pos = 0;

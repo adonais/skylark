@@ -120,13 +120,13 @@ extern HWND g_tabpages;
 
 int  on_tabpage_create_dlg(HWND hwnd);
 int  on_tabpage_insert(eu_tabpage *pnode);
-int  on_tabpage_reload_file(eu_tabpage *pnode, int flags, sptr_t *pline);
 int  on_tabpage_theme_changed(eu_tabpage *p);
 int  on_tabpage_get_height(void);
 int  on_tabpage_get_index(const eu_tabpage *pnode);
 int  on_tabpage_selection(const eu_tabpage *pnode);
 int  on_tabpage_sel_number(int **pvec, const bool ascending);
 int  on_tabpage_sel_path(wchar_t ***pvec, bool *hex);
+void on_tabpage_reload_file(eu_tabpage *pnode, const int flags);
 void on_tabpage_switch_next(HWND hwnd);
 void on_tabpage_adjust_box(const RECT *prc, RECT *ptp);
 void on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab);
