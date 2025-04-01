@@ -1703,12 +1703,11 @@ eu_accel_ptr(ACCEL *accel)
     {
         return false;
     }
-    if (g_accel || (g_accel = (eue_accel *)malloc(sizeof(eue_accel))))
+    if (g_accel || (g_accel = (eue_accel *)calloc(1, sizeof(eue_accel))))
     {
-        g_accel->accel_num = 0;
         for (int i = 0; i < MAX_ACCELS; ++i)
         {
-            if (!accel->cmd)
+            if (!accel[i].cmd)
             {
                 break;
             }

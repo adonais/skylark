@@ -106,7 +106,7 @@
 #define VALUE_LEN 4096
 #endif
 #ifndef MAX_ACCELS
-#define MAX_ACCELS 200
+#define MAX_ACCELS 256
 #endif
 
 #define WHITE_SHOW 0x1
