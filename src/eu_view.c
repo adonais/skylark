@@ -631,48 +631,65 @@ on_view_zoom_reset(eu_tabpage *pnode)
     }
 }
 
+void
+on_view_clear_indicator(eu_tabpage *pnode)
+{
+    if (pnode && pnode->match_count > 0)
+    {
+        sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+        if (total_len > 1)
+        {
+            on_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
+            on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
+            pnode->match_count = 0;
+        }
+    }
+}
+
 int
 on_view_editor_selection(eu_tabpage *pnode)
 {
-    if (!pnode || TAB_HEX_MODE(pnode) || pnode->pmod)
+    if (pnode && TAB_HAS_TXT(pnode) && !KEY_UP(VK_LBUTTON))
     {
-        return SKYLARK_OK;
-    }
-    if (KEY_UP(VK_LBUTTON))
-    {
-        return SKYLARK_OK;
-    }
-    size_t select_len = 0;
-    char *select_buf = util_strdup_select(pnode, &select_len, 0);
-    sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-    sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-    on_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
-    on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
-    pnode->match_count = 0;
-    if (select_buf)
-    {
-        sptr_t start_pos = 0;
-        sptr_t found_pos = 0;
-        size_t flags = SCFIND_MATCHCASE;
-        sptr_t end_pos = total_len;
-        if (eu_get_config() && eu_get_config()->last_flags & SCFIND_WHOLEWORD)
+        size_t select_len = 0;
+        char *select_buf = util_strdup_select(pnode, &select_len, 0);
+        sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+        sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+        on_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
+        on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
+        if (select_buf && select_len > 1 && !util_string_space(select_buf, select_len))
         {
-            flags |= SCFIND_WHOLEWORD;
-        }
-        while (found_pos >= 0)
-        {
-            found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
-            if (found_pos >= 0)
+            sptr_t start_pos = 0;
+            sptr_t found_pos = 0;
+            size_t flags = 0;
+            sptr_t end_pos = total_len;
+            if (eu_get_config())
             {
-                if (found_pos != sel_start)
+                if (eu_get_config()->last_flags & SCFIND_WHOLEWORD)
                 {
-                    on_sci_call(pnode, SCI_INDICATORFILLRANGE, found_pos, select_len);
+                    flags |= SCFIND_WHOLEWORD;
                 }
-                start_pos = found_pos+select_len;
-                ++pnode->match_count;
+                else if (eu_get_config()->last_flags & SCFIND_MATCHCASE)
+                {
+                    flags |= SCFIND_MATCHCASE;
+                }
+                pnode->match_count = 0;
             }
+            while (found_pos >= 0)
+            {
+                found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
+                if (found_pos >= 0)
+                {
+                    if (found_pos != sel_start)
+                    {
+                        on_sci_call(pnode, SCI_INDICATORFILLRANGE, found_pos, select_len);
+                    }
+                    start_pos = found_pos+select_len;
+                    ++pnode->match_count;
+                }
+            }
+            free(select_buf);
         }
-        free(select_buf);
     }
     return SKYLARK_OK;
 }

@@ -2442,6 +2442,19 @@ util_punct_or_space(int ch)
     return isspace(ch) || ispunct(ch);
 }
 
+bool
+util_string_space(const char *str, const size_t len)
+{
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (!isspace((int)str[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 char *
 util_string_match(const char *str, const char *pattern, bool incase, bool match_start, bool whole)
 {

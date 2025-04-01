@@ -812,10 +812,8 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)))
             {
-                sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
-                on_sci_call(pnode, SCI_SETEMPTYSELECTION, cur_pos, 0);
+                on_view_clear_indicator(pnode);
+                on_sci_call(pnode, SCI_SETEMPTYSELECTION, on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0), 0);
                 if (pnode->zoom_level == SELECTION_ZOOM_LEVEEL)
                 {
                     on_view_zoom_reset(pnode);
@@ -923,12 +921,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL && pnode->match_count > 0)
-            {
-                sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
-                pnode->match_count = 0;
-            }
+            on_view_clear_indicator(on_tabpage_focus_at());
             break;
         }
         case WM_LBUTTONUP:
