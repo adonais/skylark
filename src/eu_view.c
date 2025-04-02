@@ -649,30 +649,24 @@ on_view_clear_indicator(eu_tabpage *pnode)
 int
 on_view_editor_selection(eu_tabpage *pnode)
 {
-    if (pnode && TAB_HAS_TXT(pnode) && !KEY_UP(VK_LBUTTON))
+    if (pnode && TAB_HAS_TXT(pnode) && util_can_selections(pnode))
     {
         size_t select_len = 0;
         char *select_buf = util_strdup_select(pnode, &select_len, 0);
-        sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-        sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
-        on_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
-        on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
         if (select_buf && select_len > 1 && !util_string_space(select_buf, select_len))
         {
-            sptr_t start_pos = 0;
-            sptr_t found_pos = 0;
             size_t flags = 0;
-            sptr_t end_pos = total_len;
+            sptr_t found_pos = 0;
+            const sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+            const sptr_t start_line = on_sci_call(pnode, SCI_DOCLINEFROMVISIBLE, (on_sci_call(pnode, SCI_GETFIRSTVISIBLELINE, 0, 0)), 0);
+            const sptr_t end_line = min(start_line + on_sci_call(pnode, SCI_LINESONSCREEN, 0, 0), on_sci_call(pnode, SCI_GETLINECOUNT, 0, 0) - 1);
+            const sptr_t end_pos = on_sci_call(pnode, SCI_GETLINEENDPOSITION, end_line, 0);
+            sptr_t start_pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, start_line, 0);
+            on_sci_call(pnode, SCI_SETINDICATORCURRENT, INDIC_SKYLARK_SELECT, 0);
+            on_sci_call(pnode, SCI_INDICATORCLEARRANGE, start_pos, end_pos);
             if (eu_get_config())
             {
-                if (eu_get_config()->last_flags & SCFIND_WHOLEWORD)
-                {
-                    flags |= SCFIND_WHOLEWORD;
-                }
-                else if (eu_get_config()->last_flags & SCFIND_MATCHCASE)
-                {
-                    flags |= SCFIND_MATCHCASE;
-                }
+                flags = eu_get_config()->last_flags & 0x7;
                 pnode->match_count = 0;
             }
             while (found_pos >= 0)
@@ -680,7 +674,7 @@ on_view_editor_selection(eu_tabpage *pnode)
                 found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
                 if (found_pos >= 0)
                 {
-                    if (found_pos != sel_start)
+                    if (found_pos != sel_start && !on_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_SELECT, found_pos))
                     {
                         on_sci_call(pnode, SCI_INDICATORFILLRANGE, found_pos, select_len);
                     }
@@ -688,8 +682,8 @@ on_view_editor_selection(eu_tabpage *pnode)
                     ++pnode->match_count;
                 }
             }
-            free(select_buf);
         }
+        eu_safe_free(select_buf);
     }
     return SKYLARK_OK;
 }

@@ -2066,9 +2066,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         {
                             on_hyper_update_style(pnode);
                         }
-                        if (lpnotify->updated & SC_UPDATE_SELECTION)
+                        if ((lpnotify->updated & SC_UPDATE_SELECTION))
                         {
-                            if (pnode->raw_size < BUFF_32M && (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT)))
+                            if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))
                             {
                                 on_view_editor_selection(pnode);
                             }
@@ -2089,6 +2089,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                     on_map_reload(map_edit);
                                 }
                             }
+                        }
+                        else if (lpnotify->updated & SC_UPDATE_V_SCROLL)
+                        {
+                            on_view_editor_selection(pnode);
                         }
                         on_statusbar_update_filesize(pnode);
                     }
