@@ -92,11 +92,7 @@ void SetLogFont(LOGFONTW &lf, const char *faceName, CharacterSet characterSet, X
 
 struct FontGDI : public FontWin {
 	HFONT hfont = {};
-	CharacterSet characterSet = CharacterSet::Ansi;
-	FontGDI(HFONT hfont_, CharacterSet characterSet_) noexcept : hfont(hfont_), characterSet(characterSet_) {
-		// Takes ownership and deletes the font
-	}
-	explicit FontGDI(const FontParameters &fp) : characterSet(fp.characterSet) {
+explicit FontGDI(const FontParameters &fp) {
 		LOGFONTW lf;
 		SetLogFont(lf, fp.faceName, fp.characterSet, fp.size, fp.weight, fp.italic, fp.extraFontFlag);
 		hfont = ::CreateFontIndirectW(&lf);
@@ -117,13 +113,6 @@ struct FontGDI : public FontWin {
 			return {};
 		}
 		return ::CreateFontIndirectW(&lf);
-	}
-	[[nodiscard]] std::unique_ptr<FontWin> Duplicate() const override {
-		HFONT hfontCopy = HFont();
-		return std::make_unique<FontGDI>(hfontCopy, characterSet);
-	}
-	[[nodiscard]] CharacterSet GetCharacterSet() const noexcept override {
-		return characterSet;
 	}
 };
 

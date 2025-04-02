@@ -113,41 +113,16 @@ public:
 
 const TCHAR ListBoxX_ClassName[] = TEXT("ListBoxX");
 
-ColourRGBA ColourElement(std::optional<ColourRGBA> colour, int nIndex) {
-	if (colour.has_value()) {
-		return colour.value();
-	}
-	return ColourFromSys(nIndex);
-}
-
-struct LBGraphics {
-	GDIBitMap bm;
-	std::unique_ptr<Surface> pixmapLine;
-#if defined(USE_D2D)
-	DCRenderTarget pBMDCTarget;
-#endif
-
-	void Release() noexcept {
-		pixmapLine.reset();
-#if defined(USE_D2D)
-		pBMDCTarget = nullptr;
-#endif
-		bm.Release();
-	}
-};
-
 }
 
 class ListBoxX : public ListBox {
 	int lineHeight = 10;
 	HFONT fontCopy {};
-	std::unique_ptr<FontWin> fontWin;
 	Technology technology = Technology::Default;
 	RGBAImageSet images;
 	LineToItem lti;
 	HWND lb {};
 	bool unicodeMode = false;
-	int codePage = 0;
 	int desiredVisibleRows = 9;
 	int maxItemCharacters = 0;
 	unsigned int aveCharWidth = 8;
@@ -155,6 +130,7 @@ class ListBoxX : public ListBox {
 	int ctrlID = 0;
 	UINT dpi = USER_DEFAULT_SCREEN_DPI;
 	IListBoxDelegate *delegate = nullptr;
+	const char *widestItem = nullptr;
 	unsigned int maxCharWidth = 1;
 	WPARAM resizeHit = 0;
 	PRectangle rcPreSize;
@@ -163,8 +139,6 @@ class ListBoxX : public ListBox {
 	MouseWheelDelta wheelDelta;
 	ListOptions options;
 	DWORD frameStyle = WS_THICKFRAME;
-
-	LBGraphics graphics;
 
 	HWND GetHWND() const noexcept;
 	void AppendListItem(const char *text, const char *numword);
@@ -182,7 +156,7 @@ class ListBoxX : public ListBox {
 	void StartResize(WPARAM);
 	LRESULT NcHitTest(WPARAM, LPARAM) const;
 	void CentreItem(int n);
-	void AllocateBitMap();
+	void Paint(HDC);
 	static LRESULT PASCAL ControlWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	static constexpr POINT ItemInset {0, 0};	// Padding around whole item
@@ -200,7 +174,6 @@ public:
 			::DeleteObject(fontCopy);
 			fontCopy = {};
 		}
-		graphics.Release();
 	}
 	void SetFont(const Font *font) override;
 	void Create(Window &parent_, int ctrlID_, Point location_, int lineHeight_, bool unicodeMode_, Technology technology_) override;
@@ -237,7 +210,6 @@ void ListBoxX::Create(Window &parent_, int ctrlID_, Point location_, int lineHei
 	location = location_;
 	lineHeight = lineHeight_;
 	unicodeMode = unicodeMode_;
-	codePage = unicodeMode ? CpUtf8 : 0;
 	technology = technology_;
 	HWND hwndParent = HwndFromWindow(*parent);
 	HINSTANCE hinstanceParent = GetWindowInstance(hwndParent);
@@ -265,9 +237,6 @@ void ListBoxX::SetFont(const Font *font) {
 		}
 		fontCopy = pfm->HFont();
 		SetWindowFont(lb, fontCopy, 0);
-		fontWin = pfm->Duplicate();
-		codePage = unicodeMode ? CpUtf8 : CodePageFromCharSet(fontWin->GetCharacterSet(), 1252);
-		graphics.Release();
 	}
 }
 
@@ -296,27 +265,28 @@ PRectangle ListBoxX::GetDesiredRect() {
 	rcDesired.bottom = rcDesired.top + ItemHeight() * rows;
 
 	int width = MinClientWidth();
-	int textSize = 0;
-	int averageCharWidth = 8;
-
-	// Make a measuring surface
-	std::unique_ptr<Surface> surfaceItem(Surface::Allocate(technology));
-	surfaceItem->Init(GetID());
-	surfaceItem->SetMode(SurfaceMode(codePage, false));
-
-	// Find the widest item in pixels
-	const int items = lti.Count();
-	for (int i = 0; i < items; i++) {
-		const ListItemData item = lti.Get(i);
-		const int itemTextSize = static_cast<int>(std::ceil(
-			surfaceItem->WidthText(fontWin.get(), item.text)));
-		textSize = std::max(textSize, itemTextSize);
+	HDC hdc = ::GetDC(lb);
+	HFONT oldFont = SelectFont(hdc, fontCopy);
+	SIZE textSize = {0, 0};
+	int len = 0;
+	if (widestItem) {
+		len = static_cast<int>(strlen(widestItem));
+		if (unicodeMode) {
+			const TextWide tbuf(widestItem, CpUtf8);
+			::GetTextExtentPoint32W(hdc, tbuf.buffer, tbuf.tlen, &textSize);
+		} else {
+			::GetTextExtentPoint32A(hdc, widestItem, len, &textSize);
+		}
 	}
+	TEXTMETRIC tm;
+	::GetTextMetrics(hdc, &tm);
+	maxCharWidth = tm.tmMaxCharWidth;
+	SelectFont(hdc, oldFont);
+	::ReleaseDC(lb, hdc);
 
-	maxCharWidth = static_cast<int>(std::ceil(surfaceItem->WidthText(fontWin.get(), "W")));
-	averageCharWidth = static_cast<int>(surfaceItem->AverageCharWidth(fontWin.get()));
-
-	width = std::max({ width, textSize, (maxItemCharacters + 1) * averageCharWidth });
+	const int widthDesired = std::max(textSize.cx, (len + 1) * tm.tmAveCharWidth);
+	if (width < widthDesired)
+		width = widthDesired;
 
 	rcDesired.right = rcDesired.left + TextOffset() + width + (TextInset.x * 2);
 	if (Length() > rows)
@@ -390,76 +360,99 @@ void ListBoxX::ClearRegisteredImages() {
 	images.Clear();
 }
 
+int ColourOfElement(std::optional<ColourRGBA> colour, int nIndex) {
+	if (colour.has_value()) {
+		return colour.value().OpaqueRGB();
+	}
+	return ::GetSysColor(nIndex);
+}
+
+void FillRectColour(HDC hdc, const RECT *lprc, int colour) noexcept {
+	const HBRUSH brush = ::CreateSolidBrush(colour);
+	::FillRect(hdc, lprc, brush);
+	::DeleteObject(brush);
+}
+
 void ListBoxX::Draw(DRAWITEMSTRUCT *pDrawItem) {
-	if ((pDrawItem->itemAction != ODA_SELECT) && (pDrawItem->itemAction != ODA_DRAWENTIRE)) {
-		return;
-	}
-	if (!graphics.pixmapLine) {
-		AllocateBitMap();
-		if (!graphics.pixmapLine) {
-			// Failed to allocate, so release fully and give up
-			graphics.Release();
-			return;
+	if ((pDrawItem->itemAction == ODA_SELECT) || (pDrawItem->itemAction == ODA_DRAWENTIRE)) {
+		RECT rcBox = pDrawItem->rcItem;
+		rcBox.left += TextOffset();
+		if (pDrawItem->itemState & ODS_SELECTED) {
+			RECT rcImage = pDrawItem->rcItem;
+			rcImage.right = rcBox.left;
+			// The image is not highlighted
+			FillRectColour(pDrawItem->hDC, &rcImage, ColourOfElement(options.back, COLOR_WINDOW));
+			FillRectColour(pDrawItem->hDC, &rcBox, ColourOfElement(options.backSelected, COLOR_HIGHLIGHT));
+			::SetBkColor(pDrawItem->hDC, ColourOfElement(options.backSelected, COLOR_HIGHLIGHT));
+			::SetTextColor(pDrawItem->hDC, ColourOfElement(options.foreSelected, COLOR_HIGHLIGHTTEXT));
+		} else {
+			FillRectColour(pDrawItem->hDC, &pDrawItem->rcItem, ColourOfElement(options.back, COLOR_WINDOW));
+			::SetBkColor(pDrawItem->hDC, ColourOfElement(options.back, COLOR_WINDOW));
+			::SetTextColor(pDrawItem->hDC, ColourOfElement(options.fore, COLOR_WINDOWTEXT));
+		}
+
+		const ListItemData item = lti.Get(pDrawItem->itemID);
+		const int pixId = item.pixId;
+		const char *text = item.text;
+		const int len = static_cast<int>(strlen(text));
+
+		RECT rcText = rcBox;
+		::InsetRect(&rcText, TextInset.x, TextInset.y);
+
+		if (unicodeMode) {
+			const TextWide tbuf(text, CpUtf8);
+			::DrawTextW(pDrawItem->hDC, tbuf.buffer, tbuf.tlen, &rcText, DT_NOPREFIX|DT_END_ELLIPSIS|DT_SINGLELINE|DT_NOCLIP);
+		} else {
+			::DrawTextA(pDrawItem->hDC, text, len, &rcText, DT_NOPREFIX|DT_END_ELLIPSIS|DT_SINGLELINE|DT_NOCLIP);
+		}
+
+		// Draw the image, if any
+		const RGBAImage *pimage = images.Get(pixId);
+		if (pimage) {
+			std::unique_ptr<Surface> surfaceItem(Surface::Allocate(technology));
+			if (technology == Technology::Default) {
+				surfaceItem->Init(pDrawItem->hDC, pDrawItem->hwndItem);
+				const long left = pDrawItem->rcItem.left + ItemInset.x + ImageInset.x;
+				const PRectangle rcImage = PRectangle::FromInts(left, pDrawItem->rcItem.top,
+					left + images.GetWidth(), pDrawItem->rcItem.bottom);
+				surfaceItem->DrawRGBAImage(rcImage,
+					pimage->GetWidth(), pimage->GetHeight(), pimage->Pixels());
+				::SetTextAlign(pDrawItem->hDC, TA_TOP);
+			} else {
+#if defined(USE_D2D)
+				const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+					D2D1_RENDER_TARGET_TYPE_DEFAULT,
+					D2D1::PixelFormat(
+						DXGI_FORMAT_B8G8R8A8_UNORM,
+						D2D1_ALPHA_MODE_IGNORE),
+					0,
+					0,
+					D2D1_RENDER_TARGET_USAGE_NONE,
+					D2D1_FEATURE_LEVEL_DEFAULT
+					);
+				DCRenderTarget pDCRT;
+				HRESULT hr = CreateDCRenderTarget(&props, pDCRT);
+				if (SUCCEEDED(hr) && pDCRT) {
+					const long left = pDrawItem->rcItem.left + ItemInset.x + ImageInset.x;
+
+					RECT rcItem = pDrawItem->rcItem;
+					rcItem.left = left;
+					rcItem.right = rcItem.left + images.GetWidth();
+
+					hr = pDCRT->BindDC(pDrawItem->hDC, &rcItem);
+					if (SUCCEEDED(hr)) {
+						surfaceItem->Init(pDCRT.Get(), pDrawItem->hwndItem);
+						pDCRT->BeginDraw();
+						const PRectangle rcImage = PRectangle::FromInts(0, 0, images.GetWidth(), rcItem.bottom - rcItem.top);
+						surfaceItem->DrawRGBAImage(rcImage,
+							pimage->GetWidth(), pimage->GetHeight(), pimage->Pixels());
+						pDCRT->EndDraw();
+					}
+				}
+#endif
+			}
 		}
 	}
-#if defined(USE_D2D)
-	if (graphics.pBMDCTarget) {
-		graphics.pBMDCTarget->BeginDraw();
-	}
-#endif
-
-	const PRectangle rcItemBase = PRectangleFromRECT(pDrawItem->rcItem);
-	const PRectangle rcItem(0, 0, rcItemBase.Width(), rcItemBase.Height());
-	PRectangle rcBox = rcItem;
-	rcBox.left += TextOffset();
-	ColourRGBA colourFore;
-	ColourRGBA colourBack;
-	if (pDrawItem->itemState & ODS_SELECTED) {
-		PRectangle rcImage = rcItem;
-		rcImage.right = rcBox.left;
-		// The image is not highlighted
-		graphics.pixmapLine->FillRectangle(rcImage, ColourElement(options.back, COLOR_WINDOW));
-		colourBack = ColourElement(options.backSelected, COLOR_HIGHLIGHT);
-		graphics.pixmapLine->FillRectangle(rcBox, colourBack);
-		colourFore = ColourElement(options.foreSelected, COLOR_HIGHLIGHTTEXT);
-	} else {
-		colourBack = ColourElement(options.back, COLOR_WINDOW);
-		graphics.pixmapLine->FillRectangle(rcItem, colourBack);
-		colourFore = ColourElement(options.fore, COLOR_WINDOWTEXT);
-	}
-
-	const ListItemData item = lti.Get(pDrawItem->itemID);
-	const int pixId = item.pixId;
-	const char *text = item.text;
-
-	const PRectangle rcText = rcBox.Inset(Point(TextInset.x, TextInset.y));
-
-	const double ascent = graphics.pixmapLine->Ascent(fontWin.get());
-	graphics.pixmapLine->DrawTextClipped(rcText, fontWin.get(), rcText.top + ascent, text, colourFore, colourBack);
-
-	// Draw the image, if any
-	const RGBAImage *pimage = images.Get(pixId);
-	if (pimage) {
-		const XYPOSITION left = rcItem.left + ItemInset.x + ImageInset.x;
-		PRectangle rcImage = rcItem;
-		rcImage.left = left;
-		rcImage.right = rcImage.left + images.GetWidth();
-		graphics.pixmapLine->DrawRGBAImage(rcImage,
-			pimage->GetWidth(), pimage->GetHeight(), pimage->Pixels());
-	}
-
-#if defined(USE_D2D)
-	if (graphics.pBMDCTarget) {
-		const HRESULT hrEnd = graphics.pBMDCTarget->EndDraw();
-		if (FAILED(hrEnd)) {
-			return;
-		}
-	}
-#endif
-
-	// Blit from hMemDC to hDC
-	const SIZE extent = SizeOfRect(pDrawItem->rcItem);
-	::BitBlt(pDrawItem->hDC, pDrawItem->rcItem.left, pDrawItem->rcItem.top, extent.cx, extent.cy, graphics.bm.DC(), 0, 0, SRCCOPY);
 }
 
 void ListBoxX::AppendListItem(const char *text, const char *numword) {
@@ -736,44 +729,25 @@ void ListBoxX::CentreItem(int n) {
 	}
 }
 
-void ListBoxX::AllocateBitMap() {
-	const SIZE extent { GetClientExtent().x, lineHeight };
-
-	graphics.bm.Create({}, extent.cx, -extent.cy, nullptr);
-	if (!graphics.bm) {
-		return;
-	}
-
-	// Make a surface
-	graphics.pixmapLine = Surface::Allocate(technology);
-	graphics.pixmapLine->SetMode(SurfaceMode(codePage, false));
-
-#if defined(USE_D2D)
-	if (technology != Technology::Default) {
-		if (!LoadD2D()) {
-			return;
-		}
-
-		const D2D1_RENDER_TARGET_PROPERTIES drtp = D2D1::RenderTargetProperties(
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
-			{ DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED });
-
-		HRESULT hr = CreateDCRenderTarget(&drtp, graphics.pBMDCTarget);
-		if (FAILED(hr) || !graphics.pBMDCTarget) {
-			return;
-		}
-
-		const RECT rcExtent = { 0, 0, extent.cx, extent.cy };
-		hr = graphics.pBMDCTarget->BindDC(graphics.bm.DC(), &rcExtent);
-		if (SUCCEEDED(hr)) {
-			graphics.pixmapLine->Init(graphics.pBMDCTarget.Get(), GetID());
-		}
-		return;
-	}
-#endif
-
-	// Either technology == Technology::Default or USE_D2D turned off
-	graphics.pixmapLine->Init(graphics.bm.DC(), GetID());
+// Performs a double-buffered paint operation to avoid flicker
+void ListBoxX::Paint(HDC hDC) {
+	const POINT extent = GetClientExtent();
+	HBITMAP hBitmap = ::CreateCompatibleBitmap(hDC, extent.x, extent.y);
+	HDC bitmapDC = ::CreateCompatibleDC(hDC);
+	HBITMAP hBitmapOld = SelectBitmap(bitmapDC, hBitmap);
+	// The list background is mainly erased during painting, but can be a small
+	// unpainted area when at the end of a non-integrally sized list with a
+	// vertical scroll bar
+	const RECT rc = { 0, 0, extent.x, extent.y };
+	FillRectColour(bitmapDC, &rc, ColourOfElement(options.back, COLOR_WINDOWTEXT));
+	// Paint the entire client area and vertical scrollbar
+	::SendMessage(lb, WM_PRINT, reinterpret_cast<WPARAM>(bitmapDC), PRF_CLIENT|PRF_NONCLIENT);
+	::BitBlt(hDC, 0, 0, extent.x, extent.y, bitmapDC, 0, 0, SRCCOPY);
+	// Select a stock brush to prevent warnings from BoundsChecker
+	SelectBrush(bitmapDC, GetStockBrush(WHITE_BRUSH));
+	SelectBitmap(bitmapDC, hBitmapOld);
+	::DeleteDC(bitmapDC);
+	::DeleteObject(hBitmap);
 }
 
 LRESULT PASCAL ListBoxX::ControlWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
@@ -782,6 +756,16 @@ LRESULT PASCAL ListBoxX::ControlWndProc(HWND hWnd, UINT iMessage, WPARAM wParam,
 		switch (iMessage) {
 		case WM_ERASEBKGND:
 			return TRUE;
+
+		case WM_PAINT: {
+				PAINTSTRUCT ps;
+				HDC hDC = ::BeginPaint(hWnd, &ps);
+				if (lbx) {
+					lbx->Paint(hDC);
+				}
+				::EndPaint(hWnd, &ps);
+			}
+			return 0;
 
 		case WM_MOUSEACTIVATE:
 			// This prevents the view activating when the scrollbar is clicked
@@ -849,7 +833,6 @@ LRESULT ListBoxX::WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam
 
 	case WM_SIZE:
 		if (lb) {
-			graphics.Release();	// Bitmap must be reallocated to new size.
 			SetRedraw(false);
 			::SetWindowPos(lb, {}, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE);
 			// Ensure the selection remains visible

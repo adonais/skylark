@@ -236,17 +236,9 @@ struct FontDirectWrite : public FontWin {
 				pTextFormat->SetLineSpacing(DWRITE_LINE_SPACING_METHOD_UNIFORM, lineMetrics[0].height, lineMetrics[0].baseline);
 			}
 		}
-	}
-	// Allow copy constructor. Has to explicitly copy each field since can't use =default as deleted in Font.
-	FontDirectWrite(const FontDirectWrite &other) noexcept {
-		pTextFormat = other.pTextFormat;
-		extraFontFlag = other.extraFontFlag;
-		characterSet = other.characterSet;
-		yAscent = other.yAscent;
-		yDescent = other.yDescent;
-		yInternalLeading = other.yInternalLeading;
-	}
+		}
 	// Deleted so FontDirectWrite objects can not be copied.
+	FontDirectWrite(const FontDirectWrite &) = delete;
 	FontDirectWrite(FontDirectWrite &&) = delete;
 	FontDirectWrite &operator=(const FontDirectWrite &) = delete;
 	FontDirectWrite &operator=(FontDirectWrite &&) = delete;
@@ -277,14 +269,6 @@ struct FontDirectWrite : public FontWin {
 			throw std::runtime_error("SurfaceD2D::SetFont: wrong Font type.");
 		}
 		return pfm;
-	}
-
-	[[nodiscard]] std::unique_ptr<FontWin> Duplicate() const override {
-		return std::make_unique<FontDirectWrite>(*this);
-	}
-
-	[[nodiscard]] CharacterSet GetCharacterSet() const noexcept override {
-		return characterSet;
 	}
 };
 

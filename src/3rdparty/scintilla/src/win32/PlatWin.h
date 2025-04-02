@@ -101,8 +101,6 @@ public:
 // Both GDI and DirectWrite can produce a HFONT for use in list boxes
 struct FontWin : public Font {
 	[[nodiscard]] virtual HFONT HFont() const noexcept = 0;
-	[[nodiscard]] virtual std::unique_ptr<FontWin> Duplicate() const = 0;
-	[[nodiscard]] virtual CharacterSet GetCharacterSet() const noexcept = 0;
 };
 
 // Buffer to hold strings and string position arrays without always allocating on heap.
