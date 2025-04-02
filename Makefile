@@ -24,6 +24,7 @@ package: all
 	@if exist "$(MAKEDIR)\skylark_x64.7z" del /s/q "$(MAKEDIR)\skylark_x64.7z"
 	@if not exist "$(MAKEDIR)\skylark_x64" mkdir "$(MAKEDIR)\skylark_x64"
 	@if exist "$(MAKEDIR)\skylark_x64" xcopy /y /e /d "$(BIND)" "$(MAKEDIR)\skylark_x64"&del /s/q/a/f "$(MAKEDIR)\skylark_x64\*.pdb" 2>&1>NUL
+	@if exist "$(MAKEDIR)\examples" xcopy /s /e /y /i "$(MAKEDIR)\examples" "$(MAKEDIR)\skylark_x64\examples" 2>&1>NUL
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x64\*.exp" 2>nul 1>nul
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x64\*.lib" 2>nul 1>nul
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x64\conf\*.sqlite3" 2>nul 1>nul
@@ -43,6 +44,7 @@ package: all
 	@if exist "$(MAKEDIR)\skylark_x86.7z" del /s/q "$(MAKEDIR)\skylark_x86.7z"
 	@if not exist "$(MAKEDIR)\skylark_x86" mkdir "$(MAKEDIR)\skylark_x86"
 	@if exist "$(MAKEDIR)\skylark_x86" xcopy /y /e /d "$(BIND)" "$(MAKEDIR)\skylark_x86"&del /s/q/a/f "$(MAKEDIR)\skylark_x86\*.pdb" 2>&1>NUL
+	@if exist "$(MAKEDIR)\examples" xcopy /s /e /y /i "$(MAKEDIR)\examples" "$(MAKEDIR)\skylark_x86\examples" 2>&1>NUL
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x86\*.exp" 2>nul 1>nul
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x86\*.lib" 2>nul 1>nul
 	-@del /s/q/a/f "$(MAKEDIR)\skylark_x86\conf\*.sqlite3" 2>nul 1>nul
