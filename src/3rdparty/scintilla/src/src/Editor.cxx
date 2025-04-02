@@ -617,7 +617,7 @@ void Editor::InvalidateSelection(SelectionRange newMain, bool invalidateWholeSel
 		}
 	}
 	if (!invalidateWholeSelection) {
-	    ContainerNeedsUpdate(Update::Selection);
+		ContainerNeedsUpdate(Update::Selection);
 	}
 	InvalidateRange(firstAffected, lastAffected);
 }
