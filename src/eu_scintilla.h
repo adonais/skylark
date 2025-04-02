@@ -30,6 +30,7 @@
 #define DEFAULTSPACE ((uint32_t)(-2))
 #define MARGIN_BOOKMARK_VALUE   0x9
 #define MARGIN_BOOKMARK_MASKN   (~SC_MASK_FOLDERS & ~MARGIN_HISTORY_MASKN)
+#define SCI_CODE_HINT 0x1000
 
 #ifdef __cplusplus
 extern "C"

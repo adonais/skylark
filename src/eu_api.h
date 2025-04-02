@@ -489,9 +489,9 @@ struct eu_config
 
     bool block_fold;
     bool m_tab_tip;
-    bool m_code_hint;
     bool m_tab_split;
-
+    
+    int m_code_hint;
     int m_close_way;
     int m_close_draw;
     int m_new_way;

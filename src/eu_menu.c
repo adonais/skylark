@@ -569,7 +569,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_NEWLINE_VISIABLE, eu_get_theme()->item.whitechar.bold & BREAK_SHOW);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_INDENTGUIDES_VISIABLE, eu_get_config()->m_indentation);
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_TIPS_ONTAB, eu_get_config()->m_tab_tip);
-                        util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_CODE_HINT, eu_get_config()->m_code_hint);
+                        util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_CODE_HINT, eu_get_config()->m_code_hint & SCI_CODE_HINT);
                         enable = eu_get_config()->block_fold && pnode->foldline;
                         util_set_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_FOLDLINE_VISIABLE, enable);
                         util_enable_menu_item(GetSubMenu(menu, TAB_DISPLAY_SUB), IDM_VIEW_FOLDLINE_VISIABLE, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin && pnode->foldline));
