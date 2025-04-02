@@ -106,7 +106,7 @@ function eu_conf.loadconf()
         "block_fold_visiable = true\n" ..
         "tabs_tip_show_enable = true\n" ..
         "tab_split_show = false\n" ..
-        "code_hint_show_enable = 0x13e8\n" ..
+        "code_hint_show_enable = 0x1190\n" ..
         "tab_close_way = 0\n" ..
         "tab_close_draw = 43004\n" ..
         "tab_new_way = 0\n" ..
