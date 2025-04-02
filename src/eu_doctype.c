@@ -1681,11 +1681,11 @@ on_doc_brace_handling(eu_tabpage *pnode)
             char *str_space = NULL;
             if (diff > 0)
             {
-                str_space = on_sci_range_text(pnode, current_start, current_pos - 1 - diff);
+                str_space = on_sci_range_text(pnode, current_start, current_pos - 1 - (sptr_t)diff);
             }
             else
             {
-                str_space = on_sci_range_text(pnode, match_start, match_start + match_indent);
+                str_space = on_sci_range_text(pnode, match_start, match_start + (sptr_t)match_indent);
             }
             if (str_space)
             {

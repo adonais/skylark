@@ -195,14 +195,14 @@ on_update_loop(TASK_T hv)
             if (WaitForSingleObject(handle, MAYBE200MS) != WAIT_TIMEOUT)
             {
                 //进程运行完成并且退出了
-                int result = 255;
-                if (!GetExitCodeProcess(handle, (LPDWORD)&result))
+                int unsigned long result = 255;
+                if (!GetExitCodeProcess(handle, &result))
                 {
                     eu_logmsg("Upcheck: GetExitCodeProcess failed\n");
                     break;
                 }
-                eu_logmsg("Upcheck: result == %u\n", result);
-                switch(result)
+                eu_logmsg("Upcheck: result == %lu\n", result);
+                switch((int)result)
                 {
                     case 0:
                     {
