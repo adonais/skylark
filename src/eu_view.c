@@ -671,10 +671,10 @@ on_view_editor_selection(eu_tabpage *pnode)
             }
             while (found_pos >= 0)
             {
-                found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
-                if (found_pos >= 0)
+                if ((found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags)) >= 0)
                 {
-                    if (found_pos != sel_start && !on_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_SELECT, found_pos))
+                    on_sci_call(pnode, SCI_INDICATORCLEARRANGE, start_pos, end_pos - start_pos);
+                    if (found_pos != sel_start)
                     {
                         on_sci_call(pnode, SCI_INDICATORFILLRANGE, found_pos, select_len);
                     }
