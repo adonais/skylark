@@ -682,6 +682,7 @@ EU_EXT_CLASS size_t eu_file_size(const int t);
 EU_EXT_CLASS int eu_file_close(const int t);
 EU_EXT_CLASS int eu_file_open(const wchar_t *path);
 EU_EXT_CLASS int eu_file_save(const int t);
+EU_EXT_CLASS intptr_t eu_value(void *p);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);

@@ -3075,6 +3075,12 @@ eu_wine_dotool(void)
 }
 
 bool
+eu_dark_enable(void)
+{
+    return on_dark_enable();
+}
+
+bool
 eu_under_wine(void)
 {
     return util_under_wine();
@@ -3098,10 +3104,15 @@ eu_which(const char *path)
     return ret;
 }
 
-bool
-eu_dark_enable(void)
+intptr_t
+eu_value(void *p)
 {
-    return on_dark_enable();
+    intptr_t value = 0;
+    if (NULL != (intptr_t *)p)
+    {
+        value = *(intptr_t *)p;
+    }
+    return value;
 }
 
 int

@@ -365,6 +365,7 @@ size_t strlen(const char *);
 char *_fullpath(char *buf, const char *path, size_t maxlen);
 
 // windows api
+int CloseHandle(void *);
 int GetWindowTextW(void *hwnd, wchar_t *str, int count);
 intptr_t SendMessageW(void *hwnd, uint32_t msg, intptr_t wp, intptr_t lp);
 
@@ -375,6 +376,7 @@ void eu_te_print(const te_expr *n);
 void eu_te_free(te_expr *n);
 te_expr *eu_te_compile(const char *expression, const te_variable *variables, int var_count, int *error);
 void eu_lua_calltip(const char *pstr);
+
 char *eu_utf16_utf8(const wchar_t *utf16, size_t *out_len);
 char *eu_utf16_mbcs(int codepage, const wchar_t *utf16, size_t *out_len);
 wchar_t *eu_mbcs_utf16(int codepage, const char *ansi, size_t *out_len);
@@ -392,7 +394,18 @@ int eu_file_close(const int t);
 int eu_file_open(const wchar_t *path);
 int eu_file_save(const int t);
 int eu_msgbox(void *w, const wchar_t *txt, const wchar_t *cap, uint32_t type);
+/* 编辑器主窗口句柄 */
 void *eu_module_hwnd(void);
+/* 启动其他进程, *o保存了pid */
+void *eu_new_process(const wchar_t *wcmd, const wchar_t *param, const wchar_t *pcd, int flags, uint32_t *o);
+/* 获取void *的值 */
+intptr_t eu_value(void *p);
+/* 是否运行在Linux/Wine */
+bool eu_under_wine(void);
+/* 文件是否在环境变量路径中 */
+bool eu_which(const char *path);
+/* 获取系统版本 */
+const uint32_t eu_win10_or_later(void);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);
@@ -499,13 +512,6 @@ void eu_reset_docs_mask(void);
 void eu_reset_accs_mask(void);
 void eu_reset_snip_mask(void);
 void eu_reset_theme_mask(void);
-
-/* 是否运行在Linux/Wine */
-bool eu_under_wine(void);
-/* 文件是否在环境变量路径中 */
-bool eu_which(const char *path);
-/* 获取系统版本 */
-const uint32_t eu_win10_or_later(void);
 
 ]]
 
