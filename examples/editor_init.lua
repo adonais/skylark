@@ -1,7 +1,11 @@
 require("eu")
 
 function skylark_init()
-    print(string.format("[pid: %u] initialization\n", eu.process_id()))
+    local handle, pid = eu.create_process("E:\\soft\\mpv\\mpv.exe", "\"E:\\movies\\峡谷\\The Gorge 2025 1080p.mkv\"", 2)
+    if (handle ~= nil) then
+        print(string.format("we create proces, pid = %u\n", pid))
+        eu.ffi.C.CloseHandle(eu.ffi.cast("void *", handle))
+    end
 end
 
 function main()
