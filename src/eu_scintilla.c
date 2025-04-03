@@ -812,10 +812,8 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             if ((wParam == VK_ESCAPE || KEY_DOWN(VK_ESCAPE)))
             {
-                sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
-                on_sci_call(pnode, SCI_SETEMPTYSELECTION, cur_pos, 0);
+                on_view_clear_indicator(pnode);
+                on_sci_call(pnode, SCI_SETEMPTYSELECTION, on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0), 0);
                 if (pnode->zoom_level == SELECTION_ZOOM_LEVEEL)
                 {
                     on_view_zoom_reset(pnode);
@@ -854,7 +852,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            if (wParam == VK_CONTROL || wParam == VK_MENU)
+            if (wParam == VK_CONTROL || wParam == VK_MENU || wParam == VK_SHIFT || wParam == VK_ESCAPE)
             {
                 break;
             }
@@ -875,10 +873,10 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEMOVE:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL && eu_get_config()->m_code_hint)
+            if ((pnode = on_tabpage_focus_at()) != NULL && (eu_get_config()->m_code_hint & SCI_CODE_HINT))
             {
                 POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-                TRACKMOUSEEVENT event = {sizeof(TRACKMOUSEEVENT), TME_HOVER, hwnd, HOVER_DEFAULT};
+                TRACKMOUSEEVENT event = {sizeof(TRACKMOUSEEVENT), TME_HOVER, hwnd, eu_get_config()->m_code_hint & ~SCI_CODE_HINT};
                 TrackMouseEvent(&event);
                 on_hint_hide(&pt);
             }
@@ -923,12 +921,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL && pnode->match_count > 0)
-            {
-                sptr_t total_len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
-                on_sci_call(pnode, SCI_INDICATORCLEARRANGE, 0, total_len);
-                pnode->match_count = 0;
-            }
+            on_view_clear_indicator(on_tabpage_focus_at());
             break;
         }
         case WM_LBUTTONUP:

@@ -106,7 +106,7 @@
 #define VALUE_LEN 4096
 #endif
 #ifndef MAX_ACCELS
-#define MAX_ACCELS 200
+#define MAX_ACCELS 256
 #endif
 
 #define WHITE_SHOW 0x1
@@ -489,9 +489,9 @@ struct eu_config
 
     bool block_fold;
     bool m_tab_tip;
-    bool m_code_hint;
     bool m_tab_split;
-
+    
+    int m_code_hint;
     int m_close_way;
     int m_close_draw;
     int m_new_way;
@@ -682,6 +682,7 @@ EU_EXT_CLASS size_t eu_file_size(const int t);
 EU_EXT_CLASS int eu_file_close(const int t);
 EU_EXT_CLASS int eu_file_open(const wchar_t *path);
 EU_EXT_CLASS int eu_file_save(const int t);
+EU_EXT_CLASS intptr_t eu_value(void *p);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);

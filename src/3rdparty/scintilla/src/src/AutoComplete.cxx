@@ -73,7 +73,7 @@ void AutoComplete::Start(Window &parent, int ctrlID,
 	*/
 	lb->SetOptions(listOptions);
 	if (!active) {
-	    lb->Create(parent, ctrlID, location, lineHeight, unicodeMode, technology);
+		lb->Create(parent, ctrlID, location, lineHeight, unicodeMode, technology);
 	}
 	lb->Clear();
 	active = true;

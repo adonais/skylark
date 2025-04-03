@@ -105,8 +105,8 @@ function eu_conf.loadconf()
         "inter_reserved_2 = 0\n" ..
         "block_fold_visiable = true\n" ..
         "tabs_tip_show_enable = true\n" ..
-        "code_hint_show_enable = true\n" ..
         "tab_split_show = false\n" ..
+        "code_hint_show_enable = 0x1190\n" ..
         "tab_close_way = 0\n" ..
         "tab_close_draw = 43004\n" ..
         "tab_new_way = 0\n" ..
@@ -200,6 +200,12 @@ function eu_conf.loadconf()
     if (set_copy_separator == nil) then
         set_copy_separator = "\\\\n";
     end
+    -- Compatible with old configuration item
+    if (code_hint_show_enable == true) then
+        code_hint_show_enable = 0x1190
+    elseif (code_hint_show_enable == false) then
+        code_hint_show_enable = 0x0190
+    end
     local m_config = eu_core.ffi.new("struct eu_config", {
         newfile_eols,
         newfile_encoding,
@@ -232,8 +238,8 @@ function eu_conf.loadconf()
         inter_reserved_2,
         block_fold_visiable,
         tabs_tip_show_enable,
-        code_hint_show_enable,
         tab_split_show,
+        code_hint_show_enable,
         tab_close_way,
         tab_close_draw,
         tab_new_way,

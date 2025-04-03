@@ -195,27 +195,33 @@ on_update_loop(TASK_T hv)
             if (WaitForSingleObject(handle, MAYBE200MS) != WAIT_TIMEOUT)
             {
                 //进程运行完成并且退出了
-                uint32_t result = 256;
+                int unsigned long result = 255;
                 if (!GetExitCodeProcess(handle, &result))
                 {
                     eu_logmsg("Upcheck: GetExitCodeProcess failed\n");
                     break;
                 }
-                eu_logmsg("Upcheck:: result == %u\n", result);
-                if (result == 0)
+                eu_logmsg("Upcheck: result == %lu\n", result);
+                switch((int)result)
                 {
-                    char sql[MAX_PATH] = {0};
-                    on_update_msg(VERSION_UPDATE_COMPLETED, true);
-                    _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", eu_get_config()->upgrade.flags);
-                    eu_sqlite3_send(sql, NULL, NULL);
-                }
-                else if (result == (uint32_t)-1)
-                {
-                    on_update_msg(VERSION_UPDATE_BREAK, true);
-                }
-                else if (result > 0)
-                {
-                    on_update_msg(VERSION_UPDATE_UNKOWN, true);
+                    case 0:
+                    {
+                        char sql[MAX_PATH] = {0};
+                        on_update_msg(VERSION_UPDATE_COMPLETED, true);
+                        _snprintf(sql, MAX_PATH - 1, "UPDATE skylar_ver SET szExtra = %d WHERE szName = 'skylark.exe';", eu_get_config()->upgrade.flags);
+                        eu_sqlite3_send(sql, NULL, NULL);
+                        break;
+                    }
+                    case 1:
+                    {
+                        on_update_msg(VERSION_LATEST, true);
+                        break;
+                    }
+                    default:
+                    {
+                        on_update_msg(VERSION_UPDATE_UNKOWN, true);
+                        break;
+                    }
                 }
                 break;
             }

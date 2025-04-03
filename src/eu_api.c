@@ -1703,12 +1703,11 @@ eu_accel_ptr(ACCEL *accel)
     {
         return false;
     }
-    if (g_accel || (g_accel = (eue_accel *)malloc(sizeof(eue_accel))))
+    if (g_accel || (g_accel = (eue_accel *)calloc(1, sizeof(eue_accel))))
     {
-        g_accel->accel_num = 0;
         for (int i = 0; i < MAX_ACCELS; ++i)
         {
-            if (!accel->cmd)
+            if (!accel[i].cmd)
             {
                 break;
             }
@@ -1935,8 +1934,8 @@ eu_save_config(void)
         "inter_reserved_2 = %d\n"
         "block_fold_visiable = %s\n"
         "tabs_tip_show_enable = %s\n"
-        "code_hint_show_enable = %s\n"
         "tab_split_show = %s\n"
+        "code_hint_show_enable = 0x%04x\n"
         "tab_close_way = %d\n"
         "tab_close_draw = %d\n"
         "tab_new_way = %d\n"
@@ -2090,8 +2089,8 @@ eu_save_config(void)
               g_config->inter_reserved_2,
               g_config->block_fold?"true":"false",
               g_config->m_tab_tip?"true":"false",
-              g_config->m_code_hint?"true":"false",
               g_config->m_tab_split?"true":"false",
+              g_config->m_code_hint,
               g_config->m_close_way,
               g_config->m_close_draw,
               g_config->m_new_way,
@@ -3076,6 +3075,12 @@ eu_wine_dotool(void)
 }
 
 bool
+eu_dark_enable(void)
+{
+    return on_dark_enable();
+}
+
+bool
 eu_under_wine(void)
 {
     return util_under_wine();
@@ -3099,10 +3104,15 @@ eu_which(const char *path)
     return ret;
 }
 
-bool
-eu_dark_enable(void)
+intptr_t
+eu_value(void *p)
 {
-    return on_dark_enable();
+    intptr_t value = 0;
+    if (NULL != (intptr_t *)p)
+    {
+        value = *(intptr_t *)p;
+    }
+    return value;
 }
 
 int

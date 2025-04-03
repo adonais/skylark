@@ -1616,8 +1616,17 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     eu_get_config()->m_tab_tip ^= true;
                     break;
                 case IDM_VIEW_CODE_HINT:
-                    eu_get_config()->m_code_hint ^= true;
+                {
+                    if (eu_get_config()->m_code_hint & SCI_CODE_HINT)
+                    {
+                        eu_get_config()->m_code_hint &= ~SCI_CODE_HINT;
+                    }
+                    else
+                    {
+                        eu_get_config()->m_code_hint |= SCI_CODE_HINT;
+                    }
                     break;
+                }
                 case IDM_VIEW_LEFT_TAB:
                 case IDM_VIEW_RIGHT_TAB:
                 case IDM_VIEW_FAR_LEFT_TAB:
@@ -2066,9 +2075,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                         {
                             on_hyper_update_style(pnode);
                         }
-                        if (lpnotify->updated & SC_UPDATE_SELECTION)
+                        if ((lpnotify->updated & SC_UPDATE_SELECTION))
                         {
-                            if (pnode->raw_size < BUFF_32M && (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT)))
+                            if (eu_get_config()->m_light_str || KEY_DOWN(VK_SHIFT))
                             {
                                 on_view_editor_selection(pnode);
                             }
@@ -2089,6 +2098,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                     on_map_reload(map_edit);
                                 }
                             }
+                        }
+                        else if (lpnotify->updated & SC_UPDATE_V_SCROLL)
+                        {
+                            on_view_editor_selection(pnode);
                         }
                         on_statusbar_update_filesize(pnode);
                     }

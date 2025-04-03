@@ -1662,30 +1662,38 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
 static int
 on_doc_brace_handling(eu_tabpage *pnode)
 {
-    sptr_t match_pos = -1;
-    sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
-    sptr_t current_line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-    sptr_t current_line_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
-    int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
-    sptr_t m_indent = util_line_header(pnode, current_line_start, current_line_end, NULL);
-    if (m_indent > 0 && strchr(")]}>", ch))
-    {   // 当匹配括号前都是空白时, 使之对齐
-        sptr_t line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-        if ((current_pos - 1 - line_start == m_indent) && ((match_pos = on_sci_call(pnode, SCI_BRACEMATCH, current_pos-1, 0)) != -1))
+    const sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    const int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
+    const sptr_t match_pos = on_sci_call(pnode, SCI_BRACEMATCH, current_pos - 1, 0);
+    if (strchr(")]}>", ch) && match_pos >= 0)
+    {
+        const sptr_t match_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
+        const sptr_t match_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, match_line, 0);
+        const sptr_t match_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, match_line, 0);
+        const int match_indent = (int)util_line_header(pnode, match_start, match_end, NULL);
+        const sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+        const sptr_t current_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
+        const sptr_t current_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
+        const int current_indent = (int)util_line_header(pnode, current_start, current_end, NULL);
+        const int diff = current_indent - match_indent;
+        if (diff != 0)
         {
             char *str_space = NULL;
-            sptr_t match_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
-            sptr_t match_line_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, match_line, 0);
-            sptr_t match_line_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, match_line, 0);
-            m_indent = util_line_header(pnode, match_line_start, match_line_end, &str_space);
-            if (m_indent >= 0 && str_space && match_pos - match_line_start == m_indent)
+            if (diff > 0)
             {
-                on_sci_call(pnode, SCI_SETTARGETSTART, line_start, 0);
-                on_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
-                on_sci_call(pnode, SCI_REPLACETARGET, m_indent, (sptr_t)str_space);
+                str_space = on_sci_range_text(pnode, current_start, current_pos - 1 - (sptr_t)diff);
             }
-            eu_safe_free(str_space);
+            else
+            {
+                str_space = on_sci_range_text(pnode, match_start, match_start + (sptr_t)match_indent);
+            }
+            if (str_space)
+            {
+                on_sci_call(pnode, SCI_SETTARGETSTART, current_start, 0);
+                on_sci_call(pnode, SCI_SETTARGETEND, current_pos - 1, 0);
+                on_sci_call(pnode, SCI_REPLACETARGET, -1, (sptr_t)str_space);
+                free(str_space);
+            }
         }
     }
     return on_doc_brace_light(pnode, true);

@@ -342,7 +342,7 @@ on_config_create_accel(void)
         }
         p->haccel = CreateAcceleratorTable(p->accel_ptr, p->accel_num);
         if (p->haccel)
-        {   /* 恢复原数据 */
+        {   /* 恢复原数据供菜单栏识别 */
             for (i = 0; i < p->accel_num; ++i )
             {
                 if (old[i] > 0)

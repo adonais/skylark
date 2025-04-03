@@ -7,7 +7,7 @@ eu.ffi = eu_core.ffi
 eu.api = eu_core.euapi
 eu.lib = eu_core.eulib
 
-function eu.msgbox(text, cap, t)
+function eu.msgbox(text, cap, mb)
     local content = eu.api.eu_utf8_utf16(text, nil)
     local tip = eu.api.eu_utf8_utf16(cap, nil)
     eu.ffi.gc(content,(function(self)
@@ -17,7 +17,7 @@ function eu.msgbox(text, cap, t)
         if tip ~= nil then eu.ffi.C.free(tip) end
     end))
     if (content ~= nil and tip ~= nil) then
-        return eu.api.eu_msgbox(eu.api.eu_module_hwnd(), content, tip, t)
+        return eu.api.eu_msgbox(eu.api.eu_module_hwnd(), content, tip, mb)
     end
     return 0
 end
@@ -35,6 +35,37 @@ function eu.window_title()
         if title ~= nil then eu.ffi.C.free(title) end
     end))
     return eu.ffi.string(title, eu.ffi.C.strlen(title))
+end
+
+function eu.create_process(path, param, flags)
+    local handle = nil
+    local pid = nil
+    local buf = eu.api.eu_utf8_utf16(path, nil)
+    if (buf ~= nil) then
+        eu.ffi.gc(buf,(function(self)
+            eu.ffi.C.free(buf)
+        end))
+        local parg = eu.api.eu_utf8_utf16(param, nil)
+        if (parg ~= nil) then
+            eu.ffi.gc(parg,(function(self)
+                eu.ffi.C.free(parg)
+            end))
+        end
+        local p = eu.ffi.cast("void *", eu.ffi.new("uint32_t[1]", {}))
+        handle = eu.api.eu_new_process(buf, parg, nil, flags, p)
+        if (handle ~= nil) then
+            pid = eu.api.eu_value(p)
+        end
+    end
+    return handle,pid
+end
+
+function eu.win10_or_later()
+    local ret = true
+    if (eu.api.eu_win10_or_later() > 0xFFFFFFFF) then
+        ret = false
+    end
+    return ret
 end
 
 function eu.process_id()
@@ -95,7 +126,7 @@ end
 
 function eu.set_text(text, index)
     if (index == nil) then index = 0 end
-    eu.api.eu_sci_call(index, SCI_ADDTEXT, #text, eu_core.ffi.cast("const intptr_t", text))
+    eu.api.eu_sci_call(index, SCI_ADDTEXT, #text, eu.ffi.cast("const intptr_t", text))
 end
 
 function eu.get_line(index, line)
@@ -124,7 +155,7 @@ end
 
 function eu.replace_selection(text, index)
     if (index == nil) then index = 0 end
-    eu.api.eu_sci_call(index, SCI_REPLACESEL, 0, eu_core.ffi.cast("const intptr_t", text))
+    eu.api.eu_sci_call(index, SCI_REPLACESEL, 0, eu.ffi.cast("const intptr_t", text))
 end
 
 function eu.set_selection(pos1, pos2, index)
