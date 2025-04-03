@@ -1442,7 +1442,12 @@ on_file_redirect(file_backup *pbak, const size_t vsize)
             {
                 err = (on_file_open_remote(NULL, &pbak[i]) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
             }
-            else 
+            else if (url_que_mark(pbak[i].rel_path))
+            {
+                pbak[i].rel_path[_tcslen(pbak[i].rel_path) - 1] = 0;
+                on_treebar_locate_path(pbak[i].rel_path);
+            }
+            else
             {
                 err = on_file_open_bakcup(&pbak[i]);
             }

@@ -2169,27 +2169,13 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             COPYDATASTRUCT *cpd = (COPYDATASTRUCT *) lParam;
             if (cpd)
             {
-                size_t rel_len = 0;
                 file_backup *pm = (file_backup *) (cpd->lpData);
                 if (cpd->cbData != (DWORD)(sizeof(file_backup) * cpd->dwData))
                 {
                     eu_logmsg("MainCallbak: bad wm_copydata data\n");
                     return 1;
                 }
-                if ((rel_len = pm ? _tcslen(pm->rel_path) : 0) > 0 && pm->rel_path[rel_len - 1] == _T('?'))
-                {
-                    pm->rel_path[rel_len - 1] = 0;
-                    // 先打开空白标签, 然后打开文件管理器
-                    if (g_tabpages && TabCtrl_GetItemCount(g_tabpages) < 1)
-                    {
-                        on_file_redirect(NULL, 0);
-                    }
-                    on_treebar_locate_path(pm->rel_path);
-                }
-                else
-                {   // 文件可能被重定向
-                    on_file_redirect(pm, cpd->dwData);
-                }
+                on_file_redirect(pm, cpd->dwData);
             }
             break;
         }
