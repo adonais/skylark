@@ -1083,12 +1083,19 @@ on_file_active_other(eu_tabpage *pnode)
 static void
 on_file_before_open(eu_tabpage *pnode)
 {
-    if (!TAB_HEX_MODE(pnode) && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         on_sci_before_file(pnode, true);
         on_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        // 把工作目录设置在进程所在地
-        util_set_working_dir(eu_module_path, NULL);
+        // 设置文档类型指针
+        if (!pnode->doc_ptr && pnode->raw_size < (uint64_t)(eu_get_config()->m_limit * 1024 * 1024))
+        {
+            pnode->doc_ptr = on_doc_get_type(pnode->filename);
+        }
+        if (pnode->tab_focus)
+        {   // 把工作目录设置在进程所在地
+            util_set_working_dir(eu_module_path, NULL);
+        }
     }
 }
 

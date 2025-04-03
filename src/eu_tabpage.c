@@ -1409,10 +1409,6 @@ on_tabpage_insert(eu_tabpage *pnode)
     if (htab)
     {
         int tab_id = 0;
-        if (TAB_NOT_BIN(pnode) && !TAB_HEX_MODE(pnode) && !pnode->pmod)
-        {
-            pnode->doc_ptr = on_doc_get_type(pnode->filename);
-        }
         if ((tab_id = pnode->is_blank ? -1 : on_tabpage_replace_empty(pnode)) < 0)
         {
             TCITEM tci = {TCIF_TEXT | TCIF_PARAM,};
