@@ -2858,9 +2858,8 @@ on_file_do_restore(void *data, int count, char **column, char **names)
             bak.hex = atoi(column[i]);
         }
     }
-    if (_tcslen(bak.rel_path) > 0)
+    if (_tcslen(bak.rel_path) > 0 && on_file_open_if(bak.rel_path, false) < 0 && on_file_redirect(&bak, 1) == SKYLARK_OK)
     {
-        on_file_redirect(&bak, 1);
         // 文件成功打开, 结束回调
         return SKYLARK_SQL_END;
     }
