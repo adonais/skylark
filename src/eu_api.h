@@ -672,6 +672,7 @@ EU_EXT_CLASS void eu_print_completed_tree(root_t *acshow_root);
 EU_EXT_CLASS char *eu_find_completed_tree(root_t *acshow_root, const char *key, const char *pre_str);
 EU_EXT_CLASS void eu_destory_completed_tree(root_t *root);
 
+EU_EXT_CLASS char *eu_sci_range(const eu_tabpage *p, const sptr_t start, const sptr_t end);
 EU_EXT_CLASS char *eu_strdup_range(const int t, const sptr_t start, const sptr_t end);
 EU_EXT_CLASS char *eu_strdup_line(const int t, const sptr_t line_number);
 EU_EXT_CLASS char *eu_strdup_select(const int t);
@@ -683,6 +684,7 @@ EU_EXT_CLASS int eu_file_close(const int t);
 EU_EXT_CLASS int eu_file_open(const wchar_t *path);
 EU_EXT_CLASS int eu_file_save(const int t);
 EU_EXT_CLASS intptr_t eu_value(void *p);
+EU_EXT_CLASS intptr_t eu_sci_cmd(const eu_tabpage *p, const int m, const sptr_t w, const sptr_t l);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);

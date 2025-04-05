@@ -706,6 +706,10 @@ do_lua_point(const char *fname, const char *func, void *arg)
         {
             lua_pop(L, 1);
         }
+        else
+        {
+            eu_logmsg("%s: %s:%s lua_pcall failed\n", __FUNCTION__, fname, func);
+        }
     }
     lua_close(L);
     return status;
@@ -1153,7 +1157,14 @@ on_script_loader_event(const int event, void *pnode)
     {
         if (psb_client[i].index == event)
         {
-            do_lua_integer(psb_client[i].pfile, psb_client[i].pname, index);
+            if (event == SKYLARK_COMMANDS)
+            {
+                do_lua_point(psb_client[i].pfile, psb_client[i].pname, pnode);
+            }
+            else
+            {
+                do_lua_integer(psb_client[i].pfile, psb_client[i].pname, index);
+            }
         }
     }
 }

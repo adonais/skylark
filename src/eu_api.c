@@ -3163,6 +3163,12 @@ eu_file_name(const int t)
 }
 
 char *
+eu_sci_range(const eu_tabpage *p, const sptr_t start, const sptr_t end)
+{
+    return on_sci_range_text(p, start, end);
+}
+
+char *
 eu_strdup_range(const int t, const sptr_t start, const sptr_t end)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
@@ -3188,6 +3194,12 @@ eu_strdup_content(const int t)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
     return p ? util_strdup_content(p, NULL) : NULL;
+}
+
+intptr_t
+eu_sci_cmd(const eu_tabpage *p, const int m, const sptr_t w, const sptr_t l)
+{
+    return on_sci_call(p, m, w, l);
 }
 
 sptr_t
