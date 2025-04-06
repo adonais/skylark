@@ -51,7 +51,7 @@
 #define util_prev(p) ((p) - (psrc) > 0 ? (p[-1]) : (0))
 
 #define BAD_CHARACTERS ("</")
-#define END_CHARACTERS (" \t\r\n\"']>.*")
+#define END_CHARACTERS (" \t\r\n\"']>.*\\")
 
 typedef struct _HANDLE_DATA
 {
