@@ -195,6 +195,7 @@ const uint32_t util_os_version(void);
 const TCHAR* util_path_ext(const TCHAR *path);
 const TCHAR* util_path_filename(const TCHAR *path);
 uint64_t util_gen_tstamp(void);
+int64_t  util_clock_interval(void);
 HFONT util_create_font(const char* name, const int font_size, const bool bold);
 HBITMAP util_icon_bitmap(HICON hicon, const int width, const int height);
 HBITMAP util_shield_icon(HINSTANCE hinst, LPCTSTR name);

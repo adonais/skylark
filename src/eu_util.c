@@ -41,6 +41,7 @@ typedef struct _LANGANDCODEPAGE
 static PFNGFVSW pfnGetFileVersionInfoSizeW = NULL;
 static PFNGFVIW pfnGetFileVersionInfoW = NULL;
 static PFNVQVW pfnVerQueryValueW = NULL;
+static volatile int64_t milli_second = 0;
 
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
@@ -74,17 +75,17 @@ static PFNVQVW pfnVerQueryValueW = NULL;
 static pwine_get_version fn_wine_get_version;
 static char const out_of_mem[] = "no memory for %zu byte allocation\n";
 
-static int
-clock_gettime_monotonic(struct timespec *tv)
+static int64_t
+clock_gettime_ms(void)
 {
-    static LARGE_INTEGER ticksPerSec;
+    static LARGE_INTEGER frequency;
     LARGE_INTEGER ticks;
-    double seconds;
+    int64_t ms;
 
-    if (!ticksPerSec.QuadPart)
+    if (!frequency.QuadPart)
     {
-        QueryPerformanceFrequency(&ticksPerSec);
-        if (!ticksPerSec.QuadPart)
+        QueryPerformanceFrequency(&frequency);
+        if (!frequency.QuadPart)
         {
             errno = ENOTSUP;
             return -1;
@@ -93,11 +94,10 @@ clock_gettime_monotonic(struct timespec *tv)
 
     QueryPerformanceCounter(&ticks);
 
-    seconds = (double) ticks.QuadPart / (double) ticksPerSec.QuadPart;
-    tv->tv_sec = (time_t) seconds;
-    tv->tv_nsec = (long) ((ULONGLONG) (seconds * NS_PER_SEC) % NS_PER_SEC);
-
-    return 0;
+    ms = ticks.QuadPart * 1000 / frequency.QuadPart;
+    _InterlockedCompareExchange64(&milli_second, ms, 0);
+    
+    return ms;
 }
 
 static int
@@ -120,19 +120,17 @@ clock_gettime_realtime(struct timespec *tv)
     return 0;
 }
 
-int
-util_clock_gettime(int type, struct timespec *tp)
+int64_t
+util_clock_interval(void)
 {
-    if (type == CLOCK_MONOTONIC)
+    int64_t ms = clock_gettime_ms();
+    if (milli_second > 0 && ms > milli_second)
     {
-        return clock_gettime_monotonic(tp);
+        ms -= milli_second;
+        _InterlockedExchange64(&milli_second, 0);
+        return ms;
     }
-    else if (type == CLOCK_REALTIME)
-    {
-        return clock_gettime_realtime(tp);
-    }
-    errno = ENOTSUP;
-    return -1;
+    return 0;
 }
 
 static void *
