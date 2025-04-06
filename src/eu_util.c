@@ -41,7 +41,7 @@ typedef struct _LANGANDCODEPAGE
 static PFNGFVSW pfnGetFileVersionInfoSizeW = NULL;
 static PFNGFVIW pfnGetFileVersionInfoW = NULL;
 static PFNVQVW pfnVerQueryValueW = NULL;
-static volatile int64_t milli_second = 0;
+static volatile intptr_t milli_second = 0;
 
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
@@ -95,7 +95,7 @@ clock_gettime_ms(void)
     QueryPerformanceCounter(&ticks);
 
     ms = ticks.QuadPart * 1000 / frequency.QuadPart;
-    _InterlockedCompareExchange64(&milli_second, ms, 0);
+    inter_atom_compare_exchange(&milli_second, ms, 0);
     
     return ms;
 }
@@ -127,7 +127,7 @@ util_clock_interval(void)
     if (milli_second > 0 && ms > milli_second)
     {
         ms -= milli_second;
-        _InterlockedExchange64(&milli_second, 0);
+        inter_atom_exchange(&milli_second, 0);
         return ms;
     }
     return 0;
