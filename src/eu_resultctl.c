@@ -215,7 +215,10 @@ on_result_command(const HWND hwnd, const WORD low)
             {
                 on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
                 on_sci_call(p->presult, SCI_CLEARALL, 0, 0);
-                on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+                if (p->presult->pwant != on_command_light)
+                {
+                    on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+                }
             }
             break;
         }
@@ -237,6 +240,25 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+        case WM_KEYDOWN:
+        {
+            if ((wParam == VK_ESCAPE || wParam == VK_RETURN) && KEY_UP(VK_SHIFT) && KEY_UP(VK_CONTROL))
+            {
+                eu_tabpage *pnode = on_tabpage_focus_at();
+                if (RESULT_SHOW(pnode) && pnode->presult->pwant == on_command_light)
+                {
+                    if (wParam == VK_ESCAPE)
+                    {
+                        on_sci_call(pnode->presult, SCI_LINEDELETE, 0, 0);
+                    }
+                    else
+                    {
+                        on_script_loader_event(SKYLARK_COMMANDS, pnode->presult);
+                    }
+                }
+            }
+            break;
+        }
         case WM_LBUTTONDBLCLK:
         {
             return on_result_dbclick();

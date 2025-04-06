@@ -2261,7 +2261,10 @@ on_proc_msg_active(eu_tabpage *pnode)
     {
         if (!pnode->plugin && pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
         {
-            SetFocus(pnode->hwnd_sc);
+            if (!on_command_focus(pnode))
+            {
+                SetFocus(pnode->hwnd_sc);
+            }
         }
         if (eu_get_config()->m_statusbar && g_statusbar)
         {
@@ -2401,16 +2404,28 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
-    if (p_msg->message == WM_SYSKEYDOWN && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
+    if (p_msg->message == WM_SYSKEYUP && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00) && KEY_UP(VK_SHIFT) && KEY_UP(VK_CONTROL))
     {
+        int64_t ms = util_clock_interval();
+        if (ms > 0 && ms < 1000)
+        {
+            on_command_launch();
+        }
         return 1;
     }
-    if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
+    if (p_msg->message == WM_SYSKEYDOWN)
     {
-        on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
-        return 1;
+        if (p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
+        {
+            return 1;
+        }
+        if (0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
+        {
+            on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
+            return 1;
+        }
     }
-    if(p_msg->message == WM_KEYDOWN && (pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && TAB_HAS_TXT(pnode) && p_msg->hwnd == pnode->hwnd_sc)
+    if (p_msg->message == WM_KEYDOWN && (pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && TAB_HAS_TXT(pnode) && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
         bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
