@@ -347,7 +347,7 @@ function eu_theme.get_default(name)
           "dochistory_fontsize = 11\n" ..
           "dochistory_color = 0x000080FF\n" ..
           "dochistory_bgcolor = 0x0000A000\n" ..
-          "dochistory_bold = 0" ..
+          "dochistory_bold = 0\n" ..
           "-- white space char setting, no need font\n" ..
           "whitechar_font = \"\"\n" ..
           "-- white space char szie, 0 - 12\n" ..
@@ -526,7 +526,7 @@ function eu_theme.get_default(name)
           "dochistory_fontsize = 11\n" ..
           "dochistory_color = 0x000080FF\n" ..
           "dochistory_bgcolor = 0x0000A000\n" ..
-          "dochistory_bold = 0" ..
+          "dochistory_bold = 0\n" ..
           "-- white space char setting, no need font\n" ..
           "whitechar_font = \"\"\n" ..
           "-- white space char szie, 0 - 12\n" ..
