@@ -657,6 +657,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
             char *std_buffer = NULL;
             char *filename = eu_utf16_utf8(pnode->pathfile, NULL);
             pnode->presult->pwant = on_toolbar_no_highlight;
+            on_result_lexer(pnode->presult);
             eu_window_resize();
             do_lua_setting_path(pnode);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))

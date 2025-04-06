@@ -994,6 +994,7 @@ do_byte_code(eu_tabpage *pnode)
     }
 allclean:
     pnode->presult->pwant = on_toolbar_no_highlight;
+    on_result_lexer(pnode->presult);
     eu_window_resize();
     if (!status)
     {

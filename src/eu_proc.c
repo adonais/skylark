@@ -313,7 +313,6 @@ on_proc_msg_size(const RECT *prc, eu_tabpage *pnode)
             eu_setpos_window(g_splitter_editbar, HWND_TOP, pnode->rect_sc.left, pnode->rect_sc.bottom,
                              pnode->rect_sc.right - pnode->rect_sc.left, SPLIT_WIDTH, SWP_SHOWWINDOW);
             on_result_move_sci(pnode, pnode->rect_result.right - pnode->rect_result.left, pnode->rect_result.bottom - pnode->rect_result.top);
-            on_result_reload(pnode->presult);
             if (QRTABLE_SHOW(pnode))
             {
                 eu_setpos_window(pnode->hwnd_qrtable, HWND_TOP, pnode->rect_qrtable.left, pnode->rect_qrtable.top,
@@ -2099,7 +2098,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                 }
                             }
                         }
-                        else if (lpnotify->updated & SC_UPDATE_V_SCROLL)
+                        else if (eu_get_config()->m_light_str && (lpnotify->updated & SC_UPDATE_V_SCROLL))
                         {
                             on_view_editor_selection(pnode);
                         }
@@ -2411,7 +2410,7 @@ eu_before_proc(MSG *p_msg)
         on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
         return 1;
     }
-    if((pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && !TAB_HEX_MODE(pnode) && p_msg->message == WM_KEYDOWN && p_msg->hwnd == pnode->hwnd_sc)
+    if(p_msg->message == WM_KEYDOWN && (pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && TAB_HAS_TXT(pnode) && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
         bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
@@ -2430,7 +2429,7 @@ eu_before_proc(MSG *p_msg)
                 }
             }
         }
-        else if (main_down && pnode->doc_ptr->doc_type == DOCTYPE_CPP)
+        else if (main_down && pnode->doc_ptr->doc_type == DOCTYPE_TXT)
         {
             on_sci_insert_egg(pnode);
             return 1;

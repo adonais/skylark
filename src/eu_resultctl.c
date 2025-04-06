@@ -155,6 +155,83 @@ on_result_other_tab(int line, result_vec *vec_strings)
     return NULL;
 }
 
+static int
+on_result_dbclick(void)
+{
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    if (pnode && pnode->presult && pnode->ret_vec)
+    {
+        const sptr_t pos = on_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
+        const sptr_t line = on_sci_call(pnode->presult, SCI_LINEFROMPOSITION, pos, 0);
+        on_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, pos, 0);
+        if (line > 0 && cvector_size(pnode->ret_vec) > 0)
+        {
+            const sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0), 0);
+            eu_tabpage *p = on_result_other_tab((int)line, pnode->ret_vec);
+            if (!p)
+            {
+                on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
+                on_sci_call(pnode, SCI_SETSELECTION, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
+                SetFocus(pnode->hwnd_sc);
+            }
+            else if (on_tabpage_selection(p) >= 0)
+            {
+                on_search_jmp_line(p, pnode->ret_vec[line - 1].line, current_line);
+                on_sci_call(p, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
+            }
+        }
+    }
+    return 1;
+}
+
+static void
+on_result_command(const HWND hwnd, const WORD low)
+{
+    switch(low)
+    {
+        case IDM_RESULT_COPY:
+            SendMessage(hwnd, WM_COPY, 0, 0);
+            break;
+        case IDM_RESULT_SETSEL:
+            SendMessage(hwnd, EM_SETSEL, 0, -1);
+            break;
+        case IDM_RESULT_UNSETSEL:
+            SendMessage(hwnd, EM_SETSEL, 0, 0);
+            break;
+        case IDM_RESULT_WRAPLINE:
+        {
+            eu_tabpage *p = on_tabpage_focus_at();
+            if (RESULT_SHOW(p))
+            {
+                int mode = (int)on_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0);
+                !mode ? on_sci_call(p->presult, SCI_SETWRAPMODE, 2, 0) : on_sci_call(p->presult, SCI_SETWRAPMODE, 0, 0);
+            }
+            break;
+        }
+        case IDM_RESULT_CLEARALL:
+        {
+            eu_tabpage *p = on_tabpage_focus_at();
+            if (p && p->presult && p->presult->hwnd_sc)
+            {
+                on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
+                on_sci_call(p->presult, SCI_CLEARALL, 0, 0);
+                on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+            }
+            break;
+        }
+        case IDM_RESULT_CLOSE:
+        {
+            eu_tabpage *p = on_tabpage_focus_at();
+            on_result_destroy(p);
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
+
 static LRESULT CALLBACK
 on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -162,30 +239,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_LBUTTONDBLCLK:
         {
-            eu_tabpage *pnode = on_tabpage_focus_at();
-            if (pnode && pnode->presult && pnode->ret_vec)
-            {
-                sptr_t cur_pos = on_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
-                on_sci_call(pnode->presult, SCI_SETEMPTYSELECTION, cur_pos, 0);
-                sptr_t line = on_sci_call(pnode->presult, SCI_LINEFROMPOSITION, on_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0), 0);
-                if (line > 0 && cvector_size(pnode->ret_vec) > 0)
-                {
-                    sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                    sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-                    eu_tabpage *p = on_result_other_tab((int)line, pnode->ret_vec);
-                    if (!p)
-                    {
-                        on_search_jmp_line(pnode, pnode->ret_vec[line - 1].line, current_line);
-                        on_sci_call(pnode, SCI_SETSELECTION, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
-                    }
-                    else if (on_tabpage_selection(p) >= 0)
-                    {
-                        on_search_jmp_line(p, pnode->ret_vec[line - 1].line, current_line);
-                        on_sci_call(p, SCI_SETSEL, pnode->ret_vec[line - 1].mark.start, pnode->ret_vec[line - 1].mark.end);
-                    }
-                }
-            }
-            return 1;
+            return on_result_dbclick();
         }
         case WM_RBUTTONUP:
         {
@@ -198,59 +252,10 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_COMMAND:
         {
-            WORD high = HIWORD(wParam);
             WORD low = LOWORD(wParam);
-            if (high != 0)
+            if (HIWORD(wParam) == 0)
             {
-                break;
-            }
-            switch(low)
-            {
-                case IDM_RESULT_COPY:
-                    SendMessage(hwnd, WM_COPY, 0, 0);
-                    break;
-                case IDM_RESULT_SETSEL:
-                    SendMessage(hwnd, EM_SETSEL, 0, -1);
-                    break;
-                case IDM_RESULT_UNSETSEL:
-                    SendMessage(hwnd, EM_SETSEL, 0, 0);
-                    break;
-                case IDM_RESULT_WRAPLINE:
-                {
-                    eu_tabpage *p = on_tabpage_focus_at();
-                    if (RESULT_SHOW(p))
-                    {
-                        int mode = (int)on_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0);
-                        !mode ? on_sci_call(p->presult, SCI_SETWRAPMODE, 2, 0) : on_sci_call(p->presult, SCI_SETWRAPMODE, 0, 0);
-                    }
-                    break;
-                }
-                case IDM_RESULT_CLEARALL:
-                {
-                    eu_tabpage *p = on_tabpage_focus_at();
-                    if (p && p->presult && p->presult->hwnd_sc)
-                    {
-                        on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
-                        on_sci_call(p->presult, SCI_CLEARALL, 0, 0);
-                        on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
-                    }
-                    break;
-                }
-                case IDM_RESULT_CLOSE:
-                {
-                    eu_tabpage *p = on_tabpage_focus_at();
-                    if (p && p->presult && p->presult->hwnd_sc)
-                    {
-                        SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
-                        p->presult->hwnd_sc = NULL;
-                        p->result_show = false;
-                        eu_safe_free(p->presult);
-                        eu_window_resize();
-                    }
-                    break;
-                }
-                default:
-                    break;
+                on_result_command(hwnd, low);
             }
             break;
         }
@@ -280,6 +285,7 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (hwnd_rst)
             {
                 hwnd_rst = NULL;
+                eu_logmsg("Result: window destroy\n");
             }
             break;
         }
@@ -290,7 +296,20 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 void
-on_result_reload(eu_tabpage *pedit)
+on_result_destroy(eu_tabpage *p)
+{
+    if (RESULT_SHOW(p))
+    {
+        SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
+        p->presult->hwnd_sc = NULL;
+        p->result_show = false;
+        eu_safe_free(p->presult);
+        eu_window_resize();
+    }
+}
+
+void
+on_result_lexer(eu_tabpage *pedit)
 {
     if (pedit)
     {
@@ -301,6 +320,9 @@ on_result_reload(eu_tabpage *pedit)
         on_sci_call(pedit, SCI_SETEOLMODE, SC_EOL_LF, 0);
         // 不显示插入符
         on_sci_call(pedit, SCI_SETCARETSTYLE, CARETSTYLE_INVISIBLE, 0);
+        // 需要时显示水平滚动条
+        on_sci_call(pedit, SCI_SETSCROLLWIDTH, 1, 0);
+        on_sci_call(pedit, SCI_SETSCROLLWIDTHTRACKING, 1, 0);
         // 加载词语解析器
         on_doc_init_after_scilexer(pedit, "result");
         on_doc_default_light(pedit, SCE_RESULT_COMMENT, 0x768465, -1, true);
@@ -321,7 +343,7 @@ on_result_launch(eu_tabpage *pnode)
         if (!pnode->presult)
         {
             const TCHAR *class_name = _T("Result List");
-            const int flags = WS_CHILD | WS_CLIPSIBLINGS | WS_VSCROLL | WS_HSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
+            const int flags = WS_CHILD | WS_CLIPSIBLINGS | WS_VSCROLL | WS_CLIPCHILDREN | WS_EX_RTLREADING;
             pnode->presult = (eu_tabpage *)calloc(1, sizeof(eu_tabpage));
             if (!hwnd_rst)
             {
