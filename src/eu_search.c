@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -759,7 +759,14 @@ on_search_select_all(const eu_tabpage *pnode)
 {
     if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
-        on_sci_call(pnode, SCI_SELECTALL, 0, 0);
+        if (RESULT_SHOW(pnode) && GetFocus() != pnode->hwnd_sc)
+        {
+            on_sci_call(pnode->presult, SCI_SELECTALL, 0, 0);
+        }
+        else
+        {
+            on_sci_call(pnode, SCI_SELECTALL, 0, 0);
+        }
     }
 }
 
@@ -2250,13 +2257,13 @@ on_search_prefix_width(int line_width)
 }
 
 static void
-on_search_push_result(eu_tabpage *p, LPCTSTR key, LPCTSTR path, int orig_size)
+on_search_push_result(eu_tabpage *p, LPCTSTR key, int orig_size)
 {
     int k = 0;
     int max_line = 0;
     eu_tabpage *presult = NULL;
     eu_tabpage *pnode = NULL;
-    if (!p || !key || !path)
+    if (!p || !key)
     {
         return;
     }
@@ -2296,7 +2303,7 @@ on_search_push_result(eu_tabpage *p, LPCTSTR key, LPCTSTR path, int orig_size)
             eu_i18n_load_str(IDS_RESULT_STRINGS1, path_str, ENV_LEN);
         }
         LOAD_I18N_RESSTR(IDS_RESULT_STRINGS2, line_str);
-        _sntprintf(msg, MAX_BUFFER-1, path_str, key, path, p->match_count);
+        _sntprintf(msg, MAX_BUFFER-1, path_str, key, p->pathfile, p->match_count);
         on_sci_call(presult, SCI_SETREADONLY, 0, 0);
         if ((u8_path = eu_utf16_utf8(msg, NULL)))
         {   // 文件名称前面加换行符
@@ -2313,11 +2320,11 @@ on_search_push_result(eu_tabpage *p, LPCTSTR key, LPCTSTR path, int orig_size)
             on_sci_call(presult, SCI_ADDTEXT, strlen(u8_path), (LPARAM)u8_path);
             free(u8_path);
         }
-        if (p->ret_vec && (pformat = eu_utf16_utf8(line_str, NULL)))
+        if (p->match_count > 0 && p->ret_vec && (pformat = eu_utf16_utf8(line_str, NULL)))
         {
             for (int i = 0; i < max_line; ++i)
             {
-                char *buf = util_strdup_line(p, p->ret_vec[i].line, NULL);
+                char *buf = p->ret_vec[i].line >= 0 ? util_strdup_line(p, p->ret_vec[i].line, NULL) : NULL;
                 if (buf)
                 {
                     const size_t m_size = strlen(buf) + 24;
@@ -2344,21 +2351,20 @@ on_search_push_result(eu_tabpage *p, LPCTSTR key, LPCTSTR path, int orig_size)
 }
 
 static void
-on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR path, LPCTSTR key, int orig_size)
+on_search_launch_result_dlg(eu_tabpage *pnode, LPCTSTR key, int orig_size)
 {
-    if (pnode && on_result_launch(pnode) && pnode->presult)
+    if (pnode && (pnode->result_show = on_result_launch(pnode)) && pnode->presult)
     {
         char ptr_style[16 + 1];
-        // 显示底部窗口
-        pnode->result_show = true;
         // 关键字不高亮的回调函数
         pnode->presult->pwant = NULL;
+        on_result_lexer(pnode->presult);
         eu_window_resize();
         on_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
         on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
         sprintf(ptr_style, "%p", &pnode->ret_vec);
         on_sci_call(pnode->presult, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)ptr_style);
-        on_search_push_result(pnode, key, path, orig_size);
+        on_search_push_result(pnode, key, orig_size);
         // 窗口并排可能导致主编辑器之前的光标位置被遮挡
         // 滚动视图以使光标可见
         on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
@@ -2383,7 +2389,7 @@ on_search_lookup_result(eu_tabpage *pnode, const bool all_file, const int count)
         for (; index < count; ++index)
         {
             p = on_tabpage_get_ptr(index);
-            if (p && !TAB_HEX_MODE(p) && p->match_count > 0 && p->ret_vec)
+            if (p && TAB_HAS_TXT(p) && p->match_count > 0 && p->ret_vec)
             {
                 if (p != pnode)
                 {
@@ -2403,17 +2409,16 @@ on_search_lookup_result(eu_tabpage *pnode, const bool all_file, const int count)
         }
     }
     ComboBox_GetText(hwnd_cb, text, MAX_PATH);
-    on_search_launch_result_dlg(pnode, pnode->pathfile, text, size);
+    on_search_launch_result_dlg(pnode, text, size);
     if (all_file && pnode->presult)
     {
         for (index = 0; index < count; ++index)
         {
-            eu_tabpage *p = on_tabpage_get_ptr(index);
-            if (p && !TAB_HEX_MODE(p) && p->match_count > 0)
+            if ((p = on_tabpage_get_ptr(index)) && TAB_HAS_TXT(p) && p->match_count > 0)
             {
                 if (p != pnode)
                 {
-                    on_search_push_result(p, text, p->pathfile, -1);
+                    on_search_push_result(p, text, -1);
                 }
             }
         }

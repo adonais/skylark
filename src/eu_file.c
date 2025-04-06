@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1083,12 +1083,19 @@ on_file_active_other(eu_tabpage *pnode)
 static void
 on_file_before_open(eu_tabpage *pnode)
 {
-    if (!TAB_HEX_MODE(pnode) && !pnode->pmod)
+    if (pnode && !TAB_HEX_MODE(pnode) && !pnode->pmod)
     {
         on_sci_before_file(pnode, true);
         on_sci_call(pnode, SCI_CLEARALL, 0, 0);
-        // 把工作目录设置在进程所在地
-        util_set_working_dir(eu_module_path, NULL);
+        // 设置文档类型指针
+        if (!pnode->doc_ptr && pnode->raw_size < (uint64_t)(eu_get_config()->m_limit * 1024 * 1024))
+        {
+            pnode->doc_ptr = on_doc_get_type(pnode->filename);
+        }
+        if (pnode->tab_focus)
+        {   // 把工作目录设置在进程所在地
+            util_set_working_dir(eu_module_path, NULL);
+        }
     }
 }
 
@@ -1442,7 +1449,12 @@ on_file_redirect(file_backup *pbak, const size_t vsize)
             {
                 err = (on_file_open_remote(NULL, &pbak[i]) >= 0 ? SKYLARK_OK : SKYLARK_NOT_OPENED);
             }
-            else 
+            else if (url_que_mark(pbak[i].rel_path))
+            {
+                pbak[i].rel_path[_tcslen(pbak[i].rel_path) - 1] = 0;
+                on_treebar_locate_path(pbak[i].rel_path);
+            }
+            else
             {
                 err = on_file_open_bakcup(&pbak[i]);
             }
@@ -2846,9 +2858,8 @@ on_file_do_restore(void *data, int count, char **column, char **names)
             bak.hex = atoi(column[i]);
         }
     }
-    if (_tcslen(bak.rel_path) > 0)
+    if (_tcslen(bak.rel_path) > 0 && on_file_open_if(bak.rel_path, false) < 0 && on_file_redirect(&bak, 1) == SKYLARK_OK)
     {
-        on_file_redirect(&bak, 1);
         // 文件成功打开, 结束回调
         return SKYLARK_SQL_END;
     }

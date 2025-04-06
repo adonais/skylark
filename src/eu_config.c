@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -293,12 +293,24 @@ on_config_load_file(void *lp)
         on_sql_do_session("SELECT szVersion FROM skylar_ver;", NULL, NULL);
     }
     if (error == 0 && on_config_open_args(&vbak) && vbak)
-    {
+    {   // 当定位目录时, 修正可能错误的焦点标签
+        size_t save = 0;
         for (; count < cvector_size(vbak) - 1; ++count)
         {
-            vbak[count].focus = 0;
+            if (vbak[count].focus)
+            {
+                save = count;
+                vbak[count].focus = 0;
+            }
         }
-        vbak[count].focus = 1;
+        if (url_que_mark(vbak[count].rel_path))
+        {
+            vbak[save].focus = 1;
+        }
+        else
+        {
+            vbak[count].focus = 1;
+        }
         eu_logmsg("Config: run with arguments\n");
     }
     /* 正常标签与空标签一起关闭时可能没有获取焦点 */

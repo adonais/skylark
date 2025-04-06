@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +64,7 @@ on_view_result_show(eu_tabpage *pnode, const int key)
         if (RESULT_SHOW(pnode))
         {
             pnode->presult->pwant = on_toolbar_no_highlight;
+            on_result_lexer(pnode->presult);
             eu_window_resize();
             pnode->doc_ptr->fn_keydown(pnode, VK_F5, key);
         }
@@ -166,6 +167,10 @@ on_view_refresh_theme(HWND hwnd, const bool reload)
         if (p->hwnd_qrtable)
         {
             on_table_update_theme(p);
+        }
+        if (RESULT_SHOW(p))
+        {
+            on_result_lexer(p->presult);
         }
         if (p->pmod)
         {
@@ -653,7 +658,7 @@ on_view_editor_selection(eu_tabpage *pnode)
     {
         size_t select_len = 0;
         char *select_buf = util_strdup_select(pnode, &select_len, 0);
-        if (select_buf && select_len > 1 && !util_string_space(select_buf, select_len))
+        if (select_buf && select_len > 0 && !util_string_space(select_buf, select_len))
         {
             size_t flags = 0;
             sptr_t found_pos = 0;
@@ -671,10 +676,10 @@ on_view_editor_selection(eu_tabpage *pnode)
             }
             while (found_pos >= 0)
             {
-                found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags);
-                if (found_pos >= 0)
+                if ((found_pos = on_search_process_find(pnode, select_buf, start_pos, end_pos, flags)) >= 0)
                 {
-                    if (found_pos != sel_start && !on_sci_call(pnode, SCI_INDICATORVALUEAT, INDIC_SKYLARK_SELECT, found_pos))
+                    on_sci_call(pnode, SCI_INDICATORCLEARRANGE, start_pos, end_pos - start_pos);
+                    if (found_pos != sel_start)
                     {
                         on_sci_call(pnode, SCI_INDICATORFILLRANGE, found_pos, select_len);
                     }

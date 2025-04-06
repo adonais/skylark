@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,8 @@ enum
     SKYLARK_MOUSEUP,
     SKYLARK_SELETION,
     SKYLARK_FILESAVE,
-    SKYLARK_FILESAVEAS
+    SKYLARK_FILESAVEAS,
+    SKYLARK_COMMANDS
 };
 
 typedef struct _obs_skylark

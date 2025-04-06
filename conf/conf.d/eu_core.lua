@@ -388,6 +388,7 @@ char *eu_strdup_line(const int t, const intptr_t line_number);
 char *eu_strdup_select(const int t);
 char *eu_strdup_content(const int index);
 char *eu_strdup_range(const int t, const intptr_t start, const intptr_t end);
+char *eu_sci_range(const void *p, const intptr_t start, const intptr_t end);
 char *eu_file_path(const int t);
 char *eu_file_name(const int t);
 int eu_file_close(const int t);
@@ -411,6 +412,7 @@ const uint32_t eu_win10_or_later(void);
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);
 bool eu_init_completed_tree(doctype_t *p, const char *val);
 intptr_t eu_sci_call(const int t, const int m, const intptr_t w, const intptr_t l);
+intptr_t eu_sci_cmd(const void *p, const int m, const intptr_t w, const intptr_t l);
 
 /* 默认的 init_before_ptr 回调函数入口 */
 int on_doc_init_list(void *pnode);

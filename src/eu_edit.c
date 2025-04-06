@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,7 +84,14 @@ on_edit_cut(eu_tabpage *pnode)
 {
     if (pnode && !pnode->pmod)
     {
-        on_sci_call(pnode, SCI_CUT, 0, 0);
+        if (RESULT_SHOW(pnode) && GetFocus() != pnode->hwnd_sc)
+        {
+            on_sci_call(pnode->presult, SCI_CUTALLOWLINE, 0, 0);
+        }
+        else
+        {
+            on_sci_call(pnode, SCI_CUTALLOWLINE, 0, 0);
+        }
     }
 }
 
@@ -93,7 +100,11 @@ on_edit_copy_text(eu_tabpage *pnode)
 {
     if (pnode)
     {
-        if (TAB_HEX_MODE(pnode))
+        if (RESULT_SHOW(pnode) && GetFocus() != pnode->hwnd_sc)
+        {
+            on_sci_call(pnode->presult, SCI_COPYALLOWLINE, 0, 0);
+        }
+        else if (TAB_HEX_MODE(pnode))
         {
             on_sci_call(pnode, WM_COPY, 0, 0);
         }
@@ -109,7 +120,14 @@ on_edit_paste_text(eu_tabpage *pnode)
 {
     if (pnode && !pnode->plugin)
     {
-        on_sci_call(pnode, SCI_PASTE, 0, 0);
+        if (RESULT_SHOW(pnode) && GetFocus() != pnode->hwnd_sc && on_sci_call(pnode->presult, SCI_CANPASTE, 0, 0))
+        {
+            on_sci_call(pnode->presult, SCI_PASTE, 0, 0);
+        }
+        else
+        {
+            on_sci_call(pnode, SCI_PASTE, 0, 0);
+        }
     }
 }
 

@@ -188,6 +188,10 @@ function eu.current_word(index)
     return txt
 end
 
+function eu.sci_cmd(p, m, w, l)
+    return eu.api.eu_sci_cmd(p, m, w, l)
+end
+
 function eu.close_file(index)
     if (index == nil) then index = 0 end
     return eu.api.eu_file_close(index)

@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@ extern "C" {
 int on_result_append_text(wchar_t*format , ...);
 int on_result_append_text_utf8(char *format , ...);
 bool on_result_launch(eu_tabpage *pnode);
-void on_result_reload(eu_tabpage *p);
+void on_result_lexer(eu_tabpage *p);
+void on_result_destroy(eu_tabpage *p);
 void on_result_move_sci(eu_tabpage *p, int width, int height);
 
 #ifdef __cplusplus

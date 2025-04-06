@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -318,7 +318,6 @@ _tmain(int argc, TCHAR *argv[])
     while (GetMessage(&msg, NULL, 0, 0) > 0)
     {
         if ((!eu_get_search_hwnd() || !IsDialogMessage(eu_get_search_hwnd(), &msg)) &&
-            (!eu_result_hwnd() || !IsDialogMessage(eu_result_hwnd(), &msg)) &&
             (!eu_snippet_hwnd() || !IsDialogMessage(eu_snippet_hwnd(), &msg)))
         {
             if (eu_before_proc(&msg) > 0)

@@ -1,6 +1,6 @@
 /******************************************************************************
  * This file is part of Skylark project
- * Copyright ©2023 Hua andy <hua.andy@gmail.com>
+ * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define url_has_samba(ll) (_tcslen(ll) > 2 && (ll[1] == L'\\' && ll[0] == L'\\'))
 #define url_has_file(ll) (_tcslen(ll) > (URL_MIN+1) && _tcsnicmp(ll, _T("file:///"), (URL_MIN+1)) == 0)
+#define url_que_mark(ll) (_tcslen(ll) > 1 && ll[_tcslen(ll) - 1] == _T('?'))
 
 #ifdef __cplusplus
 extern "C"
