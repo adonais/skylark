@@ -658,7 +658,7 @@ on_view_editor_selection(eu_tabpage *pnode)
     {
         size_t select_len = 0;
         char *select_buf = util_strdup_select(pnode, &select_len, 0);
-        if (select_buf && select_len > 1 && !util_string_space(select_buf, select_len))
+        if (select_buf && select_len > 0 && !util_string_space(select_buf, select_len))
         {
             size_t flags = 0;
             sptr_t found_pos = 0;
