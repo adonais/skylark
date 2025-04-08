@@ -23,7 +23,8 @@
 #define SAVE_AS   1
 #define SAVE_ALL  2
 #define URL_MIN   7
-#define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
+#define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE && mode != FILE_FORCE_CLOSE)
+#define file_force_close(m) (mode == FILE_REMOTE_CLOSE || mode == FILE_FORCE_CLOSE)
 #define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
 #define url_has_samba(ll) (_tcslen(ll) > 2 && (ll[1] == L'\\' && ll[0] == L'\\'))
 #define url_has_file(ll) (_tcslen(ll) > (URL_MIN+1) && _tcsnicmp(ll, _T("file:///"), (URL_MIN+1)) == 0)
@@ -41,7 +42,8 @@ typedef enum _CLOSE_MODE
     FILE_EXCLUDE_CLOSE,
     FILE_ALL_CLOSE,
     FILE_REMOTE_CLOSE,
-    FILE_AUTO_SAVE
+    FILE_AUTO_SAVE,
+    FILE_FORCE_CLOSE
 }CLOSE_MODE;
 
 typedef struct _file_backup

@@ -895,7 +895,9 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
     {
         len = uf_stream.size - pnode->pre_len;
     }
-    if (!is_utf8 && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
+    if (!is_utf8 &&
+       ((pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN) ||
+       (pnode->codepage >= IDM_ICONV_001 && pnode->codepage <= IDM_ICONV_133)))
     {
         char *pdst = NULL;
         size_t dst_len = 0;
@@ -906,8 +908,11 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
         if (err == (size_t) -1)
         {
             eu_logmsg("File: %s, on_encoding_do_iconv error\n", __FUNCTION__);
-            err = EUE_ICONV_FAIL;
             MSG_BOX(IDC_MSG_ICONV_FAIL2, IDC_MSG_ERROR, MB_ICONERROR | MB_OK);
+            // 载入源数据, 然后让用户指定编码
+            on_sci_call(pnode, SCI_ADDTEXT, len, (LPARAM)(uf_stream.base+pnode->pre_len));
+            pnode->codepage = IDM_UNKNOWN;
+            err = SKYLARK_OK;
         }
         if (pdst)
         {
@@ -916,8 +921,8 @@ on_file_load(eu_tabpage *pnode, file_backup *pbak, const bool force)
                 pnode->eol = on_encoding_line_mode(pdst, dst_len);
             }
             on_sci_call(pnode, SCI_ADDTEXT, dst_len, (LPARAM)(pdst));
-            eu_safe_free(pdst);
         }
+        eu_safe_free(pdst);
     }
     else if (is_utf8)
     {
@@ -1535,7 +1540,8 @@ on_file_read_remote(void *buffer, size_t size, size_t nmemb, void *stream)
     {
         offset = 0;
     }
-    if (pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
+    if (((pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN) ||
+       (pnode->codepage >= IDM_ICONV_001 && pnode->codepage <= IDM_ICONV_133)))
     {
         char *pdst = NULL;
         char *psrc = data + offset;
@@ -1754,7 +1760,9 @@ on_file_do_write(eu_tabpage *pnode, const TCHAR *pathfilename, const bool isbak,
         }
         pathfilename = save_as || be_cache ? pathfilename : pnode->pathfile;
     }
-    if (!be_cache && pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
+    if (!be_cache &&
+       ((pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN) ||
+       (pnode->codepage >= IDM_ICONV_001 && pnode->codepage <= IDM_ICONV_133)))
     {
         char *pdst = NULL;
         char *pbuf = (char *)pnode->write_buffer;
@@ -2028,7 +2036,8 @@ on_file_save(eu_tabpage *pnode, const int save)
                 err = EUE_POINT_NULL;
                 goto SAVE_FINAL;
             }
-            if (pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN)
+            if (((pnode->codepage > IDM_UNI_UTF8B && pnode->codepage < IDM_OTHER_BIN) ||
+               (pnode->codepage >= IDM_ICONV_001 && pnode->codepage <= IDM_ICONV_133)))
             {
                 char *psrc = ptext;
                 size_t src_len = buf_len;
@@ -2469,7 +2478,7 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
     {
         return EUE_TAB_NULL;
     }
-    if (!file_click_close(mode) && eu_get_config()->m_session)
+    if (!file_click_close(mode) && (eu_get_config()->m_session || mode == FILE_FORCE_CLOSE))
     {
         // do nothing
     }
@@ -2524,9 +2533,9 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
         /* 关闭标签后需要激活其他标签 */
         if (on_tabpage_remove((*ppnode), mode))
         {
-            if (mode == FILE_REMOTE_CLOSE || mode == FILE_ONLY_CLOSE)
+            if (file_force_close(mode) || mode == FILE_ONLY_CLOSE)
             {
-                if ((*ppnode)->tab_id == ifocus || mode == FILE_REMOTE_CLOSE)
+                if ((*ppnode)->tab_id == ifocus || file_force_close(mode))
                 {
                     on_file_active_other((*ppnode));
                 }

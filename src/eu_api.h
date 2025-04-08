@@ -659,6 +659,7 @@ EU_EXT_CLASS wchar_t *eu_wcasestr(const wchar_t *haystack, const wchar_t *needle
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
 EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
+EU_EXT_CLASS int eu_query_encoding_index(const char *coding);
 EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reverse, intptr_t *pret);
 EU_EXT_CLASS TCHAR *eu_process_path(void);
 EU_EXT_CLASS void eu_save_config(void);
@@ -680,7 +681,7 @@ EU_EXT_CLASS char *eu_strdup_content(const int index);
 EU_EXT_CLASS char *eu_file_path(const int t);
 EU_EXT_CLASS char *eu_file_name(const int t);
 EU_EXT_CLASS size_t eu_file_size(const int t);
-EU_EXT_CLASS int eu_file_close(const int t);
+EU_EXT_CLASS int eu_file_close(const int t, const int mode);
 EU_EXT_CLASS int eu_file_open(const wchar_t *path);
 EU_EXT_CLASS int eu_file_save(const int t);
 EU_EXT_CLASS intptr_t eu_value(void *p);
@@ -937,6 +938,10 @@ EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t r
 
 /* for eu_xmlist.c */
 EU_EXT_CLASS bool eu_xml_pretty(void *ptr, struct opt_format *opt);
+
+/* for eu_commands.c */
+EU_EXT_CLASS bool eu_command_reload(const int t, const char *enc);
+EU_EXT_CLASS bool eu_command_convert(const int t, const char *enc);
 
 #ifdef __cplusplus
 }

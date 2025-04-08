@@ -896,6 +896,7 @@ BEGIN
             MENUITEM "mac-cyrillic",                  IDM_OTHER_2
             MENUITEM "mac-centraleurope",             IDM_OTHER_3
             MENUITEM "本地编码",                      IDM_OTHER_ANSI
+            MENUITEM "Iconv 支持",                    IDM_OTHER_ICONV,,0x00000003
             MENUITEM "二进制编码",                    IDM_OTHER_BIN,,0x00000003
             MENUITEM "插件编码",                      IDM_OTHER_PLUGIN,,0x00000003
             MENUITEM "未知编码",                      IDM_UNKNOWN,,0x00000003
@@ -1295,7 +1296,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_TAB_LEN         "请输入制表符宽度:"
     IDC_MSG_SCINTILLA_ERR1  "创建Scintilla控件失败"
     IDC_MSG_ICONV_FAIL1     "文件编码转换失败"
-    IDC_MSG_ICONV_FAIL2     "文本编码识别错误, 导致文件没有打开, 请联系开发者"
+    IDC_MSG_ICONV_FAIL2     "文本编码识别错误, 你可能需要通过命令行指定正确的编码"
     IDC_MSG_TABCONTROL_FAIL "创建TabControl控件失败"
     IDC_MSG_CONV_TIPS       "多字节编码转换时, 可能存在内容丢失的风险. 需要继续吗?\n注意, 新编码的应用在文件保存后才真正生效."
     IDC_MSG_CONV_FAIL1      "测试编码转换失败, 我们回退到原编码."

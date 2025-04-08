@@ -142,10 +142,149 @@ static eue_code eue_coding[] =
     {IDM_OTHER_2     , "MACCYRILLIC"}      ,
     {IDM_OTHER_3     , "MACCENTRALEUROPE"} ,
     {IDM_OTHER_ANSI  , "ANSI"}             ,
+    {IDM_OTHER_ICONV , "ICONV"}            ,
     {IDM_OTHER_BIN   , "Binary Code"}      ,
     {IDM_OTHER_PLUGIN, "Plugins Code"}     ,
     {IDM_UNKNOWN     , "Unknown Code"}     ,
     {0               , NULL}
+};
+
+static eue_code eue_extra[] = 
+{
+    {IDM_ICONV_001, "UTF-7"}               ,
+    {IDM_ICONV_002, "ISO-8859-14"}         ,
+    {IDM_ICONV_003, "KOI8-R"}              ,
+    {IDM_ICONV_004, "KOI8-U"}              ,
+    {IDM_ICONV_005, "KOI8-RU"}             ,
+    {IDM_ICONV_006, "CP850"}               ,
+    {IDM_ICONV_007, "CP862"}               ,
+    {IDM_ICONV_008, "CP866"}               ,
+    {IDM_ICONV_009, "CP1131"}              ,
+    {IDM_ICONV_010, "MAC"}                 ,
+    {IDM_ICONV_011, "MACICELAND"}          ,
+    {IDM_ICONV_012, "MACCROATIAN"}         ,
+    {IDM_ICONV_013, "MACROMANIA"}          ,
+    {IDM_ICONV_014, "MACUKRAINE"}          ,
+    {IDM_ICONV_015, "MACGREEK"}            ,
+    {IDM_ICONV_016, "MACTURKISH"}          ,
+    {IDM_ICONV_017, "MACHEBREW"}           ,
+    {IDM_ICONV_018, "MACARABIC"}           ,
+    {IDM_ICONV_019, "MACTHAI"}             ,
+    {IDM_ICONV_020, "HP-ROMAN8"}           ,
+    {IDM_ICONV_021, "NEXTSTEP"}            ,
+    {IDM_ICONV_022, "ARMSCII-8"}           ,
+    {IDM_ICONV_023, "GEORGIAN-ACADEMY"}    ,
+    {IDM_ICONV_024, "GEORGIAN-PS"}         ,
+    {IDM_ICONV_025, "KOI8-T"}              ,
+    {IDM_ICONV_026, "CP154"}               ,
+    {IDM_ICONV_027, "KZ-1048"}             ,
+    {IDM_ICONV_028, "MULELAO-1"}           ,
+    {IDM_ICONV_029, "CP1133"}              ,
+    {IDM_ICONV_030, "ISO-IR-166 "}         ,
+    {IDM_ICONV_031, "CP874"}               ,
+    {IDM_ICONV_032, "VISCII"}              ,
+    {IDM_ICONV_033, "TCVN"}                ,
+    {IDM_ICONV_034, "ISO646-JP"}           ,
+    {IDM_ICONV_035, "JISX0201-1976"}       ,
+    {IDM_ICONV_036, "ISO-IR-87"}           ,
+    {IDM_ICONV_037, "ISO-IR-159"}          ,
+    {IDM_ICONV_038, "ISO-IR-149"}          ,
+    {IDM_ICONV_039, "EUC-JP"}              ,
+    {IDM_ICONV_040, "MS_KANJI"}            ,
+    {IDM_ICONV_041, "ISO-2022-CN-EXT"}     ,
+    {IDM_ICONV_042, "BIG5-HKSCS"}          ,
+    {IDM_ICONV_043, "EUC-KR"}              ,
+    {IDM_ICONV_044, "CP1361"}              ,
+    {IDM_ICONV_045, "ISO-2022-KR"}         ,
+    {IDM_ICONV_046, "HZ-GB-2312"}          ,
+    {IDM_ICONV_047, "KOI8-R"}              ,
+    {IDM_ICONV_048, "MACCYRILLIC"}         ,
+    {IDM_ICONV_049, "MACCENTRALEUROPE"}    ,
+    {IDM_ICONV_050, "CP856"}               ,
+    {IDM_ICONV_051, "CP922"}               ,
+    {IDM_ICONV_052, "CP943"}               ,
+    {IDM_ICONV_053, "CP1046"}              ,
+    {IDM_ICONV_054, "CP1124"}              ,
+    {IDM_ICONV_055, "CP1129"}              ,
+    {IDM_ICONV_056, "CP1161"}              ,
+    {IDM_ICONV_057, "CP1162"}              ,
+    {IDM_ICONV_058, "CP1163"}              ,
+    {IDM_ICONV_059, "DEC-KANJI"}           ,
+    {IDM_ICONV_060, "DEC-HANYU"}           ,
+    {IDM_ICONV_061, "CP437"}               ,
+    {IDM_ICONV_062, "CP737"}               ,
+    {IDM_ICONV_063, "CP775"}               ,
+    {IDM_ICONV_064, "CP853"}               ,
+    {IDM_ICONV_065, "CP855"}               ,
+    {IDM_ICONV_066, "CP857"}               ,
+    {IDM_ICONV_067, "CP858"}               ,
+    {IDM_ICONV_068, "CP860"}               ,
+    {IDM_ICONV_069, "CP861"}               ,
+    {IDM_ICONV_070, "CP863"}               ,
+    {IDM_ICONV_071, "CP864"}               ,
+    {IDM_ICONV_072, "CP865"}               ,
+    {IDM_ICONV_073, "CP869"}               ,
+    {IDM_ICONV_074, "CP1125"}              ,
+    {IDM_ICONV_075, "CP037"}               ,
+    {IDM_ICONV_076, "CP273"}               ,
+    {IDM_ICONV_077, "EBCDIC-CP-DK"}        ,
+    {IDM_ICONV_078, "CP278"}               ,
+    {IDM_ICONV_079, "CP280"}               ,
+    {IDM_ICONV_080, "IBM-282"}             ,
+    {IDM_ICONV_081, "CP284"}               ,
+    {IDM_ICONV_082, "CP285"}               ,
+    {IDM_ICONV_083, "CP297"}               ,
+    {IDM_ICONV_084, "CP423"}               ,
+    {IDM_ICONV_085, "CP424"}               ,
+    {IDM_ICONV_086, "IBM-425"}             ,
+    {IDM_ICONV_087, "CP500"}               ,
+    {IDM_ICONV_088, "IBM-838"}             ,
+    {IDM_ICONV_089, "CP870"}               ,
+    {IDM_ICONV_090, "CP871"}               ,
+    {IDM_ICONV_091, "CP875"}               ,
+    {IDM_ICONV_092, "CP880"}               ,
+    {IDM_ICONV_093, "CP905"}               ,
+    {IDM_ICONV_094, "CP00924"}             ,
+    {IDM_ICONV_095, "CP1025"}              ,
+    {IDM_ICONV_096, "CP1026"}              ,
+    {IDM_ICONV_097, "CP1047"}              ,
+    {IDM_ICONV_098, "CP1097"}              ,
+    {IDM_ICONV_099, "CP1112"}              ,
+    {IDM_ICONV_100, "CP1122"}              ,
+    {IDM_ICONV_101, "CP1123"}              ,
+    {IDM_ICONV_102, "CP1130"}              ,
+    {IDM_ICONV_103, "CP1132"}              ,
+    {IDM_ICONV_104, "CP1137"}              ,
+    {IDM_ICONV_105, "CP01140"}             ,
+    {IDM_ICONV_106, "CP01141"}             ,
+    {IDM_ICONV_107, "CP01142"}             ,
+    {IDM_ICONV_108, "CP01143"}             ,
+    {IDM_ICONV_109, "CP01144"}             ,
+    {IDM_ICONV_110, "CP01145"}             ,
+    {IDM_ICONV_111, "CP01146"}             ,
+    {IDM_ICONV_112, "CP01147"}             ,
+    {IDM_ICONV_113, "CP01148"}             ,
+    {IDM_ICONV_114, "CP01149"}             ,
+    {IDM_ICONV_115, "CP1153"}              ,
+    {IDM_ICONV_116, "CP1154"}              ,
+    {IDM_ICONV_117, "CP1155"}              ,
+    {IDM_ICONV_118, "CP1156"}              ,
+    {IDM_ICONV_119, "CP1157"}              ,
+    {IDM_ICONV_120, "CP1158"}              ,
+    {IDM_ICONV_121, "CP1160"}              ,
+    {IDM_ICONV_122, "CP1164"}              ,
+    {IDM_ICONV_123, "IBM-1165"}            ,
+    {IDM_ICONV_124, "CP1166"}              ,
+    {IDM_ICONV_125, "CP4971"}              ,
+    {IDM_ICONV_126, "CP12712"}             ,
+    {IDM_ICONV_127, "CP16804"}             ,
+    {IDM_ICONV_128, "EUC-JIS-2004"}        ,
+    {IDM_ICONV_129, "SHIFT_JIS-2004"}      ,
+    {IDM_ICONV_130, "BIG5-2003"}           ,
+    {IDM_ICONV_131, "ISO-IR-230"}          ,
+    {IDM_ICONV_132, "ATARI"}               ,
+    {IDM_ICONV_133, "RISCOS-LATIN1"}       ,
+    {0, NULL}
 };
 
 static bool
@@ -601,18 +740,31 @@ eu_reset_config(void)
     }
 }
 
-static int
-query_encode(const char *coding)
+int
+eu_query_encoding_index(const char *coding)
 {
+    int index = IDM_UNKNOWN;
     eue_code *iter = NULL;
     for (iter = &eue_coding[0]; iter->nid; ++iter)
     {
         if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
         {
-            return iter->nid;
+            index = iter->nid;
+            break;
         }
     }
-    return IDM_UNKNOWN;
+    if (index == IDM_UNKNOWN)
+    {
+        for (iter = &eue_extra[0]; iter->nid; ++iter)
+        {
+            if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
+            {
+                index = iter->nid;
+                break;
+            }
+        }
+    }
+    return index;
 }
 
 #if APP_DEBUG
@@ -1240,14 +1392,27 @@ const char *
 eu_query_encoding_name(int code)
 {
     eue_code *iter = NULL;
+    const char *enc = NULL;
     for (iter = &eue_coding[0]; iter->nid; ++iter)
     {
         if (iter->nid == code)
         {
-            return iter->desc;
+            enc = iter->desc;
+            break;
         }
     }
-    return NULL;
+    if (!enc)
+    {
+        for (iter = &eue_extra[0]; iter->nid; ++iter)
+        {
+            if (iter->nid == code)
+            {
+                enc = iter->desc;
+                break;
+            }
+        }
+    }
+    return enc;
 }
 
 static inline bool
@@ -1446,9 +1611,13 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             eu_logmsg("Euapi: confidence[%f] < %f, maybe gb18030!\n", obj->confidence, CHECK_1ST);
             type = IDM_ANSI_12;
         }
+        else if (obj->confidence > CHECK_1ST)
+        {
+            type = eu_query_encoding_index(obj->encoding);
+        }
         else
         {
-            type = query_encode(obj->encoding);
+            eu_logmsg("Euapi: [%s] unable to confirm this characterset\n", obj->encoding);
         }
     }
     else if (strcmp(obj->encoding, "ISO-2022-JP") == 0 && obj->confidence > CHECK_1ST)
@@ -1479,7 +1648,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (obj->confidence > CHECK_1ST && is_exclude_char(obj->encoding))
         {
-            type = query_encode(obj->encoding);
+            type = eu_query_encoding_index(obj->encoding);
         }
         else if (is_mbcs_gb18030((const char *)checkstr, read_len))
         {
@@ -1488,7 +1657,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else
         {
-            type = query_encode(obj->encoding);
+            type = eu_query_encoding_index(obj->encoding);
             eu_logmsg("Euapi: blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
             if ((file_name != NULL) && !eu_iconv_full_text(file_name, obj->encoding, "utf-8"))
             {
@@ -1503,7 +1672,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     else
     {
-        type = query_encode(obj->encoding);
+        type = eu_query_encoding_index(obj->encoding);
     }
     detect_obj_free(&obj);
     return type;
@@ -3135,10 +3304,10 @@ eu_file_open(const wchar_t *path)
 }
 
 int
-eu_file_close(const int t)
+eu_file_close(const int t, const int mode)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    return p ? on_file_close(&p, FILE_ONLY_CLOSE) : EUE_POINT_NULL;
+    return p ? on_file_close(&p, mode) : EUE_POINT_NULL;
 }
 
 size_t

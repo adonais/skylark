@@ -391,7 +391,7 @@ char *eu_strdup_range(const int t, const intptr_t start, const intptr_t end);
 char *eu_sci_range(const void *p, const intptr_t start, const intptr_t end);
 char *eu_file_path(const int t);
 char *eu_file_name(const int t);
-int eu_file_close(const int t);
+int eu_file_close(const int t, const int mode);
 int eu_file_open(const wchar_t *path);
 int eu_file_save(const int t);
 int eu_msgbox(void *w, const wchar_t *txt, const wchar_t *cap, uint32_t type);
@@ -407,6 +407,9 @@ bool eu_under_wine(void);
 bool eu_which(const char *path);
 /* 获取系统版本 */
 const uint32_t eu_win10_or_later(void);
+/* 重设文件编码 */
+bool eu_command_reload(const int t, const char *enc);
+bool eu_command_convert(const int t, const char *enc);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);

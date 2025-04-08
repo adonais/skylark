@@ -896,6 +896,7 @@ BEGIN
             MENUITEM "mac-cyrillic",                        IDM_OTHER_2
             MENUITEM "mac-centraleurope",                   IDM_OTHER_3
             MENUITEM "Native Codepage",                     IDM_OTHER_ANSI
+            MENUITEM "Iconv Supports",                      IDM_OTHER_ICONV,,0x00000003
             MENUITEM "Binary Code",                         IDM_OTHER_BIN,,0x00000003
             MENUITEM "Plugins Code",                        IDM_OTHER_PLUGIN,,0x00000003
             MENUITEM "Unknown Code",                        IDM_UNKNOWN,,0x00000003
@@ -1295,7 +1296,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_TAB_LEN         "Enter tab width:"
     IDC_MSG_SCINTILLA_ERR1  "Failed to create scintilla control"
     IDC_MSG_ICONV_FAIL1     "File encoding conversion failed"
-    IDC_MSG_ICONV_FAIL2     "Text encoding error, cause the file is not open, please contact the developer"
+    IDC_MSG_ICONV_FAIL2     "Text encoding error, You need to specify the correct encoding through the command line"
     IDC_MSG_TABCONTROL_FAIL "Failed to create TabControl control"
     IDC_MSG_CONV_TIPS       "There may be a risk of content loss during multi byte encoding conversion, Do you want to continue? \
                             \nnote that the application of new encoding will not take effect until the file is saved."

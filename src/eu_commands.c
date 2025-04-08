@@ -36,8 +36,8 @@ on_command_light(void *lp)
     if (p)
     {
         result_vec *pvec = NULL;
-        on_sci_call(p, SCI_CLEARALL, 0, 0);
         on_sci_call(p, SCI_SETREADONLY, 0, 0);
+        on_sci_call(p, SCI_CLEARALL, 0, 0);
         on_sci_call(p, SCI_SETCARETSTYLE, CARETSTYLE_LINE, 0);
         on_sci_call(p, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
     }
@@ -47,7 +47,7 @@ void
 on_command_launch(void)
 {
     eu_tabpage *p = on_tabpage_focus_at();
-    if (p)
+    if (p && !p->is_blank && TAB_HAS_TXT(p))
     {
         if (RESULT_SHOW(p) && p->presult->pwant == on_command_light)
         {
@@ -66,4 +66,35 @@ on_command_launch(void)
             eu_window_resize();
         }
     }
+}
+
+bool
+eu_command_convert(const int t, const char *enc)
+{
+    int index = IDM_UNKNOWN;
+    eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
+    if (!p->is_blank && TAB_HAS_TXT(p) && (index = eu_query_encoding_index(enc)) != IDM_UNKNOWN)
+    {
+        if (on_statusbar_convert_coding(p, index) == SKYLARK_OK)
+        {
+            on_statusbar_update_coding(p);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+eu_command_reload(const int t, const char *enc)
+{
+    int index = IDM_UNKNOWN;
+    eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
+    if (!p->is_blank && TAB_HAS_TXT(p) && (index = eu_query_encoding_index(enc)) != IDM_UNKNOWN)
+    {
+        p->codepage = index;
+        on_tabpage_reload_file(p, 2);
+        on_statusbar_update_coding(p);
+        return true;
+    }
+    return false;
 }

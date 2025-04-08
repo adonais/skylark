@@ -19,6 +19,26 @@ function get_word(p)
     return txt
 end
 
+
+function get_line(p)
+    local txt = nil
+    local pos = eu.api.eu_sci_cmd(p, SCI_GETCURRENTPOS, 0, 0)
+    if (pos ~= nil and pos >= 0) then
+        local line = eu.api.eu_sci_cmd(p, SCI_LINEFROMPOSITION, pos, 1)
+        local start = eu.api.eu_sci_cmd(p, SCI_POSITIONFROMLINE, line, 1)
+        if (line ~= nil and start ~= nil) then
+            local buf = eu.api.eu_sci_range(p, start, pos)
+            eu.ffi.gc(buf,(function(self)
+                if buf ~= nil then eu.ffi.C.free(buf) end
+            end))
+            if (buf ~= nil) then
+                txt = eu.ffi.string(buf, eu.ffi.C.strlen(buf))
+            end
+        end
+    end
+    return txt
+end
+
 function skylark_cmd(p)
     print(string.format("Cmds [%s]\n", get_word(p)))
 end
