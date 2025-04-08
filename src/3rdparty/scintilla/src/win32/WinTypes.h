@@ -52,13 +52,6 @@ inline T DLLFunction(HMODULE hModule, LPCSTR lpProcName) noexcept {
 	return fp;
 }
 
-inline void ReleaseLibrary(HMODULE &hLib) noexcept {
-	if (hLib) {
-		FreeLibrary(hLib);
-		hLib = {};
-	}
-}
-
 }
 
 #endif
