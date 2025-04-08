@@ -2515,7 +2515,7 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
     }
     if (!err)
     {
-        if (eu_get_config()->m_session)
+        if (eu_get_config()->m_session && mode != FILE_FORCE_CLOSE)
         {
             on_file_save_backup((*ppnode), mode);
         }

@@ -154,6 +154,8 @@ dirs:
 	@if exist "$(ROOT)\\README_CN.MD" copy /y "$(ROOT)\\README_CN.MD" "$(BIND)\\README_CN.MD" 2>&1>NUL
 	@if exist "$(MAKEDIR)\\3rdparty\\plugins" xcopy "$(MAKEDIR)\\3rdparty\\plugins" "$(BIND)\\plugins" /s /e /q /y 2>&1>NUL
 	@if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
+	@if not exist "$(BIND)\\lua\\loader" mkdir "$(BIND)\\lua\\loader" && echo. Created $(BIND)\\lua\\loader
+	xcopy "$(ROOT)\\examples\\loader" "$(BIND)\\lua\\loader" /s /e /q /y 2>&1>NUL
 
 $(SHARED_LIB): $(EUAPI_OBJS) $(API_LIBS)
 	$(LD) $(DLLFLAGS) -out:$@ $(EUAPI_OBJS) $(API_DEPS)

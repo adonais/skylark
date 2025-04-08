@@ -196,7 +196,7 @@ static eue_code eue_extra[] =
     {IDM_ICONV_043, "EUC-KR"}              ,
     {IDM_ICONV_044, "CP1361"}              ,
     {IDM_ICONV_045, "ISO-2022-KR"}         ,
-    {IDM_ICONV_046, "HZ-GB-2312"}          ,
+    {IDM_ICONV_046, "GB18030:2022"}        ,
     {IDM_ICONV_047, "KOI8-R"}              ,
     {IDM_ICONV_048, "MACCYRILLIC"}         ,
     {IDM_ICONV_049, "MACCENTRALEUROPE"}    ,

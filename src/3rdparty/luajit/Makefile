@@ -17,7 +17,7 @@ CFLAGS  = -Zi -Oy -Ob1 -DHAVE_CONFIG_H -I$(SRC) -D_CRT_SECURE_NO_DEPRECATE -D_CR
           
 MIN_OBJS =                          \
     $(DIR_O)\minilua.obj            \
-    
+
 BUILDVM_OBJS =                      \
     $(DIR_O)\host\buildvm.obj       \
     $(DIR_O)\host\buildvm_asm.obj   \
@@ -30,14 +30,14 @@ ALL_LIB = $(SRC)\lib_base.c         \
           $(SRC)\lib_bit.c          \
           $(SRC)\lib_string.c       \
           $(SRC)\lib_table.c        \
-	      $(SRC)\lib_io.c           \
-	      $(SRC)\lib_os.c           \
-	      $(SRC)\lib_package.c      \
-	      $(SRC)\lib_debug.c        \
-	      $(SRC)\lib_jit.c          \
-	      $(SRC)\lib_ffi.c          \
-	      $(SRC)\lib_buffer.c       \
-	          
+          $(SRC)\lib_io.c           \
+          $(SRC)\lib_os.c           \
+          $(SRC)\lib_package.c      \
+          $(SRC)\lib_debug.c        \
+          $(SRC)\lib_jit.c          \
+          $(SRC)\lib_ffi.c          \
+          $(SRC)\lib_buffer.c       \
+
 OBJS =                            \
     $(DIR_O)\lj_alloc.obj         \
     $(DIR_O)\lj_api.obj           \
@@ -115,17 +115,17 @@ OBJS =                            \
 .SUFFIXES: .c .h .obj
 
 {$(SRC)}.c{$(DIR_O)}.obj:
-    $(CC) $(CFLAGS) -Fd$(BIND)\euapi.pdb -Fo$(DIR_O)\ /c $<
-    
+	$(CC) $(CFLAGS) -Fd$(BIND)\euapi.pdb -Fo$(DIR_O)\ /c $<
+
 ################################################################################    
 # targets
 all: dirs $(MINILUA) $(BUILDVM) $(STATICLIB)
 
 dirs:
-    @if not exist "$(BIND)" mkdir "$(BIND)" && echo.   Created $(BIND)
-    @if not exist "$(DIR_O)" mkdir "$(DIR_O)" && echo.   Created $(DIR_O)
-    @if not exist "$(DIR_O)\host" mkdir "$(DIR_O)\host" && echo.   Created $(DIR_O)\host
-    @if not exist "$(BIN_O)" mkdir "$(BIN_O)" && echo.   Created $(BIN_O)
+	@if not exist "$(BIND)" mkdir "$(BIND)" && echo.   Created $(BIND)
+	@if not exist "$(DIR_O)" mkdir "$(DIR_O)" && echo.   Created $(DIR_O)
+	@if not exist "$(DIR_O)\host" mkdir "$(DIR_O)\host" && echo.   Created $(DIR_O)\host
+	@if not exist "$(BIN_O)" mkdir "$(BIN_O)" && echo.   Created $(BIN_O)
 
 $(SRC)\luajit.h: $(MINILUA) $(SRC)\luajit_rolling.h
 	@if exist "$(SRC)\luajit.h" del /q "$(SRC)\luajit.h"
@@ -137,7 +137,7 @@ $(SRC)\luajit.h: $(MINILUA) $(SRC)\luajit_rolling.h
 
 $(MINILUA): $(MIN_OBJS)
 	$(LD) $(LDFLAGS) -out:$@ $(MIN_OBJS)
-!IF "$(BITS)" == "64"	
+!IF "$(BITS)" == "64"
 	$(MINILUA) dynasm\dynasm.lua -LN -D WIN -D JIT -D FFI -D P64 -o $(SRC)\host\buildvm_arch.h $(SRC)\vm_x64.dasc
 !ELSE
 	$(MINILUA) dynasm\dynasm.lua -LN -D WIN -D JIT -D FFI -o $(SRC)\host\buildvm_arch.h $(SRC)\vm_x86.dasc
@@ -155,8 +155,8 @@ $(BUILDVM): $(MINILUA) $(SRC)\luajit.h $(BUILDVM_OBJS)
 	
 $(STATICLIB): $(OBJS) $(BUILDVM)
 	$(AR) -out:$@ $(OBJS)
-    @if not exist "$(BIND)\\lua\\jit" mkdir "$(BIND)\\lua\\jit" && echo. Created $(BIND)\\lua\\jit
-    xcopy "$(SRC)\\jit" "$(BIND)\\lua\\jit" /s /e /q /y 2>&1>NUL
+	@if not exist "$(BIND)\\lua\\jit" mkdir "$(BIND)\\lua\\jit" && echo. Created $(BIND)\\lua\\jit
+	xcopy "$(SRC)\\jit" "$(BIND)\\lua\\jit" /s /e /q /y 2>&1>NUL
 
 # cleanup
 clean:
