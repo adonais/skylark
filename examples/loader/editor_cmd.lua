@@ -31,11 +31,19 @@ function savefile_action()
     return eu.save_file(-1)
 end
 
+function saveall_action()
+    return eu.api.eu_file_save_all()
+end
+
 function qsavefile_action()
     if (eu.save_file(-1) == 0) then
         return eu.close_file(-1, 1)
     end
     return false
+end
+
+function xsavefile_action()
+    return eu.api.eu_command_xsave(-1)
 end
 
 function close_action()
@@ -48,14 +56,50 @@ function sclose_action()
     return eu.close_file(-1, 6)
 end
 
+function ssavefile_action(path)
+    -- SAVE_SIL == 3
+    return eu.api.eu_command_saveas(-1, path, 3)
+end
+
+function saveas_action(path)
+    -- SAVE_AS == 1
+    return eu.api.eu_command_saveas(-1, path, 1)
+end
+
+function search_action(str)
+    local flags = SCFIND_MATCHCASE + SCFIND_REGEXP
+    local ret = string.gsub(str, "\\c", "")
+    if (ret ~= str) then
+        flags = flags - SCFIND_MATCHCASE
+    end
+    str = string.gsub(ret, "\\<", "\\b")
+    ret = string.gsub(str, "\\>", "\\b")
+    if (ret ~= str and wordstart == true) then
+        flags = flags + SCFIND_WHOLEWORD
+        flags = flags - SCFIND_WORDSTART
+    end
+    if ('?' == (string.sub(ret,1,1))) then
+        flags = flags + SCCMD_REVERSE
+    end
+    ret = string.sub(ret, 2, #ret)
+    str = string.gsub(ret, "\\C", "")
+    return eu.api.on_command_search(-1, str, flags)
+end
+
 local cmd_matrix =
 {
     {"^enc=([%w_-]+)",            encoding_action },
     {"^fenc=([%w_-]+)",           fencoding_action},
     {"^w$",                       savefile_action },
+    {"^wa$",                      saveall_action  },
     {"^wq$)",                     qsavefile_action},
+    {"^w%s+(.+)",                 ssavefile_action},
+    {"^x$",                       xsavefile_action},
     {"^q$",                       close_action    },
     {"^q!$",                      sclose_action   },
+    {"^sav%s+(.+)",               saveas_action   },
+    {"^saveas%s+(.+)",            saveas_action   },
+    {"^([/\\?].+)",               search_action   },
 }
 
 function skylark_cmd(p)

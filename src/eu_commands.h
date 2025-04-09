@@ -19,6 +19,8 @@
 #ifndef _EU_COMMANDS_H_
 #define _EU_COMMANDS_H_
 
+#define SCCMD_REVERSE 0x00000100
+
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {

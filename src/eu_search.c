@@ -33,6 +33,7 @@ static LONG_PTR orig_tab_proc;
 static LIST_HEAD(list_files);
 static LIST_HEAD(list_folders);
 static volatile long search_btn_id = 0;
+static volatile long search_fsm_id = 0;
 static HANDLE search_event_final = NULL;
 static HWND hwnd_regxp_tips = NULL;
 
@@ -1983,6 +1984,10 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
     sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
     sptr_t max_pos = on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
     size_t find_flags = on_search_build_flags(hwnd_search_dlg);
+    if (!find_flags)
+    {
+        find_flags = (size_t)eu_get_config()->last_flags;
+    }
     if (this_page)
     {
         m_loop = DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_ALL_FILE) ? false : DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_LOOP);
@@ -2011,6 +2016,10 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
         {
             target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
             on_sci_call(pnode, SCI_SETSEL, found_pos, target_end);
+            if (find_flags & SCFIND_REGEXP)
+            {   // 正则搜索时添加一个全局标记, 防止指示器高亮
+                on_search_set_fsm();
+            }
         }
         else if (found_pos == -2)
         {
@@ -2034,8 +2043,12 @@ on_search_at_page(eu_tabpage *pnode, const char *key, bool reverse, bool this_pa
             goto DO_SEARCH_LOOP;
         }
     }
-    eu_push_find_history(key);
-    return (found_pos>=0);
+    if (found_pos >= 0)
+    {
+        eu_push_find_history(key);
+        return true;
+    }
+    return false;
 }
 
 static int
@@ -2191,7 +2204,15 @@ on_search_find_button(eu_tabpage *pnode, const char *dlg_text, const int button)
         return on_search_hexview(pnode, dlg_text, reverse) > 0;
     }
     // 首先在当前页面查找
-    result = on_search_at_page(pnode, dlg_text, reverse, button != IDC_SEARCH_ALL_BTN);
+    if ((result = on_search_at_page(pnode, dlg_text, reverse, button != IDC_SEARCH_ALL_BTN)))
+    {   // 命令框可能覆盖了编辑区焦点, 把焦点设置到编辑区
+        if ((button == IDC_SEARCH_PRE_BTN || button == IDC_SEARCH_NEXT_BTN) &&
+           (RESULT_SHOW(pnode) &&
+           (on_sci_call(pnode->presult, SCI_GETCARETSTYLE, 0, 0) & CARETSTYLE_LINE)))
+        {
+            SetFocus(pnode->hwnd_sc);
+        }
+    }
     if (button != IDC_SEARCH_ALL_BTN && DLG_BTN_CHECK(hwnd_search_dlg, IDC_MATCH_ALL_FILE) && !result)
     {
         int index = 0;
@@ -3933,6 +3954,24 @@ on_search_repalce_event(eu_tabpage *p, replace_event docase)
         }
     }
     cvector_freep(&v);
+}
+
+bool
+on_search_caller(void)
+{
+    return search_fsm_id == 1;
+}
+
+void
+on_search_set_fsm(void)
+{
+    _InterlockedCompareExchange(&search_fsm_id, 1, 0);
+}
+
+void
+on_search_clear_fsm(void)
+{
+    _InterlockedExchange(&search_fsm_id, 0);
 }
 
 bool

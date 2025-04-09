@@ -684,6 +684,7 @@ EU_EXT_CLASS size_t eu_file_size(const int t);
 EU_EXT_CLASS int eu_file_close(const int t, const int mode);
 EU_EXT_CLASS int eu_file_open(const wchar_t *path);
 EU_EXT_CLASS int eu_file_save(const int t);
+EU_EXT_CLASS void eu_file_save_all(void);
 EU_EXT_CLASS intptr_t eu_value(void *p);
 EU_EXT_CLASS intptr_t eu_sci_cmd(const eu_tabpage *p, const int m, const sptr_t w, const sptr_t l);
 
@@ -940,8 +941,11 @@ EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t r
 EU_EXT_CLASS bool eu_xml_pretty(void *ptr, struct opt_format *opt);
 
 /* for eu_commands.c */
+EU_EXT_CLASS bool eu_command_xsave(const int t);
 EU_EXT_CLASS bool eu_command_reload(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_convert(const int t, const char *enc);
+EU_EXT_CLASS bool eu_command_saveas(const int t, const char *path, const int mode);
+EU_EXT_CLASS bool on_command_search(const int t, const char *key, const uint32_t opt);
 
 #ifdef __cplusplus
 }

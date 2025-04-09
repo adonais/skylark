@@ -81,7 +81,10 @@ int on_search_combo_callback(void *data, int count, char **column, char **names)
 sptr_t on_search_marker_next(const eu_tabpage *pnode, const sptr_t line, sptr_t last, const int bitmask);
 sptr_t on_search_process_find(const eu_tabpage *, const char *, size_t, size_t, size_t);
 bool on_search_create_box(void);
+bool on_search_caller(void);
 
+void on_search_set_fsm(void);
+void on_search_clear_fsm(void);
 void on_search_toggle_mark(const eu_tabpage *pnode, const sptr_t lineno);
 void on_search_remove_marks_all(void);
 void on_search_jmp_premark_this(const eu_tabpage *pnode, const int mask);

@@ -3284,6 +3284,12 @@ eu_value(void *p)
     return value;
 }
 
+void
+eu_file_save_all(void)
+{
+    on_file_all_save();
+}
+
 int
 eu_file_save(const int t)
 {

@@ -40,6 +40,7 @@ struct _tabpage
 {
     HWND hwnd_sc;               // 当前编辑器句柄
     sptr_t eusc;                // 当前编辑器类指针
+    HWND hwnd_pop;              // tab关联的折叠框窗口, 显示折叠内容
     HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
@@ -78,6 +79,7 @@ struct _tabpage
     intptr_t match_count;       // 查找时匹配计数
     intptr_t begin_pos;         // 开始选择位置
     intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
+    intptr_t pointx;            // 保存光标位置相对屏幕的x坐标
     intptr_t reserved0;         // 保留, 仅供临时使用
     intptr_t reserved1;         // 保留, 仅供临时使用
     intptr_t x, y;              // 行,列

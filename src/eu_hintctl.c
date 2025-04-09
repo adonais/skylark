@@ -104,8 +104,8 @@ on_hint_create(const HWND parent)
     if (!phint && (phint = (eu_tabpage *)calloc(1, sizeof(eu_tabpage))))
     {
         const TCHAR *class_name = _T("Code Hint");
-        phint->reserved0 = (intptr_t)on_splitter_init_window(parent, class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_hint_callback, NULL);
-        return phint->reserved0 != 0;
+        phint->hwnd_pop = on_splitter_init_window(parent, class_name, WS_CHILD | WS_CLIPSIBLINGS, NULL, on_hint_callback, NULL);
+        return phint->hwnd_pop != NULL;
     }
     return false;
 }
@@ -113,9 +113,9 @@ on_hint_create(const HWND parent)
 HWND
 on_hint_hwnd(void)
 {
-    if (phint && phint->reserved0)
+    if (phint && phint->hwnd_pop)
     {
-        return ((HWND)phint->reserved0);
+        return (phint->hwnd_pop);
     }
     return NULL;
 }
@@ -123,9 +123,9 @@ on_hint_hwnd(void)
 void
 on_hint_hide(const POINT *pt)
 {
-    if (pt && phint && phint->reserved0 && phint->hwnd_sc && code_hint_initialized && !PtInRect(&phint->rect_sc, *pt))
+    if (pt && phint && phint->hwnd_pop && phint->hwnd_sc && code_hint_initialized && !PtInRect(&phint->rect_sc, *pt))
     {
-        DestroyWindow((HWND)phint->reserved0);
+        DestroyWindow(phint->hwnd_pop);
         _InterlockedExchange(&code_hint_initialized, 0);
     }
 }
@@ -167,14 +167,14 @@ on_hint_launch(eu_tabpage *pnode, const RECT *prc, const char **pbuf, const int 
         }
         if (r1 < r2)
         {
-            rc.left = (long)(pnode->reserved1 > 0 ? pnode->reserved1 : rc.left);
+            rc.left = (long)(pnode->pointx > 0 ? pnode->pointx : rc.left);
         }
-        if (on_sci_create(phint, (HWND)phint->reserved0, flags, on_hint_code_proc) == SKYLARK_OK)
+        if (on_sci_create(phint, phint->hwnd_pop, flags, on_hint_code_proc) == SKYLARK_OK)
         {
             on_dark_border(phint->hwnd_sc, true);
             on_hint_reload(pbuf, tab_width);
         }
-        return SetWindowPos((HWND)phint->reserved0, HWND_TOP, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_SHOWWINDOW);
+        return SetWindowPos(phint->hwnd_pop, HWND_TOP, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_SHOWWINDOW);
     }
     return false;
 }

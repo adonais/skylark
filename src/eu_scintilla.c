@@ -824,6 +824,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_complete_reset_focus(pnode);
                 }
                 on_sci_call(pnode, SCI_CANCEL, 0, 0);
+                on_search_clear_fsm();
+                if (on_command_focus(pnode))
+                {
+                    on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+                }
             }
             else if (pnode->map_show && document_map_initialized)
             {
@@ -898,7 +903,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     const long lx = (const long)on_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_pos) + offset;
                     const long ly = (const long)on_sci_call(pnode, SCI_POINTYFROMPOSITION, 0, current_pos);
                     const RECT rc = {lx, ly, lx + eu_dpi_scale_xy(0, 26), ly + (eu_dpi_scale_xy, 0, 18)};
-                    pnode->reserved1 = on_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_header) + offset;
+                    pnode->pointx = on_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_header) + offset;
                     pnode->zoom_level = (int) on_sci_call(pnode, SCI_GETZOOM, 0, 0);
                     if (PtInRect(&rc, pt) && on_hint_initialized())
                     {   // 在折叠框内
@@ -921,7 +926,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            on_view_clear_indicator(on_tabpage_focus_at());
+            if ((pnode = on_tabpage_focus_at()) != NULL)
+            {
+                on_view_clear_indicator(pnode);
+                on_search_clear_fsm();
+            }
             break;
         }
         case WM_LBUTTONUP:

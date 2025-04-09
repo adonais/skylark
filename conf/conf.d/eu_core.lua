@@ -395,6 +395,8 @@ int eu_file_close(const int t, const int mode);
 int eu_file_open(const wchar_t *path);
 int eu_file_save(const int t);
 int eu_msgbox(void *w, const wchar_t *txt, const wchar_t *cap, uint32_t type);
+/* 保存所有文件 */
+void eu_file_save_all(void);
 /* 编辑器主窗口句柄 */
 void *eu_module_hwnd(void);
 /* 启动其他进程, *o保存了pid */
@@ -410,6 +412,9 @@ const uint32_t eu_win10_or_later(void);
 /* 重设文件编码 */
 bool eu_command_reload(const int t, const char *enc);
 bool eu_command_convert(const int t, const char *enc);
+bool eu_command_saveas(const int t, const char *path, const int mode);
+bool eu_command_xsave(const int t);
+bool on_command_search(const int t, const char *key, const uint32_t opt);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);

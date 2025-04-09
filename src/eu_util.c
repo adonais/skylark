@@ -1536,17 +1536,40 @@ util_strnspace(const char *s1, const char *s2, int *plen)
     return 1;
 }
 
+static int
+util_push_combo_callback(void *data, int count, char **column, char **names)
+{
+    char **ptext = (char **)data;
+    for (int i = 0; i < count && column[i]; i++)
+    {
+        if (column[i][0] != 0)
+        {
+            *ptext = _strdup(column[i]);
+            return SKYLARK_SQL_END;
+        }
+    }
+    return 0;
+}
+
 void
 util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
 {
     char *text = NULL;
     TCHAR *uni_text = NULL;
-    if (pnode && (text = util_strdup_select(pnode, NULL, 0)) && (uni_text = eu_utf8_utf16(text, NULL)))
+    on_sql_post("SELECT szName FROM find_his ORDER BY szId DESC;", util_push_combo_callback, (void *)&text);
+    if (pnode)
     {
-        SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM) uni_text);
-        free(text);
-        free(uni_text);
+        if (!text)
+        {
+            text = util_strdup_select(pnode, NULL, 0);
+        }
+        if ((uni_text = eu_utf8_utf16(text, NULL)))
+        {
+            SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM) uni_text);
+        }
     }
+    eu_safe_free(text);
+    eu_safe_free(uni_text);
 }
 
 void
