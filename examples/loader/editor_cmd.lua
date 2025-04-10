@@ -83,7 +83,7 @@ function search_action(str)
     end
     ret = string.sub(ret, 2, #ret)
     str = string.gsub(ret, "\\C", "")
-    return eu.api.on_command_search(-1, str, flags)
+    return eu.api.eu_command_search(-1, str, flags)
 end
 
 local cmd_matrix =

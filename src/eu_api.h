@@ -126,12 +126,13 @@
 #endif
 
 #define REMOTEFS_PROTOCOL_SUBID 0x38
-#define REMOTEFS_ACCESS_SUBID 0x39
-#define SEARCH_COMBO_SUBID 0x40
-#define SNIPPET_EDT_SUBID 0x41
-#define SNIPPET_CMB_SUBID 0x42
-#define TBCTL_LIST_SUBID 0x43
-#define STATUSBAR_SUBID 0x44
+#define REMOTEFS_ACCESS_SUBID   0x39
+#define SEARCH_COMBO_SUBID      0x40
+#define SNIPPET_EDT_SUBID       0x41
+#define SNIPPET_CMB_SUBID       0x42
+#define TBCTL_LIST_SUBID        0x43
+#define STATUSBAR_SUBID         0x44
+#define COLUMN_CMB_SUBID        0x45
 
 #define DARK_THEME_APPLY 1
 
@@ -946,6 +947,9 @@ EU_EXT_CLASS bool eu_command_reload(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_convert(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_saveas(const int t, const char *path, const int mode);
 EU_EXT_CLASS bool on_command_search(const int t, const char *key, const uint32_t opt);
+
+/* for eu_columnctl.c */
+EU_EXT_CLASS HWND eu_column_hwnd(void);
 
 #ifdef __cplusplus
 }

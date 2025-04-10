@@ -414,7 +414,7 @@ bool eu_command_reload(const int t, const char *enc);
 bool eu_command_convert(const int t, const char *enc);
 bool eu_command_saveas(const int t, const char *path, const int mode);
 bool eu_command_xsave(const int t);
-bool on_command_search(const int t, const char *key, const uint32_t opt);
+bool eu_command_search(const int t, const char *key, const uint32_t opt);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);
