@@ -41,7 +41,7 @@ typedef struct _LANGANDCODEPAGE
 static PFNGFVSW pfnGetFileVersionInfoSizeW = NULL;
 static PFNGFVIW pfnGetFileVersionInfoW = NULL;
 static PFNVQVW pfnVerQueryValueW = NULL;
-static volatile intptr_t milli_second = 0;
+static volatile int64_t milli_second = 0;
 
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
@@ -80,8 +80,7 @@ clock_gettime_ms(void)
 {
     static LARGE_INTEGER frequency;
     LARGE_INTEGER ticks;
-    int64_t ms;
-
+    int64_t ms, diff;
     if (!frequency.QuadPart)
     {
         QueryPerformanceFrequency(&frequency);
@@ -91,12 +90,17 @@ clock_gettime_ms(void)
             return -1;
         }
     }
-
     QueryPerformanceCounter(&ticks);
-
     ms = ticks.QuadPart * 1000 / frequency.QuadPart;
-    inter_atom_compare_exchange(&milli_second, ms, 0);
-    
+    if ((diff = ms - milli_second) > 0 && diff < 1000)
+    {
+        milli_second = 0;
+        ms = diff;
+    }
+    else
+    {
+        milli_second = ms;
+    }
     return ms;
 }
 
@@ -123,14 +127,7 @@ clock_gettime_realtime(struct timespec *tv)
 int64_t
 util_clock_interval(void)
 {
-    int64_t ms = clock_gettime_ms();
-    if (milli_second > 0 && ms > milli_second)
-    {
-        ms -= milli_second;
-        inter_atom_exchange(&milli_second, 0);
-        return ms;
-    }
-    return 0;
+    return clock_gettime_ms();
 }
 
 static void *
