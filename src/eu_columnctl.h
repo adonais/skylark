@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 void on_column_create_dlg(HWND parent);
+void on_column_destory(void);
 
 #ifdef __cplusplus
 }

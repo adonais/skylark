@@ -2472,8 +2472,7 @@ eu_create_main_window(HINSTANCE instance)
     {
         uint32_t ac_flags = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
         INITCOMMONCONTROLSEX icex = {sizeof(INITCOMMONCONTROLSEX)};
-        icex.dwICC = ICC_STANDARD_CLASSES |
-                     ICC_TAB_CLASSES      |
+        icex.dwICC = ICC_TAB_CLASSES      |
                      ICC_COOL_CLASSES     |
                      ICC_BAR_CLASSES      |
                      ICC_LISTVIEW_CLASSES |

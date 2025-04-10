@@ -528,6 +528,11 @@ menu_update_item(const HMENU menu, const bool init)
                         util_enable_menu_item(menu, IDM_EDIT_SLASH_BACKSLASH, init || enable);
                         util_enable_menu_item(menu, IDM_EDIT_BACKSLASH_SLASH, init || enable);
                     }
+                    case IDM_EDIT_COLUMN_EXEC:
+                    {
+                        util_enable_menu_item(menu, IDM_EDIT_COLUMN_EXEC, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin));
+                        break;
+                    }
                     case IDM_UPDATE_SELECTION:              /* Search menu */
                     {
                         util_set_menu_item(menu, IDM_UPDATE_SELECTION, pnode->begin_pos >= 0);
