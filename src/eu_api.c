@@ -2157,6 +2157,14 @@ eu_save_config(void)
         "    margin_right = %d,\n"
         "    margin_bottom = %d\n"
         "}\n"
+        "-- column editor default setting\n"
+        "columner = {\n"
+        "    initnum = %d,\n"
+        "    increase = %d,\n"
+        "    repeater = %d,\n"
+        "    leading= %d,\n"
+        "    format = %d\n"
+        "}\n"
         "-- titlebar default setting\n"
         "titlebar = {\n"
         "    icon = %s,\n"
@@ -2297,6 +2305,11 @@ eu_save_config(void)
               g_config->eu_print.rect.top,
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
+              g_config->eu_column.initnum,
+              g_config->eu_column.increase,
+              g_config->eu_column.repeater,
+              g_config->eu_column.leading,
+              g_config->eu_column.format,
               g_config->eu_titlebar.icon?"true":"false",
               g_config->eu_titlebar.name||util_under_wine()?"true":"false",
               g_config->eu_titlebar.path?"true":"false",

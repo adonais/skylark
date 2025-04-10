@@ -159,6 +159,14 @@ function eu_conf.loadconf()
         "    margin_right = 2000,\n" ..
         "    margin_bottom = 2000\n" ..
         "}\n" ..
+        "-- column editor default setting\n" ..
+        "columner = {\n" ..
+        "    initnum = 1024,\n" ..
+        "    increase = 1,\n" ..
+        "    repeater = 1,\n" ..
+        "    leading = 50216,\n" ..
+        "    format = 50203,\n" ..
+        "}\n" ..
         "-- titlebar default setting\n" ..
         "titlebar = {\n" ..
         "    icon = true,\n" ..
@@ -199,6 +207,13 @@ function eu_conf.loadconf()
     end
     if (set_copy_separator == nil) then
         set_copy_separator = "\\\\n";
+    end
+    if (columner == nil) then
+        columner = {['initnum'] = 1024,
+                    ['increase'] = 1,
+                    ['repeater'] = 1,
+                    ['leading'] = 50216,
+                    ['format'] = 50203}
     end
     -- Compatible with old configuration item
     if (code_hint_show_enable == true) then
@@ -263,6 +278,7 @@ function eu_conf.loadconf()
         {calltip.enable, calltip.rgb},
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
+        {columner.initnum, columner.increase, columner.repeater, columner.leading,columner.format},
         {titlebar.icon, titlebar.name, titlebar.path},
         hyperlink_detection,
         cache_limit_size,

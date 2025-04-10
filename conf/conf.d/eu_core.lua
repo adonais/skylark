@@ -29,6 +29,15 @@ typedef struct _print_set
     RECT rect;
 }print_set;
 
+typedef struct _columnctl_set
+{
+    int initnum;
+    int increase;
+    int repeater;
+    int leading;
+    int format;
+}columnctl_set;
+
 typedef struct _titlebar_set
 {
     bool icon;
@@ -162,6 +171,7 @@ struct eu_config
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
+    columnctl_set eu_column;
     titlebar_set eu_titlebar;
     bool m_hyperlink;
     int m_limit;
