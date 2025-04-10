@@ -532,6 +532,34 @@ eu_dark_theme_release(bool shutdown)
     }
 }
 
+LRESULT CALLBACK
+on_dark_cmb_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dw)
+{
+    switch(msg)
+    {
+        case WM_PAINT:
+        {
+            RECT rc;
+            if (!on_dark_enable())
+            {
+                break;
+            }
+            GetClientRect(hwnd, &rc);
+            PAINTSTRUCT ps;
+            const HDC hdc = BeginPaint(hwnd, &ps);
+            on_remotefs_draw_combo(hwnd, hdc, rc);
+            EndPaint(hwnd, &ps);
+            return 0;
+        }
+        case WM_NCDESTROY:
+            RemoveWindowSubclass(hwnd, on_dark_cmb_proc, sub_id);
+            break;
+        default:
+            break;
+    }
+    return DefSubclassProc(hwnd, msg, wp, lp);
+}
+
 bool
 eu_dark_theme_init(bool fix_scroll, bool dark)
 {

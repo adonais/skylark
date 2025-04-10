@@ -138,7 +138,7 @@ on_command_launch(void)
 }
 
 bool
-on_command_search(const int t, const char *key, const uint32_t opt)
+eu_command_search(const int t, const char *key, const uint32_t opt)
 {
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
     if (p && TAB_HAS_TXT(p))

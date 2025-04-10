@@ -1322,6 +1322,7 @@
 #define MSGBOX_IDICON                       0x0440
 #define MSGBOX_IDTEXT                       0xffff
 
+// for libiconv
 #define IDM_ICONV_001                       50000
 #define IDM_ICONV_002                       50001
 #define IDM_ICONV_003                       50002
@@ -1455,5 +1456,27 @@
 #define IDM_ICONV_131                       50130
 #define IDM_ICONV_132                       50131
 #define IDM_ICONV_133                       50132
+
+// for colum  editor
+#define IDD_COLUMNEDIT_DLG                  50200
+#define IDC_COL_INITNUM_EDIT                (IDD_COLUMNEDIT_DLG + 1)
+#define IDC_COL_INCREASENUM_EDIT            (IDD_COLUMNEDIT_DLG + 2)
+#define IDC_COL_DEC_RADIO                   (IDD_COLUMNEDIT_DLG + 3)
+#define IDC_COL_OCT_RADIO                   (IDD_COLUMNEDIT_DLG + 4)
+#define IDC_COL_HEX_RADIO                   (IDD_COLUMNEDIT_DLG + 5)
+#define IDC_COL_BIN_RADIO                   (IDD_COLUMNEDIT_DLG + 6)
+#define IDC_COL_NUM_GRP_STATIC              (IDD_COLUMNEDIT_DLG + 7)
+#define IDC_COL_INITNUM_STATIC              (IDD_COLUMNEDIT_DLG + 8)
+#define IDC_COL_INCRNUM_STATIC              (IDD_COLUMNEDIT_DLG + 9)
+#define IDC_COL_FORMAT_GRP_STATIC           (IDD_COLUMNEDIT_DLG + 10)
+#define IDC_COL_NUM_STATIC                  (IDD_COLUMNEDIT_DLG + 11)
+#define IDC_COL_REPEATNUM_STATIC            (IDD_COLUMNEDIT_DLG + 12)
+#define IDC_COL_REPEATNUM_EDIT              (IDD_COLUMNEDIT_DLG + 13)
+#define IDC_COL_LEADING_STATIC              (IDD_COLUMNEDIT_DLG + 14)
+#define IDC_COL_LEADING_COMBO               (IDD_COLUMNEDIT_DLG + 15)
+#define IDS_COLUMN_FILL_NONE                (IDD_COLUMNEDIT_DLG + 16)
+#define IDS_COLUMN_FILL_ZEROS               (IDD_COLUMNEDIT_DLG + 17)
+#define IDS_COLUMN_FILL_SPACES              (IDD_COLUMNEDIT_DLG + 18)
+#define IDM_EDIT_COLUMN_EXEC                (IDD_COLUMNEDIT_DLG + 20)
 
 #endif  // _EU_TARGETVER_H_

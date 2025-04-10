@@ -1236,6 +1236,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_AUTO_INDENTATION:
                     on_view_identation();
                     break;
+                case IDM_EDIT_COLUMN_EXEC:
+                {
+                    on_column_create_dlg(hwnd);
+                    break;
+                }
                 case IDM_OPEN_FILE_PATH:
                 {
                     on_edit_selection(pnode, 0);
@@ -2467,7 +2472,12 @@ eu_create_main_window(HINSTANCE instance)
     {
         uint32_t ac_flags = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
         INITCOMMONCONTROLSEX icex = {sizeof(INITCOMMONCONTROLSEX)};
-        icex.dwICC = ICC_TAB_CLASSES | ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_USEREX_CLASSES;
+        icex.dwICC = ICC_STANDARD_CLASSES |
+                     ICC_TAB_CLASSES      |
+                     ICC_COOL_CLASSES     |
+                     ICC_BAR_CLASSES      |
+                     ICC_LISTVIEW_CLASSES |
+                     ICC_USEREX_CLASSES;
         if (InitCommonControlsEx(&icex))
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);

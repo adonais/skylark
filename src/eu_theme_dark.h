@@ -88,14 +88,14 @@ typedef HRESULT (WINAPI *DrawThemeBackgroundPtr)(HTHEME hTheme, HDC hdc, int iPa
 typedef HRESULT (WINAPI *DwmSetWindowAttributePtr)(HWND, DWORD, LPCVOID, DWORD);
 typedef HRESULT (WINAPI *DwmGetColorizationColorPtr)(DWORD *pcrColorization, BOOL  *pfOpaqueBlend);
 
-#define  CASE_WM_CTLCOLOR_SET         \
-           case WM_CTLCOLORDLG:       \
-           case WM_CTLCOLORBTN:       \
-           case WM_CTLCOLOREDIT:      \
-           case WM_CTLCOLORSCROLLBAR: \
-           case WM_CTLCOLORLISTBOX:   \
-           case WM_CTLCOLORSTATIC
-           
+#define CASE_WM_CTLCOLOR_SET       \
+        case WM_CTLCOLORDLG:       \
+        case WM_CTLCOLORBTN:       \
+        case WM_CTLCOLOREDIT:      \
+        case WM_CTLCOLORSCROLLBAR: \
+        case WM_CTLCOLORLISTBOX:   \
+        case WM_CTLCOLORSTATIC
+
 #define UpdateWindowEx(hwnd)                                                               \
   RedrawWindow((hwnd), NULL, NULL, RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_INTERNALPAINT)   \
 
@@ -141,6 +141,7 @@ HRESULT on_dark_close_data(void *hth);
 intptr_t on_dark_open_data(HWND hwnd, LPCWSTR class_list);
 HRESULT on_dark_draw_background(void *hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT pRect, LPCRECT pClipRect);
 HRESULT on_dark_get_partsize(void *hTheme, HDC hdc, int iPartId, int iStateId, LPCRECT prc, int eSize, SIZE *psz);
+LRESULT CALLBACK on_dark_cmb_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dw);
 intptr_t on_dark_get_hot_brush(void);
 intptr_t on_dark_set_contorl_color(WPARAM wParam);
 intptr_t on_dark_get_bgbrush(void);

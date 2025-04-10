@@ -16,22 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _EU_COMMANDS_H_
-#define _EU_COMMANDS_H_
-
-#define SCCMD_REVERSE 0x00000100
+#ifndef _EU_COLUMN_H_
+#define _EU_COLUMN_H_
 
 // c++ compiler
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void on_command_launch(void);
-void on_command_light(void *lp);
-bool on_command_focus(const eu_tabpage *p);
+void on_column_create_dlg(HWND parent);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _EU_COMMANDS_H_
+#endif // _EU_COLUMN_H_
