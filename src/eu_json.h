@@ -289,6 +289,11 @@ void json_value_free_ex (json_settings * settings,
 
 char *json_printf_format(const char *input, const char *indent_str);
 char *json_printf_unformat(const char *input);
+int  init_dynamic_string(jobject_string *ds);
+int  insert_string(jobject_string *ds, const char *str, const size_t pos);
+int  append_string(jobject_string *ds, const char *str);
+int  append_char(jobject_string *ds, char c);
+void destory_dynamic_string(jobject_string *ds);
 
 #ifdef __cplusplus
    } /* extern "C" */
