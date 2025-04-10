@@ -53,34 +53,6 @@ on_snippet_edt_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, 
     return DefSubclassProc(hwnd, msg, wp, lp);
 }
 
-static LRESULT CALLBACK
-on_snippet_cmb_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, UINT_PTR sub_id, DWORD_PTR dw)
-{
-    switch(msg)
-    {
-        case WM_PAINT:
-        {
-            RECT rc;
-            if (!on_dark_enable())
-            {
-                break;
-            }
-            GetClientRect(hwnd, &rc);
-            PAINTSTRUCT ps;
-            const HDC hdc = BeginPaint(hwnd, &ps);
-            on_remotefs_draw_combo(hwnd, hdc, rc);
-            EndPaint(hwnd, &ps);
-            return 0;
-        }
-        case WM_NCDESTROY:
-            RemoveWindowSubclass(hwnd, on_snippet_cmb_proc, sub_id);
-            break;
-        default:
-            break;
-    }
-    return DefSubclassProc(hwnd, msg, wp, lp);
-}
-
 static void
 on_snippet_init_sci(eu_tabpage *pview)
 {
@@ -669,7 +641,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
             if (hwnd_edt && hwnd_cmb && hwnd_lst)
             {
                 SetWindowSubclass(hwnd_edt, on_snippet_edt_proc, SNIPPET_EDT_SUBID, 0);
-                SetWindowSubclass(hwnd_cmb, on_snippet_cmb_proc, SNIPPET_CMB_SUBID, 0);
+                SetWindowSubclass(hwnd_cmb, on_dark_cmb_proc, SNIPPET_CMB_SUBID, 0);
                 SendMessage(hwnd_edt, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
                 SendMessage(hwnd_cmb, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
                 SendMessage(hwnd_lst, WM_SETFONT, (WPARAM) on_theme_font_hwnd(), 0);
@@ -854,9 +826,7 @@ on_snippet_proc(HWND hdlg, uint32_t msg, WPARAM wParam, LPARAM lParam)
                 last_index = 0;
                 _InterlockedExchange(&snippet_new, 0);
                 hwnd_snippet = NULL;
-            #ifdef APP_DEBUG
-                printf("hwnd_snippet WM_DESTROY\n");
-            #endif
+                eu_logmsg("Snippet: hwnd_snippet destroy\n");
             }
             break;
         }
@@ -888,10 +858,9 @@ on_snippet_reload(eu_tabpage *pedit)
 void
 on_snippet_create_dlg(HWND parent)
 {
-    hwnd_snippet = i18n_create_dialog(parent, IDD_SNIPPET_DLG, on_snippet_proc);
-    if (!hwnd_snippet)
+    if (!hwnd_snippet && !(hwnd_snippet = i18n_create_dialog(parent, IDD_SNIPPET_DLG, on_snippet_proc)))
     {
-        eu_logmsg("%s: hwnd_snippet is null\n", __FUNCTION__);
+        eu_logmsg("Snippet: %s, hwnd_snippet is null\n", __FUNCTION__);
     }
 }
 
