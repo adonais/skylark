@@ -1974,27 +1974,32 @@ on_file_save(eu_tabpage *pnode, const int save)
     {
         TCHAR pcd[MAX_PATH] = {0};
         TCHAR full_path[MAX_BUFFER] = {0};
-        
+        TCHAR *p = NULL;
         if (pnode->is_blank || url_has_remote(pnode->pathfile))
         {
             GetEnvironmentVariable(_T("USERPROFILE"), pcd, MAX_PATH - 1);
         }
         if (pnode->reserved0 > 0)
         {
-            if (L':' != ((wchar_t *)pnode->reserved0)[1])
+            if (L':' != ((TCHAR *)pnode->reserved0)[1])
             {
                 if (pnode->is_blank || url_has_remote(pnode->pathfile))
                 {
-                    _sntprintf(full_path, MAX_BUFFER, _T("%s\\%s"), pcd, (wchar_t *)pnode->reserved0);
+                    _sntprintf(full_path, MAX_BUFFER, _T("%s\\%s"), pcd, (TCHAR *)pnode->reserved0);
                 }
                 else
                 {
-                    _sntprintf(full_path, MAX_BUFFER, _T("%s%s"), pnode->pathname, (wchar_t *)pnode->reserved0);
+                    _sntprintf(full_path, MAX_BUFFER, _T("%s%s"), pnode->pathname, (TCHAR *)pnode->reserved0);
                 }
             }
-            else
-            {
-                _tcsncpy(full_path, (wchar_t *)pnode->reserved0, MAX_BUFFER);
+            else if ((p = _tcsrchr((TCHAR *)pnode->reserved0, _T('\\'))) || (p = _tcsrchr((TCHAR *)pnode->reserved0, _T('/'))))
+            {   // 目录不存在时, 试着创建目录
+                _tcsncpy(full_path, (TCHAR *)pnode->reserved0, p - (TCHAR *)pnode->reserved0);
+                if (!eu_exist_dir(full_path))
+                {
+                    eu_mk_dir(full_path);
+                }
+                _tcsncpy(full_path, (TCHAR *)pnode->reserved0, MAX_BUFFER);
             }
         }
         else

@@ -456,6 +456,7 @@ eu_mk_dir(LPCTSTR dir)
     LPTSTR p = NULL;
     TCHAR tmp_name[MAX_BUFFER] = {0};
     _tcsncpy(tmp_name, dir, MAX_BUFFER);
+    util_unix2path(tmp_name, (const int)_tcslen(tmp_name));
     p = _tcschr(tmp_name, _T('\\'));
     for (; p != NULL; *p = _T('\\'), p = _tcschr(p + 1, _T('\\')))
     {
