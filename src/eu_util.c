@@ -1278,13 +1278,41 @@ util_strdup_select(const eu_tabpage *pnode, size_t *plen, size_t multiple)
     return NULL;
 }
 
+/*
+ * start end 区间内是否都是空白字符
+ * 都是空白字符, 返回空白字符数量
+ * 否则, 返回 -1
+ */
+sptr_t
+util_line_space(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
+{
+    sptr_t len = 0;
+    if (pnode && end > start)
+    {
+        for (len = start; len < end; ++len)
+        {
+            int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, len, 0);
+            if (!isspace(ch))
+            {
+                return -1;
+            }
+        }
+        len -= start;
+    }
+    return len;
+}
+
+/*
+ * start end 区间内是否存在非空白字符, 存在非空白字符则返回
+ * 返回值是前面空白字符数量, 最小值是 0
+ * pout 保存了这个空白字符串
+ */
 sptr_t
 util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout)
 {
     sptr_t len = 0;
     if (pnode && end > start)
     {
-        char *txt = NULL;
         for (len = start; len < end; ++len)
         {
             int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, len, 0);

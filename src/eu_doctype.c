@@ -1662,19 +1662,19 @@ on_doc_brace_light(eu_tabpage *pnode, bool keyup)
 static int
 on_doc_brace_handling(eu_tabpage *pnode)
 {
+    int current_indent = 0;
     const sptr_t current_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    const sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
+    const sptr_t current_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
     const int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, current_pos-1, 0);
     const sptr_t match_pos = on_sci_call(pnode, SCI_BRACEMATCH, current_pos - 1, 0);
-    if (strchr(")]}>", ch) && match_pos >= 0)
+    // 当前括号前都是空白时, 使之与匹配的括号对齐
+    if (strchr(")]}>", ch) && match_pos >= 0 && (current_indent = (int)util_line_space(pnode, current_start, current_pos - 1)) >= 0)
     {
         const sptr_t match_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, match_pos, 0);
         const sptr_t match_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, match_line, 0);
         const sptr_t match_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, match_line, 0);
         const int match_indent = (int)util_line_header(pnode, match_start, match_end, NULL);
-        const sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, current_pos, 0);
-        const sptr_t current_start = on_sci_call(pnode, SCI_POSITIONFROMLINE, current_line, 0);
-        const sptr_t current_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, current_line, 0);
-        const int current_indent = (int)util_line_header(pnode, current_start, current_end, NULL);
         const int diff = current_indent - match_indent;
         if (diff != 0)
         {

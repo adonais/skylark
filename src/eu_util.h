@@ -186,6 +186,7 @@ HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 HWND   util_get_hwnd(const uint32_t pid);
 sptr_t util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout);
+sptr_t util_line_space(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 wchar_t* util_get_nt_file_name(LPCWSTR path);
 wchar_t* util_wstr_unquote(wchar_t *path, const int size);
