@@ -1474,7 +1474,7 @@ STRINGTABLE DISCARDABLE
     IDS_EDITOR_BCOMPARE     "Bcompare路径: "
     IDS_THEME_TIPS1         "提示: 此页面的编辑器字体由用户脚本实现, 不随主题"
     IDS_THEME_TIPS2         "提示: 此页面的部分关键字前景色由用户脚本实现, 不随主题"
-    IDS_RE_ERROR            "错误: 无效的正则表达式"
+    IDS_RE_ERROR            "» » 错误: 无效的正则表达式"
     IDS_HEXVIEW_BYTES       "插入的字节数(十进制): "
     IDS_RESULT_STR_TIPS     "匹配数量已经超过 131071 次, 如果继续搜索, 将耗费大量时间, 是否终止?\n"
     IDS_RESULT_STR_WARN     "» » 搜索 '%s' 关键字, 在 '%s' 文件中 (匹配超过%d次, 将不展示超出的匹配项)\n"

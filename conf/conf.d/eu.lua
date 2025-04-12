@@ -72,6 +72,21 @@ function eu.process_id()
     return eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), WM_PROCESS_ID, 0, 0)
 end
 
+function eu.max_position(index)
+    if (index == nil) then index = -1 end
+    return eu.api.eu_end_positon(index)
+end
+
+function eu.line_start_positon(index, line)
+    if (index == nil) then index = -1 end
+    return eu.api.eu_line_start_positon(index, line)
+end
+
+function eu.line_end_positon(index, line)
+    if (index == nil) then index = -1 end
+    return eu.api.eu_line_end_positon(index, line)
+end
+
 function eu.file_size(index)
     if (index == nil) then index = -1 end
     return eu.api.eu_file_size(index)
@@ -95,7 +110,7 @@ function eu.file_name(index)
     return eu.ffi.string(name, eu.ffi.C.strlen(name))
 end
 
-function eu.line_number(index)
+function eu.line_total(index)
     if (index == nil) then index = -1 end
     return eu.api.eu_sci_call(index, SCI_GETLINECOUNT, 0, 0)
 end

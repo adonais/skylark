@@ -405,6 +405,10 @@ int eu_file_close(const int t, const int mode);
 int eu_file_open(const wchar_t *path);
 int eu_file_save(const int t);
 int eu_msgbox(void *w, const wchar_t *txt, const wchar_t *cap, uint32_t type);
+intptr_t eu_file_size(const int t);
+intptr_t eu_end_positon(const int t);
+intptr_t eu_line_start_positon(const int t, const intptr_t line);
+intptr_t eu_line_end_positon(const int t, const intptr_t line);
 /* 保存所有文件 */
 void eu_file_save_all(void);
 /* 编辑器主窗口句柄 */
@@ -425,6 +429,7 @@ bool eu_command_convert(const int t, const char *enc);
 bool eu_command_saveas(const int t, const char *path, const int mode);
 bool eu_command_xsave(const int t);
 bool eu_command_search(const int t, const char *key, const uint32_t opt);
+bool eu_command_replace(const int t, const char *key, const char *replace, const intptr_t n1, const intptr_t n2, const uint32_t opt);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);

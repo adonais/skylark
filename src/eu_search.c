@@ -342,7 +342,7 @@ on_search_init_option(void)
     const btn_state bs[] =
     {
         {IDC_MATCH_ALL_FILE, ON_REPLACE_ALL},
-        {IDC_MATCH_LOOP, ON_LOOP_FLAGS},
+        {IDC_MATCH_LOOP, SCCMD_LOOP},
         {IDC_MATCH_WDSTART, SCFIND_WORDSTART},
         {IDC_MATCH_WORD, SCFIND_WHOLEWORD},
         {IDC_MATCH_CASE, SCFIND_MATCHCASE},
@@ -350,8 +350,8 @@ on_search_init_option(void)
         {IDC_SEARCH_SUB_CHK, INCLUDE_FOLDER_SUB},
         {IDC_SEARCH_HIDE_CHK, INCLUDE_FOLDER_HIDDEN},
         {IDC_SEARCH_UTF8_CHK, INCLUDE_FILE_UTF8},
-        {IDC_SEARCH_HEX_STRINGS, ON_HEX_STRINGS},
-        {IDC_MODE_NORMAL, NO_REGXP_FLAGS},
+        {IDC_SEARCH_HEX_STRINGS, SCCMD_HEX},
+        {IDC_MODE_NORMAL, SCCMD_NOREGXP},
         {IDC_MODE_REGEXP, SCFIND_REGEXP}
     };
     for (int i = 0; i < _countof(bs); ++i)
@@ -2730,7 +2730,7 @@ on_search_found_list(HWND hwnd)
     }
 }
 
-static bool
+bool
 on_search_replace_target(eu_tabpage *pnode, const char *replace_str, sptr_t *poffset)
 {
     sptr_t re_len = 0;
@@ -2826,12 +2826,12 @@ on_search_first(eu_tabpage *pnode, const char *key, int opt)
     return on_search_common(pnode, key, opt);
 }
 
-static bool
-on_search_next(eu_tabpage *pnode, const char *key, const sptr_t end_pos)
+bool
+on_search_next(eu_tabpage *pnode, const char *key, const sptr_t end_pos, const uint32_t flags)
 {
     sptr_t found_pos = -1;
     sptr_t start_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    size_t find_flags = on_search_build_flags(hwnd_search_dlg);
+    size_t find_flags = flags != (uint32_t)-1 ? (size_t)flags : on_search_build_flags(hwnd_search_dlg);
     if ((found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags)) >= 0)
     {
         sptr_t target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
@@ -2869,8 +2869,7 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
         on_sci_call(pnode, SCI_BEGINUNDOACTION, 0, 0);
         do
         {
-            result = on_search_replace_target(pnode, replace_str, &offset);
-            if (result)
+            if ((result = on_search_replace_target(pnode, replace_str, &offset)))
             {
                 if (opt & ON_REPLACE_SELECTION)
                 {
@@ -2880,7 +2879,7 @@ on_search_at_replace_page(eu_tabpage *pnode, int opt)
                 {
                     end_pos = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
                 }
-                next_result = on_search_next(pnode, find_str, end_pos);
+                next_result = on_search_next(pnode, find_str, end_pos, (uint32_t)-1);
             }
         } while (!(opt & ON_REPLACE_THIS) && result && next_result);
         on_sci_call(pnode, SCI_ENDUNDOACTION, 0, 0);
@@ -3468,7 +3467,7 @@ on_search_save_state(HWND hdlg)
     const btn_state bs[] =
     {
         {IDC_MATCH_ALL_FILE, ON_REPLACE_ALL},
-        {IDC_MATCH_LOOP, ON_LOOP_FLAGS},
+        {IDC_MATCH_LOOP, SCCMD_LOOP},
         {IDC_MATCH_WDSTART, SCFIND_WORDSTART},
         {IDC_MATCH_WORD, SCFIND_WHOLEWORD},
         {IDC_MATCH_CASE, SCFIND_MATCHCASE},
@@ -3476,8 +3475,8 @@ on_search_save_state(HWND hdlg)
         {IDC_SEARCH_SUB_CHK, INCLUDE_FOLDER_SUB},
         {IDC_SEARCH_HIDE_CHK, INCLUDE_FOLDER_HIDDEN},
         {IDC_SEARCH_UTF8_CHK, INCLUDE_FILE_UTF8},
-        {IDC_SEARCH_HEX_STRINGS, ON_HEX_STRINGS},
-        {IDC_MODE_NORMAL, NO_REGXP_FLAGS},
+        {IDC_SEARCH_HEX_STRINGS, SCCMD_HEX},
+        {IDC_MODE_NORMAL, SCCMD_NOREGXP},
         {IDC_MODE_REGEXP, SCFIND_REGEXP}
     };
     if (eu_get_config()->last_flags == (uint32_t)-1)

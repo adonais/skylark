@@ -74,10 +74,6 @@ function search_action(str)
     end
     str = string.gsub(ret, "\\<", "\\b")
     ret = string.gsub(str, "\\>", "\\b")
-    if (ret ~= str and wordstart == true) then
-        flags = flags + SCFIND_WHOLEWORD
-        flags = flags - SCFIND_WORDSTART
-    end
     if ('?' == (string.sub(ret,1,1))) then
         flags = flags + SCCMD_REVERSE
     end
@@ -86,20 +82,115 @@ function search_action(str)
     return eu.api.eu_command_search(-1, str, flags)
 end
 
+function replace_action(str, n1, n2)
+    local ret1, ret2, v1, v2, nocase, ft = nil
+    local flags = SCFIND_MATCHCASE + SCFIND_REGEXP
+    local ret = string.gsub(str, "\\c", "")
+    if (ret ~= str) then
+        flags = flags - SCFIND_MATCHCASE
+        nocase = true
+    end
+    if (type(n1) == "boolean") then ft = true end
+    str = string.gsub(ret, "\\<", "\\b")
+    ret = string.gsub(str, "\\>", "\\b")
+    str = string.gsub(ret, "\\C", "")
+    v1 = string.find(str, '/')
+    if (v1 ~= nil) then
+        ret1 = string.sub(str, 1, v1 - 1)
+        v2 = string.find(str, '/', v1 + 1)
+    end
+    if (v2 ~= nil) then ret2 = string.sub(str, v1 + 1, v2 - 1) end
+    if (ret1 ~= nil and ret2 ~= nil) then
+        if (v2 < #str) then
+            ret = string.sub(str, v2 + 1, #str)
+            if (ret ~= nil) then
+                if (string.find(ret, 'i') ~= nil) then
+                    if (nocase == nil) then flags = flags - SCFIND_MATCHCASE end
+                end
+                if (string.find(ret, 'g') ~= nil) then
+                    if (n2 ~= nil) then
+                        -- do nothing
+                    elseif (ft ~= nil) then
+                        flags = flags + SCCMD_TEXT_ALL
+                    else
+                        flags = flags + SCCMD_LINE_ALL
+                    end
+                elseif (n2 ~= nil) then
+                    -- do nothing
+                elseif (ft ~= nil) then
+                    flags = flags + SCCMD_TEXT_FIRST
+                else
+                    flags = flags + SCCMD_LINE_FIRST
+                end
+            end
+        elseif (n2 ~= nil) then
+            -- do nothing
+        elseif (ft ~= nil) then
+            flags = flags + SCCMD_TEXT_FIRST
+        else
+            flags = flags + SCCMD_LINE_FIRST
+        end
+        if (n2 == ni1) then
+            n1 = -1
+            n2 = -1
+        end
+        return eu.api.eu_command_replace(-1, ret1, ret2, n1, n2, flags)
+    end
+end
+
+function replace_global(str)
+    return replace_action(str, true)
+end
+
+function replace_part(v1, v2, str)
+    local line = nil
+    local n1, n2 = nil
+    print(v1, v2, str)
+    if (v1 == '.' and #v1 == 1) then
+        line = eu.cureent_line_number(-1)
+        n1 = eu.line_start_positon(-1, -1)
+    elseif (string.sub(v1, 1, 1) ~= '.') then
+        line = tonumber(v1) - 1
+        if (line <= 0) then line = 0 end
+        n1 = eu.line_start_positon(-1, line)
+    end
+    if (n1 ~= nil and line ~= nil) then
+        local line2 = nil
+        local ch = string.sub(v2, 1, 1)
+        if (ch == '+' and #v2 > 1) then
+            line2 = tonumber(string.sub(v2, 2, #v2)) + line
+            if (line2 <= 0) then line2 = 0 end
+            n2 = eu.line_end_positon(-1, line2)
+        elseif (ch == '$' and #v2 == 1) then
+            n2 = eu.max_position(-1)
+        elseif (v2 ~= "") then
+            line2 = tonumber(v2)
+            if (line2 <= 0) then line2 = 1 end
+            n2 = eu.line_end_positon(-1, line2 - 1)
+        end
+    end
+    if (n1 >= 0 and n2 >= 0) then
+        replace_action(str, n1, n2)
+    end
+end
+
 local cmd_matrix =
 {
-    {"^enc=([%w_-]+)",            encoding_action },
-    {"^fenc=([%w_-]+)",           fencoding_action},
-    {"^w$",                       savefile_action },
-    {"^wa$",                      saveall_action  },
-    {"^wq$)",                     qsavefile_action},
-    {"^w%s+(.+)",                 ssavefile_action},
-    {"^x$",                       xsavefile_action},
-    {"^q$",                       close_action    },
-    {"^q!$",                      sclose_action   },
-    {"^sav%s+(.+)",               saveas_action   },
-    {"^saveas%s+(.+)",            saveas_action   },
-    {"^([/\\?].+)",               search_action   },
+    {"^enc=([%w_-]+)",                      encoding_action },
+    {"^fenc=([%w_-]+)",                     fencoding_action},
+    {"^w$",                                 savefile_action },
+    {"^wa$",                                saveall_action  },
+    {"^wq$)",                               qsavefile_action},
+    {"^w%s+(.+)",                           ssavefile_action},
+    {"^x$",                                 xsavefile_action},
+    {"^q$",                                 close_action    },
+    {"^q!$",                                sclose_action   },
+    {"^sav%s+(.+)",                         saveas_action   },
+    {"^saveas%s+(.+)",                      saveas_action   },
+    {"^([/\\?].+)",                         search_action   },
+    {"^s/(.+)",                             replace_action  },
+    {"^%%s/(.+)",                           replace_global  },
+    {"^([%.%d]?%d*),([%+%$%d]?%d*)s/(.+)",  replace_part    },
 }
 
 function skylark_cmd(p)
@@ -107,9 +198,9 @@ function skylark_cmd(p)
     if (txt ~= nil and txt ~= "") then
         for i = 1, #cmd_matrix do
             for j = 1, 1 do
-                local v1, v2 = string.match(txt, cmd_matrix[i][j])
+                local v1, v2, v3 = string.match(txt, cmd_matrix[i][j])
                 if (v1 ~= nil and v1 ~= "") then
-                    return (cmd_matrix[i][j+1])(v1, v2)
+                    return (cmd_matrix[i][j+1])(v1, v2, v3)
                 end
             end
         end

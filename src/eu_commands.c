@@ -20,60 +20,75 @@
 #include <sys/utime.h>
 
 static bool
-on_command_find(eu_tabpage *pnode, const char *key, const uint32_t opt)
+on_command_common_search(eu_tabpage *pnode, const char *key, sptr_t start_pos, sptr_t end_pos, const uint32_t flags)
 {
-    sptr_t start_pos = 0;
-    sptr_t end_pos = 0;
     sptr_t found_pos = -1;
-    sptr_t target_end = -1;
-    uint32_t find_flags = (uint32_t)opt;
-    bool m_loop = true;
-    bool reverse = opt & SCCMD_REVERSE;
-    sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-    sptr_t max_pos = on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
-    if (reverse)
+    uint32_t find_flags = (uint32_t)flags;
+    bool loop = flags & SCCMD_LOOP;
+    const bool reverse = flags & SCCMD_REVERSE;
+    const sptr_t cur_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
+    const sptr_t max_pos = on_sci_call(pnode, SCI_GETTEXTLENGTH, 0, 0);
+    const sptr_t sel_start = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+
+    find_flags &= ~SCCMD_REVERSE;
+    find_flags &= ~SCCMD_LOOP;
+
+    if (start_pos < 0)
     {
-        find_flags &= ~SCCMD_REVERSE;
-        start_pos = pos - 1;
-        if (start_pos > on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0))
+        if (reverse)
         {
-            start_pos = on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0);
+            start_pos = cur_pos - 1;
+            if (sel_start >= 0  && start_pos > sel_start)
+            {
+                start_pos = sel_start;
+            }
+        }
+        else
+        {
+            start_pos = cur_pos;
+            if (sel_start >= 0  && start_pos == sel_start)
+            {
+                start_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+            }
         }
     }
-    else
+    if (end_pos < 0)
     {
-        start_pos = pos;
-        end_pos = max_pos;
-        if (start_pos == on_sci_call(pnode, SCI_GETSELECTIONSTART, 0, 0))
+        if (reverse)
         {
-            start_pos = on_sci_call(pnode, SCI_GETSELECTIONEND, 0, 0);
+            end_pos = 0;
+        }
+        else
+        {
+            end_pos = max_pos;
         }
     }
     DO_COMMANDS_LOOP:
     {
-        found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags);
-        if (found_pos >= 0)
+        if ((found_pos = on_search_process_find(pnode, key, start_pos, end_pos, find_flags)) >= 0)
         {
             SetFocus(pnode->hwnd_sc);
-            target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
+            const sptr_t target_end = on_sci_call(pnode, SCI_GETTARGETEND, 0, 0);
             on_sci_call(pnode, SCI_SETSEL, found_pos, target_end);
         }
         else if (found_pos == -2)
         {
-            eu_logmsg("Cmds: re error\n");
+            char msg[MAX_PATH] = {0};
+            LOAD_I18N_RESSTR(IDS_RE_ERROR, retips);
+            on_result_append_text_utf8(util_make_u8(retips, msg, MAX_PATH));
         }
-        else if (m_loop)
+        else if (loop)
         {
-            m_loop = false;
+            loop = false;
             if (reverse)
             {
+                end_pos = start_pos;
                 start_pos = max_pos;
-                end_pos = pos;
             }
             else
             {
+                end_pos = start_pos;
                 start_pos = 0;
-                end_pos = pos;
             }
             goto DO_COMMANDS_LOOP;
         }
@@ -85,6 +100,12 @@ on_command_find(eu_tabpage *pnode, const char *key, const uint32_t opt)
         return true;
     }
     return false;
+}
+
+static bool
+on_command_find(eu_tabpage *pnode, const char *key, const uint32_t flags)
+{
+    return on_command_common_search(pnode, key, -1, -1, flags);
 }
 
 bool
@@ -143,11 +164,62 @@ eu_command_search(const int t, const char *key, const uint32_t opt)
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
     if (p && TAB_HAS_TXT(p))
     {
-        if (on_command_find(p, key, opt))
+        if (on_command_find(p, key, opt | SCCMD_LOOP))
         {
             eu_get_config()->last_flags = opt & ~SCCMD_REVERSE;
             return true;
         }
+    }
+    return false;
+}
+
+bool
+eu_command_replace(const int t, const char *key, const char *replace, const sptr_t n1, const sptr_t n2, const uint32_t opt)
+{
+    eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
+    if (p && TAB_HAS_TXT(p) && STR_NOT_NUL(key) && replace)
+    {
+        sptr_t offset = 0;
+        sptr_t start = 0;
+        sptr_t end = 0;
+        bool result = false;
+        bool txt_first = opt & SCCMD_TEXT_FIRST;
+        bool line_first = opt & SCCMD_LINE_FIRST;
+        if (n1 >= 0 && n2 >= 0)
+        {
+            start = n1;
+            end = n2;
+        }
+        else if (txt_first || (opt & SCCMD_TEXT_ALL))
+        {
+            end = on_sci_call(p, SCI_GETTEXTLENGTH, 0, 0);
+        }
+        else
+        {
+            const sptr_t current_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+            const sptr_t current_line = on_sci_call(p, SCI_LINEFROMPOSITION, current_pos, 0);
+            start = on_sci_call(p, SCI_POSITIONFROMLINE, current_line, 0);
+            end = on_sci_call(p, SCI_GETLINEENDPOSITION, current_line, 0);
+        }
+        p->match_count = 0;
+        if (!on_command_common_search(p, key, start, end, opt))
+        {
+            return false;
+        }
+        on_sci_call(p, SCI_BEGINUNDOACTION, 0, 0);
+        do
+        {
+            if ((result = on_search_replace_target(p, replace, &offset)))
+            {
+                if (line_first || txt_first)
+                {
+                    break;
+                }
+                result = on_search_next(p, key, end + offset, opt);
+            }
+        } while(result);
+        on_sci_call(p, SCI_ENDUNDOACTION, 0, 0);
+        return true;
     }
     return false;
 }

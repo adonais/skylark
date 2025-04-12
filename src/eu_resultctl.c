@@ -83,7 +83,7 @@ on_result_append_text(TCHAR *format, ...)
     }
     if ((utf_buf = eu_utf16_utf8(buf, NULL)) != NULL)
     {
-        on_sci_call(pnode->presult, SCI_ADDTEXT, strlen(utf_buf), (LPARAM)utf_buf);
+        on_sci_call(pnode->presult, SCI_ADDTEXT, (sptr_t)strlen(utf_buf), (sptr_t)utf_buf);
         free(utf_buf);
     }
     free(buf);
@@ -96,8 +96,9 @@ on_result_append_text_utf8(char *format, ...)
     va_list valist;
     char *buf = NULL;
     int l, len = 0;
-    eu_tabpage *pnode = NULL;
-    if ((pnode = on_tabpage_focus_at()) == NULL || !RESULT_SHOW(pnode))
+    bool cmds = false;
+    eu_tabpage *p = NULL;
+    if ((p = on_tabpage_focus_at()) == NULL || !RESULT_SHOW(p))
     {
         return 1;
     }
@@ -120,11 +121,23 @@ on_result_append_text_utf8(char *format, ...)
     {
         len += l;
     }
-    on_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
-    on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-    on_sci_call(pnode->presult, SCI_ADDTEXT, strlen(buf), (LPARAM)buf);
-    on_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
-    on_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
+    if ((on_sci_call(p->presult, SCI_GETCARETSTYLE, 0, 0) & CARETSTYLE_LINE))
+    {
+        cmds = true;
+    }
+    if (!cmds)
+    {
+        on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
+        on_sci_call(p->presult, SCI_CLEARALL, 0, 0);
+        on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)strlen(buf), (sptr_t)buf);
+        on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+        on_sci_call(p->presult, SCI_GOTOLINE, 1, 0);
+    }
+    else
+    {
+        on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)1, (sptr_t)"\n");
+        on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)(strlen(buf) - 1), (sptr_t)buf);
+    }
     free(buf);
     return 0;
 }

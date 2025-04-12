@@ -3334,7 +3334,7 @@ size_t
 eu_file_size(const int t)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    return p ? on_sci_call(p, SCI_GETLENGTH, 0, 0) + p->pre_len : 0;
+    return p ? on_sci_call(p, SCI_GETTEXTLENGTH, 0, 0) + p->pre_len : 0;
 }
 
 char *
@@ -3349,6 +3349,31 @@ eu_file_name(const int t)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
     return p ? eu_utf16_utf8(p->filename, NULL) : NULL;
+}
+
+sptr_t
+eu_end_positon(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_sci_call(p, SCI_GETLENGTH, 0, 0) : -1;
+}
+
+sptr_t
+eu_line_start_positon(const int t, const sptr_t line)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    const sptr_t current_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+    const sptr_t current_line = on_sci_call(p, SCI_LINEFROMPOSITION, current_pos, 0);
+    return p ? on_sci_call(p, SCI_POSITIONFROMLINE, line >= 0 ? line : current_line, 0) : -1;
+}
+
+sptr_t
+eu_line_end_positon(const int t, const sptr_t line)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    const sptr_t current_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+    const sptr_t current_line = on_sci_call(p, SCI_LINEFROMPOSITION, current_pos, 0);
+    return p ? on_sci_call(p, SCI_GETLINEENDPOSITION, line >= 0 ? line : current_line, 0) : -1;
 }
 
 char *

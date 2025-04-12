@@ -698,6 +698,9 @@ EU_EXT_CLASS int eu_file_save(const int t);
 EU_EXT_CLASS void eu_file_save_all(void);
 EU_EXT_CLASS intptr_t eu_value(void *p);
 EU_EXT_CLASS intptr_t eu_sci_cmd(const eu_tabpage *p, const int m, const sptr_t w, const sptr_t l);
+EU_EXT_CLASS intptr_t eu_end_positon(const int t);
+EU_EXT_CLASS intptr_t eu_line_start_positon(const int t, const sptr_t line);
+EU_EXT_CLASS intptr_t eu_line_end_positon(const int t, const sptr_t line);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);
@@ -957,6 +960,7 @@ EU_EXT_CLASS bool eu_command_reload(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_convert(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_saveas(const int t, const char *path, const int mode);
 EU_EXT_CLASS bool eu_command_search(const int t, const char *key, const uint32_t opt);
+EU_EXT_CLASS bool eu_command_replace(const int t, const char *key, const char *replace, const sptr_t n1, const sptr_t n2, const uint32_t opt);
 
 /* for eu_columnctl.c */
 EU_EXT_CLASS HWND eu_column_hwnd(void);
