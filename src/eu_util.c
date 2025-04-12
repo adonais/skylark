@@ -2064,7 +2064,7 @@ util_to_abs(const char *path)
     }
     if (true)
     {   // 如果路径有引号, 去除
-        util_wstr_unquote(lpfile, sizeof(lpfile));
+        util_wstr_unquote(lpfile);
     }
     if (lpfile[0] == L'%')
     {
@@ -2554,22 +2554,16 @@ util_add_double_quotes(const TCHAR *path)
     return buf;
 }
 
-wchar_t *
-util_wstr_unquote(wchar_t *path, const int size)
+TCHAR *
+util_wstr_unquote(TCHAR *str)
 {
-    if (STR_NOT_NUL(path) && size > 0)
+    size_t len = _tcslen(str);
+    if (len >= 2 && (str[0] == '"' || str[0] == '\'') && (str[len-1] == '"' || str[len-1] == '\''))
     {
-        if ((path[0] == L'"') || path[0] == L'\'')
-        {
-            memmove(path, &path[1], size - sizeof(wchar_t));
-            const int len = (const int)wcslen(path);
-            if (len > 0 && (path[len - 1] == L'"' || path[len - 1] == L'\''))
-            {
-                path[len - 1] = 0;
-            }
-        }
+        memmove(str, str + 1, sizeof(TCHAR) * len - 2);
+        str[len - 2] = '\0';
     }
-    return path;
+    return str;
 }
 
 char *

@@ -182,6 +182,7 @@ TCHAR* util_unix2path(TCHAR *path, const int len);
 TCHAR* util_path2unix(TCHAR *path, const int len);
 TCHAR* util_add_double_quotes(const TCHAR *path);
 TCHAR* util_which(const TCHAR *name);
+TCHAR* util_wstr_unquote(TCHAR *path);
 HANDLE util_mk_temp(TCHAR *file_path, TCHAR *ext);
 HWND   util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext);
 HWND   util_get_hwnd(const uint32_t pid);
@@ -189,7 +190,6 @@ sptr_t util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end,
 sptr_t util_line_space(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 sptr_t util_select_characters(eu_tabpage *pnode, const sptr_t start, const sptr_t end);
 wchar_t* util_get_nt_file_name(LPCWSTR path);
-wchar_t* util_wstr_unquote(wchar_t *path, const int size);
 const char* util_trim_left_white(const char *str, int *length);
 unsigned long util_compress_bound(unsigned long source_len);
 const uint32_t util_os_version(void);
