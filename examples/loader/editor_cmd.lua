@@ -211,10 +211,10 @@ end
 function switch_onetab(number)
     local index = tonumber(number)
     local cur = eu.api.eu_tab_focus_index()
-    if (index ~= nil and index >= 0 and cur >=0) then
+    if (index ~= nil and index >= 0 and cur >= 0) then
         if (index == 0) then index = 1 end
         index = index - 1
-        if (index ~= cul) then
+        if (index ~= cur) then
             eu.api.eu_command_launch(-1)
             eu.api.eu_command_launch(index)
             eu.api.eu_tab_select(index)
