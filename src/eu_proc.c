@@ -337,9 +337,10 @@ on_proc_tab_click(eu_tabpage *pnode)
     {
         if (!_InterlockedCompareExchange(&pnode->initial, 1, 0))
         {
-            on_search_jmp_pos(pnode);
             on_proc_msg_size(NULL, pnode);
             on_sci_wrap_mode(pnode);
+            on_search_jmp_pos(pnode);
+            on_statusbar_update_line(pnode);
         }
         else
         {

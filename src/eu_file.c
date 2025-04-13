@@ -1423,6 +1423,8 @@ on_file_out_open(const int index, uint32_t *pid)
         if (GetModuleFileName(NULL , process , MAX_BUFFER) > 0)
         {
             int err = SKYLARK_NOT_OPENED;
+            // FILE_REMOTE_CLOSE关闭时先保存标签正确的编号
+            p->tab_id = (int)index;
             if (!eu_get_config()->m_session)
             {
                 if (!p->is_blank)
@@ -2570,7 +2572,6 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
     }
     if (!err)
     {
-        (*ppnode)->tab_id = on_tabpage_get_index(*ppnode);
         if (eu_get_config()->m_session && mode != FILE_FORCE_CLOSE)
         {
             on_file_save_backup((*ppnode), mode);
