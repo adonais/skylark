@@ -974,7 +974,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_THEMECHANGED:
         {
-            eu_logmsg("Scintilla: WM_THEMECHANGED\n");
+            eu_logmsg("Scintilla: wm_themechanged msg\n");
             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 on_toolbar_update_button();
@@ -985,7 +985,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = (eu_tabpage *) lParam) != NULL)
             {
-                eu_logmsg("Scintilla: WM_DPICHANGED\n");
+                eu_logmsg("Scintilla: wm_dpichanged msg\n");
             }
             break;
         }
@@ -993,7 +993,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
             {
-                eu_logmsg("Scintilla: WM_DPICHANGED_AFTERPARENT\n");
+                eu_logmsg("Scintilla: wm_dpichanged_afterparent msg\n");
                 on_sci_update_line_margin(pnode);
                 on_sci_update_fold_margin(pnode);
             }

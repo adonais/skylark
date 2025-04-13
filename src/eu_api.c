@@ -1374,16 +1374,16 @@ eu_open_file(LPCTSTR path, pf_stream pstream)
     return util_open_file(path, pstream);
 }
 
-wchar_t *
-eu_wcasestr(const wchar_t *haystack, const wchar_t *needle)
+TCHAR*
+eu_tcasestr(const TCHAR *haystack, const TCHAR *needle)
 {
-    size_t l = wcslen(needle);
-    wchar_t *psave = (wchar_t *)haystack;
+    size_t l = _tcslen(needle);
+    TCHAR *psave = (TCHAR *)haystack;
     for (; *psave; psave++)
     {
-        if (!wcsnicmp(psave, needle, l))
+        if (!_tcsnicmp(psave, needle, l))
         {
-            return (wchar_t *)psave;
+            return (TCHAR *)psave;
         }
     }
     return NULL;
@@ -3296,6 +3296,24 @@ eu_value(void *p)
         value = *(intptr_t *)p;
     }
     return value;
+}
+
+int
+eu_tab_focus_index(void)
+{
+    return on_tabpage_get_index(on_tabpage_focus_at());
+}
+
+int
+eu_tab_last_index(void)
+{
+    return TabCtrl_GetItemCount(g_tabpages) - 1;
+}
+
+void
+eu_tab_select(const int index)
+{
+    on_tabpage_active_one(index);
 }
 
 void

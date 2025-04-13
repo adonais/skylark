@@ -337,9 +337,9 @@ on_proc_tab_click(eu_tabpage *pnode)
     {
         if (!_InterlockedCompareExchange(&pnode->initial, 1, 0))
         {
+            on_search_jmp_pos(pnode);
             on_proc_msg_size(NULL, pnode);
             on_sci_wrap_mode(pnode);
-            on_search_jmp_pos(pnode);
         }
         else
         {
@@ -2414,7 +2414,7 @@ eu_before_proc(MSG *p_msg)
         int64_t ms = util_clock_interval();
         if (ms > 0 && ms < 1000)
         {
-            on_command_launch();
+            eu_command_launch(-1);
         }
         return 1;
     }

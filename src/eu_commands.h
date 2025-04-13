@@ -24,7 +24,6 @@
 extern "C" {
 #endif
 
-void on_command_launch(void);
 void on_command_light(void *lp);
 bool on_command_focus(const eu_tabpage *p);
 

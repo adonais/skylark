@@ -666,7 +666,7 @@ EU_EXT_CLASS void eu_api_release(void);
 EU_EXT_CLASS const int eu_theme_index(void);
 EU_EXT_CLASS const uint32_t eu_win10_or_later(void);
 EU_EXT_CLASS const bool eu_win11_or_later(void);
-EU_EXT_CLASS wchar_t *eu_wcasestr(const wchar_t *haystack, const wchar_t *needle);
+EU_EXT_CLASS TCHAR *eu_tcasestr(const TCHAR *haystack, const TCHAR *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
 EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
@@ -701,6 +701,9 @@ EU_EXT_CLASS intptr_t eu_sci_cmd(const eu_tabpage *p, const int m, const sptr_t 
 EU_EXT_CLASS intptr_t eu_end_positon(const int t);
 EU_EXT_CLASS intptr_t eu_line_start_positon(const int t, const sptr_t line);
 EU_EXT_CLASS intptr_t eu_line_end_positon(const int t, const sptr_t line);
+EU_EXT_CLASS int eu_tab_focus_index(void);
+EU_EXT_CLASS int eu_tab_last_index(void);
+EU_EXT_CLASS void eu_tab_select(const int index);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);
@@ -955,12 +958,14 @@ EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t r
 EU_EXT_CLASS bool eu_xml_pretty(void *ptr, struct opt_format *opt);
 
 /* for eu_commands.c */
+EU_EXT_CLASS void eu_command_launch(const int t);
 EU_EXT_CLASS bool eu_command_xsave(const int t);
 EU_EXT_CLASS bool eu_command_reload(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_convert(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_saveas(const int t, const char *path, const int mode);
 EU_EXT_CLASS bool eu_command_search(const int t, const char *key, const uint32_t opt);
 EU_EXT_CLASS bool eu_command_replace(const int t, const char *key, const char *replace, const sptr_t n1, const sptr_t n2, const uint32_t opt);
+EU_EXT_CLASS bool eu_command_tabs_hint(const char *str, const bool focus);
 
 /* for eu_columnctl.c */
 EU_EXT_CLASS HWND eu_column_hwnd(void);

@@ -72,6 +72,11 @@ function eu.process_id()
     return eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), WM_PROCESS_ID, 0, 0)
 end
 
+function eu.close_tab()
+    -- WM_COMMAND == 0x0111
+    return eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_FILE_CLOSE, 0)
+end
+
 function eu.max_position(index)
     if (index == nil) then index = -1 end
     return eu.api.eu_end_positon(index)

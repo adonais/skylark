@@ -262,7 +262,7 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if (wParam == VK_ESCAPE)
                     {
-                        on_sci_call(pnode->presult, SCI_LINEDELETE, 0, 0);
+                        on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
                     }
                     else
                     {

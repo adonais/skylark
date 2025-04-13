@@ -174,6 +174,61 @@ function replace_part(v1, v2, str)
     end
 end
 
+function search_tabs(str)
+    if (str ~= nil and str ~= "") then
+        return eu.api.eu_command_tabs_hint(str, true)
+    end
+end
+
+function search_tabactive(str)
+    if (str ~= nil and str ~= "") then
+        return eu.api.eu_command_tabs_hint(str, false)
+    end
+end
+
+function close_tabs(str)
+    if (str == "tc") then
+        eu.close_tab()
+    elseif (str == "tca") then
+        -- -- WM_COMMAND == 0x0111
+        eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_FILE_CLOSEALL, 0)
+    elseif (str == "tce") then
+        eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_FILE_CLOSEALL_EXCLUDE, 0)
+    elseif (str == "tcr") then
+        eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_TAB_CLOSE_RIGHT, 0)
+    elseif (str == "tcl") then
+        eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_TAB_CLOSE_LEFT, 0)
+    end
+end
+
+function close_onetab(number)
+    local index = tonumber(number)
+    if (index ~= nil and index > 0) then
+        eu.close_file(index - 1, 1)
+    end
+end
+
+function switch_onetab(number)
+    local index = tonumber(number)
+    local cur = eu.api.eu_tab_focus_index()
+    if (index ~= nil and index >= 0 and cur >=0) then
+        if (index == 0) then index = 1 end
+        index = index - 1
+        if (index ~= cul) then
+            eu.api.eu_command_launch(-1)
+            eu.api.eu_command_launch(index)
+            eu.api.eu_tab_select(index)
+        end
+    end
+end
+
+function switch_lasttab()
+    local index = eu.api.eu_tab_last_index()
+    if (index ~= nil and index >= 0) then
+        switch_onetab(index + 1)
+    end
+end
+
 local cmd_matrix =
 {
     {"^enc=([%w_-]+)",                      encoding_action },
@@ -191,6 +246,12 @@ local cmd_matrix =
     {"^s/(.+)",                             replace_action  },
     {"^%%s/(.+)",                           replace_global  },
     {"^([%.%d]?%d*),([%+%$%d]?%d*)s/(.+)",  replace_part    },
+    {"^ts%s*(.+)",                          search_tabs     },
+    {"^tw%s*(.+)",                          search_tabactive},
+    {"^(tc[aelr]-)$",                       close_tabs      },
+    {"^tc(%d+)$",                           close_onetab    },
+    {"^tt$",                                switch_lasttab  },
+    {"^t(%d+)$",                            switch_onetab   },
 }
 
 function skylark_cmd(p)

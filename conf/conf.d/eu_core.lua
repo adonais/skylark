@@ -423,13 +423,21 @@ bool eu_under_wine(void);
 bool eu_which(const char *path);
 /* 获取系统版本 */
 const uint32_t eu_win10_or_later(void);
+
+int eu_tab_focus_index(void);
+int eu_tab_last_index(void);
+void eu_tab_select(const int index);
+
+void eu_command_launch(const int t);
 /* 重设文件编码 */
 bool eu_command_reload(const int t, const char *enc);
 bool eu_command_convert(const int t, const char *enc);
+/* 保存文件 */
 bool eu_command_saveas(const int t, const char *path, const int mode);
 bool eu_command_xsave(const int t);
 bool eu_command_search(const int t, const char *key, const uint32_t opt);
 bool eu_command_replace(const int t, const char *key, const char *replace, const intptr_t n1, const intptr_t n2, const uint32_t opt);
+bool eu_command_tabs_hint(const char *str, const bool focus);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);

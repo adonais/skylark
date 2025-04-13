@@ -134,12 +134,12 @@ on_command_light(void *lp)
 }
 
 void
-on_command_launch(void)
+eu_command_launch(const int index)
 {
-    eu_tabpage *p = on_tabpage_focus_at();
+    eu_tabpage *p = index < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(index);
     if (p && !p->is_blank && TAB_HAS_TXT(p))
     {
-        if (RESULT_SHOW(p) && p->presult->pwant == on_command_light)
+        if (RESULT_SHOW(p) && p->presult->pwant == on_command_light && index < 0)
         {
             on_result_destroy(p);
             eu_logmsg("Command: we destroy commands window\n");
@@ -153,7 +153,10 @@ on_command_launch(void)
         {
             p->presult->pwant = on_command_light;
             on_result_lexer(p->presult);
-            eu_window_resize();
+            if (index < 0)
+            {
+                eu_window_resize();
+            }
         }
     }
 }
@@ -250,12 +253,11 @@ eu_command_xsave(const int t)
 bool
 eu_command_saveas(const int t, const char *path, const int mode)
 {
-    size_t len = 0;
-    wchar_t *u16 = eu_utf8_utf16(path, &len);
+    wchar_t *u16 = eu_utf8_utf16(path, NULL);
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && u16 && len > 0)
+    if (p && u16)
     {
-        p->reserved0 = (intptr_t)util_wstr_unquote(u16, (const int)len);
+        p->reserved0 = (intptr_t)util_wstr_unquote(u16);
         return on_file_save(p, mode) == SKYLARK_OK;
     }
     return false;
@@ -288,6 +290,65 @@ eu_command_reload(const int t, const char *enc)
         on_tabpage_reload_file(p, 2);
         on_statusbar_update_coding(p);
         return true;
+    }
+    return false;
+}
+
+bool
+eu_command_tabs_hint(const char *str, const bool focus)
+{
+    wchar_t *u16 = eu_utf8_utf16(str, NULL);
+    eu_tabpage *pnode = on_tabpage_focus_at();
+    if (pnode && u16 && util_wstr_unquote(u16))
+    {
+        int count, index;
+        int save = -1;
+        for (index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        {
+            eu_tabpage *p = on_tabpage_get_ptr(index);
+            if (p && p != pnode && _tcsicmp(p->filename, u16) == 0)
+            {
+                save = index;
+                break;
+            }
+        }
+        if (save == -1)
+        {
+            for (index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+            {
+                eu_tabpage *p = on_tabpage_get_ptr(index);
+                if (p && p != pnode && _tcsnicmp(p->filename, u16, _tcslen(u16)) == 0)
+                {
+                    save = index;
+                    break;
+                }
+            }
+        }
+        if (save == -1)
+        {
+            for (index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+            {
+                eu_tabpage *p = on_tabpage_get_ptr(index);
+                if (p && p != pnode && eu_tcasestr(p->filename, u16))
+                {
+                    save = index;
+                    break;
+                }
+            }
+        }
+        if (save != -1)
+        {
+            if (focus)
+            {
+                TabCtrl_SetCurFocus(g_tabpages, save);
+                InvalidateRect(g_tabpages, NULL, TRUE);
+            }
+            else
+            {
+                on_tabpage_active_one(save);
+            }
+            return true;
+        }
     }
     return false;
 }
