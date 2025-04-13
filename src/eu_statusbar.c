@@ -738,7 +738,7 @@ on_statusbar_update_line(eu_tabpage *pnode)
         sptr_t row = 0;
         util_postion_xy(pnode, -1, &lineno, &row);
         eu_i18n_load_str(IDS_STATUS_XY, m_xy, 0);
-        _sntprintf(s_xy, FILESIZE - 1, m_xy, lineno, row);
+        _sntprintf(s_xy, FILESIZE - 1, m_xy, (size_t)lineno, (size_t)row);
     }
     on_statusbar_set_text(g_statusbar, 1, s_xy);
 }

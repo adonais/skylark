@@ -2964,6 +2964,10 @@ util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py)
 {
     if (pnode)
     {
+        if (!pnode->initial)
+        {
+            pos = pnode->nc_pos;
+        }
         if (pos < 0 && (pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
         {
             pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
