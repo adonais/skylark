@@ -713,7 +713,7 @@ on_file_preload(eu_tabpage *pnode, file_backup *pbak)
     }
     else 
     {
-        pnode->hex_mode = pbak->hex;     
+        pnode->hex_mode = pbak->hex;
     }
     if (url_has_remote(pfull))
     {
@@ -941,39 +941,59 @@ on_file_update_postion(eu_tabpage *p, const file_backup *pbak)
 {
     if (p)
     {
+        sptr_t line = 0;
         const intptr_t x = pbak ? pbak->x : p->x;
         const intptr_t y = pbak ? pbak->y : p->y;
         if (p->hex_mode)
         {
-            if (p->nc_pos <= 0)
+            if (x >= 0)
             {
-                if (x >= 0)
-                {
-                    p->nc_pos = (x > 0 ? x - 1 : x) * 16;
-                }
-                if (y >= 0)
-                {
-                    p->nc_pos += y % 16;
-                }
+                p->nc_pos = (x > 0 ? x - 1 : x) * 16;
+            }
+            else if (x == -2)
+            {
+                line = on_sci_call(p, SCI_GETLINECOUNT, 0, 0);
+                p->nc_pos = line > 0 ? (line - 1) * 16 : 0;
+            }
+            if (y >= 0)
+            {
+                p->nc_pos += (y > 0 ? y - 1 : y) % 16;
+            }
+            else if (y == -2)
+            {
+                p->nc_pos += 16 - 1;
             }
         }
         else
         {
-            sptr_t pos = on_sci_call(p, SCI_POSITIONFROMLINE, x > 0 ? x - 1 : 0, 0);
-            sptr_t line_end_pos = on_sci_call(p, SCI_GETLINEENDPOSITION, x > 0 ? x - 1 : 0, 0);
-            pos += (y > 0 ? y - 1 : 0);
-            if (pos > line_end_pos)
+            if (x >= 0)
             {
-                pos = line_end_pos;
+                p->nc_pos = on_sci_call(p, SCI_POSITIONFROMLINE, x > 0 ? x - 1 : 0, 0);
             }
-            if (pos > 0)
+            else if (x == -2)
             {
-                p->nc_pos = pos;
+                line = on_sci_call(p, SCI_GETLINECOUNT, 0, 0);
+                p->nc_pos = on_sci_call(p, SCI_GETLINEENDPOSITION, line - 1, 0) + (sptr_t)strlen(on_encoding_get_eol(p));
             }
-            if (p->nc_pos < 0)
+            if (y >= 0)
             {
-                p->nc_pos = 0;
+                p->nc_pos += (y > 0 ? y - 1 : 0);
             }
+            else if (y == -2)
+            {
+                if (x == -2)
+                {
+                    p->nc_pos = on_sci_call(p, SCI_GETLENGTH, 0, 0);
+                }
+                else if (x >= 0)
+                {
+                    p->nc_pos = on_sci_call(p, SCI_GETLINEENDPOSITION, x > 0 ? x - 1 : 0, 0);
+                }
+            }
+        }
+        if (p->nc_pos < 0)
+        {
+            p->nc_pos = 0;
         }
     }
 }
@@ -1146,13 +1166,7 @@ on_file_after_open(eu_tabpage *pnode)
         }
         if (pnode->tab_focus > 0)
         {
-            if ((pnode->tab_id = on_tabpage_selection(pnode)) >= 0)
-            {
-                if (!_InterlockedCompareExchange(&pnode->initial, 1, 0) && pnode->nc_pos >= 0)
-                {
-                    on_search_jmp_pos(pnode);
-                }
-            }
+            pnode->tab_id = on_tabpage_selection(pnode);
         }
         else
         {
@@ -1504,6 +1518,7 @@ on_file_drop(HDROP hdrop)
         on_file_redirect(vbak, count);
     }
     eu_wine_dotool();
+    SwitchToThisWindow(eu_hwnd_self(), TRUE);
     return SKYLARK_OK;
 }
 
@@ -2445,7 +2460,6 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
             {
                 filebak.sync = (int)(url_has_remote(filebak.rel_path) ? 1 :
                                (TabCtrl_GetItemCount(g_tabpages) <= 1 && eu_get_config()->m_exit) ? 1 : 0);
-
                 eu_update_backup_table(&filebak, DB_FILE);
                 on_sql_delete_backup_row(pnode);
             }
@@ -2556,6 +2570,7 @@ on_file_close(eu_tabpage **ppnode, const CLOSE_MODE mode)
     }
     if (!err)
     {
+        (*ppnode)->tab_id = on_tabpage_get_index(*ppnode);
         if (eu_get_config()->m_session && mode != FILE_FORCE_CLOSE)
         {
             on_file_save_backup((*ppnode), mode);

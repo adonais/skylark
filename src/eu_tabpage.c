@@ -524,7 +524,7 @@ on_tabpage_send_file(const HWND hwin, const int index)
     eu_tabpage *p = on_tabpage_get_ptr(index);
     if (p && (!p->is_blank  || TAB_NOT_NUL(p)))
     {
-        file_backup bak = {0};
+        file_backup bak = {-1, -1, 0, -1, -1};
         int err = SKYLARK_NOT_OPENED;
         _tcsncpy(bak.rel_path, p->pathfile, _countof(bak.rel_path));
         if (!eu_get_config()->m_session)
@@ -562,7 +562,6 @@ on_tabpage_send_file(const HWND hwin, const int index)
         if (err == SKYLARK_OK)
         {
             bak.focus = 1;
-            bak.tab_id = -1;
             COPYDATASTRUCT cpd = {1};
             cpd.lpData = (PVOID) &bak;
             cpd.cbData = (DWORD) sizeof(file_backup);
@@ -1602,18 +1601,24 @@ on_tabpage_focus_at(void)
 int
 on_tabpage_selection(const eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    eu_tabpage *p = NULL;
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    if (pnode != NULL && g_tabpages != NULL)
     {
-        if ((p = on_tabpage_get_ptr(index)) && p == pnode)
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            on_tabpage_set_active(index);
-            eu_window_resize();
-            on_sci_wrap_mode(p);
-            on_toolbar_update_button();
-            util_set_title(p);
-            return index;
+            if ((p = on_tabpage_get_ptr(index)) && p == pnode)
+            {
+                on_tabpage_set_active(index);
+                if (!_InterlockedCompareExchange(&p->initial, 1, 0) && p->nc_pos >= 0)
+                {
+                    on_search_jmp_pos(p);
+                }
+                eu_window_resize();
+                on_sci_wrap_mode(p);
+                on_toolbar_update_button();
+                util_set_title(p);
+                return index;
+            }
         }
     }
     return SKYLARK_NOT_OPENED;
@@ -1670,6 +1675,10 @@ on_tabpage_select_index(const int index)
         on_sci_wrap_mode(p);
         on_toolbar_update_button();
         util_set_title(p);
+        if (!_InterlockedCompareExchange(&p->initial, 1, 0) && p->nc_pos >= 0)
+        {
+            on_search_jmp_pos(p);
+        }
     }
 }
 

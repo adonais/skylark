@@ -39,10 +39,18 @@ on_config_setup_postion(const wchar_t **args, int arg_c, file_backup *pbak)
             if (!_tcsncmp(ptr_arg[i], _T("-n"), 2) && _tcslen(ptr_arg[i]) > 2)
             {
                 pbak->x = _tstoz(&ptr_arg[i][2]);
+                if (pbak->x == -1)
+                {
+                    pbak->x = -2;
+                }
             }
             else if (!_tcsncmp(ptr_arg[i], _T("-c"), 2) && _tcslen(ptr_arg[i]) > 2)
             {
                 pbak->y = _tstoi(&ptr_arg[i][2]);
+                if (pbak->y == -1)
+                {
+                    pbak->y = -2;
+                }
             }
         }
         if (args != (const wchar_t **)ptr_arg)
@@ -108,7 +116,7 @@ on_config_open_args(file_backup **pbak)
 static int
 on_config_parser_bakup(void *data, int count, char **column, char **names)
 {
-    file_backup filebak = {0};
+    file_backup filebak = {-1, -1, 0, -1, -1};
     file_backup **pbak = (file_backup **)data;
     for (int i = 0; i < count; ++i)
     {
@@ -185,14 +193,12 @@ on_config_parser_one(void *data, int count, char **column, char **names)
 {
     int tab_id = -1;
     bool done = false;
-    file_backup filebak = {0};
+    file_backup filebak = {-1, -1, 0, -1, -1};
     file_backup **pbak = (file_backup **)data;
     if (cvector_size(*pbak) == 1)
     {
         done = true;
-        memcpy(&filebak, &(*pbak)[0], sizeof(file_backup));
-        tab_id = filebak.tab_id;
-        cvector_pop_back(*pbak);
+        tab_id = (*pbak)[0].tab_id;
     }
     for (int i = 0; i < count; ++i)
     {
@@ -271,7 +277,7 @@ on_config_load_file(void *lp)
 {
     int error = 0;
     size_t count = 0;
-    file_backup bak = {0};
+    file_backup bak = {-1, -1, 0, -1, -1};
     cvector_vector_type(file_backup) vbak = NULL;
     if (eu_get_config()->m_session)
     {
