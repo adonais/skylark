@@ -134,6 +134,7 @@ void on_search_turn_select(eu_tabpage *pnode);
 void on_search_regxp_error(void);
 void on_search_jmp_next_history(const eu_tabpage *pnode);
 void on_search_do_space(const eu_tabpage *pnode, const char *key, const char *str_replace, replace_event docase);
+void on_search_jmp_now(const eu_tabpage *p, const sptr_t line);
 
 #ifdef __cplusplus
 }

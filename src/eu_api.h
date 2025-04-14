@@ -966,6 +966,7 @@ EU_EXT_CLASS bool eu_command_saveas(const int t, const char *path, const int mod
 EU_EXT_CLASS bool eu_command_search(const int t, const char *key, const uint32_t opt);
 EU_EXT_CLASS bool eu_command_replace(const int t, const char *key, const char *replace, const sptr_t n1, const sptr_t n2, const uint32_t opt);
 EU_EXT_CLASS bool eu_command_tabs_hint(const char *str, const bool focus);
+EU_EXT_CLASS void eu_command_jump(const int t, const intptr_t line);
 
 /* for eu_columnctl.c */
 EU_EXT_CLASS HWND eu_column_hwnd(void);

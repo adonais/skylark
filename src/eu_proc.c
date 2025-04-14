@@ -347,16 +347,9 @@ on_proc_tab_click(eu_tabpage *pnode)
             on_sci_wrap_mode(pnode);
             on_proc_msg_size(NULL, pnode);
         }
-        if (pnode->nc_pos >= 0 && eu_get_config()->scroll_to_cursor)
+        if (eu_get_config()->scroll_to_cursor)
         {
-            if (TAB_HEX_MODE(pnode))
-            {
-                on_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
-            }
-            else
-            {
-                on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
-            }
+            on_sci_scroll(pnode);
         }
     }
 }

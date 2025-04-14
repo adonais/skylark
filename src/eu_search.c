@@ -968,9 +968,25 @@ on_search_jmp_end(const eu_tabpage *pnode)
 }
 
 void
+on_search_jmp_now(const eu_tabpage *p, const sptr_t line)
+{
+    if (p)
+    {
+        if (TAB_HEX_MODE(p))
+        {
+            SendMessage(p->hwnd_sc, HVM_GOPOS, line, 0);
+        }
+        else
+        {
+            const sptr_t pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+            on_search_jmp_line(p, line - 1, on_sci_call(p, SCI_LINEFROMPOSITION, pos, 0));
+        }
+    }
+}
+
+void
 on_search_jmp_specified_line(const eu_tabpage *pnode)
 {
-    sptr_t line = 0;
     TCHAR lineno[32] = {0};
     TCHAR tip_str[MAX_LOADSTRING]  = {0};
     if (pnode && !pnode->pmod)
@@ -985,22 +1001,7 @@ on_search_jmp_specified_line(const eu_tabpage *pnode)
         }
         if (eu_input(tip_str, lineno, _countof(lineno)))
         {
-            if (TAB_HEX_MODE(pnode))
-            {
-
-                if (_stscanf(lineno, _T("%zx"), &line) == 1)
-                {
-                    SendMessage(pnode->hwnd_sc, HVM_GOPOS, line, 0);
-                }
-
-            }
-            else
-            {
-                line = _tstoz(lineno);
-                sptr_t pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
-                sptr_t current_line = on_sci_call(pnode, SCI_LINEFROMPOSITION, pos, 0);
-                on_search_jmp_line(pnode, line - 1, current_line);
-            }
+            on_search_jmp_now(pnode, _tstoz(lineno));
         }
     }
 }

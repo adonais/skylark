@@ -229,6 +229,18 @@ function switch_lasttab()
     end
 end
 
+function goto_linenumber(str)
+    local line = nil
+    if (str == 'c') then
+        line = -1;
+    elseif (str == 'g') then
+        line = eu.line_total(-1)
+    else
+        line = tonumber(str)
+    end
+    if (line ~= nil) then eu.api.eu_command_jump(-1, line) end
+end
+
 local cmd_matrix =
 {
     {"^enc=([%w_-]+)",                      encoding_action },
@@ -252,6 +264,8 @@ local cmd_matrix =
     {"^tc(%d+)$",                           close_onetab    },
     {"^tt$",                                switch_lasttab  },
     {"^t(%d+)$",                            switch_onetab   },
+    {"^g(%d+)$",                            goto_linenumber },
+    {"^g([cg])$",                           goto_linenumber },
 }
 
 function skylark_cmd(p)

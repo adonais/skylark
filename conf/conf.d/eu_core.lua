@@ -428,6 +428,7 @@ int eu_tab_focus_index(void);
 int eu_tab_last_index(void);
 void eu_tab_select(const int index);
 
+void eu_command_jump(const int t, const intptr_t line);
 void eu_command_launch(const int t);
 /* 重设文件编码 */
 bool eu_command_reload(const int t, const char *enc);

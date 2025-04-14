@@ -227,6 +227,24 @@ eu_command_replace(const int t, const char *key, const char *replace, const sptr
     return false;
 }
 
+void
+eu_command_jump(const int t, const intptr_t line)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    if (p && !p->pmod)
+    {
+        if (line == -1)
+        {
+            on_sci_scroll(p);
+        }
+        else if (line >= 0)
+        {
+            on_search_jmp_now(p, line);
+        }
+        SetFocus(p->hwnd_sc);
+    }
+}
+
 bool
 eu_command_xsave(const int t)
 {

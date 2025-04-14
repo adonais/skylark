@@ -346,6 +346,22 @@ on_sci_wrap_mode(const eu_tabpage *p)
 }
 
 void
+on_sci_scroll(const eu_tabpage *p)
+{
+    if (p)
+    {
+        if (TAB_HEX_MODE(p))
+        {
+            on_sci_call(p, SCI_GOTOPOS, SendMessage(p->hwnd_sc, HVM_GETHEXADDR, 0, 0), 0);
+        }
+        else
+        {
+            on_sci_call(p, SCI_SCROLLCARET, 0, 0);
+        }
+    }
+}
+
+void
 on_sci_update_filesize(eu_tabpage *pnode)
 {
     if (pnode && !pnode->plugin)
