@@ -201,6 +201,7 @@ HFONT util_create_font(const char* name, const int font_size, const bool bold);
 HBITMAP util_icon_bitmap(HICON hicon, const int width, const int height);
 HBITMAP util_shield_icon(HINSTANCE hinst, LPCTSTR name);
 HRESULT util_shortcut(const WCHAR *pfile, const bool create);
+char *util_io_file(const TCHAR *path);
 
 #ifdef __cplusplus
 }

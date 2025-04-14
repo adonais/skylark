@@ -431,6 +431,7 @@ int  eu_command_save(const int t);
 void eu_command_jump(const int t, const intptr_t line);
 void eu_command_launch(const int t);
 void eu_command_which(const char *str);
+void eu_command_run(const int t, const char *str, const bool fnclose);
 /* 重设文件编码 */
 bool eu_command_reload(const int t, const char *enc);
 bool eu_command_convert(const int t, const char *enc);

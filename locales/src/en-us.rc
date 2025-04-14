@@ -1523,6 +1523,7 @@ STRINGTABLE DISCARDABLE
     IDS_WHICH_EXIST         "» » %s"
     IDS_NOT_SUPPORTED       "» » An unsupported operation"
     IDS_SAVE_HOME           "» » The document is saved in the user's home directory"
+    IDS_CMDS_ERROR          "» » File open failed or empty file"
 }
 
 /////////////////////////////////////////////////////////////////////////////

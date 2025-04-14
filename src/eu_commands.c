@@ -173,7 +173,7 @@ bool
 eu_command_search(const int t, const char *key, const uint32_t opt)
 {
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && TAB_HAS_TXT(p))
+    if (RESULT_SHOW(p) && TAB_HAS_TXT(p))
     {
         if (on_command_find(p, key, opt | SCCMD_LOOP))
         {
@@ -188,7 +188,7 @@ bool
 eu_command_replace(const int t, const char *key, const char *replace, const sptr_t n1, const sptr_t n2, const uint32_t opt)
 {
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && TAB_HAS_TXT(p) && STR_NOT_NUL(key) && replace)
+    if (RESULT_SHOW(p) && TAB_HAS_TXT(p) && STR_NOT_NUL(key) && replace)
     {
         sptr_t offset = 0;
         sptr_t start = 0;
@@ -239,7 +239,7 @@ void
 eu_command_jump(const int t, const intptr_t line)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    if (p && !p->pmod)
+    if (RESULT_SHOW(p) && !p->pmod)
     {
         if (line == -1)
         {
@@ -257,7 +257,7 @@ int
 eu_command_save(const int t)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    if (p)
+    if (RESULT_SHOW(p))
     {
         if (p->is_blank)
         {
@@ -275,7 +275,7 @@ bool
 eu_command_xsave(const int t)
 {
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && !p->pmod)
+    if (RESULT_SHOW(p) && !p->pmod)
     {
         if (p->is_blank || url_has_remote(p->pathfile))
         {
@@ -306,7 +306,7 @@ eu_command_saveas(const int t, const char *path, const int mode)
 {
     wchar_t *u16 = eu_utf8_utf16(path, NULL);
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && u16)
+    if (RESULT_SHOW(p) && u16)
     {
         if (_strnicmp(path, "sftp://", URL_MIN) == 0)
         {
@@ -329,7 +329,7 @@ bool
 eu_command_convert(const int t, const char *enc)
 {
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && TAB_HAS_TXT(p))
+    if (RESULT_SHOW(p) && TAB_HAS_TXT(p))
     {
         int index = IDM_UNKNOWN;
         if ((index = eu_query_encoding_index(enc)) == IDM_UNKNOWN || p->is_blank)
@@ -349,7 +349,7 @@ bool
 eu_command_reload(const int t, const char *enc)
 {
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && TAB_HAS_TXT(p))
+    if (RESULT_SHOW(p) && TAB_HAS_TXT(p))
     {
         int index = IDM_UNKNOWN;
         if ((index = eu_query_encoding_index(enc)) == IDM_UNKNOWN || p->is_blank)
@@ -424,6 +424,40 @@ eu_command_tabs_hint(const char *str, const bool focus)
         }
     }
     return false;
+}
+
+void
+eu_command_run(const int t, const char *str, const bool fnclose)
+{
+    eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
+    wchar_t *u16 = eu_utf8_utf16(str, NULL);
+    if (RESULT_SHOW(p) && u16)
+    {
+        int err = SKYLARK_OK;
+        wchar_t path[MAX_BUFFER] = {0};
+        if (u16[1] != ':')
+        {
+            _snwprintf(path, MAX_BUFFER, _T("%s\\script-opts\\%s"), eu_config_path, u16);
+        }
+        else
+        {
+            _snwprintf(path, MAX_BUFFER, _T("%s"), u16);
+        }
+        free(u16);
+        if ((p->cmds_buffer = util_io_file(path)) == NULL)
+        {
+            on_command_output(IDS_CMDS_ERROR);
+            err = SKYLARK_ERROR;
+        }
+        else
+        {   // cmds_buffer内存由被调用者释放
+            err = on_toolbar_lua_exec(p);
+        }
+        if (fnclose && !err)
+        {
+            SendMessageW(p->presult->hwnd_sc, WM_COMMAND, MAKELONG(IDM_RESULT_CLOSE, 0), 0);
+        }
+    }
 }
 
 void

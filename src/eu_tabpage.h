@@ -104,6 +104,8 @@ struct _tabpage
     int view;                   // 标签所在视图
     remotefs fs_server;         // SFTP
     PHEXVIEW phex;              // 二进制视图
+    char *cmds_buffer;          // 命令行窗口可能用到的缓存区
+    char *pcre_buffer;          // 正则匹配可能用到的缓存区
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
     eu_tabpage *presult;        // 文档搜索结果的节点指针
     doctype_t *doc_ptr;         // 文件类型指针

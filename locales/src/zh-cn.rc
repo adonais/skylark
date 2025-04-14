@@ -1521,6 +1521,7 @@ STRINGTABLE DISCARDABLE
     IDS_WHICH_EXIST         "» » %s"
     IDS_NOT_SUPPORTED       "» » 不支持的操作"
     IDS_SAVE_HOME           "» » 文档保存在用户主目录"
+    IDS_CMDS_ERROR          "» » 文件打开失败或空文件"
 }
 
 /////////////////////////////////////////////////////////////////////////////

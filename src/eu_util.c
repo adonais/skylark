@@ -73,7 +73,7 @@ static volatile int64_t milli_second = 0;
     }
 
 static pwine_get_version fn_wine_get_version;
-static char const out_of_mem[] = "no memory for %zu byte allocation\n";
+static char const out_of_mem[] = "Util: no memory for %zu byte allocation\n";
 
 static int64_t
 clock_gettime_ms(void)
@@ -208,7 +208,7 @@ util_lock_v2(eu_tabpage *p)
                 {
                     while (MsgWaitForMultipleObjects(1, &wait_handle, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0 + 1)
                     {
-                        eu_logmsg("Have a message, peek and dispatch it\n");
+                        eu_logmsg("Util: have a message, peek and dispatch it\n");
                         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
                         {
                             TranslateMessage(&msg);
@@ -283,7 +283,7 @@ util_under_wine(void)
     }
     if ((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
     {
-        eu_logmsg("Running on Wine... %s\n", fn_wine_get_version());
+        eu_logmsg("Util: running on wine [%s]\n", fn_wine_get_version());
         return true;
     }
     return false;
@@ -1996,7 +1996,7 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
     }
     if (!GetTempFileName(temp_path, _T("lua"), 0, file_path))
     {
-        eu_logmsg("GetTempFileName return false\n");
+        eu_logmsg("Util: GetTempFileName return false\n");
         return INVALID_HANDLE_VALUE;
     }
     if (STR_NOT_NUL(ext))
@@ -2137,7 +2137,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
     if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
     {
         *psize = 0;
-        eu_logmsg("GetFileSizeEx fail, case: %lu\n", GetLastError());
+        eu_logmsg("Util: GetFileSizeEx failed, case: %lu\n", GetLastError());
         return false;
     }
     return true;
@@ -2191,7 +2191,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 {
                     pstream->close = util_close_stream_by_munmap;
                     ret = true;
-                    eu_logmsg("File: use mapviewoffile\n");
+                    eu_logmsg("Util: use mapviewoffile\n");
                 }
             }
         }
@@ -2203,7 +2203,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                eu_logmsg("File: use readfile, bytesread = %u\n", bytesread);
+                eu_logmsg("Util: use readfile, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -2369,7 +2369,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if ((dw_size = pfnGetFileVersionInfoSizeW(filepath, &dw_handle)) == 0)
         {
-            eu_logmsg("pfnGetFileVersionInfoSizeW return false\n");
+            eu_logmsg("Util: pfnGetFileVersionInfoSizeW return false\n");
             break;
         }
         if ((pbuffer = (LPWSTR) calloc(1, dw_size * sizeof(WCHAR))) == NULL)
@@ -2378,7 +2378,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if (!pfnGetFileVersionInfoW(filepath, 0, dw_size, (LPVOID) pbuffer))
         {
-            eu_logmsg("pfnpfnGetFileVersionInfoW return false\n");
+            eu_logmsg("Util: pfnpfnGetFileVersionInfoW return false\n");
             break;
         }
         pfnVerQueryValueW((LPCVOID) pbuffer, L"\\VarFileInfo\\Translation", (LPVOID *) &lptranslate, &cb_translate);
@@ -3110,7 +3110,7 @@ util_try_path(LPCTSTR dir)
                            FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
         if (pfile == INVALID_HANDLE_VALUE)
         {
-            eu_logmsg("%s: create folder failed\n", __FUNCTION__);
+            eu_logmsg("Util: %s, create folder failed\n", __FUNCTION__);
         }
         CloseHandle(pfile);
     }
@@ -3165,7 +3165,7 @@ util_copy_file(LPCWSTR source, LPCWSTR dest, const bool fail_exist)
         {
             if (!FlushFileBuffers(recent_stream))
             {
-                eu_logmsg("FlushFileBuffers error\n");
+                eu_logmsg("Util: FlushFileBuffers error\n");
             }
         }
         CloseHandle(recent_stream);
@@ -3718,4 +3718,57 @@ util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata)
         cvector_free(sz_queue);
     }
     return (vec_size < cvector_size(*pout));
+}
+
+char*
+util_io_file(const TCHAR *path)
+{
+    char *pbuf = NULL;
+    FILE *fp = _tfopen(path, _T("rb"));
+    if (fp)
+    {
+        do
+        {
+            int size = -1;
+            size_t sz = 0;
+            if (fseek(fp, 0, SEEK_END) == -1)
+            {
+                break;
+            }
+            if ((size = (int)ftell(fp)) < 1 || size > BUFF_32M)
+            {
+                break;
+            }
+            if (fseek(fp, 0, SEEK_SET) == -1)
+            {
+                eu_logmsg("Util: %s, fseek failed\n", __FUNCTION__);
+                break;
+            }
+            if ((pbuf = (char *)calloc(1, size + 1)) == NULL)
+            {
+                eu_logmsg("Util: %s, malloc failed\n", __FUNCTION__);
+                break;
+            }
+            if (size >= 3 && fread(pbuf, 1, 3, fp) > 0 && memcmp(pbuf, "\xEF\xBB\xBF", 3) == 0)
+            {   // utf-8(bom) doc ?
+                memset(pbuf, 0, size + 1);
+                if (!feof(fp))
+                {
+                    sz = fread(pbuf, 1, size, fp);
+                }
+            }
+            else if (!feof(fp))
+            {
+                fseek(fp, 0, SEEK_SET);
+                memset(pbuf, 0, size + 1);
+                sz = fread(pbuf, 1, size, fp);
+            }
+            if (!sz)
+            {
+                eu_safe_free(pbuf);
+            }
+        } while(0);
+        fclose(fp);
+    }
+    return pbuf;
 }

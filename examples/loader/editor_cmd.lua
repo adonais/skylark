@@ -247,7 +247,7 @@ function which_action(str)
     end
 end
 
-function run_action(str)
+function exec_action(str)
     if (str ~= nil and str ~= "") then
         local s = nil
         local d = string.find(str, ",%d")
@@ -264,6 +264,17 @@ function run_action(str)
             eu.ffi.C.CloseHandle(eu.ffi.cast("void *", handle))
         end
     end
+end
+
+function run_action(str, fnclose)
+    if (str ~= nil and str ~= "") then
+        if (fnclose == nil) then fnclose = false end
+        eu.api.eu_command_run(-1, str, fnclose)
+    end
+end
+
+function runq_action(str)
+    run_action(str, true)
 end
 
 function quit_action()
@@ -300,7 +311,9 @@ local cmd_matrix =
     {"^g(%d+)$",                            goto_linenumber },
     {"^g([cg])$",                           goto_linenumber },
     {"^which%s+(.+)$",                      which_action    },
+    {"^exec%s+(.+)$",                       exec_action     },
     {"^run%s+(.+)$",                        run_action      },
+    {"^runq%s+(.+)$",                       runq_action     },
     {"^quit$",                              quit_action     },
     {"^ras$",                               restart_action  },
 }

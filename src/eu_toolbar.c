@@ -41,8 +41,6 @@
 #define BLUE_UNHOTCOLOR  "#D3D3D3"
 #define WINE_UNHOTCOLOR  "#696969"
 
-#define CHECK_IF(a) if ((a)!= 0) return false
-
 typedef struct _toolbar_data
 {
     int bmp_wh;
@@ -569,16 +567,18 @@ create_img_list(toolbar_data *pdata, const bool hot)
     return himg;
 }
 
-static bool
+static void
 close_stdout_redirect(FILE *console)
 {
-    /* restore original standard output handle */
-    CHECK_IF(_dup2(fd_stdout, _fileno(stdout)));
-    _close(fd_stdout);
-    _close(fd_pipe[WRITE_FD]);
-    _close(fd_pipe[READ_FD]);
+    if (fd_stdout && _dup2(fd_stdout, _fileno(stdout)) == 0)
+    {   /* restore original standard output handle */
+        _close(fd_stdout);
+        _close(fd_pipe[WRITE_FD]);
+        _close(fd_pipe[READ_FD]);
+        fd_stdout = 0;
+        _flushall();
+    }
     eu_close_console(console);
-    return true;
 }
 
 static bool
@@ -594,12 +594,8 @@ init_stdout_redirect(int size, FILE **pconsole)
         *pconsole = freopen("CONOUT$", "w", stdout);
         ShowWindow (FindWindow(_T("ConsoleWindowClass"), NULL), SW_HIDE);
     }
-    do
+    if ((_pipe(fd_pipe, size, _O_TEXT)) == 0)
     {
-        if ((_pipe(fd_pipe, size, _O_TEXT)) != 0)
-        {
-            break;
-        }
         int fd = _fileno(stdout);
         fd_stdout = _dup(fd);
         fflush(stdout);
@@ -608,7 +604,11 @@ init_stdout_redirect(int size, FILE **pconsole)
             setvbuf(stdout, NULL, _IONBF, 0);
             ret = true;
         }
-    }while(0);
+        else
+        {
+            _dup2(fd_stdout, fd);
+        }
+    }
     if (!ret)
     {
         eu_close_console(*pconsole);
@@ -640,29 +640,40 @@ on_toolbar_no_highlight(void *lp)
     on_sci_call((const eu_tabpage *)lp, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
 }
 
-void
+int
 on_toolbar_lua_exec(eu_tabpage *pnode)
 {
+    int err = SKYLARK_ERROR;
     char *buffer = NULL;
     FILE *console = NULL;
-    if (pnode && pnode->doc_ptr)
+    char *filename = NULL;
+    if (pnode)
     {
+        if (pnode->cmds_buffer)
+        {
+            buffer = pnode->cmds_buffer;
+            pnode->cmds_buffer = NULL;
+        }
+        else
+        {
+            buffer = util_strdup_content(pnode, NULL);
+            filename = eu_utf16_utf8(pnode->pathfile, NULL);
+        }
         if (!pnode->presult)
         {
             pnode->result_show = on_result_launch(pnode);
         }
-        if (RESULT_SHOW(pnode) && (buffer = util_strdup_content(pnode, NULL)) && init_stdout_redirect(MAX_OUTPUT_BUF, &console))
+        if (RESULT_SHOW(pnode) && buffer != NULL && init_stdout_redirect(MAX_OUTPUT_BUF, &console))
         {
             int read_len = 0;
             char *std_buffer = NULL;
-            char *filename = eu_utf16_utf8(pnode->pathfile, NULL);
             pnode->presult->pwant = on_toolbar_no_highlight;
             on_result_lexer(pnode->presult);
             eu_window_resize();
             do_lua_setting_path(pnode);
             if ((std_buffer = (char *)calloc(1, MAX_OUTPUT_BUF+1)))
             {
-                if (do_lua_code((const char *)buffer, filename) == 0)
+                if ((err = do_lua_code((const char *)buffer, filename)) == 0)
                 {
                     read_len = get_output_buffer(std_buffer, MAX_OUTPUT_BUF);
                 }
@@ -670,7 +681,6 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 {   // 写标准输出设备, 防止_read函数阻塞
                     fprintf(stdout, "Failed to execute Lua script\n");
                 }
-                close_stdout_redirect(console);
                 if (read_len > 0)
                 {
                     char *pstr = util_unix_newline(std_buffer, MAX_OUTPUT_BUF);
@@ -683,10 +693,12 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                 free(std_buffer);
             }
             do_lua_setting_path(NULL);
-            eu_safe_free(filename);
         }
     }
+    close_stdout_redirect(console);
     eu_safe_free(buffer);
+    eu_safe_free(filename);
+    return err;
 }
 
 static void
