@@ -1519,6 +1519,8 @@ STRINGTABLE DISCARDABLE
     IDS_COLUMN_FILL_SPACES  "补空格"
     IDS_WHICH_NONE          "» » 在 PATH 环境变量, 没有 %s"
     IDS_WHICH_EXIST         "» » %s"
+    IDS_NOT_SUPPORTED       "» » 不支持的操作"
+    IDS_SAVE_HOME           "» » 文档保存在用户主目录"
 }
 
 /////////////////////////////////////////////////////////////////////////////

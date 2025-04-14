@@ -694,7 +694,6 @@ EU_EXT_CLASS char *eu_file_name(const int t);
 EU_EXT_CLASS size_t eu_file_size(const int t);
 EU_EXT_CLASS int eu_file_close(const int t, const int mode);
 EU_EXT_CLASS int eu_file_open(const wchar_t *path);
-EU_EXT_CLASS int eu_file_save(const int t);
 EU_EXT_CLASS void eu_file_save_all(void);
 EU_EXT_CLASS intptr_t eu_value(void *p);
 EU_EXT_CLASS intptr_t eu_sci_cmd(const eu_tabpage *p, const int m, const sptr_t w, const sptr_t l);
@@ -968,6 +967,7 @@ EU_EXT_CLASS bool eu_command_replace(const int t, const char *key, const char *r
 EU_EXT_CLASS bool eu_command_tabs_hint(const char *str, const bool focus);
 EU_EXT_CLASS void eu_command_which(const char *str);
 EU_EXT_CLASS void eu_command_jump(const int t, const intptr_t line);
+EU_EXT_CLASS int  eu_command_save(const int t);
 
 /* for eu_columnctl.c */
 EU_EXT_CLASS HWND eu_column_hwnd(void);

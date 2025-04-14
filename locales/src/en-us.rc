@@ -1521,6 +1521,8 @@ STRINGTABLE DISCARDABLE
     IDS_COLUMN_FILL_SPACES  "Spaces"
     IDS_WHICH_NONE          "» » no %s in PATH environment variable"
     IDS_WHICH_EXIST         "» » %s"
+    IDS_NOT_SUPPORTED       "» » An unsupported operation"
+    IDS_SAVE_HOME           "» » The document is saved in the user's home directory"
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -228,7 +228,7 @@ end
 
 function eu.save_file(index)
     if (index == nil) then index = -1 end
-    return eu.api.eu_file_save(index)
+    return eu.api.eu_command_save(index)
 end
 
 return eu

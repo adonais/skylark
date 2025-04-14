@@ -1481,5 +1481,7 @@
 
 #define IDS_WHICH_NONE                      50230
 #define IDS_WHICH_EXIST                     50231
+#define IDS_NOT_SUPPORTED                   50232
+#define IDS_SAVE_HOME                       50233
 
 #endif  // _EU_TARGETVER_H_

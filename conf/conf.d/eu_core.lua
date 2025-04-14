@@ -403,7 +403,6 @@ char *eu_file_path(const int t);
 char *eu_file_name(const int t);
 int eu_file_close(const int t, const int mode);
 int eu_file_open(const wchar_t *path);
-int eu_file_save(const int t);
 int eu_msgbox(void *w, const wchar_t *txt, const wchar_t *cap, uint32_t type);
 intptr_t eu_file_size(const int t);
 intptr_t eu_end_positon(const int t);
@@ -428,6 +427,7 @@ int eu_tab_focus_index(void);
 int eu_tab_last_index(void);
 void eu_tab_select(const int index);
 
+int  eu_command_save(const int t);
 void eu_command_jump(const int t, const intptr_t line);
 void eu_command_launch(const int t);
 void eu_command_which(const char *str);

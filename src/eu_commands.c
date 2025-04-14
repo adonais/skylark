@@ -102,6 +102,14 @@ on_command_common_search(eu_tabpage *pnode, const char *key, sptr_t start_pos, s
     return false;
 }
 
+static void
+on_command_output(const int res)
+{
+    char msg[MAX_PATH] = {0};
+    LOAD_I18N_RESSTR(res, info);
+    on_result_append_text_utf8(util_make_u8(info, msg, MAX_PATH));
+}
+
 static bool
 on_command_find(eu_tabpage *pnode, const char *key, const uint32_t flags)
 {
@@ -137,7 +145,7 @@ void
 eu_command_launch(const int index)
 {
     eu_tabpage *p = index < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(index);
-    if (p && !p->is_blank && TAB_HAS_TXT(p))
+    if (p && TAB_HAS_TXT(p))
     {
         if (RESULT_SHOW(p) && p->presult->pwant == on_command_light && index < 0)
         {
@@ -245,24 +253,49 @@ eu_command_jump(const int t, const intptr_t line)
     }
 }
 
+int
+eu_command_save(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    if (p)
+    {
+        if (p->is_blank)
+        {
+            on_command_output(IDS_NOT_SUPPORTED);
+        }
+        else
+        {
+            on_file_save((eu_tabpage *)p, SAVE_ONLY);
+        }
+    }
+    return EUE_POINT_NULL;
+}
+
 bool
 eu_command_xsave(const int t)
 {
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && !p->is_blank && !url_has_remote(p->pathfile))
+    if (p && !p->pmod)
     {
-        struct _stat st = {0};
-        struct _utimbuf ut = {0};
-        if (_tstat(p->pathfile, &st) == 0)
+        if (p->is_blank || url_has_remote(p->pathfile))
         {
-            ut.actime = st.st_atime;
-            ut.modtime = st.st_mtime;
+            on_command_output(IDS_NOT_SUPPORTED);
         }
-        if (ut.modtime > 0 && on_file_save(p, SAVE_ONLY) == SKYLARK_OK && _tutime(p->pathfile, &ut) == 0)
+        else
         {
-            p->st_mtime = ut.modtime;
-            on_statusbar_update_fileinfo(p, NULL);
-            return true;
+            struct _stat st = {0};
+            struct _utimbuf ut = {0};
+            if (_tstat(p->pathfile, &st) == 0)
+            {
+                ut.actime = st.st_atime;
+                ut.modtime = st.st_mtime;
+            }
+            if (ut.modtime > 0 && on_file_save(p, SAVE_ONLY) == SKYLARK_OK && _tutime(p->pathfile, &ut) == 0)
+            {
+                p->st_mtime = ut.modtime;
+                on_statusbar_update_fileinfo(p, NULL);
+                return true;
+            }
         }
     }
     return false;
@@ -275,8 +308,19 @@ eu_command_saveas(const int t, const char *path, const int mode)
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
     if (p && u16)
     {
-        p->reserved0 = (intptr_t)util_wstr_unquote(u16);
-        return on_file_save(p, mode) == SKYLARK_OK;
+        if (_strnicmp(path, "sftp://", URL_MIN) == 0)
+        {
+            on_command_output(IDS_NOT_SUPPORTED);
+        }
+        else
+        {
+            p->reserved0 = (intptr_t)util_wstr_unquote(u16);
+            if (((TCHAR *)p->reserved0)[1] != ':' && (p->is_blank || url_has_remote(p->pathfile)))
+            {
+                on_command_output(IDS_SAVE_HOME);
+            }
+            return on_file_save(p, mode) == SKYLARK_OK;
+        }
     }
     return false;
 }
@@ -284,11 +328,15 @@ eu_command_saveas(const int t, const char *path, const int mode)
 bool
 eu_command_convert(const int t, const char *enc)
 {
-    int index = IDM_UNKNOWN;
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && !p->is_blank && TAB_HAS_TXT(p) && (index = eu_query_encoding_index(enc)) != IDM_UNKNOWN)
+    if (p && TAB_HAS_TXT(p))
     {
-        if (on_statusbar_convert_coding(p, index) == SKYLARK_OK)
+        int index = IDM_UNKNOWN;
+        if ((index = eu_query_encoding_index(enc)) == IDM_UNKNOWN || p->is_blank)
+        {
+            on_command_output(IDS_NOT_SUPPORTED);
+        }
+        else if (on_statusbar_convert_coding(p, index) == SKYLARK_OK)
         {
             on_statusbar_update_coding(p);
             return true;
@@ -300,14 +348,21 @@ eu_command_convert(const int t, const char *enc)
 bool
 eu_command_reload(const int t, const char *enc)
 {
-    int index = IDM_UNKNOWN;
     eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
-    if (p && !p->is_blank && TAB_HAS_TXT(p) && (index = eu_query_encoding_index(enc)) != IDM_UNKNOWN)
+    if (p && TAB_HAS_TXT(p))
     {
-        p->codepage = index;
-        on_tabpage_reload_file(p, 2);
-        on_statusbar_update_coding(p);
-        return true;
+        int index = IDM_UNKNOWN;
+        if ((index = eu_query_encoding_index(enc)) == IDM_UNKNOWN || p->is_blank)
+        {
+            on_command_output(IDS_NOT_SUPPORTED);
+        }
+        else
+        {
+            p->codepage = index;
+            on_tabpage_reload_file(p, 2);
+            on_statusbar_update_coding(p);
+            return true;
+        }
     }
     return false;
 }

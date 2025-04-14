@@ -3327,13 +3327,6 @@ eu_file_save_all(void)
 }
 
 int
-eu_file_save(const int t)
-{
-    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    return p ? on_file_save((eu_tabpage *)p, SAVE_ONLY) : EUE_POINT_NULL;
-}
-
-int
 eu_file_open(const wchar_t *path)
 {
     if (STR_NOT_NUL(path) && eu_exist_file(path))
