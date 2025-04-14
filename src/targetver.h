@@ -1479,4 +1479,7 @@
 #define IDS_COLUMN_FILL_SPACES              (IDD_COLUMNEDIT_DLG + 18)
 #define IDM_EDIT_COLUMN_EXEC                (IDD_COLUMNEDIT_DLG + 20)
 
+#define IDS_WHICH_NONE                      50230
+#define IDS_WHICH_EXIST                     50231
+
 #endif  // _EU_TARGETVER_H_

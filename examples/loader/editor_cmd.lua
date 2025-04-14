@@ -241,6 +241,39 @@ function goto_linenumber(str)
     if (line ~= nil) then eu.api.eu_command_jump(-1, line) end
 end
 
+function which_action(str)
+    if (str ~= nil and str ~= "") then
+        eu.api.eu_command_which(str)
+    end
+end
+
+function run_action(str)
+    if (str ~= nil and str ~= "") then
+        local s = nil
+        local d = string.find(str, ",%d")
+        if (d ~= nil) then
+            s = string.sub(str, 1, d - 1)
+            d = string.sub(str, d + 1, #str)
+        else
+            s = str
+            d = 3
+        end
+        local handle, pid = eu.create_process(s, nil, tonumber(d))
+        if (handle ~= nil) then
+            -- print(string.format("we create proces, pid = %u\n", pid))
+            eu.ffi.C.CloseHandle(eu.ffi.cast("void *", handle))
+        end
+    end
+end
+
+function quit_action()
+    eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_EXIT, 0)
+end
+
+function restart_action()
+    eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_FILE_RESTART_ADMIN, 0)
+end
+
 local cmd_matrix =
 {
     {"^enc=([%w_-]+)",                      encoding_action },
@@ -266,6 +299,10 @@ local cmd_matrix =
     {"^t(%d+)$",                            switch_onetab   },
     {"^g(%d+)$",                            goto_linenumber },
     {"^g([cg])$",                           goto_linenumber },
+    {"^which%s+(.+)$",                      which_action    },
+    {"^run%s+(.+)$",                        run_action      },
+    {"^quit$",                              quit_action     },
+    {"^ras$",                               restart_action  },
 }
 
 function skylark_cmd(p)

@@ -370,3 +370,20 @@ eu_command_tabs_hint(const char *str, const bool focus)
     }
     return false;
 }
+
+void
+eu_command_which(const char *str)
+{
+    char *path = NULL;
+    char msg[MAX_PATH] = {0};
+    if (eu_which(str, &path))
+    {
+        LOAD_I18N_RESSTR(IDS_WHICH_EXIST, info);
+        on_result_append_text_utf8(util_make_u8(info, msg, MAX_PATH), path);
+    }
+    else
+    {
+        LOAD_I18N_RESSTR(IDS_WHICH_NONE, info);
+        on_result_append_text_utf8(util_make_u8(info, msg, MAX_PATH), str);
+    }
+}

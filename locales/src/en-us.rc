@@ -1519,6 +1519,8 @@ STRINGTABLE DISCARDABLE
     IDS_COLUMN_FILL_NONE    "None"
     IDS_COLUMN_FILL_ZEROS   "Zeros"
     IDS_COLUMN_FILL_SPACES  "Spaces"
+    IDS_WHICH_NONE          "» » no %s in PATH environment variable"
+    IDS_WHICH_EXIST         "» » %s"
 }
 
 /////////////////////////////////////////////////////////////////////////////

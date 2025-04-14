@@ -630,7 +630,7 @@ EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);
 // eu_api.c
 EU_EXT_CLASS bool eu_touch(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_path(const char *path);
-EU_EXT_CLASS bool eu_which(const char *path);
+EU_EXT_CLASS bool eu_which(const char *path, char **pout);
 EU_EXT_CLASS bool eu_mk_dir(LPCTSTR dir);
 EU_EXT_CLASS bool eu_exist_dir(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_file(LPCTSTR path);
@@ -966,6 +966,7 @@ EU_EXT_CLASS bool eu_command_saveas(const int t, const char *path, const int mod
 EU_EXT_CLASS bool eu_command_search(const int t, const char *key, const uint32_t opt);
 EU_EXT_CLASS bool eu_command_replace(const int t, const char *key, const char *replace, const sptr_t n1, const sptr_t n2, const uint32_t opt);
 EU_EXT_CLASS bool eu_command_tabs_hint(const char *str, const bool focus);
+EU_EXT_CLASS void eu_command_which(const char *str);
 EU_EXT_CLASS void eu_command_jump(const int t, const intptr_t line);
 
 /* for eu_columnctl.c */

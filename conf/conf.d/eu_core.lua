@@ -420,7 +420,7 @@ intptr_t eu_value(void *p);
 /* 是否运行在Linux/Wine */
 bool eu_under_wine(void);
 /* 文件是否在环境变量路径中 */
-bool eu_which(const char *path);
+bool eu_which(const char *path, char **pout);
 /* 获取系统版本 */
 const uint32_t eu_win10_or_later(void);
 
@@ -430,6 +430,7 @@ void eu_tab_select(const int index);
 
 void eu_command_jump(const int t, const intptr_t line);
 void eu_command_launch(const int t);
+void eu_command_which(const char *str);
 /* 重设文件编码 */
 bool eu_command_reload(const int t, const char *enc);
 bool eu_command_convert(const int t, const char *enc);

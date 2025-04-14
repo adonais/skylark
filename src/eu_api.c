@@ -180,7 +180,7 @@ static eue_code eue_extra[] =
     {IDM_ICONV_027, "KZ-1048"}             ,
     {IDM_ICONV_028, "MULELAO-1"}           ,
     {IDM_ICONV_029, "CP1133"}              ,
-    {IDM_ICONV_030, "ISO-IR-166 "}         ,
+    {IDM_ICONV_030, "ISO-IR-166"}          ,
     {IDM_ICONV_031, "CP874"}               ,
     {IDM_ICONV_032, "VISCII"}              ,
     {IDM_ICONV_033, "TCVN"}                ,
@@ -3270,17 +3270,21 @@ eu_under_wine(void)
 }
 
 bool
-eu_which(const char *path)
+eu_which(const char *path, char **pout)
 {
     bool ret = false;
     TCHAR *u16_path = NULL;
-    if (STR_NOT_NUL(path) && (u16_path = eu_utf8_utf16(path, NULL)))
+    if (STR_NOT_NUL(path) && (u16_path = eu_utf8_utf16(path, NULL)) && util_wstr_unquote(u16_path))
     {
         TCHAR *exist = util_which(u16_path);
         if (exist)
         {
-            ret = true;
+            if (pout)
+            {
+                *pout = eu_utf16_utf8(exist, NULL);
+            }
             free(exist);
+            ret = true;
         }
         free(u16_path);
     }
