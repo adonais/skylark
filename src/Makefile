@@ -152,7 +152,7 @@ dirs:
 	@if not exist "$(BIND)\plugins" mkdir "$(BIND)\plugins"
 	@if exist "$(ROOT)\\conf" xcopy "$(ROOT)\\conf" "$(BIND)\\conf" /s /e /q /y 2>&1>NUL
 	@if exist "$(ROOT)\share" xcopy "$(ROOT)\share" "$(BIND)\share" /s /e /q /y 2>&1>NUL
-	@if exist "$(ROOT)\\README_CN.MD" copy /y "$(ROOT)\\README_CN.MD" "$(BIND)\\README_CN.MD" 2>&1>NUL
+	@if exist "$(ROOT)\\READMECN.MD" copy /y "$(ROOT)\\READMECN.MD" "$(BIND)\\READMECN.MD" 2>&1>NUL
 	@if exist "$(MAKEDIR)\\3rdparty\\plugins" xcopy "$(MAKEDIR)\\3rdparty\\plugins" "$(BIND)\\plugins" /s /e /q /y 2>&1>NUL
 	@if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
 	@if not exist "$(BIND)\\lua\\loader" mkdir "$(BIND)\\lua\\loader" && echo. Created $(BIND)\\lua\\loader
