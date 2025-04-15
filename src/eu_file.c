@@ -1182,11 +1182,12 @@ on_file_max_date(file_backup *pbak)
 {
     if (pbak)
     {
+        int result = 0;
         struct _stat rel_t = {0};
         struct _stat bak_t = {0};
         if (STR_NOT_NUL(pbak->rel_path))
         {
-            _tstat(pbak->rel_path, &rel_t);
+            result = _tstat(pbak->rel_path, &rel_t);
         }
         if (STR_NOT_NUL(pbak->bak_path))
         {
@@ -1196,7 +1197,7 @@ on_file_max_date(file_backup *pbak)
         {
             pbak->status = 0;
         }
-        return rel_t.st_mtime > 0 ? rel_t.st_mtime : bak_t.st_mtime;
+        return (result == 0 && rel_t.st_mtime > 0 ? rel_t.st_mtime : bak_t.st_mtime);
     }
     return 0;
 }
@@ -1261,7 +1262,7 @@ on_file_node_init(eu_tabpage **p, file_backup *pbak)
         {
             _tcsncpy((*p)->bakpath, pbak->bak_path, MAX_BUFFER);
         }
-        if (!(*p)->is_blank)
+        if (true)
         {
             (*p)->zoom_level = pbak->zoom;
             on_file_update_time((*p), on_file_max_date(pbak));
