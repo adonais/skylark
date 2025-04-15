@@ -184,6 +184,11 @@ function eu_conf.loadconf()
         "    last_check = 0,\n" ..
         "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download',\n" ..
         "}\n" ..
+        "app_openai = {\n" ..
+        "    key = '',\n" ..
+        "    model = 'deepseek-reasoner',\n" ..
+        "    base = 'https://api.deepseek.com/chat/completions',\n" ..
+        "}\n" ..
         "-- when a multiple selection is copied, this string property is added between each part\n" ..
         "set_copy_separator = \"\\\\n\"\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
@@ -214,6 +219,12 @@ function eu_conf.loadconf()
                     ['repeater'] = 1,
                     ['leading'] = 50216,
                     ['format'] = 50203}
+    end
+    if (app_openai == nil) then
+        app_openai = {['key'] = "",
+                      ['model'] = "deepseek-reasoner",
+                      ['base'] = "https://api.deepseek.com/chat/completions",
+                     }
     end
     -- Compatible with old configuration item
     if (code_hint_show_enable == true) then
@@ -283,6 +294,7 @@ function eu_conf.loadconf()
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
+        {app_openai.key, app_openai.model, app_openai.base},
         set_copy_separator,
         process_path,
         other_editor_path,

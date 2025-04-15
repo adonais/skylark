@@ -84,10 +84,13 @@
 #define CHECK_1ST   0.500000
 #define CHECK_2ND   0.925000
 
-#ifndef OVECCOUNT
-#define OVECCOUNT   30   // pcre, should be multiple of 3
-#endif
+#undef OVECCOUNT
+#undef OVEC_LEN
+#undef FILESIZE
+#undef MAX_SIZE
+#undef ENV_LEN
 
+#define OVECCOUNT   30   // pcre, should be multiple of 3
 #define OVEC_LEN    16
 #define FILESIZE    128
 #define MAX_SIZE    256
@@ -436,8 +439,15 @@ typedef struct _upgrade_set
     int  flags;
     int  msg_id;
     uint64_t last_check;
-    char url[MAX_BUFFER];
+    char url[MAX_PATH];
 }upgrade_set;
+
+typedef struct _openai_set
+{
+    char key[QW_SIZE];
+    char model[QW_SIZE];
+    char base[FILESIZE];
+}openai_set;
 
 typedef struct _customize_set
 {
@@ -531,6 +541,7 @@ struct eu_config
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;
+    openai_set openai;
     char sep_copy[MAX_PATH];
     char m_path[MAX_PATH];
     char editor[MAX_PATH];

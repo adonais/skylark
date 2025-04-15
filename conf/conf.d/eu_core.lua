@@ -92,8 +92,15 @@ typedef struct _upgrade_set
     int  flags;
     int  msg_id;
     uint64_t last_check;
-    char url[1024];
+    char url[260];
 }upgrade_set;
+
+typedef struct _openai_set
+{
+    char key[64];
+    char model[64];
+    char base[128];
+}openai_set;
 
 typedef struct _customize_set
 {
@@ -176,6 +183,7 @@ struct eu_config
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;
+    openai_set openai;
     char sep_copy[260];
     char m_path[260];
     char editor[260];

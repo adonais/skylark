@@ -2187,6 +2187,11 @@ eu_save_config(void)
         "    last_check = %I64u,\n"
         "    url = \"%s\"\n"
         "}\n"
+        "app_openai = {\n"
+        "    key = \"%s\",\n"
+        "    model = \"%s\",\n"
+        "    base = \"%s\"\n"
+        "}\n"
         "-- when a multiple selection is copied, this string property is added between each part\n"
         "set_copy_separator = \"%s\"\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
@@ -2325,6 +2330,9 @@ eu_save_config(void)
               g_config->upgrade.msg_id,
               g_config->upgrade.last_check,
               g_config->upgrade.url,
+              g_config->openai.key,
+              g_config->openai.model,
+              g_config->openai.base,
               g_config->sep_copy,
               g_config->m_path,
               g_config->editor,

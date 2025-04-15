@@ -94,7 +94,7 @@ on_update_build_time(void)
 static HANDLE
 on_update_download(const int64_t dtag)
 {
-    WCHAR uri[MAX_SIZE] = {0};
+    WCHAR uri[MAX_PATH] = {0};
     WCHAR path[MAX_BUFFER] = {0};
     WCHAR wcmd[LARGER_LEN] = {0};
     _snwprintf(path, MAX_BUFFER, L"%s\\cache", eu_config_path);
