@@ -73,7 +73,7 @@ function eu_conf.loadconf()
     local file = (eu_core.script_path() .. "\\skylark.conf")
     if (not eu_core.file_exists(file)) then
         local code = -- 默认配置文件
-        "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n" ..
+        "--[=[if you edit the file, please keep the encoding correct(utf-8 nobom)]=]\n" ..
         "newfile_eols = 2\n" ..
         "newfile_encoding = 10014\n" ..
         "enable_auto_identation = true\n" ..

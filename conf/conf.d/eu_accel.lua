@@ -9,8 +9,10 @@ function eu_accel.loadaccel()
   if (not eu_core.file_exists(acc_file)) then
     local code = {
       "local bit = require(\"bit\")\n",
-      "-- You can change the shortcut keys of the menu here\n",
-      "-- If FVIRTKEY flag is not specified, key is assumed to ASCII character.\n",
+      "--[=[\n",
+      "You can change the shortcut keys of the menu here\n",
+      "If FVIRTKEY flag is not specified, key is assumed to ASCII character.\n",
+      "]=]\n",
       "local accel_t = {-- File menu\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"N\"), IDM_FILE_NEW},\n",
       "                 {bit.bor(FVIRTKEY,FCONTROL), string.byte(\"O\"), IDM_FILE_OPEN},\n",

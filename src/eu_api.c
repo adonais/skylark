@@ -37,12 +37,13 @@
 #define IS_2ND_BYTE(c) (IS_2NDBYTE_16(c) || IS_2NDBYTE_32(c))
 #define IS_3RD_BYTE(c) (CHAR_IN_RANGE((c), 0x81, 0xFE))
 #define IS_4TH_BYTE(c) (CHAR_IN_RANGE((c), 0x30, 0x39))
-#define EU_RESET_BACKUP_NAME _T("conf_old_backup")
+#define EUE_RESET_BACKUP _T("conf_old_backup")
+#define EUE_LUAJIT_ORDER ("\x1B\x4C\x4A")
 
 wchar_t eu_module_path[MAX_PATH+1] = {0};
 wchar_t eu_config_path[MAX_BUFFER] = {0};
-static volatile long eu_curl_initialized;
-static HINSTANCE eu_instance;   // 当前实例
+static volatile long eu_curl_initialized = 0;
+static HINSTANCE eu_instance = NULL;   // 当前实例
 static uint32_t fn_config_mask = 0x0;
 
 /* generic implementation */
@@ -71,11 +72,12 @@ enum
     UTF32_BE_BOM
 };
 
-static HMODULE eu_curl_symbol;
-static ptr_curl_easy_init fn_curl_easy_init;
-static ptr_curl_global_init fn_curl_global_init;
-static ptr_curl_global_cleanup fn_curl_global_cleanup;
-static ptr_curl_easy_cleanup fn_curl_easy_cleanup;
+static bool luajit_order = false;
+static HMODULE eu_curl_symbol = NULL;
+static ptr_curl_easy_init fn_curl_easy_init = NULL;
+static ptr_curl_global_init fn_curl_global_init = NULL;
+static ptr_curl_global_cleanup fn_curl_global_cleanup = NULL;
+static ptr_curl_easy_cleanup fn_curl_easy_cleanup = NULL;
 
 ptr_curl_easy_setopt eu_curl_easy_setopt = NULL;
 ptr_curl_easy_perform eu_curl_easy_perform = NULL;
@@ -84,10 +86,10 @@ ptr_curl_slist_free_all eu_curl_slist_free_all = NULL;
 ptr_curl_easy_getinfo eu_curl_easy_getinfo = NULL;
 ptr_curl_easy_strerror eu_curl_easy_strerror = NULL;
 
-static struct eu_config *g_config;
-static struct eu_theme  *g_theme;
-static eue_accel *g_accel;
-static eue_toolbar *g_toolbar;
+static struct eu_config *g_config = NULL;
+static struct eu_theme  *g_theme = NULL;
+static eue_toolbar *g_toolbar = NULL;
+static eue_accel *g_accel = NULL;
 static eue_code eue_coding[] =
 {
     {IDM_UNI_UTF8    , "UTF-8"}            ,
@@ -557,7 +559,7 @@ do_move_operation(const TCHAR *pname)
         TCHAR porig[MAX_BUFFER] = {0};
         TCHAR pback[MAX_BUFFER] = {0};
         _sntprintf(porig, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, pname);
-        _sntprintf(pback, MAX_BUFFER - 1, _T("%s\\%s\\%s"), eu_config_path, EU_RESET_BACKUP_NAME, pname);
+        _sntprintf(pback, MAX_BUFFER - 1, _T("%s\\%s\\%s"), eu_config_path, EUE_RESET_BACKUP, pname);
         MoveFileEx(porig, pback, MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING);
     }
 }
@@ -601,7 +603,7 @@ do_configs_backup(void)
     TCHAR filepath[MAX_BUFFER];
     TCHAR backpath[MAX_BUFFER];
     _sntprintf(filepath, MAX_BUFFER, _T("%s\\*.old.*"), eu_config_path);
-    _sntprintf(backpath, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, EU_RESET_BACKUP_NAME);
+    _sntprintf(backpath, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, EUE_RESET_BACKUP);
     if (eu_exist_wpath(backpath))
     {
         util_delete_file(backpath);
@@ -745,23 +747,26 @@ int
 eu_query_encoding_index(const char *coding)
 {
     int index = IDM_UNKNOWN;
-    eue_code *iter = NULL;
-    for (iter = &eue_coding[0]; iter->nid; ++iter)
+    if (coding)
     {
-        if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
-        {
-            index = iter->nid;
-            break;
-        }
-    }
-    if (index == IDM_UNKNOWN)
-    {
-        for (iter = &eue_extra[0]; iter->nid; ++iter)
+        eue_code *iter = NULL;
+        for (iter = &eue_coding[0]; iter->nid; ++iter)
         {
             if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
             {
                 index = iter->nid;
                 break;
+            }
+        }
+        if (index == IDM_UNKNOWN)
+        {
+            for (iter = &eue_extra[0]; iter->nid; ++iter)
+            {
+                if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
+                {
+                    index = iter->nid;
+                    break;
+                }
             }
         }
     }
@@ -1584,9 +1589,9 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             eu_logmsg("Euapi: maybe utf-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
-        else
+        else if (memcmp(checkstr, EUE_LUAJIT_ORDER, 3) == 0)
         {
-            type = IDM_OTHER_ANSI;
+            type = IDM_OTHER_BIN;
         }
     }
     else if (strcmp(obj->encoding, "ASCII") == 0)
@@ -2068,9 +2073,8 @@ eu_save_config(void)
     const char *p = NULL;
     TCHAR path[MAX_BUFFER+1] = {0};
     const char *pconfig =
-        "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n"
+        "--[=[if you edit the file, please keep the encoding correct(utf-8 nobom)]=]\n"
         "newfile_eols = %d\n"
-        "-- the macro is defined in the targetver.h\n"
         "newfile_encoding = %d\n"
         "enable_auto_identation = %s\n"
         "window_theme = \"%s\"\n"
@@ -2328,7 +2332,21 @@ eu_save_config(void)
               g_config->m_reserved_1,
               pactions,
               pcustomize);
-    if ((fp = _tfopen(path , _T("wb"))) != NULL)
+    if (!luajit_order)
+    {
+        char *order = util_io_file(path);
+        if (order && memcmp(order, EUE_LUAJIT_ORDER, 3) == 0)
+        {
+            char *t = eu_utf16_utf8(path, NULL);
+            luajit_order = true;
+            if (t)
+            {
+                on_script_bcsaved(save, t);
+                free(t);
+            }
+        }
+    }
+    if (!luajit_order && (fp = _tfopen(path , _T("wb"))) != NULL)
     {
         fwrite(save, strlen(save), 1, fp);
         fclose(fp);

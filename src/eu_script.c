@@ -374,7 +374,10 @@ dobytecode(lua_State *L, char **argv)
 {
     int narg = 0;
     lua_pushliteral(L, "bcsave");
-    if (loadjitmodule(L)) return 1;
+    if (loadjitmodule(L))
+    {
+        return 1;
+    }
     if (argv[0][2])
     {
         narg++;
@@ -499,6 +502,29 @@ dotty(lua_State *L)
     lua_settop(L, 0); /* clear stack */
     fputs("\n", stdout);
     fflush(stdout);
+    return status;
+}
+
+int
+on_script_bcsaved(char *arg1, char *arg2)
+{
+    int status = -1;
+    lua_State *L = NULL;
+    char *arg0 = NULL;
+    if (!arg1 || !arg2 || (L = lua_open()) == NULL)
+    {
+        return -1;
+    }
+    lua_gc(L, LUA_GCSTOP, 0);
+    luaL_openlibs(L);
+    lua_gc(L, LUA_GCRESTART, -1);
+    if ((arg0 = _strdup("-be")) != NULL)
+    {
+        char *argv[] = {arg0, arg1, arg2, NULL};
+        status = dobytecode(L, (char **)argv);
+        free(arg0);
+    }
+    lua_close(L);
     return status;
 }
 
@@ -874,13 +900,13 @@ do_lua_setting_path(eu_tabpage *pnode)
     TCHAR lua_path[ENV_LEN + 1] = {0};
     if (!pnode)
     {
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua"),
-                   eu_module_path, eu_config_path);
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\lua\\?.lua;%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua"),
+                   eu_module_path, eu_module_path, eu_config_path);
     }
     else
     {
-        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua;%s?.lua"),
-                   eu_module_path, eu_config_path, pnode->pathname);
+        _sntprintf(lua_path, ENV_LEN, _T("LUA_PATH=%s\\lua\\?.lua;%s\\conf\\conf.d\\?.lua;%s\\script-opts\\?.lua;%s?.lua"),
+                   eu_module_path, eu_module_path, eu_config_path, pnode->pathname);
     }
     return (_tputenv(lua_path) == 0);
 }
@@ -910,29 +936,6 @@ do_lua_code(const char *s, const char *filename)
         eu_logmsg("Scripts: %s, dostring return false\n", __FUNCTION__);
     }
     lua_close(L);
-    return status;
-}
-
-static int
-do_jit_proc(const TCHAR *pname, const TCHAR *psave)
-{
-    int status = 1;
-    TCHAR *penv = NULL;
-    TCHAR *plua_env = NULL;
-    if ((penv = _tgetenv(_T("LUA_PATH"))))
-    {
-        // 保存LUA_PATH环境遍历, 执行jit后再恢复
-        size_t env_len = _tcslen(penv) + 16;
-        plua_env = (TCHAR *)calloc(sizeof(TCHAR), env_len);
-        _sntprintf(plua_env, env_len-1, _T("LUA_PATH=%s"), penv);
-    }
-    if (plua_env)
-    {
-        _tputenv(_T("LUA_PATH="));
-        status = eu_lua_script_convert(pname, psave);
-        _tputenv(plua_env);
-        free(plua_env);
-    }
     return status;
 }
 
@@ -990,7 +993,7 @@ do_byte_code(eu_tabpage *pnode)
     }
     if (psave[0])
     {
-        status = do_jit_proc(pname, psave);
+        status = eu_lua_script_convert(pname, psave);
     }
 allclean:
     pnode->presult->pwant = on_toolbar_no_highlight;
