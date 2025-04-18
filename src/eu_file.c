@@ -1725,6 +1725,32 @@ on_file_open_remote(remotefs *premote, file_backup *pbak)
     return result;
 }
 
+static void
+on_file_clean_tmp(eu_tabpage *pnode, const bool be_cache, int *pstatus)
+{
+    wchar_t tmp[MAX_BUFFER] = {0};
+    if (!be_cache)
+    {
+        if (pnode->bakpath[0])
+        {
+            _sntprintf(tmp, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
+            if (eu_exist_file(pnode->bakpath))
+            {
+                util_delete_file(pnode->bakpath);
+            }
+            pnode->bakpath[0] = 0;
+        }
+        if (pstatus)
+        {
+            *pstatus = 0;
+        }
+    }
+    if (eu_exist_file(tmp))
+    {
+        util_delete_file(tmp);
+    }
+}
+
 static int
 on_file_do_write(eu_tabpage *pnode, const TCHAR *pathfilename, const bool isbak, const bool save_as, int *pstatus)
 {
@@ -1836,27 +1862,7 @@ FILE_FINAL:
     }
     if (!ret && !be_ignore)
     {
-        wchar_t tmp[MAX_BUFFER] = {0};
-        if (!be_cache)
-        {
-            if (pnode->bakpath[0])
-            {
-                _sntprintf(tmp, MAX_BUFFER, _T("%s~~"), pnode->bakpath);
-                if (eu_exist_file(pnode->bakpath))
-                {
-                    util_delete_file(pnode->bakpath);
-                }
-                pnode->bakpath[0] = 0;
-            }
-            if (pstatus)
-            {
-                *pstatus = 0;
-            }
-        }
-        if (eu_exist_file(tmp))
-        {
-            util_delete_file(tmp);
-        }
+        on_file_clean_tmp(pnode, be_cache, pstatus);
         if (!save_as && !be_cache)
         {
             on_file_update_time(pnode, 0);
@@ -2501,6 +2507,11 @@ on_file_save_backup(eu_tabpage *pnode, const CLOSE_MODE mode)
                 filebak.sync = 1;
                 eu_update_backup_table(&filebak, DB_MEM);
             }
+        }
+        else
+        {
+            on_sql_delete_backup_row(pnode);
+            on_file_clean_tmp(pnode, false, NULL);
         }
     }
     else
