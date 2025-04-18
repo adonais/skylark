@@ -1484,5 +1484,16 @@
 #define IDS_NOT_SUPPORTED                   50232
 #define IDS_SAVE_HOME                       50233
 #define IDS_CMDS_ERROR                      50234
+#define IDS_OPENAI_KEY_ERR                  50235
+#define IDS_OPENAI_FORMAT_ERR               50236
+#define IDS_OPENAI_AUTH_FAILD               50237
+#define IDS_INSUFFICIENT_BAL                50238
+#define IDS_OPENAI_PARAMETE_ERR             50239
+#define IDS_OPENAI_TMP_ERR                  50240
+#define IDS_OPENAI_SERV_FAILURE             50241
+#define IDS_OPENAI_SERV_BUSY                50242
+#define IDS_OPENAI_SERV_THINK               50243
+#define IDS_OPENAI_SERV_404                 50244
+#define IDS_OPENAI_DATA_ERR                 50245
 
 #endif  // _EU_TARGETVER_H_

@@ -1080,7 +1080,7 @@ int append_string(jobject_string *ds, const char *str)
         ds->capacity *= 2;
         ds->data = realloc(ds->data, ds->capacity);
     }
-    if (ds->data) {
+    if (ds->data && str) {
         memcpy(ds->data + ds->length, str, len);
         ds->length += len;
         ds->data[ds->length] = '\0';

@@ -30,6 +30,18 @@ extern "C"
 {
 #endif
 
+typedef struct _ai_info
+{
+    char *content;
+    char role[OVEC_LEN];
+} ai_info;
+
+typedef struct _ai_message
+{
+    CURL *curl;
+    ai_info *ai;
+} ai_message;
+
 typedef struct _complete_t *complete_ptr;
 typedef struct _capture_set *capture_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
@@ -114,6 +126,7 @@ struct _tabpage
     result_vec *ret_vec;        // 搜索结果标记
     complete_ptr ac_vec;        // snippet模式下的vec数组
     capture_ptr re_group;       // snippet正则模式下捕获组
+    ai_message ai_msg;          // ai message 数组
     NMM pmod;                   // 插件模块地址
     npdata *plugin;             // 插件动态数据表
     tab_want pwant;             // 回调函数, 需要时使用
@@ -151,7 +164,8 @@ void on_tabpage_variable_reset(void);
 void on_tabpage_select_index(const int index);
 void on_tabpage_swap_item(const int old_index, const int new_index);
 bool on_tabpage_exist_map(void);
-eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
+eu_tabpage *on_tabpage_from_result(void *hwnd_sc);
+eu_tabpage *on_tabpage_from_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(const int index);
 eu_tabpage *on_tabpage_focus_at(void);
 eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);

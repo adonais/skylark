@@ -1109,9 +1109,6 @@ process_value(eu_tabpage *pnode, HTREEITEM new_tvi, json_value *json_root, int x
     }
     if (json_root->line > 0)
     {
-        //util_lock_v2(pnode);
-        //pos = on_sci_call(pnode, SCI_POSITIONFROMLINE, json_root->line, 0);
-        //util_unlock_v2(pnode);
         pos = (int64_t)SendMessage(eu_hwnd_self(), WM_JSON_POSITION, (WPARAM)pnode, (LPARAM)json_root->line);
     }
     if (pos == -1)

@@ -42,9 +42,10 @@
 
 wchar_t eu_module_path[MAX_PATH+1] = {0};
 wchar_t eu_config_path[MAX_BUFFER] = {0};
-static volatile long eu_curl_initialized = 0;
+
 static HINSTANCE eu_instance = NULL;   // 当前实例
 static uint32_t fn_config_mask = 0x0;
+static volatile long eu_curl_initialized = 0;
 
 /* generic implementation */
 #define FOREACH(node, collection)                      \
@@ -2188,9 +2189,13 @@ eu_save_config(void)
         "    url = \"%s\"\n"
         "}\n"
         "app_openai = {\n"
+        "    think = %s,\n"
+        "    stream = %s,\n"
+        "    max_tokens = %d,\n"
         "    key = \"%s\",\n"
         "    model = \"%s\",\n"
-        "    base = \"%s\"\n"
+        "    base = \"%s\",\n"
+        "    setting = \"%s\"\n"
         "}\n"
         "-- when a multiple selection is copied, this string property is added between each part\n"
         "set_copy_separator = \"%s\"\n"
@@ -2330,9 +2335,13 @@ eu_save_config(void)
               g_config->upgrade.msg_id,
               g_config->upgrade.last_check,
               g_config->upgrade.url,
+              g_config->openai.think?"true":"false",
+              g_config->openai.stream?"true":"false",
+              g_config->openai.max_tokens,
               g_config->openai.key,
               g_config->openai.model,
               g_config->openai.base,
+              g_config->openai.setting,
               g_config->sep_copy,
               g_config->m_path,
               g_config->editor,

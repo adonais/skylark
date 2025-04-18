@@ -117,6 +117,7 @@ EUAPI_OBJS = \
     $(OBJD)\eu_navigate.obj                    \
     $(OBJD)\eu_commands.obj                    \
     $(OBJD)\eu_columnctl.obj                   \
+    $(OBJD)\eu_openai.obj                      \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -228,5 +229,6 @@ $(OBJD)\eu_profiles.obj                    : eu_profiles.c eu_profiles.h eu_cvec
 $(OBJD)\eu_navigate.obj                    : eu_navigate.c eu_navigate.h eu_navigate.h eu_list.h eu_cvector.h framework.h
 $(OBJD)\eu_commands.obj                    : eu_commands.c eu_commands.h eu_api.h eu_cvector.h framework.h
 $(OBJD)\eu_columnctl.obj                   : eu_columnctl.c eu_columnctl.h eu_api.h eu_cvector.h framework.h
+$(OBJD)\eu_openai.obj                      : eu_openai.c eu_openai.h eu_api.h eu_cvector.h framework.h
 $(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
 	$(RC) $(RFLAGS) -Fo$@ skylark.rc

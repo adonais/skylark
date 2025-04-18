@@ -513,6 +513,7 @@ on_sci_destroy_control(eu_tabpage *pnode)
             SendMessage(pnode->presult->hwnd_sc, WM_CLOSE, 0, 0);
             pnode->presult->hwnd_sc = NULL;
             pnode->result_show = false;
+            on_openai_cancel(pnode->presult);
             eu_safe_free(pnode->presult);
         }
         // 释放保存结果的vec数组
@@ -822,7 +823,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_KEYDOWN:
         {   // 按下ESC键时
-            if (!(pnode = on_tabpage_focus_at()))
+            if (!(pnode = on_tabpage_from_handle(hwnd)))
             {
                 break;
             }
@@ -877,7 +878,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            if ((pnode = on_tabpage_focus_at()) == NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) == NULL)
             {
                 break;
             }
@@ -894,7 +895,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEMOVE:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL && (eu_get_config()->m_code_hint & SCI_CODE_HINT))
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL && (eu_get_config()->m_code_hint & SCI_CODE_HINT))
             {
                 POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
                 TRACKMOUSEEVENT event = {sizeof(TRACKMOUSEEVENT), TME_HOVER, hwnd, eu_get_config()->m_code_hint & ~SCI_CODE_HINT};
@@ -905,7 +906,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEHOVER:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
             {
                 const POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
                 const sptr_t current_pos = on_sci_call(pnode, SCI_POSITIONFROMPOINT, pt.x, pt.y);
@@ -942,7 +943,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
             {
                 on_view_clear_indicator(pnode);
                 on_search_clear_fsm();
@@ -951,7 +952,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
-            if ((pnode = on_tabpage_focus_at()) == NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) == NULL)
             {
                 break;
             }
@@ -977,7 +978,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
             {
                 return menu_pop_track(hwnd, IDR_EDITOR_POPUPMENU, 0, 0, on_sci_menu_callback, pnode);
             }
@@ -985,6 +986,33 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_COMMAND:
         {
+            if (LOWORD(wParam) == WM_OPENAI_DATA && (pnode = on_tabpage_from_handle(hwnd)) != NULL)
+            {
+                char *str = (char *)lParam;
+                if (HIWORD(wParam) == 0)
+                {
+                    intptr_t len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+                    if (len >= 0)
+                    {
+                        if (len > 0)
+                        {
+                            const char *eols = on_encoding_get_eol(pnode);
+                            on_sci_call(pnode, SCI_GOTOPOS, len, 0);
+                            len = (sptr_t)(strlen(eols));
+                            on_sci_call(pnode, SCI_ADDTEXT, len, (sptr_t)eols);
+                        }
+                        len = (sptr_t)(strlen(str));
+                        on_sci_call(pnode, SCI_ADDTEXT, len, (sptr_t)str);
+                    }
+                }
+                else
+                {
+                    on_sci_call(pnode, SCI_ADDTEXT, (sptr_t)(strlen(str)), (sptr_t)str);
+                }
+                free(str);
+                on_sci_call(pnode, SCI_GOTOPOS, on_sci_call(pnode, SCI_GETLENGTH, 0, 0), 0);
+                return 0;
+            }
             PostMessage(eu_module_hwnd(), WM_COMMAND, wParam, lParam);
             break;
         }
@@ -1007,7 +1035,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_DPICHANGED_AFTERPARENT:
         {
-            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
             {
                 eu_logmsg("Scintilla: wm_dpichanged_afterparent msg\n");
                 on_sci_update_line_margin(pnode);

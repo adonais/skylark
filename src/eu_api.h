@@ -98,6 +98,7 @@
 
 #define SNIPPET_FUNID 100
 #define PERROR_LEN    100
+#define MAYBE200MS    200
 
 #ifndef MAX_BUFFER
 #define MAX_BUFFER  1024
@@ -184,6 +185,9 @@
 #define WM_PCRE_ADDSTRING         (WM_USER+12000)
 #define WM_JSON_PASSED            (WM_USER+12001)
 #define WM_JSON_POSITION          (WM_USER+12002)
+
+#define WM_OPENAI_TALK            (WM_USER+12010)
+#define WM_OPENAI_DATA            (WM_USER+12011)
 
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
@@ -444,9 +448,13 @@ typedef struct _upgrade_set
 
 typedef struct _openai_set
 {
+    bool think;
+    bool stream;
+    int  max_tokens;
     char key[QW_SIZE];
     char model[QW_SIZE];
     char base[FILESIZE];
+    char setting[MAX_BUFFER];
 }openai_set;
 
 typedef struct _customize_set
@@ -968,7 +976,6 @@ EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t r
 EU_EXT_CLASS bool eu_xml_pretty(void *ptr, struct opt_format *opt);
 
 /* for eu_commands.c */
-EU_EXT_CLASS void eu_command_launch(const int t);
 EU_EXT_CLASS bool eu_command_xsave(const int t);
 EU_EXT_CLASS bool eu_command_reload(const int t, const char *enc);
 EU_EXT_CLASS bool eu_command_convert(const int t, const char *enc);
@@ -979,6 +986,8 @@ EU_EXT_CLASS bool eu_command_tabs_hint(const char *str, const bool focus);
 EU_EXT_CLASS void eu_command_which(const char *str);
 EU_EXT_CLASS void eu_command_jump(const int t, const intptr_t line);
 EU_EXT_CLASS void eu_command_run(const int t, const char *str, const bool fnclose);
+EU_EXT_CLASS void eu_command_talk(const int t, const char *str);
+EU_EXT_CLASS void eu_command_launch(const int t);
 EU_EXT_CLASS int  eu_command_save(const int t);
 
 /* for eu_columnctl.c */

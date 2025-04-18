@@ -686,7 +686,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
                     char *pstr = util_unix_newline(std_buffer, MAX_OUTPUT_BUF);
                     if (pstr)
                     {
-                        on_result_append_text_utf8("%s", pstr);
+                        on_result_append_text_utf8(pnode, "%s", pstr);
                         free(pstr);
                     }
                 }

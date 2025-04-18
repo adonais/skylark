@@ -1522,6 +1522,17 @@ STRINGTABLE DISCARDABLE
     IDS_NOT_SUPPORTED       "» » 不支持的操作"
     IDS_SAVE_HOME           "» » 文档保存在用户主目录"
     IDS_CMDS_ERROR          "» » 文件打开失败或空文件"
+    IDS_OPENAI_KEY_ERR      "» » 未知的API Key或URL"
+    IDS_OPENAI_FORMAT_ERR   "» » 请求体格式错误"
+    IDS_OPENAI_AUTH_FAILD   "» » API Key认证失败"
+    IDS_INSUFFICIENT_BAL    "» » 账户余额不足"
+    IDS_OPENAI_PARAMETE_ERR "» » 参数错误"
+    IDS_OPENAI_TMP_ERR      "» » 请求速率达到上限"
+    IDS_OPENAI_SERV_FAILURE "» » 服务器故障"
+    IDS_OPENAI_SERV_BUSY    "» » 服务器繁忙"
+    IDS_OPENAI_SERV_THINK   "» » 思考中 ..."
+    IDS_OPENAI_SERV_404     "» » 页面没找到, 请检查 URL 设置"
+    IDS_OPENAI_DATA_ERR     "» » 错误, 数据异常"
 }
 
 /////////////////////////////////////////////////////////////////////////////

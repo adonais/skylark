@@ -285,6 +285,16 @@ function restart_action()
     eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_FILE_RESTART_ADMIN, 0)
 end
 
+function ai_action(str)
+    if (str ~= nil and str ~= "") then
+        str = string.gsub(str, "\\t", "\t")
+        str = string.gsub(str, "\\r", "\n")
+        str = string.gsub(str, "\\n", "\n")
+        str = string.gsub(str, "\"", "\\\"")
+        eu.api.eu_command_talk(-1, str)
+    end
+end
+
 local cmd_matrix =
 {
     {"^enc=([%w_-]+)",                      encoding_action },
@@ -316,6 +326,7 @@ local cmd_matrix =
     {"^runq%s+(.+)$",                       runq_action     },
     {"^quit$",                              quit_action     },
     {"^ras$",                               restart_action  },
+    {"^ai%s+(.+)$",                         ai_action       },
 }
 
 function skylark_cmd(p)

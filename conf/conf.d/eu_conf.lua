@@ -165,7 +165,7 @@ function eu_conf.loadconf()
         "    increase = 1,\n" ..
         "    repeater = 1,\n" ..
         "    leading = 50216,\n" ..
-        "    format = 50203,\n" ..
+        "    format = 50203\n" ..
         "}\n" ..
         "-- titlebar default setting\n" ..
         "titlebar = {\n" ..
@@ -182,12 +182,16 @@ function eu_conf.loadconf()
         "    flags = 0,\n" ..
         "    msg_id = 44054,\n" ..
         "    last_check = 0,\n" ..
-        "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download',\n" ..
+        "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download'\n" ..
         "}\n" ..
         "app_openai = {\n" ..
+        "    think = true,\n" ..
+        "    stream = true,\n" ..
+        "    max_tokens = 0,\n" ..
         "    key = '',\n" ..
-        "    model = 'deepseek-reasoner',\n" ..
-        "    base = 'https://api.deepseek.com/chat/completions',\n" ..
+        "    model = 'deepseek-r1',\n" ..
+        "    base = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',\n" ..
+        "    setting = 'You are a helpful assistant.'\n" ..
         "}\n" ..
         "-- when a multiple selection is copied, this string property is added between each part\n" ..
         "set_copy_separator = \"\\\\n\"\n" ..
@@ -221,9 +225,13 @@ function eu_conf.loadconf()
                     ['format'] = 50203}
     end
     if (app_openai == nil) then
-        app_openai = {['key'] = "",
-                      ['model'] = "deepseek-reasoner",
-                      ['base'] = "https://api.deepseek.com/chat/completions",
+        app_openai = {['think'] = true,
+                      ['stream'] = true,
+                      ['max_tokens'] = 0,
+                      ['key'] = "",
+                      ['model'] = "deepseek-r1",
+                      ['base'] = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                      ['setting'] = "You are a helpful assistant."
                      }
     end
     -- Compatible with old configuration item
@@ -294,7 +302,7 @@ function eu_conf.loadconf()
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
-        {app_openai.key, app_openai.model, app_openai.base},
+        {app_openai.think, app_openai.stream, app_openai.max_tokens, app_openai.key, app_openai.model, app_openai.base, app_openai.setting},
         set_copy_separator,
         process_path,
         other_editor_path,

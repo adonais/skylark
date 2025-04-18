@@ -1,4 +1,4 @@
-/******************************************************************************
+/*******************************************************************************
  * This file is part of Skylark project
  * Copyright ©2025 Hua andy <hua.andy@gmail.com>
 
@@ -16,25 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-#ifndef _EU_RESULT_EDIT_H_
-#define _EU_RESULT_EDIT_H_
+#ifndef _EU_OPENAI_H_
+#define _EU_OPENAI_H_
 
-#define SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN 40
+#define AI_EOT       (-255)
+#define AI_CMD_MODEL (1)
+#define THINK_INIT   0x00000001
+#define THINK_OUTPUT 0x00000002
+#define THINK_ENDDO  0x00000004
 
+// c++ compiler
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int on_result_append_text(const wchar_t*format , ...);
-int on_result_append_text_utf8(eu_tabpage *p, const char *format , ...);
-bool on_result_launch(eu_tabpage *pnode);
-void on_result_lexer(eu_tabpage *p);
-void on_result_destroy(eu_tabpage *p);
-void on_result_move_sci(eu_tabpage *p, int width, int height);
-void on_result_output(eu_tabpage *p, const int res);
+bool on_openai_check(eu_tabpage *presult);
+void on_openai_cancel(eu_tabpage *presult);
+void on_openai_run(const char *str, const HWND hwnd);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // _EU_RESULT_EDIT_H_
+#endif  // _EU_OPENAI_H_

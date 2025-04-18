@@ -75,7 +75,7 @@ on_command_common_search(eu_tabpage *pnode, const char *key, sptr_t start_pos, s
         {
             char msg[MAX_PATH] = {0};
             LOAD_I18N_RESSTR(IDS_RE_ERROR, retips);
-            on_result_append_text_utf8(util_make_u8(retips, msg, MAX_PATH));
+            on_result_append_text_utf8(pnode, util_make_u8(retips, msg, MAX_PATH));
         }
         else if (loop)
         {
@@ -100,14 +100,6 @@ on_command_common_search(eu_tabpage *pnode, const char *key, sptr_t start_pos, s
         return true;
     }
     return false;
-}
-
-static void
-on_command_output(const int res)
-{
-    char msg[MAX_PATH] = {0};
-    LOAD_I18N_RESSTR(res, info);
-    on_result_append_text_utf8(util_make_u8(info, msg, MAX_PATH));
 }
 
 static bool
@@ -136,6 +128,7 @@ on_command_light(void *lp)
         result_vec *pvec = NULL;
         on_sci_call(p, SCI_SETREADONLY, 0, 0);
         on_sci_call(p, SCI_CLEARALL, 0, 0);
+        on_sci_call(p, SCI_SETWRAPMODE, 2, 0);
         on_sci_call(p, SCI_SETCARETSTYLE, CARETSTYLE_LINE, 0);
         on_sci_call(p, SCI_SETPROPERTY, (sptr_t)result_extra, (sptr_t)&pvec);
     }
@@ -261,7 +254,7 @@ eu_command_save(const int t)
     {
         if (p->is_blank)
         {
-            on_command_output(IDS_NOT_SUPPORTED);
+            on_result_output((eu_tabpage *)p, IDS_NOT_SUPPORTED);
         }
         else
         {
@@ -279,7 +272,7 @@ eu_command_xsave(const int t)
     {
         if (p->is_blank || url_has_remote(p->pathfile))
         {
-            on_command_output(IDS_NOT_SUPPORTED);
+            on_result_output(p, IDS_NOT_SUPPORTED);
         }
         else
         {
@@ -310,14 +303,14 @@ eu_command_saveas(const int t, const char *path, const int mode)
     {
         if (_strnicmp(path, "sftp://", URL_MIN) == 0)
         {
-            on_command_output(IDS_NOT_SUPPORTED);
+            on_result_output(p, IDS_NOT_SUPPORTED);
         }
         else
         {
             p->reserved0 = (intptr_t)util_wstr_unquote(u16);
             if (((TCHAR *)p->reserved0)[1] != ':' && (p->is_blank || url_has_remote(p->pathfile)))
             {
-                on_command_output(IDS_SAVE_HOME);
+                on_result_output(p, IDS_SAVE_HOME);
             }
             return on_file_save(p, mode) == SKYLARK_OK;
         }
@@ -334,7 +327,7 @@ eu_command_convert(const int t, const char *enc)
         int index = IDM_UNKNOWN;
         if ((index = eu_query_encoding_index(enc)) == IDM_UNKNOWN || p->is_blank)
         {
-            on_command_output(IDS_NOT_SUPPORTED);
+            on_result_output(p, IDS_NOT_SUPPORTED);
         }
         else if (on_statusbar_convert_coding(p, index) == SKYLARK_OK)
         {
@@ -354,7 +347,7 @@ eu_command_reload(const int t, const char *enc)
         int index = IDM_UNKNOWN;
         if ((index = eu_query_encoding_index(enc)) == IDM_UNKNOWN || p->is_blank)
         {
-            on_command_output(IDS_NOT_SUPPORTED);
+            on_result_output(p, IDS_NOT_SUPPORTED);
         }
         else
         {
@@ -446,7 +439,7 @@ eu_command_run(const int t, const char *str, const bool fnclose)
         free(u16);
         if ((p->cmds_buffer = util_io_file(path)) == NULL)
         {
-            on_command_output(IDS_CMDS_ERROR);
+            on_result_output(p, IDS_CMDS_ERROR);
             err = SKYLARK_ERROR;
         }
         else
@@ -464,15 +457,36 @@ void
 eu_command_which(const char *str)
 {
     char *path = NULL;
+    eu_tabpage *p = NULL;
     char msg[MAX_PATH] = {0};
-    if (eu_which(str, &path))
+    if ((p = on_tabpage_focus_at()))
     {
-        LOAD_I18N_RESSTR(IDS_WHICH_EXIST, info);
-        on_result_append_text_utf8(util_make_u8(info, msg, MAX_PATH), path);
+        if (eu_which(str, &path))
+        {
+            LOAD_I18N_RESSTR(IDS_WHICH_EXIST, info);
+            on_result_append_text_utf8(p, util_make_u8(info, msg, MAX_PATH), path);
+        }
+        else
+        {
+            LOAD_I18N_RESSTR(IDS_WHICH_NONE, info);
+            on_result_append_text_utf8(p, util_make_u8(info, msg, MAX_PATH), str);
+        }
     }
-    else
+}
+
+void
+eu_command_talk(const int t, const char *str)
+{
+    eu_tabpage *p = t < 0 ? (eu_tabpage *)on_tabpage_focus_at() : (eu_tabpage *)on_tabpage_get_ptr(t);
+    if (p)
     {
-        LOAD_I18N_RESSTR(IDS_WHICH_NONE, info);
-        on_result_append_text_utf8(util_make_u8(info, msg, MAX_PATH), str);
+        if (STR_IS_NUL(eu_get_config()->openai.key) || STR_IS_NUL(eu_get_config()->openai.base))
+        {
+            on_result_output(p, IDS_OPENAI_KEY_ERR);
+        }
+        else if (RESULT_SHOW(p))
+        {
+            on_openai_run(str, p->presult->hwnd_sc);
+        }
     }
 }

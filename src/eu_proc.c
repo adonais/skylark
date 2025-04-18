@@ -2002,7 +2002,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 // scintilla控件响应消息, 其他消息见eu_scintill.c
                 case SCN_CHARADDED:
-                    on_sci_character(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
+                    on_sci_character(on_tabpage_from_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
                     break;
                 case SCN_AUTOCCHARDELETED:
                     on_sci_character(on_tabpage_focus_at(), 0);
@@ -2024,11 +2024,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_out_open(eu_int_cast(lpnotify->nmhdr.hwndFrom), NULL);
                     break;
                 case SCN_SAVEPOINTREACHED:
-                    on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    on_sci_point_reached(on_tabpage_from_handle(lpnotify->nmhdr.hwndFrom));
                     eu_logmsg("MainCallbak: on_sci_point_reached caller\n");
                     break;
                 case SCN_SAVEPOINTLEFT:
-                    on_sci_point_left(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    on_sci_point_left(on_tabpage_from_handle(lpnotify->nmhdr.hwndFrom));
                     eu_logmsg("MainCallbak: on_sci_point_left caller\n");
                     break;
                 case SCN_MARGINCLICK:

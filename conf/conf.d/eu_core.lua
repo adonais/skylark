@@ -97,9 +97,13 @@ typedef struct _upgrade_set
 
 typedef struct _openai_set
 {
+    bool think;
+    bool stream;
+    int  max_tokens;
     char key[64];
     char model[64];
     char base[128];
+    char setting[1024];
 }openai_set;
 
 typedef struct _customize_set
@@ -436,6 +440,7 @@ int eu_tab_last_index(void);
 void eu_tab_select(const int index);
 
 int  eu_command_save(const int t);
+void eu_command_talk(const int t, const char *str);
 void eu_command_jump(const int t, const intptr_t line);
 void eu_command_launch(const int t);
 void eu_command_which(const char *str);

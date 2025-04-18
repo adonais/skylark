@@ -1524,6 +1524,17 @@ STRINGTABLE DISCARDABLE
     IDS_NOT_SUPPORTED       "» » An unsupported operation"
     IDS_SAVE_HOME           "» » The document is saved in the user's home directory"
     IDS_CMDS_ERROR          "» » File open failed or empty file"
+    IDS_OPENAI_KEY_ERR      "» » Unknown API Key or URL"
+    IDS_OPENAI_FORMAT_ERR   "» » Request body format error"
+    IDS_OPENAI_AUTH_FAILD   "» » API Key authentication failed"
+    IDS_INSUFFICIENT_BAL    "» » Insufficient account balance"
+    IDS_OPENAI_PARAMETE_ERR "» » AI parameter error"
+    IDS_OPENAI_TMP_ERR      "» » The request rate has reached its maximum limit"
+    IDS_OPENAI_SERV_FAILURE "» » The server failure"
+    IDS_OPENAI_SERV_BUSY    "» » The server is busy"
+    IDS_OPENAI_SERV_THINK   "» » Thinking ..."
+    IDS_OPENAI_SERV_404     "» » Page not found, Please check the URL settings"
+    IDS_OPENAI_DATA_ERR     "» » Error, Data abort"
 }
 
 /////////////////////////////////////////////////////////////////////////////

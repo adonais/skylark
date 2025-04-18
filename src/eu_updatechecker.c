@@ -18,7 +18,6 @@
 
 #include "framework.h"
 
-#define MAYBE200MS 200
 #define UPDATE_EXE L"upcheck.exe"
 #define UPDATE_URL "https://api.github.com/repos/adonais/skylark/releases"
 
@@ -416,7 +415,8 @@ on_update_cancel(void)
     eu_threadpool_cancel(&on_update_send_request, 0);
 }
 
-bool on_update_check(void)
+bool
+on_update_check(void)
 {
     return eu_threadpool_check(&on_update_send_request, 0);
 }
