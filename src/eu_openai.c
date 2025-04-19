@@ -256,8 +256,8 @@ on_openai_parser_next(const json_value *obj, ai_data *mem)
                     PostMessage(mem->hwnd_rc, WM_COMMAND, MAKEWPARAM(IDS_OPENAI_SERV_THINK, 0), (intptr_t)(_strdup(v->u.string.ptr)));
                 }
             }
-            return true;
         }
+        return true;
     }
     return false;
 }
@@ -305,7 +305,6 @@ on_openai_reply(void *contents, size_t size, size_t nmemb, void *userp)
         char *p1, *p2 = NULL;
         json_value *root = NULL;
         json_settings sets = {0};
-        MSG msg = {0};
         while ((p1 = strchr(start, '\n')) || (p1 = strrchr(start, '}')))
         {
             if (*p1 == '\n')
@@ -360,7 +359,8 @@ on_openai_replace_data(const char *str)
     char *v4 = v3 ? util_str_replace(v3,  "\"", "\\\"") : NULL;
     if (v4)
     {
-        v = util_str_replace(v4,  "'", "\\\"");
+        v = util_str_replace(v4, "'", "\\\"");
+        free(v4);
     }
     eu_safe_free(v1);
     eu_safe_free(v2);
@@ -380,7 +380,6 @@ on_openai_session(char *str, const HWND hwnd_rc)
     if (p && p->presult)
     {
         const HWND hwnd_sc = p->hwnd_sc;
-        _InterlockedExchange(&p->presult->busy_id, 1);
         on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
         if (hwnd_sc && (curl = on_openai_init_socket(p, &headers, &ds, str)) != NULL && on_openai_init_chunk(&chunk, p))
         {
@@ -407,12 +406,17 @@ on_openai_session(char *str, const HWND hwnd_rc)
         {
             eu_curl_easy_cleanup(curl);
         }
+        else
+        {
+            res = EUE_CURL_INIT_FAIL;
+            PostMessage(p->presult->hwnd_sc, WM_COMMAND, MAKEWPARAM(IDC_MSG_ATTACH_FAIL3, 0), 0);
+        }
         if (chunk)
         {
             on_openai_destory_chunk(&chunk);
         }
         destory_dynamic_string(&ds);
-        _InterlockedExchange(&p->presult->busy_id, 0);
+        Sleep(200);  // 让 PostMessage 先到达
         on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
     }
     return res;
@@ -434,7 +438,10 @@ on_openai_request(void *lp)
             }
             else if (msg.message == WM_OPENAI_TALK && msg.wParam > 0)
             {
-                on_openai_session((char *)msg.wParam, hwnd);
+                if (on_openai_session((char *)msg.wParam, hwnd) == EUE_CURL_INIT_FAIL)
+                {
+                    break;
+                }
             }
         }
         Sleep(MAYBE200MS);

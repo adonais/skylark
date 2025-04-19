@@ -246,6 +246,7 @@ on_result_command(eu_tabpage *p, const HWND hwnd, const WORD low, intptr_t lp)
             on_result_destroy(p);
             break;
         }
+        case IDC_MSG_ATTACH_FAIL3:
         case IDS_OPENAI_FORMAT_ERR:
         case IDS_OPENAI_AUTH_FAILD:
         case IDS_INSUFFICIENT_BAL:
@@ -262,10 +263,8 @@ on_result_command(eu_tabpage *p, const HWND hwnd, const WORD low, intptr_t lp)
         }
         case IDS_OPENAI_SERV_THINK:
         {
-            
             if (AI_EOT == lp)
             {
-                printf("think end, we goto end pos\n");
                 on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
                 on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)1, (sptr_t)("\n"));
                 on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
