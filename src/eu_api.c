@@ -73,7 +73,6 @@ enum
     UTF32_BE_BOM
 };
 
-static bool luajit_order = false;
 static HMODULE eu_curl_symbol = NULL;
 static ptr_curl_easy_init fn_curl_easy_init = NULL;
 static ptr_curl_global_init fn_curl_global_init = NULL;
@@ -1244,6 +1243,7 @@ is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
         {4, "\x00\x00\xFE\xFF"},    // BOM_UTF32_BE
         {2, "\xFF\xFE"},            // BOM_UTF16_LE
         {2, "\xFE\xFF"},            // BOM_UTF16_BE
+        {3, EUE_LUAJIT_ORDER},
         {0, {0}}
     };
     for (int i = 0; file_bom[i].len; ++i)
@@ -1262,6 +1262,8 @@ is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
                     return UTF16_LE_BOM;
                 case 4:
                     return UTF16_BE_BOM;
+                case 5:
+                    return 0;
                 default:
                     break;
             }
@@ -1590,9 +1592,9 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             eu_logmsg("Euapi: maybe utf-8!\n");
             type = obj->bom?IDM_UNI_UTF8B:IDM_UNI_UTF8;
         }
-        else if (memcmp(checkstr, EUE_LUAJIT_ORDER, 3) == 0)
+        else
         {
-            type = IDM_OTHER_BIN;
+            type = IDM_UNKNOWN;
         }
     }
     else if (strcmp(obj->encoding, "ASCII") == 0)
@@ -2064,10 +2066,32 @@ eu_customize_process(void)
     return pcustomize;
 }
 
+static void
+eu_bc_save(const TCHAR *path, const char *buf)
+{
+    FILE *fp = NULL;
+    bool luajit_order = false;
+    char *order = util_io_file(path);
+    if (order && memcmp(order, EUE_LUAJIT_ORDER, 3) == 0)
+    {
+        char *t = eu_utf16_utf8(path, NULL);
+        luajit_order = true;
+        if (t)
+        {
+            on_script_bcsaved((char *)buf, t);
+            free(t);
+        }
+    }
+    if (!luajit_order && (fp = _tfopen(path , _T("wb"))) != NULL)
+    {
+        fwrite(buf, strlen(buf), 1, fp);
+        fclose(fp);
+    }
+}
+
 void
 eu_save_config(void)
 {
-    FILE *fp = NULL;
     char *save = NULL;
     char *pactions = NULL;
     char *pcustomize = NULL;
@@ -2349,25 +2373,7 @@ eu_save_config(void)
               g_config->m_reserved_1,
               pactions,
               pcustomize);
-    if (!luajit_order)
-    {
-        char *order = util_io_file(path);
-        if (order && memcmp(order, EUE_LUAJIT_ORDER, 3) == 0)
-        {
-            char *t = eu_utf16_utf8(path, NULL);
-            luajit_order = true;
-            if (t)
-            {
-                on_script_bcsaved(save, t);
-                free(t);
-            }
-        }
-    }
-    if (!luajit_order && (fp = _tfopen(path , _T("wb"))) != NULL)
-    {
-        fwrite(save, strlen(save), 1, fp);
-        fclose(fp);
-    }
+    eu_bc_save(path, save);
     free(save);
     free(pactions);
     free(pcustomize);
@@ -2377,7 +2383,6 @@ void
 eu_save_theme(void)
 {
     int  len = 0;
-    FILE *fp = NULL;
     char *save = NULL;
     wchar_t *path = NULL;
     const char *pconfig =
@@ -2608,11 +2613,7 @@ eu_save_theme(void)
     );
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
-        if ((fp = _wfopen(path , L"wb")) != NULL)
-        {
-            fwrite(save, strlen(save), 1, fp);
-            fclose(fp);
-        }
+        eu_bc_save(path, save);
         free(path);
     }
     free(save);
