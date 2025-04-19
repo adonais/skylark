@@ -9,6 +9,7 @@ Skylark Editor - 开源, 小巧, 绿色, 秒开
 - 支持代码片段补全与可视化代码片段管理.
 - 支持json解析与格式化, xml, javascript压缩与格式化, clang-format格式化.
 - 支持sumatrapdf插件, 可直接在skylark打开pdf文档和epub等格式电子书.
+- 支持AI, 可以在配置文件设置您感兴趣的大模型.
 - 内置16进制编辑器, 大文件秒开.
 - 内置文件管理器与sftp远程管理器.
 - 内置sqlite3/mysql/PostgreSQL/redis数据库客户端.
@@ -131,7 +132,7 @@ run                        -- 运行lua脚本, 如果不带路径则默认位置
 runq                       -- 运行lua脚本, 成功则关闭命令窗口
 quit                       -- 退出编辑器
 ras                        -- restart as admin, 以管理员权限重启编辑器
-ai foo...                  -- 支持AI多轮对话, 流式输出, 需在配置文件设置正确的URL和API key, 默认阿里云百炼deepseek-r1
+ai foo ...                 -- AI对话, 需在配置文件设置正确的URL和API key, 默认阿里云百炼deepseek-r1
 ==================================================================================================
 
 **注意 :**
