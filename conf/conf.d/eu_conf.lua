@@ -194,7 +194,7 @@ function eu_conf.loadconf()
         "    setting = 'You are a helpful assistant.'\n" ..
         "}\n" ..
         "-- when a multiple selection is copied, this string property is added between each part\n" ..
-        "set_copy_separator = \"\\\\n\"\n" ..
+        "set_copy_separator = \"\\n\"\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
