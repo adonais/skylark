@@ -2258,17 +2258,15 @@ eu_save_config(void)
     // 对sep_copy中的换行符转义
     if ((p = strchr(g_config->sep_copy, '\r')) != NULL)
     {
-        if ((p = g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
+        if ((p == g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
         {
-            eu_logmsg("Euapi: escape new lines[\\r]\n");
             eu_str_replace(g_config->sep_copy, MAX_PATH, "\r", "\\r");
         }
     }
     if ((p = strchr(g_config->sep_copy, '\n')) != NULL)
     {
-        if ((p = g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
+        if ((p == g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
         {
-            eu_logmsg("Euapi: escape new lines[\\n]\n");
             eu_str_replace(g_config->sep_copy, MAX_PATH, "\n", "\\n");
         }
     }
