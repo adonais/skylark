@@ -219,6 +219,7 @@ on_openai_parser_content(const char *str, const HWND hwnd, uint32_t *output)
 static bool
 on_openai_parser_next(const json_value *obj, ai_data *mem)
 {
+    bool ret = false;
     for (unsigned int z = 0; z < obj->u.object.length; ++z)
     {   // content and reasoning_content
         char *name = obj->u.object.values[z].name;
@@ -230,6 +231,7 @@ on_openai_parser_next(const json_value *obj, ai_data *mem)
                 append_string(&mem->reply, v->u.string.ptr);
                 on_openai_parser_content(v->u.string.ptr, mem->hwnd_sc, &mem->output);
             }
+            ret = true;
         }
         else if (strcmp(name, "reasoning_content") == 0)
         {
@@ -256,10 +258,10 @@ on_openai_parser_next(const json_value *obj, ai_data *mem)
                     PostMessage(mem->hwnd_rc, WM_COMMAND, MAKEWPARAM(IDS_OPENAI_SERV_THINK, 0), (intptr_t)(_strdup(v->u.string.ptr)));
                 }
             }
+            ret = true;
         }
-        return true;
     }
-    return false;
+    return ret;
 }
 
 static bool
