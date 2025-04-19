@@ -1271,7 +1271,7 @@ STRINGTABLE DISCARDABLE
     IDC_MSG_ATTACH_FAIL     "连接远程文件服务器失败"
     IDC_MSG_ATTACH_FAIL1    "连接远程文件服务器失败, 无效的私钥或者私钥口令错误"
     IDC_MSG_ATTACH_FAIL2    "连接远程文件服务器失败, 用户名或密码错误"
-    IDC_MSG_ATTACH_FAIL3    "初始化libcurl错误, 可能没找到函数入口"
+    IDC_MSG_ATTACH_FAIL3    "» » 初始化libcurl错误, 可能没找到函数入口"
     IDC_MSG_ATTACH_ERRORS   "链接错误, 原因: %s"
     IDC_MSG_OPENSSL_FAIL    "初始化libopenssl错误, 可能没找到函数入口"
     IDC_MSG_ATTACH_SUCCESS  "连接远程文件服务器成功"
