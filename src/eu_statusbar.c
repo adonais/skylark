@@ -335,7 +335,7 @@ on_statusbar_menu_check(HMENU hmenu, const int first_id, const int last_id, int 
     }
 }
 
-static int
+int
 on_statusbar_convert_coding(eu_tabpage *pnode, int encoding)
 {
     char *file_buf = NULL;
@@ -626,6 +626,7 @@ on_statusbar_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PT
                 case IDM_OTHER_2:
                 case IDM_OTHER_3:
                 case IDM_OTHER_ANSI:
+                case IDM_OTHER_ICONV:
                 case IDM_OTHER_BIN:
                 case IDM_OTHER_PLUGIN:
                 case IDM_UNKNOWN:
@@ -737,7 +738,7 @@ on_statusbar_update_line(eu_tabpage *pnode)
         sptr_t row = 0;
         util_postion_xy(pnode, -1, &lineno, &row);
         eu_i18n_load_str(IDS_STATUS_XY, m_xy, 0);
-        _sntprintf(s_xy, FILESIZE - 1, m_xy, lineno, row);
+        _sntprintf(s_xy, FILESIZE - 1, m_xy, (size_t)lineno, (size_t)row);
     }
     on_statusbar_set_text(g_statusbar, 1, s_xy);
 }
@@ -857,6 +858,11 @@ on_statusbar_update_coding(eu_tabpage *pnode)
     if (pnode)
     {
         type = TAB_HEX_MODE(pnode) ? IDM_OTHER_BIN : pnode->codepage;
+        if (type >= IDM_ICONV_001 && type <= IDM_ICONV_133)
+        {
+            on_statusbar_menu_check(g_menu_code, IDM_OTHER_HZ, IDM_UNKNOWN, IDM_OTHER_ICONV, 5, STATUSBAR_DOC_ENC);
+            return;
+        }
     }
     switch (type)
     {

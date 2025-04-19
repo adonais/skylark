@@ -22,12 +22,15 @@
 #define SAVE_ONLY 0
 #define SAVE_AS   1
 #define SAVE_ALL  2
+#define SAVE_SIL  3
 #define URL_MIN   7
-#define file_click_close(m) (m != FILE_AUTO_SAVE && m != FILE_SHUTDOWN && mode != FILE_REMOTE_CLOSE)
-#define url_has_remote(ll) (_tcslen(ll) > URL_MIN && _tcsnicmp(ll, _T("sftp://"), URL_MIN) == 0)
-#define url_has_samba(ll) (_tcslen(ll) > 2 && (ll[1] == L'\\' && ll[0] == L'\\'))
-#define url_has_file(ll) (_tcslen(ll) > (URL_MIN+1) && _tcsnicmp(ll, _T("file:///"), (URL_MIN+1)) == 0)
-#define url_que_mark(ll) (_tcslen(ll) > 1 && ll[_tcslen(ll) - 1] == _T('?'))
+#define file_click_close(m_) (m_ != FILE_SAVE_CLOSE && m_ != FILE_SHUTDOWN && m_ != FILE_REMOTE_CLOSE && m_ != FILE_FORCE_CLOSE)
+#define file_force_close(m_) (m_ == FILE_REMOTE_CLOSE || m_ == FILE_FORCE_CLOSE)
+#define file_force_saved(m_) (m_ == SAVE_AS || m_ == SAVE_SIL)
+#define url_has_remote(ll_) (_tcslen(ll_) > URL_MIN && _tcsnicmp(ll_, _T("sftp://"), URL_MIN) == 0)
+#define url_has_samba(ll_) (_tcslen(ll_) > 2 && (ll_[1] == L'\\' && ll_[0] == L'\\'))
+#define url_has_file(ll_) (_tcslen(ll_) > (URL_MIN+1) && _tcsnicmp(ll_, _T("file:///"), (URL_MIN+1)) == 0)
+#define url_que_mark(ll_) (_tcslen(ll_) > 1 && ll_[_tcslen(ll_) - 1] == _T('?'))
 
 #ifdef __cplusplus
 extern "C"
@@ -41,7 +44,8 @@ typedef enum _CLOSE_MODE
     FILE_EXCLUDE_CLOSE,
     FILE_ALL_CLOSE,
     FILE_REMOTE_CLOSE,
-    FILE_AUTO_SAVE
+    FILE_SAVE_CLOSE,
+    FILE_FORCE_CLOSE
 }CLOSE_MODE;
 
 typedef struct _file_backup

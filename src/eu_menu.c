@@ -210,7 +210,6 @@ menu_update_hexview(const HMENU root_menu, const bool hex_mode, const bool init)
         util_enable_menu_item(root_menu, IDM_SETTING_RENDER_GROUP, init || (!hex_mode && !util_under_wine()));
         util_enable_menu_item(root_menu, IDM_VIEW_HISTORY_PLACEHOLDE, init || !hex_mode);
         util_enable_menu_item(root_menu, IDM_SEARCH_HISTORY_PLACEHOLDE, init || !hex_mode);
-        util_enable_menu_item(root_menu, IDM_VIEW_SCROLLCURSOR, init || !hex_mode);
     }
 }
 
@@ -527,6 +526,11 @@ menu_update_item(const HMENU menu, const bool init)
                         enable = !TAB_HEX_MODE(pnode) && !pnode->plugin && TAB_NOT_NUL(pnode) && util_can_selections(pnode);
                         util_enable_menu_item(menu, IDM_EDIT_SLASH_BACKSLASH, init || enable);
                         util_enable_menu_item(menu, IDM_EDIT_BACKSLASH_SLASH, init || enable);
+                    }
+                    case IDM_EDIT_COLUMN_EXEC:
+                    {
+                        util_enable_menu_item(menu, IDM_EDIT_COLUMN_EXEC, init || (!TAB_HEX_MODE(pnode) && !pnode->plugin));
+                        break;
                     }
                     case IDM_UPDATE_SELECTION:              /* Search menu */
                     {

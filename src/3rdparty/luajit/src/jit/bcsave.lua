@@ -571,7 +571,7 @@ local function docmd(...)
   local gc64 = ""
   while n <= #arg do
     local a = arg[n]
-    if type(a) == "string" and a:sub(1, 1) == "-" and a ~= "-" then
+    if type(a) == "string" and a:sub(1, 1) == "-" and a:sub(1, 3) ~= "--[" and a ~= "-" then
       tremove(arg, n)
       if a == "--" then break end
       for m=2,#a do

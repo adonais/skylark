@@ -1058,20 +1058,7 @@ void json_value_free (json_value * value)
    json_value_free_ex (&settings, value);
 }
 
-static int init_dynamic_string(jobject_string *ds)
-{
-    ds->capacity = JSON_CAPACITY;
-    ds->length = 0;
-    ds->data = malloc(ds->capacity);
-    if (ds->data)
-    {
-        ds->data[0] = '\0';
-        return 0;
-    }
-    return 1;
-}
-
-static int append_char(jobject_string *ds, char c)
+int append_char(jobject_string *ds, char c)
 {
     if (ds->length + 1 >= ds->capacity) {
         ds->capacity *= 2;
@@ -1086,21 +1073,62 @@ static int append_char(jobject_string *ds, char c)
     return 1;
 }
 
-static int append_string(jobject_string *ds, const char *str)
+int append_string(jobject_string *ds, const char *str)
 {
     size_t len = strlen(str);
     while (ds->length + len >= ds->capacity) {
         ds->capacity *= 2;
         ds->data = realloc(ds->data, ds->capacity);
     }
-    if (ds->data)
-    {
+    if (ds->data && str) {
         memcpy(ds->data + ds->length, str, len);
         ds->length += len;
         ds->data[ds->length] = '\0';
         return 0;
     }
     return 1;
+}
+
+int insert_string(jobject_string *ds, const char *str, const size_t pos)
+{
+    char* original = NULL;
+    size_t len = str ? strlen(str) : 0;
+    while (ds->length + len >= ds->capacity) {
+        ds->capacity *= 2;
+        ds->data = realloc(ds->data, ds->capacity);
+    }
+    if (!len || pos < 0 || pos > ds->length || ((original = _strdup(ds->data)) == NULL)) {
+        return 1;
+    }
+    // 复制子字符串到相应位置
+    memcpy(ds->data + pos, str, len);
+    // 复制原字符串剩余部分（包括结尾的'\0'）
+    memcpy(ds->data + pos + len, original + pos, ds->length - pos + 1);
+    ds->length += len;
+    ds->data[ds->length] = '\0';
+    free(original);
+    return 0;
+}
+
+int init_dynamic_string(jobject_string *ds)
+{
+    ds->capacity = JSON_CAPACITY;
+    ds->length = 0;
+    ds->data = malloc(ds->capacity);
+    if (ds->data)
+    {
+        ds->data[0] = '\0';
+        return 0;
+    }
+    return 1;
+}
+
+void destory_dynamic_string(jobject_string *ds)
+{
+    ds->capacity = 0;
+    ds->length = 0;
+    free(ds->data);
+    ds->data = NULL;
 }
 
 /* JSON 生成函数 */

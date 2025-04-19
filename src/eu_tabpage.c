@@ -213,6 +213,16 @@ on_tabpage_close_size(void)
     return (util_under_wine() ? (CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT) : eu_dpi_scale_xy(0, CLOSEBUTTON_DEFAULT + TAB_MIN_RIGHT));
 }
 
+static void
+on_tabpage_position(eu_tabpage *p)
+{
+    if (p && !_InterlockedCompareExchange(&p->initial, 1, 0) && p->nc_pos >= 0)
+    {
+        on_search_jmp_pos(p);
+        on_statusbar_update_line(p);
+    }
+}
+
 void
 on_tabpage_variable_reset(void)
 {
@@ -524,8 +534,9 @@ on_tabpage_send_file(const HWND hwin, const int index)
     eu_tabpage *p = on_tabpage_get_ptr(index);
     if (p && (!p->is_blank  || TAB_NOT_NUL(p)))
     {
-        file_backup bak = {0};
+        file_backup bak = {-1, -1, 0, -1, -1};
         int err = SKYLARK_NOT_OPENED;
+        p->tab_id = (int)index;
         _tcsncpy(bak.rel_path, p->pathfile, _countof(bak.rel_path));
         if (!eu_get_config()->m_session)
         {
@@ -562,7 +573,6 @@ on_tabpage_send_file(const HWND hwin, const int index)
         if (err == SKYLARK_OK)
         {
             bak.focus = 1;
-            bak.tab_id = -1;
             COPYDATASTRUCT cpd = {1};
             cpd.lpData = (PVOID) &bak;
             cpd.cbData = (DWORD) sizeof(file_backup);
@@ -1602,25 +1612,28 @@ on_tabpage_focus_at(void)
 int
 on_tabpage_selection(const eu_tabpage *pnode)
 {
-    EU_VERIFY(pnode != NULL && g_tabpages != NULL);
-    eu_tabpage *p = NULL;
-    for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+    if (pnode != NULL && g_tabpages != NULL)
     {
-        if ((p = on_tabpage_get_ptr(index)) && p == pnode)
+        eu_tabpage *p = NULL;
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
-            on_tabpage_set_active(index);
-            eu_window_resize();
-            on_sci_wrap_mode(p);
-            on_toolbar_update_button();
-            util_set_title(p);
-            return index;
+            if ((p = on_tabpage_get_ptr(index)) && p == pnode)
+            {
+                on_tabpage_set_active(index);
+                eu_window_resize();
+                on_sci_wrap_mode(p);
+                on_toolbar_update_button();
+                util_set_title(p);
+                on_tabpage_position(p);
+                return index;
+            }
         }
     }
     return SKYLARK_NOT_OPENED;
 }
 
 eu_tabpage *
-on_tabpage_get_handle(void *hwnd_sc)
+on_tabpage_from_handle(void *hwnd_sc)
 {
     eu_tabpage *p = NULL;
     if (g_tabpages && (HWND)hwnd_sc)
@@ -1628,6 +1641,23 @@ on_tabpage_get_handle(void *hwnd_sc)
         for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
         {
             if ((p = on_tabpage_get_ptr(index)) && p->hwnd_sc == (HWND)hwnd_sc)
+            {
+                break;
+            }
+        }
+    }
+    return p;
+}
+
+eu_tabpage *
+on_tabpage_from_result(void *hwnd_sc)
+{
+    eu_tabpage *p = NULL;
+    if (g_tabpages && (HWND)hwnd_sc)
+    {
+        for (int index = 0, count = TabCtrl_GetItemCount(g_tabpages); index < count; ++index)
+        {
+            if ((p = on_tabpage_get_ptr(index)) && p->presult && p->presult->hwnd_sc && p->presult->hwnd_sc == (HWND)hwnd_sc)
             {
                 break;
             }
@@ -1670,6 +1700,7 @@ on_tabpage_select_index(const int index)
         on_sci_wrap_mode(p);
         on_toolbar_update_button();
         util_set_title(p);
+        on_tabpage_position(p);
     }
 }
 

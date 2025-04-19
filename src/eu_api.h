@@ -84,10 +84,13 @@
 #define CHECK_1ST   0.500000
 #define CHECK_2ND   0.925000
 
-#ifndef OVECCOUNT
-#define OVECCOUNT   30   // pcre, should be multiple of 3
-#endif
+#undef OVECCOUNT
+#undef OVEC_LEN
+#undef FILESIZE
+#undef MAX_SIZE
+#undef ENV_LEN
 
+#define OVECCOUNT   30   // pcre, should be multiple of 3
 #define OVEC_LEN    16
 #define FILESIZE    128
 #define MAX_SIZE    256
@@ -95,6 +98,7 @@
 
 #define SNIPPET_FUNID 100
 #define PERROR_LEN    100
+#define MAYBE200MS    200
 
 #ifndef MAX_BUFFER
 #define MAX_BUFFER  1024
@@ -126,12 +130,13 @@
 #endif
 
 #define REMOTEFS_PROTOCOL_SUBID 0x38
-#define REMOTEFS_ACCESS_SUBID 0x39
-#define SEARCH_COMBO_SUBID 0x40
-#define SNIPPET_EDT_SUBID 0x41
-#define SNIPPET_CMB_SUBID 0x42
-#define TBCTL_LIST_SUBID 0x43
-#define STATUSBAR_SUBID 0x44
+#define REMOTEFS_ACCESS_SUBID   0x39
+#define SEARCH_COMBO_SUBID      0x40
+#define SNIPPET_EDT_SUBID       0x41
+#define SNIPPET_CMB_SUBID       0x42
+#define TBCTL_LIST_SUBID        0x43
+#define STATUSBAR_SUBID         0x44
+#define COLUMN_CMB_SUBID        0x45
 
 #define DARK_THEME_APPLY 1
 
@@ -180,6 +185,9 @@
 #define WM_PCRE_ADDSTRING         (WM_USER+12000)
 #define WM_JSON_PASSED            (WM_USER+12001)
 #define WM_JSON_POSITION          (WM_USER+12002)
+
+#define WM_OPENAI_TALK            (WM_USER+12010)
+#define WM_OPENAI_DATA            (WM_USER+12011)
 
 // Tab notification message
 #define TCN_TABDROPPED_OUT        (WM_USER+20000)
@@ -379,6 +387,15 @@ typedef struct _print_set
     RECT rect;
 }print_set;
 
+typedef struct _columnctl_set
+{
+    int initnum;
+    int increase;
+    int repeater;
+    int leading;
+    int format;
+}columnctl_set;
+
 typedef struct _titlebar_set
 {
     bool icon;
@@ -426,8 +443,19 @@ typedef struct _upgrade_set
     int  flags;
     int  msg_id;
     uint64_t last_check;
-    char url[MAX_BUFFER];
+    char url[MAX_PATH];
 }upgrade_set;
+
+typedef struct _openai_set
+{
+    bool think;
+    bool stream;
+    int  max_tokens;
+    char key[QW_SIZE];
+    char model[QW_SIZE];
+    char base[FILESIZE];
+    char setting[MAX_BUFFER];
+}openai_set;
 
 typedef struct _customize_set
 {
@@ -516,10 +544,12 @@ struct eu_config
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
+    columnctl_set eu_column;
     titlebar_set eu_titlebar;
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;
+    openai_set openai;
     char sep_copy[MAX_PATH];
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
@@ -619,7 +649,7 @@ EU_EXT_CLASS void eu_get_folder_history(sql3_callback pfunc);
 // eu_api.c
 EU_EXT_CLASS bool eu_touch(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_path(const char *path);
-EU_EXT_CLASS bool eu_which(const char *path);
+EU_EXT_CLASS bool eu_which(const char *path, char **pout);
 EU_EXT_CLASS bool eu_mk_dir(LPCTSTR dir);
 EU_EXT_CLASS bool eu_exist_dir(LPCTSTR path);
 EU_EXT_CLASS bool eu_exist_file(LPCTSTR path);
@@ -655,10 +685,11 @@ EU_EXT_CLASS void eu_api_release(void);
 EU_EXT_CLASS const int eu_theme_index(void);
 EU_EXT_CLASS const uint32_t eu_win10_or_later(void);
 EU_EXT_CLASS const bool eu_win11_or_later(void);
-EU_EXT_CLASS wchar_t *eu_wcasestr(const wchar_t *haystack, const wchar_t *needle);
+EU_EXT_CLASS TCHAR *eu_tcasestr(const TCHAR *haystack, const TCHAR *needle);
 EU_EXT_CLASS const char *eu_query_encoding_name(int code);
 EU_EXT_CLASS const uint8_t *eu_memstr(const uint8_t *haystack, const char *needle, size_t size);
 EU_EXT_CLASS int eu_sunday(const uint8_t *str, const uint8_t *pattern, size_t n, size_t b, bool incase, bool whole, bool reverse, intptr_t *pret);
+EU_EXT_CLASS int eu_query_encoding_index(const char *coding);
 EU_EXT_CLASS int eu_sunday_hex(const uint8_t *str, const char *pattern, size_t str_len, bool reverse, intptr_t *pret);
 EU_EXT_CLASS TCHAR *eu_process_path(void);
 EU_EXT_CLASS void eu_save_config(void);
@@ -680,11 +711,17 @@ EU_EXT_CLASS char *eu_strdup_content(const int index);
 EU_EXT_CLASS char *eu_file_path(const int t);
 EU_EXT_CLASS char *eu_file_name(const int t);
 EU_EXT_CLASS size_t eu_file_size(const int t);
-EU_EXT_CLASS int eu_file_close(const int t);
+EU_EXT_CLASS int eu_file_close(const int t, const int mode);
 EU_EXT_CLASS int eu_file_open(const wchar_t *path);
-EU_EXT_CLASS int eu_file_save(const int t);
+EU_EXT_CLASS void eu_file_save_all(void);
 EU_EXT_CLASS intptr_t eu_value(void *p);
 EU_EXT_CLASS intptr_t eu_sci_cmd(const eu_tabpage *p, const int m, const sptr_t w, const sptr_t l);
+EU_EXT_CLASS intptr_t eu_end_positon(const int t);
+EU_EXT_CLASS intptr_t eu_line_start_positon(const int t, const sptr_t line);
+EU_EXT_CLASS intptr_t eu_line_end_positon(const int t, const sptr_t line);
+EU_EXT_CLASS int eu_tab_focus_index(void);
+EU_EXT_CLASS int eu_tab_last_index(void);
+EU_EXT_CLASS void eu_tab_select(const int index);
 
 // for tinyexpr.c
 EU_EXT_CLASS double eu_te_eval(const te_expr *n);
@@ -937,6 +974,24 @@ EU_EXT_CLASS void on_doc_commentdoc_light(eu_tabpage *pnode, int lex, intptr_t r
 
 /* for eu_xmlist.c */
 EU_EXT_CLASS bool eu_xml_pretty(void *ptr, struct opt_format *opt);
+
+/* for eu_commands.c */
+EU_EXT_CLASS bool eu_command_xsave(const int t);
+EU_EXT_CLASS bool eu_command_reload(const int t, const char *enc);
+EU_EXT_CLASS bool eu_command_convert(const int t, const char *enc);
+EU_EXT_CLASS bool eu_command_saveas(const int t, const char *path, const int mode);
+EU_EXT_CLASS bool eu_command_search(const int t, const char *key, const uint32_t opt);
+EU_EXT_CLASS bool eu_command_replace(const int t, const char *key, const char *replace, const sptr_t n1, const sptr_t n2, const uint32_t opt);
+EU_EXT_CLASS bool eu_command_tabs_hint(const char *str, const bool focus);
+EU_EXT_CLASS void eu_command_which(const char *str);
+EU_EXT_CLASS void eu_command_jump(const int t, const intptr_t line);
+EU_EXT_CLASS void eu_command_run(const int t, const char *str, const bool fnclose);
+EU_EXT_CLASS void eu_command_talk(const int t, const char *str);
+EU_EXT_CLASS void eu_command_launch(const int t);
+EU_EXT_CLASS int  eu_command_save(const int t);
+
+/* for eu_columnctl.c */
+EU_EXT_CLASS HWND eu_column_hwnd(void);
 
 #ifdef __cplusplus
 }

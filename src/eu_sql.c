@@ -22,10 +22,10 @@
 #define SKYLARK_SQLITE_BUSY_TIMEOUT 2000
 #define START_TRANSACTION(db) sqlite3_exec(db, "begin transaction;", NULL, NULL, NULL)
 #define END_TRANSACTION(db)   sqlite3_exec(db, "commit transaction;", NULL, NULL, NULL)
-#define RECENT_TABLE   "create table file_recent(szId INTEGER PRIMARY KEY, szName char, szPos BIGINT, szDate BIGINT, szHex SMALLINT, UNIQUE(szName));"
+#define RECENT_TABLE   "create table file_recent(szId INTEGER PRIMARY KEY, szName char(1024), szPos BIGINT, szDate BIGINT, szHex SMALLINT, UNIQUE(szName));"
 #define RECENT_INSERT(n1,n2) "insert or replace into "#n1 "(szName,szPos,szDate,szHex) select szName,szPos,szDate,szHex from "#n2";"
-#define SESSION_TABLE  "create table skylark_session(szId INTEGER PRIMARY KEY,szTabId INTEGER,szRealPath char,"            \
-                       "szBakPath char,szMark char,szFold char,szLine BIGINT,szCp INTEGER,szBakCp INTEGER,szEol SMALLINT," \
+#define SESSION_TABLE  "create table skylark_session(szId INTEGER PRIMARY KEY,szTabId INTEGER,szRealPath char(1024),"                        \
+                       "szBakPath char(1024),szMark char(1024),szFold char(1024),szLine BIGINT,szCp INTEGER,szBakCp INTEGER,szEol SMALLINT," \
                        "szBlank SMALLINT,szHex SMALLINT,szFocus SMALLINT,szZoom SMALLINT,szStatus SMALLINT,szSync SMALLINT,szView SMALLINT DEFAULT 0, UNIQUE(szRealPath));"
 #define SESSION_VAULE  "(szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync, szView) "
 #define SESSION_SELECT "select szTabId,szRealPath,szBakPath,szMark,szFold,szLine,szCp,szBakCp,szEol,szBlank,szHex,szFocus,szZoom,szStatus,szSync,szView from "
@@ -72,13 +72,13 @@ init_sql_file(const char *sql_path, uintptr_t *pdb)
     const char *sql[] = \
     {
         RECENT_TABLE,
-        "create table file_remote(szId INTEGER PRIMARY KEY, szName char, szProtocol char, szAddress char, "
-        "szPort SMALLINT, szArea SMALLINT, szUser char, szPass char, szPrivate char, szPassphrase char);",
-        "create table find_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
-        "create table replace_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
-        "create table folder_his(szId INTEGER PRIMARY KEY, szName char, UNIQUE(szName));",
+        "create table file_remote(szId INTEGER PRIMARY KEY, szName char(101), szProtocol char(21), szAddress char(261),  "
+        "szPort SMALLINT, szArea SMALLINT, szUser char(21), szPass char(33), szPrivate char(261), szPassphrase char(33));",
+        "create table find_his(szId INTEGER PRIMARY KEY, szName char(1024), UNIQUE(szName));",
+        "create table replace_his(szId INTEGER PRIMARY KEY, szName char(1024), UNIQUE(szName));",
+        "create table folder_his(szId INTEGER PRIMARY KEY, szName char(1024), UNIQUE(szName));",
         SESSION_TABLE,
-        "create table skylar_ver(szName char, szVersion char, szBUildId BIGINT, szTrigger SMALLINT, szExtra BIGINT, UNIQUE(szName));",
+        "create table skylar_ver(szName char(64), szVersion char(64), szBUildId BIGINT, szTrigger SMALLINT, szExtra BIGINT, UNIQUE(szName));",
         SKYVER_FORMAT,
         RECENT_TRIGGER,
         "create trigger delete_combo1_30 BEFORE INSERT ON find_his WHEN (select count(*) from find_his)>29 "
@@ -677,7 +677,7 @@ eu_push_find_history(const char *key)
     char *sql = (char *)calloc(1, MAX_BUFFER);
     if (sql)
     {
-        _snprintf(sql, MAX_BUFFER, "insert or ignore into find_his(szName) values('%s');", key);
+        _snprintf(sql, MAX_BUFFER, "insert or replace into find_his(szName) values('%s');", key);
         on_sql_post_thread(sql);
     }
 }

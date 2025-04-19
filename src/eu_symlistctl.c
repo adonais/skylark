@@ -59,12 +59,12 @@ reqular_thread(void *lp)
     if (pnode)
     {
         pcre_conainer *pcre_info = NULL;
-        if ((pcre_info = eu_pcre_init((const char *)pnode->write_buffer, pnode->bytes_written, pnode->doc_ptr->reqular_exp, NULL, PCRE_NO_UTF8_CHECK|PCRE_CASELESS)) != NULL)
+        if ((pcre_info = eu_pcre_init(pnode->pcre_buffer, pnode->bytes_written, pnode->doc_ptr->reqular_exp, NULL, PCRE_NO_UTF8_CHECK|PCRE_CASELESS)) != NULL)
         {
             eu_pcre_exec_multi(pcre_info, pcre_match_callback, pnode);
             eu_pcre_delete(pcre_info);
         }
-        eu_safe_free(pnode->write_buffer);
+        eu_safe_free(pnode->pcre_buffer);
         _InterlockedExchange(&pnode->pcre_id, 0);
         eu_logmsg("Pcre: %s exit ...\n", __FUNCTION__);
     }
@@ -81,7 +81,7 @@ on_symlist_wait(eu_tabpage *pnode)
         {
             Sleep(100);
         }
-        eu_safe_free(pnode->write_buffer);
+        eu_safe_free(pnode->pcre_buffer);
     }
 }
 
@@ -96,7 +96,7 @@ on_symlist_reqular(eu_tabpage *pnode)
             {
                 break;
             }
-            if (!(pnode->write_buffer = (uint8_t *)util_strdup_content(pnode, &pnode->bytes_written)))
+            if (!(pnode->pcre_buffer = util_strdup_content(pnode, &pnode->bytes_written)))
             {
                 break;
             }

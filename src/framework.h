@@ -173,5 +173,8 @@
 #include "eu_pool.h"
 #include "eu_profiles.h"
 #include "eu_navigate.h"
+#include "eu_commands.h"
+#include "eu_columnctl.h"
+#include "eu_openai.h"
 
 #endif  // _EU_FRAMEWORK_H_

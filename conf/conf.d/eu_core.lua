@@ -29,6 +29,15 @@ typedef struct _print_set
     RECT rect;
 }print_set;
 
+typedef struct _columnctl_set
+{
+    int initnum;
+    int increase;
+    int repeater;
+    int leading;
+    int format;
+}columnctl_set;
+
 typedef struct _titlebar_set
 {
     bool icon;
@@ -83,8 +92,19 @@ typedef struct _upgrade_set
     int  flags;
     int  msg_id;
     uint64_t last_check;
-    char url[1024];
+    char url[260];
 }upgrade_set;
+
+typedef struct _openai_set
+{
+    bool think;
+    bool stream;
+    int  max_tokens;
+    char key[64];
+    char model[64];
+    char base[128];
+    char setting[1024];
+}openai_set;
 
 typedef struct _customize_set
 {
@@ -162,10 +182,12 @@ struct eu_config
     calltip_set eu_calltip;
     complete_set eu_complete;
     print_set eu_print;
+    columnctl_set eu_column;
     titlebar_set eu_titlebar;
     bool m_hyperlink;
     int m_limit;
     upgrade_set upgrade;
+    openai_set openai;
     char sep_copy[260];
     char m_path[260];
     char editor[260];
@@ -391,10 +413,15 @@ char *eu_strdup_range(const int t, const intptr_t start, const intptr_t end);
 char *eu_sci_range(const void *p, const intptr_t start, const intptr_t end);
 char *eu_file_path(const int t);
 char *eu_file_name(const int t);
-int eu_file_close(const int t);
+int eu_file_close(const int t, const int mode);
 int eu_file_open(const wchar_t *path);
-int eu_file_save(const int t);
 int eu_msgbox(void *w, const wchar_t *txt, const wchar_t *cap, uint32_t type);
+intptr_t eu_file_size(const int t);
+intptr_t eu_end_positon(const int t);
+intptr_t eu_line_start_positon(const int t, const intptr_t line);
+intptr_t eu_line_end_positon(const int t, const intptr_t line);
+/* 保存所有文件 */
+void eu_file_save_all(void);
 /* 编辑器主窗口句柄 */
 void *eu_module_hwnd(void);
 /* 启动其他进程, *o保存了pid */
@@ -404,9 +431,29 @@ intptr_t eu_value(void *p);
 /* 是否运行在Linux/Wine */
 bool eu_under_wine(void);
 /* 文件是否在环境变量路径中 */
-bool eu_which(const char *path);
+bool eu_which(const char *path, char **pout);
 /* 获取系统版本 */
 const uint32_t eu_win10_or_later(void);
+
+int eu_tab_focus_index(void);
+int eu_tab_last_index(void);
+void eu_tab_select(const int index);
+
+int  eu_command_save(const int t);
+void eu_command_talk(const int t, const char *str);
+void eu_command_jump(const int t, const intptr_t line);
+void eu_command_launch(const int t);
+void eu_command_which(const char *str);
+void eu_command_run(const int t, const char *str, const bool fnclose);
+/* 重设文件编码 */
+bool eu_command_reload(const int t, const char *enc);
+bool eu_command_convert(const int t, const char *enc);
+/* 保存文件 */
+bool eu_command_saveas(const int t, const char *path, const int mode);
+bool eu_command_xsave(const int t);
+bool eu_command_search(const int t, const char *key, const uint32_t opt);
+bool eu_command_replace(const int t, const char *key, const char *replace, const intptr_t n1, const intptr_t n2, const uint32_t opt);
+bool eu_command_tabs_hint(const char *str, const bool focus);
 
 // all doctype callbacks
 bool eu_init_calltip_tree(doctype_t *p, const char *key, const char *val);

@@ -22,10 +22,6 @@
 #define SELECTION_ZOOM_LEVEEL -99
 #define LINE_NOT_FOUND ((sptr_t)-1)
 
-#define ON_LOOP_FLAGS          0x00000010
-#define ON_HEX_STRINGS         0x00000020
-#define NO_REGXP_FLAGS         0x00000040
-
 #define INCLUDE_FOLDER_SUB     0x00000100
 #define INCLUDE_FOLDER_HIDDEN  0x00000200
 #define INCLUDE_FILE_UTF8      0x00000400
@@ -35,6 +31,15 @@
 #define ON_REPLACE_THIS        0x00002000
 #define ON_REPLACE_ALL         0x00004000
 #define ON_REPLACE_SELECTION   0x00008000
+
+#define SCCMD_LOOP             0x00000010
+#define SCCMD_HEX              0x00000020
+#define SCCMD_NOREGXP          0x00000040
+#define SCCMD_REVERSE          0x00000080
+#define SCCMD_LINE_FIRST       0x00010000
+#define SCCMD_LINE_ALL         0x00020000
+#define SCCMD_TEXT_FIRST       0x00040000
+#define SCCMD_TEXT_ALL         0x00080000
 
 #ifdef __cplusplus
 extern "C"
@@ -81,7 +86,12 @@ int on_search_combo_callback(void *data, int count, char **column, char **names)
 sptr_t on_search_marker_next(const eu_tabpage *pnode, const sptr_t line, sptr_t last, const int bitmask);
 sptr_t on_search_process_find(const eu_tabpage *, const char *, size_t, size_t, size_t);
 bool on_search_create_box(void);
+bool on_search_caller(void);
+bool on_search_replace_target(eu_tabpage *pnode, const char *replace_str, sptr_t *poffset);
+bool on_search_next(eu_tabpage *pnode, const char *key, const sptr_t end_pos, const uint32_t flags);
 
+void on_search_set_fsm(void);
+void on_search_clear_fsm(void);
 void on_search_toggle_mark(const eu_tabpage *pnode, const sptr_t lineno);
 void on_search_remove_marks_all(void);
 void on_search_jmp_premark_this(const eu_tabpage *pnode, const int mask);
@@ -124,6 +134,7 @@ void on_search_turn_select(eu_tabpage *pnode);
 void on_search_regxp_error(void);
 void on_search_jmp_next_history(const eu_tabpage *pnode);
 void on_search_do_space(const eu_tabpage *pnode, const char *key, const char *str_replace, replace_event docase);
+void on_search_jmp_now(const eu_tabpage *p, const sptr_t line);
 
 #ifdef __cplusplus
 }

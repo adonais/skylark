@@ -72,13 +72,33 @@ function eu.process_id()
     return eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), WM_PROCESS_ID, 0, 0)
 end
 
+function eu.close_tab()
+    -- WM_COMMAND == 0x0111
+    return eu.ffi.C.SendMessageW(eu.api.eu_module_hwnd(), 0x0111, IDM_FILE_CLOSE, 0)
+end
+
+function eu.max_position(index)
+    if (index == nil) then index = -1 end
+    return eu.api.eu_end_positon(index)
+end
+
+function eu.line_start_positon(index, line)
+    if (index == nil) then index = -1 end
+    return eu.api.eu_line_start_positon(index, line)
+end
+
+function eu.line_end_positon(index, line)
+    if (index == nil) then index = -1 end
+    return eu.api.eu_line_end_positon(index, line)
+end
+
 function eu.file_size(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     return eu.api.eu_file_size(index)
 end
 
 function eu.file_path(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     local path = eu.api.eu_file_path(index)
     eu.ffi.gc(path,(function(self)
         if path ~= nil then eu.ffi.C.free(path) end
@@ -87,7 +107,7 @@ function eu.file_path(index)
 end
 
 function eu.file_name(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     local name = eu.api.eu_file_name(index)
     eu.ffi.gc(name,(function(self)
         if name ~= nil then eu.ffi.C.free(name) end
@@ -95,23 +115,23 @@ function eu.file_name(index)
     return eu.ffi.string(name, eu.ffi.C.strlen(name))
 end
 
-function eu.line_number(index)
-    if (index == nil) then index = 0 end
+function eu.line_total(index)
+    if (index == nil) then index = -1 end
     return eu.api.eu_sci_call(index, SCI_GETLINECOUNT, 0, 0)
 end
 
 function eu.begin_action(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     eu.api.eu_sci_call(index, SCI_BEGINUNDOACTION, 0, 0)
 end
 
 function eu.end_action(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     eu.api.eu_sci_call(index, SCI_ENDUNDOACTION, 0, 0)
 end
 
 function eu.get_text(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     local str = eu.api.eu_strdup_content(index)
     eu.ffi.gc(str,(function(self)
         if str ~= nil then eu.ffi.C.free(str) end
@@ -120,17 +140,17 @@ function eu.get_text(index)
 end
 
 function eu.clear_text(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     eu.api.eu_sci_call(index, SCI_CLEARALL, 0, 0)
 end
 
 function eu.set_text(text, index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     eu.api.eu_sci_call(index, SCI_ADDTEXT, #text, eu.ffi.cast("const intptr_t", text))
 end
 
 function eu.get_line(index, line)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     local buffer = eu.api.eu_strdup_line(index, line)
     eu.ffi.gc(buffer,(function(self)
         if buffer ~= nil then eu.ffi.C.free(buffer) end
@@ -139,13 +159,13 @@ function eu.get_line(index, line)
 end
 
 function eu.cureent_line_number(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     local pos = eu.api.eu_sci_call(index, SCI_GETCURRENTPOS, 0, 0)
     return eu.api.eu_sci_call(index, SCI_LINEFROMPOSITION, pos, 0)
 end
 
 function eu.get_selection(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     local buf = eu.api.eu_strdup_select(index)
     eu.ffi.gc(buf,(function(self)
         if buf ~= nil then eu.ffi.C.free(buf) end
@@ -154,22 +174,22 @@ function eu.get_selection(index)
 end
 
 function eu.replace_selection(text, index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     eu.api.eu_sci_call(index, SCI_REPLACESEL, 0, eu.ffi.cast("const intptr_t", text))
 end
 
 function eu.set_selection(pos1, pos2, index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     eu.api.eu_sci_call(index, SCI_SETSEL, pos1, pos2)
 end
 
 function eu.get_position(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     eu.api.eu_sci_call(index, SCI_GETCURRENTPOS, 0, 0)
 end
 
 function eu.current_word(index)
-    if (index == nil) then index = 0 end
+    if (index == nil) then index = -1 end
     local txt = nil
     local pos = eu.api.eu_sci_call(index, SCI_GETCURRENTPOS, 0, 0)
     if (pos ~= nil and pos >= 0) then
@@ -192,9 +212,10 @@ function eu.sci_cmd(p, m, w, l)
     return eu.api.eu_sci_cmd(p, m, w, l)
 end
 
-function eu.close_file(index)
-    if (index == nil) then index = 0 end
-    return eu.api.eu_file_close(index)
+function eu.close_file(index, mode)
+    if (index == nil) then index = -1 end
+    if (mode == nil) then mode = 1 end
+    return eu.api.eu_file_close(index, mode)
 end
 
 function eu.open_file(path)
@@ -206,8 +227,8 @@ function eu.open_file(path)
 end
 
 function eu.save_file(index)
-    if (index == nil) then index = 0 end
-    return eu.api.eu_file_save(index)
+    if (index == nil) then index = -1 end
+    return eu.api.eu_command_save(index)
 end
 
 return eu

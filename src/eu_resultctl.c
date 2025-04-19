@@ -21,7 +21,7 @@
 static HWND hwnd_rst = NULL;
 
 int
-on_result_append_text(TCHAR *format, ...)
+on_result_append_text(const TCHAR *format, ...)
 {
     va_list valist;
     SYSTEMTIME systime;
@@ -83,7 +83,7 @@ on_result_append_text(TCHAR *format, ...)
     }
     if ((utf_buf = eu_utf16_utf8(buf, NULL)) != NULL)
     {
-        on_sci_call(pnode->presult, SCI_ADDTEXT, strlen(utf_buf), (LPARAM)utf_buf);
+        on_sci_call(pnode->presult, SCI_ADDTEXT, (sptr_t)strlen(utf_buf), (sptr_t)utf_buf);
         free(utf_buf);
     }
     free(buf);
@@ -91,13 +91,13 @@ on_result_append_text(TCHAR *format, ...)
 }
 
 int
-on_result_append_text_utf8(char *format, ...)
+on_result_append_text_utf8(eu_tabpage *p, const char *format, ...)
 {
     va_list valist;
     char *buf = NULL;
     int l, len = 0;
-    eu_tabpage *pnode = NULL;
-    if ((pnode = on_tabpage_focus_at()) == NULL || !RESULT_SHOW(pnode))
+    bool cmds = false;
+    if (!p || !p->presult || !p->presult->hwnd_sc)
     {
         return 1;
     }
@@ -120,11 +120,33 @@ on_result_append_text_utf8(char *format, ...)
     {
         len += l;
     }
-    on_sci_call(pnode->presult, SCI_SETREADONLY, 0, 0);
-    on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
-    on_sci_call(pnode->presult, SCI_ADDTEXT, strlen(buf), (LPARAM)buf);
-    on_sci_call(pnode->presult, SCI_SETREADONLY, 1, 0);
-    on_sci_call(pnode->presult, SCI_GOTOLINE, 1, 0);
+    if ((on_sci_call(p->presult, SCI_GETCARETSTYLE, 0, 0) & CARETSTYLE_LINE))
+    {
+        cmds = true;
+    }
+    if (!cmds)
+    {
+        on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
+        on_sci_call(p->presult, SCI_CLEARALL, 0, 0);
+        on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)strlen(buf), (sptr_t)buf);
+        on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+        on_sci_call(p->presult, SCI_GOTOLINE, 1, 0);
+    }
+    else
+    {
+        if (p->presult->tab_id == AI_CMD_MODEL)
+        {
+            p->presult->tab_id = 0;
+            on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
+            on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)strlen(buf), (sptr_t)buf);
+            on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+        }
+        else
+        {
+            on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)1, (sptr_t)"\n");
+            on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)(strlen(buf) - 1), (sptr_t)buf);
+        }
+    }
     free(buf);
     return 0;
 }
@@ -156,9 +178,8 @@ on_result_other_tab(int line, result_vec *vec_strings)
 }
 
 static int
-on_result_dbclick(void)
+on_result_dbclick(eu_tabpage *pnode)
 {
-    eu_tabpage *pnode = on_tabpage_focus_at();
     if (pnode && pnode->presult && pnode->ret_vec)
     {
         const sptr_t pos = on_sci_call(pnode->presult, SCI_GETCURRENTPOS, 0, 0);
@@ -185,7 +206,7 @@ on_result_dbclick(void)
 }
 
 static void
-on_result_command(const HWND hwnd, const WORD low)
+on_result_command(eu_tabpage *p, const HWND hwnd, const WORD low, intptr_t lp)
 {
     switch(low)
     {
@@ -200,7 +221,6 @@ on_result_command(const HWND hwnd, const WORD low)
             break;
         case IDM_RESULT_WRAPLINE:
         {
-            eu_tabpage *p = on_tabpage_focus_at();
             if (RESULT_SHOW(p))
             {
                 int mode = (int)on_sci_call(p->presult, SCI_GETWRAPMODE, 0, 0);
@@ -210,19 +230,60 @@ on_result_command(const HWND hwnd, const WORD low)
         }
         case IDM_RESULT_CLEARALL:
         {
-            eu_tabpage *p = on_tabpage_focus_at();
-            if (p && p->presult && p->presult->hwnd_sc)
+            if (RESULT_SHOW(p))
             {
                 on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
                 on_sci_call(p->presult, SCI_CLEARALL, 0, 0);
-                on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+                if (p->presult->pwant != on_command_light)
+                {
+                    on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+                }
             }
             break;
         }
         case IDM_RESULT_CLOSE:
         {
-            eu_tabpage *p = on_tabpage_focus_at();
             on_result_destroy(p);
+            break;
+        }
+        case IDC_MSG_ATTACH_FAIL3:
+        case IDS_OPENAI_FORMAT_ERR:
+        case IDS_OPENAI_AUTH_FAILD:
+        case IDS_INSUFFICIENT_BAL:
+        case IDS_OPENAI_PARAMETE_ERR:
+        case IDS_OPENAI_TMP_ERR:
+        case IDS_OPENAI_SERV_FAILURE:
+        case IDS_OPENAI_SERV_BUSY:
+        case IDS_OPENAI_SERV_404:
+        case IDS_OPENAI_DATA_ERR:
+        {
+            p->presult->tab_id = AI_CMD_MODEL;
+            on_result_output(p, low);
+            break;
+        }
+        case IDS_OPENAI_SERV_THINK:
+        {
+            if (AI_EOT == lp)
+            {
+                on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
+                on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)1, (sptr_t)("\n"));
+                on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+                on_sci_call(p->presult, SCI_GOTOPOS, on_sci_call(p->presult, SCI_GETLENGTH, 0, 0), 0);
+            }
+            else if (!lp)
+            {
+                p->presult->tab_id = AI_CMD_MODEL;
+                on_result_output(p, low);
+            }
+            else
+            {
+                char *mem = (char *)lp;
+                on_sci_call(p->presult, SCI_SETREADONLY, 0, 0);
+                on_sci_call(p->presult, SCI_ADDTEXT, (sptr_t)(strlen(mem)), (sptr_t)mem);
+                on_sci_call(p->presult, SCI_SETREADONLY, 1, 0);
+                on_sci_call(p->presult, SCI_GOTOPOS, on_sci_call(p->presult, SCI_GETLENGTH, 0, 0), 0);
+                free(mem);
+            }
             break;
         }
         default:
@@ -237,13 +298,32 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+        case WM_KEYDOWN:
+        {
+            if ((wParam == VK_ESCAPE || wParam == VK_RETURN) && KEY_UP(VK_SHIFT) && KEY_UP(VK_CONTROL))
+            {
+                eu_tabpage *pnode = on_tabpage_from_result(hwnd);
+                if (RESULT_SHOW(pnode) && pnode->presult->pwant == on_command_light)
+                {
+                    if (wParam == VK_ESCAPE)
+                    {
+                        on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+                    }
+                    else
+                    {
+                        on_script_loader_event(SKYLARK_COMMANDS, pnode->presult);
+                    }
+                }
+            }
+            break;
+        }
         case WM_LBUTTONDBLCLK:
         {
-            return on_result_dbclick();
+            return on_result_dbclick(on_tabpage_from_result(hwnd));
         }
         case WM_RBUTTONUP:
         {
-            eu_tabpage *p = on_tabpage_focus_at();
+            eu_tabpage *p = on_tabpage_from_result(hwnd);
             if (RESULT_SHOW(p))
             {
                 return menu_pop_track(hwnd, IDR_RESULT_MENU, 0, -1, on_result_menu_callback, p);
@@ -255,7 +335,8 @@ on_result_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             WORD low = LOWORD(wParam);
             if (HIWORD(wParam) == 0)
             {
-                on_result_command(hwnd, low);
+                on_result_command(on_tabpage_from_result(hwnd), hwnd, low, lParam);
+                return 0;
             }
             break;
         }
@@ -296,10 +377,19 @@ on_result_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 void
+on_result_output(eu_tabpage *p, const int res)
+{
+    char msg[MAX_PATH] = {0};
+    LOAD_I18N_RESSTR(res, info);
+    on_result_append_text_utf8(p, util_make_u8(info, msg, MAX_PATH));
+}
+
+void
 on_result_destroy(eu_tabpage *p)
 {
     if (RESULT_SHOW(p))
     {
+        on_openai_cancel(p->presult);
         SendMessage(p->presult->hwnd_sc, WM_CLOSE, 0, 0);
         p->presult->hwnd_sc = NULL;
         p->result_show = false;

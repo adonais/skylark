@@ -340,22 +340,16 @@ on_proc_tab_click(eu_tabpage *pnode)
             on_proc_msg_size(NULL, pnode);
             on_sci_wrap_mode(pnode);
             on_search_jmp_pos(pnode);
+            on_statusbar_update_line(pnode);
         }
         else
         {
             on_sci_wrap_mode(pnode);
             on_proc_msg_size(NULL, pnode);
         }
-        if (pnode->nc_pos >= 0 && eu_get_config()->scroll_to_cursor)
+        if (eu_get_config()->scroll_to_cursor)
         {
-            if (TAB_HEX_MODE(pnode))
-            {
-                on_sci_call(pnode, SCI_GOTOPOS, pnode->nc_pos, 0);
-            }
-            else
-            {
-                on_sci_call(pnode, SCI_SCROLLCARET, 0, 0);
-            }
+            on_sci_scroll(pnode);
         }
     }
 }
@@ -1236,6 +1230,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_AUTO_INDENTATION:
                     on_view_identation();
                     break;
+                case IDM_EDIT_COLUMN_EXEC:
+                {
+                    on_column_create_dlg(hwnd);
+                    break;
+                }
                 case IDM_OPEN_FILE_PATH:
                 {
                     on_edit_selection(pnode, 0);
@@ -1789,7 +1788,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_INTRODUTION:
                 {
                     file_backup bak = {-1, -1, 0, -1, 1};
-                    _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\README_CN.MD"), eu_module_path);
+                    _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\READMECN.MD"), eu_module_path);
                     on_file_only_open(&bak);
                     break;
                 }
@@ -2003,7 +2002,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 // scintilla控件响应消息, 其他消息见eu_scintill.c
                 case SCN_CHARADDED:
-                    on_sci_character(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
+                    on_sci_character(on_tabpage_from_handle(lpnotify->nmhdr.hwndFrom), lpnotify);
                     break;
                 case SCN_AUTOCCHARDELETED:
                     on_sci_character(on_tabpage_focus_at(), 0);
@@ -2025,11 +2024,11 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_file_out_open(eu_int_cast(lpnotify->nmhdr.hwndFrom), NULL);
                     break;
                 case SCN_SAVEPOINTREACHED:
-                    on_sci_point_reached(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    on_sci_point_reached(on_tabpage_from_handle(lpnotify->nmhdr.hwndFrom));
                     eu_logmsg("MainCallbak: on_sci_point_reached caller\n");
                     break;
                 case SCN_SAVEPOINTLEFT:
-                    on_sci_point_left(on_tabpage_get_handle(lpnotify->nmhdr.hwndFrom));
+                    on_sci_point_left(on_tabpage_from_handle(lpnotify->nmhdr.hwndFrom));
                     eu_logmsg("MainCallbak: on_sci_point_left caller\n");
                     break;
                 case SCN_MARGINCLICK:
@@ -2261,7 +2260,10 @@ on_proc_msg_active(eu_tabpage *pnode)
     {
         if (!pnode->plugin && pnode->hwnd_sc && GetWindowLongPtr(pnode->hwnd_sc, GWL_STYLE) & WS_VISIBLE)
         {
-            SetFocus(pnode->hwnd_sc);
+            if (!on_command_focus(pnode))
+            {
+                SetFocus(pnode->hwnd_sc);
+            }
         }
         if (eu_get_config()->m_statusbar && g_statusbar)
         {
@@ -2401,16 +2403,28 @@ int
 eu_before_proc(MSG *p_msg)
 {
     eu_tabpage *pnode = NULL;
-    if (p_msg->message == WM_SYSKEYDOWN && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
+    if (p_msg->message == WM_SYSKEYUP && p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00) && KEY_UP(VK_SHIFT) && KEY_UP(VK_CONTROL))
     {
+        int64_t ms = util_clock_interval();
+        if (ms > 0 && ms < 1000)
+        {
+            eu_command_launch(-1);
+        }
         return 1;
     }
-    if (p_msg->message == WM_SYSKEYDOWN && 0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
+    if (p_msg->message == WM_SYSKEYDOWN)
     {
-        on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
-        return 1;
+        if (p_msg->wParam == VK_MENU && !(p_msg->lParam & 0xff00))
+        {
+            return 1;
+        }
+        if (0x31 <= p_msg->wParam && p_msg->wParam <= 0x39 && (p_msg->lParam & (1 << 29)))
+        {
+            on_tabpage_active_one((int) (p_msg->wParam) - 0x31);
+            return 1;
+        }
     }
-    if(p_msg->message == WM_KEYDOWN && (pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && TAB_HAS_TXT(pnode) && p_msg->hwnd == pnode->hwnd_sc)
+    if (p_msg->message == WM_KEYDOWN && (pnode = on_tabpage_focus_at()) && pnode && pnode->doc_ptr && TAB_HAS_TXT(pnode) && p_msg->hwnd == pnode->hwnd_sc)
     {
         bool main_up = KEY_UP(VK_CONTROL) && KEY_UP(VK_MENU) && KEY_UP(VK_INSERT);
         bool main_down = KEY_DOWN(VK_CONTROL) && KEY_DOWN(VK_MENU) && KEY_DOWN(VK_INSERT) && KEY_DOWN(VK_SHIFT);
@@ -2452,7 +2466,11 @@ eu_create_main_window(HINSTANCE instance)
     {
         uint32_t ac_flags = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
         INITCOMMONCONTROLSEX icex = {sizeof(INITCOMMONCONTROLSEX)};
-        icex.dwICC = ICC_TAB_CLASSES | ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_USEREX_CLASSES;
+        icex.dwICC = ICC_TAB_CLASSES      |
+                     ICC_COOL_CLASSES     |
+                     ICC_BAR_CLASSES      |
+                     ICC_LISTVIEW_CLASSES |
+                     ICC_USEREX_CLASSES;
         if (InitCommonControlsEx(&icex))
         {
             LOAD_APP_RESSTR(IDS_APP_TITLE, app_title);

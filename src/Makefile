@@ -115,6 +115,9 @@ EUAPI_OBJS = \
     $(OBJD)\eu_pool.obj                        \
     $(OBJD)\eu_profiles.obj                    \
     $(OBJD)\eu_navigate.obj                    \
+    $(OBJD)\eu_commands.obj                    \
+    $(OBJD)\eu_columnctl.obj                   \
+    $(OBJD)\eu_openai.obj                      \
 
 SHARED_LIB = $(BIND)\euapi.dll
 
@@ -150,9 +153,11 @@ dirs:
 	@if not exist "$(BIND)\plugins" mkdir "$(BIND)\plugins"
 	@if exist "$(ROOT)\\conf" xcopy "$(ROOT)\\conf" "$(BIND)\\conf" /s /e /q /y 2>&1>NUL
 	@if exist "$(ROOT)\share" xcopy "$(ROOT)\share" "$(BIND)\share" /s /e /q /y 2>&1>NUL
-	@if exist "$(ROOT)\\README_CN.MD" copy /y "$(ROOT)\\README_CN.MD" "$(BIND)\\README_CN.MD" 2>&1>NUL
+	@if exist "$(ROOT)\\READMECN.MD" copy /y "$(ROOT)\\READMECN.MD" "$(BIND)\\READMECN.MD" 2>&1>NUL
 	@if exist "$(MAKEDIR)\\3rdparty\\plugins" xcopy "$(MAKEDIR)\\3rdparty\\plugins" "$(BIND)\\plugins" /s /e /q /y 2>&1>NUL
 	@if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
+	@if not exist "$(BIND)\\lua\\loader" mkdir "$(BIND)\\lua\\loader" && echo. Created $(BIND)\\lua\\loader
+	xcopy "$(ROOT)\\examples\\loader" "$(BIND)\\lua\\loader" /s /e /q /y 2>&1>NUL
 
 $(SHARED_LIB): $(EUAPI_OBJS) $(API_LIBS)
 	$(LD) $(DLLFLAGS) -out:$@ $(EUAPI_OBJS) $(API_DEPS)
@@ -222,5 +227,8 @@ $(OBJD)\eu_xmlist.obj                      : eu_xmlist.c eu_xmlist.h framework.h
 $(OBJD)\eu_pool.obj                        : eu_pool.c eu_pool.h eu_cvector.h framework.h
 $(OBJD)\eu_profiles.obj                    : eu_profiles.c eu_profiles.h eu_cvector.h framework.h
 $(OBJD)\eu_navigate.obj                    : eu_navigate.c eu_navigate.h eu_navigate.h eu_list.h eu_cvector.h framework.h
+$(OBJD)\eu_commands.obj                    : eu_commands.c eu_commands.h eu_api.h eu_cvector.h framework.h
+$(OBJD)\eu_columnctl.obj                   : eu_columnctl.c eu_columnctl.h eu_api.h eu_cvector.h framework.h
+$(OBJD)\eu_openai.obj                      : eu_openai.c eu_openai.h eu_api.h eu_cvector.h framework.h
 $(OBJD)\resource.res                       : skylark.rc targetver.h skylark.exe.manifest $(ROOT)\resources\*.bmp
 	$(RC) $(RFLAGS) -Fo$@ skylark.rc

@@ -388,6 +388,7 @@ eu_refresh_interface(HMODULE new_lang, const TCHAR *lang_path)
     on_favorite_reload_root();
     on_search_dark_mode_release();
     on_snippet_destory();
+    on_column_destory();
     return 0;
 }
 
@@ -397,11 +398,16 @@ i18n_check_envent(void)
     bool ret = true;
     HWND snippet = NULL;
     HWND search = NULL;
+    HWND column = NULL;
     if ((snippet = eu_snippet_hwnd()) && IsWindowVisible(snippet))
     {
         ret = false;
     }
     if (ret && (search = eu_get_search_hwnd()) && IsWindowVisible(search))
+    {
+        ret = false;
+    }
+    if (ret && (column = eu_column_hwnd()) && IsWindowVisible(column))
     {
         ret = false;
     }

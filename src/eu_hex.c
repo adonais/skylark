@@ -1966,14 +1966,17 @@ hexview_init(eu_tabpage *pnode)
         pnode->phex->hex_ascii = true;
     }
     SendMessage(pnode->hwnd_sc, HVM_SETITEMCOUNT, 0, (LPARAM) pnode->bytes_remaining);
-    if (pnode->tab_focus > 0)
+    if (pnode->initial)
     {
-        on_tabpage_selection(pnode);
-        SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
-    }
-    else
-    {
-        util_redraw(g_tabpages, true);
+        if (pnode->tab_focus > 0)
+        {
+            on_tabpage_selection(pnode);
+            SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
+        }
+        else
+        {
+            util_redraw(g_tabpages, true);
+        }
     }
     if (pnode->plugin)
     {

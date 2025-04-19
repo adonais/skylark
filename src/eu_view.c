@@ -654,7 +654,7 @@ on_view_clear_indicator(eu_tabpage *pnode)
 int
 on_view_editor_selection(eu_tabpage *pnode)
 {
-    if (pnode && TAB_HAS_TXT(pnode) && util_can_selections(pnode))
+    if (pnode && TAB_HAS_TXT(pnode) && util_can_selections(pnode) && !on_sci_call(pnode, SCI_GETSELECTIONMODE, 0, 0) && !on_search_caller())
     {
         size_t select_len = 0;
         char *select_buf = util_strdup_select(pnode, &select_len, 0);
@@ -671,7 +671,7 @@ on_view_editor_selection(eu_tabpage *pnode)
             on_sci_call(pnode, SCI_INDICATORCLEARRANGE, start_pos, end_pos);
             if (eu_get_config())
             {
-                flags = eu_get_config()->last_flags & 0x7;
+                flags = eu_get_config()->last_flags & 0x1FFFFF;
                 pnode->match_count = 0;
             }
             while (found_pos >= 0)

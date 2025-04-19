@@ -28,7 +28,7 @@ function eu_conf.fill_customize(s)
                                  ['param'] = "", ['micon'] = 0, ['posid'] = 0, ['hbmp'] = 0}
         if (eu_core.euapi.eu_under_wine()) then
           process_customized[2].path = "calc"
-        elseif (eu_core.euapi.eu_which("win32calc.exe")) then
+        elseif (eu_core.euapi.eu_which("win32calc.exe", nil)) then
           process_customized[2].path = "%windir%/system32/win32calc.exe"
         else
           process_customized[2].path = "%windir%/system32/calc.exe"
@@ -73,7 +73,7 @@ function eu_conf.loadconf()
     local file = (eu_core.script_path() .. "\\skylark.conf")
     if (not eu_core.file_exists(file)) then
         local code = -- 默认配置文件
-        "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n" ..
+        "--[=[if you edit the file, please keep the encoding correct(utf-8 nobom)]=]\n" ..
         "newfile_eols = 2\n" ..
         "newfile_encoding = 10014\n" ..
         "enable_auto_identation = true\n" ..
@@ -159,6 +159,14 @@ function eu_conf.loadconf()
         "    margin_right = 2000,\n" ..
         "    margin_bottom = 2000\n" ..
         "}\n" ..
+        "-- column editor default setting\n" ..
+        "columner = {\n" ..
+        "    initnum = 1024,\n" ..
+        "    increase = 1,\n" ..
+        "    repeater = 1,\n" ..
+        "    leading = 50216,\n" ..
+        "    format = 50203\n" ..
+        "}\n" ..
         "-- titlebar default setting\n" ..
         "titlebar = {\n" ..
         "    icon = true,\n" ..
@@ -174,7 +182,16 @@ function eu_conf.loadconf()
         "    flags = 0,\n" ..
         "    msg_id = 44054,\n" ..
         "    last_check = 0,\n" ..
-        "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download',\n" ..
+        "    url = 'https://sourceforge.net/projects/libportable/files/Skylark/update_info.txt/download'\n" ..
+        "}\n" ..
+        "app_openai = {\n" ..
+        "    think = true,\n" ..
+        "    stream = true,\n" ..
+        "    max_tokens = 0,\n" ..
+        "    key = '',\n" ..
+        "    model = 'deepseek-r1',\n" ..
+        "    base = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',\n" ..
+        "    setting = 'You are a helpful assistant.'\n" ..
         "}\n" ..
         "-- when a multiple selection is copied, this string property is added between each part\n" ..
         "set_copy_separator = \"\\\\n\"\n" ..
@@ -199,6 +216,23 @@ function eu_conf.loadconf()
     end
     if (set_copy_separator == nil) then
         set_copy_separator = "\\\\n";
+    end
+    if (columner == nil) then
+        columner = {['initnum'] = 1024,
+                    ['increase'] = 1,
+                    ['repeater'] = 1,
+                    ['leading'] = 50216,
+                    ['format'] = 50203}
+    end
+    if (app_openai == nil) then
+        app_openai = {['think'] = true,
+                      ['stream'] = true,
+                      ['max_tokens'] = 0,
+                      ['key'] = "",
+                      ['model'] = "deepseek-r1",
+                      ['base'] = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                      ['setting'] = "You are a helpful assistant."
+                     }
     end
     -- Compatible with old configuration item
     if (code_hint_show_enable == true) then
@@ -263,10 +297,12 @@ function eu_conf.loadconf()
         {calltip.enable, calltip.rgb},
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
+        {columner.initnum, columner.increase, columner.repeater, columner.leading,columner.format},
         {titlebar.icon, titlebar.name, titlebar.path},
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
+        {app_openai.think, app_openai.stream, app_openai.max_tokens, app_openai.key, app_openai.model, app_openai.base, app_openai.setting},
         set_copy_separator,
         process_path,
         other_editor_path,

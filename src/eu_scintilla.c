@@ -346,6 +346,22 @@ on_sci_wrap_mode(const eu_tabpage *p)
 }
 
 void
+on_sci_scroll(const eu_tabpage *p)
+{
+    if (p)
+    {
+        if (TAB_HEX_MODE(p))
+        {
+            on_sci_call(p, SCI_GOTOPOS, SendMessage(p->hwnd_sc, HVM_GETHEXADDR, 0, 0), 0);
+        }
+        else
+        {
+            on_sci_call(p, SCI_SCROLLCARET, 0, 0);
+        }
+    }
+}
+
+void
 on_sci_update_filesize(eu_tabpage *pnode)
 {
     if (pnode && !pnode->plugin)
@@ -497,6 +513,7 @@ on_sci_destroy_control(eu_tabpage *pnode)
             SendMessage(pnode->presult->hwnd_sc, WM_CLOSE, 0, 0);
             pnode->presult->hwnd_sc = NULL;
             pnode->result_show = false;
+            on_openai_cancel(pnode->presult);
             eu_safe_free(pnode->presult);
         }
         // 释放保存结果的vec数组
@@ -806,7 +823,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_KEYDOWN:
         {   // 按下ESC键时
-            if (!(pnode = on_tabpage_focus_at()))
+            if (!(pnode = on_tabpage_from_handle(hwnd)))
             {
                 break;
             }
@@ -824,6 +841,11 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     on_complete_reset_focus(pnode);
                 }
                 on_sci_call(pnode, SCI_CANCEL, 0, 0);
+                on_search_clear_fsm();
+                if (on_command_focus(pnode))
+                {
+                    on_sci_call(pnode->presult, SCI_CLEARALL, 0, 0);
+                }
             }
             else if (pnode->map_show && document_map_initialized)
             {
@@ -856,7 +878,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 break;
             }
-            if ((pnode = on_tabpage_focus_at()) == NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) == NULL)
             {
                 break;
             }
@@ -873,7 +895,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEMOVE:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL && (eu_get_config()->m_code_hint & SCI_CODE_HINT))
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL && (eu_get_config()->m_code_hint & SCI_CODE_HINT))
             {
                 POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
                 TRACKMOUSEEVENT event = {sizeof(TRACKMOUSEEVENT), TME_HOVER, hwnd, eu_get_config()->m_code_hint & ~SCI_CODE_HINT};
@@ -884,7 +906,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_MOUSEHOVER:
         {
-            if ((pnode = on_tabpage_focus_at()) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
             {
                 const POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
                 const sptr_t current_pos = on_sci_call(pnode, SCI_POSITIONFROMPOINT, pt.x, pt.y);
@@ -898,7 +920,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     const long lx = (const long)on_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_pos) + offset;
                     const long ly = (const long)on_sci_call(pnode, SCI_POINTYFROMPOSITION, 0, current_pos);
                     const RECT rc = {lx, ly, lx + eu_dpi_scale_xy(0, 26), ly + (eu_dpi_scale_xy, 0, 18)};
-                    pnode->reserved1 = on_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_header) + offset;
+                    pnode->pointx = on_sci_call(pnode, SCI_POINTXFROMPOSITION, 0, current_header) + offset;
                     pnode->zoom_level = (int) on_sci_call(pnode, SCI_GETZOOM, 0, 0);
                     if (PtInRect(&rc, pt) && on_hint_initialized())
                     {   // 在折叠框内
@@ -921,12 +943,16 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            on_view_clear_indicator(on_tabpage_focus_at());
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
+            {
+                on_view_clear_indicator(pnode);
+                on_search_clear_fsm();
+            }
             break;
         }
         case WM_LBUTTONUP:
         {
-            if ((pnode = on_tabpage_focus_at()) == NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) == NULL)
             {
                 break;
             }
@@ -952,7 +978,7 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_RBUTTONUP:
         {
-            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
             {
                 return menu_pop_track(hwnd, IDR_EDITOR_POPUPMENU, 0, 0, on_sci_menu_callback, pnode);
             }
@@ -960,12 +986,39 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case WM_COMMAND:
         {
+            if (LOWORD(wParam) == WM_OPENAI_DATA && (pnode = on_tabpage_from_handle(hwnd)) != NULL)
+            {
+                char *str = (char *)lParam;
+                if (HIWORD(wParam) == 0)
+                {
+                    intptr_t len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+                    if (len >= 0)
+                    {
+                        if (len > 0)
+                        {
+                            const char *eols = on_encoding_get_eol(pnode);
+                            on_sci_call(pnode, SCI_GOTOPOS, len, 0);
+                            len = (sptr_t)(strlen(eols));
+                            on_sci_call(pnode, SCI_ADDTEXT, len, (sptr_t)eols);
+                        }
+                        len = (sptr_t)(strlen(str));
+                        on_sci_call(pnode, SCI_ADDTEXT, len, (sptr_t)str);
+                    }
+                }
+                else
+                {
+                    on_sci_call(pnode, SCI_ADDTEXT, (sptr_t)(strlen(str)), (sptr_t)str);
+                }
+                free(str);
+                on_sci_call(pnode, SCI_GOTOPOS, on_sci_call(pnode, SCI_GETLENGTH, 0, 0), 0);
+                return 0;
+            }
             PostMessage(eu_module_hwnd(), WM_COMMAND, wParam, lParam);
             break;
         }
         case WM_THEMECHANGED:
         {
-            eu_logmsg("Scintilla: WM_THEMECHANGED\n");
+            eu_logmsg("Scintilla: wm_themechanged msg\n");
             if (eu_get_config()->m_toolbar != IDB_SIZE_0)
             {
                 on_toolbar_update_button();
@@ -976,15 +1029,15 @@ sc_edit_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             if ((pnode = (eu_tabpage *) lParam) != NULL)
             {
-                eu_logmsg("Scintilla: WM_DPICHANGED\n");
+                eu_logmsg("Scintilla: wm_dpichanged msg\n");
             }
             break;
         }
         case WM_DPICHANGED_AFTERPARENT:
         {
-            if ((pnode = on_tabpage_get_handle(hwnd)) != NULL)
+            if ((pnode = on_tabpage_from_handle(hwnd)) != NULL)
             {
-                eu_logmsg("Scintilla: WM_DPICHANGED_AFTERPARENT\n");
+                eu_logmsg("Scintilla: wm_dpichanged_afterparent msg\n");
                 on_sci_update_line_margin(pnode);
                 on_sci_update_fold_margin(pnode);
             }

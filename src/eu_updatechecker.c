@@ -18,7 +18,6 @@
 
 #include "framework.h"
 
-#define MAYBE200MS 200
 #define UPDATE_EXE L"upcheck.exe"
 #define UPDATE_URL "https://api.github.com/repos/adonais/skylark/releases"
 
@@ -94,7 +93,7 @@ on_update_build_time(void)
 static HANDLE
 on_update_download(const int64_t dtag)
 {
-    WCHAR uri[MAX_SIZE] = {0};
+    WCHAR uri[MAX_PATH] = {0};
     WCHAR path[MAX_BUFFER] = {0};
     WCHAR wcmd[LARGER_LEN] = {0};
     _snwprintf(path, MAX_BUFFER, L"%s\\cache", eu_config_path);
@@ -416,7 +415,8 @@ on_update_cancel(void)
     eu_threadpool_cancel(&on_update_send_request, 0);
 }
 
-bool on_update_check(void)
+bool
+on_update_check(void)
 {
     return eu_threadpool_check(&on_update_send_request, 0);
 }

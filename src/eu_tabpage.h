@@ -30,6 +30,18 @@ extern "C"
 {
 #endif
 
+typedef struct _ai_info
+{
+    char *content;
+    char role[OVEC_LEN];
+} ai_info;
+
+typedef struct _ai_message
+{
+    CURL *curl;
+    ai_info *ai;
+} ai_message;
+
 typedef struct _complete_t *complete_ptr;
 typedef struct _capture_set *capture_ptr;
 typedef int  (*tab_ptr)(eu_tabpage *p);
@@ -40,6 +52,7 @@ struct _tabpage
 {
     HWND hwnd_sc;               // 当前编辑器句柄
     sptr_t eusc;                // 当前编辑器类指针
+    HWND hwnd_pop;              // tab关联的折叠框窗口, 显示折叠内容
     HWND hwnd_symlist;          // tab关联的右侧边栏list窗口句柄
     HWND hwnd_symtree;          // tab关联的右侧边栏tree窗口句柄
     HWND hwnd_qrtable;          // tab关联的table窗口, 显示查询结果
@@ -78,6 +91,7 @@ struct _tabpage
     intptr_t match_count;       // 查找时匹配计数
     intptr_t begin_pos;         // 开始选择位置
     intptr_t nc_pos;            // 关闭编辑器时, 光标所处位置
+    intptr_t pointx;            // 保存光标位置相对屏幕的x坐标
     intptr_t reserved0;         // 保留, 仅供临时使用
     intptr_t reserved1;         // 保留, 仅供临时使用
     intptr_t x, y;              // 行,列
@@ -102,6 +116,8 @@ struct _tabpage
     int view;                   // 标签所在视图
     remotefs fs_server;         // SFTP
     PHEXVIEW phex;              // 二进制视图
+    char *cmds_buffer;          // 命令行窗口可能用到的缓存区
+    char *pcre_buffer;          // 正则匹配可能用到的缓存区
     uint8_t *write_buffer;      // 文件保存时写入的缓存区
     eu_tabpage *presult;        // 文档搜索结果的节点指针
     doctype_t *doc_ptr;         // 文件类型指针
@@ -110,6 +126,7 @@ struct _tabpage
     result_vec *ret_vec;        // 搜索结果标记
     complete_ptr ac_vec;        // snippet模式下的vec数组
     capture_ptr re_group;       // snippet正则模式下捕获组
+    ai_message ai_msg;          // ai message 数组
     NMM pmod;                   // 插件模块地址
     npdata *plugin;             // 插件动态数据表
     tab_want pwant;             // 回调函数, 需要时使用
@@ -147,7 +164,8 @@ void on_tabpage_variable_reset(void);
 void on_tabpage_select_index(const int index);
 void on_tabpage_swap_item(const int old_index, const int new_index);
 bool on_tabpage_exist_map(void);
-eu_tabpage *on_tabpage_get_handle(void *hwnd_sc);
+eu_tabpage *on_tabpage_from_result(void *hwnd_sc);
+eu_tabpage *on_tabpage_from_handle(void *hwnd_sc);
 eu_tabpage *on_tabpage_get_ptr(const int index);
 eu_tabpage *on_tabpage_focus_at(void);
 eu_tabpage *on_tabpage_remove(const eu_tabpage *pnode, const CLOSE_MODE mode);

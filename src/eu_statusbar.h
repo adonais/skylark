@@ -45,6 +45,7 @@ int  on_statusbar_window_diff(void);
 int  on_statusbar_create_dlg(HWND hwnd);
 int  on_statusbar_height(void);
 int  on_statusbar_btn_rw(eu_tabpage *pnode, bool m_auto);
+int  on_statusbar_convert_coding(eu_tabpage *pnode, int encoding);
 void on_statusbar_size(const RECT *prc, eu_tabpage *pnode);
 void on_statusbar_update(eu_tabpage *pnode);
 void on_statusbar_destroy(void);

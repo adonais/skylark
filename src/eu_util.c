@@ -41,7 +41,7 @@ typedef struct _LANGANDCODEPAGE
 static PFNGFVSW pfnGetFileVersionInfoSizeW = NULL;
 static PFNGFVIW pfnGetFileVersionInfoW = NULL;
 static PFNVQVW pfnVerQueryValueW = NULL;
-static volatile intptr_t milli_second = 0;
+static volatile int64_t milli_second = 0;
 
 #define AES_IV_MATERIAL "copyright by skylark team"
 #define CONFIG_KEY_MATERIAL_SKYLARK    "EU_SKYLARK"
@@ -73,15 +73,14 @@ static volatile intptr_t milli_second = 0;
     }
 
 static pwine_get_version fn_wine_get_version;
-static char const out_of_mem[] = "no memory for %zu byte allocation\n";
+static char const out_of_mem[] = "Util: no memory for %zu byte allocation\n";
 
 static int64_t
 clock_gettime_ms(void)
 {
     static LARGE_INTEGER frequency;
     LARGE_INTEGER ticks;
-    int64_t ms;
-
+    int64_t ms, diff;
     if (!frequency.QuadPart)
     {
         QueryPerformanceFrequency(&frequency);
@@ -91,12 +90,17 @@ clock_gettime_ms(void)
             return -1;
         }
     }
-
     QueryPerformanceCounter(&ticks);
-
     ms = ticks.QuadPart * 1000 / frequency.QuadPart;
-    inter_atom_compare_exchange(&milli_second, ms, 0);
-    
+    if ((diff = ms - milli_second) > 0 && diff < 1000)
+    {
+        milli_second = 0;
+        ms = diff;
+    }
+    else
+    {
+        milli_second = ms;
+    }
     return ms;
 }
 
@@ -123,14 +127,7 @@ clock_gettime_realtime(struct timespec *tv)
 int64_t
 util_clock_interval(void)
 {
-    int64_t ms = clock_gettime_ms();
-    if (milli_second > 0 && ms > milli_second)
-    {
-        ms -= milli_second;
-        inter_atom_exchange(&milli_second, 0);
-        return ms;
-    }
-    return 0;
+    return clock_gettime_ms();
 }
 
 static void *
@@ -211,7 +208,7 @@ util_lock_v2(eu_tabpage *p)
                 {
                     while (MsgWaitForMultipleObjects(1, &wait_handle, FALSE, INFINITE, QS_ALLINPUT) == WAIT_OBJECT_0 + 1)
                     {
-                        eu_logmsg("Have a message, peek and dispatch it\n");
+                        eu_logmsg("Util: have a message, peek and dispatch it\n");
                         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
                         {
                             TranslateMessage(&msg);
@@ -286,7 +283,7 @@ util_under_wine(void)
     }
     if ((fn_wine_get_version = (pwine_get_version)GetProcAddress(hntdll, "wine_get_version")))
     {
-        eu_logmsg("Running on Wine... %s\n", fn_wine_get_version());
+        eu_logmsg("Util: running on wine [%s]\n", fn_wine_get_version());
         return true;
     }
     return false;
@@ -1281,13 +1278,41 @@ util_strdup_select(const eu_tabpage *pnode, size_t *plen, size_t multiple)
     return NULL;
 }
 
+/*
+ * start end 区间内是否都是空白字符
+ * 都是空白字符, 返回空白字符数量
+ * 否则, 返回 -1
+ */
+sptr_t
+util_line_space(eu_tabpage *pnode, const sptr_t start, const sptr_t end)
+{
+    sptr_t len = 0;
+    if (pnode && end > start)
+    {
+        for (len = start; len < end; ++len)
+        {
+            int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, len, 0);
+            if (!isspace(ch))
+            {
+                return -1;
+            }
+        }
+        len -= start;
+    }
+    return len;
+}
+
+/*
+ * start end 区间内是否存在非空白字符, 存在非空白字符则返回
+ * 返回值是前面空白字符数量, 最小值是 0
+ * pout 保存了这个空白字符串
+ */
 sptr_t
 util_line_header(eu_tabpage *pnode, const sptr_t start, const sptr_t end, char **pout)
 {
     sptr_t len = 0;
     if (pnode && end > start)
     {
-        char *txt = NULL;
         for (len = start; len < end; ++len)
         {
             int ch = (int) on_sci_call(pnode, SCI_GETCHARAT, len, 0);
@@ -1536,17 +1561,40 @@ util_strnspace(const char *s1, const char *s2, int *plen)
     return 1;
 }
 
+static int
+util_push_combo_callback(void *data, int count, char **column, char **names)
+{
+    char **ptext = (char **)data;
+    for (int i = 0; i < count && column[i]; i++)
+    {
+        if (column[i][0] != 0)
+        {
+            *ptext = _strdup(column[i]);
+            return SKYLARK_SQL_END;
+        }
+    }
+    return 0;
+}
+
 void
 util_push_text_dlg(eu_tabpage *pnode, HWND hwnd)
 {
     char *text = NULL;
     TCHAR *uni_text = NULL;
-    if (pnode && (text = util_strdup_select(pnode, NULL, 0)) && (uni_text = eu_utf8_utf16(text, NULL)))
+    on_sql_post("SELECT szName FROM find_his ORDER BY szId DESC;", util_push_combo_callback, (void *)&text);
+    if (pnode)
     {
-        SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM) uni_text);
-        free(text);
-        free(uni_text);
+        if (!text)
+        {
+            text = util_strdup_select(pnode, NULL, 0);
+        }
+        if ((uni_text = eu_utf8_utf16(text, NULL)))
+        {
+            SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM) uni_text);
+        }
     }
+    eu_safe_free(text);
+    eu_safe_free(uni_text);
 }
 
 void
@@ -1948,7 +1996,7 @@ util_mk_temp(TCHAR *file_path, TCHAR *ext)
     }
     if (!GetTempFileName(temp_path, _T("lua"), 0, file_path))
     {
-        eu_logmsg("GetTempFileName return false\n");
+        eu_logmsg("Util: GetTempFileName return false\n");
         return INVALID_HANDLE_VALUE;
     }
     if (STR_NOT_NUL(ext))
@@ -2016,7 +2064,7 @@ util_to_abs(const char *path)
     }
     if (true)
     {   // 如果路径有引号, 去除
-        util_wstr_unquote(lpfile, sizeof(lpfile));
+        util_wstr_unquote(lpfile);
     }
     if (lpfile[0] == L'%')
     {
@@ -2089,7 +2137,7 @@ util_file_size(HANDLE hfile, uint64_t *psize)
     if (!GetFileSizeEx(hfile, (LARGE_INTEGER *) psize))
     {
         *psize = 0;
-        eu_logmsg("GetFileSizeEx fail, case: %lu\n", GetLastError());
+        eu_logmsg("Util: GetFileSizeEx failed, case: %lu\n", GetLastError());
         return false;
     }
     return true;
@@ -2143,7 +2191,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 {
                     pstream->close = util_close_stream_by_munmap;
                     ret = true;
-                    eu_logmsg("File: use mapviewoffile\n");
+                    eu_logmsg("Util: use mapviewoffile\n");
                 }
             }
         }
@@ -2155,7 +2203,7 @@ util_open_file(LPCTSTR path, pf_stream pstream)
                 pstream->close = util_close_stream_by_free;
                 pstream->size = (size_t)bytesread;
                 ret = true;
-                eu_logmsg("File: use readfile, bytesread = %u\n", bytesread);
+                eu_logmsg("Util: use readfile, bytesread = %u\n", bytesread);
             }
         }
         CloseHandle(hfile);
@@ -2321,7 +2369,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if ((dw_size = pfnGetFileVersionInfoSizeW(filepath, &dw_handle)) == 0)
         {
-            eu_logmsg("pfnGetFileVersionInfoSizeW return false\n");
+            eu_logmsg("Util: pfnGetFileVersionInfoSizeW return false\n");
             break;
         }
         if ((pbuffer = (LPWSTR) calloc(1, dw_size * sizeof(WCHAR))) == NULL)
@@ -2330,7 +2378,7 @@ util_product_name(LPCWSTR filepath, LPWSTR out_string, size_t len)
         }
         if (!pfnGetFileVersionInfoW(filepath, 0, dw_size, (LPVOID) pbuffer))
         {
-            eu_logmsg("pfnpfnGetFileVersionInfoW return false\n");
+            eu_logmsg("Util: pfnpfnGetFileVersionInfoW return false\n");
             break;
         }
         pfnVerQueryValueW((LPCVOID) pbuffer, L"\\VarFileInfo\\Translation", (LPVOID *) &lptranslate, &cb_translate);
@@ -2506,22 +2554,16 @@ util_add_double_quotes(const TCHAR *path)
     return buf;
 }
 
-wchar_t *
-util_wstr_unquote(wchar_t *path, const int size)
+TCHAR *
+util_wstr_unquote(TCHAR *str)
 {
-    if (STR_NOT_NUL(path) && size > 0)
+    size_t len = _tcslen(str);
+    if (len >= 2 && (str[0] == '"' || str[0] == '\'') && (str[len-1] == '"' || str[len-1] == '\''))
     {
-        if ((path[0] == L'"') || path[0] == L'\'')
-        {
-            memmove(path, &path[1], size - sizeof(wchar_t));
-            const int len = (const int)wcslen(path);
-            if (len > 0 && (path[len - 1] == L'"' || path[len - 1] == L'\''))
-            {
-                path[len - 1] = 0;
-            }
-        }
+        memmove(str, str + 1, sizeof(TCHAR) * len - 2);
+        str[len - 2] = '\0';
     }
-    return path;
+    return str;
 }
 
 char *
@@ -2922,6 +2964,10 @@ util_postion_xy(eu_tabpage *pnode, sptr_t pos, sptr_t *px, sptr_t *py)
 {
     if (pnode)
     {
+        if (!pnode->initial)
+        {
+            pos = pnode->nc_pos;
+        }
         if (pos < 0 && (pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0)) < 0)
         {
             pos = on_sci_call(pnode, SCI_GETANCHOR, 0, 0);
@@ -3064,7 +3110,7 @@ util_try_path(LPCTSTR dir)
                            FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
         if (pfile == INVALID_HANDLE_VALUE)
         {
-            eu_logmsg("%s: create folder failed\n", __FUNCTION__);
+            eu_logmsg("Util: %s, create folder failed\n", __FUNCTION__);
         }
         CloseHandle(pfile);
     }
@@ -3119,7 +3165,7 @@ util_copy_file(LPCWSTR source, LPCWSTR dest, const bool fail_exist)
         {
             if (!FlushFileBuffers(recent_stream))
             {
-                eu_logmsg("FlushFileBuffers error\n");
+                eu_logmsg("Util: FlushFileBuffers error\n");
             }
         }
         CloseHandle(recent_stream);
@@ -3672,4 +3718,57 @@ util_bfs_search(const TCHAR *path, file_backup **pout, const file_backup *pdata)
         cvector_free(sz_queue);
     }
     return (vec_size < cvector_size(*pout));
+}
+
+char*
+util_io_file(const TCHAR *path)
+{
+    char *pbuf = NULL;
+    FILE *fp = _tfopen(path, _T("rb"));
+    if (fp)
+    {
+        do
+        {
+            int size = -1;
+            size_t sz = 0;
+            if (fseek(fp, 0, SEEK_END) == -1)
+            {
+                break;
+            }
+            if ((size = (int)ftell(fp)) < 1 || size > BUFF_32M)
+            {
+                break;
+            }
+            if (fseek(fp, 0, SEEK_SET) == -1)
+            {
+                eu_logmsg("Util: %s, fseek failed\n", __FUNCTION__);
+                break;
+            }
+            if ((pbuf = (char *)calloc(1, size + 1)) == NULL)
+            {
+                eu_logmsg("Util: %s, malloc failed\n", __FUNCTION__);
+                break;
+            }
+            if (size >= 3 && fread(pbuf, 1, 3, fp) > 0 && memcmp(pbuf, "\xEF\xBB\xBF", 3) == 0)
+            {   // utf-8(bom) doc ?
+                memset(pbuf, 0, size + 1);
+                if (!feof(fp))
+                {
+                    sz = fread(pbuf, 1, size, fp);
+                }
+            }
+            else if (!feof(fp))
+            {
+                fseek(fp, 0, SEEK_SET);
+                memset(pbuf, 0, size + 1);
+                sz = fread(pbuf, 1, size, fp);
+            }
+            if (!sz)
+            {
+                eu_safe_free(pbuf);
+            }
+        } while(0);
+        fclose(fp);
+    }
+    return pbuf;
 }

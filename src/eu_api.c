@@ -37,13 +37,15 @@
 #define IS_2ND_BYTE(c) (IS_2NDBYTE_16(c) || IS_2NDBYTE_32(c))
 #define IS_3RD_BYTE(c) (CHAR_IN_RANGE((c), 0x81, 0xFE))
 #define IS_4TH_BYTE(c) (CHAR_IN_RANGE((c), 0x30, 0x39))
-#define EU_RESET_BACKUP_NAME _T("conf_old_backup")
+#define EUE_RESET_BACKUP _T("conf_old_backup")
+#define EUE_LUAJIT_ORDER ("\x1B\x4C\x4A")
 
 wchar_t eu_module_path[MAX_PATH+1] = {0};
 wchar_t eu_config_path[MAX_BUFFER] = {0};
-static volatile long eu_curl_initialized;
-static HINSTANCE eu_instance;   // 当前实例
+
+static HINSTANCE eu_instance = NULL;   // 当前实例
 static uint32_t fn_config_mask = 0x0;
+static volatile long eu_curl_initialized = 0;
 
 /* generic implementation */
 #define FOREACH(node, collection)                      \
@@ -71,11 +73,11 @@ enum
     UTF32_BE_BOM
 };
 
-static HMODULE eu_curl_symbol;
-static ptr_curl_easy_init fn_curl_easy_init;
-static ptr_curl_global_init fn_curl_global_init;
-static ptr_curl_global_cleanup fn_curl_global_cleanup;
-static ptr_curl_easy_cleanup fn_curl_easy_cleanup;
+static HMODULE eu_curl_symbol = NULL;
+static ptr_curl_easy_init fn_curl_easy_init = NULL;
+static ptr_curl_global_init fn_curl_global_init = NULL;
+static ptr_curl_global_cleanup fn_curl_global_cleanup = NULL;
+static ptr_curl_easy_cleanup fn_curl_easy_cleanup = NULL;
 
 ptr_curl_easy_setopt eu_curl_easy_setopt = NULL;
 ptr_curl_easy_perform eu_curl_easy_perform = NULL;
@@ -84,10 +86,10 @@ ptr_curl_slist_free_all eu_curl_slist_free_all = NULL;
 ptr_curl_easy_getinfo eu_curl_easy_getinfo = NULL;
 ptr_curl_easy_strerror eu_curl_easy_strerror = NULL;
 
-static struct eu_config *g_config;
-static struct eu_theme  *g_theme;
-static eue_accel *g_accel;
-static eue_toolbar *g_toolbar;
+static struct eu_config *g_config = NULL;
+static struct eu_theme  *g_theme = NULL;
+static eue_toolbar *g_toolbar = NULL;
+static eue_accel *g_accel = NULL;
 static eue_code eue_coding[] =
 {
     {IDM_UNI_UTF8    , "UTF-8"}            ,
@@ -142,10 +144,149 @@ static eue_code eue_coding[] =
     {IDM_OTHER_2     , "MACCYRILLIC"}      ,
     {IDM_OTHER_3     , "MACCENTRALEUROPE"} ,
     {IDM_OTHER_ANSI  , "ANSI"}             ,
+    {IDM_OTHER_ICONV , "ICONV"}            ,
     {IDM_OTHER_BIN   , "Binary Code"}      ,
     {IDM_OTHER_PLUGIN, "Plugins Code"}     ,
     {IDM_UNKNOWN     , "Unknown Code"}     ,
     {0               , NULL}
+};
+
+static eue_code eue_extra[] = 
+{
+    {IDM_ICONV_001, "UTF-7"}               ,
+    {IDM_ICONV_002, "ISO-8859-14"}         ,
+    {IDM_ICONV_003, "KOI8-R"}              ,
+    {IDM_ICONV_004, "KOI8-U"}              ,
+    {IDM_ICONV_005, "KOI8-RU"}             ,
+    {IDM_ICONV_006, "CP850"}               ,
+    {IDM_ICONV_007, "CP862"}               ,
+    {IDM_ICONV_008, "CP866"}               ,
+    {IDM_ICONV_009, "CP1131"}              ,
+    {IDM_ICONV_010, "MAC"}                 ,
+    {IDM_ICONV_011, "MACICELAND"}          ,
+    {IDM_ICONV_012, "MACCROATIAN"}         ,
+    {IDM_ICONV_013, "MACROMANIA"}          ,
+    {IDM_ICONV_014, "MACUKRAINE"}          ,
+    {IDM_ICONV_015, "MACGREEK"}            ,
+    {IDM_ICONV_016, "MACTURKISH"}          ,
+    {IDM_ICONV_017, "MACHEBREW"}           ,
+    {IDM_ICONV_018, "MACARABIC"}           ,
+    {IDM_ICONV_019, "MACTHAI"}             ,
+    {IDM_ICONV_020, "HP-ROMAN8"}           ,
+    {IDM_ICONV_021, "NEXTSTEP"}            ,
+    {IDM_ICONV_022, "ARMSCII-8"}           ,
+    {IDM_ICONV_023, "GEORGIAN-ACADEMY"}    ,
+    {IDM_ICONV_024, "GEORGIAN-PS"}         ,
+    {IDM_ICONV_025, "KOI8-T"}              ,
+    {IDM_ICONV_026, "CP154"}               ,
+    {IDM_ICONV_027, "KZ-1048"}             ,
+    {IDM_ICONV_028, "MULELAO-1"}           ,
+    {IDM_ICONV_029, "CP1133"}              ,
+    {IDM_ICONV_030, "ISO-IR-166"}          ,
+    {IDM_ICONV_031, "CP874"}               ,
+    {IDM_ICONV_032, "VISCII"}              ,
+    {IDM_ICONV_033, "TCVN"}                ,
+    {IDM_ICONV_034, "ISO646-JP"}           ,
+    {IDM_ICONV_035, "JISX0201-1976"}       ,
+    {IDM_ICONV_036, "ISO-IR-87"}           ,
+    {IDM_ICONV_037, "ISO-IR-159"}          ,
+    {IDM_ICONV_038, "ISO-IR-149"}          ,
+    {IDM_ICONV_039, "EUC-JP"}              ,
+    {IDM_ICONV_040, "MS_KANJI"}            ,
+    {IDM_ICONV_041, "ISO-2022-CN-EXT"}     ,
+    {IDM_ICONV_042, "BIG5-HKSCS"}          ,
+    {IDM_ICONV_043, "EUC-KR"}              ,
+    {IDM_ICONV_044, "CP1361"}              ,
+    {IDM_ICONV_045, "ISO-2022-KR"}         ,
+    {IDM_ICONV_046, "GB18030:2022"}        ,
+    {IDM_ICONV_047, "KOI8-R"}              ,
+    {IDM_ICONV_048, "MACCYRILLIC"}         ,
+    {IDM_ICONV_049, "MACCENTRALEUROPE"}    ,
+    {IDM_ICONV_050, "CP856"}               ,
+    {IDM_ICONV_051, "CP922"}               ,
+    {IDM_ICONV_052, "CP943"}               ,
+    {IDM_ICONV_053, "CP1046"}              ,
+    {IDM_ICONV_054, "CP1124"}              ,
+    {IDM_ICONV_055, "CP1129"}              ,
+    {IDM_ICONV_056, "CP1161"}              ,
+    {IDM_ICONV_057, "CP1162"}              ,
+    {IDM_ICONV_058, "CP1163"}              ,
+    {IDM_ICONV_059, "DEC-KANJI"}           ,
+    {IDM_ICONV_060, "DEC-HANYU"}           ,
+    {IDM_ICONV_061, "CP437"}               ,
+    {IDM_ICONV_062, "CP737"}               ,
+    {IDM_ICONV_063, "CP775"}               ,
+    {IDM_ICONV_064, "CP853"}               ,
+    {IDM_ICONV_065, "CP855"}               ,
+    {IDM_ICONV_066, "CP857"}               ,
+    {IDM_ICONV_067, "CP858"}               ,
+    {IDM_ICONV_068, "CP860"}               ,
+    {IDM_ICONV_069, "CP861"}               ,
+    {IDM_ICONV_070, "CP863"}               ,
+    {IDM_ICONV_071, "CP864"}               ,
+    {IDM_ICONV_072, "CP865"}               ,
+    {IDM_ICONV_073, "CP869"}               ,
+    {IDM_ICONV_074, "CP1125"}              ,
+    {IDM_ICONV_075, "CP037"}               ,
+    {IDM_ICONV_076, "CP273"}               ,
+    {IDM_ICONV_077, "EBCDIC-CP-DK"}        ,
+    {IDM_ICONV_078, "CP278"}               ,
+    {IDM_ICONV_079, "CP280"}               ,
+    {IDM_ICONV_080, "IBM-282"}             ,
+    {IDM_ICONV_081, "CP284"}               ,
+    {IDM_ICONV_082, "CP285"}               ,
+    {IDM_ICONV_083, "CP297"}               ,
+    {IDM_ICONV_084, "CP423"}               ,
+    {IDM_ICONV_085, "CP424"}               ,
+    {IDM_ICONV_086, "IBM-425"}             ,
+    {IDM_ICONV_087, "CP500"}               ,
+    {IDM_ICONV_088, "IBM-838"}             ,
+    {IDM_ICONV_089, "CP870"}               ,
+    {IDM_ICONV_090, "CP871"}               ,
+    {IDM_ICONV_091, "CP875"}               ,
+    {IDM_ICONV_092, "CP880"}               ,
+    {IDM_ICONV_093, "CP905"}               ,
+    {IDM_ICONV_094, "CP00924"}             ,
+    {IDM_ICONV_095, "CP1025"}              ,
+    {IDM_ICONV_096, "CP1026"}              ,
+    {IDM_ICONV_097, "CP1047"}              ,
+    {IDM_ICONV_098, "CP1097"}              ,
+    {IDM_ICONV_099, "CP1112"}              ,
+    {IDM_ICONV_100, "CP1122"}              ,
+    {IDM_ICONV_101, "CP1123"}              ,
+    {IDM_ICONV_102, "CP1130"}              ,
+    {IDM_ICONV_103, "CP1132"}              ,
+    {IDM_ICONV_104, "CP1137"}              ,
+    {IDM_ICONV_105, "CP01140"}             ,
+    {IDM_ICONV_106, "CP01141"}             ,
+    {IDM_ICONV_107, "CP01142"}             ,
+    {IDM_ICONV_108, "CP01143"}             ,
+    {IDM_ICONV_109, "CP01144"}             ,
+    {IDM_ICONV_110, "CP01145"}             ,
+    {IDM_ICONV_111, "CP01146"}             ,
+    {IDM_ICONV_112, "CP01147"}             ,
+    {IDM_ICONV_113, "CP01148"}             ,
+    {IDM_ICONV_114, "CP01149"}             ,
+    {IDM_ICONV_115, "CP1153"}              ,
+    {IDM_ICONV_116, "CP1154"}              ,
+    {IDM_ICONV_117, "CP1155"}              ,
+    {IDM_ICONV_118, "CP1156"}              ,
+    {IDM_ICONV_119, "CP1157"}              ,
+    {IDM_ICONV_120, "CP1158"}              ,
+    {IDM_ICONV_121, "CP1160"}              ,
+    {IDM_ICONV_122, "CP1164"}              ,
+    {IDM_ICONV_123, "IBM-1165"}            ,
+    {IDM_ICONV_124, "CP1166"}              ,
+    {IDM_ICONV_125, "CP4971"}              ,
+    {IDM_ICONV_126, "CP12712"}             ,
+    {IDM_ICONV_127, "CP16804"}             ,
+    {IDM_ICONV_128, "EUC-JIS-2004"}        ,
+    {IDM_ICONV_129, "SHIFT_JIS-2004"}      ,
+    {IDM_ICONV_130, "BIG5-2003"}           ,
+    {IDM_ICONV_131, "ISO-IR-230"}          ,
+    {IDM_ICONV_132, "ATARI"}               ,
+    {IDM_ICONV_133, "RISCOS-LATIN1"}       ,
+    {0, NULL}
 };
 
 static bool
@@ -317,6 +458,7 @@ eu_mk_dir(LPCTSTR dir)
     LPTSTR p = NULL;
     TCHAR tmp_name[MAX_BUFFER] = {0};
     _tcsncpy(tmp_name, dir, MAX_BUFFER);
+    util_unix2path(tmp_name, (const int)_tcslen(tmp_name));
     p = _tcschr(tmp_name, _T('\\'));
     for (; p != NULL; *p = _T('\\'), p = _tcschr(p + 1, _T('\\')))
     {
@@ -417,7 +559,7 @@ do_move_operation(const TCHAR *pname)
         TCHAR porig[MAX_BUFFER] = {0};
         TCHAR pback[MAX_BUFFER] = {0};
         _sntprintf(porig, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, pname);
-        _sntprintf(pback, MAX_BUFFER - 1, _T("%s\\%s\\%s"), eu_config_path, EU_RESET_BACKUP_NAME, pname);
+        _sntprintf(pback, MAX_BUFFER - 1, _T("%s\\%s\\%s"), eu_config_path, EUE_RESET_BACKUP, pname);
         MoveFileEx(porig, pback, MOVEFILE_COPY_ALLOWED|MOVEFILE_REPLACE_EXISTING);
     }
 }
@@ -461,7 +603,7 @@ do_configs_backup(void)
     TCHAR filepath[MAX_BUFFER];
     TCHAR backpath[MAX_BUFFER];
     _sntprintf(filepath, MAX_BUFFER, _T("%s\\*.old.*"), eu_config_path);
-    _sntprintf(backpath, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, EU_RESET_BACKUP_NAME);
+    _sntprintf(backpath, MAX_BUFFER - 1, _T("%s\\%s"), eu_config_path, EUE_RESET_BACKUP);
     if (eu_exist_wpath(backpath))
     {
         util_delete_file(backpath);
@@ -601,18 +743,34 @@ eu_reset_config(void)
     }
 }
 
-static int
-query_encode(const char *coding)
+int
+eu_query_encoding_index(const char *coding)
 {
-    eue_code *iter = NULL;
-    for (iter = &eue_coding[0]; iter->nid; ++iter)
+    int index = IDM_UNKNOWN;
+    if (coding)
     {
-        if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
+        eue_code *iter = NULL;
+        for (iter = &eue_coding[0]; iter->nid; ++iter)
         {
-            return iter->nid;
+            if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
+            {
+                index = iter->nid;
+                break;
+            }
+        }
+        if (index == IDM_UNKNOWN)
+        {
+            for (iter = &eue_extra[0]; iter->nid; ++iter)
+            {
+                if (_strnicmp(iter->desc, coding, strlen(coding)) == 0)
+                {
+                    index = iter->nid;
+                    break;
+                }
+            }
         }
     }
-    return IDM_UNKNOWN;
+    return index;
 }
 
 #if APP_DEBUG
@@ -1085,6 +1243,7 @@ is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
         {4, "\x00\x00\xFE\xFF"},    // BOM_UTF32_BE
         {2, "\xFF\xFE"},            // BOM_UTF16_LE
         {2, "\xFE\xFF"},            // BOM_UTF16_BE
+        {3, EUE_LUAJIT_ORDER},
         {0, {0}}
     };
     for (int i = 0; file_bom[i].len; ++i)
@@ -1103,6 +1262,8 @@ is_plan_file(const uint8_t *name, const size_t len, const bool nobinary)
                     return UTF16_LE_BOM;
                 case 4:
                     return UTF16_BE_BOM;
+                case 5:
+                    return 0;
                 default:
                     break;
             }
@@ -1221,16 +1382,16 @@ eu_open_file(LPCTSTR path, pf_stream pstream)
     return util_open_file(path, pstream);
 }
 
-wchar_t *
-eu_wcasestr(const wchar_t *haystack, const wchar_t *needle)
+TCHAR*
+eu_tcasestr(const TCHAR *haystack, const TCHAR *needle)
 {
-    size_t l = wcslen(needle);
-    wchar_t *psave = (wchar_t *)haystack;
+    size_t l = _tcslen(needle);
+    TCHAR *psave = (TCHAR *)haystack;
     for (; *psave; psave++)
     {
-        if (!wcsnicmp(psave, needle, l))
+        if (!_tcsnicmp(psave, needle, l))
         {
-            return (wchar_t *)psave;
+            return (TCHAR *)psave;
         }
     }
     return NULL;
@@ -1240,14 +1401,27 @@ const char *
 eu_query_encoding_name(int code)
 {
     eue_code *iter = NULL;
+    const char *enc = NULL;
     for (iter = &eue_coding[0]; iter->nid; ++iter)
     {
         if (iter->nid == code)
         {
-            return iter->desc;
+            enc = iter->desc;
+            break;
         }
     }
-    return NULL;
+    if (!enc)
+    {
+        for (iter = &eue_extra[0]; iter->nid; ++iter)
+        {
+            if (iter->nid == code)
+            {
+                enc = iter->desc;
+                break;
+            }
+        }
+    }
+    return enc;
 }
 
 static inline bool
@@ -1420,7 +1594,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else
         {
-            type = IDM_OTHER_ANSI;
+            type = IDM_UNKNOWN;
         }
     }
     else if (strcmp(obj->encoding, "ASCII") == 0)
@@ -1446,9 +1620,13 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
             eu_logmsg("Euapi: confidence[%f] < %f, maybe gb18030!\n", obj->confidence, CHECK_1ST);
             type = IDM_ANSI_12;
         }
+        else if (obj->confidence > CHECK_1ST)
+        {
+            type = eu_query_encoding_index(obj->encoding);
+        }
         else
         {
-            type = query_encode(obj->encoding);
+            eu_logmsg("Euapi: [%s] unable to confirm this characterset\n", obj->encoding);
         }
     }
     else if (strcmp(obj->encoding, "ISO-2022-JP") == 0 && obj->confidence > CHECK_1ST)
@@ -1479,7 +1657,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else if (obj->confidence > CHECK_1ST && is_exclude_char(obj->encoding))
         {
-            type = query_encode(obj->encoding);
+            type = eu_query_encoding_index(obj->encoding);
         }
         else if (is_mbcs_gb18030((const char *)checkstr, read_len))
         {
@@ -1488,7 +1666,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
         }
         else
         {
-            type = query_encode(obj->encoding);
+            type = eu_query_encoding_index(obj->encoding);
             eu_logmsg("Euapi: blur identification! type = %d, obj->encoding = %s\n", type, obj->encoding);
             if ((file_name != NULL) && !eu_iconv_full_text(file_name, obj->encoding, "utf-8"))
             {
@@ -1503,7 +1681,7 @@ eu_try_encoding(uint8_t *buffer, size_t len, bool is_file, const TCHAR *file_nam
     }
     else
     {
-        type = query_encode(obj->encoding);
+        type = eu_query_encoding_index(obj->encoding);
     }
     detect_obj_free(&obj);
     return type;
@@ -1888,19 +2066,40 @@ eu_customize_process(void)
     return pcustomize;
 }
 
+static void
+eu_bc_save(const TCHAR *path, const char *buf)
+{
+    FILE *fp = NULL;
+    bool luajit_order = false;
+    char *order = util_io_file(path);
+    if (order && memcmp(order, EUE_LUAJIT_ORDER, 3) == 0)
+    {
+        char *t = eu_utf16_utf8(path, NULL);
+        luajit_order = true;
+        if (t)
+        {
+            on_script_bcsaved((char *)buf, t);
+            free(t);
+        }
+    }
+    if (!luajit_order && (fp = _tfopen(path , _T("wb"))) != NULL)
+    {
+        fwrite(buf, strlen(buf), 1, fp);
+        fclose(fp);
+    }
+}
+
 void
 eu_save_config(void)
 {
-    FILE *fp = NULL;
     char *save = NULL;
     char *pactions = NULL;
     char *pcustomize = NULL;
     const char *p = NULL;
     TCHAR path[MAX_BUFFER+1] = {0};
     const char *pconfig =
-        "-- if you edit the file, please keep the encoding correct(utf-8 nobom)\n"
+        "--[=[if you edit the file, please keep the encoding correct(utf-8 nobom)]=]\n"
         "newfile_eols = %d\n"
-        "-- the macro is defined in the targetver.h\n"
         "newfile_encoding = %d\n"
         "enable_auto_identation = %s\n"
         "window_theme = \"%s\"\n"
@@ -1988,6 +2187,14 @@ eu_save_config(void)
         "    margin_right = %d,\n"
         "    margin_bottom = %d\n"
         "}\n"
+        "-- column editor default setting\n"
+        "columner = {\n"
+        "    initnum = %d,\n"
+        "    increase = %d,\n"
+        "    repeater = %d,\n"
+        "    leading= %d,\n"
+        "    format = %d\n"
+        "}\n"
         "-- titlebar default setting\n"
         "titlebar = {\n"
         "    icon = %s,\n"
@@ -2004,6 +2211,15 @@ eu_save_config(void)
         "    msg_id = %d,\n"
         "    last_check = %I64u,\n"
         "    url = \"%s\"\n"
+        "}\n"
+        "app_openai = {\n"
+        "    think = %s,\n"
+        "    stream = %s,\n"
+        "    max_tokens = %d,\n"
+        "    key = \"%s\",\n"
+        "    model = \"%s\",\n"
+        "    base = \"%s\",\n"
+        "    setting = \"%s\"\n"
         "}\n"
         "-- when a multiple selection is copied, this string property is added between each part\n"
         "set_copy_separator = \"%s\"\n"
@@ -2128,6 +2344,11 @@ eu_save_config(void)
               g_config->eu_print.rect.top,
               g_config->eu_print.rect.right,
               g_config->eu_print.rect.bottom,
+              g_config->eu_column.initnum,
+              g_config->eu_column.increase,
+              g_config->eu_column.repeater,
+              g_config->eu_column.leading,
+              g_config->eu_column.format,
               g_config->eu_titlebar.icon?"true":"false",
               g_config->eu_titlebar.name||util_under_wine()?"true":"false",
               g_config->eu_titlebar.path?"true":"false",
@@ -2138,6 +2359,13 @@ eu_save_config(void)
               g_config->upgrade.msg_id,
               g_config->upgrade.last_check,
               g_config->upgrade.url,
+              g_config->openai.think?"true":"false",
+              g_config->openai.stream?"true":"false",
+              g_config->openai.max_tokens,
+              g_config->openai.key,
+              g_config->openai.model,
+              g_config->openai.base,
+              g_config->openai.setting,
               g_config->sep_copy,
               g_config->m_path,
               g_config->editor,
@@ -2145,11 +2373,7 @@ eu_save_config(void)
               g_config->m_reserved_1,
               pactions,
               pcustomize);
-    if ((fp = _tfopen(path , _T("wb"))) != NULL)
-    {
-        fwrite(save, strlen(save), 1, fp);
-        fclose(fp);
-    }
+    eu_bc_save(path, save);
     free(save);
     free(pactions);
     free(pcustomize);
@@ -2159,7 +2383,6 @@ void
 eu_save_theme(void)
 {
     int  len = 0;
-    FILE *fp = NULL;
     char *save = NULL;
     wchar_t *path = NULL;
     const char *pconfig =
@@ -2390,11 +2613,7 @@ eu_save_theme(void)
     );
     if ((path = eu_utf8_utf16(g_theme->pathfile, NULL)) != NULL)
     {
-        if ((fp = _wfopen(path , L"wb")) != NULL)
-        {
-            fwrite(save, strlen(save), 1, fp);
-            fclose(fp);
-        }
+        eu_bc_save(path, save);
         free(path);
     }
     free(save);
@@ -3087,17 +3306,21 @@ eu_under_wine(void)
 }
 
 bool
-eu_which(const char *path)
+eu_which(const char *path, char **pout)
 {
     bool ret = false;
     TCHAR *u16_path = NULL;
-    if (STR_NOT_NUL(path) && (u16_path = eu_utf8_utf16(path, NULL)))
+    if (STR_NOT_NUL(path) && (u16_path = eu_utf8_utf16(path, NULL)) && util_wstr_unquote(u16_path))
     {
         TCHAR *exist = util_which(u16_path);
         if (exist)
         {
-            ret = true;
+            if (pout)
+            {
+                *pout = eu_utf16_utf8(exist, NULL);
+            }
             free(exist);
+            ret = true;
         }
         free(u16_path);
     }
@@ -3116,10 +3339,27 @@ eu_value(void *p)
 }
 
 int
-eu_file_save(const int t)
+eu_tab_focus_index(void)
 {
-    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    return p ? on_file_save((eu_tabpage *)p, SAVE_ONLY) : EUE_POINT_NULL;
+    return on_tabpage_get_index(on_tabpage_focus_at());
+}
+
+int
+eu_tab_last_index(void)
+{
+    return TabCtrl_GetItemCount(g_tabpages) - 1;
+}
+
+void
+eu_tab_select(const int index)
+{
+    on_tabpage_active_one(index);
+}
+
+void
+eu_file_save_all(void)
+{
+    on_file_all_save();
 }
 
 int
@@ -3135,17 +3375,17 @@ eu_file_open(const wchar_t *path)
 }
 
 int
-eu_file_close(const int t)
+eu_file_close(const int t, const int mode)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    return p ? on_file_close(&p, FILE_ONLY_CLOSE) : EUE_POINT_NULL;
+    return p ? on_file_close(&p, mode) : EUE_POINT_NULL;
 }
 
 size_t
 eu_file_size(const int t)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
-    return p ? on_sci_call(p, SCI_GETLENGTH, 0, 0) + p->pre_len : 0;
+    return p ? on_sci_call(p, SCI_GETTEXTLENGTH, 0, 0) + p->pre_len : 0;
 }
 
 char *
@@ -3160,6 +3400,31 @@ eu_file_name(const int t)
 {
     const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
     return p ? eu_utf16_utf8(p->filename, NULL) : NULL;
+}
+
+sptr_t
+eu_end_positon(const int t)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    return p ? on_sci_call(p, SCI_GETLENGTH, 0, 0) : -1;
+}
+
+sptr_t
+eu_line_start_positon(const int t, const sptr_t line)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    const sptr_t current_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+    const sptr_t current_line = on_sci_call(p, SCI_LINEFROMPOSITION, current_pos, 0);
+    return p ? on_sci_call(p, SCI_POSITIONFROMLINE, line >= 0 ? line : current_line, 0) : -1;
+}
+
+sptr_t
+eu_line_end_positon(const int t, const sptr_t line)
+{
+    const eu_tabpage *p = t < 0 ? on_tabpage_focus_at() : on_tabpage_get_ptr(t);
+    const sptr_t current_pos = on_sci_call(p, SCI_GETCURRENTPOS, 0, 0);
+    const sptr_t current_line = on_sci_call(p, SCI_LINEFROMPOSITION, current_pos, 0);
+    return p ? on_sci_call(p, SCI_GETLINEENDPOSITION, line >= 0 ? line : current_line, 0) : -1;
 }
 
 char *
