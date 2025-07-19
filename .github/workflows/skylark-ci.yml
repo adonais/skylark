@@ -23,6 +23,7 @@ jobs:
         echo MY_VER=%m_ver%>>%GITHUB_ENV%
         echo MY_BITS64=x64>>%GITHUB_ENV%
         echo MY_BITS32=x86>>%GITHUB_ENV%
+        @set
       shell: cmd
       
     - name: download plugins64
