@@ -23,7 +23,6 @@ jobs:
         echo MY_VER=%m_ver%>>%GITHUB_ENV%
         echo MY_BITS64=x64>>%GITHUB_ENV%
         echo MY_BITS32=x86>>%GITHUB_ENV%
-        @set
       shell: cmd
       
     - name: download plugins64
@@ -38,7 +37,7 @@ jobs:
       id: vs64
       run: |
         cd /d "%GITHUB_WORKSPACE%"
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64"
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         nmake clean
         nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
@@ -57,7 +56,7 @@ jobs:
       id: vs32
       run: |
         cd /d "%GITHUB_WORKSPACE%"
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32"
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
         nmake clean
         nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
