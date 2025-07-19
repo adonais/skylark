@@ -136,6 +136,7 @@ function eu_accel.loadaccel()
       "                 {bit.bor(FVIRTKEY,FCONTROL,FSHIFT), string.byte(\"A\"), IDM_SEARCH_SELECT_MATCHING_ALL},\n",
       "                 -- View menu\n",
       "                 {0, 0, IDM_VIEW_FILETREE},\n",
+      "                 {0, 0, IDM_VIEW_DOCUMENT_MAP},\n",
       "                 {0, 0, IDM_VIEW_SYMTREE},\n",
       "                 {bit.bor(FVIRTKEY), VK_F11, IDM_VIEW_FULLSCREEN},\n",
       "                 {bit.bor(FVIRTKEY, FALT), VK_F11, IDM_VIEW_MENUBAR},\n",
@@ -228,7 +229,7 @@ function eu_accel.loadaccel()
   local m_len = tonumber(#my_code)
   if (m_len ~= nil) then
     -- print("m_len = " .. m_len)
-    if (m_len < 194) then
+    if (m_len < 195) then
       eu_core.euapi.eu_reset_accs_mask()
     end
     local m_accel = eu_core.ffi.new("ACCEL[?]", m_len, {})
