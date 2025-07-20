@@ -344,6 +344,9 @@ on_map_reload(eu_tabpage *pedit)
         on_sci_call(pedit, SCI_SETFOLDFLAGS, SC_FOLDFLAG_LINEAFTER_CONTRACTED, 0);
         // 行变更时展开
         on_sci_call(pedit, SCI_SETAUTOMATICFOLD, SC_AUTOMATICFOLD_SHOW | SC_AUTOMATICFOLD_CHANGE, 0);
+        // 不显示空白符与换行符
+        on_sci_call(pedit, SCI_SETVIEWEOL, false, 0);
+        on_sci_call(pedit, SCI_SETVIEWWS, SCWS_INVISIBLE, 0);
         on_map_sync_fold(pnode, pedit);
         on_map_scroll(pnode, pedit);
     }
