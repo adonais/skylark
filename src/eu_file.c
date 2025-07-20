@@ -310,8 +310,8 @@ on_file_clear_recent(void)
     if (hroot)
     {
         HMENU hre = NULL;
-        HMENU hfile = GetSubMenu(hroot, 0);
-        hre = hfile ? GetSubMenu(hfile, 2) : NULL;
+        HMENU hfile = GetSubMenu(hroot, FILES_MENU);
+        hre = hfile ? GetSubMenu(hfile, FT_MENU_RECENT_SUB) : NULL;
         if (hre && (on_sql_file_recent_clear() == 0))
         {
             bool ret = false;
