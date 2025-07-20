@@ -127,7 +127,7 @@ g2                         -- 跳转到第2行, 2代表行号
 gc                         -- 当滚动条滚动后, 可能不知道光标位置, gc回到光标位置
 gg                         -- 跳转到最后一行
 which                      -- 类似linux shell的which命令, 例如 which notepad
-exec                       -- 启动其他进程, 例如 run notepad.exe,1  // 1,尽可能的让窗口最小化, 0隐藏, 2或3,正常窗口, 默认值3
+exec                       -- 启动其他进程, 例如 exec notepad.exe,1  // 1,尽可能的让窗口最小化, 0隐藏, 2或3,正常窗口, 默认值3
 run                        -- 运行lua脚本, 如果不带路径则默认位置在conf/script-opts目录
 runq                       -- 运行lua脚本, 成功则关闭命令窗口
 quit                       -- 退出编辑器

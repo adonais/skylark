@@ -1788,7 +1788,7 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_INTRODUTION:
                 {
                     file_backup bak = {-1, -1, 0, -1, 1};
-                    _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\READMECN.MD"), eu_module_path);
+                    _sntprintf(bak.rel_path, MAX_BUFFER, _T("%s\\share\\features.md"), eu_module_path);
                     on_file_only_open(&bak);
                     break;
                 }
