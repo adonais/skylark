@@ -18,6 +18,7 @@
 #include "framework.h"
 #include <shlobj.h>
 
+#define TAB_WIDGET_WIDTH 108
 #define RESULAT_MAX_MATCH (UINT16_MAX * 2 + 1)
 #define INVISIBLE_BITMASK()      on_sci_bitmask_get(0, 1)
 #define MARKERS_BITMASK()        on_sci_bitmask_get(0, MARGIN_BOOKMARK_VALUE + 1)
@@ -1432,6 +1433,7 @@ on_search_tab_draw(HWND hwnd, HDC hdc, int tab)
     }
     if (sel_tab != tab)
     {
+        set_tabface_color(hdc, true);
         FrameRect(hdc, &rc, GetSysColorBrush(COLOR_3DDKSHADOW));
         if (*m_text)
         {
@@ -1469,19 +1471,14 @@ on_search_tab_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 HDC hdc = BeginPaint(hwnd, & ps);
                 HBRUSH hbr_bkgnd = (HBRUSH)on_dark_get_bgbrush();
                 // 绘制标签
-                HGDIOBJ old_font = SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
+                HGDIOBJ old_font = SelectObject(hdc, on_theme_font_hwnd());
                 if (old_font)
                 {
-                    set_btnface_color(hdc, true);
                     set_text_color(hdc, true);
                     on_search_tab_draw(hwnd, hdc, 0);
                     on_search_tab_draw(hwnd, hdc, 1);
                     on_search_tab_draw(hwnd, hdc, 2);
-                    HGDIOBJ hfont = SelectObject(hdc, old_font);
-                    if (hfont)
-                    {
-                        DeleteObject(hfont);
-                    }
+                    SelectObject(hdc, old_font);
                 }
                 EndPaint(hwnd, &ps);
             }
@@ -1550,7 +1547,7 @@ on_search_add_page(HWND htab, LPTSTR str_lable, int iid)
 }
 
 static bool
-on_search_init_pages(HWND htab)
+on_search_init_pages(const HWND htab)
 {
     LOAD_I18N_RESSTR(IDC_MSG_SEARCH_TIT1, tit_str1);
     LOAD_I18N_RESSTR(IDC_MSG_SEARCH_TIT2, tit_str2);
@@ -1736,16 +1733,17 @@ on_search_combo_wnd(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR 
             GetClientRect(hwnd, &rc);
             PAINTSTRUCT ps;
             const HDC hdc = BeginPaint(hwnd, &ps);
-            HBRUSH brush = CreateSolidBrush(on_dark_enable() ? rgb_dark_btn_color : GetSysColor(COLOR_BTNFACE));
+            const bool dark = on_dark_enable();
+            HBRUSH brush = CreateSolidBrush(dark ? rgb_dark_btn_color : GetSysColor(COLOR_BTNFACE));
             HPEN pen = CreatePen(PS_SOLID, 1, RGB(128, 128, 128));
             HGDIOBJ oldbrush = SelectObject(hdc, brush);
             HGDIOBJ oldpen = SelectObject(hdc, pen);
             SelectObject(hdc, (HFONT)SendMessage(hwnd, WM_GETFONT, 0, 0));
-            set_bk_color(hdc, on_dark_enable());
-            set_text_color(hdc, on_dark_enable());
+            set_btnface_color(hdc, dark);
+            set_text_color(hdc, dark);
             Rectangle(hdc, 0, 0, rc.right, rc.bottom);
             RECT rcf = rc;
-            rcf.left = rc.right - 24;  // rc.right - 24 exclude DROPDOWN_BUTTUON
+            rcf.left = rc.right - eu_dpi_scale_xy(0, 20);  // DROPDOWN_BUTTUON position
             TCHAR text[] = {0x2B9F, 0};
             DrawText(hdc, text, (int)_tcslen(text), &rcf, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
             SelectObject(hdc, oldpen);
@@ -3513,14 +3511,16 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                                        rc.left + 2,
                                        rc.top + 2,
                                        rc.right - 4,
-                                       rc.top + 24,
+                                       rc.top + eu_dpi_scale_xy(0, TABS_HEIGHT_DEFAULT),
                                        hdlg,
                                        (HMENU)IDD_SEARCH_TAB_1,
                                        eu_module_handle(),
                                        0);
             if (htab)
             {
-                SendMessage(htab, WM_SETFONT, (WPARAM) GetStockObject(DEFAULT_GUI_FONT), 0);
+                SendMessage(htab, WM_SETFONT, (WPARAM)on_theme_font_hwnd(), 0);
+                TabCtrl_SetMinTabWidth(htab, TAB_WIDGET_WIDTH);
+                util_tab_height(htab, TAB_WIDGET_WIDTH);
                 on_search_init_pages(htab);
             }
             HWND hwnd_combo_what = GetDlgItem(hdlg, IDC_WHAT_FOLDER_CBO);
