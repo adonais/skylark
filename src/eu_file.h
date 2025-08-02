@@ -19,10 +19,6 @@
 #ifndef _H_SKYLARK_FILE_
 #define _H_SKYLARK_FILE_
 
-#define SAVE_ONLY 0
-#define SAVE_AS   1
-#define SAVE_ALL  2
-#define SAVE_SIL  3
 #define URL_MIN   7
 #define file_click_close(m_) (m_ != FILE_SAVE_CLOSE && m_ != FILE_SHUTDOWN && m_ != FILE_REMOTE_CLOSE && m_ != FILE_FORCE_CLOSE)
 #define file_force_close(m_) (m_ == FILE_REMOTE_CLOSE || m_ == FILE_FORCE_CLOSE)
@@ -36,6 +32,14 @@
 extern "C"
 {
 #endif
+
+enum
+{
+    SAVE_ONLY = 0,
+    SAVE_AS,
+    SAVE_ALL,
+    SAVE_SIL
+};
 
 typedef enum _CLOSE_MODE
 {

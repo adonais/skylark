@@ -1974,6 +1974,7 @@ on_file_save(eu_tabpage *pnode, const int save)
     uint8_t *dup = NULL;
     char *ptext = NULL;
     npn_nmhdr nphdr = {0};
+    bool saveas = save == SAVE_AS;
     if (!pnode)
     {
         return EUE_TAB_NULL;
@@ -1994,7 +1995,7 @@ on_file_save(eu_tabpage *pnode, const int save)
         npn_send_notify(pnode->hwnd_sc, NPP_DOC_MODIFY, OPERATE_SAVE, &nphdr);
         goto SAVE_FINAL;
     }  // 编辑器文件另存为
-    if (pnode->is_blank || pnode->reserved0 > 0 || save == SAVE_AS)
+    if (pnode->is_blank || pnode->reserved0 > 0 || saveas)
     {
         TCHAR pcd[MAX_PATH] = {0};
         TCHAR full_path[MAX_BUFFER] = {0};
@@ -2034,8 +2035,9 @@ on_file_save(eu_tabpage *pnode, const int save)
                 err = EUE_LOCAL_FILE_ERR;
                 goto SAVE_FINAL;
             }
+            saveas = true;
         }
-        if (save == SAVE_AS)
+        if (saveas)
         {
             _tsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
             if (_tcslen(pnode->extname) > 0)
@@ -2050,7 +2052,7 @@ on_file_save(eu_tabpage *pnode, const int save)
                 err = EUE_WRITE_FILE_ERR;
                 goto SAVE_FINAL;
             }
-            if (save == SAVE_AS)
+            if (saveas)
             {
                 _tcsncpy(pnode->pathfile, full_path, MAX_BUFFER);
                 // 有可能是远程服务器文件, 清除网址
@@ -2069,7 +2071,7 @@ on_file_save(eu_tabpage *pnode, const int save)
         else if (pnode->plugin)
         {   // 插件另存为
             np_plugins_savefileas(&pnode->plugin->funcs, &pnode->plugin->npp, full_path);
-            if (save == SAVE_AS)
+            if (saveas)
             {
                 nphdr.pnode = (void *)pnode;
                 npn_send_notify(pnode->hwnd_sc, NPP_DOC_MODIFY, OPERATE_SAVEAS, &nphdr);
@@ -2209,7 +2211,7 @@ SAVE_FINAL:
             {
                 on_script_loader_event(SKYLARK_FILESAVE, pnode);
             }
-            else if (save == SAVE_AS)
+            else if (saveas)
             {
                 on_script_loader_event(SKYLARK_FILESAVEAS, pnode);
             }
