@@ -3155,15 +3155,28 @@ eu_curl_global_cleanup(void)
 void
 eu_curl_ssl_setting(CURL *curl)
 {
-    if (eu_win10_or_later() == (uint32_t)-1)
+    WCHAR capath[MAX_BUFFER] = {0};
+    _snwprintf(capath, MAX_BUFFER - 1, L"%s\\cacert.pem", eu_config_path);
+    if (eu_exist_file(capath))
+    {   // 使用配置文件夹内的证书
+        char *ca = eu_utf16_utf8(capath, NULL);
+        if (ca)
+        {
+            eu_logmsg("CA: [%s]\n", ca);
+            eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+            eu_curl_easy_setopt(curl, CURLOPT_CAINFO, ca);
+            free(ca);
+        }
+    }
+    else if (eu_win10_or_later() == (uint32_t)-1)
     {   // 不受支持的操作系统证书可能过期
-        eu_curl_easy_setopt(curl, CURLOPT_SSLVERSION, 0);
-        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+        eu_curl_easy_setopt(curl, CURLOPT_SSLVERSION, 0L);
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
     else
-    {
-        eu_curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA | CURLSSLOPT_NO_REVOKE);
+    {   // 使用操作系统证书
+        eu_curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
         eu_curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
     }
 }
