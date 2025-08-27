@@ -8,6 +8,7 @@ function eu_conf.fill_actions(s)
         eu_core.ffi.fill(pconfig.m_actions, 100 * 260)
     else
         local actions_size = eu_core.ffi.sizeof(pconfig.m_actions)/260;
+        if (actions_size > 100) then actions_size = 100 end
         for i=0,actions_size-1 do
           if (process_actions[i] ~= nil and #process_actions[i] < 260) then
               eu_core.ffi.copy(pconfig.m_actions[i], process_actions[i])
