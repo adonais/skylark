@@ -682,7 +682,7 @@ menu_update_item(const HMENU menu, const bool init)
                     }
                     case IDM_PROGRAM_EXECUTE_ACTION:
                     {
-                        enable = pnode->doc_ptr && !TAB_HEX_MODE(pnode) && TAB_NOT_NUL(pnode);
+                        enable = (pnode->doc_ptr || !TAB_NOT_BIN(pnode)) && TAB_NOT_NUL(pnode);
                         util_enable_menu_item(menu, IDM_PROGRAM_EXECUTE_ACTION,  init || enable);
                         break;
                     }

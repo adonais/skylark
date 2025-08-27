@@ -710,20 +710,20 @@ on_toolbar_create_file(const int *pv, const int size, wchar_t ***plist)
     {
         wchar_t *pname = NULL;
         p = on_tabpage_get_ptr(pv[i]);
-        if (p && p->doc_ptr && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
+        if (p && (pname = (wchar_t *)calloc(sizeof(wchar_t), MAX_PATH)))
         {
             HANDLE pfile = NULL;
             if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
             {
-                char *pbuffer = NULL;
-                if ((pbuffer = util_strdup_content(p, &buf_len)) != NULL)
+                char *pbuffer = (char *)(TAB_HAS_TXT(p) ? util_strdup_content(p, &buf_len) : hexview_strdup_data(p, &buf_len));
+                if (pbuffer != NULL && ULONG_MAX > (unsigned long)buf_len)
                 {
                     uint32_t written;
                     WriteFile(pfile, pbuffer, (unsigned long)buf_len, &written, NULL);
                     cvector_push_back(*plist, pname);
-                    free(pbuffer);
                 }
                 CloseHandle(pfile);
+                eu_safe_free(pbuffer);
             }
         }
     }
@@ -835,9 +835,9 @@ void
 on_toolbar_execute_script(void)
 {
     eu_tabpage *p = on_tabpage_focus_at();
-    if (p && !TAB_HEX_MODE(p) && p->doc_ptr)
+    if (p && (p->doc_ptr || !TAB_NOT_BIN(p)))
     {
-        intptr_t param = (intptr_t)p->doc_ptr->doc_type;
+        intptr_t param = (intptr_t)(!TAB_NOT_BIN(p) ? on_doc_count() + 1 : p->doc_ptr->doc_type);
         if (strlen(eu_get_config()->m_actions[param]) > 1)
         {
             util_update_env(p);
