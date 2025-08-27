@@ -90,7 +90,7 @@ on_edit_cut(eu_tabpage *pnode)
         }
         else
         {
-            on_sci_call(pnode, SCI_CUTALLOWLINE, 0, 0);
+            on_sci_call(pnode, SCI_CUT, 0, 0);
         }
     }
 }
@@ -110,7 +110,7 @@ on_edit_copy_text(eu_tabpage *pnode)
         }
         else if (!pnode->plugin)
         {
-            on_sci_call(pnode, SCI_COPYALLOWLINE, 0, 0);
+            on_sci_call(pnode, SCI_COPY, 0, 0);
         }
     }
 }
