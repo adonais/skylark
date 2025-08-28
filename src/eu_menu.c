@@ -680,6 +680,12 @@ menu_update_item(const HMENU menu, const bool init)
                         util_enable_menu_item(menu, IDM_SOURCE_SNIPPET_GROUP, init || (!TAB_HEX_MODE(pnode) && pnode->doc_ptr));
                         break;
                     }
+                    case IDM_PROGRAM_CPLUS:
+                    {
+                        enable = TAB_NOT_NUL(pnode) && TAB_HAS_BIN(pnode);
+                        util_enable_menu_item(menu, IDM_PROGRAM_CPLUS,  init || enable);
+                        break;
+                    }
                     case IDM_PROGRAM_EXECUTE_ACTION:
                     {
                         enable = (pnode->doc_ptr || !TAB_NOT_BIN(pnode)) && TAB_NOT_NUL(pnode);

@@ -429,6 +429,7 @@ BEGIN
             MENUITEM "管理代码片段",                            IDM_SOURCE_SNIPPET_CONFIGURE
         END
         MENUITEM MF_SEPARATOR
+        MENUITEM "转换为C/C++数组类型",                         IDM_PROGRAM_CPLUS
         MENUITEM "使用预设动作执行此类文件",                    IDM_PROGRAM_EXECUTE_ACTION
     END
     POPUP "设置(&T)"

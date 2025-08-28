@@ -429,6 +429,7 @@ BEGIN
             MENUITEM "Configure Snippets",                             IDM_SOURCE_SNIPPET_CONFIGURE
         END
         MENUITEM MF_SEPARATOR
+        MENUITEM "Convert to C/C++ array type",                        IDM_PROGRAM_CPLUS
         MENUITEM "Execute File With Preset Actions",                   IDM_PROGRAM_EXECUTE_ACTION
     END
     POPUP "Se&ttings"

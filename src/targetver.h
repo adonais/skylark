@@ -1160,6 +1160,7 @@
 #define IDS_USER32_UNFINISHED               42867
 #define IDS_SKYLARK_DONATION                42868
 #define IDM_DONATION                        42869
+#define IDM_PROGRAM_CPLUS                   42870
 
 #define IDD_DONATION_BOX                    42880
 #define IDC_DONA_STATIC1                    42881

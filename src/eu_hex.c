@@ -2371,7 +2371,8 @@ hexview_switch_mode(eu_tabpage *pnode)
                 pnode->file_attr &= ~FILE_READONLY_COLOR;
                 on_statusbar_btn_colour(pnode, true);
             }
-            eu_logmsg("Hex: %s, pnode->eol = %d, pnode->hex_mode = %d\n", __FUNCTION__, pnode->eol, pnode->hex_mode);
+            eu_logmsg("Hex: %s, pnode->eol = %d, pnode->hex_mode = %d, pnode->codepage = %d\n",
+                     __FUNCTION__, pnode->eol, pnode->hex_mode, pnode->codepage);
             SendMessage(pnode->hwnd_sc, WM_SETFOCUS, 0, 0);
             SendMessage(hwsc, WM_CLOSE, 0, 0);
         }

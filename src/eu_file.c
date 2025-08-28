@@ -2982,3 +2982,79 @@ on_file_reload_current(eu_tabpage *pnode)
         }
     }
 }
+
+void
+on_file_convert_array(const eu_tabpage *pnode)
+{
+    sptr_t len = on_sci_call(pnode, SCI_GETLENGTH, 0, 0);
+    if (len > BUFF_32M)
+    {
+        MSG_BOX(IDC_MSG_MEM_NOT_AVAIL, IDC_MSG_ERROR, MB_ICONERROR|MB_OK);
+    }
+    else if (pnode->phex && pnode->phex->pbase && pnode->phex->total_items > 0 && _tcslen(pnode->filename) > 0)
+    {
+        TCHAR full_path[MAX_BUFFER] = {'f','o','o','.','c','\0'};
+        if (on_file_get_filename_dlg(full_path, _countof(full_path), pnode->pathname) == SKYLARK_OK && _tcslen(full_path) > 0)
+        {
+            char *path = NULL;
+            FILE *fp = _tfopen(full_path, _T("wb"));
+            if (fp && (path = eu_utf16_utf8(pnode->filename, NULL)) != NULL)
+            {
+                size_t i = 0;
+                char desc[MAX_BUFFER] = {0};
+                const char *tail = "};\n";
+                const char *header = "/* created by skylark editor from file %s */\nstatic const unsigned char %s[%zu] = {\n";
+                _snprintf(desc, MAX_BUFFER - 1, header, path, "generate_resource", pnode->phex->total_items);
+                free(path);
+                fwrite(desc, 1, strlen(desc), fp);
+                for (i = 0; i < pnode->phex->total_items; ++i)
+                {
+                    if (i == pnode->phex->total_items - 1)
+                    {
+                        if (!(i % 16))
+                        {
+                            fwrite("  ", 1, 2, fp);
+                        }
+                        sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
+                        fwrite(desc, 1, strlen(desc), fp);
+                        fwrite("\n", 1, 1, fp);
+                    }
+                    else
+                    {
+                        if (!(i % 16))
+                        {
+                            fwrite("  ", 1, 2, fp);
+                            sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
+                            fwrite(desc, 1, strlen(desc), fp);
+                            fwrite(", ", 1, 2, fp);
+                        }
+                        else if ((i % 16) == 15)
+                        {
+                            sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
+                            fwrite(desc, 1, strlen(desc), fp);
+                            if (i == pnode->phex->total_items - 1)
+                            {
+                                fwrite("\n", 1, 1, fp);
+                            }
+                            else
+                            {
+                                fwrite(",\n", 1, 2, fp);
+                            }
+                        }
+                        else
+                        {
+                            sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
+                            fwrite(desc, 1, strlen(desc), fp);
+                            fwrite(", ", 1, 2, fp);
+                        }
+                    }
+                }
+                fwrite(tail, 1, strlen(tail), fp);
+            }
+            if (fp)
+            {
+                fclose(fp);
+            }
+        }
+    }
+}
