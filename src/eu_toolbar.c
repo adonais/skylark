@@ -837,7 +837,7 @@ on_toolbar_execute_script(void)
     eu_tabpage *p = on_tabpage_focus_at();
     if (p && (p->doc_ptr || TAB_HAS_BIN(p)))
     {
-        intptr_t param = (intptr_t)(!TAB_NOT_BIN(p) ? on_doc_count() + 1 : p->doc_ptr->doc_type);
+        intptr_t param = (intptr_t)(TAB_HAS_BIN(p) ? on_doc_count() + 1 : p->doc_ptr->doc_type);
         if (strlen(eu_get_config()->m_actions[param]) > 1)
         {
             util_update_env(p);
