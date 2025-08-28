@@ -98,6 +98,7 @@
 
 #define SNIPPET_FUNID 100
 #define PERROR_LEN    100
+#define ACTIONS_MAX   100
 #define MAYBE200MS    200
 
 #ifndef MAX_BUFFER
@@ -555,7 +556,7 @@ struct eu_config
     char editor[MAX_PATH];
     char m_reserved_0[MAX_PATH];
     char m_reserved_1[MAX_PATH];
-    char m_actions[100][MAX_PATH];
+    char m_actions[ACTIONS_MAX][MAX_PATH];
     customize_set m_customize[DW_SIZE];
 };
 

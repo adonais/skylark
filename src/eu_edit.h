@@ -35,6 +35,7 @@
 #define TAB_NOT_BIN(p) (p->codepage != IDM_OTHER_BIN)
 #define TAB_HAS_PDF(p) (p->codepage == IDM_OTHER_PLUGIN)
 #define TAB_HAS_TXT(p) (!TAB_HEX_MODE(p) && !TAB_HAS_PDF(p))
+#define TAB_HAS_BIN(p) ((p->codepage == IDM_OTHER_BIN) || ((p->codepage == IDM_OTHER_PLUGIN) && TAB_HEX_MODE(p)))
 #define EOLS_UNDO   101
 #define ICONV_UNDO  102
 

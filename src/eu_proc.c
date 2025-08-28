@@ -1770,6 +1770,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_DATABASE_EXECUTE_SQL:  // 执行选定sql,redis
                     on_view_result_show(pnode, 0);
                     break;
+                case IDM_PROGRAM_CPLUS:
+                    on_file_convert_array(pnode);
+                    break;
                 case IDM_PROGRAM_EXECUTE_ACTION:  // 执行预置动作
                     on_toolbar_execute_script();
                     break;

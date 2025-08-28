@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 15
+#define __EU_INFO_VERSION_PATCHLEVEL 16
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 #define SKYLARK_VERSION (__EU_INFO_VERSION * 10000      \
                         + __EU_INFO_VERSION_MINOR * 100 \
@@ -1160,6 +1160,7 @@
 #define IDS_USER32_UNFINISHED               42867
 #define IDS_SKYLARK_DONATION                42868
 #define IDM_DONATION                        42869
+#define IDM_PROGRAM_CPLUS                   42870
 
 #define IDD_DONATION_BOX                    42880
 #define IDC_DONA_STATIC1                    42881

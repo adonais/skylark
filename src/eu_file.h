@@ -112,6 +112,7 @@ bool on_file_auto_notify(void);
 bool on_file_get_bakpath(eu_tabpage *pnode);
 bool on_file_map_hex(eu_tabpage *pnode, HANDLE hfile, const size_t nbyte);
 uint64_t on_file_get_avail_phys(void);
+void on_file_convert_array(const eu_tabpage *pnode);
 
 #ifdef __cplusplus
 }

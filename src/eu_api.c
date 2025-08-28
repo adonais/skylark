@@ -2020,8 +2020,9 @@ static char*
 eu_cat_process(void)
 {
     char *pactions = NULL;
-    int count = on_doc_count();
-    if (count > 0)
+    /* Add a binary type */
+    int count = on_doc_count() + 1;
+    if (count > 0 && count < ACTIONS_MAX)
     {
         int offset = 0;
         const size_t len = (size_t)(count * MAX_PATH);
