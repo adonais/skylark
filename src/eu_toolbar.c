@@ -715,7 +715,7 @@ on_toolbar_create_file(const int *pv, const int size, wchar_t ***plist)
             HANDLE pfile = NULL;
             if ((pfile = util_mk_temp(pname, on_doc_get_ext(p))) != INVALID_HANDLE_VALUE)
             {
-                char *pbuffer = (char *)(TAB_HAS_TXT(p) ? util_strdup_content(p, &buf_len) : hexview_strdup_data(p, &buf_len));
+                char *pbuffer = TAB_HAS_TXT(p) ? util_strdup_content(p, &buf_len) : (char *)hexview_strdup_data(p, &buf_len);
                 if (pbuffer != NULL && ULONG_MAX > (unsigned long)buf_len)
                 {
                     uint32_t written;

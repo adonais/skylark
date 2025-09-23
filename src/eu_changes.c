@@ -215,10 +215,8 @@ on_changes_delete_proc(HWND hdlg, uint32_t message, WPARAM wParam, LPARAM lParam
                 case IDC_NOEXIST_BTN4:
                     if ((p = (eu_tabpage *) GetWindowLongPtr(hdlg, GWLP_USERDATA)) != NULL)
                     {
-                        on_tabpage_reload_file(p, 1);
-                        p->tabs_mask &= ~FILE_KEEP_YES;
-                        p->tabs_mask |= FILE_KEEP_NO;
                         SendMessage(hdlg, WM_CLOSE, 0, 0);
+                        on_tabpage_reload_file(p, 1);
                     }
                     break;
                 default:
