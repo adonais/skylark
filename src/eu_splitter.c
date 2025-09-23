@@ -306,7 +306,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             parent = GetParent(hwnd);
             pnode = on_tabpage_focus_at();
-            cy = on_splitter_absolute_height(pnode->rect_sc.bottom);
+            cy = on_splitter_absolute_height(pnode->rect_result.top);
             HDC hdc = GetWindowDC(parent);
             HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
             HPEN hold_pen = (HPEN)SelectObject(hdc, hpen);
@@ -356,7 +356,7 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 SetROP2(hdc, R2_NOTXORPEN);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  cy);
-                cy = on_splitter_absolute_height(pnode->rect_sc.bottom) + (short)HIWORD(lParam);
+                cy = on_splitter_absolute_height(pnode->rect_result.top) + (short)HIWORD(lParam);
                 MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
                 LineTo(hdc, pnode->rect_sc.right,  cy);
                 SelectObject(hdc, hold_pen);
@@ -376,7 +376,8 @@ on_splitter_callback_editbar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 static LRESULT CALLBACK
 on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    static int y;
+    static int cy;
+    HWND parent = NULL;
     eu_tabpage *pnode = NULL;
     switch (msg)
     {
@@ -387,15 +388,15 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONDOWN:
         {
-            HWND parent = GetParent(hwnd);
+            parent = GetParent(hwnd);
             pnode = on_tabpage_focus_at();
-            y = on_splitter_absolute_height(pnode->rect_result.bottom);
+            cy = on_splitter_absolute_height(pnode->rect_qrtable.top);
             HDC hdc = GetWindowDC(parent);
             HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
-            HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
+            HPEN hold_pen = (HPEN)SelectObject(hdc, hpen);
             SetROP2(hdc, R2_NOTXORPEN);
-            MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
-            LineTo(hdc, pnode->rect_sc.right,  y);
+            MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
+            LineTo(hdc, pnode->rect_sc.right,  cy);
             SelectObject(hdc, hold_pen);
             DeleteObject(hpen);
             ReleaseDC(parent, hdc);
@@ -404,22 +405,25 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_LBUTTONUP:
         {
-            HWND parent = GetParent(hwnd);
+            parent = GetParent(hwnd);
             pnode = on_tabpage_focus_at();
             HDC hdc = GetWindowDC(parent);
             HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
-            HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
+            HPEN hold_pen = (HPEN)SelectObject(hdc, hpen);
             SetROP2(hdc, R2_NOTXORPEN);
-            MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
-            LineTo(hdc, pnode->rect_sc.right,  y);
+            MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
+            LineTo(hdc, pnode->rect_sc.right,  cy);
             SelectObject(hdc, hold_pen);
-            DeleteObject(hpen);
             ReleaseDC(parent, hdc);
+            DeleteObject(hpen);
             ReleaseCapture();
-            int m_height = on_splitter_absolute_height(pnode->rect_qrtable.bottom) - y - SPLIT_WIDTH/2;
-            if (m_height >= SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
+            if (QRTABLE_SHOW(pnode))
             {
-                eu_get_config()->result_list_height = m_height;
+                eu_get_config()->result_list_height = on_splitter_absolute_height(pnode->rect_qrtable.bottom) - cy - SPLIT_WIDTH;
+            }
+            if (eu_get_config()->result_list_height < SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN)
+            {
+                eu_get_config()->result_list_height = SQLQUERYRESULT_LISTVIEW_HEIGHT_MIN;
             }
             eu_window_resize();
             break;
@@ -428,17 +432,17 @@ on_splitter_callback_tablebar(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             if ((wParam & MK_LBUTTON) == MK_LBUTTON && GetCapture() == hwnd)
             {
-                HWND parent = GetParent(hwnd);
+                parent = GetParent(hwnd);
                 pnode = on_tabpage_focus_at();
                 HDC hdc = GetWindowDC(parent);
                 HPEN hpen = CreatePen(PS_SOLID, SPLIT_WIDTH, 0);
                 HPEN hold_pen = (HPEN)(SelectObject(hdc, hpen));
                 SetROP2(hdc, R2_NOTXORPEN);
-                MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
-                LineTo(hdc, pnode->rect_sc.right,  y);
-                y = on_splitter_absolute_height(pnode->rect_result.bottom) + (short)HIWORD(lParam);
-                MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, y, NULL);
-                LineTo(hdc, pnode->rect_sc.right,  y);
+                MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
+                LineTo(hdc, pnode->rect_sc.right,  cy);
+                cy = on_splitter_absolute_height(pnode->rect_qrtable.top) + (short)HIWORD(lParam);
+                MoveToEx(hdc, pnode->rect_sc.left + SPLIT_WIDTH, cy, NULL);
+                LineTo(hdc, pnode->rect_sc.right,  cy);
                 SelectObject(hdc, hold_pen);
                 DeleteObject(hpen);
                 ReleaseDC(parent, hdc);
