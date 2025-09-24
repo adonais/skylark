@@ -1254,19 +1254,19 @@ on_tabpage_adjust_window(const RECT *prc, eu_tabpage *pnode, RECT *ptab)
     }
     if (RESULT_SHOW(pnode))
     {
-        int rect_bottom = pnode->rect_sc.bottom;
-        pnode->rect_sc.bottom -= SPLIT_WIDTH + eu_get_config()->result_edit_height + (QRTABLE_SHOW(pnode) ? eu_get_config()->result_list_height : 0);
+        const bool qs = QRTABLE_SHOW(pnode);
+        const int rect_bottom = pnode->rect_sc.bottom;
+        pnode->rect_sc.bottom -= eu_get_config()->result_edit_height - SPLIT_WIDTH + (qs ? eu_get_config()->result_list_height - SPLIT_WIDTH : 0);
         pnode->rect_result.left = pnode->rect_sc.left;
         pnode->rect_result.right = pnode->rect_sc.right;
-        pnode->rect_result.top = pnode->rect_sc.bottom + SPLIT_WIDTH;
-        pnode->rect_result.bottom = rect_bottom;
-        if (QRTABLE_SHOW(pnode))
+        pnode->rect_result.bottom = ptab->bottom;
+        pnode->rect_result.top = pnode->rect_result.bottom - eu_get_config()->result_edit_height;
+        if (qs)
         {
-            pnode->rect_result.bottom -= SPLIT_WIDTH + eu_get_config()->result_list_height;
             pnode->rect_qrtable.left = pnode->rect_sc.left;
             pnode->rect_qrtable.right = pnode->rect_sc.right;
-            pnode->rect_qrtable.top = pnode->rect_result.bottom + SPLIT_WIDTH;
-            pnode->rect_qrtable.bottom = rect_bottom;
+            pnode->rect_qrtable.top = pnode->rect_sc.bottom;
+            pnode->rect_qrtable.bottom = pnode->rect_result.top;
         }
     }
 }

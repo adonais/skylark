@@ -33,6 +33,53 @@ typedef struct _column_t
 db_libs db_funcs = {0};
 redis_lib redis_funcs = {0};
 
+static bool
+on_table_insert_columns(HWND hwnd, int index, const char *text)
+{
+    int ret = -1;
+    LVCOLUMN lvc = {LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH | LVCF_FMT};
+    TCHAR *ptr_name = STR_NOT_NUL(text) ? eu_utf8_utf16(text, NULL) : NULL;
+    if (ptr_name)
+    {
+        lvc.iSubItem = index;
+        lvc.pszText = ptr_name;
+        lvc.fmt = LVCFMT_CENTER;
+        lvc.cx = 100;
+        if (!index)
+        {
+            ListView_DeleteColumn(hwnd, 0);
+        }
+        ret = ListView_InsertColumn(hwnd, index, &lvc);
+        free(ptr_name);
+    }
+    return (ret >= 0);
+}
+
+static void
+on_table_fix_columns(HWND hwnd, const unsigned int *afield)
+{
+    const int count = (const int) SendMessage(ListView_GetHeader(hwnd), HDM_GETITEMCOUNT, 0, 0);
+    if (count <= 0)
+    {
+        on_table_insert_columns(hwnd, 0, "Empty Table");
+        ListView_SetColumnWidth(hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
+    }
+    else
+    {
+        for (int index = 0; index < count; ++index)
+        {
+            if (index == count - 1)
+            {
+                ListView_SetColumnWidth(hwnd, index, LVSCW_AUTOSIZE_USEHEADER);
+            }
+            else if (afield)
+            {
+                ListView_SetColumnWidth(hwnd, index, afield[index]);
+            }
+        }
+    }
+}
+
 void
 on_table_update_theme(eu_tabpage *pnode)
 {
@@ -46,6 +93,7 @@ on_table_update_theme(eu_tabpage *pnode)
         SendMessage(pnode->hwnd_qrtable, LVM_SETTEXTBKCOLOR, 0, eu_get_theme()->item.text.bgcolor);
         if ((hdr = ListView_GetHeader(pnode->hwnd_qrtable)))
         {
+            on_table_fix_columns(pnode->hwnd_qrtable, NULL);
             SetWindowLongPtr(hdr, GWL_STYLE, GetWindowLongPtr(hdr, GWL_STYLE) & ~HDS_BUTTONS);
             on_dark_set_theme(pnode->hwnd_qrtable, L"Explorer", NULL);
         }
@@ -273,53 +321,6 @@ on_table_oci_error(eu_tabpage *pnode, OCIError *errhpp, int *err_code, char *err
         *(err_code) = err;
     }
     return 0;
-}
-
-static bool
-on_table_insert_columns(HWND hwnd, int index, const char *text)
-{
-    int ret = -1;
-    LVCOLUMN lvc = {LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH | LVCF_FMT};
-    TCHAR *ptr_name = STR_NOT_NUL(text) ? eu_utf8_utf16(text, NULL) : NULL;
-    if (ptr_name)
-    {
-        lvc.iSubItem = index;
-        lvc.pszText = ptr_name;
-        lvc.fmt = LVCFMT_CENTER;
-        lvc.cx = 100;
-        if (!index)
-        {
-            ListView_DeleteColumn(hwnd, 0);
-        }
-        ret = ListView_InsertColumn(hwnd, index, &lvc);
-        free(ptr_name);
-    }
-    return (ret >= 0);
-}
-
-static void
-on_table_fix_columns(HWND hwnd, const unsigned int *afield)
-{
-    const int count = (const int) SendMessage(ListView_GetHeader(hwnd), HDM_GETITEMCOUNT, 0, 0);
-    if (count <= 0)
-    {
-        on_table_insert_columns(hwnd, 0, "Empty Table");
-        ListView_SetColumnWidth(hwnd, 0, LVSCW_AUTOSIZE_USEHEADER);
-    }
-    else
-    {
-        for (int index = 0; index < count; ++index)
-        {
-            if (index == count - 1)
-            {
-                ListView_SetColumnWidth(hwnd, index, LVSCW_AUTOSIZE_USEHEADER);
-            }
-            else if (afield)
-            {
-                ListView_SetColumnWidth(hwnd, index, afield[index]);
-            }
-        }
-    }
 }
 
 static void
