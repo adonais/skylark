@@ -20,7 +20,7 @@ public:
 		if (virtualSpace < 0)
 			virtualSpace = 0;
 	}
-	explicit SelectionPosition(std::string_view sv);
+	explicit SelectionPosition(std::string_view &sv);
 	void Reset() noexcept {
 		position = 0;
 		virtualSpace = 0;
@@ -50,6 +50,7 @@ public:
 	Sci::Position VirtualSpace() const noexcept {
 		return virtualSpace;
 	}
+	[[nodiscard]] double VirtualSpaceWidth(double spaceWidth) const noexcept;
 	void SetVirtualSpace(Sci::Position virtualSpace_) noexcept {
 		PLATFORM_ASSERT(virtualSpace_ < 800000000);
 		if (virtualSpace_ >= 0)
@@ -120,7 +121,7 @@ struct SelectionRange {
 	}
 	constexpr SelectionRange(Sci::Position caret_, Sci::Position anchor_) noexcept : caret(caret_), anchor(anchor_) {
 	}
-	explicit SelectionRange(std::string_view sv);
+	explicit SelectionRange(std::string_view &sv);
 	SelectionSegment AsSegment() const noexcept {
 		return {caret, anchor};
 	}

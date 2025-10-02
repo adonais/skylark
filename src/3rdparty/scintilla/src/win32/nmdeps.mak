@@ -3,6 +3,19 @@ $(DIR_O)/HanjaDic.obj: \
 	src/win32/HanjaDic.cxx \
 	src/win32/WinTypes.h \
 	src/win32/HanjaDic.h
+$(DIR_O)/ListBox.obj: \
+	src/win32/ListBox.cxx \
+	src/include/ScintillaTypes.h \
+	$(SRC)/Debugging.h \
+	$(SRC)/Geometry.h \
+	$(SRC)/Platform.h \
+	$(SRC)/XPM.h \
+	$(SRC)/UniConversion.h \
+	$(SRC)/DBCS.h \
+	src/win32/WinTypes.h \
+	src/win32/PlatWin.h \
+	src/win32/ListBox.h \
+	src/win32/SurfaceD2D.h
 $(DIR_O)/PlatWin.obj: \
 	src/win32/PlatWin.cxx \
 	src/include/ScintillaTypes.h \
@@ -13,11 +26,9 @@ $(DIR_O)/PlatWin.obj: \
 	$(SRC)/UniConversion.h \
 	$(SRC)/DBCS.h \
 	src/win32/WinTypes.h \
-	src/win32/PlatWin.h
-$(DIR_O)/ScintillaDLL.obj: \
-	src/win32/ScintillaDLL.cxx \
-	src/include/ScintillaTypes.h \
-	src/win32/ScintillaWin.h
+	src/win32/PlatWin.h \
+	src/win32/ListBox.h \
+	src/win32/SurfaceD2D.h
 $(DIR_O)/ScintillaWin.obj: \
 	src/win32/ScintillaWin.cxx \
 	src/include/ScintillaTypes.h \
@@ -29,6 +40,7 @@ $(DIR_O)/ScintillaWin.obj: \
 	$(SRC)/Debugging.h \
 	$(SRC)/Geometry.h \
 	$(SRC)/Platform.h \
+	$(SRC)/CharacterType.h \
 	$(SRC)/CharacterCategoryMap.h \
 	$(SRC)/Position.h \
 	$(SRC)/UniqueString.h \
@@ -49,6 +61,7 @@ $(DIR_O)/ScintillaWin.obj: \
 	$(SRC)/Document.h \
 	$(SRC)/CaseConvert.h \
 	$(SRC)/UniConversion.h \
+	$(SRC)/DBCS.h \
 	$(SRC)/Selection.h \
 	$(SRC)/PositionCache.h \
 	$(SRC)/EditModel.h \
@@ -60,8 +73,34 @@ $(DIR_O)/ScintillaWin.obj: \
 	$(SRC)/ScintillaBase.h \
 	src/win32/WinTypes.h \
 	src/win32/PlatWin.h \
+	src/win32/SurfaceD2D.h \
 	src/win32/HanjaDic.h \
 	src/win32/ScintillaWin.h
+$(DIR_O)/SurfaceD2D.obj: \
+	src/win32/SurfaceD2D.cxx \
+	src/include/ScintillaTypes.h \
+	$(SRC)/Debugging.h \
+	$(SRC)/Geometry.h \
+	$(SRC)/Platform.h \
+	$(SRC)/XPM.h \
+	$(SRC)/UniConversion.h \
+	$(SRC)/DBCS.h \
+	src/win32/WinTypes.h \
+	src/win32/PlatWin.h \
+	src/win32/SurfaceGDI.h \
+	src/win32/SurfaceD2D.h
+$(DIR_O)/SurfaceGDI.obj: \
+	src/win32/SurfaceGDI.cxx \
+	src/include/ScintillaTypes.h \
+	$(SRC)/Debugging.h \
+	$(SRC)/Geometry.h \
+	$(SRC)/Platform.h \
+	$(SRC)/XPM.h \
+	$(SRC)/UniConversion.h \
+	$(SRC)/DBCS.h \
+	src/win32/WinTypes.h \
+	src/win32/PlatWin.h \
+	src/win32/SurfaceGDI.h
 $(DIR_O)/AutoComplete.obj: \
 	$(SRC)/AutoComplete.cxx \
 	src/include/ScintillaTypes.h \

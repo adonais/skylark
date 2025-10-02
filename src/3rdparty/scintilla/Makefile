@@ -229,26 +229,16 @@ LEXLIB_OBJS= \
 	$(DIR_O)\WordList.obj \
 	$(DIR_O)\Lexilla.obj \
 
-# Required by libraries and DLLs that include lexing
-SCILEX_OBJS = \
-	$(SRC_OBJS) \
-	$(LEXLIB_OBJS) \
-	$(LEX_OBJS) \
-	$(DIR_O)\HanjaDic.obj \
-	$(DIR_O)\PlatWin.obj \
-	$(DIR_O)\ScintillaBaseL.obj \
-!IFDEF _USRDLL
-	$(DIR_O)\ScintillaDLL.obj \
-!ENDIF
-	$(DIR_O)\ScintillaWin.obj
-
 STATICS_OBJS = \
 	$(SRC_OBJS) \
 	$(LEXLIB_OBJS) \
 	$(LEX_OBJS) \
 	$(DIR_O)\HanjaDic.obj \
+	$(DIR_O)\ListBox.obj \
 	$(DIR_O)\PlatWin.obj \
 	$(DIR_O)\ScintillaBaseL.obj \
+	$(DIR_O)\SurfaceD2D.obj \
+	$(DIR_O)\SurfaceGDI.obj \
 	$(DIR_O)\ScintillaWin.obj
 
 !IF EXISTS(src\boostregex\BoostReg.mak)
