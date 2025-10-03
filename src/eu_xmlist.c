@@ -510,7 +510,7 @@ on_xml_pretty(void *ptr, struct opt_format *opt)
             }
             if (XML_Parse(parser, text, (int) text_len, done) == XML_STATUS_ERROR)
             {
-                eu_logmsg("Xml: error, %s at line %Id\n", XML_ErrorString(XML_GetErrorCode(parser)), XML_GetCurrentLineNumber(parser));
+                eu_logmsg("Xml: error, %s at line %zu\n", XML_ErrorString(XML_GetErrorCode(parser)), (size_t)XML_GetCurrentLineNumber(parser));
             }
             else
             {

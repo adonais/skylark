@@ -39,8 +39,8 @@
 
 #define FAVORITE_TABLE "create table file_favorite(szId INTEGER PRIMARY KEY, szName char(260), szPath char(1024), szTag char(260)," \
                        "szGroup char(260), szStatus SMALLINT, UNIQUE(szPath));"
-#define FAVORITE_INFO  "create table info_favorite(szFile char(1024), szVersion char(64), szMax SMALLINT, szExtra BIGINT);"
-#define FAVORITE_CONF  "insert or replace into info_favorite(szFile,szVersion,szMax,szExtra) values('%s', '%s', %d, %I64u);"
+#define FAVORITE_INFO  "create table info_favorite(szFile char(1024), szVersion char(64), szMax smallint, szExtra unsigned);"
+#define FAVORITE_CONF  "insert or replace into info_favorite(szFile,szVersion,szMax,szExtra) values('%s', '%s', %d, %Iu);"
 #define FAVORITE_INSE  "insert or replace into file_favorite(szName,szPath,szTag,szGroup,szStatus) values('%s', '%s', '%s','%s', %d);"
 
 static volatile long eu_sql_cs = 0;
@@ -177,7 +177,7 @@ init_favorite_file(const char *sql_path, uintptr_t *pdb)
             if (FAVORITE_VERSION == i)
             {
                 char buffer[MAX_BUFFER] = {0};
-                _snprintf(buffer, MAX_BUFFER - 1, FAVORITE_CONF, sql_path, "1", INT16_MAX, (uintptr_t)0);
+                _snprintf(buffer, MAX_BUFFER - 1, FAVORITE_CONF, sql_path, "1", INT16_MAX, (uint32_t)0);
                 rc = sqlite3_exec(db, buffer, 0, 0, NULL);
             }
             else

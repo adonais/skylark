@@ -3137,7 +3137,7 @@ util_shell_path(const GUID *folder, TCHAR *path, const int len)
     return false;
 }
 
-static uint32_t
+static uint32_t WINAPI
 util_flush_callback(LARGE_INTEGER total_size, LARGE_INTEGER total_bytes, LARGE_INTEGER stream_size, LARGE_INTEGER stream_bytes,
                     DWORD stream_id, DWORD reason, HANDLE srchandle, HANDLE dsthandle, LPVOID refdata)
 {

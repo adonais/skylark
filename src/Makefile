@@ -9,7 +9,7 @@ CDEP    =  -I3rdparty\libcurl\include -I3rdparty\libopenssl\include -I3rdparty\l
            -I3rdparty\qrencode\src -I3rdparty\tinyexpr\src -I3rdparty\expat\src \
            -I3rdparty\scintilla\src\include
 
-CFLAGS  = -W3 -WX- -wd4996 -wd4819 -Zi -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" -D_WIN32_IE=0x0601 \
+CFLAGS  = -W3 -WX -wd4996 -wd4819 -Zi -D "_CRT_SECURE_NO_WARNINGS" -D "UNICODE" -D "_UNICODE" -D_WIN32_IE=0x0601 \
           -utf-8 -D "INITGUID" -D "COBJMACROS" -D "JSON_TRACK_SOURCE" -D "PCRE_STATIC" -D "XML_STATIC" $(CFLAGS) $(CDEP)
 
 !IF "$(ACTIONS_BUILDING)"=="1"

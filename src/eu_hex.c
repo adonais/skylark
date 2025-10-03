@@ -2176,10 +2176,16 @@ hexview_map_pdf(eu_tabpage *pnode)
             np_plugins_getvalue(&pnode->plugin->funcs, &pnode->plugin->npp, NV_TABTITLE, (void **)&pfull);
         }
         if (STR_NOT_NUL(pfull))
-        {
-            if (share_open_file(pfull, true, OPEN_EXISTING, &hfile) && util_file_size(hfile, &pnode->bytes_remaining) && pnode->bytes_remaining > 0)
+        {   // 防止不安全的指针类型转换
+            uint64_t remaining = (uint64_t)pnode->bytes_remaining;
+            if (share_open_file(pfull, true, OPEN_EXISTING, &hfile) && util_file_size(hfile, &remaining) && remaining > 0)
             {
+                pnode->bytes_remaining = (size_t)remaining;
                 ret = on_file_map_hex(pnode, hfile, 0);
+            }
+            else
+            {
+                pnode->bytes_remaining = 0;
             }
         }
         share_close(hfile);
@@ -2215,7 +2221,7 @@ hexview_switch_mode(eu_tabpage *pnode)
             pnode->nc_pos = on_sci_call(pnode, SCI_GETCURRENTPOS, 0, 0);
         }
         pnode->zoom_level = (pnode->zoom_level == SELECTION_ZOOM_LEVEEL) ? 0 : (int)on_sci_call(pnode, SCI_GETZOOM, 0, 0);
-        eu_logmsg("Hex: nc_pos = %I64d, pnode->zoom_level = %d\n", pnode->nc_pos, pnode->zoom_level);
+        eu_logmsg("Hex: nc_pos = %zd, pnode->zoom_level = %d\n", pnode->nc_pos, pnode->zoom_level);
         if (!pnode->phex)
         {
             if (!pdf)

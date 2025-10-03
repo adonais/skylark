@@ -25,7 +25,7 @@
 typedef UINT (WINAPI* GetDpiForWindowPtr)(HWND hwnd);
 typedef BOOL(WINAPI *AdjustWindowRectExForDpiPtr)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
-static HWND g_hwndmain;                      // 主窗口句柄
+static HWND g_hwndmain = NULL;               // 主窗口句柄
 static volatile long g_main_thread = 0;      // 主线程id
 
 static int

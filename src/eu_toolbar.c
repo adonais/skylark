@@ -668,6 +668,7 @@ on_toolbar_lua_exec(eu_tabpage *pnode)
             int read_len = 0;
             char *std_buffer = NULL;
             pnode->presult->pwant = on_toolbar_no_highlight;
+            pnode->qrtable_show = false;
             on_result_lexer(pnode->presult);
             eu_window_resize();
             do_lua_setting_path(pnode);
@@ -1097,7 +1098,7 @@ on_toolbar_size(const RECT *prc)
     {
         if (eu_get_config()->m_toolbar != IDB_SIZE_0)
         {
-            int width = prc->right - prc->left;
+            const int width = prc->right - prc->left;
             eu_setpos_window(hwnd, HWND_TOP, 0, 0, width, on_toolbar_get_height(), SWP_SHOWWINDOW);
         }
         else
