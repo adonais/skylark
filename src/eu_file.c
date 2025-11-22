@@ -3001,10 +3001,10 @@ on_file_convert_array(const eu_tabpage *pnode)
             if (fp && (path = eu_utf16_utf8(pnode->filename, NULL)) != NULL)
             {
                 size_t i = 0;
-                char desc[MAX_BUFFER] = {0};
+                char desc[MAX_PATH] = {0};
                 const char *tail = "};\n";
                 const char *header = "/* created by skylark editor from file %s */\nstatic const unsigned char %s[%zu] = {\n";
-                _snprintf(desc, MAX_BUFFER - 1, header, path, "generate_resource", pnode->phex->total_items);
+                _snprintf(desc, MAX_PATH - 1, header, path, "generate_resource", pnode->phex->total_items);
                 free(path);
                 fwrite(desc, 1, strlen(desc), fp);
                 for (i = 0; i < pnode->phex->total_items; ++i)
@@ -3015,8 +3015,8 @@ on_file_convert_array(const eu_tabpage *pnode)
                         {
                             fwrite("  ", 1, 2, fp);
                         }
-                        sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
-                        fwrite(desc, 1, strlen(desc), fp);
+                        sprintf(desc, "'\\x%02X'", pnode->phex->pbase[i]);
+                        fwrite(desc, 1, 6, fp);
                         fwrite("\n", 1, 1, fp);
                     }
                     else
@@ -3024,14 +3024,14 @@ on_file_convert_array(const eu_tabpage *pnode)
                         if (!(i % 16))
                         {
                             fwrite("  ", 1, 2, fp);
-                            sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
-                            fwrite(desc, 1, strlen(desc), fp);
+                            sprintf(desc, "'\\x%02X'", pnode->phex->pbase[i]);
+                            fwrite(desc, 1, 6, fp);
                             fwrite(", ", 1, 2, fp);
                         }
                         else if ((i % 16) == 15)
                         {
-                            sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
-                            fwrite(desc, 1, strlen(desc), fp);
+                            sprintf(desc, "'\\x%02X'", pnode->phex->pbase[i]);
+                            fwrite(desc, 1, 6, fp);
                             if (i == pnode->phex->total_items - 1)
                             {
                                 fwrite("\n", 1, 1, fp);
@@ -3043,8 +3043,8 @@ on_file_convert_array(const eu_tabpage *pnode)
                         }
                         else
                         {
-                            sprintf(desc, "0x%02X", pnode->phex->pbase[i]);
-                            fwrite(desc, 1, strlen(desc), fp);
+                            sprintf(desc, "'\\x%02X'", pnode->phex->pbase[i]);
+                            fwrite(desc, 1, 6, fp);
                             fwrite(", ", 1, 2, fp);
                         }
                     }
