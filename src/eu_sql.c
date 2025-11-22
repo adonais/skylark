@@ -40,7 +40,7 @@
 #define FAVORITE_TABLE "create table file_favorite(szId INTEGER PRIMARY KEY, szName char(260), szPath char(1024), szTag char(260)," \
                        "szGroup char(260), szStatus SMALLINT, UNIQUE(szPath));"
 #define FAVORITE_INFO  "create table info_favorite(szFile char(1024), szVersion char(64), szMax smallint, szExtra unsigned);"
-#define FAVORITE_CONF  "insert or replace into info_favorite(szFile,szVersion,szMax,szExtra) values('%s', '%s', %d, %Iu);"
+#define FAVORITE_CONF  "insert or replace into info_favorite(szFile,szVersion,szMax,szExtra) values('%s', '%s', %d, %I32u);"
 #define FAVORITE_INSE  "insert or replace into file_favorite(szName,szPath,szTag,szGroup,szStatus) values('%s', '%s', '%s','%s', %d);"
 
 static volatile long eu_sql_cs = 0;
