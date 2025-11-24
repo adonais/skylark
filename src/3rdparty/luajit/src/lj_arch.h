@@ -96,6 +96,9 @@
 #elif defined(__QNX__)
 #define LJ_TARGET_QNX		1
 #define LUAJIT_OS	LUAJIT_OS_POSIX
+#elif defined(__GNU__)
+#define LJ_TARGET_HURD		1
+#define LUAJIT_OS	LUAJIT_OS_POSIX
 #else
 #define LUAJIT_OS	LUAJIT_OS_OTHER
 #endif
@@ -216,6 +219,29 @@
 #error "macOS requires GC64 -- don't disable it"
 #endif
 
+#if !defined(LJ_ABI_BRANCH_TRACK) && (__CET__ & 1) && \
+    LJ_TARGET_GC64 && defined(LUAJIT_ENABLE_CET_BR)
+/*
+** Control-Flow Enforcement Technique (CET) indirect branch tracking (IBT).
+** This is not enabled by default because it causes a notable slowdown of
+** the interpreter on all x64 CPUs, whether they have CET enabled or not.
+** If your toolchain enables -fcf-protection=branch by default, you need
+** to build with: make amalg XCFLAGS=-DLUAJIT_ENABLE_CET_BR
+*/
+#define LJ_ABI_BRANCH_TRACK	1
+#endif
+
+#if !defined(LJ_ABI_SHADOW_STACK) && (__CET__ & 2)
+/*
+** Control-Flow Enforcement Technique (CET) shadow stack (CET-SS).
+** It has no code overhead and doesn't cause any slowdowns when unused.
+** It can also be unconditionally enabled since all code already follows
+** a strict CALL to RET correspondence for performance reasons (all modern
+** CPUs use a (non-enforcing) shadow stack for return branch prediction).
+*/
+#define LJ_ABI_SHADOW_STACK	1
+#endif
+
 #elif LUAJIT_TARGET == LUAJIT_ARCH_ARM
 
 #define LJ_ARCH_NAME		"arm"
@@ -262,6 +288,11 @@
 #if !defined(LJ_ABI_PAUTH) && defined(__arm64e__)
 #define LJ_ABI_PAUTH		1
 #endif
+#if !defined(LJ_ABI_BRANCH_TRACK) && (__ARM_FEATURE_BTI_DEFAULT & 1) && \
+    defined(LUAJIT_ENABLE_CET_BR)
+/* See comments about LUAJIT_ENABLE_CET_BR above. */
+#define LJ_ABI_BRANCH_TRACK	1
+#endif
 #define LJ_TARGET_ARM64		1
 #define LJ_TARGET_EHRETREG	0
 #define LJ_TARGET_EHRAREG	30
@@ -270,7 +301,12 @@
 #define LJ_TARGET_MASKROT	1
 #define LJ_TARGET_UNIFYROT	2	/* Want only IR_BROR. */
 #define LJ_TARGET_GC64		1
+#define LJ_PAGESIZE		16384
 #define LJ_ARCH_NUMMODE		LJ_NUMMODE_DUAL
+
+#if __ARM_FEATURE_UNALIGNED
+#define LJ_TARGET_UNALIGNED	1
+#endif
 
 #define LJ_ARCH_VERSION		80
 
@@ -425,7 +461,7 @@
 #define LJ_TARGET_MIPS		1
 #define LJ_TARGET_EHRETREG	4
 #define LJ_TARGET_EHRAREG	31
-#define LJ_TARGET_JUMPRANGE	27	/* 2*2^27 = 256MB-aligned region */
+#define LJ_TARGET_JUMPRANGE	28	/* 2^28 = 256MB-aligned region */
 #define LJ_TARGET_MASKSHIFT	1
 #define LJ_TARGET_MASKROT	1
 #define LJ_TARGET_UNIFYROT	2	/* Want only IR_BROR. */

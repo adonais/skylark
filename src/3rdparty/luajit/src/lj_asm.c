@@ -93,6 +93,10 @@ typedef struct ASMState {
   MCode *invmcp;	/* Points to invertible loop branch (or NULL). */
   MCode *flagmcp;	/* Pending opportunity to merge flag setting ins. */
   MCode *realign;	/* Realign loop if not NULL. */
+  MCode *mctail;	/* Tail of trace before stack adjust + jmp. */
+#if LJ_TARGET_PPC || LJ_TARGET_ARM64
+  MCode *mcexit;	/* Pointer to exit stubs. */
+#endif
 
 #ifdef LUAJIT_RANDOM_RA
   /* Randomize register allocation. OK for fuzz testing, not for production. */
@@ -2541,7 +2545,7 @@ void lj_asm_trace(jit_State *J, GCtrace *T)
     RA_DBGX((as, "===== STOP ====="));
 
     /* General trace setup. Emit tail of trace. */
-    asm_tail_prep(as);
+    asm_tail_prep(as, T->link);
     as->mcloop = NULL;
     as->flagmcp = NULL;
     as->topslot = 0;
@@ -2586,6 +2590,9 @@ void lj_asm_trace(jit_State *J, GCtrace *T)
       asm_head_side(as);
     else
       asm_head_root(as);
+#if LJ_ABI_BRANCH_TRACK
+    emit_branch_track(as);
+#endif
     asm_phi_fixup(as);
 
     if (J->curfinal->nins >= T->nins) {  /* IR didn't grow? */
