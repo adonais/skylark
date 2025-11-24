@@ -3744,6 +3744,13 @@ on_search_orig_find_proc(HWND hdlg, UINT message, WPARAM wParam, LPARAM lParam)
                         }
                         break;
                     }
+                    case IDC_MATCH_WDSTART:
+                    case IDC_MATCH_WORD:
+                    case IDC_MATCH_CASE:
+                    {
+                        on_search_save_state(hdlg);
+                        break;
+                    }
                     default:
                         break;
                 }
