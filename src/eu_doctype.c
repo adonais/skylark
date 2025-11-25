@@ -178,18 +178,7 @@ on_doc_is_customized(const eu_tabpage *pnode, const int lex)
 {
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->style.mask > 0)
     {
-        uint32_t mask = pnode->doc_ptr->style.mask;
-        if (lex < 0)
-        {
-            return true;
-        }
-        for (int i = 0; i < SCE_STYLE_MAX; ++i, mask >>= 1)
-        {
-            if ((mask & 0x1) && (i == lex))
-            {
-                return true;
-            }
-        }
+        return (lex < 0 ? true : pnode->doc_ptr->style.mask);
     }
     return false;
 }
@@ -200,10 +189,9 @@ on_doc_color_customizes(eu_tabpage *pnode)
     if (pnode && pnode->doc_ptr && pnode->doc_ptr->style.mask > 0)
     {
         doc_styles *pstyle = &(pnode->doc_ptr->style);
-        uint32_t mask = pstyle->mask;
-        for (int i = 0; i < SCE_STYLE_MAX; ++i, mask >>= 1)
+        for (int i = 0; i < SCE_STYLE_MAX; ++i)
         {
-            if (mask & 0x1)
+            if (pstyle->type[i] >= 0)
             {
                 intptr_t bk_color = (pstyle->bkcolor[i] == (uint32_t)-1 ? (intptr_t)-1 : pstyle->bkcolor[i]);
                 on_doc_default_light(pnode, pstyle->type[i], pstyle->fgcolor[i], bk_color, true);
@@ -213,7 +201,7 @@ on_doc_color_customizes(eu_tabpage *pnode)
 }
 
 void
-on_doc_key_scilexer(eu_tabpage *pnode, const  char *name)
+on_doc_key_scilexer(eu_tabpage *pnode, const char *name)
 {
     // 加载文档解析器
     on_sci_call(pnode, SCI_SETILEXER, 0, CreateLexer(name));
@@ -225,7 +213,7 @@ on_doc_key_scilexer(eu_tabpage *pnode, const  char *name)
 
 // (*init_after_ptr)
 int
-on_doc_init_after_scilexer(eu_tabpage *pnode, const  char *name)
+on_doc_init_after_scilexer(eu_tabpage *pnode, const char *name)
 {
     if (pnode)
     {

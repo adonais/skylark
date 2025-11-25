@@ -68,6 +68,7 @@ if (not eu_core.file_exists(user_file)) then
     "    DOCTYPE_POWERSHELL = 47,\n",
     "    DOCTYPE_TOML = 48,\n",
     "    DOCTYPE_ZIG = 49,\n",
+    "    DOCTYPE_PHP = 50,\n",
     "  }\n",
     "  local ffi_null = eu_core.ffi.cast(\"void *\", nil)\n",
     "  local docs_t = eu_core.ffi.new (\"doctype_t[?]\", i,\n",
@@ -335,7 +336,7 @@ if (not eu_core.file_exists(user_file)) then
     "      {\n",
     "          e.DOCTYPE_HTML,\n",
     "          \"html\",\n",
-    "          \";*.html;*.htm;*.shtml;*.xhtml;*.phtml;*.htt;*.htd;*.hta;*.asp;*.php;\",\n",
+    "          \";*.html;*.htm;*.shtml;*.xhtml;*.htt;*.htd;*.hta;*.asp;\",\n",
     "          \"HTML\",\n",
     "          \"html.snippets\",\n",
     "          0,\n",
@@ -708,6 +709,26 @@ if (not eu_core.file_exists(user_file)) then
     "          eu_core.euapi.on_doc_cpp_like,\n",
     "          eu_core.euapi.on_doc_reload_list_reqular,\n",
     "          eu_core.euapi.on_doc_click_list_jmp,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "      },\n",
+    "      {\n",
+    "          e.DOCTYPE_PHP,\n",
+    "          \"php\",\n",
+    "          \";*.php;*.phps;*.phpt;*.phtml;*.php_cs;*.eyecode;\",\n",
+    "          \"PHP Script\",\n",
+    "          \"php.snippets\",\n",
+    "          0,\n",
+    "          -1,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
+    "          eu_core.euapi.on_doc_keyup_general,\n",
+    "          eu_core.euapi.on_doc_cpp_like,\n",
+    "          ffi_null,\n",
+    "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
     "          ffi_null,\n",
@@ -1182,10 +1203,11 @@ function fetch_doctype(s)
           end
         end
     end
-    if (count > 0) then
-      local bit = require("bit")
+    if (count > 0 and count < 128) then
+      m_config.style.mask = 1
+      for i = 0, 200 do m_config.style.type[i] = -1 end
       for k, v in pairs(m_styles) do
-        if (k < 32) then
+        if (k < 200) then
           local pcolor = nil
           if (type(v) == "string") then pcolor = string.split(v, "&&") end
           if (pcolor ~= nil and #pcolor == 2) then
@@ -1204,7 +1226,6 @@ function fetch_doctype(s)
             m_config.style.bkcolor[k] = 0xFFFFFFFF
           end
           m_config.style.type[k] = k
-          m_config.style.mask = bit.bor(m_config.style.mask,bit.lshift(1,k))
         end
       end
     end
@@ -1230,7 +1251,7 @@ function fill_my_docs()
   local my_doc_config = user_docs.get_docs()
   local my_size = eu_core.ffi.sizeof(my_doc_config)/eu_core.ffi.sizeof("doctype_t")
   --print("my_size = " .. my_size)
-  if (my_size < 50) then
+  if (my_size < 51) then
     eu_core.euapi.eu_reset_docs_mask()
   end
   for i=0,my_size-1 do
