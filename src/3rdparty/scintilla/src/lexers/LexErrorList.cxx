@@ -317,7 +317,7 @@ constexpr bool SequenceEnd(int ch) noexcept {
 
 int StyleFromSequence(const char *seq) noexcept {
 	int bold = 0;
-	int colour = 0;
+	int style = 0;
 	while (!SequenceEnd(*seq)) {
 		if (Is0To9(*seq)) {
 			int base = *seq - '0';
@@ -327,19 +327,28 @@ int StyleFromSequence(const char *seq) noexcept {
 				seq++;
 			}
 			if (base == 0) {
-				colour = 0;
+				// Reset to default.
+				style = 0;
 				bold = 0;
-			}
-			else if (base == 1) {
+			} else if (base == 1) {
+				// Set style as bright.
 				bold = 1;
-			}
-			else if (base >= 30 && base <= 37) {
-				colour = base - 30;
+			} else if (base >= 30 && base <= 37) {
+				// Set dim style which starts at 40.
+				style = base + 10;
+			} else if (base >= 90 && base <= 97) {
+				// Set bright style which starts at 48.
+				style = base - 42;
 			}
 		}
 		seq++;
 	}
-	return SCE_ERR_ES_BLACK + bold * 8 + colour;
+	// Set dim style as bright style if bold is set.
+	if (bold && (style >= 40 && style <= 47)) {
+		style += 8;
+	}
+	// Return the style which if 0 will be SCE_ERR_DEFAULT style.
+	return style;
 }
 
 void ColouriseErrorListLine(

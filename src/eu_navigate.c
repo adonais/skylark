@@ -180,7 +180,7 @@ on_navigate_back_this(const eu_tabpage *pnode)
                 }
                 if (back)
                 {
-                    sptr_t go = *back > textlen - 1 ? textlen - 1 : (sptr_t)(*back >= 0 ? *back : 0);
+                    sptr_t go = *back > textlen - 1 ? (sptr_t)textlen - 1 : (sptr_t)(*back >= 0 ? *back : 0);
                     cvector_pop_back(curr->pos);
                     on_sci_call(pnode, SCI_GOTOPOS, go, 0);
                     return true;
@@ -210,7 +210,7 @@ on_navigate_back_all(void)
                 on_tabpage_selection(curr->pnode);
                 int64_t *back = cvector_back(curr->pos);
                 int64_t textlen = (int64_t)on_sci_call(curr->pnode, SCI_GETLENGTH, 0, 0);
-                sptr_t go = *back > textlen - 1 ? textlen - 1 : (sptr_t)(*back >= 0 ? *back : 0);
+                sptr_t go = *back > textlen - 1 ? (sptr_t)textlen - 1 : (sptr_t)(*back >= 0 ? *back : 0);
                 cvector_pop_back(curr->pos);
                 on_sci_call(curr->pnode, SCI_GOTOPOS, go, 0);
             }

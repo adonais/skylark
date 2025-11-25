@@ -98,7 +98,7 @@ on_config_open_args(file_backup **pbak)
                             vpath[i].postion = (*pbak)[at].postion;
                         }
                         vpath[i].view = (*pbak)[at].view;
-                        cvector_erase(*pbak, at);
+                        cvector_erase(*pbak, (size_t)at);
                     }
                     cvector_push_back(*pbak, vpath[i]);
                 }

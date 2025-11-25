@@ -960,7 +960,13 @@ do_fp_base64(FILE *f, void **pout)
         ((eu_bio_ctrl)pfunc[7])(b64, BIO_CTRL_FLUSH, 0, NULL);
         if (len > -2 && *data)
         {
-            int out_len = ((eu_bio_ctrl)pfunc[7])(mem, BIO_CTRL_INFO, 0, (char *)(pout));
+            long outlen = ((eu_bio_ctrl)pfunc[7])(mem, BIO_CTRL_INFO, 0, (char *)(pout));
+            char *p = *((char **)pout);
+            if (outlen > 0 && p)
+            {
+                eu_logmsg("Fpbase64: outlen = %ld\n", outlen);
+                p[outlen] = 0;
+            }
         }
         ((eu_bio_pop)pfunc[8])(b64);
         ((eu_bio_free_all)pfunc[9])(b64);
@@ -3137,7 +3143,7 @@ util_shell_path(const GUID *folder, TCHAR *path, const int len)
     return false;
 }
 
-static uint32_t
+static uint32_t WINAPI
 util_flush_callback(LARGE_INTEGER total_size, LARGE_INTEGER total_bytes, LARGE_INTEGER stream_size, LARGE_INTEGER stream_bytes,
                     DWORD stream_id, DWORD reason, HANDLE srchandle, HANDLE dsthandle, LPVOID refdata)
 {

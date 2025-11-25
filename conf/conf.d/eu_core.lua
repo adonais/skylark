@@ -291,9 +291,9 @@ typedef int (*click_tree_ptr)(void *pnode);
 
 typedef struct _doc_styles
 {
-    int type[32];
-    uint32_t fgcolor[32];
-    uint32_t bkcolor[32];
+    int type[200];
+    uint32_t fgcolor[200];
+    uint32_t bkcolor[200];
     uint32_t mask;
 } doc_styles;
 

@@ -7,6 +7,7 @@ Compared with vs code, atom, and more editors, it can start up in less than a se
 * Binary/Hex viewer for files of unlimited size.  
 * Encryption and decryption of common key algorithms.  
 * Perl Compatible Regular Expression.  
+* Enable AI-Powered Chat Integration  
 * Support for many encodings, Syntax highlight for a lot of languages.  
 * Supports sumatrapdf plugin.  
 * Supports clang-format.  
@@ -39,3 +40,5 @@ Compared with vs code, atom, and more editors, it can start up in less than a se
 ![images/hex_view.png](images/hex_view.png)
 * linux wine
 ![images/skylark_wine.png](images/skylark_wine.png)
+* AI Chat
+![images/skylark_wine.png](images/ai_chat.png)
