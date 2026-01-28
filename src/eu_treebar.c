@@ -983,8 +983,8 @@ on_filetree_append_remote_child(tree_data *tpnode)
                     break;
                 }
                 util_make_u8(tpnode->filepath, purl, (int)len);
-                strncat(purl, u8_filename, len);
-                strncat(purl, "/", len);
+                util_strncat(purl, u8_filename, len);
+                util_strncat(purl, "/", len);
                 if (!(filepath = eu_utf8_utf16(purl, NULL)))
                 {
                     ret = EUE_POINT_NULL;
@@ -1009,7 +1009,7 @@ on_filetree_append_remote_child(tree_data *tpnode)
                     break;
                 }
                 util_make_u8(tpnode->filepath, purl, (int)len);
-                strncat(purl, u8_filename, MAX_PATH);
+                util_strncat(purl, u8_filename, MAX_PATH);
                 if (!(filepath = eu_utf8_utf16(purl, NULL)))
                 {
                     ret = EUE_POINT_NULL;

@@ -473,7 +473,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                 _wsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
                 if (wcslen(pnode->extname) > 0)
                 {
-                    wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+                    util_wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
                 }
                 on_file_update_time(pnode, 0);
                 util_set_title(pnode);

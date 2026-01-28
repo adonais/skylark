@@ -782,29 +782,29 @@ do_extra_actions(void *lp)
                 WCHAR unix_path[MAX_PATH] = {0};
                 if (i == count - 1)
                 {
-                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(vec_files[i], unix_path, MAX_PATH))
                     {
-                        wcsncat(cmd_exec, unix_path, len);
+                        util_wcsncat(cmd_exec, unix_path, len);
                     }
                     else
                     {
-                        wcsncat(cmd_exec, vec_files[i], len);
+                        util_wcsncat(cmd_exec, vec_files[i], len);
                     }
-                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                 }
                 else
                 {
-                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(vec_files[i], unix_path, MAX_PATH))
                     {
-                        wcsncat(cmd_exec, unix_path, len);
+                        util_wcsncat(cmd_exec, unix_path, len);
                     }
                     else
                     {
-                        wcsncat(cmd_exec, vec_files[i], len);
+                        util_wcsncat(cmd_exec, vec_files[i], len);
                     }
-                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\" ", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\"" : L"\" ", len);
                 }
             }
             if ((handle = eu_new_process(cmd_exec, NULL, NULL, 2, NULL)))

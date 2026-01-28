@@ -19,6 +19,7 @@
 #ifndef _H_SKYLARK_UTIL_
 #define _H_SKYLARK_UTIL_
 
+#include <errno.h>
 #include <knownfolders.h>
 
 #ifndef MAX
@@ -202,6 +203,8 @@ HBITMAP util_icon_bitmap(HICON hicon, const int width, const int height);
 HBITMAP util_shield_icon(HINSTANCE hinst, LPCTSTR name);
 HRESULT util_shortcut(const WCHAR *pfile, const bool create);
 char *util_io_file(const TCHAR *path);
+errno_t util_strncat(char *dst, const char *src, size_t number);
+errno_t util_wcsncat(wchar_t *dst, const wchar_t *src, size_t number);
 
 #ifdef __cplusplus
 }

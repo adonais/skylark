@@ -91,7 +91,7 @@ error_handle_output(PEXCEPTION_POINTERS pExceptionInfo)
     {
         return EXCEPTION_CONTINUE_SEARCH;
     }
-    wcsncat(appdir, L"\\skylark.dmp", MAX_PATH);
+    util_wcsncat(appdir, L"\\skylark.dmp", MAX_PATH);
     /* 创建文件句柄 */
     hfile = CreateFile(appdir, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (INVALID_HANDLE_VALUE == hfile && ERROR_FILE_NOT_FOUND == GetLastError())

@@ -140,7 +140,7 @@ on_setting_check_env(char ***ppvec, const size_t vec_len)
             }
             if (p2 && u16_var)
             {
-                strncat(u8_buf, p2 + 1, MAX_BUFFER);
+                util_strncat(u8_buf, p2 + 1, MAX_BUFFER);
                 free((*ppvec)[i]);
                 (*ppvec)[i] = strdup(u8_buf);
             }

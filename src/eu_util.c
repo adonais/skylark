@@ -235,6 +235,47 @@ util_unlock_v2(eu_tabpage *p)
     }
 }
 
+
+errno_t util_strncat(char *dst, const char *src, size_t number)
+{
+    if (dst == NULL)
+    {
+        return EINVAL;
+    }
+    else if (src == NULL)
+    {
+        dst[0] = '\0';
+        return EINVAL;
+    }
+    else if (number <= strlen(dst) + strlen(src))
+    {
+        dst[0] = '\0';
+        return ERANGE;
+    }
+    strcat(dst, src);
+    return 0;
+}
+
+errno_t util_wcsncat(wchar_t *dst, const wchar_t *src, size_t number)
+{
+    if (dst == NULL)
+    {
+        return EINVAL;
+    }
+    else if (src == NULL)
+    {
+        dst[0] = L'\0';
+        return EINVAL;
+    }
+    else if (number <= wcslen(dst) + wcslen(src))
+    {
+        dst[0] = L'\0';
+        return ERANGE;
+    }
+    wcscat(dst, src);
+    return 0;
+}
+
 HWND
 util_create_tips(HWND hwnd_stc, HWND hwnd, TCHAR* ptext)
 {
@@ -1423,7 +1464,7 @@ util_memdup(char **p, const char *text)
             char *dst = (char *)realloc(*p, text_len + 1);
             if (dst)
             {
-                strncat(dst, text, text_len);
+                util_strncat(dst, text, text_len);
                 if (*p != dst)
                 {
                     *p = dst;
@@ -2096,7 +2137,7 @@ util_to_abs(const char *path)
             {
                 ++n;
             }
-            wcsncat(env, &lpfile[n + 1], MAX_BUFFER);
+            util_wcsncat(env, &lpfile[n + 1], MAX_BUFFER);
             pret = _wfullpath(NULL, env, MAX_BUFFER);
         }
     }

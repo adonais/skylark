@@ -477,29 +477,29 @@ on_edit_compare(const wchar_t *path, const wchar_t **pvec, const bool hex)
                 wchar_t unix_path[MAX_PATH] = {0};
                 if (i == count - 1)
                 {
-                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
                     {
-                        wcsncat(cmd_exec, unix_path, len);
+                        util_wcsncat(cmd_exec, unix_path, len);
                     }
                     else
                     {
-                        wcsncat(cmd_exec, pvec[i], len);
+                        util_wcsncat(cmd_exec, pvec[i], len);
                     }
-                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                 }
                 else
                 {
-                    wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\"" : L"\"", len);
                     if (wine && util_get_unix_file_name(pvec[i], unix_path, MAX_PATH))
                     {
-                        wcsncat(cmd_exec, unix_path, len);
+                        util_wcsncat(cmd_exec, unix_path, len);
                     }
                     else
                     {
-                        wcsncat(cmd_exec, pvec[i], len);
+                        util_wcsncat(cmd_exec, pvec[i], len);
                     }
-                    wcsncat(cmd_exec, wine ? L"\\\" " : L"\" ", len);
+                    util_wcsncat(cmd_exec, wine ? L"\\\" " : L"\" ", len);
                 }
             }
             CloseHandle(eu_new_process(cmd_exec, NULL, NULL, 2, NULL));
@@ -731,8 +731,8 @@ on_edit_delete_dups(eu_tabpage *pnode)
             }
             if (ptext[i])
             {
-                strncat(buf, ptext[i], buf_size - 1);
-                strncat(buf, eol_str, buf_size - 1);
+                util_strncat(buf, ptext[i], buf_size - 1);
+                util_strncat(buf, eol_str, buf_size - 1);
                 free(ptext[i]);
             }
         }
@@ -1645,12 +1645,12 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     sptr_t line_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (pos != line_start)
     {
-        strncat(start, str_eol, QW_SIZE);
+        util_strncat(start, str_eol, QW_SIZE);
     }
-    strncat(start, open_str, QW_SIZE);
+    util_strncat(start, open_str, QW_SIZE);
     if (line_start != line_end)
     {
-        strncat(start, str_eol, QW_SIZE);
+        util_strncat(start, str_eol, QW_SIZE);
         if (line_start > pos)
         {   // 添加回车符, 还需要添加行首可能存在的空白
             char word_buffer[QW_SIZE + 1] = {0};
@@ -1658,7 +1658,7 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
             on_sci_call(pnode, SCI_GETTEXTRANGE, 0, (sptr_t) &tr);
             if (*word_buffer)
             {
-                strncat(start, word_buffer, QW_SIZE);
+                util_strncat(start, word_buffer, QW_SIZE);
             }
         }
     }
@@ -1668,13 +1668,13 @@ on_comment_newline(eu_tabpage *pnode, const char *open_str, const char *close_st
     eline_end = on_sci_call(pnode, SCI_GETLINEENDPOSITION, line, 0);
     if (eline_start != eline_end)
     {
-        strncat(end, str_eol, QW_SIZE);
+        util_strncat(end, str_eol, QW_SIZE);
     }
-    strncat(end, close_str, QW_SIZE);
+    util_strncat(end, close_str, QW_SIZE);
     char *next_buf = util_strdup_line(pnode, line+1, NULL);
     if (STR_NOT_NUL(next_buf) && strcmp(next_buf, str_eol) != 0)
     {   // 下一行是空行, 不多添加回车符
-        strncat(end, str_eol, QW_SIZE);
+        util_strncat(end, str_eol, QW_SIZE);
     }
     eu_safe_free(next_buf);
     on_close_selection(pnode, start, end);

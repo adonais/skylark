@@ -641,7 +641,7 @@ on_format_get_lines(sptr_t *vec_lines, const int vec_size, wchar_t *pstr, const 
     }
     if (vec_size > 10)
     {
-        wcsncat(pstr, L"...", len - 1);
+        util_wcsncat(pstr, L"...", len - 1);
     }
 }
 
@@ -705,8 +705,8 @@ on_format_check_indentation(eu_tabpage *pnode)
                 LOAD_I18N_RESSTR(use_tab ? IDS_INDENT_TAB_STR : IDS_INDENT_SPACE_STR, var);
                 _snwprintf(pmsg, MAX_BUFFER - 1, L"%s", var);
             }
-            wcsncat(pmsg, opps_str, MAX_BUFFER - 1);
-            wcsncat(pmsg, propose, MAX_BUFFER - 1);
+            util_wcsncat(pmsg, opps_str, MAX_BUFFER - 1);
+            util_wcsncat(pmsg, propose, MAX_BUFFER - 1);
         }
         if (pmsg)
         {
