@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------
 -- LuaJIT ARM64 disassembler module.
 --
--- Copyright (C) 2005-2025 Mike Pall. All rights reserved.
+-- Copyright (C) 2005-2026 Mike Pall. All rights reserved.
 -- Released under the MIT license. See Copyright Notice in luajit.h
 --
 -- Contributed by Djordje Kovacevic and Stefan Pejic from RT-RK.com.
@@ -485,15 +485,15 @@ local map_ls = { -- Loads and stores.
       shift = 30, mask = 3,
       [0] = {
 	shift = 22, mask = 3,
-	[0] = "strbDwzU", "ldrbDwzU"
+	[0] = "strbDwzU", "ldrbDwzU", "ldrsbDwzU", "ldrsbDxzU"
       },
       {
 	shift = 22, mask = 3,
-	[0] = "strhDwzU", "ldrhDwzU"
+	[0] = "strhDwzU", "ldrhDwzU", "ldrshDwzU", "ldrshDxzU"
       },
       {
 	shift = 22, mask = 3,
-	[0] = "strDwzU", "ldrDwzU"
+	[0] = "strDwzU", "ldrDwzU", "ldrswDxzU"
       },
       {
 	shift = 22, mask = 3,

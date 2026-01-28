@@ -1,6 +1,6 @@
 /*
 ** I/O library.
-** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Major portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2011 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -96,8 +96,7 @@ static IOFileUD *io_file_open(lua_State *L, const char *mode)
 #endif
   if (iof->fp == NULL)
     luaL_argerror(L, 1, lj_strfmt_pushf(L, "%s: %s", fname, strerror(errno)));
-  if (wfname)
-  {
+  if (wfname) {
     free(wfname);
   }
   return iof;
@@ -123,7 +122,7 @@ static int io_file_close(lua_State *L, IOFileUD *iof)
 #endif
   } else {
     lj_assertL((iof->type & IOFILE_TYPE_MASK) == IOFILE_TYPE_STDF,
-           "close of unknown FILE* type");
+	       "close of unknown FILE* type");
     setnilV(L->top++);
     lua_pushliteral(L, "cannot close standard file");
     return 2;
@@ -139,10 +138,11 @@ static int io_file_readnum(lua_State *L, FILE *fp)
   lua_Number d;
   if (fscanf(fp, LUA_NUMBER_SCAN, &d) == 1) {
     if (LJ_DUALNUM) {
-      int32_t i = lj_num2int(d);
-      if (d == (lua_Number)i && !tvismzero((cTValue *)&d)) {
-    setintV(L->top++, i);
-    return 1;
+      int64_t i64;
+      int32_t i;
+      if (lj_num2int_check(d, i64, i) && !tvismzero((cTValue *)&d)) {
+	setintV(L->top++, i);
+	return 1;
       }
     }
     setnumV(L->top++, d);
@@ -347,7 +347,7 @@ LJLIB_CF(io_method_seek)
     if (tvisint(o))
       ofs = (int64_t)intV(o);
     else if (tvisnum(o))
-      ofs = (int64_t)numV(o);
+      ofs = lj_num2i64(numV(o));
     else if (!tvisnil(o))
       lj_err_argt(L, 3, LUA_TNUMBER);
   }
@@ -435,8 +435,7 @@ LJLIB_CF(io_open)
 #else
   iof->fp = fopen(fname, mode);
 #endif
-  if (wfname)
-  {
+  if (wfname) {
     free(wfname);
   }
   return iof->fp != NULL ? 1 : luaL_fileresult(L, 0, fname);
@@ -459,8 +458,7 @@ LJLIB_CF(io_popen)
   MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 16);  
   wfname = lj_utf8_utf16(fname, NULL);
   iof->fp = wfname ? _wpopen(wfname, wmode) : NULL;
-  if (wfname)
-  {
+  if (wfname) {
     free(wfname);
   }
 #endif
