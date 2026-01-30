@@ -858,7 +858,7 @@ on_edit_delete_line_header_all(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
-                do_delete_space(p, 1, on_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
+                do_delete_space(p, 0, on_sci_call(p, SCI_GETLINECOUNT, 0, 0), true);
             }
         }
     }
@@ -878,7 +878,7 @@ on_edit_delete_line_tail_all(eu_tabpage *pnode)
             eu_tabpage *p = on_tabpage_get_ptr(v[i]);
             if (p && !TAB_HEX_MODE(p) && !p->pmod)
             {
-                do_delete_space(p, 1, on_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
+                do_delete_space(p, 0, on_sci_call(p, SCI_GETLINECOUNT, 0, 0), false);
             }
         }
     }
