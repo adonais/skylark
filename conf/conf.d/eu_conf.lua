@@ -113,7 +113,7 @@ function eu_conf.loadconf()
         "tab_new_way = 0\n" ..
         "tab_switch_forward = 42991\n" ..
         "edit_font_quality = 42552\n" ..
-        "edit_rendering_technology = 42560\n" ..
+        "edit_rendering_technology = 42561\n" ..
         "update_file_mask = 1\n" ..
         "update_file_notify = 0\n" ..
         "doc_highlight_restrict = 0xc800000\n" ..
