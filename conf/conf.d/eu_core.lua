@@ -175,7 +175,7 @@ struct eu_config
     bool m_exit;
     bool m_instance;
     bool m_logging;
-    char m_placement[1024];
+    char m_placement[512];
     char m_language[64];
     bookmark_set eu_bookmark;
     brace_set eu_brace;
@@ -188,7 +188,7 @@ struct eu_config
     int m_limit;
     upgrade_set upgrade;
     openai_set openai;
-    char sep_copy[260];
+    char sep_copy[32];
     char m_path[260];
     char editor[260];
     char m_reserved_0[260];

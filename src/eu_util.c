@@ -2280,7 +2280,7 @@ util_save_placement(const HWND hwnd)
         char *placement = util_struct_to_string(&wp, sizeof(wp));
         if (placement)
         {
-            if (strlen(placement) < MAX_BUFFER)
+            if (strlen(placement) < ENV_LEN)
             {
                 sprintf(eu_get_config()->m_placement, "%s", placement);
             }

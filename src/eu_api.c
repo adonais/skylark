@@ -2261,14 +2261,14 @@ eu_save_config(void)
     {
         if ((p == g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
         {
-            eu_str_replace(g_config->sep_copy, MAX_PATH, "\r", "\\r");
+            eu_str_replace(g_config->sep_copy, DW_SIZE, "\r", "\\r");
         }
     }
     if ((p = strchr(g_config->sep_copy, '\n')) != NULL)
     {
         if ((p == g_config->sep_copy) || ((p - g_config->sep_copy) > 0 && p[-1] != '\\'))
         {
-            eu_str_replace(g_config->sep_copy, MAX_PATH, "\n", "\\n");
+            eu_str_replace(g_config->sep_copy, DW_SIZE, "\n", "\\n");
         }
     }
     _sntprintf(path, MAX_BUFFER, _T("%s\\skylark.conf"), eu_config_path);
