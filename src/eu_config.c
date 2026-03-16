@@ -298,26 +298,42 @@ on_config_load_file(void *lp)
     {
         on_sql_do_session("SELECT szVersion FROM skylar_ver;", NULL, NULL);
     }
-    if (error == 0 && on_config_open_args(&vbak) && vbak)
-    {   // 当定位目录时, 修正可能错误的焦点标签
-        size_t save = 0;
-        for (; count < cvector_size(vbak) - 1; ++count)
+    if (error == 0)
+    {
+        bool open_tree = false;
+        if (on_config_open_args(&vbak) && vbak)
         {
-            if (vbak[count].focus)
+            // 当定位目录时, 修正可能错误的焦点标签
+            size_t save = 0;
+            for (; count < cvector_size(vbak) - 1; ++count)
             {
-                save = count;
-                vbak[count].focus = 0;
+                if (vbak[count].focus)
+                {
+                    save = count;
+                    vbak[count].focus = 0;
+                }
             }
+            if (url_que_mark(vbak[count].rel_path))
+            {
+                vbak[save].focus = 1;
+                open_tree = true;
+            }
+            else
+            {
+                vbak[count].focus = 1;
+            }
+            eu_logmsg("Config: run with arguments\n");
         }
-        if (url_que_mark(vbak[count].rel_path))
+        // 当不定位目录时, 加载文件管理器上次布局
+        if (!open_tree && eu_get_config()->m_ftree_show && eu_get_config()->m_ftree_path[0])
         {
-            vbak[save].focus = 1;
+            file_backup vtmp = {-1, -1, 0, -1, -1};
+            util_make_u16(eu_get_config()->m_ftree_path, vtmp.rel_path, MAX_BUFFER);
+            util_unix2path(vtmp.rel_path, MAX_BUFFER);
+            util_wcsncat(vtmp.rel_path, L"\\?", MAX_BUFFER);
+            cvector_push_back(vbak, vtmp);
+            eu_logmsg("Config: load the file manager layout\n");
         }
-        else
-        {
-            vbak[count].focus = 1;
-        }
-        eu_logmsg("Config: run with arguments\n");
     }
     /* 正常标签与空标签一起关闭时可能没有获取焦点 */
     if ((count = cvector_size(vbak)) == 1 && (!vbak[0].focus))

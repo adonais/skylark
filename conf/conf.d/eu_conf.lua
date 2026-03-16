@@ -196,6 +196,7 @@ function eu_conf.loadconf()
         "}\n" ..
         "-- when a multiple selection is copied, this string property is added between each part\n" ..
         "set_copy_separator = \"\\n\"\n" ..
+        "last_filetree_path = \"\"\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
@@ -217,6 +218,9 @@ function eu_conf.loadconf()
     end
     if (set_copy_separator == nil) then
         set_copy_separator = "\\\\n";
+    end
+    if (last_filetree_path == nil) then
+        last_filetree_path = "";
     end
     if (columner == nil) then
         columner = {['initnum'] = 1024,
@@ -305,6 +309,7 @@ function eu_conf.loadconf()
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
         {app_openai.think, app_openai.stream, app_openai.max_tokens, app_openai.key, app_openai.model, app_openai.base, app_openai.setting},
         set_copy_separator,
+        last_filetree_path,
         process_path,
         other_editor_path,
         m_reserved_0,

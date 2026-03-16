@@ -189,6 +189,7 @@ struct eu_config
     upgrade_set upgrade;
     openai_set openai;
     char sep_copy[32];
+    char m_ftree_path[260];
     char m_path[260];
     char editor[260];
     char m_reserved_0[260];

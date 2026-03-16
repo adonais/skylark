@@ -2053,6 +2053,41 @@ on_treebar_adjust_box(const RECT *prc, RECT *ptf)
     }
 }
 
+void
+on_treebar_export_path(void)
+{
+    tree_data *tvd = NULL;
+    char *tree_path = eu_get_config()->m_ftree_path;
+    if (!eu_get_config()->m_ftree_show)
+    {
+        tree_path[0] = 0;
+    }
+    else if (NULL != on_treebar_get_path(&tvd) && NULL != tvd->filepath)
+    {
+        TCHAR temp[MAX_BUFFER] = {0};
+        _sntprintf(temp, MAX_BUFFER - 1, _T("%s\\skylark_pfavs.sqlite3"), eu_config_path);
+        // 不保存收藏夹与sftp
+        if (!(_tcsicmp(tvd->filepath, temp) == 0 || url_has_remote(tvd->filepath)))
+        {
+            util_make_u8(tvd->filepath, tree_path, MAX_PATH - 1);
+            if (tree_path[0])
+            {
+                for (int i = 0; i < strlen(tree_path); ++i)
+                {
+                    if (tree_path[i] == L'\\')
+                    {
+                        tree_path[i] = L'/';
+                    }
+                }
+            }
+        }
+        else
+        {
+            tree_path[0] = 0;
+        }
+    }
+}
+
 tree_data *
 on_treebar_get_treeview(HTREEITEM hti)
 {

@@ -106,6 +106,8 @@ on_proc_destory_window(HWND hwnd)
 {
     // 运行用户脚本
     on_script_loader_event(SKYLARK_SHUTDOWN, NULL);
+    // 保存文件管理器路径
+    on_treebar_export_path();
     // 保存主窗口位置
     util_save_placement(hwnd);
     // 销毁菜单栏

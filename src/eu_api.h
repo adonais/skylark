@@ -552,6 +552,7 @@ struct eu_config
     upgrade_set upgrade;
     openai_set openai;
     char sep_copy[DW_SIZE];
+    char m_ftree_path[MAX_PATH];
     char m_path[MAX_PATH];
     char editor[MAX_PATH];
     char m_reserved_0[MAX_PATH];

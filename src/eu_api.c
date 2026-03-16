@@ -2097,7 +2097,7 @@ eu_save_config(void)
     char *pactions = NULL;
     char *pcustomize = NULL;
     const char *p = NULL;
-    TCHAR path[MAX_BUFFER+1] = {0};
+    TCHAR path[MAX_BUFFER] = {0};
     const char *pconfig =
         "--[=[if you edit the file, please keep the encoding correct(utf-8 nobom)]=]\n"
         "newfile_eols = %d\n"
@@ -2224,6 +2224,7 @@ eu_save_config(void)
         "}\n"
         "-- when a multiple selection is copied, this string property is added between each part\n"
         "set_copy_separator = \"%s\"\n"
+        "last_filetree_path = \"%s\"\n"
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n"
         "process_path = \"%s\"\n"
         "other_editor_path = \"%s\"\n"
@@ -2271,7 +2272,8 @@ eu_save_config(void)
             eu_str_replace(g_config->sep_copy, DW_SIZE, "\n", "\\n");
         }
     }
-    _sntprintf(path, MAX_BUFFER, _T("%s\\skylark.conf"), eu_config_path);
+    // 更新主配置文件
+    _sntprintf(path, MAX_BUFFER - 1, _T("%s\\skylark.conf"), eu_config_path);
     _snprintf(save, BUFF_32K - 1, pconfig,
               g_config->new_file_eol,
               g_config->new_file_enc,
@@ -2366,6 +2368,7 @@ eu_save_config(void)
               g_config->openai.base,
               g_config->openai.setting,
               g_config->sep_copy,
+              g_config->m_ftree_path,
               g_config->m_path,
               g_config->editor,
               g_config->m_reserved_0,
