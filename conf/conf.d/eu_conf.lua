@@ -131,7 +131,7 @@ function eu_conf.loadconf()
         "bookmark = {\n" ..
         "    visable = true,\n" ..
         "    shape = 32,\n" ..
-        "    argb = 0x28408040\n" ..
+        "    argb = 0xBF408040\n" ..
         "}\n" ..
         "-- brace default setting\n" ..
         "brace = {\n" ..
