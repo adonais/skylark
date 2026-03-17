@@ -78,7 +78,9 @@ BEGIN
     BEGIN
         MENUITEM "撤销(&U)",                                    IDM_EDIT_UNDO
         MENUITEM "重做(&R)",                                    IDM_EDIT_REDO
+        MENUITEM MF_SEPARATOR
         MENUITEM "撤销时恢复选中(&S)",                          IDM_EDIT_UNDO_SELECTION
+        MENUITEM "编辑区禁止拖曳(&N)",                          IDM_EDIT_NODRAG
         MENUITEM MF_SEPARATOR
         MENUITEM "剪切",                                        IDM_EDIT_CUT
         MENUITEM "复制",                                        IDM_EDIT_COPY

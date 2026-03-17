@@ -287,6 +287,11 @@ on_sci_init_default(eu_tabpage *pnode, const uint32_t bgcolor)
         {
             on_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_ENABLED, 0);
         }
+        // 编辑区禁止拖曳
+        if (eu_get_config()->m_nodragging)
+        {
+            on_sci_call(pnode, SCI_SETDRAGDROPENABLED, false, 0);
+        }
         // 多重选中复制时, 设置一个分隔符
         if (eu_get_config()->sep_copy[0])
         {

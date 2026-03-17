@@ -424,7 +424,7 @@ i18n_locale_loader(const HWND hwnd, const TCHAR *dll)
     if ((new_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE)) && eu_refresh_interface(new_lang, lang_path) == 0)
     {
         HMENU root_menu = GetMenu(hwnd);
-        HMENU menu_env = root_menu ? GetSubMenu(root_menu, LOCALE_MENU) : NULL;
+        HMENU menu_env = root_menu ? GetSubMenu(root_menu, SETTINGS_MENU) : NULL;
         on_tabpage_newdoc_reload();
         i18n_update_multi_lang(menu_env);
         i18n_update_menu(menu_env);

@@ -2146,6 +2146,7 @@ eu_save_config(void)
         "update_file_notify = %d\n"
         "doc_highlight_restrict = 0x%x\n"
         "set_undo_selection = %s\n"
+        "set_no_dragging = %s\n"
         "light_all_find_str = %s\n"
         "backup_on_file_write = %s\n"
         "save_last_session = %s\n"
@@ -2318,6 +2319,7 @@ eu_save_config(void)
               g_config->m_up_notify,
               g_config->m_doc_restrict,
               g_config->m_undo_selection?"true":"false",
+              g_config->m_nodragging?"true":"false",
               g_config->m_light_str?"true":"false",
               g_config->m_write_copy?"true":"false",
               g_config->m_session?"true":"false",

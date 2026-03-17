@@ -118,6 +118,7 @@ function eu_conf.loadconf()
         "update_file_notify = 0\n" ..
         "doc_highlight_restrict = 0xc800000\n" ..
         "set_undo_selection = false\n" ..
+        "set_no_dragging = false\n" ..
         "light_all_find_str = true\n" ..
         "backup_on_file_write = false\n" ..
         "save_last_session = true\n" ..
@@ -216,6 +217,9 @@ function eu_conf.loadconf()
     if (set_undo_selection == nil) then
         set_undo_selection = false;
     end
+    if (set_no_dragging == nil) then
+        set_no_dragging = false;
+    end
     if (set_copy_separator == nil) then
         set_copy_separator = "\\\\n";
     end
@@ -289,6 +293,7 @@ function eu_conf.loadconf()
         update_file_notify,
         doc_highlight_restrict,
         set_undo_selection,
+        set_no_dragging,
         light_all_find_str,
         backup_on_file_write,
         save_last_session,

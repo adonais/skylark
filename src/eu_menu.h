@@ -21,9 +21,8 @@
 
 /* 子菜单所在位置 */
 #define FILES_MENU            0
-#define THEME_MENU            6
+#define SETTINGS_MENU         6
 #define THEME_MENU_SUB        7
-#define LOCALE_MENU           6
 #define LOCALE_MENU_SUB       5
 
 /* 子菜单弹出菜单位置 */
@@ -38,7 +37,6 @@
 #define TAB_MENU_CLOSE_SUB    20
 #define TAB_MENU_NEW_SUB      21
 #define TAB_MENU_CBUTTON_SUB  22
-#define TAB_MENU_OTHER        23
 #define PROGRAM_SNIPPET_SUB   15
 #define CUSTOMIZED_CMD_SUB    14
 

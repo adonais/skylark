@@ -339,7 +339,7 @@ on_setting_edit_save(HWND hdlg, struct eu_config *pconf)
     if (pcustomize && hname && hpath && harg && ptr_name && ptr_path && ptr_arg)
     {
         HMENU root_menu = GetMenu(eu_hwnd_self());
-        HMENU setting_menu = root_menu ? GetSubMenu(root_menu, THEME_MENU) : NULL;
+        HMENU setting_menu = root_menu ? GetSubMenu(root_menu, SETTINGS_MENU) : NULL;
         Edit_GetText(hname, ptr_name, QW_SIZE - 1);
         Edit_GetText(hpath, ptr_path, MAX_PATH - 1);
         Edit_GetText(harg, ptr_arg, MAX_PATH - 1);

@@ -169,6 +169,7 @@ struct eu_config
     int  m_doc_restrict;
 
     bool m_undo_selection;
+    bool m_nodragging;
     bool m_light_str;
     bool m_write_copy;
     bool m_session;

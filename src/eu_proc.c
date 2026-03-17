@@ -1060,6 +1060,19 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     break;
                 }
+                case IDM_EDIT_NODRAG:
+                {
+                    int drag = (int)on_sci_call(pnode, SCI_GETDRAGDROPENABLED, 0, 0);
+                    if ((eu_get_config()->m_nodragging ^= true) && drag)
+                    {
+                        on_sci_call(pnode, SCI_SETDRAGDROPENABLED, false, 0);
+                    }
+                    else if (!drag)
+                    {
+                        on_sci_call(pnode, SCI_SETDRAGDROPENABLED, true, 0);
+                    }
+                    break;
+                }
                 case IDM_EDIT_CUT:
                     on_edit_cut(pnode);
                     break;
