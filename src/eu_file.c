@@ -2339,7 +2339,7 @@ on_file_npp_write(eu_tabpage *pnode, const wchar_t *cache_path, const bool isbak
                 is_same = (STR_NOT_NUL(cache_path) && wcsicmp(pathfile, cache_path) == 0);
                 if (!is_same)
                 {
-                    wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
+                    util_wcsncat(tmp_path, TMP_SUFFX, MAX_BUFFER);
                     ret = CopyFileW(pathfile, tmp_path, false);
                 }
             }

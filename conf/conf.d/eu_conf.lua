@@ -113,11 +113,12 @@ function eu_conf.loadconf()
         "tab_new_way = 0\n" ..
         "tab_switch_forward = 42991\n" ..
         "edit_font_quality = 42552\n" ..
-        "edit_rendering_technology = 42560\n" ..
+        "edit_rendering_technology = 42561\n" ..
         "update_file_mask = 1\n" ..
         "update_file_notify = 0\n" ..
         "doc_highlight_restrict = 0xc800000\n" ..
         "set_undo_selection = false\n" ..
+        "set_no_dragging = false\n" ..
         "light_all_find_str = true\n" ..
         "backup_on_file_write = false\n" ..
         "save_last_session = true\n" ..
@@ -130,7 +131,7 @@ function eu_conf.loadconf()
         "bookmark = {\n" ..
         "    visable = true,\n" ..
         "    shape = 32,\n" ..
-        "    argb = 0x28408040\n" ..
+        "    argb = 0xBF408040\n" ..
         "}\n" ..
         "-- brace default setting\n" ..
         "brace = {\n" ..
@@ -196,6 +197,7 @@ function eu_conf.loadconf()
         "}\n" ..
         "-- when a multiple selection is copied, this string property is added between each part\n" ..
         "set_copy_separator = \"\\n\"\n" ..
+        "last_filetree_path = \"\"\n" ..
         "-- uses the backslash ( / ) to separate directories in file path. default value: cmd.exe\n" ..
         "process_path = \"\"\n" ..
         "other_editor_path = \"\"\n" ..
@@ -215,8 +217,14 @@ function eu_conf.loadconf()
     if (set_undo_selection == nil) then
         set_undo_selection = false;
     end
+    if (set_no_dragging == nil) then
+        set_no_dragging = false;
+    end
     if (set_copy_separator == nil) then
         set_copy_separator = "\\\\n";
+    end
+    if (last_filetree_path == nil) then
+        last_filetree_path = "";
     end
     if (columner == nil) then
         columner = {['initnum'] = 1024,
@@ -285,6 +293,7 @@ function eu_conf.loadconf()
         update_file_notify,
         doc_highlight_restrict,
         set_undo_selection,
+        set_no_dragging,
         light_all_find_str,
         backup_on_file_write,
         save_last_session,
@@ -305,6 +314,7 @@ function eu_conf.loadconf()
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},
         {app_openai.think, app_openai.stream, app_openai.max_tokens, app_openai.key, app_openai.model, app_openai.base, app_openai.setting},
         set_copy_separator,
+        last_filetree_path,
         process_path,
         other_editor_path,
         m_reserved_0,

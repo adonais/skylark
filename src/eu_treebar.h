@@ -70,6 +70,7 @@ void on_treebar_update_addr(remotefs *pserver);
 void on_treebar_data_destoy(tree_data **ptvd);
 void on_treebar_update_theme(void);
 void on_treebar_adjust_box(const RECT *prc, RECT *ptf);
+void on_treebar_export_path(void);
 HTREEITEM on_treebar_get_path(tree_data **ptvd);
 tree_data *on_treebar_get_treeview(HTREEITEM hti);
 tree_data *on_treebar_add_favorite(HTREEITEM parent, const int index, void *pdata);

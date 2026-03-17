@@ -346,11 +346,10 @@ pdf_exe_path(wchar_t *path, const int len)
     {
         return false;
     }
-    p = wcsrchr(path , L'\\');
-    if(p)
+    if(NULL != (p = wcsrchr(path , L'\\')))
     {
         *(p+1) = 0 ;
-        wcsncat(p, dll_instance ? EXECUTE_FILE_NAME : L"plugins\\"EXECUTE_FILE_NAME, len - 1);
+        wcsncat(p, dll_instance ? EXECUTE_FILE_NAME : L"plugins\\"EXECUTE_FILE_NAME, len - wcslen(path) - 1);
         return true;
     }
     return false;
@@ -819,7 +818,7 @@ launch_sumatra(instance_data *data, const char *url_utf8)
         if (url[wcslen(url) - 1] == L'\\')
         {
             url[wcslen(url) - 1] = 0;
-            wcsncat(url, L"%5c", VALUE_LEN);
+            wcsncat(url, L"%5c", VALUE_LEN - wcslen(url) - 1);
         }
         if ((cmd_line = (WCHAR *)calloc(sizeof(WCHAR), VALUE_LEN + MAX_BUFFER)) != NULL)
         {

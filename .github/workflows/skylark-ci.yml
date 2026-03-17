@@ -11,7 +11,7 @@ jobs:
     name: skylark build
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 1
     
@@ -24,20 +24,29 @@ jobs:
         echo MY_BITS64=x64>>%GITHUB_ENV%
         echo MY_BITS32=x86>>%GITHUB_ENV%
       shell: cmd
-      
+
+    - name: download LLVM
+      id: llvm_clang
+      shell: cmake -P {0}
+      run: |
+        set(clang_url "https://sourceforge.net/projects/libportable/files/Mozillabuild/clang21-win64.7z/download")
+        file(DOWNLOAD "${clang_url}" d:/clang21-win64.7z SHOW_PROGRESS)
+        execute_process(COMMAND 7z x d:/clang21-win64.7z -aoa WORKING_DIRECTORY d:)
+
     - name: download plugins64
       id: plugins64
       shell: cmake -P {0}
       run: |
         set(threeparty_url "https://sourceforge.net/projects/libportable/files/Skylark/plugins_64.7z/download")
         file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/plugins_64.7z SHOW_PROGRESS)
-        execute_process(COMMAND 7z x ./plugins_64.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)      
+        execute_process(COMMAND 7z x ./plugins_64.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)
 
     - name: Building_x64
       id: vs64
       run: |
         cd /d "%GITHUB_WORKSPACE%"
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        set PATH=d:\clang\bin;%PATH%
         nmake clean
         nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
@@ -57,6 +66,7 @@ jobs:
       run: |
         cd /d "%GITHUB_WORKSPACE%"
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
+        set PATH=d:\clang\bin;%PATH%
         nmake clean
         nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%

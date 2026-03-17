@@ -1,6 +1,6 @@
 /*
 ** Fast function call recorder.
-** Copyright (C) 2005-2025 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_ffrecord_c
@@ -70,7 +70,7 @@ static int32_t argv2int(jit_State *J, TValue *o)
 {
   if (!lj_strscan_numberobj(o))
     lj_trace_err(J, LJ_TRERR_BADTYPE);
-  return tvisint(o) ? intV(o) : lj_num2int(numV(o));
+  return numberVint(o);
 }
 
 /* Get runtime value of string argument. */
@@ -586,7 +586,7 @@ static void LJ_FASTCALL recff_math_round(jit_State *J, RecordFFData *rd)
     /* Result is integral (or NaN/Inf), but may not fit an int32_t. */
     if (LJ_DUALNUM) {  /* Try to narrow using a guarded conversion to int. */
       lua_Number n = lj_vm_foldfpm(numberVnum(&rd->argv[0]), rd->data);
-      if (n == (lua_Number)lj_num2int(n))
+      if (lj_num2int_ok(n))
 	tr = emitir(IRTGI(IR_CONV), tr, IRCONV_INT_NUM|IRCONV_CHECK);
     }
     J->base[0] = tr;
@@ -854,7 +854,7 @@ static void LJ_FASTCALL recff_string_range(jit_State *J, RecordFFData *rd)
   }
   trstart = recff_string_start(J, str, &start, trstart, trlen, tr0);
   if (rd->data) {  /* Return string.sub result. */
-    if (end - start >= 0) {
+    if (start <= end) {
       /* Also handle empty range here, to avoid extra traces. */
       TRef trptr, trslen = emitir(IRTGI(IR_SUBOV), trend, trstart);
       emitir(IRTGI(IR_GE), trslen, tr0);
@@ -865,8 +865,8 @@ static void LJ_FASTCALL recff_string_range(jit_State *J, RecordFFData *rd)
       J->base[0] = lj_ir_kstr(J, &J2G(J)->strempty);
     }
   } else {  /* Return string.byte result(s). */
-    ptrdiff_t i, len = end - start;
-    if (len > 0) {
+    if (start < end) {
+      ptrdiff_t i, len = end - start;
       TRef trslen = emitir(IRTGI(IR_SUBOV), trend, trstart);
       emitir(IRTGI(IR_EQ), trslen, lj_ir_kint(J, (int32_t)len));
       if (J->baseslot + len > LJ_MAX_JSLOTS)

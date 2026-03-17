@@ -78,7 +78,9 @@ BEGIN
     BEGIN
         MENUITEM "&Undo",                                              IDM_EDIT_UNDO
         MENUITEM "&Redo",                                              IDM_EDIT_REDO
+        MENUITEM MF_SEPARATOR
         MENUITEM "Restore &Selection When Undo",                       IDM_EDIT_UNDO_SELECTION
+        MENUITEM "&No Drag In The Editing Area",                       IDM_EDIT_NODRAG
         MENUITEM MF_SEPARATOR
         MENUITEM "Cu&t",                                               IDM_EDIT_CUT
         MENUITEM "&Copy",                                              IDM_EDIT_COPY

@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 18
+#define __EU_INFO_VERSION_PATCHLEVEL 19
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 #define SKYLARK_VERSION (__EU_INFO_VERSION * 10000      \
                         + __EU_INFO_VERSION_MINOR * 100 \
@@ -569,6 +569,7 @@
 #define IDM_EDIT_BOOKMARK_LINES_RESERVE      30214
 #define IDM_EDIT_GOLINE_GROUP                30215
 #define IDM_EDIT_UNDO_SELECTION              30216
+#define IDM_EDIT_NODRAG                      30217
 
 #define IDM_VIEW_INDENTGUIDES_VISIABLE       30300
 #define IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL  30301

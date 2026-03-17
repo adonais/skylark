@@ -106,6 +106,8 @@ on_proc_destory_window(HWND hwnd)
 {
     // 运行用户脚本
     on_script_loader_event(SKYLARK_SHUTDOWN, NULL);
+    // 保存文件管理器路径
+    on_treebar_export_path();
     // 保存主窗口位置
     util_save_placement(hwnd);
     // 销毁菜单栏
@@ -473,7 +475,7 @@ on_proc_save_status(WPARAM flags, npn_nmhdr *lpnmhdr)
                 _wsplitpath(full_path, NULL, NULL, pnode->filename, pnode->extname);
                 if (wcslen(pnode->extname) > 0)
                 {
-                    wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
+                    util_wcsncat(pnode->filename, pnode->extname, MAX_PATH-1);
                 }
                 on_file_update_time(pnode, 0);
                 util_set_title(pnode);
@@ -1055,6 +1057,19 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     else if (sel)
                     {
                         on_sci_call(pnode, SCI_SETUNDOSELECTIONHISTORY, SC_UNDO_SELECTION_HISTORY_DISABLED, 0);
+                    }
+                    break;
+                }
+                case IDM_EDIT_NODRAG:
+                {
+                    int drag = (int)on_sci_call(pnode, SCI_GETDRAGDROPENABLED, 0, 0);
+                    if ((eu_get_config()->m_nodragging ^= true) && drag)
+                    {
+                        on_sci_call(pnode, SCI_SETDRAGDROPENABLED, false, 0);
+                    }
+                    else if (!drag)
+                    {
+                        on_sci_call(pnode, SCI_SETDRAGDROPENABLED, true, 0);
                     }
                     break;
                 }

@@ -490,23 +490,23 @@ on_parser_vector_new(const TCHAR *path, snippet_t **ptr_vec, int dimension, int 
         _snprintf(txt + strlen(txt), txt_len - strlen(txt), SNIPPET_START" %s", (*ptr_vec)[dimension].name);
         if ((*ptr_vec)[dimension].comment[0])
         {
-            strncat(txt, " ", txt_len);
-            strncat(txt, (*ptr_vec)[dimension].comment, txt_len);
+            util_strncat(txt, " ", txt_len);
+            util_strncat(txt, (*ptr_vec)[dimension].comment, txt_len);
             if ((*ptr_vec)[dimension].parameter[0])
             {
-                strncat(txt, " ", txt_len);
-                strncat(txt, (*ptr_vec)[dimension].parameter, txt_len);
+                util_strncat(txt, " ", txt_len);
+                util_strncat(txt, (*ptr_vec)[dimension].parameter, txt_len);
             }
         }
-        strncat(txt, peol, txt_len);
-        strncat(txt, (*ptr_vec)[dimension].body, txt_len);
+        util_strncat(txt, peol, txt_len);
+        util_strncat(txt, (*ptr_vec)[dimension].body, txt_len);
         int len = eu_int_cast(strlen((*ptr_vec)[dimension].body));
         if (!((*ptr_vec)[dimension].body[len - 1] == '\r' || (*ptr_vec)[dimension].body[len - 1] == '\n'))
         {
-            strncat(txt, peol, txt_len);
+            util_strncat(txt, peol, txt_len);
         }
-        strncat(txt, SNIPPET_END, txt_len);
-        strncat(txt, peol, txt_len);
+        util_strncat(txt, SNIPPET_END, txt_len);
+        util_strncat(txt, peol, txt_len);
         ftruncate(_fileno(fp), 0);
         rewind(fp);
         start = size > 0 ? size : 0;
@@ -572,22 +572,22 @@ on_parser_vector_modify(const TCHAR *path, snippet_t **ptr_vec, int dimension)
         _snprintf(txt, txt_len, SNIPPET_START" %s", (*ptr_vec)[dimension].name);
         if ((*ptr_vec)[dimension].comment[0])
         {
-            strncat(txt, " ", txt_len);
-            strncat(txt, (*ptr_vec)[dimension].comment, txt_len);
+            util_strncat(txt, " ", txt_len);
+            util_strncat(txt, (*ptr_vec)[dimension].comment, txt_len);
             if ((*ptr_vec)[dimension].parameter[0])
             {
-                strncat(txt, " ", txt_len);
-                strncat(txt, (*ptr_vec)[dimension].parameter, txt_len);
+                util_strncat(txt, " ", txt_len);
+                util_strncat(txt, (*ptr_vec)[dimension].parameter, txt_len);
             }
         }
-        strncat(txt, peol, txt_len);
-        strncat(txt, (*ptr_vec)[dimension].body, txt_len);
+        util_strncat(txt, peol, txt_len);
+        util_strncat(txt, (*ptr_vec)[dimension].body, txt_len);
         int len = eu_int_cast(strlen((*ptr_vec)[dimension].body));
         if (!((*ptr_vec)[dimension].body[len - 1] == '\r' || (*ptr_vec)[dimension].body[len - 1] == '\n'))
         {
-            strncat(txt, peol, txt_len);
+            util_strncat(txt, peol, txt_len);
         }
-        strncat(txt, SNIPPET_END, txt_len);
+        util_strncat(txt, SNIPPET_END, txt_len);
         ftruncate(_fileno(fp), 0);
         rewind(fp);
         size = on_parser_modify_text(fp, &buf, txt, start, end);

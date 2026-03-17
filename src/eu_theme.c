@@ -245,7 +245,7 @@ on_theme_update_item(void)
         HMENU menu_view;
         HMENU menu_theme;
         theme_desc ptheme[VIEW_STYLETHEME_MAXCOUNT] = { 0 };
-        if (!(menu_view = GetSubMenu(root_menu, THEME_MENU)))
+        if (!(menu_view = GetSubMenu(root_menu, SETTINGS_MENU)))
         {
             return;
         }
