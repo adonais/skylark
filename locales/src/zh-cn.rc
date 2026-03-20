@@ -558,8 +558,8 @@ BEGIN
         MENUITEM "删除文件",                                    IDM_DELETE_FILE
         MENUITEM SEPARATOR
         MENUITEM "生成MD5到剪贴板",                             IDM_FILE_MD5_CLIP
-        MENUITEM "生成SHA1到到剪贴板",                          IDM_FILE_SHA1_CLIP
-        MENUITEM "生成SHA256到到剪贴板",                        IDM_FILE_SHA256_CLIP
+        MENUITEM "生成SHA1到剪贴板",                            IDM_FILE_SHA1_CLIP
+        MENUITEM "生成SHA256到剪贴板",                          IDM_FILE_SHA256_CLIP
         MENUITEM SEPARATOR
         MENUITEM "图片转base64到编辑器",                        IDM_PIC_CONVERT_BASE64
     END
@@ -1096,7 +1096,7 @@ BEGIN
 END
 
 /////////////////////////////////////////////////////////////////////////////
-#define __EU_COPYRIGHT_TRANSLATION "Copyright © 2025 by ualy123"
+#define __EU_COPYRIGHT_TRANSLATION "Copyright © 2026 by ualy123"
 /////////////////////////////////////////////////////////////////////////////
 
 //

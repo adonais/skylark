@@ -12,17 +12,18 @@ SRC = .\src
 RFLAGS = /nologo /i$(ROOT)\src
 SHARED_ZHCN = $(BIND)\locales\zh-cn.dll
 SHARED_ENUS = $(BIND)\locales\en-us.dll
+SHARED_ZNTW = $(BIND)\locales\zh-tw.dll
 
 {$(SRC)\}.rc{$(OBJD)}.res:
-    $(RC) $(RFLAGS) /Fo$@ $<
+	$(RC) $(RFLAGS) /Fo$@ $<
 
 # targets
-all: dirs $(SHARED_ZHCN) $(SHARED_ENUS)
+all: dirs $(SHARED_ZHCN) $(SHARED_ENUS) $(SHARED_ZNTW)
 
 dirs:
-    @if not exist "$(BIND)" mkdir "$(BIND)" && echo.   Created $(BIND)
-    @if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
-    @if not exist "$(BIND)\\locales" mkdir "$(BIND)\\locales" && echo. Created $(BIND)\\locales
+	@if not exist "$(BIND)" mkdir "$(BIND)" && echo.   Created $(BIND)
+	@if not exist "$(OBJD)" mkdir "$(OBJD)" && echo.   Created $(OBJD)
+	@if not exist "$(BIND)\\locales" mkdir "$(BIND)\\locales" && echo. Created $(BIND)\\locales
 
 $(SHARED_ZHCN): $(OBJD)\zh-cn.res
 	$(LD) /DLL /out:$@ $(OBJD)\zh-cn.res /NOENTRY /MACHINE:$(PLATFORM)
@@ -30,10 +31,14 @@ $(SHARED_ZHCN): $(OBJD)\zh-cn.res
 $(SHARED_ENUS): $(OBJD)\en-us.res
 	$(LD) /DLL /out:$@ $(OBJD)\en-us.res /NOENTRY /MACHINE:$(PLATFORM)
 
+$(SHARED_ZNTW): $(OBJD)\zh-tw.res
+	$(LD) /DLL /out:$@ $(OBJD)\zh-tw.res /NOENTRY /MACHINE:$(PLATFORM)
+
 $(OBJD)\zh-cn.res: $(SRC)\zh-cn.rc $(ROOT)\src\targetver.h
 $(OBJD)\en-us.res: $(SRC)\en-us.rc $(ROOT)\src\targetver.h
+$(OBJD)\zh-tw.res: $(SRC)\zh-tw.rc $(ROOT)\src\targetver.h
 
 # cleanup
 clean:
-	-del /q $(SHARED_ZHCN) $(SHARED_ENUS) 2>nul
+	-del /q $(SHARED_ZHCN) $(SHARED_ENUS) $(SHARED_ZNTW) 2>nul
 	-del /q $(OBJS) 2>nul
