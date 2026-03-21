@@ -174,6 +174,7 @@ function eu_conf.loadconf()
         "    icon = true,\n" ..
         "    name = true,\n" ..
         "    path = true\n" ..
+        "    theme = true\n" ..
         "}\n" ..
         "-- hyperlink hotspot default setting\n" ..
         "hyperlink_detection = true\n" ..
@@ -308,7 +309,7 @@ function eu_conf.loadconf()
         {complete.enable, complete.characters, complete.snippet},
         {printer.header, printer.footer, printer.color_mode, printer.zoom,{printer.margin_left, printer.margin_top, printer.margin_right, printer.margin_bottom}},
         {columner.initnum, columner.increase, columner.repeater, columner.leading,columner.format},
-        {titlebar.icon, titlebar.name, titlebar.path},
+        {titlebar.icon, titlebar.name, titlebar.path, titlebar.theme},
         hyperlink_detection,
         cache_limit_size,
         {app_upgrade.enable, app_upgrade.flags, app_upgrade.msg_id, app_upgrade.last_check, app_upgrade.url},

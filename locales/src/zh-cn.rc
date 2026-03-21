@@ -263,6 +263,7 @@ BEGIN
             MENUITEM "显示应用图标(&I)",                        IDM_VIEW_TITLEBAR_ICON
             MENUITEM "显示应用名称(&N)",                        IDM_VIEW_TITLEBAR_NAME
             MENUITEM "显示文档路径(&P)",                        IDM_VIEW_TITLEBAR_PATH
+            MENUITEM "跟随系统主题(&T)",                        IDM_VIEW_TITLEBAR_THEME
         END
         POPUP "调整工具栏"
         BEGIN

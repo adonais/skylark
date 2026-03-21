@@ -1313,6 +1313,7 @@
 #define IDM_VIEW_TITLEBAR_ICON              44741
 #define IDM_VIEW_TITLEBAR_NAME              44742
 #define IDM_VIEW_TITLEBAR_PATH              44743
+#define IDM_VIEW_TITLEBAR_THEME             44744
 
 #define IDM_EDIT_PLACEHOLDE_XML             44750
 #define IDM_FORMAT_REFORMAT_XML             44751

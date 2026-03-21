@@ -263,6 +263,7 @@ BEGIN
             MENUITEM "Show App &Icon",                                 IDM_VIEW_TITLEBAR_ICON
             MENUITEM "Show App &Name",                                 IDM_VIEW_TITLEBAR_NAME
             MENUITEM "Show Document &Path",                            IDM_VIEW_TITLEBAR_PATH
+            MENUITEM "Use System &Theme",                              IDM_VIEW_TITLEBAR_THEME
         END
         POPUP "Adjust Toolbar"
         BEGIN

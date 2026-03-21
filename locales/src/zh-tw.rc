@@ -263,6 +263,7 @@ BEGIN
             MENUITEM "顯示程式圖示(&I)",                        IDM_VIEW_TITLEBAR_ICON
             MENUITEM "顯示程式名稱(&N)",                        IDM_VIEW_TITLEBAR_NAME
             MENUITEM "顯示文件路徑(&P)",                        IDM_VIEW_TITLEBAR_PATH
+            MENUITEM "跟隨系統主題(&T)",                        IDM_VIEW_TITLEBAR_THEME
         END
         POPUP "調整工具列"
         BEGIN
