@@ -84,11 +84,21 @@ on_pixmap_make_svg(const char *buf, char **p, const int index, const char *color
         *p = len < VALUE_LEN ? (char *)calloc(1, len) : NULL;
         if (*p)
         {
+            char *key, *tmp = NULL;
+            char fill[OVEC_LEN] = {0};
             strncpy(*p, ptool ? ptool[index].isvg : buf, len - 1);
-            ret = true;
-            if (STR_NOT_NUL(color))
+            if ((key = strstr(*p, "fill=\"")) != NULL)
             {
-                eu_str_replace(*p, len - 1, "#455f91", color);
+                key += strlen("fill=\"");
+                if ((tmp = strchr(key, '\"')) != NULL && tmp - key < OVEC_LEN)
+                {
+                    _snprintf(fill, tmp - key, "%s", key);
+                }
+            }
+            ret = true;
+            if (STR_NOT_NUL(color) && fill[0])
+            {
+                eu_str_replace(*p, len - 1, fill, color);
             }
         }
     }
