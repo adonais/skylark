@@ -173,8 +173,8 @@ function eu_conf.loadconf()
         "titlebar = {\n" ..
         "    icon = true,\n" ..
         "    name = true,\n" ..
-        "    path = true\n" ..
-        "    theme = true\n" ..
+        "    path = true,\n" ..
+        "    theme = false\n" ..
         "}\n" ..
         "-- hyperlink hotspot default setting\n" ..
         "hyperlink_detection = true\n" ..
