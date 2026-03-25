@@ -1,5 +1,5 @@
 name: Skylark Ci
-on: 
+on:
   push:
     branches: 
       - release
@@ -11,10 +11,10 @@ jobs:
     name: skylark build
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 1
-    
+
     - name: set variable
       id: set_var
       run: |
@@ -31,7 +31,7 @@ jobs:
       run: |
         set(clang_url "https://sourceforge.net/projects/libportable/files/Mozillabuild/clang21-win64.7z/download")
         file(DOWNLOAD "${clang_url}" d:/clang21-win64.7z SHOW_PROGRESS)
-        execute_process(COMMAND 7z x d:/clang21-win64.7z -aoa WORKING_DIRECTORY d:)
+        execute_process(COMMAND 7z x d:/clang21-win64.7z -aoa WORKING_DIRECTORY d:/)
 
     - name: download plugins64
       id: plugins64
@@ -41,18 +41,26 @@ jobs:
         file(DOWNLOAD "${threeparty_url}" $ENV{GITHUB_WORKSPACE}/src/3rdparty/plugins_64.7z SHOW_PROGRESS)
         execute_process(COMMAND 7z x ./plugins_64.7z -aoa WORKING_DIRECTORY $ENV{GITHUB_WORKSPACE}/src/3rdparty)
 
+    - name: set_llvm_path
+      id: set_llvm
+      run: |
+        echo d:\clang\bin>>%GITHUB_PATH%
+        rd /s/q "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\Llvm"
+        rd /s/q "C:\Program Files\LLVM"
+      shell: cmd
+
     - name: Building_x64
       id: vs64
       run: |
         cd /d "%GITHUB_WORKSPACE%"
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        set PATH=d:\clang\bin;%PATH%
+        clang -v
         nmake clean
         nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
         if exist "%GITHUB_WORKSPACE%\src\3rdparty\plugins" rd /s/q "%GITHUB_WORKSPACE%\src\3rdparty\plugins"
       shell: cmd
-      
+
     - name: download plugins32
       id: plugins32
       shell: cmake -P {0}
@@ -66,7 +74,7 @@ jobs:
       run: |
         cd /d "%GITHUB_WORKSPACE%"
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
-        set PATH=d:\clang\bin;%PATH%
+        clang -v
         nmake clean
         nmake CC=clang-cl ACTIONS_BUILDING=1
         nmake package RELEASE_VERSION=-v%MY_VER%
@@ -78,7 +86,7 @@ jobs:
       with:
         format: YYYYMMDDHHmmss
 
-    - uses: yxl0756/release-action@v1.12.0
+    - uses: yxl0756/release-action@v1.21.0
       with:
         tag: ${{ steps.current-time.outputs.formattedTime }}
         name: Release ${{ steps.current-time.outputs.formattedTime }}

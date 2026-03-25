@@ -261,6 +261,11 @@ share_load_lang(void)
                 break;
             }
             case 0x0404: // 繁体
+            {
+                _sntprintf(lang_path, MAX_PATH-1, _T("%s\\locales\\zh-tw.dll"), eu_module_path);
+                g_skylark_lang = LoadLibraryEx(lang_path, NULL, LOAD_LIBRARY_AS_DATAFILE);
+                break;
+            }
             case 0x0411: // 日文
             case 0x0412: // 韩文
             {

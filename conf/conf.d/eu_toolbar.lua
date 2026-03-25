@@ -3,9 +3,13 @@ eu_toolbar = {}
 require("eu_sci")
 require("eu_core")
 
-function eu_toolbar.loading()
+function eu_toolbar.loading(tname)
   local my_code = nil
-  local bar_file = (eu_core.script_path() .. "\\skylark_toolbar.conf")
+  local st_path = eu_core.script_path()
+  local bar_file = st_path .. "\\skylark_toolbar_" .. tname .. ".conf"
+  if (tname == "" or name == "default" or not eu_core.file_exists(bar_file)) then
+    bar_file = (st_path .. "\\skylark_toolbar.conf")
+  end
   if (not eu_core.file_exists(bar_file)) then
     local code = {
       '--[=[\n',

@@ -600,6 +600,7 @@ menu_update_item(const HMENU menu, const bool init)
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_TITLEBAR_SUB), IDM_VIEW_TITLEBAR_ICON, eu_get_config()->eu_titlebar.icon);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_TITLEBAR_SUB), IDM_VIEW_TITLEBAR_NAME, eu_get_config()->eu_titlebar.name);
                         util_set_menu_item(GetSubMenu(menu, TAB_MENU_TITLEBAR_SUB), IDM_VIEW_TITLEBAR_PATH, eu_get_config()->eu_titlebar.path);
+                        util_set_menu_item(GetSubMenu(menu, TAB_MENU_TITLEBAR_SUB), IDM_VIEW_TITLEBAR_THEME, eu_get_config()->eu_titlebar.theme);
                         enable = util_under_wine();
                         util_enable_menu_item(menu, IDM_VIEW_TITLEBAR_ICON, init || !enable);
                         util_enable_menu_item(menu, IDM_VIEW_TITLEBAR_NAME, init || !enable);

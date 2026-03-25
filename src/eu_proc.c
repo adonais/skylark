@@ -516,6 +516,10 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         return result;
     }
+    if (WM_NCACTIVATE == message && !eu_get_config()->eu_titlebar.theme)
+    {
+        return 1;
+    }
     switch (message)
     {
         case WM_MOUSEACTIVATE:
@@ -595,10 +599,6 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ReleaseDC(hwnd, hdc);
             }
             return result;
-        }
-        case WM_NCACTIVATE:
-        {
-            return 1;
         }
         case WM_SIZE:
         {
@@ -1618,6 +1618,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_VIEW_TITLEBAR_PATH:
                     eu_get_config()->eu_titlebar.path ^= true;
                     util_set_title(pnode);
+                    break;
+                case IDM_VIEW_TITLEBAR_THEME:
+                    eu_get_config()->eu_titlebar.theme ^= true;
                     break;
                 case IDM_VIEW_HISTORY_NONE:
                 case IDM_VIEW_HISTORY_MARGIN:

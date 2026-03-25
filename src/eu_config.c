@@ -778,7 +778,7 @@ eu_config_load_accel(void)
 bool
 eu_config_load_toolbar(void)
 {
-    return on_config_lua_run(_T("eu_gui.lua"), "");
+    return on_config_lua_run(_T("eu_gui.lua"), eu_get_config()->window_theme);
 }
 
 bool

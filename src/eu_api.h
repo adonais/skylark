@@ -402,6 +402,7 @@ typedef struct _titlebar_set
     bool icon;
     bool name;
     bool path;
+    bool theme;
 }titlebar_set;
 
 typedef struct _caret_set

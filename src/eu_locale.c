@@ -20,8 +20,8 @@
 def_localization sz_localization[] =
 {
     {_T("English"), _T("en-us.dll")},
-    {_T("中文简体"), _T("zh-cn.dll")},/*
-    {_T("台灣繁體"), _T("zh-tw.dll")},
+    {_T("中文简体"), _T("zh-cn.dll")},
+    {_T("台灣繁體"), _T("zh-tw.dll")},/*
     {_T("Français"), _T("fr-fr.dll")},
     {_T("한국어"), _T("ko-kr.dll")},
     {_T("日本語"), _T("ja-jp.dll")},

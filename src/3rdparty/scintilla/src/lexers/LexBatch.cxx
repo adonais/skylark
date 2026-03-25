@@ -14,6 +14,7 @@
 
 #include <string>
 #include <string_view>
+#include <map>
 #include <initializer_list>
 
 #include "ILexer.h"
@@ -27,6 +28,7 @@
 #include "StyleContext.h"
 #include "CharacterSet.h"
 #include "LexerModule.h"
+#include "OptionSet.h"
 #include "DefaultLexer.h"
 
 using namespace Lexilla;
@@ -55,15 +57,21 @@ const LexicalClass lexicalClasses[] = {
 class LexerBatch : public DefaultLexer {
 	WordList keywords;
 	WordList keywords2;
+	std::string wordLists;
 public:
 	explicit LexerBatch() :
-		DefaultLexer("batch", SCLEX_BATCH, lexicalClasses, std::size(lexicalClasses)) {}
+		DefaultLexer("batch", SCLEX_BATCH, lexicalClasses, std::size(lexicalClasses)) {
+		wordLists = JoinWordListDescriptions(batchWordListDesc);
+	}
 	LexerBatch(const LexerBatch &) = delete;
 	LexerBatch(LexerBatch &&) = delete;
 	LexerBatch &operator=(const LexerBatch &) = delete;
 	LexerBatch &operator=(LexerBatch &&) = delete;
 	~LexerBatch() override = default;
 
+	const char *SCI_METHOD DescribeWordListSets() override {
+		return wordLists.c_str();
+	}
 	Sci_Position SCI_METHOD WordListSet(int n, const char *wl) override;
 	void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position length, int initStyle, Scintilla::IDocument *pAccess) override;
 
