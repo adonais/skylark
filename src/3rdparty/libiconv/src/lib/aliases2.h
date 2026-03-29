@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2003, 2008, 2022 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2026 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -33,6 +33,13 @@
 #endif
 #ifdef USE_DOS
 # include "aliases_dos.h"
+#endif
+#ifdef USE_OS2
+# if defined __OS2__
+#  include "aliases_os2_sysos2.h"
+# else
+#  include "aliases_os2.h"
+# endif
 #endif
 #ifdef USE_ZOS
 # include "aliases_zos.h"

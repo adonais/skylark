@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2024 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2026 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -37,6 +37,7 @@
 #define USE_AIX
 #define USE_OSF1
 #define USE_DOS
+#define USE_OS2
 #define USE_ZOS
 #define USE_EXTRA
 #else
@@ -44,14 +45,17 @@
  * Consider those system dependent encodings that are needed for the
  * current system.
  */
-#ifdef _AIX
+#if defined(_AIX) || defined(__OS2__)
 #define USE_AIX
 #endif
 #if defined(__osf__) || defined(VMS)
 #define USE_OSF1
 #endif
-#if defined(__DJGPP__) || (defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__)))
+#if defined(__DJGPP__) || (defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))) || defined(__OS2__)
 #define USE_DOS
+#endif
+#ifdef __OS2__
+#define USE_OS2
 #endif
 /* Enable the EBCDIC encodings not only on z/OS but also on Linux/s390, for
    easier interoperability between z/OS and Linux/s390.  */
@@ -162,6 +166,8 @@ static struct encoding const all_encodings[] = {
 # include "aliases_sysosf1.h"
 #elif defined __sun
 # include "aliases_syssolaris.h"
+#elif defined __OS2__
+# include "aliases_sysos2.h"
 #else
 # include "aliases.h"
 #endif
@@ -171,7 +177,7 @@ static struct encoding const all_encodings[] = {
  * Defines
  *   const struct alias * aliases2_lookup (const char *str);
  */
-#if defined(USE_AIX) || defined(USE_OSF1) || defined(USE_DOS) || defined(USE_ZOS) || defined(USE_EXTRA) /* || ... */
+#if defined(USE_AIX) || defined(USE_OSF1) || defined(USE_DOS) || defined(USE_OS2) || defined(USE_ZOS) || defined(USE_EXTRA) /* || ... */
 struct stringpool2_t {
 #define S(tag,name,encoding_index) char stringpool_##tag[sizeof(name)];
 #include "aliases2.h"
@@ -492,7 +498,7 @@ void iconvlist (int (*do_one) (unsigned int namescount,
       if (i > 1)
         qsort((void *)namesbuf, i, sizeof(const char *), compare_by_name);
       /* Call the callback. */
-      if (do_one(i,namesbuf,data))
+      if (do_one((unsigned int)i,namesbuf,data))
         break;
     }
   }
@@ -514,6 +520,8 @@ static const unsigned short all_canonical[] = {
 # include "canonical_sysosf1.h"
 #elif defined __sun
 # include "canonical_syssolaris.h"
+#elif defined __OS2__
+# include "canonical_sysos2.h"
 #else
 # include "canonical.h"
 #endif
@@ -534,6 +542,13 @@ static const unsigned short all_canonical[] = {
 #ifdef USE_DOS
 # include "canonical_dos.h"
 #endif
+#ifdef USE_OS2
+# if defined __OS2__
+#  include "canonical_os2_sysos2.h"
+# else
+#  include "canonical_os2.h"
+# endif
+#endif
 #ifdef USE_ZOS
 # include "canonical_zos.h"
 #endif
@@ -548,6 +563,8 @@ static const unsigned short all_canonical[] = {
 # include "canonical_local_sysosf1.h"
 #elif defined __sun
 # include "canonical_local_syssolaris.h"
+#elif defined __OS2__
+# include "canonical_local_sysos2.h"
 #else
 # include "canonical_local.h"
 #endif

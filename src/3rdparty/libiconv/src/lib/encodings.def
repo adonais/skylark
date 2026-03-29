@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2011 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2026 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
@@ -50,6 +50,10 @@ DEFENCODING(( "US-ASCII",               /* IANA */
             ),
             ascii,
             { ascii_mbtowc, NULL },       { ascii_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-367",                /* OS/2 */
+            ascii)
+#endif
 #ifdef USE_SOLARIS_ALIASES
 DEFALIAS(     "646",                    /* Solaris */
             ascii)
@@ -65,6 +69,10 @@ DEFENCODING(( "UTF-8",                  /* IANA, RFC 2279 */
             { utf8_mbtowc, NULL },        { utf8_wctomb, NULL })
 #ifdef USE_HPUX_ALIASES
 DEFALIAS(     "UTF8",                   /* HP-UX */
+            utf8)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1208",               /* OS/2 */
             utf8)
 #endif
 
@@ -189,7 +197,7 @@ DEFENCODING(( "ISO-8859-1",             /* IANA */
               "LATIN1",                 /* IANA */
               "L1",                     /* IANA */
               "csISOLatin1",            /* IANA */
-              "ISO8859-1",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris */
+              "ISO8859-1",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris, OS/2 */
             /*"ISO8859_1",                 JDK 1.1 */
             /*"CP28591",                   Windows */
             ),
@@ -197,6 +205,10 @@ DEFENCODING(( "ISO-8859-1",             /* IANA */
             { iso8859_1_mbtowc, NULL },   { iso8859_1_wctomb, NULL })
 #ifdef USE_HPUX_ALIASES
 DEFALIAS(     "ISO88591",               /* HP-UX */
+            iso8859_1)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-819",                /* OS/2 */
             iso8859_1)
 #endif
 
@@ -207,7 +219,7 @@ DEFENCODING(( "ISO-8859-2",             /* IANA */
               "LATIN2",                 /* IANA */
               "L2",                     /* IANA */
               "csISOLatin2",            /* IANA */
-              "ISO8859-2",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris */
+              "ISO8859-2",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris, OS/2 */
             /*"ISO8859_2",                 JDK 1.1 */
             /*"CP28592",                   Windows */
             ),
@@ -215,6 +227,10 @@ DEFENCODING(( "ISO-8859-2",             /* IANA */
             { iso8859_2_mbtowc, NULL },   { iso8859_2_wctomb, NULL })
 #ifdef USE_HPUX_ALIASES
 DEFALIAS(     "ISO88592",               /* HP-UX */
+            iso8859_2)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-912",                /* OS/2 */
             iso8859_2)
 #endif
 
@@ -225,12 +241,16 @@ DEFENCODING(( "ISO-8859-3",             /* IANA */
               "LATIN3",                 /* IANA */
               "L3",                     /* IANA */
               "csISOLatin3",            /* IANA */
-              "ISO8859-3",              /* X11R6.4, glibc, FreeBSD, Solaris */
+              "ISO8859-3",              /* X11R6.4, glibc, FreeBSD, Solaris, OS/2 */
             /*"ISO8859_3",                 JDK 1.1 */
             /*"CP28593",                   Windows */
             ),
             iso8859_3,
             { iso8859_3_mbtowc, NULL },   { iso8859_3_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-913",                /* OS/2 */
+            iso8859_3)
+#endif
 
 DEFENCODING(( "ISO-8859-4",             /* IANA */
               "ISO_8859-4",             /* IANA */
@@ -239,12 +259,16 @@ DEFENCODING(( "ISO-8859-4",             /* IANA */
               "LATIN4",                 /* IANA */
               "L4",                     /* IANA */
               "csISOLatin4",            /* IANA */
-              "ISO8859-4",              /* X11R6.4, glibc, FreeBSD, OSF/1, Solaris */
+              "ISO8859-4",              /* X11R6.4, glibc, FreeBSD, OSF/1, Solaris, OS/2 */
             /*"ISO8859_4",                 JDK 1.1 */
             /*"CP28594",                   Windows */
             ),
             iso8859_4,
             { iso8859_4_mbtowc, NULL },   { iso8859_4_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-914",                /* OS/2 */
+            iso8859_4)
+#endif
 
 DEFENCODING(( "ISO-8859-5",             /* IANA */
               "ISO_8859-5",             /* IANA */
@@ -252,7 +276,7 @@ DEFENCODING(( "ISO-8859-5",             /* IANA */
               "ISO-IR-144",             /* IANA */
               "CYRILLIC",               /* IANA */
               "csISOLatinCyrillic",     /* IANA */
-              "ISO8859-5",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris */
+              "ISO8859-5",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris, OS/2 */
             /*"ISO8859_5",                 JDK 1.1 */
             /*"CP28595",                   Windows */
             ),
@@ -260,6 +284,10 @@ DEFENCODING(( "ISO-8859-5",             /* IANA */
             { iso8859_5_mbtowc, NULL },   { iso8859_5_wctomb, NULL })
 #ifdef USE_HPUX_ALIASES
 DEFALIAS(     "ISO88595",               /* HP-UX */
+            iso8859_5)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-915",                /* OS/2 */
             iso8859_5)
 #endif
 
@@ -271,7 +299,7 @@ DEFENCODING(( "ISO-8859-6",             /* IANA */
               "ASMO-708",               /* IANA */
               "ARABIC",                 /* IANA */
               "csISOLatinArabic",       /* IANA */
-              "ISO8859-6",              /* X11R6.4, glibc, FreeBSD, AIX, Solaris */
+              "ISO8859-6",              /* X11R6.4, glibc, FreeBSD, AIX, Solaris, OS/2 */
             /*"ISO8859_6",                 JDK 1.1 */
             /*"CP28596",                   Windows */
             ),
@@ -279,6 +307,10 @@ DEFENCODING(( "ISO-8859-6",             /* IANA */
             { iso8859_6_mbtowc, NULL },   { iso8859_6_wctomb, NULL })
 #ifdef USE_HPUX_ALIASES
 DEFALIAS(     "ISO88596",               /* HP-UX */
+            iso8859_6)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1089",               /* OS/2 */
             iso8859_6)
 #endif
 
@@ -292,7 +324,7 @@ DEFENCODING(( "ISO-8859-7",             /* IANA, RFC 1947 */
               "GREEK8",                 /* IANA */
               "GREEK",                  /* IANA */
               "csISOLatinGreek",        /* IANA */
-              "ISO8859-7",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris */
+              "ISO8859-7",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris, OS/2 */
             /*"ISO8859_7",                 JDK 1.1 */
             /*"CP28597",                   Windows */
             ),
@@ -302,6 +334,10 @@ DEFENCODING(( "ISO-8859-7",             /* IANA, RFC 1947 */
 DEFALIAS(     "ISO88597",               /* HP-UX */
             iso8859_7)
 #endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-813",                /* OS/2 */
+            iso8859_7)
+#endif
 
 DEFENCODING(( "ISO-8859-8",             /* IANA */
               "ISO_8859-8",             /* IANA */
@@ -309,7 +345,7 @@ DEFENCODING(( "ISO-8859-8",             /* IANA */
               "ISO-IR-138",             /* IANA */
               "HEBREW",                 /* IANA */
               "csISOLatinHebrew",       /* IANA */
-              "ISO8859-8",              /* X11R6.4, glibc, FreeBSD, AIX, OSF/1, Solaris */
+              "ISO8859-8",              /* X11R6.4, glibc, FreeBSD, AIX, OSF/1, Solaris, OS/2 */
             /*"ISO8859_8",                 JDK 1.1 */
             /*"CP28598",                   Windows */
             /*"CP38598",                   Windows */
@@ -320,6 +356,10 @@ DEFENCODING(( "ISO-8859-8",             /* IANA */
 DEFALIAS(     "ISO88598",               /* HP-UX */
             iso8859_8)
 #endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-916",                /* OS/2 */
+            iso8859_8)
+#endif
 
 DEFENCODING(( "ISO-8859-9",             /* IANA */
               "ISO_8859-9",             /* IANA */
@@ -328,7 +368,7 @@ DEFENCODING(( "ISO-8859-9",             /* IANA */
               "LATIN5",                 /* IANA */
               "L5",                     /* IANA */
               "csISOLatin5",            /* IANA */
-              "ISO8859-9",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris */
+              "ISO8859-9",              /* X11R6.4, glibc, FreeBSD, AIX, IRIX, OSF/1, Solaris, OS/2 */
             /*"ISO8859_9",                 JDK 1.1 */
             /*"CP28599",                   Windows */
             ),
@@ -336,6 +376,10 @@ DEFENCODING(( "ISO-8859-9",             /* IANA */
             { iso8859_9_mbtowc, NULL },   { iso8859_9_wctomb, NULL })
 #ifdef USE_HPUX_ALIASES
 DEFALIAS(     "ISO88599",               /* HP-UX */
+            iso8859_9)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-920",                /* OS/2 */
             iso8859_9)
 #endif
 
@@ -372,6 +416,10 @@ DEFENCODING(( "ISO-8859-13",            /* IANA, glibc */
 DEFALIAS(     "IBM-921",                /* AIX */
             iso8859_13)
 #endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-921",                /* OS/2 */
+            iso8859_13)
+#endif
 
 DEFENCODING(( "ISO-8859-14",            /* IANA, glibc */
               "ISO_8859-14",            /* IANA */
@@ -399,6 +447,10 @@ DEFENCODING(( "ISO-8859-15",            /* IANA, glibc */
 DEFALIAS(     "ISO885915",              /* HP-UX */
             iso8859_15)
 #endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-923",                /* OS/2 */
+            iso8859_15)
+#endif
 
 DEFENCODING(( "ISO-8859-16",            /* IANA */
               "ISO_8859-16",            /* IANA */
@@ -417,6 +469,10 @@ DEFENCODING(( "KOI8-R",                 /* IANA, RFC 1489, X11R6.4, JDK 1.1 */
             ),
             koi8_r,
             { koi8_r_mbtowc, NULL },      { koi8_r_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-878",                /* OS/2 */
+            koi8_r)
+#endif
 
 DEFENCODING(( "KOI8-U",                 /* IANA, RFC 2319 */
             ),
@@ -437,6 +493,10 @@ DEFENCODING(( "CP1250",                 /* JDK 1.1 */
             ),
             cp1250,
             { cp1250_mbtowc, NULL },      { cp1250_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1250",               /* OS/2 */
+            cp1250)
+#endif
 
 DEFENCODING(( "CP1251",                 /* JDK 1.1 */
               "WINDOWS-1251",           /* IANA */
@@ -444,6 +504,10 @@ DEFENCODING(( "CP1251",                 /* JDK 1.1 */
             ),
             cp1251,
             { cp1251_mbtowc, NULL },      { cp1251_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1251",               /* OS/2 */
+            cp1251)
+#endif
 #ifdef USE_SOLARIS_ALIASES
 DEFALIAS(     "ANSI-1251",              /* Solaris */
             cp1251)
@@ -455,8 +519,12 @@ DEFENCODING(( "CP1252",                 /* JDK 1.1 */
             ),
             cp1252,
             { cp1252_mbtowc, NULL },      { cp1252_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-1252",               /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-1252",               /* AIX, OS/2 */
+            cp1252)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1004",               /* OS/2 */
             cp1252)
 #endif
 
@@ -466,6 +534,10 @@ DEFENCODING(( "CP1253",                 /* JDK 1.1 */
             ),
             cp1253,
             { cp1253_mbtowc, NULL },      { cp1253_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1253",               /* OS/2 */
+            cp1253)
+#endif
 
 DEFENCODING(( "CP1254",                 /* JDK 1.1 */
               "WINDOWS-1254",           /* IANA */
@@ -473,6 +545,10 @@ DEFENCODING(( "CP1254",                 /* JDK 1.1 */
             ),
             cp1254,
             { cp1254_mbtowc, NULL },      { cp1254_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1254",               /* OS/2 */
+            cp1254)
+#endif
 
 DEFENCODING(( "CP1255",                 /* JDK 1.1 */
               "WINDOWS-1255",           /* IANA */
@@ -480,6 +556,10 @@ DEFENCODING(( "CP1255",                 /* JDK 1.1 */
             ),
             cp1255,
             { cp1255_mbtowc, cp1255_flushwc }, { cp1255_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1255",               /* OS/2 */
+            cp1255)
+#endif
 
 DEFENCODING(( "CP1256",                 /* JDK 1.1 */
               "WINDOWS-1256",           /* IANA */
@@ -487,6 +567,10 @@ DEFENCODING(( "CP1256",                 /* JDK 1.1 */
             ),
             cp1256,
             { cp1256_mbtowc, NULL },      { cp1256_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1256",               /* OS/2 */
+            cp1256)
+#endif
 
 DEFENCODING(( "CP1257",                 /* JDK 1.1 */
               "WINDOWS-1257",           /* IANA */
@@ -494,6 +578,10 @@ DEFENCODING(( "CP1257",                 /* JDK 1.1 */
             ),
             cp1257,
             { cp1257_mbtowc, NULL },      { cp1257_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1257",               /* OS/2 */
+            cp1257)
+#endif
 
 DEFENCODING(( "CP1258",                 /* JDK 1.1 */
               "WINDOWS-1258",           /* IANA */
@@ -510,8 +598,12 @@ DEFENCODING(( "CP850",                  /* IANA, JDK 1.1 */
             ),
             cp850,
             { cp850_mbtowc, NULL },       { cp850_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-850",                /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-850",                /* AIX, OS/2 */
+            cp850)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-4946",               /* OS/2 */
             cp850)
 #endif
 
@@ -522,6 +614,10 @@ DEFENCODING(( "CP862",                  /* IANA, JDK 1.1 */
             ),
             cp862,
             { cp862_mbtowc, NULL },       { cp862_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-862",                /* OS/2 */
+            cp862)
+#endif
 
 DEFENCODING(( "CP866",                  /* IANA, JDK 1.1 */
               "IBM866",                 /* IANA */
@@ -530,13 +626,17 @@ DEFENCODING(( "CP866",                  /* IANA, JDK 1.1 */
             ),
             cp866,
             { cp866_mbtowc, NULL },       { cp866_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-866",                /* OS/2 */
+            cp866)
+#endif
 
 DEFENCODING(( "CP1131",                 /* FreeBSD, MacOS X */
             ),
             cp1131,
             { cp1131_mbtowc, NULL },      { cp1131_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-1131",               /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-1131",               /* AIX, OS/2 */
             cp1131)
 #endif
 
@@ -708,6 +808,10 @@ DEFENCODING(( "CP874",                  /* JDK 1.1 */
             ),
             cp874,
             { cp874_mbtowc, NULL },       { cp874_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-874",                /* OS/2 */
+            cp874)
+#endif
 
 DEFENCODING(( "VISCII",                 /* IANA, RFC 1456 */
               "VISCII1.1-1",
@@ -811,7 +915,7 @@ DEFENCODING(( "KSC_5601",               /* IANA */
 /* CJK encodings */
 
 DEFENCODING(( "EUC-JP",                 /* IANA */
-              "EUCJP",                  /* glibc, HP-UX, IRIX, OSF/1, Solaris */
+              "EUCJP",                  /* glibc, HP-UX, IRIX, OSF/1, Solaris, OS/2 */
               "Extended_UNIX_Code_Packed_Format_for_Japanese", /* IANA */
               "csEUCPkdFmtJapanese",    /* IANA */
             /*"EUC_JP",                    JDK 1.1 */
@@ -819,10 +923,19 @@ DEFENCODING(( "EUC-JP",                 /* IANA */
             ),
             euc_jp,
             { euc_jp_mbtowc, NULL },      { euc_jp_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-EUCJP",              /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-EUCJP",              /* AIX, OS/2 */
             euc_jp)
 #endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-3372",               /* OS/2 */
+            euc_jp)
+DEFALIAS(     "IBM-33722",              /* OS/2 */
+            euc_jp)
+DEFALIAS(     "IBM-954",                /* OS/2 */
+            euc_jp)
+#endif
+
 #ifdef USE_OSF1_ALIASES
 DEFALIAS(     "SDECKANJI",              /* OSF/1 */
             euc_jp)
@@ -845,8 +958,8 @@ DEFENCODING(( "CP932",                  /* glibc */
             ),
             cp932,
             { cp932_mbtowc, NULL },       { cp932_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-932",                /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-932",                /* AIX, OS/2 */
             cp932)
 #endif
 
@@ -885,12 +998,18 @@ DEFENCODING(( "EUC-CN",                 /* glibc */
             ),
             euc_cn,
             { euc_cn_mbtowc, NULL },      { euc_cn_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-EUCCN",              /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-EUCCN",              /* AIX, OS/2 */
             euc_cn)
 #endif
 #ifdef USE_HPUX_ALIASES
 DEFALIAS(     "HP15CN",                 /* HP-UX */
+            euc_cn)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1381",               /* OS/2 */
+            euc_cn)
+DEFALIAS(     "IBM-1383",               /* OS/2 */
             euc_cn)
 #endif
 #ifdef USE_OSF1_ALIASES
@@ -902,6 +1021,10 @@ DEFENCODING(( "GBK",                    /* IANA, JDK 1.1 */
             ),
             ces_gbk,
             { ces_gbk_mbtowc, NULL },     { ces_gbk_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-1386",               /* OS/2 */
+            ces_gbk)
+#endif
 
 DEFENCODING(( "CP936",                  /* IANA */
               "MS936",                  /* IANA */
@@ -949,8 +1072,14 @@ DEFENCODING(( "EUC-TW",                 /* glibc */
             ),
             euc_tw,
             { euc_tw_mbtowc, NULL },      { euc_tw_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-EUCTW",              /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-EUCTW",              /* AIX, OS/2 */
+            euc_tw)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "EUCTW-1993",             /* OS/2 */
+            euc_tw)
+DEFALIAS(     "IBM-964",                /* OS/2 */
             euc_tw)
 #endif
 #ifdef USE_SOLARIS_ALIASES
@@ -972,6 +1101,10 @@ DEFENCODING(( "CP950",                  /* JDK 1.1 */
             ),
             cp950,
             { cp950_mbtowc, NULL },       { cp950_wctomb, NULL })
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-950",                /* OS/2 */
+            cp950)
+#endif
 
 DEFENCODING(( "BIG5-HKSCS:1999",
             ),
@@ -996,19 +1129,23 @@ DEFENCODING(( "BIG5-HKSCS",             /* IANA */
             { big5hkscs2008_mbtowc, big5hkscs2008_flushwc }, { big5hkscs2008_wctomb, big5hkscs2008_reset })
 
 DEFENCODING(( "EUC-KR",                 /* IANA, RFC 1557 */
-              "EUCKR",                  /* glibc, HP-UX, IRIX, OSF/1 */
+              "EUCKR",                  /* glibc, HP-UX, IRIX, OSF/1, OS/2 */
               "csEUCKR",                /* IANA */
             /*"EUC_KR",                    JDK 1.1 */
             /*"CP51949",                   Windows */
             ),
             euc_kr,
             { euc_kr_mbtowc, NULL },      { euc_kr_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-EUCKR",              /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-EUCKR",              /* AIX, OS/2 */
             euc_kr)
 #endif
 #ifdef USE_OSF1_ALIASES
 DEFALIAS(     "DECKOREAN",              /* OSF/1 */
+            euc_kr)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-970",                /* OS/2 */
             euc_kr)
 #endif
 #ifdef USE_SOLARIS_ALIASES
@@ -1023,6 +1160,10 @@ DEFENCODING(( "CP949",                  /* JDK 1.1 */
             { cp949_mbtowc, NULL },       { cp949_wctomb, NULL })
 #ifdef USE_OSF1_ALIASES
 DEFALIAS(     "KSC5601",                /* OSF/1 */
+            cp949)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "IBM-949",                /* OS/2 */
             cp949)
 #endif
 

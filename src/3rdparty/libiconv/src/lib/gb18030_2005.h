@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2005, 2012, 2016, 2023 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2001, 2005, 2012, 2016, 2023, 2025 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
@@ -361,11 +361,14 @@ gb18030_2005_wctomb (conv_t conv, unsigned char *r, ucs4_t wc, size_t n)
               r[1] = c & 0xff;
               return 2;
             } else {
-              r[0] = (c >> 24);
-              r[1] = (c >> 16) & 0xff;
-              r[2] = (c >> 8) & 0xff;
-              r[3] = c & 0xff;
-              return 4;
+              if (n >= 4) {
+                r[0] = (c >> 24);
+                r[1] = (c >> 16) & 0xff;
+                r[2] = (c >> 8) & 0xff;
+                r[3] = c & 0xff;
+                return 4;
+              } else
+                return RET_TOOSMALL;
             }
           }
         }

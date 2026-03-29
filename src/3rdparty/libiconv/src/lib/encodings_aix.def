@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2002, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2026 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
@@ -21,8 +21,8 @@ DEFENCODING(( "CP856",
             ),
             cp856,
             { cp856_mbtowc, NULL },       { cp856_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-856",                /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-856",                /* AIX, OS/2 */
             cp856)
 #endif
 
@@ -30,8 +30,8 @@ DEFENCODING(( "CP922",
             ),
             cp922,
             { cp922_mbtowc, NULL },       { cp922_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-922",                /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-922",                /* AIX, OS/2 */
             cp922)
 #endif
 
@@ -39,8 +39,14 @@ DEFENCODING(( "CP943",
             ),
             cp943,
             { cp943_mbtowc, NULL },       { cp943_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-943",                /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-943",                /* AIX, OS/2 */
+            cp943)
+#endif
+#ifdef USE_OS2_ALIASES
+DEFALIAS(     "SJIS-1",                 /* OS/2 */
+            cp943)
+DEFALIAS(     "SJIS-2",                 /* OS/2 */
             cp943)
 #endif
 
@@ -57,8 +63,8 @@ DEFENCODING(( "CP1124",
             ),
             cp1124,
             { cp1124_mbtowc, NULL },      { cp1124_wctomb, NULL })
-#ifdef USE_AIX_ALIASES
-DEFALIAS(     "IBM-1124",               /* AIX */
+#if defined USE_AIX_ALIASES || defined USE_OS2_ALIASES
+DEFALIAS(     "IBM-1124",               /* AIX, OS/2 */
             cp1124)
 #endif
 
