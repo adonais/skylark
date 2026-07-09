@@ -88,6 +88,7 @@ int util_dec_des_cbc_192(unsigned char *key_192bits, unsigned char *encrypt, lon
 int util_file_md5(const TCHAR *path, TCHAR **pout);
 int util_file_sha1(const TCHAR *path, TCHAR **pout);
 int util_file_sha256(const TCHAR *path, TCHAR **pout);
+int util_file_sha512(const TCHAR *path, TCHAR **pout);
 int util_file_base64(const TCHAR *path, char **pout);
 
 int util_hex_expand(char *hex_buf, int hex_len, char *asc_buf);

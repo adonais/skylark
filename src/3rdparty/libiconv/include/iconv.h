@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2026 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
@@ -24,8 +24,29 @@
 extern "C" {
 #endif
 
-#define _LIBICONV_VERSION 0x0112    /* version number: (major<<8) + minor */
-extern  int _libiconv_version; /* Likewise */
+#define _LIBICONV_VERSION 0x0113    /* version number: (major<<8) + minor */
+
+#if 0 && BUILDING_LIBICONV
+# define LIBICONV_SHLIB_EXPORTED __attribute__((__visibility__("default")))
+#elif defined _MSC_VER && BUILDING_LIBICONV
+/* When building with MSVC, exporting a symbol means that the object file
+   contains a "linker directive" of the form /EXPORT:symbol.  This can be
+   inspected through the "objdump -s --section=.drectve FILE" or
+   "dumpbin /directives FILE" commands.
+   The symbols from this file should be exported if and only if the object
+   file gets included in a DLL.  Libtool, on Windows platforms, defines
+   the C macro DLL_EXPORT (together with PIC) when compiling for a shared
+   library (called DLL under Windows) and does not define it when compiling
+   an object file meant to be linked statically into some executable.  */
+# if defined DLL_EXPORT
+#  define LIBICONV_SHLIB_EXPORTED __declspec(dllexport)
+# else
+#  define LIBICONV_SHLIB_EXPORTED
+# endif
+#else
+# define LIBICONV_SHLIB_EXPORTED
+#endif
+extern LIBICONV_SHLIB_EXPORTED  int _libiconv_version; /* Likewise */
 
 #ifdef __cplusplus
 }
@@ -70,7 +91,7 @@ extern "C" {
 /* Allocates descriptor for code conversion from encoding ‘fromcode’ to
    encoding ‘tocode’. */
 #define iconv_open libiconv_open
-extern iconv_t iconv_open (const char* tocode, const char* fromcode);
+extern LIBICONV_SHLIB_EXPORTED iconv_t iconv_open (const char* tocode, const char* fromcode);
 
 /* Converts, using conversion descriptor ‘cd’, at most ‘*inbytesleft’ bytes
    starting at ‘*inbuf’, writing at most ‘*outbytesleft’ bytes starting at
@@ -78,11 +99,11 @@ extern iconv_t iconv_open (const char* tocode, const char* fromcode);
    Decrements ‘*inbytesleft’ and increments ‘*inbuf’ by the same amount.
    Decrements ‘*outbytesleft’ and increments ‘*outbuf’ by the same amount. */
 #define iconv libiconv
-extern size_t iconv (iconv_t cd,  char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
+extern LIBICONV_SHLIB_EXPORTED size_t iconv (iconv_t cd,  char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft);
 
 /* Frees resources allocated for conversion descriptor ‘cd’. */
 #define iconv_close libiconv_close
-extern int iconv_close (iconv_t cd);
+extern LIBICONV_SHLIB_EXPORTED int iconv_close (iconv_t cd);
 
 
 #ifdef __cplusplus
@@ -122,12 +143,12 @@ typedef struct {
    encoding ‘tocode’ into preallocated memory. Returns an error indicator
    (0 or -1 with errno set). */
 #define iconv_open_into libiconv_open_into
-extern int iconv_open_into (const char* tocode, const char* fromcode,
+extern LIBICONV_SHLIB_EXPORTED int iconv_open_into (const char* tocode, const char* fromcode,
                             iconv_allocation_t* resultp);
 
 /* Control of attributes. */
 #define iconvctl libiconvctl
-extern int iconvctl (iconv_t cd, int request, void* argument);
+extern LIBICONV_SHLIB_EXPORTED int iconvctl (iconv_t cd, int request, void* argument);
 
 /* Hook performed after every successful conversion of a Unicode character. */
 typedef void (*iconv_unicode_char_hook) (unsigned int uc, void* data);
@@ -216,14 +237,14 @@ struct iconv_fallbacks {
 
 /* Listing of locale independent encodings. */
 #define iconvlist libiconvlist
-extern void iconvlist (int (*do_one) (unsigned int namescount,
+extern LIBICONV_SHLIB_EXPORTED void iconvlist (int (*do_one) (unsigned int namescount,
                                       const char * const * names,
                                       void* data),
                        void* data);
 
 /* Canonicalize an encoding name.
    The result is either a canonical encoding name, or name itself. */
-extern const char * iconv_canonicalize (const char * name);
+extern LIBICONV_SHLIB_EXPORTED const char * iconv_canonicalize (const char * name);
 
 #ifdef __cplusplus
 }

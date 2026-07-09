@@ -59,6 +59,8 @@
 /* Define to 1 if you have the <wchar.h> header file. */
 #define HAVE_WCHAR_H 1
 
+/* Define to 1 if O_DIRECTORY works, 0 otherwise. */
+#define HAVE_WORKING_O_DIRECTORY 0
 /* Define to 1 if O_NOATIME works. */
 #define HAVE_WORKING_O_NOATIME 0
 

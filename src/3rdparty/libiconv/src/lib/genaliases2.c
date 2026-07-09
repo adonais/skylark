@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2003, 2005, 2008, 2012, 2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2026 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
@@ -91,6 +91,10 @@ int main (int argc, char* argv[])
 #include "encodings_osf1.def"
 #endif
 #ifdef USE_DOS
+#include "encodings_dos.def"
+#endif
+#ifdef USE_OS2
+#include "encodings_aix.def"
 #include "encodings_dos.def"
 #endif
 #ifdef USE_ZOS

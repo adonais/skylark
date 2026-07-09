@@ -1455,6 +1455,40 @@ on_edit_sha256(eu_tabpage *pnode)
 }
 
 int
+on_edit_sha512(eu_tabpage *pnode)
+{
+    size_t sel_len;
+    char *sel_text = NULL;
+    char out_text[SHA512_DIGEST_LENGTH + 1] = {0};
+    char text_exp[SHA512_DIGEST_LENGTH * 2 + 1] = {0};
+    if (!pnode)
+    {
+        return EUE_TAB_NULL;
+    }
+    if (TAB_HEX_MODE(pnode) || pnode->plugin)
+    {
+        return EUE_UNKOWN_ERR;
+    }
+    if ((sel_text = util_strdup_select(pnode, &sel_len, 0)) == NULL)
+    {
+        eu_logmsg("Edit: %s, memory allocation failed\n", __FUNCTION__);
+        return EUE_OUT_OF_MEMORY;
+    }
+    char *fn_name[1] = {"SHA512"};
+    uintptr_t pfunc[1] = {0};
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 1, pfunc);
+    if (hssl)
+    {
+        ((eu_sha512)pfunc[0])((unsigned char *) sel_text, (int) sel_len, (unsigned char *) out_text);
+        util_hex_expand(out_text, SHA512_DIGEST_LENGTH, text_exp);
+        on_sci_call(pnode, SCI_REPLACESEL, 0, (sptr_t) text_exp);
+        util_ssl_close_symbol(&hssl);
+    }
+    free(sel_text);
+    return SKYLARK_OK;
+}
+
+int
 on_edit_descbc_enc(eu_tabpage *pnode)
 {
     int err = 0;

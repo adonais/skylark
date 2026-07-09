@@ -17,12 +17,14 @@
  *******************************************************************************/
 
 #include "framework.h"
+#include <winioctl.h>
 
 typedef enum _GENERATE_TYPE
 {
     MD5_GENERATE,
     SHA1_GENERATE,
     SHA256_GENERATE,
+    SHA512_GENERATE,
     BASE64_GENERATE
 } GENERATE_TYPE;
 
@@ -836,6 +838,39 @@ on_filetree_append_file_child(HWND hwnd, tree_data *tpnode)
     return ret;
 }
 
+static bool
+usb_device(wchar_t letter)
+{
+    wchar_t volumeAccessPath[] = L"\\\\.\\X:";
+    volumeAccessPath[4]        = letter;
+
+    HANDLE deviceHandle = CreateFileW(volumeAccessPath,
+                                      0,                                   // no access to the drive
+                                      FILE_SHARE_READ | FILE_SHARE_WRITE,  // share mode
+                                      NULL,                                // default security attributes
+                                      OPEN_EXISTING,                       // disposition
+                                      0,                                   // file attributes
+                                      NULL);                               // do not copy file attributes
+
+    // setup query
+    STORAGE_PROPERTY_QUERY query;
+    memset(&query, 0, sizeof(query));
+    query.PropertyId = StorageDeviceProperty;
+    query.QueryType  = PropertyStandardQuery;
+
+    // issue query
+    DWORD bytes;
+    STORAGE_DEVICE_DESCRIPTOR devd;
+    STORAGE_BUS_TYPE busType = BusTypeUnknown;
+
+    if (DeviceIoControl(deviceHandle, IOCTL_STORAGE_QUERY_PROPERTY, &query, sizeof(query), &devd, sizeof(devd), &bytes, NULL))
+    {
+        busType = devd.BusType;
+    }
+    CloseHandle(deviceHandle);
+    return BusTypeUsb == busType;
+}
+
 static int
 on_filetree_load_drives(HWND hwnd)
 {
@@ -849,11 +884,16 @@ on_filetree_load_drives(HWND hwnd)
     while (pdri[0] && pdri - dri_name < MAX_PATH)
     {
         dri_len = _tcslen(pdri);
-        if ((type = GetDriveType(pdri)) == DRIVE_FIXED)
+        if ((type = GetDriveType(pdri)) == DRIVE_FIXED || type == DRIVE_REMOVABLE)
         {
             if (_tcschr(pdri, _T('\\')))
             {
                 *(_tcschr(pdri, _T('\\'))) = '\0';
+            }
+            if (type == DRIVE_REMOVABLE && !usb_device(pdri[0]))
+            {
+                pdri += dri_len + 1;
+                continue;
             }
             if ((tvd = on_filetree_add_node(hwnd, TVI_ROOT, IMG_DRIVE, NULL, pdri, pdri, pdri, NULL, true))== NULL)
             {
@@ -1301,6 +1341,9 @@ on_filetree_generate_enc(GENERATE_TYPE type)
         case SHA256_GENERATE:
             err = util_file_sha256(p, &out);
             break;
+        case SHA512_GENERATE:
+            err = util_file_sha512(p, &out);
+            break;
         case BASE64_GENERATE:
             err = util_file_base64(p, &u8_out);
             break;
@@ -1514,6 +1557,7 @@ on_filetree_menu_callback2(HMENU hpop, void *param)
         util_enable_menu_item(hpop, IDM_FILE_MD5_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA1_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA256_CLIP, ssl);
+        util_enable_menu_item(hpop, IDM_FILE_SHA512_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_PIC_CONVERT_BASE64, enable && ssl);
     }
 }
@@ -1656,6 +1700,9 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_SHA256_CLIP:
                     on_filetree_generate_enc(SHA256_GENERATE);
+                    break;
+                case IDM_FILE_SHA512_CLIP:
+                    on_filetree_generate_enc(SHA512_GENERATE);
                     break;
                 case IDM_PIC_CONVERT_BASE64:
                     on_filetree_generate_enc(BASE64_GENERATE);
