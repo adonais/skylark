@@ -23,6 +23,7 @@ typedef enum _GENERATE_TYPE
     MD5_GENERATE,
     SHA1_GENERATE,
     SHA256_GENERATE,
+    SHA512_GENERATE,
     BASE64_GENERATE
 } GENERATE_TYPE;
 
@@ -1301,6 +1302,9 @@ on_filetree_generate_enc(GENERATE_TYPE type)
         case SHA256_GENERATE:
             err = util_file_sha256(p, &out);
             break;
+        case SHA512_GENERATE:
+            err = util_file_sha512(p, &out);
+            break;
         case BASE64_GENERATE:
             err = util_file_base64(p, &u8_out);
             break;
@@ -1514,6 +1518,7 @@ on_filetree_menu_callback2(HMENU hpop, void *param)
         util_enable_menu_item(hpop, IDM_FILE_MD5_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA1_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_FILE_SHA256_CLIP, ssl);
+        util_enable_menu_item(hpop, IDM_FILE_SHA512_CLIP, ssl);
         util_enable_menu_item(hpop, IDM_PIC_CONVERT_BASE64, enable && ssl);
     }
 }
@@ -1656,6 +1661,9 @@ filetree_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                     break;
                 case IDM_FILE_SHA256_CLIP:
                     on_filetree_generate_enc(SHA256_GENERATE);
+                    break;
+                case IDM_FILE_SHA512_CLIP:
+                    on_filetree_generate_enc(SHA512_GENERATE);
                     break;
                 case IDM_PIC_CONVERT_BASE64:
                     on_filetree_generate_enc(BASE64_GENERATE);

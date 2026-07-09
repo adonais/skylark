@@ -607,7 +607,11 @@ typedef unsigned char* (*eu_sha1)(const unsigned char *d, size_t n, unsigned cha
 typedef int (*eu_sha256_init)(SHA256_CTX *c);
 typedef int (*eu_sha256_update)(SHA256_CTX *c, const void *data, size_t len);
 typedef int (*eu_sha256_final)(unsigned char *md, SHA256_CTX *c);
+typedef int (*eu_sha512_init)(SHA512_CTX *c);
+typedef int (*eu_sha512_update)(SHA512_CTX *c, const void *data, size_t len);
+typedef int (*eu_sha512_final)(unsigned char *md, SHA512_CTX *c);
 typedef unsigned char* (*eu_sha256)(const unsigned char *d, size_t n, unsigned char *md);
+typedef unsigned char* (*eu_sha512)(const unsigned char *d, size_t n, unsigned char *md);
 typedef unsigned char* (*eu_crypto_sha224)(const unsigned char *, size_t, unsigned char *);
 typedef int (*eu_evp_encodeblock)(unsigned char *t, const unsigned char *f, int n);
 typedef int (*eu_evp_decodeblock)(unsigned char *t, const unsigned char *f, int n);
