@@ -163,6 +163,7 @@ BEGIN
             MENUITEM "MD5",                                     IDM_EDIT_MD5
             MENUITEM "SHA1",                                    IDM_EDIT_SHA1
             MENUITEM "SHA256",                                  IDM_EDIT_SHA256
+            MENUITEM "SHA512",                                  IDM_EDIT_SHA512
         END
         POPUP "3DES加密/解密",                                  IDM_EDIT_PLACEHOLDE9
         BEGIN
@@ -572,6 +573,7 @@ BEGIN
         MENUITEM "生成MD5到剪贴板",                             IDM_FILE_MD5_CLIP
         MENUITEM "生成SHA1到剪贴板",                            IDM_FILE_SHA1_CLIP
         MENUITEM "生成SHA256到剪贴板",                          IDM_FILE_SHA256_CLIP
+        MENUITEM "生成SHA512到剪贴板",                          IDM_FILE_SHA512_CLIP
         MENUITEM SEPARATOR
         MENUITEM "图片转base64到编辑器",                        IDM_PIC_CONVERT_BASE64
     END

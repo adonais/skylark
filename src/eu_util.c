@@ -954,6 +954,35 @@ do_fp_sha256(FILE *f, void **pout)
 }
 
 static void
+do_fp_sha512(FILE *f, void **pout)
+{
+    SHA512_CTX c;
+    uint8_t buf[BUFF_64K];
+    uint8_t md[SHA512_DIGEST_LENGTH+1] = {0};
+    char text[SHA512_DIGEST_LENGTH * 2 + 1] = {0};
+    char *fn_name[3] = {"SHA512_Init", "SHA512_Update", "SHA512_Final"};
+    uintptr_t pfunc[3] = {0};
+    HMODULE hssl = util_ssl_open_symbol(fn_name, 3, pfunc);
+    if (hssl)
+    {
+        ((eu_sha512_init)pfunc[0])(&c);
+        for (;;)
+        {
+            size_t i = fread(buf, 1, BUFF_64K, f);
+            if (i <= 0)
+            {
+                break;
+            }
+            ((eu_sha512_update)pfunc[1])(&c, buf, (unsigned long)i);
+        }
+        ((eu_sha512_final)pfunc[2])(&(md[0]), &c);
+        util_hex_expand((char *)md, SHA512_DIGEST_LENGTH, text);
+        *pout = eu_utf8_utf16(text, NULL);
+        util_ssl_close_symbol(&hssl);
+    }
+}
+
+static void
 do_fp_base64(FILE *f, void **pout)
 {
     uintptr_t pfunc[10] = {0};
@@ -1048,6 +1077,12 @@ int
 util_file_sha256(const TCHAR *path, TCHAR **pout)
 {
     return do_file_enc(path, do_fp_sha256, (void **)pout);
+}
+
+int
+util_file_sha512(const TCHAR *path, TCHAR **pout)
+{
+    return do_file_enc(path, do_fp_sha512, (void **)pout);
 }
 
 int

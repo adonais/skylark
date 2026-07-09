@@ -1415,6 +1415,9 @@ on_proc_main_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 case IDM_EDIT_SHA256:
                     on_edit_sha256(pnode);
                     break;
+                case IDM_EDIT_SHA512:
+                    on_edit_sha512(pnode);
+                    break;
                 case IDM_EDIT_3DES_CBC_ENCRYPTO:
                     on_edit_descbc_enc(pnode);
                     break;

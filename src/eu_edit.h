@@ -83,6 +83,7 @@ int on_edit_base64_dec(eu_tabpage *pnode);
 int on_edit_md5(eu_tabpage *pnode);
 int on_edit_sha1(eu_tabpage *pnode);
 int on_edit_sha256(eu_tabpage *pnode);
+int on_edit_sha512(eu_tabpage *pnode);
 int on_edit_descbc_enc(eu_tabpage *pnode);
 int on_edit_descbc_dec(eu_tabpage *pnode);
 int on_edit_comment_line(eu_tabpage *pnode);

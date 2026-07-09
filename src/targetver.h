@@ -570,6 +570,7 @@
 #define IDM_EDIT_GOLINE_GROUP                30215
 #define IDM_EDIT_UNDO_SELECTION              30216
 #define IDM_EDIT_NODRAG                      30217
+#define IDM_EDIT_SHA512                      30218
 
 #define IDM_VIEW_INDENTGUIDES_VISIABLE       30300
 #define IDM_SEARCH_GOTO_PREV_BOOKMARK_INALL  30301
@@ -1162,8 +1163,9 @@
 #define IDS_SKYLARK_DONATION                42868
 #define IDM_DONATION                        42869
 #define IDM_PROGRAM_CPLUS                   42870
-#define IDM_TABPAGE_BAR1                    42871
-#define IDM_TABPAGE_BAR2                    42872
+#define IDM_FILE_SHA512_CLIP                42871
+#define IDM_TABPAGE_BAR1                    42872
+#define IDM_TABPAGE_BAR2                    42873
 
 #define IDD_DONATION_BOX                    42880
 #define IDC_DONA_STATIC1                    42881
