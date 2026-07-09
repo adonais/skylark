@@ -30,7 +30,7 @@
 // 定义版本信息
 #define __EU_INFO_VERSION 4
 #define __EU_INFO_VERSION_MINOR 0
-#define __EU_INFO_VERSION_PATCHLEVEL 20
+#define __EU_INFO_VERSION_PATCHLEVEL 21
 #define __ORIGINAL_NAME TEXT("skylark.exe")
 #define SKYLARK_VERSION (__EU_INFO_VERSION * 10000      \
                         + __EU_INFO_VERSION_MINOR * 100 \
